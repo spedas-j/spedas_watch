@@ -22,9 +22,19 @@
 ;-
 
 pro file_open,type,name,unit=unit,createable=createable,info=fi,test_only=test_only,archive_ext=archive_ext, $
-   file_mode=file_mode,dir_mode=dir_mode,dlevel=dlevel,verbose=verbose,error_message=mss
+   file_mode=file_mode,dir_mode=dir_mode,dlevel=dlevel,verbose=verbose,error_message=mss,compress = compress
 
 fi = file_info(name)
+if keyword_set(compress) then begin
+  if compress eq -1 then gcomp = (strmid(name,2,/reverse_offset) eq '.gz') else gcomp = compress
+endif else gcomp = 0
+
+if gcomp && fi.exists && type eq 'u' then begin
+  file_archive,name,archive_ext='.arc'
+  fi = file_info(name)
+  dprint,dlevel=2,'Archived old file: ',name
+endif
+
 dprint,dlevel=4,verbose=verbose,'"',type,'" ','"'+name+'"',/no_check_events
 mss = ''
 create = ~keyword_set(test_only)
@@ -49,15 +59,17 @@ if fi.exists then begin
    if fi.regular && create then begin
       dprint,dlevel=dlevel,verbose=verbose,'Opening existing file: '+name,/no_check_events
       case tp of
-        'w': if fi.write then  openw,unit,name,/get_lun,_extra=ex
-        'u': if fi.write then  openu,unit,name,/get_lun,_extra=ex,/append
-        'r': if fi.read  then  openr,unit,name,/get_lun,_extra=ex
+        'w': if fi.write then  openw,unit,name,/get_lun,_extra=ex,compress=gcomp
+        'u': if fi.write then  openu,unit,name,/get_lun,_extra=ex,compress=gcomp,/append
+        'r': if fi.read  then  openr,unit,name,/get_lun,_extra=ex,compress=gcomp
         else:  dprint,'Invalid type: '+type,/no_check_events
       endcase
       return
    endif
    return
 endif
+
+
 
 if tp eq 'r' then begin
    if ~create then return
@@ -97,7 +109,7 @@ endif
 if tp eq 'u' or tp eq 'w' then begin    ; create new files
    if d_writeable && create then begin
       dprint,'Creating new file: '+name,dlevel=dlevel,/no_check_events
-      openw,unit,name,/get_lun,_extra=ex
+      openw,unit,name,/get_lun,_extra=ex,compress=gcomp
       if n_elements(file_mode) ne 0 then file_chmod,name,file_mode
       fi = file_info(name)
       createable = fi.write

@@ -4,22 +4,26 @@
 ;PURPOSE:
 ; Widget tool that opens a socket and records streaming data from a server (host) and can save it to a file
 ; or send to a user specified routine. This tool runs in the background.
+; Keywords:
+;   SET_FILE_TIMERES : defines how often the current output file will be closed and a new one will be opened
+;   DIRECTORY:  string prepended to fileformat when opening an output file.
 ; Author:
 ;    Davin Larson - April 2011
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2016-07-29 07:41:31 -0700 (Fri, 29 Jul 2016) $
-; $LastChangedRevision: 21565 $
+; $LastChangedDate: 2016-09-28 22:56:26 -0700 (Wed, 28 Sep 2016) $
+; $LastChangedRevision: 21979 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/recorder.pro $
 ;
 ;-
 
 PRO recorder_event, ev   ; recorder
+ ;   on_error,1
 
     widget_control, ev.top, get_uvalue= info   ; get all widget ID's
     wids = info.wids
     localtime=1
-    dlevel=2
+    dlevel=info.dlevel
 
     CASE ev.id OF                         ;  Timed events
     wids.base:  begin
@@ -27,18 +31,19 @@ PRO recorder_event, ev   ; recorder
             on_ioerror, stream_error
             eofile =0
             info.time_received = systime(1)
+            widget_control,wids.base,set_uvalue=info
             buffer= bytarr(info.maxsize) 
             b=buffer[0]
             for i=0L,n_elements(buffer)-1 do begin                       ; Read from stream one byte (or value) at a time 
                 flag = file_poll_input(info.hfp,timeout=0)
                 if flag eq 0 then break
-                if eof(info.hfp) then begin            ; This should be fixed so that it does not crash when disconnect by peer.
-                    widget_control,wids.host_text,get_value=hostname
-                    widget_control,wids.host_port,get_value=hostport
-                    dprint,dlevel=dlevel-1,info.title_num+'Connection to Host: '+hostname[0]+':'+hostport[0]+' broken. ',i
-                    eofile = 1
-                    break
-                endif                
+;                if eof(info.hfp) then begin            ; This should be fixed so that it does not crash when disconnect by peer.
+;                    widget_control,wids.host_text,get_value=hostname
+;                    widget_control,wids.host_port,get_value=hostport
+;                    dprint,dlevel=dlevel-1,info.title_num+'Connection to Host: '+hostname[0]+':'+hostport[0]+' broken. ',i
+;                    eofile = 1
+;                    break
+;                endif                
                 readu,info.hfp,b
                 buffer[i] = b
             endfor
@@ -47,10 +52,24 @@ PRO recorder_event, ev   ; recorder
               widget_control,wids.host_text,get_value=hostname
               widget_control,wids.host_port,get_value=hostport
               dprint,dlevel=dlevel-1,info.title_num+'File error: '+hostname[0]+':'+hostport[0]+' broken. ',i
+              dprint,dlevel=dlevel,phelp=2,!error_state
+            endif
 
+            ;;   Switch file name if needed
+            if info.file_timeres ne 0 then begin
+              if info.time_received ge info.next_filechange then begin
+                dprint,dlevel=dlevel,time_string(info.time_received,prec=3)+ ' Time to change files.'
+                if info.dfp then begin
+                  recorder_event,{top: ev.top, id:wids.dest_button}   ; close old file  - possible error that dfp might change!
+                  recorder_event,{top: ev.top, id:wids.dest_button}   ; open  new file                  
+                endif
+              endif
+              widget_control, ev.top, get_uvalue= info   ; get all widget ID's              
+              info.next_filechange = info.file_timeres * ceil(info.time_received / info.file_timeres)
+              widget_control,wids.base,set_uvalue=info
             endif
             
-            if i gt 0 then begin
+            if i gt 0 then begin                      ;; process data
               buffer = buffer[0:i-1]
               if keyword_set(info.dfp) then writeu,info.dfp, buffer  ;swap_endian(buffer,/swap_if_little_endian)
               flush,info.dfp
@@ -72,7 +91,7 @@ PRO recorder_event, ev   ; recorder
             if 1 then begin
                 poll_int = poll_int - (systime(1) mod poll_int)  ; sample on regular boundaries
             endif
-
+            
             if not keyword_set(eofile) then WIDGET_CONTROL, wids.base, TIMER=poll_int else widget_control,wids.host_button,timer=2
         endif
         return
@@ -141,10 +160,10 @@ PRO recorder_event, ev   ; recorder
             filename = str_sub(filename,'{PORT}',strtrim(hostport,2) )               ; Substitute port number
             widget_control, wids.dest_text, set_uvalue = fileformat,set_value=filename
             if keyword_set(filename) then begin
-                file_open,'u',filename, unit=dfp,dlevel=4
-                dprint,dlevel=dlevel,info.title_num+'Opened output file: '+filename+'   Unit:'+strtrim(dfp)
+                file_open,'u',info.directory+filename, unit=dfp,dlevel=4,compress=-1,file_mode='666'o,dir_mode='777'o
+                dprint,dlevel=dlevel,info.title_num+' Opened output file: '+info.directory+filename+'   Unit:'+strtrim(dfp)
                 info.dfp = dfp
-                info.filename= filename
+                info.filename= info.directory+filename
                 widget_control, wids.dest_flush, sensitive=1
             endif
 ;              wait,1
@@ -231,7 +250,7 @@ end
 
 
 PRO recorder,base,title=title,ids=ids,host=host,port=port,destination=destination,exec_proc=exec_proc, $
-          set_connect=set_connect, set_output=set_output, pollinterval=pollinterval, $
+          set_connect=set_connect, set_output=set_output, pollinterval=pollinterval, set_file_timeres=set_file_timeres ,$
           get_procbutton = get_procbutton,set_procbutton=set_procbutton,directory=directory, $
           get_filename=get_filename,info=info
 if ~(keyword_set(base) && widget_info(base,/managed) ) then begin
@@ -253,21 +272,21 @@ if ~(keyword_set(base) && widget_info(base,/managed) ) then begin
     ids = create_struct(ids,'dest_text',   widget_text(ids.dest_base,  uname='DEST_TEXT',xsize=40 ,/EDITABLE ,/NO_NEWLINE  ,VALUE=destination))
     ids = create_struct(ids,'dest_flush',  widget_button(ids.dest_base,uname='DEST_FLUSH', value='New' ,sensitive=0))
     ids = create_struct(ids,'output_text', WIDGET_TEXT(ids.base, uname='OUTPUT_TEXT'))
-;  if n_elements(exec_proc) ne 0 then begin
     ids = create_struct(ids,'proc_base',   widget_base(ids.base,/row, uname='PROC_BASE'))
     ids = create_struct(ids,'proc_base2',  widget_base(ids.proc_base ,/nonexclusive))
     ids = create_struct(ids,'proc_button', widget_button(ids.proc_base2,uname='PROC_BUTTON',value='Procedure:'))
     ids = create_struct(ids,'proc_name',   widget_text(ids.proc_base,xsize=35, uname='PROC_NAME', value = keyword_set(exec_proc) ? exec_proc :'exec_proc_template',/editable, /no_newline))
-;  endif
     ids = create_struct(ids,'done',        WIDGET_BUTTON(ids.proc_base, VALUE='Done', UNAME='DONE'))
     title_num = title+' ('+strtrim(ids.base,2)+'): '
     info = {wids:ids, $
 ;      hostname:host, hostport:port, $
         title: title, $
         title_num: title_num, $
-        time_received: 0d, $
+        time_received: 0d,  $
+        file_timeres: 0d,   $
+        next_filechange: 0d, $
         hfp:0,  $
-;        directoryformat:directoryformat ,  $
+        directory:'' ,  $
         fileformat:destination,  $
         filename:'', $
         dfp:0 , $
@@ -300,6 +319,14 @@ if n_elements(set_connect) eq 1 && (keyword_set(info.hfp) ne keyword_set(set_con
 if n_elements(set_procbutton) eq 1 then begin
   widget_control,ids.proc_button,set_button=set_procbutton
   recorder_event, { top:ids.base, id:ids.proc_button, select: keyword_set(set_procbutton) }
+endif
+if n_elements(set_file_timeres) then begin
+  info.file_timeres = set_file_timeres
+  widget_control, base, set_uvalue= info   
+endif
+if n_elements(directory) then begin
+  info.directory = directory
+  widget_control, base, set_uvalue= info
 endif
 get_procbutton = widget_info(ids.proc_button,/button_set)
 ;widget_control,ids.dest_text,get_value=get_filename

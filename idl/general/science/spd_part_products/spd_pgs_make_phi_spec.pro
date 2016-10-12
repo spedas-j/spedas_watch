@@ -13,6 +13,7 @@
 ;Input/Output:
 ;  spec: The spectrogram (ny x ntimes)
 ;  yaxis: The y axis (ny OR ny x ntimes)
+;  resolution: (optional) Specify output resolution
 ;  
 ;  -Each time this procedure runs it will concatenate the sample's data
 ;   to the SPEC variable.
@@ -26,13 +27,13 @@
 ;   below. It should produce identical spectrograms for regular phi grids.
 ;
 ;
-;$LastChangedBy: pcruce $
-;$LastChangedDate: 2016-01-04 15:38:57 -0800 (Mon, 04 Jan 2016) $
-;$LastChangedRevision: 19672 $
+;$LastChangedBy: aaflores $
+;$LastChangedDate: 2016-09-30 17:20:25 -0700 (Fri, 30 Sep 2016) $
+;$LastChangedRevision: 21989 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/science/spd_part_products/spd_pgs_make_phi_spec.pro $
 ;-
 
-pro spd_pgs_make_phi_spec, data, spec=spec, sigma=sigma, yaxis=yaxis, _extra=ex
+pro spd_pgs_make_phi_spec, data, spec=spec, sigma=sigma, yaxis=yaxis, resolution=resolution, _extra=ex
 
     compile_opt idl2, hidden
   
@@ -49,7 +50,7 @@ pro spd_pgs_make_phi_spec, data, spec=spec, sigma=sigma, yaxis=yaxis, _extra=ex
   ;copy data and zero inactive bins to ensure
   ;areas with no data are represented as NaN
   d = data.data
-  scaling = data.scaling
+;  scaling = data.scaling
   idx = where(~data.bins,nd)
   if nd gt 0 then begin
     d[idx] = 0.
@@ -63,13 +64,14 @@ pro spd_pgs_make_phi_spec, data, spec=spec, sigma=sigma, yaxis=yaxis, _extra=ex
   ; -number of phis per theta decreases at higher latitudes for ESA
   ; -using the max number across phi should allow for equal 
   ;  statistics across phi bins
-  ; -this assumes the number does not change across energy  
-  dummy = min(abs(data.theta[0,*]),tminidx)
-  dummy = where(data.theta[0,*] eq (data.theta[0,*])[tminidx], n_phi)
+  ; -this assumes the number does not change across energy
+  if undefined(resolution) then begin
+    dummy = min(abs(data.theta[0,*]),tminidx)
+    dummy = where(data.theta[0,*] eq (data.theta[0,*])[tminidx], n_phi)
+  endif else begin
+    n_phi = resolution
+  endelse
   
-  ;roughly the method used in thm_part_moments2 to determine number of phis
-;  n_phi = n_elements(uniq( (data.phi[0,*])[sort(data.phi[0,*])] ))
-
 
   ;init this sample's piece of the spectrogram
   ave = replicate(!values.f_nan,n_phi)
@@ -138,7 +140,7 @@ pro spd_pgs_make_phi_spec, data, spec=spec, sigma=sigma, yaxis=yaxis, _extra=ex
     ;check for single phi data (phi_min=phi_max)
     contained = ssl_set_intersection(idx_max,idx_min)
     if contained[0] ne -1 && n_phi gt 1 then begin
-      weight[contained] = (phi_max[contained] - phi_min[contained]) * omega_part[contained]
+      weight[contained] = data.dphi[contained] * omega_part[contained]
     endif
     
     ;data bins which completely cover the current spectrogram bin 
@@ -153,10 +155,8 @@ pro spd_pgs_make_phi_spec, data, spec=spec, sigma=sigma, yaxis=yaxis, _extra=ex
     idx = ssl_set_union(idx_min,idx_max)
     idx = ssl_set_union(idx,idx_all)
     
-    n = nmax + nmin + nall
-    
     ;assign a weighted average to this bin
-    if n gt 0 then begin
+    if (nmax + nmin + nall) gt 0 then begin
     
 ;      ave[i] = total(d[idx]) / total(data.bins[idx])
 
@@ -173,7 +173,7 @@ pro spd_pgs_make_phi_spec, data, spec=spec, sigma=sigma, yaxis=yaxis, _extra=ex
       ave[i] = total(d[idx] * weight)
       
       ;standard deviation
-      ave_s[i] = sqrt(  total(d[idx] * scaling[idx] * weight^2)  )
+      ave_s[i] = sqrt(  total(d[idx] * data.scaling[idx] * weight^2)  )
       
     endif else begin
       ;nothing

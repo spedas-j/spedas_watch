@@ -8,8 +8,8 @@
 ;     taken from v2.1.0 of the FPI CDFs, 3/10/2016
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2016-09-13 09:08:44 -0700 (Tue, 13 Sep 2016) $
-; $LastChangedRevision: 21818 $
+; $LastChangedDate: 2016-10-11 09:12:17 -0700 (Tue, 11 Oct 2016) $
+; $LastChangedRevision: 22084 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_cdf2tplot_ut__define.pro $
 ;-
 
