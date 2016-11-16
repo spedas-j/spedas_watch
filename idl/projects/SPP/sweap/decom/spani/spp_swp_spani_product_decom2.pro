@@ -17,9 +17,9 @@ strct = {time:header_str.time, $
 ;  ;fill_nan(strct), index = *apdat.dataindex
 ;  append_array, *apdat.dataptr, strct, index = *apdat.dataindex
 ;endif
-if apdat.rt_flag && apdat.rt_tags then begin
+if apdat.rt_flag && apdat.ttags then begin
   ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-  store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+  store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
 endif
 return,0
 end
@@ -38,9 +38,9 @@ function spp_swp_spani_32Ex16A, data, header_str=header_str, apdat=apdat
     cnts_Anode:data,  $
     gap: 0}
 
-  if apdat.rt_flag && apdat.rt_tags then begin
+  if apdat.rt_flag && apdat.ttags then begin
     ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-    store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+    store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
   endif
 
   data = reform(data,32,16,/overwrite)
@@ -52,9 +52,9 @@ function spp_swp_spani_32Ex16A, data, header_str=header_str, apdat=apdat
     spec2:spec2, $
     gap: 0}
 
-  if apdat.rt_flag && apdat.rt_tags then begin
+  if apdat.rt_flag && apdat.ttags then begin
     ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-    store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+    store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
   endif
 
 end
@@ -69,9 +69,9 @@ message,'bad routine'
     cnts_Anode:data,  $
     gap: 0}
 
-  if apdat.rt_flag && apdat.rt_tags then begin
+  if apdat.rt_flag && apdat.ttags then begin
     ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-    store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+    store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
   endif
 
 
@@ -101,9 +101,9 @@ function spp_swp_spani_8Dx32Ex16A, data, header_str=header_str, apdat=apdat   ; 
     spec123:spec123, $
     gap: 0}
 
-  if apdat.rt_flag && apdat.rt_tags then begin
+  if apdat.rt_flag && apdat.ttags then begin
     ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-    store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+    store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
   endif
 
 end
@@ -129,9 +129,9 @@ function spp_swp_spani_32Ex16Ax4M, data, header_str=header_str, apdat=apdat   ; 
     spec23:spec23, $
     gap: 0}
 
-  if apdat.rt_flag && apdat.rt_tags then begin
+  if apdat.rt_flag && apdat.ttags then begin
     ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-    store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+    store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
   endif
 end
 
@@ -158,9 +158,9 @@ function spp_swp_spani_8Dx32EX16Ax2M, data, header_str=header_str, apdat=apdat  
     spec23:spec23, $
     gap: 0}
 
-  if apdat.rt_flag && apdat.rt_tags then begin
+  if apdat.rt_flag && apdat.ttags then begin
     ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-    store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+    store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
   endif
 end
 
@@ -185,9 +185,9 @@ function spp_swp_spani_8Dx32Ex16Ax1M, data, header_str=header_str, apdat=apdat  
     spec23:spec23, $
     gap: 0}
 
-  if apdat.rt_flag && apdat.rt_tags then begin
+  if apdat.rt_flag && apdat.ttags then begin
     ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-    store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+    store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
   endif
 end
 
@@ -207,10 +207,10 @@ function spp_swp_spani_16Ax16M, data, header_str=header_str, apdat=apdat   ; thi
     spec2:spec2, $
     gap: 0}
 
-  if apdat.rt_flag && apdat.rt_tags then begin
- ;   printdat,apdat.rt_tags
+  if apdat.rt_flag && apdat.ttags then begin
+ ;   printdat,apdat.ttags
     ;if ccsds.gap eq 1 then strct = [fill_nan(strct),strct]
-    store_data,apdat.tname+pname,data=strct, tagnames=apdat.rt_tags, /append
+    store_data,apdat.tname+pname,data=strct, tagnames=apdat.ttags, /append
   endif
 end
 
@@ -227,24 +227,26 @@ function spp_swp_spani_product_decom2, ccsds, ptp_header=ptp_header, apdat=apdat
     return,!null
   endif
 
-  if isa(apdat.data_array,'dynamicarray') && apdat.data_array.size eq 0  then begin    ; initialization
-    hdr = dynamicarray(name='hdr_')
-    a0016 = dynamicarray(name='16A_')
-    a0256 = dynamicarray(name='a0256_')
-    a0512 = dynamicarray(name='16Ax32E_')
-    a2048 = dynamicarray(name='a2048_')
-    a4096 = dynamicarray(name='16Ax8Dx32E_')
-    a8192 = dynamicarray(name='a8192_')
-    apdat.data_array.append, [hdr,a0016,a0256,a0512,a2048,a4096,a8192]
-  endif else if isa(apdat.data_array) then begin
-    darrays = apdat.data_array.array
-    hdr = darrays[0]
-    a0016 = darrays[1]
-    a0256 = darrays[2]
-    a0512 = darrays[3]
-    a2048 = darrays[4]
-    a4096 = darrays[5]
-    a8192 = darrays[6]
+  if isa(apdat) then begin
+    if isa(apdat.data,'dynamicarray') && apdat.data.size eq 0  then begin    ; initialization
+      hdr = dynamicarray(name='hdr_')
+      a0016 = dynamicarray(name='16A_')
+      a0256 = dynamicarray(name='a0256_')
+      a0512 = dynamicarray(name='16Ax32E_')
+      a2048 = dynamicarray(name='a2048_')
+      a4096 = dynamicarray(name='16Ax8Dx32E_')
+      a8192 = dynamicarray(name='a8192_')
+      apdat.data.append, [hdr,a0016,a0256,a0512,a2048,a4096,a8192]
+    endif else if isa(apdat.data) then begin
+      darrays = apdat.data.array
+      hdr = darrays[0]
+      a0016 = darrays[1]
+      a0256 = darrays[2]
+      a0512 = darrays[3]
+      a2048 = darrays[4]
+      a4096 = darrays[5]
+      a8192 = darrays[6]
+    endif
   endif
 
 
@@ -270,7 +272,7 @@ function spp_swp_spani_product_decom2, ccsds, ptp_header=ptp_header, apdat=apdat
   status_flag = header[18]
   peak_bin = header[19]
 
-  if ptr_valid(apdat.last_ccsds) && keyword_set(*apdat.last_ccsds) then  delta_t = ccsds.time - (*(apdat.last_ccsds)).time else delta_t = !values.f_nan
+;  if ptr_valid(apdat.last_ccsds) && keyword_set(*apdat.last_ccsds) then  delta_t = ccsds.time - (*(apdat.last_ccsds)).time else delta_t = !values.f_nan
 
   compression = (header[12] and 'a0'x) ne 0
   bps =  ([4,1])[ compression ]
