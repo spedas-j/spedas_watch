@@ -60,8 +60,8 @@
 ;HISTORY:
 ; Hacked from mvn_sta_cmn_l2gen.pro, 22-jul-2015
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2016-10-03 11:44:02 -0700 (Mon, 03 Oct 2016) $
-; $LastChangedRevision: 21998 $
+; $LastChangedDate: 2016-11-02 13:57:47 -0700 (Wed, 02 Nov 2016) $
+; $LastChangedRevision: 22261 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/fast/fa_esa/l2util/fa_esa_cmn_l2gen.pro $
 ;-
 Pro fa_esa_cmn_l2gen, cmn_dat, esa_type=esa_type, $
@@ -161,8 +161,8 @@ Pro fa_esa_cmn_l2gen, cmn_dat, esa_type=esa_type, $
             ['time_delta', 'DOUBLE', 'Averaging time. (TIME_END - TIME_START). (NUM_DISTS elements).', 'Averaging time'], $
             ['time_integ', 'DOUBLE', 'Integration time. (TIME_DELTA/N_ENERGY). (NUM_DISTS elements).', 'Integration time'], $
             ['header_bytes', 'BYTE', 'The packet header bytes. (44XNUM_DISTS elements)', 'Header'], $
-            ['valid', 'INTEGER', 'Validity flag codes valid data (bit 0), non-zero values are not necessarily valid (NUM_DISTS elements)', ' Valid flag'], $
-            ['data_quality', 'INTEGER', 'Quality flag (NUM_DISTS elements)', 'Quality flag'], $
+            ['valid', 'INTEGER', 'Validity flag codes valid data from CDF, 0 for invalid data, 1 for good data', ' Valid flag'], $
+            ['data_quality', 'INTEGER', 'Quality flag (NUM_DISTS elements)', 'Quality flag, 0 for good quality, add 2 for counter overflow overflow, add 4 for excess dead_time above 0.90'], $
             ['nbins', 'INTEGER', 'Number of angluar bins (NUM_DISTS elements)', 'Number of bins'], $
             ['nenergy', 'INTEGER', 'Number of energies (NUM_DISTS elements)', 'Number of energies'], $
             ['geom_factor', 'DOUBLE', 'GEOM_FACTOR, Geometrical factor used in calibration (NUM_DISTS elements)', 'Geometric Factor'], $
@@ -318,7 +318,7 @@ Pro fa_esa_cmn_l2gen, cmn_dat, esa_type=esa_type, $
      str_element, vatt, 'format', fmt, /add
 ;Handle virtual variables separately
      If(vj Eq 'eflux_movie') Then Begin
-        vatt.units='eV/sr/sec'
+        vatt.units='eV/(cm^2-s-sr-eV)'
         vatt.scaletyp='log'
         vatt.display_type = 'plasmagram>THUMBSIZE>166>xsz=4,ysz=7>xx=pitch_angle_median,y=energy_median,z=data'
         str_element, vatt, 'validmin', 0.0, /add
@@ -329,7 +329,7 @@ Pro fa_esa_cmn_l2gen, cmn_dat, esa_type=esa_type, $
         str_element, vatt, 'funct', 'alternate_view', /add
         str_element, vatt, 'component_0', 'eflux', /add
      Endif Else If(vj Eq 'eflux_byE_atA') Then Begin
-        vatt.units='eV/sr/sec'
+        vatt.units='eV/(cm^2-s-sr-eV)'
         vatt.scaletyp='log'
         vatt.display_type = 'spectrogram>y=energy_median,z=eflux_byE_atA(2,*),z=eflux_byE_atA(8,*),z=eflux_byE_atA(14,*),z=eflux_byE_atA(20,*),z=eflux_byE_atA(26,*),z=eflux_byE_atA(32,*),z=eflux_byE_atA(50,*)'
         str_element, vatt, 'validmin', 0.0, /add
@@ -342,7 +342,7 @@ Pro fa_esa_cmn_l2gen, cmn_dat, esa_type=esa_type, $
         vatt.labl_ptr_1 = 'eflux_bypitch_labl'
         vatt.labl_ptr_2 = 'eflux_byenergy_labl'        
      Endif Else If(vj Eq 'eflux_byA_atE') Then Begin
-        vatt.units='eV/sr/sec'
+        vatt.units='eV/(cm^2-s-sr-eV)'
         vatt.scaletyp='log'
         vatt.display_type =  'spectrogram>y=compno_64,z=eflux_byA_atE(*,2),z=eflux_byA_atE(*,8),z=eflux_byA_atE(*,14),z=eflux_byA_atE(*,20),z=eflux_byA_atE(*,26),z=eflux_byA_atE(*,32),z=eflux_byA_atE(*,38),z=eflux_byA_atE(*,44),z=eflux_byA_atE(*,76)'
         str_element, vatt, 'validmin', 0.0, /add
@@ -429,7 +429,7 @@ Pro fa_esa_cmn_l2gen, cmn_dat, esa_type=esa_type, $
            Else If(strpos(vj, 'omega') Ne -1) Then vatt.units = 'ster' $
            Else If(vj Eq 'sc_pot') Then vatt.units = 'volts' $
            Else If(vj Eq 'data') Then vatt.units = 'Counts' $
-           Else If(vj Eq 'eflux') Then vatt.units = 'eV/sr/sec' ;check this
+           Else If(vj Eq 'eflux') Then vatt.units = 'eV/(cm^2-s-sr-eV)' ;check this, checked 2016-10-24, jmm
         Endelse
            
 ;Depends and labels

@@ -1,9 +1,17 @@
 
+
+
 pro misc2
-  spp_apid_data,'36E'x,apdata=hkp
-  s=hkp.dataptr
-  def = (*s).acc_dac * sign((*s).adc_vmon_def1 - (*s).adc_vmon_def2)
-  store_data,'DEF1-DEF2',(*s).time,float(def)
+  hkp= spp_apdat('36E'x)
+  s=hkp.data.array
+  
+  naan = !values.f_nan
+ ; sgn= fix(s.mram_wr_addr_hi eq 1) - fix(s.mram_wr_addr_hi eq 2)
+sgns = [!values.f_nan,1.,-1., !values.f_nan]
+  sgn = sgns[0 > s.mram_wr_addr_hi < 3]
+  def = s.mram_wr_addr * sgn
+;  def = s.mram_wr_addr *  sign(s.adc_vmon_def1 - s.adc_vmon_def2)
+  store_data,'DEF1-DEF2',s.time,float(def)
 
 end
 
@@ -34,7 +42,7 @@ pro spane_deflector_scan,tranges = trange
 end
 
 
-pro spane_threshold_scan,tranges=trange,lim=lim
+pro spane_threshold_scan,tranges=trange,lim=lim   ;now obsolete
   swap_interp=0
   xlim,lim,0,512
   ylim,lim,10,10000,1
@@ -100,9 +108,77 @@ spp_msg_file_read, spp_file_retrieve( 'spp/data/sci/sweap/prelaunch/gsedata/EM/S
 
 spp_msg_file_read, spp_file_retrieve( 'spp/data/sci/sweap/prelaunch/gsedata/EM/SWEAP-2/20160805_125639_ramp_up/GSE_all_msg.dat')  ; Ion ramp in which SWEMULATOR reset?
 
-spp_ptp_file_read, spp_file_retrieve('spp/data/sci/sweap/prelaunch/gsedata/EM/SWEAP-3/20160923_165136_BfltContinuedPHDscan/PTP_data.dat')
 
 spp_ptp_file_read, spp_file_retrieve('spp/data/sci/sweap/prelaunch/gsedata/EM/SWEAP-3/20160920_084426_BfltBigCalChamberEAscan/PTP_data.dat.gz')
+
+spp_ptp_file_read, spp_file_retrieve('spp/data/sci/sweap/prelaunch/gsedata/EM/SWEAP-3/20160923_165136_BfltContinuedPHDscan/PTP_data.dat')
+
+;   spane B flight CO pre conformal coat
+files = spp_file_retrieve(/elec,/cal,trange=['2016 9 28 12','2016 9 29 8']) 
+
+
+
+
+ trange =  '2016 10 '+ ['18/04','19/22']   ; SPANE - A flght in Cal chamber:  MCP test
+ 
+ files = spp_file_retrieve(/elec,/cal,trange=trange)
+
+
+
+;  Get recent data files:
+files = spp_file_retrieve(/spanea,/cal,recent=1/24.)   ; get last 1 hour of data from server
+files = spp_file_retrieve(/spanea,/cal,recent=4/24.)   ; get last 4 hours of data from server
+
+; Read  (Load) files
+spp_ptp_file_read,files
+
+
+; Real time data collection:
+spp_init_realtime,/spanea,/cal,/exec
+
+
+tplot, 'manip*',/add
+spp_swp_tplot,/setlim
+spp_swp_tplot,'SE'
+spp_swp_tplot,'SE_hv'
+spp_swp_tplot,'SE_lv'
+spp_swp_tplot,'SE'
+
+
+; print information on collected data
+spp_apdat_info,/print
+
+
+
+; get SPANE-A HKP data:
+hkp = spp_apdat('36e'x)
+
+hkp.help
+
+hkp.print
+
+printdat, hkp.strct
+
+printdat, hkp.data      ; return the 
+
+printdat, hkp.data.array   ; return a copy of the data array
+
+printdat, hkp.data.size    ; return the number of elements in the data array
+
+printdat, hkp.data.typename   ; return the typename of the data array 
+
+printdat,  hkp.data.array[-1]  ; return the current last element of the data array
+
+
+
+
+
+
+
+
+; Get info on 
+
+
 
 
 tplot,'*CNTS *DCMD_REC *VMON_MCP *VMON_RAW *ACC*'
@@ -152,7 +228,7 @@ if 0 then begin
   tplot,'ALL_CMD_CNT',/add
   tplot,/add,'spp*hkp*ERR_CNT'
   tplot,/add,'spp_*_C'
-  tplot/
+;  tplot/
   
 endif
 

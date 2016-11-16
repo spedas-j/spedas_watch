@@ -8,9 +8,9 @@
 ;  spectrograms and moments from level 2 MMS HPCA and FPI distributions.
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2016-08-26 12:32:40 -0700 (Fri, 26 Aug 2016) $
-;$LastChangedRevision: 21740 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_part_products_crib.pro $
+;$LastChangedDate: 2016-11-04 15:46:21 -0700 (Fri, 04 Nov 2016) $
+;$LastChangedRevision: 22309 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/deprecated/mms_part_products_crib.pro $
 ;
 ;-
 
@@ -112,6 +112,14 @@
   mms_part_products, name, trange=trange,$
                      mag_name=bname, pos_name=pos_name, $ ;required for field aligned spectra
                      outputs=['energy','phi','theta','pa','gyro','moments']
+                     
+  ;generate products (experimental option)
+  ;  The /no_regrid option uses a regular transformation on the HPCA to avoid the more general spherical interpolation
+  ;    The main benefit of the /no_regrid keyword is to reduce the runtime of mms_part_products
+  ;  mms_part_products, name, trange=trange,/no_regrid, $
+  ;                     mag_name=bname, pos_name=pos_name, $ ;required for field aligned spectra
+  ;                     outputs=['energy','phi','theta','pa','gyro','moments']
+
 
   ;plot spectrograms
   tplot,name+'_'+['energy','theta','phi','pa','gyro']

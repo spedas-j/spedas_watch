@@ -28,11 +28,11 @@ ccsds_data = spp_swp_ccsds_data(ccsds)
 ;data = ccsds.data
 
 if ccsds.pkt_size lt 72 then begin
-  if debug(2) then begin
+  if debug(3) then begin
     dprint,'error',ccsds.pkt_size,dlevel=2
     hexprint,ccsds_data
-    return,0    
   endif
+  return,0
 endif
 
 values = swap_endian(ulong(ccsds_data,10,11) )
@@ -88,7 +88,7 @@ fields_clk_cycles_delta = long( fix( fields_clk_cycles - last_str.fields_clk_cyc
 ;fields_clk_cycles_delta =  fields_clk_cycles_delta / df0
 
 
-if debug(3) then begin
+if debug(4) then begin
   ;dprint,str.fields_clk_cycles_delta
   hexprint,[fields_clk_cycles,fields_clk_cycles_delta,ulong(sample_clk_per_delta)]
 endif
@@ -102,7 +102,7 @@ clks_per_pps_delta =     ( clks_per_pps - last_str.clks_per_pps  ) and (k-1)
 clks_per_pps_delta = ( clks_per_pps_delta + k *floor(dseq * 19.2d6/k) ) / dseq
 
 
-if debug(3) then begin
+if debug(4) then begin
   hexprint,[clks_per_pps,clks_per_pps_delta]
 ;  dprint,clks_per_pps,clks_per_pps_delta
 endif

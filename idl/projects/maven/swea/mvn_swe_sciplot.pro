@@ -60,18 +60,21 @@
 ;
 ;   PANS:      Array of tplot variables created.
 ;
+;   PADSMO:    Smooth the resampled PAD data in time with this smoothing interval,
+;              in seconds.
+;
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2016-10-05 12:53:53 -0700 (Wed, 05 Oct 2016) $
-; $LastChangedRevision: 22039 $
+; $LastChangedDate: 2016-11-04 16:37:11 -0700 (Fri, 04 Nov 2016) $
+; $LastChangedRevision: 22315 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sciplot.pro $
 ;
 ;-
 
 pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lpw, euv=euv, $
                      sc_pot=sc_pot, eph=eph, nO1=nO1, nO2=nO2, min_pad_eflux=min_pad_eflux, $
-                     loadonly=loadonly, pans=pans
+                     loadonly=loadonly, pans=pans, padsmo=padsmo
 
   compile_opt idl2
 
@@ -84,7 +87,7 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
   if (size(min_pad_eflux,/type) eq 0) then min_pad_eflux = 6.e4
 
   mvn_swe_sumplot,/loadonly
-  mvn_swe_sc_pot,/over,/negpot
+  mvn_swe_sc_pot,/over
   engy_pan = 'swe_a4_pot'
   options,engy_pan,'ytitle','SWEA elec!ceV'
 
@@ -100,6 +103,14 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
     if (count gt 0L) then begin
       pad.y[indx,*] = !values.f_nan
       store_data, tname, data=pad, dl=dl
+    endif
+    if (size(padsmo,/type) ne 0) then begin
+      dx = median(pad.x - shift(pad.x,1))
+      dt = double(padsmo[0])
+      if (dt gt 1.5D*dx) then begin
+        tsmooth_in_time, tname, padsmo
+        pad_pan = pad_pan + '_smoothed'
+      endif
     endif
   endif else pad_pan = 'swe_a2_280'
 
@@ -237,11 +248,17 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
     sta_pan = sta_pan + ' ' + 'n_ion'
   endif
 
+; Burst bar, if available
+
+  get_data,'swe_a3_bar',index=i
+  if (i gt 0) then bst_pan = 'swe_a3_bar' else bst_pan = ''
+
 ; Assemble the panels and plot
 
   pans = ram_pan + ' ' + sun_pan + ' ' + alt_pan + ' ' + euv_pan + ' ' + $
          swi_pan + ' ' + sta_pan + ' ' + mag_pan + ' ' + sep_pan + ' ' + $
-         lpw_pan + ' ' + pad_pan + ' ' + pot_pan + ' ' + engy_pan
+         lpw_pan + ' ' + pad_pan + ' ' + pot_pan + ' ' + bst_pan + ' ' + $
+         engy_pan
 
   pans = str_sep(pans,' ')
   

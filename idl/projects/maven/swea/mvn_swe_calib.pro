@@ -51,8 +51,6 @@
 ;       CHKSUM:       Specify the sweep table by its checksum.  See above.
 ;                     This only works for table numbers > 3.
 ;
-;       DFGON:        Turn on the elevation-dependent sensitivity.
-;
 ;       SETCAL:       Structure holding calibration factors to modify.  Structure can
 ;                     have any combination of tags, but only the following are
 ;                     recognized (with default values):
@@ -66,20 +64,20 @@
 ;                     Any other tags are ignored.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2016-10-05 13:57:51 -0700 (Wed, 05 Oct 2016) $
-; $LastChangedRevision: 22046 $
+; $LastChangedDate: 2016-11-03 19:11:16 -0700 (Thu, 03 Nov 2016) $
+; $LastChangedRevision: 22296 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_calib.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
 ;FILE: mvn_swe_calib.pro
 ;-
-pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, dgfon=dgfon, setcal=setcal, default=default
+pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default
 
   @mvn_swe_com
 
 ; Set the SWEA Ground Software Version
 
-    mvn_swe_version = 3
+    mvn_swe_version = 4
 
 ; Initialize
 
@@ -89,7 +87,7 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, dgfon=dgfon, setcal=setcal, def
     print, "Initializing SWEA constants"
     swe_Ka      = 6.17       ; analyzer constant (1.4% variation around azim)
     swe_G       = 0.009/16.  ; nominal geometric factor per anode (IRAP)
-    swe_Ke      = 2.85       ; nominal value, see mvn_swe_esuppress.pro
+    swe_Ke      = 2.80       ; nominal value, see mvn_swe_esuppress.pro
     swe_dead    = 2.8e-6     ; deadtime for one MCP-Anode-Preamp chain (IRAP)
     swe_min_dtc = 0.25       ; max 4x deadtime correction
   endif
@@ -306,7 +304,7 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, dgfon=dgfon, setcal=setcal, def
   for i=0,15 do swe_gf[(4*i):(4*i+3),2] = (swe_gf[(4*i),1] + swe_gf[(4*i+3),1])/2.
 
 ; Correction factor from cross calibration with SWIA in the solar wind.  This
-; factor changes whenever an MCP bias adjustment is made, and it can also drift
+; factor changes whenever an MCP bias adjustment is made, and it also drifts
 ; with time as the MCP gain changes.  The times of bias adjustments are recorded
 ; in mvn_swe_config.  The function mvn_swe_crosscal() now supercedes the variable
 ; swe_crosscal.  The variable swe_cc_switch controls whether or not the cross
@@ -320,7 +318,7 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, dgfon=dgfon, setcal=setcal, def
 ; function mvn_swe_esuppress calculates the constant Ke, which is used to calculate
 ; the suppression correction: exp(-(Ke/E_in)^2.).
 
-  if (size(swe_es_switch,/type) eq 0) then swe_es_switch = 0
+  if (size(swe_es_switch,/type) eq 0) then swe_es_switch = 1
 
 ; Add a dimension for relative variation among the 16 anodes.  This variation is
 ; dominated by the MCP efficiency, but I include the same dimension here for ease
@@ -405,48 +403,47 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, dgfon=dgfon, setcal=setcal, def
 ;  be separated into azimuth and elevation terms that are multiplied
 ;  together.
 ;
-
-  dgf = [0.922951, 1.18653, 1.11294, 1.02737, 0.923664, 0.826548]
-  swe_dgf = reform((dgf # replicate(1.,64*3)),6,64,3)
-
-  for i=0,31 do begin
-    swe_dgf[*,(2*i),1] = (swe_dgf[*,(2*i),0] + swe_dgf[*,(2*i+1),0])/2.
-    swe_dgf[*,(2*i+1),1] = swe_dgf[*,(2*i),1]
-  endfor
-
-  for i=0,15 do begin
-    swe_dgf[*,(4*i),2] = (swe_dgf[*,(4*i),1] + swe_dgf[*,(4*i+3),1])/2.
-    for j=1,3 do swe_dgf[*,(4*i+j),2] = swe_dgf[*,(4*i),2]
-  endfor
-
+;  dgf = [0.922951, 1.18653, 1.11294, 1.02737, 0.923664, 0.826548]
+;  swe_dgf = reform((dgf # replicate(1.,64*3)),6,64,3)
+;
+;  Average over energy bins for group = 1,2
+;
+;  for i=0,31 do begin
+;    swe_dgf[*,(2*i),1] = (swe_dgf[*,(2*i),0] + swe_dgf[*,(2*i+1),0])/2.
+;    swe_dgf[*,(2*i+1),1] = swe_dgf[*,(2*i),1]
+;  endfor
+;
+;  for i=0,15 do begin
+;    swe_dgf[*,(4*i),2] = (swe_dgf[*,(4*i),1] + swe_dgf[*,(4*i+3),1])/2.
+;    for j=1,3 do swe_dgf[*,(4*i+j),2] = swe_dgf[*,(4*i),2]
+;  endfor
+;
 ; Normalize: mean(swe_dgf[*,i,j]) = 1.
+;
+;  for i=0,63 do begin
+;    for j=0,2 do begin
+;      swe_dgf[*,i,j] = swe_dgf[*,i,j]/mean(swe_dgf[*,i,j])
+;    endfor
+;  endfor
+;  
+;  swe_dgf = transpose(swe_dgf,[1,0,2])
 
-  for i=0,63 do begin
-    for j=0,2 do begin
-      swe_dgf[*,i,j] = swe_dgf[*,i,j]/mean(swe_dgf[*,i,j])
-    endfor
-  endfor
-  
-  swe_dgf = transpose(swe_dgf,[1,0,2])
+  swe_dgf = replicate(1., 64, 6, 3)  ; Don't use deflector-based correction
 
-; Corrections for individual solid angle bins.  These are caused by 
-; partial blockage by the spacecraft.
+; Corrections for individual solid angle bins based on in-flight calibrations
+; (see mvn_swe_fovcal).  This method corrects for sensitivity variations in 
+; azimuth and elevation independently.  This includes edge effects at the 
+; maximum and minimum deflection angles, and partial spacecraft blockage.
+; Fully blocked bins have a sensitivity of unity, but these are masked (see 
+; next section).  Note that sensitivity variations in azimuth are relative to
+; the ground calibration contained in swe_rgf, above.
 
-  swe_ogf = replicate(1.,96)
-  swe_ogf[7]  = 1.15283
-  swe_ogf[19] = 0.656415
-  swe_ogf[20] = 0.690075
-  swe_ogf[33] = 0.787840
-  swe_ogf /= mean(swe_ogf)
-
-  if not keyword_set(dgfon) then begin
-    swe_dgf[*] = 1.
-    swe_ogf[*] = 1.
-  endif
+  if (size(swe_ff_state,/type) eq 0) then swe_ff_state = 1
 
 ; Spacecraft blockage mask (~27% of sky, deployed boom, approximate)
-;   Complete blockage: 0, 1, 2, 3, 17, 18
-;   Partial blockage: 4, 14 & 15 (summed onboard), 16, 19, 20, 30, 31
+;   Complete blockage: 0,  1,  2,  3, 17, 18  (masked)
+;   Partial blockage: 14, 15, 16, 31          (masked)
+;   Partial blockage:  4, 19, 20, 30          (compensated with flatfield)
 
   swe_sc_mask = replicate(1B, 96, 2)  ; 96 solid angle bins, 2 boom states
   

@@ -12,8 +12,8 @@
 ;         end_times:    returns an array of unix times (double) containing the end of each burst interval
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2016-09-13 15:36:26 -0700 (Tue, 13 Sep 2016) $
-;$LastChangedRevision: 21831 $
+;$LastChangedDate: 2016-11-14 09:33:40 -0800 (Mon, 14 Nov 2016) $
+;$LastChangedRevision: 22352 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/data_status_bar/mms_load_brst_segments.pro $
 ;-
 
@@ -29,6 +29,16 @@ pro mms_load_brst_segments, trange=trange, suffix=suffix, start_times=start_time
     local_file=!mms.local_data_dir+'mms_brst_intervals.sav', $
     SSL_VERIFY_HOST=0, SSL_VERIFY_PEER=0) ; these keywords ignore certificate warnings
 
+  ; try updating the burst intervals file if there are any errors while trying to load the file
+  catch, error_status
+  if (error_status ne 0) then begin
+    catch, /cancel
+    if strpos(!error_state.msg, 'RESTORE: Error opening file.') ne -1 then begin
+        mms_update_brst_intervals
+        mms_load_brst_segments, trange=trange, suffix=suffix, start_times=start_times, end_times=end_times
+    endif
+  endif
+    
   restore, brst_file
   
   if is_struct(brst_intervals) then begin
@@ -43,7 +53,9 @@ pro mms_load_brst_segments, trange=trange, suffix=suffix, start_times=start_time
 
     if t_count ne 0 then begin
       unix_start = unix_start[times_in_range]
-      unix_end = unix_end[times_in_range]
+       ; +10 second offset added by egrimes, 10/26/2016; there appears to be an extra 10
+       ; seconds of data, consistently, not included in the range here
+      unix_end = unix_end[times_in_range]+10.0
       
       for idx = 0, n_elements(unix_start)-1 do begin
         if unix_end[idx] ge tr[0] and unix_start[idx] le tr[1] then begin

@@ -11,8 +11,8 @@
 ;KEYWORDS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2016-10-05 14:42:32 -0700 (Wed, 05 Oct 2016) $
-; $LastChangedRevision: 22048 $
+; $LastChangedDate: 2016-11-03 19:09:26 -0700 (Thu, 03 Nov 2016) $
+; $LastChangedRevision: 22292 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -66,11 +66,19 @@ pro mvn_swe_stat, npkt=npkt, silent=silent
     print,mvn_swe_tabnum(swe_active_chksum),format='("Sweep Table: ",i2)'
     print,""
 
-    if (swe_cc_switch) then print,"SWE-SWI cross calibration enabled" $
-                       else print,"SWE-SWI cross calibration disabled"
+    if (n_elements(swe_hsk) ne 2) then begin
+      if (swe_cc_switch) then print,"SWE-SWI cross calibration enabled" $
+                         else print,"SWE-SWI cross calibration disabled"
 
-    if (swe_es_switch) then print,"Electron suppression correction enabled" $
-                       else print,"Electron suppression correction disabled"
+      if (swe_es_switch) then print,"Electron suppression correction enabled" $
+                         else print,"Electron suppression correction disabled"
+
+      case (swe_ff_state) of
+        0 : print,"Flatfield correction disabled"
+        1 : print,"Flatfield correction enabled"
+        2 : print,"User-defined flatfield correction"
+      endcase
+    endif
 
     print,""
   endif

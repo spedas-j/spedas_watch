@@ -32,15 +32,20 @@
 ;       NORM:          At each energy step, normalize the distribution to the mean.
 ;
 ;       POT:           Overplot an estimate of the spacecraft potential.  Must run
-;                      mvn_swe_sc_pot first.
+;                      mvn_swe_sc_pot first.  Default = 1 (yes).
 ;
 ;       SCP:           Temporarily override any other estimates of the spacecraft
 ;                      potential and force it to be this value.
 ;
-;       SHIFTPOT:      Correct for the spacecraft potential.  Spectra are shifted from
-;                      the spacecraft frame to the plasma frame.
+;       SHIFTPOT:      Correct for the spacecraft potential.  If the data are in
+;                      instrument units (COUNTS, RATE, CRATE), then the energy
+;                      scale is shifted by the amount of the potential, but the 
+;                      signal level remains unchanged.  If the data are in physical
+;                      units (FLUX, EFLUX, DF), then the signal level is also
+;                      adjusted to ensure conservation of phase space density.
 ;
-;       LABEL:         If set, label the anode and deflection bin numbers.
+;       LABEL:         Label the anode and deflection bin numbers (label=1) or the
+;                      solid angle bin numbers (label=2).
 ;
 ;       KEEPWINS:      If set, then don't close the snapshot window(s) on exit.
 ;
@@ -86,6 +91,14 @@
 ;
 ;        UNCERTAINTY:  If set, show the relative uncertainty of the resampled PAD.
 ;
+;        ERROR_BARS:   Plot energy spectra with error bars.  Default = 1 (yes).
+;
+;        MINCOUNTS:    Minumum number of counts for plotting.  Default = 10.
+;
+;        MAXRERR:      Maximum relative error in resampled PADs.  Default = 10
+;                      (i.e., disabled).  Set this to some lower value (~1) to
+;                      filter out data with large relative errors.
+;
 ;        HIRES:        Use 32-Hz MAG data to map pitch angle with high time 
 ;                      resolution within a 2-second SWEA measurement cycle.  A
 ;                      separate pitch angle map is determined for each of the
@@ -111,12 +124,26 @@
 ;        
 ;        INDSPEC:      To plot out the energy spectrum for each PA bins
 ;        
-;        TWOPOT:       Allow input a two-element array to allow shifting different
-;                      potentials on parallel and anti-parallel directions
+;        TWOPOT:       Set to a two-element array to allow shifting different
+;                      potentials on parallel and anti-parallel directions.
+;                        -> Assumes data are in EFLUX units.
+;                        -> Assumes SHIFTPOT is not set.
+;
+;        XRANGE:       Override default horizontal axis range with this.
+;
+;        YRANGE:       Override default vertical axis range with this.
+;
+;        ZRANGE:       Override default color scale range with this.
+;
+;        TRANGE:       Plot snapshot for this time range.  Can be in any
+;                      format accepted by time_double.  (This disables the
+;                      interactive time range selection.)
+;
+;        NOTE:         Insert a text label.  Keep it short.
 ;        
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2016-10-05 12:52:00 -0700 (Wed, 05 Oct 2016) $
-; $LastChangedRevision: 22035 $
+; $LastChangedDate: 2016-11-04 16:35:43 -0700 (Fri, 04 Nov 2016) $
+; $LastChangedRevision: 22312 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -130,13 +157,16 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                   fbdata=fbdata, window=window, adiabatic=adiabatic, $
                   nomid=nomid, uncertainty=uncertainty, nospec90=nospec90, $
                   shiftpot=shiftpot,popen=popen, indspec=indspec, twopot=twopot, $
-                  xrange=xrange
+                  xrange=xrange, error_bars=error_bars, yrange=yrange, trange=tspan, $
+                  note=note, mincounts=mincounts, maxrerr=maxrerr
 
   @mvn_swe_com
   @swe_snap_common
 
+  tiny = 1.e-31
   if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
 
+  if (size(note,/type) ne 7) then note = ''
   if keyword_set(archive) then aflg = 1 else aflg = 0
   if keyword_set(burst) then aflg = 1
   if (size(units,/type) ne 7) then units = 'eflux'
@@ -144,17 +174,26 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
   if keyword_set(keepwins) then kflg = 0 else kflg = 1
   if not keyword_set(zrange) then zrange = 0
   if keyword_set(ddd) then dflg = 1 else dflg = 0
-  if keyword_set(resample) then begin
-    rflg = 1
-    if (resample gt 1) then dotwo = 0 else dotwo = 1
-  endif else begin
-    rflg = 0
-    dotwo = 1
-  endelse
+  if keyword_set(resample) then rflg = 1 else rflg = 0
   if (n_elements(xrange) ge 2) then begin
     xrange = minmax(xrange)
     xflg = 1
   endif else xflg = 0
+
+  case n_elements(tspan) of
+       0 : tflg = 0
+       1 : begin
+             tspan = time_double(tspan)
+             tflg = 1
+             kflg = 0
+           end
+    else : begin
+             tspan = minmax(time_double(tspan))
+             tflg = 1
+             kflg = 0
+           end
+  endcase
+
   if keyword_set(hires) then hflg = 1 else hflg = 0
   if (size(fbdata, /type) eq 0) then fbdata = 'mvn_B_full'
   if keyword_set(adiabatic) then begin
@@ -166,6 +205,9 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
      uflg = 1
      rflg = 1
   endif else uflg = 0
+  if (size(error_bars,/type) eq 0) then ebar = 1 else ebar = keyword_set(error_bars)
+  if (size(mincounts,/type) eq 0) then mincounts = 10.
+  if (size(maxrerr,/type) eq 0) then maxrerr = 100.  ; disable by default
   if (size(center,/type) eq 0) then center = 0
   if keyword_set(pep) then pflg = 1 else pflg = 0
   if keyword_set(sum) then begin
@@ -177,8 +219,9 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
   endelse
   if not keyword_set(smo) then smo = 1
   if keyword_set(norm) then nflg = 1 else nflg = 0
-  if keyword_set(pot) then dopot = 1 else dopot = 0
+  if (size(pot,/type) eq 0) then dopot = 1 else dopot = keyword_set(pot)
   if (size(scp,/type) eq 0) then scp = !values.f_nan else scp = float(scp[0])
+  if keyword_set(twopot) then shiftpot = 0
   if keyword_set(shiftpot) then begin
     spflg = 1
     if (~xflg) then xrange = [1.,5000.]
@@ -190,6 +233,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     dolab = 1
     abin = string(indgen(16),format='(i2.2)')
     dbin = string(indgen(6),format='(i1)')
+    obin = string(indgen(96),format='(i2.2)')
   endif else dolab = 0
   if keyword_set(plotlims) then plot_pa_lims = 1 else plot_pa_lims = 0
   if keyword_set(nomid) then domid = 0 else domid = 1
@@ -250,6 +294,8 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     else     : drange = [0,0]
   endcase
   
+  if (n_elements(yrange) ge 2) then drange = minmax(yrange)
+  
   case strupcase(units) of
     'COUNTS' : ytitle = 'Raw Counts'
     'RATE'   : ytitle = 'Raw Count Rate'
@@ -285,35 +331,42 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
      wstat = 0
   endelse
   IF keyword_set(dir) THEN wdy = 0.125*Nopt.ysize ELSE wdy = 0.
-  if ~(free) then wstat = execute("wset, wnum",0,1)
-  if wstat eq 0 then window, wnum, free=free, xsize=Popt.xsize, ysize=Popt.ysize, xpos=Popt.xpos, ypos=Popt.ypos
-  Pwin = !d.window
-  wnum += 1
+
+  if (~rflg) then begin
+    if (~free) then wstat = execute("wset, wnum",0,1)
+    if wstat eq 0 then window, wnum, free=free, xsize=Popt.xsize, ysize=Popt.ysize, xpos=Popt.xpos, ypos=Popt.ypos
+    Pwin = !d.window
+    wnum += 1
+  endif
 
   if (sflg) then begin
-    if ~(free) then wstat = execute("wset, wnum",0,1)
+    if (~free) then wstat = execute("wset, wnum",0,1)
     if wstat eq 0 then window, wnum, free=free, xsize=Nopt.xsize, ysize=Nopt.ysize + wdy, xpos=Nopt.xpos, ypos=Nopt.ypos
     Nwin = !d.window
     wnum += 1
   endif
   
   if (dflg) then begin
-    if ~(free) then wstat = execute("wset, wnum",0,1)
+    if (~free) then wstat = execute("wset, wnum",0,1)
     if wstat eq 0 then window, wnum, free=free, xsize=Copt.xsize, ysize=Copt.ysize, xpos=Copt.xpos, ypos=Copt.ypos
     Cwin = !d.window
     wnum += 1
   endif
   
   if (dospec) then begin
-    if ~(free) then wstat = execute("wset, wnum",0,1)
+    if (~free) then wstat = execute("wset, wnum",0,1)
     if wstat eq 0 then window, wnum, free=free, xsize=Fopt.xsize, ysize=Fopt.ysize, xpos=Fopt.xpos, ypos=Fopt.ypos
     Ewin = !d.window
     wnum += 1
   endif
 
   if (rflg or hflg or uflg) then begin
-     if ~(free) then wstat = execute("wset, wnum",0,1)
-     if wstat eq 0 then window, wnum, free=free, xsize=Popt.xsize, ysize=Popt.ysize*0.5*(rflg+hflg+uflg), xpos=Popt.xpos, ypos=Popt.ypos
+     if (~free) then wstat = execute("wset, wnum",0,1)
+     if wstat eq 0 then begin
+       ysize = Popt.ysize*0.5*(rflg+hflg+uflg)
+       ypos = Popt.ypos + (Popt.ysize - ysize)
+       window, wnum, free=free, xsize=Popt.xsize, ysize=ysize, xpos=Popt.xpos, ypos=ypos
+     endif
      Rwin = !d.window
      wnum += 1
   endif
@@ -339,19 +392,21 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
      print,'Use button 1 to select time; button 3 to quit.'
      
      wset,Twin
-     ctime,trange,npoints=npts,/silent
-     if (npts gt 1) then cursor,cx,cy,/norm,/up ; make sure mouse button is released
+     if (~tflg) then begin
+       ctime,trange,npoints=npts,/silent
+       if (npts gt 1) then cursor,cx,cy,/norm,/up  ; Make sure mouse button released
+     endif else trange = tspan
      pdflg = 1
   endif else begin
      trange = 0.5*(pad.time + pad.end_time)
      pdflg = 0
      kflg = 0
   endelse 
-  if (size(trange,/type) eq 2) then begin  ; Abort before first time select.
-    wdelete,Pwin                           ; Don't keep empty windows.
+  if (size(trange,/type) eq 2) then begin          ; Abort before first time select.
+    if (~rflg) then wdelete,Pwin                   ; Don't keep empty windows.
     if (sflg) then wdelete,Nwin
     if (dospec) then wdelete,Ewin
-    if (rflg or hflg) then wdelete,Rwin
+    if (rflg or hflg or uflg) then wdelete,Rwin
     wset,Twin
     return
   endif
@@ -382,13 +437,18 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
 ; Put up a PAD spectrogram
  
-    if ~(psflg) then wset, Pwin
     if (pdflg) then begin
        pad = mvn_swe_getpad(trange,archive=aflg,all=doall,/sum,units=units)
        if (hflg) then pad = mvn_swe_padmap_32hz(pad, fbdata=fbdata, /verbose, maglev=maglev)
     endif
     
     if (size(pad,/type) eq 8) then begin
+
+      pmask = replicate(1.,64,16)
+      counts = pad
+      mvn_swe_convert_units, counts, 'counts'
+      indx = where(counts.data lt mincounts, count)
+      if (count gt 0L) then pmask[indx] = !values.f_nan
 
       if keyword_set(dir) then begin
         dt = min(abs(mag_ss.x - pad.time),i)
@@ -406,13 +466,19 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
       endif else pot = 0.
       if (finite(scp)) then pot = scp  ; override with user-supplied value
       pad.sc_pot = pot
-  
+
+; Correct for spacecraft potential.  For instrumental units (COUNTS, RATE, or
+; CRATE) only shift in energy.  For flux units (FLUX, EFLUX), shift in energy 
+; and correct the signal level to ensure conservation of phase space density.
+
       if (spflg) then begin
-        mvn_swe_convert_units, pad, 'df'
-        pad.energy -= pot
-        mvn_swe_convert_units, pad, units
+        if (stregex(units,'flux',/boo,/fold)) then begin
+          mvn_swe_convert_units, pad, 'df'
+          pad.energy -= pot
+          mvn_swe_convert_units, pad, units
+        endif else pad.energy -= pot
       endif
-    
+
       case strupcase(pad.units_name) of
         'COUNTS' : zlo = 1
         'RATE'   : zlo = 1
@@ -423,8 +489,8 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         else     : zlo = 1
       endcase
 
-      title = string(time_string(pad.time), pad.Baz*!radeg, pad.Bel*!radeg, $
-                     format='(a19,5x,"Baz = ",f5.1,3x,"Bel = ",f5.1)')
+      tstring = time_string(pad.time)
+      title = strtrim(string(tstring) + '   ' + note)
       str_element,limits,'title',title,/add
       
       if (pad.time gt t_mtx[2]) then boom = 1 else boom = 0
@@ -435,7 +501,12 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
       y = pad.pa*!radeg
       ylo = pad.pa_min*!radeg
       yhi = pad.pa_max*!radeg
-      z = smooth(pad.data,[smo,1],/nan)
+      z = smooth(pad.data*pmask,[smo,1],/nan)
+
+      if (sflg) then begin
+        de = min(abs(energy - x),i)
+        energy = x[i]
+      endif
       
       if (nflg) then begin
         zmean = average(z,2,/nan) # replicate(1.,16)
@@ -490,30 +561,36 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         str_element,limits,'zrange',[zmin,zmax],/add
       endif
 
-      !p.multi = [0,1,2]
-      specplot,x,y1,z1,limits=limits
-      if (dopot) then begin
-        if (spflg) then oplot,[-pot,-pot],[0,180],line=2,color=6 $
-                   else oplot,[pot,pot],[0,180],line=2
+      if (~rflg and ~psflg) then begin
+        wset, Pwin
+        !p.multi = [0,1,2]
+        specplot,x,y1,z1,limits=limits
+        if (dopot) then begin
+          if (spflg) then oplot,[-pot,-pot],[0,180],line=2,color=6 $
+                     else oplot,[pot,pot],[0,180],line=2
+        endif
+        if (plot_pa_lims) then begin
+          oplot,[3,5000],[ylo1[63,1],ylo1[63,1]],line=2
+          oplot,[3,5000],[yhi1[63,8],yhi1[63,8]],line=2
+        endif
+        if (sflg) then oplot,[energy,energy],[0,180],line=2
+
+        limits.title = ''
+        specplot,x,y2,z2,limits=limits
+        if (dopot) then begin
+          if (spflg) then oplot,[-pot,-pot],[0,180],line=2,color=6 $
+                     else oplot,[pot,pot],[0,180],line=2
+        endif
+        if (plot_pa_lims) then begin
+          oplot,[3,5000],[ylo2[63,1],ylo2[63,1]],line=2
+          oplot,[3,5000],[yhi2[63,8],yhi2[63,8]],line=2
+        endif
+        if (sflg) then oplot,[energy,energy],[0,180],line=2
+        !p.multi = 0
       endif
-      if (plot_pa_lims) then begin
-        oplot,[3,5000],[ylo1[63,1],ylo1[63,1]],line=2
-        oplot,[3,5000],[yhi1[63,8],yhi1[63,8]],line=2
-      endif
-      limits.title = ''
-      specplot,x,y2,z2,limits=limits
-      if (dopot) then begin
-        if (spflg) then oplot,[-pot,-pot],[0,180],line=2,color=6 $
-                   else oplot,[pot,pot],[0,180],line=2
-      endif
-      if (plot_pa_lims) then begin
-        oplot,[3,5000],[ylo2[63,1],ylo2[63,1]],line=2
-        oplot,[3,5000],[yhi2[63,8],yhi2[63,8]],line=2
-      endif
-      !p.multi = 0
 
       if (rflg or hflg or uflg) then begin
-         if ~(psflg) then wset, Rwin
+         if (~psflg) then wset, Rwin
          if (rflg + hflg + uflg) gt 1 then !p.multi = [0, 1, rflg+hflg+uflg]
          if (rflg) then begin
             rlim = limits
@@ -529,8 +606,17 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                                   fbdata=fbdata, sc_pot=spflg, archive=aflg
             arpad = rpad.avg
             if size(arpad, /n_dimension) eq 3 then arpad = average(arpad, 3)
+
+            urpad = rpad.std
+            if size(urpad, /n_dimension) eq 3 then urpad = average(urpad, 3)
+            rerr = urpad/arpad
+            
+            bad = where(rerr gt maxrerr, count)
+            if (count gt 0L) then arpad[bad] = !values.f_nan
+
             if (nflg) then arpad /= rebin(average(arpad, 2, /nan), n_elements(arpad[*, 0]), n_elements(arpad[0, *]), /sample)
-            str_element, rlim, 'title', time_string(mean(rpad.time)) + ' (Resampled)', /add_replace
+            str_element, rlim, 'title', strtrim(time_string(mean(rpad.time)) + ' (Resampled)' + $
+                                                '   ' + note), /add_replace
             specplot, average(pad.energy, 2), rpad[0].xax, arpad, lim=rlim
 
             if (dopot) then begin
@@ -538,13 +624,17 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                          else oplot,[pot,pot],[0,180],line=2
             endif
 
+            if (plot_pa_lims) then begin
+              oplot,[3,5000],[ylo2[63,1],ylo2[63,1]],line=2
+              oplot,[3,5000],[yhi2[63,8],yhi2[63,8]],line=2
+            endif
+            if (sflg) then oplot,[energy,energy],[0,180],line=2
+
             if (uflg) then begin
-               urpad = rpad.std
-               if size(urpad, /n_dimension) eq 3 then urpad = average(urpad, 3)
                str_element, rlim, 'ztitle', 'Relative Uncertainty', /add_replace
                str_element, rlim, 'zrange', [1.d-2, 1.], /add_replace
                str_element, rlim, 'title', 'Resampled PAD Relative Uncertainty', /add_replace
-               specplot, average(pad.energy, 2), rpad[0].xax, urpad/arpad, lim=rlim
+               specplot, average(pad.energy, 2), rpad[0].xax, rerr, lim=rlim
                if (dopot) then begin
                  if (spflg) then oplot,[-pot,-pot],[0,180],line=2,color=6 $
                             else oplot,[pot,pot],[0,180],line=2
@@ -599,37 +689,47 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         x = pad.energy[*,0]
         y = pad.pa*!radeg
         z = pad.data
+        dz = sqrt(pad.var)
+        pcol = !p.color
 
-        if ~(psflg) then wset, Nwin
+        if (~psflg) then wset, Nwin
         de = min(abs(energy - x),i)
         energy = x[i]
         ylo = reform(pad.pa_min[i,*])*!radeg
         yhi = reform(pad.pa_max[i,*])*!radeg
-        zi = z[i,*]/mean(z[i,*],/nan)
+        zmean = mean(z[i,*],/nan)
+        zi = z[i,*]/zmean
+        dzi = dz[i,*]/zmean
 
         col = [replicate(2,8), replicate(6,8)]
 
         plot_io,[-1.],[0.1],psym=3,xtitle='Pitch Angle (deg)',ytitle='Normalized', $
                 yrange=[0.1,10.],ystyle=1,xrange=[0,180],xstyle=1,xticks=6,xminor=3, $
-                title='', charsize=1.4, $
-                pos=[0.140005, 0.124449 - (wdy/4000.), 0.958005, 0.937783 - (wdy/525.)]
-
-        xyouts,140,7.5,string(energy,format='(f6.1," eV")'),charsize=1.4
+                title=strtrim(string(tstring, energy, note, format='(a19,5x,f6.1," eV   ",a)')), $
+                charsize=1.4, pos=[0.140005, 0.124449 - (wdy/4000.), 0.958005, 0.937783 - (wdy/525.)]
 
         for j=0,15 do oplot,[ylo[j],yhi[j]],[zi[j],zi[j]],color=col[j]
         oplot,y[i,0:7],zi[0:7],linestyle=1,color=2
+        if (ebar) then errplot,y[i,0:7],(zi[0:7]-dzi[0:7])>tiny,zi[0:7]+dzi[0:7],color=2,width=0
         oplot,y[i,0:7],zi[0:7],psym=4
         oplot,y[i,8:15],zi[8:15],linestyle=1,color=6
+        if (ebar) then errplot,y[i,8:15],(zi[8:15]-dzi[8:15])>tiny,zi[8:15]+dzi[8:15],color=6,width=0
         oplot,y[i,8:15],zi[8:15],psym=4
       
         if (dolab) then begin
-          alab = abin[pad.iaz]
-          dlab = dbin[pad.jel]
-          for j=0,7  do xyouts,(ylo[j]+yhi[j])/2.,8.,alab[j],color=2,align=0.5
-          for j=0,7  do xyouts,(ylo[j]+yhi[j])/2.,7.,dlab[j],color=2,align=0.5
+          if (label gt 1) then begin
+            olab = obin[pad.k3d]
+            for j=0,7  do xyouts,(ylo[j]+yhi[j])/2.,8.,olab[j],color=2,align=0.5
+            for j=8,15 do xyouts,(ylo[j]+yhi[j])/2.,0.13,olab[j],color=6,align=0.5
+          endif else begin
+            alab = abin[pad.iaz]
+            dlab = dbin[pad.jel]
+            for j=0,7  do xyouts,(ylo[j]+yhi[j])/2.,8.,alab[j],color=2,align=0.5
+            for j=0,7  do xyouts,(ylo[j]+yhi[j])/2.,7.,dlab[j],color=2,align=0.5
 
-          for j=8,15 do xyouts,(ylo[j]+yhi[j])/2.,0.15,alab[j],color=6,align=0.5
-          for j=8,15 do xyouts,(ylo[j]+yhi[j])/2.,0.13,dlab[j],color=6,align=0.5
+            for j=8,15 do xyouts,(ylo[j]+yhi[j])/2.,0.15,alab[j],color=6,align=0.5
+            for j=8,15 do xyouts,(ylo[j]+yhi[j])/2.,0.13,dlab[j],color=6,align=0.5
+          endelse
         endif
 
         IF keyword_set(dir) THEN BEGIN
@@ -679,7 +779,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
           for j=0,15 do oplot,[ylo[j],yhi[j]],[z3d[j],z3d[j]],color=col[j],line=2
 
-          if ~(psflg) then wset, Cwin
+          if (~psflg) then wset, Cwin
           d_dat = replicate(!values.f_nan,96)
           d_dat[pad.k3d] = reform(z[i,*])       ; PAD mapped into 3D
           ddd.data[ebin+1,*] = d_dat            ; overwrite adjacent energy bin
@@ -688,44 +788,101 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
           ddd.magf[1] = sin(pad.Baz)*cos(pad.Bel)
           ddd.magf[2] = sin(pad.Bel)
           plot3d_new,ddd,lat0,lon0,ebins=[ebin,ebin+1]
+
+          lab=strcompress(indgen(ddd.nbins),/rem)
+          xyouts,reform(ddd.phi[63,*]),reform(ddd.theta[63,*]),lab,align=0.5
         endif
       endif
             
       if (dospec) then begin
-        if ~(psflg) then wset, Ewin
+        if (~psflg) then wset, Ewin
         x = pad.energy[*,0]
-        pndx = where(reform(pad.pa_max[63,*]) lt swidth, count)
-        if (count gt 0L) then Fp = average(pad.data[*,pndx],2,/nan) $
-                         else Fp = replicate(!values.f_nan,64)
-        mndx = where(reform(pad.pa_min[63,*]) gt (!pi - swidth), count)
-        if (count gt 0L) then Fm = average(pad.data[*,mndx],2,/nan) $
-                         else Fm = replicate(!values.f_nan,64)
+
+        pndx = where(reform(pad.pa_max[63,*]) lt swidth, nbins)
+        case nbins of
+             0 : begin
+                   Fp = replicate(!values.f_nan,64)
+                   Fp_err = Fp
+                 end
+             1 : begin
+                   Fp = pad.data[*,pndx]
+                   Fp_err = sqrt(pad.var[*,pndx])
+                 end
+          else : begin
+                   ngud = total(finite(pad.data[*,pndx]),2)
+                   Fp = average(pad.data[*,pndx],2,/nan)
+                   Fp_err = sqrt(total(pad.var[*,pndx],2,/nan))/(ngud > 1.)
+                 end
+        endcase
+
+        mndx = where(reform(pad.pa_min[63,*]) gt (!pi - swidth), nbins)
+        case nbins of
+             0 : begin
+                   Fm = replicate(!values.f_nan,64)
+                   Fm_err = Fm
+                 end
+             1 : begin
+                   Fm = pad.data[*,mndx]
+                   Fm_err = sqrt(pad.var[*,mndx])
+                 end
+          else : begin
+                   ngud = total(finite(pad.data[*,mndx]),2)
+                   Fm = average(pad.data[*,mndx],2,/nan)
+                   Fm_err = sqrt(total(pad.var[*,mndx],2,/nan))/(ngud > 1.)
+                 end
+        endcase
+
         zndx = where((reform(pad.pa_max[63,*]) lt (!pi - swidth)) and $
-                     (reform(pad.pa_min[63,*]) gt swidth), count)
-        if (count gt 0L) then Fz = average(pad.data[*,zndx],2,/nan) $
-                         else Fz = replicate(!values.f_nan,64)
+                     (reform(pad.pa_min[63,*]) gt swidth), nbins)
+        case nbins of
+             0 : begin
+                   Fz = replicate(!values.f_nan,64)
+                   Fz_err = Fz
+                 end
+             1 : begin
+                   Fz = pad.data[*,zndx]
+                   Fz_err = sqrt(pad.var[*,zndx])
+                 end
+          else : begin
+                   ngud = total(finite(pad.data[*,zndx]),2)
+                   Fz = average(pad.data[*,zndx],2,/nan)
+                   Fz_err = sqrt(total(pad.var[*,zndx],2,/nan))/(ngud > 1.)
+                 end
+        endcase
         
         if keyword_set(twopot) then begin
-            php = Fp/x^2
-            x1 = x-twopot[0]
-            inE=where(x1 ge 0,cts)
+            php = Fp/x^2              ; assume EFLUX units
+            php_err = Fp_err/x^2
+            x1 = x - twopot[0]
+            inE = where(x1 ge 0, cts)
             Fp = php[inE]*x1[inE]^2
+            Fp_err = php_err[inE]*x1[inE]^2
             
-            php = Fm/x^2
-            x2 = x-twopot[1]
-            inE=where(x2 ge 0,cts)
+            php = Fm/x^2              ; assume EFLUX units
+            php_err = Fm_err/x^2
+            x2 = x - twopot[1]
+            inE = where(x2 ge 0, cts)
             Fm = php[inE]*x2[inE]^2
+            Fm_err = php_err[inE]*x2[inE]^2
         endif else begin
-            x1=x
-            x2=x
+            x1 = x
+            x2 = x
         endelse
         
-        plot_oo, [0.1,0.1], drange, xrange=xrange, yrange=drange, /ysty, $
+        plot_oo, [0.1,0.1], drange, xrange=xrange, yrange=drange, /xsty, /ysty, $
           xtitle='Energy (eV)', ytitle=ytitle, title=time_string(pad.time), $
           charsize=1.4
+
         oplot, x1, Fp, psym=10, color=6
         oplot, x2, Fm, psym=10, color=2
         if (domid) then oplot, x, Fz, psym=10, color=4
+
+        if (ebar) then begin
+          errplot, x1*0.999, (Fp-Fp_err)>tiny, Fp+Fp_err, color=6, width=0
+          errplot, x2*1.001, (Fm-Fm_err)>tiny, Fm+Fm_err, color=2, width=0
+          if (domid) then errplot, x, (Fz-Fz_err)>tiny, Fz+Fz_err, color=4, width=0
+        endif
+
         if (dopot) then begin
           if (spflg) then oplot,[-pot,-pot],drange,line=2,color=6 $
                      else oplot,[pot,pot],drange,line=2
@@ -770,11 +927,17 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
           xyouts,xs,ys,string(round(B_elev), format='("B_el = ",i4)'),charsize=1.2,/norm          
           ys -= dys
         endif
+        
+        if (strlen(note) gt 0) then begin
+          xyouts,xs,ys,note,charsize=1.2,/norm
+          ys -= dys
+        endif
+
       endif
     endif
     
     if (doind) then begin
-        if ~(psflg) then wset, Iwin
+        if (~psflg) then wset, Iwin
         x = pad.energy[*,0]
         npa = 16;n_elements(pad.energy[0,*])
         pas = reform(pad.pa[63,*])
@@ -792,12 +955,11 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         dys = 0.03
       
         for ip=0,npa/2-1 do begin
-            ipa=ip+inm
-            if ipa ge npa then ipa=ipa-npa
-            mip=pad.pa_min[63,ipa]*!radeg
-            maap=pad.pa_max[63,ipa]*!radeg
-            if pad.pa[63,ipa]*!radeg ge 90 then lst=2 else lst=0
-            clr=244./(npa/2-1)*ip+10
+            ipa = (ip + inm) < (ipa - npa)
+            mip = pad.pa_min[63,ipa]*!radeg
+            maap = pad.pa_max[63,ipa]*!radeg
+            if (pad.pa[63,ipa]*!radeg ge 90) then lst = 2 else lst = 0
+            clr = 244./(npa/2-1)*ip + 10
             oplot,x,pad.data[*,ipa], color=clr, linestyle=lst
             xyouts,xs,ys,string(mip, maap, format='(i3," - ",i3)'),charsize=1.2,/norm,color=clr
             ys -= dys
@@ -829,7 +991,11 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
             ys -= dys
         endif
         
-        
+        if (strlen(note) gt 0) then begin
+          xyouts,xs,ys,note,charsize=1.2,/norm
+          ys -= dys
+        endif
+            
         ;second half of the PAD
         plot_oo, [0.1,0.1], drange, xrange=xrange, yrange=drange, /ysty, $
             xtitle='Energy (eV)', ytitle=ytitle, title=time_string(pad.time), $
@@ -877,6 +1043,11 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
             ys -= dys
         endif
         
+        if (strlen(note) gt 0) then begin
+          xyouts,xs,ys,note,charsize=1.2,/norm
+          ys -= dys
+        endif
+
         !p.multi=0
     endif
 
@@ -884,7 +1055,8 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     nplot++
     
 ; Get the next button press
-    if (pdflg) then begin
+
+    if (pdflg and ~tflg) then begin
        wset,Twin
        ctime,trange,npoints=npts,/silent
        if (npts gt 1) then cursor,cx,cy,/norm,/up ; make sure mouse button is released
@@ -894,11 +1066,11 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
   endwhile
 
   if (kflg) then begin
-    wdelete, Pwin
+    if (~rflg) then wdelete, Pwin
     if (sflg) then wdelete, Nwin
     if (dflg) then wdelete, Cwin
     if (dospec) then wdelete, Ewin
-    if (rflg or hflg) then wdelete, Rwin
+    if (rflg or hflg or uflg) then wdelete, Rwin
     if (doind) then wdelete, Iwin
   endif
 
