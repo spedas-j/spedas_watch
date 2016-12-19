@@ -27,6 +27,8 @@
 ;
 ;       SUM:           If set, use cursor to specify time ranges for averaging.
 ;
+;       TSMO:          Smoothing interval, in seconds.  Default is no smoothing.
+;
 ;       SMO:           Number of energy bins to smooth over.
 ;
 ;       NORM:          At each energy step, normalize the distribution to the mean.
@@ -57,8 +59,19 @@
 ;                      respect to the observed vector magnetic field
 ;                      in the MSO and LGEO(local geographic coordinate). 
 ;
-;       MASK_SC:       Mask PA bins that are blocked by the spacecraft.
-;                      Default = 1 (yes).
+;       ABINS:         Anode bin mask -> 16 elements (0 = off, 1 = on)
+;                      Default = replicate(1,16)
+;
+;       DBINS:         Deflector bin mask -> 6 elements (0 = off, 1 = on)
+;                      Default = replicate(1,6)
+;
+;       OBINS:         3D solid angle bin mask -> 96 elements (0 = off, 1 = on)
+;                      Default = reform(ABINS # DBINS)
+;
+;       MASK_SC:       Mask the spacecraft blockage.  This is in addition to any
+;                      masking defined by the ABINS, DBINS, and OBINS.
+;                      Default = 1 (yes).  Set this to 0 to disable and use the
+;                      above 3 keywords only.
 ;
 ;       SPEC:          Plot energy spectra for parallel, anti-parallel, and
 ;                      90-degree pitch angle populations.  The value of this 
@@ -142,8 +155,8 @@
 ;        NOTE:         Insert a text label.  Keep it short.
 ;        
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2016-11-04 16:35:43 -0700 (Fri, 04 Nov 2016) $
-; $LastChangedRevision: 22312 $
+; $LastChangedDate: 2016-11-28 09:09:33 -0800 (Mon, 28 Nov 2016) $
+; $LastChangedRevision: 22406 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -158,7 +171,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                   nomid=nomid, uncertainty=uncertainty, nospec90=nospec90, $
                   shiftpot=shiftpot,popen=popen, indspec=indspec, twopot=twopot, $
                   xrange=xrange, error_bars=error_bars, yrange=yrange, trange=tspan, $
-                  note=note, mincounts=mincounts, maxrerr=maxrerr
+                  note=note, mincounts=mincounts, maxrerr=maxrerr, tsmo=tsmo
 
   @mvn_swe_com
   @swe_snap_common
@@ -217,6 +230,12 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     npts = 1
     doall = 0
   endelse
+  if keyword_set(tsmo) then begin
+    npts = 1
+    doall = 1
+    dosmo = 1
+    delta_t = double(tsmo)/2D
+  endif else dosmo = 0
   if not keyword_set(smo) then smo = 1
   if keyword_set(norm) then nflg = 1 else nflg = 0
   if (size(pot,/type) eq 0) then dopot = 1 else dopot = keyword_set(pot)
@@ -237,16 +256,19 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
   endif else dolab = 0
   if keyword_set(plotlims) then plot_pa_lims = 1 else plot_pa_lims = 0
   if keyword_set(nomid) then domid = 0 else domid = 1
-  
+
+; Field of view masking
+
   if (n_elements(abins) ne 16) then abins = replicate(1B, 16)
   if (n_elements(dbins) ne  6) then dbins = replicate(1B, 6)
-  if (n_elements(obins) ne 96) then begin
-    obins = replicate(1B, 96, 2)
-    obins[*,0] = reform(abins # dbins, 96)
-    obins[*,1] = obins[*,0]
-  endif else obins = byte(obins # [1B,1B])
+  if (n_elements(obins) ne 96) then obins = reform(abins # dbins, 96)
+  fovmask = byte(obins # [1B,1B])  ; same mask for both boom states
+
   if (size(mask_sc,/type) eq 0) then mask_sc = 1
-  if keyword_set(mask_sc) then obins = swe_sc_mask * obins
+  if keyword_set(mask_sc) then fovmask *= swe_sc_mask
+
+; Pitch angle resolved energy spectra
+
   if (size(spec,/type) ne 0) then begin
     dospec = 1
     swidth = (float(abs(spec)) > 30.)*!dtor
@@ -410,7 +432,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     wset,Twin
     return
   endif
-  
+
   if keyword_set(dir) then begin
     get_data,'mvn_B_1sec',index=i
     if (i eq 0) then mvn_mag_load
@@ -432,8 +454,12 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
   
   while (ok) do begin
 
-  
-  if (psflg) then popen, psname + string(nplot,format='("_",i2.2)')
+    if (dosmo) then begin
+      tmin = min(trange, max=tmax)
+      trange = [(tmin - delta_t), (tmax + delta_t)]
+    endif
+
+    if (psflg) then popen, psname + string(nplot,format='("_",i2.2)')
 
 ; Put up a PAD spectrogram
  
@@ -494,7 +520,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
       str_element,limits,'title',title,/add
       
       if (pad.time gt t_mtx[2]) then boom = 1 else boom = 0
-      indx = where(obins[pad.k3d,boom] eq 0B, count)
+      indx = where(fovmask[pad.k3d,boom] eq 0B, count)
       if (count gt 0L) then pad.data[*,indx] = !values.f_nan
 
       x = pad.energy[*,0]
@@ -603,7 +629,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
             rtime = minmax(trange)
             if rtime[0] eq rtime[1] then rtime = rtime[0]
             mvn_swe_pad_resample, rtime, snap=0, tplot=0, result=rpad, silent=3, hires=hflg, $
-                                  fbdata=fbdata, sc_pot=spflg, archive=aflg
+                                  fbdata=fbdata, sc_pot=spflg, archive=aflg, mbins=fovmask[*,boom]
             arpad = rpad.avg
             if size(arpad, /n_dimension) eq 3 then arpad = average(arpad, 3)
 
@@ -768,7 +794,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
         if (dflg) then begin
           ddd = mvn_swe_get3d(trange,archive=aflg,all=doall,/sum,units=units)
-          indx = where(obins[*,boom] eq 0B, count)
+          indx = where(fovmask[*,boom] eq 0B, count)
           if (count gt 0L) then ddd.data[*,indx] = !values.f_nan
 
           de = min(abs(ddd.energy[*,0] - energy),ebin)
