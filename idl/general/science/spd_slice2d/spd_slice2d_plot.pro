@@ -73,8 +73,13 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
+<<<<<<< HEAD
+;$LastChangedDate: 2016-11-21 15:22:53 -0800 (Mon, 21 Nov 2016) $
+;$LastChangedRevision: 22395 $
+=======
 ;$LastChangedDate: 2016-11-29 10:24:51 -0800 (Tue, 29 Nov 2016) $
 ;$LastChangedRevision: 22413 $
+>>>>>>> origin/master
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/science/spd_slice2d/spd_slice2d_plot.pro $
 ;
 ;-
@@ -281,6 +286,35 @@ pro spd_slice2d_plot, slice, $
       yminor = undefined(y_minor) ? 10 : (round(y_minor)+1 > 0)
     
     endelse
+<<<<<<< HEAD
+  
+      ; Plot
+      contour, slice.data, slice.xgrid, slice.ygrid, $
+          levels = colorlevels, c_color = thecolors, charsize=charsize, $
+          /isotropic, /closed, /follow, $
+    ;      /cell_fill,  $     ; Cell fill does not appear necessary here
+          /fill, $
+          title = title, $
+          xmargin = xmargin, $
+          ymargin = ymargin, $
+          xstyle = 1, $    ; Force range
+          ystyle = 1, $    ;
+          ticklen = 0.01,$
+          xtickname = xtickname,$  ; 2012-June: Annotations now controled by 
+          ytickname = ytickname,$  ;            formatannotation
+          xminor = xminor,$   ; Allow minor ticks to persist
+          yminor = yminor,$   ; when specifying # of major ticks
+          xtickv = xtickv,$  ; 2013-April: Specify values to avoid inconsistencies
+          ytickv = ytickv,$  ;             
+          xticks = xticks, $  ; Number of ticks must be passed in with values 
+          yticks = yticks, $  ; for them to be placed correctly
+          xrange = xrange,$
+          yrange = yrange,$
+          xtitle = xtitle,$
+          ytitle = ytitle, $
+          _extra = _extra
+  
+=======
       ; allow users to set a custom background color
       if ~undefined(background_color_rgb) then begin
         ; the user specified RGB values for the background color
@@ -332,6 +366,7 @@ pro spd_slice2d_plot, slice, $
           ytitle = ytitle, $
           _extra = _extra
   
+>>>>>>> origin/master
     ; Get z axis ticks
     spd_slice2d_getticks,nticks=z_ticks, range=zrange, log=zlog, $
                          style=zstyle, precision=zprecision, $
