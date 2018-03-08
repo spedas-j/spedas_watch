@@ -12,8 +12,8 @@
 ;         - dlimits.cdf structure (stored in the CDF file)
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-02-26 08:55:30 -0800 (Mon, 26 Feb 2018) $
-; $LastChangedRevision: 24777 $
+; $LastChangedDate: 2018-03-07 15:27:45 -0800 (Wed, 07 Mar 2018) $
+; $LastChangedRevision: 24849 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/spd_extract_tvar_metadata.pro $
 ;-
 
@@ -24,7 +24,7 @@ function spd_extract_tvar_metadata, tvar
       return, -1
     endif
     
-    out = create_struct('units', '', 'labels', '', 'catdesc', '', 'ztitle', '', 'ytitle', tvar, 'spec', 0b)
+    out = create_struct('units', '', 'labels', '', 'catdesc', '', 'ztitle', '', 'ytitle', strjoin(strsplit(tvar, '_', /extract), '!C'), 'spec', 0b, 'ylog', 0b, 'zlog', 0b, 'yrange', [0, 0], 'zrange', [0, 0])
     
     get_data, tvar, dlimits=dl, limits=l
     if is_struct(dl) then begin
@@ -60,7 +60,19 @@ function spd_extract_tvar_metadata, tvar
       if labels_exists then str_element, out, 'labels', dl.labels, /add
       
       str_element, dl, 'spec', success=exists
-      if exists && byte(dl.spec) ne 0 then out.spec = 1b
+      if exists && byte(dl.spec) ne 0b then out.spec = 1b
+      
+      str_element, dl, 'ylog', success=exists
+      if exists && byte(dl.ylog) ne 0b then out.ylog = 1b
+
+      str_element, dl, 'zlog', success=exists
+      if exists && byte(dl.zlog) ne 0b then out.zlog = 1b
+      
+      str_element, dl, 'yrange', success=exists
+      if exists then out.yrange = dl.yrange
+      
+      str_element, dl, 'zrange', success=exists
+      if exists then out.zrange = dl.zrange
     endif
     if is_struct(l) then begin
       ; try to extract data from the limits last, as 'limits' are set by the user
@@ -83,7 +95,19 @@ function spd_extract_tvar_metadata, tvar
       if labels_exists then str_element, out, 'labels', l.labels, /add
       
       str_element, l, 'spec', success=exists
-      if exists && byte(l.spec) ne 0 then out.spec = 1b
+      if exists && byte(l.spec) ne 0b then out.spec = 1b
+      
+      str_element, l, 'ylog', success=exists
+      if exists && byte(l.ylog) ne 0b then out.ylog = 1b
+
+      str_element, l, 'zlog', success=exists
+      if exists && byte(l.zlog) ne 0b then out.zlog = 1b
+      
+      str_element, l, 'yrange', success=exists
+      if exists then out.yrange = l.yrange
+
+      str_element, l, 'zrange', success=exists
+      if exists then out.zrange = l.zrange
     endif
     
     return, out

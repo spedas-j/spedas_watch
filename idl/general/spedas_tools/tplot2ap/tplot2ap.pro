@@ -33,8 +33,8 @@
 ;         click 'Allow' for private networks)
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-02-26 13:07:49 -0800 (Mon, 26 Feb 2018) $
-; $LastChangedRevision: 24787 $
+; $LastChangedDate: 2018-03-07 14:53:36 -0800 (Wed, 07 Mar 2018) $
+; $LastChangedRevision: 24848 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/tplot2ap/tplot2ap.pro $
 ;-
 
@@ -83,9 +83,14 @@ pro tplot2ap, tvars, port=port, connect_timeout=connect_timeout, read_timeout=re
   cdf_filename = strjoin(strsplit(cdf_filename, '\', /extract), '\\')
   
   for tvar_idx=0, n_elements(tvars)-1 do begin
+    extra_str = ''
     metadata = spd_extract_tvar_metadata(tvars[tvar_idx])
+    if metadata.ylog eq 1b then extra_str += ', ylog="1"' else extra_str += ', ylog="0"'
+    if metadata.zlog eq 1b then extra_str += ', zlog="1"' else extra_str += ', zlog="0"'
+    if ~array_equal(metadata.yrange, [0, 0]) then extra_str += ', yrange=['+strcompress(string(metadata.yrange[0]), /rem)+', '+strcompress(string(metadata.yrange[1]), /rem)+']'
+    if ~array_equal(metadata.zrange, [0, 0]) then extra_str += ', zrange=['+strcompress(string(metadata.zrange[0]), /rem)+', '+strcompress(string(metadata.zrange[1]), /rem)+']'
 
-    printf, unit, 'plotx('+strcompress(string(tvar_idx), /rem)+', "'+cdf_filename+'.cdf?'+tvars[tvar_idx]+'", title="'+metadata.catdesc+'", ztitle="'+metadata.ztitle+'", ytitle="'+metadata.ytitle+'");'
+    printf, unit, 'plotx('+strcompress(string(tvar_idx), /rem)+', "'+cdf_filename+'.cdf?'+tvars[tvar_idx]+'", title="'+metadata.catdesc+'", ztitle="'+metadata.ztitle+'", ytitle="'+metadata.ytitle+'"'+extra_str+');'
   endfor
 
   ; pause required on Windows before freeing the handle, otherwise the previous plot() command fails

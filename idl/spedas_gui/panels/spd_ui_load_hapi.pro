@@ -7,9 +7,9 @@
 ; Load data from a HAPI server
 ;
 ;
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-02-26 11:37:59 -0800 (Mon, 26 Feb 2018) $
-;$LastChangedRevision: 24779 $
+;$LastChangedBy: nikos $
+;$LastChangedDate: 2018-03-07 15:41:18 -0800 (Wed, 07 Mar 2018) $
+;$LastChangedRevision: 24852 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/panels/spd_ui_load_hapi.pro $
 ;-
 
@@ -205,7 +205,7 @@ Pro spd_ui_load_hapi, gui_id, historywin, statusbar,timeRangeObj=timeRangeObj
   listDatasetsLabel = widget_label(upRightBase, value='2. List datasets', /align_top)
   ;selectServerLabelEmpty21 = widget_label(upRightBase, value=' ', /align_top, scr_xsize = 250)
   loadButton = widget_button(upRightBase, value = ' Load Datasets from Server ', uvalue= 'LOADSETS', /align_top)
-  datasetList = widget_list(upRightBase, value=' ', /align_top, scr_xsize = 340, scr_ysize = 230, uvalue='DATASETLIST', uname='DATASETLIST')
+  datasetList = widget_list(upRightBase, value=' ', /align_top, scr_xsize = 300, scr_ysize = 230, uvalue='DATASETLIST', uname='DATASETLIST')
 
 
   ; Selected dataset
