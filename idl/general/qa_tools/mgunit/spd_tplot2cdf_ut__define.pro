@@ -6,10 +6,22 @@
 ;     IDL> mgunit, 'spd_tplot2cdf_ut'
 ;
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-03-05 19:24:23 -0800 (Mon, 05 Mar 2018) $
-; $LastChangedRevision: 24832 $
+; $LastChangedDate: 2018-03-09 23:26:34 -0800 (Fri, 09 Mar 2018) $
+; $LastChangedRevision: 24865 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/qa_tools/mgunit/spd_tplot2cdf_ut__define.pro $
 ;-
+
+function spd_tplot2cdf_ut::test_save_1d_time
+  store_data, 'test_1d_time', data=time_double('2018-01-01')+[1, 2, 3, 4]
+  tplot2cdf, tvars='test_1d_time', filename='test_1d_time.cdf', /default
+  del_data, '*'
+  ; cdf2tplot, 'test_1d_time.cdf'
+  ; get_data, 'test_1d_time', data=d
+  ; cdf2tplot ignores the load of the data if only Epoch is defined 
+  ; Also, apparently, it block the cdf file!
+  ; assert, /SKIP, array_equal(d.X, time_double('2018-01-01')+[1, 2, 3, 4]), 'Problem with times in CDF file saved by tplot2cdf'
+  return, 1
+end
 
 
 function spd_tplot2cdf_ut::test_save_times
@@ -40,6 +52,76 @@ function spd_tplot2cdf_ut::test_save_float
   cdf2tplot, 'test_float.cdf'
   get_data, 'test_float', data=d
   assert, array_equal(d.Y, floatvals), 'Problem with floats in CDF file saved by tplot2cdf'
+  return, 1
+end
+
+function spd_tplot2cdf_ut::test_save_share_time
+  floatvals1 = indgen(4, /float)
+  floatvals2 = indgen(4, /float)+1.
+  sharetime = time_double('2018-01-01')+[1, 2, 3, 4]
+  store_data, 'test_sharetime1', data={x: sharetime, y: floatvals1 }
+  store_data, 'test_sharetime2', data={x: sharetime, y: floatvals2 }
+  tplot2cdf, tvars=['test_sharetime1','test_sharetime2'], filename='test_sharetime.cdf', /default
+  del_data, '*'
+  cdf2tplot, 'test_sharetime.cdf'
+  get_data, 'test_sharetime1', data=d1
+  get_data, 'test_sharetime2', data=d2  
+  assert, array_equal(d1.Y, floatvals1) && array_equal(d2.Y, floatvals2) && array_equal(d1.x, sharetime) && array_equal(d2.x, sharetime), 'Problem with shared time in CDF file saved by tplot2cdf'  
+  return, 1
+end
+
+function spd_tplot2cdf_ut::test_save_share_multidimention
+  data1 = RANDOMU(!NULL,2,3,4,5,/DOUBLE)
+  data2 = RANDOMU(!NULL,2,3,4,5,/DOUBLE)
+  v1 = RANDOMU(!NULL,2,3,/DOUBLE)
+  v2 = RANDOMU(!NULL,2,4,/DOUBLE)  
+  v3 = RANDOMU(!NULL,2,5,/DOUBLE)
+  sharetime = time_double('2018-01-01')+[1, 2]
+  
+  store_data, 'test_mshare1', data={x: sharetime, y: data1, v1:v1, v2:v2 , v3:v3}
+  store_data, 'test_mshare2', data={x: sharetime, y: data2, v1:v1, v2:v2 , v3:v3}
+  tplot2cdf, tvars=['test_mshare1','test_mshare2'], filename='test_mshare.cdf', /default
+  del_data, '*'
+  mms_cdf2tplot, 'test_mshare.cdf'
+  get_data, 'test_mshare1', data=d1
+  get_data, 'test_mshare2', data=d2
+  assert, array_equal(d1.Y, data1) && array_equal(d1.x, sharetime) && array_equal(d1.v1, v1) && array_equal(d1.v2, v2) && array_equal(d1.v3, v3) &&$
+          array_equal(d2.Y, data2) && array_equal(d2.x, sharetime) && array_equal(d2.v1, v1) && array_equal(d2.v2, v2) && array_equal(d2.v3, v3)$
+    , 'Problem with shared multidimentional data in CDF file saved by tplot2cdf'
+  return, 1
+end
+
+function spd_tplot2cdf_ut::test_save_spectrogram
+  data = RANDOMU(!NULL,4,5,/DOUBLE)  
+  v = indgen(5)
+  time = time_double('2018-01-01')+indgen(4)
+  store_data, 'test_spectr', data={x: time, y: data, v:v}, dlimits={spec:1} 
+  tplot2cdf, tvars=['test_spectr'], filename='test_spectr.cdf', /default
+  del_data, '*'
+  cdf2tplot, 'test_spectr.cdf'
+  get_data, 'test_spectr', data=d, dlimit=s
+  assert, array_equal(d.Y, data) && array_equal(d.x, time) && array_equal(d.v, v) && s.spec eq 1 $    
+    , 'Problem with spectrum data in CDF file saved by tplot2cdf'
+  return, 1
+end
+
+function spd_tplot2cdf_ut::test_save_share_support_data
+  data1 = RANDOMU(!NULL,2,3,4,/DOUBLE)
+  data2 = RANDOMU(!NULL,2,3,4,/DOUBLE)
+  v1 = INDGEN(3)+1
+  v2 = INDGEN(4)+2  
+  sharetime = time_double('2018-01-01')+[1, 2]
+  
+  store_data, 'test_share1', data={x: sharetime, y: data1, v1:v1, v2:v2 }
+  store_data, 'test_share2', data={x: sharetime, y: data2, v1:v1, v2:v2 }
+  tplot2cdf, tvars=['test_share1','test_share2'], filename='test_share.cdf', /default
+  del_data, '*'
+  cdf2tplot, 'test_share.cdf'
+  get_data, 'test_share1', data=d1
+  get_data, 'test_share2', data=d2
+  assert, array_equal(d1.Y, data1) && array_equal(d1.x, sharetime) && array_equal(d1.v1, v1) && array_equal(d1.v2, v2) && $
+          array_equal(d2.Y, data2) && array_equal(d2.x, sharetime) && array_equal(d2.v1, v1) && array_equal(d2.v2, v2) $
+    , 'Problem with shared data in CDF file saved by tplot2cdf'
   return, 1
 end
 

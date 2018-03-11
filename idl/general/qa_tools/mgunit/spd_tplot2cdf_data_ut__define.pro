@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'spd_tplot2cdf_data_ut'
 ;
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-02-07 21:19:49 -0800 (Wed, 07 Feb 2018) $
-; $LastChangedRevision: 24668 $
+; $LastChangedDate: 2018-03-09 23:26:34 -0800 (Fri, 09 Mar 2018) $
+; $LastChangedRevision: 24865 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/qa_tools/mgunit/spd_tplot2cdf_data_ut__define.pro $
 ;-
 
@@ -19,7 +19,8 @@ function spd_tplot2cdf_data_ut::test_fpi_multidimensional_data
   del_data, '*'
   mms_cdf2tplot, 'test_fpi_dist.cdf', /all
   get_data, 'mms3_des_dist_fast', data=d
-  assert, /SKIP, array_equal(original.Y, d.Y) && array_equal(original.x, d.x) && array_equal(original.v1, d.v1) && array_equal(original.v2, d.v2) && array_equal(original.v3, d.v3), 'Problem with multi-dimensional FPI data'
+  assert, array_equal(original.Y, d.Y) && array_equal(original.v1, d.v1) && array_equal(original.v2, d.v2) && array_equal(original.v3, d.v3), 'Problem with FPI data'
+  assert, /SKIP, array_equal(original.x, d.x) , 'Problem time of FPI data'
   return, 1
 end
 
@@ -31,7 +32,8 @@ function spd_tplot2cdf_data_ut::test_hpca_multidimensional_data
   del_data, '*'
   mms_cdf2tplot, 'test_hpca_dist.cdf'
   get_data, 'mms3_hpca_hplus_phase_space_density', data=d
-  assert, /SKIP, array_equal(original.Y, d.Y) && array_equal(original.x, d.x) && array_equal(original.v1, d.v1) && array_equal(original.v2, d.v2), 'Problem with saving HPCA dist to file'
+  assert, array_equal(original.Y, d.Y)  && array_equal(original.v1, d.v1) && array_equal(original.v2, d.v2), 'Problem with HPCA data'
+  assert, /SKIP, array_equal(original.x, d.x) , 'Problem with time of HPCA data'
   return, 1
 end
 
@@ -42,7 +44,8 @@ function spd_tplot2cdf_data_ut::test_rbsp_spec
   del_data, '*'
   mms_cdf2tplot, 'rbsp_data.cdf', /all
   get_data, 'rbspa_rbspice_l3_TOFxEH_proton_omni_spin', data=d
-  assert, array_equal(original.X, d.X) && array_equal(original.Y, d.Y) && array_equal(original.v, d.v), 'Problem with saving RBSP data to a CDF file'
+  assert, array_equal(original.Y, d.Y) && array_equal(original.v, d.v), 'Problem with RBSP data'
+  assert, /SKIP, array_equal(original.X, d.X), 'Problem with time of RBSP data'
   return, 1
 end
 
