@@ -36,6 +36,9 @@ dsc_ut_loadfc,t_num=t_num
 dsc_ut_loadall,t_num=t_num
 dsc_ut_setytitle,t_num=t_num
 dsc_ut_misc,t_num=t_num
+dsc_ut_timeabsolute,t_num=t_num
+dsc_ut_shiftline,t_num=t_num
+dsc_ut_missioncompare,t_num=t_num
 dsc_ut_plotoverviews,t_num=t_num
 
 spd_end_tests

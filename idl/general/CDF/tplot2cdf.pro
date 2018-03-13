@@ -31,8 +31,8 @@
 ;  Alexander Drozdov
 ;   
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-03-05 19:22:19 -0800 (Mon, 05 Mar 2018) $
-; $LastChangedRevision: 24831 $
+; $LastChangedDate: 2018-03-12 18:05:53 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24880 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot2cdf.pro $
 ;-
 
@@ -114,7 +114,11 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
       EpochName = 'Epoch'
       if s.CDF.VARS.DATATYPE eq EpochType then begin
         EpochVAR = s.CDF.VARS      
-        UNDEFINE, VAR ; remove var
+        ;if(undefined(y)) then begin 
+          ;y = x          
+          ;VAR.Name = tname
+        ;end        
+        ; UNDEFINE, VAR ; remove var
       endif
       
       if array_contains(t,'DEPEND_0') then begin

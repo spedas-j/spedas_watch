@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'spd_tplot2cdf_ut'
 ;
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-03-09 23:26:34 -0800 (Fri, 09 Mar 2018) $
-; $LastChangedRevision: 24865 $
+; $LastChangedDate: 2018-03-12 18:09:07 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24881 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/qa_tools/mgunit/spd_tplot2cdf_ut__define.pro $
 ;-
 
@@ -15,11 +15,11 @@ function spd_tplot2cdf_ut::test_save_1d_time
   store_data, 'test_1d_time', data=time_double('2018-01-01')+[1, 2, 3, 4]
   tplot2cdf, tvars='test_1d_time', filename='test_1d_time.cdf', /default
   del_data, '*'
-  ; cdf2tplot, 'test_1d_time.cdf'
-  ; get_data, 'test_1d_time', data=d
-  ; cdf2tplot ignores the load of the data if only Epoch is defined 
-  ; Also, apparently, it block the cdf file!
-  ; assert, /SKIP, array_equal(d.X, time_double('2018-01-01')+[1, 2, 3, 4]), 'Problem with times in CDF file saved by tplot2cdf'
+  cdf2tplot, 'test_1d_time.cdf'
+  get_data, 'test_1d_time', data=d
+  ; Note, that cdf2tplot ignores the load of the data if only Epoch is defined 
+  ; So, in the CDF files there is data that is equal to Epoch.
+   assert, array_equal(d.X, time_double('2018-01-01')+[1, 2, 3, 4]), 'Problem with times in CDF file saved by tplot2cdf'
   return, 1
 end
 

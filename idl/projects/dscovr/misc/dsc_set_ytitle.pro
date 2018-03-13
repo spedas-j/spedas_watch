@@ -21,9 +21,9 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2017
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-11-20 12:45:47 -0800 (Mon, 20 Nov 2017) $
-; $LastChangedRevision: 24321 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/load/dsc_set_ytitle.pro $
+; $LastChangedDate: 2018-03-12 09:55:28 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24869 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/misc/dsc_set_ytitle.pro $
 ;-
 
 PRO DSC_SET_YTITLE,TVAR,METADATA=md,TITLE=title,VERBOSE=verbose
@@ -40,18 +40,13 @@ if (tvar eq !NULL) then begin
 endif
 
 dprint,dlevel=4,verbose=verbose,rname+': Setting title for tvar= ',tvar
-tvar = (isa(tvar,/int,/scalar) or isa(tvar,/string,/scalar)) ? tnames(tvar) : ''	
+tvar = ((isa(tvar,/int,/scalar)&&~isa(tvar,/BOOLEAN)) || isa(tvar,/string,/scalar)) ? tnames(tvar) : ''	
 if tvar eq '' then begin
 	dprint,dlevel=1,verbose=verbose,rname+': Argument is not a valid TPLOT variable'
 	return
 endif
 
 title = tvar	;set ytitle to variable name if nothing better found
-if ~isa(md,'STRUCT') then begin
-	dprint,dlevel=2,verbose=verbose,rname+': Metadata is not a valid structure. Using variable defaults'
-	get_data,tvar,dlimits=md
-endif
-
 case tvar of
 	'dsc_orbit_J2000_POS':    title = 'S/C Position (J2000)'
 	'dsc_orbit_J2000_VEL':    title = 'S/C Velocity (J2000)'
@@ -64,6 +59,13 @@ case tvar of
 	'dsc_h1_fc_V':            title = 'V Magnitude'
 	'dsc_h1_fc_V_GSE':        title = 'V (GSE)'
 	else: begin
+			if isa(md,'UNDEFINED') then get_data,tvar,dlimits=md $
+				else begin
+					if ~isa(md,'STRUCT') then begin
+						dprint,dlevel=2,verbose=verbose,rname+': Metadata is not a structure. Using variable defaults'
+						get_data,tvar,dlimits=md
+					endif
+			endelse
 			haslabel = 0
 			if tag_exist(md,'labels') then begin
 				if size(md.labels,/n_dim) eq 0 then haslabel = 1

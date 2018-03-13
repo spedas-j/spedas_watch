@@ -37,9 +37,9 @@
 ;ADAPTED BY: Ayris Narock (ADNET/GSFC) 2017
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-11-20 12:45:47 -0800 (Mon, 20 Nov 2017) $
-; $LastChangedRevision: 24321 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/plot/dsc_get_ylimits.pro $
+; $LastChangedDate: 2018-03-12 09:55:28 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24869 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/misc/dsc_get_ylimits.pro $
 ;-
 
 PRO DSC_GET_YLIMITS,DATASTR,LIMITS,TRG,COMP=comp,INCLUDE_ERROR=inc_err,BUFF=buff,VERBOSE=verbose
@@ -103,10 +103,6 @@ for i=0,n_elements(datastr)-1 do begin
 		endelse
 	endif
 endfor
-
-if ystyle eq !null then ystyle=0 $
-else ystyle = (ystyle eq 1) ? 1 : 0
-
 
 ybuff = keyword_set(buff) ? (maxy-miny)*.05 : 0	
 str_element,limits,'yrange',[miny-ybuff, maxy+ybuff],/add

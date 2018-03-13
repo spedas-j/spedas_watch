@@ -130,8 +130,8 @@ if err eq 0 then begin
 	options,'dsc_h1_fc_V',title="Test Title"
 	dsc_clearopts,'dsc_h1_fc_V'
 	get_data,'dsc_h1_fc_V',limits=l
-	if tag_exist(l,'title') then message,'data error '+t_name
-endif
+	if isa(l,'STRUCT') then message,'data error '+t_name
+	endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
 ++l_num
@@ -147,7 +147,7 @@ if err eq 0 then begin
 	dsc_clearopts,tn
 	foreach name,tn do begin
 		get_data,name,limits=l
-		if tag_exist(l,'title') then message,'data error '+t_name
+		if isa(l,'STRUCT') then message,'data error '+t_name
 	endforeach
 endif
 catch,/cancel
@@ -163,7 +163,7 @@ if err eq 0 then begin
 	options,5,title="Test Title"
 	dsc_clearopts,5
 	get_data,5,limits=l
-	if tag_exist(l,'title') then message,'data error '+t_name
+	if isa(l,'STRUCT') then message,'data error '+t_name
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
@@ -180,7 +180,7 @@ if err eq 0 then begin
 	dsc_clearopts,tn
 	foreach name,tn do begin
 		get_data,name,limits=l
-		if tag_exist(l,'title') then message,'data error '+t_name
+		if isa(l,'STRUCT') then message,'data error '+t_name
 	endforeach
 endif
 catch,/cancel
@@ -220,7 +220,7 @@ if err eq 0 then begin
 	dsc_clearopts,/all
 	foreach name,tnames() do begin
 		get_data,name,limits=l
-		if tag_exist(l,'title') then message,'data error '+t_name
+		if isa(l,'STRUCT') then message,'data error '+t_name
 	endforeach
 endif
 catch,/cancel
@@ -244,10 +244,7 @@ if err eq 0 then begin
 
 	foreach name,tnames() do begin
 		get_data,name,limits=l
-		if tag_exist(l,'title') || $
-			tag_exist(l,'yrange') || $
-			tag_exist(l,'dsc_dy') $
-			then message,'data error '+t_name
+		if isa(l,'STRUCT') then message,'data error '+t_name
 	endforeach
 endif
 catch,/cancel

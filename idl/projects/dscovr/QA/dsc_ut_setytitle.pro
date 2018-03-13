@@ -164,6 +164,7 @@ options,/def,tnames(),'ytitle'
 t_name=utname+l_num.toString()+': Pass valid metadata structure'
 catch,err
 if err eq 0 then begin
+	dsc_load_fc,/no_download
 	get_data,'dsc_h1_fc_Np',dlim=dl
 	dsc_set_ytitle,'dsc_h1_fc_Np',metadata=dl
 	get_data,'dsc_h1_fc_Np',dlim=dlout

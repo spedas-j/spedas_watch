@@ -34,6 +34,8 @@
 ;  If tplot has n-d y but number of dimensions does not correspond to number or 
 ;  supporting variables (x, v or v1, v2 ...) then extra supporting variables (v1, v2 ...) will be removed.
 ;  This behaivour ensures the saving of the tplot into CDF file. 
+;  
+;  If tplot variable has only x, then data variable y = x will be created. 
 ;   
 ;INPUT:
 ;   tplot_vars: (string or array of strings) Tplot variable name, or list of the tplot variables  
@@ -54,8 +56,8 @@
 ;  Alexander Drozdov
 ;
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-03-05 19:22:19 -0800 (Mon, 05 Mar 2018) $
-; $LastChangedRevision: 24831 $
+; $LastChangedDate: 2018-03-12 18:05:53 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24880 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot_add_cdf_structure.pro $
 ;-
 
@@ -146,6 +148,8 @@ pro tplot_add_cdf_structure, tplot_vars, tt2000=tt2000, new=new
 ;         'UNITS',''
 ;          *depend_0.attrptr))
 ;    endif
+
+    if undefined(y) then y = x ; We add extra variable y equal x if has not been defined.
     
     if ~undefined(y) then begin
       vars.name = tplot_vars[i]     
@@ -287,7 +291,7 @@ pro tplot_add_cdf_structure, tplot_vars, tt2000=tt2000, new=new
       str_element, *vars.attrptr,'DEPEND_3',depend_3.name,/add
 
       ; if v is 2d
-      if ndimen(v2) gt 1 then begin
+      if ndimen(v3) gt 1 then begin
         ; in this case first dimension of v is time (we don't check the actual number of records)
         ; vars.attrptr = ptr_new(CREATE_STRUCT('DEPEND_0','Epoch',*vars.attrptr)) ; one line addition to the attribute structure
         str_element, *depend_3.attrptr,'DEPEND_0','Epoch',/add

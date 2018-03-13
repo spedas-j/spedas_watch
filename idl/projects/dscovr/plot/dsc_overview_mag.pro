@@ -38,8 +38,8 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2017
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-12-07 11:07:29 -0800 (Thu, 07 Dec 2017) $
-; $LastChangedRevision: 24410 $
+; $LastChangedDate: 2018-03-12 09:55:28 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24869 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/plot/dsc_overview_mag.pro $
 ;-
 PRO DSC_OVERVIEW_MAG,DATE,TRANGE=trg,SPLITS=splits,SAVE=save,VERBOSE=verbose,WREF=wr, $

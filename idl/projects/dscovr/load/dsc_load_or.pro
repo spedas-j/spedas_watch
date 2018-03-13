@@ -24,8 +24,8 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2017
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-11-20 12:45:47 -0800 (Mon, 20 Nov 2017) $
-; $LastChangedRevision: 24321 $
+; $LastChangedDate: 2018-03-12 09:55:28 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24869 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/load/dsc_load_or.pro $
 ;-
 

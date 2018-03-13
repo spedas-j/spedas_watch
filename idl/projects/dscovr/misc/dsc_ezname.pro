@@ -8,7 +8,7 @@
 ;INPUTS:
 ; VARIN: Scalar or array of one of the shortcut strings recognized for DSCOVR.  
 ;          'bx','by','bz','bgse','b','bphi','btheta',
-;          'vx','vy','vz','vgse','v','np,','temp','vth',
+;          'vx','vy','vz','vgse','v','vphi','vtheta','np,','temp','vth',
 ;          'posx','posy','posz','pos'
 ;          Case is ignored.
 ;          Vector values are in GSE.
@@ -38,8 +38,8 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2017
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-11-20 12:45:47 -0800 (Mon, 20 Nov 2017) $
-; $LastChangedRevision: 24321 $
+; $LastChangedDate: 2018-03-12 09:55:28 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24869 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/misc/dsc_ezname.pro $
 ;-
 FUNCTION DSC_EZNAME,VARIN,CONF=conf,HELP=help,VERBOSE=verbose
@@ -51,7 +51,7 @@ if not isa(verbose,/int) then verbose=!dsc.verbose
 
 supported = [ $
 	'bx','by','bz','bgse','b','bphi','btheta',$
-	'vx','vy','vz','vgse','v', 'np','temp','vth', $
+	'vx','vy','vz','vgse','v', 'vphi','vtheta','np','temp','vth', $
 	'posx','posy','posz','pos']
 if keyword_set(help) then begin
 	dprint,dlevel=2,verbose=verbose,rname+": Returning the supported Shortcut Strings."
@@ -87,6 +87,8 @@ for i=0,varin.length-1 do begin
 			if conf then name=name+'_wCONF'
 			end
 		'v' 	:	name = 'dsc_h1_fc_V'
+		'vphi' 	:	name = 'dsc_h1_fc_V_GSE_PHI'
+		'vtheta' 	:	name = 'dsc_h1_fc_V_GSE_THETA'
 		'np'	: begin
 			name = 'dsc_h1_fc_Np'
 			if conf then name=name+'_wCONF'

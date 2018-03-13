@@ -54,8 +54,8 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2017
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-11-20 12:45:47 -0800 (Mon, 20 Nov 2017) $
-; $LastChangedRevision: 24321 $
+; $LastChangedDate: 2018-03-12 09:55:28 -0700 (Mon, 12 Mar 2018) $
+; $LastChangedRevision: 24869 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/examples/dsc_crib.pro $
 ;-
 ;
@@ -371,14 +371,6 @@ tplot,['dsc_h1_fc_Np','dsc_h1_fc_THERMAL_TEMP','dsc_h1_fc_THERMAL_SPD','dsc_h1_f
 dsc_dyplot
 stop
 
-; DSC_DYPLOT looks for special variable options flags:
-;   dsc_dy: 1 --> Shade the confidence interval for this variable
-;           0 or undefined --> Do not shade the confidence interval
-;   dsc_dycolor: Color of the shaded area (int reference to color table. Can be array for vector variables)
-options,26,dsc_dycolor=190    ; Change shading for variable #26 
-dsc_dyplot
-stop
-
 ; dsc_dyplot overplots the existing window
 ; => When clearing panels of shading, use another call to tplot first
 options,24,dsc_dy=0
@@ -386,10 +378,20 @@ tplot
 dsc_dyplot
 stop
 
-; Can override the variable color options for all panels by passing keyword COLOR=
-tplot
-dsc_dyplot,color=120
-stop
+;--Color options to DSC_DYPLOT disabled. Currently uses a transparent gray
+;
+		;; DSC_DYPLOT looks for special variable options flags:
+		;;   dsc_dy: 1 --> Shade the confidence interval for this variable
+		;;           0 or undefined --> Do not shade the confidence interval
+		;;   dsc_dycolor: Color of the shaded area (int reference to color table. Can be array for vector variables)
+		;options,26,dsc_dycolor=190    ; Change shading for variable #26 
+		;dsc_dyplot
+		;stop
+		
+		;; Can override the variable color options for all panels by passing keyword COLOR=
+		;tplot
+		;dsc_dyplot,color=120
+		;stop
 
 ; Use the PANEL keyword to select a subset of panels to shade (1 indexed)
 tplot
@@ -413,8 +415,8 @@ tplot,[25,27,28,29]
 dsc_dyplot,panel=3
 stop
 
-dsc_dyplot,panel=3,color=200
-stop
+;dsc_dyplot,panel=3,color=200
+;stop
 
 dsc_dyplot,panel=[3,2]
 stop
