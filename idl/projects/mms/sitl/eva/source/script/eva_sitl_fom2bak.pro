@@ -27,7 +27,10 @@ PRO eva_sitl_fom2bak
   endif else begin
     unix_fomstr = eva_sitl_fom2bak_from_sav(fname)
   endelse
-  if n_tags(unix_fomstr) eq 0 then return
+  if n_tags(unix_fomstr) eq 0 then begin
+    result = dialog_message('The input file is not valid' ,/center)
+    return
+  endif
 
   tfom = eva_sitl_tfom(unix_fomstr)
   dtlast = unix_fomstr.TIMESTAMPS[unix_fomstr.NUMCYCLES-1]-unix_fomstr.TIMESTAMPS[unix_fomstr.NUMCYCLES-2]
