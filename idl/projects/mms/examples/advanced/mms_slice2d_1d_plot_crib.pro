@@ -3,8 +3,8 @@
 ;  Crib sheet demonstrating how to create 1D plots of 2D distribution slices created by spd_slice2d
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-03-20 09:27:34 -0700 (Tue, 20 Mar 2018) $
-;$LastChangedRevision: 24909 $
+;$LastChangedDate: 2018-03-21 10:43:51 -0700 (Wed, 21 Mar 2018) $
+;$LastChangedRevision: 24922 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_slice2d_1d_plot_crib.pro $
 ;-
 
@@ -48,8 +48,8 @@ slice = spd_slice2d(dist, /two, time=time, rotation='bv', vel_data='mms'+probe+'
 ; note: spd_slice1d_plot accepts most keywords the PLOT procedure accepts, e.g., title
 ; the input arguments are slice, direction ('x' or 'y'), value to create the plot at
 window, 0, xsize=500, ysize=500
-spd_slice1d_plot, color=2, yminor=10, window=0, slice, 'x', [-1000, 1000], xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
-spd_slice1d_plot, color=6, /noerase, yminor=10, window=0, slice, 'y', [-1000, 1000], xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
+spd_slice1d_plot, slice, 'x', [-1000, 1000], color=2, yminor=10, window=0, xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
+spd_slice1d_plot, slice, 'y', [-1000, 1000], color=6, /noerase, yminor=10, window=0, xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
 
 ; plot the slice as well
 wi, 1
@@ -66,8 +66,8 @@ slice = spd_slice2d(dist, /center, samples=1, /two, resolution=150, time=time, r
 ; note: spd_slice1d_plot accepts most keywords the PLOT procedure accepts, e.g., title
 ; the input arguments are slice, direction ('x' or 'y'), value to create the plot at
 window, 0, xsize=500, ysize=500
-spd_slice1d_plot, color=2, yminor=10, window=0, slice, 'x', [-1000, 1000], xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
-spd_slice1d_plot, color=6, /noerase, yminor=10, window=0, slice, 'y', [-1000, 1000], xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
+spd_slice1d_plot, slice, 'x', [-1000, 1000], color=2, yminor=10, window=0, xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
+spd_slice1d_plot, slice, 'y', [-1000, 1000], color=6, /noerase, yminor=10, window=0, xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
 
 ; plot the slice as well
 wi, 1
@@ -84,8 +84,8 @@ slice = spd_slice2d(dist, /center, samples=1, /two, resolution=150, time=time, r
 ; note: spd_slice1d_plot accepts most keywords the PLOT procedure accepts, e.g., title
 ; the input arguments are slice, direction ('x' or 'y'), value to create the plot at
 window, 0, xsize=500, ysize=500
-spd_slice1d_plot, color=2, yminor=10, window=0, slice, 'x', [-1000, 1000], xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
-spd_slice1d_plot, color=6, /noerase, yminor=10, window=0, slice, 'y', [-1000, 1000], xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
+spd_slice1d_plot, slice, 'x', [-1000, 1000], color=2, yminor=10, window=0, xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
+spd_slice1d_plot, slice, 'y', [-1000, 1000], color=6, /noerase, yminor=10, window=0, xrange=[-1000, 1000], yrange=[1e-26, 1e-18], /ylog, ystyle=1;, title='Vx at Vy=0'
 
 ; plot the slice as well
 wi, 1

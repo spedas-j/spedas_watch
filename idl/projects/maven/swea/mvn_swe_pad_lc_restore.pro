@@ -14,14 +14,14 @@
 ;KEYWORDS: 
 ;       ORBIT:         Restore mvn_swe_padscore data by orbit number.
 ;
-;       RESULTS:       Hold the full structure of PAD score and
+;       RESULT:       Hold the full structure of PAD score and
 ;                      other parameters
 ;
 ;       storeTPLOT:         Create tplot varibles
 ;                                                                                                         
-; $LastChangedBy: xussui $  
-; $LastChangedDate: 2017-11-03 13:49:26 -0700 (Fri, 03 Nov 2017) $  
-; $LastChangedRevision: 24260 $ 
+; $LastChangedBy: cfowler2 $  
+; $LastChangedDate: 2018-03-21 10:59:12 -0700 (Wed, 21 Mar 2018) $  
+; $LastChangedRevision: 24923 $ 
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_lc_restore.pro $     
 ; 
 ;CREATED BY:    Tristan Weber
@@ -66,15 +66,29 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
       print,''
       return
     endif
-
+    
+    print, 'Determining Array Size...'
+    arraySize = 0
+    for i=0,(nfiles-1) do begin
+      if i eq 0 then print, 0, '% complete' else print, (i)/float(nfiles-1)*100., '% complete'
+      restore, filename=file[i]
+      arraySize = arraySize + n_elements(padTopo)
+    endfor
+    print, 'Initializing Array...'
+    padTopoCombined = replicate({time:!values.D_NAN, zScoreUp:!values.d_nan, zScoreDown:!values.d_nan, isVoid:byte(0)}, arraySize)
+    
+    arrayIndex = 0
     for i=0,(nfiles-1) do begin 
       print,"Processing file: ",file_basename(file[i])
       restore, filename=file[i]
-      if (i eq 0) then begin
-        padTopoCombined = temporary(padTopo)
-      endif else begin
-        padTopoCombined = [temporary(padTopoCombined), temporary(padTopo)]
-      endelse
+      num = n_elements(padTopo)
+      padTopoCombined[arrayIndex:(arrayIndex+num-1)] = padTopo
+      arrayIndex = arrayIndex+num
+;      if (i eq 0) then begin
+;        padTopoCombined = temporary(padTopo)
+;      endif else begin
+;        padTopoCombined = [temporary(padTopoCombined), temporary(padTopo)]
+;      endelse
     endfor
     
     ;Trim Data
