@@ -58,7 +58,7 @@ PRO eva_sitl_fom2bak
   for n=0,nmax-1 do begin
     segSelect = {$
       ts:unix_fomstr.TIMESTAMPS[unix_fomstr.START[n]], $
-      te:unix_fomstr.TIMESTAMPS[unix_fomstr.STOP[n]],$;+dtlast,$
+      te:unix_fomstr.TIMESTAMPS[unix_fomstr.STOP[n]]+dtlast,$
       fom:unix_fomstr.FOM[n], $
       BAK: BAK, $
       discussion:unix_fomstr.DISCUSSION[n], $
