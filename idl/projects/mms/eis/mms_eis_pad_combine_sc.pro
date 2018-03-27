@@ -8,14 +8,15 @@
 ;         had varying HV turnoff locations/times (prior to Phase 2b)
 ;
 ; KEYWORDS:
-;         probes:       value for MMS SC #
-;         trange:       time range of interest
-;         species:      proton (default), alpha, oxygen, electron
-;         level:        data level ['l1a','l1b','l2pre','l2' (default)] 
-;         data_rate:    instrument data rates ['brst', 'srvy' (default), 'fast', 'slow']
-;         energy:       energy range to include in the calculation
-;         datatype:     extof (default), phxtof, electronenergy
-;         suffix:       suffix used when loading the data
+;         probes:               value for MMS SC #
+;         trange:               time range of interest
+;         species:              proton (default), alpha, oxygen, electron
+;         level:                data level ['l1a','l1b','l2pre','l2' (default)] 
+;         data_rate:            instrument data rates ['brst', 'srvy' (default), 'fast', 'slow']
+;         energy:               energy range to include in the calculation
+;         datatype:             extof (default), phxtof, electronenergy
+;         suffix:               suffix used when loading the data
+;         combine_proton_data:  set equal to 1 to combine extof and phxtof proton data
 ;
 ; CREATED BY: I. Cohen, 2017-08-14
 ;
@@ -26,11 +27,12 @@
 ;                                   replaced species keyword definition with species and removed species
 ;       + 2018-01-04, I. Cohen    : fixed if statement for species case of 'proton'
 ;       + 2018-02-05, I. Cohen    : added suffix keyword
-;       + 2018-02-19, I. Cohen    : added ability to handle multiple species                   
+;       + 2018-02-19, I. Cohen    : added ability to handle multiple species 
+;       + 2018-03-20, I. Cohen    : added combine_proton_data keyword                  
 ;
 ;-
 pro mms_eis_pad_combine_sc, probes = probes, trange = trange, species = species, level = level, data_rate = data_rate, $
-                energy = energy, data_units = data_units, datatype = datatype, suffix = suffix
+                energy = energy, data_units = data_units, datatype = datatype, suffix = suffix, combine_proton_data = combine_proton_data
   ;
   compile_opt idl2
   if not KEYWORD_SET(probes) then if (time_double(trange[0]) gt time_double('2016-01-31')) then probes = ['2','3','4'] else probes = ['1','2','3','4']
@@ -43,12 +45,12 @@ pro mms_eis_pad_combine_sc, probes = probes, trange = trange, species = species,
   if not KEYWORD_SET(species) then species = 'proton'
   if not KEYWORD_SET(suffix) then suffix = ''
   if (datatype[0] eq 'electronenergy') then species = 'electron'
-  if undefined(combine_proton_spec) then combine_proton_spec = 0
+  if undefined(combine_proton_data) then combine_proton_data = 0
   case species of
     'proton':   if (energy[0] gt 50) and (energy[1] gt 50) then datatype = 'extof' $
                   else if (energy[0] lt 50) and (energy[1] lt 50) then datatype = 'phxtof' $
                   else begin
-                    if (combine_proton_spec eq 1) then datatype = ['combined','phxtof','extof']  else datatype = ['phxtof','extof']
+                    if (combine_proton_data eq 1) then datatype = ['combined','phxtof','extof']  else datatype = ['phxtof','extof']
                   endelse
     'alpha':      datatype = 'extof'
     'oxygen':     datatype = 'extof'

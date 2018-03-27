@@ -1,3 +1,7 @@
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2018-03-26 15:32:11 -0700 (Mon, 26 Mar 2018) $
+; $LastChangedRevision: 24957 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/magSwing/spp_read_magswing_mag.pro $
 ; For now this is a crib sheet.
 
 pro spp_read_magswing_mag, rotat = rotat, swing = swing, raster = raster, all = all

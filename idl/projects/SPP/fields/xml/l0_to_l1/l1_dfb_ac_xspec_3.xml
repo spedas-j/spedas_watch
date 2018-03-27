@@ -8,7 +8,7 @@
 <items>
 
   <tmlib
-  	tmlib_event = 'dfb_ac_xspec2'
+  	tmlib_event = 'dfb_ac_xspec3'
   	>
   </tmlib>
 

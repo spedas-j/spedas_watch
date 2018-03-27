@@ -28,6 +28,24 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix
 
   options, prefix + 'src_sel', 'labels', [string(bpf_number,format='(I1)')]
 
+  get_data, prefix + 'cad_sel', data = dat_cad_sel
+
+  if n_elements(uniq(dat_cad_sel.y)) EQ 1 then begin
+
+    options, prefix + 'cad_sel', 'yrange', dat_cad_sel.y + [-1.0,1.0]
+    options, prefix + 'cad_sel', 'yticks', 2
+    options, prefix + 'cad_sel', 'ytickv', dat_cad_sel.y + [-1.0,0.0,1.0]
+    options, prefix + 'cad_sel', 'yminor', 1
+    options, prefix + 'cad_sel', 'ystyle', 1
+    options, prefix + 'cad_sel', 'panel_size', 0.5
+
+  endif else begin
+
+    options, prefix + 'cad_sel', 'yrange', [-0.5,15.5]
+    options, prefix + 'cad_sel', 'ystyle', 1
+
+  endelse
+
   options, prefix + 'peak', 'spec', 1
   options, prefix + 'peak', 'no_interp', 1
 
@@ -51,9 +69,11 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix
     options, prefix + 'peak_converted', 'spec', 1
     options, prefix + 'peak_converted', 'no_interp', 1
     options, prefix + 'peak_converted', 'ylog', 1
+    options, prefix + 'peak_converted', 'zlog', 1
     options, prefix + 'peak_converted', 'ystyle', 1
     options, prefix + 'peak_converted', 'yrange', minmax(freq_bins.freq_avg)
     options, prefix + 'peak_converted', 'ysubtitle', 'Freq [Hz]'
+    options, prefix + 'peak_converted', 'datagap', 10d
 
   endif
 
@@ -70,9 +90,11 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix
     options, prefix + 'avg_converted', 'spec', 1
     options, prefix + 'avg_converted', 'no_interp', 1
     options, prefix + 'avg_converted', 'ylog', 1
+    options, prefix + 'avg_converted', 'zlog', 1
     options, prefix + 'avg_converted', 'ystyle', 1
     options, prefix + 'avg_converted', 'yrange', minmax(freq_bins.freq_avg)
     options, prefix + 'avg_converted', 'ysubtitle', 'Freq [Hz]'
+    options, prefix + 'avg_converted', 'datagap', 10d
 
   endif
 
@@ -89,12 +111,29 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix
       if bpf_name_i EQ 'peak_converted' then ytitle_i = 'peak'
       if bpf_name_i EQ 'avg_converted' then ytitle_i = 'avg'
 
-      options, prefix + bpf_name_i, 'ytitle', 'SPP DFB!C' + ac_dc_str+ ' BPF' + $
+      if bpf_name_i EQ 'peak_converted' or bpf_name_i EQ 'avg_converted' then begin
+        
+        if tnames(prefix + 'src_sel_string') NE '' then begin
+
+          get_data, prefix + 'src_sel_string', data = src_sel_dat
+
+          if n_elements(uniq(src_sel_dat.y)) EQ 1 then begin
+
+            ytitle_i += '!C' + strcompress(src_sel_dat.y[0], /remove_all)
+
+          endif
+
+        endif
+        
+      endif
+
+      options, prefix + bpf_name_i, 'ytitle', ac_dc_str+ ' BPF' + $
         string(bpf_ind) + '!C' + strupcase(ytitle_i)
 
     endfor
 
   endif
+
 
   all_prefix = strmid(prefix, 0, strlen(prefix) - 2)
 
