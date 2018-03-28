@@ -28,12 +28,13 @@
 ;   work in progress! please send bugs/problems/complaints/etc to egrimes@igpp.ucla.edu
 ;   
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-03-20 12:54:30 -0700 (Tue, 20 Mar 2018) $
-;$LastChangedRevision: 24918 $
+;$LastChangedDate: 2018-03-27 12:43:24 -0700 (Tue, 27 Mar 2018) $
+;$LastChangedRevision: 24962 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/science/spd_slice2d/core/spd_slice1d_plot.pro $
 ;-
 
 pro spd_slice1d_plot, slice, direction, value, xrange=xrange, _extra=ex
+  compile_opt idl2
 
   if ~is_struct(slice) then begin
     dprint, dlevel = 0, 'Error, invalid slice'

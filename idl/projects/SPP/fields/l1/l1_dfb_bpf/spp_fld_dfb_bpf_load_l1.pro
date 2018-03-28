@@ -32,9 +32,9 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix
 
   if n_elements(uniq(dat_cad_sel.y)) EQ 1 then begin
 
-    options, prefix + 'cad_sel', 'yrange', dat_cad_sel.y + [-1.0,1.0]
+    options, prefix + 'cad_sel', 'yrange', dat_cad_sel.y[0] + [-1.0,1.0]
     options, prefix + 'cad_sel', 'yticks', 2
-    options, prefix + 'cad_sel', 'ytickv', dat_cad_sel.y + [-1.0,0.0,1.0]
+    options, prefix + 'cad_sel', 'ytickv', dat_cad_sel.y[0] + [-1.0,0.0,1.0]
     options, prefix + 'cad_sel', 'yminor', 1
     options, prefix + 'cad_sel', 'ystyle', 1
     options, prefix + 'cad_sel', 'panel_size', 0.5
