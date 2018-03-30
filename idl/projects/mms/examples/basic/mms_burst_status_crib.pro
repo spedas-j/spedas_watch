@@ -1,5 +1,5 @@
 ;+
-; spd_mms_load_bss_crib  
+; mms_burst_status_crib  
 ;
 ; do you have suggestions for this crib sheet?
 ;   please send them to egrimes@igpp.ucla.edu
@@ -7,8 +7,8 @@
 ; Note: status and FoM bars currently require an MMS team password for the SDC
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-01-22 12:54:55 -0800 (Mon, 22 Jan 2018) $
-; $LastChangedRevision: 24560 $
+; $LastChangedDate: 2018-03-29 13:12:06 -0700 (Thu, 29 Mar 2018) $
+; $LastChangedRevision: 24967 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/basic/mms_burst_status_crib.pro $
 ;-
 

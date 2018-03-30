@@ -25,9 +25,9 @@
       type = "double"
       raw = "PDU_MAIN_BUS_A_VOLT_raw">
     <cdf_att
-        FIELDNAM = "PDU_MAIN_BUS_A_VOLT"
+        FIELDNAM = "BUS_A_VOLT"
         FORMAT = "F15.3"
-        LABLAXIS = "PDU_MAIN_BUS_A_VOLT"
+        LABLAXIS = "BUS_A_VOLT"
         DATA_TYPE = "CDF_DOUBLE"
         VAR_TYPE = "data"
         FILLVAL = "-1.0E31"
@@ -47,9 +47,9 @@
       type = "double"
       raw = "PDU_MAIN_BUS_B_VOLT_raw">
     <cdf_att
-        FIELDNAM = "PDU_MAIN_BUS_B_VOLT"
+        FIELDNAM = "BUS_B_VOLT"
         FORMAT = "F15.3"
-        LABLAXIS = "PDU_MAIN_BUS_B_VOLT"
+        LABLAXIS = "BUS_B_VOLT"
         DATA_TYPE = "CDF_DOUBLE"
         VAR_TYPE = "data"
         FILLVAL = "-1.0E31"

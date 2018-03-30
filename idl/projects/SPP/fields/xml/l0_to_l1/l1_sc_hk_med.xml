@@ -25,9 +25,9 @@
       type = "double"
       raw = "PDU_FIELDS1_CURR_raw">
     <cdf_att
-        FIELDNAM = "PDU_FIELDS1_CURR"
+        FIELDNAM = "F1_CURR"
         FORMAT = "F15.3"
-        LABLAXIS = "PDU_FIELDS1_CURR"
+        LABLAXIS = "F1_CURR"
         DATA_TYPE = "CDF_DOUBLE"
         VAR_TYPE = "data"
         FILLVAL = "-1.0E31"
@@ -47,9 +47,9 @@
       type = "double"
       raw = "PDU_FIELDS2_CURR_raw">
     <cdf_att
-        FIELDNAM = "PDU_FIELDS2_CURR"
+        FIELDNAM = "F2_CURR"
         FORMAT = "F15.3"
-        LABLAXIS = "PDU_FIELDS2_CURR"
+        LABLAXIS = "F2_CURR"
         DATA_TYPE = "CDF_DOUBLE"
         VAR_TYPE = "data"
         FILLVAL = "-1.0E31"
@@ -60,6 +60,94 @@
         SCALEMAX = "5"
         UNITS = "A"
         CATDESC = "PDU FIELDS2 Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_FIELDS1_PREAMP_AND_SURV_HTRS_CURR"
+      type = "double"
+      raw = "PDU_FIELDS1_PREAMP_AND_SURV_HTRS_CURR_raw">
+    <cdf_att
+        FIELDNAM = "F1_PRE_SRV_HTR_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "F1_PRE_SRV_HTR_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.283"
+        VALIDMAX = "2.104"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU FIELDS1 Preamp/Survival Heaters Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_FIELDS1_MAG_AND_SURV_HTRS_CURR"
+      type = "double"
+      raw = "PDU_FIELDS1_MAG_AND_SURV_HTRS_CURR_raw">
+    <cdf_att
+        FIELDNAM = "F1_MAG_SRV_HTR_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "F1_MAG_SRV_HTR_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.286"
+        VALIDMAX = "2.105"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU FIELDS1 MAG/Survival Heaters Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_FIELDS2_PREAMP_AND_SURV_HTRS_CURR"
+      type = "double"
+      raw = "PDU_FIELDS2_PREAMP_AND_SURV_HTRS_CURR_raw">
+    <cdf_att
+        FIELDNAM = "F2_PRE_SRV_HTR_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "F2_PRE_SRV_HTR_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.280"
+        VALIDMAX = "2.093"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU FIELDS2 Preamp/Survival Heaters Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_FIELDS2_MAG_AND_SURV_HTRS_CURR"
+      type = "double"
+      raw = "PDU_FIELDS2_MAG_AND_SURV_HTRS_CURR_raw">
+    <cdf_att
+        FIELDNAM = "F2_MAG_SRV_HTR_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "F2_MAG_SRV_HTR_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.280"
+        VALIDMAX = "2.123"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU FIELDS2 MAG/Survival Heaters Current"
         DEPEND_0 = "epoch">
     </cdf_att>
   </cdf_var>

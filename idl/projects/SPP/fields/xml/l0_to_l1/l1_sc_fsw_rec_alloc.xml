@@ -14,7 +14,7 @@
       Data_version = "0"
       TEXT = "PSP Spacecraft Housekeeping Data"
       Mods = "Revision 0"
-      Logical_source = "SPP_FLD_SC_HK_HIGH"
+      Logical_source = "SPP_FLD_SC_FSW_REC_ALLOC"
       Logical_source_description = "PSP Spacecraft Flight Recorder Allocation Data"
       Dependencies = "None"
       >
@@ -25,9 +25,9 @@
       type = "double"
       raw = "FSW_REC_ALLOC_PERCENT_USED_FIELDS_raw">
     <cdf_att
-        FIELDNAM = "FSW_REC_ALLOC_PERCENT_USED_FIELDS"
+        FIELDNAM = "percent_used_fields"
         FORMAT = "F15.3"
-        LABLAXIS = "FSW_REC_ALLOC_PERCENT_USED_FIELDS"
+        LABLAXIS = "percent_used_fields"
         DATA_TYPE = "CDF_DOUBLE"
         VAR_TYPE = "data"
         FILLVAL = "-1.0E31"
