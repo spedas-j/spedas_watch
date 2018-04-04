@@ -67,7 +67,7 @@ PRO moka_mms_pad_fpi_crib
   ;--------------------------
   ; PLOT 1: Energy Spectrum
   ;--------------------------
-  pad_df = moka_mms_pad_fpi(dist, time=time, sample=sample, units='df',$
+  pad_df = moka_mms_pad_fpi(dist, time=time, sample=sample, units='df_km',$
     subtract_bulk=subtract_bulk, mag_data=mag_data, vel_data=vel_data)
   moka_mms_pad_plot, pad_df, output=['perp','para','anti-para'],$
     colors=[0,4,6],xunit='keV',xrange=[0.010,27.],yrange=psd_range

@@ -38,7 +38,7 @@
 ;   norm: Set this keyword for normalizing the data at each energy bin
 ;   units: units for both the pitch-angle-distribution (pad) and energy spectrum.
 ;          Options are 'eflux' [eV/(cm!U2!N s sr eV)] or
-;                      'df'    [s!U3!N / km!U6!N']
+;                      'df_km'    [s!U3!N / km!U6!N']
 ;          The default is 'eflux'. The return structure contains a tag "UNITS".
 ;   pr___0: pitch angle range for the "para" spectrum, default = [0,45]
 ;   pr__90: pitch angle range for the "perp" spectrum, default = [45,135]
@@ -234,11 +234,11 @@ FUNCTION moka_mms_pad_fpi, input, input_err, $
     endcase
     ;scaling factor between df and flux units
     flux_to_df = A^2 * 0.5447d * 1d6
-    ;convert between km^6 and cm^6 for df
+    ;convert between km^6 and cm^6 for df_km
     cm_to_km = 1d30
 
     ; See 'mms_convert_flux_units'
-    in = [2,-1,0]; units_in = 'df'
+    in = [2,-1,0]; units_in = 'df_km'
     out = [0,0,0]; units_out = 'eflux'
     exp = in + out
   endif

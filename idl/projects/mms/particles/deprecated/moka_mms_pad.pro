@@ -52,9 +52,9 @@
 ;  Added SUBTRACT_ERROR keyword 2017-10-17
 ;  Removed unnecessary vname check 2017-10-19
 ;  
-;$LastChangedBy: moka $
-;$LastChangedDate: 2017-10-19 12:42:09 -0700 (Thu, 19 Oct 2017) $
-;$LastChangedRevision: 24186 $
+;$LastChangedBy: egrimes $
+;$LastChangedDate: 2018-04-03 15:14:57 -0700 (Tue, 03 Apr 2018) $
+;$LastChangedRevision: 24992 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/deprecated/moka_mms_pad.pro $
 ;-
 FUNCTION moka_mms_pad, bname, tname, trange, units=units, nbin=nbin, vname=vname, $
@@ -134,13 +134,13 @@ FUNCTION moka_mms_pad, bname, tname, trange, units=units, nbin=nbin, vname=vname
       'e': A=1d/1836;e-
       else: message, 'Unknown species: '+species_lc
     endcase
-    ;scaling factor between df and flux units
+    ;scaling factor between df_km and flux units
     flux_to_df = A^2 * 0.5447d * 1d6    
-    ;convert between km^6 and cm^6 for df
+    ;convert between km^6 and cm^6 for df_km
     cm_to_km = 1d30
     
     ; See 'mms_convert_flux_units'
-    in = [2,-1,0]; units_in = 'df'
+    in = [2,-1,0]; units_in = 'df_km'
     out = [0,0,0]; units_out = 'eflux'
     exp = in + out
   endif
