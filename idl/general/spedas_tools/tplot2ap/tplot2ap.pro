@@ -25,7 +25,7 @@
 ;         the 'Options' menu with the default port (12345)
 ;         
 ;         This routine sends the tplot data to Autoplot via a CDF file stored in your 
-;         IDL working directory (so this creates a 'temporary' file every time you
+;         default local data directory (so this creates a 'temporary' file every time you
 ;         send data to Autoplot)
 ;
 ;         On Windows, you'll have to allow Autoplot / SPEDAS to have access to the 
@@ -33,8 +33,8 @@
 ;         click 'Allow' for private networks)
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-03-07 14:53:36 -0800 (Wed, 07 Mar 2018) $
-; $LastChangedRevision: 24848 $
+; $LastChangedDate: 2018-04-04 10:58:34 -0700 (Wed, 04 Apr 2018) $
+; $LastChangedRevision: 24994 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/tplot2ap/tplot2ap.pro $
 ;-
 

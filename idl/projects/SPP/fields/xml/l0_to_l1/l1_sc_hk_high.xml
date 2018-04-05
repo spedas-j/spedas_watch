@@ -64,5 +64,95 @@
     </cdf_att>
   </cdf_var>
 
+  <cdf_var
+      name = "FSW_GC_HK_HK_WHLSPD0"
+      type = "double"
+      raw = "FSW_GC_HK_HK_WHLSPD0_raw">
+    <cdf_att
+        FIELDNAM = "WHLSPD0"
+        FORMAT = "F15.3"
+        LABLAXIS = "WHLSPD0"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1048."
+        VALIDMAX = "1048."
+        SCALEMIN = "-1048."
+        SCALEMAX = "1048."
+        UNITS = "Hz"
+        CATDESC = "Wheel 0 Speed"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_GC_HK_HK_WHLSPD1"
+      type = "double"
+      raw = "FSW_GC_HK_HK_WHLSPD1_raw">
+    <cdf_att
+        FIELDNAM = "WHLSPD1"
+        FORMAT = "F15.3"
+        LABLAXIS = "WHLSPD1"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1048."
+        VALIDMAX = "1048."
+        SCALEMIN = "-1048."
+        SCALEMAX = "1048."
+        UNITS = "Hz"
+        CATDESC = "Wheel 1 Speed"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+
+  <cdf_var
+      name = "FSW_GC_HK_HK_WHLSPD2"
+      type = "double"
+      raw = "FSW_GC_HK_HK_WHLSPD2_raw">
+    <cdf_att
+        FIELDNAM = "WHLSPD2"
+        FORMAT = "F15.3"
+        LABLAXIS = "WHLSPD2"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1048."
+        VALIDMAX = "1048."
+        SCALEMIN = "-1048."
+        SCALEMAX = "1048."
+        UNITS = "Hz"
+        CATDESC = "Wheel 2 Speed"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+
+  <cdf_var
+      name = "FSW_GC_HK_HK_WHLSPD3"
+      type = "double"
+      raw = "FSW_GC_HK_HK_WHLSPD3_raw">
+    <cdf_att
+        FIELDNAM = "WHLSPD3"
+        FORMAT = "F15.3"
+        LABLAXIS = "WHLSPD3"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1048."
+        VALIDMAX = "1048."
+        SCALEMIN = "-1048."
+        SCALEMAX = "1048."
+        UNITS = "Hz"
+        CATDESC = "Wheel 3 Speed"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
 
 </items>
