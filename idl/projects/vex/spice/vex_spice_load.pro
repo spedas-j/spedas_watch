@@ -15,8 +15,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-05 13:34:59 -0700 (Thu, 05 Apr 2018) $
-; $LastChangedRevision: 25004 $
+; $LastChangedDate: 2018-04-05 23:07:21 -0700 (Thu, 05 Apr 2018) $
+; $LastChangedRevision: 25007 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/spice/vex_spice_load.pro $
 ;
 ;-
@@ -71,6 +71,7 @@ PRO vex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
 
   lon *= !RADEG
   lat *= !RADEG
+  sza  = pos.sza * !RADEG
 
   store_data, 'vex_eph_vso', data={x: times, y: TRANSPOSE(vso)}, $
               dlimit={ytitle: 'VEX', ysubtitle: 'VSO [km]', constant: 0, labels: ['X', 'Y', 'Z'], labflag: -1, colors: 'bgr'}
@@ -82,5 +83,8 @@ PRO vex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
   ylim, 'vex_eph_lon', 0, 360, 0, /def
   store_data, 'vex_eph_alt', data={x: times, y: alt}, $
               dlimit={ytitle: 'VEX', ysubtitle: 'ALT [km]', ylog: 1}
+  store_data, 'vex_eph_sza', data={x: times, y: sza}, $
+              dlimit={ytitle: 'VEX', ysubtitle: 'SZA [deg]', yticks: 4, yminor: 3, psym: 3}
+  ylim, 'vex_eph_sza', 0, 180, 0, /def
   RETURN 
 END 

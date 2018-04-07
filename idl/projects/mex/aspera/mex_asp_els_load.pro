@@ -21,8 +21,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-04 13:51:13 -0700 (Wed, 04 Apr 2018) $
-; $LastChangedRevision: 24995 $
+; $LastChangedDate: 2018-04-06 12:02:59 -0700 (Fri, 06 Apr 2018) $
+; $LastChangedRevision: 25012 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_els_load.pro $
 ;
 ;-
@@ -36,7 +36,7 @@ PRO mex_asp_els_list, trange, verbose=verbose, save=save, l2=l2, wget=wflg, $
   ldir += 'csv/'
   file_mkdir2, ldir
 
-  mtime = ['2003-06-02', '2006-01', '2007-10', '2010', '2013', '2015']
+  mtime = ['2003-06-02', '2006-01', '2007-10', '2010', '2013', '2015', '2017']
   mtime = time_double(mtime)
 
   date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))

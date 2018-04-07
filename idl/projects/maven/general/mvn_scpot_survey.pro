@@ -13,8 +13,8 @@
 ;      DOPLOT:         Create tplot variables.
 ;       
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-04-02 10:32:15 -0700 (Mon, 02 Apr 2018) $
-; $LastChangedRevision: 24976 $
+; $LastChangedDate: 2018-04-06 16:07:33 -0700 (Fri, 06 Apr 2018) $
+; $LastChangedRevision: 25020 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_scpot_survey.pro $
 ;
 ;CREATED BY:    David L. Mitchell  2017-04-02
@@ -146,7 +146,7 @@ pro mvn_scpot_survey, result=result, doplot=doplot
 
     tplot_options,'title','MAVEN Spacecraft Potential at Periapsis'
     timefit, var='pot'
-    tplot, ['pot','raz','rel','saz','sez','alt','sza']
+    tplot, ['pot','raz','rel','saz','sel','alt','sza']
   endif
 
   return

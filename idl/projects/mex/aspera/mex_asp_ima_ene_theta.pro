@@ -13,8 +13,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-04 16:17:13 -0700 (Wed, 04 Apr 2018) $
-; $LastChangedRevision: 24998 $
+; $LastChangedDate: 2018-04-06 12:02:59 -0700 (Fri, 06 Apr 2018) $
+; $LastChangedRevision: 25012 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_ene_theta.pro $
 ;
 ;-
@@ -25,7 +25,7 @@ PRO mex_asp_ima_ene_theta, time, polar, opidx=opidx, energy=energy, theta=theta,
 
   ndat = N_ELEMENTS(time)
 
-  mtime = ['2003-06-02', '2006-01', '2007-10', '2010', '2013', '2015']
+  mtime = ['2003-06-02', '2006-01', '2007-10', '2010', '2013', '2015', '2017']
   mtime = time_double(mtime)
 
   trange = minmax(time)

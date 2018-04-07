@@ -15,8 +15,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-04 19:10:23 -0700 (Wed, 04 Apr 2018) $
-; $LastChangedRevision: 24999 $
+; $LastChangedDate: 2018-04-05 23:07:21 -0700 (Thu, 05 Apr 2018) $
+; $LastChangedRevision: 25007 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/spice/mex_spice_load.pro $
 ;
 ;-
@@ -71,6 +71,7 @@ PRO mex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
   
   lon *= !RADEG
   lat *= !RADEG
+  sza  = pos.sza * !RADEG
 
   store_data, 'mex_eph_mso', data={x: times, y: TRANSPOSE(mso)}, $
               dlimit={ytitle: 'MEX', ysubtitle: 'MSO [km]', constant: 0, labels: ['X', 'Y', 'Z'], labflag: -1, colors: 'bgr'}
@@ -82,5 +83,8 @@ PRO mex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
   ylim, 'mex_eph_lon', 0, 360, 0, /def
   store_data, 'mex_eph_alt', data={x: times, y: alt}, $
               dlimit={ytitle: 'MEX', ysubtitle: 'ALT [km]', ylog: 1}
+  store_data, 'mex_eph_sza', data={x: times, y: sza}, $
+              dlimit={ytitle: 'MEX', ysubtitle: 'SZA [deg]', yticks: 4, yminor: 3, psym: 3}
+  ylim, 'mex_eph_sza', 0, 180, 0, /def
   RETURN 
 END 
