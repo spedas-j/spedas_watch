@@ -21,11 +21,12 @@
 ;       
 ;
 ;-
-pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units = data_units, size_pabin = size_pabin, energy = energy
+pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units = data_units, size_pabin = size_pabin, energy = energy, suffix = suffix
   ;
   compile_opt idl2
   if not KEYWORD_SET(data_rate) then data_rate = 'srvy'
   if not KEYWORD_SET(data_units) then data_units = 'flux'
+  if not KEYWORD_SET(suffix) then suffix = ''
   if (data_units ne 'flux') then begin
     print,'Combination of PHxTOF and ExTOF data products is only recommended for flux data!'
     return
@@ -53,8 +54,8 @@ pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units
   endif
   get_data,extof_pads_var,data=extof_pad
   ;
-  mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units
-  get_data,eis_prefix+'combined_proton_flux_omni',data=proton_combined_spec
+  mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
+  get_data,eis_prefix+'combined_proton_flux_omni'+suffix,data=proton_combined_spec
   if (isa(proton_combined_spec,'STRUCT') eq 0) then begin
     print,'COMBINED EIS PROTON SPECTRUM FROM MMS_EIS_COMBINE_PROTON_SPEC.PRO NOT FOUND!
     return
@@ -96,21 +97,21 @@ pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units
   proton_pad[*,*,n_elements(phxtof_pad.v2):n_elements(phxtof_pad.v2)+n_elements(target_extof_energies)-1] = extof_pad_data[*,*,target_extof_energies]
   proton_energy = [phxtof_pad.v2[target_phxtof_energies],(phxtof_pad.v2[target_phxtof_crossover_energies]+extof_pad.v2[target_extof_crossover_energies])/2d,extof_pad.v2[target_extof_energies]]
   for ee=0,n_elements(proton_energy)-1 do begin
-    store_data,eis_prefix+'combined_'+strtrim(string(fix(proton_energy[ee])),2)+'keV_proton_flux_omni_pad',data={x:time_data,y:reform(proton_pad[*,*,ee]),v:pa_label}
-    options,eis_prefix+'combined_'+strtrim(string(fix(proton_energy[ee])),2)+'keV_proton_flux_omni_pad', spec=1, yrange = [0,180], ystyle=1, /no_interp, /extend_y_edges, $
+    store_data,eis_prefix+'combined_'+strtrim(string(fix(proton_energy[ee])),2)+'keV_proton_flux_omni'+suffix+'_pad',data={x:time_data,y:reform(proton_pad[*,*,ee]),v:pa_label}
+    options,eis_prefix+'combined_'+strtrim(string(fix(proton_energy[ee])),2)+'keV_proton_flux_omni'+suffix+'_pad', spec=1, yrange = [0,180], ystyle=1, /no_interp, /extend_y_edges, $
       ytitle='mms'+probes+'!C'+data_rate+'!Cproton!C'+strtrim(string(fix(proton_energy[ee])),2)+'keV', ysubtitle='PA!C[deg]', minzlog=.01, ztitle=units_label
-    zlim,eis_prefix+'combined_'+strtrim(string(fix(proton_energy[ee])),2)+'keV_proton_flux_omni_pad', 5e2, 1e4, 1
-    tdegap, eis_prefix+'combined_'+strtrim(string(fix(proton_energy[ee])),2)+'keV_proton_flux_omni_pad', /overwrite
+    zlim,eis_prefix+'combined_'+strtrim(string(fix(proton_energy[ee])),2)+'keV_proton_flux_omni'+suffix+'_pad', 5e2, 1e4, 1
+    tdegap, eis_prefix+'combined_'+strtrim(string(fix(proton_energy[ee])),2)+'keV_proton_flux_omni'+suffix+'_pad', /overwrite
   endfor
   ;
   proton_pad_integral = dblarr(n_elements(time_data),n_pabins) + !Values.d_NAN                                                              ; time x bins
-  store_data,eis_prefix+'combined_proton_flux_omni_pads',data={x:time_data,y:proton_pad,v1:pa_label,v2:proton_energy}
-  tdegap,eis_prefix+'combined_proton_flux_omni_pads',/overwrite
+  store_data,eis_prefix+'combined_proton_flux_omni'+suffix+'_pads',data={x:time_data,y:proton_pad,v1:pa_label,v2:proton_energy}
+  tdegap,eis_prefix+'combined_proton_flux_omni'+suffix+'_pads',/overwrite
   for tt=0,n_elements(time_data)-1 do for bb=0,n_pabins-1 do proton_pad_integral[tt,bb] = average(proton_pad[tt,bb,*],/NAN)
-  store_data,eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni_pad', data={x:time_data,y:proton_pad_integral,v:pa_label}
-  options,eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni_pad', spec=1, yrange = [0,180], ystyle=1, /no_interp, /extend_y_edges, $
+  store_data,eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni'+suffix+'_pad', data={x:time_data,y:proton_pad_integral,v:pa_label}
+  options,eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni'+suffix+'_pad', spec=1, yrange = [0,180], ystyle=1, /no_interp, /extend_y_edges, $
     ytitle='mms'+probes+'!C'+data_rate+'!Cproton!C'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV', ysubtitle='PA!C[deg]', minzlog=.01, ztitle=units_label
-  zlim,eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni_pad', 5e2, 1e4, 1
-  tdegap, eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni_pad', /overwrite
+  zlim,eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni'+suffix+'_pad', 5e2, 1e4, 1
+  tdegap, eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni'+suffix+'_pad', /overwrite
   ;
 end

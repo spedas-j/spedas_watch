@@ -27,12 +27,13 @@
 ;       + 2018-02-19, I. Cohen          : added "total" to NAN creation on lines 77-78 to fix syntax
 ;                                         
 ;-
-pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units
+pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
   ;
   compile_opt idl2
   if not KEYWORD_SET(probes) then probes = '1'
   if not KEYWORD_SET(data_rate) then data_rate = 'srvy'
   if not KEYWORD_SET(data_units) then data_units = 'flux'
+  if not KEYWORD_SET(suffix) then suffix = ''
   if (data_units ne 'flux') then begin
     print,'Combination of PHxTOF and ExTOF data products is only recommended for flux data!'
     return
@@ -42,12 +43,12 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
     ;
     if (data_rate eq 'brst') then eis_prefix = 'mms'+probes[pp]+'_epd_eis_brst_' else eis_prefix = 'mms'+probes[pp]+'_epd_eis_'
     ;
-    extof_vars = tnames(eis_prefix+'extof_proton_P?_'+data_units+'_t?')
+    extof_vars = tnames(eis_prefix+'extof_proton_P?_'+data_units+'_t?'+suffix)
     if (extof_vars[0] eq '') then begin
       print,'Must load ExTOF data to combine proton spectra'
       return
     endif
-    phxtof_vars = tnames(eis_prefix+'phxtof_proton_P?_'+data_units+'_t?')
+    phxtof_vars = tnames(eis_prefix+'phxtof_proton_P?_'+data_units+'_t?'+suffix)
     if (phxtof_vars[0] eq '') then begin
       print,'Must load PHxTOF data to combine proton spectra'
       return
@@ -93,19 +94,19 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
       combined_energy = [proton_phxtof.v[target_phxtof_energies],(proton_phxtof.v[target_phxtof_crossover_energies]+proton_extof.v[target_extof_crossover_energies])/2d,proton_extof.v[target_extof_energies]]
       ;
       combined_array[where(finite(combined_array) eq 0)] = 0d
-      store_data,eis_prefix+'combined_proton_P'+p_num[0]+'_'+data_units+'_t'+strtrim(string(aa),2),data={x:time_data,y:combined_array,v:combined_energy}
-      tdegap,eis_prefix+'combined_proton_P'+p_num[0]+'_'+data_units+'_t'+strtrim(string(aa),2), /overwrite
-      options,eis_prefix+'combined_proton_P'+p_num[0]+'_'+data_units+'_t'+strtrim(string(aa),2),spec=1,zrange=[5e0,5e4],zticks=0,zlog=1,minzlog=0.01,yrange=[14,650],yticks=2,ystyle=1,ylog=0,no_interp=1, $
+      store_data,eis_prefix+'combined_proton_P'+p_num[0]+'_'+data_units+'_t'+strtrim(string(aa),2)+suffix,data={x:time_data,y:combined_array,v:combined_energy}
+      tdegap,eis_prefix+'combined_proton_P'+p_num[0]+'_'+data_units+'_t'+strtrim(string(aa),2)+suffix, /overwrite
+      options,eis_prefix+'combined_proton_P'+p_num[0]+'_'+data_units+'_t'+strtrim(string(aa),2)+suffix,spec=1,zrange=[5e0,5e4],zticks=0,zlog=1,minzlog=0.01,yrange=[14,650],yticks=2,ystyle=1,ylog=0,no_interp=1, $
         ysubtitle='Energy!C[keV]',ztitle='1/(cm!E2!N-sr-s-keV)'
       ;
     endfor
     ;
-    mms_eis_spin_avg, probe=probes[pp], datatype='combined', species='proton', data_units = data_units, data_rate = data_rate
+    mms_eis_spin_avg, probe=probes[pp], datatype='combined', species='proton', data_units = data_units, data_rate = data_rate, suffix = suffix
     ;
-    mms_eis_omni, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = '', data_units = data_units, data_rate = data_rate
-    mms_eis_omni, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = '_spin', data_units = data_units, data_rate = data_rate
+    mms_eis_omni, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix, data_units = data_units, data_rate = data_rate
+    mms_eis_omni, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix + '_spin', data_units = data_units, data_rate = data_rate
     ;
   endfor
   ;
-  if (n_elements(probes) gt 1) then mms_eis_spec_combine_sc, probes=probes, species = 'proton', data_units = data_units, datatype = 'combined', data_rate = data_rate
+  if (n_elements(probes) gt 1) then mms_eis_spec_combine_sc, probes=probes, species = 'proton', data_units = data_units, datatype = 'combined', data_rate = data_rate, suffix = suffix
 end

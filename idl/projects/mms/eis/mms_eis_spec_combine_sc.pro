@@ -84,7 +84,7 @@ pro mms_eis_spec_combine_sc, probes=probes, species = species, data_units = data
     options, allmms_prefix+species[ss]+'_flux_omni', yrange = minmax(common_energy), ystyle=1, spec = 1, no_interp=1, ysubtitle='Energy [keV]',ztitle='Intensity!C[1/cm!U-2!N-sr-s-keV]',minzlog=.001
     zlim, allmms_prefix+species[ss]+'_flux_omni', 0, 0, 1
     ;
-    mms_eis_spin_avg, probe=probes, datatype=datatype, species='proton', data_units=data_units, data_rate=data_rate, /multisc
+    mms_eis_spin_avg, probe=probes, datatype=datatype, species='proton', data_units=data_units, data_rate=data_rate, suffix = suffix, /multisc
   endfor
   ;
 end
