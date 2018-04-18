@@ -10,7 +10,7 @@ function spp_rt,t,min=min,max=max,range=range,reset=reset
     samples= dblarr(sze) * !values.d_nan
     npoints = 0
     allowed = time_double(['2016-1-1','2024-1-1'])
-    allowed = [systime(1),time_double('2024-1-1')]
+    allowed = [systime(1)-24d*3600,time_double('2024-1-1')]
    endif
    if keyword_set(max) then return, max(samples,/nan)
    if keyword_set(min) then return, min(samples,/nan)
@@ -25,5 +25,6 @@ function spp_rt,t,min=min,max=max,range=range,reset=reset
      tt=!values.d_nan 
    end
    samples[npoints++ mod sze] = tt
+ ;  print,time_string(tt)
    return,tt
 end

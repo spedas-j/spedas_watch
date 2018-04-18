@@ -6,13 +6,26 @@
 ;     IDL> mgunit, 'spd_tplot2cdf_data_ut'
 ;
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-03-12 18:09:07 -0700 (Mon, 12 Mar 2018) $
-; $LastChangedRevision: 24881 $
+; $LastChangedDate: 2018-04-16 18:48:24 -0700 (Mon, 16 Apr 2018) $
+; $LastChangedRevision: 25059 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/qa_tools/mgunit/spd_tplot2cdf_data_ut__define.pro $
 ;-
 
-function spd_tplot2cdf_data_ut::test_fpi_multidimensional_data
-  ; This case does not work since tplot2cdf does not support v1, v2, ... etc
+function spd_tplot2cdf_data_ut::test_fpi_tt2000_data  
+  mms_load_fpi, trange=['2015-12-15', '2015-12-15 02:00:00'], datatype='des-dist', probe=3, cdf_filenames=files
+  del_data, '*'
+  spd_cdf2tplot, files[0], /all, /tt2000 
+  get_data, 'mms3_des_dist_fast', data=original  
+  tplot2cdf, tvars='mms3_des_dist_fast', filename='test_fpi_tt2000_dist.cdf', /default, /tt2000
+  del_data, '*'
+  spd_cdf2tplot, 'test_fpi_tt2000_dist.cdf', /all, /tt2000  
+  get_data, 'mms3_des_dist_fast', data=d
+  assert, array_equal(original.Y, d.Y) && array_equal(original.v1, d.v1) && array_equal(original.v2, d.v2) && array_equal(original.v3, d.v3), 'Problem with FPI data'
+  assert, array_equal(original.x, d.x) , 'Problem time of TT2000 Epoch FPI data'  
+  return, 1
+end
+
+function spd_tplot2cdf_data_ut::test_fpi_multidimensional_data  
   mms_load_fpi, trange=['2015-12-15', '2015-12-16'], datatype='des-dist', probe=3
   get_data, 'mms3_des_dist_fast', data=original
   tplot2cdf, tvars='mms3_des_dist_fast', filename='test_fpi_dist.cdf', /default
@@ -59,7 +72,7 @@ end
 function spd_tplot2cdf_data_ut::init, _extra=e
   if (~self->MGutTestCase::init(_extra=e)) then return, 0
   ; the following adds code coverage % to the output
-  self->addTestingRoutine, ['tplot2cdf']
+  self->addTestingRoutine, ['tplot2cdf','spd_cdf2tplot']
   return, 1
 end
 

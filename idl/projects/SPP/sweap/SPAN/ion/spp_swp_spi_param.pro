@@ -15,6 +15,115 @@ PRO spp_swp_spi_param_mass_table, write_file=write_file
    COMMON spi_param, spi_param
 
 
+   ;;#####################
+   ;; Mass Table 0
+   ;;#####################
+
+   ;; Array of 128 DAC boundaries 
+   hv_dac = ishft(lindgen(128L),9)
+
+   ;; DAC to V and then
+   ;; to particle energy [eV] then
+   ;; to time-of-flight [ns]
+   hv = -1*(spi_param.hemi_fitt[0] + $
+            hv_dac*spi_param.hemi_fitt[1])
+   ev = hv * 16.7 + 15000.
+   mass     = [1,2,21,32]
+   mass_nn  = n_elements(mass)
+   mass_amu = replicate(1.,n_elements(ev))#(mass)
+   enrg_amu = ev#replicate(1.,mass_nn)
+   mass_tof = sqrt(0.5*mass_amu*spi_param.sci.atokg*$
+                   spi_param.tof_flight_path^2/$
+                   spi_param.sci.evtoj/$
+                   (enrg_amu))/1e-9
+
+   ;; Counter
+   kk = 0
+   
+   ;; Find and store mass tof bin locations
+   mass_ppp   = intarr(n_elements(ev),mass_nn)
+   mass_eloss = intarr(n_elements(ev),mass_nn)
+   FOR i=0, mass_nn-1 DO BEGIN
+      FOR j=0, n_elements(ev)-1 DO BEGIN 
+         mass_ppp[j,i] = value_locate($
+                         spi_param.tof512_bnds,$
+                         reform(mass_tof[j,i]))
+         mass_eloss[j,i] = (*spi_param.eloss)[mass_ppp[j,i],j]
+      ENDFOR
+   ENDFOR
+   
+   ;; Account for energy loss
+   enrg_amu_corr = enrg_amu*(mass_eloss/100.)
+
+   ;; Account for TOF correction
+   mass_tof_corr = sqrt(0.5*mass_amu*spi_param.sci.atokg*$
+                        spi_param.tof_flight_path^2/$
+                        spi_param.sci.evtoj/$
+                        (enrg_amu_corr))/1e-9 - $
+                   spi_param.tof_e_corr*1e9
+
+   ;; Setup final mass table
+   ;; Value 63 will be used for trash
+   mass_table_0 = fix((*spi_param.eloss) * 0) + 63
+
+   FOR i=0, 127 DO BEGIN
+
+      ;; Find tof at current energy
+      m0 = mean(mass_tof_corr[i,0])
+      m1 = mean(mass_tof_corr[i,1])
+      m2 = mean(mass_tof_corr[i,2])
+      m3 = mean(mass_tof_corr[i,3])
+
+      ;; Find corresponding TOF bin number
+      ;; and force it to be even
+      p0 = value_locate(spi_param.tof512_bnds, m0)
+      IF (p0 MOD 2) THEN p0 = p0-1
+      p1 = value_locate(spi_param.tof512_bnds, m1)
+      IF (p1 MOD 2) THEN p1 = p1-1
+      p2 = value_locate(spi_param.tof512_bnds, m2)
+      IF (p2 MOD 2) THEN p2 = p2-1
+      p3 = value_locate(spi_param.tof512_bnds, m3)
+      IF (p3 MOD 2) THEN p3 = p3-1
+
+      p0_range = [p0-8:p0+7]
+      p1_range = [p1-8:p1+7]
+      p2_range = [p2-8:p2+7]
+      p3_range = [p3-8:p3+7]
+
+      ;; Make sure no overlap between p0/p1
+      diff = min(p1_range) - max(p0_range)
+      IF diff LT 0 THEN BEGIN
+         diff = temporary(ABS(diff))
+         p0_range = [p0-8:p0+7] - ceil(diff/2.)
+         p1_range = [p1-8:p1+7] + floor(diff/2.)+1
+      ENDIF 
+
+      ;; Make sure no overlap between p1/p2
+      diff = min(p2_range) - max(p1_range)
+      IF diff LT 0 THEN BEGIN
+         diff = temporary(ABS(diff))
+         p2_range = [p2-8:p2+7] + diff
+      ENDIF 
+      
+      mass_table_0[p0_range,i] = indgen(16) +  0
+      mass_table_0[p1_range,i] = indgen(16) + 16
+      mass_table_0[p2_range,i] = indgen(16) + 32
+      mass_table_0[p3_range,i] = indgen(16) + 48
+
+      ;;print, format='(8I4)',$
+      ;;       minmax(p0_range), $
+      ;;       minmax(p1_range), $
+      ;;       minmax(p2_range), $
+      ;;       minmax(p3_range)
+
+   ENDFOR
+
+   ;;FOR i=0, 127 DO BEGIN
+   ;;   plot, mass_table_0[*,i]
+   ;;   wait, 0.5
+   ;;ENDFOR
+
+
 
    ;;#####################
    ;; Mass Table 1 
@@ -74,6 +183,79 @@ PRO spp_swp_spi_param_mass_table, write_file=write_file
       p2 = value_locate(spi_param.tof512_bnds, m2)
       IF (p2 MOD 2) THEN p2 = p2-1
 
+      p0_range = fix((findgen(p0)/p0)*16.) 
+      p1_range = fix((findgen(p1-p0)/(p1-p0)*16.)+16.)
+      p2_range = fix((findgen(p2-p1)/(p2-p1)*16.)+32.)
+      p3_range = fix((findgen(512-p2)/(512-p2)*16.)+48.)
+      
+      mass_table_1[0:p0-1, i] = p0_range
+      mass_table_1[p0:p1-1,i] = p1_range
+      mass_table_1[p1:p2-1,i] = p2_range
+      mass_table_1[p2:511, i] = p3_range
+
+   ENDFOR
+   
+   (*spi_param.mass_table_1) = mass_table_1
+
+
+   ;;#####################
+   ;; Mass Table 2
+   ;;#####################
+
+   ;; Array of 128 DAC boundaries 
+   hv_dac = ishft(lindgen(128L),9)
+
+   ;; DAC to V and then to particle energy
+   hv = -1*(spi_param.hemi_fitt[0] + $
+            hv_dac*spi_param.hemi_fitt[1])
+   ev = hv * 16.7 + 15000.
+   mass     = [1,2,21,32]
+   mass_nn  = n_elements(mass)
+   mass_amu = replicate(1.,n_elements(ev))#(mass)
+   enrg_amu = ev#replicate(1.,mass_nn)
+   mass_tof = sqrt(0.5*mass_amu*spi_param.sci.atokg*$
+                   spi_param.tof_flight_path^2/$
+                   spi_param.sci.evtoj/$
+                   (enrg_amu))/1e-9
+
+   ;; 
+   kk = 0
+   ;mass_ppp   = intarr(n_elements(ev)*mass_nn)
+   mass_ppp   = intarr(n_elements(ev),mass_nn)
+   mass_eloss = intarr(n_elements(ev),mass_nn)
+   FOR i=0, mass_nn-1 DO BEGIN
+      FOR j=0, n_elements(ev)-1 DO BEGIN 
+         mass_ppp[j,i] = value_locate($
+                         spi_param.tof512_bnds,$
+                         reform(mass_tof[j,i]))
+         mass_eloss[j,i] = (*spi_param.eloss)[mass_ppp[j,i],j]
+      ENDFOR
+   ENDFOR
+   
+   ;; Account for energy loss
+   enrg_amu_corr = enrg_amu*(mass_eloss/100.)
+
+   ;; Account for TOF correction
+   mass_tof_corr = sqrt(0.5*mass_amu*spi_param.sci.atokg*$
+                        spi_param.tof_flight_path^2/$
+                        spi_param.sci.evtoj/$
+                        (enrg_amu_corr))/1e-9 - $
+                   spi_param.tof_e_corr*1e9
+   mass_table_2 = fix((*spi_param.eloss) * 0)
+
+   FOR i=0, 127 DO BEGIN
+
+      m0 = mean(mass_tof_corr[i,0:1])
+      m1 = mean(mass_tof_corr[i,1:2])
+      m2 = mean(mass_tof_corr[i,2:3])
+
+      p0 = value_locate(spi_param.tof512_bnds, m0)
+      IF (p0 MOD 2) THEN p0 = p0-1
+      p1 = value_locate(spi_param.tof512_bnds, m1)
+      IF (p1 MOD 2) THEN p1 = p1-1
+      p2 = value_locate(spi_param.tof512_bnds, m2)
+      IF (p2 MOD 2) THEN p2 = p2-1
+
 
       p0_range = [replicate(2,(p0-2)/2), replicate(3,(p0-2)/2) ]
       p1_range = [replicate(4,(p1-p0)/2),replicate(5,(p1-p0)/2)]
@@ -84,44 +266,78 @@ PRO spp_swp_spi_param_mass_table, write_file=write_file
                                findgen(31),$
                                findgen(511-p2)/(511-p2)*31)),63]
 
-      mass_table_1[0:1,i]     = [0,1]
-      mass_table_1[2:p0-1,i]  = p0_range
-      mass_table_1[p0:p1-1,i] = p1_range
-      mass_table_1[p1:p2-1,i] = p2_range
-      mass_table_1[p2:511,i]  = p3_range
+      mass_table_2[0:1,i]     = [0,1]
+      mass_table_2[2:p0-1,i]  = p0_range
+      mass_table_2[p0:p1-1,i] = p1_range
+      mass_table_2[p1:p2-1,i] = p2_range
+      mass_table_2[p2:511,i]  = p3_range
 
    ENDFOR
    
-   (*spi_param.mass_table_1) = mass_table_1
+   (*spi_param.mass_table_2) = mass_table_2
+
 
    ;; MRLUT
    ;; 64 Element Array
-   mrlut_1 = intarr(64)
-   mrlut_1[0:1] = 4
-   mrlut_1[2:3] = 0
-   mrlut_1[4:5] = 1
-   mrlut_1[p2_range[uniq(p2_range)]] = 2
-   mrlut_1[p3_range[uniq(p3_range)]] = 3
-   (*spi_param.mrlut_1) = mrlut_1
+   mrlut_2 = intarr(64)
+   mrlut_2[0:1] = 4
+   mrlut_2[2:3] = 0
+   mrlut_2[4:5] = 1
+   mrlut_2[p2_range[uniq(p2_range)]] = 2
+   mrlut_2[p3_range[uniq(p3_range)]] = 3
+   (*spi_param.mrlut_2) = mrlut_2
 
 
    
    ;; WRITING TO FILE
    IF keyword_set(write_file) THEN BEGIN
-      openw, 1, '~/Desktop/mlut1.txt'
+
+      ;; MLUT DEFAULT
+      openw, 1, '~/Desktop/mlut_default.txt'
+      mass_table_default_arr = ishft(indgen(512),-3)
       FOR i=0, 127 DO BEGIN
          FOR j=0, 511 DO BEGIN
-            printf,1,mass_table_1[j,i]
+            printf,1,format='(I2)',mass_table_default_arr[j]
          ENDFOR
       ENDFOR 
       close, 1
 
-      openw, 1, '~/Desktop/mrlut1.txt'
-      FOR i=0, 63 DO printf,1,mrlut_1[i]
+      ;; MLUT 0
+      openw, 1, '~/Desktop/mlut0.txt'
+      FOR i=0, 127 DO BEGIN
+         FOR j=0, 511 DO BEGIN
+            printf,1,format='(I2)',mass_table_0[j,i]
+         ENDFOR
+      ENDFOR 
+      close, 1
+
+      ;; MLUT 1
+      openw, 1, '~/Desktop/mlut1.txt'
+      FOR i=0, 127 DO BEGIN
+         FOR j=0, 511 DO BEGIN
+            printf,1,format='(I2)',mass_table_1[j,i]
+         ENDFOR
+      ENDFOR 
+      close, 1
+
+      ;; MLUT 2
+      openw, 1, '~/Desktop/mlut2.txt'
+      FOR i=0, 127 DO BEGIN
+         FOR j=0, 511 DO BEGIN
+            printf,1,format='(I2)',mass_table_2[j,i]
+         ENDFOR
+      ENDFOR 
+      close, 1
+
+      openw, 1, '~/Desktop/mrlut2.txt'
+      FOR i=0, 63 DO printf,1,format='(I2)',mrlut_2[i]
       close,1
+
    ENDIF 
 
 
+
+   
    ;; PLOTTING
    ;IF keyword_set(plott) THEN BEGIN
    loadct2, 1
@@ -1325,9 +1541,13 @@ PRO spp_swp_spi_param
 
           eloss:ptr_new(/alloc), $
 
+          mass_table_0:ptr_new(/alloc), $
           mass_table_1:ptr_new(/alloc), $
+          mass_table_2:ptr_new(/alloc), $
+          mass_table_default:ptr_new(/alloc), $
 
-          mrlut_1:ptr_new(/alloc) $
+          mrlut_1:ptr_new(/alloc), $
+          mrlut_2:ptr_new(/alloc) $
           
           }
 
