@@ -11,14 +11,56 @@
 ;     IDL> mgunit, 'mms_flipbookify_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-03-29 14:05:49 -0700 (Thu, 29 Mar 2018) $
-; $LastChangedRevision: 24968 $
+; $LastChangedDate: 2018-04-18 08:33:28 -0700 (Wed, 18 Apr 2018) $
+; $LastChangedRevision: 25071 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_flipbookify_ut__define.pro $
 ;-
 
 function mms_flipbookify_ut::test_fpi_subtract_err_bulk
   tplot, ['mms1_des_energyspectr_omni_fast', 'mms1_des_bulkv_dbcs_fast', 'mms1_des_pitchangdist_avg']
   mms_flipbookify, trange=['2017-12-15/16:00', '2017-12-15/16:01'], data_rate='fast', species='i', /subtract_error, /subtract_bulk
+  return, 1
+end
+
+function mms_flipbookify_ut::test_fpi_field_aligned_slices_ps
+  tplot, ['mms1_des_energyspectr_omni_fast', 'mms1_des_bulkv_dbcs_fast', 'mms1_des_pitchangdist_avg']
+  mms_flipbookify, trange=['2017-12-15/16:00', '2017-12-15/16:01'], data_rate='fast', species='i', slices=['bv', 'perp', 'perp_xy'], /postscript
+  return, 1
+end
+
+function mms_flipbookify_ut::test_simple_timestep_ps
+  tplot, 'mms1_des_bulkv_dbcs_fast'
+  mms_flipbookify, trange=['2017-12-15/16:00', '2017-12-15/16:01'], data_rate='fast', time_step=10, filename_suffix='_timestep', /postscript
+  return, 1
+end
+
+function mms_flipbookify_ut::test_adding_1d_cuts_both_ps
+  tplot, ['mms1_des_energyspectr_omni_fast', 'mms1_des_bulkv_dbcs_fast', 'mms1_des_pitchangdist_avg']
+  mms_flipbookify, trange=['2017-12-15/16:00', '2017-12-15/16:01'], data_rate='fast', species='e', /include_1d_vx, /include_1d_vy, filename_suffix='_1dboth', /postscript
+  return, 1
+end
+
+function mms_flipbookify_ut::test_adding_1d_cuts_vy_ps
+  tplot, ['mms1_des_energyspectr_omni_fast', 'mms1_des_bulkv_dbcs_fast', 'mms1_des_pitchangdist_avg']
+  mms_flipbookify, trange=['2017-12-15/16:00', '2017-12-15/16:01'], data_rate='fast', species='e', /include_1d_vy, filename_suffix='_1d_vy', /postscript
+  return, 1
+end
+
+function mms_flipbookify_ut::test_adding_1d_cuts_vx_ps
+  tplot, ['mms1_des_energyspectr_omni_fast', 'mms1_des_bulkv_dbcs_fast', 'mms1_des_pitchangdist_avg']
+  mms_flipbookify, trange=['2017-12-15/16:00', '2017-12-15/16:01'], data_rate='fast', species='e', /include_1d_vx, filename_suffix='_1d_vx', /postscript
+  return, 1
+end
+
+function mms_flipbookify_ut::test_simple_fpi_ps
+  tplot, 'mms1_des_bulkv_dbcs_fast'
+  mms_flipbookify, trange=['2017-12-15/16:00', '2017-12-15/16:01'], data_rate='fast', /postscript
+  return, 1
+end
+
+function mms_flipbookify_ut::test_multi_fpi_ps
+  tplot, ['mms1_des_energyspectr_omni_fast', 'mms1_des_bulkv_dbcs_fast', 'mms1_des_pitchangdist_avg']
+  mms_flipbookify, trange=['2017-12-15/16:00', '2017-12-15/16:01'], data_rate='fast', species='e', /postscript
   return, 1
 end
 

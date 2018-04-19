@@ -11,12 +11,12 @@
 ;   
 ;   
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-01-22 13:12:11 -0800 (Mon, 22 Jan 2018) $
-; $LastChangedRevision: 24567 $
+; $LastChangedDate: 2018-04-18 13:21:13 -0700 (Wed, 18 Apr 2018) $
+; $LastChangedRevision: 25075 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/validation/mms_spd_slice2d_validation.pro $
 ;-
 
-output_folder = ''
+output_folder = 'test-hpca-valid-updates/'
 trange=['2017-09-10/09:30:20', '2017-09-10/09:34:20']
 
 probe='3'
@@ -50,7 +50,7 @@ name =  'mms'+probe+'_dis_dist_fast'
 vname = 'mms'+probe+'_dis_bulkv_gse_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, window=window, $
+slice = spd_slice2d(dist, time=time, samples=2, $
   rotation='bv', mag_data=bname, vel_data=vname, erange=[0, 300])
 
 spd_slice2d_plot, slice, export=output_folder+'fpi_cold0_new'
@@ -72,7 +72,7 @@ spd_slice2d_plot, slice, window=1, export=output_folder+'hpca_cold0_new'
 name =  'mms'+probe+'_dis_dist_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='xz') 
+slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='xz', samples=2) 
 
 wi, 2
 spd_slice2d_plot, slice, window=2, export=output_folder+'fpi_cold0_xz_new'
@@ -91,7 +91,7 @@ spd_slice2d_plot, slice, window=3, export=output_folder+'hpca_cold0_xz_new'
 name =  'mms'+probe+'_dis_dist_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='yz')
+slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='yz', samples=2)
 
 wi, 4
 spd_slice2d_plot, slice, window=4, export=output_folder+'fpi_cold0_yz_new'
@@ -116,7 +116,7 @@ vname = 'mms'+probe+'_dis_bulkv_gse_fast'
 dist = mms_get_dist(name, trange=trange)
 
 slice = spd_slice2d(dist, time=time, window=window, $
-  rotation='bv', mag_data=bname, vel_data=vname, erange=[0, 300])
+  rotation='bv', mag_data=bname, vel_data=vname, erange=[0, 300], samples=2)
 
 spd_slice2d_plot, slice, export=output_folder+'fpi_cold1_new'
 
@@ -138,7 +138,7 @@ spd_slice2d_plot, slice, window=1, export=output_folder+'hpca_cold1_new'
 name =  'mms'+probe+'_dis_dist_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='xz')
+slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='xz', samples=2)
 
 wi, 2
 spd_slice2d_plot, slice, window=2, export=output_folder+'fpi_cold1_xz_new'
@@ -157,7 +157,7 @@ spd_slice2d_plot, slice, window=3, export=output_folder+'hpca_cold1_xz_new'
 name =  'mms'+probe+'_dis_dist_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='yz')
+slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='yz', samples=2)
 
 wi, 4
 spd_slice2d_plot, slice, window=4, export=output_folder+'fpi_cold1_yz_new'
@@ -182,7 +182,7 @@ vname = 'mms'+probe+'_dis_bulkv_gse_fast'
 dist = mms_get_dist(name, trange=trange)
 
 slice = spd_slice2d(dist, time=time, window=window, $
-  rotation='bv', mag_data=bname, vel_data=vname, erange=[0, 300])
+  rotation='bv', mag_data=bname, vel_data=vname, erange=[0, 300], samples=2)
 
 spd_slice2d_plot, slice, export=output_folder+'fpi_cold2_new'
 
@@ -203,7 +203,7 @@ spd_slice2d_plot, slice, window=1, export=output_folder+'hpca_cold2_new'
 name =  'mms'+probe+'_dis_dist_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='xz')
+slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='xz', samples=2)
 
 wi, 2
 spd_slice2d_plot, slice, window=2, export=output_folder+'fpi_cold2_xz_new'
@@ -222,7 +222,7 @@ spd_slice2d_plot, slice, window=3, export=output_folder+'hpca_cold2_xz_new'
 name =  'mms'+probe+'_dis_dist_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='yz')
+slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='yz', samples=2)
 
 wi, 4
 spd_slice2d_plot, slice, window=4, export=output_folder+'fpi_cold2_yz_new'
@@ -247,7 +247,7 @@ vname = 'mms'+probe+'_dis_bulkv_gse_fast'
 dist = mms_get_dist(name, trange=trange)
 
 slice = spd_slice2d(dist, time=time, window=window, $
-  rotation='bv', mag_data=bname, vel_data=vname, erange=[0, 300])
+  rotation='bv', mag_data=bname, vel_data=vname, erange=[0, 300], samples=2)
 
 spd_slice2d_plot, slice, export=output_folder+'fpi_cold3_new'
 
@@ -269,7 +269,7 @@ spd_slice2d_plot, slice, window=1, export=output_folder+'hpca_cold3_new'
 name =  'mms'+probe+'_dis_dist_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='xz')
+slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='xz', samples=2)
 
 wi, 2
 spd_slice2d_plot, slice, window=2, export=output_folder+'fpi_cold3_xz_new'
@@ -288,7 +288,7 @@ spd_slice2d_plot, slice, window=3, export=output_folder+'hpca_cold3_xz_new'
 name =  'mms'+probe+'_dis_dist_fast'
 dist = mms_get_dist(name, trange=trange)
 
-slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='yz')
+slice = spd_slice2d(dist, time=time, erange=[0, 300], rotation='yz', samples=2)
 
 wi, 4
 spd_slice2d_plot, slice, window=4, export=output_folder+'fpi_cold3_yz_new'
