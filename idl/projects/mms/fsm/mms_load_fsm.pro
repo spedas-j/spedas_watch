@@ -48,8 +48,8 @@
 ;     The MMS plug-in in SPEDAS requires IDL 8.4 to access data at the LASP SDC
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-02-15 10:24:03 -0800 (Thu, 15 Feb 2018) $
-;$LastChangedRevision: 24718 $
+;$LastChangedDate: 2018-04-24 16:31:25 -0700 (Tue, 24 Apr 2018) $
+;$LastChangedRevision: 25108 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/fsm/mms_load_fsm.pro $
 ;-
 
@@ -63,7 +63,8 @@ pro mms_load_fsm, trange = trange, probes = probes, datatype = datatype, $
   varformat = varformat, cdf_filenames = cdf_filenames, cdf_version = cdf_version, $
   latest_version = latest_version, min_version = min_version, $
   spdf = spdf, available = available, versions = versions, $
-  always_prompt = always_prompt, major_version=major_version
+  always_prompt = always_prompt, major_version=major_version, $
+  keep_flagged=keep_flagged
 
   if ~undefined(trange) && n_elements(trange) eq 2 $
     then tr = timerange(trange) $
@@ -96,6 +97,26 @@ pro mms_load_fsm, trange = trange, probes = probes, datatype = datatype, $
     this_probe = 'mms'+strcompress(string(probes[probe_idx]), /rem)
 
     for data_rate_idx = 0, n_elements(data_rate)-1 do begin
+      this_data_rate = data_rate[data_rate_idx]
+      if ~keyword_set(keep_flagged) then begin
+        ; B-field data
+        get_data, this_probe+'_'+instrument+'_b_mag_'+this_data_rate+'_'+level+suffix, data=b_data_mag, dlimits=mag_dl
+        get_data, this_probe+'_'+instrument+'_b_gse_'+this_data_rate+'_'+level+suffix, data=b_data_gse, dlimits=gse_dl
+        ; flags
+        get_data, this_probe+'_'+instrument+'_flag_'+this_data_rate+'_'+level+suffix, data=flags
+        if is_struct(flags) then begin
+          bad_data = where(flags.Y ne 0, flag_count)
+          if flag_count ne 0 then begin
+            if is_struct(b_data_gse) then b_data_gse.Y[bad_data, *] = !values.d_nan
+            if is_struct(b_data_mag) then b_data_mag.Y[bad_data, *] = !values.d_nan
+
+            ; resave them
+            if is_struct(b_data_gse) then store_data, this_probe+'_'+instrument+'_b_gse_'+this_data_rate+'_'+level+suffix, data=b_data_gse, dlimits=gse_dl
+            if is_struct(b_data_mag) then store_data, this_probe+'_'+instrument+'_b_mag_'+this_data_rate+'_'+level+suffix, data=b_data_mag, dlimits=mag_dl
+          endif
+        endif
+      endif
+
       mms_fsm_set_metadata, tplotnames, data_rate=data_rate[data_rate_idx], prefix=this_probe, level=level, suffix=suffix
     endfor
   endfor

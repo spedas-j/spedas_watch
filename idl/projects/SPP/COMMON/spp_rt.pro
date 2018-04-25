@@ -17,11 +17,11 @@ function spp_rt,t,min=min,max=max,range=range,reset=reset
    if keyword_set(range) or n_elements(t) eq 0 then return, minmax(samples,/nan)
    tt = t[0]
    if tt gt allowed[1] then begin 
-     dprint,dlevel=3,"Bad time: "+time_string(tt)+' Ignored' 
+     dprint,dlevel=4,"Bad time: "+time_string(tt)+' Ignored' 
      tt=!values.d_nan 
    endif
    if tt lt allowed[0] then begin 
-     dprint,dlevel=2,"Bad time: "+time_string(tt)+' Ignored'
+     dprint,dlevel=3,"Bad time: "+time_string(tt)+' Ignored'
      tt=!values.d_nan 
    end
    samples[npoints++ mod sze] = tt
