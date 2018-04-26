@@ -8,8 +8,8 @@
 ;  spectrograms and moments from level 2 MMS HPCA and FPI distributions.
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-03-20 11:29:29 -0700 (Tue, 20 Mar 2018) $
-;$LastChangedRevision: 24916 $
+;$LastChangedDate: 2018-04-25 08:50:53 -0700 (Wed, 25 Apr 2018) $
+;$LastChangedRevision: 25110 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_part_getspec_crib.pro $
 ;-
 
@@ -84,7 +84,7 @@ mms_part_getspec, probe='1', species='e', data_rate='brst', level='l2', output='
 ; generate the PAD at the full energy range by leaving off the energy keyword
 mms_part_getpad, probe=1, species='e', data_rate='brst'
 
-tplot, 'mms1_des_dist_brst_pad_10.6600eV_30622.2eV'
+tplot, 'mms1_des_dist_brst_pad_*eV'
 stop
 
 ; now generate the PADs at various energy ranges
