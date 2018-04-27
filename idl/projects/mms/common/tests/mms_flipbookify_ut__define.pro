@@ -11,8 +11,8 @@
 ;     IDL> mgunit, 'mms_flipbookify_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-04-18 08:33:28 -0700 (Wed, 18 Apr 2018) $
-; $LastChangedRevision: 25071 $
+; $LastChangedDate: 2018-04-26 08:37:51 -0700 (Thu, 26 Apr 2018) $
+; $LastChangedRevision: 25121 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_flipbookify_ut__define.pro $
 ;-
 
@@ -135,14 +135,13 @@ pro mms_flipbookify_ut::teardown
 end
 
 pro mms_flipbookify_ut::setup
- ; del_data, '*'
+  mms_load_fpi, level='l2', data_rate='fast', trange=['2017-12-15', '2017-12-16'], datatype=['dis-moms', 'des-moms'], probe=1
 end
 
 function mms_flipbookify_ut::init, _extra=e
   if (~self->MGutTestCase::init(_extra=e)) then return, 0
   ; the following adds code coverage % to the output
   self->addTestingRoutine, ['mms_flipbookify']
-  mms_load_fpi, level='l2', data_rate='fast', trange=['2017-12-15', '2017-12-16'], datatype=['dis-moms', 'des-moms'], probe=1
   return, 1
 end
 
