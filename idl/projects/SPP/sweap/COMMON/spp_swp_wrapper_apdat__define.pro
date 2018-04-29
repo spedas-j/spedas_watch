@@ -6,6 +6,7 @@ pro spp_swp_wrapper_apdat::handler,ccsds,ptp_header
 
 ccsds_data = spp_swp_ccsds_data(ccsds)
 
+;self.dlevel=2
 
 if keyword_set(self.buffer) eq 0 then self.buffer = ptr_new(!null)   ; Should be put in init routine
 
