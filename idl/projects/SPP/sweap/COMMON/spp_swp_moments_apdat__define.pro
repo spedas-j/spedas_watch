@@ -24,8 +24,8 @@ function spp_swp_moments_apdat::decom,ccsds,header
      strct.data = i64_data / (2d^16)                      ; This conversion is a guess only!
   endif
   
-  dprint,dlevel=self.dlevel+2, phelp=2,strct
-  if debug(self.dlevel+2) then begin
+  dprint,dlevel=self.dlevel+3, phelp=2,strct
+  if debug(self.dlevel+3) then begin
      hexprint,byte_data
      hexprint,i64_data
      print,i64_data/ 2d^16
