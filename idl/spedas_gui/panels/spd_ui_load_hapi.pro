@@ -7,9 +7,9 @@
 ; Load data from a HAPI server
 ;
 ;
-;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-03-07 15:41:18 -0800 (Wed, 07 Mar 2018) $
-;$LastChangedRevision: 24852 $
+;$LastChangedBy: egrimes $
+;$LastChangedDate: 2018-04-30 12:06:07 -0700 (Mon, 30 Apr 2018) $
+;$LastChangedRevision: 25147 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/panels/spd_ui_load_hapi.pro $
 ;-
 
@@ -152,7 +152,7 @@ Pro spd_ui_load_hapi_event, ev
       starttime = timerange.GetStartTime()
       endtime = timerange.getendtime()
 
-      hapi_load_data, trange=[starttime, endtime], dataset=dataset, server=server, tplotvars=tplotvars, prefix=prefix
+      hapi_load_data, trange=[starttime, endtime], dataset=dataset, server=server, tplotnames=tplotvars, prefix=prefix
       if undefined(tplotvars) || n_elements(tplotvars) lt 1 then begin
         msgshow = DIALOG_MESSAGE('No variables could be loaded.', /information)
         break
