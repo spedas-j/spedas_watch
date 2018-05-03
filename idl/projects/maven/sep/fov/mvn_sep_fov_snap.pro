@@ -4,7 +4,7 @@
 
 pro mvn_sep_fov_snap
 
-  common mvn_sep_fov,mvn_sep_fov
+  @mvn_sep_fov_common.pro
   
   if ~keyword_set(mvn_sep_fov) then begin
     dprint,'sep fov data not loaded. Please run mvn_sep_fov first! returning...'
@@ -15,9 +15,8 @@ pro mvn_sep_fov_snap
   pos   =mvn_sep_fov.pos
   pdm   =mvn_sep_fov.pdm
   tal   =mvn_sep_fov.tal
-  times =mvn_sep_fov.times
-  rmars =mvn_sep_fov.rmars
-  posmar=mvn_sep_fov.posmar
+  rad   =mvn_sep_fov.rad
+  times =mvn_sep_fov.time
 
   ones3 =replicate(1.,3)
   nth=360l ;number of points on edge of visible mars by MAVEN
@@ -35,9 +34,9 @@ pro mvn_sep_fov_snap
     v5=v4*sqrt(-1.+1./pdm[tminsub].mar^2)+rebin(v1,[3,nth])
     suredge=v5/(ones3#sqrt(total(v5^2,1))) ;mars surface edge circle
 
-    fraction=mvn_sep_fov_mars_shine(rmars,posmar[*,tminsub],pos[*,tminsub].sun,resdeg=resdeg,/vector)
+    fraction=mvn_sep_fov_mars_shine(rmars,rad[tminsub].mar*pos[*,tminsub].mar,pos[*,tminsub].sun,resdeg=resdeg,/vector)
 ;   fraction2=mvn_sep_anc_fov_mars_fraction(times[tminsub],check_objects=['MAVEN_SC_BUS']) ;Rob's routine (slow)
-    mvn_sep_fov_plot,pos=pos[*,tminsub],suredge=suredge,fraction=fraction,time=times[tminsub]
+    mvn_sep_fov_plot,pos=pos[*,tminsub],suredge=suredge,fraction=fraction,time=times[tminsub],tal=tal[tminsub],rad=rad[tminsub]
   endwhile
 
 end

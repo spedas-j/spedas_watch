@@ -48,7 +48,7 @@ function mvn_sep_fov_mars_shine,rmars,posmar,possun,fov=fov,resdeg=resdeg,respon
       for iphi=0,nphi-1 do begin
         dvec=[x[iphi,ithe],z[iphi,ithe],y[iphi,ithe]]
         mvn_sep_mars_incidence,rmars,posmar,dvec,spoint
-        cossza[iphi,ithe,*]=total((spoint-posmar)*possun,1)/rmars
+        cossza[iphi,ithe,*]=total((reform(spoint)-posmar)*possun,1)/rmars
       endfor
     endfor
   endelse
