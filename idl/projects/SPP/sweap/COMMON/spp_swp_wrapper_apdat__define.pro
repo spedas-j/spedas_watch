@@ -1,4 +1,40 @@
- 
+pro spp_swp_wrapper_apdat::handler2,buffer,wrapper_header=wrapper_header
+  
+
+  if debug(self.dlevel+5,msg='handler2')  then begin  ;  wrapper_header[10] ne 0 && 
+    dprint,'wrapper header:'
+    hexprint,wrapper_header
+    dprint,'header of inner packet:'    
+    hexprint,buffer[0:19]
+;    dprint,'data of inner packet:'    
+;    hexprint,buffer[20:*]
+  endif
+  if wrapper_header[10] ne 0 then begin   ; compressed packet
+    dprint,dlevel = self.dlevel+3, 'compressed packet'
+    buffer = spp_swp_swem_part_decompress_data(buffer,decomp_size =  decomp_size, /stuff_size )
+    dprint,dlevel = self.dlevel+3,decomp_size     
+  endif
+  if debug(self.dlevel+5) then begin
+    dprint,'header of packet:'
+    hexprint,buffer[0:19]
+    data = buffer[20:*]
+    if 0 then begin
+      dprint,'data of decomp packet:'
+      hexprint,data
+      
+    endif
+    dprint,'data signature:'
+    w = where(data)
+    dprint,fix(w)
+    dprint,fix(data[w])
+  endif
+  if debug(self.dlevel+5) then printdat,buffer,/hex
+  spp_ccsds_pkt_handler,buffer
+
+end
+
+
+
  
 pro spp_swp_wrapper_apdat::handler,ccsds,ptp_header
 
@@ -13,7 +49,10 @@ if keyword_set(self.buffer) eq 0 then self.buffer = ptr_new(!null)   ; Should be
 case ccsds.seq_group of 
   1: begin
     dprint,dlevel=self.dlevel+3,ccsds.apid,ccsds.seqn,ccsds.seqn_delta,ccsds.seq_group,' Start multi-packet'
-    if keyword_set(*self.buffer) then dprint,dlevel=self.dlevel+2,'Warning: New Multipacket started without finishing previous group'
+    if keyword_set(*self.buffer) then dprint,dlevel=self.dlevel,'Warning: New Multipacket started without finishing previous group'
+    if debug(self.dlevel+3) then begin
+      printdat, /hex,*ccsds.pdata
+    endif
     *self.buffer = ccsds_data[12:*]
   end
   0: begin
@@ -26,19 +65,22 @@ case ccsds.seq_group of
   end
   2: begin
     if ccsds.seqn_delta ne 1 then begin
-      dprint,dlevel=self.dlevel+2,'Missing packets - aborting End of multi-packet'
+      dprint,dlevel=self.dlevel+1,'Missing packets - aborting End of multi-packet'
     endif else begin
       dprint,dlevel=self.dlevel+3,ccsds.apid,ccsds.seqn,ccsds.seqn_delta,ccsds.seq_group,' End multi-packet'
+      if debug(self.dlevel+3) then begin
+        printdat, /hex,*ccsds.pdata
+      endif
       *self.buffer = [*self.buffer,ccsds_data[12:*] ]  ; append final segment
-      spp_ccsds_pkt_handler, *self.buffer
+      self.handler2, *self.buffer, wrapper_header = ccsds_data[0:11]
     endelse
     *self.buffer = !null
   end
   3: begin
-    dprint,dlevel=self.dlevel+3,ccsds.apid,ccsds.seqn,ccsds.seqn_delta,ccsds.seq_group,' Single packet'
+    dprint,dlevel=self.dlevel+4,ccsds.apid,ccsds.seqn,ccsds.seqn_delta,ccsds.seq_group,' Single packet'
     if keyword_set(*self.buffer) then dprint,dlevel=self.dlevel,'Warning: New Multipacket started without finishing previous group'
     *self.buffer = ccsds_data[12:*]
-    spp_ccsds_pkt_handler,*self.buffer  
+    self.handler2,*self.buffer, wrapper_header = ccsds_data[0:11]
     *self.buffer = !null
   end
      

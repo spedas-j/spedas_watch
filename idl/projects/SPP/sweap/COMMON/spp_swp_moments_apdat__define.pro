@@ -11,7 +11,7 @@ function spp_swp_moments_apdat::decom,ccsds,header
      seqn:ccsds.seqn, $
      pkt_size: ccsds.pkt_size, $
      sci_header: bytarr(20),  $    ;sci_header
-     data : fltarr(13), $
+     moms : dblarr(13), $
      gap: ccsds.gap  $
   }
 
@@ -21,7 +21,7 @@ function spp_swp_moments_apdat::decom,ccsds,header
      byte_data = ccsds_data[30:133]
      i64_data = long64(byte_data,0,13)
      byteorder,i64_data,/swap_if_little_endian,/l64
-     strct.data = i64_data / (2d^16)                      ; This conversion is a guess only!
+     strct.moms = i64_data / (2d^16)                      ; This conversion is a guess only!
   endif
   
   dprint,dlevel=self.dlevel+3, phelp=2,strct
