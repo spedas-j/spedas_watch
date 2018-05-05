@@ -18,9 +18,9 @@
 ;
 ;       TPLOT:         Create tplot varible for region id "reg_id"
 ;       
-; $LastChangedBy: xussui $
-; $LastChangedDate: 2017-11-17 15:17:53 -0800 (Fri, 17 Nov 2017) $
-; $LastChangedRevision: 24307 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2018-05-04 16:10:41 -0700 (Fri, 04 May 2018) $
+; $LastChangedRevision: 25167 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_regid_restore.pro $
 ;
 ;CREATED BY:    Shaosui Xu  11-17-17
@@ -76,6 +76,24 @@ Pro mvn_swe_regid_restore,trange,results=results,tplot=tplot,orbit=orbit
        options,'reg_id','psym',4
        options,'reg_id','symsize',0.35
        ylim,'reg_id',-1,6
+
+       y = replicate(0.,n_elements(id.time),2)
+       indx = where(id.id eq 1, count)
+       if (count gt 0L) then y[indx,*] = 1.
+
+       bname = 'sw_bar'
+       store_data,bname,data={x:id.time, y:y, v:[0,1]}
+       ylim,bname,0,1,0
+       zlim,bname,-0.5,3.5,0 ; optimized for color table 43
+       options,bname,'spec',1
+       options,bname,'panel_size',0.05
+       options,bname,'ytitle',''
+       options,bname,'yticks',1
+       options,bname,'yminor',1
+       options,bname,'no_interp',1
+       options,bname,'xstyle',4
+       options,bname,'ystyle',4
+       options,bname,'no_color_scale',1
     endif
 
 end

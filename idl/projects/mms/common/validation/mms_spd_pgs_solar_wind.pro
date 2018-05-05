@@ -9,8 +9,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-02-07 09:10:04 -0800 (Wed, 07 Feb 2018) $
-; $LastChangedRevision: 24663 $
+; $LastChangedDate: 2018-05-04 11:03:41 -0700 (Fri, 04 May 2018) $
+; $LastChangedRevision: 25166 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/validation/mms_spd_pgs_solar_wind.pro $
 ;-
 
@@ -27,9 +27,11 @@ output=['pa', 'energy']
 species = 'i'
 SUBTRACT_BULK = 1
 fsuffix = SUBTRACT_BULK eq 1 ? '_bulk' : ''
-output_folder = 'bulk_vel_subtraction/
+output_folder = 'bulk_vel_subtraction/'
+;energy_range = [900, 1100] ; solar wind ions
+energy_range = [0, 25536]
 ranges = intarr(1,2)
-ranges[0,*] = [900, 1100] ; solar wind ions
+ranges[0,*] = energy_range
 energy_range_str = strcompress(/rem, string(ranges[0,0])+'-'+string(ranges[0,1]))+'_eV'
 
 for sw_i=0, n_elements(sw_intervals[0, *])-1 do begin
@@ -46,14 +48,18 @@ for sw_i=0, n_elements(sw_intervals[0, *])-1 do begin
   moka_mms_part_products_pt, 'mms'+probe+'_d'+species+'s_dist_brst_moka_pad', ranges=ranges
   
   ;; PGS below
-  mms_part_getspec, trange=sw_intervals[*, sw_i], output=output, species=species, subtract_bulk=SUBTRACT_BULK, energy=[900, 1100], suffix='_'+energy_range_str+'_'+species, data_rate='brst', probe=probe
+  mms_part_getspec, trange=sw_intervals[*, sw_i], output=output, species=species, subtract_bulk=SUBTRACT_BULK, energy=energy_range, suffix='_'+energy_range_str+'_'+species, data_rate='brst', probe=probe
   
   ; save the PAD image
   wi, 1
   tplot, window=1, ['mms'+probe+'_moka_pad_'+energy_range_str, 'mms'+probe+'_d'+species+'s_dist_brst_pa_'+energy_range_str+'_'+species]
-  makepng, window=1, output_folder+'mms'+probe+'_'+time_string(sw_intervals[0, sw_i], tformat='YYYYMMDD')+'_'+energy_range_str+'_'+species+fsuffix
+  makepng, window=1, output_folder+'mms'+probe+'_'+time_string(sw_intervals[0, sw_i], tformat='YYYYMMDD')+'_'+energy_range_str+'_'+species+'_pad_'+fsuffix
   flatten_spectra, time=trange[0]+(trange[1]-trange[0])/2.0, /ylog, /png, filename=output_folder+'mms'+probe+'_'+time_string(trange[0]+(trange[1]-trange[0])/2.0, tformat='YYYYMMDDhhmmss')+'_'+energy_range_str+'_'+species+'_line'+fsuffix
   
+  ; save the energy spectra 
+  wi, 2
+  tplot, window=2, ['', '']
+  makepng, window=2, output_folder+'mms'+probe+'_'+time_string(sw_intervals[0, sw_i], tformat='YYYYMMDD')+'_'+energy_range_str+'_'+species+'_spec_'+fsuffix
   del_data, '*'
 endfor
 
