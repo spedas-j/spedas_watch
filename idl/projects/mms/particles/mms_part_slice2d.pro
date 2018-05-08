@@ -1,7 +1,6 @@
 ;+
 ; Procedure:
-;         mms_part_getspec
-;
+;         mms_part_slice2d
 ;
 ; Purpose:
 ;         This is a wrapper around spd_slice2d that loads required
@@ -25,8 +24,8 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-04-25 14:27:27 -0700 (Wed, 25 Apr 2018) $
-;$LastChangedRevision: 25116 $
+;$LastChangedDate: 2018-05-07 08:01:20 -0700 (Mon, 07 May 2018) $
+;$LastChangedRevision: 25174 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 

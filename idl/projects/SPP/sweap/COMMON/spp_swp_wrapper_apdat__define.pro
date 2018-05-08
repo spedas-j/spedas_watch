@@ -9,8 +9,8 @@ pro spp_swp_wrapper_apdat::handler2,buffer,wrapper_header=wrapper_header
 ;    dprint,'data of inner packet:'    
 ;    hexprint,buffer[20:*]
   endif
-  if wrapper_header[10] ne 0 then begin   ; compressed packet
-    dprint,dlevel = self.dlevel+3, 'compressed packet'
+  if wrapper_header[10] and '80'x  then begin   ; compressed packet
+    dprint,dlevel = self.dlevel+3, 'compressed packet ',wrapper_header[10] 
     buffer = spp_swp_swem_part_decompress_data(buffer,decomp_size =  decomp_size, /stuff_size )
     dprint,dlevel = self.dlevel+3,decomp_size     
   endif
