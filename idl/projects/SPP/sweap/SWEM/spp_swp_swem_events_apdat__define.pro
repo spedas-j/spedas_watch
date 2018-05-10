@@ -611,8 +611,11 @@ end
 PRO spp_swp_swem_events_apdat__define
 void = {spp_swp_swem_events_apdat, $
   inherits spp_gen_apdat, $    ; superclass
-  temp1 : 0u, $
-  buffer: ptr_new()   $
+  filename : '', $
+  fileunit : 0,   $
+  flag: 0 $
+;  temp1 : 0u, $
+;  buffer: ptr_new()   $
   }
 END
 
