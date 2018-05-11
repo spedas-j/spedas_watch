@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2018-03-26 15:32:11 -0700 (Mon, 26 Mar 2018) $
-; $LastChangedRevision: 24957 $
+; $LastChangedDate: 2018-05-10 11:58:29 -0700 (Thu, 10 May 2018) $
+; $LastChangedRevision: 25195 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/magSwing/spp_read_magswing_mag.pro $
 ; For now this is a crib sheet.
 
@@ -50,10 +50,7 @@ pro spp_read_magswing_mag, rotat = rotat, swing = swing, raster = raster, all = 
     ;pathAPL = '/Users/phyllisw/Desktop/magdata/APL_MAG_Swing_data/RT_20cm_H?/Grad4-????????-??????_filtered.csv'
     pathAPL = 'spp/data/sci/sweap/prelaunch/magswing/magdata/APL%20MAG%20Swing%20data/RT_20cm_H?/Grad4-????????-??????_filtered.csv'
     fileAPL = spp_file_retrieve(pathAPL)
-    print, 'fileAPL ', fileAPL
-    print, 'n_elements(fileAPL) ', n_elements(fileAPL)
     data_tagsAPL = {sample:0l, mag_1:[0.,0.,0.], mag_2:[0.,0.,0.], mag_3:[0.,0.,0.], mag_4:[0.,0.,0.], range:0.}
-    ;put the following 3 lines in a loop
     i = long(0)
     offset = replicate(90, n_elements(fileAPL)) ; replace this later with a proper array
     secsIn4hours = 14400.
