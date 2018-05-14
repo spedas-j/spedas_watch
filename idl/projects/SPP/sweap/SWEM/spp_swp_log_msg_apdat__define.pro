@@ -15,8 +15,11 @@ function spp_swp_log_msg_apdat::decom,ccsds, ptp_header=ptp_header   ;, apdat=ap
   
   
   
- ; time = ptp_header.ptp_time
-  time=ccsds.time
+ ; time = ptp_header.ptp_time   ;  log message packets have a bug - the MET is off by ten years
+  ccsds.time= ccsds.time - 315619200 + 12*3600L ;log message packets produced by GSEOS have a bug - the MET is off by ten years -12 hours
+ ; printdat,ptp_header
+ ;printdat,ccsds
+  time = ccsds.time
   ccsds_data = spp_swp_ccsds_data(ccsds)  
  ; printdat,self
   if debug(self.dlevel+4) then begin

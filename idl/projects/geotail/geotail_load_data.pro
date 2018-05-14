@@ -7,7 +7,7 @@
 ;
 ; KEYWORDS:
 ;         trange: time range of interest
-;         datatype: type of GEOTAIL data to load, options include: 'lep', 'magf', 'orbit'
+;         datatype: type of GEOTAIL data to load, options include: 'lep', 'mgf', 'orbit'
 ;
 ; EXAMPLE:
 ;         geotail_load_data, trange=['2016-01-10', '2016-01-11']
@@ -16,8 +16,8 @@
 ;        Problems? report them to egrimes@igpp.ucla.edu
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-03-07 11:40:11 -0800 (Wed, 07 Mar 2018) $
-;$LastChangedRevision: 24846 $
+;$LastChangedDate: 2018-05-13 13:16:03 -0700 (Sun, 13 May 2018) $
+;$LastChangedRevision: 25203 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/geotail/geotail_load_data.pro $
 ;-
 
@@ -31,7 +31,7 @@ pro geotail_load_data, trange=trange, datatype=datatype, no_color_setup=no_color
   
   if not keyword_set(remote_data_dir) then remote_data_dir = 'https://spdf.sci.gsfc.nasa.gov/pub/data/geotail/'
     
-  if not keyword_set(datatype) then datatype = ['lep', 'magf', 'orbit']
+  if not keyword_set(datatype) then datatype = ['lep', 'mgf', 'orbit']
   
   path_count = 0l
   
@@ -42,7 +42,7 @@ pro geotail_load_data, trange=trange, datatype=datatype, no_color_setup=no_color
         append_array, pathformat, 'lep/edb12sec_lep/YYYY/ge_edb12sec_lep_YYYYMMDD_v??.cdf'
         path_count += 1
       end
-      'magf': begin
+      'mgf': begin
       ;  append_array, pathformat, 'mgf/mgf_k0/YYYY/ge_k0_mgf_YYYYMMDD_v??.cdf'
         append_array, pathformat, 'mgf/edb3sec_mgf/YYYY/ge_edb3sec_mgf_YYYYMMDD_v??.cdf'
         path_count += 1
