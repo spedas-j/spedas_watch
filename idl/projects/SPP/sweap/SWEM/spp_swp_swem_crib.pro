@@ -116,12 +116,14 @@ spp_init_realtime,/swem,/cal,/exec
 
 dprint,setd=2
 
-trange = systime(1) + [-12,0] * 3600.
+trange = systime(1) + [-2,0] * 3600.
 ptpfiles = spp_file_retrieve(path,trange= trange,/hourly_names)
 
 if 1 then begin
-  ap = spp_apdat('spi_memdump')
-  ap.display,win = window(name='spi_memdump')
+  spi_memdump = spp_apdat('spi_memdump')
+  spi_memdump.display, win = window(name='spi_memdump')
+  swem_memdump = spp_apdat('swem_memdump')
+  swem_memdump.display, win = window(name='swem_memdump')
 endif
 
 spp_ptp_file_read, ptpfiles

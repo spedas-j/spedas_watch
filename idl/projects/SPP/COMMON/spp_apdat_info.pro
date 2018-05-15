@@ -13,7 +13,7 @@ pro spp_apdat_info,apid_description,name=name,verbose=verbose,$
                   dlevel=dlevel, $
                   all = all, $
                   finish=finish,$
-                  window=window, $
+                  window_obj=window_obj, $
                   tname=tname,$
                   ttags=ttags,$
                   routine=routine,$
@@ -30,7 +30,7 @@ pro spp_apdat_info,apid_description,name=name,verbose=verbose,$
     return
   endif
 
-  if keyword_set(file_restore) then restore,file=file_restore,all_apdat,/verbose
+  if keyword_set(file_restore) then restore,file=file_restore,/verbose
 
   if ~keyword_set(all_apdat) then all_apdat = replicate( obj_new() , 2^11 )
   
@@ -71,7 +71,7 @@ pro spp_apdat_info,apid_description,name=name,verbose=verbose,$
     if n_elements(dlevel)     ne 0 then apdat.dlevel = dlevel
     if n_elements(tname)      ne 0 then apdat.tname = tname
     if n_elements(ttags)      ne 0 then apdat.ttags = ttags
-    if n_elements(window)      ne 0 then begin
+    if n_elements(window_obj)      ne 0 then begin
        apdat.window_obj = window(window_title=apdat.name)
     endif
     if n_elements(save_flag)  ne 0 then apdat.save_flag = save_flag

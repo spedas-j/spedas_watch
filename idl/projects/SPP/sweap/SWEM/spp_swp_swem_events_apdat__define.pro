@@ -581,7 +581,7 @@ function spp_swp_swem_events_apdat::decom,ccsds,header
   }
   fmt = '(a,": ",f1,TL1,Z04,i,i4,i,4i3,a,i)'
 
-
+;hexprint,ccsds_data,ncol=10
   bsize = ccsds.pkt_size
   strcts = !null
   if bsize mod 10 eq 0  then begin

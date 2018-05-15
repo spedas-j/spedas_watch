@@ -7,7 +7,7 @@ str={$
   SW_EVENTCTR: spp_swp_data_select(ccsds_data,  96  ,  32) , $
   SW_LASTFSWEVENT: spp_swp_data_select(ccsds_data,  128 ,  32) , $
   SW_CMDCOUNTER: long( spp_swp_data_select(ccsds_data,  160 ,  32) ), $
-  SW_CMDSTATUS: spp_swp_data_select(ccsds_data,   192 ,  16) , $
+  SW_CMDSTATUS_bits: spp_swp_data_select(ccsds_data,   192 ,  16) , $
   ;(SW_GLOBALSTATUS): spp_swp_data_select(ccsds_data,  192 ,  32) , $
   SW_GLOBAL: spp_swp_data_select(ccsds_data,   192 ,  16) , $
   SW_FPGAVER: spp_swp_data_select(ccsds_data,    224,   8) , $
@@ -21,10 +21,10 @@ if n_elements(ccsds_data) eq 0 then ccsds_data = bytarr(90)
 str = {time:   !values.d_nan  ,$
   seqn: 0u, $
   pkt_size: 0u,  $
-  SW_PWR_CONFIG_FLAG: spp_swp_data_select(ccsds_data, 80  ,  8), $   ;   SW_PWRSPARE, SW_ACTPWR ,  SW_SPANBHTR, SW_SPANAHTR  , SW_SPANBPWR ,   SW_SPANAEPWR  , SW_SPANAIPWR ,  SW_SPCPWR   87  UB  1
-  SW_MISC_CONFIG_FLAG: spp_swp_data_select(ccsds_data, 88  ,  8), $
+  SW_PWR_CONFIG_bits: spp_swp_data_select(ccsds_data, 80  ,  8), $   ;   SW_PWRSPARE, SW_ACTPWR ,  SW_SPANBHTR, SW_SPANAHTR  , SW_SPANBPWR ,   SW_SPANAEPWR  , SW_SPANAIPWR ,  SW_SPCPWR   87  UB  1
+  SW_MISC_CONFIG_bits: spp_swp_data_select(ccsds_data, 88  ,  8), $
   SW_EVENT_CTR: spp_swp_data_select(ccsds_data,   88  ,  4), $       ;  SW_FLPLBPROG ,  SW_FIELDSCLK  ,SW_LINK_A_ACTIVE  ,SW_LINK_B_ACTIVE    95  UB  1
-  SW_SWEM_CONFIG_flag: spp_swp_data_select(ccsds_data,   96  ,  8), $
+  SW_SWEM_CONFIG_bits: spp_swp_data_select(ccsds_data,   96  ,  8), $
   SW_LASTFSWEVENT2: spp_swp_data_select(ccsds_data,   96  ,  4), $  ;  SW_FSWSPARE ,  SW_FSWCSCI  ,  SW_BOOTMODE ,  SW_WDRSTDET  ,  SW_SWEM3P3V 1 104 UB  8
   SW_SPANAICONFIG: spp_swp_data_select(ccsds_data,  112 ,  8), $
   SW_SPANAIMODE: spp_swp_data_select(ccsds_data,   112 ,  4), $
@@ -42,12 +42,12 @@ str = {time:   !values.d_nan  ,$
   SW_EVENTCTR: spp_swp_data_select(ccsds_data,  152 ,  32), $             ; 32 bit in boot
   SW_LASTFSWEVENT: spp_swp_data_select(ccsds_data,  184 ,  16), $         ; 32 bit in boot
   SW_CMDCOUNTER: long(spp_swp_data_select(ccsds_data,  200 ,  32)), $     ; 32 bit in boot
-  SW_CMDSTATUS: spp_swp_data_select(ccsds_data,   232 ,  32), $           ; 16 bit in boot
-  SW_GLOBALSTATUS: spp_swp_data_select(ccsds_data, 264 ,  32), $    ;()
+  SW_CMDSTATUS_bits: spp_swp_data_select(ccsds_data,   232 ,  32), $           ; 16 bit in boot
+  SW_GLOBALSTATUS_bits: spp_swp_data_select(ccsds_data, 264 ,  32), $    ;()
   SW_GLOBAL: spp_swp_data_select(ccsds_data,   264 ,  16), $
   SW_FPGAVER: spp_swp_data_select(ccsds_data,    280 ,  8), $
   SW_STATUS: spp_swp_data_select(ccsds_data,   288 ,  8), $
-  SW_CDISTATUS: spp_swp_data_select(ccsds_data,   296 ,  32), $
+  SW_CDISTATUS_bits: spp_swp_data_select(ccsds_data,   296 ,  32), $
   SW_SRVRDPTR: spp_swp_data_select(ccsds_data,  328 ,  32), $
   SW_SRVWRPTR: spp_swp_data_select(ccsds_data,  368 ,  32), $    ; line added on 2017- 12-10
   SW_ARCRDPTR: spp_swp_data_select(ccsds_data,  392 ,  32), $
