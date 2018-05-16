@@ -10,12 +10,12 @@
 ;       Yuki Harada on 2018-05-11
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-05-10 23:50:57 -0700 (Thu, 10 May 2018) $
-; $LastChangedRevision: 25197 $
+; $LastChangedDate: 2018-05-15 00:52:42 -0700 (Tue, 15 May 2018) $
+; $LastChangedRevision: 25222 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/general/kgy_orbit_snap.pro $
 ;-
 
-pro kgy_orbit_snap, tsnap=tsnap, tres=tres, refreshdata=refreshdata, commononly=commononly, window=window, nowindow=nowindow, keepwin=keepwin, symsize=symsize
+pro kgy_orbit_snap, tsnap=tsnap, tres=tres, refreshdata=refreshdata, commononly=commononly, window=window, nowindow=nowindow, keepwin=keepwin, symsize=symsize, title=title
 
 rL = 1737.4
 rE = 6374.4
@@ -28,13 +28,23 @@ if ~keyword_set(symsize) then symsize = 1
 tplot_options, get_opt=topt
 times = topt.trange_full[0] + tres*dindgen(long((topt.trange_full[1]-topt.trange_full[0])/tres))
 
+;;; exclude times in spk gaps
+in_gaps = kgy_spk_gaps(times)
+w = where( ~in_gaps , nw )
+if nw eq 0 then begin
+   dprint,'No valid times'
+   return
+endif
+times = times[w]
+
+
 ;;; retrieve common block
 common kgy_orbit_snap_com,kgy,brmod
 if keyword_set(refreshdata) then undefine,kgy,brmod
 
 ;;; get kgy pos
 if size(kgy,/type) ne 8 then begin
-   if total(strlen(spice_test('*SELENE*'))) eq 0 then kk = kgy_spice_kernels(/all,/load)
+   if total(strlen(spice_test('*SELENE*'))) eq 0 then kk = kgy_spice_kernels(/load)
    kgy = {times:times}
    sse = spice_body_pos('SELENE', 'Moon', frame='SSE', utc=times)
    str_element,/add,kgy,'sse',sse

@@ -7,12 +7,12 @@
 ;       Yuki Harada on 2018-05-02
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-05-08 16:47:27 -0700 (Tue, 08 May 2018) $
-; $LastChangedRevision: 25186 $
+; $LastChangedDate: 2018-05-15 00:54:22 -0700 (Tue, 15 May 2018) $
+; $LastChangedRevision: 25223 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/lmag/kgy_svm_load.pro $
 ;-
 
-pro kgy_svm_load
+pro kgy_svm_load, svm30only=svm30only
 
 @kgy_svm_com
 
@@ -25,12 +25,14 @@ if ~file_test(datfile) then begin ;- download files
    file_unzip,f
 endif
 
-dprint,'Reading in '+datfile
-d = read_ascii(datfile,data_start=12,count=Ndat)
+if ~keyword_set(svm30only) then begin
+   dprint,'Reading in '+datfile
+   d = read_ascii(datfile,data_start=12,count=Ndat)
 ;;;     Lon     Lat      Be      Bn      Br      Bt
 ;;; 6 x 1621800
+   svm_dat = d.(0)
+endif
 
-svm_dat = d.(0)
 
 datfile = ld + 'LunarSVM_030_05_v01.dat'
 if file_test(datfile) then begin

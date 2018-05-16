@@ -170,127 +170,131 @@ PRO spp_swp_spi_param_mass_table, write_file=write_file
                    spi_param.tof_e_corr*1e9
    mass_table_1 = fix((*spi_param.eloss) * 0)
 
+   p0 = intarr(128)
+   p1 = intarr(128)
+   p2 = intarr(128)
    FOR i=0, 127 DO BEGIN
 
       m0 = mean(mass_tof_corr[i,0:1])
       m1 = mean(mass_tof_corr[i,1:2])
       m2 = mean(mass_tof_corr[i,2:3])
 
-      p0 = value_locate(spi_param.tof512_bnds, m0)
-      IF (p0 MOD 2) THEN p0 = p0-1
-      p1 = value_locate(spi_param.tof512_bnds, m1)
-      IF (p1 MOD 2) THEN p1 = p1-1
-      p2 = value_locate(spi_param.tof512_bnds, m2)
-      IF (p2 MOD 2) THEN p2 = p2-1
+      p0[i] = value_locate(spi_param.tof512_bnds, m0)
+      IF (p0[i] MOD 2) THEN p0[i] = p0[i]-1
+      p1[i] = value_locate(spi_param.tof512_bnds, m1)
+      IF (p1[i] MOD 2) THEN p1[i] = p1[i]-1
+      p2[i] = value_locate(spi_param.tof512_bnds, m2)
+      IF (p2[i] MOD 2) THEN p2[i] = p2[i]-1
 
-      p0_range = fix((findgen(p0)/p0)*16.) 
-      p1_range = fix((findgen(p1-p0)/(p1-p0)*16.)+16.)
-      p2_range = fix((findgen(p2-p1)/(p2-p1)*16.)+32.)
-      p3_range = fix((findgen(512-p2)/(512-p2)*16.)+48.)
+      p0_range = fix((findgen(p0[i])/p0[i])*16.) 
+      p1_range = fix((findgen(p1[i]-p0[i])/(p1[i]-p0[i])*16.)+16.)
+      p2_range = fix((findgen(p2[i]-p1[i])/(p2[i]-p1[i])*16.)+32.)
+      p3_range = fix((findgen(512-p2[i])/(512-p2[i])*16.)+48.)
       
-      mass_table_1[0:p0-1, i] = p0_range
-      mass_table_1[p0:p1-1,i] = p1_range
-      mass_table_1[p1:p2-1,i] = p2_range
-      mass_table_1[p2:511, i] = p3_range
+      mass_table_1[0:p0[i]-1, i] = p0_range
+      mass_table_1[p0[i]:p1[i]-1,i] = p1_range
+      mass_table_1[p1[i]:p2[i]-1,i] = p2_range
+      mass_table_1[p2[i]:511, i] = p3_range
 
    ENDFOR
    
    (*spi_param.mass_table_1) = mass_table_1
 
+   IF 0 THEN BEGIN 
+      ;;#####################
+      ;; Mass Table 2
+      ;;#####################
 
-   ;;#####################
-   ;; Mass Table 2
-   ;;#####################
+      ;; Array of 128 DAC boundaries 
+      hv_dac = ishft(lindgen(128L),9)
 
-   ;; Array of 128 DAC boundaries 
-   hv_dac = ishft(lindgen(128L),9)
+      ;; DAC to V and then to particle energy
+      hv = -1*(spi_param.hemi_fitt[0] + $
+               hv_dac*spi_param.hemi_fitt[1])
+      ev = hv * 16.7 + 15000.
+      mass     = [1,2,21,32]
+      mass_nn  = n_elements(mass)
+      mass_amu = replicate(1.,n_elements(ev))#(mass)
+      enrg_amu = ev#replicate(1.,mass_nn)
+      mass_tof = sqrt(0.5*mass_amu*spi_param.sci.atokg*$
+                      spi_param.tof_flight_path^2/$
+                      spi_param.sci.evtoj/$
+                      (enrg_amu))/1e-9
 
-   ;; DAC to V and then to particle energy
-   hv = -1*(spi_param.hemi_fitt[0] + $
-            hv_dac*spi_param.hemi_fitt[1])
-   ev = hv * 16.7 + 15000.
-   mass     = [1,2,21,32]
-   mass_nn  = n_elements(mass)
-   mass_amu = replicate(1.,n_elements(ev))#(mass)
-   enrg_amu = ev#replicate(1.,mass_nn)
-   mass_tof = sqrt(0.5*mass_amu*spi_param.sci.atokg*$
-                   spi_param.tof_flight_path^2/$
-                   spi_param.sci.evtoj/$
-                   (enrg_amu))/1e-9
-
-   ;; 
-   kk = 0
-   ;mass_ppp   = intarr(n_elements(ev)*mass_nn)
-   mass_ppp   = intarr(n_elements(ev),mass_nn)
-   mass_eloss = intarr(n_elements(ev),mass_nn)
-   FOR i=0, mass_nn-1 DO BEGIN
-      FOR j=0, n_elements(ev)-1 DO BEGIN 
-         mass_ppp[j,i] = value_locate($
-                         spi_param.tof512_bnds,$
-                         reform(mass_tof[j,i]))
-         mass_eloss[j,i] = (*spi_param.eloss)[mass_ppp[j,i],j]
+      ;; 
+      kk = 0
+                                ;mass_ppp   = intarr(n_elements(ev)*mass_nn)
+      mass_ppp   = intarr(n_elements(ev),mass_nn)
+      mass_eloss = intarr(n_elements(ev),mass_nn)
+      FOR i=0, mass_nn-1 DO BEGIN
+         FOR j=0, n_elements(ev)-1 DO BEGIN 
+            mass_ppp[j,i] = value_locate($
+                            spi_param.tof512_bnds,$
+                            reform(mass_tof[j,i]))
+            mass_eloss[j,i] = (*spi_param.eloss)[mass_ppp[j,i],j]
+         ENDFOR
       ENDFOR
-   ENDFOR
+      
+      ;; Account for energy loss
+      enrg_amu_corr = enrg_amu*(mass_eloss/100.)
+
+      ;; Account for TOF correction
+      mass_tof_corr = sqrt(0.5*mass_amu*spi_param.sci.atokg*$
+                           spi_param.tof_flight_path^2/$
+                           spi_param.sci.evtoj/$
+                           (enrg_amu_corr))/1e-9 - $
+                      spi_param.tof_e_corr*1e9
+      mass_table_2 = fix((*spi_param.eloss) * 0)
+
+      FOR i=0, 127 DO BEGIN
+
+         m0 = mean(mass_tof_corr[i,0:1])
+         m1 = mean(mass_tof_corr[i,1:2])
+         m2 = mean(mass_tof_corr[i,2:3])
+
+         p0 = value_locate(spi_param.tof512_bnds, m0)
+         IF (p0 MOD 2) THEN p0 = p0-1
+         p1 = value_locate(spi_param.tof512_bnds, m1)
+         IF (p1 MOD 2) THEN p1 = p1-1
+         p2 = value_locate(spi_param.tof512_bnds, m2)
+         IF (p2 MOD 2) THEN p2 = p2-1
+
+
+         p0_range = [replicate(2,(p0-2)/2), replicate(3,(p0-2)/2) ]
+         p1_range = [replicate(4,(p1-p0)/2),replicate(5,(p1-p0)/2)]
+         p2_range = fix(interpol([ 6:32],$
+                                 findgen(27),$
+                                 findgen(p2-p1)/(p2-p1)*27))
+         p3_range = [fix(interpol([33:63],$
+                                  findgen(31),$
+                                  findgen(511-p2)/(511-p2)*31)),63]
+
+         mass_table_2[0:1,i]     = [0,1]
+         mass_table_2[2:p0-1,i]  = p0_range
+         mass_table_2[p0:p1-1,i] = p1_range
+         mass_table_2[p1:p2-1,i] = p2_range
+         mass_table_2[p2:511,i]  = p3_range
+
+      ENDFOR
+      
+      (*spi_param.mass_table_2) = mass_table_2
+
+
+      ;; MRLUT
+      ;; 64 Element Array
+      mrlut_2 = intarr(64)
+      mrlut_2[0:1] = 4
+      mrlut_2[2:3] = 0
+      mrlut_2[4:5] = 1
+      mrlut_2[p2_range[uniq(p2_range)]] = 2
+      mrlut_2[p3_range[uniq(p3_range)]] = 3
+      (*spi_param.mrlut_2) = mrlut_2
+
+   ENDIF
    
-   ;; Account for energy loss
-   enrg_amu_corr = enrg_amu*(mass_eloss/100.)
-
-   ;; Account for TOF correction
-   mass_tof_corr = sqrt(0.5*mass_amu*spi_param.sci.atokg*$
-                        spi_param.tof_flight_path^2/$
-                        spi_param.sci.evtoj/$
-                        (enrg_amu_corr))/1e-9 - $
-                   spi_param.tof_e_corr*1e9
-   mass_table_2 = fix((*spi_param.eloss) * 0)
-
-   FOR i=0, 127 DO BEGIN
-
-      m0 = mean(mass_tof_corr[i,0:1])
-      m1 = mean(mass_tof_corr[i,1:2])
-      m2 = mean(mass_tof_corr[i,2:3])
-
-      p0 = value_locate(spi_param.tof512_bnds, m0)
-      IF (p0 MOD 2) THEN p0 = p0-1
-      p1 = value_locate(spi_param.tof512_bnds, m1)
-      IF (p1 MOD 2) THEN p1 = p1-1
-      p2 = value_locate(spi_param.tof512_bnds, m2)
-      IF (p2 MOD 2) THEN p2 = p2-1
-
-
-      p0_range = [replicate(2,(p0-2)/2), replicate(3,(p0-2)/2) ]
-      p1_range = [replicate(4,(p1-p0)/2),replicate(5,(p1-p0)/2)]
-      p2_range = fix(interpol([ 6:32],$
-                              findgen(27),$
-                              findgen(p2-p1)/(p2-p1)*27))
-      p3_range = [fix(interpol([33:63],$
-                               findgen(31),$
-                               findgen(511-p2)/(511-p2)*31)),63]
-
-      mass_table_2[0:1,i]     = [0,1]
-      mass_table_2[2:p0-1,i]  = p0_range
-      mass_table_2[p0:p1-1,i] = p1_range
-      mass_table_2[p1:p2-1,i] = p2_range
-      mass_table_2[p2:511,i]  = p3_range
-
-   ENDFOR
-   
-   (*spi_param.mass_table_2) = mass_table_2
-
-
-   ;; MRLUT
-   ;; 64 Element Array
-   mrlut_2 = intarr(64)
-   mrlut_2[0:1] = 4
-   mrlut_2[2:3] = 0
-   mrlut_2[4:5] = 1
-   mrlut_2[p2_range[uniq(p2_range)]] = 2
-   mrlut_2[p3_range[uniq(p3_range)]] = 3
-   (*spi_param.mrlut_2) = mrlut_2
-
-
    
    ;; WRITING TO FILE
-   IF keyword_set(write_file) THEN BEGIN
+   IF 0 THEN BEGIN ;;keyword_set(write_file) THEN BEGIN
 
       ;; MLUT DEFAULT
       openw, 1, '~/Desktop/mlut_default.txt'
@@ -328,33 +332,38 @@ PRO spp_swp_spi_param_mass_table, write_file=write_file
          ENDFOR
       ENDFOR 
       close, 1
-
+      
       openw, 1, '~/Desktop/mrlut2.txt'
       FOR i=0, 63 DO printf,1,format='(I2)',mrlut_2[i]
       close,1
-
    ENDIF 
 
 
 
-   
    ;; PLOTTING
-   ;IF keyword_set(plott) THEN BEGIN
-   loadct2, 1
+   ;; IF keyword_set(plott) THEN BEGIN
+   loadct2, 5
    mt1 = mass_table_1
-   pp0 = where(mt1 GE  0 AND mt1 LE  1,cc0)
-   pp1 = where(mt1 GE  2 AND mt1 LE  3,cc1)
-   pp2 = where(mt1 GE  4 AND mt1 LE  5,cc2)
-   pp3 = where(mt1 GE  6 AND mt1 LE 32,cc3)
-   pp4 = where(mt1 GE 33 AND mt1 LE 63,cc4)      
-   mt1[pp0] = 0.
-   mt1[pp1] = 1.
-   mt1[pp2] = 2.
-   mt1[pp3] = 3.
-   mt1[pp4] = 4.
-   mt1 = mt1/4. * 256.
-   contour, mt1, nlevel=4, /fill, xs=1,ys=1
+   pp0 = where(mt1 GE   0 AND mt1 LE  15,cc0)
+   pp1 = where(mt1 GE  16 AND mt1 LE  31,cc1)
+   pp2 = where(mt1 GE  32 AND mt1 LE  47,cc2)
+   pp3 = where(mt1 GE  48 AND mt1 LE  63,cc3)
+   ;;pp4 = where(mt1 GE 33 AND mt1 LE 63,cc4)      
+   ;;mt1[pp0] = 1.
+   ;;mt1[pp1] = 2.
+   ;;mt1[pp2] = 3.
+   ;;mt1[pp3] = 4.
+   ;;mt1[pp4] = 4.
+   ;;mt1 = mt1/4. * 256.
+   ;;contour, mt1, nlevel=4, /fill, xs=1,ys=1
+   ;; Plotting 
 
+   tt1=mean(mass_tof_corr[*,0:1],dimension=2)
+   tt2=mean(mass_tof_corr[*,1:2],dimension=2)
+   tt3=mean(mass_tof_corr[*,2:3],dimension=2)   
+   
+   stop
+   
    loadct2, 34
    ;oplot, transpose(mass_tof_corr[*,0]),indgen(128),color=250
    ;oplot, transpose(mass_tof_corr[*,1]),indgen(128),color=250
@@ -989,33 +998,35 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;;;                       APL EMC Facility                       ;;;
    ;;;                          2017-06-29                          ;;;
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
    trange = ['2017-06-29/18:25:00']
-
-
    
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;;;                      SPAN-Ai Flight LPT                      ;;;
    ;;;                            Goddard                           ;;;
    ;;;                          2018-01-22                          ;;;
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
    trange = ['2018-01-23/02:00:00']
 
-   
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;;;                      SPAN-Ai Flight Cover                    ;;;
    ;;;                            Goddard                           ;;;
    ;;;                          2018-01-22                          ;;;
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
    trange = ['2018-02-24/07:23:56']
 
-   
-   ;; Hot Cold CPT Goddard
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;;                  SPAN-Ai Flight Hot/Cold CPT                 ;;;
+   ;;;                            Goddard                           ;;;
+   ;;;                          2018-03-06                          ;;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    trange = ['2018-03-06/00:00:00','2018-03-09/00:00:00'] 
 
-
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;;                      SPAN-Ai Flight MSIM-4                   ;;;
+   ;;;                          Astro-Tech                          ;;;
+   ;;;                          2018-05-15                          ;;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   trange = ['2018-05-15']
 
    
    ;; Return Time Structure
