@@ -11,8 +11,8 @@
 ;     IDL> mgunit, 'mms_flipbookify_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-04-26 08:37:51 -0700 (Thu, 26 Apr 2018) $
-; $LastChangedRevision: 25121 $
+; $LastChangedDate: 2018-05-16 07:12:32 -0700 (Wed, 16 May 2018) $
+; $LastChangedRevision: 25227 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_flipbookify_ut__define.pro $
 ;-
 
@@ -136,6 +136,7 @@ end
 
 pro mms_flipbookify_ut::setup
   mms_load_fpi, level='l2', data_rate='fast', trange=['2017-12-15', '2017-12-16'], datatype=['dis-moms', 'des-moms'], probe=1
+  window, 0 ; clear the current window
 end
 
 function mms_flipbookify_ut::init, _extra=e

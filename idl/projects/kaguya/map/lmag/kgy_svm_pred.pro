@@ -14,8 +14,8 @@
 ;       Yuki Harada on 2018-05-08
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-05-08 16:47:27 -0700 (Tue, 08 May 2018) $
-; $LastChangedRevision: 25186 $
+; $LastChangedDate: 2018-05-15 23:37:33 -0700 (Tue, 15 May 2018) $
+; $LastChangedRevision: 25226 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/lmag/kgy_svm_pred.pro $
 ;-
 
@@ -28,8 +28,17 @@ tr = timerange(trange)
 
 ntimes = long( (tr[1] - tr[0]) / resolution )
 times = dindgen(ntimes) * resolution + tr[0]
+rme = make_array(value=!values.f_nan,3,n_elements(times))
 
-rme = spice_body_pos( 'SELENE','Moon',utc=times,frame='MOON_ME' )
+in_gaps = kgy_spk_gaps(times)
+wok = where( ~in_gaps, nwok )
+if nwok eq 0 then begin
+   dprint,'No valid times for spk kernels'
+   return
+endif
+
+
+rme[*,wok] = spice_body_pos( 'SELENE','Moon',utc=times[wok],frame='MOON_ME' )
 
 bmod = kgy_svm_get(rme)
 
