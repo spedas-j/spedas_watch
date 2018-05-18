@@ -62,7 +62,7 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products
 ;endelse    
 
     fst = fstat(lun)
-    dprint,dlevel=2,'Compression: ',float(fst.cur_ptr)/fst.size
+    dprint,dlevel=2,'File:',fst.name,' Compression: ',float(fst.cur_ptr)/fst.size
     free_lun,lun
     if 0 then begin
       nextfile:

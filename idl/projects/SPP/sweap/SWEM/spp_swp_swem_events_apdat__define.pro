@@ -569,6 +569,9 @@ function spp_swp_swem_events_apdat::decom,ccsds,header
 
   ccsds_data = spp_swp_ccsds_data(ccsds)
 
+;self.save_flag = 1
+;self.print
+;self.clear
   strct = {  $
     time:ccsds.time, $
     seqn:ccsds.seqn, $
@@ -577,9 +580,13 @@ function spp_swp_swem_events_apdat::decom,ccsds,header
     code: 0u, $
     id:  bytarr(4), $
     str:  'Unknown Event', $
+    brate: !values.f_nan , $
     gap: ccsds.gap  $
   }
   fmt = '(a,": ",f1,TL1,Z04,i,i4,i,4i3,a,i)'
+  
+  last_c = *self.ccsds_last
+  if keyword_set(last_c) then   strct.brate=float(ccsds.pkt_size)/(ccsds.time - last_c.time)
 
 ;hexprint,ccsds_data,ncol=10
   bsize = ccsds.pkt_size
@@ -599,7 +606,8 @@ function spp_swp_swem_events_apdat::decom,ccsds,header
   if debug(self.dlevel+2) then $
     for i = 0, n_elements(strcts)-1 do begin
     s = strcts[i]
-    dprint,dlevel=self.dlevel+2,format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,i)',time_string(s.time),s
+    if s.code ne 278 then $
+      dprint,dlevel=self.dlevel+2,format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s
   endfor
   return,strcts
 end
