@@ -560,6 +560,17 @@ event_string= [ $
 return, event_string
 end
  
+
+
+function spp_swp_swem_events_apdat::display_string, strct  
+  ev_strng = strarr(n_elements(strct))
+  fmt = '(Z04," ",i2," ", i4, 4(" ",Z02)," ",a  )'
+  for i=0,n_elements(strct)-1 do begin
+    s  =strct[i]
+    ev_strng[i] =  time_string(s.time)  + "  "+ string(format=fmt,s.seqn,s.num,s.code,s.id,s.str)
+  endfor
+  return,ev_strng
+end
  
  
 function spp_swp_swem_events_apdat::decom,ccsds,header
@@ -569,9 +580,6 @@ function spp_swp_swem_events_apdat::decom,ccsds,header
 
   ccsds_data = spp_swp_ccsds_data(ccsds)
 
-;self.save_flag = 1
-;self.print
-;self.clear
   strct = {  $
     time:ccsds.time, $
     seqn:ccsds.seqn, $

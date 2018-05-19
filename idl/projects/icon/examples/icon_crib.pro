@@ -5,25 +5,28 @@
 ;PURPOSE:
 ;   Examples of loading and plotting ICON data
 ;   If step = 99 then it runs all steps
+;   Saves png plots in the directory specified by img_path
 ;
 ;KEYWORDS:
 ;
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-10 10:41:33 -0700 (Thu, 10 May 2018) $
-;$LastChangedRevision: 25192 $
+;$LastChangedDate: 2018-05-18 12:58:34 -0700 (Fri, 18 May 2018) $
+;$LastChangedRevision: 25238 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/examples/icon_crib.pro $
 ;
 ;-------------------------------------------------------------------
 
 pro icon_crib, step=step
 
-  if ~keyword_set(step) then step = 1
-
   ; Specify a time range
-  timeRange = ['2010-05-23/00:00', '2010-05-24/12:00']
+  timeRange = ['2010-05-23/00:00', '2010-05-23/12:00']
+  ; Specify a directory for images
+  img_path = 'c:/temp/icon/'
 
+  if ~keyword_set(step) then step = 1
+  
   if step eq 1 or step eq 99 then begin
     del_data, '*'
     ; Specify an instrument
@@ -45,7 +48,7 @@ pro icon_crib, step=step
     ; Plot data
     tplot, ['ICON_L1_FUVB_LWP_HV_PHOS', 'ICON_L1_FUVB_Board_TEMP','ICON_L1_FUVB_LWP_Raw_P0','ICON_L1_FUVB_LWP_PROF_P0_Error']
     ; Save png file
-    makepng,'c:/temp/icon/ICON_L1_FUVB_LWP'
+    makepng,img_path + 'ICON_L1_FUVB_LWP'
     ; Print time limits
     get_data,'ICON_L1_FUVB_LWP_HV_PHOS',data=d, dlimits = dl
     print, time_string(d.x[0]), time_string(d.x[n_elements(d.x)-1])
@@ -60,7 +63,7 @@ pro icon_crib, step=step
     options, 'ICON_L1_FUVA_SWP_HV_MCP', 'yrange', [19.4, 19.7]
     options, 'ICON_L1_FUVA_CCD_TEMP', 'yrange', [18.5,20.0]
     tplot, ['ICON_L1_FUVA_SWP_HV_MCP', 'ICON_L1_FUVA_CCD_TEMP','ICON_L1_FUVA_SWP_Raw_M3','ICON_L1_FUVA_SWP_PROF_M3_Error']
-    makepng,'c:/temp/icon/ICON_L1_FUVA_SWP'
+    makepng,img_path + 'ICON_L1_FUVA_SWP'
   endif
 
   if step eq 3 or step eq 99 then begin
@@ -78,7 +81,7 @@ pro icon_crib, step=step
     options, 'ICON_L1_FUVA_Limb_IMG1', 'yrange', [-1.0, 1.0]
 
     tplot, ['ICON_L1_FUVA_SWI_Chain_ID', 'ICON_L1_FUV_OPT_TEMP','ICON_L1_FUVA_Limb_Raw1','ICON_L1_FUVA_Limb_IMG1']
-    makepng,'c:/temp/icon/ICON_L1_FUVA_SLI'
+    makepng,img_path + 'ICON_L1_FUVA_SLI'
     ;Spectrograms: ICON_L1_FUVA_LIMB_RAW[95,*,*] and ICON_L1_FUVA_LIMB_IMG[95,*,*]
   endif
 
@@ -98,7 +101,7 @@ pro icon_crib, step=step
 
     options, 'ICON_L1_FUVA_SWI_Integration_Time', 'yrange', [11.0, 14.0]
     tplot, ['ICON_L1_FUVA_SWI_Integration_Time', 'ICON_L1_FUV_IMG_TEMP','ICON_L1_FUVA_Sublimb_Raw1','ICON_L1_FUVA_Sublimb_IMG1']
-    makepng,'c:/temp/icon/ICON_L1_FUVA_SSI'
+    makepng,img_path + 'ICON_L1_FUVA_SSI'
     ;Spectrograms: ICON_L1_FUVA_SUBLIMB_RAW[80,*,*] and ICON_L1_FUVA_SUBLIMB_IMG[80,*,*]
   endif
 
@@ -118,7 +121,7 @@ pro icon_crib, step=step
 
     options, 'ICON_L2_ORBIT_NUMBER', 'yrange', [1480, 1580]
     tplot, ['ICON_L2_FUV_SC_LAT', 'ICON_L2_ORBIT_NUMBER','ICON_L2_FUVA_TANGENT_LAT1','ICON_L2_FUVA_SWP_VER_ALTITUDE_PROFILE1']
-    makepng,'c:/temp/icon/ICON_L2_nighttime'
+    makepng,img_path + 'ICON_L2_nighttime'
     ;Spectrograms: ICON_L2_FUVA_TANGENT_LAT[3,*,*] and ICON_L2_FUVA_SWP_VER_ALTITUDE_PROFILE[3,*,*]
   endif
 
@@ -129,7 +132,7 @@ pro icon_crib, step=step
     icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
     tplot_names
     tplot, ['icon_l2_FUV_daytime_ON2_retrieval_f107', 'icon_l2_FUV_daytime_ON2_retrieval_latitude','icon_l2_FUV_daytime_ON2_original_data','icon_l2_FUV_daytime_ON2_model_altitudes']
-    makepng,'c:/temp/icon/ICON_L2_daytime'
+    makepng,img_path + 'ICON_L2_daytime'
     ;Time series: ICON_L2_FUV_DAYTIME_ON2_RETRIEVAL_F107 and ICON_L2_FUV_DAYTIME_ON2_RETRIEVAL_LATITUDE
     ;Spectrograms: ICON_L2_FUV_DAYTIME_ON2_ORIGINAL_DATA and ICON_L2_FUV_DAYTIME_ON2_MODEL_ALTITUDES
   endif
@@ -141,7 +144,7 @@ pro icon_crib, step=step
     icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
     tplot_names
     tplot, ['ICON_L1_IVM_A_NORTH_FOOTPOINT_FA_ECEF_X', 'ICON_L1_IVM_A_SC_MLT','ICON_L1_IVM_A_RPA_currents','ICON_L1_IVM_A_LLA_i']
-    makepng,'c:/temp/icon/ICON_L1_IVM'
+    makepng,img_path + 'ICON_L1_IVM'
     ;Time series: ICON_L1_IVM_A_NORTH_FOOTPOINT_FA_ECEF_X and ICON_L1_IVM_A_SC_MLT
     ;Spectrograms: ICON_L1_IVM_A_RPA_CURRENTS and ICON_L1_IVM_A_LLA_I
   endif
@@ -153,10 +156,10 @@ pro icon_crib, step=step
     icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
     tplot_names
     tplot, ['ICON_L2_IVM_A_LONGITUDE', 'ICON_L2_IVM_A_AP_POT']
-    makepng,'c:/temp/icon/ICON_L2_IVM'
+    makepng,img_path + 'ICON_L2_IVM'
     ;Time series: ICON_L2_IVM_A_LONGITUDE and ICON_L2_IVM_A_AP_POT
     ;Spectrograms: there are no 2D data in those files
   endif
 
-  print, 'icon_crib2 finished'
+  print, 'icon_crib finished'
 end
