@@ -12,8 +12,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-18 12:58:34 -0700 (Fri, 18 May 2018) $
-;$LastChangedRevision: 25238 $
+;$LastChangedDate: 2018-05-18 19:14:14 -0700 (Fri, 18 May 2018) $
+;$LastChangedRevision: 25239 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/examples/icon_crib.pro $
 ;
 ;-------------------------------------------------------------------
@@ -21,7 +21,7 @@
 pro icon_crib, step=step
 
   ; Specify a time range
-  timeRange = ['2010-05-23/00:00', '2010-05-23/12:00']
+  timeRange = ['2010-05-23/00:00', '2010-05-23/23:59:59']
   ; Specify a directory for images
   img_path = 'c:/temp/icon/'
 
@@ -39,9 +39,13 @@ pro icon_crib, step=step
     tplot_names
     ; Specify plot options
     options, 'ICON_L1_FUVB_LWP_HV_PHOS', 'yrange', [45.6, 46.2]
-    options, 'ICON_L1_FUVB_Board_TEMP', 'yrange', [27.2, 28.0]
     options, 'ICON_L1_FUVB_LWP_HV_PHOS', 'ytitle', 'HV PHOS !C'
+    options, 'ICON_L1_FUVB_LWP_HV_PHOS', 'psym', 3
+    
+    options, 'ICON_L1_FUVB_Board_TEMP', 'yrange', [27.2, 28.0]
     options, 'ICON_L1_FUVB_Board_TEMP', 'ytitle', 'Board TEMP !C'
+    options, 'ICON_L1_FUVB_Board_TEMP', 'psym', 3
+    
     options, 'ICON_L1_FUVB_LWP_Raw_P0', 'ytitle', 'Raw P0 !C'
     options, 'ICON_L1_FUVB_LWP_PROF_P0_Error', 'ytitle', 'PROF P0 Error !C'
     tplot_options, 'title', 'ICON FUV LWP (2010-05-23)'
