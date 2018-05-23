@@ -10,16 +10,21 @@
 ;  
 ;
 ;$LastChangedBy: adrozdov $
-;$LastChangedDate: 2018-04-27 18:30:20 -0700 (Fri, 27 Apr 2018) $
-;$LastChangedRevision: 25133 $
+;$LastChangedDate: 2018-05-21 18:38:17 -0700 (Mon, 21 May 2018) $
+;$LastChangedRevision: 25241 $
 ;$URL: 
 ;-
 
 ;generate Maxwellian distribution
   N = 1000000
-  generate_maxwellian,vx=vx,vy=vy,vz=vz,sigma=150^2,num=N
-  vx = vx + 500.
-  vy = vy + 500.
+  Vt = 200. ; km/s
+  sigma2 = (Vt^2)/2
+  BulkV = [500.,500.,0] ; km/s
+  
+  generate_maxwellian,vx=vx,vy=vy,vz=vz,sigma2=sigma2,num=N  
+  vx = vx + BulkV[0]
+  vy = vy + BulkV[1]
+  vz = vz + BulkV[2]
   vr = sqrt(vx^2 + vy^2 + vz^2) ; total velocity
   
 ; Create binning grid
@@ -88,7 +93,7 @@
   i_struct = {rgb_table:22, ASPECT_RATIO:1, FILL:1, AXIS_STYLE:2, $
     C_VALUE:indgen(51)/50.*5-12, xrange:[-1000,1000], yrange:[-1000,1000], CURRENT:1}
 
-  ; REPLASE WITH YOUR PATH
+  ; REPLACE WITH YOUR PATH
   png_folder = 'e:\Codes\SPEDAS\spedas_development\mycodes\slice2d_summary\500_offest_'
 
 if 0 then begin  ; Figure from original distribution

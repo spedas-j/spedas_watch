@@ -1,6 +1,5 @@
 ;+
 ;
-;;+
 ; PROCEDURE:
 ;         tplot2ap
 ;
@@ -33,8 +32,8 @@
 ;         click 'Allow' for private networks)
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-04-04 10:58:34 -0700 (Wed, 04 Apr 2018) $
-; $LastChangedRevision: 24994 $
+; $LastChangedDate: 2018-05-22 08:38:07 -0700 (Tue, 22 May 2018) $
+; $LastChangedRevision: 25244 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/tplot2ap/tplot2ap.pro $
 ;-
 
