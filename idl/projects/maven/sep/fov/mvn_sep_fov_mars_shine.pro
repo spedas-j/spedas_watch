@@ -3,9 +3,10 @@
 ;rmars: mars radius (km)
 ;posmar: center of mars position w.r.t maven (km)
 ;possun: unit vector pointing to the sun from maven (or mars)
-;fov: calculations are done for only within the fov of each sep
+;fov: if set, calculations are done for only within the fov of each sep
 ;resdeg: angular resolution of calculations in degrees
 ;response: if set, plots fov response
+;vector: if set, vectorization is used (much faster, but much higher memory usage)
 ;
 function mvn_sep_fov_mars_shine,rmars,posmar,possun,fov=fov,resdeg=resdeg,response=response,vector=vector
 
@@ -40,14 +41,14 @@ function mvn_sep_fov_mars_shine,rmars,posmar,possun,fov=fov,resdeg=resdeg,respon
 ; for it=0,nt-1 do begin
   if keyword_set(vector) then begin ;vectorization: faster, but uses more memory!
     dvec=[transpose(reform(x,nphi*nthe)),transpose(reform(z,nphi*nthe)),transpose(reform(y,nphi*nthe))]
-    mvn_sep_mars_incidence,rmars,posmar,dvec,spoint
+    mvn_sep_fov_mars_incidence,rmars,posmar,dvec,spoint
     cossza=reform(total((spoint-transpose(rebin(posmar,[3,nt,nphi*nthe]),[0,2,1]))*transpose(rebin(possun,[3,nt,nphi*nthe]),[0,2,1]),1),[nphi,nthe,nt])/rmars
   endif else begin
     cossza=replicate(fnan,[nphi,nthe,nt])
     for ithe=0,nthe-1 do begin
       for iphi=0,nphi-1 do begin
         dvec=[x[iphi,ithe],z[iphi,ithe],y[iphi,ithe]]
-        mvn_sep_mars_incidence,rmars,posmar,dvec,spoint
+        mvn_sep_fov_mars_incidence,rmars,posmar,dvec,spoint
         cossza[iphi,ithe,*]=total((reform(spoint)-posmar)*possun,1)/rmars
       endfor
     endfor

@@ -8,8 +8,8 @@
 ;  spectrograms and moments from level 2 MMS HPCA and FPI distributions.
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-04-25 08:50:53 -0700 (Wed, 25 Apr 2018) $
-;$LastChangedRevision: 25110 $
+;$LastChangedDate: 2018-05-24 15:50:54 -0700 (Thu, 24 May 2018) $
+;$LastChangedRevision: 25264 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_part_getspec_crib.pro $
 ;-
 
@@ -28,7 +28,6 @@ mms_part_getspec, instrument='fpi', probe='1', species='e', data_rate='brst', le
 
 ; plot spectrograms
 tplot, 'mms1_des_dist_brst_'+['energy','theta','phi','pa','gyro']
-
 stop
 
 ; the following shows how to add the errorflag bars to the spectrograms
@@ -98,6 +97,18 @@ mms_part_getpad, probe=1, species='e', data_rate='brst', energy=[10000, 30000]
 
 tplot, 'mms1_des_dist_brst_pad_'+['0eV_10eV', '10eV_50eV', '50eV_100eV', '100eV_1000eV', '1000eV_10000eV', '10000eV_20000eV', '10000eV_30000eV'], /add
 stop
+
+;==========================================================
+; FPI - add B-field and S/C ram direction to the angular spectra
+;==========================================================
+
+mms_part_getspec, /add_bfield_dir, /add_ram_dir, probe='1', species='e', data_rate='brst', level='l2', output='phi theta'
+
+tplot, ['mms1_des_dist_brst_phi_with_b', 'mms1_des_dist_brst_theta_with_b', $ ; with B-field direction
+        'mms1_des_dist_brst_phi_with_v', 'mms1_des_dist_brst_theta_with_v', $ ; with S/C ram direction
+        'mms1_des_dist_brst_phi_with_bv', 'mms1_des_dist_brst_theta_with_bv'] ; with both
+stop
+
 
 ;==========================================================
 ; HPCA - L2

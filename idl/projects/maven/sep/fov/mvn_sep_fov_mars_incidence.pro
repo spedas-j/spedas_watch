@@ -4,7 +4,7 @@
 ;m: mars position (km) [3,nt]
 ;v: vector direction (unit vector) [3,nv]
 ;s: surface intercept point (km) [3,nv,nt]
-pro mvn_sep_mars_incidence,r,m,v,s
+pro mvn_sep_fov_mars_incidence,r,m,v,s
 
   sizem=size(m,/dim)
   sizev=size(v,/dim)

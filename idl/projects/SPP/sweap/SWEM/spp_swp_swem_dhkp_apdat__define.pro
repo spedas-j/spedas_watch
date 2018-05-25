@@ -105,16 +105,18 @@ if ccsds.pkt_size eq 30 then begin    ;  boot packet
 endif
 
 ;dprint,ccsds.pkt_size
+if ccsds.pkt_size lt 90 then ccsds_data = [ccsds_data,bytarr(90-ccsds.pkt_size)]  ; pad it
 
-if ccsds.pkt_size ge 90 then begin   ; Most recent version  90 bytes long
+if ccsds.pkt_size ne 90 then begin   ; Most recent version  90 bytes long
+ ;  dprint,'wrong size',dwait=20,dlevel=2,ccsds.pkt_size
+   dprint,dlevel=2,"Unknown DHKP packet size:",ccsds.pkt_size,dwait=20
+endif
   str2 = spp_swp_swem_dhkp_oper_struct(ccsds_data)
   struct_assign,ccsds,str2,/nozero
   ;printdat,str2,/hex
   
   return,str2
-endif
-dprint,dlevel=3,"Unknown DHKP packet size:",ccsds.pkt_size
-return,!null
+ 
 
 
 return,!null

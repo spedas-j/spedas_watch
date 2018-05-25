@@ -1,7 +1,6 @@
 ;20180411 Ali
 ;use mouse curser on a tplot window to choose times for plotting useful sep fov info
 
-
 pro mvn_sep_fov_snap
 
   @mvn_sep_fov_common.pro
@@ -34,9 +33,9 @@ pro mvn_sep_fov_snap
     v5=v4*sqrt(-1.+1./pdm[tminsub].mar^2)+rebin(v1,[3,nth])
     suredge=v5/(ones3#sqrt(total(v5^2,1))) ;mars surface edge circle
 
-    fraction=mvn_sep_fov_mars_shine(rmars,rad[tminsub].mar*pos[*,tminsub].mar,pos[*,tminsub].sun,resdeg=resdeg,/vector)
+    fraction=mvn_sep_fov_mars_shine(mvn_sep_fov0.rmars,rad[tminsub].mar*pos[*,tminsub].mar,pos[*,tminsub].sun,resdeg=resdeg,/vector)
 ;   fraction2=mvn_sep_anc_fov_mars_fraction(times[tminsub],check_objects=['MAVEN_SC_BUS']) ;Rob's routine (slow)
-    mvn_sep_fov_plot,pos=pos[*,tminsub],suredge=suredge,fraction=fraction,time=times[tminsub],tal=tal[tminsub],rad=rad[tminsub]
+    mvn_sep_fov_plot,pos=pos[*,tminsub],suredge=suredge,fraction=fraction,time=times[tminsub],tal=tal[*,tminsub],rad=rad[tminsub]
   endwhile
 
 end

@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-10 10:41:33 -0700 (Thu, 10 May 2018) $
-;$LastChangedRevision: 25192 $
+;$LastChangedDate: 2018-05-24 16:02:52 -0700 (Thu, 24 May 2018) $
+;$LastChangedRevision: 25265 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -118,9 +118,9 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
   new_tnames = ssl_set_complement([tn_list_before], [tn_list_after])
 
   ; load the ephemeris data in GEI coordinates
-  if undefined(noephem) && new_tnames[0] ne -1 then begin
+  ;if undefined(noephem) && new_tnames[0] ne -1 then begin
 
-  endif
+  ;endif
 
   tplotnames = tnames('*')
   if ~undefined(tr) && ~undefined(tplotnames) then begin

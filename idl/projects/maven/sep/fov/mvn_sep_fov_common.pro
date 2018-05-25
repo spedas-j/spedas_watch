@@ -1,4 +1,7 @@
 ;20180414 Ali
 ;mvn_sep_fov common block
+;mvn_sep_fov: time-series of variables
+;mvn_sep_fov0: constants
+;mvn_sep_fov1: reserved!
 
-  common mvn_sep_fov,mvn_sep_fov,rmars,detlab
+  common mvn_sep_fov,mvn_sep_fov,mvn_sep_fov0,mvn_sep_fov1
