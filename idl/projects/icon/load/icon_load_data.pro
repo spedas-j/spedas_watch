@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-24 16:02:52 -0700 (Thu, 24 May 2018) $
-;$LastChangedRevision: 25265 $
+;$LastChangedDate: 2018-05-25 12:50:52 -0700 (Fri, 25 May 2018) $
+;$LastChangedRevision: 25272 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -100,7 +100,7 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
     relpathnames = file_dailynames(file_format=pathformat[j],trange=tr,addmaster=addmaster, /unique)
 
     files = spd_download(remote_file=relpathnames, remote_path=!icon.remote_data_dir, $
-      local_path = !icon.local_data_dir)
+      local_path = !icon.local_data_dir, last_version=1)
 
     if keyword_set(downloadonly) then continue
 

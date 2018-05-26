@@ -14,8 +14,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-24 16:05:59 -0700 (Thu, 24 May 2018) $
-;$LastChangedRevision: 25266 $
+;$LastChangedDate: 2018-05-25 12:51:09 -0700 (Fri, 25 May 2018) $
+;$LastChangedRevision: 25273 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/examples/icon_crib.pro $
 ;
 ;-------------------------------------------------------------------
@@ -35,6 +35,7 @@ pro icon_crib, step=step, img_path=img_path
   cdf_leap_second_init
 
   if step eq 1 or step eq 99 then begin
+    ; L1 FUV LWP
     del_data, '*'
     ; Specify an instrument
     instrument = 'fuv'
@@ -78,6 +79,7 @@ pro icon_crib, step=step, img_path=img_path
   endif
 
   if step eq 2 or step eq 99 then begin
+    ; L1 FUV SWP
     del_data, '*'
     instrument = 'fuv'
     datal1type = 'swp'
@@ -106,6 +108,7 @@ pro icon_crib, step=step, img_path=img_path
   endif
 
   if step eq 3 or step eq 99 then begin
+    ; L1 FUV SLI
     del_data, '*'
     instrument = 'fuv'
     datal1type = 'sli'
@@ -138,6 +141,7 @@ pro icon_crib, step=step, img_path=img_path
   endif
 
   if step eq 4 or step eq 99 then begin
+    ; L1 FUV SSI
     del_data, '*'
     instrument = 'fuv'
     datal1type = 'ssi'
@@ -173,6 +177,7 @@ pro icon_crib, step=step, img_path=img_path
   endif
 
   if step eq 5 or step eq 99 then begin
+    ; L2 FUV nighttime
     del_data, '*'
     instrument = 'fuv'
     datal1type = ''
@@ -206,6 +211,7 @@ pro icon_crib, step=step, img_path=img_path
   endif
 
   if step eq 6 or step eq 99 then begin
+    ; L2 FUV daytime
     del_data, '*'
     instrument = 'fuv'
     datal1type = ''
@@ -232,6 +238,7 @@ pro icon_crib, step=step, img_path=img_path
   endif
 
   if step eq 7 or step eq 99 then begin
+    ; L1 IVM
     del_data, '*'
     instrument = 'ivm'
     datal1type = '*'
@@ -260,6 +267,7 @@ pro icon_crib, step=step, img_path=img_path
   endif
 
   if step eq 8 or step eq 99 then begin
+    ; L2 IVM
     del_data, '*'
     instrument = 'ivm'
     datalqtype = ''
@@ -284,6 +292,7 @@ pro icon_crib, step=step, img_path=img_path
   endif
 
   if step eq 9 or step eq 99 then begin
+    ; L2 IVM and L1 FUV LWP
     del_data, '*'
 
     ; Load IVM
