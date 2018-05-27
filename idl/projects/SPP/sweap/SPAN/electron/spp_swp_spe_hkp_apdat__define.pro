@@ -73,7 +73,7 @@ function spp_swp_spe_hkp_apdat::decom,ccsds , ptp_header=ptp_header, apdat=apdat
   psize = 149                   ; rev 52 & 54
 
   if n_elements(b) ne psize+7 then begin
-    dprint,dlevel=1, 'Size error ',ccsds.size,ccsds.apid
+    dprint,dlevel=1, 'Size error ',ccsds.pkt_size,ccsds.apid
     return,0
   endif
 
