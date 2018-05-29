@@ -69,7 +69,7 @@ pro spp_ssr_lun_read,in_lun,out_lun,info=info
       if debug(5) then begin
         hexprint,dlevel=3,ccsds_buf,nbytes=32
       endif
-      if run_proc then   spp_ccsds_pkt_handler,ccsds_buf   ,ptp_header=ptp_header  
+      if run_proc then   spp_ccsds_pkt_handler,ccsds_buf ,source_info=info  ,ptp_header=ptp_header  
 
       buf = bytarr(6)
       remainder=!null

@@ -16,12 +16,13 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products
 
 
   for i=0,n_elements(files)-1 do begin
-    info.filename = files[i] 
-    tplot_options,title=info.filename
-    file_open,'r',info.filename,unit=lun,dlevel=3,compress=-1
+    info.input_sourcename = files[i] 
+    spp_apdat_info,current_filename = info.input_sourcename 
+    tplot_options,title=info.input_sourcename 
+    file_open,'r',info.input_sourcename ,unit=lun,dlevel=3,compress=-1
     sizebuf = bytarr(2)
-    fi = file_info(info.filename)
-    dprint,dlevel=1,'Reading file: '+info.filename+' LUN:'+strtrim(lun,2)+'   Size: '+strtrim(fi.size,2)
+    fi = file_info(info.input_sourcename )
+    dprint,dlevel=2,'Reading file: '+info.input_sourcename+' LUN:'+strtrim(lun,2)+'   Size: '+strtrim(fi.size,2)
     if lun eq 0 then continue
     spp_ssr_lun_read,lun,info=info
   

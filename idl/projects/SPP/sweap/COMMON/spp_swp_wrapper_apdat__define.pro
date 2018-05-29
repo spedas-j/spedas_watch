@@ -1,7 +1,8 @@
 
 
-
-pro spp_swp_wrapper_apdat::handler2,buffer,wrapper_header=wrapper_header, wrapper_apid= wrapper_apid
+;This routine will recursively call the ccsds_pkt_hander to decomutate the inner packet
+; It does this after decompression (if needed)
+pro spp_swp_wrapper_apdat::handler2,buffer,source_info=source_info   ,wrapper_header=wrapper_header, wrapper_apid= wrapper_apid
   
   if debug(self.dlevel+5,msg='handler2')  then begin  ;  wrapper_header[10] ne 0 && 
     dprint,'wrapper header:'
@@ -34,14 +35,14 @@ pro spp_swp_wrapper_apdat::handler2,buffer,wrapper_header=wrapper_header, wrappe
     dprint,fix(data[w])
   endif
   if debug(self.dlevel+5) then printdat,buffer,/hex
-  spp_ccsds_pkt_handler,buffer, wrapper_apid = self.apid,original_size=original_size   ; recursively handle the inner packet
+  spp_ccsds_pkt_handler,buffer, source_info=source_info, wrapper_apid = self.apid,original_size=original_size   ; recursively handle the inner packet
 
 end
 
 
 
  
-function spp_swp_wrapper_apdat::decom,ccsds,ptp_header
+function spp_swp_wrapper_apdat::decom,ccsds,ptp_header,source_info=source_info
 
 
 dnan = !values.d_nan
@@ -111,7 +112,7 @@ case ccsds.seq_group of
         printdat, /hex,*ccsds.pdata
       endif
       *self.buffer = [*self.buffer,ccsds_data[12:*] ]  ; append final segment
-      self.handler2, *self.buffer, wrapper_header = ccsds_data[0:11], wrapper_apid = ccsds.apid
+      self.handler2, *self.buffer, source_info=source_info,wrapper_header = ccsds_data[0:11], wrapper_apid = ccsds.apid
     endelse
     *self.buffer = !null
 ;    self.active_apid = 0
@@ -124,34 +125,29 @@ case ccsds.seq_group of
     dprint,dlevel=self.dlevel+4,ccsds.apid,ccsds.seqn,ccsds.seqn_delta,ccsds.seq_group,' Single packet'
     if keyword_set(*self.buffer) then dprint,dlevel=self.dlevel,'Warning: New Multipacket started without finishing previous group'
     *self.buffer = ccsds_data[12:*]
-    self.handler2,*self.buffer, wrapper_header = ccsds_data[0:11], wrapper_apid = ccsds.apid
+    self.handler2,*self.buffer,  source_info=source_info,wrapper_header = ccsds_data[0:11], wrapper_apid = ccsds.apid
     *self.buffer = !null
  ;   self.active_apid = 0
   end
      
 endcase
 
-
-;if 0 then begin
-;  if self.save_flag && keyword_set(strct) then begin
-;    dprint,self.name,dlevel=5,self.apid
-;    self.data.append,  strct
-;  endif
-;  
-;  *self.last_data_p = strct
-;  
-;  if self.rt_flag && keyword_set(strct) then begin
-;    if ccsds.gap eq 1 then strct = [fill_nan(strct[0]),strct]
-;    store_data,self.tname,data=strct, tagnames=self.ttags , append = 1, gap_tag='GAP'
-;  endif
-;endif
-
 return, wrap_ccsds
-
 
 end
  
  
+ 
+pro spp_swp_wrapper_apdat::handler,ccsds,ptp_header,source_info=source_info
+
+  ccsds_data = spp_swp_ccsds_data(ccsds)
+  if ccsds.pkt_size ge 14 then ccsds.content_id = spp_swp_data_select(  ccsds_data, 8*12+5,  11)
+  
+  self->spp_gen_apdat::handler,ccsds,ptp_header
+
+end
+
+
  
  
 PRO spp_swp_wrapper_apdat__define

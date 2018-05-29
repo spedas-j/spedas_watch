@@ -9,6 +9,7 @@
 ;   DIRECTORY:  string prepended to fileformat when opening an output file.
 ; Author:
 ;    Davin Larson - April 2011
+;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
 ; $LastChangedDate: 2016-09-28 22:56:26 -0700 (Wed, 28 Sep 2016) $
@@ -32,17 +33,52 @@ function socket_recorder::get_uvalue,uname
 end
 
 
-pro socket_recorder::read_socket
-
-
+function socket_recorder::read_lun
+  buffer = !null
+  if self.hfp gt 0 then begin
+    on_ioerror, stream_error
+    eofile =0
+    self.time_received = systime(1)
+;    widget_control,wids.base,set_uvalue=self
+    buffer= bytarr(self.maxsize)
+    b=buffer[0]
+    for i=0L,n_elements(buffer)-1 do begin                       ; Read from stream one byte (or value) at a time
+      flag = file_poll_input(self.hfp,timeout=0)
+      if flag eq 0 then break
+      readu,self.hfp,b
+      buffer[i] = b
+    endfor
+    if eofile eq 1 then begin
+      stream_error:
+      dprint,dlevel=self.dlevel-1,self.title_num+'File error: '+self.hostname+':'+self.hostport+' broken. ',i
+      dprint,dlevel=self.dlevel,!error_state.msg
+    endif
+    if i gt 0 then begin                      ;; process data
+      buffer = buffer[0:i-1]
+      msg = string(/print,i,buffer[0:(i < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')
+      self.msg = time_string(self.time_received,tformat='hh:mm:ss - ',local=localtime) + msg
+      return,buffer
+    endif else begin
+      self.msg =time_string(self.time_received,tformat='hh:mm:ss - No data available',local=localtime)
+      return,!null
+    endelse
+    
+  endif
+  return,buffer
 end
 
 
-pro socket_recorder::write
-
-
+pro socket_recorder::write,buffer
+  if keyword_set(self.dfp) then writeu,self.dfp, buffer  ;swap_endian(buffer,/swap_if_little_endian)
+  flush,self.dfp
 end
 
+
+pro socket_recorder::process_data,buffer
+    exec_proc = self.exec_proc
+    if keyword_set(exec_proc) then call_procedure,exec_proc,buffer,info=self.struct()     $   ; Execute exec_proc here
+    else print,self.msg
+end
 
 
 PRO socket_recorder::SetProperty, _extra=ex
@@ -50,15 +86,15 @@ PRO socket_recorder::SetProperty, _extra=ex
   if keyword_set(ex) then begin
     struct_assign,ex,self,/nozero
   endif
-
 END
 
 pro socket_recorder::help
   msg = string('Base ID is: ',self.base)
   output_text_id = widget_info(self.base,find_by_uname='OUTPUT_TEXT')
   widget_control, output_text_id, set_value=msg
-  help,self,/obj,output=output
-  for i=0,n_elements(output)-1 do print,output[i]
+  printdat,self.struct()
+;  help,self,/obj,output=output
+;  for i=0,n_elements(output)-1 do print,output[i]
 end
 
 
@@ -90,13 +126,14 @@ pro socket_recorder::timed_event
       endif
       self.next_filechange = self.file_timeres * ceil(self.time_received / self.file_timeres)
     endif
-
-
-    proc_name = self.proc_name()  
-    info = self.struct()
-    if keyword_set(proc_name) then call_procedure,proc_name[0],self.hfp ,info=info               ; Execute exec_proc here
-    msg = info.msg
-
+    
+    buffer = self.read_lun()
+    while( isa(buffer) ) do begin
+      if self.dfp then self.write,buffer
+      if self.run_proc then self.process_data, buffer
+      msg = self.msg
+      buffer = self.read_lun()
+    endwhile
 
     dprint,dlevel=self.dlevel+3,self.title_num+self.msg,/no_check
 
@@ -194,17 +231,20 @@ case status of
     endif
     WIDGET_CONTROL, dest_button_id      , set_value = 'Opening' ,sensitive=0
     widget_control, dest_text_id, get_value = fileformat,sensitive=0
-    filename = time_string(systime(1),tformat = fileformat[0])                     ; Substitute time string
+    self.fileformat = fileformat[0]
+    filename = time_string(systime(1),tformat = self.fileformat)                     ; Substitute time string
     widget_control,host_text_id, get_value=hostname
-    filename = str_sub(filename,'{HOST}',strtrim(hostname,2) )
+    self.hostname = hostname[0]
+    filename = str_sub(filename,'{HOST}',strtrim(self.hostname,2) )
     widget_control,host_port_id, get_value=hostport
-    filename = str_sub(filename,'{PORT}',strtrim(hostport,2) )               ; Substitute port number
-    widget_control, dest_text_id, set_uvalue = fileformat,set_value=filename
-    if keyword_set(filename) then begin
-      file_open,'u',self.directory+filename, unit=dfp,dlevel=4,compress=-1,file_mode='666'o,dir_mode='777'o
-      dprint,dlevel=dlevel,self.title_num+' Opened output file: '+self.directory+filename+'   Unit:'+strtrim(dfp)
+    self.hostport = hostport
+    self.filename = str_sub(filename,'{PORT}',strtrim(self.hostport,2) )               ; Substitute port number
+    widget_control, dest_text_id, set_uvalue = fileformat,set_value=self.filename
+    if keyword_set(self.filename) then begin
+      file_open,'u',self.directory+self.filename, unit=dfp,dlevel=4,compress=-1,file_mode='666'o,dir_mode='777'o
+      dprint,dlevel=dlevel,self.title_num+' Opened output file: '+self.directory+self.filename+'   Unit:'+strtrim(dfp)
       self.dfp = dfp
-      self.filename= self.directory+filename
+      self.filename= self.directory+self.filename
       widget_control, dest_flush_id, sensitive=1
     endif
     ;              wait,1
@@ -219,9 +259,9 @@ case status of
       self.dfp =0
     endif
     ;            wait,1
-    widget_control, dest_text_id ,set_value= fileformat,sensitive=1
+    widget_control, dest_text_id ,set_value= self.fileformat,sensitive=1
     WIDGET_CONTROL, dest_button_id, set_value = 'Write to',sensitive=1
-    dprint,dlevel=self.dlevel,self.title_num+'Closed output file: '+filename,no_check_events=1
+    dprint,dlevel=self.dlevel,self.title_num+'Closed output file: '+self.filename,no_check_events=1
   end
   else: begin
     dprint,self.title_num+'Invalid State'
@@ -284,21 +324,21 @@ PRO socket_recorder_event, ev   ; socket_recorder
 END
 
 
-PRO socket_recorder_template,buffer,info=info
-;    savetomain,buffer
-;    savetomain,time
-
-    n = n_elements(buffer)
-    if n ne 0 then  begin
-    if debug(2) then begin
-      dprint,time_string(info.time_received,prec=3) +''+ strtrim(n_elements(buffer))
-      n = n_elements(buffer) < 512
-      hexprint,buffer[0:n-1]    ;,swap_endian(uint(buffer,0,n_elements(buffer)/2))
-    endif
-    endif else print,format='(".",$)'
-
-    return
-end
+;PRO socket_recorder_template,buffer,info=info
+;;    savetomain,buffer
+;;    savetomain,time
+;
+;    n = n_elements(buffer)
+;    if n ne 0 then  begin
+;    if debug(2) then begin
+;      dprint,time_string(self.time_received,prec=3) +''+ strtrim(n_elements(buffer))
+;      n = n_elements(buffer) < 512
+;      hexprint,buffer[0:n-1]    ;,swap_endian(uint(buffer,0,n_elements(buffer)/2))
+;    endif
+;    endif else print,format='(".",$)'
+;
+;    return
+;end
 
 
 ;
@@ -412,6 +452,7 @@ if ~(keyword_set(base) && widget_info(base,/managed) ) then begin
     self.buffersize = 2L^20
     self.dlevel = 2
     self.isasocket=1
+    self.maxsize = 2UL^23
         
 ;    info.buffer_ptr = ptr_new( bytarr( info.buffersize ) )
     WIDGET_CONTROL, self.base, SET_UVALUE=self
@@ -437,16 +478,15 @@ if n_elements(set_procbutton) eq 1 then begin
   socket_recorder_event, { top:ids.base, id:ids.proc_button, select: keyword_set(set_procbutton) }
 endif
 if n_elements(set_file_timeres) then begin
-  info.file_timeres = set_file_timeres
-  widget_control, base, set_uvalue= info   
+  self.file_timeres = set_file_timeres
 endif
 if n_elements(directory) then begin
-  info.directory = directory
-  widget_control, base, set_uvalue= info
+  self.directory = directory
 endif
 get_procbutton = widget_info(ids.proc_button,/button_set)
 ;widget_control,ids.dest_text,get_value=get_filename
 get_filename = keyword_set(self.dfp) ? self.filename : ''
+widget_control, base, set_uvalue= self
 return,1
 
 END
@@ -456,7 +496,7 @@ END
 
 
 pro socket_recorder__define
-  info = {socket_recorder, $
+  dummy = {socket_recorder, $
     inherits idl_object, $
     base:0L ,$
     wids:ptr_new(), $
@@ -473,6 +513,7 @@ pro socket_recorder__define
     fileformat:'',  $
     filename:'', $
     dfp:0 , $
+    maxsize:0UL, $
     msg: '', $
     buffersize:0L, $
     buffer_ptr: ptr_new(),   $
@@ -481,6 +522,9 @@ pro socket_recorder__define
     dlevel: 0, $
     exec_proc: '', $
     exec_proc_ptr: ptr_new(), $
+    last_time: 0d, $
+    total_bytes: 0UL, $
+    process_rate: 0d, $
     run_proc:0 }
 
 end

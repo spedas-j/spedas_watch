@@ -1,7 +1,9 @@
 pro spp_swp_ssrreadreq,times
 
 n= n_elements(times)
-if n and 1 then message ,'Must be odd'
+if n eq 0 then ctime,times
+n= n_elements(times)
+if n and 1 then message ,'Must be even'
 
 
 n2 = n/2
