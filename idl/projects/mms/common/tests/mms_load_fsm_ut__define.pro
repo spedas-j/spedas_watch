@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_load_fsm_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-05-16 07:12:56 -0700 (Wed, 16 May 2018) $
-; $LastChangedRevision: 25228 $
+; $LastChangedDate: 2018-05-29 07:04:58 -0700 (Tue, 29 May 2018) $
+; $LastChangedRevision: 25293 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_load_fsm_ut__define.pro $
 ;-
 
@@ -56,7 +56,7 @@ function mms_load_fsm_ut::test_trange
 end
 
 function mms_load_fsm_ut::test_keep_flagged
-  mms_load_fsm, probe=4, level='l3', /keep_flagged
+  mms_load_fsm, probe=4, level='l3', /keep_flagged, trange=['2015-12-15/00:45', '2015-12-15/00:45:50'], /time_clip
   get_data, 'mms4_fsm_flag_brst_l3', data=flags
   get_data, 'mms4_fsm_b_gse_brst_l3', data=flagged
   assert, finite(flagged.y[(where(flags.Y ne 0))[0], 0]), $

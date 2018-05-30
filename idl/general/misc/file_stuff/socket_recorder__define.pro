@@ -502,6 +502,8 @@ pro socket_recorder__define
     wids:ptr_new(), $
     hostname:'',$
     hostport:'', $
+    input_sourcename: '',$
+    input_sourcehash: 0UL, $
     title: '', $
     title_num: '', $
     time_received: 0d,  $

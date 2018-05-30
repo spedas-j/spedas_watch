@@ -18,7 +18,10 @@ pro spp_swp_cdf_var_att_create,fileid,varname,data,attributes=attributes,rec_nov
     5: cdf_type = {cdf_double:1}
     12: cdf_type = {cdf_uint2:1}
     13: cdf_type = {cdf_uint4:1}
-    else: message,'Please add data type ',type,' to this case statement'
+    else: begin
+       dprint,'Please add data type '+string(type)+' to this case statement for variable: '+varname
+       return
+       end
   endcase
   opts = struct(cdf_type,/zvariable,rec_novary=rec_novary)
 

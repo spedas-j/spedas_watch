@@ -48,8 +48,8 @@
 ;     The MMS plug-in in SPEDAS requires IDL 8.4 to access data at the LASP SDC
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-04-24 16:31:25 -0700 (Tue, 24 Apr 2018) $
-;$LastChangedRevision: 25108 $
+;$LastChangedDate: 2018-05-29 06:51:09 -0700 (Tue, 29 May 2018) $
+;$LastChangedRevision: 25292 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/fsm/mms_load_fsm.pro $
 ;-
 
@@ -77,7 +77,16 @@ pro mms_load_fsm, trange = trange, probes = probes, datatype = datatype, $
   if undefined(data_rate) then data_rate = 'brst'
   if undefined(suffix) then suffix = ''
   if undefined(get_support_data) then get_support_data = 1 ; load the flags by default
-
+  
+  if ~undefined(varformat) && get_support_data eq 1 then begin
+    dprint, dlevel = 0, 'Appending *flag* to requested varformat, so the data can be deflagged'
+    if is_array(varformat) then begin
+      append_array, varformat, '*flag*'
+    endif else begin
+      varformat += ' *flag*'
+    endelse
+  endif
+  
   mms_load_data, trange = trange, probes = probes, level = level, instrument = instrument, $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
     datatype = datatype, get_support_data = get_support_data, tplotnames = tplotnames, $

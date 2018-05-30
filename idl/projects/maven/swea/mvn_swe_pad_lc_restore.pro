@@ -20,8 +20,8 @@
 ;       storeTPLOT:         Create tplot varibles
 ;                                                                                                         
 ; $LastChangedBy: xussui $  
-; $LastChangedDate: 2018-04-18 11:30:04 -0700 (Wed, 18 Apr 2018) $  
-; $LastChangedRevision: 25073 $ 
+; $LastChangedDate: 2018-05-29 15:51:52 -0700 (Tue, 29 May 2018) $  
+; $LastChangedRevision: 25296 $ 
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_lc_restore.pro $     
 ; 
 ;CREATED BY:    Tristan Weber
@@ -35,7 +35,10 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
 ;    rootPath = 'maven/data/sci/swe/l3/swe_pad_lc/YYYY/MM/'
     rootPath = 'maven/data/sci/swe/l3/padscore/YYYY/MM/'
 ;    rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v00_r01.sav' 
-    rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r??.sav'
+;    rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r??.sav'
+    ;force to use r03 since the previous versions contain errors
+    ;!!!!!Need to hard code to change for newer versions!!!!!!!!!!!!
+    rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r03.sav'
 
     if keyword_set(orbit) then begin
       orbMin = min(orbit, max=orbMax)
@@ -77,7 +80,7 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
       arraySize = arraySize + n_elements(padTopo)
     endfor
     print, 'Initializing Array...'
-    padTopoCombined = replicate({time:!values.D_NAN, zScoreUp:!values.d_nan, zScoreDown:!values.d_nan, isVoid:byte(0)}, arraySize)
+    padTopoCombined = replicate({time:!values.D_NAN, zScoreUp:!values.d_nan, zScoreDown:!values.d_nan, isVoid:byte(0), maglevel:0}, arraySize)
     
     arrayIndex = 0
     for i=0,(nfiles-1) do begin 
