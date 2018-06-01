@@ -3,21 +3,21 @@
 ;  crib_slice2d_displacment
 ;
 ;Purpose:
-; This example demonstates the displacment keyword of thm_part_slice2d function
+; This example demonstrates the displacement keyword of thm_part_slice2d function
 ; This is a very advanced crib that generates Maxwellian distribution and replaces the peib data with it.
-; At the end, it generates the slice2d figures with the specifyed displacment of the origin.
+; At the end, it generates the slice2d figures with the specified displacement of the origin.
 ;
 ;Notes:
 ;
 ;$LastChangedBy: adrozdov $
-;$LastChangedDate: 2018-05-21 18:41:43 -0700 (Mon, 21 May 2018) $
-;$LastChangedRevision: 25242 $
+;$LastChangedDate: 2018-05-30 19:24:40 -0700 (Wed, 30 May 2018) $
+;$LastChangedRevision: 25301 $
 ;$URL:
 ;-
 
 ;generate Maxwellian distribution
   BulkV = [100.,200.,300.] ; bulk velocity
-  DispV = [100.,200.,300.] ; displacment velocity
+  DispV = [100.,200.,300.] ; displacement velocity
   
   N = 1000000 ; number of test particles
   Vt = 100.   ; Termal velocity km/s
@@ -29,7 +29,7 @@
   vr = sqrt(vx^2 + vy^2 + vz^2) ; total velocity
   
 ; Create binning grid
-  gmaxmin = [-1000, 1000] ; grid boundaaries
+  gmaxmin = [-1000, 1000] ; grid boundaries
   gbin_size = 20 ; grig resolution
   g_size = (gmaxmin[-1]-gmaxmin[0])/gbin_size + 1
   xarr = FINDGEN(g_size,INCREMENT=gbin_size)+gmaxmin[0]

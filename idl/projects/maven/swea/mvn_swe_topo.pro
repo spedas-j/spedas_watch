@@ -30,7 +30,7 @@
 ;
 ;       storeTplot:  If set, it will create two tplot variables for topology,
 ;                    'topo1' and 'topo_alt'. 'topo_alt' shows altitudes
-;                    colored by topology
+;                    colored by topology. The default is set to be true.
 ;
 ;       tbl:         A color table for topology. The default is set to be
 ;                    [0,1,2,3,4,5,6,7]
@@ -54,7 +54,8 @@
 ;       filter_reg:  Using SWIA data to identify solar wind/sheath regions,
 ;                    by restoring save files created with 'mvn_swia_regid'.
 ;                    ID=1, solar wind; ID=2, sheath. The topology for these
-;                    two regions will be overwritten with draped.
+;                    two regions will be overwritten with draped. The
+;                    default is set to be true.
 ;
 ;       quality:     A 3-element array with quality flags:
 ;                        quality[0] : LPW potentials available (1=yes, 0=no)
@@ -65,8 +66,8 @@
 ;                    quality), 0 otherwise.
 ;
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2018-05-24 17:51:33 -0700 (Thu, 24 May 2018) $
-; $LastChangedRevision: 25268 $
+; $LastChangedDate: 2018-05-31 16:16:26 -0700 (Thu, 31 May 2018) $
+; $LastChangedRevision: 25306 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_topo.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 11/03/2017
@@ -79,6 +80,13 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
 
   success = 0
   quality = [0,0,0]
+
+  ;set the default to be creating tplot variables
+  if (size(storeTplot,/type) eq 0) then storeTplot=1 $
+    else storeTplot=keyword_set(storeTplot)
+  ;set the default to filter out sheath/solar wind regions with RegID
+  if (size(filter_reg,/type) eq 0) then filter_reg=1 $
+    else filter_reg=keyword_set(filter_reg)
 
   if keyword_set(orbit) then begin
     imin = min(orbit, max=imax)

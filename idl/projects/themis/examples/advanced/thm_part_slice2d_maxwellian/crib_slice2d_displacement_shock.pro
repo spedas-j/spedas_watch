@@ -4,26 +4,27 @@
 ;
 ;Purpose:
 ; This example follows crib_slice2d_displacment but operates with real data and 
-; represent the case of the real distibution during the shock event.
+; represents the case of the real distribution during the shock event.
 ; The crib can work in 2 modes with and without displacement
-; 3 coordinate system can be used: DSL, GSM, Shock frame
-; Displacement can be set to none, maximum from 2d slice, to bulk velocity and custom   
+; 4 coordinate system can be used: DSL, GSE, GSM, Shock frame
+; Displacement can be set to none, to maximum from 2d slices, to bulk velocity 
+; and to custom vector   
 ;
 ;Notes:
 ;
 ;$LastChangedBy: adrozdov $
-;$LastChangedDate: 2018-05-24 17:35:23 -0700 (Thu, 24 May 2018) $
-;$LastChangedRevision: 25267 $
+;$LastChangedDate: 2018-05-31 17:07:30 -0700 (Thu, 31 May 2018) $
+;$LastChangedRevision: 25307 $
 ;$URL:
 ;-
 
 ; === Setup ===
 
 ; flags and parameters
-; DISPMODE - Displacment mode
-;   'none' - don't use displacment, set to [0., 0., 0.]
-;   'max' - calcualte displacment, from 2d distibutions Vx, Vy -> max(DF at x,y), Vz -> max(Df at x,z)
-;   'bulk' - displacemnt is equalt to the bulk velocity
+; DISPMODE - Displacement mode
+;   'none' - don't use displacement, set to [0., 0., 0.]
+;   'max' - calculate displacement, from 2d distributions Vx, Vy -> max(DF at x,y), Vz -> max(Df at x,z)
+;   'bulk' - displacement is equal to the bulk velocity
 ;   'custom' - use cutrom_displacement vector
 ; CORDSYS - Coordinate system
 ;   'dsl' - DSL
@@ -34,7 +35,7 @@
 ;   'none' - no cross
 ;   'max'  - determined max
 ;   'bulk' - bulk velocity
-;   'disp' - displacment
+;   'disp' - displacement
 ; NORMPSD - Normalize DF
 ;    1 - f = DF/max(DF)
 ;    0 - f = DF
@@ -63,7 +64,7 @@ thm_load_fgm, probe='c', datatype = 'fgl', level=2, coord='gse', trange=trange
 mag_data = 'thc_fgl_gse'
 
 ; Shock frame rotation
-shock_l = [-0.166, 0.494, 0.853] ; (x,y,z) (l) From Gedalin (B.1)
+shock_l = [-0.166, 0.494, 0.853]
 shock_n = [0.972, 0.227, 0.059]
 
 ; === Processing ===
@@ -147,7 +148,7 @@ for r_idx=0,2 do begin
     if CROSSMODE eq 'bulk' then xyzarr2 = slice.bulk / Vs
     if DISPMODE  eq 'bulk' then origin_shift = slice.bulk / Vs    
     if CROSSMODE eq 'max'  then xyzarr2 = [xyzarr[0,0], xyzarr[0,1], xyzarr[1,1]] / Vs
-    if DISPMODE  eq 'max' then origin_shift = xyzarr2
+    if DISPMODE  eq 'max' then origin_shift = xyzarr
   endif  
    if DISPMODE eq 'custom' then origin_shift = cutrom_displacement
    if CROSSMODE eq 'disp' then xyzarr2 = origin_shift
@@ -166,7 +167,6 @@ for r_idx=0,2 do begin
     stitle = string(format='(%"%s-%s")', time_string(time, TFORMAT='hh:mm:ss'), time_string(time+secwin, TFORMAT='hh:mm:ss'))
         
     disp = origin_shift * Vs 
-    if CORDSYS eq 'shock' then disp[1] = -1*disp[1] ; It looks like shift rotation it should shift negatively...
     
     thm_part_slice2d, dist_arr, rotation=rotation[c_idx], part_slice=slice, slice_time=time, $
       displacement=disp, _extra = t_struct    
@@ -185,7 +185,7 @@ for r_idx=0,2 do begin
     pid =   image(log_psd, slice.xgrid, slice.ygrid, position=position, title = letters[c_idx,r_idx] + ') ' + stitle,$
        xtitle = xtitle[c_idx], ytitle = ytitle[c_idx], _extra=i_struct)
     cid = CONTOUR(log_psd, slice.xgrid, slice.ygrid, _extra=c_struct) ;/OVERPLOT       
-    if CROSSMODE ne 'none' then ppid = PLOT([xyzarr2[c_idx/2]], [xyzarr2[(c_idx+1)/2+1]], symbol='+',SYM_SIZE=2.5,/overplot) ; the math behgind the indexes is based on int devision => 3/2 = 1
+    if CROSSMODE ne 'none' then ppid = PLOT([xyzarr2[c_idx/2]], [xyzarr2[(c_idx+1)/2+1]], symbol='+',SYM_SIZE=2.5,/overplot) ; the math behind the indexes is based on int devision => 3/2 = 1
     tid = text(x2-0.15, y1+0.02, string(format='(%"%s = %5.2f")',ztitle[c_idx],origin_shift[2-c_idx]))
   endfor
   c=COLORBAR(target=pid,ORIENTATION=1,TAPER=0,BORDER=0,MAJOR=5,MINOR=5,TITLE='$Log_{10}('+ psd_str +')$') ;POSITION=[0.97,0.05,0.99,0.45],
