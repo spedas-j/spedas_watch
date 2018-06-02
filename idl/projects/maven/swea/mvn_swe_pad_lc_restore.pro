@@ -20,8 +20,8 @@
 ;       storeTPLOT:         Create tplot varibles
 ;                                                                                                         
 ; $LastChangedBy: xussui $  
-; $LastChangedDate: 2018-05-29 15:51:52 -0700 (Tue, 29 May 2018) $  
-; $LastChangedRevision: 25296 $ 
+; $LastChangedDate: 2018-06-01 11:05:48 -0700 (Fri, 01 Jun 2018) $  
+; $LastChangedRevision: 25310 $ 
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_lc_restore.pro $     
 ; 
 ;CREATED BY:    Tristan Weber
@@ -97,7 +97,7 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
     endfor
     
     ;Trim Data
-    inTimeRange = where(padTopoCombined[*].time ge time_double(trange[0]) and padTopoCombined[*].time le time_double(trange[-1]), numInRange)
+    inTimeRange = where(padTopoCombined[*].time ge time_double(trange[0]) and padTopoCombined[*].time le time_double(trange[1]), numInRange)
     if numInRange eq 0 then begin
       print, 'No Data in Time Range!'
       return

@@ -18,9 +18,9 @@
 ;
 ;       TPLOT:         Create tplot varible for region id "reg_id"
 ;       
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-05-04 16:10:41 -0700 (Fri, 04 May 2018) $
-; $LastChangedRevision: 25167 $
+; $LastChangedBy: xussui $
+; $LastChangedDate: 2018-06-01 11:10:55 -0700 (Fri, 01 Jun 2018) $
+; $LastChangedRevision: 25313 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_regid_restore.pro $
 ;
 ;CREATED BY:    Shaosui Xu  11-17-17
@@ -61,7 +61,8 @@ Pro mvn_swe_regid_restore,trange,results=results,tplot=tplot,orbit=orbit
 
     for j=0,nfiles-1 do begin
         restore,filename=file[j]
-        id=[temporary(id),regid]
+        if (size(id, /type) eq 0) then id=regid $
+           else id=[temporary(id),regid]
      endfor
     intx=where(id.time ge tmin and id.time le tmax,count)
     if (count eq 0) then begin
