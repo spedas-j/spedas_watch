@@ -45,7 +45,7 @@
 
 
 
-function spp_swp_spe_hkp_apdat::decom,ccsds , ptp_header=ptp_header, apdat=apdat
+function spp_swp_spe_hkp_apdat::decom,ccsds ,source_dict=source_dict   ;, ptp_header=ptp_header, apdat=apdat
 
 ;  if  ~keyword_set(apdat.data_array) then   apdat.data_array = dynamicarray(name='hkp_')
 ;

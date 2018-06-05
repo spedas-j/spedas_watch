@@ -62,7 +62,7 @@ end
 ;
 
 
-function spp_swp_swem_timing_apdat::decom ,ccsds,header,ptp_header=ptp_header   ;,apdat=apdat
+function spp_swp_swem_timing_apdat::decom ,ccsds,  source_dict=source_dict  ;,header,ptp_header=ptp_header   ;,apdat=apdat
 
 if n_params() eq 0 then begin
   dprint,'Not working yet.'

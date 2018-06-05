@@ -15,8 +15,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-10 10:41:33 -0700 (Thu, 10 May 2018) $
-;$LastChangedRevision: 25192 $
+;$LastChangedDate: 2018-06-04 10:13:39 -0700 (Mon, 04 Jun 2018) $
+;$LastChangedRevision: 25319 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/common/icon_netcdf_load_vars.pro $
 ;
 ;-------------------------------------------------------------------
@@ -50,9 +50,11 @@ function icon_netcdf_load_vars, ncfile
     id_unlimited_dim = inquire.recdim
     ; check that the data dimension is greater than zero
     ;;;dimensionid = ncdf_dimid(file, 'record')
-    dimensionid = ncdf_dimid(file, 'Epoch')
-    if(dimensionid eq -1) then dimensionid = ncdf_dimid(file,'EPOCH')
+    dimensionid = ncdf_dimid(file, 'EPOCH')
+    if(dimensionid eq -1) then dimensionid = ncdf_dimid(file,'Epoch')
     if(dimensionid eq -1) then dimensionid = ncdf_dimid(file,'epoch')
+
+    if(dimensionid eq 0) then dimensionid = 1
 
     dims = {dimid:0,name:'',size:0l}
     ;    gdims = replicate(dims,ndims)
@@ -190,12 +192,12 @@ function icon_netcdf_load_vars, ncfile
         ; Concatenate arrays
         d_old = size(olddata, /N_DIMENSIONS)
         d_new = size(value, /N_DIMENSIONS)
-        if d_old eq d_new then begin
+        if (d_old eq d_new) or ((d_old - d_new) eq 1) then begin
           newdata = []
-          if d_old eq 1 then begin
+          if varinq.ndims eq 1 then begin
             newdata = [olddata, value]
             newsize = n_elements(newdata)
-          endif else if d_old eq 2 then begin
+          endif else if varinq.ndims eq 2 then begin
             d2_old = size(olddata, /DIMENSIONS)
             d2_new = size(value, /DIMENSIONS)
             if d2_old[0] eq d2_new[0] then begin
@@ -203,7 +205,7 @@ function icon_netcdf_load_vars, ncfile
               d2_c = size(newdata, /DIMENSIONS)
               newsize = d2_c[1]
             endif
-          endif else if d_old eq 3 then begin
+          endif else if varinq.ndims eq 3 then begin
             d3_old = size(olddata, /DIMENSIONS)
             d3_new = size(value, /DIMENSIONS)
             if (d3_old[0] eq d3_new[0]) and (d3_old[1] eq d3_new[1]) then begin
@@ -214,7 +216,6 @@ function icon_netcdf_load_vars, ncfile
           endif else begin
             print, 'Error in icon_netcdf_load_vars: Could not concatenate days, variable:', varinq.name
           endelse
-
 
           ptr_free, netCDFi.vars.(i).dataptr
           netCDFi.vars.(i).dataptr = ptr_new(newdata)

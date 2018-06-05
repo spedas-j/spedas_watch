@@ -1,6 +1,6 @@
 
  
-function spp_swp_moments_apdat::decom,ccsds,header
+function spp_swp_moments_apdat::decom,ccsds,source_dict=source_dict
  
 ; this routine is a place holder...
    

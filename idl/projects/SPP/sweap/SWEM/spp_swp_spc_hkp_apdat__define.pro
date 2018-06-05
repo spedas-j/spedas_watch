@@ -1,11 +1,11 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-05-09 10:59:40 -0700 (Wed, 09 May 2018) $
-; $LastChangedRevision: 25187 $
+; $LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $
+; $LastChangedRevision: 25316 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_spc_hkp_apdat__define.pro $
 
 
 
-function spp_swp_spc_hkp_apdat::decom,ccsds,header,ptp_header=ptp_header,apdat=apdat
+function spp_swp_spc_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
   ccsds_data = spp_swp_ccsds_data(ccsds)
 
   if debug(5) then begin
@@ -13,11 +13,10 @@ function spp_swp_spc_hkp_apdat::decom,ccsds,header,ptp_header=ptp_header,apdat=a
     hexprint,ccsds_data[0:31]
     hexprint,spp_swp_data_select(ccsds_data,80,8)
   endif
-  
-  dprint,'spc',dlevel=5
-  
+    
   flt=1.
   str = {time:ccsds.time,  $
+         met: ccsds.met,   $
          seqn:    ccsds.seqn,$
          cmd_ctr:      spp_swp_data_select(ccsds_data, 96 ,8  ) , $
          err_ctr:      spp_swp_data_select(ccsds_data, 104 ,8  ) , $

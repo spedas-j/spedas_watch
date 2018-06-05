@@ -1,20 +1,16 @@
-function spp_swp_log_msg_apdat::decom,ccsds, ptp_header=ptp_header   ;, apdat=apdat,dlevel=dlevel
+function spp_swp_log_msg_apdat::decom,ccsds, source_dict=source_dict     ; ptp_header=ptp_header   ;, apdat=apdat,dlevel=dlevel
 
   ;printdat,ccsds
   ;time=ccsds.time
   ;printdat,ptp_header
   ;hexprint,ccsds.data
 
-  if n_params() eq 0 then begin
-    dprint,'Not working yet.',dlevel=2
-    return,!null
-  endif
 
 ;  dprint,ptp_header.ptp_time - ccsds.time,'  '+time_string(ptp_header.ptp_time),dlevel=4
+  if source_dict.haskey('ptp_header') then ptp_header = source_dict.ptp_header
   if keyword_set(ptp_header) then ccsds.time = ptp_header.ptp_time   ; Correct the time
   
-  
-  
+ 
  ; time = ptp_header.ptp_time   ;  log message packets have a bug - the MET is off by ten years
   ccsds.time= ccsds.time - 315619200 + 12*3600L ;log message packets produced by GSEOS have a bug - the MET is off by ten years -12 hours
  ; printdat,ptp_header
@@ -32,7 +28,12 @@ function spp_swp_log_msg_apdat::decom,ccsds, ptp_header=ptp_header   ;, apdat=ap
     bstr = bstr[w]
   endif
   msg = string(bstr)
-  dprint,dlevel=self.dlevel+2,time_string(time)+  ' "'+msg+'"'
+  tmsg = time_string(time)+  ' "'+msg+'"'
+  dprint,dlevel=self.dlevel+2,tmsg
+  if self.output_lun ne 0 then begin
+    printf,self.output_lun,tmsg
+    flush,self.output_lun
+  endif
   str={time:time,seqn:ccsds.seqn,size:ccsds.pkt_size,msg:msg}
   return,str
 

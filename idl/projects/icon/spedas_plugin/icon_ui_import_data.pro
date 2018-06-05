@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-10 10:41:33 -0700 (Thu, 10 May 2018) $
-;$LastChangedRevision: 25192 $
+;$LastChangedDate: 2018-06-04 10:13:39 -0700 (Mon, 04 Jun 2018) $
+;$LastChangedRevision: 25319 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/spedas_plugin/icon_ui_import_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -58,7 +58,7 @@ pro icon_ui_import_data,     $
   tn_before = [tnames('*',create_time=cn_before)]
 
 
-  if (strupcase(instrument[0]) eq 'FUV') || (strupcase(instrument[0]) eq 'IVM') || (instrument[0] eq '*') then begin
+  if (strupcase(instrument[0]) eq 'FUV') || (strupcase(instrument[0]) eq 'IVM') || (instrument[0] eq '*') || (strupcase(instrument[0]) eq 'EUV') then begin
     statusBar->update,'Load ICON Data'
     icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
   endif else begin

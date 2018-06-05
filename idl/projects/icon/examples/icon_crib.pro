@@ -14,8 +14,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-25 12:51:09 -0700 (Fri, 25 May 2018) $
-;$LastChangedRevision: 25273 $
+;$LastChangedDate: 2018-06-04 10:13:39 -0700 (Mon, 04 Jun 2018) $
+;$LastChangedRevision: 25319 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/examples/icon_crib.pro $
 ;
 ;-------------------------------------------------------------------
@@ -23,7 +23,7 @@
 pro icon_crib, step=step, img_path=img_path
 
   ; Specify a time range
-  timeRange = ['2010-05-23/00:00', '2010-05-23/23:59:59']
+  timeRange = ['2010-05-23/00:00', '2010-05-24/23:59:59']
   ; Specify a directory for images
   if ~keyword_set(img_path) then begin
     if (!D.NAME eq 'WIN') then img_path = 'C:\temp\icon\' else img_path = 'temp/icon/'

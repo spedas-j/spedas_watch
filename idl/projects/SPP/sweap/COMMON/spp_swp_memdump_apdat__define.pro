@@ -2,7 +2,7 @@
 
  
  
-function spp_swp_memdump_apdat::decom,ccsds,header
+function spp_swp_memdump_apdat::decom,ccsds,source_dict=source_dict
 
   ccsds_data = spp_swp_ccsds_data(ccsds)
   
@@ -90,7 +90,7 @@ end
 
 function spp_swp_memdump_apdat::init,apid,name,_extra=ex
   valid = self->spp_gen_apdat::Init(apid,name,_EXTRA=ex)
-  printdat,apid
+;  printdat,apid
   switch apid of
     '342'x : begin
       self.ccsds_offset = 10

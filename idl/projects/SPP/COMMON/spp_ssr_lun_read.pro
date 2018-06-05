@@ -25,6 +25,8 @@ pro spp_ssr_lun_read,in_lun,out_lun,info=info
   dwait = 10.
   valid_APIDs= bytarr('7ff'x)
   valid_APIDs['7b0'x:'7df'x] = 1b
+  source_dict = dictionary()
+
   
   on_ioerror, nextfile
     info.time_received = systime(1)
@@ -35,6 +37,7 @@ pro spp_ssr_lun_read,in_lun,out_lun,info=info
     remainder = !null
     nbytes = 0
     run_proc = struct_value(info,'run_proc',default=1)
+    source_dict.source_info = info
     while file_poll_input(in_lun,timeout=0) && ~eof(in_lun) do begin
       readu,in_lun,buf,transfer_count=nb
       nbytes += nb
@@ -69,7 +72,7 @@ pro spp_ssr_lun_read,in_lun,out_lun,info=info
       if debug(5) then begin
         hexprint,dlevel=3,ccsds_buf,nbytes=32
       endif
-      if run_proc then   spp_ccsds_pkt_handler,ccsds_buf ,source_info=info  ,ptp_header=ptp_header  
+      if run_proc then   spp_ccsds_spkt_handler,ccsds_buf, source_dict=source_dict  ; ,source_info=info  ,ptp_header=ptp_header  
 
       buf = bytarr(6)
       remainder=!null

@@ -82,7 +82,7 @@ return, str
 end
 
 
-function spp_swp_swem_dhkp_apdat::decom,ccsds,ptp_header=ptp_header
+function spp_swp_swem_dhkp_apdat::decom,ccsds, source_dict=source_dict   ;,ptp_header=ptp_header
 
 if n_params() eq 0 then begin
   dprint,'Not working yet.'

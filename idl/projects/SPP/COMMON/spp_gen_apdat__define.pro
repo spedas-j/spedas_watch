@@ -15,9 +15,8 @@ self.dlevel = 2
 ;self.sort_flag = 1
 self.last_data_p = ptr_new(!null)
 if keyword_set(name) then self.name  =name
-self.ccsds_last = ptr_new(/allocate_heap)
-;self.ccsds_array = obj_new('dynamicarray')
-self.data = obj_new('dynamicarray',name = self.name)
+self.ccsds_last = ptr_new(!null)
+self.data = dynamicarray(name=self.name)
 if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=2
 IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
 RETURN, 1
@@ -92,35 +91,71 @@ END
 
 
 
-
-function spp_gen_apdat::decom,ccsds,header
-;if typename(ccsds) eq 'BYTE' then return,  self.spp_gen_apdat( spp_swp_ccsds_decom(ccsds) )  ;; Byte array as input
-
-strct = ccsds
-  strct.pdata = ptr_new()
-ap = self.struct()
-if self.routine then  strct = call_function(self.routine,ccsds, ptp_header=header ,apdat = ap) 
-dprint,dlevel=self.dlevel+3,phelp=2,strct
-
-return,strct
-end
-
-
 pro spp_gen_apdat::increment_counters,ccsds
   self.npkts += 1
   self.nbytes += ccsds.pkt_size
   if ccsds.seqn_delta gt 1 then self.lost_pkts += (ccsds.seqn_delta -1)
-;  if ccsds.time_delta eq 0 then self.print
+  ;  if ccsds.time_delta eq 0 then self.print
   self.drate = ccsds.pkt_size / ( ccsds.time_delta > .001)
   *self.ccsds_last = ccsds
 end
 
 
 
-
-pro spp_gen_apdat::handler,ccsds,header,source_info=source_info
+function spp_gen_apdat::decom_aggregate,ccsds0,source_dict=source_dict
   
-  strct = self.decom(ccsds)
+  n = ccsds0.aggregate
+
+  if n ne 0 then begin
+    buffer  = spp_swp_ccsds_data(ccsds0)
+    ccsds = ccsds0
+    ccsds.aggregate =0
+    ccsds.pdata = ptr_new(!null)
+    strcts = !null
+    new_header = buffer[0:17]
+    data_size = (ccsds.pkt_size - 18) / n
+    dprint,'aggregate:',n,data_size,ccsds0.apid,dlevel=self.dlevel+3
+    delt = .87               ; needs fixing
+    delseqn = 1                               ; needs fixing
+    for i=0,n-1 do begin
+      new_buffer= [new_header,buffer[18+i*data_size:18+i*data_size+data_size-1]]
+      *ccsds.pdata = new_buffer
+      ccsds.pkt_size = data_size +18
+      pkt_size_m7= ccsds.pkt_size -7
+      new_buffer[4] = ishft(pkt_size_m7 , 8)    ; fix pkt_size in header - may not be needed!
+      new_buffer[5] = pkt_size_m7 and 255
+      ccsds.seqn = ccsds0.seqn + i *  delseqn
+      ccsds.met = ccsds0.met + i * delt
+      strct = self.decom(ccsds,source_dict=source_dict ) 
+      if not isa(strcts) then strcts = replicate(strct,n)
+      strcts[i] = strct
+      if debug(self.dlevel+3) then hexprint,new_buffer,ncol=32+20
+    endfor
+    ptr_free,ccsds.pdata
+    return,strcts
+  endif else begin
+    return, self.decom( ccsds ,source_dict=source_dict )
+  endelse
+end
+
+
+function spp_gen_apdat::decom,ccsds,source_dict=source_dict   ;header
+
+strct = ccsds
+strct.pdata = ptr_new()
+ap = self.struct()
+if self.routine then  strct = call_function(self.routine,ccsds,source_dict=source_dict)   ;, ptp_header=header ,apdat = ap) 
+dprint,dlevel=self.dlevel+3,phelp=2,strct
+
+return,strct
+end
+
+
+
+
+pro spp_gen_apdat::handler,ccsds,source_dict=source_dict ;,header,source_info=source_info
+  
+  if not self.ignore_flag then strct = self.decom(ccsds,source_dict=source_dict)
   if keyword_set(strct) then  *self.last_data_p= strct
 
 ;if ccsds.seq_group ne 3 then self.help   ;dprint,dlevel=2,ccsds.seq_group,ccsds.apid
@@ -164,8 +199,8 @@ end
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-05-28 23:22:17 -0700 (Mon, 28 May 2018) $
-; $LastChangedRevision: 25287 $
+; $LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $
+; $LastChangedRevision: 25316 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 function spp_gen_apdat::sw_version
@@ -182,8 +217,8 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-05-28 23:22:17 -0700 (Mon, 28 May 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 25287 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 25316 $'
 
   return,sw_hash
 end
@@ -226,8 +261,8 @@ function spp_gen_apdat::cdf_global_attributes
 ;  global_att['SW_RUNTIME'] =  time_string(systime(1)) 
 ;  global_att['SW_RUNBY'] = 
 ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-05-28 23:22:17 -0700 (Mon, 28 May 2018) $'
-;  global_att['SVN_REVISION'] = '$LastChangedRevision: 25287 $'
+;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $'
+;  global_att['SVN_REVISION'] = '$LastChangedRevision: 25316 $'
 
 return,global_att
 end
@@ -365,6 +400,7 @@ void = {spp_gen_apdat, $
   rt_flag: 0b, $
   save_flag: 0b, $
   sort_flag: 0b, $
+  ignore_flag: 0b, $
   routine:  '', $
   tname: '',  $
   ttags: '',  $
@@ -375,6 +411,7 @@ void = {spp_gen_apdat, $
   window_obj: obj_new(), $
   cdf_pathname:'', $
   cdf_tagnames:'', $
+  output_lun: 0, $
   dlevel: 0  $
   }
 END

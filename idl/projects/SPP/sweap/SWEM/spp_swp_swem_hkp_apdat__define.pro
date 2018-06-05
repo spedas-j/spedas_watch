@@ -1,6 +1,6 @@
 
 
-function spp_swp_swem_hkp_apdat::decom,ccsds,header,ptp_header=ptp_header
+function spp_swp_swem_hkp_apdat::decom,ccsds, source_dict=source_dict  ; header,ptp_header=ptp_header
 
 
 if n_params() eq 0 then begin
@@ -10,9 +10,6 @@ endif
 
 
 ccsds_data = spp_swp_ccsds_data(ccsds)
-
-;if typename(ccsds) eq 'CCSDS_FORMAT' then data = *ccsds.pdata  else data=ccsds.data
-;data = ccsds.data
 
 if ccsds.pkt_size lt 42 then begin
   if debug(2) then begin

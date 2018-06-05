@@ -556,6 +556,28 @@ event_string= [ $
   '    EVT_SSR_CMD_MEM_PART_ALLOCATION_ERROR,'   , $
   '    EVT_CDI_MEM_PART_ALLOCATION_ERROR,'   , $
   '    EVT_SPC_Q_POST_ERROR,' , $
+  'EVT_extra_0' , $
+  'EVT_extra_1' , $
+  'EVT_extra_2' , $
+  'EVT_extra_3' , $
+  'EVT_extra_4' , $
+  'EVT_extra_5' , $
+'EVT_SWEAP_POWERUP' , $  ; 0X22F
+'EVT_SPC_STARTUP' , $
+'EVT_SPI_STARTUP' , $  ; 0x231
+'EVT_SPE_STARTUP' , $
+'EVT_XXX_STARTUP' , $  ; 0X233
+'EVT_SPI_CONFIG_MODE' , $   ; 0X234
+'EVT_SPE_CONFIG_MODE' , $   ; 0X235
+'EVT_USER_07 236' , $
+'EVT_USER_08 237' , $
+'EVT_USER_09 238' , $
+'EVT_USER_10 239' , $
+'EVT_USER_11 23A' , $
+'EVT_USER_12 23B' , $
+'EVT_USER_13 23C' , $
+'EVT_USER_14 23D' , $
+'EVT_USER_15 23E' , $ 
   '????  Unknown ??????'  ]
 return, event_string
 end
@@ -573,7 +595,7 @@ function spp_swp_swem_events_apdat::display_string, strct
 end
  
  
-function spp_swp_swem_events_apdat::decom,ccsds,header
+function spp_swp_swem_events_apdat::decom,ccsds  ,source_dict = source_dict  ;,header
 
   common spp_swp_swem_events_apdat_com, event_str
   if n_elements(event_str) eq 0 then event_str=strtrim(spp_swp_swem_events_strings(),2)
@@ -614,8 +636,13 @@ function spp_swp_swem_events_apdat::decom,ccsds,header
   if debug(self.dlevel+2) then $
     for i = 0, n_elements(strcts)-1 do begin
     s = strcts[i]
+    strng = string( format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s )
     if s.code ne 278 then $
-      dprint,dlevel=self.dlevel+2,format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s
+      dprint,dlevel=self.dlevel+2,strng
+    if self.output_lun ne 0 then begin
+      printf,self.output_lun,strng
+      flush,self.output_lun
+    endif
   endfor
   return,strcts
 end

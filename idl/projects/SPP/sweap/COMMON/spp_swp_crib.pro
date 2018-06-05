@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-05-29 08:33:28 -0700 (Tue, 29 May 2018) $
-; $LastChangedRevision: 25294 $
+; $LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $
+; $LastChangedRevision: 25316 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_crib.pro $
 ;spp_swp_crib
 ;
@@ -32,14 +32,13 @@ ratesformat = output_prefix+ 'cdf/YYYY/MM/DD/spp_spi_rates_L1_YYYYMMDD.cdf'
 output_prefix = 'spp/data/sci/sweap/prelaunch/test5/SSR/'
 ratesformat = output_prefix+ 'spanai/cdf/YYYY/MM/DD/spp_spi_rates_L1_YYYYMMDD_v??.cdf'
 
-
 ; go get the data from the website
 cdffiles = spp_file_retrieve(ratesformat,trange=trange,/daily_names)
-
+print,transpose(cdffiles)   ;print  the file names
 
 ; Run the same routne a second time to show that files only get downloaded as needed
+cdffiles = spp_file_retrieve(ratesformat,trange=trange,/daily_names)
 
-print,transpose(cdffiles)   ;display the files
 
 ;I don't yet have a spanai specific load routine.  Now using the generic version and load all '*' data .
 cdf2tplot,cdffiles,varformat = '*',prefix='psp_swp_spi_rates_
@@ -50,12 +49,26 @@ tplot,'psp_*_CNTS'
 
 ylim,'psp_*_CNTS',1,10000,/log
 
+tplot
+
 options,'psp_*_CNTS',spec=1
 ylim,'psp_*_CNTS'
 zlim,'psp_*_CNTS',1,1e4,1
 
-tplot
+tplot     ; replot
 
 tlimit, ['2020-07-17/21:54:00', '2020-07-18/09:56:00']
+
+tlimit    ; use cross hairs to zoom in
+
+tlimit,/last   ;  switch to last used tlimit
+
+
+;Get some different (housekeeping) data:
+ratesformat = output_prefix+ 'spanai/cdf/YYYY/MM/DD/spp_spi_hkp_L1_YYYYMMDD_v??.cdf'
+cdffiles = spp_file_retrieve(ratesformat,trange=trange,/daily_names)
+;I don't yet have a spanai specific load routine.  Now using the generic version and load all '*' data .
+cdf2tplot,cdffiles,varformat = '*',prefix='psp_swp_spi_hkp_'
+
 
 

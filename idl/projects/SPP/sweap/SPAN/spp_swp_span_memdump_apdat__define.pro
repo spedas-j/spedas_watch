@@ -2,7 +2,7 @@
 
  
  
-function spp_swp_span_memdump_apdat::decom,ccsds,header
+function spp_swp_span_memdump_apdat::decom, source_dict=source_dict   ;,ccsds,header
 
   ccsds_data = spp_swp_ccsds_data(ccsds)
   
@@ -110,6 +110,7 @@ end
  
 PRO spp_swp_span_memdump_apdat__define
 
+message,'Obsolete'
 ram_size = 2 * 2ul^20  ; 2 megabytes
 void = {spp_swp_span_memdump_apdat, $
   inherits spp_gen_apdat, $    ; superclass

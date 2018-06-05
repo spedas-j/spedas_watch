@@ -1,5 +1,5 @@
 ;; Slow Housekeeping
-function spp_swp_spi_hkp_apdat::decom,   ccsds ,   ptp_header=ptp_header,   apdat=apdat
+function spp_swp_spi_hkp_apdat::decom,   ccsds , source_dict=source_dict    ;  ptp_header=ptp_header,   apdat=apdat
 
   if n_params() eq 0 then begin
     dprint,'Not working yet.'
