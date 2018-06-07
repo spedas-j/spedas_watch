@@ -14,7 +14,8 @@ function spp_swp_swemulator_apdat::decom , ccsds, source_dict=source_dict
 
    f0 = v[0]
    met = V[1] * 2d^16 + V[2]  + V[3]/(2d^16)
-   time=spp_spc_met_to_unixtime(met)
+   time=spp_spc_met_to_unixtime(met+1527806500)   ; note that swemulator MET is incorrect
+   ;print,time, round(ptp_header.ptp_time -MET),round(systime(1) -MET),'  ',time_string(ptp_header.ptp_time),'  ',time_string(time)
    if keyword_set(ptp_header) then delay_ptp = ptp_header.ptp_time - time else delay_ptp = !values.d_nan
    delay_ccsds = ccsds.time - time
 

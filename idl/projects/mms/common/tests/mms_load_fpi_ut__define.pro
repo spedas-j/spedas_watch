@@ -10,8 +10,8 @@
 ; 
 ; 
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-06-01 12:01:17 -0700 (Fri, 01 Jun 2018) $
-; $LastChangedRevision: 25315 $
+; $LastChangedDate: 2018-06-06 09:07:27 -0700 (Wed, 06 Jun 2018) $
+; $LastChangedRevision: 25334 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_load_fpi_ut__define.pro $
 ;-
 
@@ -209,7 +209,7 @@ end
 ; tplotnames regressions
 function mms_load_fpi_ut::test_loading_tplotnames_desmoms
   mms_load_fpi, trange=['2015-10-15', '2015-10-16'], datatype='des-moms', tplotnames = tplotnames
-  assert, n_elements(tplotnames) eq 39, '(potential) Problem with number of tplotnames returned from mms_load_fpi'
+  assert, n_elements(tplotnames) eq 41, '(potential) Problem with number of tplotnames returned from mms_load_fpi'
   return, 1
 end
 
@@ -221,7 +221,7 @@ end
 
 function mms_load_fpi_ut::test_loading_tplotnames_des
   mms_load_fpi, trange=['2015-10-15', '2015-10-16'], datatype=['des-moms', 'des-dist'], tplotnames = tplotnames
-  assert, n_elements(tplotnames) eq 49, '(potential) Problem with number of tplotnames returned from mms_load_fpi'
+  assert, n_elements(tplotnames) eq 51, '(potential) Problem with number of tplotnames returned from mms_load_fpi'
   return, 1
 end
 

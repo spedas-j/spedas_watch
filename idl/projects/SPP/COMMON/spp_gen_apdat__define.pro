@@ -115,7 +115,7 @@ function spp_gen_apdat::decom_aggregate,ccsds0,source_dict=source_dict
     new_header = buffer[0:17]
     data_size = (ccsds.pkt_size - 18) / n
     dprint,'aggregate:',n,data_size,ccsds0.apid,dlevel=self.dlevel+3
-    delt = .87               ; needs fixing
+    delt = .87 * 2               ; needs fixing
     delseqn = 1                               ; needs fixing
     for i=0,n-1 do begin
       new_buffer= [new_header,buffer[18+i*data_size:18+i*data_size+data_size-1]]
@@ -126,6 +126,7 @@ function spp_gen_apdat::decom_aggregate,ccsds0,source_dict=source_dict
       new_buffer[5] = pkt_size_m7 and 255
       ccsds.seqn = ccsds0.seqn + i *  delseqn
       ccsds.met = ccsds0.met + i * delt
+      ccsds.time = ccsds0.time + i * delt
       strct = self.decom(ccsds,source_dict=source_dict ) 
       if not isa(strcts) then strcts = replicate(strct,n)
       strcts[i] = strct
@@ -154,6 +155,11 @@ end
 
 
 pro spp_gen_apdat::handler,ccsds,source_dict=source_dict ;,header,source_info=source_info
+  
+  ;dprint,dlevel=self.dlevel,'hi',self.apid,self.dlevel
+  if debug(self.dlevel+3,msg='handler') then begin
+    hexprint,*ccsds.pdata
+  endif
   
   if not self.ignore_flag then strct = self.decom(ccsds,source_dict=source_dict)
   if keyword_set(strct) then  *self.last_data_p= strct
@@ -199,8 +205,8 @@ end
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $
-; $LastChangedRevision: 25316 $
+; $LastChangedDate: 2018-06-06 04:49:16 -0700 (Wed, 06 Jun 2018) $
+; $LastChangedRevision: 25330 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 function spp_gen_apdat::sw_version
@@ -217,8 +223,8 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 25316 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-06-06 04:49:16 -0700 (Wed, 06 Jun 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 25330 $'
 
   return,sw_hash
 end
@@ -261,8 +267,8 @@ function spp_gen_apdat::cdf_global_attributes
 ;  global_att['SW_RUNTIME'] =  time_string(systime(1)) 
 ;  global_att['SW_RUNBY'] = 
 ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $'
-;  global_att['SVN_REVISION'] = '$LastChangedRevision: 25316 $'
+;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-06-06 04:49:16 -0700 (Wed, 06 Jun 2018) $'
+;  global_att['SVN_REVISION'] = '$LastChangedRevision: 25330 $'
 
 return,global_att
 end

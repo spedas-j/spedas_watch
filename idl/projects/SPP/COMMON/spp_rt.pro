@@ -21,7 +21,10 @@ function spp_rt,t,min=min,max=max,range=range,reset=reset
      tt=!values.d_nan 
    endif
    if tt lt allowed[0] then begin 
-     dprint,dlevel=4,"Early time: "+time_string(tt)+' Ignored'  ; warning this dprint statement will slow processing
+     if debug(4) then begin
+       dprint,dlevel=4,"Early time: "+time_string(tt)+' Ignored'  ; warning this dprint statement will slow processing
+       help,/trace
+     endif
      tt=!values.d_nan 
    end
    samples[npoints++ mod sze] = tt

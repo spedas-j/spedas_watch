@@ -12,7 +12,9 @@ function spp_swp_log_msg_apdat::decom,ccsds, source_dict=source_dict     ; ptp_h
   
  
  ; time = ptp_header.ptp_time   ;  log message packets have a bug - the MET is off by ten years
-  ccsds.time= ccsds.time - 315619200 + 12*3600L ;log message packets produced by GSEOS have a bug - the MET is off by ten years -12 hours
+ ; ccsds.time= ccsds.time - 315619200 + 12*3600L ;log message packets produced by GSEOS have a bug - the MET is off by ten years -12 hours
+  ; Bug corrected around June 2018
+  
  ; printdat,ptp_header
  ;printdat,ccsds
   time = ccsds.time

@@ -3,7 +3,7 @@
 pro spp_ccsds_spkt_handler,dbuffer, source_dict = source_dict , wrap_ccsds=wrap_ccsds
 
   
-    ccsds = spp_swp_ccsds_decom(dbuffer,wrap_ccsds=wrap_ccsds,dlevel=4)
+    ccsds = spp_swp_ccsds_decom(dbuffer,wrap_ccsds=wrap_ccsds,dlevel=2)
     if ~keyword_set(ccsds) then begin
       if debug(2) then begin
         dprint,dlevel=2,'Invalid CCSDS'

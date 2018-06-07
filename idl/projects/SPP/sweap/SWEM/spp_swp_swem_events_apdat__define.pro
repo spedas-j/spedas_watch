@@ -632,18 +632,25 @@ function spp_swp_swem_events_apdat::decom,ccsds  ,source_dict = source_dict  ;,h
       strcts = [strcts,strct]
     endfor
   endif else dprint,dlevel=self.dlevel,'Invalid EVENT packet length: ',ccsds.pkt_size
-;  savetomain,strcts
-  if debug(self.dlevel+2) then $
+  ;  savetomain,strcts
+  if 1 then begin
     for i = 0, n_elements(strcts)-1 do begin
-    s = strcts[i]
-    strng = string( format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s )
-    if s.code ne 278 then $
-      dprint,dlevel=self.dlevel+2,strng
-    if self.output_lun ne 0 then begin
-      printf,self.output_lun,strng
-      flush,self.output_lun
-    endif
-  endfor
+      s = strcts[i]
+      strng = string( format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s )
+      if self.output_lun ne 0 then begin
+        printf,self.output_lun,strng
+        flush,self.output_lun
+      endif
+    endfor    
+  endif
+  if debug(self.dlevel+2) then begin
+    for i = 0, n_elements(strcts)-1 do begin
+      s = strcts[i]
+      strng = string( format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s )
+      if s.code ne 278 then $
+        dprint,dlevel=self.dlevel+2,strng
+    endfor
+  endif
   return,strcts
 end
 

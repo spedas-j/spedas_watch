@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_spe_prod_apdat
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-06-03 21:24:48 -0700 (Sun, 03 Jun 2018) $
-; $LastChangedRevision: 25318 $
+; $LastChangedDate: 2018-06-06 14:13:49 -0700 (Wed, 06 Jun 2018) $
+; $LastChangedRevision: 25335 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/spp_swp_spe_prod_apdat__define.pro $
 ;-
 
@@ -200,14 +200,18 @@ function hex,i
  return, string(format='(Z)',i)
 end
 
+
+
 pro spp_swp_spe_prod_apdat::handler,ccsds,source_dict = source_dict   ;,ptp_header,source_info=source_info
 
   strcts = self.decom(ccsds)
   if debug(self.dlevel+4,msg='hello') then begin
-    dprint,self.apid
+    dprint,self.apid,strcts.ndat
     ccsds_data = spp_swp_ccsds_data(ccsds)
-    hexprint,ccsds_data
+    ;hexprint,ccsds_data
   endif
+  
+;  print,ns
   
   ns=n_elements(strcts)
   for i=0,ns-1 do begin
@@ -224,7 +228,8 @@ pro spp_swp_spe_prod_apdat::handler,ccsds,source_dict = source_dict   ;,ptp_head
           hexprint, spp_swp_ccsds_data(ccsds)
         endif
       end
-    endcase    
+    endcase  
+    strcts[i] = strct  
   endfor
 
   if self.save_flag && keyword_set(strcts) then begin
@@ -239,7 +244,7 @@ pro spp_swp_spe_prod_apdat::handler,ccsds,source_dict = source_dict   ;,ptp_head
   endif
   
   *self.last_data_p = strct
-  if debug(self.dlevel+3) then begin
+  if debug(self.dlevel+3,msg='hello2') then begin
     ;printdat,ccsds  
     hexprint,(*ccsds.pdata)[0:31]
     

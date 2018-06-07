@@ -22,7 +22,9 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products
     file_open,'r',info.input_sourcename ,unit=lun,dlevel=3,compress=-1
     sizebuf = bytarr(2)
     fi = file_info(info.input_sourcename )
-    dprint,dlevel=2,'Reading file: '+info.input_sourcename+' LUN:'+strtrim(lun,2)+'   Size: '+strtrim(fi.size,2)
+ ;   filename = ulong(strmid(file_basename(files[i]),0,10)))
+    filetime = spp_spc_met_to_unixtime(ulong(strmid(file_basename(files[i]),0,10)))
+    dprint,dlevel=2,'Reading file: '+info.input_sourcename+' LUN:'+strtrim(lun,2)+'   Size: '+strtrim(fi.size,2)+time_string(filetime,tformat='  YYYY-MM-DD/hh:mm:ss (DOY)')
     if lun eq 0 then continue
     spp_ssr_lun_read,lun,info=info
   

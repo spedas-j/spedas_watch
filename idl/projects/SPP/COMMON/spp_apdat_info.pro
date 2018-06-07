@@ -35,6 +35,10 @@ pro spp_apdat_info,apid_description,name=name,verbose=verbose,$
     apdats= all_apdat[apid_description]
     return
   endif
+  
+  if keyword_set(quick) then begin
+    dprint,'Unexpected APID:',apid_description
+  endif
 
   if keyword_set(reset) then begin   ; not recommended!
     obj_destroy,all_apdat,alt_apdat,all_info    ; this might not be required in IDL8.x and above
