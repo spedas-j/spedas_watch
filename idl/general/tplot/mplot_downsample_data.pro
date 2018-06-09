@@ -48,9 +48,9 @@
 ; 
 ;   pulupa
 ;
-; $LastChangedBy: spfuser $
-; $LastChangedDate: 2018-05-29 14:25:32 -0700 (Tue, 29 May 2018) $
-; $LastChangedRevision: 25295 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2018-06-08 15:15:49 -0700 (Fri, 08 Jun 2018) $
+; $LastChangedRevision: 25339 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/mplot_downsample_data.pro $
 ;-
 
@@ -73,36 +73,38 @@ pro mplot_downsample_data, max_points, x, y, dy = dy
     if rev[i] LT rev[i+1] then begin
 
       xdata_pixel = x[rev[rev[i]:(rev[i+1]-1)]]
-      ydata_pixel = y[rev[rev[i]:(rev[i+1]-1)]]
+      ydata_pixel = y[rev[rev[i]:(rev[i+1]-1)],*]
 
       if keyword_set(dy) then dydata_pixel = dy[rev[rev[i]:(rev[i+1]-1)]]
 
-      min_y = min(ydata_pixel, min_ind)
-      max_y = max(ydata_pixel, max_ind)
+      min_y = min(ydata_pixel, min_ind, dim = 1)
+      max_y = max(ydata_pixel, max_ind, dim = 1)
       
-      if xdata_pixel[min_ind] LT xdata_pixel[max_ind] then begin
+      if xdata_pixel[min_ind[0]] LT xdata_pixel[max_ind[0]] then begin
 
-        plot_y = [plot_y, ydata_pixel[min_ind], ydata_pixel[max_ind]]
+        plot_y = [[plot_y], [ydata_pixel[min_ind]], [ydata_pixel[max_ind]]]
 
         if keyword_set(dy) then $
           plot_dy = [plot_dy, dydata_pixel[min_ind], dydata_pixel[max_ind]]
 
-        plot_x = [plot_x, xdata_pixel[min_ind], xdata_pixel[max_ind]]
+        plot_x = [plot_x, xdata_pixel[min_ind[0]], xdata_pixel[max_ind[0]]]
 
       endif else begin
 
-        plot_y = [plot_y, ydata_pixel[max_ind], ydata_pixel[min_ind]]
+        plot_y = [[plot_y], [ydata_pixel[max_ind]], [ydata_pixel[min_ind]]]
 
         if keyword_set(dy) then $
           plot_dy = [plot_dy, dydata_pixel[max_ind], dydata_pixel[min_ind]]
 
-        plot_x = [plot_x, xdata_pixel[max_ind], xdata_pixel[min_ind]]
+        plot_x = [plot_x, xdata_pixel[max_ind[0]], xdata_pixel[min_ind[0]]]
 
       endelse
 
     end
 
   endfor
+
+  if ndimen(plot_y) GT 1 then plot_y = transpose(plot_y)
 
   x = plot_x
   y = plot_y
