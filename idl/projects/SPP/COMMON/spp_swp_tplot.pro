@@ -55,8 +55,8 @@ if keyword_set(name) then begin
     'SC_HV': tplot,'spp_spc_hkp_ADC*'
     'SE_LV': tplot,'*sp?_hkp_RIO*',ADD=ADD
     'SE_SPEC': tplot,'*spa_*ADC_VMON_HEM *spa_SF0_CNTS *spa_*SF1_ANODE_SPEC spp_spa_SF1_NRG_SPEC', ADD=ADD
-    'SA_SPEC': tplot, '*spa_SF0_CNTS spp_spa_SF?_NRG_SPEC spp_spa_SF?_DEF_SPEC', ADD=ADD
-    'SB_SPEC': tplot, '*spb_SF0_CNTS spp_spb_SF?_NRG_SPEC spp_spb_SF?_DEF_SPEC', ADD=ADD
+    'SA_SPEC': tplot, '*spa_SF?_CNTS spp_spa_SF?_NRG_SPEC spp_spa_SF?_DEF_SPEC', ADD=ADD
+    'SB_SPEC': tplot, '*spb_SF?_CNTS spp_spb_SF?_NRG_SPEC spp_spb_SF?_DEF_SPEC', ADD=ADD
 ;    'SB_SPEC': tplot, 'spp_spb_hkp_ADC_VMON_HEM spp_spb_SF0_CNTS spp_spb_SF1_ANODE_SPEC spp_spb_SF1_NRG_SPEC', ADD=ADD
     'SE_A_SPEC': tplot,'*spa_*ADC_VMON_HEM *spa_AF0_CNTS *spa_*AF1_ANODE_SPEC spp_spa_AF1_NRG_SPEC spp_spa_AT0_CNTS spp_spa_AT1_ANODE_SPEC spp_spa_AT1_NRG_SPEC spp_spa_AT1_PEAK_BIN', ADD=ADD
     'SA_A_SPEC': tplot, '*spa_*ADC_VMON_HEM *spa_AF0_CNTS *spa_*AF1_ANODE_SPEC spp_spa_AF1_NRG_SPEC spp_spa_AT0_CNTS spp_spa_AT1_ANODE_SPEC spp_spa_AT1_NRG_SPEC spp_spa_AT1_PEAK_BIN', ADD=ADD
