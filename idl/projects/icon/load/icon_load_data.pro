@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-06-04 10:13:39 -0700 (Mon, 04 Jun 2018) $
-;$LastChangedRevision: 25319 $
+;$LastChangedDate: 2018-06-12 18:19:47 -0700 (Tue, 12 Jun 2018) $
+;$LastChangedRevision: 25351 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -194,7 +194,6 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
     endif
   endif
 
-  ;For testing:
-  print, 'TPLOT variables: '
-  ;tplot_names
+  ;For testing: 
+  ;print, 'TPLOT variables: ', tnames()
 end
