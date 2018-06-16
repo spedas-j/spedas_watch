@@ -28,7 +28,8 @@
 ;       + 2018-01-04, I. Cohen    : fixed if statement for species case of 'proton'
 ;       + 2018-02-05, I. Cohen    : added suffix keyword
 ;       + 2018-02-19, I. Cohen    : added ability to handle multiple species 
-;       + 2018-03-20, I. Cohen    : added combine_proton_data keyword                  
+;       + 2018-03-20, I. Cohen    : added combine_proton_data keyword
+;       + 2018-06-14, I. Cohen    : changed so that if 'combine_proton_data' is set, then only 'combined' data is handled        
 ;
 ;-
 pro mms_eis_pad_combine_sc, probes = probes, trange = trange, species = species, level = level, data_rate = data_rate, $
@@ -41,21 +42,21 @@ pro mms_eis_pad_combine_sc, probes = probes, trange = trange, species = species,
   if not KEYWORD_SET(level) then level = 'l2'
   if not KEYWORD_SET(energy) then energy = [55,800]
   if not KEYWORD_SET(data_units) then data_units = 'flux'
-  if not KEYWORD_SET(datatype) then datatype = 'extof'
   if not KEYWORD_SET(species) then species = 'proton'
   if not KEYWORD_SET(suffix) then suffix = ''
-  if (datatype[0] eq 'electronenergy') then species = 'electron'
   if undefined(combine_proton_data) then combine_proton_data = 0
-  case species of
-    'proton':   if (energy[0] gt 50) and (energy[1] gt 50) then datatype = 'extof' $
+  if undefined(datatype) then begin
+    case species of
+      'proton':   if (energy[0] gt 50) and (energy[1] gt 50) then datatype = 'extof' $
                   else if (energy[0] lt 50) and (energy[1] lt 50) then datatype = 'phxtof' $
                   else begin
-                    if (combine_proton_data eq 1) then datatype = ['combined','phxtof','extof']  else datatype = ['phxtof','extof']
+                    if (combine_proton_data eq 1) then datatype = 'combined' else datatype = ['phxtof','extof']
                   endelse
-    'alpha':      datatype = 'extof'
-    'oxygen':     datatype = 'extof'
-    'electron':   datatype = 'electronenergy'
-  endcase
+      'alpha':    datatype = 'extof'
+      'oxygen':   datatype = 'extof'
+      'electron': datatype = 'electronenergy'
+    endcase
+  endif
   ;
   ; Combine flux from all MMS spacecraft into omni-directional array
   if (data_rate eq 'brst') then allmms_prefix = 'mms'+probes[0]+'-'+probes[-1]+'_epd_eis_brst_' else allmms_prefix = 'mms'+probes[0]+'-'+probes[-1]+'_epd_eis_'
