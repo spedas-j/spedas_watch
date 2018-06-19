@@ -1,6 +1,9 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
-
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2018-06-18 06:06:56 -0700 (Mon, 18 Jun 2018) $
+; $LastChangedRevision: 25363 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/decom/common/spp_swp_ccsds_decom.pro $
 
 ;
 ;function spp_swp_ccsds_data,ccsds
