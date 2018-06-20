@@ -1344,9 +1344,15 @@ pro stel3d_widget, oData, $
     DIMENSIONS = [0.05, 1.5], SHOW_AXIS=2, SHOW_OUTLINE=1, TITLE=mytitle)
   oColorbar->GetProperty, MAJOR=major
   fStep = (max(nrange)-min(nrange))/(major-1)
-  oTickText = obj_new( 'IDLgrText', $
-    strtrim(string(findgen(major)*fStep + min(nrange), FORMAT='(F10.1)'),1), $
-    FONT=oFont )
+  if unit eq 'psd' then begin
+    oTickText = obj_new( 'IDLgrText', $
+      strtrim(string(findgen(major)*fStep + min(nrange), FORMAT='(1E8.0)'),1), $
+      FONT=oFont )
+  endif else begin
+    oTickText = obj_new( 'IDLgrText', $
+      strtrim(string(findgen(major)*fStep + min(nrange), FORMAT='(F10.1)'),1), $
+      FONT=oFont )
+  endelse
 
   oColorbar->SetProperty, $
     TICKTEXT=oTickText, $
