@@ -21,8 +21,8 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-06-18 18:31:20 -0700 (Mon, 18 Jun 2018) $
-;$LastChangedRevision: 25371 $
+;$LastChangedDate: 2018-06-26 16:34:11 -0700 (Tue, 26 Jun 2018) $
+;$LastChangedRevision: 25400 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_isee3d.pro $
 ;-
 
@@ -55,12 +55,12 @@ pro mms_part_isee3d, time=time, probe=probe, level=level, data_rate=data_rate, s
       name = 'mms'+probe+'_d'+species+'s_dist_'+data_rate
       vname = 'mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate
       name = 'mms'+probe+'_d'+species+'s_dist_'+data_rate
-      mms_load_fpi, datatype='d'+species+'s-'+['dist', 'moms'], data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf
+      mms_load_fpi, datatype='d'+species+'s-'+['dist', 'moms'], data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
     endif else if instrument eq 'hpca' then begin
       name = 'mms'+probe+'_hpca_'+species+'_phase_space_density'
       vname = 'mms'+probe+'_hpca_'+species+'_ion_bulk_velocity'
       name = 'mms'+probe+'_hpca_'+species+'_phase_space_density'
-      mms_load_hpca, datatype=['ion', 'moments'], data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf
+      mms_load_hpca, datatype=['ion', 'moments'], data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
     endif else begin
       dprint, dlevel=0, 'Error, unknown instrument; valid options are: fpi, hpca'
       return

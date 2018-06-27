@@ -627,6 +627,10 @@ if time gt time_double('2018-03-24/00:00') then begin					; checked 20180420, SZ
 	e0=2.9 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; vertical wind is is 0m/s in att=2,3 state well determined on inbound
 endif
 
+;********************************************************************************************
+; it is likely that the below e0 values are incorrect due to drifts - no vert_drift=0 calib
+;********************************************************************************************
+
 if time gt time_double('2018-04-01/00:00') then begin					; checked 20180406, SZA=90 rapidly changing, -0.3 to -1.3V = Vsc, 
 	e0=2.7 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; 
 	e0=2.9 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assume horiz wind is zero in att=3 state at periapsis where counts are high
@@ -641,6 +645,7 @@ if time gt time_double('2018-04-09/00:00') then begin					; checked 20180423, SZ
 	e0=3.1 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assume horiz wind is zero in att=3 state at periapsis where counts are high
 endif
 
+
 if time gt time_double('2018-04-14/00:00') then begin					; checked 20180406, SZA=? rapidly changing, -0.3 to -1.3V = Vsc, 
 	e0=2.9 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0
 	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; 
@@ -652,9 +657,105 @@ if time gt time_double('2018-04-16/00:00') then begin					; checked 20180421, SZ
 	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was zero in att=3 for the periapsis that minimizes e0
 endif
 
-if time gt time_double('2018-04-24/00:00') then begin					; checked 20180425, SZA=60 rapidly changing, -0.1 to -1.0V = Vsc, 
+;********************************************************************************************
+; it is likely that deep dip 9 changes e0 values - no vert_drift=0 calib
+;********************************************************************************************
+
+; 2018-04-24		deep dip 9 begins
+
+if time gt time_double('2018-04-24/00:00') then begin					; checked 20180425, SZA=55 rapidly changing, -0.1 to -1.0V = Vsc, 
 	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3 
 endif
+
+if time gt time_double('2018-04-26/00:00') then begin					; checked 20180509, SZA=55 rapidly changing, -0.1 to -1.0V = Vsc, 
+	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3 
+endif
+
+if time gt time_double('2018-04-29/00:00') then begin					; checked 20180510, SZA=52 rapidly changing, -0.1 to -1.0V = Vsc, 
+	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3, e0 might be 3.0 
+endif
+
+; 2018-05-01		deep dip 9 ends
+
+if time gt time_double('2018-05-01/00:00') then begin					; checked 20180507, SZA=55 rapidly changing, -0.1 to -1.0V = Vsc, 
+	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3 
+endif
+
+if time gt time_double('2018-05-01/00:00') then begin					; checked 20180509, SZA=55 rapidly changing, -0.2 to -0.8V = Vsc, 
+	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		;  
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3 
+endif
+
+if time gt time_double('2018-05-04/00:00') then begin					; checked 20180523, SZA=49 rapidly changing, -0.1 to -0.4V = Vsc, 
+;	e0=4.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; assumed 2018-05-08 calibration was correct
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3 
+endif
+
+if time gt time_double('2018-05-05/00:00') then begin					; checked 20180514, SZA=55 rapidly changing, -0.2 to -0.5V = Vsc, 
+	e0=3.1 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3 
+endif
+
+if time gt time_double('2018-05-07/00:00') then begin					; checked 20180512, SZA=50 rapidly changing, -0.1 to -0.1V = Vsc, 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3 
+endif
+
+;********************************************************************************************
+; it is likely that the above e0 values are incorrect starting some time during deep dip 9
+;********************************************************************************************
+
+if time gt time_double('2018-05-08/00:00') then begin					; checked 20180514, SZA=42 rapidly changing, -0.1 to -0.3V = Vsc, 
+	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal last orbit, assumed vert wind was zero in att=3 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal last orbit, assumed vert wind was zero in att=3 
+	e0=3.9 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal last orbit, assumed vert wind was zero in att=3 
+	e0=4.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal last orbit, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-05-10/00:00') then begin					; checked 20180514, SZA=42 rapidly changing, -0.1 to -0.3V = Vsc, 
+;	e0=3.2 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; poorly determined, assumed horiz wind was roughly zero in att=3 
+endif
+
+if time gt time_double('2018-05-11/00:00') then begin					; checked 20180517?, SZA=45 rapidly changing, -0.1 to -0.3V = Vsc, 
+	e0=4.1 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal first orbit, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-05-12/00:00') then begin					; checked 20180517, SZA=45 rapidly changing, -0.1 to -0.3V = Vsc, 
+	e0=4.1 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal first orbit, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-05-18/00:00') then begin					; checked 20180517, SZA=45 rapidly changing, -0.3 to -1.0V = Vsc, 
+	e0=4.1 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1 orbit, assumed vert wind was zero in att=3 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1 orbit, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-05-22/00:00') then begin					; checked 20180517, SZA=? rapidly changing, -? to -?V = Vsc, 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1 orbit, ok determined, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-05-26/00:00') then begin					; checked 20180604, SZA=? rapidly changing, -1.0 to -2.7V = Vsc, 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, ok determined, assumed vert wind was zero in att=3 
+	e0=3.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, ok determined, assumed vert wind was zero in att=3 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.5		; ram horizontal 1st orbit, ok determined, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-05-29/00:00') then begin					; checked 20180603, SZA=? rapidly changing, -? to -?V = Vsc, 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, ok determined, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-06-01/00:00') then begin					; checked 20180608, SZA=54 rapidly changing, -2 to -4V = Vsc, 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 4th orbit, ok determined, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-06-05/00:00') then begin					; checked 20180tbd, SZA=? rapidly changing, -? to -?V = Vsc, 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, ok determined, assumed vert wind was zero in att=3 
+endif
+
+if time gt time_double('2018-06-19/00:00') then begin					; checked 20180tbd, SZA=? rapidly changing, -? to -?V = Vsc, 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, ok determined, assumed vert wind was zero in att=3 
+endif
+
+
+
+
 
 
 

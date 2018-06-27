@@ -58,10 +58,10 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
     str = string(strsplit(extof_vars[0], '_', /extract))
     if (data_rate eq 'brst') then p_num = strmid(str[6],1,1) else p_num = strmid(str[5],1,1)
     ;
-    get_data,eis_prefix+'extof_proton_t0_energy_dminus',data=extof_energy_minus
-    get_data,eis_prefix+'extof_proton_t0_energy_dplus',data=extof_energy_plus
-    get_data,eis_prefix+'phxtof_proton_t0_energy_dminus',data=phxtof_energy_minus
-    get_data,eis_prefix+'phxtof_proton_t0_energy_dplus',data=phxtof_energy_plus
+    get_data,eis_prefix+'extof_proton_t0_energy_dminus'+suffix,data=extof_energy_minus
+    get_data,eis_prefix+'extof_proton_t0_energy_dplus'+suffix,data=extof_energy_plus
+    get_data,eis_prefix+'phxtof_proton_t0_energy_dminus'+suffix,data=phxtof_energy_minus
+    get_data,eis_prefix+'phxtof_proton_t0_energy_dplus'+suffix,data=phxtof_energy_plus
     for aa=0,n_elements(extof_vars)-1 do begin
       ;
       ; Make sure ExTOF and PHxTOF data have the same time dimension
