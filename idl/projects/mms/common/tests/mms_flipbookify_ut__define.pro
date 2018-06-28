@@ -11,10 +11,22 @@
 ;     IDL> mgunit, 'mms_flipbookify_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-05-16 07:12:32 -0700 (Wed, 16 May 2018) $
-; $LastChangedRevision: 25227 $
+; $LastChangedDate: 2018-06-27 15:26:47 -0700 (Wed, 27 Jun 2018) $
+; $LastChangedRevision: 25409 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_flipbookify_ut__define.pro $
 ;-
+
+function mms_flipbookify_ut::test_fpi_subtract_spintone_bulk
+  mms_load_fpi, datatype='des-moms', data_rate='brst', trange=['2015-10-16/13', '2015-10-16/13:10'], /time_clip
+  tplot, ['mms3_des_bulkv_gse_brst', 'mms3_des_energyspectr_omni_brst']
+  mms_flipbookify, probe=3, /subtract_bulk, time_step=1000
+  get_data, 'mms3_dis_bulkv_gse_brst', data=d
+  assert, array_equal(d.Y[0, *], [4.1067505, -17.589445, -52.619148]), 'Problem not subtracting spin-tone'
+  mms_flipbookify, probe=3, /subtract_bulk, /subtract_spintone, time_step=1000
+  get_data, 'mms3_dis_bulkv_gse_brst', data=d
+  assert, array_equal(d.Y[0, *], [-3.0741749, -37.590820, -51.599651]), 'Problem subtracting spin-tone'
+  return, 1
+end
 
 function mms_flipbookify_ut::test_fpi_subtract_err_bulk
   tplot, ['mms1_des_energyspectr_omni_fast', 'mms1_des_bulkv_dbcs_fast', 'mms1_des_pitchangdist_avg']
