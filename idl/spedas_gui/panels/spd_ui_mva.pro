@@ -249,6 +249,9 @@ function mva_ui_load_themis, load_struct
       else:
     endcase
 
+    ; check that data was loaded and if not return err
+    if undefined(tvar) then tvar='err'
+    
     return, tvar
     
 end
@@ -274,6 +277,9 @@ function mva_ui_load_mms, load_struct
     end
     else:
   endcase
+ 
+  ; check that mms data was in fact loaded
+  if undefined(tvar) then tvar='err'
 
   return, tvar
   
@@ -314,6 +320,14 @@ pro spd_ui_mva_event,event
   ENDIF
 
   widget_control, event.handler, Get_UValue=state, /no_copy
+
+  ;kill requests
+  if tag_names(event,/struc) eq 'WIDGET_KILL_REQUEST' then begin
+    thm_ui_slice2d_message,'Widget Killed',hw=state.historywin, /dontshow
+    widget_control, event.top, set_uval=state, /no_copy
+    widget_control, event.top, /destroy
+    return
+  endif
 
   ;Options
   widget_control, event.id, get_uvalue = uval
@@ -460,7 +474,7 @@ pro spd_ui_mva_event,event
          endcase
                    
          ; plot the data if tvar is defined
-         if defined(tvar) then begin
+         if defined(tvar) && tvar NE 'err' then begin
            tplot,  tvar
            ; set the time frame
            state.timeRangeObjplot->getproperty, starttime=starttime, endtime=endtime
@@ -468,7 +482,10 @@ pro spd_ui_mva_event,event
            endtime->getproperty, tdouble=et0, sec=sec
            tlimit, st0, et0
            state.plotWindow = !d.WINDOW
-         endif
+         endif else begin
+           ; remove if statement as soon as mms and cluster data have been implemented
+           if state.mission EQ 'THEMIS' then state.statusbar -> update, 'Data was not loaded. Check data availability.' 
+         endelse
                    
       end
       
@@ -490,7 +507,7 @@ pro spd_ui_mva_event,event
         endcase
 
         ; create the rotation matrix only if data was loaded
-        if defined(tvar) then begin
+        if defined(tvar) && tvar NE 'err' then begin
           tvar_mva_mat = tvar + '_mva_mat'
           tvar_eigen = tvar + '_eigen_val'
           minvar_matrix_make, tvar, tstart=load_struct.timerange[0], tstop=load_struct.timerange[1], $
@@ -508,8 +525,11 @@ pro spd_ui_mva_event,event
           get_data, tvar_lmn, data=d, dlimits=dl, limits=l
           get_data, tvar_eigen, data = d_eigen        
           mva_ui_print_results, state, new_data.y, d_eigen.y, n_elements(d.x), load_struct
-          state.runCount = state.runCount+1
-        endif 
+          state.runCount = state.runCount+1       
+        endif else begin
+          ; remove if statement as soon as mms and cluster data have been implemented
+          if state.mission EQ 'THEMIS' then state.statusbar -> update, 'Data was not loaded. Check data availability.'
+        endelse
                
        end
        
@@ -531,7 +551,7 @@ pro spd_ui_mva_event,event
         endcase
 
         ; create the rotation matrix if data was loaded
-        if defined(tvar) then begin
+        if defined(tvar) && tvar NE 'err' then begin
           tvar_mva_mat = tvar + '_mva_mat'
           tvar_eigen = tvar + '_eigen_val'
           minvar_matrix_make, tvar, tstart=load_struct.timerange[0], tstop=load_struct.timerange[1], $
@@ -560,7 +580,10 @@ pro spd_ui_mva_event,event
           endtime->getproperty, tdouble=et1, sec=sec
           tlimit, st1, et1
           state.mvaWindow = !d.WINDOW
-        endif
+        endif else begin
+          ; remove if statement as soon as mms and cluster data have been implemented
+          if state.mission EQ 'THEMIS' then state.statusbar -> update, 'Data was not loaded. Check data availability.' 
+        endelse
         
       end
 
@@ -836,6 +859,12 @@ pro spd_ui_mva, gui_ID=gui_id, $
   Widget_Control, tlb, Set_UValue=state, /No_Copy
   Widget_Control, tlb, /Realize
 
+  ;keep windows in X11 from snaping back to
+  ;center during tree widget events
+  if !d.NAME eq 'X' then begin
+    widget_control, tlb, xoffset=0, yoffset=0
+  endif
+
   XManager, 'spd_ui_mva', tlb, /No_Block
 
   ;if pointer or struct are not valid the original structure will be unchanged
@@ -843,6 +872,8 @@ pro spd_ui_mva, gui_ID=gui_id, $
     data_structure = *data_ptr
   endif
 
+  heap_gc   ; clean up memory before exit
+  
   RETURN
 
 end

@@ -24,14 +24,14 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-05-07 08:01:20 -0700 (Mon, 07 May 2018) $
-;$LastChangedRevision: 25174 $
+;$LastChangedDate: 2018-06-28 16:15:54 -0700 (Thu, 28 Jun 2018) $
+;$LastChangedRevision: 25418 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
 pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, species=species, instrument=instrument, $
                       trange=trange, subtract_bulk=subtract_bulk, spdf=spdf, rotation=rotation, output=output, $
-                      units=units, _extra=_extra
+                      units=units, subtract_error=subtract_error, _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -62,6 +62,7 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     if instrument eq 'fpi' then begin
       name = 'mms'+probe+'_d'+species+'s_dist_'+data_rate
       vname = 'mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate
+      if keyword_set(subtract_error) then error_variable = 'mms'+probe+'_d'+species+'s_disterr_'+data_rate
       mms_load_fpi, datatype='d'+species+'s-dist', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf
       if load_support then mms_load_fpi, datatype='d'+species+'s-moms', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf
     endif else if instrument eq 'hpca' then begin
@@ -74,7 +75,7 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
       return
     endelse
     
-    dist = mms_get_dist(name, trange=trange, /structure)
+    dist = mms_get_dist(name, trange=trange, subtract_error=subtract_error, error_variable=error_variable, /structure)
     
     if keyword_set(units) then begin
       for dist_idx=0, n_elements(dist)-1 do begin
@@ -85,7 +86,8 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
 
     if ~undefined(time) then undefine, trange
     
-    slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, _extra=_extra)
+    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, _extra=_extra) $ 
+      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, _extra=_extra)
     
     spd_slice2d_plot, slice, _extra=_extra
     output=slice
