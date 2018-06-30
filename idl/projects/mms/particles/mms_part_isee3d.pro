@@ -21,13 +21,13 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-06-26 16:34:11 -0700 (Tue, 26 Jun 2018) $
-;$LastChangedRevision: 25400 $
+;$LastChangedDate: 2018-06-29 10:38:01 -0700 (Fri, 29 Jun 2018) $
+;$LastChangedRevision: 25421 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_isee3d.pro $
 ;-
 
 pro mms_part_isee3d, time=time, probe=probe, level=level, data_rate=data_rate, species=species, instrument=instrument, $
-                      trange=trange, subtract_bulk=subtract_bulk, spdf=spdf, _extra=_extra
+                      trange=trange, subtract_error=subtract_error, spdf=spdf, _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -55,6 +55,7 @@ pro mms_part_isee3d, time=time, probe=probe, level=level, data_rate=data_rate, s
       name = 'mms'+probe+'_d'+species+'s_dist_'+data_rate
       vname = 'mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate
       name = 'mms'+probe+'_d'+species+'s_dist_'+data_rate
+      if keyword_set(subtract_error) then error_variable = 'mms'+probe+'_d'+species+'s_disterr_'+data_rate
       mms_load_fpi, datatype='d'+species+'s-'+['dist', 'moms'], data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
     endif else if instrument eq 'hpca' then begin
       name = 'mms'+probe+'_hpca_'+species+'_phase_space_density'
@@ -66,7 +67,7 @@ pro mms_part_isee3d, time=time, probe=probe, level=level, data_rate=data_rate, s
       return
     endelse
     
-    dist = mms_get_dist(name, trange=trange)
+    dist = mms_get_dist(name, trange=trange, subtract_error=subtract_error, error=error_variable)
     
     data = spd_dist_to_hash(dist)
     

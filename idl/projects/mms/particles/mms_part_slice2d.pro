@@ -24,8 +24,8 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-06-28 16:15:54 -0700 (Thu, 28 Jun 2018) $
-;$LastChangedRevision: 25418 $
+;$LastChangedDate: 2018-06-29 10:37:18 -0700 (Fri, 29 Jun 2018) $
+;$LastChangedRevision: 25420 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
@@ -75,7 +75,7 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
       return
     endelse
     
-    dist = mms_get_dist(name, trange=trange, subtract_error=subtract_error, error_variable=error_variable, /structure)
+    dist = mms_get_dist(name, trange=trange, subtract_error=subtract_error, error=error_variable, /structure)
     
     if keyword_set(units) then begin
       for dist_idx=0, n_elements(dist)-1 do begin
