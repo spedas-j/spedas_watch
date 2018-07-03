@@ -40,8 +40,8 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2017-11-20 14:57:18 -0800 (Mon, 20 Nov 2017) $
-;$LastChangedRevision: 24324 $
+;$LastChangedDate: 2018-07-02 15:32:18 -0700 (Mon, 02 Jul 2018) $
+;$LastChangedRevision: 25432 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/fpi/mms_fpi_ang_ang.pro $
 ;-
 
@@ -182,12 +182,12 @@ pro mms_fpi_ang_ang, time, probe=probe, energy_range=energy_range, data_rate=dat
     if ~undefined(postscript) then popen, 'pad_vs_energy'+filename_suffix, /landscape else window, 4, xsize=xsize, ysize=ysize
 
     if fgm_instrument eq 'dfg' and fgm_level eq 'l2pre' then begin
-      if tnames('mms'+probe+'_dfg_srvy_l2pre_dmpa_bvec') ne '' then b_field = 'mms'+probe+'_dfg_srvy_l2pre_dmpa_bvec' else b_field = 'mms'+probe+'_dfg_b_dmpa_srvy_l2pre_bvec'
-    endif else b_field = 'mms'+probe+'_fgm_b_dmpa_srvy_l2_bvec'
+      if tnames('mms'+probe+'_dfg_srvy_l2pre_gse_bvec') ne '' then b_field = 'mms'+probe+'_dfg_srvy_l2pre_gse_bvec' else b_field = 'mms'+probe+'_dfg_b_gse_srvy_l2pre_bvec'
+    endif else b_field = 'mms'+probe+'_fgm_b_gse_srvy_l2_bvec'
 
 
     if ~undefined(subtract_bulk) then $
-      pad = moka_mms_pad_fpi(*distptr, *disterrptr, time=closest_time, mag_data=b_field, vel_data='mms'+probe+'_d'+species+'s_bulkv_dbcs_'+data_rate, subtract_bulk=subtract_bulk, units=pa_en_units) $
+      pad = moka_mms_pad_fpi(*distptr, *disterrptr, time=closest_time, mag_data=b_field, vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate, subtract_bulk=subtract_bulk, units=pa_en_units) $
     else $
       pad = moka_mms_pad_fpi(*distptr, *disterrptr, time=closest_time, subtract_bulk=0, units=pa_en_units, mag_data=b_field)
 
