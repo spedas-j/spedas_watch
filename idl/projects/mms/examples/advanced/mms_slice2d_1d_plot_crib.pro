@@ -3,8 +3,8 @@
 ;  Crib sheet demonstrating how to create 1D plots of 2D distribution slices created by spd_slice2d
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-03-21 10:43:51 -0700 (Wed, 21 Mar 2018) $
-;$LastChangedRevision: 24922 $
+;$LastChangedDate: 2018-07-03 14:45:13 -0700 (Tue, 03 Jul 2018) $
+;$LastChangedRevision: 25436 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_slice2d_1d_plot_crib.pro $
 ;-
 
@@ -39,7 +39,7 @@ dist = mms_get_dist(name, trange=trange, /subtract_error, error='mms'+probe+'_d'
 mms_load_fpi, data_rate=data_rate, level=level, datatype='d'+species+'s-moms', probe=probe, trange=trange
 mms_load_fgm, probe=probe, trange=trange
 
-slice = spd_slice2d(dist, /two, time=time, rotation='bv', vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate, mag_data='mms'+probe+'_fgm_b_dmpa_srvy_l2_bvec') ;3D interpolation
+slice = spd_slice2d(dist, /two, time=time, rotation='bv', vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate, mag_data='mms'+probe+'_fgm_b_gse_srvy_l2_bvec') ;3D interpolation
 
 ;======================================================================
 ; Create the 1D plots from the slice (x and y directions)
@@ -61,7 +61,7 @@ stop
 ;======================================================================
 
 ;V (BxV) v. VB
-slice = spd_slice2d(dist, /center, samples=1, /two, resolution=150, time=time, rotation='be', vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate, mag_data='mms'+probe+'_fgm_b_dmpa_srvy_l2_bvec') ;3D interpolation
+slice = spd_slice2d(dist, /center, samples=1, /two, resolution=150, time=time, rotation='be', vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate, mag_data='mms'+probe+'_fgm_b_gse_srvy_l2_bvec') ;3D interpolation
 
 ; note: spd_slice1d_plot accepts most keywords the PLOT procedure accepts, e.g., title
 ; the input arguments are slice, direction ('x' or 'y'), value to create the plot at
@@ -79,7 +79,7 @@ stop
 ;======================================================================
 
 ;V (BxV) v. V (VperpB)
-slice = spd_slice2d(dist, /center, samples=1, /two, resolution=150, time=time, rotation='perp', vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate, mag_data='mms'+probe+'_fgm_b_dmpa_srvy_l2_bvec') ;3D interpolation
+slice = spd_slice2d(dist, /center, samples=1, /two, resolution=150, time=time, rotation='perp', vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate, mag_data='mms'+probe+'_fgm_b_gse_srvy_l2_bvec') ;3D interpolation
 
 ; note: spd_slice1d_plot accepts most keywords the PLOT procedure accepts, e.g., title
 ; the input arguments are slice, direction ('x' or 'y'), value to create the plot at
@@ -99,7 +99,7 @@ stop
 ; load velocity data from the moments files
 mms_load_fpi, data_rate=data_rate, level=level, datatype='d'+species+'s-moms', probe=probe, trange=trange
   
-slice = spd_slice2d(dist, time=time, /subtract_bulk, vel_data='mms'+probe+'_d'+species+'s_bulkv_dbcs_brst')
+slice = spd_slice2d(dist, time=time, /subtract_bulk, vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_brst')
 
 spd_slice1d_plot, slice, 'x', 0.0, title='Vx at Vy=0 (bulk V frame)', xrange=[-400, 400]
 
