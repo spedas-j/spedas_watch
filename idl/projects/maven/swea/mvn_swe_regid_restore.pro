@@ -19,8 +19,8 @@
 ;       TPLOT:         Create tplot varible for region id "reg_id"
 ;       
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2018-06-01 11:10:55 -0700 (Fri, 01 Jun 2018) $
-; $LastChangedRevision: 25313 $
+; $LastChangedDate: 2018-07-05 14:32:24 -0700 (Thu, 05 Jul 2018) $
+; $LastChangedRevision: 25442 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_regid_restore.pro $
 ;
 ;CREATED BY:    Shaosui Xu  11-17-17
@@ -43,7 +43,12 @@ Pro mvn_swe_regid_restore,trange,results=results,tplot=tplot,orbit=orbit
     if((size(trange,/type) eq 0) and tspan_exists) then $
         trange=topt.trange_full
 
-    if(size(trange,/type) eq 0) then trange=timerange()
+    if (size(trange,/type) eq 0) then begin
+       print,"You must specify a time or orbit range."
+       return
+    endif
+
+    ;if(size(trange,/type) eq 0) then trange=timerange()
 
     tmin = min(time_double(trange),max=tmax)
     file = mvn_pfp_file_retrieve(rootdir+fname,trange=[tmin,tmax],/daily_names)

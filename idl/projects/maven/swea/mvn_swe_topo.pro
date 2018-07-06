@@ -66,8 +66,8 @@
 ;                    quality), 0 otherwise.
 ;
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2018-05-31 16:16:26 -0700 (Thu, 31 May 2018) $
-; $LastChangedRevision: 25306 $
+; $LastChangedDate: 2018-07-05 14:41:26 -0700 (Thu, 05 Jul 2018) $
+; $LastChangedRevision: 25443 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_topo.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 11/03/2017
@@ -230,7 +230,7 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
   toponame=['0-?','1-CD','2-CX','3-CT','4-CV','5-OD','6-ON','7-D']
 
   if keyword_set(filter_reg) then begin
-    mvn_swe_regid_restore,res=regid,/tplot
+    mvn_swe_regid_restore,trange,res=regid,/tplot
     if (size(regid,/type) eq 8) then begin
       id = round(interp(regid.id, regid.time, data.t, interp_thresh=60D, /no_extrap))
       infilter = where(id eq 1 or id eq 2,count) ; 1--solar wind, 2--sheath
@@ -242,7 +242,7 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
       if (count gt 0) then reg_id.y[indx] -= 1
       store_data,'reg_id',data=reg_id
       idname = ['?','SW','Sheath','Iono','Lobe']
-      store_data,'reg_id_lab',data={x:timerange(), y:replicate(!values.f_nan,2,5), v:indgen(5)}
+      store_data,'reg_id_lab',data={x:trange, y:replicate(!values.f_nan,2,5), v:indgen(5)}
       options,'reg_id_lab','labels',idname
       options,'reg_id_lab','labflag',1
       options,'reg_id_lab','colors',replicate(!p.color,5)

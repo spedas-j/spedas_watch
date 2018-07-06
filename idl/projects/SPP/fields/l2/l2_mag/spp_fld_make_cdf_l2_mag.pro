@@ -1,83 +1,9 @@
 pro spp_fld_make_cdf_l2_mag, $
+  l2_master_cdf, l2_cdf, $
   trange = trange, $
-  l1_cdf_dir = l1_cdf_dir, $
-  load = load
-  
-  ;.compile read_mycdf
-  ;.compile IDLmakeCDF
-  
-  if n_elements(trange) EQ 0 then begin
-    
-    dprint, dlevel = 1, 'No timerange specified for CDF file creation. Exiting.'
-    
-    return
-    
-  endif
-  
-  spp_fld_cdf_timespan, trange = trange, success = ts_success, $
-    filename_timestring = filename_timestring
-    
-  if n_elements(l1_cdf_dir) EQ 0 then begin
-    
-    ; TODO: Set up default location for L1 input CDF files based on 
-    ; requested input time
-    
-    dprint, dlevel = 1, 'No input directory specified.  Exiting.'
-    
-    return
-    
-  endif
-
-  ; Creation of a L2 CDF file requires input L1 CDF files
-  ; For the MAG L2 file, these are required:
-
-  l1_cdf_datatypes = ['mago_survey', 'magi_survey', 'mago_hk', 'magi_hk']
-
-  l1_cdf_files = dictionary(l1_cdf_datatypes)
-
-  foreach l1_cdf_datatype, l1_cdf_datatypes do begin
-
-    ; TODO: Increment version number
-
-    l1_cdf_files[l1_cdf_datatype] = l1_cdf_dir + 'spp_fld_l1_' + $
-      l1_cdf_datatype + '_' + filename_timestring + '_v00.cdf'
-
-  end
-
-  ; Red in the L1 CDF files
-
-  foreach l1_cdf_file, l1_cdf_files do spp_fld_load_l1, l1_cdf_file
-
-
-  ; Define the L2 master and buffer CDF files based on the L2 skeleton file
-
-  l2_datatype = 'mag'
-
-  l2_skt = spp_fld_l2_cdf_skt_file(l2_datatype, l2_version = l2_version)
-  
-  l2_cdf_tmp_dir = getenv('SPP_FLD_CDF_DIR') + '/tmp/'
-  
-  file_mkdir, l2_cdf_tmp_dir
-  
-  l2_master_cdf = l2_cdf_tmp_dir + 'psp_fld_l2_' + $
-    l2_datatype + '_00000000_v' + $
-    l2_version + '.cdf'
-    
-  ; TODO: move this out of temp dir  
-  
-  l2_cdf = l2_cdf_tmp_dir + 'psp_fld_l2_' + $
-    l2_datatype + '_' + filename_timestring + '_v' + $
-    l2_version + '.cdf'  
-  
-  ; Create a (temporary) master CDF file from the skeleton file
-
-  spawn, 'skeletoncdf -cdf ' + l2_master_cdf + ' ' + l2_skt
-
-  ; Use the master CDF to create a buffer CDF to write the data into
-
+  l1_cdf_dir = l1_cdf_dir
+       
   l2_cdf_buffer = read_master_cdf(l2_master_cdf,l2_cdf)
-  
-  cdf_leap_second_init
 
   ; Read data from the TPLOT variables
 
@@ -107,8 +33,13 @@ pro spp_fld_make_cdf_l2_mag, $
   magi_rate = lonarr(n_full)
   quality_flag = lonarr(n_full)
 
+  ; MAGo axes are the same as the S/C axes
+  
   mag_data = transpose([[mago_bx.y], [mago_by.y], [mago_bz.y]])
-  mag_data_rtn = -transpose([[mago_bx.y], [mago_by.y], [mago_bz.y]])
+  
+  ; Approx. RTN (until we can do it properly with SPICE kernels)
+  
+  mag_data_rtn = transpose([[0,0,-1],[1,0,0],[0,-1,0]]) # mag_data
 
   orth1_o = rebin(identity(3), 3, 3, n_min, /sample)
   payld1_o = rebin(identity(3), 3, 3, n_min, /sample)
@@ -123,7 +54,6 @@ pro spp_fld_make_cdf_l2_mag, $
   zero1_i = dblarr(3,4,n_min)
   sens1_i = dblarr(3,4,n_min)
   ampl1_i = dblarr(3,4,n_min)
-
 
   *l2_cdf_buffer.Epoch.data         = tt2000_time
   *l2_cdf_buffer.Epoch1.data        = tt2000_time_1min
@@ -164,19 +94,5 @@ pro spp_fld_make_cdf_l2_mag, $
   endif
 
   cdf_close, cdf_id
-
-  cdf2tplot, l2_cdf, prefix = 'psp_fld_mag_', verbose=4, /get_support
-
-  options, 'psp_fld_mag_B_SC', 'colors', 'rgb'
-  options, 'psp_fld_mag_B_SC', 'labels', ['X','Y','Z']
-  options, 'psp_fld_mag_B_SC', 'max_points', 10000
-
-  tplot, 'psp_fld_mag_B_SC'
-
-  options, 'psp_fld_mag_B_SC', 'max_points', 10000
-
-  tplot, 'psp_fld_mag_B_SC'
-
-  stop  
 
 end
