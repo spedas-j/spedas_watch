@@ -105,6 +105,8 @@
                                              "00000_v00.cdf" }
                         3:    CDF_CHAR     { "spp_fld_l1_rfs_lfr_auto_000" -
                                              "00000_v00.cdf" } .
+                                             
+  "svn_version"         1:    CDF_CHAR     { "0000000000000000" } .
 
 
 #VARIABLEattributes

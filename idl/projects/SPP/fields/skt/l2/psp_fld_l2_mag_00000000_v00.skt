@@ -114,6 +114,8 @@
                         3:    CDF_CHAR     { "spp_fld_l1_mago_survey_000" -
                                              "00000_v00.cdf" } .
 
+  "svn_version"         1:    CDF_CHAR     { "0000000000000000" } .
+
 
 #VARIABLEattributes
 

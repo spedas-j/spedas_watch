@@ -80,6 +80,14 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   ; Define the L2 master and buffer CDF files based on the L2 skeleton file
 
   l2_skt = spp_fld_l2_cdf_skt_file(l2_datatype, l2_version = l2_version)
+  
+  cd, file_dirname(l2_skt) + '/../../../../../', current = old_dir
+  
+  spawn, 'svnversion', svnversion_string
+
+  dprint, dlevel = 1, 'SVN Version ' + svnversion_string
+
+  cd, old_dir
 
   l2_cdf_tmp_dir = getenv('SPP_FLD_CDF_DIR') + '/tmp/'
 
@@ -109,6 +117,22 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   cdf_leap_second_init
 
   call_procedure, make_cdf_l2_pro, l2_master_cdf, l2_cdf, trange = trange
+
+  ; The write_data_to_cdf procedure doesn't allow for easy modification
+  ; of global variables, so we do it here instead.
+
+  cdf_id = cdf_open(l2_cdf)
+
+  attexst = cdf_attexists(cdf_id,'svn_version')
+  if (attexst) then begin
+    attid = cdf_attnum(cdf_id, 'svn_version')
+    cdf_attput, cdf_id, attid, 0L, svnversion_string[0]
+    dprint, dlevel = 3, 'Changed SVN version string attribute to ', $
+      svnversion_string
+  endif
+
+  cdf_close, cdf_id
+
 
   ;
   ; If load keyword set, load file into tplot variables
