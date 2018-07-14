@@ -1,6 +1,11 @@
+! Skeleton table for the "skteditor8525003311080577083" CDF.
+! Generated: Friday, 6-Jul-2018 17:23:06
+! CDF created/modified by CDF V3.6.4
+! Skeleton table created by CDF V3.6.4_0
+
 #header
 
-                       CDF NAME: psp_fld_l2_rfs_lfr_00000000_v00
+                       CDF NAME: skteditor8525003311080577083
                   DATA ENCODING: NETWORK
                        MAJORITY: COLUMN
                          FORMAT: SINGLE
@@ -21,7 +26,8 @@
 ! Name              Number      Type       Value
 ! ---------         ------      ----       -----
 
-  "TITLE"               1:    CDF_CHAR     { "PSP FIELDS RFS LFR" } .
+  "TITLE"               1:    CDF_CHAR     { "PSP FIELDS Outboard " -
+                                             "Magnetometer" } .
 
   "Project"             1:    CDF_CHAR     { "PSP" } .
 
@@ -31,12 +37,12 @@
                                              "Physics>Interplanetary " -
                                              "Studies" } .
 
-  "Source_name"         1:    CDF_CHAR     { "PSP_FLD>Parker Solar Probe FIELDS" } .
+  "Source_name"         1:    CDF_CHAR     { "PSP>Parker Solar Probe" } .
 
-  "Descriptor"          1:    CDF_CHAR     { "RFS_LFR>Radio Frequency " -
-                                             "Spectrometer LFR" } .
+  "Descriptor"          1:    CDF_CHAR     { "RFS>Radio Frequency " -
+                                             "Spectrometer" } .
 
-  "Data_type"           1:    CDF_CHAR     { "L2>Level 2 Data" } .
+  "Data_type"           1:    CDF_CHAR     { "H2>High-resolution" } .
 
   "Data_version"        1:    CDF_CHAR     { "00" } .
 
@@ -47,9 +53,9 @@
 
   "MODS"                1:    CDF_CHAR     { "Revision 0" } .
 
-  "Logical_file_id"     1:    CDF_CHAR     { "psp_l2_rfs_lfr_00000000_v00" } .
+  "Logical_file_id"     1:    CDF_CHAR     { "psp_h2_rfs_00000000_v00" } .
 
-  "Logical_source"      1:    CDF_CHAR     { "psp_l2_rfs_lfr" } .
+  "Logical_source"      1:    CDF_CHAR     { "psp_h2_rfs" } .
 
   "Logical_source_description"
                         1:    CDF_CHAR     { "PSP FIELDS RFS LFR Data" } .

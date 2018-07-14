@@ -5,7 +5,7 @@
 ;PURPOSE:         
 ;                 Checks whether the currently loaded SPICE/kernels are valid for the specified time.
 ;
-;INPUTS:          Time to be checked.
+;INPUTS:          Time or time array to be checked.
 ;
 ;KEYWORDS:        None.
 ;
@@ -13,8 +13,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-07-11 17:35:33 -0700 (Wed, 11 Jul 2018) $
-; $LastChangedRevision: 25463 $
+; $LastChangedDate: 2018-07-12 20:14:10 -0700 (Thu, 12 Jul 2018) $
+; $LastChangedRevision: 25465 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_valid_times.pro $
 ;
 ;-
@@ -22,43 +22,60 @@ FUNCTION mvn_spice_valid_times, tvar, verbose=verbose
   status = 0 ; invalid
 
   IF SIZE(tvar, /type) EQ 0 THEN BEGIN
-     dprint, dlevel=2, verbose=verbose, 'You must supply a time to be checked.'
+     dprint, dlevel=2, verbose=verbose, 'You must supply a time or time array to be checked.'
      RETURN, status
   ENDIF ELSE BEGIN
      time = tvar
      IF SIZE(time, /type) EQ 7 THEN time = time_double(time)
+     ntime = N_ELEMENTS(time)
+     IF ntime GT 1 THEN pflg = 1 ELSE pflg = 0
   ENDELSE 
 
   test = spice_test('*')
   IF (N_ELEMENTS(test) EQ 1 AND test[0] EQ '') THEN $
      dprint, dlevel=2, verbose=verbose, 'SPICE/kernels should be loaded at first.' $
   ELSE BEGIN
-     ck = spice_kernel_info(type='ck')
-     w = WHERE(STRMATCH(FILE_BASENAME(ck.filename), 'mvn_swea*.bc') EQ 0, nw)
-     IF nw GT 0 THEN ck = ck[w]
+     info = spice_kernel_info(/use_cache)
+     w = WHERE(info.type EQ 'CK' AND STRMATCH(FILE_BASENAME(info.filename), 'mvn_swea*.bc') EQ 0, nw)
+     IF nw GT 0 THEN ck = info[w]
     
-     spk = spice_kernel_info(type='spk')
-     w = WHERE(STRMATCH(FILE_BASENAME(spk.filename), 'maven_orb*.bsp') EQ 1, nw)
-     IF nw GT 0 THEN spk = spk[w]
+     w = WHERE(info.type EQ 'SPK' AND STRMATCH(FILE_BASENAME(info.filename), 'maven_orb*.bsp') EQ 1, nw)
+     IF nw GT 0 THEN spk = info[w]
 
-     undefine, w, nw
+     undefine, w, nw, info
 
      info = [ck, spk]
      kernels = info.filename
      kernels = kernels[UNIQ(kernels, SORT(kernels))]
-
      nk = N_ELEMENTS(kernels)
-     valid = INTARR(nk)
+
+     valid = INTARR(nk, ntime)
      FOR i=0, nk-1 DO BEGIN
-        w = WHERE(STRMATCH(info.filename, kernels[i]) EQ 1, nw)
-        checks = INTARR(nw)
-        FOR j=0, nw-1 DO IF (time GE time_double(info[w[j]].trange[0]) AND time LE time_double(info[w[j]].trange[1])) THEN checks[j] = 1
-        w = WHERE(checks EQ 1, nw)
-        IF nw GT 0 THEN valid[i] = 1
+        t = WHERE(STRMATCH(info.filename, kernels[i]) EQ 1, nt)
+        checks = INTARR(ntime, nt)
+
+        FOR j=0, nt-1 DO BEGIN
+           index = INTERPOL([0., 1.], time_double(info[t[j]].trange), time)
+
+           w = WHERE(index GE 0. AND index LE 1., nw, complement=v, ncomplement=nv)
+           IF nw GT 0 THEN checks[w, j] = 1
+           IF nv GT 0 THEN checks[v, j] = 0
+           undefine, w, v, nw, nv
+        ENDFOR 
+
+        IF SIZE(checks, /n_dimension) EQ 2 THEN checks = TOTAL(checks, 2)
+        ;FOR j=0, nw-1 DO IF (time GE time_double(info[w[j]].trange[0]) AND time LE time_double(info[w[j]].trange[1])) THEN checks[j] = 1
+        w = WHERE(checks GT 0, nw)
+        IF nw GT 0 THEN valid[i, w] = 1
+        undefine, w, nw
      ENDFOR 
 
-     w = WHERE(valid EQ 0, nw)
-     IF nw EQ 0 THEN status = 1 ; valid
+     IF nk GT 1 THEN valid = PRODUCT(valid, 1)
+     w = WHERE(valid EQ 0, nw, complement=v, ncomplement=nv)
+     IF (pflg) THEN BEGIN
+        status = INTARR(ntime)
+        IF nv GT 0 THEN status[v] = 1
+     ENDIF ELSE IF nw EQ 0 THEN status = 1 ; valid
   ENDELSE
   RETURN, status
 END

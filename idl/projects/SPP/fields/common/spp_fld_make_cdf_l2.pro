@@ -41,6 +41,16 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
       'rfs_lfr': begin
         l1_cdf_datatypes = ['rfs_lfr_auto']
       end
+      'scm': begin
+        l1_cdf_datatypes = ['dfb_wf03','dfb_wf04','dfb_wf05']
+      end
+      'dfb_spec': begin
+        l1_cdf_datatypes = [$
+          'dfb_dc_spec1','dfb_dc_spec2', $
+          'dfb_dc_spec3','dfb_dc_spec4', $
+          'dfb_ac_spec1','dfb_ac_spec2', $
+          'dfb_ac_spec3','dfb_ac_spec4']
+      end
       ELSE: begin
 
         dprint, dlevel = 1, 'Unrecognized L2 data type.  Exiting'
@@ -80,9 +90,9 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   ; Define the L2 master and buffer CDF files based on the L2 skeleton file
 
   l2_skt = spp_fld_l2_cdf_skt_file(l2_datatype, l2_version = l2_version)
-  
+
   cd, file_dirname(l2_skt) + '/../../../../../', current = old_dir
-  
+
   spawn, 'svnversion', svnversion_string
 
   dprint, dlevel = 1, 'SVN Version ' + svnversion_string
