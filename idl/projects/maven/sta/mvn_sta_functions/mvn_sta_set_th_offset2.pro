@@ -753,6 +753,9 @@ if time gt time_double('2018-06-19/00:00') then begin					; checked 20180tbd, SZ
 	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, ok determined, assumed vert wind was zero in att=3 
 endif
 
+if time gt time_double('2018-06-22/00:00') then begin					; checked 20180702, SZA=? rapidly changing, -? to -?V = Vsc, 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, ok determined, assumed vert wind was zero in att=3 
+endif
 
 
 

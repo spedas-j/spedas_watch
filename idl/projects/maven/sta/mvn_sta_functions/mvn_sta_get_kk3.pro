@@ -1032,6 +1032,8 @@ if time_double(time) gt time_double('2018-06-01/00:00') and kk3_anode then kk3 =
 
 if time_double(time) gt time_double('2018-06-04/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 5 ngims, checked 20180608, not well determined - probably errors in efficiency
 
+if time_double(time) gt time_double('2018-06-22/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 3 ngims, checked 20180702,   ok     determined - probably errors in efficiency
+
 tt=timerange()
 store_data,'mvn_sta_kk3',data={x:tt,y:transpose([[kk3],[kk3]])}
 
