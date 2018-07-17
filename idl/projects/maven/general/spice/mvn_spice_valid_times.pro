@@ -13,13 +13,14 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-07-12 20:14:10 -0700 (Thu, 12 Jul 2018) $
-; $LastChangedRevision: 25465 $
+; $LastChangedDate: 2018-07-16 13:08:30 -0700 (Mon, 16 Jul 2018) $
+; $LastChangedRevision: 25483 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_valid_times.pro $
 ;
 ;-
-FUNCTION mvn_spice_valid_times, tvar, verbose=verbose
+FUNCTION mvn_spice_valid_times, tvar, verbose=verbose, tolerance=tol
   status = 0 ; invalid
+  IF SIZE(tol, /type) EQ 0 THEN tol = 120.d0
 
   IF SIZE(tvar, /type) EQ 0 THEN BEGIN
      dprint, dlevel=2, verbose=verbose, 'You must supply a time or time array to be checked.'
@@ -55,7 +56,7 @@ FUNCTION mvn_spice_valid_times, tvar, verbose=verbose
         checks = INTARR(ntime, nt)
 
         FOR j=0, nt-1 DO BEGIN
-           index = INTERPOL([0., 1.], time_double(info[t[j]].trange), time)
+           index = INTERPOL([0., 1.], time_double(info[t[j]].trange) + [1.d0, -1.d0]*tol, time)
 
            w = WHERE(index GE 0. AND index LE 1., nw, complement=v, ncomplement=nv)
            IF nw GT 0 THEN checks[w, j] = 1
@@ -64,7 +65,6 @@ FUNCTION mvn_spice_valid_times, tvar, verbose=verbose
         ENDFOR 
 
         IF SIZE(checks, /n_dimension) EQ 2 THEN checks = TOTAL(checks, 2)
-        ;FOR j=0, nw-1 DO IF (time GE time_double(info[w[j]].trange[0]) AND time LE time_double(info[w[j]].trange[1])) THEN checks[j] = 1
         w = WHERE(checks GT 0, nw)
         IF nw GT 0 THEN valid[i, w] = 1
         undefine, w, nw
