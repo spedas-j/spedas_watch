@@ -125,25 +125,25 @@ end
 ;--------------------------------------------------
 function mva_ui_apply_eigenbuttons, tlb, data
 
-    eigenbuttons = mva_ui_get_eigenbuttons(tlb)
+  eigenbuttons = mva_ui_get_eigenbuttons(tlb)
+ 
+  ;eigenvector L
+  idx=where(eigenbuttons[*,0] eq 1)
+  index=where(data.y[*,0,idx] le 0, ncnt)
+  if ncnt GT 0 then data.y[*,0,*]=-data.y[*,0,*]
 
-    ;eigenvector L
-    idx=where(eigenbuttons[*,0] eq 1)
-    index=where(data.y[*,0,idx] le 0, ncnt)
-    if ncnt GT 0 then data.y[*,0,idx]=-data.y[*,0,idx] 
+  ;eigenvector M
+  idx=where(eigenbuttons[*,1] eq 1)
+  index=where(data.y[*,1,idx] le 0, ncnt)
+  if ncnt GT 0 then data.y[*,1,*]=-data.y[*,1,*]
 
-    ;eigenvector M
-    idx=where(eigenbuttons[*,1] eq 1)
-    index=where(data.y[*,1,idx] le 0, ncnt)
-    if ncnt GT 0 then data.y[*,1,idx]=-data.y[*,1,idx]
+  ;eigenvector N
+  idx=where(eigenbuttons[*,2] eq 1)
+  index=where(data.y[*,2,idx] le 0, ncnt)
+  if ncnt GT 0 then data.y[*,2,*]=-data.y[*,2,*]
 
-    ;eigenvector N
-    idx=where(eigenbuttons[*,2] eq 1)
-    index=where(data.y[*,2,idx] le 0, ncnt)
-    if ncnt GT 0 then data.y[*,2,idx]=-data.y[*,2,idx]
+  return, data
 
-    return, data
-    
 end
 
 ;----------------------------------------------------
@@ -250,7 +250,7 @@ function mva_ui_load_themis, load_struct
     endcase
 
     ; check that data was loaded and if not return err
-    if undefined(tvar) then tvar='err'
+    if undefined(tvar) OR tnames(tvar) EQ '' then tvar='err'
     
     return, tvar
     
@@ -279,7 +279,7 @@ function mva_ui_load_mms, load_struct
   endcase
  
   ; check that mms data was in fact loaded
-  if undefined(tvar) then tvar='err'
+  if undefined(tvar) OR tnames(tvar) EQ '' then tvar='err'
 
   return, tvar
   
@@ -492,6 +492,7 @@ pro spd_ui_mva_event,event
       'ANALYZE': begin
 
         load_struct=mva_ui_get_load_data_structure(state.tlb, state.timeRangeObjmva)
+
         Case state.mission of
           'THEMIS' : begin
             tvar = mva_ui_load_themis(load_struct)
@@ -711,7 +712,7 @@ pro spd_ui_mva, gui_ID=gui_id, $
   thmVeldataArray = thmPartdataArray
   
   mmsdataArray = ['srvy', 'brst']
-  clusterdataArray = ['5VPS', 'full', 'spin']
+  clusterdataArray = ['5vps', 'full', 'spin']
   dataCombo = widget_combobox(dataBase,$
     value=thmMagdataArray,$
     uvalue='data',$
