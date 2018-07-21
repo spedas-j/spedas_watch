@@ -158,15 +158,20 @@
 ;        5. model parameters that are input as tplot variables they
 ;            will be interpolated to match the time values on the input
 ;            position
-;        6.Find more documentation on the inner workings of the model,
+;        6. Find more documentation on the inner workings of the model,
 ;            any gotchas, and the meaning of the arguments at:
 ;            http://geo.phys.spbu.ru/~tsyganenko/modeling.html
 ;            -or-
 ;            http://ampere.jhuapl.edu/code/idl_geopack.html
 ;        7. Definition of W1-W6 can be found at:
-;            N. A. Tsyganenko and M. I. Sitnov, Modeling the dynamics of the
+;            Tsyganenko, N. A., and M. I. Sitnov (2005), Modeling the dynamics of the
 ;            inner magnetosphere during strong geomagnetic storms, J. Geophys.
-;            Res., v. 110 (A3), A03208, doi: 10.1029/2004JA010798, 2005
+;            Res., v. 110 (A3), A03208, doi: 10.1029/2004JA010798.
+;        8. For a description of the ts07 model, see:
+;            Tsyganenko, N. A., and M. I. Sitnov (2007), Magnetospheric configurations 
+;            from a highresolution data-based magnetic field model, J. Geophys. 
+;            Res., v. 112 (A6), A06225, doi: 10.1029/2007ja012260.
+;        9. Here, both 'ts07' and 'ts07d' are used for the same model.    
 ;
 ; $LastChangedBy: $
 ; $LastChangedDate: $
