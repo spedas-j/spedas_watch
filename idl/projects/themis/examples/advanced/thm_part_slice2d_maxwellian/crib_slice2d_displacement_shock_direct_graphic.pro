@@ -1,6 +1,6 @@
 ;+
 ;Crib:
-;  crib_slice2d_displacement_shock
+;  crib_slice2d_displacement_shock_direct_graphic
 ;
 ;Purpose:
 ; This example follows crib_slice2d_displacment but operates with real data and 
@@ -9,11 +9,9 @@
 ; 4 coordinate system can be used: DSL, GSE, GSM, Shock frame
 ; Displacement can be set to none, to maximum from 2d slices, to bulk velocity 
 ; and to custom vector   
-;
+; 
 ;Notes:
-; See crib_slice2d_displacement_shock_direct_graphic for the same exmaple, that 
-; produces the plot using direct graphics. The same example can be used to save
-; postscreept image file. 
+; This exmaple uses Direct Graphics to produce the image.
 ;
 ;$LastChangedBy: adrozdov $
 ;$LastChangedDate: 2018-07-23 16:27:29 -0700 (Mon, 23 Jul 2018) $
@@ -42,6 +40,9 @@
 ; NORMPSD - Normalize DF
 ;    1 - f = DF/max(DF)
 ;    0 - f = DF
+; 
+; SAVEPS - Flag. Save graphics into ps file
+;    psfilename - ps file name
 ;
 ; time_start - Time of the first frame 
 ; secwin - time window of frames.
@@ -53,6 +54,9 @@ DISPMODE  = 'bulk' ; [none], [max], [bulk], [custom]
 CORDSYS   = 'gse'  ; [dsl], [gse], [gsm], [shock]
 CROSSMODE = 'none' ; [none], [max], [bulk], [disp]
 NORMPSD  = 0 ; Normalize DF to max
+
+SAVEPS  = 0 ; Output graphics into PostScript file
+psfilename = 'crib_shock' ; ps filename if SAVEPS=1     
 
 ; basic settings
 time_start = [time_double('2013-07-09/20:39:38')] ; Shock time is 2013-07-09/20:39:42
@@ -75,14 +79,14 @@ shock_n = [0.972, 0.227, 0.059]
 ; displacment variable
 origin_shift = [0., 0., 0.]
 
-xtitle=['$V_x$','$V_x$','$V_y$']
-ytitle=['$V_y$','$V_z$','$V_z$']
-ztitle=['$V_z$','$V_y$','$V_x$']
+xtitle=['V!Dx!N','V!Dx!N','V!Dy!N']
+ytitle=['V!Dy!N','V!Dz!N','V!Dz!N']
+ztitle=['V!Dz!N','V!Dy!N','V!Dx!N']
 
 if CORDSYS eq 'shock' then begin
-  xtitle=['$V_n$','$V_n$','$V_m$']
-  ytitle=['$V_m$','$V_l$','$V_l$']
-  ztitle=['$V_l$','$V_m$','$V_n$']
+  xtitle=['V!Dn!N','V!Dn!N','V!Dm!N']
+  ytitle=['V!Dm!N','V!Dl!N','V!Dl!N']
+  ztitle=['V!Dl!N','V!Dm!N','V!Dn!N']
 endif else begin
   ctitle = STRUPCASE(CORDSYS) + ' '
   xtitle=[ctitle+xtitle[0],ctitle+xtitle[1],ctitle+xtitle[2]]
@@ -90,20 +94,20 @@ endif else begin
   ztitle=[ctitle+ztitle[0],ctitle+ztitle[1],ctitle+ztitle[2]]
 endelse
 
-
 rotation = ['xy','xz','yz']
 letters=[['a','b','c'],['d','e','f'],['g','h','j']]
 
 ; image settings
 tabno = 22 ; colors
+defaulttabno = 43 ; colors
 
 ; axis ranges
 xrange=[-4, 4]
 yrange=[-4, 4]
 
-; size of the pannels
-i_width = 0.26
-i_hight = 0.24
+;annotation position
+textx = -1
+texty = -3.5
 
 ; post-process
 if NORMPSD then begin
@@ -116,9 +120,9 @@ endif else begin
   psd_str = 'DF'
 endelse
 ; Settings for the images
-i_struct = {rgb_table:tabno, ASPECT_RATIO:1, FILL:1, AXIS_STYLE:2, xstyle:1,ystyle:1, max_value:maxlog, min_value:minlog, xrange:xrange, yrange:yrange, CURRENT:1}
-; Settings for the colorbar
-c_struct = {C_VALUE:[-10:1], color:[1,1,1], C_LABEL_SHOW:[1,1,1,1], C_USE_LABEL_COLOR:1, C_USE_LABEL_ORIENTATION:1,OVERPLOT:1}
+i_struct = { zrange:[minlog, maxlog], xrange:xrange, yrange:yrange}
+; Settings for the countour
+c_struct = { overplot:1, levels:[minlog:maxlog], c_labels:intarr(abs(maxlog-minlog+1))+1}
 ; Settings for the data
 t_struct = {timewin:secwin, count_threshold:1,MAG_DATA:mag_data,UNITS:'DF',smooth:2, three_d_interp:1, coord:'dsl'}
 
@@ -131,9 +135,14 @@ if CORDSYS eq 'shock' then begin
   str_element, t_struct,'slice_x',shock_n,/add
 endif
 
-
 ;display
-fid=window(DIMENSIONS=[1200,1000])
+if SAVEPS then begin 
+  popen, psfilename, /encap, /land, options={charsize:0.5}
+endif else begin
+  window, 0, xsize=1200, ysize=1000
+endelse
+
+loadct2, tabno
 
 for r_idx=0,2 do begin
    
@@ -158,13 +167,6 @@ for r_idx=0,2 do begin
    
       
   for c_idx=0,2 do begin
-    ; Position
-    x1 = 0.05 + i_width*c_idx + 0.05*c_idx
-    y1 = 1 - 0.03 - (r_idx+1)*i_hight - 0.07*(r_idx)
-    x2 = x1 + i_width
-    y2 = y1 + i_hight
-    position = [x1, y1, x2, y2]
-
     ; Time
     time = time_start + (r_idx)*secwin
     stitle = string(format='(%"%s-%s")', time_string(time, TFORMAT='hh:mm:ss'), time_string(time+secwin, TFORMAT='hh:mm:ss'))
@@ -184,17 +186,28 @@ for r_idx=0,2 do begin
     slice.XGRID = (slice.XGRID)/Vs
     slice.YGRID = (slice.YGRID)/Vs
 
-    ; === Plot ===    
-    pid =   image(log_psd, slice.xgrid, slice.ygrid, position=position, title = letters[c_idx,r_idx] + ') ' + stitle,$
-       xtitle = xtitle[c_idx], ytitle = ytitle[c_idx], _extra=i_struct)
-    cid = CONTOUR(log_psd, slice.xgrid, slice.ygrid, _extra=c_struct) ;/OVERPLOT       
-    if CROSSMODE ne 'none' then ppid = PLOT([xyzarr2[c_idx/2]], [xyzarr2[(c_idx+1)/2+1]], symbol='+',SYM_SIZE=2.5,/overplot) ; the math behind the indexes is based on int devision => 3/2 = 1
-    tid = text(x2-0.15, y1+0.02, string(format='(%"%s = %5.2f")',ztitle[c_idx],origin_shift[2-c_idx]))
+
+    ; === Direct Graphics Plot ===    
+    mpanelstr = string(format='(%"%d,%d")',c_idx,r_idx)
+    no_color_scale_opt = 1
+    add_opt = 1
+    if c_idx eq 2 then  no_color_scale_opt = 0
+    if c_idx+r_idx eq 0 then begin
+    plotxyz, slice.xgrid, slice.ygrid, log_psd, multi='3,3', mpanel = mpanelstr, no_color_scale=no_color_scale_opt, $ 
+      xtitle = xtitle[c_idx], ytitle = ytitle[c_idx],ztitle = 'Log!D10!N('+ psd_str +')', title= letters[c_idx,r_idx] + ') ' + stitle, $
+      mmargin=[0.01,0.005,0.01,0.02], xsize=1200, ysize=1000, _extra = i_struct
+    endif else begin
+      plotxyz, slice.xgrid, slice.ygrid, log_psd, mpanel = mpanelstr, no_color_scale=no_color_scale_opt, /addpanel, $
+        xtitle = xtitle[c_idx], ytitle = ytitle[c_idx],ztitle = 'Log!D10!N('+ psd_str +')', title= letters[c_idx,r_idx] + ') ' + stitle, _extra = i_struct
+    endelse
+    contour, log_psd, slice.xgrid, slice.ygrid, _extra = c_struct
+    xyouts, textx, texty, string(format='(%"%s = %5.2f")',ztitle[c_idx],origin_shift[2-c_idx])
   endfor
-  c=COLORBAR(target=pid,ORIENTATION=1,TAPER=0,BORDER=0,MAJOR=5,MINOR=5,TITLE='$Log_{10}('+ psd_str +')$') ;POSITION=[0.97,0.05,0.99,0.45],
 endfor
 
 print, "ORIENTATION MATRIX:"
 print, slice.ORIENT_MATRIX
+if SAVEPS then pclose
+loadct2, defaulttabno
 
 end

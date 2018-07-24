@@ -3,14 +3,19 @@
 ;  spd_slice1d_plot
 ;
 ; PURPOSE:
-;  Create 1D plot from a 2D particle slice
+;  Create 1D plot from a 2D particle slice; note that:
+;   1) if the 'value' argument is a scalar, this provides
+;      a cut through the distribution at the nearest point
+;      in that direction
+;   2) if the 'value' argument is an array, this sums over
+;      the values between the min and max of the array
 ;
 ; EXAMPLES:
 ;  MMS> spd_slice1d_plot, slice, 'x', 0.0, title='Vx at Vy=0'
 ;  
 ;  or
 ;  
-;  MMS> spd_slice1d_plot, slice, 'x', [-1000, 1000], title='Vx at Vy=[-1000, 1000]'
+;  MMS> spd_slice1d_plot, slice, 'x', [-1000, 1000], title='Vx at Vy=[-1000, 1000] (summed)'
 ;
 ; see: projects/mms/examples/advanced/mms_slice2d_1d_plot_crib.pro for more examples
 ; 
@@ -28,8 +33,8 @@
 ;   work in progress! please send bugs/problems/complaints/etc to egrimes@igpp.ucla.edu
 ;   
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-04-12 12:47:41 -0700 (Thu, 12 Apr 2018) $
-;$LastChangedRevision: 25038 $
+;$LastChangedDate: 2018-07-23 11:20:05 -0700 (Mon, 23 Jul 2018) $
+;$LastChangedRevision: 25503 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/science/spd_slice2d/core/spd_slice1d_plot.pro $
 ;-
 

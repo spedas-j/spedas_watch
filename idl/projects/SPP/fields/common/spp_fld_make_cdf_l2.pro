@@ -1,3 +1,7 @@
+; Two configurations:
+; In the TEST configuration,
+; In the standard (DAILY) configuration, the
+
 pro spp_fld_make_cdf_l2, l2_datatype, $
   l2_master_cdf, $
   trange = trange, $
@@ -5,7 +9,8 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   l1_cdf_dir = l1_cdf_dir, $
   l1_cdf_files = l1_cdf_files, $
   filename = filename, $
-  load = load
+  load = load, $
+  no_load_l1 = no_load_l1
 
   if n_elements(trange) EQ 0 then begin
 
@@ -41,15 +46,17 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
       'rfs_lfr': begin
         l1_cdf_datatypes = ['rfs_lfr_auto']
       end
+      'rfs': begin
+        l1_cdf_datatypes = ['rfs_lfr_auto']
+      end
       'scm': begin
         l1_cdf_datatypes = ['dfb_wf03','dfb_wf04','dfb_wf05']
       end
-      'dfb_spec': begin
-        l1_cdf_datatypes = [$
-          'dfb_dc_spec1','dfb_dc_spec2', $
-          'dfb_dc_spec3','dfb_dc_spec4', $
-          'dfb_ac_spec1','dfb_ac_spec2', $
-          'dfb_ac_spec3','dfb_ac_spec4']
+      'dfb_dc_spec': begin
+        l1_cdf_datatypes = 'dfb_dc_spec' + ['1','2','3','4']
+      end
+      'dfb_ac_spec': begin
+        l1_cdf_datatypes = 'dfb_ac_spec' + ['1','2','3','4']
       end
       ELSE: begin
 
@@ -84,12 +91,22 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   ; Read in the L1 CDF files
 
-  foreach l1_cdf_file, l1_cdf_files do spp_fld_load_l1, l1_cdf_file
+  if n_elements(no_load_l1) EQ 0 then $
+    foreach l1_cdf_file, l1_cdf_files do spp_fld_load_l1, l1_cdf_file
 
 
   ; Define the L2 master and buffer CDF files based on the L2 skeleton file
 
   l2_skt = spp_fld_l2_cdf_skt_file(l2_datatype, l2_version = l2_version)
+
+
+  if l2_skt EQ '' then begin
+
+    dprint, dlevel = 1, 'Exiting SPP_FLD_MAKE_CDF_L2'
+
+    return
+
+  endif
 
   cd, file_dirname(l2_skt) + '/../../../../../', current = old_dir
 
@@ -118,7 +135,7 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   file_delete, l2_master_cdf, /allow_nonexistent
   file_delete, l2_cdf, /allow_nonexistent
 
-  spawn, 'skeletoncdf -cdf ' + l2_master_cdf + ' ' + l2_skt
+  spawn, getenv('CDF_BIN') + '/skeletoncdf -cdf ' + l2_master_cdf + ' ' + l2_skt
 
   ; Use the master CDF to create a buffer CDF to write the data into
 
@@ -126,7 +143,18 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   cdf_leap_second_init
 
-  call_procedure, make_cdf_l2_pro, l2_master_cdf, l2_cdf, trange = trange
+  libs, make_cdf_l2_pro, routine_names = routine_names
+
+  if routine_names EQ '' then begin
+
+    dprint, dlevel = 1, 'Procedure ' + strupcase(make_cdf_l2_pro) + $
+      ' not found on IDL path.  Exiting'
+
+    return
+
+  endif
+
+  call_procedure, make_cdf_l2_pro, l2_master_cdf, l2_cdf
 
   ; The write_data_to_cdf procedure doesn't allow for easy modification
   ; of global variables, so we do it here instead.
@@ -158,7 +186,7 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
       file_mkdir, !spp_fld_tmlib.test_cdf_dir
 
-      file_copy, filename, !spp_fld_tmlib.test_cdf_dir, /over
+      file_copy, l2_cdf, !spp_fld_tmlib.test_cdf_dir, /over
 
     end
 
