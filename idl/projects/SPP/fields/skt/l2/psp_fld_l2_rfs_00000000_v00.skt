@@ -285,5 +285,39 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "lfr_ch0_labl" 
+                  CDF_CHAR      5       1      8       F         T
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: " "
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "lfr_ch0_labl" }
+    "FIELDNAM"    CDF_CHAR     { "lfr_ch0_labl" }
+    "FORMAT"      CDF_CHAR     { "A8" }
+    "VAR_TYPE"    CDF_CHAR     { "metadata" }
+    "VAR_NOTES"   CDF_CHAR     { "Source for LFR Ch0 Data" }
+    "LABLAXIS"    CDF_CHAR     { "lfr_ch0_labl" } .
+
+  ! NRV values follow...
+
+	[1] = {"V1-V2"}
+	[2] = {"V1-V3"}
+	[3] = {"SCM"}
+	[4] = {"GND"}
+	[5] = {"V1"}
+	[6] = {"V3"}
+	[7] = {"GND"}
+	[8] = {"GND"}
 
 #end

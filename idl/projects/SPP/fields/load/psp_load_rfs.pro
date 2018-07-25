@@ -6,13 +6,15 @@ pro psp_load_rfs, files = files
 
   end
   
-  options, 'psp_fld_rfs_lfr_auto_ch?', 'panel_size', 2
-  options, 'psp_fld_rfs_lfr_auto_ch?', 'yrange', [1.e4,2.e6]
-  options, 'psp_fld_rfs_lfr_auto_ch?', 'ystyle', 1
-  options, 'psp_fld_rfs_lfr_auto_ch?', 'ysubtitle', '[Hz]'
-  options, 'psp_fld_rfs_lfr_auto_ch?', 'ztitle', '[V2/Hz]'
+  options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'panel_size', 2
+  options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'yrange', [1.e4,2.e6]
+  options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'ylog', 1
+  options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'zlog', 1
+  options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'ystyle', 1
+  options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'ysubtitle', '[Hz]'
+  options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'ztitle', '[V2/Hz]'
    
-  options, 'psp_fld_rfs_lfr_auto_ch0', 'ytitle', 'LFR AUTO!CH0'
-  options, 'psp_fld_rfs_lfr_auto_ch1', 'ytitle', 'LFR AUTO!CH1'
+  options, 'psp_fld_rfs_lfr_auto_avg_ch0', 'ytitle', 'LFR AUTO!CH0'
+  options, 'psp_fld_rfs_lfr_auto_avg_ch1', 'ytitle', 'LFR AUTO!CH1'
 
 end

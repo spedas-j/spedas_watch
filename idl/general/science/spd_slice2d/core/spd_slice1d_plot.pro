@@ -33,12 +33,12 @@
 ;   work in progress! please send bugs/problems/complaints/etc to egrimes@igpp.ucla.edu
 ;   
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-07-23 11:20:05 -0700 (Mon, 23 Jul 2018) $
-;$LastChangedRevision: 25503 $
+;$LastChangedDate: 2018-07-24 09:50:50 -0700 (Tue, 24 Jul 2018) $
+;$LastChangedRevision: 25513 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/science/spd_slice2d/core/spd_slice1d_plot.pro $
 ;-
 
-pro spd_slice1d_plot, slice, direction, value, xrange=xrange, _extra=ex
+pro spd_slice1d_plot, slice, direction, value, xrange=xrange, yrange=yrange, _extra=ex
   compile_opt idl2
 
   if ~is_struct(slice) then begin
@@ -83,17 +83,17 @@ pro spd_slice1d_plot, slice, direction, value, xrange=xrange, _extra=ex
     if direction eq 'x' then begin
       values_to_include = where(slice.ygrid ge value[0] and slice.ygrid le value[1], value_count)
       if value_count ne 0 then begin
-        plot, slice.xgrid, total(/nan, /double, slice.data[*, values_to_include], 2), xrange=xrange, xmargin=xmargin, ymargin=ymargin, xstyle=4, ystyle=4, _extra=ex
+        plot, slice.xgrid, total(/nan, /double, slice.data[*, values_to_include], 2), xrange=xrange, yrange=yrange, xmargin=xmargin, ymargin=ymargin, xstyle=5, ystyle=5, _extra=ex
       endif
     endif else if direction eq 'y' then begin
       values_to_include = where(slice.xgrid ge value[0] and slice.xgrid le value[1], value_count)
       if value_count ne 0 then begin
-        plot, slice.ygrid, total(/nan, /double, slice.data[values_to_include, *], 1), xrange=xrange, xmargin=xmargin, ymargin=ymargin, xstyle=4, ystyle=4, _extra=ex
+        plot, slice.ygrid, total(/nan, /double, slice.data[values_to_include, *], 1), xrange=xrange, yrange=yrange, xmargin=xmargin, ymargin=ymargin, xstyle=5, ystyle=5, _extra=ex
       endif
     endif
     ; replot without the color, for the axes/labels
     str_element, ex, 'color', /delete
-    plot, [0, 0], /nodata, /noerase, xtitle=xtitle, ytitle=yunits, xrange=xrange, xmargin=xmargin, ymargin=ymargin, xstyle=1, ystyle=1, _extra=ex, color=0
+    plot, [0, 0], /nodata, /noerase, xtitle=xtitle, ytitle=yunits, xrange=xrange, yrange=yrange, xmargin=xmargin, ymargin=ymargin, xstyle=1, ystyle=1, _extra=ex, color=0
     return
   endif
   
@@ -101,11 +101,14 @@ pro spd_slice1d_plot, slice, direction, value, xrange=xrange, _extra=ex
   if direction eq 'x' then begin
     closest_at_this_value = find_nearest_neighbor(slice.ygrid, value)
     idx_at_this_value = where(slice.ygrid eq closest_at_this_value)
-    plot, slice.xgrid, slice.data[*, idx_at_this_value], xtitle=xtitle, ytitle=yunits, xrange=xrange, xmargin=xmargin, ymargin=ymargin, _extra=ex
+    plot, slice.xgrid, slice.data[*, idx_at_this_value], xtitle=xtitle, ytitle=yunits, xrange=xrange, yrange=yrange, xmargin=xmargin, ymargin=ymargin, xstyle=5, ystyle=5, _extra=ex
   endif else if direction eq 'y' then begin
     closest_at_this_value = find_nearest_neighbor(slice.xgrid, value)
     idx_at_this_value = where(slice.xgrid eq closest_at_this_value)
-    plot, slice.ygrid, slice.data[idx_at_this_value, *], xtitle=xtitle, ytitle=yunits, xrange=xrange, xmargin=xmargin, ymargin=ymargin, _extra=ex
+    plot, slice.ygrid, slice.data[idx_at_this_value, *], xtitle=xtitle, ytitle=yunits, xrange=xrange, yrange=yrange, xmargin=xmargin, ymargin=ymargin, xstyle=5, ystyle=5, _extra=ex
   endif
+  ; replot without the color, for the axes/labels
+  str_element, ex, 'color', /delete
+  plot, [0, 0], /nodata, /noerase, xtitle=xtitle, ytitle=yunits, xrange=xrange, yrange=yrange, xmargin=xmargin, ymargin=ymargin, xstyle=1, ystyle=1, _extra=ex, color=0
 
 end
