@@ -152,7 +152,7 @@
   "CALIB_SOFTWARE"
   "CALIB_INPUT"
   "DICT_KEY"
-  "SI_CONVERSION"
+  "SI_conv"
   "SCALETYP"
   "LABLAXIS"
   "VIRTUAL"
@@ -378,7 +378,7 @@
     "FILLVAL"     CDF_BYTE     { -128 }
     "FORMAT"      CDF_CHAR     { "I3" }
     "VALIDMIN"    CDF_BYTE     { 0 }
-    "VALIDMAX"    CDF_BYTE     { 64 }
+    "VALIDMAX"    CDF_BYTE     { 56 }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "SCALETYP"    CDF_CHAR     { "linear" }
     "LABLAXIS"    CDF_CHAR     { "spec56_compno" } .
@@ -506,6 +506,7 @@
     "FILLVAL"     CDF_REAL4    { -1.0e+31 }
     "FORMAT"      CDF_CHAR     { "E12.2" }
     "UNITS"       CDF_CHAR     { "(mV/m)^2/Hz" }
+    "SI_conv"     CDF_CHAR     { "1.0e-6>(Volts/m)^2/Hz"}
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DEPEND_1"    CDF_CHAR     { "spec56_fcenter" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
@@ -542,6 +543,7 @@
     "FILLVAL"     CDF_REAL4    { -1.0e+31 }
     "FORMAT"      CDF_CHAR     { "E12.2" }
     "UNITS"       CDF_CHAR     { "(mV/m)^2/Hz" }
+    "SI_conv"     CDF_CHAR     { "1.0e-6>(Volts/m)^2/Hz"}
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DEPEND_1"    CDF_CHAR     { "spec56_fcenter" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
@@ -578,6 +580,7 @@
     "FILLVAL"     CDF_REAL4    { -1.0e+31 }
     "FORMAT"      CDF_CHAR     { "E12.2" }
     "UNITS"       CDF_CHAR     { "nT^2/Hz" }
+    "SI_conv"     CDF_CHAR     { "1.0e-18>Tesla^2/Hz"}
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DEPEND_1"    CDF_CHAR     { "spec56_fcenter" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
@@ -614,6 +617,7 @@
     "FILLVAL"     CDF_REAL4    { -1.0e+31 }
     "FORMAT"      CDF_CHAR     { "E12.2" }
     "UNITS"       CDF_CHAR     { "nT^2/Hz" }
+    "SI_conv"     CDF_CHAR     { "1.0e-18>Tesla^2/Hz"}
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DEPEND_1"    CDF_CHAR     { "spec56_fcenter" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }
@@ -650,6 +654,7 @@
     "FILLVAL"     CDF_REAL4    { -1.0e+31 }
     "FORMAT"      CDF_CHAR     { "E12.2" }
     "UNITS"       CDF_CHAR     { "nT^2/Hz" }
+    "SI_conv"     CDF_CHAR     { "1.0e-18>Tesla^2/Hz"}
     "DEPEND_0"    CDF_CHAR     { "Epoch" }
     "DEPEND_1"    CDF_CHAR     { "spec56_fcenter" }
     "VALIDMIN"    CDF_REAL4    { 0.0 }

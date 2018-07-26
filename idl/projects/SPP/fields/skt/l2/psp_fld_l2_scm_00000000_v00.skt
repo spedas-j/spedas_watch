@@ -40,10 +40,10 @@
 
   "Data_version"        1:    CDF_CHAR     { "00" } .
 
-  "TEXT"                1:    CDF_CHAR     { "PSP FIELDS Radio Frequency" -
-                                             " Spectrometer (RFS), Low " -
-                                             "Frequency Reciever (LFR) " -
-                                             "data." } .
+  "TEXT"                1:    CDF_CHAR     { "PSP FIELDS Search Coil" -
+                                             " Magnetometer (SCM) waveform " -
+                                             "data from the Digital " -
+                                             "Fields Board (DFB)." } .
 
   "MODS"                1:    CDF_CHAR     { "Revision 0" } .
 
@@ -138,6 +138,7 @@
   "SCALEMIN"
   "SCALEMAX"
   "UNITS"
+  "SI_conv"
   "CATDESC"
   "TIME_BASE"
   "VAR_NOTES"
@@ -228,6 +229,7 @@
     "VALIDMIN"    CDF_REAL4    { -65536.0, -65536.0, -65536.0 }
     "VALIDMAX"    CDF_REAL4    { 65536.0, 65536.0, 65536.0 }
     "UNITS"       CDF_CHAR     { "nT" }
+    "SI_conv"     CDF_CHAR     { "1.0e-9>Tesla" }
     "CATDESC"     CDF_CHAR     { "Magnetic field in SCM coordinates" }
     "SCALETYP"    CDF_CHAR     { "linear" }
     "LABL_PTR_1"  CDF_CHAR     { "label_B_SCM" } .

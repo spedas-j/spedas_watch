@@ -15,6 +15,13 @@ pro spp_fld_make_cdf_l2_rfs, $
   trange = trange, $
   l1_cdf_dir = l1_cdf_dir
 
+  if n_elements(l2_master_cdf) EQ 0 or n_elements(l2_cdf) EQ 0 then begin
+
+    dprint, dlevel = 1, 'L2 master CDF or L2 CDF not specified'
+    return
+
+  endif
+
   l2_cdf_buffer = read_master_cdf(l2_master_cdf,l2_cdf)
 
   ; Read data from the TPLOT variables
@@ -23,6 +30,9 @@ pro spp_fld_make_cdf_l2_rfs, $
     data = lfr_auto_avg_ch0
   get_data, 'spp_fld_rfs_lfr_auto_averages_ch1_converted', $
     data = lfr_auto_avg_ch1
+    
+  get_data, 'spp_fld_rfs_lfr_auto_ch0', data = lfr_auto_ch0_source
+  get_data, 'spp_fld_rfs_lfr_auto_ch0_string', data = lfr_auto_ch0_source_str
 
   lfr_auto_unix_time = lfr_auto_avg_ch0.x
   lfr_auto_met_time = lfr_auto_unix_time - time_double('2010-01-01/00:00:00')
@@ -43,6 +53,8 @@ pro spp_fld_make_cdf_l2_rfs, $
   *l2_cdf_buffer.frequencies_lfr.data   = transpose(lfr_auto_frequencies)
   *l2_cdf_buffer.lfr_auto_avg_ch0.data  = transpose(lfr_auto_avg_ch0_data)
   *l2_cdf_buffer.lfr_auto_avg_ch1.data  = transpose(lfr_auto_avg_ch1_data)
+  *l2_cdf_buffer.lfr_ch0_source.data  = transpose(lfr_auto_ch0_source.y)
+  *l2_cdf_buffer.lfr_ch0_source_string.data  = transpose(lfr_auto_ch0_source_str.y)
 
   l2_write_status = write_data_to_cdf(l2_cdf, l2_cdf_buffer)
 

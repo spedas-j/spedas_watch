@@ -137,6 +137,14 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   spawn, getenv('CDF_BIN') + '/skeletoncdf -cdf ' + l2_master_cdf + ' ' + l2_skt
 
+  if ~file_test(l2_master_cdf) then begin
+    
+    dprint, dlevel = 1, 'Unable to create CDF from skeleton file ' + l2_master_cdf
+    
+    return
+        
+  endif
+
   ; Use the master CDF to create a buffer CDF to write the data into
 
   ;l2_cdf_buffer = read_master_cdf(l2_master_cdf,l2_cdf)
@@ -154,7 +162,7 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   endif
 
-  call_procedure, make_cdf_l2_pro, l2_master_cdf, l2_cdf
+  call_procedure, make_cdf_l2_pro, l2_master_cdf, l2_cdf, trange = trange
 
   ; The write_data_to_cdf procedure doesn't allow for easy modification
   ; of global variables, so we do it here instead.

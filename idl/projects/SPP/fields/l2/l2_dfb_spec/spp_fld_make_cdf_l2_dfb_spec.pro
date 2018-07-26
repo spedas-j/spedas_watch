@@ -11,8 +11,6 @@ pro spp_fld_make_cdf_l2_dfb_spec, $
 
   endif
 
-  l2_cdf_buffer = read_master_cdf(l2_master_cdf,l2_cdf)
-
   if n_elements(l2_master_cdf) EQ 0 or n_elements(l2_cdf) EQ 0 then begin
 
     dprint, dlevel = 1, 'L2 master CDF or L2 CDF not specified'

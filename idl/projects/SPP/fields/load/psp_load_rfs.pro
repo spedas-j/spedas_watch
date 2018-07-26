@@ -14,7 +14,11 @@ pro psp_load_rfs, files = files
   options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'ysubtitle', '[Hz]'
   options, 'psp_fld_rfs_lfr_auto_avg_ch?', 'ztitle', '[V2/Hz]'
    
-  options, 'psp_fld_rfs_lfr_auto_avg_ch0', 'ytitle', 'LFR AUTO!CH0'
-  options, 'psp_fld_rfs_lfr_auto_avg_ch1', 'ytitle', 'LFR AUTO!CH1'
+  options, 'psp_fld_rfs_lfr_auto_avg_ch0', 'ytitle', 'LFR AUTO!CCH0'
+  options, 'psp_fld_rfs_lfr_auto_avg_ch1', 'ytitle', 'LFR AUTO!CCH1'
+
+  options, 'psp_fld_rfs_lfr_ch0_source', 'psym', 4
+  options, 'psp_fld_rfs_lfr_ch0_source_string', 'tplot_routine', 'strplot'
+
 
 end

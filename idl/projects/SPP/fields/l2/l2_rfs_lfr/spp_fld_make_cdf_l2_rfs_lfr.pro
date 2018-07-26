@@ -3,6 +3,13 @@ pro spp_fld_make_cdf_l2_rfs_lfr, $
   trange = trange, $
   l1_cdf_dir = l1_cdf_dir
 
+  if n_elements(l2_master_cdf) EQ 0 or n_elements(l2_cdf) EQ 0 then begin
+
+    dprint, dlevel = 1, 'L2 master CDF or L2 CDF not specified'
+    return
+
+  endif
+
   l2_cdf_buffer = read_master_cdf(l2_master_cdf,l2_cdf)
 
   ; Read data from the TPLOT variables

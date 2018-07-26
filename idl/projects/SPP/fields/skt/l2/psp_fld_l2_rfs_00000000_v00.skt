@@ -98,6 +98,15 @@
                         3:    CDF_CHAR     { "spp_fld_l1_rfs_lfr_auto_00" -
                                              "000000_v00.cdf" } .
 
+	"def_lfr_ch0_source"  1:    CDF_CHAR     {"0 - V1-V2"}
+	                      2:    CDF_CHAR     {"1 - V1-V3"}
+	                      3:    CDF_CHAR     {"2 - SCM"}
+	                      4:    CDF_CHAR     {"3 - GND"}
+	                      5:    CDF_CHAR     {"4 - V1"}
+	                      6:    CDF_CHAR     {"5 - V3"}
+	                      7:    CDF_CHAR     {"6 - GND"}
+	                      8:    CDF_CHAR     {"7 - GND"} .
+
   "svn_version"         1:    CDF_CHAR     { "0000000000000000" } .
 
 
@@ -120,6 +129,7 @@
   "SCALEMIN"
   "SCALEMAX"
   "UNITS"
+  "SI_conv"
   "CATDESC"
   "TIME_BASE"
   "VAR_NOTES"
@@ -212,9 +222,75 @@
                   CDF_CHAR     { "spectrogram" }
     "VALIDMIN"    CDF_REAL8    { 0.0 }
     "VALIDMAX"    CDF_REAL8    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "V2/Hz" }
+    "UNITS"       CDF_CHAR     { "Volts^2/Hz" }
+    "SI_conv"     CDF_CHAR     { "1.0>Volts^2/Hz"}
     "CATDESC"     CDF_CHAR     { "lfr_auto_avg_ch0" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "lfr_ch0_source" 
+                  CDF_INT2      1       1      1       T         F
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -32767
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "FIELDNAM"    CDF_CHAR     { "lfr_ch0_source" }
+    "VALIDMIN"    CDF_INT4     { 0 }
+    "VALIDMAX"    CDF_INT4     { 7 }
+    "SCALEMIN"    CDF_INT4     { 0 }
+    "SCALEMAX"    CDF_INT4     { 7 }
+    "UNITS"       CDF_CHAR     { " " }
+    "LABLAXIS"    CDF_CHAR     { "lfr_ch0_source" }
+    "FORMAT"      CDF_CHAR     { "I8" }
+    "MONOTON"     CDF_CHAR     { "FALSE" }
+    "SCALETYP"    CDF_CHAR     { "LINEAR" }
+    "CATDESC"     CDF_CHAR     { "lfr_ch0_source" }
+    "FILLVAL"     CDF_INT4     { -32768 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_lfr_auto" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "VAR_NOTES"   CDF_CHAR     { "Source for LFR Ch0 Data" }
+    "DISPLAY_TYPE"
+                  CDF_CHAR     { "time_series" } .
+
+  ! RV values were not requested.
+  
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "lfr_ch0_source_string" 
+                  CDF_CHAR      20       1      1       T         F
+
+  ! VAR_COMPRESSION: None
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: " "
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "lfr_ch0_source_string" }
+    "FIELDNAM"    CDF_CHAR     { "lfr_ch0_source_string" }
+    "FORMAT"      CDF_CHAR     { "A8" }
+    "FILLVAL"     CDF_CHAR     { " " }
+    "DEPEND_0"    CDF_CHAR     { "epoch_lfr_auto" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "VAR_NOTES"   CDF_CHAR     { "Source for LFR Ch0 Data (as a string)" }
+    "LABLAXIS"    CDF_CHAR     { "lfr_ch0_source_string" } .
 
   ! RV values were not requested.
 
@@ -247,7 +323,8 @@
                   CDF_CHAR     { "spectrogram" }
     "VALIDMIN"    CDF_REAL8    { 0.0 }
     "VALIDMAX"    CDF_REAL8    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "V2/Hz" }
+    "UNITS"       CDF_CHAR     { "V^2/Hz" }
+    "SI_conv"     CDF_CHAR     { "1.0>Volts^2/Hz"}
     "CATDESC"     CDF_CHAR     { "lfr_auto_avg_ch1" }
     "SCALETYP"    CDF_CHAR     { "log" } .
 
@@ -280,44 +357,10 @@
     "VALIDMIN"    CDF_REAL8    { 0.0 }
     "VALIDMAX"    CDF_REAL8    { 1.0e+30 }
     "UNITS"       CDF_CHAR     { "Hz" }
+    "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequencies_lfr" }
     "SCALETYP"    CDF_CHAR     { "log" } .
 
   ! RV values were not requested.
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "lfr_ch0_labl" 
-                  CDF_CHAR      5       1      8       F         T
-
-  ! VAR_COMPRESSION: None
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: " "
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "CATDESC"     CDF_CHAR     { "lfr_ch0_labl" }
-    "FIELDNAM"    CDF_CHAR     { "lfr_ch0_labl" }
-    "FORMAT"      CDF_CHAR     { "A8" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "VAR_NOTES"   CDF_CHAR     { "Source for LFR Ch0 Data" }
-    "LABLAXIS"    CDF_CHAR     { "lfr_ch0_labl" } .
-
-  ! NRV values follow...
-
-	[1] = {"V1-V2"}
-	[2] = {"V1-V3"}
-	[3] = {"SCM"}
-	[4] = {"GND"}
-	[5] = {"V1"}
-	[6] = {"V3"}
-	[7] = {"GND"}
-	[8] = {"GND"}
 
 #end
