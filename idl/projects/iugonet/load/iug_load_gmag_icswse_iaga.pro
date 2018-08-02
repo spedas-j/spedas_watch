@@ -39,8 +39,8 @@
 ;
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-02-22 11:09:13 -0800 (Thu, 22 Feb 2018) $
-; $LastChangedRevision: 24758 $
+; $LastChangedDate: 2018-08-01 11:03:38 -0700 (Wed, 01 Aug 2018) $
+; $LastChangedRevision: 25538 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/iugonet/load/iug_load_gmag_icswse_iaga.pro $
 ;-
 

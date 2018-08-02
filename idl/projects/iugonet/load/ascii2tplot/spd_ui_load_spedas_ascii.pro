@@ -10,9 +10,9 @@
 ;  ev - The event structure from the main gui
 ;
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-02-07 10:44:31 -0800 (Wed, 07 Feb 2018) $
-;$LastChangedRevision: 24665 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/tags/spedas_3_00/spedas_gui/utilities/spd_ui_main_funcs/spd_ui_load_spedas_cdf.pro $
+;$LastChangedDate: 2018-08-01 11:03:38 -0700 (Wed, 01 Aug 2018) $
+;$LastChangedRevision: 25538 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/iugonet/load/ascii2tplot/spd_ui_load_spedas_ascii.pro $
 ;-
 ;pro spd_ui_load_spedas_ascii,info
 pro spd_ui_load_spedas_ascii, info, ev

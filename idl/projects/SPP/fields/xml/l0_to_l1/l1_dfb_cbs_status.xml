@@ -1,0 +1,501 @@
+<?xml version ="1.0" encoding ="UTF-8"?>
+
+<items>
+
+  <tmlib
+  	tmlib_event = 'dfb_cbs_status'
+  	>
+  </tmlib>
+
+  <cdf_global
+      Title = "SPP FIELDS DFB CBS Status"
+      Descriptor = "DFB>Digital Fields Board"
+      Data_type = "Digital housekeeping data"
+      Data_version = "0"
+      TEXT = "SPP FIELDS DFB CBS Status"
+      Mods = "Revision 0"
+      Logical_source = "SPP_FLD_DFB_CBS_STATUS"
+      Logical_source_description = "SPP FIELDS DFB CBS Status"
+      Dependencies = "None"
+      >
+  </cdf_global>
+
+  <idl_att
+      convert_routine = 'spp_fld_dfb_cbs_status_convert'>
+  </idl_att>
+
+  <cdf_var
+      name = "EBUFFTYPE"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "EBUFFTYPE"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "EBUFFTYPE"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "Egress Buffer Type"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "EBUFFSCM"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "EBUFFSCM"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "EBUFFSCM"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "Egress Buffer SCM Cal Flag"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "EBUFFIMM"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "EBUFFIMM"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "EBUFFIMM"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "Egress Buffer Immediate Capture Flag"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "EBUFFBRSTQ"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "EBUFFBRSTQ"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "EBUFFBRSTQ"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "Egress Buffer Burst Quality"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+	<!-- DCB Holding Buffer 0 -->
+	
+  <cdf_var
+      name = "DCBH0TYPE"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH0TYPE"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH0TYPE"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 0 Type"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH0SCM"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH0SCM"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH0SCM"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 0 SCM Cal Flag"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH0IMM"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH0IMM"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH0IMM"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 0 Immediate Capture Flag"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH0BRSTQ"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH0BRSTQ"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH0BRSTQ"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 0 Burst Quality"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+	<!-- DCB Holding Buffer 1 -->
+	
+  <cdf_var
+      name = "DCBH1TYPE"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH1TYPE"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH1TYPE"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 1 Type"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH1SCM"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH1SCM"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH1SCM"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 1 SCM Cal Flag"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH1IMM"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH1IMM"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH1IMM"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 1 Immediate Capture Flag"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH1BRSTQ"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH1BRSTQ"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH1BRSTQ"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 1 Burst Quality"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+	<!-- DCB Holding Buffer 2 -->
+	
+  <cdf_var
+      name = "DCBH2TYPE"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH2TYPE"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH2TYPE"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 2 Type"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH2SCM"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH2SCM"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH2SCM"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 2 SCM Cal Flag"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH2IMM"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH2IMM"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH2IMM"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 2 Immediate Capture Flag"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DCBH2BRSTQ"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DCBH2BRSTQ"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DCBH2BRSTQ"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DCB Holding Buffer 2 Burst Quality"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  
+	<!-- DFB Holding Buffer 0 -->
+	
+  <cdf_var
+      name = "DFBH0TYPE"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DFBH0TYPE"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DFBH0TYPE"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DFB Holding Buffer 0 Type"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DFBH0BRSTQ"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DFBH0BRSTQ"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DFBH0BRSTQ"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DFB Holding Buffer 0 Burst Quality"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+	<!-- DFB Holding Buffer 1 -->
+	
+  <cdf_var
+      name = "DFBH1TYPE"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DFBH1TYPE"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DFBH1TYPE"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DFB Holding Buffer 1 Type"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DFBH1BRSTQ"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DFBH1BRSTQ"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DFBH1BRSTQ"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DFB Holding Buffer 1 Burst Quality"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  
+	<!-- DFB Holding Buffer 2 -->
+	
+  <cdf_var
+      name = "DFBH2TYPE"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DFBH2TYPE"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DFBH2TYPE"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DFB Holding Buffer 2 Type"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "DFBH2BRSTQ"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "DFBH2BRSTQ"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "DFBH2BRSTQ"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "None"
+        CATDESC = "DFB Holding Buffer 2 Burst Quality"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+    
+</items>

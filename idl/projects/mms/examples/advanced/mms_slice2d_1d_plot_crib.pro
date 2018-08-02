@@ -3,8 +3,8 @@
 ;  Crib sheet demonstrating how to create 1D plots of 2D distribution slices created by spd_slice2d
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-07-03 14:45:13 -0700 (Tue, 03 Jul 2018) $
-;$LastChangedRevision: 25436 $
+;$LastChangedDate: 2018-08-01 10:24:18 -0700 (Wed, 01 Aug 2018) $
+;$LastChangedRevision: 25536 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_slice2d_1d_plot_crib.pro $
 ;-
 
@@ -101,6 +101,7 @@ mms_load_fpi, data_rate=data_rate, level=level, datatype='d'+species+'s-moms', p
   
 slice = spd_slice2d(dist, time=time, /subtract_bulk, vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_brst')
 
+window, 0, xsize=500, ysize=500
 spd_slice1d_plot, slice, 'x', 0.0, title='Vx at Vy=0 (bulk V frame)', xrange=[-400, 400]
 
 stop
