@@ -1,6 +1,14 @@
 ; Two configurations:
-; In the TEST configuration,
-; In the standard (DAILY) configuration, the
+; In the TEST configuration, a time range (trange) and l1_cdf_dir is specified.
+; spp_fld_make_cdf_l2 looks in the l1_cdf_dir for a corresponding l1 cdf file
+; (or multiple files) and loads that data.  From those loaded variables (and
+; the associated skeleton file definitions), the l2 data file is created.
+;
+; In the standard (DAILY) configuration, a single element time range is
+; specified, and the l1_cdf_dir is not specified.  The program will use the
+; input time to determine where the l1 cdf files are (based on environment
+; variables) then read them automatically and create daily l2 files.  (This is
+; not implemented yet).
 
 pro spp_fld_make_cdf_l2, l2_datatype, $
   l2_master_cdf, $
@@ -116,19 +124,28 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   cd, old_dir
 
-  l2_cdf_tmp_dir = getenv('SPP_FLD_CDF_DIR') + '/tmp/'
+  ; TODO: better structure of daily/test/temp directories
+
+  l2_cdf_tmp_dir = getenv('SPP_FLD_CDF_DIR') + 'l2_test/' + l2_datatype + '/'
+
+  l2_cdf_test_dir = getenv('SPP_FLD_CDF_DIR') + 'l2_test/' + l2_datatype + '/'
 
   file_mkdir, l2_cdf_tmp_dir
+
+  file_mkdir, l2_cdf_test_dir
 
   l2_master_cdf = l2_cdf_tmp_dir + 'psp_fld_l2_' + $
     l2_datatype + '_00000000_v' + $
     l2_version + '.cdf'
 
-  ; TODO: move this out of temp dir
-
-  l2_cdf = l2_cdf_tmp_dir + 'psp_fld_l2_' + $
+  l2_cdf = l2_cdf_test_dir + 'psp_fld_l2_' + $
     l2_datatype + '_' + filename_timestring + '_v' + $
     l2_version + '.cdf'
+
+  l2_cdf_dump = l2_cdf_test_dir + 'psp_fld_l2_' + $
+    l2_datatype + '_' + filename_timestring + '_v' + $
+    l2_version + '.cdfdump.txt'
+
 
   ; Create a (temporary) master CDF file from the skeleton file
 
@@ -138,11 +155,11 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   spawn, getenv('CDF_BIN') + '/skeletoncdf -cdf ' + l2_master_cdf + ' ' + l2_skt
 
   if ~file_test(l2_master_cdf) then begin
-    
+
     dprint, dlevel = 1, 'Unable to create CDF from skeleton file ' + l2_master_cdf
-    
+
     return
-        
+
   endif
 
   ; Use the master CDF to create a buffer CDF to write the data into
@@ -179,6 +196,24 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   cdf_close, cdf_id
 
+  cd, l2_cdf_test_dir, current = old_dir
+
+  spawn, getenv('CDF_BIN') + '/cdfdump ' + l2_cdf + ' -recordrange 1,10', $
+    l2_cdf_dump_lines
+
+  OPENW, dump_lun, l2_cdf_dump, /GET_LUN
+
+  for i = 0, n_elements(l2_cdf_dump_lines) - 1 do begin
+
+    PRINTF, dump_lun, l2_cdf_dump_lines[i]
+
+  end
+
+  free_lun, dump_lun
+
+  cd, old_dir
+
+  ;stop
 
   ;
   ; If load keyword set, load file into tplot variables
