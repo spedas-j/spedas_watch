@@ -1,0 +1,201 @@
+<?xml version ="1.0" encoding ="UTF-8"?>
+
+<items>
+
+  <tmlib
+  	tmlib_event = 'dfb_sc_potential'
+  	>
+  </tmlib>
+
+  <cdf_global
+      Title = "SPP FIELDS DFB SC Potential"
+      Descriptor = "DFB>Digital Fields Board"
+      Data_type = "Spacecraft potential data"
+      Data_version = "0"
+      TEXT = "SPP FIELDS DFB SC Potential"
+      Mods = "Revision 0"
+      Logical_source = "SPP_FLD_DFB_SC_POTENTIAL"
+      Logical_source_description = "SPP FIELDS DFB SC Potential"
+      Dependencies = "None"
+      >
+  </cdf_global>
+
+  <idl_att
+      convert_routine = 'spp_fld_dfb_sc_potential_convert'>
+  </idl_att>
+
+	<cdf_var
+      name   = "V1"
+      type   = "integer">
+  	<cdf_att
+        FIELDNAM = "V1"
+        FORMAT = "I12"
+        LABLAXIS = "V1"
+        VAR_TYPE = "data"
+        DATA_TYPE = "CDF_INT4"
+        FILLVAL = "-2147483648"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "Counts"
+        CATDESC = "V1"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+	<cdf_var
+      name   = "V2"
+      type   = "integer">
+  	<cdf_att
+        FIELDNAM = "V2"
+        FORMAT = "I12"
+        LABLAXIS = "V2"
+        VAR_TYPE = "data"
+        DATA_TYPE = "CDF_INT4"
+        FILLVAL = "-2147483648"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "Counts"
+        CATDESC = "V2"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+	<cdf_var
+      name   = "V3"
+      type   = "integer">
+  	<cdf_att
+        FIELDNAM = "V3"
+        FORMAT = "I12"
+        LABLAXIS = "V3"
+        VAR_TYPE = "data"
+        DATA_TYPE = "CDF_INT4"
+        FILLVAL = "-2147483648"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "Counts"
+        CATDESC = "V3"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+	<cdf_var
+      name   = "V4"
+      type   = "integer">
+  	<cdf_att
+        FIELDNAM = "V4"
+        FORMAT = "I12"
+        LABLAXIS = "V4"
+        VAR_TYPE = "data"
+        DATA_TYPE = "CDF_INT4"
+        FILLVAL = "-2147483648"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "Counts"
+        CATDESC = "V4"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  
+  <cdf_var
+      name   = "V1_v"
+      type   = "double"
+      convert_routine = "none">
+  	<cdf_att
+        FIELDNAM = "V1_v"
+        FORMAT = "F15.3"
+        LABLAXIS = "V1_v"
+        VAR_TYPE = "data"
+        DATA_TYPE = "CDF_DOUBLE"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1.0E31"
+        VALIDMAX = "1.0E31"
+        SCALEMIN = "-1.0E31"
+        SCALEMAX = "1.0E31"
+        UNITS = "V"
+        CATDESC = "V1_v"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  
+  <cdf_var
+      name   = "V2_v"
+      type   = "double"
+      convert_routine = "none">
+  	<cdf_att
+        FIELDNAM = "V2_v"
+        FORMAT = "F15.3"
+        LABLAXIS = "V2_v"
+        VAR_TYPE = "data"
+        DATA_TYPE = "CDF_DOUBLE"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1.0E31"
+        VALIDMAX = "1.0E31"
+        SCALEMIN = "-1.0E31"
+        SCALEMAX = "1.0E31"
+        UNITS = "V"
+        CATDESC = "V2_v"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  
+  <cdf_var
+      name   = "V3_v"
+      type   = "double"
+      convert_routine = "none">
+  	<cdf_att
+        FIELDNAM = "V3_v"
+        FORMAT = "F15.3"
+        LABLAXIS = "V3_v"
+        VAR_TYPE = "data"
+        DATA_TYPE = "CDF_DOUBLE"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1.0E31"
+        VALIDMAX = "1.0E31"
+        SCALEMIN = "-1.0E31"
+        SCALEMAX = "1.0E31"
+        UNITS = "V"
+        CATDESC = "V3_v"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  
+  <cdf_var
+      name   = "V4_v"
+      type   = "double"
+      convert_routine = "none">
+  	<cdf_att
+        FIELDNAM = "V4_v"
+        FORMAT = "F15.3"
+        LABLAXIS = "V4_v"
+        VAR_TYPE = "data"
+        DATA_TYPE = "CDF_DOUBLE"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1.0E31"
+        VALIDMAX = "1.0E31"
+        SCALEMIN = "-1.0E31"
+        SCALEMAX = "1.0E31"
+        UNITS = "V"
+        CATDESC = "V4_v"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+
+    
+</items>
