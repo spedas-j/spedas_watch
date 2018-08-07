@@ -33,8 +33,8 @@
 ;         click 'Allow' for private networks)
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-05-22 10:06:16 -0700 (Tue, 22 May 2018) $
-; $LastChangedRevision: 25247 $
+; $LastChangedDate: 2018-08-06 13:28:09 -0700 (Mon, 06 Aug 2018) $
+; $LastChangedRevision: 25591 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/tplot2ap/ap2tplot.pro $
 ;-
 
@@ -50,6 +50,8 @@ pro ap2tplot, port=port, connect_timeout=connect_timeout, read_timeout=read_time
     return
   endif
   
+  spd_graphics_config ; setup the standard SPEDAS graphics config
+  
   socket, unit, '127.0.0.1', port, /get_lun, error=error, read_timeout=read_timeout, connect_timeout=connect_timeout
 
   ; wait for the connection
@@ -62,22 +64,21 @@ pro ap2tplot, port=port, connect_timeout=connect_timeout, read_timeout=read_time
   len_plots = (strsplit(len_plots, 'autoplot> ', /extract))[0]
   len_plots = fix(len_plots)
   for i=0l, len_plots-1 do begin
-    printf, unit, "print dom.dataSourceFilters["+strcompress(string(i), /rem)+"].uri"
+  ;  printf, unit, "print dom.dataSourceFilters["+strcompress(string(i), /rem)+"].uri" ; the old way
+    printf, unit, "print guessName(dom.plotElements["+strcompress(string(i), /rem)+"].controller.dataSet)" 
     ap_var = ''
     readf, unit, ap_var
 
-    ; parse out the variable name from id=
-    var_name_parts = strsplit(ap_var, '&', /extract)
-    for var_idx=0, n_elements(var_name_parts)-1 do begin
-      if strmid(var_name_parts[var_idx], 0, 2) eq 'id' then var_name = strmid(var_name_parts[var_idx], 3, strlen(var_name_parts[var_idx]))
-    endfor
-
-    if undefined(var_name) then var_name = 'unknown'
+    ; variable name returned with autoplot>
+    var_name = strmid(ap_var, 10, strlen(ap_var)-1)
     
+    if var_name eq 'None' then var_name = 'unknown'
+    
+    local_data_dir = strjoin(strsplit(local_data_dir, '\', /extract), '/')
     tmp_filename = local_data_dir + 'ap2tplot'+strcompress(string(randomu(seed, 1, /long)), /rem)+'.cdf'
     wait, 1
     printf, unit, "formatDataSet(dom.plotElements["+strcompress(string(i), /rem)+"].controller.dataSet, '"+tmp_filename+"?"+var_name+"')"
-    wait, 1
+    wait, 3
     spd_cdf2tplot, tmp_filename, /all
     
     undefine, var_name
