@@ -33,8 +33,8 @@
 ;         click 'Allow' for private networks)
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-08-06 13:28:09 -0700 (Mon, 06 Aug 2018) $
-; $LastChangedRevision: 25591 $
+; $LastChangedDate: 2018-08-08 10:07:41 -0700 (Wed, 08 Aug 2018) $
+; $LastChangedRevision: 25610 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/tplot2ap/ap2tplot.pro $
 ;-
 
@@ -64,7 +64,6 @@ pro ap2tplot, port=port, connect_timeout=connect_timeout, read_timeout=read_time
   len_plots = (strsplit(len_plots, 'autoplot> ', /extract))[0]
   len_plots = fix(len_plots)
   for i=0l, len_plots-1 do begin
-  ;  printf, unit, "print dom.dataSourceFilters["+strcompress(string(i), /rem)+"].uri" ; the old way
     printf, unit, "print guessName(dom.plotElements["+strcompress(string(i), /rem)+"].controller.dataSet)" 
     ap_var = ''
     readf, unit, ap_var
