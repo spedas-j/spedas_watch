@@ -87,8 +87,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-07-19 13:28:24 -0700 (Thu, 19 Jul 2018) $
-; $LastChangedRevision: 25495 $
+; $LastChangedDate: 2018-08-09 15:30:24 -0700 (Thu, 09 Aug 2018) $
+; $LastChangedRevision: 25621 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/flipbookify/spd_flipbookify.pro $
 ;-
 
@@ -104,9 +104,8 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
   all_colorbars=all_colorbars, include_1d_vx=include_1d_vx, include_1d_vy=include_1d_vy, $
   lineplot_yrange=lineplot_yrange, lineplot_xrange=lineplot_xrange, lineplot_thickness=lineplot_thickness, $
   ps_xsize=ps_xsize, ps_ysize=ps_ysize, ps_aspect=ps_aspect, nopng=nopng, custom_rotation=custom_rotation
-  
   @tplot_com.pro
-
+  
   if undefined(filename_prefix) then filename_prefix = 'spd'
   if ~undefined(include_1d_vx) or ~undefined(include_1d_vy) then lineplot = 1b
   if undefined(right_margin) then begin
@@ -131,19 +130,8 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
     return
   endif
 
-  tpv_opt_tags = tag_names(tplot_vars.options)
-  idx = where( tpv_opt_tags eq 'DATANAMES', icnt)
-  if icnt gt 0 then begin
-    tplotnames = tplot_vars.options.datanames
-    tplotnames = tnames(tplotnames, nd, /all, index=ind)
-    get_data, tplotnames[0], data=top_panel
-    ; in case the top panel contains a pseudovariable
-    if ~is_struct(top_panel) && is_array(top_panel) then get_data, top_panel[0], data=top_panel
-    if is_struct(top_panel) then times = top_panel.x
-  endif else begin
-    dprint, dlevel=0, 'Error, no tplot window found'
-    return
-  endelse
+  times = spd_times_from_top_panel()
+  
   if undefined(trange) then trange = time_double(minmax(times)) else begin
     ; the user specified a trange, so we need to limit the slices to that trange
     ; and draw a box indicating the trange

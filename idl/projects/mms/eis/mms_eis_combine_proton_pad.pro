@@ -19,6 +19,7 @@
 ;       + 2018-02-19, I. Cohen      : fixed definitions of target_phxtof_energies and target_extof_energies to account for user-defined
 ;                                     energy ranges that do not include all energy channels; also fixed indexing on line 95 to accommodate
 ;       + 2018-06-12, I. Cohen      : removed 12 keV energy from combined pad range; imposed new min energy limit
+;       + 2018-08-09, I. Cohen      : introduced energy_string to keep user-defined energy range from being overwritten
 ;
 ;-
 pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units = data_units, size_pabin = size_pabin, energy = energy, suffix = suffix
@@ -87,12 +88,11 @@ pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units
   energy_size = where((proton_combined_spec.v ge energy[0]) and (proton_combined_spec.v le energy[1]))
   proton_pad = dblarr(n_elements(time_data),n_pabins,n_elements(energy_size)) + !Values.d_NAN                                               ; time x bins x energy
   ;
-  target_phxtof_energies = where((phxtof_pad.v2 gt 14) and (phxtof_pad.v2 lt 42) and (phxtof_pad.v2 gt energy[0]), n_target_phxtof_energies)
-  target_phxtof_crossover_energies = where(phxtof_pad.v2 gt 42, n_target_phxtof_crossover_energies)
-  target_extof_crossover_energies = where(extof_pad.v2 lt 81, n_target_extof_crossover_energies)
-  target_extof_energies = where((extof_pad.v2 gt 81) and (extof_pad.v2 lt energy[1]), n_target_extof_energies)
-  energy[0] = phxtof_pad.v2[target_phxtof_energies[0]]
-  energy[1] = extof_pad.v2[target_extof_energies[-1]]
+  target_phxtof_energies = where((phxtof_pad.v2 gt 14) and (phxtof_pad.v2 lt 52) and (phxtof_pad.v2 gt energy[0]), n_target_phxtof_energies)
+  target_phxtof_crossover_energies = where(phxtof_pad.v2 gt 52, n_target_phxtof_crossover_energies)
+  target_extof_crossover_energies = where(extof_pad.v2 lt 82, n_target_extof_crossover_energies)
+  target_extof_energies = where((extof_pad.v2 gt 82) and (extof_pad.v2 lt energy[1]), n_target_extof_energies)
+  energy_string = [strtrim(string(fix(phxtof_pad.v2[target_phxtof_energies[0]])),2),strtrim(string(fix(extof_pad.v2[target_extof_energies[-1]])),2)]
   ;
   proton_pad[*,*,0:n_target_phxtof_energies-1] = phxtof_pad_data[*,*,target_phxtof_energies]
   for tt=0,n_elements(time_data)-1 do for bb=0,n_pabins-1 do for ii=0,n_target_phxtof_crossover_energies-1 do proton_pad[tt,bb,n_target_phxtof_energies:n_target_phxtof_energies+ii] = average([phxtof_pad_data[tt,bb,target_phxtof_crossover_energies[ii]],extof_pad_data[tt,bb,target_extof_crossover_energies[ii]]],/NAN)
@@ -111,7 +111,7 @@ pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units
   tdegap,eis_prefix+'combined_proton_flux_omni'+suffix+'_pads',/overwrite
   proton_pad_integral = dblarr(n_elements(time_data),n_pabins) + !Values.d_NAN                                                              ; time x bins
   for tt=0,n_elements(time_data)-1 do for bb=0,n_pabins-1 do proton_pad_integral[tt,bb] = average(proton_pad[tt,bb,*],/NAN)
-  intpad_newname = eis_prefix+'combined_'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV_proton_flux_omni'+suffix+'_pad'
+  intpad_newname = eis_prefix+'combined_'+energy_string[0]+'-'+energy_string[1]+'keV_proton_flux_omni'+suffix+'_pad'
   store_data,intpad_newname, data={x:time_data,y:proton_pad_integral,v:pa_label}
   options,intpad_newname, spec=1, yrange = [0,180], ystyle=1, /no_interp, /extend_y_edges, $
     ytitle='mms'+probes+'!C'+data_rate+'!Cproton!C'+strtrim(string(fix(energy[0])),2)+'-'+strtrim(string(fix(energy[-1])),2)+'keV', ysubtitle='PA!C[deg]', minzlog=.01, ztitle=units_label
