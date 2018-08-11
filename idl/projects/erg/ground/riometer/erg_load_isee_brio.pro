@@ -14,7 +14,7 @@
 ;           At present, '30' is only available for datatype.
 ;   trange = (Optional) Time range of interest  (2 element array).
 ;   /verbose: set to output some useful info
-;   /downloadonly: if set, then only download the data, do not load it 
+;   /downloadonly: if set, then only download the data, do not load it
 ;           into variables.
 ;   /no_download: use only files which are online locally.
 ;
@@ -27,8 +27,8 @@
 ;             with support from Yoshimasa Tanaka (NIPR)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-12-05 22:09:27 -0800 (Tue, 05 Dec 2017) $
-; $LastChangedRevision: 24403 $
+; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
+; $LastChangedRevision: 25628 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/ground/riometer/erg_load_isee_brio.pro $
 ;
 ;-
@@ -44,7 +44,7 @@ if ~keyword_set(downloadonly) then downloadonly=0
 if ~keyword_set(no_download) then no_download=0
 
 ;----- site -----;
-site_code_all = strsplit('ath kap gak hus', /extract)
+site_code_all = strsplit('ath kap gak hus zgn ist', /extract)
 if(not keyword_set(site)) then site='all'
 site_code = ssl_check_valid_name(site, site_code_all, /ignore_case, /include_all)
 if site_code[0] eq '' then return
@@ -127,7 +127,7 @@ for i=0,n_elements(site_code)-1 do begin
           endcase
         endfor
       endelse
-    endif  
+    endif
 
     if(file_test(files[0])) then begin
       gatt = cdf_var_atts(files[0])

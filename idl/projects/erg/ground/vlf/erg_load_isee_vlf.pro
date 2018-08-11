@@ -2,27 +2,27 @@
 ; PROCEDURE: ERG_LOAD_ISEE_VLF
 ;
 ; PURPOSE:
-;   To load VLF spectrum data obtained by ISEE ELF/VLF network from the ISEE ERG-SC site 
+;   To load VLF spectrum data obtained by ISEE ELF/VLF network from the ISEE ERG-SC site
 ;
 ; KEYWORDS:
 ;   site  = Observatory name, example, erg_load_isee_vlf, site='ath',
 ;           the default is 'all', i.e., load all available stations.
 ;           This can be an array of strings, e.g., ['ath', 'kap']
 ;           or a single string delimited by spaces, e.g., 'ath kap'.
-;           Available sites as of July, 2017 : ath, kap
+;           Available sites as of July, 2017 : ath, kap, gak, ist, mam
 ;   downloadonly : if set, then only download the data, do not load it into variables.
 ;   no_server : use only files which are online locally.
 ;   no_download : use only files which are online locally. (Identical to no_server keyword.)
 ;   trange : Time range of interest  (2 element array).
 ;   timeclip :  if set, then data are time clipped.
-; 
+;
 ;   cal_gain : if set, frequency-dependent gain of the antenna system is calibrated.
 ;              The unit of gain G(f) is V/T, and calibrated spectral power P(f)
 ;              at frequecy f is computed as
-;     
-;               P(f) = S(f)/ (G(f)^2) [nT^2/Hz], 
 ;
-;              where S(f) is uncaibrated spectral power in unit of V^2/Hz.  
+;               P(f) = S(f)/ (G(f)^2) [nT^2/Hz],
+;
+;              where S(f) is uncaibrated spectral power in unit of V^2/Hz.
 ;
 ; EXAMPLE:
 ;   erg_load_isee_vlf, site='ath', $
@@ -36,8 +36,8 @@
 ;        2017-07-07 : Modified by Satoshi Kurita (ISEE, Nagoya Univ., kurita at isee.nagoya-u.ac.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-12-05 22:09:27 -0800 (Tue, 05 Dec 2017) $
-; $LastChangedRevision: 24403 $
+; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
+; $LastChangedRevision: 25628 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/ground/vlf/erg_load_isee_vlf.pro $
 ;
 ;-
@@ -47,7 +47,7 @@ pro erg_load_isee_vlf, site=site, $
         trange=trange, timeclip=timeclip,cal_gain=cal_gain
 
 ;*** site codes ***
-site_code_all = strsplit('ath kap', /extract)
+site_code_all = strsplit('ath kap gak ist mam', /extract)
 if(not keyword_set(site)) then site='all'
 site_code = ssl_check_valid_name(site, site_code_all, /ignore_case, /include_all)
 if site_code[0] eq '' then return
@@ -58,10 +58,10 @@ if(not keyword_set(no_server)) then no_server=0
 if(not keyword_set(no_download)) then no_download=0
 
 ;*** load CDF ***
-;--- Create (and initialize) a data file structure 
+;--- Create (and initialize) a data file structure
 source = file_retrieve(/struct)
 
-;--- Set parameters for the data file class 
+;--- Set parameters for the data file class
 source.local_data_dir  = root_data_dir() + 'ergsc/'
 source.remote_data_dir = 'https://ergsc.isee.nagoya-u.ac.jp/data/ergsc/'
 
@@ -74,7 +74,7 @@ for i=0,n_elements(site_code)-1 do begin
   ;--- Set the file path which is added to source.local_data_dir/remote_data_dir.
   ;pathformat = 'ground/vlf/SSS/YYYY/isee_vlf_SSS_YYYYMMDD_v??.cdf'
 
-  ;--- Generate the file paths by expanding wilecards of date/time 
+  ;--- Generate the file paths by expanding wilecards of date/time
   ;    (e.g., YYYY, YYYYMMDD) for the time interval set by "timespan"
 
   file_format  = 'ground/vlf/'+site_code[i]+'/YYYY/MM' $
@@ -83,7 +83,7 @@ for i=0,n_elements(site_code)-1 do begin
   relpathnames=file_dailynames(file_format=file_format,/hour_res)
 
   ;--- Download the designated data files from the remote data server
-  ;    if the local data files are older or do not exist. 
+  ;    if the local data files are older or do not exist.
 
   files = spd_download(remote_file=relpathnames, remote_path=source.remote_data_dir,$
                       local_path=source.local_data_dir, _extra=source, /last_version)
@@ -107,14 +107,14 @@ for i=0,n_elements(site_code)-1 do begin
       endif
 
     endif
-    
+
     zlim,prefix+['ch1','ch2'],0.0,0.0,1
     options,prefix+['ch1','ch2'],'ytitle','Frequency [Hz]'
     options,prefix+['ch1','ch2'],'ysubtitle',''
     if not keyword_set(cal_gain) then options,prefix+['ch1','ch2'],'ztitle','V^2/Hz'
 
     if (keyword_set(cal_gain)) then begin
-          
+
           dprint, 'Calibrating the gain of VLF antenna system...'
 
           cdfid=cdf_open(files[0])
@@ -141,7 +141,7 @@ for i=0,n_elements(site_code)-1 do begin
           store_data,prefix+'ch1',data=tmp1
           store_data,prefix+'ch2',data=tmp2
 
-          options,prefix+['ch1','ch2'],'ztitle','nT^2/Hz'          
+          options,prefix+['ch1','ch2'],'ztitle','nT^2/Hz'
 
     endif
 
