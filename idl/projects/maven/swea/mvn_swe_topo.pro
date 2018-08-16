@@ -66,8 +66,8 @@
 ;                    quality), 0 otherwise.
 ;
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2018-07-05 14:41:26 -0700 (Thu, 05 Jul 2018) $
-; $LastChangedRevision: 25443 $
+; $LastChangedDate: 2018-08-15 16:27:06 -0700 (Wed, 15 Aug 2018) $
+; $LastChangedRevision: 25640 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_topo.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 11/03/2017
@@ -232,7 +232,11 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
   if keyword_set(filter_reg) then begin
     mvn_swe_regid_restore,trange,res=regid,/tplot
     if (size(regid,/type) eq 8) then begin
-      id = round(interp(regid.id, regid.time, data.t, interp_thresh=60D, /no_extrap))
+       npts=n_elements(regid.time)
+       inxp=interp(lindgen(npts),regid.time,data.t,interp_thresh=16D, /no_extrap)
+       idtmp=regid.id
+       id=idtmp[round(inxp)]
+      ;id = round(interp(regid.id, regid.time, data.t, interp_thresh=60D, /no_extrap))
       infilter = where(id eq 1 or id eq 2,count) ; 1--solar wind, 2--sheath
       if (count gt 0L) then topo[infilter] = 7 ; overwrite these regions to draped
     endif

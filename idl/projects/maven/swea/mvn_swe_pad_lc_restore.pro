@@ -20,8 +20,8 @@
 ;       storeTPLOT:         Create tplot varibles
 ;                                                                                                         
 ; $LastChangedBy: xussui $  
-; $LastChangedDate: 2018-06-01 11:05:48 -0700 (Fri, 01 Jun 2018) $  
-; $LastChangedRevision: 25310 $ 
+; $LastChangedDate: 2018-08-15 15:54:51 -0700 (Wed, 15 Aug 2018) $  
+; $LastChangedRevision: 25639 $ 
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_lc_restore.pro $     
 ; 
 ;CREATED BY:    Tristan Weber
@@ -35,10 +35,10 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
 ;    rootPath = 'maven/data/sci/swe/l3/swe_pad_lc/YYYY/MM/'
     rootPath = 'maven/data/sci/swe/l3/padscore/YYYY/MM/'
 ;    rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v00_r01.sav' 
-;    rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r??.sav'
+    rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r??.sav'
     ;force to use r03 since the previous versions contain errors
     ;!!!!!Need to hard code to change for newer versions!!!!!!!!!!!!
-    rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r03.sav'
+    ;rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r03.sav'
 
     if keyword_set(orbit) then begin
       orbMin = min(orbit, max=orbMax)
