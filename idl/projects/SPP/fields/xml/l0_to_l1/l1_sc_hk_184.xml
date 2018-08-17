@@ -1,0 +1,45 @@
+<?xml version ="1.0" encoding ="UTF-8"?>
+
+<items>
+
+  <tmlib
+  	tmlib_event = 'sc_hk_184'
+  	>
+  </tmlib>
+
+  <cdf_global
+      Title = "PSP SC Housekeeping 184"
+      Descriptor = "PSP Housekeeping"
+      Data_type = "Spacecraft housekeeping data"
+      Data_version = "0"
+      TEXT = "PSP Spacecraft Housekeeping Data"
+      Mods = "Revision 0"
+      Logical_source = "SPP_FLD_SC_HK_184"
+      Logical_source_description = "PSP Spacecraft Housekeeping Data"
+      Dependencies = "None"
+      >
+  </cdf_global>
+
+  <cdf_var
+      name = "FSW_GC_HK_HK_WHLSPD0"
+      type = "double"
+      raw = "FSW_GC_HK_HK_WHLSPD0_raw">
+    <cdf_att
+        FIELDNAM = "WHLSPD0"
+        FORMAT = "F15.3"
+        LABLAXIS = "WHLSPD0"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1048."
+        VALIDMAX = "1048."
+        SCALEMIN = "-1048."
+        SCALEMAX = "1048."
+        UNITS = "Rad/sec"
+        CATDESC = "Wheel 0 Speed"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+</items>

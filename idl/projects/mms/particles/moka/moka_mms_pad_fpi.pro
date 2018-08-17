@@ -252,7 +252,33 @@ FUNCTION moka_mms_pad_fpi, input, input_err, $
   dpa   = (pamax-pamin)/double(kmax); bin size
   wpa   = pamin + findgen(kmax)*dpa + 0.5*dpa; bin center values
   pa_bin = [pamin + findgen(kmax)*dpa, pamax]
+  
+  ;-----------------------------
+  ; Azimuthal Bins
+  ;-----------------------------
+  amax  = 16
+  azmin = 0.
+  azmax = 180.
+  daz   = (azmax-azmin)/double(amax); bin size
+  waz   = azmin + findgen(amax)*daz + 0.5*daz; bin center values
+  az_bin = [azmin + findgen(amax)*daz, azmax]
+  
+  ;-----------------------------
+  ; Polar Bins
+  ;-----------------------------
+  pmax  = 16
+  polmin = 0.
+  polmax = 360.
+  dpol   = (polmax-polmin)/double(pmax); bin size
+  wpol   = polmin + findgen(pmax)*dpol + 0.5*dpol; bin center values
+  pol_bin = [polmin + findgen(pmax)*dpol, polmax]
 
+  ;-----------------------------
+  ; PA (az x pol)
+  ;-----------------------------
+  pa_azpol = dblarr(amax, pmax)
+  pa_azpol[*, *] = !values.d_nan
+  
   ;-----------------------------
   ; Energy Bins
   ;-----------------------------
@@ -377,6 +403,7 @@ FUNCTION moka_mms_pad_fpi, input, input_err, $
 
 
 
+    azang = 90.-data.theta
     ;------------------------
     ; DISTRIBUTE
     ;------------------------
@@ -394,8 +421,20 @@ FUNCTION moka_mms_pad_fpi, input, input_err, $
       result = min(pa_bin-data.pa[i],k,/abs)
       if pa_bin[k] gt data.pa[i] then k -= 1
       if k eq kmax then k -= 1
+      
+      ; Find azimuthal bin
+      result = min(az_bin-azang[i],a,/abs)
+      if az_bin[a] gt azang[i] then a -= 1
+      if a eq amax then a -= 1
+      
+      ; Find polar bin
+      result = min(pol_bin-data.phi[i],p,/abs)
+      if pol_bin[p] gt data.phi[i] then p -= 1
+      if p eq pmax then p -= 1
+
 
       if j ge 0 then begin
+        pa_azpol[a, p] = data.pa[i]
 
         ;-----------------------
         ; Find new eflux
@@ -528,5 +567,5 @@ FUNCTION moka_mms_pad_fpi, input, input_err, $
     eror___0:f_err[*,0], eror__90:f_err[*,1], eror_180:f_err[*,2], eror_omn:f_err[*,3], $
     vbulk_para:vbulk_para, vbulk_perp_abs:vbulk_perp, vbulk_vxb:vbulk_vxb, $
     vbulk_exb:vbulk_exb, bnrm:bnrm_avg, Vbulk:Vbulk_avg, bfield:bnrm_avg*babs_avg,$
-    species:species_lc}
+    species:species_lc, pa_azpol:pa_azpol, wpol: wpol, waz: waz}
 END

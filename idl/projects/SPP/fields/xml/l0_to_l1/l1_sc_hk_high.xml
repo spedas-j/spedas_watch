@@ -80,7 +80,7 @@
         VALIDMAX = "1048."
         SCALEMIN = "-1048."
         SCALEMAX = "1048."
-        UNITS = "Hz"
+        UNITS = "Rad/sec"
         CATDESC = "Wheel 0 Speed"
         DEPEND_0 = "epoch">
     </cdf_att>
@@ -102,7 +102,7 @@
         VALIDMAX = "1048."
         SCALEMIN = "-1048."
         SCALEMAX = "1048."
-        UNITS = "Hz"
+        UNITS = "Rad/sec"
         CATDESC = "Wheel 1 Speed"
         DEPEND_0 = "epoch">
     </cdf_att>
@@ -125,7 +125,7 @@
         VALIDMAX = "1048."
         SCALEMIN = "-1048."
         SCALEMAX = "1048."
-        UNITS = "Hz"
+        UNITS = "Rad/sec"
         CATDESC = "Wheel 2 Speed"
         DEPEND_0 = "epoch">
     </cdf_att>
@@ -148,7 +148,7 @@
         VALIDMAX = "1048."
         SCALEMIN = "-1048."
         SCALEMAX = "1048."
-        UNITS = "Hz"
+        UNITS = "Rad/sec"
         CATDESC = "Wheel 3 Speed"
         DEPEND_0 = "epoch">
     </cdf_att>

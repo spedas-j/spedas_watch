@@ -24,14 +24,14 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-06-29 10:37:18 -0700 (Fri, 29 Jun 2018) $
-;$LastChangedRevision: 25420 $
+;$LastChangedDate: 2018-08-16 12:16:34 -0700 (Thu, 16 Aug 2018) $
+;$LastChangedRevision: 25647 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
 pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, species=species, instrument=instrument, $
                       trange=trange, subtract_bulk=subtract_bulk, spdf=spdf, rotation=rotation, output=output, $
-                      units=units, subtract_error=subtract_error, _extra=_extra
+                      units=units, subtract_error=subtract_error, plotbulk=plotbulk, _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -55,6 +55,7 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     
     if ~in_set(rotation, ['xy', 'yz', 'xz']) then load_support = 1b else load_support = 0b
     if keyword_set(subtract_bulk) then load_support = 1b ; need support data for bulk velocity subtraction as well
+    if keyword_set(plotbulk) then load_support = 1b 
     
     if load_support then mms_load_fgm, trange=trange, probe=probe, spdf=spdf
     bname = 'mms'+probe+'_fgm_b_gse_srvy_l2_bvec'
@@ -89,6 +90,6 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, _extra=_extra) $ 
       else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, _extra=_extra)
     
-    spd_slice2d_plot, slice, _extra=_extra
+    spd_slice2d_plot, slice, plotbulk=plotbulk, _extra=_extra
     output=slice
 end

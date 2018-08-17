@@ -21,6 +21,118 @@
   </cdf_global>
 
   <cdf_var
+      name = "PDU_A_CURR"
+      type = "double"
+      raw = "PDU_A_CURR_raw">
+    <cdf_att
+        FIELDNAM = "A_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "A_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.557"
+        VALIDMAX = "4.187"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU A Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_B_CURR"
+      type = "double"
+      raw = "PDU_B_CURR_raw">
+    <cdf_att
+        FIELDNAM = "B_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "B_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.557"
+        VALIDMAX = "4.187"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU B Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_WHEEL1_CURR"
+      type = "double"
+      raw = "PDU_WHEEL1_CURR_raw">
+    <cdf_att
+        FIELDNAM = "WHEEL1_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "WHEEL1_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.557"
+        VALIDMAX = "4.187"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "Wheel 1 Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+
+  <cdf_var
+      name = "PDU_RADIO_A_CURR"
+      type = "double"
+      raw = "PDU_RADIO_A_CURR_raw">
+    <cdf_att
+        FIELDNAM = "RADIO_A_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "RADIO_A_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.557"
+        VALIDMAX = "4.187"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU RADIO_A Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_RADIO_B_CURR"
+      type = "double"
+      raw = "PDU_RADIO_B_CURR_raw">
+    <cdf_att
+        FIELDNAM = "RADIO_B_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "RADIO_B_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-0.557"
+        VALIDMAX = "4.187"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU RADIO_B Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+
+  <cdf_var
       name = "PDU_FIELDS1_CURR"
       type = "double"
       raw = "PDU_FIELDS1_CURR_raw">
