@@ -1,16 +1,16 @@
-pro spp_fld_sc_hk_high_load_l1, file, prefix = prefix
+pro spp_fld_sc_hk_191_load_l1, file, prefix = prefix
 
-  if not keyword_set(prefix) then prefix = 'spp_fld_sc_hk_high_'
+  if not keyword_set(prefix) then prefix = 'spp_fld_sc_hk_191_'
   
   cdf2tplot, file, prefix = prefix
   
-  sc_hk_high_names = tnames(prefix + '*')
+  sc_hk_191_names = tnames(prefix + '*')
   
-  if sc_hk_high_names[0] NE '' then begin
+  if sc_hk_191_names[0] NE '' then begin
     
-    for i = 0, n_elements(sc_hk_high_names) - 1 do begin
+    for i = 0, n_elements(sc_hk_191_names) - 1 do begin
       
-      name = sc_hk_high_names[i]
+      name = sc_hk_191_names[i]
 
       ytitle = name
       
@@ -42,7 +42,7 @@ pro spp_fld_sc_hk_high_load_l1, file, prefix = prefix
   
   store_data, prefix + 'WHLSPD', data = tnames(prefix + 'WHLSPD?')
 
-  options, prefix + 'WHLSPD', 'ytitle', 'SC_HK_HI!CWHLSPD'
+  options, prefix + 'WHLSPD', 'ytitle', 'SC_HK_191!CWHLSPD'
   options, prefix + 'WHLSPD', 'ysubtitle', '[Rad/sec]'
   options, prefix + 'WHLSPD', 'panel_size', 2
   options, prefix + 'WHLSPD', 'colors'

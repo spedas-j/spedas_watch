@@ -849,7 +849,14 @@ if time_double(time) gt time_double('2017-07-12/00:00') and kk3_anode then kk3 =
 
 if time_double(time) gt time_double('2017-07-15/00:00') and kk3_anode then kk3 = [3.5,3.0,3.0,2.0]		; O2+ ok, 3 ngims, checked 20171115
  
-if time_double(time) gt time_double('2017-07-18/00:00') and kk3_anode then kk3 = [3.5,3.0,3.0,2.0]		; tbd , 3 ngims, checked tbd
+
+if time_double(time) gt time_double('2017-07-16/00:00') and kk3_anode then kk3 = [2.7,2.5,2.5,1.5]		; O2+ ok , 2 ngims, checked 20180802
+
+if time_double(time) gt time_double('2017-07-18/00:00') and kk3_anode then kk3 = [3.5,3.0,3.0,2.0]		; too high , 2 ngims, checked 20180802
+if time_double(time) gt time_double('2017-07-18/00:00') and kk3_anode then kk3 = [2.2,2.0,2.0,1.0]		; , 2 ngims, checked 20180802
+if time_double(time) gt time_double('2017-07-18/00:00') and kk3_anode then kk3 = [2.7,2.5,2.5,1.5]		; O2+ ok , 2 ngims, checked 20180802
+
+
 
 
 ; 17-07-19 to 17-08-14 no low energy periapsis data 
@@ -1028,11 +1035,33 @@ if time_double(time) gt time_double('2018-05-29/00:00') and kk3_anode then kk3 =
 if time_double(time) gt time_double('2018-05-31/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 3 ngims, checked 20180606
 
 
-if time_double(time) gt time_double('2018-06-01/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 5 ngims, checked 20180608, not well determined - probably errors in efficiency
+if time_double(time) gt time_double('2018-06-01/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 5 ngims, checked 20180608, 
 
-if time_double(time) gt time_double('2018-06-04/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 5 ngims, checked 20180608, not well determined - probably errors in efficiency
+if time_double(time) gt time_double('2018-06-04/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 5 ngims, checked 20180608, 
 
-if time_double(time) gt time_double('2018-06-22/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 3 ngims, checked 20180702,   ok     determined - probably errors in efficiency
+if time_double(time) gt time_double('2018-06-22/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 3 ngims, checked 20180702,   
+
+if time_double(time) gt time_double('2018-07-17/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 3 ngims, checked 20180702,   
+if time_double(time) gt time_double('2018-07-17/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 3 ngims, checked 20180702, att=0-2 
+
+if time_double(time) gt time_double('2018-07-21/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 4 ngims, checked 20180810,  att=0-2, one pass at att=3  
+
+if time_double(time) gt time_double('2018-07-27/00:00') and kk3_anode then kk3 = [2.3,1.6,2.3,1.5]		; poor at att=3, 4 ngims, checked 20180810,    
+if time_double(time) gt time_double('2018-07-27/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 4 ngims, checked 20180810,  att=0-2, one pass at att=3  
+
+if time_double(time) gt time_double('2018-07-31/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 3 ngims, checked 20180806, att=0-2 
+
+if time_double(time) gt time_double('2018-08-02/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 5 ngims, checked 20180815, att=0-2 
+
+; mechanical attenuator not required for some periapsis passes increasing atomic oxygen exposure
+
+if time_double(time) gt time_double('2018-08-05/00:00') and kk3_anode then kk3 = [2.5,1.1,2.5,1.0]		; sta too low, checked 20180813, att=0-2 
+if time_double(time) gt time_double('2018-08-05/00:00') and kk3_anode then kk3 = [2.5,1.3,2.7,1.2]		; sta o2+ ok, 6 ngims, checked 20180813, att=0-3 
+
+if time_double(time) gt time_double('2018-08-08/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta too low, checked 20180813, att=0-2 
+if time_double(time) gt time_double('2018-08-08/00:00') and kk3_anode then kk3 = [2.7,1.5,2.7,1.4]		; sta o2+ ok, 6 ngims, checked 20180813, att=0-3 
+
+if time_double(time) gt time_double('2018-08-10/00:00') and kk3_anode then kk3 = [2.7,1.5,2.7,1.4]		; sta o2+ ok, 5 ngims, checked 20180813, att=0-2 
 
 tt=timerange()
 store_data,'mvn_sta_kk3',data={x:tt,y:transpose([[kk3],[kk3]])}

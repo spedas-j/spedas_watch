@@ -24,14 +24,14 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-08-16 12:16:34 -0700 (Thu, 16 Aug 2018) $
-;$LastChangedRevision: 25647 $
+;$LastChangedDate: 2018-08-20 15:01:59 -0700 (Mon, 20 Aug 2018) $
+;$LastChangedRevision: 25670 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
 pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, species=species, instrument=instrument, $
                       trange=trange, subtract_bulk=subtract_bulk, spdf=spdf, rotation=rotation, output=output, $
-                      units=units, subtract_error=subtract_error, plotbulk=plotbulk, _extra=_extra
+                      units=units, subtract_error=subtract_error, plotbulk=plotbulk, plotsun=plotsun, _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -56,6 +56,12 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     if ~in_set(rotation, ['xy', 'yz', 'xz']) then load_support = 1b else load_support = 0b
     if keyword_set(subtract_bulk) then load_support = 1b ; need support data for bulk velocity subtraction as well
     if keyword_set(plotbulk) then load_support = 1b 
+    if keyword_set(plotsun) then begin
+       mms_load_mec, trange=trange, probe=probe, spdf=spdf
+       ; need to convert J2000 ECI data to GSE
+       spd_cotrans, 'mms1_mec_r_sun_de421_eci', 'mms1_mec_r_sun_de421_gse', out_coord='gse'
+       sname = 'mms1_mec_r_sun_de421_gse'
+    endif
     
     if load_support then mms_load_fgm, trange=trange, probe=probe, spdf=spdf
     bname = 'mms'+probe+'_fgm_b_gse_srvy_l2_bvec'
@@ -87,9 +93,9 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
 
     if ~undefined(time) then undefine, trange
     
-    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, _extra=_extra) $ 
-      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, _extra=_extra)
+    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, sun_data=sname, _extra=_extra) $ 
+      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, sun_data=sname, _extra=_extra)
     
-    spd_slice2d_plot, slice, plotbulk=plotbulk, _extra=_extra
+    spd_slice2d_plot, slice, plotbulk=plotbulk, sundir=plotsun, _extra=_extra
     output=slice
 end
