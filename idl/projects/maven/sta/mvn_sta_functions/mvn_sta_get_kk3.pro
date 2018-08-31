@@ -1063,6 +1063,10 @@ if time_double(time) gt time_double('2018-08-08/00:00') and kk3_anode then kk3 =
 
 if time_double(time) gt time_double('2018-08-10/00:00') and kk3_anode then kk3 = [2.7,1.5,2.7,1.4]		; sta o2+ ok, 5 ngims, checked 20180813, att=0-2 
 
+if time_double(time) gt time_double('2018-08-12/00:00') and kk3_anode then kk3 = [2.8,1.8,2.8,1.7]		; sta o2+ ok, 5 ngims, checked 20180820, att=0-2 
+
+if time_double(time) gt time_double('2018-08-14/00:00') and kk3_anode then kk3 = [2.8,1.8,2.8,1.7]		; sta o2+ ok, 5 ngims, checked 20180821, att=0-2 
+
 tt=timerange()
 store_data,'mvn_sta_kk3',data={x:tt,y:transpose([[kk3],[kk3]])}
 

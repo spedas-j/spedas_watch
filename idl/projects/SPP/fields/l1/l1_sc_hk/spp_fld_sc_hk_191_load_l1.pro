@@ -30,6 +30,18 @@ pro spp_fld_sc_hk_191_load_l1, file, prefix = prefix
     
   endif
   
+  get_data, prefix + 'sc_hk_subseconds', data = d_hk_ss
+  
+  for i = 0, 3 do begin
+    
+    get_data, prefix + 'WHLSPD' + string(i,format = '(I1)'), data = d_whlspd
+    
+    d_whlspd.x = d_whlspd.x + d_hk_ss.y / 256d
+    
+    store_data, prefix + 'WHLSPD' + string(i,format = '(I1)'), data = d_whlspd
+    
+  endfor
+  
   options, prefix + 'WHLSPD0', 'colors', 6 ; red
   options, prefix + 'WHLSPD1', 'colors', 4 ; green
   options, prefix + 'WHLSPD2', 'colors', 2 ; blue
