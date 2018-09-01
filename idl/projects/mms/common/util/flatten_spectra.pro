@@ -39,8 +39,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-01-25 09:03:15 -0800 (Thu, 25 Jan 2018) $
-;$LastChangedRevision: 24588 $
+;$LastChangedDate: 2018-08-31 12:24:01 -0700 (Fri, 31 Aug 2018) $
+;$LastChangedRevision: 25713 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -121,6 +121,18 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   for v_idx=0, n_elements(vars_to_plot)-1 do begin  
     get_data, vars_to_plot[v_idx], data=vardata, alimits=metadata
 
+    if ~is_struct(vardata) or ~is_struct(metadata) then begin
+      dprint, dlevel=0, 'Could not plot: ' + vars_to_plot[v_idx]
+      continue
+    endif
+
+    ; check that this variable is actually a spectra, to allow for line plots on the same figure
+    str_element, metadata, 'spec', success=spec_exists
+    if ~spec_exists || metadata.spec eq 0 then begin
+      dprint, dlevel=1, 'Not including: ' + vars_to_plot[v_idx]
+      continue
+    endif
+    
     ; determine units: get fields for metadata and add the the array if any 
     get_unit_array, metadata, 'ysubtitle', arr=xunits
     get_unit_array, metadata, 'ztitle', arr=yunits
@@ -170,7 +182,19 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   ; loop plot
   for v_idx=0, n_elements(vars_to_plot)-1 do begin
 
-      get_data, vars_to_plot[v_idx], data=vardata      
+      get_data, vars_to_plot[v_idx], data=vardata, alimits=vardl
+      
+      if ~is_struct(vardata) or ~is_struct(vardl) then begin
+        dprint, dlevel=0, 'Could not plot: ' + vars_to_plot[v_idx]
+        continue
+      endif
+      
+      ; check that this variable is actually a spectra, to allow for line plots on the same figure
+      str_element, vardl, 'spec', success=spec_exists
+      if ~spec_exists || vardl.spec eq 0 then begin
+        dprint, dlevel=1, 'Not including: ' + vars_to_plot[v_idx]
+        continue
+      endif
       
       ; work with averaging      
       tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
