@@ -1,0 +1,84 @@
+
+PRO sppeva_pref_gen_set_value, id, value ;In this case, value = activate
+  compile_opt idl2
+  stash = WIDGET_INFO(id, /CHILD)
+  WIDGET_CONTROL, stash, GET_UVALUE=wid, /NO_COPY
+  ;-----
+  ;eva_sitl_update_board, wid, value
+  ;-----
+  WIDGET_CONTROL, stash, SET_UVALUE=wid, /NO_COPY
+END
+
+FUNCTION sppeva_pref_gen_get_value, id
+  compile_opt idl2
+  stash = WIDGET_INFO(id, /CHILD)
+  WIDGET_CONTROL, stash, GET_UVALUE=wid, /NO_COPY
+  ;-----
+  ret = wid
+  ;-----
+  WIDGET_CONTROL, stash, SET_UVALUE=wid, /NO_COPY
+  return, ret
+END
+
+FUNCTION sppeva_pref_gen_event, event
+  compile_opt idl2
+
+  catch, error_status
+  if error_status ne 0 then begin
+    eva_error_message, error_status
+    catch, /cancel
+    return, { ID:event.handler, TOP:event.top, HANDLER:0L }
+  endif
+
+  parent=event.handler
+  stash = WIDGET_INFO(parent, /CHILD)
+  WIDGET_CONTROL, stash, GET_UVALUE=wid, /NO_COPY
+
+
+  ;-----
+  case event.id of
+    wid.ID:begin
+      widget_control, event.id, GET_VALUE=strNew
+      wid.user_copy.SPPFLDSOC_ID = strNew
+      end
+    wid.password:begin
+      widget_control, event.id, GET_VALUE=strNew
+      wid.user_copy.SPPFLDSOC_PW = strNew
+      end
+    else:
+  endcase
+  ;-----
+
+  WIDGET_CONTROL, stash, SET_UVALUE=wid, /NO_COPY
+  RETURN, { ID:parent, TOP:event.top, HANDLER:0L }
+END
+
+;-----------------------------------------------------------------------------
+
+FUNCTION sppeva_pref_gen, parent, GROUP_LEADER=group_leader, $
+  UVALUE = uval, UNAME = uname, TAB_MODE = tab_mode, TITLE=title,XSIZE = xsize, YSIZE = ysize
+
+  IF (N_PARAMS() EQ 0) THEN MESSAGE, 'Must specify a parent for sppeva_pref_gen'
+  IF NOT (KEYWORD_SET(uval))  THEN uval = 0
+  IF NOT (KEYWORD_SET(uname))  THEN uname = 'sppeva_pref_gen'
+  if not (keyword_set(title)) then title='  GENERAL  '
+
+  wid = {user_copy:!SPPEVA.USER}
+  
+  ; ----- WIDGET LAYOUT -----
+  geo = widget_info(parent,/geometry)
+  if n_elements(xsize) eq 0 then xsize = geo.xsize
+  base = WIDGET_BASE(parent, UVALUE = uval, UNAME = uname, TITLE=title,$
+    EVENT_FUNC = "sppeva_pref_gen_event", $
+    FUNC_GET_VALUE = "sppeva_pref_gen_get_value", $
+    PRO_SET_VALUE = "sppeva_pref_gen_set_value",/column,$
+    XSIZE = xsize, YSIZE = ysize,sensitive=1,/base_align_left)
+  str_element,/add,wid,'base',base
+  lbl2 = widget_label(base,VALUE=' ')
+  lbl1 = widget_label(base,VALUE='Credential for retrieving files from SPPFLDSOC.')
+  str_element,/add,wid,'ID',      cw_field(base,VALUE=!SPPEVA.USER.SPPFLDSOC_ID,TITLE='ID      ',/ALL_EVENTS,xsize=50)
+  str_element,/add,wid,'password',cw_field(base,VALUE=!SPPEVA.USER.SPPFLDSOC_PW,TITLE='password',/ALL_EVENTS,xsize=50)
+
+  WIDGET_CONTROL, WIDGET_INFO(base, /CHILD), SET_UVALUE=wid, /NO_COPY
+  RETURN, base
+END
