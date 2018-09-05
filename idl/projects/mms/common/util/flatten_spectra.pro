@@ -39,8 +39,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-08-31 12:24:01 -0700 (Fri, 31 Aug 2018) $
-;$LastChangedRevision: 25713 $
+;$LastChangedDate: 2018-09-04 11:37:04 -0700 (Tue, 04 Sep 2018) $
+;$LastChangedRevision: 25720 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -79,7 +79,8 @@ end
 
 pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
-   time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle
+   time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
+   charsize=charsize, _extra=_extra
    
   @tplot_com.pro
   
@@ -107,6 +108,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
     endelse    
   endif
   
+  if undefined(charsize) then charsize = 2.0
     
   print, 'time selected: ' + time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
   vars_to_plot = tplot_vars.options.varnames
@@ -242,7 +244,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         plot, x_data, data_to_plot[0, *], $
           xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
           xtitle=xunit_str, ytitle=yunit_str, $
-          charsize=2.0, title=title_str, color=colors[v_idx]
+          charsize=charsize, title=title_str, color=colors[v_idx], _extra=_extra
           
           if ~keyword_set(nolegend) then begin
             leg_x += !x.WINDOW[0]

@@ -6,7 +6,7 @@
 ;
 ; :Keywords:
 ;   level: level of data products. Currently only 'l2' is acceptable.
-;   mode: types of data products. Currently only 'E_spin' is
+;   datatype: types of data products. Currently only 'E_spin' is
 ;   acceptable. 
 ;   varformat: If set a string with wildcards, only variables with
 ;              matching names are extrancted as tplot variables.
@@ -33,8 +33,8 @@
 ;   nagoya-u.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
+; $LastChangedDate: 2018-09-04 15:57:53 -0700 (Tue, 04 Sep 2018) $
+; $LastChangedRevision: 25725 $
 ; $URL:
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_efd.pro $
 ;-
@@ -42,7 +42,7 @@
 
 
 pro erg_load_pwe_efd, $
-   mode=mode, level = level, $
+   datatype=datatype, level = level, $
    downloadonly=downloadonly, $
    no_download=no_download, $
    get_support_data=get_support_data, $
@@ -75,7 +75,7 @@ pro erg_load_pwe_efd, $
      level=strcompress('l'+string(level), /remove_all)
   endif
 
-  if ~keyword_set(mode) then mode='E_spin'
+  if ~keyword_set(datatype) then datatype='E_spin'
 
   case level of
 
@@ -96,7 +96,7 @@ pro erg_load_pwe_efd, $
      
   endcase
   
-  case mode of
+  case datatype of
      'E_spin': begin
         md='E_spin'
         component=['Eu','Ev','Eu1','Ev1','Eu2','Ev2']
@@ -124,7 +124,7 @@ pro erg_load_pwe_efd, $
      end
 
      else: begin
-        dprint, 'Incorrect keyword setting: mode'
+        dprint, 'Incorrect keyword setting: datatype'
         return
      end
 
@@ -217,12 +217,12 @@ pro erg_load_pwe_efd, $
   print, '**********************************************************************'
   print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 80
   print, ''
-  print, 'Information about ERG PWE OFA'
+  print, 'Information about ERG PWE EFD'
   print, ''
   print, 'PI: ', gatt.PI_NAME
   print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 80
   print, ''
-  print, 'Rules of the Road for ERG PWE OFA Data Use:'
+  print, 'Rules of the Road for ERG PWE EFD Data Use:'
   for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 80
   print, ''
   print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK

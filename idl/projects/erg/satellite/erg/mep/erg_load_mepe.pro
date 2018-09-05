@@ -39,8 +39,8 @@
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
+; $LastChangedDate: 2018-09-04 15:57:53 -0700 (Tue, 04 Sep 2018) $
+; $LastChangedRevision: 25725 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/mep/erg_load_mepe.pro $
 ;-
 pro erg_load_mepe, $
@@ -138,31 +138,57 @@ pro erg_load_mepe, $
     ylim, vns[i], 6., 100., 1
     zlim, vns[i], 0, 0, 1
   endfor
+
   ;; Exit here unless the 3dflux variables are loaded.
-  if total(strcmp( vns, prefix+'FEDU' )) eq 0 then return
-
-  
-  ;;The unit of differential flux is explicitly set for ztitle currently.
-  options, prefix+['FEDU', 'FEDU_n'], ztitle='[/s-cm!U2!N-sr-keV]'
-  
-  ;;Generate the omni-directional flux (FEDO)
-  get_data, prefix+'FEDU', data=d, dl=dl, lim=lim
-  store_data, prefix+'FEDO', data={x:d.x, y:total(total( d.y, 2, /nan), 3, /nan)/(32*16), v:d.v2}, lim=lim
-  options, prefix+'FEDO', ytitle='ERG!CMEP-e!CFEDO!CEnergy'
-   
-  ;;Generate separate tplot variables for APDs
-  if keyword_set(split_apd) then begin
-
+  if total(strcmp( vns, prefix+'FEDU' )) gt 0 then begin
+    
+    
+    ;;The unit of differential flux is explicitly set for ztitle currently.
+    options, prefix+['FEDU', 'FEDU_n'], ztitle='[/s-cm!U2!N-sr-keV]'
+    
+    ;;Generate the omni-directional flux (FEDO)
     get_data, prefix+'FEDU', data=d, dl=dl, lim=lim
-    for i=0, n_elements(d.y[0, 0, 0, *])-1 do begin
-      vn = prefix+'FEDU_apd'+string(i, '(i02)')
-      store_data, vn, data={x:d.x, y:reform(d.y[*, *, *, i]), v1:d.v1, v2:d.v2}, dl=dl, lim=lim
-      options, vn, ytitle='ERG!CMEP-e!CFEDU!CAPD'+string(i, '(i02)')+'!CEnergy'
-    endfor
-
+    store_data, prefix+'FEDO', data={x:d.x, y:total(total( d.y, 2, /nan), 3, /nan)/(32*16), v:d.v2}, lim=lim
+    options, prefix+'FEDO', ytitle='ERG!CMEP-e!CFEDO!CEnergy'
+    
+    ;;Generate separate tplot variables for APDs
+    if keyword_set(split_apd) then begin
+      
+      get_data, prefix+'FEDU', data=d, dl=dl, lim=lim
+      for i=0, n_elements(d.y[0, 0, 0, *])-1 do begin
+        vn = prefix+'FEDU_apd'+string(i, '(i02)')
+        store_data, vn, data={x:d.x, y:reform(d.y[*, *, *, i]), v1:d.v1, v2:d.v2}, dl=dl, lim=lim
+        options, vn, ytitle='ERG!CMEP-e!CFEDU!CAPD'+string(i, '(i02)')+'!CEnergy'
+      endfor
+      
+    endif
+    
   endif
 
 
+  ;;--- print PI info and rules of the road
+  if strcmp(datatype, '3dflux') then vn = prefix+'FEDU' $
+  else vn = prefix+'FEDO'
+  vn = (tnames(vn))[0]
+  if vn ne '' then begin
+    get_data, vn, dl=dl
+    gatt = dl.cdf.gatt
+    
+    print_str_maxlet, ' '
+    print, '**********************************************************************'
+    print, ''
+    print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 70
+    print, 'PI: ', gatt.PI_NAME
+    print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
+    print, ''
+    for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
+    print, ''
+    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+    print, '**********************************************************************'
+    print, ''
+
+  endif
+  
 
   return
 end

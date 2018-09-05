@@ -32,8 +32,8 @@
 ;
 ; Written by: T. Hori
 ;   $LastChangedBy: nikos $
-;   $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-;   $LastChangedRevision: 25628 $
+;   $LastChangedDate: 2018-09-04 15:57:53 -0700 (Tue, 04 Sep 2018) $
+;   $LastChangedRevision: 25725 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/hep/erg_load_hep.pro $
 ;-
 pro erg_load_hep, files=files, datatype=datatype, varformat=varformat, $
@@ -220,69 +220,94 @@ pro erg_load_hep, files=files, datatype=datatype, varformat=varformat, $
     endif
 
     ;; Skip the following part unless 3-D flux data are loaded.
-    if ~strcmp(datatype, '3dflux') then continue
-
-    
-    ;Split into each azimuthal channel 
-    if keyword_set(splitazim) then begin
-      get_data, prefix+'FEDU_'+suf, data=d, dl=dl, lim=lim
-      for az=0, n_elements(d.y[0,0,*])-1 do begin
-        
-        varnm = prefix+'FEDU_'+suf+'_az'+string(az,'(i2.2)')
-        store_data, varnm, $
-          data={ x:d.x, y:reform(d.y[*,*,az]), v:ene_vvals }, dl=dl, lim=lim
-        options, varnm, ytitle='HEP-'+suf+'!Cazm'+string(az,'(i2.2)')+'!CEnergy'
-        
-      endfor
-      options, prefix+'FEDU_'+suf+'_az??', $
-        spec=1, ystyle=1, ysubtitle='[keV]', $
-        ztitle='[/cm!U2!N-sr-s-keV]', zticklen=-0.4, zlog=1, no_interp=1
-      ylim, prefix+'FEDU_'+suf+'_az??', enerng[0], enerng[1], 1
-      zlim, prefix+'FEDU_'+suf+'_az??', 0, 0, 1
-    endif
-    
-    ;Split data of a particular sensor channel into each spin phase
-    if azch_for_spinph ne -1 then begin
-      azch = azch_for_spinph 
-      get_data, prefix+'FEDU_'+suf, data=d, dl=dl, lim=lim
-      cntarr = d.y & cntt = d.x 
-      get_data, prefix+'sctno_'+suf, data=d & scno = d.y
-      uniqid = uniq(scno[ sort(scno) ])
-      scno_list = ( scno[ sort(scno) ] )[ uniqid ]
-      if n_elements(scno_list) gt 16 then dprint, 'scno is greater than 16!!'
-      print, 'scno_list: ', scno_list
+    if strcmp(datatype, '3dflux') then begin
       
-      for j=0, n_elements(scno_list)-1 do begin
-        spn = scno_list[j] 
-        if spn lt 0 or spn gt 15 then continue
+      
+                                ;Split into each azimuthal channel 
+      if keyword_set(splitazim) then begin
+        get_data, prefix+'FEDU_'+suf, data=d, dl=dl, lim=lim
+        for az=0, n_elements(d.y[0, 0, *])-1 do begin
+          
+          varnm = prefix+'FEDU_'+suf+'_az'+string(az, '(i2.2)')
+          store_data, varnm, $
+                      data={ x:d.x, y:reform(d.y[*, *, az]), v:ene_vvals }, dl=dl, lim=lim
+          options, varnm, ytitle='HEP-'+suf+'!Cazm'+string(az, '(i2.2)')+'!CEnergy'
+          
+        endfor
+        options, prefix+'FEDU_'+suf+'_az??', $
+                 spec=1, ystyle=1, ysubtitle='[keV]', $
+                 ztitle='[/cm!U2!N-sr-s-keV]', zticklen=-0.4, zlog=1, no_interp=1
+        ylim, prefix+'FEDU_'+suf+'_az??', enerng[0], enerng[1], 1
+        zlim, prefix+'FEDU_'+suf+'_az??', 0, 0, 1
+      endif
+      
+                                ;Split data of a particular sensor channel into each spin phase
+      if azch_for_spinph ne -1 then begin
+        azch = azch_for_spinph 
+        get_data, prefix+'FEDU_'+suf, data=d, dl=dl, lim=lim
+        cntarr = d.y & cntt = d.x 
+        get_data, prefix+'sctno_'+suf, data=d & scno = d.y
+        uniqid = uniq(scno[ sort(scno) ])
+        scno_list = ( scno[ sort(scno) ] )[ uniqid ]
+        if n_elements(scno_list) gt 16 then dprint, 'scno is greater than 16!!'
+        print, 'scno_list: ', scno_list
         
-        idx = where( scno eq spn, num ) 
-        if num le 1 then continue
-        
-        cnt = reform( cntarr[ idx, *, azch ] ) / (  transpose(dene) ## replicate(1.,num) )
-        vn = prefix+'FEDU_'+suf+'_az'+string(azch,'(i2.2)')+'_sph'+string(spn,'(i2.2)')
-        store_data, vn,$
+        for j=0, n_elements(scno_list)-1 do begin
+          spn = scno_list[j] 
+          if spn lt 0 or spn gt 15 then continue
+          
+          idx = where( scno eq spn, num ) 
+          if num le 1 then continue
+          
+          cnt = reform( cntarr[ idx, *, azch ] ) / (  transpose(dene) ## replicate(1., num) )
+          vn = prefix+'FEDU_'+suf+'_az'+string(azch, '(i2.2)')+'_sph'+string(spn, '(i2.2)')
+          store_data, vn, $
           data={x:cntt[idx], y:cnt, v:ene_vvals}, dl=dl, lim=lim 
-        ztitle = '[/cm!U2!N-sr-s-keV]'
-        options, vn, $
-          spec=1,ytitle='HEP-'+suf+'!Caz'+string(azch,'(i2.2)')+'!Csph'+string(spn,'(i2.2)'),$
-          ysubtitle='[keV]',ztitle=ztitle,zticklen=-0.4,zlog=1,no_interp=1
-        options, vn, ztickformat='pwr10tick'
-        ylim, vn, enerng[0], enerng[1], 1
-        zlim, vn, 0,0, 1
-        tdegap, vn, /over
+          ztitle = '[/cm!U2!N-sr-s-keV]'
+          options, vn, $
+                   spec=1, ytitle='HEP-'+suf+'!Caz'+string(azch, '(i2.2)')+'!Csph'+string(spn, '(i2.2)'), $
+                   ysubtitle='[keV]', ztitle=ztitle, zticklen=-0.4, zlog=1, no_interp=1
+          options, vn, ztickformat='pwr10tick'
+          ylim, vn, enerng[0], enerng[1], 1
+          zlim, vn, 0, 0, 1
+          tdegap, vn, /over
+          
+        endfor
         
-      endfor
+      endif
       
     endif
-    
     
     
   endfor
   
-  ;Set the time range for which a plot is drawn
+  ;;Set the time range for which a plot is drawn
   if keyword_set(trange) then timespan, trange 
   
+  ;;--- print PI info and rules of the road
+  if strcmp(datatype, '3dflux') then vn = prefix+'FEDU_?' $
+  else vn = prefix+'FEDO_?'
+  vn = (tnames(vn))[0]
+  if vn ne '' then begin
+    get_data, vn, dl=dl
+    gatt = dl.cdf.gatt
+    
+    print_str_maxlet, ' '
+    print, '**********************************************************************'
+    print, ''
+    print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 70
+    print, 'PI: ', gatt.PI_NAME
+    print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
+    print, ''
+    for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
+    print, ''
+    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+    print, '**********************************************************************'
+    print, ''
+
+  endif
+
+
   
   return
 end

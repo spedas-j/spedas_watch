@@ -33,11 +33,11 @@
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:44:38 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25629 $
+; $LastChangedDate: 2018-09-04 16:03:06 -0700 (Tue, 04 Sep 2018) $
+; $LastChangedRevision: 25726 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/orb/erg_load_orb_predict.pro $
 ;-
-pro remove_duplicated_tframe_1, tvars
+pro remove_duplicated_tframe2, tvars
 
   if n_params() ne 1 then return
   tvars = tnames(tvars)
@@ -128,7 +128,7 @@ pro erg_load_orb_predict, $
     store_data, tvar_pos, data=data, dlim=dlim
 
 
-    remove_duplicated_tframe_1, tnames('erg_orb_'+suf+'_l2_*')
+    remove_duplicated_tframe2, tnames('erg_orb_'+suf+'_l2_*')
 
     ; - - - - OPTIONS FOR TPLOT VARIABLES - - - -
     options, prefix+'pos_'+['gse','gsm','sm'], 'labels', ['X','Y','Z']

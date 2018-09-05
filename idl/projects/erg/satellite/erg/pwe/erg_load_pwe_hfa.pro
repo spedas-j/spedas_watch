@@ -1,10 +1,10 @@
 ;+
 ; PRO erg_load_pwe_hfa
 ;
-; The read program for Provisonal PWE data
+; The read program for PWE-HFA data
 ;
 ; :Keywords:
-;   level: level of data products. Currently only 'l2' is acceptable.
+;   level: level of data products. Currently 'l2' and 'l3' are acceptable.
 ;   mode: 'l'/'low'=low, 'm'/'monit'/'monitor'=monitor, 'h'/'high'=high mode.
 ;         'a'/'all'=low & monitor & high modes.
 ;         If nothing, low & monitor modes are loaded and combined.
@@ -30,8 +30,8 @@
 ;   nagoya-u.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
+; $LastChangedDate: 2018-09-04 15:57:53 -0700 (Tue, 04 Sep 2018) $
+; $LastChangedRevision: 25725 $
 ; $URL:
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_hfa.pro $
 ;-
@@ -94,14 +94,14 @@ pro erg_load_pwe_hfa, $
   for j=0, nmd do begin
 
   ;  remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/low/'
-    remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/'+imd[j]+'/'
+    remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/spec/'+imd[j]+'/'
   ;  localdir = root_data_dir() + 'ergsc/satellite/erg/pwe/hfa/'+lvl+'/'
   ;  localdir = !erg.local_data_dir + 'satellite/erg/pwe/hfa/'+lvl+'/low/'
-    localdir = !erg.local_data_dir + 'satellite/erg/pwe/hfa/'+lvl+'/'+imd[j]+'/'
+    localdir = !erg.local_data_dir + 'satellite/erg/pwe/hfa/'+lvl+'/spec/'+imd[j]+'/'
   ;  localdir = './'+imd[j]+'/'
     
     if strcmp(lvl,'l2') then begin
-      relfpathfmt = 'YYYY/MM/erg_pwe_hfa_' + lvl + '_' + imd[j] + '_YYYYMMDD_v??_??.cdf' 
+      relfpathfmt = 'YYYY/MM/erg_pwe_hfa_' + lvl + '_spec_' + imd[j] + '_YYYYMMDD_v??_??.cdf' 
       prefix = 'erg_pwe_hfa_'+lvl+'_'+imd[j]+'_'
     endif else begin
       relfpathfmt = 'YYYY/MM/erg_pwe_hfa_' + lvl + '_YYYYMMDD_v??_??.cdf'
