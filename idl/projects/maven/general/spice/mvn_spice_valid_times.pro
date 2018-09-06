@@ -5,22 +5,33 @@
 ;PURPOSE:         
 ;                 Checks whether the currently loaded SPICE/kernels are valid for the specified time.
 ;
-;INPUTS:          Time or time array to be checked.
+;INPUTS:
+;     tvar:       Time or time array to be checked.
 ;
-;KEYWORDS:        None.
+;KEYWORDS:
+;     TOLERANCE:  Maximum time difference between input time and nearest valid SPICE coverage.
+;                 Default = 120 sec.
+;
+;     SPKONLY:    Consider only SPK kernels.  Any missing CK information is ignored.
+;                 Useful when spacecraft orientation is not needed.
+;
+;     BUSONLY:    Consider only C kernels for the spacecraft bus.  Any missing CK information
+;                 for the APP is ignored.  Useful for instruments not mounted on the APP.
 ;
 ;CREATED BY:      Takuya Hara on 2018-07-11.
 ;
 ;LAST MODIFICATION:
-; $LastChangedBy: hara $
-; $LastChangedDate: 2018-07-16 13:08:30 -0700 (Mon, 16 Jul 2018) $
-; $LastChangedRevision: 25483 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2018-09-05 11:54:32 -0700 (Wed, 05 Sep 2018) $
+; $LastChangedRevision: 25733 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_valid_times.pro $
 ;
 ;-
-FUNCTION mvn_spice_valid_times, tvar, verbose=verbose, tolerance=tol
+FUNCTION mvn_spice_valid_times, tvar, verbose=verbose, tolerance=tol, spkonly=spkonly, busonly=busonly
   status = 0 ; invalid
   IF SIZE(tol, /type) EQ 0 THEN tol = 120.d0
+  spkonly = keyword_set(spkonly)
+  busonly = keyword_set(busonly) or spkonly
 
   IF SIZE(tvar, /type) EQ 0 THEN BEGIN
      dprint, dlevel=2, verbose=verbose, 'You must supply a time or time array to be checked.'
@@ -47,7 +58,8 @@ FUNCTION mvn_spice_valid_times, tvar, verbose=verbose, tolerance=tol
 
      info = [ck, spk]
      kernels = info.filename
-     kernels = kernels[UNIQ(kernels, SORT(kernels))]
+     objects = info.obj_name  ; keep track of the s/c bus and APP gimbals separately
+;    kernels = kernels[UNIQ(kernels, SORT(kernels))] ; UNIQ can discard info about multiple objects
      nk = N_ELEMENTS(kernels)
 
      valid = INTARR(nk, ntime)
@@ -70,7 +82,25 @@ FUNCTION mvn_spice_valid_times, tvar, verbose=verbose, tolerance=tol
         undefine, w, nw
      ENDFOR 
 
-     IF nk GT 1 THEN valid = PRODUCT(valid, 1)
+; If an object is covered by multiple kernels, then only one of these kernels needs to be
+; valid at any given time (modification below by DLM).
+
+     IF nk GT 1 THEN BEGIN
+       w = where(objects eq 'MAVEN_SC_BUS', nw)
+       if (nw gt 1) then valid[w,*] = replicate(1,nw) # max(valid[w,*],dim=1)  ; only one need be valid
+       if (spkonly) then if (nw gt 0) then valid[w,*] = 1                      ; ignore C kernels entirely
+       w = where(objects eq 'MAVEN_APP_OG', nw)
+       if (nw gt 1) then valid[w,*] = replicate(1,nw) # max(valid[w,*],dim=1)  ; only one need be valid
+       if (busonly) then if (nw gt 0) then valid[w,*] = 1                      ; ignore APP
+       w = where(objects eq 'MAVEN_APP_IG', nw)
+       if (nw gt 1) then valid[w,*] = replicate(1,nw) # max(valid[w,*],dim=1)  ; only one need be valid
+       if (busonly) then if (nw gt 0) then valid[w,*] = 1                      ; ignore APP
+
+       w = where(objects eq 'MAVEN', nw)
+       if (nw gt 1) then valid[w,*] = replicate(1,nw) # max(valid[w,*],dim=1)  ; only one need be valid
+
+       valid = PRODUCT(valid, 1)  ; all kernels must be valid or ignored at any given time
+     ENDIF
      w = WHERE(valid EQ 0, nw, complement=v, ncomplement=nv)
      IF (pflg) THEN BEGIN
         status = INTARR(ntime)
