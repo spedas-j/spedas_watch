@@ -38,10 +38,10 @@ FUNCTION spp_swp_spi_fhkp_apdat::decom, ccsds, source_dict=source_dict
    endif
 
    ;; New York Second
-   time = ccsds.time + (0.87*findgen(512)/512.)
+   ;; time = ccsds.time + (0.87*findgen(512)/512.)
 
    spai = { $
-          time:       time,$
+          time:       ccsds.time,$
           met:        ccsds.met,$
           ;; delay_time: ptp_header.ptp_time - ccsds.time, $
           seqn:       ccsds.seqn, $
