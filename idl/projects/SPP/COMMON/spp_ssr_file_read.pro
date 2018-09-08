@@ -1,6 +1,6 @@
 ;  This routine will read SSR files that (series of CCSDS packets)
 
-pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products
+pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_flag
   
 ;  oldmethod =0
   
@@ -43,7 +43,7 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products
   
   if not keyword_set(no_clear) then del_data,'spp_*'  ; store_data,/clear,'*'
 
-  spp_apdat_info,/finish,/rt_flag,/all
+  spp_apdat_info,/finish,/rt_flag,/all,sort_flag=sort_flag
 
   dt = systime(1)-t0
   dprint,format='("Finished loading in ",f0.1," seconds")',dt
