@@ -18,8 +18,8 @@
 ;     NPTS  : A named variable to hold the number of data points.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-03-16 10:41:25 -0700 (Fri, 16 Mar 2018) $
-; $LastChangedRevision: 24895 $
+; $LastChangedDate: 2018-09-09 18:03:30 -0700 (Sun, 09 Sep 2018) $
+; $LastChangedRevision: 25762 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_load.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -77,6 +77,8 @@ pro mvn_sta_cio_load, ptr, species, froot=froot, tags=tags, npts=npts
 ; Report the result and return
 
   ptr = data
+  tags = tag_names(*ptr)
+  npts = n_elements((*ptr).time)
   print,''
 
   return

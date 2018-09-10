@@ -10,8 +10,8 @@
 ;KEYWORDS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-02-27 17:57:49 -0800 (Tue, 27 Feb 2018) $
-; $LastChangedRevision: 24797 $
+; $LastChangedDate: 2018-09-09 18:05:05 -0700 (Sun, 09 Sep 2018) $
+; $LastChangedRevision: 25763 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -148,6 +148,39 @@ pro mvn_sta_cio_tplot
       options,'velocity_h','colors',[2,4,6]
       options,'velocity_h','labels',['Vx','Vy','Vz']
       options,'velocity_h','labflag',1
+
+      sc = transpose(cio_h.mso)
+      sc /= (sqrt(total(sc*sc,2)) # replicate(1.,3))
+      bname = 'Vr_h'
+      y = total(sc*transpose(cio_h.v_mso),2)
+      store_data,bname,data={x:cio_h.time, y:y}
+      ylim,bname,0,0,0
+      options,bname,'spec',0
+      options,bname,'panel_size',0.5
+      options,bname,'ytitle','Vr [H]'
+      options,bname,'yticks',0
+      options,bname,'yminor',0
+      options,bname,'constant',[0.]
+
+      ybar = replicate(!values.f_nan,n_elements(cio_h.time),2)
+      indx = where(y gt 0., count)
+      if (count gt 0L) then ybar[indx,0] = 2.
+      indx = where(y lt 0., count)
+      if (count gt 0L) then ybar[indx,0] = 0.5
+      ybar[*,1] = ybar[*,0]
+      bname = 'Vr_h_bar'
+      store_data,bname,data={x:cio_h.time, y:ybar, v:[0,1]}
+      ylim,bname,0,1,0
+      zlim,bname,0,2,0
+      options,bname,'spec',1
+      options,bname,'panel_size',0.05
+      options,bname,'ytitle',''
+      options,bname,'yticks',1
+      options,bname,'yminor',1
+      options,bname,'no_interp',1
+      options,bname,'xstyle',4
+      options,bname,'ystyle',4
+      options,bname,'no_color_scale',1
     endif
     if (doo1) then begin
       store_data,'velocity_o1',data={x:cio_o1.time, y:transpose(cio_o1.v_mso), v:[0,1,2]}
@@ -155,6 +188,39 @@ pro mvn_sta_cio_tplot
       options,'velocity_o1','colors',[2,4,6]
       options,'velocity_o1','labels',['Vx','Vy','Vz']
       options,'velocity_o1','labflag',1
+
+      sc = transpose(cio_o1.mso)
+      sc /= (sqrt(total(sc*sc,2)) # replicate(1.,3))
+      bname = 'Vr_o1'
+      y = total(sc*transpose(cio_o1.v_mso),2)
+      store_data,bname,data={x:cio_o1.time, y:y}
+      ylim,bname,0,0,0
+      options,bname,'spec',0
+      options,bname,'panel_size',0.5
+      options,bname,'ytitle','Vr [O]'
+      options,bname,'yticks',0
+      options,bname,'yminor',0
+      options,bname,'constant',[0.]
+
+      ybar = replicate(!values.f_nan,n_elements(cio_o1.time),2)
+      indx = where(y gt 0., count)
+      if (count gt 0L) then ybar[indx,0] = 2.
+      indx = where(y lt 0., count)
+      if (count gt 0L) then ybar[indx,0] = 0.5
+      ybar[*,1] = ybar[*,0]
+      bname = 'Vr_o1_bar'
+      store_data,bname,data={x:cio_o1.time, y:ybar, v:[0,1]}
+      ylim,bname,0,1,0
+      zlim,bname,0,2,0
+      options,bname,'spec',1
+      options,bname,'panel_size',0.05
+      options,bname,'ytitle',''
+      options,bname,'yticks',1
+      options,bname,'yminor',1
+      options,bname,'no_interp',1
+      options,bname,'xstyle',4
+      options,bname,'ystyle',4
+      options,bname,'no_color_scale',1
     endif
     if (doo2) then begin
       store_data,'velocity_o2',data={x:cio_o2.time, y:transpose(cio_o2.v_mso), v:[0,1,2]}
@@ -162,6 +228,39 @@ pro mvn_sta_cio_tplot
       options,'velocity_o2','colors',[2,4,6]
       options,'velocity_o2','labels',['Vx','Vy','Vz']
       options,'velocity_o2','labflag',1
+
+      sc = transpose(cio_o2.mso)
+      sc /= (sqrt(total(sc*sc,2)) # replicate(1.,3))
+      bname = 'Vr_o2'
+      y = total(sc*transpose(cio_o2.v_mso),2)
+      store_data,bname,data={x:cio_o2.time, y:y}
+      ylim,bname,0,0,0
+      options,bname,'spec',0
+      options,bname,'panel_size',0.5
+      options,bname,'ytitle','Vr [O2]'
+      options,bname,'yticks',0
+      options,bname,'yminor',0
+      options,bname,'constant',[0.]
+
+      ybar = replicate(!values.f_nan,n_elements(cio_o2.time),2)
+      indx = where(y gt 0., count)
+      if (count gt 0L) then ybar[indx,0] = 2.
+      indx = where(y lt 0., count)
+      if (count gt 0L) then ybar[indx,0] = 0.5
+      ybar[*,1] = ybar[*,0]
+      bname = 'Vr_o2_bar'
+      store_data,bname,data={x:cio_o2.time, y:ybar, v:[0,1]}
+      ylim,bname,0,1,0
+      zlim,bname,0,2,0
+      options,bname,'spec',1
+      options,bname,'panel_size',0.05
+      options,bname,'ytitle',''
+      options,bname,'yticks',1
+      options,bname,'yminor',1
+      options,bname,'no_interp',1
+      options,bname,'xstyle',4
+      options,bname,'ystyle',4
+      options,bname,'no_color_scale',1
     endif
 
 ; Bulk Velocity
@@ -505,18 +604,18 @@ pro mvn_sta_cio_tplot
     get_data,'sthe',data=sthe
     get_data,'sthe_app',data=sthe_app
     get_data,'rthe_app',data=rthe_app
-    y = replicate(0,npts,2)
+    y = replicate(0,npts,2)             ; black = neither is optimized
     indx = where(abs(sthe.y - 45) lt 5, count)
-    if (count gt 0) then y[indx,*] = 1
+    if (count gt 0) then y[indx,*] = 1  ; blue = only SWEA is optimized
     indx = where((abs(sthe_app.y) le 5) and $
                  (abs(rthe_app.y) le 10), count)
-    if (count gt 0) then y[indx,*] = 2
+    if (count gt 0) then y[indx,*] = 2  ; yellow = only STATIC is optimized (no twist)
     indx = where((abs(sthe.y - 45) lt 5) and $
                  (abs(sthe_app.y) le 5) and $
                  (abs(rthe_app.y) le 10), count)
-    if (count gt 0) then y[indx,*] = 3
+    if (count gt 0) then y[indx,*] = 3  ; red = both STATIC and SWEA are optimized
     bname = 'cio_bar'
-    store_data,bname,data={x:cio_h.time, y:y, v:[0,1]}
+    store_data,bname,data={x:sthe.x, y:y, v:[0,1]}
     ylim,bname,0,1,0
     zlim,bname,0,3,0
     options,bname,'spec',1

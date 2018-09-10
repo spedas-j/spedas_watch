@@ -13,8 +13,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-01-09 15:51:28 -0800 (Tue, 09 Jan 2018) $
-; $LastChangedRevision: 24494 $
+; $LastChangedDate: 2018-09-09 18:05:59 -0700 (Sun, 09 Sep 2018) $
+; $LastChangedRevision: 25764 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_struct.pro $
 ;
 ;-
@@ -34,7 +34,8 @@ function mvn_sta_cio_struct, npts
              v_sc     : dNaN3       , $   ; spacecraft velocity in MSO frame (km/s)
              v_tot    : dNaN        , $   ; spacecraft speed in MSO frame (km/s)
              v_mso    : dNaN3       , $   ; ion bulk velocity in MSO frame (km/s)
-             vbulk    : dNaN        , $   ; ion bulk speed in MSO frame (km/s)
+             v_mse    : dNaN3       , $   ; ion bulk velocity in MSE frame (km/s)
+             vbulk    : dNaN        , $   ; ion bulk speed in MSO/MSE frame (km/s)
              v_app    : dNaN3       , $   ; ion bulk velocity in APP frame (km/s)
              v_esc    : dNaN        , $   ; local escape velocity (km/s)
              magf     : NaN3        , $   ; magnetic field in MSO frame (nT)
@@ -52,7 +53,10 @@ function mvn_sta_cio_struct, npts
              flux40   : NaN         , $   ; e- energy flux at 40 eV
              topo     : 0           , $   ; magnetic topology index (Xu-Weber method)
              region   : 0           , $   ; plasma region index (Halekas method)
+             imf_clk  : NaN         , $   ; clock angle of upstream IMF (0 = east, pi = west)
+             sw_press : NaN         , $   ; dynamic pressure of upstream solar wind (nPa)
              mso      : NaN3        , $   ; MSO coordinates of spacecraft
+             mse      : NaN3        , $   ; MSE coordinates of spacecraft
              geo      : NaN3        , $   ; GEO coordinates of spacecraft
              alt      : NaN         , $   ; spacecraft altitude (ellipsoid)
              slon     : NaN         , $   ; GEO longitude of sub-solar point

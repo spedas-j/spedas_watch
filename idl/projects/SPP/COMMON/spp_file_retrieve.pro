@@ -35,7 +35,7 @@ function spp_file_retrieve,pathname,trange=trange,ndays=ndays,nhours=nhours,verb
    no_update=no_update,create_dir=create_dir,pos_start=pos_start, $
    daily_names=daily_names,hourly_names=hourly_names,resolution = res,shiftres=shiftres,valid_only=valid_only,  $
  ;  no_server=no_server,user_pass=user_pass,L0=L0, $
-   cal=cal,TVac=Tvac,snout2=snout2,snout1=snout1,crypt=crypt, goddard = goddard ,ion=ion,recent=recent,spani=spani,spanea=spanea,spaneb=spaneb,spc=spc,swem=swem,elec=elec,instr=instr,router=router
+   cal=cal,TVac=Tvac,snout2=snout2,snout1=snout1,crypt=crypt, goddard = goddard, hires1 = hires1, ion=ion,recent=recent,spani=spani,spanea=spanea,spaneb=spaneb,spc=spc,swem=swem,elec=elec,instr=instr,router=router
 
 tstart = systime(1)
 
@@ -75,6 +75,7 @@ if keyword_set(snout1) then router = 'snout1'
 if keyword_set(crypt) then router = 'crypt'
 if keyword_set(rm133) then router = 'rm133'
 if keyword_set(goddard) then router = 'hires1'
+if keyword_set(hires1) then router = 'hires1'
 
 if keyword_set(ssr) then begin
 

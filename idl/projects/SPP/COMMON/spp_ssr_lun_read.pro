@@ -1,4 +1,8 @@
-
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2018-09-09 14:43:54 -0700 (Sun, 09 Sep 2018) $
+; $LastChangedRevision: 25755 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_lun_read.pro $
+;
 ;function spp_ptp_header_struct,ptphdr
 ;  ptp_size = swap_endian(uint(ptphdr,0) ,/swap_if_little_endian )
 ;  ptp_code = ptphdr[2]
