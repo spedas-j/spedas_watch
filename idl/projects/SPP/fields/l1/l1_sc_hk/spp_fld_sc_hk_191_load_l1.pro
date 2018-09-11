@@ -34,11 +34,11 @@ pro spp_fld_sc_hk_191_load_l1, file, prefix = prefix
   
   for i = 0, 3 do begin
     
-    get_data, prefix + 'WHLSPD' + string(i,format = '(I1)'), data = d_whlspd
+;    get_data, prefix + 'WHLSPD' + string(i,format = '(I1)'), data = d_whlspd
     
-    d_whlspd.x = d_whlspd.x + d_hk_ss.y / 256d
+;    d_whlspd.x = d_whlspd.x + d_hk_ss.y / 256d
     
-    store_data, prefix + 'WHLSPD' + string(i,format = '(I1)'), data = d_whlspd
+;    store_data, prefix + 'WHLSPD' + string(i,format = '(I1)'), data = d_whlspd
     
   endfor
   

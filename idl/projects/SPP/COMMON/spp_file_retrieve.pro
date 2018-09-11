@@ -31,7 +31,7 @@
 function spp_file_retrieve,pathname,trange=trange,ndays=ndays,nhours=nhours,verbose=verbose, source=src, $
    last_version=last_version, $
    prefix = prefix, $
-   ssr = ssr, $
+   ssr = ssr,ptp=ptp, $
    no_update=no_update,create_dir=create_dir,pos_start=pos_start, $
    daily_names=daily_names,hourly_names=hourly_names,resolution = res,shiftres=shiftres,valid_only=valid_only,  $
  ;  no_server=no_server,user_pass=user_pass,L0=L0, $
@@ -78,8 +78,12 @@ if keyword_set(goddard) then router = 'hires1'
 if keyword_set(hires1) then router = 'hires1'
 
 if keyword_set(ssr) then begin
+  pathname = 'psp/data/sci/sweap/.raw/SSR/YYYY/DOY/*_?_EA'
+  daily_names=1
+endif
 
-  pathname = 'psp/data/sci/sweap/raw/YYYY/DOY/*_?_EA'
+if keyword_set(ptp) then begin
+  pathname = 'psp/data/sci/sweap/.raw/PTP/YYYY/DOY/sweap_spp_YYYYDOY_??.ptp.gz
   daily_names=1
 endif
 

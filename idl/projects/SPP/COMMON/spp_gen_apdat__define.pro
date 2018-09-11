@@ -185,11 +185,11 @@ pro spp_gen_apdat::finish,ttags=ttags
   if self.npkts ne 0 then self.print ,dlevel=3,'finish'
   verbose=1
   datarray = self.data.array
-  if keyword_set(self.sort_flag) and keyword_set(datarray) then begin
+  if keyword_set(ttags) eq 0 then ttags = self.ttags
+  if keyword_set(self.sort_flag) && keyword_set(datarray) then begin
     s = sort(datarray.time)
     datarray = datarray[s]
   endif
-  if keyword_set(ttags) eq 0 then ttags = self.ttags
   if keyword_set(datarray) && keyword_set(self.tname) then  begin
     store_data,self.tname,data=datarray, tagnames=ttags,  gap_tag='GAP',verbose=verbose
     options,self.tname+'*_BITS',tplot_routine='bitplot'
@@ -204,9 +204,9 @@ end
 ;PURPOSE:
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: ali $
-; $LastChangedDate: 2018-09-07 15:25:50 -0700 (Fri, 07 Sep 2018) $
-; $LastChangedRevision: 25745 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2018-09-10 11:24:03 -0700 (Mon, 10 Sep 2018) $
+; $LastChangedRevision: 25767 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 function spp_gen_apdat::sw_version
@@ -222,9 +222,9 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_time_stamp'] = time_string(this_file_date)
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
-  sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-09-07 15:25:50 -0700 (Fri, 07 Sep 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 25745 $'
+  sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-09-10 11:24:03 -0700 (Mon, 10 Sep 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 25767 $'
 
   return,sw_hash
 end
@@ -266,9 +266,9 @@ function spp_gen_apdat::cdf_global_attributes
 ;  global_att['SW_TIME_STAMP'] =  time_string(systime(1))  
 ;  global_att['SW_RUNTIME'] =  time_string(systime(1)) 
 ;  global_att['SW_RUNBY'] = 
-;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: ali $'
-;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-09-07 15:25:50 -0700 (Fri, 07 Sep 2018) $'
-;  global_att['SVN_REVISION'] = '$LastChangedRevision: 25745 $'
+;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
+;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-09-10 11:24:03 -0700 (Mon, 10 Sep 2018) $'
+;  global_att['SVN_REVISION'] = '$LastChangedRevision: 25767 $'
 
 return,global_att
 end

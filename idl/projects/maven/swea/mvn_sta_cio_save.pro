@@ -19,18 +19,28 @@
 ;                      only one element.  Default = 1.
 ;
 ;KEYWORDS:
+;       DODEN:         Calculate densities.  Default = 1 (yes).
+;
+;       DOTEMP:        Calculate temperatures.  Default = 1 (yes).
+;
+;       DOVEL:         Calculate temperatures.  Default = 1 (yes).
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-02-27 17:55:49 -0800 (Tue, 27 Feb 2018) $
-; $LastChangedRevision: 24795 $
+; $LastChangedDate: 2018-09-10 17:07:01 -0700 (Mon, 10 Sep 2018) $
+; $LastChangedRevision: 25769 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_save.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;FILE: mvn_sta_cio_save.pro
 ;-
-pro mvn_sta_cio_save, trange, ndays
+pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel
 
   common coldion, cio_h, cio_o1, cio_o2
+
+  if (size(doden,/type) eq 0) then doden = 1 else doden = keyword_set(doden)
+  if (size(dotemp,/type) eq 0) then dotemp = 1 else dotemp = keyword_set(dotemp)
+  if (size(dovel,/type) eq 0) then dovel = 1 else dovel = keyword_set(dovel)
+  dovel = replicate(dovel,3)
 
   dpath = root_data_dir() + 'maven/data/sci/sta/l3/cio/'
   froot = 'mvn_sta_cio_'
@@ -87,7 +97,7 @@ pro mvn_sta_cio_save, trange, ndays
         mvn_scpot
         mvn_sundir, frame='swe', /polar
 
-        mvn_sta_coldion, density=1, temperature=1, velocity=[1,1,1], $
+        mvn_sta_coldion, density=doden, temperature=dotemp, velocity=dovel, $
               /reset, tavg=16, frame='mso', /doplot, pans=pans, success=ok
 
         if (ok) then begin

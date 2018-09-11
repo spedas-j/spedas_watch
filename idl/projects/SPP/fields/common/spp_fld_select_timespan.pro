@@ -94,6 +94,9 @@ function spp_fld_select_timespan_define_presets, fm_or_em
 
   fm_times['support_sweap_turnon_rt']   = ['2018-09-05/20:00:00', '2018-09-06/02:00:00']
 
+  fm_times['support_sweap_rfs_typeiii']   = ['2018-09-06/00:00:00', '2018-09-06/04:00:00']
+
+
 
   fm_times['bias_test_rt_interval']   = ['2018-09-07/02:00:00', '2018-09-07/07:00:00']
   fm_times['bias_scm_cal']   =          ['2018-09-07/02:27:00', '2018-09-07/02:38:00']
@@ -113,6 +116,12 @@ function spp_fld_select_timespan_define_presets, fm_or_em
   fm_times['bias_v5_box_p5V_m5V_0'] = ['2018-09-07/05:45:00', '2018-09-07/06:05:00']
   fm_times['bias_model_sdt'] = ['2018-09-07/06:09:00', '2018-09-07/06:19:00']
   fm_times['bias_set_20_pct_photo'] = ['2018-09-07/06:20:00', '2018-09-07/06:22:00']
+
+  fm_times['rollslew'] =              ['2018-09-08/00:00:00', '2018-09-08/10:00:00']
+  fm_times['rollslew_mag_rolls'] =    ['2018-09-08/02:00:00', '2018-09-08/04:45:00']
+  fm_times['rollslew_sweap_slew'] =   ['2018-09-08/04:45:00', '2018-09-08/05:45:00']
+
+
 
   em_times = orderedhash()
 

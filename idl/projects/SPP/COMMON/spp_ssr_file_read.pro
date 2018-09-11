@@ -1,11 +1,11 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2018-09-09 14:59:32 -0700 (Sun, 09 Sep 2018) $
-; $LastChangedRevision: 25758 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2018-09-10 11:24:03 -0700 (Mon, 10 Sep 2018) $
+; $LastChangedRevision: 25767 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ; 
 ; ;  This routine will read SSR files that (series of CCSDS packets)
 
-pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_flag
+pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort=sort
   
 ;  oldmethod =0
   
@@ -13,7 +13,8 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
   t0 = systime(1)
   
   spp_swp_apdat_init  ,no_products=no_products
-  spp_apdat_info,rt_flag=0,save_flag=1,/clear 
+  if n_elements(sort) eq 0 then sort=1
+  spp_apdat_info,rt_flag=0,save_flag=1,sort_flag=sort,/clear 
 
   info = {socket_recorder   }
   info.run_proc = 1
@@ -48,7 +49,7 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
   
   if not keyword_set(no_clear) then del_data,'spp_*'  ; store_data,/clear,'*'
 
-  spp_apdat_info,/finish,/rt_flag,/all,sort_flag=sort_flag
+  spp_apdat_info,/finish,rt_flag=0,/all,sort_flag=sort_flag
 
   dt = systime(1)-t0
   dprint,format='("Finished loading in ",f0.1," seconds")',dt
