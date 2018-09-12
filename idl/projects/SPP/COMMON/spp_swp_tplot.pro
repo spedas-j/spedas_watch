@@ -1,9 +1,18 @@
-
+;--------------------------------------------------------------------
+; PSP SPAN TPLOT ROUTINE
+;
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2018-09-11 11:57:19 -0700 (Tue, 11 Sep 2018) $
+; $LastChangedRevision: 25773 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_swp_tplot.pro $
+;--------------------------------------------------------------------
 
 
 pro spp_swp_tplot,name,ADD=ADD,setlim=setlim
 
 if keyword_set(setlim) then begin
+  options, '*spp*sp[a,b]*SPEC', spec = 1
+  zlim, '*spp*sp[a,b]*SPEC', 1,1,1
   options,'spp_*AF*_SPEC' , spec=1
   options,'*MASK',tplot_routine='bitplot'
   options,'*_FLAGS',tplot_routine='bitplot'
@@ -89,6 +98,9 @@ if keyword_set(name) then begin
     'TEMP': tplot,'*TEMP',add=add
     'TEMPS': tplot,'*ALL_TEMPS',add=add
     'CRIT':tplot,'*SF1_ANODE_SPEC *ACC_? *22_C *HVOUT *RAIL*',add=add
+    'SPE_QL': tplot, 'spp_spa_hkp_CMD_REC spp_spb_hkp_CMD_REC spp_spa_hkp_HV_CONF_FLAG spp_spb_hkp_HV_CONF_FLAG spp_spa_SF1_CNTS spp_spb_SF1_CNTS spp_spa_SF1_NRG_SPEC spp_spb_SF1_NRG_SPEC spp_spa_SF0_NRG_SPEC spp_spb_SF0_NRG_SPEC', add = add
+    'SPI_QL' : tplot,['*CMDCOUNTER','*spi_*CMDS_REC','*spi_hkp_HV_MODE','*spi_*' + strsplit(/extract,'RAW_? MCP_? ACC_?'),'*rate*CNTS'],add=add
+
     else:
   endcase
   wshow,i=0,0

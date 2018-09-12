@@ -4,6 +4,7 @@
 ;
 ; PURPOSE:
 ;         Create quick plots of spectra at a certain time (i.e., energy vs. eflux, PA vs. eflux, etc)
+;         
 ; KEYWORDS:
 ;       [XY]LOG:   [XY] axis in log format
 ;       [XY]RANGE: 2 element vector that sets [XY] axis range
@@ -39,12 +40,12 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-09-04 11:37:04 -0700 (Tue, 04 Sep 2018) $
-;$LastChangedRevision: 25720 $
+;$LastChangedDate: 2018-09-11 16:31:18 -0700 (Tue, 11 Sep 2018) $
+;$LastChangedRevision: 25774 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
-pro warning, str
+pro fs_warning, str
   compile_opt idl2, hidden
   ; print warning message 
   dprint, dlevel=0, '########################### WARNING #############################'  
@@ -52,18 +53,18 @@ pro warning, str
   dprint, dlevel=0, '#################################################################'
 end
 
-function get_unit_string, unit_array
+function fs_get_unit_string, unit_array
   compile_opt idl2, hidden
   ; prepare string of units from the given array. If there is more that one unit in the array, print the warning 
   if ~undefined(unit_array) then begin
     if N_ELEMENTS(unit_array) gt 1 then begin
-      warning, 'Units of the tplot variables are different!'
+      fs_warning, 'Units of the tplot variables are different!'
       return, STRJOIN(unit_array, ', ')             
     endif else RETURN, unit_array[0]
   endif else return, ''
 end
 
-pro get_unit_array, metadata, field, arr=arr
+pro fs_get_unit_array, metadata, field, arr=arr
   compile_opt idl2, hidden
   ; extract unique units from metadata 
   str_element, metadata,field, SUCCESS=S, VALUE=V
@@ -80,13 +81,23 @@ end
 pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, _extra=_extra
+   charsize=charsize, replot=replot, _extra=_extra
    
   @tplot_com.pro
   
   ;
   ; Time selection
   ;
+  
+  if keyword_set(replot) then begin
+    get_data, 'flatten_spectra_time', data=spec_time
+    if ~is_struct(spec_time) then begin
+      dprint, dlevel=0, 'Error, replot keyword specified, but no previous time found'
+      return
+    endif
+    time_in = spec_time.X
+  endif
+  
   if undefined(time_in) and undefined(trange_in) then begin ; use cursor or the input variable
     ctime,t,npoints=1,prompt="Use cursor to select a time to plot the spectra", /silent 
       ;hours=hours,minutes=minutes,seconds=seconds,days=days  
@@ -110,7 +121,8 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   
   if undefined(charsize) then charsize = 2.0
     
-  print, 'time selected: ' + time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
+  dprint, dlevel=1, 'time selected: ' + time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
+  store_data, 'flatten_spectra_time', data={x: t, y: 1}
   vars_to_plot = tplot_vars.options.varnames
    
   ; 
@@ -136,8 +148,8 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
     endif
     
     ; determine units: get fields for metadata and add the the array if any 
-    get_unit_array, metadata, 'ysubtitle', arr=xunits
-    get_unit_array, metadata, 'ztitle', arr=yunits
+    fs_get_unit_array, metadata, 'ysubtitle', arr=xunits
+    fs_get_unit_array, metadata, 'ztitle', arr=yunits
     
     ; determine max and min  
     if N_ELEMENTS(xrange) ne 2 or N_ELEMENTS(yrange) ne 2 then begin 
@@ -160,8 +172,8 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   endif 
   
   ; units string
-  xunit_str = get_unit_string(xunits)
-  yunit_str = get_unit_string(yunits)
+  xunit_str = fs_get_unit_string(xunits)
+  yunit_str = fs_get_unit_string(yunits)
    
   ; position for the legend
   leg_x = 0.04
@@ -251,7 +263,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
             leg_y = !y.WINDOW[1] - leg_y
           endif            
       endif else begin
-        oplot, x_data, data_to_plot[0, *], color=colors[v_idx]
+        oplot, x_data, data_to_plot[0, *], color=colors[v_idx], _extra=_extra
       endelse      
       
       if ~keyword_set(nolegend) then begin
