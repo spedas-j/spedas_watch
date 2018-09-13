@@ -27,7 +27,7 @@ FUNCTION spp_swp_spi_fhkp_apdat::decom, ccsds, source_dict=source_dict
    ;;data = data[ind]
 
    ;; Plot data (before and after)
-   plot = 1
+   plot = 0
    if keyword_set(plot) and $
     total(data) ne 0 then begin
       !P.MULTI = [0,0,2]

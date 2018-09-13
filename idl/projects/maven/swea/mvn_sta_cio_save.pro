@@ -26,8 +26,8 @@
 ;       DOVEL:         Calculate temperatures.  Default = 1 (yes).
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-10 17:07:01 -0700 (Mon, 10 Sep 2018) $
-; $LastChangedRevision: 25769 $
+; $LastChangedDate: 2018-09-12 17:08:19 -0700 (Wed, 12 Sep 2018) $
+; $LastChangedRevision: 25781 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_save.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -45,7 +45,7 @@ pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel
   dpath = root_data_dir() + 'maven/data/sci/sta/l3/cio/'
   froot = 'mvn_sta_cio_'
   version = '_v02'
-  dt = 86400D  ; process one day at a time
+  oneday = 86400D  ; process one day at a time
 
   case n_elements(trange) of
      0  :  begin
@@ -59,8 +59,8 @@ pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel
     else : begin
              tmin = min(time_double(trange), max=tmax)
              tstart = time_double(time_string(tmin,prec=-3))
-             tstop = time_double(time_string((tmax + dt - 1D),prec=-3))
-             ndays = (tstop - tstart)/dt
+             tstop = time_double(time_string((tmax + oneday - 1D),prec=-3))
+             ndays = (tstop - tstart)/oneday
            end
   endcase
 
@@ -69,7 +69,7 @@ pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel
   for i=0L,(ndays - 1L) do begin
     timer_start = systime(/sec)
 
-    time = tstart + double(i)*dt
+    time = tstart + double(i)*oneday
     timespan, time, 1
 
     tstring = time_string(time)
@@ -78,7 +78,7 @@ pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel
     dd = strmid(tstring,8,2)
     opath = dpath + yyyy + '/' + mm + '/'
     file_mkdir2, opath, mode='0755'o  ; create directory structure, if needed
-    spawn, 'chgrp maven ' + opath
+    if (!version.os eq 'linux') then spawn, 'chgrp maven ' + opath
     ofile = opath + froot + yyyy + mm + dd + version + '.sav'
 
 ; If the file already exists, then just update it
@@ -94,7 +94,6 @@ pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel
       if (npkt[2] gt 0L) then begin
         maven_orbit_tplot, /shadow, /loadonly
         mvn_swe_sciplot, padsmo=16, /loadonly
-        mvn_scpot
         mvn_sundir, frame='swe', /polar
 
         mvn_sta_coldion, density=doden, temperature=dotemp, velocity=dovel, $
@@ -102,7 +101,7 @@ pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel
 
         if (ok) then begin
           save, cio_h, cio_o1, cio_o2, file=ofile
-          spawn, 'chgrp maven ' + ofile
+          if (!version.os eq 'linux') then spawn, 'chgrp maven ' + ofile
           file_chmod, ofile, '644'o
         endif else print,'CIO pipeline failed: ',tstring
 

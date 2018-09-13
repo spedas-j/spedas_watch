@@ -79,8 +79,8 @@
 ;    SUCCESS:       Processing success flag.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-09 18:01:57 -0700 (Sun, 09 Sep 2018) $
-; $LastChangedRevision: 25760 $
+; $LastChangedDate: 2018-09-12 17:08:57 -0700 (Wed, 12 Sep 2018) $
+; $LastChangedRevision: 25782 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_coldion.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -707,7 +707,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
 
 ; Upstream drivers (direct and proxy)
 
-  path = root_data_dir() + 'maven/data/sci/swi/l3/'
+  path = root_data_dir() + 'maven/data/sci/swe/l3/'
   tplot_restore, file=(path + 'drivers_merge_l2.tplot')  ; direct (Halekas)
 
   ngud = 0L
