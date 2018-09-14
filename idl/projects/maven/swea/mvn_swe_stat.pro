@@ -15,16 +15,18 @@
 ;    FULL:          If set, then display version information about IDL
 ;                   and the SPICE and CDF dynamic load modules.
 ;
+;    SPICE:         Report on SPICE coverage.
+;
 ;    SILENT:        Shhhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-08-06 14:15:28 -0700 (Mon, 06 Aug 2018) $
-; $LastChangedRevision: 25592 $
+; $LastChangedDate: 2018-09-13 13:57:06 -0700 (Thu, 13 Sep 2018) $
+; $LastChangedRevision: 25789 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
 ;-
-pro mvn_swe_stat, npkt=npkt, full=full, silent=silent
+pro mvn_swe_stat, npkt=npkt, full=full, spice=spice, silent=silent
 
   @mvn_swe_com
 
@@ -88,6 +90,25 @@ pro mvn_swe_stat, npkt=npkt, full=full, silent=silent
         1 : print,"Flatfield correction enabled"
         2 : print,"User-defined flatfield correction"
       endcase
+    endif
+
+    if keyword_set(spice) then begin
+      oneday = 86400D
+      tmin = min(swe_hsk.time, max=tmax)
+      tmin = floor(tmin/oneday)*oneday
+      tmax = ceil(tmax/oneday)*oneday
+      npts = round(tmax - tmin) + 1L
+      time = tmin + dindgen(npts)
+
+      spice_flag = mvn_spice_valid_times(time,tol=1)
+      indx = where(spice_flag eq 1, count)
+      if (count gt 0L) then begin
+        dt = indx - shift(indx,1)
+        dt[0] = dt[1]
+        gaps = where(dt gt 1, ngaps)
+        if (ngaps gt 0L) then print,"Found ",strtrim(string(ngaps),2)," gaps in SPICE coverage" $
+                         else print,"No gaps in SPICE coverage"
+      endif else print,"Warning: Missing/incomplete SPICE coverage!"
     endif
 
     print,""

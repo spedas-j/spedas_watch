@@ -78,12 +78,12 @@ if keyword_set(goddard) then router = 'hires1'
 if keyword_set(hires1) then router = 'hires1'
 
 if keyword_set(ssr) then begin
-  pathname = 'psp/data/sci/sweap/.raw/SSR/YYYY/DOY/*_?_EA'
+  pathname = 'psp/data/sci/sweap/raw/SSR/YYYY/DOY/*_?_EA'
   daily_names=1
 endif
 
 if keyword_set(ptp) then begin
-  pathname = 'psp/data/sci/sweap/.raw/PTP/YYYY/DOY/sweap_spp_YYYYDOY_??.ptp.gz
+  pathname = 'psp/data/sci/sweap/raw/PTP/YYYY/DOY/sweap_spp_YYYYDOY_??.ptp.gz
   daily_names=1
 endif
 

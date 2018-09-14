@@ -79,8 +79,8 @@
 ;    SUCCESS:       Processing success flag.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-12 17:08:57 -0700 (Wed, 12 Sep 2018) $
-; $LastChangedRevision: 25782 $
+; $LastChangedDate: 2018-09-13 14:01:10 -0700 (Thu, 13 Sep 2018) $
+; $LastChangedRevision: 25792 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_coldion.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -498,12 +498,14 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
               indx = where((dat4d.x ge tsp[0]) and (dat4d.x lt tsp[1]), k)
               if (k gt 0L) then begin
                 mvn_sta_v4d, tsp, mass=minmax(mass), m_int=mass[1], frame=frame, $
-                             erange=erange, /dopot, vsc=vsc, apid=v_apid, result=result
+                             erange=erange, /dopot, vsc=vsc, apid=v_apid, result=result, $
+                             /no_spice_check
                 if (result.valid) then v_bulk[j] = result
               endif
             endif else begin
               mvn_sta_v4d, time[j], mass=minmax(mass), m_int=mass[1], frame=frame, $
-                           erange=erange, /dopot, vsc=vsc, apid=v_apid, result=result
+                           erange=erange, /dopot, vsc=vsc, apid=v_apid, result=result, $
+                           /no_spice_check
               if (result.valid) then v_bulk[j] = result
             endelse
           endif

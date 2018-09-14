@@ -85,8 +85,8 @@
 ;                      to a higher number to see more diagnostic messages.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-06-11 14:11:23 -0700 (Mon, 11 Jun 2018) $
-; $LastChangedRevision: 25348 $
+; $LastChangedDate: 2018-09-13 13:57:27 -0700 (Thu, 13 Sep 2018) $
+; $LastChangedRevision: 25790 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_load_l0.pro $
 ;
 ;CREATED BY:    David L. Mitchell  04-25-13
@@ -323,7 +323,7 @@ pro mvn_swe_load_l0, trange, filename=filename, latest=latest, maxbytes=maxbytes
 
 ; Report status of data loaded
 
-  mvn_swe_stat, npkt=npkt, silent=silent
+  mvn_swe_stat, /spice, npkt=npkt, silent=silent
 
 ; Create a summary plot
 
