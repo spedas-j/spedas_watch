@@ -23,5 +23,7 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix
     endfor
     
   endif
+  
+  options, prefix + 'percent_used_fields', 'ytitle', 'PCT!CUSED!CFIELDS'
 
 end

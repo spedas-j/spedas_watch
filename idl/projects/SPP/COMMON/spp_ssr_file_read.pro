@@ -1,11 +1,11 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-09-10 11:24:03 -0700 (Mon, 10 Sep 2018) $
-; $LastChangedRevision: 25767 $
+; $LastChangedDate: 2018-09-14 17:17:54 -0700 (Fri, 14 Sep 2018) $
+; $LastChangedRevision: 25813 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ; 
 ; ;  This routine will read SSR files that (series of CCSDS packets)
 
-pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort=sort
+pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_flag
   
 ;  oldmethod =0
   
@@ -13,8 +13,8 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort=sort
   t0 = systime(1)
   
   spp_swp_apdat_init  ,no_products=no_products
-  if n_elements(sort) eq 0 then sort=1
-  spp_apdat_info,rt_flag=0,save_flag=1,sort_flag=sort,/clear 
+  if n_elements(sort_flag) eq 0 then sort_flag=1
+  spp_apdat_info,rt_flag=0,save_flag=1,/clear 
 
   info = {socket_recorder   }
   info.run_proc = 1

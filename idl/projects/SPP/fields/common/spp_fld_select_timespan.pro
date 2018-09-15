@@ -121,6 +121,9 @@ function spp_fld_select_timespan_define_presets, fm_or_em
   fm_times['rollslew_mag_rolls'] =    ['2018-09-08/02:00:00', '2018-09-08/04:45:00']
   fm_times['rollslew_sweap_slew'] =   ['2018-09-08/04:45:00', '2018-09-08/05:45:00']
 
+  fm_times['rollslew_hfr_noise'] =   ['2018-09-08/04:50:00', '2018-09-08/05:40:00']
+
+
 
 
   em_times = orderedhash()

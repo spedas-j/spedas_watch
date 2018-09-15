@@ -63,15 +63,18 @@ pro spp_swp_ssr_makefile,trange=trange0
 
     if keyword_set(make_cdf) then begin ;make cdf files
       cdf_pathformat = output_prefix+'cdf/YYYY/MM/DD/spp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'swem_dig_hkp',cdf_pathname = cdf_pathformat
-      spp_apdat_info,'swem_ana_hkp',cdf_pathname = cdf_pathformat
-      spp_apdat_info,'swem_event_log',cdf_pathname = cdf_pathformat
-      spp_apdat_info,'swem_timing',cdf_pathname = cdf_pathformat
-      spp_apdat_info,'spa_hkp',cdf_pathname = cdf_pathformat
-      spp_apdat_info,'spb_hkp',cdf_pathname = cdf_pathformat
-      spp_apdat_info,'spi_hkp',cdf_pathname = cdf_pathformat
-      spp_apdat_info,'spi_tof',cdf_pathname = cdf_pathformat
-      spp_apdat_info,'spi_rates',cdf_pathname = cdf_pathformat
+      spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+;      spp_apdat_info,'swem_ana_hkp',cdf_pathname = cdf_pathformat
+;      spp_apdat_info,'swem_event_log',cdf_pathname = cdf_pathformat
+;      spp_apdat_info,'swem_timing',cdf_pathname = cdf_pathformat
+      spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+;      spp_apdat_info,'spa_hkp',cdf_pathname = cdf_pathformat
+;      spp_apdat_info,'spb_hkp',cdf_pathname = cdf_pathformat
+;      spp_apdat_info,'spi_hkp',cdf_pathname = cdf_pathformat
+;      spp_apdat_info,'spi_tof',cdf_pathname = cdf_pathformat
+;      spp_apdat_info,'spi_rates',cdf_pathname = cdf_pathformat
       ;    spp_apdat_info,'sp?_sf1',cdf_pathname = cdf_pathformat
       timespan,tr ;for cdf pathnames to work!
       spp_apdat_info,make_cdf=make_cdf,/print

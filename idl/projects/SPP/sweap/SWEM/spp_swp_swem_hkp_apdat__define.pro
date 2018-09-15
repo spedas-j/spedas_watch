@@ -57,6 +57,48 @@ temp_par_10bit.xmax = 1023
 end
 
 
+function spp_swp_swem_hkp_apdat::cdf_global_attributes
+  
+  global_att = self.spp_gen_apdat::cdf_global_attributes()
+  global_att['Descriptor'] = 'SWEM>SWEAP Electronics Module'
+;  global_att['Data_type'] = self.name +'>Survey Calibrated Particle Flux'
+;  global_att['Data_version'] = 'v00'
+;  global_att['TEXT'] = 'PSP'
+;  global_att['MODS'] = 'Revision 0'
+;  ;global_att['Logical_file_id'] =  self.name+'_test.cdf'  ; 'mvn_sep_l2_s1-cal-svy-full_20180201_v04_r02.cdf'
+;  global_att['dirpath'] = './'
+  ;global_att['Logical_source'] = '.cal.spec_svy'
+  ;global_att['Logical_source_description'] = 'DERIVED FROM: PSP SWEAP'  ; SEP (Solar Energetic Particle) Instrument
+  global_att['Sensor'] = 'SWEM'   ;'SEP1'
+  global_att['PI_name'] = 'J. Kasper'
+  global_att['PI_affiliation'] = 'U. Michigan'
+  global_att['IPI_name'] = 'D. Larson (davin@ssl.berkeley.edu)
+  global_att['IPI_affiliation'] = 'U.C. Berkeley Space Sciences Laboratory'
+  global_att['InstrumentLead_name'] = '  '
+  global_att['InstrumentLead_affiliation'] = 'U.C. Berkeley Space Sciences Laboratory'
+  global_att['Instrument_type'] = 'Electrostatic Analyzer Particle Detector'
+  global_att['Mission_group'] = 'PSP'
+  global_att['Parents'] = '' ; '2018-02-17/22:17:38   202134481 ChecksumExecutableNotAvailable            /disks/data/maven/data/sci/pfp/l0_all/2018/02/mvn_pfp_all_l0_20180201_v002.dat ...
+  global_att = global_att + self.sw_version()
+  ;  global_att['Planet'] = 'Mars
+  ;  global_att['PDS_collection_id'] = 'MAVEN
+  ;  global_att['PDS_start_time'] = '2018-02-01T00:00:14.230Z
+  ;  global_att['PDS_stop_time'] = '2018-02-02T00:00:05.594Z
+  ;  global_att['SW_VERSION'] = 'v00'
+  ;  global_att['SW_TIME_STAMP_FILE'] = '/home/mavensep/socware/projects/maven/sep/mvn_sep_sw_version.pro
+  ;  global_att['SW_TIME_STAMP'] =  time_string(systime(1))
+  ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
+  ;  global_att['SW_RUNBY'] =
+  ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-09-14 17:17:54 -0700 (Fri, 14 Sep 2018) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 25813 $'
+
+  return,global_att
+end
+
+
+
+
 
 
 
