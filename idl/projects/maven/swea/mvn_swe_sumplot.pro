@@ -68,8 +68,8 @@
 ;       BURST:        Plot a color bar showing PAD burst coverage.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-13 14:00:50 -0700 (Thu, 13 Sep 2018) $
-; $LastChangedRevision: 25791 $
+; $LastChangedDate: 2018-09-16 13:20:05 -0700 (Sun, 16 Sep 2018) $
+; $LastChangedRevision: 25817 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sumplot.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -1030,7 +1030,8 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
                        else print,"No gaps in SPICE coverage."
     endif else print,"Warning: No valid SPICE data."
 
-    pans = [pans,bname]
+    npans = n_elements(pans)
+    pans = [pans[0:(npans-2)],bname,pans[npans-1]]
   endif
 
 ; Gather panels, set limits, and plot

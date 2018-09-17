@@ -27,8 +27,8 @@
 ;                   Default is current value of swe_verbose.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-14 14:36:20 -0700 (Fri, 14 Sep 2018) $
-; $LastChangedRevision: 25804 $
+; $LastChangedDate: 2018-09-16 13:19:20 -0700 (Sun, 16 Sep 2018) $
+; $LastChangedRevision: 25816 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_spice_init.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/18/13
@@ -57,7 +57,7 @@ pro mvn_swe_spice_init, trange=trange, list=list, force=force, status=status, in
       print,"SPICE kernels are already loaded."
       yn = 'N'
       read,"Reinitialize (y|n) ? ", yn
-      if (strupcase(yn) ne 'Y') then return
+      if (~strmatch(yn,'y*',/fold)) then return
     endif
   endif
 
@@ -85,7 +85,7 @@ pro mvn_swe_spice_init, trange=trange, list=list, force=force, status=status, in
   print, "Initializing SPICE ... ", format='(a,$)'
   if (verbose gt 0) then print,' '
 
-  if (noguff) then cspice_kclear ; remove any previously loaded kernels
+  cspice_kclear ; remove any previously loaded kernels
   swe_kernels = mvn_spice_kernels(/all,/load,trange=srange,verbose=(verbose-1))
   swe_kernels = spice_test('*')  ; only loaded kernels, no wildcards
   n_ker = n_elements(swe_kernels)
