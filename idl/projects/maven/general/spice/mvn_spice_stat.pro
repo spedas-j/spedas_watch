@@ -17,8 +17,8 @@
 ;                   about each kernel, including coverage in time.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-16 13:17:25 -0700 (Sun, 16 Sep 2018) $
-; $LastChangedRevision: 25815 $
+; $LastChangedDate: 2018-09-17 16:11:17 -0700 (Mon, 17 Sep 2018) $
+; $LastChangedRevision: 25821 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
@@ -42,6 +42,9 @@ pro mvn_spice_stat, list=list, info=info
   endif
 
   info = spice_kernel_info(verbose=0)
+  dt = time_double(info.trange[1]) - time_double(info.trange[0])
+  indx = where((info.interval lt 1) or (abs(dt) gt 1D), count)
+  if (count gt 0) then info = info[indx]  ; discard intervals of zero length
 
   print,"  SPICE coverage:"
   fmt1 = '(4x,a3,2x,a3,2x,a19,2x,a19,$)'
@@ -52,13 +55,14 @@ pro mvn_spice_stat, list=list, info=info
     i = indx[0]
     print,info[i].type,"S/C",tsp,format=fmt1
 
-    indx = indx[uniq(info[indx].filename,sort(info[indx].filename))]
-    nfiles = n_elements(indx)
+    jndx = indx[uniq(info[indx].filename,sort(info[indx].filename))]
+    jndx = jndx[sort(jndx)]  ; back in the original order
+    nfiles = n_elements(jndx)
     fgaps = 0
     ftsp = ['']
     for i=1,(nfiles-1) do begin
-      t1 = time_double(info[indx[i]].trange[0])
-      t0 = time_double(info[indx[i-1]].trange[1])
+      t1 = time_double(info[jndx[i]].trange[0])
+      t0 = time_double(info[jndx[i-1]].trange[1])
       if (t1 gt t0) then begin
         fgaps++
         ftsp = [ftsp, time_string([t0,t1])]
@@ -86,13 +90,14 @@ pro mvn_spice_stat, list=list, info=info
     i = indx[0]
     print,info[i].type,"S/C",tsp,format=fmt1
 
-    indx = indx[uniq(info[indx].filename,sort(info[indx].filename))]
-    nfiles = n_elements(indx)
+    jndx = indx[uniq(info[indx].filename,sort(info[indx].filename))]
+    jndx = jndx[sort(jndx)]  ; back in the original order
+    nfiles = n_elements(jndx)
     fgaps = 0
     ftsp = ['']
     for i=1,(nfiles-1) do begin
-      t1 = time_double(info[indx[i]].trange[0])
-      t0 = time_double(info[indx[i-1]].trange[1])
+      t1 = time_double(info[jndx[i]].trange[0])
+      t0 = time_double(info[jndx[i-1]].trange[1])
       if (t1 gt t0) then begin
         fgaps++
         ftsp = [ftsp, time_string([t0,t1])]
@@ -120,13 +125,14 @@ pro mvn_spice_stat, list=list, info=info
     i = indx[0]
     print,info[i].type,"APP",tsp,format=fmt1
 
-    indx = indx[uniq(info[indx].filename,sort(info[indx].filename))]
-    nfiles = n_elements(indx)
+    jndx = indx[uniq(info[indx].filename,sort(info[indx].filename))]
+    jndx = jndx[sort(jndx)]  ; back in the original order
+    nfiles = n_elements(jndx)
     fgaps = 0
     ftsp = ['']
     for i=1,(nfiles-1) do begin
-      t1 = time_double(info[indx[i]].trange[0])
-      t0 = time_double(info[indx[i-1]].trange[1])
+      t1 = time_double(info[jndx[i]].trange[0])
+      t0 = time_double(info[jndx[i-1]].trange[1])
       if (t1 gt t0) then begin
         fgaps++
         ftsp = [ftsp, time_string([t0,t1])]

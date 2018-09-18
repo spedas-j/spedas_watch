@@ -65,9 +65,11 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,ver
         'LSK': append_array,kernels, spd_download_plus(remote_file = naif.remote_data_dir+'generic_kernels/lsk/naif00??.tls', $
                                                   local_path = naif.local_data_dir+'generic_kernels/lsk/', no_update = no_update, $
                                                   last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
-        'SCK': append_array,kernels, spd_download_plus(remote_file = source.remote_data_dir+'psp/data/sci/sweap/sao/moc_data_products/operations_sclk_kernel/spp_sclk_????.tsc', $
-                                                  local_path = source.local_data_dir+'psp/data/sci/sweap/sao/moc_data_products/operations_sclk_kernel/', no_update = no_update, $
-                                                  last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
+        'SCK': begin
+;          sclk_path = 'psp/data/sci/sweap/sao/moc_data_products/operations_sclk_kernel/'
+          sclk_path = 'psp/data/sci/MOC/SPP/data_products/operations_sclk_kernel/'
+          append_array,kernels, spp_file_retrieve(sclk_path+'spp_sclk_????.tsc',/last)
+           end                                       
         'FRM':    begin         ; Frame kernels
            if 0 then begin
               append_array, kernels, spd_download_plus(remote_file = source.remote_data_dir+'MAVEN/kernels/fk/maven_v??.tf', $

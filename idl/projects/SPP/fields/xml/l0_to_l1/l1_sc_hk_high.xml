@@ -154,5 +154,69 @@
     </cdf_att>
   </cdf_var>
 
+  <cdf_var
+      name = "FSW_GC_HK_HK_THR_CNTS_BY_SET_0"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "THR_CNTS_BY_SET_0"
+        FORMAT = "I016"
+        LABLAXIS = "THR_CNTS_BY_SET_0"
+        DATA_TYPE = "CDF_INT4"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "Counts"
+        CATDESC = "Summed Thruster Counts 0"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_GC_HK_HK_THR_CNTS_BY_SET_1"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "THR_CNTS_BY_SET_1"
+        FORMAT = "I016"
+        LABLAXIS = "THR_CNTS_BY_SET_1"
+        DATA_TYPE = "CDF_INT4"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "Counts"
+        CATDESC = "Summed Thruster Counts 1"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_GC_HK_HK_THR_CNTS_BY_SET_2"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "THR_CNTS_BY_SET_2"
+        FORMAT = "I016"
+        LABLAXIS = "THR_CNTS_BY_SET_2"
+        DATA_TYPE = "CDF_INT4"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-2147483647"
+        VALIDMAX = "2147483647"
+        SCALEMIN = "-2147483647"
+        SCALEMAX = "2147483647"
+        UNITS = "Counts"
+        CATDESC = "Summed Thruster Counts 2"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+
 
 </items>

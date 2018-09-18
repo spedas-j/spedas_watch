@@ -17,8 +17,11 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix
       options, name, 'colors', [2]
       options, name, 'ytitle', name.Remove(0, prefix.Strlen()-1)
 
-      options, name, 'psym', 4
-      options, name, 'symsize', 0.5
+      ;options, name, 'psym', 4
+      options, name, 'psym_lim', 200
+      options, name, 'symsize', 0.75
+      options, name, 'datagap', 600d
+
       
     endfor
     

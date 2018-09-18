@@ -23,7 +23,8 @@ pro spp_fld_sc_hk_med_load_l1, file, prefix = prefix
       options, name, 'ytitle', ytitle
       ;options, name, 'psym', 4
       options, name, 'psym_lim', 200
-      options, name, 'symsize', 0.5
+      options, name, 'symsize', 0.75
+      options, name, 'datagap', 60d
 
     endfor
 
