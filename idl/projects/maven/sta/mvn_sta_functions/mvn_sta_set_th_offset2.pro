@@ -759,8 +759,38 @@ endif
 
 
 
+if time gt time_double('2018-07-21/00:00') then begin					; checked 20180810, SZA=1?? rapidly changing, -.7 to -1,3V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 2nd orbit, poorly determined, assumed vert wind was zero in att=2 
+endif
 
+if time gt time_double('2018-07-24/00:00') then begin					; checked 20180724, SZA=120 rapidly changing, -.7 to -1,3V = Vsc, 
+;	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 6th orbit, poorly determined, assumed vert wind was zero in att=1 
+endif
 
+if time gt time_double('2018-07-27/00:00') then begin					; checked 20180810, SZA=134 rapidly changing, -.7 to -1,3V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 6th orbit, poorly determined, assumed vert wind was zero in att=2 
+endif
+
+if time gt time_double('2018-07-31/00:00') then begin					; checked 20180806, SZA=140 rapidly changing, -.7 to -1,3V = Vsc, 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, poorly determined, assumed vert wind was zero in att=2 
+endif
+
+if time gt time_double('2018-08-02/00:00') then begin					; checked 20180815, SZA=114 rapidly changing, -.7 to -2V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal all orbits, poorly determined, assumed vert wind was zero in att=2 
+endif
+
+if time gt time_double('2018-08-08/00:00') then begin					; checked 20180813, SZA=151 rapidly changing, -.7 to -1,3V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal even orbits, poorly determined, assumed vert wind was zero in att=2 
+endif
+
+if time gt time_double('2018-08-10/00:00') then begin					; checked 20180813, SZA=156 rapidly changing, -.7 to -1,3V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal even orbits, poorly determined, assumed vert wind was zero in att=2 
+endif
+
+if time gt time_double('2018-08-31/00:00') then begin					; checked 20180912, SZA=154 rapidly changing, -.1 to -.3V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; no ram horizontal, poorly determined, assumed horizontal wind roughly zero in att=2 
+endif
 
 ;tplot,['mvn_sta_c6_O2+_lpw_sc_pot_all','mvn_sta_c8_P2_D_ram','mvn_sta_o2+_c8_th','mvn_sta_o2+_c8_vperp','mvn_sta_o2+_wind_along_track','mvn_sta_c6_scpot','mvn_sta_c6_att'],var_label=['orbit_mvn','LT','LAT','sza','alt'],title='MAVEN STATIC
 

@@ -20,8 +20,8 @@
 ;       storeTPLOT:         Create tplot varibles
 ;                                                                                                         
 ; $LastChangedBy: xussui $  
-; $LastChangedDate: 2018-08-15 15:54:51 -0700 (Wed, 15 Aug 2018) $  
-; $LastChangedRevision: 25639 $ 
+; $LastChangedDate: 2018-09-18 17:27:06 -0700 (Tue, 18 Sep 2018) $  
+; $LastChangedRevision: 25831 $ 
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_lc_restore.pro $     
 ; 
 ;CREATED BY:    Tristan Weber
@@ -38,7 +38,7 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
     rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r??.sav'
     ;force to use r03 since the previous versions contain errors
     ;!!!!!Need to hard code to change for newer versions!!!!!!!!!!!!
-    ;rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r03.sav'
+    ;rootFilename = 'mvn_swe_l3_padscore_YYYYMMDD_v??_r04.sav'
 
     if keyword_set(orbit) then begin
       orbMin = min(orbit, max=orbMax)
@@ -58,8 +58,12 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
     file = mvn_pfp_file_retrieve(rootPath+rootFilename,trange=trange,/daily_names)
     nfiles = n_elements(file)
     
+    pos=strpos(file,'_v');find position for version number
+    ver=strmid(file,pos[0]+2,2)*1.0;assuming same naming system 
+
     finfo = file_info(file)
-    indx = where(finfo.exists, nfiles, comp=jndx, ncomp=n)
+    indx = where(finfo.exists and ver gt 0, nfiles, comp=jndx, ncomp=n)
+                                  ;this will skip version 00
     for j=0,(n-1) do print,"File not found: ",file[jndx[j]]
     if (nfiles eq 0) then return
     file = file[indx]

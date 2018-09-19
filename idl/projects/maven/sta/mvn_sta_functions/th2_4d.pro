@@ -1,7 +1,7 @@
 ;+
-;FUNCTION:	vp_4d(dat,ENERGY=en,ERANGE=er,EBINS=ebins,ANGLE=an,ARANGE=ar,BINS=bins,MASS=ms,m_int=mi,q=q,mincnt=mincnt)
+;FUNCTION:	th2_4d(dat,ENERGY=en,ERANGE=er,EBINS=ebins,ANGLE=an,ARANGE=ar,BINS=bins,MASS=ms,m_int=mi,q=q,mincnt=mincnt)
 ;INPUT:	
-;	dat:	structure,	4d data structure filled by themis routines mvn_sta_get_c8.pro
+;	dat:	structure,	4d data structure filled by themis routines mvn_sta_c6.pro, mvn_sta_d0.pro, etc.
 ;KEYWORDS
 ;	ENERGY:	fltarr(2),	optional, min,max energy range for integration
 ;	ERANGE:	fltarr(2),	optional, min,max energy bin numbers for integration
@@ -18,7 +18,7 @@
 ;	BINS:	bytarr(na,nb),	optional, energy/angle bins array for integration
 ;					0,1=exclude,include
 ;PURPOSE:
-;	Returns the perpendicular velocity of a beam in units of km/s for apid C8
+;	Returns the center theta of a low energy beam and the estimated instrumental offset
 ;NOTES:	
 ;	Function normally called by "get_4dt" to
 ;	generate time series data for "tplot.pro".
@@ -26,11 +26,11 @@
 ;	Only valid <500 km altitude
 ;
 ;CREATED BY:
-;	J.McFadden	2014-02-27
+;	J.McFadden	2016-06-30
 ;LAST MODIFICATION:
-;	J.McFadden	2018-09-18
+;	J.McFadden	2016-09-18
 ;-
-function vp_4d,dat2,ENERGY=en,ERANGE=er,EBINS=ebins,ANGLE=an,ARANGE=ar,BINS=bins,MASS=ms,m_int=mi,q=q,mincnt=mincnt
+function th2_4d,dat2,ENERGY=en,ERANGE=er,EBINS=ebins,ANGLE=an,ARANGE=ar,BINS=bins,MASS=ms,m_int=mi,q=q,mincnt=mincnt
 
 common mvn_sta_offset2,efoldoffset,e0,scale1,offset1
 
@@ -40,7 +40,7 @@ if (size(efoldoffset,/type)) ne 4 or (dat2.time lt tt[0]-100.) or (dat2.end_time
 	print,'Running mvn_sta_set_th_offset2'
 endif 
 
-def = !Values.F_NAN
+def = [!Values.F_NAN,!Values.F_NAN,!Values.F_NAN,!Values.F_NAN,!Values.F_NAN]
 if dat2.valid eq 0 then begin
 	print,'Invalid Data'
 	return, def
@@ -115,7 +115,7 @@ if dat2.apid eq 'c8' then begin
 	if dat.mode eq 7 then nne=nne*2
 	data[0:((ind2-nne)>0),*]=0.
 	data[((ind2+nne)<31):31,*]=0.
-	offset_time = (ind2-15.5)*2./16.	; this accounts for the actual time of measurement -- needed for ngims wind APP nods 
+	offset_time = (ind2-15.5)*2./16.	; this accounts for the actual time of measurement -- needed for ngims wind APP nods
 endif 
 
 ; use the debye length and characteristic energy to correct for deflections by s/c potentials caused by surface geometry relative to particle direction
@@ -125,7 +125,7 @@ endif
 		min_tim = min(abs(tmp98.x-dat2.time-2.),ind98)
 		den98 = tmp98.y[ind98]
 		debye = 740.*(0.1/den98)^.5		; cm, debye length
-		radii = 5.				; cm, characteristic dimension of analyzer
+		radii = 5.				; cm, characteristic dimension of analyzer, actual radius is 7 cm
 ;		scale2 = radii/(debye+radii)		; original guess
 		scale2 = (debye/4.+radii)/(debye+radii)	; scale2->1 as debye->0, scale2-> ~1/4 at debye>>radii, 1/4 is a guess
 		pot2 = pot*scale2			; the amount of potential acceleration normal to analyzer surface
@@ -140,8 +140,8 @@ endif
 ;		pot2=0
 	endelse
 
-if keyword_set(mincnt) then if total(data-bkg) lt mincnt then return,def
-if total(data-bkg) lt 1 then return,def
+if keyword_set(mincnt) then if total(data-bkg) lt mincnt then return, def
+if total(data-bkg) lt 1 then return, def
 
 if keyword_set(mi) then mass = dat.mass*mi else mass=dat.mass*32.			; assume O2+ if not set
 
@@ -158,7 +158,7 @@ if (dat.att_ind eq 3) then offset0=1.5				; 1.5	0
 if (dat.att_ind eq 2) then offset0=0.0				; 0.0	0
 if (dat.att_ind eq 1) then offset0=1.0				; 1.0	1
 if (dat.att_ind eq 0) then offset0=0.0				; 0.0	0
- 
+
 ; offset2,offset1 uses inputs from common mvn_sta_offset2					
 
 offset2=efoldoffset*(1.-erf((energy-e0)/(scale1*(e0+.01))))
@@ -177,7 +177,7 @@ offset=offset0+offset1+offset2+offset3
 ; not sure which of the following is correct - for density>1.e4, debye length is small (1-2 cm) and scpot does not impact vperp 
 ; there may be lower density cases where debye length is 10 cm where this breaks down.
 
-v = (2.*(energy+pot)/mass)^.5 > 0.					;       use scpot corrected energy for large debye length
+v = (2.*(energy+pot)/mass)^.5					;       use scpot corrected energy for large debye length
 ;v = (2.*energy/mass)^.5						; don't use scpot corrected energy for small debye length
 
 sth = sin((dat.theta+offset)/!radeg)
@@ -189,11 +189,11 @@ data2 = ((data-bkg)>0.)*corr					; we assume no contribution for energies>11eV f
 
 ;vperp = total(vp*((data-bkg)>0.))/total((data-bkg)>0.)
 ;vperp = total(vp*data2)/total(data2)
-th1 = total(dat.theta*data2)/total(data2)					; th1 is the measured beam center w/o corrections
-th2 = total(offset*data2)/total(data2)						; th2 is the APP pointing ram direction plus instrument internal offsets, not used anymore
+th1 = total(dat.theta*data2)/total(data2)					; th1 black is the measured beam center w/o corrections
+th2 = total(offset*data2)/total(data2)						; th2 red   is the APP pointing ram direction plus instrument internal offsets, not used anymore
 
-th3 = total((dat.theta+offset0+offset1+offset2)*data2)/total(data2)		; th3 is the measured beam center minus internal instrument offsets
-th4 = -offset3									; th4 is the APP pointing direction
+th3 = total((dat.theta+offset0+offset1+offset2)*data2)/total(data2)		; th3 green is the measured beam center minus instrument internal offsets
+th4 = -offset3									; th4 cyan  is the APP pointing direction
 ;th5 = !radeg*atan ((peak2/(peak2+pot2))^.5*tan(th3/!radeg))			; th5 blue  is the th3 angle corrected for external deflections caused by s/c charging
 ; def_const should be 1 for a planar surface, 0 for spherical
 def_const=1.00									; determined imperically during APP nods 20171008 - might need to be debye length dependent
@@ -201,7 +201,7 @@ th5 = !radeg*atan ((peak2/(peak2+def_const*pot2))^.5*tan(th3/!radeg))		; th5 is 
 
 ;print,th5,peak2,def_const,pot2
 
-vperp = total(v*data2)/total(data2)*sin((th5-th4)/!radeg)			; vperp is the velocity perpendicular to the "th4" ram direction
-return, vperp									; km/s
+return, [th1,-th2,th3,th4,th5]					; deg
+;return, [th1,th4,th5]						; deg
 
 end
