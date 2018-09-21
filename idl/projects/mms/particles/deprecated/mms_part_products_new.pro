@@ -5,15 +5,6 @@
 ;Purpose:
 ;  Generate spectra and moments from 3D MMS particle data.
 ;
-;   -----------------------------------------------------------------------------------------
-;   |  !!!!!! words of caution <------ by egrimes, 4/7/2016:                                |
-;   |   While you can use mms_part_products to generate particle moments for FPI from       |
-;   |   the distributions, these calculations are currently missing several important       |
-;   |   components, including photoelectron removal and S/C potential corrections.          |
-;   |   The official moments released by the team include these, and are the scientific     |
-;   |   products you should use in your analysis; see mms_load_fpi_crib to see how to load  |
-;   |   the FPI moments released by the team (des-moms, dis-moms datatypes)                 |
-;   -----------------------------------------------------------------------------------------
 ;
 ;Data Products:
 ;  'energy' - energy spectrogram
@@ -106,12 +97,16 @@
 ;  -FPI-DES photoelectrons are corrected using Dan Gershman's photoelectron model; see the following for details:
 ;     Spacecraft and Instrument Photoelectrons Measured by the Dual Electron Spectrometers on MMS
 ;     https://agupubs.onlinelibrary.wiley.com/doi/full/10.1002/2017JA024518
+;     
+;  -Note that there may still be slight differences between the PGS moments and the official moments released by the team.
+;     The official moments released by the team are the scientific
+;     products you should use in your analysis.
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-08-08 06:37:03 -0700 (Wed, 08 Aug 2018) $
-;$LastChangedRevision: 25609 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_products_new.pro $
+;$LastChangedDate: 2018-09-20 15:38:18 -0700 (Thu, 20 Sep 2018) $
+;$LastChangedRevision: 25843 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/deprecated/mms_part_products_new.pro $
 ;-
 pro mms_part_products_new, $
                      in_tvarname, $ ;the tplot variable name for the MMS being processed
@@ -628,11 +623,13 @@ pro mms_part_products_new, $
   ;Energy Spectrograms
   if ~undefined(en_spec) then begin
     spd_pgs_make_tplot, tplot_prefix+'energy'+suffix, x=times, y=en_y, z=en_spec, ylog=1, units=units_lc,datagap=datagap,tplotnames=tplotnames
+    options, tplot_prefix+'energy'+suffix, ysubtitle='[eV]'
   endif
  
   ;Theta Spectrograms
   if ~undefined(theta_spec) then begin
     spd_pgs_make_tplot, tplot_prefix+'theta'+suffix, x=times, y=theta_y, z=theta_spec, yrange=theta,units=units_lc,datagap=datagap,tplotnames=tplotnames
+    options, tplot_prefix+'theta'+suffix, ysubtitle='[deg]'
   endif
   
   ;Phi Spectrograms
@@ -641,11 +638,13 @@ pro mms_part_products_new, $
     phi_y_range = (undefined(start_angle) ? 0:start_angle) + [0,360]
     spd_pgs_make_tplot, tplot_prefix+'phi'+suffix, x=times, y=phi_y, z=phi_spec, yrange=phi_y_range,units=units_lc,datagap=datagap,tplotnames=tplotnames
     spd_pgs_shift_phi_spec, names=tplot_prefix+'phi'+suffix, start_angle=start_angle
+    options, tplot_prefix+'phi'+suffix, ysubtitle='[deg]'
   endif
   
   ;Pitch Angle Spectrograms
   if ~undefined(pa_spec) then begin
     spd_pgs_make_tplot, tplot_prefix+'pa'+suffix, x=times, y=pa_y, z=pa_spec, yrange=pitch,units=units_lc,datagap=datagap,tplotnames=tplotnames
+    options, tplot_prefix+'pa'+suffix, ysubtitle='[deg]'
   endif
   
   if in_set(outputs_lc, 'multipad') && ~undefined(multi_pad_out) then begin
@@ -658,11 +657,13 @@ pro mms_part_products_new, $
     gyro_y_range = (undefined(start_angle) ? 0:start_angle) + [0,360]
     spd_pgs_make_tplot, tplot_prefix+'gyro'+suffix, x=times, y=gyro_y, z=gyro_spec, yrange=gyro_y_range,units=units_lc,datagap=datagap,tplotnames=tplotnames
     spd_pgs_shift_phi_spec, names=tplot_prefix+'gyro'+suffix, start_angle=start_angle
+    options, tplot_prefix+'gyro'+suffix, ysubtitle='[deg]'
   endif
   
   ;Field-Aligned Energy Spectrograms
   if ~undefined(fac_en_spec) then begin
     spd_pgs_make_tplot, tplot_prefix+'energy'+suffix, x=times, y=fac_en_y, z=fac_en_spec, ylog=1, units=units_lc,datagap=datagap,tplotnames=tplotnames
+    options, tplot_prefix+'energy'+suffix, ysubtitle='[eV]'
   endif
 
   ;Moments Variables

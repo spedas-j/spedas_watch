@@ -3,14 +3,14 @@
 ;         mms_part_getpad
 ;
 ; PURPOSE:
-;         Quickly generate pitch angle spectrograms from multipad output from mms_part_getspec/mms_part_products_new
+;         Quickly generate pitch angle spectrograms from multipad output from mms_part_getspec/mms_part_products
 ;
 ; NOTES:
 ;         still a work in progress
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-04-23 14:56:45 -0700 (Mon, 23 Apr 2018) $
-; $LastChangedRevision: 25100 $
+; $LastChangedDate: 2018-09-20 15:04:07 -0700 (Thu, 20 Sep 2018) $
+; $LastChangedRevision: 25838 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_getpad.pro $
 ;-
 

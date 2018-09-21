@@ -6,13 +6,18 @@
 ;     IDL> mgunit, 'mms_part_slice2d_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-08-16 14:48:10 -0700 (Thu, 16 Aug 2018) $
-; $LastChangedRevision: 25649 $
+; $LastChangedDate: 2018-09-20 15:35:27 -0700 (Thu, 20 Sep 2018) $
+; $LastChangedRevision: 25842 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_part_slice2d_ut__define.pro $
 ;-
 
 function mms_part_slice2d_ut::test_fpi_i_basic
   mms_part_slice2d, trange=['2015-12-15', '2015-12-15/0:01'], instrument='fpi', species='i', export='test_fpi_i_basic'
+  return, 1
+end
+
+function mms_part_slice2d_ut::test_fpi_i_units
+  mms_part_slice2d, units='eflux', trange=['2015-12-15', '2015-12-15/0:01'], instrument='fpi', species='i', export='test_fpi_i_units'
   return, 1
 end
 
