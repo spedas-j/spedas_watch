@@ -230,7 +230,7 @@ function spp_swp_swem_part_decompress_data,bfr,decomp_size = decomp_size,stuff_s
   pktbits = 8 * (comp_size)
  
   nn = 20
-  for DcmInx = 0,nn-1 do decomp_bfr[DcmInx] = bfr[DcmInx]  ; First nn bytes are not compressed
+  for DcmInx = 0L,nn-1 do decomp_bfr[DcmInx] = bfr[DcmInx]  ; First nn bytes are not compressed
   BitInx = DcmInx*8;               // Start Bit
 
   while (BitInx lt (Pktbits-32) ) do begin      ;  // While Bits remain

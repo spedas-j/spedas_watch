@@ -10,10 +10,8 @@ END
 
 PRO spp_swp_spi_param_mass_table, write_file=write_file
 
-   ;;------------------------------------------------------
    ;; COMMON BLOCK
-   COMMON spi_param, spi_param
-
+   COMMON spi_param, spi_param, dict
 
    ;;#####################
    ;; Mass Table 0
@@ -135,6 +133,8 @@ PRO spp_swp_spi_param_mass_table, write_file=write_file
    ;; DAC to V and then to particle energy
    hv = -1*(spi_param.hemi_fitt[0] + $
             hv_dac*spi_param.hemi_fitt[1])
+
+   
    ev = hv * 16.7 + 15000.
    mass     = [1,2,21,32]
    mass_nn  = n_elements(mass)
@@ -223,7 +223,7 @@ PRO spp_swp_spi_param_mass_table, write_file=write_file
 
       ;; 
       kk = 0
-                                ;mass_ppp   = intarr(n_elements(ev)*mass_nn)
+      ;;mass_ppp   = intarr(n_elements(ev)*mass_nn)
       mass_ppp   = intarr(n_elements(ev),mass_nn)
       mass_eloss = intarr(n_elements(ev),mass_nn)
       FOR i=0, mass_nn-1 DO BEGIN
@@ -362,8 +362,6 @@ PRO spp_swp_spi_param_mass_table, write_file=write_file
    tt2=mean(mass_tof_corr[*,1:2],dimension=2)
    tt3=mean(mass_tof_corr[*,2:3],dimension=2)   
    
-   stop
-   
    loadct2, 34
    ;oplot, transpose(mass_tof_corr[*,0]),indgen(128),color=250
    ;oplot, transpose(mass_tof_corr[*,1]),indgen(128),color=250
@@ -379,7 +377,7 @@ PRO spp_swp_spi_param_eloss_matrix, eloss_matrix, verbose=verbose
 
    ;;------------------------------------------------------
    ;; COMMON BLOCK
-   COMMON spi_param, spi_param
+   COMMON spi_param, spi_param, dict
 
    ;; What we learned from Flight Calibration
    
@@ -439,25 +437,22 @@ PRO spp_swp_spi_param_eloss_matrix, eloss_matrix, verbose=verbose
 
    FOR i=0, 127 DO BEGIN
       tt = sqrt(0.5*mass*spi_param.sci.atokg*$
-                spi_param.tof_flight_path^2/spi_param.sci.evtoj/ev[i])/1e-9
+                spi_param.tof_flight_path^2 / $
+                spi_param.sci.evtoj/ev[i])/1e-9
       yy = [hfit[i], ofit[i], afit[i]]
       tmp1 =  interpol(yy, tt, spi_param.tof512_avgs) > 0
       tmp2 = tmp1 < 100.0
       eloss_matrix[*, i] = tmp2
       IF keyword_set(verbose) THEN BEGIN 
-         plot,  tt, yy,  xr=[1, 100], xs=1, yr=[50, 100], ys=1, /xlog,title=string(ev[i])
-         oplot, spi_param.tof512_avgs, eloss_matrix[*, i], color=250,psym=-1
+         plot,  tt, yy,  xr=[1, 100], xs=1, yr=[50, 100], $
+                ys=1, /xlog,title=string(ev[i])
+         oplot, spi_param.tof512_avgs, eloss_matrix[*, i], $
+                color=250,psym=-1
          wait, 0.05
       ENDIF
    ENDFOR
 
-
-
-
-
-   ;;===============================================================================
-   ;; PLOTS
-   ;;===============================================================================
+   ;; Plotting
    IF keyword_set(verbose) THEN BEGIN
 
       ;; Generate masses in amu and tof
@@ -508,7 +503,8 @@ PRO spp_swp_spi_param_eloss_matrix, eloss_matrix, verbose=verbose
       FOR i=0, mass_nn-1 DO BEGIN 
          oplot, enrg_amu[*,i],mass_tof[*,i]
          oplot, enrg_amu[*,i],mass_tof_corr[*,i],color=250
-         oplot, enrg_amu[*,i],mass_tof_corr[*,i]-spi_param.tof_e_corr*1e9,color=50
+         oplot, enrg_amu[*,i],mass_tof_corr[*,i]-$
+                spi_param.tof_e_corr*1e9,color=50
       ENDFOR 
 
       ;; Add results from Davin's Energy-Mass Scans
@@ -560,24 +556,14 @@ PRO spp_swp_spi_param_eloss_matrix, eloss_matrix, verbose=verbose
       ;; PLOT 3:
       stop
       !p.multi = 0
-
-      
-      
    ENDIF 
-   
 END
-
-
-
 
 FUNCTION spp_swp_spi_param_esa
 
-   
-   ;;------------------------------------------------------
    ;; ESA Dimensions
-                                          ;; Toroidal Section 
+   ;; Toroidal Section 
    r1 = 3.34                              ;; Inner Hemisphere Radius
-                                          ;; Toroidal Section
    r2 = r1*1.06                           ;; Outer Hemisphere Radius
    r3 = r1*1.639                          ;; Inner Hemisphere
    r4 = r3*1.06                           ;; Top Cap Radius
@@ -668,24 +654,13 @@ FUNCTION spp_swp_spi_param_esa
                     
 END
 
-
-
-
-
-
-
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;          SPAN-Ai Flight Calibration Experiments              ;;;
 ;;;                       CAL Facility                           ;;;
 ;;;                        2017-03-07                            ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
 FUNCTION spp_swp_spi_param_fm_cal_times
 
-
-   
    ;;---------------------------------------------------------------
    ;; Gun Map
    ;;
@@ -703,14 +678,11 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;; Second Half
    tt_gunmap_12 = ['2017-03-09/20:25:20','2017-03-09/22:15:00']
 
-   
-   
    ;; Rotation Scan before TOF correction
    tt_rotscan_1 = ['2017-03-10/07:28:20','2017-03-10/08:44:40']
    ;; Rotation Scan after TOF correction
    ;rotscan2 = [
    
-  
    ;;---------------------------------------------------------------
    ;; Threshold Scan
    ;;
@@ -727,7 +699,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;;     + Filament I = 0.85 [A]
    tt_thresh_scan1 = ['2017-03-12/05:47:00','2017-03-12/19:00:00']
    
-   
    ;;---------------------------------------------------------------
    ;; Rotation Scan
    ;; INFO
@@ -738,7 +709,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;;     + Gun V = 480 [V]
    ;;     + Filament I = 0.85 [A]
    tt_rotscan_2 = ['2017-03-13/07:12:35','2017-03-13/08:32:45']
-
 
    ;;---------------------------------------------------------------
    ;; Energy Angle Scan
@@ -752,7 +722,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;;     + Filament I = 0.85 [A]
    tt_eascan_1 = ['2017-03-13/18:21:00','2017-03-13/23:47:00']
 
-
    ;;---------------------------------------------------------------
    ;; Constant YAW, Sweeping Deflector - HIGH DETAIL - ANODE 0x0
    ;;
@@ -764,7 +733,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;;     + Gun V = 480 [V]
    ;;     + Filament I = 0.85 [A]
    tt_def_sweep_1 = ['2017-03-14/06:31:50','2017-03-14/10:04:30']
-
 
    ;;---------------------------------------------------------------
    ;; Constant YAW, Sweeping Deflector - COARSE - ALL ANODES
@@ -782,8 +750,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
 
    ;; Anode 0x2 - 13 or 14 (check)
    tt_def_sweep_3 = ['2017-03-15/05:12:00','2017-03-15/22:02:00']
-
-
 
    ;;---------------------------------------------------------------
    ;; Constant YAW, Sweeping Deflector - Fine - anodes 9,10,11,12,13
@@ -815,16 +781,10 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;; Anode 0xE
    ;trange=[]
 
-
-
-
-
-   
    ;; Turned back on 05:55
    ;; Quick Rotation scan to get beam back to anode 0
    trange = ['2017-03-22/06:00:00', '2017-03-22/06:15:00']
 
- 
    ;; Sweep YAW with constant deflector
    ;; Anode 0x0 and partially Anode 0x1
    trange = ['2017-03-22/06:16:20', '2017-03-22/11:49:40']
@@ -855,7 +815,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;;     + ExB - 50 [V] and varying current for magnet
    tt_mass_scan_nitrogen = ['2017-03-22/02:00:00','2017-03-22/03:00:00']
 
-
    ;;---------------------------------------------------------------
    ;; Colutron
    ;;
@@ -868,7 +827,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;;     + Filament I = 16.5 [A]
    ;;     + ExB - 50 [V] and varying current for magnet   
    tt_mass_scan_gas_mix = ['2017-03-24/17:00:00','2017-03-24/22:00:00']
-
    tt_mass_scan_h   = ['2017-03-24/21:03:30','2017-03-24/21:17:25']
    tt_mass_scan_h2  = ['2017-03-24/20:57:05','2017-03-24/21:02:40']
    tt_mass_scan_he  = ['2017-03-24/18:36:05','2017-03-24/18:48:45']
@@ -883,24 +841,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    tt_mass_scan_m12 = ['2017-03-24/20:15:15','2017-03-24/20:21:10']
    tt_mass_scan_m13 = ['2017-03-24/20:25:10','2017-03-24/20:39:25']  
    
-   str_mass_scan_1 = [{name:'full', tt_mass_scan:tt_mass_scan_nitrogen}, $
-                      {name:'N+',   tt_mass_scan:tt_mass_scan_nitrogen}, $
-                      {name:'N2+',  tt_mass_scan:tt_mass_scan_nitrogen}]
-   str_mass_scan_2 = [{name:'full', tt_mass_scan:tt_mass_scan_gas_mix},  $
-                      {name:'H+',   tt_mass_scan:tt_mass_scan_h},   $
-                      {name:'H2+',  tt_mass_scan:tt_mass_scan_h2},  $
-                      {name:'He+',  tt_mass_scan:tt_mass_scan_he},  $
-                      {name:'m4',   tt_mass_scan:tt_mass_scan_m4},  $
-                      {name:'m5',   tt_mass_scan:tt_mass_scan_m5},  $
-                      {name:'m6',   tt_mass_scan:tt_mass_scan_m6},  $
-                      {name:'m7',   tt_mass_scan:tt_mass_scan_m7},  $
-                      {name:'m8',   tt_mass_scan:tt_mass_scan_m8},  $
-                      {name:'m9',   tt_mass_scan:tt_mass_scan_m9},  $
-                      {name:'m10',  tt_mass_scan:tt_mass_scan_m10}, $
-                      {name:'m11',  tt_mass_scan:tt_mass_scan_m11}, $
-                      {name:'m12',  tt_mass_scan:tt_mass_scan_m12}, $
-                      {name:'m13',  tt_mass_scan:tt_mass_scan_m13}]
-
    ;;---------------------------------------------------------------
    ;; Colutron
    ;;
@@ -920,17 +860,10 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    tt_acc_scan_h_1 = ['2017-03-25/00:09:20', '2017-03-25/00:25:50']
    tt_acc_scan_h_2 = ['2017-03-25/00:25:50', '2017-03-25/00:45:40']
 
-   
-
-   
-
-   
    ;;---------------------------------------------------------------
    ;; Long term anode 11 with 2kV beam
    trange = ['2017-03-26/01:58:30', '2017-03-26/02:11:20']
 
-
-   
    ;;---------------------------------------------------------------
    ;; Energy Scan using Davin's tables
 
@@ -962,36 +895,6 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    tt_e_scan_d_an02 = ['2017-03-26/10:13:20', '2017-03-26/10:20:20']
    tt_e_scan_d_an01 = ['2017-03-26/10:20:20', '2017-03-26/10:27:10']
    tt_e_scan_d_an00 = ['2017-03-26/10:27:34', '2017-03-26/10:34:50']
-
-
-   
-   str_e_scan_davin_1 = [{name:'full', tt_mass_scan:tt_e_scan_full1},  $
-                         {name:'d1',  tt_mass_scan:tt_e_scan_d1},  $
-                         {name:'d2',  tt_mass_scan:tt_e_scan_d2},  $
-                         {name:'d3',  tt_mass_scan:tt_e_scan_d3},  $
-                         {name:'d4',  tt_mass_scan:tt_e_scan_d4}]
-
-
-   str_e_scan_davin_2 = [{name:'full', tt_mass_scan:tt_e_scan_full2},  $
-                         {name:'anode_00', tt_e_scan:tt_e_scan_d_an00}, $
-                         {name:'anode_01', tt_e_scan:tt_e_scan_d_an01}, $
-                         {name:'anode_02', tt_e_scan:tt_e_scan_d_an02}, $
-                         {name:'anode_03', tt_e_scan:tt_e_scan_d_an03}, $
-                         {name:'anode_04', tt_e_scan:tt_e_scan_d_an04}, $
-                         {name:'anode_05', tt_e_scan:tt_e_scan_d_an05}, $
-                         {name:'anode_06', tt_e_scan:tt_e_scan_d_an06}, $
-                         {name:'anode_07', tt_e_scan:tt_e_scan_d_an07}, $
-                         {name:'anode_08', tt_e_scan:tt_e_scan_d_an08}, $
-                         {name:'anode_09', tt_e_scan:tt_e_scan_d_an09}, $
-                         {name:'anode_10', tt_e_scan:tt_e_scan_d_an10}, $
-                         {name:'anode_11', tt_e_scan:tt_e_scan_d_an11}, $
-                         {name:'anode_12', tt_e_scan:tt_e_scan_d_an12}, $
-                         {name:'anode_13', tt_e_scan:tt_e_scan_d_an13}, $
-                         {name:'anode_14', tt_e_scan:tt_e_scan_d_an14}, $
-                         {name:'anode_15', tt_e_scan:tt_e_scan_d_an15}]
-   
-
-
 
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;;;                      SPAN-Ai Flight CPT                      ;;;
@@ -1028,9 +931,60 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    trange = ['2018-05-15']
 
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;;                      SPAN-Ai Flight Aliveness                ;;;
+   ;;;                        SLC-39 Cape Canaveral                 ;;;
+   ;;;                          2018-08-11                          ;;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   trange = ['2018-08-11']
+
+
    
    ;; Return Time Structure
+   str_mass_scan_1 = [{name:'full', tt_mass_scan:tt_mass_scan_nitrogen}, $
+                      {name:'N+',   tt_mass_scan:tt_mass_scan_nitrogen}, $
+                      {name:'N2+',  tt_mass_scan:tt_mass_scan_nitrogen}]
+   str_mass_scan_2 = [{name:'full', tt_mass_scan:tt_mass_scan_gas_mix},  $
+                      {name:'H+',   tt_mass_scan:tt_mass_scan_h},   $
+                      {name:'H2+',  tt_mass_scan:tt_mass_scan_h2},  $
+                      {name:'He+',  tt_mass_scan:tt_mass_scan_he},  $
+                      {name:'m4',   tt_mass_scan:tt_mass_scan_m4},  $
+                      {name:'m5',   tt_mass_scan:tt_mass_scan_m5},  $
+                      {name:'m6',   tt_mass_scan:tt_mass_scan_m6},  $
+                      {name:'m7',   tt_mass_scan:tt_mass_scan_m7},  $
+                      {name:'m8',   tt_mass_scan:tt_mass_scan_m8},  $
+                      {name:'m9',   tt_mass_scan:tt_mass_scan_m9},  $
+                      {name:'m10',  tt_mass_scan:tt_mass_scan_m10}, $
+                      {name:'m11',  tt_mass_scan:tt_mass_scan_m11}, $
+                      {name:'m12',  tt_mass_scan:tt_mass_scan_m12}, $
+                      {name:'m13',  tt_mass_scan:tt_mass_scan_m13}]
+
+   str_e_scan_davin_1 = [{name:'full', tt_mass_scan:tt_e_scan_full1},  $
+                         {name:'d1',  tt_mass_scan:tt_e_scan_d1},  $
+                         {name:'d2',  tt_mass_scan:tt_e_scan_d2},  $
+                         {name:'d3',  tt_mass_scan:tt_e_scan_d3},  $
+                         {name:'d4',  tt_mass_scan:tt_e_scan_d4}]
+
+
+   str_e_scan_davin_2 = [{name:'full', tt_mass_scan:tt_e_scan_full2},  $
+                         {name:'anode_00', tt_e_scan:tt_e_scan_d_an00}, $
+                         {name:'anode_01', tt_e_scan:tt_e_scan_d_an01}, $
+                         {name:'anode_02', tt_e_scan:tt_e_scan_d_an02}, $
+                         {name:'anode_03', tt_e_scan:tt_e_scan_d_an03}, $
+                         {name:'anode_04', tt_e_scan:tt_e_scan_d_an04}, $
+                         {name:'anode_05', tt_e_scan:tt_e_scan_d_an05}, $
+                         {name:'anode_06', tt_e_scan:tt_e_scan_d_an06}, $
+                         {name:'anode_07', tt_e_scan:tt_e_scan_d_an07}, $
+                         {name:'anode_08', tt_e_scan:tt_e_scan_d_an08}, $
+                         {name:'anode_09', tt_e_scan:tt_e_scan_d_an09}, $
+                         {name:'anode_10', tt_e_scan:tt_e_scan_d_an10}, $
+                         {name:'anode_11', tt_e_scan:tt_e_scan_d_an11}, $
+                         {name:'anode_12', tt_e_scan:tt_e_scan_d_an12}, $
+                         {name:'anode_13', tt_e_scan:tt_e_scan_d_an13}, $
+                         {name:'anode_14', tt_e_scan:tt_e_scan_d_an14}, $
+                         {name:'anode_15', tt_e_scan:tt_e_scan_d_an15}]
    
+
    times = { $
 
    tt_gunmap_1:tt_gunmap_1, $
@@ -1058,8 +1012,25 @@ FUNCTION spp_swp_spi_param_fm_cal_times
 
 END
 
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;;                      SPAN-Ai Flight                          ;;;
+   ;;;                        2018-08-11                            ;;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;FUNCTION spp_swp_spi_param_fm_cal_times
+
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;;                       Second Turn On                         ;;;
+   ;;;                 Sept 3, 2018 (Mission Day 23)                ;;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   
+
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+   ;;;                    First High Voltage Ramp                   ;;;
+   ;;;                 Sept 3, 2018 (Mission Day 23)                ;;;
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+   ;;END
 
 PRO spp_swp_spi_param_science, science
 
@@ -1158,11 +1129,6 @@ PRO spp_swp_spi_param_anode_board, ano
 
 END 
    
-
-
-
-
-
 PRO spp_swp_spi_param_esa, esa
    
    ;;------------------------------------------------------
@@ -1204,6 +1170,24 @@ END
 
 
 
+PRO spp_swp_spi_param_dict, vals, dict
+
+   ;; Define Dictionary
+   dict = dictionary()
+   
+   ;; Find all tags
+   tags = tag_names(vals)
+
+   ;; Fill all tags into dictionary
+   FOR i=0, n_elements(tags)-1 DO BEGIN
+      print, "dict['"+tags[i]+"'] = vals."+tags[i]
+      tmp = execute("dict['"+tags[i]+"'] = vals."+tags[i])
+   ENDFOR 
+   
+END
+
+
+
 
 
 ;; ************************************************************
@@ -1214,7 +1198,7 @@ PRO spp_swp_spi_param
 
    ;;------------------------------------------------------
    ;; COMMON BLOCK
-   COMMON spi_param, vals
+   COMMON spi_param, vals, dict
 
    ;;------------------------------------------------------
    ;; Science Parameters
@@ -1496,7 +1480,13 @@ PRO spp_swp_spi_param
 
 
 
-   
+   ;;-------------------------------------------------------
+   ;; Get All Energy Tables (TMode still in Progress)
+   spp_swp_spi_tables, table_e1, modeid='0015'x
+   spp_swp_spi_tables, table_e2, modeid='0025'x
+   spp_swp_spi_tables, table_e3, modeid='0035'x
+   spp_swp_spi_tables, table_e4, modeid='0045'x
+
    vals = {$
 
           mass_enrg:mass_enrg,$
@@ -1508,7 +1498,8 @@ PRO spp_swp_spi_param
           clock: clock,$
 
           ano:ano,$
-
+          anode_dim:ano.anode_dim,$
+          
           esa:esa,$
           
           tof512_factor:tof512_factor,$
@@ -1550,6 +1541,11 @@ PRO spp_swp_spi_param
 
           tof_e_corr:tof_e_corr, $
 
+          table_e1:table_e1,$
+          table_e2:table_e2,$
+          table_e3:table_e3,$
+          table_e4:table_e4,$
+          
           eloss:ptr_new(/alloc), $
 
           mass_table_0:ptr_new(/alloc), $
@@ -1571,4 +1567,11 @@ PRO spp_swp_spi_param
 
    spp_swp_spi_param_mass_table,/write_file
 
+
+   ;;------------------------------------------------------
+   ;; Create Dictionary
+   dict = dictionary()
+   spp_swp_spi_param_dict, vals, dict
+
+   
 END
