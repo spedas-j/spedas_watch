@@ -531,7 +531,7 @@ END
 
 
 
-PRO spp_swp_spi_moments, ms=ms, test=test
+PRO spp_swp_spi_flight_moments, ms=ms, test=test
 
    ;; SPAN-Ai Instrument Common Block
    spp_swp_spi_param, spi_param

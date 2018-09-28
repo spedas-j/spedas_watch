@@ -781,6 +781,23 @@ FUNCTION spp_swp_spi_param_fm_cal_times
    ;; Anode 0xE
    ;trange=[]
 
+   str_def_sweep = [$
+                   {anode:'0'x, tt_def_sweep:tt_def_sweep_1},$
+                   {anode:'1'x, tt_def_sweep:tt_def_sweep_2},$
+                   {anode:'2'x, tt_def_sweep:tt_def_sweep_2},$
+                   {anode:'3'x, tt_def_sweep:tt_def_sweep_2},$
+                   {anode:'4'x, tt_def_sweep:tt_def_sweep_2},$
+                   {anode:'5'x, tt_def_sweep:tt_def_sweep_2},$
+                   {anode:'6'x, tt_def_sweep:tt_def_sweep_2},$
+                   {anode:'7'x, tt_def_sweep:tt_def_sweep_3},$
+                   {anode:'8'x, tt_def_sweep:tt_def_sweep_4},$
+                   {anode:'9'x, tt_def_sweep:tt_def_sweep_5},$
+                   {anode:'A'x, tt_def_sweep:tt_def_sweep_6},$
+                   {anode:'B'x, tt_def_sweep:tt_def_sweep_7},$
+                   {anode:'C'x, tt_def_sweep:tt_def_sweep_8},$
+                   {anode:'D'x, tt_def_sweep:tt_def_sweep_9}]
+
+   
    ;; Turned back on 05:55
    ;; Quick Rotation scan to get beam back to anode 0
    trange = ['2017-03-22/06:00:00', '2017-03-22/06:15:00']
@@ -940,7 +957,7 @@ FUNCTION spp_swp_spi_param_fm_cal_times
 
 
    
-   ;; Return Time Structure
+
    str_mass_scan_1 = [{name:'full', tt_mass_scan:tt_mass_scan_nitrogen}, $
                       {name:'N+',   tt_mass_scan:tt_mass_scan_nitrogen}, $
                       {name:'N2+',  tt_mass_scan:tt_mass_scan_nitrogen}]
