@@ -218,6 +218,31 @@ function mva_ui_get_load_data_structure, tlb, tr_obj
 end
 
 ; -------------------------------------------------------
+;  This function checks to see if the selected data is
+;  already loaded (no point in loading it twice)
+; --------------------------------------------------------
+function mva_ui_check_loaded_data, load_struct, tvar
+
+  ; retrive time range from GUI to compare
+  st = load_struct.timeRange[0]
+  et = load_struct.timeRange[1]
+
+  ; check if this tplot variable is loaded
+  ; if it is then check that the timeframe is correct
+  tn=tnames(tvar)
+  if tn EQ '' then begin
+    load=1
+  endif else begin
+    get_data, tn, data=d
+    npts = n_elements(d.x)
+    if (st GE d.x[0] AND st LE d.x[npts-1]) && (et GE d.x[0] AND et LE d.x[npts-1]) then load=0 else load=1
+  endelse
+
+  return, load
+
+end
+
+; -------------------------------------------------------
 ;  This function handles the loading of data for the 
 ;  THEMIS Mission
 ; --------------------------------------------------------
@@ -225,26 +250,31 @@ function mva_ui_load_themis, load_struct
 
    Case load_struct.instrtype of
      'Magnetic Field': begin
+        tvar = 'th'+ load_struct.probe + '_' + load_struct.data + '_' + load_struct.coordinate
+        load = mva_ui_check_loaded_data(load_struct, tvar)
         thm_load_fgm, trange=load_struct.timeRange, probe=load_struct.probe, level=2, $
           datatype=load_struct.data, coord=load_struct.coordinate
-        tvar = 'th'+ load_struct.probe + '_' + load_struct.data + '_' + load_struct.coordinate
+;        tvar = 'th'+ load_struct.probe + '_' + load_struct.data + '_' + load_struct.coordinate
      end
      'Electric Field': begin
+        tvar = 'th'+ load_struct.probe + '_' + load_struct.data
         thm_load_efi, trange=load_struct.timeRange, probe=load_struct.probe, level=1, $
           datatype=load_struct.data
-        tvar = 'th'+ load_struct.probe + '_' + load_struct.data
+;        tvar = 'th'+ load_struct.probe + '_' + load_struct.data
      end
      'Particle Data': begin
        dtype = load_struct.data + '_en_eflux'
+       tvar = 'th'+ load_struct.probe + '_' + load_struct.data + '_en_eflux'
        thm_load_esa, trange=load_struct.timeRange, probe=load_struct.probe, $
          datatype=dtype
-       tvar = 'th'+ load_struct.probe + '_' + load_struct.data + '_en_eflux'
+;       tvar = 'th'+ load_struct.probe + '_' + load_struct.data + '_en_eflux'
      end
      'Velocity': begin
         dtype = load_struct.data + '_velocity_' + load_struct.coordinate
+        tvar = 'th'+ load_struct.probe + '_' +dtype
         thm_load_esa, trange=load_struct.timeRange, probe=load_struct.probe, $
           datatype=dtype
-        tvar = 'th'+ load_struct.probe + '_' +dtype
+;        tvar = 'th'+ load_struct.probe + '_' +dtype
       end
       else:
     endcase
