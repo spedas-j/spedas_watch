@@ -141,6 +141,7 @@ function spp_fld_select_timespan_define_presets, fm_or_em
 
   fm_times['fields_rotations'] =   ['2018-10-03/16:30:00', '2018-10-03/21:30:00']
 
+  fm_times['v5_hirate_sunsens_test'] =   ['2018-10-04/11:00:00', '2018-10-04/15:00:00']
 
 
   em_times = orderedhash()

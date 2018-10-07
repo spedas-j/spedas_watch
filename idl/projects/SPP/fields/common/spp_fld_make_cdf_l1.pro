@@ -38,8 +38,8 @@
 ;   pulupa
 ;
 ; $LastChangedBy: pulupa $
-; $LastChangedDate: 2018-09-24 11:18:10 -0700 (Mon, 24 Sep 2018) $
-; $LastChangedRevision: 25856 $
+; $LastChangedDate: 2018-10-05 14:01:48 -0700 (Fri, 05 Oct 2018) $
+; $LastChangedRevision: 25922 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/common/spp_fld_make_cdf_l1.pro $
 ;-
 pro spp_fld_make_cdf_l1, apid_name, $
@@ -92,8 +92,7 @@ pro spp_fld_make_cdf_l1, apid_name, $
 
     ; TODO: Check for presence of environment variables
 
-    packet_filename = packet_filename.Replace(getenv('SPP_FLD_CDF_DAILY_DIR'), $
-      getenv('SPP_FLD_DAT_DAILY_DIR'))
+    packet_filename = packet_filename.Replace('/l1/', '/l1_dat/')
       
     file_mkdir, file_dirname(packet_filename)
 
