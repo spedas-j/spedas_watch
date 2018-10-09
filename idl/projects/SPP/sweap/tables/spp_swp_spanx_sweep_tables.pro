@@ -1,4 +1,4 @@
-function spp_swp_spanx_tables,erange,spfac=spfac, emode=emode, spane=spane
+function spp_swp_spanx_sweep_tables,erange,spfac=spfac, emode=emode, spane=spane
 
    ;; Initiate Table Constants
    nen=128
@@ -24,7 +24,6 @@ function spp_swp_spanx_tables,erange,spfac=spfac, emode=emode, spane=spane
    emax = erange[1]
 
 
-
    ;; --------------- DACS --------------------
    spp_swp_sweepv_dacv, $
     sweepv_dac,defv1_dac,defv2_dac,spv_dac,$
@@ -47,6 +46,9 @@ function spp_swp_spanx_tables,erange,spfac=spfac, emode=emode, spane=spane
       ELSE index = [index,tsindex]      
    ENDFOR
    tsindex = index
+
+   if total(/pres,(defv1_dac ne 0) and (defv2_dac ne 0)) then message,'Bad deflector sweep table'
+
 
    ;; -------- Structure with values ----------
    table = { sensor:sensor, $
