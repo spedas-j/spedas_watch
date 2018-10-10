@@ -37,9 +37,9 @@
 ; CREATED BY:
 ;   pulupa
 ;
-; $LastChangedBy: pulupa $
-; $LastChangedDate: 2018-10-08 17:26:08 -0700 (Mon, 08 Oct 2018) $
-; $LastChangedRevision: 25932 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2018-10-09 16:20:48 -0700 (Tue, 09 Oct 2018) $
+; $LastChangedRevision: 25945 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/common/spp_fld_make_cdf_l1.pro $
 ;-
 pro spp_fld_make_cdf_l1, apid_name, $
@@ -76,12 +76,13 @@ pro spp_fld_make_cdf_l1, apid_name, $
 
     (data['position'])['data'] = data_return['position']
     (data['velocity'])['data'] = data_return['velocity']
-    (data['x_vector'])['data'] = data_return['x_vector']
-    (data['y_vector'])['data'] = data_return['y_vector']
-    (data['z_vector'])['data'] = data_return['z_vector']
+    (data['sc_x_vector'])['data'] = data_return['sc_x_vector']
+    (data['sc_y_vector'])['data'] = data_return['sc_y_vector']
+    (data['sc_z_vector'])['data'] = data_return['sc_z_vector']
+    (data['c_matrix'])['data'] = data_return['c_matrix']
 
     dat_success = 1
-
+    
   endif
 
 

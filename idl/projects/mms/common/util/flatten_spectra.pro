@@ -40,8 +40,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-09-11 16:31:18 -0700 (Tue, 11 Sep 2018) $
-;$LastChangedRevision: 25774 $
+;$LastChangedDate: 2018-10-08 20:41:07 -0700 (Mon, 08 Oct 2018) $
+;$LastChangedRevision: 25936 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -81,7 +81,7 @@ end
 pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, replot=replot, _extra=_extra
+   charsize=charsize, replot=replot, disable_auto_unit_conv=disable_auto_unit_conv, legend_left=legend_left, _extra=_extra
    
   @tplot_com.pro
   
@@ -176,7 +176,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   yunit_str = fs_get_unit_string(yunits)
    
   ; position for the legend
-  leg_x = 0.04
+  if keyword_set(legend_left) then leg_x = 0.04 else leg_x = 0.60
   leg_y = 0.04
   leg_dy = 0.04
 
@@ -197,7 +197,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   for v_idx=0, n_elements(vars_to_plot)-1 do begin
 
       get_data, vars_to_plot[v_idx], data=vardata, alimits=vardl
-      
+
       if ~is_struct(vardata) or ~is_struct(vardl) then begin
         dprint, dlevel=0, 'Could not plot: ' + vars_to_plot[v_idx]
         continue
@@ -259,7 +259,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
           charsize=charsize, title=title_str, color=colors[v_idx], _extra=_extra
           
           if ~keyword_set(nolegend) then begin
-            leg_x += !x.WINDOW[0]
+            if keyword_set(legend_left) then leg_x += !x.WINDOW[0]
             leg_y = !y.WINDOW[1] - leg_y
           endif            
       endif else begin

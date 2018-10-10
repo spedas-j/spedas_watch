@@ -3,7 +3,8 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
   ql_plot = ql_plot, $
   ephem = ephem
 
-  ql_plot = 1
+  make_cdf = 1
+  ql_plot = 0
 
   if not keyword_set(start_day) then start_day = ['2018-08-13']
 
@@ -94,24 +95,15 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
         'sc_fsw_rec_alloc']
 
       ;    file_types = ['dfb_dc_spec_1']
-
+      file_types = ['ephem_ECLIPJ2000','ephem_SPP_RTN','ephem_SPP_VSO']
 
       spp_fld_tmlib_init, server = 'spffmdb.ssl.berkeley.edu', /daily
 
 
       foreach file_type, file_types do begin
 
-        if file_type NE 'ephem' then begin
-
-          if n_elements(make_cdf) GT 1 then begin
             spp_fld_make_cdf_l1, file_type, /daily
-          endif
 
-        endif else begin
-
-          ; spp_fld_make_cdf_ephem
-
-        endelse
       endforeach
     endif
 
@@ -121,6 +113,8 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
       'SC_HK', 'DCB_HK', 'DCB_EVENTS', 'DCB_SSR','AEB_HK']
 
     ;plot_types = ['F1_100BPS']
+    
+    plot_types = ['EPHEM']
 
     if keyword_set(ql_plot) then begin
 

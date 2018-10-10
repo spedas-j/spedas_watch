@@ -5,6 +5,7 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
   frame = strjoin((strsplit(/ex, prefix, '_'))[3:*],'_')
 
   rs = 695508d
+  rv = 6052d
 
   ;  options, prefix + 'position', 'colors', 'bgr'
 
@@ -13,6 +14,8 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
 
   store_data, prefix + 'position_rs', $
     data = {x:pos_dat.x, y:pos_dat.y/rs}
+
+  options, prefix + 'position_rs', 'ysubtitle', '[Rs]'
 
   if frame EQ 'spp_rtn' then begin
 
@@ -27,14 +30,37 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
     store_data, prefix + 'radial_velocity', $
       data = {x:vel_dat.x, y:total(vel_dat.y,2)}
 
+    options, prefix + 'radial_distance', 'ysubtitle', '[km]'
+    options, prefix + 'radial_velocity', 'ysubtitle', '[km/s]'
+    options, prefix + 'radial_distance_rs', 'ysubtitle', '[Rs]'
+
+  endif
+  
+  if frame EQ 'spp_vso' then begin
+    
+    store_data, prefix + 'position_rv', $
+      data = {x:pos_dat.x, y:pos_dat.y/rv}
+
+    store_data, prefix + 'radial_distance', $
+      data = {x:pos_dat.x, y:sqrt(total(pos_dat.y^2,2))}
+
+    store_data, prefix + 'radial_distance_rv', $
+      data = {x:pos_dat.x, y:sqrt(total(pos_dat.y^2,2))/rv}
+
+    options, '*radial_distance*', 'ynozero', 1
+    options, prefix + 'position_rv', 'ysubtitle', '[Rv]'
+    options, prefix + 'radial_distance', 'ysubtitle', '[km]'
+    options, prefix + 'radial_distance_rv', 'ysubtitle', '[Rv]'
+    
   endif
 
-  options, prefix + 'radial_distance', 'ysubtitle', '[km]'
-  options, prefix + 'radial_velocity', 'ysubtitle', '[km/s]'
-  options, prefix + 'radial_distance_rs', 'ysubtitle', '[Rs]'
 
   options, prefix + '*vector*', 'ysubtitle', ''
 
+  options, prefix + '*vector*', 'yrange', [-1.0,1.0]
+  options, prefix + '*vector*', 'ystyle', 1
+  options, prefix + '*vector*', 'yticklen', 1
+  options, prefix + '*vector*', 'ygridstyle', 1
 
   ephem_names = tnames(prefix + '*')
 
@@ -46,6 +72,10 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
 
       name_no_prefix = name.Remove(0, prefix.Strlen()-1)
 
+      rs_strpos = strpos(name_no_prefix, '_rs')
+
+      if rs_strpos GT 0 then name_no_prefix = strmid(name_no_prefix,0,rs_strpos)
+
       get_data, name, data = d
 
       ndims = size(d.y, /n_dimensions)
@@ -56,6 +86,13 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
           options, name, 'colors', 'rgb'
 
           options, name, 'labels', labels
+          
+          if strpos(name, 'vector') NE -1 then begin
+            
+            options, name, 'labels', 'SC' + strupcase(strmid(name_no_prefix, 3, 1)) + '-' + labels
+            
+          endif
+          
         endif
       endif
 
