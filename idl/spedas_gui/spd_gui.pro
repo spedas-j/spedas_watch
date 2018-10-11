@@ -24,8 +24,8 @@
 ;HISTORY:
 ;
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2018-10-02 16:21:19 -0700 (Tue, 02 Oct 2018) $
-;$LastChangedRevision: 25886 $
+;$LastChangedDate: 2018-10-10 11:47:00 -0700 (Wed, 10 Oct 2018) $
+;$LastChangedRevision: 25949 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/spd_gui.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -1420,7 +1420,7 @@ PRO spd_gui,reset=reset,template_filename=template_filename
 
   ; File Pull Down Menu
 
-  fileMenu= Widget_Button(bar, Value='Input/Output Data ', /Menu)
+  fileMenu= Widget_Button(bar, Value='File ', /Menu)
   ;documentMenu = widget_button(fileMenu,value='Document ',/menu)
 ;  newMenu = Widget_Button(fileMenu, Value='New SPEDAS Document...   ', UValue='NEW', $
 ;    Accelerator="Ctrl+N")
@@ -1431,11 +1431,11 @@ PRO spd_gui,reset=reset,template_filename=template_filename
   saveAsMenu = Widget_Button(fileMenu, Value='Save SPEDAS GUI Document As... ', UValue='SAVEAS')
 ;  saveWithMenu = Widget_Button(fileMenu, Value='Save With Data... ', UValue='SAVEWITH', $
 ;    Sensitive=0)
-  templateMenu = Widget_Button(fileMenu, Value='Graph Options Template ',/menu)
-  openTemplate = Widget_Button(templateMenu, Value='Open GUI Template...  ', UValue='OPEN_TEMPLATE' )
-  saveTemplate = Widget_Button(templateMenu, Value='Save GUI Template... ', UValue='SAVE_TEMPLATE' )
-  saveAsTemplate = Widget_Button(templateMenu, Value='Save GUI Template As... ', UValue='SAVEAS_TEMPLATE')
-  resetTemplateMenu =  Widget_Button(templateMenu, Value='Reset GUI Template ',/menu)
+  ;templateMenu = Widget_Button(fileMenu, Value='Plot Options Template ',/menu)
+  openTemplate = Widget_Button(fileMenu, Value='Open Plot Options GUI Template...  ', UValue='OPEN_TEMPLATE',/Separator )
+  saveTemplate = Widget_Button(fileMenu, Value='Save Plot Options GUI Template... ', UValue='SAVE_TEMPLATE' )
+  saveAsTemplate = Widget_Button(fileMenu, Value='Save Plot Options GUI Template As... ', UValue='SAVEAS_TEMPLATE')
+  resetTemplateMenu =  Widget_Button(fileMenu, Value='Reset Plot Options GUI Template ',/menu)
   
   resetPageTemplate = Widget_Button(resetTemplateMenu, Value='Reset Page Template', UValue='RESET_PAGE_TEMPLATE')
   resetPanelTemplate = Widget_Button(resetTemplateMenu, Value='Reset Panel Template', UValue='RESET_PANEL_TEMPLATE')
@@ -1453,21 +1453,21 @@ PRO spd_gui,reset=reset,template_filename=template_filename
   ;resetZAxisTemplate = Widget_Button(templateMenu, Value='Reset Z-Axis Template', UValue='RESET_ZAXIS_TEMPLATE')
   ;resetLineTemplate = Widget_Button(templateMenu, Value='Reset Line Template', UValue='RESET_LINE_TEMPLATE')
   ;resetVariableTemplate = Widget_Button(templateMenu, Value='Reset Variable Template', UValue='RESET_VARIABLE_TEMPLATE')
-    
-  loadMenu = Widget_Button(fileMenu, Value='Load Data... ', UValue='LOAD', /Separator)
-  loadHAPIMenu = Widget_Button(fileMenu, Value='Load Data using HAPI', UValue='LOADHAPI')
-  loadCDAWebMenu = Widget_Button(fileMenu, Value='Load Data using CDAWeb', UValue='LOADCDAWEB')
+  iodataMenu= Widget_Button(bar, Value='I/O Data ', /Menu)    
+  loadMenu = Widget_Button(iodataMenu, Value='Load Data... ', UValue='LOAD')
+  loadHAPIMenu = Widget_Button(iodataMenu, Value='Load Data using HAPI', UValue='LOADHAPI')
+  loadCDAWebMenu = Widget_Button(iodataMenu, Value='Load Data using CDAWeb', UValue='LOADCDAWEB')
 
-  loadYourDataMenu = Widget_Button(fileMenu, Value='Load Your Data',/menu)
+  loadYourDataMenu = Widget_Button(iodataMenu, Value='Load Single File',/menu)
   loadCDFMenu = Widget_Button(loadYourDataMenu, Value='Load CDF', UValue='LOADCDF')
   loadAsciiMenu = Widget_Button(loadYourDataMenu, Value='Load ASCII', UValue='LOADASCII')
 
 ;  loadCDFMenu = Widget_Button(fileMenu, Value='Load CDF', UValue='LOADCDF')
 ;  loadAsciiMenu = Widget_Button(fileMenu, Value='Load ASCII', UValue='LOADASCII')
 
-  saveDataAsMenu = Widget_Button(fileMenu, Value='Save Data As... ', UValue='SAVEDATAAS')
-  importExportMenu = Widget_button(fileMenu, Value='Manage Data and Import/Export Tplot Variables...', UValue='MANAGEDATA')
-  exportMetaMenu = Widget_Button(fileMenu, Value='Export To Image File... ', $
+  saveDataAsMenu = Widget_Button(iodataMenu, Value='Save Data As... ', UValue='SAVEDATAAS')
+  importExportMenu = Widget_button(iodataMenu, Value='Manage Data and Import/Export Tplot Variables...', UValue='MANAGEDATA')
+  exportMetaMenu = Widget_Button(iodataMenu, Value='Export To Image File... ', $
     UValue='EXPORTMETA', Sensitive=1, /Separator)
 ;  markerMenu = Widget_Button(fileMenu, Value='Markers ', UValue='MARKERS', /menu, $
 ;    Sensitive=0)
@@ -1493,6 +1493,63 @@ PRO spd_gui,reset=reset,template_filename=template_filename
 ;  testButton = Widget_Button(prototypeMenu, Value='Test Widget', UValue='TEST',sensitive=0)
 ;  exmdButton = Widget_Button(prototypeMenu, Value='Example Data ', UValue='EXMD',sensitive=0)
   exitMenu = Widget_Button(fileMenu, value='Exit ',UValue='EXIT', /Separator, Accelerator="Ctrl+Q")
+  
+  ; Analysis Pull Down Menus
+
+  analysisMenu=Widget_Button(bar, Value='Analysis ', /Menu)
+  calculateMenu = Widget_Button(analysisMenu, Value='Calculate... ', UValue='CALCULATE')
+  nudgeMenu = Widget_Button(analysisMenu, Value='Nudge Traces ', UValue='NUDGE')
+  dprocMenu = Widget_Button(analysisMenu, Value = 'Data Processing... ', UValue = 'DPROC', $
+    sensitive = 1)
+  tsyMenu = widget_button(analysisMenu, value='Magnetic Field Models...', uval='FIELDMODELS')
+  tsyMenu = widget_button(analysisMenu, value='Neutral Sheet Models...', uval='NEUTRALSHEETMODELS')
+  ; Graph Pull Down Menus
+
+  graphMenu = Widget_Button(bar, Value='Plot ', /Menu)
+  trackMenu = Widget_Button(graphMenu, Value='Panel Tracking', /Checked_Menu, $
+    UValue='TRACK')
+  trackOneMenu = Widget_Button(graphMenu, Value='Track One Panel', /Checked_Menu, $
+    UValue='TRACKONE')
+  trackAllMenu = Widget_Button(graphMenu, Value='Track All', /Checked_Menu, $
+    UValue='TRACKALL')
+  Widget_Control, trackMenu, Set_Button=1
+  Widget_Control, trackallMenu, Set_Button=1
+  trackHMenu = Widget_Button(graphMenu, Value='Show Horizontal Tracking', $
+    /Checked_Menu, UValue='TRACKH', /Separator)
+  widget_control,trackHMenu,set_button=1
+  trackVMenu = Widget_Button(graphMenu, Value='Show Vertical Tracking', $
+    /Checked_Menu, UValue='TRACKV')
+  Widget_Control, trackVMenu, Set_Button=1
+  ;  trackAddMenu = Widget_Button(graphMenu, Value='Track Additional Variables', $
+  ;    /Checked_Menu, UValue='TRACKADD', Sensitive=0)
+  rubberBandX = Widget_button(graphMenu, value='Rubber Band for X-Only',/checked_menu,uname='RUBBERBANDX',uvalue='RUBBERBANDX')
+  Widget_Control, rubberBandX, Set_Button=1
+
+  ;  panelFPMenu = Widget_Button(graphMenu, Value='Panel Format Painter', $
+  ;    UValue='PANELFP', /Separator, Sensitive=0)
+  markerTitleMenu = Widget_Button(graphMenu, Value='Query for Marker Title', /checked_menu, $
+    Uvalue='MARKER', /separator)
+  Widget_Control, markerTitleMenu, set_button=1
+  layoutOptMenu = Widget_Button(graphMenu, Value='Plot/Layout Options... ', UValue='LAYOUT', /separator)
+  pageMenu = Widget_Button(graphMenu, Value='Page Options... ', UValue='PAGE')
+  panelMenu = Widget_Button(graphMenu, Value='Panel Options... ', UValue='PANEL')
+  lineMenu = Widget_Button(graphMenu, Value='Line Options... ', UValue='LINE')
+  legendMenu = Widget_Button(graphMenu, Value='Legend Options...', UValue='LEGEND')
+  xaxisMenu = Widget_Button(graphMenu, Value='X Axis Options... ', UValue='XAXIS')
+  yaxisMenu = Widget_Button(graphMenu, Value='Y Axis Options... ', UValue='YAXIS')
+  zaxisMenu = Widget_Button(graphMenu, Value='Z Axis Options... ', UValue='ZAXIS')
+  ;  markerPMenu = Widget_Button(graphMenu, Value='Marker Options... ', UValue='MARKERP')
+  variableMenu = Widget_Button(graphMenu, Value='Variable Options... ', $
+    UValue='VARIABLE')
+
+  ; Tools Pull Down Menu (general plugins)
+
+  toolsMenu = widget_button(bar, value='Tools ', /menu)
+
+  tools_menu_items = pluginManager->getPluginMenus()
+
+  spd_ui_plugin_menu, toolsMenu, tools_menu_items
+
 
   ; Edit Pull Down Menu
 
@@ -1543,62 +1600,6 @@ PRO spd_gui,reset=reset,template_filename=template_filename
     UValue='POSITIONBAR')
   Widget_Control, showPositionMenu, Set_Button=1
 
-  ; Graph Pull Down Menus
-
-  graphMenu = Widget_Button(bar, Value='Graph ', /Menu)
-  trackMenu = Widget_Button(graphMenu, Value='Panel Tracking', /Checked_Menu, $
-    UValue='TRACK')
-  trackOneMenu = Widget_Button(graphMenu, Value='Track One Panel', /Checked_Menu, $
-    UValue='TRACKONE')
-  trackAllMenu = Widget_Button(graphMenu, Value='Track All', /Checked_Menu, $
-    UValue='TRACKALL')
-  Widget_Control, trackMenu, Set_Button=1
-  Widget_Control, trackallMenu, Set_Button=1
-  trackHMenu = Widget_Button(graphMenu, Value='Show Horizontal Tracking', $
-    /Checked_Menu, UValue='TRACKH', /Separator)
-  widget_control,trackHMenu,set_button=1
-  trackVMenu = Widget_Button(graphMenu, Value='Show Vertical Tracking', $
-    /Checked_Menu, UValue='TRACKV')
-  Widget_Control, trackVMenu, Set_Button=1
-;  trackAddMenu = Widget_Button(graphMenu, Value='Track Additional Variables', $
-;    /Checked_Menu, UValue='TRACKADD', Sensitive=0)
-  rubberBandX = Widget_button(graphMenu, value='Rubber Band for X-Only',/checked_menu,uname='RUBBERBANDX',uvalue='RUBBERBANDX')  
-  Widget_Control, rubberBandX, Set_Button=1
-   
-;  panelFPMenu = Widget_Button(graphMenu, Value='Panel Format Painter', $
-;    UValue='PANELFP', /Separator, Sensitive=0)
-  markerTitleMenu = Widget_Button(graphMenu, Value='Query for Marker Title', /checked_menu, $
-    Uvalue='MARKER', /separator)
-  Widget_Control, markerTitleMenu, set_button=1
-  layoutOptMenu = Widget_Button(graphMenu, Value='Plot/Layout Options... ', UValue='LAYOUT', /separator)
-  pageMenu = Widget_Button(graphMenu, Value='Page Options... ', UValue='PAGE')
-  panelMenu = Widget_Button(graphMenu, Value='Panel Options... ', UValue='PANEL')
-  lineMenu = Widget_Button(graphMenu, Value='Line Options... ', UValue='LINE')
-  legendMenu = Widget_Button(graphMenu, Value='Legend Options...', UValue='LEGEND')
-  xaxisMenu = Widget_Button(graphMenu, Value='X Axis Options... ', UValue='XAXIS')
-  yaxisMenu = Widget_Button(graphMenu, Value='Y Axis Options... ', UValue='YAXIS')
-  zaxisMenu = Widget_Button(graphMenu, Value='Z Axis Options... ', UValue='ZAXIS')
-;  markerPMenu = Widget_Button(graphMenu, Value='Marker Options... ', UValue='MARKERP')
-  variableMenu = Widget_Button(graphMenu, Value='Variable Options... ', $
-    UValue='VARIABLE')
-
-  ; Analysis Pull Down Menus
-
-  analysisMenu=Widget_Button(bar, Value='Analysis ', /Menu)
-  calculateMenu = Widget_Button(analysisMenu, Value='Calculate... ', UValue='CALCULATE')
-  nudgeMenu = Widget_Button(analysisMenu, Value='Nudge Traces ', UValue='NUDGE')
-  dprocMenu = Widget_Button(analysisMenu, Value = 'Data Processing... ', UValue = 'DPROC', $
-                            sensitive = 1)
-  tsyMenu = widget_button(analysisMenu, value='Magnetic Field Models...', uval='FIELDMODELS')
-  tsyMenu = widget_button(analysisMenu, value='Neutral Sheet Models...', uval='NEUTRALSHEETMODELS')
-  
-  ; Tools Pull Down Menu (general plugins)
-  
-  toolsMenu = widget_button(bar, value='Tools ', /menu)
-  
-  tools_menu_items = pluginManager->getPluginMenus()
- 
-  spd_ui_plugin_menu, toolsMenu, tools_menu_items
   
 ; Window Pull Down Menu window
 

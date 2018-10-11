@@ -3,8 +3,8 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
   ql_plot = ql_plot, $
   ephem = ephem
 
-  make_cdf = 1
-  ql_plot = 0
+  make_cdf = 0
+  ql_plot = 1
 
   if not keyword_set(start_day) then start_day = ['2018-08-13']
 
@@ -95,7 +95,7 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
         'sc_fsw_rec_alloc']
 
       ;    file_types = ['dfb_dc_spec_1']
-      file_types = ['ephem_ECLIPJ2000','ephem_SPP_RTN','ephem_SPP_VSO']
+      ;file_types = ['ephem_ECLIPJ2000','ephem_SPP_RTN','ephem_SPP_VSO']
 
       spp_fld_tmlib_init, server = 'spffmdb.ssl.berkeley.edu', /daily
 
@@ -110,13 +110,18 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
     plot_types = ['F1_100BPS', 'RFS_HFR', 'RFS_LFR', 'DFB_AC_SPEC', $
       'DFB_DC_SPEC','DFB_AC_BPF', $
       'DFB_DC_BPF', 'DFB_WF_E_B', 'DFB_WF_V', 'MAGO', 'MAGI', $
-      'SC_HK', 'DCB_HK', 'DCB_EVENTS', 'DCB_SSR','AEB_HK']
+      'SC_HK', 'DCB_HK', 'DCB_EVENTS', 'DCB_SSR','AEB_HK','TEMPS']
 
     ;plot_types = ['F1_100BPS']
-    
-    plot_types = ['EPHEM']
+
+    ;plot_types = ['EPHEM']
+
+    ;plot_types = ['MAGO']
+
 
     if keyword_set(ql_plot) then begin
+
+      store_data, '*', /del
 
       spp_fld_tmlib_init, server = 'http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/l1/'
 
@@ -128,7 +133,7 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
 
       foreach plot_type, plot_types do begin
 
-        ql_dir = getenv('SPP_FLD_DAILY_DIR') + 'ql_plot/' + plot_type + '/'
+        ql_dir = getenv('SPP_FLD_DAILY_DIR') + 'fields/ql_plot/' + plot_type + '/'
 
         ql_subdir = time_string(ts[0], tformat = 'YYYY/MM/')
 
