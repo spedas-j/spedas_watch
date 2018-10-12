@@ -30,8 +30,8 @@
 ;       None
 ;                      
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2017-12-18 15:07:51 -0800 (Mon, 18 Dec 2017) $
-; $LastChangedRevision: 24442 $
+; $LastChangedDate: 2018-10-11 13:43:52 -0700 (Thu, 11 Oct 2018) $
+; $LastChangedRevision: 25959 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/topomtrx.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 11/03/2017
@@ -48,7 +48,7 @@ Function topomtrx;, tbl=tbl
     ; 2 - void: 0: yes, 1: no, 2:nan 
     ; 3 - upward PAD: 0: not loss cone, 1: loss cone, 2:nan 
     ; 4 - downward PAD: 0: not loss cone, 1: loss cone, 2:nan 
-    ; 5 - flux ratio of away/toward: 0: <0.75, loss cone, 1: not loss cone
+    ; 5 - flux ratio 100-300 eV of away/toward: 0: <0.75, loss cone, 1: not loss cone
     ;                                2: nan
     ;;;; "5 - day/night: currently not used" replaced
 
@@ -80,9 +80,12 @@ Function topomtrx;, tbl=tbl
     mtrx[1,0,1,0,1,*]=tbl[5] ;1
     mtrx[1,0,1,2,1,*]=tbl[5]
     ;3. dn phe + up sw e + isotripic
-    ;be classifed as day-to-night closed
-    ;mtrx[1,0,1,0,0,*]=tbl[5] ;1
-    mtrx[1,0,1,0,0,*]=tbl[2]
+    ;be classifed as day-to-night closed, thought to be lc=90
+    ;add another scenario: open-to-day,where high
+    ;energy is isotropic when phe and sw e- fluxes
+    ; are comparable
+    mtrx[1,0,1,0,0,1]=tbl[5] ;no loss cone  
+    mtrx[1,0,1,0,0,0]=tbl[2] ;flx ratio <1, lc=90
 
     ;open to day
     ;up phe + dn swe + 1-sided lc up
@@ -104,18 +107,18 @@ Function topomtrx;, tbl=tbl
     ;1. double-sided loss cone
     mtrx[*,*,1,1,1,*]=tbl[3] ;9/4
 
-    ;now we need to consider if pad 
-    ;unavailable but shape is
-    ;open to day, up phe + dn swe-
-    mtrx[0,1,1,2,0,*]=tbl[5];only one-side PAD score available
-    mtrx[0,1,1,*,2,*]=tbl[5]
-    ;up swe- + dn swe-
-    ;flux ratio > thrd(0.75): draped
-    mtrx[1,1,1,2,2,1]=tbl[7]
-    ;flux ratio < thrd(0.75): open to night
-    mtrx[1,1,1,2,2,0]=tbl[6]
-    ;up swe- + dn phe + flux ratio < thrd(0.75); x-term closed
-    mtrx[1,0,1,2,2,0]=tbl[2]
+    ;;now we need to consider if pad 
+    ;;unavailable but shape is
+    ;;open to day, up phe + dn swe-
+    ;mtrx[0,1,1,2,0,*]=tbl[5];only one-side PAD score available
+    ;mtrx[0,1,1,*,2,*]=tbl[5]
+    ;; ;up swe- + dn swe-
+    ;; ;flux ratio > thrd(0.75): draped
+    ;; mtrx[1,1,1,2,2,1]=tbl[7]
+    ;; ;flux ratio < thrd(0.75): open to night
+    ;; mtrx[1,1,1,2,2,0]=tbl[6]
+    ;; ;up swe- + dn phe + flux ratio < thrd(0.75); x-term closed
+    ;; mtrx[1,0,1,2,2,0]=tbl[2]
 
     ;phe in both direction, dayside closed loops
     mtrx[0,0,1,*,*,*]=tbl[1] ;9/4-1
