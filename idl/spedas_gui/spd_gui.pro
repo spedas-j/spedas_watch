@@ -24,8 +24,8 @@
 ;HISTORY:
 ;
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-10-11 14:50:09 -0700 (Thu, 11 Oct 2018) $
-;$LastChangedRevision: 25964 $
+;$LastChangedDate: 2018-10-11 22:06:21 -0700 (Thu, 11 Oct 2018) $
+;$LastChangedRevision: 25965 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/spd_gui.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -1455,7 +1455,7 @@ PRO spd_gui,reset=reset,template_filename=template_filename
   
   ; Data menu
   iodataMenu= Widget_Button(bar, Value='Data ', /Menu)    
-  loadMenu = Widget_Button(iodataMenu, Value='Load Data... ', UValue='LOAD')
+  loadMenu = Widget_Button(iodataMenu, Value='Load Data from Plug-ins... ', UValue='LOAD')
   loadHAPIMenu = Widget_Button(iodataMenu, Value='Load Data using HAPI... ', UValue='LOADHAPI')
   loadCDAWebMenu = Widget_Button(iodataMenu, Value='Load Data using CDAWeb... ', UValue='LOADCDAWEB')
   loadYourDataMenu = Widget_Button(iodataMenu, Value='Load Single File ',/menu)
