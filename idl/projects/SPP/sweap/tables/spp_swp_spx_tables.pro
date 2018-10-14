@@ -27,6 +27,7 @@ PRO spp_swp_spx_get_voltages,sweepv,defv1,$
 
    ;; Cycle through Steps
    for i = 0,nen-1 do begin
+
       vdm = (rmax < vmax/vsweep[i])
       ;; Deflector multiplier (including fixed gain)
       vd = vdm * (0.5+stepnum)/(nang/2-0.5) 
@@ -38,11 +39,24 @@ PRO spp_swp_spx_get_voltages,sweepv,defv1,$
       ;; Two halves of deflector sweep
       add1 = [reverse(vd),replicate(0,nang/2)] 
       add2 = [replicate(0,nang/2),vd]
+
       ;; Sweep one way on evens, other way on odds
-      if (0 and flip) then begin           
-         add1 = reverse(add1) 
-         add2 = reverse(add2)
-      endif
+
+      ;; #### VERSION 2 ###########
+      IF version EQ 2 THEN BEGIN 
+         if (0 and flip) then begin           
+            add1 = reverse(add1) 
+            add2 = reverse(add2)
+         ENDIF
+      ENDIF
+      ;; #### VERSION 1 ###########
+      IF version EQ 1 THEN BEGIN 
+         if (flip) then begin           
+            add1 = reverse(add1) 
+            add2 = reverse(add2)
+         ENDIF
+      ENDIF
+      
       defv1 = [defv1,add1]
       defv2 = [defv2,add2]
       ;; An unnecessarily complicated way to do the flipping
