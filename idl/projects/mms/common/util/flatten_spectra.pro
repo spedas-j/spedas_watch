@@ -40,8 +40,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-10-08 20:41:07 -0700 (Mon, 08 Oct 2018) $
-;$LastChangedRevision: 25936 $
+;$LastChangedDate: 2018-10-15 11:32:53 -0700 (Mon, 15 Oct 2018) $
+;$LastChangedRevision: 25978 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -182,7 +182,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
 
   ; finalizing filename
   fname += time_string(t, tformat='YYYYMMDD_hhmmss')
-  fname = !mms.local_data_dir + prefix + fname  
+  fname = prefix + fname  
   if ~UNDEFINED(filename) THEN fname = filename
 
 
