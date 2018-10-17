@@ -8,19 +8,20 @@ PRO spp_swp_spi_tables, table, modeid=modeid
    energy_id = (ishft(modeid,-4) and 15)
    tmode_id  = (ishft(modeid,-8) and 15)
 
-   ;; Initiate Table Constants
-   nen=128
-   emin=5.0
-   emax=4000.
-   k=16.7
-   rmax=11.0
-   vmax=4000
-   spfac=0.
-   maxspen=5000.
-   hvgain=1000.
-   spgain=20.12
-   fixgain=13.
-
+   ;; SPAN-Ai Instrument Parameters
+   k = 16.7
+   nen = 128.
+   emin = 5.
+   emax = 4000.
+   rmax = 11.
+   vmax = 4000.
+   spfac = 0.
+   maxspen = 5000.
+   hvgain = 1000.
+   spgain = 20.12
+   fixgain = 13.
+   version = 2
+   
    ;; Select Energy Table
    CASE energy_id OF
       ;; Science Tables 0x01
@@ -49,37 +50,11 @@ PRO spp_swp_spi_tables, table, modeid=modeid
       END
    ENDCASE
 
-
-   ;; --------------- DACS --------------------
-   spp_swp_sweepv_dacv, $
-    sweepv_dac,defv1_dac,defv2_dac,spv_dac,$
-    k=k, rmax=rmax,vmax=vmax,nen=nen,e0=emin,$
-    emax=emax,spfac=spfac,maxspen=maxspen,$
-    hvgain=hvgain,spgain=spgain,fixgain=fixgain
-
-   ;; ------------ Full Index -----------------
-   spp_swp_sweepv_new_fslut,$ 
-    sweepv,defv1,defv2,spv,fsindex,$
-    nen = nen/4,plot = plot,spfac = spfac
-
-
-   ;; ---------- Targeted Index ---------------
-   FOR i=0, 255 DO BEGIN
-      spp_swp_sweepv_new_tslut, $
-       sweepv,defv1,defv2,spv,fsindex_tmp,tsindex,$
-       nen=nen,edpeak=edpeak,spfac=spfac
-      IF i EQ 0 THEN index = tsindex $
-      ELSE index = [index,tsindex]      
-   ENDFOR
-   tsindex = index
-
-   ;; -------- Structure with values ----------
-   table = { sweepv_dac:sweepv_dac,$
-             defv1_dac:defv1_dac,$
-             defv2_dac:defv2_dac,$
-             spv_dac:spv_dac,$
-             fsindex:fsindex,$
-             tsindex:tsindex,$
+   ;; Structure with values
+   table = { modeid:modeid,$
+             energy_id:energy_id,$
+             tmode_id:tmode_id,$
+             version:version,$
              k:k,$
              rmax:rmax,$
              vmax:vmax,$
@@ -90,7 +65,33 @@ PRO spp_swp_spi_tables, table, modeid=modeid
              maxspen:maxspen,$
              hvgain:hvgain,$
              spgain:spgain,$
-             fixgain:fixgain }
-   
+             fixgain:fixgain,$
+             hem_dac:intarr(4096),$
+             def1_dac:intarr(4096),$
+             def2_dac:intarr(4096),$
+             spl_dac:intarr(4096),$
+             hem_v:intarr(4096),$
+             def1_v:intarr(4096),$
+             def2_v:intarr(4096),$
+             spl_v:intarr(4096),$
+             fsindex:intarr(1024),$
+             tsindex:intarr(256,256)}
 
+   ;; Compile
+   spp_swp_spx_tables, table
+
+   ;; Sweep Table Voltages
+   spp_swp_spx_get_voltages, table
+
+   ;; Sweep Table Voltages
+   spp_swp_spx_get_dacs, table
+
+   ;; Full Sweep Index
+   spp_swp_spx_get_fslut, table
+
+   ;; Targeted Sweep Index
+   FOR i=0, 255 DO spp_swp_spx_get_tslut, table, i
+
+   stop
+   
 END
