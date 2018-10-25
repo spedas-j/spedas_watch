@@ -19,7 +19,7 @@
 ;       POSTRSCRIPT: create postscript files instead of displaying the plot
 ;       PREFIX:      filename prefix
 ;       FILENAME:    custorm filename, including folder. 
-;                    By default the folder is !mms.local_data_dir and filename includes tplot names and selected time (or center time)      
+;                    By default the folder is your IDL working directory and the filename includes tplot names and selected time (or center time)      
 ;       
 ;       TIME_IN:     if the keyword is specified the time is determined from the variable, not from the cursor pick.
 ;       TRANGE:      Two-element time range over which data will be averaged. 
@@ -47,8 +47,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-10-08 21:06:37 -0700 (Mon, 08 Oct 2018) $
-;$LastChangedRevision: 25938 $
+;$LastChangedDate: 2018-10-24 09:54:00 -0700 (Wed, 24 Oct 2018) $
+;$LastChangedRevision: 26010 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -95,6 +95,12 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
   if undefined(num_spec) then num_spec = 2
 
   ;
+  ; Get the supporting information
+  ;
+  fname = '' ; filename for if we save png of postscript
+  if UNDEFINED(prefix) THEN prefix = ''
+  
+  ;
   ; Time selection
   ;
   
@@ -106,6 +112,11 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
     endif
     time_in = spec_time.X
   endif
+  
+  ; finalizing filename
+  fname += time_string(t, tformat='YYYYMMDD_hhmmss')
+  fname = prefix + fname
+  if ~UNDEFINED(filename) THEN fname = filename
   
   ;
   ; Plot or save to the file
@@ -152,11 +163,6 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
     store_data, 'flatten_spectra_time', data={x: t, y: 1}
     vars_to_plot = tplot_vars.options.varnames
      
-    ; 
-    ; Get the supporting information
-    ;
-    fname = '' ; filename for if we save png of postscript  
-    if UNDEFINED(prefix) THEN prefix = ''
     
     ; loop to get supporting information
     for v_idx=0, n_elements(vars_to_plot)-1 do begin  
@@ -197,12 +203,6 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
     xunit_str = mfs_get_unit_string(xunits)
     yunit_str = mfs_get_unit_string(yunits)
      
-  
-    ; finalizing filename
-    fname += time_string(t, tformat='YYYYMMDD_hhmmss')
-    fname = !mms.local_data_dir + prefix + fname  
-    if ~UNDEFINED(filename) THEN fname = filename
-
     ; loop plot
     for v_idx=0, n_elements(vars_to_plot)-1 do begin
   
