@@ -1,3 +1,18 @@
+;+
+;
+; spp_swp_spi_tables
+;
+; :Params:
+;    table : in, required, type=structure
+;       PSP SWEAP SPAN-Ai Flight energy and telemetry mode configurations.
+;    modeid : in, optional, type=integer
+;       
+; $LastChangedBy: rlivi2 $
+; $LastChangedDate: 2018-10-28 19:44:10 -0700 (Sun, 28 Oct 2018) $
+; $LastChangedRevision: 26021 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spi_tables.pro $
+;-
+
 PRO spp_swp_spi_tables, table, modeid=modeid
 
    ;; Parse MODE ID
