@@ -287,6 +287,7 @@ pro lomo_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRang
   ;the ui time widget handles all widgets and events that are associated with the 
   ;time widget and includes Start/Stop Time labels, text boxes, calendar icons, and
   ;other items associated with setting the time for the data to be loaded.
+  tr_obj=obj_new('spd_ui_time_range',starttime='2016-06-23/00:00:00',endtime='2016-06-24/00:00:00')
   timeWidget = spd_ui_time_widget(selectionBase,$
                                   statusBar,$
                                   historyWin,$
