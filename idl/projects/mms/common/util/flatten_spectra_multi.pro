@@ -47,8 +47,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-10-24 09:54:00 -0700 (Wed, 24 Oct 2018) $
-;$LastChangedRevision: 26010 $
+;$LastChangedDate: 2018-10-31 15:25:44 -0700 (Wed, 31 Oct 2018) $
+;$LastChangedRevision: 26037 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -88,7 +88,7 @@ end
 pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, replot=replot, disable_auto_unit_conv=disable_auto_unit_conv, legend_left=legend_left, _extra=_extra
+   charsize=charsize, replot=replot, disable_auto_unit_conv=disable_auto_unit_conv, legend_left=legend_left, timebar=timebar, _extra=_extra
    
   @tplot_com.pro
 
@@ -113,17 +113,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
     time_in = spec_time.X
   endif
   
-  ; finalizing filename
-  fname += time_string(t, tformat='YYYYMMDD_hhmmss')
-  fname = prefix + fname
-  if ~UNDEFINED(filename) THEN fname = filename
-  
-  ;
-  ; Plot or save to the file
-  ;
-
-  ; Device = postscript or window
-  if KEYWORD_SET(postscript) then popen, fname, /landscape else window, 1
+  window, 1
   
   ; position for the legend
   if keyword_set(legend_left) then leg_x = 0.04 else leg_x = 0.70
@@ -148,6 +138,18 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
       endif
     endelse
     
+    ; finalizing filename
+    fname += time_string(t, tformat='YYYYMMDD_hhmmss')
+    fname = prefix + fname
+    if ~UNDEFINED(filename) THEN fname = filename
+
+    ;
+    ; Plot or save to the file
+    ;
+
+    ; Device = postscript or window
+    if KEYWORD_SET(postscript) then popen, fname, /landscape
+
     ; set the averaging time window
     if ~undefined(window_time) then begin
       if KEYWORD_SET(center_time) then begin
@@ -286,8 +288,11 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
           XYOUTS, leg_x, leg_y, title_str, /normal, color=colors[time_idx], charsize=1.5
         endif
     endfor
+    if keyword_set(timebar) then timebar, t
     wait, 0.3
   endfor
+  
+
   ; save to file
   if KEYWORD_SET(png) and ~KEYWORD_SET(postscript) then makepng, fname
   if KEYWORD_SET(postscript) then pclose
