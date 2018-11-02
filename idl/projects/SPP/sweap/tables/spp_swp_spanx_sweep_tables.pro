@@ -13,21 +13,19 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
     spgain = spgain,$
     fixgain = fixgain
 
-  max = 65536.
+;  max = 65536.
 
-  if not keyword_set(sensor)  then sensor  = 0
-  if not keyword_set(emode)  then emode  = 0
-  if not keyword_set(k)       then k       = 16.7
-  if not keyword_set(rmax)    then rmax    = 11.0
-  if not keyword_set(vmax)    then vmax    = 4000
-  if not keyword_set(nen)     then nen     = 128
-;  if not keyword_set(e0)      then e0      = 5.0
-;  if not keyword_set(emax)    then emax    = 20000.
-  if not keyword_set(spfac)   then spfac   = 0.
-  if not keyword_set(maxspen) then maxspen = 5000.
-  if not keyword_set(hvgain)  then hvgain  = 1000.
-  if not keyword_set(spgain)  then spgain  = 20.12
-  if not keyword_set(fixgain) then fixgain = 13.
+  if ~ isa(sensor)  then sensor  = 0
+  if ~ isa(emode)  then emode  = 0
+  if ~ isa(k)       then k       = 16.7
+  if ~ isa(rmax)    then rmax    = 11.0
+  if ~ isa(vmax)    then vmax    = 4000
+  if ~ isa(nen)     then nen     = 128
+  if ~ isa(spfac)   then spfac   = 0.
+  if ~ isa(maxspen) then maxspen = 5000.
+  if ~ isa(hvgain)  then hvgain  = 1000.
+  if ~ isa(spgain)  then spgain  = 20.12
+  if ~ isa(fixgain) then fixgain = 13.
 
 
 ;   ;; Initiate Table Constants
@@ -43,13 +41,14 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
 ;   fixgain=13.
 ;   sensor= 0
    
-   if keyword_set(spane) then begin
-    hvgain = 500.
-    sensor = spane
-   endif
-   if n_elements(spfac) eq 0  then spfac = 0.
-   if n_elements(emode) eq 0  then emode = 0
-   
+;   if keyword_set(spane) then begin
+;    hvgain = 500.
+;    sensor = spane
+;   endif
+;   if n_elements(spfac) eq 0  then spfac = 0.
+;   if n_elements(emode) eq 0  then emode = 0
+;   
+
    emin = erange[0]
    emax = erange[1]
 

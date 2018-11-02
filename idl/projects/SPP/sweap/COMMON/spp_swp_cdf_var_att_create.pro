@@ -7,7 +7,7 @@
 pro spp_swp_cdf_var_att_create,fileid,varname,data,attributes=attributes,rec_novary=rec_novary,cdf_type_string=cdf_type_string
 
   ;if size(/type,attributes) ne 8 then attributes= {}
-  if keyword_set(cdf_type_string) then type=-1 else type = size(/type,data)
+  if isa(cdf_type_string,/string) then type=-1 else type = size(/type,data)
   case type of
     -1: cdf_type = create_struct(cdf_type_string,1)
     0: message,'No valid data provided'

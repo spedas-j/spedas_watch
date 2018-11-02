@@ -2,8 +2,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-10-31 10:50:57 -0700 (Wed, 31 Oct 2018) $
-; $LastChangedRevision: 26033 $
+; $LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $
+; $LastChangedRevision: 26044 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -11,57 +11,6 @@
  
  
  
- 
-;pro cdf_tools_var_att_create,fileid,name=name,data=data,attributes=attributes,rec_novary=rec_novary,datatype=datatype,recvary=recvary
-;
-;  ;if size(/type,attributes) ne 8 then attributes= {}
-;  if isa(data,'dynamicarray') then datavals = data.array else datavals = data
-;  
-;  if isa(datatype,/string) and isa(datatype) then type=-1 else type = size(/type,datavals)
-;  case type of
-;    -1: cdf_type = create_struct(datatype,1)
-;    0: message,'No valid data provided'
-;    1: cdf_type = {cdf_uint1:1}
-;    2: cdf_type = {cdf_int2:1}
-;    3: cdf_type = {cdf_int4:1}
-;    4: cdf_type = {cdf_float:1}
-;    5: cdf_type = {cdf_double:1}
-;    12: cdf_type = {cdf_uint2:1}
-;    13: cdf_type = {cdf_uint4:1}
-;    else: begin
-;      dprint,'Please add data type '+string(type)+' to this case statement for variable: '+name
-;      return
-;    end
-;  endcase
-;  
-;  rec_novary = ~recvary
-;  opts = struct(cdf_type,/zvariable,rec_novary=rec_novary)
-;
-;  dim = size(/dimen,datavals)
-;  ndim= size(/n_dimen,datavals)
-;  dprint,dlevel=3,phelp=2,name,dim,opts,datavals
-;  if ~keyword_set(rec_novary)  then  begin
-;    if ndim ge 2 then begin
-;      dim = dim[0:ndim-2]
-;      varid = cdf_varcreate(fileid, name,dim ne 0, DIM=dim,_extra=opts)
-;    endif else begin
-;      varid = cdf_varcreate(fileid, name,_extra=opts)
-;    endelse
-;  endif else  varid = cdf_varcreate(fileid, name,dim gt 1,dimension=dim,_extra=opts,/rec_novary)
-;
-;  if typename(attributes) eq 'ORDEREDHASH' then begin
-;    foreach value,attributes,attname do begin
-;      if not keyword_set(attname) then continue      ; ignore null strings
-;      cdf_attput,fileid,attname,name,value,/ZVARIABLE
-;    endforeach
-;  endif else dprint,dlevel=1,'Warning! No attributes for '+name
-;
-;  cdf_varput,fileid,name,datavals
-;
-;end
-
-
-
 
 ;
 ;PRO cdf_tools::Cleanup
@@ -81,13 +30,13 @@
  
  ;+
 ;NAME: SW_VERSION
-;Function: mvn_spice_kernels(name)
+;Function: 
 ;PURPOSE:
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-10-31 10:50:57 -0700 (Wed, 31 Oct 2018) $
-; $LastChangedRevision: 26033 $
+; $LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $
+; $LastChangedRevision: 26044 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -108,8 +57,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-10-31 10:50:57 -0700 (Wed, 31 Oct 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26033 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 26044 $'
 
   return,sw_hash
 end
@@ -408,6 +357,10 @@ end
 
 
 
+pro cdf_tools::add_variable,vi
+  self.vars[vi.name] = vi
+end
+
 
 ;  The following function is obsolete and will be changed
 
@@ -528,7 +481,7 @@ end
 ;  vb = keyword_set(verbose) ? verbose : 0
 ;  vars=''
 ;  info = 0
-;  dprint,dlevel=4,verbose=verbose,'$Id: cdf_tools__define.pro 26033 2018-10-31 17:50:57Z davin-mac $'
+;  dprint,dlevel=4,verbose=verbose,'$Id: cdf_tools__define.pro 26044 2018-11-01 22:52:23Z davin-mac $'
 ;
 ;    on_ioerror, ferr
 ;  for fi=0,n_elements(files)-1 do begin
@@ -707,16 +660,18 @@ END
 
 
 
-FUNCTION cdf_tools_varinfo::Init,name,_EXTRA=ex,epoch=epoch
+FUNCTION cdf_tools_varinfo::Init,name,value,_EXTRA=ex,epoch=epoch
   COMPILE_OPT IDL2
-  void = self.generic_Object::Init(_extra=ex)   ; Call our superclass Initialization method.
-  if keyword_set(name) then begin
+  void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
+  if isa(name,/string) then begin
     self.name  =name
   endif
   self.data = dynamicarray(name=self.name)
   self.attributes = orderedhash()
   self.is_zvar = 1
-  self.type = -1
+  self.type = size(/type,value)
+  self.ndimen = size(/n_dimensions,value)
+  self.d = size(/dimen,value)
   if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=2
   if keyword_set(epoch) then begin
     self.name = 'Epoch'
@@ -858,8 +813,7 @@ void = {cdf_tools, $
   fileid:  0uL,  $
   inq_ptr:  ptr_new() ,  $          ; pointer to inquire structure 
   G_attributes: obj_new(),  $     ; ordered hash
-  nv:  0     , $
-;  var_atts:    obj_new(),   $
+;  nv:  0     , $
   vars:  obj_new(),   $           ; ordered hash with variables
   dummy:0 }
 
