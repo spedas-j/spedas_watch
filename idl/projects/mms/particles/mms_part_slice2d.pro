@@ -24,8 +24,8 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-08-20 15:01:59 -0700 (Mon, 20 Aug 2018) $
-;$LastChangedRevision: 25670 $
+;$LastChangedDate: 2018-11-02 11:26:00 -0700 (Fri, 02 Nov 2018) $
+;$LastChangedRevision: 26052 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
@@ -57,31 +57,31 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     if keyword_set(subtract_bulk) then load_support = 1b ; need support data for bulk velocity subtraction as well
     if keyword_set(plotbulk) then load_support = 1b 
     if keyword_set(plotsun) then begin
-       mms_load_mec, trange=trange, probe=probe, spdf=spdf
+       mms_load_mec, trange=trange, probe=probe, spdf=spdf, /time_clip
        ; need to convert J2000 ECI data to GSE
        spd_cotrans, 'mms1_mec_r_sun_de421_eci', 'mms1_mec_r_sun_de421_gse', out_coord='gse'
        sname = 'mms1_mec_r_sun_de421_gse'
     endif
     
-    if load_support then mms_load_fgm, trange=trange, probe=probe, spdf=spdf
+    if load_support then mms_load_fgm, trange=trange, probe=probe, spdf=spdf, /time_clip
     bname = 'mms'+probe+'_fgm_b_gse_srvy_l2_bvec'
     
     if instrument eq 'fpi' then begin
       name = 'mms'+probe+'_d'+species+'s_dist_'+data_rate
       vname = 'mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate
       if keyword_set(subtract_error) then error_variable = 'mms'+probe+'_d'+species+'s_disterr_'+data_rate
-      mms_load_fpi, datatype='d'+species+'s-dist', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf
-      if load_support then mms_load_fpi, datatype='d'+species+'s-moms', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf
+      mms_load_fpi, datatype='d'+species+'s-dist', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
+      if load_support then mms_load_fpi, datatype='d'+species+'s-moms', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
     endif else if instrument eq 'hpca' then begin
       name = 'mms'+probe+'_hpca_'+species+'_phase_space_density'
       vname = 'mms'+probe+'_hpca_'+species+'_ion_bulk_velocity'
-      mms_load_hpca, datatype='ion', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf
-      if load_support then mms_load_hpca, datatype='moments', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf
+      mms_load_hpca, datatype='ion', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
+      if load_support then mms_load_hpca, datatype='moments', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
     endif else begin
       dprint, dlevel=0, 'Error, unknown instrument; valid options are: fpi, hpca'
       return
     endelse
-    
+
     dist = mms_get_dist(name, trange=trange, subtract_error=subtract_error, error=error_variable, /structure)
     
     if keyword_set(units) then begin
@@ -93,8 +93,8 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
 
     if ~undefined(time) then undefine, trange
     
-    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, sun_data=sname, _extra=_extra) $ 
-      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, sun_data=sname, _extra=_extra)
+    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, sun_data=sname, subtract_bulk=subtract_bulk, _extra=_extra) $ 
+      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, sun_data=sname, subtract_bulk=subtract_bulk, _extra=_extra)
     
     spd_slice2d_plot, slice, plotbulk=plotbulk, sundir=plotsun, _extra=_extra
     output=slice

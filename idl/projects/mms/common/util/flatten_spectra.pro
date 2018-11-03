@@ -40,8 +40,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-10-31 15:25:44 -0700 (Wed, 31 Oct 2018) $
-;$LastChangedRevision: 26037 $
+;$LastChangedDate: 2018-11-02 14:38:03 -0700 (Fri, 02 Nov 2018) $
+;$LastChangedRevision: 26053 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -81,7 +81,7 @@ end
 pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, replot=replot, disable_auto_unit_conv=disable_auto_unit_conv, legend_left=legend_left, timebar=timebar, _extra=_extra
+   charsize=charsize, replot=replot, disable_auto_unit_conv=disable_auto_unit_conv, legend_left=legend_left, bar=bar, _extra=_extra
    
   @tplot_com.pro
   
@@ -272,7 +272,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       endif      
   endfor
   
-  if keyword_set(timebar) then timebar, t
+  if keyword_set(bar) then timebar, t
   
   ; save to file
   if KEYWORD_SET(png) and ~KEYWORD_SET(postscript) then makepng, fname
