@@ -16,14 +16,18 @@
 ;         resolve labels implemented as keyword to preserve backwards compatibility 
 ;
 ; NOTE:
-;   The function uses several mms mms function
+;   The function uses several function from mms package, however it can be used 
+;   for other missions (and cdf files) as well.
+;   The used function spd_cdf_info_to_tplot rely on the order of the variables 
+;   in the cdf file. The "Epoch" variables must be loaded before other variables.    
+;   
 ;
 ; Author: Davin Larson -  20th century
 ;   Forked from MMS, 04/09/2018, adrozdov
 ;
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-04-16 18:47:45 -0700 (Mon, 16 Apr 2018) $
-; $LastChangedRevision: 25058 $
+; $LastChangedDate: 2018-11-05 11:39:31 -0800 (Mon, 05 Nov 2018) $
+; $LastChangedRevision: 26056 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf2tplot.pro $
 ;-
 
