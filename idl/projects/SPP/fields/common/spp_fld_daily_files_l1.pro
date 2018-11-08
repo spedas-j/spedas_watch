@@ -1,10 +1,12 @@
 pro spp_fld_daily_files_l1, start_day, n_days, $
   make_cdf = make_cdf, $
   ql_plot = ql_plot, $
+  plot_types = plot_types, $
+  file_types = file_types, $
   ephem = ephem
 
-  make_cdf = 0
-  ql_plot = 1
+  if n_elements(make_cdf) EQ 0 then make_cdf = 0
+  if n_elements(ql_plot) EQ 0 then ql_plot = 0
 
   if not keyword_set(start_day) then start_day = ['2018-08-13']
 
@@ -21,7 +23,8 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
     if keyword_set(make_cdf) then begin
 
 
-      file_types = [$
+      if n_elements(file_types) EQ 0 then $
+        file_types = [$
         'f1_100bps', $
         'rfs_hfr_auto', $
         'rfs_hfr_cross', $
@@ -102,12 +105,13 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
 
       foreach file_type, file_types do begin
 
-            spp_fld_make_cdf_l1, file_type, /daily
+        spp_fld_make_cdf_l1, file_type, /daily
 
       endforeach
     endif
 
-    plot_types = ['F1_100BPS', 'RFS_HFR', 'RFS_LFR', 'DFB_AC_SPEC', $
+    if n_elements(plot_types) EQ 0 then $
+      plot_types = ['F1_100BPS', 'RFS_HFR', 'RFS_LFR', 'DFB_AC_SPEC', $
       'DFB_DC_SPEC','DFB_AC_BPF', $
       'DFB_DC_BPF', 'DFB_WF_E_B', 'DFB_WF_V', 'MAGO', 'MAGI', $
       'SC_HK', 'DCB_HK', 'DCB_EVENTS', 'DCB_SSR','AEB_HK','TEMPS']
