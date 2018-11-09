@@ -1,13 +1,18 @@
 ;20180524 Ali
 ;20180527 Davin
 
-pro spp_swp_ssr_makefile,trange=trange_full
+pro spp_swp_ssr_makefile,trange=trange_full,restore=restore
 
+  
+  login_info = get_login_info()
+  test = login_info.user_name eq 'davin'
+  
+  
   make_ql=1
   make_sav=1
   make_cdf=1
 
-  output_prefix = 'spp/data/sci/sweap/prelaunch/test5/'
+  output_prefix = 'spp/data/sci/sweap/prelaunch/test6/'
   ssr_prefix='spp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
   ssr_format = 'YYYY/DOY/*_?_E?'
   idlsav_format=output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD.sav'
@@ -18,6 +23,7 @@ pro spp_swp_ssr_makefile,trange=trange_full
   daynum = round( timerange(trange_full) /res )
   nd = daynum[1]-daynum[0]
   trange = res* double( daynum  ) ; round to days
+ ; savfile = 
 
   names=strlowcase(['CMDCTR','SE','SE_HV','SA_SUM','SA_HV','SB_HV','SC_HV','SE_LV',$
     'SE_SPEC','SA_SPEC','SB_SPEC','SE_A_SPEC','SA_A_SPEC','SB_A_SPEC',$
@@ -26,19 +32,42 @@ pro spp_swp_ssr_makefile,trange=trange_full
   nt=n_elements(names)
 
 
-  if 1 then begin     ; newer method
-    ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)  ; load all data over many days (full orbit)
-    spp_swp_apdat_init,/reset
-    spp_ssr_file_read,ssr_files,/sort_flag
-    if keyword_set(make_sav) then spp_apdat_info,file_save=sav_file,/compress
+  if keyword_set(test) then begin     ; newer method
+    make_ql=0
+    output_prefix = 'spp/data/sci/sweap/prelaunch/test6/'
+    ssr_prefix='spp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
+    ssr_format = 'YYYY/DOY/*_?_E?'
+    idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
+    tr = timerange(trange_full)
+    sav_file=spp_file_retrieve(idlsav_format,trange=tr[0],/create_dir,/daily_names)
+    str_replace, sav_file,'$ND$',strtrim(nd,2)
+       
+    if file_test(sav_file) then begin
+      if keyword_set(restore) then begin
+        del_data,'*'
+        spp_apdat_info,file_restore=sav_file,/finish
+      endif
+    endif else begin
+      ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)  ; load all data over many days (full orbit)
+      ;      spp_swp_apdat_init,/reset
+      spp_ssr_file_read,ssr_files,/sort_flag
+      if keyword_set(make_sav) then begin
+        spp_apdat_info,file_save=sav_file,/compress
+        save,file=sav_file+'.code',/routines,/verbose
+      endif
+    endelse
+    
     for day=daynum[0],daynum[1] do begin ;loop over days
-      trdaily = double(day * res) 
-      sav_file=spp_file_retrieve(idlsav_format,trange=tr,/create_dir,/daily_names)
-      ssr_info = file_info(ssr_files)
-      sav_info = file_info(sav_file)
-      ssr_timestamp=max([ssr_info.mtime,ssr_info.ctime])
-      sav_timestamp=sav_info.mtime
-      if ssr_timestamp lt sav_timestamp then continue    ; skip if sav does not need to be regenerated
+      trdaily = double(day * res)
+      trange = trdaily + [0,1]*res
+      if 0 then begin
+        ssr_info = file_info(ssr_files)
+        sav_info = file_info(sav_file)
+        ssr_timestamp=max([ssr_info.mtime,ssr_info.ctime])
+        sav_timestamp=sav_info.mtime
+        if ssr_timestamp lt sav_timestamp then continue    ; skip if sav does not need to be regenerated
+        
+      endif
 ;      store_data,/delete,'*'
 ;      spp_swp_apdat_init,/reset
 ;      spp_ssr_file_read,ssr_files,/sort_flag
@@ -47,12 +76,12 @@ pro spp_swp_ssr_makefile,trange=trange_full
       if 0 then spp_apdat_info,file_restore=sav_file,/finish
 
       if keyword_set(make_ql) then begin
-        window,xsize=1200,ysize=800
+        wi,size=[1200,800]
         tplot,'APID'
         tlimit,trange
         for it=0L,nt-1 do begin ;loop over tplots
           pngpath=ql_dir+names[it]+'/YYYY/MM/spp_ql_'+names[it]+'_YYYYMMDD'
-          pngfile=spp_file_retrieve(pngpath,trange=tr,/create_dir,/daily_names)
+          pngfile=spp_file_retrieve(pngpath,trange=trdaily,/create_dir,/daily_names)
           spp_swp_tplot,names[it],/setlim
           makepng,pngfile
         endfor
@@ -74,7 +103,12 @@ pro spp_swp_ssr_makefile,trange=trange_full
         ;      spp_apdat_info,'spi_rates',cdf_pathname = cdf_pathformat
         ;    spp_apdat_info,'sp?_sf1',cdf_pathname = cdf_pathformat
         timespan,tr ;for cdf pathnames to work!
-        spp_apdat_info,make_cdf=make_cdf,/print
+        aps = spp_apdat('spa_s??')
+        foreach a,aps do begin
+          a.print
+          a.makecdf,trange=trange   
+        endforeach
+;        spp_apdat_info,make_cdf=make_cdf,/print
       endif
 
     endfor

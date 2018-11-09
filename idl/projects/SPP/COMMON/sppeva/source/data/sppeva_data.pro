@@ -118,10 +118,10 @@ FUNCTION sppeva_data_event, event
 
 
       end
-    wid.fldCommDay: begin
-      widget_control, event.id, GET_VALUE=strNewDay
-      !SPPEVA.COM.COMMDAY = strNewDay
-      end
+;    wid.fldCommDay: begin
+;      widget_control, event.id, GET_VALUE=strNewDay
+;      !SPPEVA.COM.COMMDAY = strNewDay
+;      end
     wid.load:begin
       sppeva_load,force=0, paramlist=paramlist
       geo = widget_info(event.top,/geometry)
@@ -159,7 +159,8 @@ FUNCTION sppeva_data, parent, $
 ;    end_time:   '1995-06-12/24:00:00',$
 ;    trangeChanged: 0}
   
-  !SPPEVA.COM.STRTR = ['1995-06-10/00:00:00','1995-06-12/24:00:00']
+  ;!SPPEVA.COM.STRTR = ['1995-06-10/00:00:00','1995-06-12/24:00:00']
+  !SPPEVA.COM.STRTR = ['2018-10-02/03:00:00','2018-10-02/17:00:00']
   
   ;--------------------
   ; BASE
@@ -202,8 +203,10 @@ FUNCTION sppeva_data, parent, $
   str_element,/add,wid,'lblPS',widget_label(bsCtrl,VALUE='Parameter Set')
   str_element,/add,wid,'drpSet',widget_droplist(bsCtrl,VALUE=wid.paramSetsAll.drpDownMenu,$
     TITLE='',DYNAMIC_RESIZE=strmatch(!VERSION.OS_FAMILY,'Windows'))
-  str_element,/add,wid,'fldCommDay',cw_field(bsCtrl,VALUE=!SPPEVA.COM.COMMDAY,TITLE='Commissioning Day ',/ALL_EVENTS,xsize=10)
+  ;str_element,/add,wid,'fldCommDay',cw_field(bsCtrl,VALUE=!SPPEVA.COM.COMMDAY,TITLE='Commissioning Day ',/ALL_EVENTS,xsize=10)
   
+  !SPPEVA.COM.PARAMETERSET = paramSetsAll.FILENAMES[0]
+
   ;------------
   ; LOAD
   ;------------

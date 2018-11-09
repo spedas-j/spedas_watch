@@ -3,35 +3,231 @@
 ;         mms_part_slice2d
 ;
 ; Purpose:
-;         This is a wrapper around spd_slice2d that loads required
-;         support data, creates the slice and plots the slice
+;         This is a wrapper around spd_slice2d and spd_slice2d_plot that loads required
+;         support data, creates and plots the slice
 ;
 ; Keywords:
-;         probe: MMS s/c # to create the 2D slice for
-;         instrument: fpi or hpca
-;         species: depends on instrument:
+;         PROBE: MMS s/c # to create the 2D slice for
+;         INSTRUMENT: fpi or hpca
+;         SPECIES: depends on instrument:
 ;             FPI: 'e' for electrons, 'i' for ions
 ;             HPCA: 'hplus' for H+, 'oplus' for O+, 'heplus' for He+, 'heplusplus', for He++
-;         level: level of the data you'd like to plot
-;         data_rate: data rate of the distribution data you'd like to plot
-;         time: time of the 2D slice
-;         trange: two-element time range over which data will be averaged (optional, ignored if 'time' is specified)
-;         spdf: load the data from the SPDF instead of the LASP SDC
-;         output: returns the computed slice
-;         units: units of the slice (default is df_cm - other options include 'df_km', 'flux', 'eflux')
+;         LEVEL: level of the data you'd like to plot
+;         DATA_RATE: data rate of the distribution data you'd like to plot
+;         TIME: time of the 2D slice
+;         TRANGE: two-element time range over which data will be averaged (optional, ignored if 'time' is specified)
+;         SPDF: load the data from the SPDF instead of the LASP SDC
+;         OUTPUT: returns the computed slice
+;         UNITS: units of the slice (default is df_cm - other options include 'df_km', 'flux', 'eflux')
+;         
+;         TRANGE: Two-element time range over which data will be averaged. (string or double)
+;         TIME: Time at which the slice will be computed. (string or double)
+;           SAMPLES: Number of nearest samples to TIME to average. (int/double)
+;             If neither SAMPLES nor WINDOW are specified then default=1.
+;           WINDOW: Length in seconds from TIME over which data will be averaged. (int/double)
+;             CENTER_TIME: Flag denoting that TIME should be midpoint for window instead of beginning.
+;
+;           SUM_SAMPLES: Flag denoting that the data should be summed over the requested trange rather than averaged
+;
+;         THREE_D_INTERP: Flag to use 3D interpolation method (described below)
+;         TWO_D_INTERP: Flag to use 2D interpolation method (described below)
+;         GEOMETRIC: Flag to use geometric interpolation method (described below)
+;  
+;         RESOLUTION: Integer specifying the resolution along each dimension of the
+;              slice (defaults:  2D/3D interpolation: 150, geometric: 500)
+;         SMOOTH: An odd integer >=3 specifying the width of a smoothing window in #
+;              of points.  Smoothing is applied to the final plot using a gaussian
+;              convolution. Even entries will be incremented, 0 and 1 are ignored.
+;
+;         ENERGY: Flag to plot data against energy (in eV) instead of velocity.
+;         LOG: Flag to apply logarithmic scaling to the radial measure (i.e. energy/velocity).
+;              (on by default if /ENERGY is set)
+;
+;         ERANGE: Two element array specifying the energy range to be used in eV.
+;
+;         THETARANGE: (2D interpolation only)
+;              Angle range, in degrees [-90,90], used to calculate slice.
+;              Default = [-20,20]; will override ZDIRRANGE.
+;         ZDIRRANGE: (2D interpolation only)
+;             Z-Axis range, in km/s, used to calculate slice.
+;             Ignored if called with THETARANGE.
+;
+;         AVERAGE_ANGLE: (geometric interpolation only)
+;                 Two element array specifying an angle range over which
+;                 averaging will be applied. The angle is measured
+;                 from the slice plane and about the slice's horizontal axis;
+;                 positive in the right handed direction. This will
+;                 average over all data within that range.
+;
+;                 Note: for the default rotation='xy', the angle is measured from the XY
+;                 slice plane and about the x-axis
+;                    e.g. rotation='xy', average_angle=[-25,25] will average data within 25 degrees
+;                         of the XY slice plane about it's x-axis
+;                    or
+;                         rotation='yz', average_angle=[-25,25] will average data within 25 degrees
+;                         of the YZ slice plane about it's y-axis
+;
+;         SUM_ANGLE: (geometric interpolation only)
+;                 Two element array specifying an angle range over which
+;                 summing will be applied. The angle is measured
+;                 from the slice plane and about the slice's horizontal axis;
+;                 positive in the right handed direction. This will
+;                 sum over all data within that range.
+;
+;                 Note: for the default rotation='xy', the angle is measured from the XY
+;                 slice plane and about the x-axis
+;                    e.g. rotation='xy', sum_angle=[-25,25] will sum data within 25 degrees
+;                         of the XY slice plane about it's x-axis
+;                    or
+;                         rotation='yz', sum_angle=[-25,25] will sum data within 25 degrees
+;                         of the YZ slice plane about it's y-axis
+;
+;         DETERM_TOLERANCE:  tolerance of the determinant of the custom rotation matrix
+;           (maximum acceptable difference from determ(C)=1 where C is the
+;           user's custom rotation matrix); default is 1e-6
+;
+;Orientation Keywords:
+;         ROTATION: Aligns the data relative to the magnetic field and/or bulk velocity.
+;            This is applied after the CUSTOM_ROTATION. (BV and BE are invariant
+;            between coordinate systems)
+;
+;            'BV':  The x axis is parallel to B field; the bulk velocity defines the x-y plane
+;            'BE':  The x axis is parallel to B field; the B x V(bulk) vector defines the x-y plane
+;            'xy':  (default) The x axis is along the data's x axis and y is along the data's y axis
+;            'xz':  The x axis is along the data's x axis and y is along the data's z axis
+;            'yz':  The x axis is along the data's y axis and y is along the data's z axis
+;            'xvel':  The x axis is along the data's x axis; the x-y plane is defined by the bulk velocity
+;            'perp':  The x axis is the bulk velocity projected onto the plane normal to the B field; y is B x V(bulk)
+;            'perp_xy':  The data's x & y axes are projected onto the plane normal to the B field
+;            'perp_xz':  The data's x & z axes are projected onto the plane normal to the B field
+;            'perp_yz':  The data's y & z axes are projected onto the plane normal to the B field
+;            
+;         CUSTOM_ROTATION: Applies a custom rotation matrix to the data.  Input may be a
+;                   3x3 rotation matrix or a tplot variable containing matrices.
+;                   If the time window covers multiple matrices they will be averaged.
+;                   This is applied before other transformations
+;
+;         SLICE_X & SLICE_NORM: These keywords respectively specify the slice plane's
+;                        x-axis and normal within the coordinates specified by
+;                        CUSTOM_ROTATION and ROTATION. Both keywords take
+;                        3-vectors as input. (See note below)
+;
+;                        If SLICE_X is not specified then the given coordinate's
+;                        x-axis will be used. If SLICE_X is not perpendicular to
+;                        the normal it's projection onto the slice plane will be used.
+;                        An error will be thrown if no projection exists.
+;
+;                        If SLICE_NORM is not specified then the given coordinate's
+;                        z-axis will be used (slice along by x-y plane in those
+;                        coordinates).
+;
+;              examples:
+;                Slice along the data's x-z plane:
+;                  ROTATION='xz'
+;
+;                Slice plane's x axis is GSM x and y is in the direction of the bulk velocity:
+;                  CUSTOM_ROTATION='my_gsm_tvar', ROTATION='xvel'
+;
+;                Slice is perpendicular to "tvar1" and x axis is defined by projection of "tvar2"
+;                  SLICE_NORM='tvar1', SLICE_X='tvar2'
+;
+;       NOTE: Update at 06/04/2018 - The SLICE_X & SLICE_NORM are defined after CUSTOM_ROTATION
+;         but before the ROTATION.
+;
+;        DISPLACEMENT: Vector. New center of the coordinate system.
+;              example:
+;                Slice at the point x=0.5, y = 0.5 and z=0.1.
+;                DISPLACEMENT = [0.5, 0.5. 0.1]
+;
+;Plotting Keywords:
+;        LEVELS: Number of color contour levels to plot (default is 60)
+;        OLINES: Number of contour lines to plot (default is 0)
+;        CONTOURS_OPLOT: Boolean indicating to only plot contours, not the data.
+;           this is especially useful if you're interested in plotting
+;           2-d or 3-d interpolated contours onto plots using geometric
+;           interpolation; requires an already existing 2d slice plot
+;        ZLOG: Boolean indicating logarithmic contour scaling (on by default)
+;        ECIRCLE: Boolean to plot circle(s) designating min/max energy
+;           from distribution (on by default)
+;        SUNDIR: Boolean to plot the projection of scaled sun direction (black line).
+;          Requires GET_SUN_DIRECTION set with spd_dist_array.
+;        PLOTAXES: Boolean to plot x=0 and y=0 axes (on by default)
+;        PLOTBULK: Boolean to plot projection of bulk velocity vector (red line).
+;            (on by default)
+;        PLOTORIGIN: Boolean to plot a new origin at the bulk velocity and/or sun location
+;              instead of plotting the projection
+;        PLOTBFIELD: Boolean to plot projection of scaled B field (cyan line).
+;              Requires B field data to be loaded and specified to
+;              spd_slice2d with mag_data keyword.
+;
+;        TITLE: String used as plot's title
+;        SHORT_TITLE: Flag to only use time range and # of samples for title
+;        CLABELS: Boolean to annotate contour lines.
+;        CHARSIZE: Specifies character size of annotations (1 is normal)
+;        [XYZ]RANGE: Two-element array specifying x/y/z axis range.
+;        [XYZ]TICKS: Integer(s) specifying the number of ticks for each axis
+;        [XYZ]PRECISION: Integer specifying annotation precision (sig. figs.).
+;                  Set to zero to truncate printed values to integers.
+;        [XYZ]STYLE: Integer specifying annotation style:
+;             Set to 0 (default) for style to be chosen automatically.
+;             Set to 1 for decimal annotations only ('0.0123')
+;             Set to 2 for scientific notation only ('1.23e-2')
+;        [B,V,SUN]_COLOR: Specify the color of the corresponding support vector.
+;                   (e.g. "b_color=0", see IDL graphics documentation for options)
+;        NOCOLORBAR: Suppress z axis color bar.
+;
+;        PLOTSIZE: The size of the plot in device units (usually pixels)
+;            (Not implemented for postscript).
+;
+;        CUSTOM:  Flag that to disable automatic window creation and allow
+;           user-controlled plots.
+;
+;        BACKGROUND_COLOR_INDEX: Integer (0-255) specifying a custom background color
+;           where data = 0.0
+;
+;        BACKGROUND_COLOR_RGB: 3D array of integers (0-255) representing RGB values
+;            of the background color where data == 0.0; this keyword modifies the
+;            current color table to include this color at index = 7
+;
+;Exporting keywords:
+;        EXPORT: String designating the path and file name of the desired file.
+;          The plot will be exported to a PNG image by default.
+;        EPS: Boolean indicating that the plot should be exported to
+;          encapsulated postscript.
+;       
+;Interpolation Methods:
+;
+;   3D Interpolation (default):
+;     The entire 3-dimensional distribution is linearly interpolated onto a
+;     regular 3d grid and a slice is extracted from the volume.
+;
+;   2D Interpolation:
+;     Datapoints within the specified theta or z-axis range are projected onto
+;     the slice plane and linearly interpolated onto a regular 2D grid.
+;
+;   Geometric:
+;     Each point on the plot is given the value of the bin it intersects.
+;     This allows bin boundaries to be drawn at high resolutions.
+; 
+; Examples:
+;         You can find examples in the following crib sheets:
+;         
+;         mms/examples/advanced/mms_slice2d_fpi_crib.pro
+;         mms/examples/advanced/mms_slice2d_hpca_crib.pro
 ;
 ; Notes:
 ;         This routine always centers the distribution/moments data
-;
+;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-11-02 11:26:00 -0700 (Fri, 02 Nov 2018) $
-;$LastChangedRevision: 26052 $
+;$LastChangedDate: 2018-11-08 15:40:18 -0800 (Thu, 08 Nov 2018) $
+;$LastChangedRevision: 26079 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
 pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, species=species, instrument=instrument, $
                       trange=trange, subtract_bulk=subtract_bulk, spdf=spdf, rotation=rotation, output=output, $
-                      units=units, subtract_error=subtract_error, plotbulk=plotbulk, plotsun=plotsun, _extra=_extra
+                      units=units, subtract_error=subtract_error, plotbulk=plotbulk, plotsun=plotsun, fgm_data_rate=fgm_data_rate, $
+                      _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -50,6 +246,9 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
       if instrument eq 'fpi' then data_rate = 'fast'
       if instrument eq 'hpca' then data_rate = 'srvy'
     endif
+
+    if undefined(fgm_data_rate) then fgm_data_rate = data_rate eq 'brst' ? 'brst' : 'srvy'
+    
     if undefined(probe) then probe = '1' else probe = strcompress(string(probe), /rem)
     if undefined(rotation) then rotation = 'xy'
     
@@ -63,8 +262,8 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
        sname = 'mms1_mec_r_sun_de421_gse'
     endif
     
-    if load_support then mms_load_fgm, trange=trange, probe=probe, spdf=spdf, /time_clip
-    bname = 'mms'+probe+'_fgm_b_gse_srvy_l2_bvec'
+    if load_support then mms_load_fgm, trange=trange, probe=probe, spdf=spdf, data_rate=fgm_data_rate, /time_clip
+    bname = 'mms'+probe+'_fgm_b_gse_'+fgm_data_rate+'_l2_bvec'
     
     if instrument eq 'fpi' then begin
       name = 'mms'+probe+'_d'+species+'s_dist_'+data_rate

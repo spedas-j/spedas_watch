@@ -17,6 +17,7 @@ PRO sppeva_dash_update, activate
   ;--------------
   strHH = '0'
   strMM = '0'
+  strBL = '0'
   var = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr')
   get_data,var,data=D,dl=dl,lim=lim
   if n_tags(dl) gt 0 then begin
@@ -24,12 +25,20 @@ PRO sppeva_dash_update, activate
     if s.Nsegs eq 0 then begin
       strHH = '0'
       strMM = '0'
+      strBL = '0'
     endif else begin
       dt = total(s.STOP - s.START)/60.d0; seconds --> minutes
       hh = floor(dt/60.d0)
       mm = floor(dt - hh*60.d0)
       strHH = strtrim(string(hh),2)
       strMM = strtrim(string(mm),2)
+;      tn=tnames('spp_fld_f1_100bps_DCB_ARCWRPTR',ct)
+;      if ct gt 0 then begin
+;        get_data,'spp_fld_f1_100bps_DCB_ARCWRPTR',data=D
+;        for n=0,s.Nsegs-1 do begin
+;          
+;        endfor
+;      endif
     endelse
   endif
   

@@ -5,7 +5,9 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
   frame = strjoin((strsplit(/ex, prefix, '_'))[3:*],'_')
 
   rs = 695508d
+  re = 6371d
   rv = 6052d
+  rm = 2440d
 
   ;  options, prefix + 'position', 'colors', 'bgr'
 
@@ -17,7 +19,7 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
 
   options, prefix + 'position_rs', 'ysubtitle', '[Rs]'
 
-  if frame EQ 'spp_rtn' then begin
+  if frame EQ 'spp_rtn' or frame EQ 'spp_hertn' then begin
 
     store_data, prefix + 'radial_distance', $
       data = {x:pos_dat.x, y:total(pos_dat.y,2)}
@@ -54,6 +56,41 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
     
   endif
 
+  if frame EQ 'spp_mso' then begin
+
+    store_data, prefix + 'position_rm', $
+      data = {x:pos_dat.x, y:pos_dat.y/rv}
+
+    store_data, prefix + 'radial_distance', $
+      data = {x:pos_dat.x, y:sqrt(total(pos_dat.y^2,2))}
+
+    store_data, prefix + 'radial_distance_rm', $
+      data = {x:pos_dat.x, y:sqrt(total(pos_dat.y^2,2))/rv}
+
+    options, '*radial_distance*', 'ynozero', 1
+    options, prefix + 'position_rm', 'ysubtitle', '[Rm]'
+    options, prefix + 'radial_distance', 'ysubtitle', '[km]'
+    options, prefix + 'radial_distance_rm', 'ysubtitle', '[Rm]'
+
+  endif
+
+  if frame EQ 'spp_gse' then begin
+
+    store_data, prefix + 'position_re', $
+      data = {x:pos_dat.x, y:pos_dat.y/rv}
+
+    store_data, prefix + 'radial_distance', $
+      data = {x:pos_dat.x, y:sqrt(total(pos_dat.y^2,2))}
+
+    store_data, prefix + 'radial_distance_re', $
+      data = {x:pos_dat.x, y:sqrt(total(pos_dat.y^2,2))/rv}
+
+    options, '*radial_distance*', 'ynozero', 1
+    options, prefix + 'position_re', 'ysubtitle', '[Re]'
+    options, prefix + 'radial_distance', 'ysubtitle', '[km]'
+    options, prefix + 'radial_distance_re', 'ysubtitle', '[Re]'
+
+  endif
 
   options, prefix + '*vector*', 'ysubtitle', ''
 
@@ -66,7 +103,7 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix
 
   if ephem_names[0] NE '' then begin
 
-    if frame EQ 'spp_rtn' then labels = ['R', 'T', 'N'] else labels = ['X', 'Y', 'Z']
+    if (frame EQ 'spp_rtn' or frame EQ 'spp_hertn') then labels = ['R', 'T', 'N'] else labels = ['X', 'Y', 'Z']
 
     foreach name, ephem_names do begin
 

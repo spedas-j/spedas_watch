@@ -14,10 +14,11 @@ PRO sppeva_pref_event, event
       sppeva_pref_import, 'USER', pfwid.USER_COPY
       
       ;--------------------------------
-      ; SAVE CHANGES IN THE "GEN" TAB
+      ; SAVE CHANGES IN THE "FIELD" TAB
       ;--------------------------------
-      widget_control, wid.pfGen, GET_VALUE=pfwid
+      widget_control, wid.pfFld, GET_VALUE=pfwid
       sppeva_pref_import, 'USER', pfwid.USER_COPY
+      sppeva_pref_import, 'PREF', pfwid.PREF_COPY
  
       ;---------------
       ; SAV
@@ -54,7 +55,7 @@ PRO sppeva_pref, GROUP_LEADER=group_leader
   ; Tabs
   baseTab = widget_tab(base, xsize=xsize)
   str_element,/add,wid,'pfUser', sppeva_pref_user(baseTab,xsize=xsize,group_leader=group_leader)
-  str_element,/add,wid,'pfGen',  sppeva_pref_gen(baseTab,xsize=xsize,group_leader=group_leader)
+  str_element,/add,wid,'pfFld',  sppeva_pref_fld(baseTab,xsize=xsize,group_leader=group_leader)
 
   ; Save & Cancel
   lbl1 = widget_label(base,VALUE='The settings are saved locally in "sppeva_preferences.sav".')

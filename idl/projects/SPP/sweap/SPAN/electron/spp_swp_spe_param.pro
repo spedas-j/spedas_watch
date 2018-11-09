@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $
-; $LastChangedRevision: 26044 $
+; $LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $
+; $LastChangedRevision: 26068 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -193,30 +193,30 @@ function spp_swp_spe_param,reset=reset
       fixgain : 13. * 2 $
     }
     
-;    etables[1] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[0]   , emode=1, spane=spane)
-;    etables[2] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[0]   , emode=2, spane=spane)
-;    etables[3] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[0]   , emode=3, spane=spane)
-;    etables[4] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[0]   , emode=4, spane=spane)
+;    etables[1] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[0]   , emode=1, _extra = spane_params)
+;    etables[2] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[0]   , emode=2, _extra = spane_params)
+    etables[3] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[0]   , emode=3, _extra = spane_params)
+    etables[4] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[0]   , emode=4, _extra = spane_params)
 
-;    etables[5] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[1]   , emode=5, spane=spane)
-;    etables[6] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[1]   , emode=6, spane=spane)
-;    etables[7] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[1]   , emode=7, spane=spane)
-;    etables[8] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[1]   , emode=8, spane=spane)
+;    etables[5] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[1]   , emode=5, _extra = spane_params)
+;    etables[6] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[1]   , emode=6, _extra = spane_params)
+    etables[7] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[1]   , emode=7, _extra = spane_params)
+;    etables[8] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[1]   , emode=8, _extra = spane_params)
 ;
-;    etables[9] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[2]   , emode=9, spane=spane)
-;    etables[10] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[2]   , emode=10, spane=spane)
-;    etables[11] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[2]   , emode=11, spane=spane)
-;    etables[12] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[2]   , emode=12, spane=spane)
+;    etables[9] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[2]   , emode=9, _extra = spane_params)
+;    etables[10] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[2]   , emode=10, _extra = spane_params)
+    etables[11] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[2]   , emode=11, _extra = spane_params)
+;    etables[12] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[2]   , emode=12, _extra = spane_params)
 ;
-;    etables[13] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[3]   , emode=13, spane=spane)
-;    etables[14] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[3]   , emode=14, spane=spane)
-;    etables[15] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[3]   , emode=15, spane=spane)
-;    etables[16] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[3]   , emode=16, spane=spane)
+;    etables[13] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[3]   , emode=13, _extra = spane_params)
+;    etables[14] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[3]   , emode=14, _extra = spane_params)
+    etables[15] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[3]   , emode=15, _extra = spane_params)
+;    etables[16] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[3]   , emode=16, _extra = spane_params)
 ;
-;    etables[17] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[4]   , emode=17, spane=spane)
-;    etables[18] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[4]   , emode=18, spane=spane)
-;    etables[19] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[4]   , emode=19, spane=spane)
-;    etables[20] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[4]   , emode=20, spane=spane)
+;    etables[17] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[4]   , emode=17, _extra = spane_params)
+;    etables[18] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[4]   , emode=18, _extra = spane_params)
+;    etables[19] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[4]   , emode=19, _extra = spane_params)
+;    etables[20] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[4]   , emode=20, _extra = spane_params)
 
     etables[21] = spp_swp_spanx_sweep_tables([ 2., 2000.],spfac=ratios[3]   , emode=21, _extra = spane_params)
 

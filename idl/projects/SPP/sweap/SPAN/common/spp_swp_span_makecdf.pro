@@ -105,8 +105,8 @@ if ~keyword_set(global_att) then begin
   global_att['InstrumentLead_affiliation'] = 'U.C. Berkeley Space Sciences Laboratory'
   global_att['Instrument_type'] = 'Electrostatic Analyzer Particle Detector'
   global_att['Mission_group'] = 'PSP'
-  global_att['Parents'] = '' ; '2018-02-17/22:17:38   202134481 ChecksumExecutableNotAvailable            /disks/data/maven/data/sci/pfp/l0_all/2018/02/mvn_pfp_all_l0_20180201_v002.dat ...
-  global_att = global_att + cdf.sw_version()
+;  global_att['Parents'] = '' ; '2018-02-17/22:17:38   202134481 ChecksumExecutableNotAvailable            /disks/data/maven/data/sci/pfp/l0_all/2018/02/mvn_pfp_all_l0_20180201_v002.dat ...
+;  global_att = global_att + cdf.sw_version()
 endif
 cdf.g_attributes += global_att
   
@@ -114,7 +114,8 @@ fnan = !values.f_nan
  
 ; Force Epoch as first variable. If datavary contains an EPOCH variable it will add or overwrite this value
 epoch = time_ephemeris(datavary.time,/et2ut)                ;  may want to change this later to base it on me
-vh = cdf_tools_varinfo('Epoch',epoch,/recvary,datatype = 'CDF_EPOCH')
+vho = cdf_tools_varinfo('Epoch',epoch,/recvary,datatype = 'CDF_EPOCH')
+vh = vho.getattr()
 ;vh.datatype = 
 vatts =  spp_swp_span_variable_attributes('Epoch')
 vh.attributes  += vatts
@@ -138,7 +139,8 @@ for i=0,n_elements(vnames)-1 do begin
   endif else begin
     vals = reform(transpose(vals))
   endelse
-  vh = cdf_tools_varinfo(vname, val, /recvary)
+  vho = cdf_tools_varinfo(vname, val, /recvary)
+  vh = vho.getattr()
   vh.data.array = vals
   vatt  = spp_swp_span_variable_attributes(vname)
   vh.attributes += vatt

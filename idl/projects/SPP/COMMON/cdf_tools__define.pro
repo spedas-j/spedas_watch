@@ -2,8 +2,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $
-; $LastChangedRevision: 26044 $
+; $LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $
+; $LastChangedRevision: 26068 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -35,8 +35,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $
-; $LastChangedRevision: 26044 $
+; $LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $
+; $LastChangedRevision: 26068 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -57,8 +57,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26044 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 26068 $'
 
   return,sw_hash
 end
@@ -246,7 +246,7 @@ pro cdf_tools::var_att_create,var
   fileid = self.fileid
   varname = var.name
   data = var.data
-  ZVARIABLE = var.IS_ZVAR  || 1  ; force it to be a zvar
+  ZVARIABLE =  1  ; force it to be a zvar
 ;  ,name=varname,data=data,attributes=attributes,rec_novary=rec_novary,datatype=datatype
   rec_novary = ~var.recvary
   if isa(data,'DYNAMICARRAY') then begin
@@ -305,7 +305,9 @@ pro cdf_tools::var_att_create,var
         dummy = cdf_attcreate(fileid,attname,/variable_scope)
         dprint,dlevel=self.dlevel,'Created new Attribute: ',attname, ' for: ',varname
       endif
-      cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE
+      if keyword_set(value) then begin
+        cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE        
+      endif
     endforeach
   endif else dprint,dlevel=1,'Warning! No attributes for '+varname
 
@@ -481,7 +483,7 @@ end
 ;  vb = keyword_set(verbose) ? verbose : 0
 ;  vars=''
 ;  info = 0
-;  dprint,dlevel=4,verbose=verbose,'$Id: cdf_tools__define.pro 26044 2018-11-01 22:52:23Z davin-mac $'
+;  dprint,dlevel=4,verbose=verbose,'$Id: cdf_tools__define.pro 26068 2018-11-08 15:58:40Z davin-mac $'
 ;
 ;    on_ioerror, ferr
 ;  for fi=0,n_elements(files)-1 do begin
@@ -662,6 +664,7 @@ END
 
 FUNCTION cdf_tools_varinfo::Init,name,value,_EXTRA=ex,epoch=epoch
   COMPILE_OPT IDL2
+  self.dlevel = 3
   void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
   if isa(name,/string) then begin
     self.name  =name

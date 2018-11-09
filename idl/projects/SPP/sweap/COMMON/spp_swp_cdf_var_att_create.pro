@@ -4,6 +4,11 @@
 ;  CDF_VAR_ATT_CREATE,fileid,'RandomVariable',randomn(seed,3,1000),attributes = atts
 ;  Attributes are contained in a orderedhash and should have already been created.
 ;-
+
+
+message,'This file is obsolete'
+
+
 pro spp_swp_cdf_var_att_create,fileid,varname,data,attributes=attributes,rec_novary=rec_novary,cdf_type_string=cdf_type_string
 
   ;if size(/type,attributes) ne 8 then attributes= {}

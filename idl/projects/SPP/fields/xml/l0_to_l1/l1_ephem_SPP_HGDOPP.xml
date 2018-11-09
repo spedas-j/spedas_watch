@@ -8,19 +8,19 @@
 <items>
 
   <tmlib
-    tmlib_event = 'ephem_SPP_RTN'
+    tmlib_event = 'ephem_SPP_HGDOPP'
     >
   </tmlib>
 
   <cdf_global
-      Title = "SPP FIELDS Ephemeris (SPP_RTN frame)"
-      Descriptor = "EPH>Ephemeris in SPP_RTN frame"
+      Title = "SPP FIELDS Ephemeris (SPP_HGDOPP frame)"
+      Descriptor = "EPH>Ephemeris in SPP_HGDOPP frame"
       Data_type = "Ephemeris data"
       Data_version = "0"
-      TEXT = "SPP Ephemeris Data in SPP_RTN frame"
+      TEXT = "SPP Ephemeris Data in SPP_HGDOPP frame"
       Mods = "Revision 0"
-      Logical_source = "SPP_FLD_EPHEM_SPP_RTN"
-      Logical_source_description = "SPP FIELDS Ephemeris in SPP_RTN frame"
+      Logical_source = "SPP_FLD_EPHEM_SPP_HGDOPP"
+      Logical_source_description = "SPP FIELDS Ephemeris in SPP_HGDOPP frame"
       Dependencies = "None"
       >
   </cdf_global>
