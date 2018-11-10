@@ -1,16 +1,20 @@
 ;
 ;  Called from SPP_FLD_MAKE_CDF_L1
 ;
-;  $LastChangedBy: spfuser2 $
-;  $LastChangedDate: 2018-11-08 16:55:10 -0800 (Thu, 08 Nov 2018) $
-;  $LastChangedRevision: 26081 $
+;  $LastChangedBy: pulupalap $
+;  $LastChangedDate: 2018-11-09 00:32:15 -0800 (Fri, 09 Nov 2018) $
+;  $LastChangedRevision: 26084 $
 ;  $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/common/spp_fld_load_tmlib_data.pro $
 ;
 
 function spp_fld_load_tmlib_data, l1_data_type,  $
-  varformat = varformat, cdf_att = cdf_att, times = times, $
-  utcstr = utcstr, packets = packets, $
-  mets = mets, fields_subseconds = fields_subseconds, $
+  varformat = varformat, $
+  cdf_att = cdf_att, $
+  times = times, $
+  utcstr = utcstr, $
+  mets = mets, $
+  fields_subseconds = fields_subseconds, $
+  packets = packets, $
   idl_att = idl_att, success = success, att_only = att_only
 
   success = 0
@@ -275,7 +279,6 @@ function spp_fld_load_tmlib_data, l1_data_type,  $
 
     dprint, 'ERR SUBSEC:  ', err_subsec, dlevel = 4
 
-
     met_str0 = strcompress(string(ccsds_met),/rem) + ':00000'
 
     met_str1 = strcompress(string(ccsds_met+1l),/rem) + ':00000'
@@ -284,7 +287,7 @@ function spp_fld_load_tmlib_data, l1_data_type,  $
 
     cspice_scs2e, -96, met_str1, et1
     
-    cspice_et2utc, et0 + (et1 - et0) * (fields_subsecond / 65536d), 'ISOC', 10, utc
+    cspice_et2utc, et0 + (et1 - et0) * (fields_subsecond / 65536d), 'ISOC', 9, utc
 
     dprint, ccsds_met, fields_subsecond, (et1-et0), utc, dlevel = 5
 

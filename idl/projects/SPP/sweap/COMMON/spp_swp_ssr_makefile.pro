@@ -1,3 +1,8 @@
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2018-11-09 14:36:40 -0800 (Fri, 09 Nov 2018) $
+; $LastChangedRevision: 26102 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
+; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 
