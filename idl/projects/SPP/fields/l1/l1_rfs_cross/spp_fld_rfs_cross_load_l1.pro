@@ -93,7 +93,7 @@ pro spp_fld_rfs_cross_load_l1, file, prefix = prefix, color = color
 
   get_data, prefix + 'xspec_re', data = rfs_dat_xspec_re
 
-  converted_data_xspec_re = rfs_float(rfs_dat_xspec_re.y, /cross)
+  converted_data_xspec_re = spp_fld_rfs_float(rfs_dat_xspec_re.y, /cross)
 
   ; TODO replace hard coded gain value w/calibrated
 
@@ -116,6 +116,36 @@ pro spp_fld_rfs_cross_load_l1, file, prefix = prefix, color = color
   ; TODO replace hard coded gain value w/calibrated
 
   converted_data_xspec_im *= V2_factor
+
+;  if lfr_flag then begin
+;
+;    size_spec = size(converted_spec_data, /dim)
+;
+;    if n_elements(size_spec) EQ 2 then begin
+;
+;      cic_r = 8ll
+;      cic_n = 4ll
+;      cic_m = 1ll
+;
+;      ; TODO: Check for when CIC M = 2
+;
+;      cic_factor = $
+;        rebin($
+;        transpose((sin(!DPI * cic_m * rfs_freqs.reduced_freq / 4.8e6) / $
+;        sin(!DPI * rfs_freqs.reduced_freq / 4.8d6 / cic_r))^(2 * cic_n) / $
+;        (cic_r * cic_m)^(2 * cic_n)), $
+;        size(converted_spec_data,/dim))
+;
+;      converted_spec_data_re /= cic_factor
+;      converted_spec_data_im /= cic_factor
+;
+;    endif
+;
+;  endif else begin
+;
+;    cic_factor = 1d
+;
+;  endelse
 
   if n_lo_gain GT 0 then converted_data_xspec_im[lo_gain, *] *= 2500.d
 

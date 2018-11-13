@@ -52,8 +52,8 @@
 ;         Spacecraft photoelectrons are corrected in moments_3d
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-09-25 12:35:45 -0700 (Tue, 25 Sep 2018) $
-;$LastChangedRevision: 25862 $
+;$LastChangedDate: 2018-11-06 15:55:07 -0800 (Tue, 06 Nov 2018) $
+;$LastChangedRevision: 26060 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_getspec.pro $
 ;-
 
@@ -177,9 +177,9 @@ pro mms_part_getspec, probes=probes, $
     support_trange = trange + [-60,60]
     
     for probe_idx = 0, n_elements(probes)-1 do begin
-        if ~spd_data_exists('mms'+strcompress(string(probes[probe_idx]), /rem)+'_fgm_b_gse_'+mag_data_rate+'_l2_bvec'+mag_suffix, trange[0], trange[1]) or keyword_set(forceload) then append_array, fgm_to_load, probes[probe_idx]
-        if ~spd_data_exists('mms'+strcompress(string(probes[probe_idx]), /rem)+'_defeph_pos', trange[0], trange[1]) or keyword_set(forceload) then append_array, state_to_load, probes[probe_idx]
-        if ~spd_data_exists('mms'+strcompress(string(probes[probe_idx]), /rem)+'_edp_scpot_'+scpot_data_rate+'_l2', trange[0], trange[1]) or keyword_set(forceload) then append_array, scpot_to_load, probes[probe_idx]
+        if ~spd_data_exists('mms'+strcompress(string(probes[probe_idx]), /rem)+'_fgm_b_gse_'+mag_data_rate+'_l2_bvec'+mag_suffix, trange[0], trange[1]) or keyword_set(forceload) then append_array, fgm_to_load, probes[probe_idx] else time_clip, 'mms'+strcompress(string(probes[probe_idx]), /rem)+'_fgm_b_gse_'+mag_data_rate+'_l2_bvec'+mag_suffix, trange[0], trange[1], newname='mms'+strcompress(string(probes[probe_idx]), /rem)+'_fgm_b_gse_'+mag_data_rate+'_l2_bvec'+mag_suffix
+        if ~spd_data_exists('mms'+strcompress(string(probes[probe_idx]), /rem)+'_defeph_pos', trange[0], trange[1]) or keyword_set(forceload) then append_array, state_to_load, probes[probe_idx] else time_clip, 'mms'+strcompress(string(probes[probe_idx]), /rem)+'_defeph_pos', trange[0], trange[1], newname='mms'+strcompress(string(probes[probe_idx]), /rem)+'_defeph_pos'
+        if ~spd_data_exists('mms'+strcompress(string(probes[probe_idx]), /rem)+'_edp_scpot_'+scpot_data_rate+'_l2', trange[0], trange[1]) or keyword_set(forceload) then append_array, scpot_to_load, probes[probe_idx] else time_clip, 'mms'+strcompress(string(probes[probe_idx]), /rem)+'_edp_scpot_'+scpot_data_rate+'_l2', trange[0], trange[1], newname='mms'+strcompress(string(probes[probe_idx]), /rem)+'_edp_scpot_'+scpot_data_rate+'_l2'
     endfor
 
     ; load state data (needed for coordinate transforms and field aligned coordinates)
@@ -213,8 +213,9 @@ pro mms_part_getspec, probes=probes, $
     for probe_idx = 0, n_elements(probes)-1 do begin
         if undefined(mag_name_user) then bname = 'mms'+probes[probe_idx]+'_fgm_b_gse_'+mag_data_rate+'_l2_bvec'+mag_suffix else bname = mag_name_user
         if undefined(pos_name_user) then pos_name = 'mms'+probes[probe_idx]+ '_defeph_pos' else pos_name = pos_name_user
-        if keyword_set(photoelectron_corrections) then scpot_variable = 'mms'+probes[probe_idx]+'_edp_scpot_'+scpot_data_rate+'_l2'
-        
+        ;if keyword_set(photoelectron_corrections) then scpot_variable = 'mms'+probes[probe_idx]+'_edp_scpot_'+scpot_data_rate+'_l2'
+        scpot_variable = 'mms'+probes[probe_idx]+'_edp_scpot_'+scpot_data_rate+'_l2'
+
         if instrument eq 'fpi' then begin
             name = 'mms'+probes[probe_idx]+'_d'+species+'s_dist_'+data_rate
             if undefined(vel_name_user) then vel_name = 'mms'+probes[probe_idx]+'_d'+species+'s_bulkv_gse_'+data_rate else vel_name = vel_name_user

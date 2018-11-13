@@ -18,8 +18,8 @@
 ;     NPTS  : A named variable to hold the number of data points.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-09 18:03:30 -0700 (Sun, 09 Sep 2018) $
-; $LastChangedRevision: 25762 $
+; $LastChangedDate: 2018-11-09 11:42:13 -0800 (Fri, 09 Nov 2018) $
+; $LastChangedRevision: 26099 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_load.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -29,7 +29,7 @@ pro mvn_sta_cio_load, ptr, species, froot=froot, tags=tags, npts=npts
 
   mvn_sta_cio_clear, ptr
   path = '/Users/mitchell/Documents/Home/Mars/MAVEN/Cold Ion Outflow/'
-  if (size(froot,/type) ne 7) then froot = 'cio_ABCD_'
+  if (size(froot,/type) ne 7) then froot = 'cio_ABCDE_'
 
   if (size(species,/type) ne 7) then species = 'O2' else species = strupcase(species[0])
   case species of
@@ -64,7 +64,9 @@ pro mvn_sta_cio_load, ptr, species, froot=froot, tags=tags, npts=npts
 
 ; Convert from array of structures to structure of arrays
 
+  print,'  Converting data ... ',format='(a,$)'
   mvn_sta_cio_convert, data
+  print,'done.'
 
 ; Make sure it is a pointer
 

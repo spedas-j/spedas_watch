@@ -21,6 +21,364 @@
   </cdf_global>
 
   <cdf_var
+      name = "FSW_REC_ALLOC_ALLOC_EPILO"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "alloc_epilo"
+        FORMAT = "I016"
+        LABLAXIS = "alloc_epilo"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Allocated (EPILO)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_ALLOC_EPIHI"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "alloc_epihi"
+        FORMAT = "I016"
+        LABLAXIS = "alloc_epihi"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Allocated (EPIHI)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_ALLOC_WISPR"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "alloc_wispr"
+        FORMAT = "I016"
+        LABLAXIS = "alloc_wispr"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Allocated (WISPR)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_ALLOC_FIELDS"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "alloc_fields"
+        FORMAT = "I016"
+        LABLAXIS = "alloc_fields"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Allocated (FIELDS)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_ALLOC_SWEAP"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "alloc_sweap"
+        FORMAT = "I016"
+        LABLAXIS = "alloc_sweap"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Allocated (SWEAP)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_ALLOC_CDH_SSR_HK"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "alloc_cdh_ssr_hk"
+        FORMAT = "I016"
+        LABLAXIS = "alloc_cdh_ssr_hk"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Allocated (CDH_SSR_HK)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_ALLOC_CDH_RAM_HK"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "alloc_cdh_ram_hk"
+        FORMAT = "I016"
+        LABLAXIS = "alloc_cdh_ram_hk"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Allocated (CDH_RAM_HK)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_USED_EPILO"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "used_epilo"
+        FORMAT = "I016"
+        LABLAXIS = "used_epilo"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Used (EPILO)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  <cdf_var
+      name = "FSW_REC_ALLOC_USED_EPIHI"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "used_epihi"
+        FORMAT = "I016"
+        LABLAXIS = "used_epihi"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Used (EPIHI)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  <cdf_var
+      name = "FSW_REC_ALLOC_USED_WISPR"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "used_wispr"
+        FORMAT = "I016"
+        LABLAXIS = "used_wispr"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Used (WISPR)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_USED_FIELDS"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "used_fields"
+        FORMAT = "I016"
+        LABLAXIS = "used_fields"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Used (FIELDS)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_USED_SWEAP"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "used_sweap"
+        FORMAT = "I016"
+        LABLAXIS = "used_sweap"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Used (SWEAP)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  
+  <cdf_var
+      name = "FSW_REC_ALLOC_USED_CDH_SSR_HK"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "used_cdh_ssr_hk"
+        FORMAT = "I016"
+        LABLAXIS = "used_cdh_ssr_hk"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Used (CDH_SSR_HK)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+  
+  <cdf_var
+      name = "FSW_REC_ALLOC_USED_CDH_RAM_HK"
+      type = "integer">
+    <cdf_att
+        FIELDNAM = "used_cdh_ram_hk"
+        FORMAT = "I016"
+        LABLAXIS = "used_cdh_ram_hk"
+        DATA_TYPE = "CDF_UINT4"
+        VAR_TYPE = "data"
+        FILLVAL = "4294967294"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "4294967294"
+        SCALEMIN = "0"
+        SCALEMAX = "4294967294"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Clusters Used (CDH_RAM_HK)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_PERCENT_USED_EPILO"
+      type = "double"
+      raw = "FSW_REC_ALLOC_PERCENT_USED_EPILO_raw">
+    <cdf_att
+        FIELDNAM = "percent_used_epilo"
+        FORMAT = "F15.3"
+        LABLAXIS = "percent_used_epilo"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "100"
+        SCALEMIN = "0"
+        SCALEMAX = "100"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Percent Used (EPILO)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_PERCENT_USED_EPIHI"
+      type = "double"
+      raw = "FSW_REC_ALLOC_PERCENT_USED_EPIHI_raw">
+    <cdf_att
+        FIELDNAM = "percent_used_epihi"
+        FORMAT = "F15.3"
+        LABLAXIS = "percent_used_epihi"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "100"
+        SCALEMIN = "0"
+        SCALEMAX = "100"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Percent Used (EPIHI)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_PERCENT_USED_WISPR"
+      type = "double"
+      raw = "FSW_REC_ALLOC_PERCENT_USED_WISPR_raw">
+    <cdf_att
+        FIELDNAM = "percent_used_wispr"
+        FORMAT = "F15.3"
+        LABLAXIS = "percent_used_wispr"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "100"
+        SCALEMIN = "0"
+        SCALEMAX = "100"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Percent Used (WISPR)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
       name = "FSW_REC_ALLOC_PERCENT_USED_FIELDS"
       type = "double"
       raw = "FSW_REC_ALLOC_PERCENT_USED_FIELDS_raw">
@@ -37,9 +395,76 @@
         SCALEMIN = "0"
         SCALEMAX = "100"
         UNITS = "None"
-        CATDESC = "PDU Flight Recorder Percent Used (FIELDS)"
+        CATDESC = "PSP Flight Recorder Percent Used (FIELDS)"
         DEPEND_0 = "epoch">
     </cdf_att>
   </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_PERCENT_USED_SWEAP"
+      type = "double"
+      raw = "FSW_REC_ALLOC_PERCENT_USED_SWEAP_raw">
+    <cdf_att
+        FIELDNAM = "percent_used_sweap"
+        FORMAT = "F15.3"
+        LABLAXIS = "percent_used_sweap"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "100"
+        SCALEMIN = "0"
+        SCALEMAX = "100"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Percent Used (SWEAP)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_PERCENT_USED_CDH_SSR_HK"
+      type = "double"
+      raw = "FSW_REC_ALLOC_PERCENT_USED_CDH_SSR_HK_raw">
+    <cdf_att
+        FIELDNAM = "percent_used_cdh_ssr_hk"
+        FORMAT = "F15.3"
+        LABLAXIS = "percent_used_cdh_ssr_hk"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "100"
+        SCALEMIN = "0"
+        SCALEMAX = "100"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Percent Used (CDH_SSR_HK)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "FSW_REC_ALLOC_PERCENT_USED_CDH_RAM_HK"
+      type = "double"
+      raw = "FSW_REC_ALLOC_PERCENT_USED_CDH_RAM_HK_raw">
+    <cdf_att
+        FIELDNAM = "percent_used_cdh_ram_hk"
+        FORMAT = "F15.3"
+        LABLAXIS = "percent_used_cdh_ram_hk"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "100"
+        SCALEMIN = "0"
+        SCALEMAX = "100"
+        UNITS = "None"
+        CATDESC = "PSP Flight Recorder Percent Used (CDH_RAM_HK)"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
 
 </items>

@@ -104,7 +104,7 @@ PRO sppeva
   ;------------------
   user = {id:'Tohban', pw:'Tohban', fullname:'Solar Probe', email:'psp@dummy.berkeley.edu', $
     team:'FIELDS',sppfldsoc_id:'',sppfldsoc_pw:''}
-  pref = {fom_max_value:25, basepos:0, split_size_in_sec:600}
+  pref = {fom_max_value:25, basepos:0, split_size_in_sec:600, FLD_LOCAL_DATA_DIR:'./'}
   dash = {widget:0}
   stack = {fld_i:0L, fld_list:list({Nsegs:0L}), swp_i:0L, swp_list:list({Nsegs:0L})}
   com   = {mode:'FLD', strTR:['',''], parameterset:'01_WIND_basic.txt', commDay:'5'}

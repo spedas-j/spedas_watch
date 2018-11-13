@@ -1,4 +1,4 @@
-PRO sppeva_get_fld_f1_100bps, day, filename=filename
+PRO sppeva_get_fld_f1_100bps_old, day, filename=filename
   compile_opt idl2
   
 ;  catch, errorstatus

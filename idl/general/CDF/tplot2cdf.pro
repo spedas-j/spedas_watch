@@ -31,8 +31,8 @@
 ;  Alexander Drozdov
 ;   
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-03-12 18:05:53 -0700 (Mon, 12 Mar 2018) $
-; $LastChangedRevision: 24880 $
+; $LastChangedDate: 2018-10-12 17:42:18 -0700 (Fri, 12 Oct 2018) $
+; $LastChangedRevision: 25972 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot2cdf.pro $
 ;-
 
@@ -283,11 +283,11 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
       VARS = array_concat(VAR,VARS)
     endif    
   endfor
-  
-  VARS = array_concat(EpochVARS,VARS)
+    
   VARS = array_concat(VARS,SupportVARS1)
   VARS = array_concat(VARS,SupportVARS2)
   VARS = array_concat(VARS,SupportVARS3)
+  VARS = array_concat(VARS, EpochVARS)
   
   
   

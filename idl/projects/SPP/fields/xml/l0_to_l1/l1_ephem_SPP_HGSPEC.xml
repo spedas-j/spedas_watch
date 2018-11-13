@@ -1,0 +1,30 @@
+<?xml version ="1.0" encoding ="UTF-8"?>
+
+<!DOCTYPE items
+[
+<!ENTITY l1_ephem_common SYSTEM "l1_ephem_common.inc">
+]>
+
+<items>
+
+  <tmlib
+    tmlib_event = 'ephem_SPP_HGSPEC'
+    >
+  </tmlib>
+
+  <cdf_global
+      Title = "SPP FIELDS Ephemeris (SPP_HGSPEC frame)"
+      Descriptor = "EPH>Ephemeris in SPP_HGSPEC frame"
+      Data_type = "Ephemeris data"
+      Data_version = "0"
+      TEXT = "SPP Ephemeris Data in SPP_HGSPEC frame"
+      Mods = "Revision 0"
+      Logical_source = "SPP_FLD_EPHEM_SPP_HGSPEC"
+      Logical_source_description = "SPP FIELDS Ephemeris in SPP_HGSPEC frame"
+      Dependencies = "None"
+      >
+  </cdf_global>
+
+  &l1_ephem_common;
+
+</items>

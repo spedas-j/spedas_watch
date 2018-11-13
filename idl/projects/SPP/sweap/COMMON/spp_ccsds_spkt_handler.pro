@@ -1,12 +1,17 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2018-09-09 14:47:02 -0700 (Sun, 09 Sep 2018) $
-; $LastChangedRevision: 25756 $
+;+
+; Purpose: Handle buffer that should contain a single bytes from a ccsds packet
+; Written by Davin Larson  
+; 
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $
+; $LastChangedRevision: 26044 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_ccsds_spkt_handler.pro $
+;-
 
 pro spp_ccsds_spkt_handler,dbuffer, source_dict = source_dict , wrap_ccsds=wrap_ccsds
 
   
-    ccsds = spp_swp_ccsds_decom(dbuffer,wrap_ccsds=wrap_ccsds,dlevel=2)
+    ccsds = spp_swp_ccsds_decom(dbuffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,dlevel=2)
     if ~keyword_set(ccsds) then begin
       if debug(2) then begin
         dprint,dlevel=2,'Invalid CCSDS'

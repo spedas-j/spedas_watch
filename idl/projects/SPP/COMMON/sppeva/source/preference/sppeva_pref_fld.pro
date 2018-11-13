@@ -1,5 +1,5 @@
 
-PRO sppeva_pref_gen_set_value, id, value ;In this case, value = activate
+PRO sppeva_pref_fld_set_value, id, value ;In this case, value = activate
   compile_opt idl2
   stash = WIDGET_INFO(id, /CHILD)
   WIDGET_CONTROL, stash, GET_UVALUE=wid, /NO_COPY
@@ -9,7 +9,7 @@ PRO sppeva_pref_gen_set_value, id, value ;In this case, value = activate
   WIDGET_CONTROL, stash, SET_UVALUE=wid, /NO_COPY
 END
 
-FUNCTION sppeva_pref_gen_get_value, id
+FUNCTION sppeva_pref_fld_get_value, id
   compile_opt idl2
   stash = WIDGET_INFO(id, /CHILD)
   WIDGET_CONTROL, stash, GET_UVALUE=wid, /NO_COPY
@@ -20,7 +20,7 @@ FUNCTION sppeva_pref_gen_get_value, id
   return, ret
 END
 
-FUNCTION sppeva_pref_gen_event, event
+FUNCTION sppeva_pref_fld_event, event
   compile_opt idl2
 
   catch, error_status
@@ -45,6 +45,10 @@ FUNCTION sppeva_pref_gen_event, event
       widget_control, event.id, GET_VALUE=strNew
       wid.user_copy.SPPFLDSOC_PW = strNew
       end
+    wid.LOCAL_DATA_DIR:begin
+      widget_control, event.id, GET_VALUE=strNew
+      wid.pref_copy.FLD_LOCAL_DATA_DIR = spd_addslash(strNew)
+      end
     else:
   endcase
   ;-----
@@ -55,30 +59,32 @@ END
 
 ;-----------------------------------------------------------------------------
 
-FUNCTION sppeva_pref_gen, parent, GROUP_LEADER=group_leader, $
+FUNCTION sppeva_pref_fld, parent, GROUP_LEADER=group_leader, $
   UVALUE = uval, UNAME = uname, TAB_MODE = tab_mode, TITLE=title,XSIZE = xsize, YSIZE = ysize
 
-  IF (N_PARAMS() EQ 0) THEN MESSAGE, 'Must specify a parent for sppeva_pref_gen'
+  IF (N_PARAMS() EQ 0) THEN MESSAGE, 'Must specify a parent for sppeva_pref_fld'
   IF NOT (KEYWORD_SET(uval))  THEN uval = 0
-  IF NOT (KEYWORD_SET(uname))  THEN uname = 'sppeva_pref_gen'
-  if not (keyword_set(title)) then title='  GENERAL  '
+  IF NOT (KEYWORD_SET(uname))  THEN uname = 'sppeva_pref_fld'
+  if not (keyword_set(title)) then title='  FIELD  '
 
-  wid = {user_copy:!SPPEVA.USER}
+  wid = {user_copy:!SPPEVA.USER, pref_copy:!SPPEVA.PREF}
   
   ; ----- WIDGET LAYOUT -----
   geo = widget_info(parent,/geometry)
   if n_elements(xsize) eq 0 then xsize = geo.xsize
   base = WIDGET_BASE(parent, UVALUE = uval, UNAME = uname, TITLE=title,$
-    EVENT_FUNC = "sppeva_pref_gen_event", $
-    FUNC_GET_VALUE = "sppeva_pref_gen_get_value", $
-    PRO_SET_VALUE = "sppeva_pref_gen_set_value",/column,$
+    EVENT_FUNC = "sppeva_pref_fld_event", $
+    FUNC_GET_VALUE = "sppeva_pref_fld_get_value", $
+    PRO_SET_VALUE = "sppeva_pref_fld_set_value",/column,$
     XSIZE = xsize, YSIZE = ysize,sensitive=1,/base_align_left)
   str_element,/add,wid,'base',base
   lbl2 = widget_label(base,VALUE=' ')
   lbl1 = widget_label(base,VALUE='Credential for retrieving files from SPPFLDSOC.')
   str_element,/add,wid,'ID',      cw_field(base,VALUE=!SPPEVA.USER.SPPFLDSOC_ID,TITLE='ID      ',/ALL_EVENTS,xsize=50)
   str_element,/add,wid,'password',cw_field(base,VALUE=!SPPEVA.USER.SPPFLDSOC_PW,TITLE='password',/ALL_EVENTS,xsize=50)
-
+  lbl3 = widget_label(base,VALUE='Location for storing FIELD data')
+  str_element,/add,wid,'LOCAL_DATA_DIR', cw_field(base,VALUE=!SPPEVA.PREF.FLD_LOCAL_DATA_DIR,TITLE='LOCAL_DATA_DIR',/ALL_EVENTS,xsize=40)
+  
   WIDGET_CONTROL, WIDGET_INFO(base, /CHILD), SET_UVALUE=wid, /NO_COPY
   RETURN, base
 END

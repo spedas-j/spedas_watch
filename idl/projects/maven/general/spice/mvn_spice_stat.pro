@@ -17,8 +17,8 @@
 ;                   about each kernel, including coverage in time.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-17 16:11:17 -0700 (Mon, 17 Sep 2018) $
-; $LastChangedRevision: 25821 $
+; $LastChangedDate: 2018-11-09 11:32:28 -0800 (Fri, 09 Nov 2018) $
+; $LastChangedRevision: 26088 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
@@ -82,7 +82,7 @@ pro mvn_spice_stat, list=list, info=info
       tsp = time_string([info[(i-1) > 0].trange[1], info[i].trange[0]])
       print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
     endfor
-  endif else print,"No S/C SPK coverage!"
+  endif else print,"    No S/C SPK coverage!"
 
   indx = where(info.obj_name eq 'MAVEN_SC_BUS', nfiles)
   if (nfiles gt 0) then begin
@@ -117,7 +117,7 @@ pro mvn_spice_stat, list=list, info=info
       tsp = time_string([info[(i-1) > 0].trange[1], info[i].trange[0]])
       print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
     endfor
-  endif else print,"No S/C CK coverage!"
+  endif else print,"    No S/C CK coverage!"
 
   indx = where(info.obj_name eq 'MAVEN_APP_IG', nfiles)
   if (nfiles gt 0) then begin
@@ -152,7 +152,7 @@ pro mvn_spice_stat, list=list, info=info
       tsp = time_string([info[(i-1) > 0].trange[1], info[i].trange[0]])
       print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
     endfor
-  endif else print,"No APP CK coverage!"
+  endif else print,"    No APP CK coverage!"
 
   print,''
 

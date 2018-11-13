@@ -30,6 +30,7 @@
 ;       + 2018-08-02, I. Cohen          : fixed issue energy limits in crossover energy range
 ;       + 2018-08-03, I. Cohen          : removed "fix" from 2018-08-02; changed energy ranges to correctly
 ;                                         handle burst data
+;       + 2018-10-19, I. Cohen          : fixed issue in matching phxtof/extof timing when there are more extof events
 ;                                         
 ;-
 pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
@@ -81,7 +82,7 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
         extof_spec_data = proton_extof.y
       endif else if (data_size[0] lt data_size[1]) then begin
         time_data = proton_phxtof.x
-        phxtof_spec_data = proton_phxtof.y[*,1:-1]
+        phxtof_spec_data = proton_phxtof.y
         extof_spec_data = proton_extof.y[0:n_elements(proton_phxtof.x)-1,*]
       endif
 ;      if (total(where(phxtof_spec_data eq 0)) ge 0) then phxtof_spec_data[where(phxtof_spec_data eq 0)] = !Values.d_NAN

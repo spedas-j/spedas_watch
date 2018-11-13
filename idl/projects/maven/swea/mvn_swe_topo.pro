@@ -66,8 +66,8 @@
 ;                    quality), 0 otherwise.
 ;
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2018-08-15 16:27:06 -0700 (Wed, 15 Aug 2018) $
-; $LastChangedRevision: 25640 $
+; $LastChangedDate: 2018-10-11 13:41:08 -0700 (Thu, 11 Oct 2018) $
+; $LastChangedRevision: 25958 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_topo.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 11/03/2017
@@ -218,7 +218,7 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
 
   ;-----enlisting this index for field-aligned flux ratio---
   ;this is a proxy to find loss cone to distinguish draped and open to night
-  fratio=reform(data.fratio_a2t[0,parng]) ;0--low energy, 1--high energy
+  fratio=reform(data.fratio_a2t[1,parng]) ;0--low energy, 1--high energy
   inna = where(fratio ne fratio,nac,com=ina,ncom=ac)
   ;thrd_frat = 0.75 ;could be converted to a nob
   ;if not NAN, below threshold, j=0, else j=1

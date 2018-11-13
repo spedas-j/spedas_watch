@@ -2,8 +2,7 @@
 ;on the SCM burst waveform signal.
 
 ;See Malaspina email on Feb 2, 2018.
-;Initial list of on/off times from Hospodarsky 2018-02-28 email
-
+;Full list of on/off times from Hospdarsky/Bounds 2018-02-28 email
 
 function rbsp_efw_emfisis_scm_gain_list
 

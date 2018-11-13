@@ -1,25 +1,54 @@
-function spp_swp_spanx_sweep_tables,erange,spfac=spfac, emode=emode, spane=spane
+function spp_swp_spanx_sweep_tables,erange, deflrange,  $
+    plot = plot,$
+    emode=emode, sensor=sensor,  $
+    k = k,$
+    rmax = rmax,$
+    vmax = vmax,$
+    nen = nen,$
+;    e0 = e0,$
+;    emax = emax,$
+    spfac = spfac,$
+    maxspen = maxspen,$
+    hvgain = hvgain,$
+    spgain = spgain,$
+    fixgain = fixgain
 
-   ;; Initiate Table Constants
-   nen=128
-   emin=5.0
-   emax=4000.
-   k=16.7
-   rmax=11.0
-   vmax=4000
-   maxspen=5000.
-   hvgain=1000.
-   spgain=20.12
-   fixgain=13.
-   sensor= 0
+;  max = 65536.
+
+  if ~ isa(sensor)  then sensor  = 0
+  if ~ isa(emode)  then emode  = 0
+  if ~ isa(k)       then k       = 16.7
+  if ~ isa(rmax)    then rmax    = 11.0
+  if ~ isa(vmax)    then vmax    = 4000
+  if ~ isa(nen)     then nen     = 128
+  if ~ isa(spfac)   then spfac   = 0.
+  if ~ isa(maxspen) then maxspen = 5000.
+  if ~ isa(hvgain)  then hvgain  = 1000.
+  if ~ isa(spgain)  then spgain  = 20.12
+  if ~ isa(fixgain) then fixgain = 13.
+
+
+;   ;; Initiate Table Constants
+;   nen=128
+;   emin=5.0
+;   emax=4000.
+;   k=16.7
+;   rmax=11.0
+;   vmax=4000
+;   maxspen=5000.
+;   hvgain=1000.
+;   spgain=20.12
+;   fixgain=13.
+;   sensor= 0
    
-   if keyword_set(spane) then begin
-    hvgain = 500.
-    sensor = spane
-   endif
-   if n_elements(spfac) eq 0  then spfac = 0.
-   if n_elements(emode) eq 0  then emode = 0
-   
+;   if keyword_set(spane) then begin
+;    hvgain = 500.
+;    sensor = spane
+;   endif
+;   if n_elements(spfac) eq 0  then spfac = 0.
+;   if n_elements(emode) eq 0  then emode = 0
+;   
+
    emin = erange[0]
    emax = erange[1]
 
@@ -51,20 +80,20 @@ function spp_swp_spanx_sweep_tables,erange,spfac=spfac, emode=emode, spane=spane
 
 
    ;; -------- Structure with values ----------
-   table = { sensor:sensor, $
-             emode:emode, $
+   table = { emode:emode, $
+             sensor:sensor, $
              sweepv_dac:sweepv_dac,$
              defv1_dac:defv1_dac,$
              defv2_dac:defv2_dac,$
              spv_dac:spv_dac,$
              fsindex:fsindex,$
              tsindex:tsindex,$
+             emin:emin,$
+             emax:emax,$
              k:k,$
              rmax:rmax,$
              vmax:vmax,$
              nen:nen,$
-             emin:emin,$
-             emax:emax,$
              spfac:spfac,$
              maxspen:maxspen,$
              hvgain:hvgain,$

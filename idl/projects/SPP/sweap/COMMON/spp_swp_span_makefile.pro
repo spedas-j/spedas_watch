@@ -1,6 +1,11 @@
+message,'Obsolete'
+
+
 pro spp_swp_span_make_raw_cdf_wrap,sepnum=sepnum,source_files = source_files,   trange=trange  ,prereq_files=prereq_files,add_link=add_link,sw_version=sw_version
 
-  @mvn_sep_handler_commonblock.pro
+
+
+;  @mvn_sep_handler_commonblock.pro
 
 ;  if size(/type,sep) ne 8 then begin
 ;    dprint,dlevel=2,'Input data is not a structure... Skipping'

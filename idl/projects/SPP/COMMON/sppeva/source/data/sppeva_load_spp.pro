@@ -33,14 +33,19 @@ FUNCTION sppeva_load_spp, param, perror
   ;------------
   ; Commissioning
   ;------------
+;  pcode=1
+;  ip=where(perror eq pcode,cp)
+;  if(strmatch(param,'*_f1_100bps_*') and (cp eq 0))then begin
+;    pfx = 'spp_fld_f1_100bps_'
+;    sppeva_get_fld_f1_100bps, filename=filename
+;    spp_fld_load_l1, filename
+;    store_data,pfx+'B',data=pfx+['BX','BY','BZ']
+;  endif
   pcode=1
   ip=where(perror eq pcode,cp)
   if(strmatch(param,'*_f1_100bps_*') and (cp eq 0))then begin
-    pfx = 'spp_fld_f1_100bps_'
-    sppeva_get_fld_f1_100bps, filename=filename
-    spp_fld_load_l1, filename
-    store_data,pfx+'B',data=pfx+['BX','BY','BZ']
+    sppeva_get_fld,'f1_100bps'
+    
   endif
-  
   return, -1
 END

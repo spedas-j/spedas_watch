@@ -132,7 +132,8 @@ function spp_fld_select_timespan_define_presets, fm_or_em
   fm_times['upp_rfs_lfr_noise'] =   ['2018-09-17/06:30:00', '2018-09-17/08:30:00']
   fm_times['upp_rfs_jovian_emission'] =   ['2018-09-17/09:40:00', '2018-09-17/10:40:00']
 
-  fm_times['multi_instrument'] =   ['2018-09-24/12:00:00', '2018-09-28/12:00:00']
+  fm_times['multi_instrument'] =           ['2018-09-24/12:00:00', '2018-09-28/12:00:00']
+  fm_times['multi_instrument_turnons'] =   ['2018-09-24/13:00:00', '2018-09-24/18:00:00']
 
 
   fm_times['umbra_pointing_2'] =   ['2018-10-02/03:15:00', '2018-10-02/17:45:00']
@@ -142,6 +143,18 @@ function spp_fld_select_timespan_define_presets, fm_or_em
   fm_times['fields_rotations'] =   ['2018-10-03/16:30:00', '2018-10-03/21:30:00']
 
   fm_times['v5_hirate_sunsens_test'] =   ['2018-10-04/11:00:00', '2018-10-04/15:00:00']
+  fm_times['v5_sls_in_umbra'] =   ['2018-10-04/11:20:00', '2018-10-04/12:50:00']
+  fm_times['v5_sls_to_wiggle_1'] =   ['2018-10-04/11:31:30', '2018-10-04/11:43:30']
+  fm_times['v5_sls_to_wiggle_2'] =   ['2018-10-04/11:43:30', '2018-10-04/11:53:30']
+  fm_times['v5_sls_to_wiggle_3'] =   ['2018-10-04/11:53:30', '2018-10-04/12:03:30']
+  fm_times['v5_sls_to_wiggle_4'] =   ['2018-10-04/12:03:30', '2018-10-04/12:14:30']
+  fm_times['v5_sls_to_wiggle_5'] =   ['2018-10-04/12:14:30', '2018-10-04/12:24:30']
+  fm_times['v5_sls_to_wiggle_6'] =   ['2018-10-04/12:24:30', '2018-10-04/12:34:30']
+  fm_times['v5_sls_to_wiggle_7'] =   ['2018-10-04/12:34:30', '2018-10-04/12:44:30']
+
+  fm_times['e01_dcp_reset'] =   ['2018-10-05/12:00:00', '2018-10-05/15:00:00']
+
+  fm_times['e01_pre_cruise'] =   ['2018-10-05/00:00:00', '2018-10-31/00:00:00']
 
 
   em_times = orderedhash()

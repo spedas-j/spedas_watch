@@ -292,7 +292,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
                                   uname='time_widget')
     
   ;create the dropdown menu that lists the various instrument types for this mission
-  instrumentArray = ['prm','epd','eng']
+  instrumentArray = ['fgm','epd','eng']
   ;Note: these type arrays are temporarily commented out because LOMO data only has one type of data - level 1
   ;prm may have level 2 data in the future
     ;prmTypeArray = ['fgs','fgf','fgs_dsl_gei_mag','fgf_dsl_gei_mag']

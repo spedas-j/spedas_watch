@@ -23,8 +23,8 @@
 ;   ISTP compliance scrub; DLM: 2016-04-08
 ; VERSION:
 ;   $LastChangedBy: dmitchell $
-;   $LastChangedDate: 2018-04-25 16:47:19 -0700 (Wed, 25 Apr 2018) $
-;   $LastChangedRevision: 25120 $
+;   $LastChangedDate: 2018-11-10 16:49:28 -0800 (Sat, 10 Nov 2018) $
+;   $LastChangedRevision: 26105 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makecdf_3d.pro $
 ;
 ;-
@@ -832,6 +832,16 @@ pro mvn_swe_makecdf_3d, data, file = file, version = version, directory = direct
     return
   endif
   file = tofile
+
+; Try to make sure maven has group ownership
+
+  cmd = 'chgrp maven ' + file
+  spawn, cmd, result, err
+  if (err ne '') then begin
+    print, "Error changing group for file: "
+    print, "  ", cmd
+    print, "  ", err
+  endif
 
 ; compression, md5, and permissions (rw--rw--r--)
 

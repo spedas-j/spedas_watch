@@ -758,6 +758,13 @@ load_position='mode'
 ;-------------------------------------------------------------------
 sample_rate_var = thm_sample_rate_bar(date, dur, sc, /outline)
 options, sample_rate_var,'ytitle',''
+If(gui_plot) Then Begin ;try degapping wave and particle burst bars
+  tdegap, 'particle_burst_bar_'+sc, /overwrite, dt = 30.0, /twonan
+  tdegap, 'particle_burst_sym_'+sc, /overwrite, dt = 30.0, /twonan
+  tdegap, 'wave_burst_bar_'+sc, /overwrite, dt = 10.0, /twonan
+  tdegap, 'wave_burst_sym_'+sc, /overwrite, dt = 10.0, /twonan
+Endif 
+
 
 SKIP_SURVEY_MODE:
 load_position='bound'

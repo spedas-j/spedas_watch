@@ -1,7 +1,7 @@
 ;+
 ;NAME:
 ;
-; spedas
+; spedas_gui
 ;
 ;PURPOSE:
 ; Starts spd_gui, the GUI for SPEDAS data analysis
@@ -23,13 +23,13 @@
 ;
 ;HISTORY:
 ;
-;$LastChangedBy: nikos $
-;$LastChangedDate: 2017-12-04 14:50:01 -0800 (Mon, 04 Dec 2017) $
-;$LastChangedRevision: 24393 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/spedas.pro $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2018-10-16 10:54:43 -0700 (Tue, 16 Oct 2018) $
+;$LastChangedRevision: 25985 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/spedas_gui.pro $
 ;-----------------------------------------------------------------------------------
 
-pro spedas, reset=reset,template_filename=template_filename
+pro spedas_gui, reset=reset,template_filename=template_filename
 
   spd_gui,reset=reset,template_filename=template_filename
 

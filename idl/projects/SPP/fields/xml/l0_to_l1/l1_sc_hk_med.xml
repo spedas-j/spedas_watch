@@ -264,4 +264,96 @@
     </cdf_att>
   </cdf_var>
 
+  <cdf_var
+      name = "PDU_EPILO_CURR"
+      type = "double"
+      raw = "PDU_EPILO_CURR_raw">
+    <cdf_att
+        FIELDNAM = "EPILO_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "EPILO_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1"
+        VALIDMAX = "5"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU EPILO Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_EPIHI_CURR"
+      type = "double"
+      raw = "PDU_EPIHI_CURR_raw">
+    <cdf_att
+        FIELDNAM = "EPIHI_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "EPIHI_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1"
+        VALIDMAX = "5"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU EPIHI Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_WISPR_CURR"
+      type = "double"
+      raw = "PDU_WISPR_CURR_raw">
+    <cdf_att
+        FIELDNAM = "WISPR_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "WISPR_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1"
+        VALIDMAX = "5"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU WISPR Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "PDU_SWEAP_CURR"
+      type = "double"
+      raw = "PDU_SWEAP_CURR_raw">
+    <cdf_att
+        FIELDNAM = "SWEAP_CURR"
+        FORMAT = "F15.3"
+        LABLAXIS = "SWEAP_CURR"
+        DATA_TYPE = "CDF_DOUBLE"
+        VAR_TYPE = "data"
+        FILLVAL = "-1.0E31"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "-1"
+        VALIDMAX = "5"
+        SCALEMIN = "-1"
+        SCALEMAX = "5"
+        UNITS = "A"
+        CATDESC = "PDU SWEAP Current"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+
+
+
+
 </items>

@@ -1,6 +1,5 @@
 <?xml version ="1.0" encoding ="UTF-8"?>
 
-
 <!DOCTYPE items
 [
 <!ENTITY l1_ephem_common SYSTEM "l1_ephem_common.inc">

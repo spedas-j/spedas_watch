@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_spe_prod_apdat
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-10-01 14:52:34 -0700 (Mon, 01 Oct 2018) $
-; $LastChangedRevision: 25880 $
+; $LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $
+; $LastChangedRevision: 26068 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/spp_swp_spe_prod_apdat__define.pro $
 ;-
 
@@ -135,62 +135,99 @@ if ccsds.aggregate ne 0 then begin
 endif
 
 
-ccsds_data = spp_swp_ccsds_data(ccsds)
 
-if pksize ne n_elements(ccsds_data) then begin
-  dprint,dlevel=1,'Product size mismatch'
-  return,!null
-endif
+archive = ccsds.apid and '8'x                ; archive packet determined from the apid  for spane
 
-header    = ccsds_data[0:19]
-ns = pksize - 20
-log_flag  = header[12]
-mode1 = header[13]
-mode2 = (swap_endian(uint(ccsds_data,14) ,/swap_if_little_endian ))
-f0 = (swap_endian(uint(header,16), /swap_if_little_endian))
-status_bits = header[18]
-peak_bin = header[19]
-
-
-compression = (header[12] and 'a0'x) ne 0
-bps =  ([4,1])[ compression ]
-
-ndat = ns / bps
-
-if ns gt 0 then begin
-  data      = ccsds_data[20:*]
-  ; data_size = n_elements(data)
-  if compression then    cnts = float( spp_swp_log_decomp(data,0) ) $
-  else    cnts = float(swap_endian(ulong(data,0,ndat) ,/swap_if_little_endian ))
-  tcnts = total(cnts)
+if 1 then begin    ; New merged method
+  spp_swp_span_prod__define,str,ccsds
+  
 endif else begin
-  tcnts = -1.
-  cnts = 0.
+  ccsds_data = spp_swp_ccsds_data(ccsds)
+
+  if pksize ne n_elements(ccsds_data) then begin
+    dprint,dlevel=1,'Product size mismatch'
+    return,!null
+  endif
+
+  header    = ccsds_data[0:19]
+  ns = pksize - 20
+  log_flag  = header[12]
+  ;sample_flag =
+
+
+
+  if archive then begin
+    mode1 = header[13]
+    arc_sum  = 0
+
+  endif else begin    ; survey packet
+    mode1 = 0
+    arc_sum  = header[13]
+
+  endelse
+
+  ;nsamples =
+
+
+  mode2 = (swap_endian(uint(ccsds_data,14) ,/swap_if_little_endian ))
+  tmode = mode2 and 'ff'x
+  emode = ishft(mode2 ,-8)
+  f0 = (swap_endian(uint(header,16), /swap_if_little_endian))
+  status_bits = header[18]
+  peak_bin = header[19]
+
+
+  compression = (log_flag and 'a0'x) ne 0
+  bps =  ([4,1])[ compression ]
+
+  ndat = ns / bps
+
+  if ns gt 0 then begin
+    data      = ccsds_data[20:*]
+    ; data_size = n_elements(data)
+    if compression then    cnts = float( spp_swp_log_decomp(data,0) ) $
+    else    cnts = float(swap_endian(ulong(data,0,ndat) ,/swap_if_little_endian ))
+    tcnts = total(cnts)
+  endif else begin
+    tcnts = -1.
+    cnts = 0.
+  endelse
+
+  product_type = 0
+
+  str = { $
+    time:        ccsds.time, $
+    epoch:      0LL,  $
+    f0:           f0,$
+    apid:        ccsds.apid, $
+    source:      0UL,   $
+    time_delta:  ccsds.time_delta, $
+    seqn:        ccsds.seqn,  $
+    seqn_delta:  ccsds.seqn_delta,  $
+    seq_group:   ccsds.seq_group,  $
+    pkt_size :   ccsds.pkt_size,  $
+    ndat:        ndat, $
+    datasize:    ns, $
+    log_flag:    log_flag, $
+    mode1:        mode1,  $
+    mode2:        mode2,  $
+    tmode:       tmode, $
+    emode:       emode, $
+    product_type: product_type,  $
+    status_bits: status_bits,$
+    peak_bin:    peak_bin, $
+    cnts:  tcnts,  $
+    anode_spec:  fltarr(16),  $
+    nrg_spec:    fltarr(32),  $
+    def_spec:    fltarr(8) ,  $
+    nrg_vals:    fltarr(32),  $
+    ;  full_spec:   fltarr(256), $
+    pdata:        ptr_new(cnts), $
+    gap:         ccsds.gap  }
+  
 endelse
 
-str = { $
-  time:        ccsds.time, $
-  apid:        ccsds.apid, $
-  time_delta:  ccsds.time_delta, $
-  seqn:        ccsds.seqn,  $
-  seqn_delta:  ccsds.seqn_delta,  $
-  seq_group:   ccsds.seq_group,  $
-  pkt_size :   ccsds.pkt_size,  $
-  ndat:        ndat, $
-  datasize:    ns, $
-  log_flag:    log_flag, $
-  mode1:        mode1,  $
-  mode2:        mode2,  $
-  f0:           f0,$
-  status_bits: status_bits,$
-  peak_bin:    peak_bin, $
-  cnts:  tcnts,  $
-  anode_spec:  fltarr(16),  $  
-  nrg_spec:    fltarr(32),  $
-  def_spec:    fltarr(8) ,  $
-;  full_spec:   fltarr(256), $
-  pdata:        ptr_new(cnts), $
-  gap:         ccsds.gap  }
+
 
 return,str
 end
@@ -278,6 +315,32 @@ PRO spp_swp_spe_prod_apdat::Clear
   self.prod_16Ax8Dx32E.array = !null
 END
 
+
+PRO spp_swp_spe_prod_apdat::makecdf,trange=trange
+
+  printdat,time_string(trange)
+  datarray = self.data.array
+  if keyword_set(trange) then begin
+    w= where(datarray.time ge trange[0] and datarray.time lt trange[1],/null)
+    datarray = datarray[w]
+  endif
+  if ~keyword_set(datarray) then return
+  w = where( datarray.ndat eq datarray.datasize,/null)
+  datarray = datarray[w]
+  if ~keyword_set(datarray) then return
+
+  if keyword_set(datarray) then begin
+    cdf = spp_swp_span_makecdf(datarray)  ;, datanovary,  varnames=varnames, ignore=ignore,_extra=ex
+    pathformat = self.cdf_pathname
+    filename = time_string(trange[0],tformat=pathformat)
+    filename = str_sub(filename,'$NAME$',self.name)
+    filename = root_data_dir() + filename
+    cdf.write,filename
+    obj_destroy,cdf
+    
+  endif
+end
+ 
 
 
 ;

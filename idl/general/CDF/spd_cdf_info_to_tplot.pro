@@ -9,10 +9,12 @@
 ;
 ; Written by Davin Larson
 ;   Forked from MMS, 04/09/2018, adrozdov
+;   The "Epoch" variables in the cdf file must be in the order to be loaded 
+;   before other variables in cdf file. 
 ;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-07-30 16:29:49 -0700 (Mon, 30 Jul 2018) $
-; $LastChangedRevision: 25526 $
+; $LastChangedBy: adrozdov $
+; $LastChangedDate: 2018-11-05 11:39:31 -0800 (Mon, 05 Nov 2018) $
+; $LastChangedRevision: 26056 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf_info_to_tplot.pro $
 ;-
 pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=non_record_varying, tt2000=tt2000,$
@@ -29,7 +31,7 @@ pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=
         load_labels=load_labels ;copy labels from labl_ptr_1 in attributes into dlimits
                                       ;resolve labels implemented as keyword to preserve backwards compatibility
 
-dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 25526 2018-07-30 23:29:49Z egrimes $'
+dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 26056 2018-11-05 19:39:31Z adrozdov $'
 tplotnames=''
 vbs = keyword_set(verbose) ? verbose : 0
 
