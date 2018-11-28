@@ -1,3 +1,8 @@
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2018-11-13 16:11:41 -0800 (Tue, 13 Nov 2018) $
+; $LastChangedRevision: 26118 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_makefile.pro $
+; $ID: $
 ;20180524 Ali
 
 pro spp_swp_makefile,names=names,sav_path=sav_path,ql_dir=ql_dir,init=init,trange=trange0,ptp_path=ptp_path

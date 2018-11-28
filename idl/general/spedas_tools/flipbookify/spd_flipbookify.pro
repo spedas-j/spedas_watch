@@ -87,8 +87,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-08-09 15:30:24 -0700 (Thu, 09 Aug 2018) $
-; $LastChangedRevision: 25621 $
+; $LastChangedDate: 2018-11-15 11:00:16 -0800 (Thu, 15 Nov 2018) $
+; $LastChangedRevision: 26127 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/flipbookify/spd_flipbookify.pro $
 ;-
 
@@ -103,7 +103,7 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
   plotbfield=plotbfield, plotbulk=plotbulk, background_color_index=background_color_index, background_color_rgb=background_color_rgb, $
   all_colorbars=all_colorbars, include_1d_vx=include_1d_vx, include_1d_vy=include_1d_vy, $
   lineplot_yrange=lineplot_yrange, lineplot_xrange=lineplot_xrange, lineplot_thickness=lineplot_thickness, $
-  ps_xsize=ps_xsize, ps_ysize=ps_ysize, ps_aspect=ps_aspect, nopng=nopng, custom_rotation=custom_rotation
+  ps_xsize=ps_xsize, ps_ysize=ps_ysize, ps_aspect=ps_aspect, nopng=nopng, custom_rotation=custom_rotation, erange=erange
   @tplot_com.pro
   
   if undefined(filename_prefix) then filename_prefix = 'spd'
@@ -165,9 +165,9 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
 
   for time_idx=0, n_elements(times)-1, time_step do begin
     if keyword_set(postscript) then popen, output_dir+filename_prefix+'_'+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix, /land
-    slice = spd_slice2d(dists, time=times[time_idx], energy=energy, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, custom_rotation=custom_rotation, rotation=slices[0], mag_data=mag_data, vel_data=vel_data, samples=samples, window=window, center_time=center_time, resolution=resolution, smooth=smooth, log=log, determ_tolerance=determ_tolerance, fail=fail)
-    slice2 = spd_slice2d(dists, time=times[time_idx], energy=energy, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, custom_rotation=custom_rotation, rotation=slices[1], mag_data=mag_data, vel_data=vel_data, samples=samples, window=window, center_time=center_time, resolution=resolution, smooth=smooth, log=log, determ_tolerance=determ_tolerance, fail=fail)
-    slice3 = spd_slice2d(dists, time=times[time_idx], energy=energy, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, custom_rotation=custom_rotation, rotation=slices[2], mag_data=mag_data, vel_data=vel_data, samples=samples, window=window, center_time=center_time, resolution=resolution, smooth=smooth, log=log, determ_tolerance=determ_tolerance, fail=fail)
+    slice = spd_slice2d(dists, time=times[time_idx], erange=erange, energy=energy, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, custom_rotation=custom_rotation, rotation=slices[0], mag_data=mag_data, vel_data=vel_data, samples=samples, window=window, center_time=center_time, resolution=resolution, smooth=smooth, log=log, determ_tolerance=determ_tolerance, fail=fail)
+    slice2 = spd_slice2d(dists, time=times[time_idx], erange=erange, energy=energy, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, custom_rotation=custom_rotation, rotation=slices[1], mag_data=mag_data, vel_data=vel_data, samples=samples, window=window, center_time=center_time, resolution=resolution, smooth=smooth, log=log, determ_tolerance=determ_tolerance, fail=fail)
+    slice3 = spd_slice2d(dists, time=times[time_idx], erange=erange, energy=energy, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, custom_rotation=custom_rotation, rotation=slices[2], mag_data=mag_data, vel_data=vel_data, samples=samples, window=window, center_time=center_time, resolution=resolution, smooth=smooth, log=log, determ_tolerance=determ_tolerance, fail=fail)
     tplot, title=time_string(times[time_idx], tformat=title), get_plot_position=positions
 
     if ~is_struct(slice) then begin

@@ -19,15 +19,17 @@
 ;   The function uses several function from mms package, however it can be used 
 ;   for other missions (and cdf files) as well.
 ;   The used function spd_cdf_info_to_tplot rely on the order of the variables 
-;   in the cdf file. The "Epoch" variables must be loaded before other variables.    
+;   in the cdf file. According to ISTP/IACG guidelines "Epoch" should be the 
+;   first variable in each CDF data set.
+;   https://spdf.gsfc.nasa.gov/istp_guide/variables.html#Epoch    
 ;   
 ;
 ; Author: Davin Larson -  20th century
 ;   Forked from MMS, 04/09/2018, adrozdov
 ;
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-11-05 11:39:31 -0800 (Mon, 05 Nov 2018) $
-; $LastChangedRevision: 26056 $
+; $LastChangedDate: 2018-11-15 11:37:22 -0800 (Thu, 15 Nov 2018) $
+; $LastChangedRevision: 26128 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf2tplot.pro $
 ;-
 

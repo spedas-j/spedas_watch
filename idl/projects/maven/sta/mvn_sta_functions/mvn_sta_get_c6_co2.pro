@@ -27,6 +27,7 @@
 FUNCTION mvn_sta_get_c6_co2,time,START=st,EN=en,ADVANCE=adv,RETREAT=ret,index=ind,calib=calib,times=times
 
 common mvn_c6,get_ind,all_dat
+common mvn_sta_c6_co2,co2_valid
 
 if n_elements(get_ind) eq 0 then begin
 	if keyword_set(times) then return,0
@@ -54,10 +55,11 @@ if keyword_set(st) then ind=0l 						$
 	else tmpmin = min(abs(all_dat.time-time),ind)
 
 ; this routine only valid for static mode 1,2,7 at this time
+; you can bypass this default for testing by declaring common mvn_sta_c6_co2,co2_valid and setting co2_valid=1
 ; energy-anode dependence of ion straggling in carbon foils needed for other modes
 	mode = all_dat.mode[ind]
 
-if ind lt 0 or ind ge n_elements(all_dat.time) or not ((mode eq 1) or (mode eq 2) or (mode eq 7)) then begin
+if ind lt 0 or ind ge n_elements(all_dat.time) or not ((mode eq 1) or (mode eq 2) or (mode eq 7) or keyword_set(co2_valid)) then begin
 
 dat = 		{project_name:		all_dat.project_name,		$
 		spacecraft:		all_dat.spacecraft, 		$
@@ -77,7 +79,10 @@ endif else begin
 	mlut_ind= all_dat.mlut_ind[ind]
 	eff_ind	= all_dat.eff_ind[ind]
 	att_ind	= all_dat.att_ind[ind]
-	gf2	= reform(all_dat.gf[swp_ind,*,att_ind])#replicate(1.,all_dat.nmass)
+		str_element,all_dat,'gf_corr',success=success
+		if success then gf_corr=reform(all_dat.gf_corr[ind,*])#replicate(1.,all_dat.nmass) else gf_corr=1.
+	gf2	= (reform(all_dat.gf[swp_ind,*,att_ind])#replicate(1.,all_dat.nmass))*gf_corr
+;	gf2	= reform(all_dat.gf[swp_ind,*,att_ind])#replicate(1.,all_dat.nmass)
 
 dat = 		{project_name:		all_dat.project_name,			$
 		spacecraft:		all_dat.spacecraft, 			$
@@ -150,14 +155,15 @@ get_ind=ind
 ; remove everything but co2
 
 	mass_arr=reform(dat.mass_arr[31,*])
-	mass_scale=8.				; determined emperically from 20170417
 	ms3 = 40.
 	ms4 = 60.
-	cnts_scale=1.05	& ms1=27. & ms2=40.				; this works best for ram anode to get sc_pot agreement and no flow
-	cnts_scale=0.66	& ms1=29.2 & ms2=35.6				; this works best for ram anode to get sc_pot agreement and no flow
-	cnts_scale=0.85	& ms1=29.2 & ms2=37.9				; modified 20170521
-;	cnts_scale=0.90	& ms1=29.2 & ms2=37.9				; testing - works better for 20170712 for along-track near zero
-;	cnts_scale=0.80	& ms1=29.2 & ms2=37.9				; testing - not that good for 201805 co2 mode - .85 still best
+;	mass_scale=8.0 & cnts_scale=1.05 & ms1=27.0 & ms2=40.0			; this works best for ram anode to get sc_pot agreement and no flow
+;	mass_scale=8.0 & cnts_scale=0.66 & ms1=29.2 & ms2=35.6			; this works best for ram anode to get sc_pot agreement and no flow
+	mass_scale=8.0 & cnts_scale=0.85 & ms1=29.2 & ms2=37.9			; modified 20170521
+;	mass_scale=8.0 & cnts_scale=0.90 & ms1=29.2 & ms2=37.9			; testing - works better for 20170712 for along-track near zero
+;	mass_scale=8.0 & cnts_scale=0.80 & ms1=29.2 & ms2=37.9			; testing - not that good for 201805 co2 mode - .85 still best
+
+	mass_scale=7.5 & cnts_scale=0.70 & ms1=29.2 & ms2=37.9			; testing 20180922, used nightside O2+ for calibration (very little CO2+) 20180908/0357UT
 
 	ind32 = where(mass_arr ge ms1 and mass_arr le ms2,count)		 
 

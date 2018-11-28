@@ -10,8 +10,8 @@
 ;KEYWORDS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-09 18:05:05 -0700 (Sun, 09 Sep 2018) $
-; $LastChangedRevision: 25763 $
+; $LastChangedDate: 2018-11-24 13:40:12 -0800 (Sat, 24 Nov 2018) $
+; $LastChangedRevision: 26170 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -627,6 +627,12 @@ pro mvn_sta_cio_tplot
     options,bname,'xstyle',4
     options,bname,'ystyle',4
     options,bname,'no_color_scale',1
+
+; Ephemeris
+
+    store_data,'L_s',data={x:cio_o2.time, y:cio_o2.L_s}
+    store_data,'slat',data={x:cio_o2.time, y:cio_o2.slat}
+    store_data,'Mdist',data={x:cio_o2.time, y:cio_o2.mdist}
 
   return
 

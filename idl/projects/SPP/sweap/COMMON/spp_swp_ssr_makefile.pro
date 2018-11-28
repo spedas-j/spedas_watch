@@ -1,17 +1,16 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2018-11-09 14:36:40 -0800 (Fri, 09 Nov 2018) $
-; $LastChangedRevision: 26102 $
+; $LastChangedDate: 2018-11-16 11:43:37 -0800 (Fri, 16 Nov 2018) $
+; $LastChangedRevision: 26136 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 
 pro spp_swp_ssr_makefile,trange=trange_full,restore=restore
-
   
   login_info = get_login_info()
   test = login_info.user_name eq 'davin'
-  
+ 
   
   make_ql=1
   make_sav=1
@@ -23,13 +22,16 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore
   idlsav_format=output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD.sav'
   ql_dir = output_prefix+'ql/'
 
-  if not keyword_set(trange_full) then trange_full = [time_double('2018-8-30'),systime(1)] else trange_full = timerange(trange_full)
+  ;if not keyword_set(trange_full) then trange_full = [time_double('2018-8-30'),systime(1)] else trange_full = timerange(trange_full)
+  if not keyword_set(trange_full) then begin
+    trange_full = [time_double('2018-8-30'),systime(1)] 
+  endif else begin
+    trange_full = timerange(trange_full)
+  endelse
   res = 86400L
   daynum = round( timerange(trange_full) /res )
   nd = daynum[1]-daynum[0]
   trange = res* double( daynum  ) ; round to days
- ; savfile = 
-
   names=strlowcase(['CMDCTR','SE','SE_HV','SA_SUM','SA_HV','SB_HV','SC_HV','SE_LV',$
     'SE_SPEC','SA_SPEC','SB_SPEC','SE_A_SPEC','SA_A_SPEC','SB_A_SPEC',$
     'SI_RATE','SI_RATE1','SI_HV2','SI_MON','SI_HV','MANIP','SI_GSE','SI','SI_SCAN','SC','ACT','SI_COVER','SA_COVER','SB_COVER',$

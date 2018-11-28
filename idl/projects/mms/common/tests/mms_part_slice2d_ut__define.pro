@@ -6,10 +6,15 @@
 ;     IDL> mgunit, 'mms_part_slice2d_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-09-25 14:55:01 -0700 (Tue, 25 Sep 2018) $
-; $LastChangedRevision: 25864 $
+; $LastChangedDate: 2018-11-13 11:48:04 -0800 (Tue, 13 Nov 2018) $
+; $LastChangedRevision: 26116 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_part_slice2d_ut__define.pro $
 ;-
+function mms_part_slice2d_ut::test_plotsun_regression
+  mms_part_slice2d, probe=4, /plotsun, trange=['2015-12-15', '2015-12-15/0:01'], instrument='fpi', species='i', export=self.output_folder+'test_fpi_i_rot_bv', rotation='bv'
+  assert, spd_data_exists('mms4_mec_r_sun_de421_gse', '2015-12-15', '2015-12-15/0:01'), 'Problem with plotsun regression'
+  return, 1
+end
 
 function mms_part_slice2d_ut::test_fpi_i_rot_bv
   mms_part_slice2d, trange=['2015-12-15', '2015-12-15/0:01'], instrument='fpi', species='i', export=self.output_folder+'test_fpi_i_rot_bv', rotation='bv'

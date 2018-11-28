@@ -219,8 +219,8 @@
 ;         This routine always centers the distribution/moments data
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-11-08 15:40:18 -0800 (Thu, 08 Nov 2018) $
-;$LastChangedRevision: 26079 $
+;$LastChangedDate: 2018-11-27 09:47:35 -0800 (Tue, 27 Nov 2018) $
+;$LastChangedRevision: 26177 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
@@ -256,26 +256,26 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     if keyword_set(subtract_bulk) then load_support = 1b ; need support data for bulk velocity subtraction as well
     if keyword_set(plotbulk) then load_support = 1b 
     if keyword_set(plotsun) then begin
-       mms_load_mec, trange=trange, probe=probe, spdf=spdf, /time_clip
+       if ~spd_data_exists('mms'+probe+'_mec_r_sun_de421_gse', trange[0], trange[1]) then mms_load_mec, trange=trange, probe=probe, spdf=spdf, /time_clip
        ; need to convert J2000 ECI data to GSE
-       spd_cotrans, 'mms1_mec_r_sun_de421_eci', 'mms1_mec_r_sun_de421_gse', out_coord='gse'
-       sname = 'mms1_mec_r_sun_de421_gse'
+       spd_cotrans, 'mms'+probe+'_mec_r_sun_de421_eci', 'mms'+probe+'_mec_r_sun_de421_gse', out_coord='gse'
+       sname = 'mms'+probe+'_mec_r_sun_de421_gse'
     endif
     
-    if load_support then mms_load_fgm, trange=trange, probe=probe, spdf=spdf, data_rate=fgm_data_rate, /time_clip
     bname = 'mms'+probe+'_fgm_b_gse_'+fgm_data_rate+'_l2_bvec'
+    if load_support && ~spd_data_exists(bname, trange[0], trange[1]) then mms_load_fgm, trange=trange, probe=probe, spdf=spdf, data_rate=fgm_data_rate, /time_clip, varformat='*_fgm_b_gse_*
     
     if instrument eq 'fpi' then begin
       name = 'mms'+probe+'_d'+species+'s_dist_'+data_rate
       vname = 'mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate
       if keyword_set(subtract_error) then error_variable = 'mms'+probe+'_d'+species+'s_disterr_'+data_rate
-      mms_load_fpi, datatype='d'+species+'s-dist', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
-      if load_support then mms_load_fpi, datatype='d'+species+'s-moms', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
+      if ~spd_data_exists(name, trange[0], trange[1]) then mms_load_fpi, datatype='d'+species+'s-dist', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip, varformat='*_d'+species+'s_dist_* *s_disterr_* *_d?s_startdelphi_count_* *_d?s_steptable_parity*'
+      if load_support && ~spd_data_exists(vname, trange[0], trange[1]) then mms_load_fpi, datatype='d'+species+'s-moms', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip, varformat='*_d'+species+'s_bulkv_gse_* *s_bulkv_spintone_gse_*'
     endif else if instrument eq 'hpca' then begin
       name = 'mms'+probe+'_hpca_'+species+'_phase_space_density'
       vname = 'mms'+probe+'_hpca_'+species+'_ion_bulk_velocity'
-      mms_load_hpca, datatype='ion', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
-      if load_support then mms_load_hpca, datatype='moments', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip
+      if ~spd_data_exists(name, trange[0], trange[1]) then mms_load_hpca, datatype='ion', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip, varformat='*_hpca_'+species+'_phase_space_density *_hpca_azimuth_angles_per_ev_degrees', /major
+      if load_support && ~spd_data_exists(vname, trange[0], trange[1]) then mms_load_hpca, datatype='moments', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip, varformat='*_hpca_'+species+'_ion_bulk_velocity', /major
     endif else begin
       dprint, dlevel=0, 'Error, unknown instrument; valid options are: fpi, hpca'
       return

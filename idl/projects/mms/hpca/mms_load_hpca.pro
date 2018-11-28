@@ -81,8 +81,8 @@
 ; 
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-10-31 12:55:04 -0700 (Wed, 31 Oct 2018) $
-;$LastChangedRevision: 26036 $
+;$LastChangedDate: 2018-11-20 07:55:28 -0800 (Tue, 20 Nov 2018) $
+;$LastChangedRevision: 26159 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/hpca/mms_load_hpca.pro $
 ;-
 
@@ -132,13 +132,10 @@ pro mms_load_hpca, trange = trange_in, probes = probes, datatype = datatype, $
             datatype='ion'
         endif
     endelse
-    if ~undefined(center_measurement) && ~undefined(varformat) && varformat ne '*' then begin
-      dprint, dlevel = 0, 'Error, cannot specify both the varformat keyword and center measurement keyword in the same call (measurements won''t be centered).'
-      return
-    endif
+
     if ~undefined(varformat) && (varformat[0] ne '*') then begin
-      if is_array(varformat) then varformat = [varformat, '*_ion_energy', '*_start_azimuth'] $
-        else varformat = varformat + ' *_ion_energy *_start_azimuth'
+      if is_array(varformat) then varformat = [varformat, '*_ion_energy', '*_start_azimuth', 'Epoch*'] $
+        else varformat = varformat + ' *_ion_energy *_start_azimuth Epoch*'
     endif
     if ~undefined(varformat) && ~undefined(get_support_data) then undefine, get_support_data
     
@@ -156,7 +153,7 @@ pro mms_load_hpca, trange = trange_in, probes = probes, datatype = datatype, $
         stop
       endif
     endif
-    
+
     mms_load_data, trange = tr, probes = probes, level = level, instrument = 'hpca', $
         data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
         datatype = datatype, get_support_data = get_support_data, varformat = varformat, $
@@ -181,6 +178,7 @@ pro mms_load_hpca, trange = trange_in, probes = probes, datatype = datatype, $
         append_array, vars_to_check, flux_vars_to_check
         
         for psd_idx = 0, n_elements(vars_to_check)-1 do begin
+            if vars_to_check[psd_idx] eq '' then continue
             get_data, vars_to_check[psd_idx], data=d, dlimits=psd_dl
             
             str_element, d, 'v2', energy_table, success=success

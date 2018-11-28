@@ -211,9 +211,9 @@ end
 ;PURPOSE:
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $
-; $LastChangedRevision: 26068 $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2018-11-16 11:50:38 -0800 (Fri, 16 Nov 2018) $
+; $LastChangedRevision: 26137 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 function spp_gen_apdat::sw_version
@@ -229,9 +229,9 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_time_stamp'] = time_string(this_file_date)
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
-  sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 26068 $'
+  sw_hash['svn_changedby '] = '$LastChangedBy: phyllisw2 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2018-11-16 11:50:38 -0800 (Fri, 16 Nov 2018) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 26137 $'
 
     return,sw_hash
 end
@@ -273,9 +273,9 @@ function spp_gen_apdat::cdf_global_attributes
   ;  global_att['SW_TIME_STAMP'] =  time_string(systime(1))
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
-  ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 26068 $'
+  ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: phyllisw2 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-11-16 11:50:38 -0800 (Fri, 16 Nov 2018) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 26137 $'
 
   return,global_att
 end
@@ -339,11 +339,11 @@ pro spp_gen_apdat::cdf_create_file,cdftags=cdftags,trange=trange
 
   foreach attvalue,global_attributes,name do begin
     dummy = cdf_attcreate(fileid,name,/global_scope)
-    ;    if keyword_set(attvalue) then begin
-    for gentnum=0,n_elements(attvalue) do begin
+        if keyword_set(attvalue) then begin
+    for gentnum=0,n_elements(attvalue)-1 do begin
       cdf_attput,fileid,name,gentnum,attvalue[gentnum]
     endfor
-    ;    endif
+        endif
   endforeach
 
   var_atts = self.cdf_variable_attributes()

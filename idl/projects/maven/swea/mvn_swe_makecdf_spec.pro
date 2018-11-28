@@ -23,8 +23,8 @@
 ;   ISTP compliance scrub; DLM: 2016-04-08
 ; VERSION:
 ;   $LastChangedBy: dmitchell $
-;   $LastChangedDate: 2018-11-10 16:49:28 -0800 (Sat, 10 Nov 2018) $
-;   $LastChangedRevision: 26105 $
+;   $LastChangedDate: 2018-11-18 14:23:15 -0800 (Sun, 18 Nov 2018) $
+;   $LastChangedRevision: 26143 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makecdf_spec.pro $
 ;
 ;-
@@ -655,7 +655,12 @@ pro mvn_swe_makecdf_spec, data, file = file, version = version, directory = dire
   endif
   file = tofile
 
+; compression, md5, and permissions (rw--rw--r--)
+
+  mvn_l2file_compress, file
+
 ; Try to make sure maven has group ownership
+; (only works for the file's owner)
 
   cmd = 'chgrp maven ' + file
   spawn, cmd, result, err
@@ -665,9 +670,13 @@ pro mvn_swe_makecdf_spec, data, file = file, version = version, directory = dire
     print, "  ", err
   endif
 
-; compression, md5, and permissions (rw--rw--r--)
-
-  mvn_l2file_compress, file
+  cmd = 'chgrp maven ' + file_dirname(file) + '/' + file_basename(file, '.cdf') + '.md5'
+  spawn, cmd, result, err
+  if (err ne '') then begin
+    print, "Error changing group for file: "
+    print, "  ", cmd
+    print, "  ", err
+  endif
 
 ;Delete old files, jmm, 2014-11-14, include md5's, jmm, 2014-11-25
 

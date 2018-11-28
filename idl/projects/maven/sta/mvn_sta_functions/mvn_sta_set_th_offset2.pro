@@ -759,6 +759,8 @@ endif
 
 
 
+; may want to redo these nightside passes - e0 may be 3.0 for all these, there appear to be gradients in upward flows - or e0 is changing
+
 if time gt time_double('2018-07-21/00:00') then begin					; checked 20180810, SZA=1?? rapidly changing, -.7 to -1,3V = Vsc, 
 	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 2nd orbit, poorly determined, assumed vert wind was zero in att=2 
 endif
@@ -791,6 +793,69 @@ endif
 if time gt time_double('2018-08-31/00:00') then begin					; checked 20180912, SZA=154 rapidly changing, -.1 to -.3V = Vsc, 
 	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; no ram horizontal, poorly determined, assumed horizontal wind roughly zero in att=2 
 endif
+
+if time gt time_double('2018-09-01/00:00') then begin					; checked 20180919, SZA=154 rapidly changing, -.1 to -.3V = Vsc, 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal last orbit, poorly determined, assumed vertical wind roughly zero in att=1-2 
+endif
+
+if time gt time_double('2018-09-04/00:00') then begin					; checked 20180918, SZA=154 rapidly changing, -.1 to -.3V = Vsc, 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal last orbit, poorly determined, assumed vertical wind roughly zero in att=1-2 
+endif
+
+if time gt time_double('2018-09-08/00:00') then begin					; checked 20180918, SZA=154 rapidly changing, -.1 to -.3V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; large vertical wind, poorly determined 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, determined ok, assumed vertical wind roughly zero in att=1 
+endif
+
+if time gt time_double('2018-09-12/00:00') then begin					; checked 20181007, SZA=143 rapidly changing, -.1 to -.3V = Vsc, 
+	e0=1.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; 
+	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; 
+	e0=4.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, determined ok, assumed vertical wind roughly zero in att=1
+	e0=1.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; this value for e0 is probably better for att=2, see note below
+endif
+
+; Notes: it appears that e0 is attenuator state dependent and this approximation of a single e0 is probably wrong
+
+if time gt time_double('2018-09-15/00:00') then begin					; checked 20181006, SZA=137 rapidly changing, -.1 to -.3V = Vsc, 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; bad fit, determined ok, assumed vertical wind roughly zero in att=1 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, determined ok, assumed vertical wind roughly zero in att=2
+	e0=1.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, determined ok, assumed vertical wind roughly zero in att=2
+endif
+
+
+if time gt time_double('2018-09-18/00:00') then begin					; checked 20181005, SZA=135 rapidly changing, -.1 to -.9V = Vsc, 
+	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal last orbit, not zero, assumed vertical wind roughly zero in att=2 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal last orbit, determined ok, assumed vertical wind roughly zero in att=2 
+endif
+
+if time gt time_double('2018-09-22/00:00') then begin					; checked 20181006, SZA=130 rapidly changing, -.2 to -.2V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit,  
+	e0=2.4 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, determined ok, assumed vertical wind roughly zero in att=2
+endif
+
+if time gt time_double('2018-09-29/00:00') then begin					; checked 20181005, SZA=125 rapidly changing, -.1 to -.3V = Vsc, 
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, determined ok, assumed vertical wind roughly zero in att=2 
+endif
+
+if time gt time_double('2018-10-05/00:00') then begin					;  
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; asssume same as 20181006 in att=2 
+endif
+
+if time gt time_double('2018-10-06/00:00') then begin					; checked 20181015, SZA=109 rapidly changing, -.1 to -.9V = Vsc, 
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, determined ok, assumed vertical wind roughly zero in att=2 
+endif
+
+if time gt time_double('2018-10-09/00:00') then begin					; checked 20181021, SZA=109 rapidly changing, -.1 to -.9V = Vsc, 
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, determined ok, assumed vertical wind roughly zero in att=2 
+	e0=2.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, determined ok, assumed vertical wind roughly zero in att=2 
+endif
+
+if time gt time_double('2018-11-07/00:00') then begin					; checked tbd, SZA=98, s/c potential alternating on even/odd orbits scenario 1, 
+	e0=2.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; tbd ram horizontal 1th orbit, poor determination, assumed vertical wind roughly zero in att=2 
+endif
+
+
+
 
 ;tplot,['mvn_sta_c6_O2+_lpw_sc_pot_all','mvn_sta_c8_P2_D_ram','mvn_sta_o2+_c8_th','mvn_sta_o2+_c8_vperp','mvn_sta_o2+_wind_along_track','mvn_sta_c6_scpot','mvn_sta_c6_att'],var_label=['orbit_mvn','LT','LAT','sza','alt'],title='MAVEN STATIC
 
