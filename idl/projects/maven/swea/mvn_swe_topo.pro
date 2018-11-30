@@ -66,8 +66,8 @@
 ;                    quality), 0 otherwise.
 ;
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2018-10-11 13:41:08 -0700 (Thu, 11 Oct 2018) $
-; $LastChangedRevision: 25958 $
+; $LastChangedDate: 2018-11-29 15:52:36 -0800 (Thu, 29 Nov 2018) $
+; $LastChangedRevision: 26185 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_topo.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 11/03/2017
@@ -76,7 +76,7 @@
 Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
   tbl = tbl, orbit = orbit, thrd_shp=thrd_shp,fthrd=fthrd, $
   lcThreshold = lcThreshold, parng=parng, filter_reg=filter_reg, $
-  thrd_frat = thrd_frat, quality=quality, success=success
+  thrd_frat1 = thrd_frat, thrd_frat2 = thrd_frat2,quality=quality, success=success
 
   success = 0
   quality = [0,0,0]
@@ -115,7 +115,8 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
     if (size(fthrd,/type) eq 0) then fthrd=1.e5 ;default threshold for e- voids
     if (size(lcThreshold,/type) eq 0) then lcThreshold = 3.0
     if (size(tbl,/type) eq 0) then tbl=[0,1,2,3,4,5,6,7]
-    if (size(thrd_frat,/type) eq 0) then thrd_frat = 0.75
+    if (size(thrd_frat,/type) eq 0) then thrd_frat = 0.2;0.35;0.75
+    if (size(thrd_frat2,/type) eq 0) then thrd_frat2 = 5;3.5;2
 
     shp_away=reform(data.shape[0,parng]) ;away shape parameter
     shp_twd=reform(data.shape[1,parng]) ;twd shape parameter
@@ -218,12 +219,19 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
 
   ;-----enlisting this index for field-aligned flux ratio---
   ;this is a proxy to find loss cone to distinguish draped and open to night
-  fratio=reform(data.fratio_a2t[1,parng]) ;0--low energy, 1--high energy
+  fratio=reform(data.fratio_a2t[0,parng]) ;0--low energy, 1--high energy
   inna = where(fratio ne fratio,nac,com=ina,ncom=ac)
-  ;thrd_frat = 0.75 ;could be converted to a nob
+  ;thrd_frat = 0.35 ;could be converted to a nob, find dn lc
+  ;thrd_frat2 = 3 ; to find upward beamed, find x-term on dayside
   ;if not NAN, below threshold, j=0, else j=1
-  if ac gt 0L then jdn[ina] =[floor(fratio[ina]/thrd_frat)] < 1
-  if nac gt 0L then jdn[inna] = 2
+  inlc=jdn
+  inbm=jdn
+  if ac gt 0L then begin
+     inlc[ina] = [floor(fratio[ina]/thrd_frat)] < 1;0--lc, 1--no lc
+     inbm[ina] = [floor(fratio[ina]/thrd_frat2)] < 1 ; 0--rat<thrd2, 1--rat>thrd2
+     jdn[ina] = inlc[ina] + inbm[ina] ; 0--lc, 1-- isotropic, 2--upward beamed
+  endif
+  if nac gt 0L then jdn[inna] = 3
 
   topo_mtrx = topomtrx();(tbl = tbl)
   topo=topo_mtrx[jshp_away,jshp_twd,jf,jupz,jdnz,jdn]
@@ -232,13 +240,13 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
   if keyword_set(filter_reg) then begin
     mvn_swe_regid_restore,trange,res=regid,/tplot
     if (size(regid,/type) eq 8) then begin
-       npts=n_elements(regid.time)
-       inxp=interp(lindgen(npts),regid.time,data.t,interp_thresh=16D, /no_extrap)
+       inxp=nearest_neighbor(regid.time,data.t,gap=16D,/no_extrap)
        idtmp=regid.id
-       id=idtmp[round(inxp)]
-      ;id = round(interp(regid.id, regid.time, data.t, interp_thresh=60D, /no_extrap))
-      infilter = where(id eq 1 or id eq 2,count) ; 1--solar wind, 2--sheath
-      if (count gt 0L) then topo[infilter] = 7 ; overwrite these regions to draped
+       id=idtmp[inxp]
+       inv=where(inxp ne inxp,count)
+       if (count gt 0L) then id[inv]=0
+       infilter = where(id eq 1 or id eq 2,count) ; 1--solar wind, 2--sheath
+       if (count gt 0L) then topo[infilter] = 7 ; overwrite these regions to draped
     endif
     get_data,'reg_id',data=reg_id,index=i
     if (i gt 0) then begin
@@ -276,7 +284,7 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
     psym=[3,1,1,3,3,1,3,3]
     sysz=[1,0.5,0.5,1,1,0.5,1,1]
     store_data,'topo_lab',data={x:minmax(data.t),y:replicate(!values.f_nan,2,8)}
-    options,'topo_lab','labels',labs
+    options,'topo_lab','labels',toponame;labs
     options,'topo_lab','colors',clr
     options,'topo_lab','labflag',1
 
@@ -296,6 +304,19 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
       options,ename,'symsize',sysz[i]
     endfor
     store_data,'topo_alt',data=['topo_lab','alt_'+ft[1:7]]
+
+    store_data,'PAD_LC',data={x:padLC.time, y:[[padLC.zScoreUp], [padLC.zScoreDown]]}
+    options,'PAD_LC','ytitle',('PAD!cZ-Scores')
+    options,'PAD_LC','labels',['Away','Towards']
+    options,'PAD_LC','labflag',1
+    options,'PAD_LC','constant',[0,2]
+    ylim,'PAD_LC',-6, 6, 0
+
+    get_data,'rat_a2t',data=rat
+    store_data,'frat_a2t',data={x:rat.x,y:reform(rat.y[*,0])}
+    options,'frat_a2t',yrange=[0.1,10],constant=[thrd_frat,1,thrd_frat2],$
+            ytitle='flux ratio!C35-60 eV!Caway/twd!CPA 0-30',ylog=1
+            ;ytitle='flux ratio!C100-300 eV!Caway/twd!CPA 0-30',ylog=1
 
   endif
   success = 1

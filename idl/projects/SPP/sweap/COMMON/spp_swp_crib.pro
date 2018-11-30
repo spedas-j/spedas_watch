@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $
-; $LastChangedRevision: 26068 $
+; $LastChangedDate: 2018-11-29 11:49:42 -0800 (Thu, 29 Nov 2018) $
+; $LastChangedRevision: 26184 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_crib.pro $
 ;spp_swp_crib
 ;
@@ -18,7 +18,7 @@ printdat,time_string(trange)    ;  print the time range
 
 
 ; define a password
-setenv,'SPP_USER_PASS=guest:spantastic'    ; A line like this can be put in each user's personal startup file.  I recommend: "idl_startup_$user$"  Where $user$ is your username.
+;setenv,'SPP_USER_PASS=guest:superspan'    ; A line like this can be put in each user's personal startup file.  I recommend: "idl_startup_$user$"  Where $user$ is your username.
 
 
 ssrfile = spp_file_retrieve(/ssr)

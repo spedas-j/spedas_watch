@@ -30,8 +30,8 @@
 ;       None
 ;                      
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2018-10-11 13:43:52 -0700 (Thu, 11 Oct 2018) $
-; $LastChangedRevision: 25959 $
+; $LastChangedDate: 2018-11-29 15:53:18 -0800 (Thu, 29 Nov 2018) $
+; $LastChangedRevision: 26186 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/topomtrx.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 11/03/2017
@@ -41,7 +41,7 @@
 Function topomtrx;, tbl=tbl
     ;if (size(tbl,/type) eq 0) then $
     tbl=[0,1,2,3,4,5,6,7]
-    mtrx = fltarr(3,3,3,3,3,3) ;total 81*3=243, ignoring last dimension
+    mtrx = fltarr(3,3,3,3,3,4) ;total 81*3=243, ignoring last dimension
     ; mtrx has 6 dimensions
     ; 0 - upward shape: 0: phe, 1: swe, 2:nan
     ; 1 - downward shape: 0: phe, 1: swe, 2:nan
@@ -84,8 +84,9 @@ Function topomtrx;, tbl=tbl
     ;add another scenario: open-to-day,where high
     ;energy is isotropic when phe and sw e- fluxes
     ; are comparable
-    mtrx[1,0,1,0,0,1]=tbl[5] ;no loss cone  
+    mtrx[1,0,1,0,0,1:2]=tbl[5] ;no loss cone  
     mtrx[1,0,1,0,0,0]=tbl[2] ;flx ratio <1, lc=90
+    ;mtrx[1,0,1,0,0,*]=tbl[5]
 
     ;open to day
     ;up phe + dn swe + 1-sided lc up
@@ -122,7 +123,10 @@ Function topomtrx;, tbl=tbl
 
     ;phe in both direction, dayside closed loops
     mtrx[0,0,1,*,*,*]=tbl[1] ;9/4-1
-
+    ;mtrx[0,0,1,0,1,*]=tbl[2]
+    ;mtrx[0,0,1,1,0,*]=tbl[2]
+    mtrx[0,0,1,*,*,2]=tbl[2] ;x-term if upward-beamed
+    mtrx[0,0,1,*,*,0]=tbl[2]
     ;closed loops on nightside
     ;2. e- void
     mtrx[*,*,0,*,*,*]=tbl[4] ;81/16
