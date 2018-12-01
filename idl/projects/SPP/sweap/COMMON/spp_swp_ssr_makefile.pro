@@ -1,22 +1,22 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2018-11-16 11:43:37 -0800 (Fri, 16 Nov 2018) $
-; $LastChangedRevision: 26136 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2018-11-30 15:11:19 -0800 (Fri, 30 Nov 2018) $
+; $LastChangedRevision: 26215 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 
-pro spp_swp_ssr_makefile,trange=trange_full,restore=restore
+pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
   
   login_info = get_login_info()
   test = login_info.user_name eq 'davin'
- 
+ test=1
   
   make_ql=1
-  make_sav=1
+  make_sav=0
   make_cdf=1
 
-  output_prefix = 'spp/data/sci/sweap/prelaunch/test6/'
+  output_prefix = 'spp/data/sci/sweap/prelaunch/test7/'
   ssr_prefix='spp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
   ssr_format = 'YYYY/DOY/*_?_E?'
   idlsav_format=output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD.sav'
@@ -49,20 +49,23 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore
     sav_file=spp_file_retrieve(idlsav_format,trange=tr[0],/create_dir,/daily_names)
     str_replace, sav_file,'$ND$',strtrim(nd,2)
        
-    if file_test(sav_file) then begin
-      if keyword_set(restore) then begin
-        del_data,'*'
-        spp_apdat_info,file_restore=sav_file,/finish
-      endif
-    endif else begin
-      ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)  ; load all data over many days (full orbit)
-      ;      spp_swp_apdat_init,/reset
-      spp_ssr_file_read,ssr_files,/sort_flag
-      if keyword_set(make_sav) then begin
-        spp_apdat_info,file_save=sav_file,/compress
-        save,file=sav_file+'.code',/routines,/verbose
-      endif
-    endelse
+    if ~keyword_set(no_load) then begin
+      if file_test(sav_file) and 0 then begin
+        if keyword_set(restore) then begin
+          del_data,'*'
+          spp_apdat_info,file_restore=sav_file,/finish
+        endif
+      endif else begin
+        ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)  ; load all data over many days (full orbit)
+        ;      spp_swp_apdat_init,/reset
+        spp_ssr_file_read,ssr_files,/sort_flag
+        if keyword_set(make_sav) then begin
+          spp_apdat_info,file_save=sav_file,/compress
+          save,file=sav_file+'.code',/routines,/verbose
+        endif
+      endelse
+      
+    endif
     
     for day=daynum[0],daynum[1] do begin ;loop over days
       trdaily = double(day * res)
@@ -110,6 +113,8 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore
         ;      spp_apdat_info,'spi_rates',cdf_pathname = cdf_pathformat
         ;    spp_apdat_info,'sp?_sf1',cdf_pathname = cdf_pathformat
         timespan,tr ;for cdf pathnames to work!
+        
+        dummy = {cdf_tools}   ; dummy statement to force compile of routine
         aps = spp_apdat('spa_s??')
         foreach a,aps do begin
           a.print

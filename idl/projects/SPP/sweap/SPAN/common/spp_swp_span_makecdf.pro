@@ -114,9 +114,9 @@ fnan = !values.f_nan
  
 ; Force Epoch as first variable. If datavary contains an EPOCH variable it will add or overwrite this value
 epoch = time_ephemeris(datavary.time,/et2ut)                ;  may want to change this later to base it on me
-vho = cdf_tools_varinfo('Epoch',epoch,/recvary,datatype = 'CDF_EPOCH')
+vho = cdf_tools_varinfo('Epoch',epoch[0],/recvary,datatype = 'CDF_EPOCH')
 vh = vho.getattr()
-;vh.datatype = 
+vh.data.array = epoch
 vatts =  spp_swp_span_variable_attributes('Epoch')
 vh.attributes  += vatts
 cdf.add_variable, vh
@@ -125,10 +125,11 @@ cdf.add_variable, vh
 if ~keyword_set(vnames) then vnames = tag_names(datavary)
 datavary0 = datavary[0]   ; use first element as the template.
 
-for i=0,n_elements(vnames)-1 do begin
-  vname = vnames[i]
-  val = datavary0.(i)
-  vals = datavary.(i)
+dlevel=5
+for vn=0,n_elements(vnames)-1 do begin
+  vname = vnames[vn]
+  val = datavary0.(vn)
+  vals = datavary.(vn)
   if isa(val,'pointer') then begin                ; special case for pointers
     maxsize = max(datavary.datasize,index)
     val = *vals[index]
@@ -143,8 +144,9 @@ for i=0,n_elements(vnames)-1 do begin
   vh = vho.getattr()
   vh.data.array = vals
   vatt  = spp_swp_span_variable_attributes(vname)
+  dprint,dlevel=dlevel,'hello1'
   vh.attributes += vatt
-
+  dprint,dlevel=dlevel,'hello2'
   cdf.add_variable, vh  
 endfor
 

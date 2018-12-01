@@ -11,7 +11,7 @@ This page was created by the IDL library routine
 <CODE>mk_html_help2</CODE>.
 <br>
 <P>
-<STRONG>Last modified: </STRONG>Thu Nov 29 18:16:27 2018.<P>
+<STRONG>Last modified: </STRONG>Fri Nov 30 18:16:25 2018.<P>
  
 <HR>
  
@@ -21,6 +21,7 @@ This page was created by the IDL library routine
 <H1>general/spedas_tools</H1>
 <LI><A HREF="#SPD_EXTRACT_TVAR_METADATA">SPD_EXTRACT_TVAR_METADATA</A>
 <br>Returns metadata extracted from a tplot variable; mostly for tplot2ap and tplot2cdf
+<LI><A HREF="#SPD_GET_SYM.PRO">SPD_GET_SYM.PRO</A>
 <LI><A HREF="#SPD_READ_CURRENT_VERSION">SPD_READ_CURRENT_VERSION</A>
 <br>Reads and returns the current revision # from the file svn_version_info.txt
 <br>
@@ -30,7 +31,7 @@ This page was created by the IDL library routine
 <H1>Routine Descriptions</H1>
 <A NAME="SPD_EXTRACT_TVAR_METADATA">
 <H2>SPD_EXTRACT_TVAR_METADATA</H2></A>
-<A HREF="#SPD_READ_CURRENT_VERSION">[Next Routine]</A>
+<A HREF="#SPD_GET_SYM.PRO">[Next Routine]</A>
 <A HREF="#ROUTINELIST">[List of Routines]</A>
 <PRE>
  FUNCTION:
@@ -53,9 +54,79 @@ This page was created by the IDL library routine
 <STRONG>(See <A href="spedas_tools/spd_extract_tvar_metadata.pro">general/spedas_tools/spd_extract_tvar_metadata.pro</A>)</STRONG><P>
 <HR>
  
+<A NAME="SPD_GET_SYM.PRO">
+<H2>SPD_GET_SYM.PRO</H2></A>
+<A HREF="#SPD_EXTRACT_TVAR_METADATA">[Previous Routine]</A>
+<A HREF="#SPD_READ_CURRENT_VERSION">[Next Routine]</A>
+<A HREF="#ROUTINELIST">[List of Routines]</A>
+<PRE>
+ NAME:
+        spd_get_sym.pro
+
+ PURPOSE:
+ 
+        This function provides a convenient way to utilize the
+        USERSYM procedure to create an extended choice of plotting
+        symbols, and is intended to be used directly with the PSYM
+        keyword to PLOT, OPLOT, etc.
+
+ CALLING SEQUENCE:
+ 
+        Result=spd_get_sym(NUMBER)
+
+ INPUTS:
+ 
+        NUMBER - symbol number
+ 
+               0 : dot
+               1 : filled circle
+               2 : filled upward triangle
+               3 : filled downward triangle
+               4 : filled diamond
+               5 : filled square
+               6 : open circle
+               7 : open upward triangle
+               8 : open downward triangle
+               9 : open diamond
+              10 : open square
+              11 : plus
+              12 : X
+              13 : star
+              14 : filled rightfacing triangle
+              15 : filled leftfacing triangle
+              16 : open rightfacing triangle
+              17 : open leftfacing triangle
+
+ OUTPUTS:
+ 
+        The function returns the symbol number to be used with the
+        PSYM keyword in the PLOT, OPLOT, etc. commands
+
+ SIDE EFFECTS:
+ 
+        The USERSYM procedure is used to create a symbol definition.
+
+ EXAMPLE:
+
+        To produce a plot using open circles as plotting symbols:
+ 
+        PLOT,X,Y,PSYM=spd_get_sym(6)
+
+ MODIFICATION HISTORY:
+ 
+        Martin Schultz, Harvard University, 22 Aug 1997: VERSION 1.00
+        
+        (with some minor changes to the information in this header by
+        D. Windt, windt@bell-labs.com)
+
+       Forked, renamed for SPEDAS by egrimes on 30 Nov 2018
+</PRE><P>
+<STRONG>(See <A href="spedas_tools/spd_get_sym.pro">general/spedas_tools/spd_get_sym.pro</A>)</STRONG><P>
+<HR>
+ 
 <A NAME="SPD_READ_CURRENT_VERSION">
 <H2>SPD_READ_CURRENT_VERSION</H2></A>
-<A HREF="#SPD_EXTRACT_TVAR_METADATA">[Previous Routine]</A>
+<A HREF="#SPD_GET_SYM.PRO">[Previous Routine]</A>
 <A HREF="#ROUTINELIST">[List of Routines]</A>
 <PRE>
  FUNCTION:

@@ -33,8 +33,8 @@
 ;   work in progress! please send bugs/problems/complaints/etc to egrimes@igpp.ucla.edu
 ;   
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-07-24 09:50:50 -0700 (Tue, 24 Jul 2018) $
-;$LastChangedRevision: 25513 $
+;$LastChangedDate: 2018-11-30 13:11:06 -0800 (Fri, 30 Nov 2018) $
+;$LastChangedRevision: 26211 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/science/spd_slice2d/core/spd_slice1d_plot.pro $
 ;-
 
@@ -92,7 +92,9 @@ pro spd_slice1d_plot, slice, direction, value, xrange=xrange, yrange=yrange, _ex
       endif
     endif
     ; replot without the color, for the axes/labels
-    str_element, ex, 'color', /delete
+    if is_struct(ex) then str_element, ex, 'color', /delete
+    if ~undefined(ex) && ~is_struct(ex) && ex eq 0 then undefine, ex
+
     plot, [0, 0], /nodata, /noerase, xtitle=xtitle, ytitle=yunits, xrange=xrange, yrange=yrange, xmargin=xmargin, ymargin=ymargin, xstyle=1, ystyle=1, _extra=ex, color=0
     return
   endif

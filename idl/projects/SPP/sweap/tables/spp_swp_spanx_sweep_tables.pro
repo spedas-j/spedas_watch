@@ -75,6 +75,20 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
       ELSE index = [index,tsindex]      
    ENDFOR
    tsindex = index
+   
+   if 1 then begin
+     timesort = indgen(8*32)
+     defsort = indgen(8,2,16)
+     for i = 0,15 do defsort[*,1,i] = reverse(defsort[*,1,i])           ; reverse direction of every other deflector sweep
+     defsort = reform(defsort,8,32)                                       ; defsort will reorder data so that it is no longer in time order - but deflector values are regular    
+   endif else begin
+     timesort = indgen(4,8*32)
+     defsort = indgen(4*8,2,16)
+     for i = 0,15 do defsort[*,1,i] = reverse(defsort[*,1,i])           ; reverse direction of every other deflector sweep
+     defsort = reform(defsort,4,8,32)                                       ; defsort will reorder data so that it is no longer in time order - but deflector values are regular
+   endelse
+
+   
 
    if total(/pres,(defv1_dac ne 0) and (defv2_dac ne 0)) then message,'Bad deflector sweep table'
 
@@ -86,8 +100,10 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
              defv1_dac:defv1_dac,$
              defv2_dac:defv2_dac,$
              spv_dac:spv_dac,$
-             fsindex:fsindex,$
-             tsindex:tsindex,$
+             fsindex: reform(fsindex,4,256),$
+             tsindex: reform(tsindex,256,256),$
+             timesort: timesort,  $
+             deflsort:  defsort,   $
              emin:emin,$
              emax:emax,$
              k:k,$
@@ -99,7 +115,6 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
              hvgain:hvgain,$
              spgain:spgain,$
              fixgain:fixgain }
-   
 
 return,table
 END
