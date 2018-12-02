@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-10-01 14:53:06 -0700 (Mon, 01 Oct 2018) $
-; $LastChangedRevision: 25881 $
+; $LastChangedDate: 2018-12-01 07:52:04 -0800 (Sat, 01 Dec 2018) $
+; $LastChangedRevision: 26217 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ; 
 ; ;  This routine will read SSR files that (series of CCSDS packets)
@@ -8,6 +8,7 @@
 pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_flag,no_init=no_init
   
 ;  oldmethod =0
+  dummy = {cdf_tools}
   
   if not keyword_set(dwait) then   dwait = 10
   t0 = systime(1)

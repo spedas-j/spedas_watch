@@ -1,9 +1,84 @@
+PRO cdf_tools_varinfo::GetProperty, data=data, name=name, attributes=attributes, numrec=numrec,strct=strct
+  COMPILE_OPT IDL2
+  IF (ARG_PRESENT(name)) THEN name = self.name
+  IF (ARG_PRESENT(numrec)) THEN numrec = self.numrec
+  IF (ARG_PRESENT(attributes)) THEN attributes = self.attributes
+  IF (ARG_PRESENT(data)) THEN data = self.data
+  IF (ARG_PRESENT(strct)) THEN struct_assign,strct,self
+END
+
+
+
+
+
+FUNCTION cdf_tools_varinfo::Init,name,value,_EXTRA=ex    ;,epoch=epoch
+  COMPILE_OPT IDL2
+  self.dlevel = 3
+  void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
+  if isa(name,/string) then begin
+    self.name  =name
+  endif
+  self.data = dynamicarray(name=self.name)
+  self.attributes = orderedhash()
+  self.is_zvar = 1
+  self.type = size(/type,value)
+  self.ndimen = size(/n_dimensions,value)
+  self.d = size(/dimen,value)
+  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=2
+;  if keyword_set(epoch) then begin
+;    self.name = 'Epoch'
+;    self.recvary = 1
+;    self.datatype = 'CDF_TIME_TT2000'
+;    self.attributes['CATDESC']    = 'Time in TT2000 format'
+;    self.attributes['FIELDNAM']    = 'Epoch'
+;    self.attributes['FILLVAL']    = -1
+;    self.attributes['LABLAXIS']    = 'Epoch'
+;    self.attributes['UNITS']    = 'ns'
+;    self.attributes['VALIDMIN']    = -315575942816000000
+;    self.attributes['VALIDMAX']    = 946728068183000000
+;    self.attributes['VAR_TYPE']    = 'support_data'
+;    self.attributes['SCALETYP']    = 'linear'
+;    self.attributes['VAR_NOTES']    = 'This time corresponds to the middle measurement of the spectrum. This is usually NOT regular cadence.'
+;    self.attributes['MONOTON']    = 'INCREASE'
+;    self.attributes['TIME_BASE']    = 'J2000'
+;    self.attributes['TIME_SCALE']    = 'Terrestrial Time'
+;    if isa(epoch,'DYNAMICARRAY')  then self.data = epoch.data
+;    if isa(epoch, 'LONG64')       then self.data.array = epoch
+;  endif
+  IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
+  RETURN, 1
+end
+
+
+PRO cdf_tools_varinfo__define
+  void = {cdf_tools_varinfo, $
+    inherits generic_Object, $    ; superclass
+    name:'', $
+    num:0, $
+    is_zvar:0,  $
+    datatype:'',  $
+    type:0, $
+    numattr:-1,  $
+    numelem:0, $
+    recvary:0b, $
+    numrec:0l, $
+    ndimen:0, $
+    d:lonarr(6) , $
+    data:obj_new(), $
+    attributes:obj_new()   $
+  }
+end
+
+
+
+
+
 ;+
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $
-; $LastChangedRevision: 26068 $
+; $LastChangedDate: 2018-12-01 07:54:56 -0800 (Sat, 01 Dec 2018) $
+; $LastChangedRevision: 26218 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -35,8 +110,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $
-; $LastChangedRevision: 26068 $
+; $LastChangedDate: 2018-12-01 07:54:56 -0800 (Sat, 01 Dec 2018) $
+; $LastChangedRevision: 26218 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -57,8 +132,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-11-08 07:58:40 -0800 (Thu, 08 Nov 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26068 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-01 07:54:56 -0800 (Sat, 01 Dec 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 26218 $'
 
   return,sw_hash
 end
@@ -242,7 +317,7 @@ end
 
 pro cdf_tools::var_att_create,var
 
-  dlevel = self.dlevel
+  dlevel = self.dlevel+1
   fileid = self.fileid
   varname = var.name
   data = var.data
@@ -280,7 +355,7 @@ pro cdf_tools::var_att_create,var
   opts = struct(cdf_type,ZVARIABLE=ZVARIABLE,rec_novary=rec_novary,numelem=numelem)
 
   
-  dprint,dlevel=3,phelp=2,varname,dim,opts,data
+  dprint,dlevel=dlevel,phelp=2,varname,dim,opts,data
   if ~keyword_set(rec_novary)  then  begin
     if ndim ge 1 then begin
       varid = cdf_varcreate(fileid, varname,dim ne 0, DIMENSION=dim,_extra=opts)
@@ -303,7 +378,7 @@ pro cdf_tools::var_att_create,var
       if not keyword_set(attname) then continue      ; ignore null strings
       if ~cdf_attexists(fileid,attname) then begin
         dummy = cdf_attcreate(fileid,attname,/variable_scope)
-        dprint,dlevel=self.dlevel,'Created new Attribute: ',attname, ' for: ',varname
+        dprint,dlevel=dlevel,'Created new Attribute: ',attname, ' for: ',varname
       endif
       if keyword_set(value) then begin
         cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE        
@@ -483,7 +558,7 @@ end
 ;  vb = keyword_set(verbose) ? verbose : 0
 ;  vars=''
 ;  info = 0
-;  dprint,dlevel=4,verbose=verbose,'$Id: cdf_tools__define.pro 26068 2018-11-08 15:58:40Z davin-mac $'
+;  dprint,dlevel=4,verbose=verbose,'$Id: cdf_tools__define.pro 26218 2018-12-01 15:54:56Z davin-mac $'
 ;
 ;    on_ioerror, ferr
 ;  for fi=0,n_elements(files)-1 do begin
@@ -648,77 +723,6 @@ end
 ;
 ;end
 
-
-PRO cdf_tools_varinfo::GetProperty, data=data, name=name, attributes=attributes, numrec=numrec,strct=strct
-  COMPILE_OPT IDL2
-  IF (ARG_PRESENT(name)) THEN name = self.name
-  IF (ARG_PRESENT(numrec)) THEN numrec = self.numrec
-  IF (ARG_PRESENT(attributes)) THEN attributes = self.attributes
-  IF (ARG_PRESENT(data)) THEN data = self.data
-  IF (ARG_PRESENT(strct)) THEN struct_assign,strct,self
-END
-
-
-
-
-
-FUNCTION cdf_tools_varinfo::Init,name,value,_EXTRA=ex,epoch=epoch
-  COMPILE_OPT IDL2
-  self.dlevel = 3
-  void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
-  if isa(name,/string) then begin
-    self.name  =name
-  endif
-  self.data = dynamicarray(name=self.name)
-  self.attributes = orderedhash()
-  self.is_zvar = 1
-  self.type = size(/type,value)
-  self.ndimen = size(/n_dimensions,value)
-  self.d = size(/dimen,value)
-  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=2
-  if keyword_set(epoch) then begin
-    self.name = 'Epoch'
-    self.recvary = 1
-    self.datatype = 'CDF_TIME_TT2000'
-    self.attributes['CATDESC']    = 'Time in TT2000 format'
-    self.attributes['FIELDNAM']    = 'Epoch'
-    self.attributes['FILLVAL']    = -1
-    self.attributes['LABLAXIS']    = 'Epoch'
-    self.attributes['UNITS']    = 'ns'
-    self.attributes['VALIDMIN']    = -315575942816000000
-    self.attributes['VALIDMAX']    = 946728068183000000
-    self.attributes['VAR_TYPE']    = 'support_data'
-    self.attributes['SCALETYP']    = 'linear'
-    self.attributes['VAR_NOTES']    = 'This time corresponds to the middle measurement of the spectrum. This is usually NOT regular cadence.'
-    self.attributes['MONOTON']    = 'INCREASE'
-    self.attributes['TIME_BASE']    = 'J2000'
-    self.attributes['TIME_SCALE']    = 'Terrestrial Time'
-    if isa(epoch,'DYNAMICARRAY')  then self.data = epoch.data
-    if isa(epoch, 'LONG64')       then self.data.array = epoch
-  endif
-  IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex    
-  RETURN, 1
-end
- 
- 
-PRO cdf_tools_varinfo__define
-  void = {cdf_tools_varinfo, $
-    inherits generic_Object, $    ; superclass
-    name:'', $
-    num:0, $
-    is_zvar:0,  $
-    datatype:'',  $
-    type:0, $
-    numattr:-1,  $
-    numelem:0, $
-    recvary:0b, $
-    numrec:0l, $
-    ndimen:0, $
-    d:lonarr(6) , $
-    data:obj_new(), $
-    attributes:obj_new()   $
-    }
-end
 
 
 ;PRO cdf_tools_fileinfo__define

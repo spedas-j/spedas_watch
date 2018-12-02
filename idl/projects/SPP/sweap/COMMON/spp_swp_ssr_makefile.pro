@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-30 15:11:19 -0800 (Fri, 30 Nov 2018) $
-; $LastChangedRevision: 26215 $
+; $LastChangedDate: 2018-12-01 07:52:04 -0800 (Sat, 01 Dec 2018) $
+; $LastChangedRevision: 26217 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -8,19 +8,15 @@
 
 pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
   
-  login_info = get_login_info()
-  test = login_info.user_name eq 'davin'
+;  login_info = get_login_info()
+;  test = login_info.user_name eq 'davin'
  test=1
   
+  dummy = {cdf_tools}
   make_ql=1
   make_sav=0
   make_cdf=1
 
-  output_prefix = 'spp/data/sci/sweap/prelaunch/test7/'
-  ssr_prefix='spp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
-  ssr_format = 'YYYY/DOY/*_?_E?'
-  idlsav_format=output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD.sav'
-  ql_dir = output_prefix+'ql/'
 
   ;if not keyword_set(trange_full) then trange_full = [time_double('2018-8-30'),systime(1)] else trange_full = timerange(trange_full)
   if not keyword_set(trange_full) then begin
@@ -45,6 +41,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
     ssr_prefix='spp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
     ssr_format = 'YYYY/DOY/*_?_E?'
     idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
+    ql_dir = output_prefix+'ql/'
     tr = timerange(trange_full)
     sav_file=spp_file_retrieve(idlsav_format,trange=tr[0],/create_dir,/daily_names)
     str_replace, sav_file,'$ND$',strtrim(nd,2)
@@ -75,12 +72,8 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
         sav_info = file_info(sav_file)
         ssr_timestamp=max([ssr_info.mtime,ssr_info.ctime])
         sav_timestamp=sav_info.mtime
-        if ssr_timestamp lt sav_timestamp then continue    ; skip if sav does not need to be regenerated
-        
+        if ssr_timestamp lt sav_timestamp then continue    ; skip if sav does not need to be regenerated       
       endif
-;      store_data,/delete,'*'
-;      spp_swp_apdat_init,/reset
-;      spp_ssr_file_read,ssr_files,/sort_flag
 
 
       if 0 then spp_apdat_info,file_restore=sav_file,/finish
@@ -118,7 +111,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
         aps = spp_apdat('spa_s??')
         foreach a,aps do begin
           a.print
-          a.makecdf,trange=trange   
+          a.cdf_makefile,trange=trange   
         endforeach
 ;        spp_apdat_info,make_cdf=make_cdf,/print
       endif
@@ -126,6 +119,11 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
     endfor
         
   endif else begin    ; Old method
+    output_prefix = 'spp/data/sci/sweap/prelaunch/test7/'
+    ssr_prefix='spp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
+    ssr_format = 'YYYY/DOY/*_?_E?'
+    idlsav_format=output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD.sav'
+    ql_dir = output_prefix+'ql/'
     for i=0L,nd-1 do begin ;loop over days
       tr = trange[0] + [i,i+1] * res
       ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)
