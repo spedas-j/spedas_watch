@@ -76,7 +76,7 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
 
 productstr = {spp_swp_span_prod, $
   time:        ccsds.time, $
-  Epoch:      0LL,  $
+;  Epoch:      0LL,  $
   MET:         ccsds.met,  $
   apid:        ccsds.apid, $
   time_delta:  ccsds.time_delta, $
