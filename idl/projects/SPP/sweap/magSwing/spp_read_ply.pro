@@ -1,7 +1,7 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2018-04-05 10:37:32 -0700 (Thu, 05 Apr 2018) $
-; $LastChangedRevision: 25002 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/magSwing/spp_read_ply $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2018-12-04 12:32:15 -0800 (Tue, 04 Dec 2018) $
+; $LastChangedRevision: 26232 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/magSwing/spp_read_ply.pro $
 ; For now this is a crib sheet. Also, "kludge" is nonfunctional any more, pending removal.
 
 pro spp_read_ply, kludge = kludge, output = output, step = step, nframes = nframes

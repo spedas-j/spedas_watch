@@ -1,9 +1,9 @@
 ;+
 ; spp_swp_span_prod
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-10-01 14:52:34 -0700 (Mon, 01 Oct 2018) $
-; $LastChangedRevision: 25880 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu:36867/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/spp_swp_spe_prod_apdat__define.pro $
+; $LastChangedDate: 2018-12-04 12:32:15 -0800 (Tue, 04 Dec 2018) $
+; $LastChangedRevision: 26232 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
 

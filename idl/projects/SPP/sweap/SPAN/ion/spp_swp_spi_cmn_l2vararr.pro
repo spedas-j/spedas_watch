@@ -15,10 +15,11 @@
 ; variance.
 ;HISTORY:
 ; 16-sep-2018, rlivi, rlivi@berkeley.edu
-; $LastChangedBy:
-; $LastChangedDate:
-; $LastChangedRevision:
-; $URL: 
+;SVN Berkeley Information:
+; $LastChangedBy: rlivi2 $
+; $LastChangedDate: 2018-12-03 23:01:25 -0800 (Mon, 03 Dec 2018) $
+; $LastChangedRevision: 26222 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_cmn_l2vararr.pro $
 ;-
 
 FUNCTION spp_swp_spi_cmn_l2vararr, apid

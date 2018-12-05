@@ -1,7 +1,7 @@
-; $LastChangedBy: -mac $
-; $LastChangedDate: 20Jun 2018) $
-; $LastChangedRevision:  $
-; $URL: svn+ssh://thm.pro $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2018-12-04 12:32:15 -0800 (Tue, 04 Dec 2018) $
+; $LastChangedRevision: 26232 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 ;this is a test routine for now.
 ;

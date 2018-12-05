@@ -1,74 +1,3 @@
-PRO cdf_tools_varinfo::GetProperty, data=data, name=name, attributes=attributes, numrec=numrec,strct=strct
-  COMPILE_OPT IDL2
-  IF (ARG_PRESENT(name)) THEN name = self.name
-  IF (ARG_PRESENT(numrec)) THEN numrec = self.numrec
-  IF (ARG_PRESENT(attributes)) THEN attributes = self.attributes
-  IF (ARG_PRESENT(data)) THEN data = self.data
-  IF (ARG_PRESENT(strct)) THEN struct_assign,strct,self
-END
-
-
-
-
-
-FUNCTION cdf_tools_varinfo::Init,name,value,_EXTRA=ex    ;,epoch=epoch
-  COMPILE_OPT IDL2
-  self.dlevel = 3
-  void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
-  if isa(name,/string) then begin
-    self.name  =name
-  endif
-  self.data = dynamicarray(name=self.name)
-  self.attributes = orderedhash()
-  self.is_zvar = 1
-  self.type = size(/type,value)
-  self.ndimen = size(/n_dimensions,value)
-  self.d = size(/dimen,value)
-  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=2
-;  if keyword_set(epoch) then begin
-;    self.name = 'Epoch'
-;    self.recvary = 1
-;    self.datatype = 'CDF_TIME_TT2000'
-;    self.attributes['CATDESC']    = 'Time in TT2000 format'
-;    self.attributes['FIELDNAM']    = 'Epoch'
-;    self.attributes['FILLVAL']    = -1
-;    self.attributes['LABLAXIS']    = 'Epoch'
-;    self.attributes['UNITS']    = 'ns'
-;    self.attributes['VALIDMIN']    = -315575942816000000
-;    self.attributes['VALIDMAX']    = 946728068183000000
-;    self.attributes['VAR_TYPE']    = 'support_data'
-;    self.attributes['SCALETYP']    = 'linear'
-;    self.attributes['VAR_NOTES']    = 'This time corresponds to the middle measurement of the spectrum. This is usually NOT regular cadence.'
-;    self.attributes['MONOTON']    = 'INCREASE'
-;    self.attributes['TIME_BASE']    = 'J2000'
-;    self.attributes['TIME_SCALE']    = 'Terrestrial Time'
-;    if isa(epoch,'DYNAMICARRAY')  then self.data = epoch.data
-;    if isa(epoch, 'LONG64')       then self.data.array = epoch
-;  endif
-  IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
-  RETURN, 1
-end
-
-
-PRO cdf_tools_varinfo__define
-  void = {cdf_tools_varinfo, $
-    inherits generic_Object, $    ; superclass
-    name:'', $
-    num:0, $
-    is_zvar:0,  $
-    datatype:'',  $
-    type:0, $
-    numattr:-1,  $
-    numelem:0, $
-    recvary:0b, $
-    numrec:0l, $
-    ndimen:0, $
-    d:lonarr(6) , $
-    data:obj_new(), $
-    attributes:obj_new()   $
-  }
-end
-
 
 
 
@@ -77,8 +6,8 @@ end
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-01 07:54:56 -0800 (Sat, 01 Dec 2018) $
-; $LastChangedRevision: 26218 $
+; $LastChangedDate: 2018-12-04 12:18:48 -0800 (Tue, 04 Dec 2018) $
+; $LastChangedRevision: 26230 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -110,8 +39,8 @@ end
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-01 07:54:56 -0800 (Sat, 01 Dec 2018) $
-; $LastChangedRevision: 26218 $
+; $LastChangedDate: 2018-12-04 12:18:48 -0800 (Tue, 04 Dec 2018) $
+; $LastChangedRevision: 26230 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -132,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-01 07:54:56 -0800 (Sat, 01 Dec 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26218 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-04 12:18:48 -0800 (Tue, 04 Dec 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 26230 $'
 
   return,sw_hash
 end
@@ -435,307 +364,48 @@ end
 
 
 pro cdf_tools::add_variable,vi
+  if isa(vi,'cdf_tools_varinfo') then begin
+    self.vars[vi.name] = vi.getattr()
+    return
+  endif
   self.vars[vi.name] = vi
 end
 
 
-;  The following function is obsolete and will be changed
-
-;function cdf_tools::info,id0,data=ret_data,attributesf=ret_attr,verbose=verbose,convert_int1_to_int2=convert_int1_to_int2
-;  tstart = systime(1)
-;  if n_elements(id0) eq 0 then id0 = dialog_pickfile(/multi)
-;  vb = keyword_set(verbose) ? verbose : 0
-;
-;  ;for i=0,n_elements(id0)-1 do begin
-;
-;  if size(/type,id0) eq 7 then begin
-;    if file_test(id0) then  id=cdf_open(id0)  $
-;    else begin
-;      if vb ge 1 then dprint,verbose=verbose,'File not found: "'+id0+'"'
-;      return,0
-;    endelse
-;  endif  else id=id0
-;
-;  inq = cdf_inquire(id)
-;  q = !quiet
-;  cdf_control,id,get_filename=fn
-;  ; need to add .cdf to the filename, since "cdf_control,id, get_filename="
-;  ;    returns the filename without the extension
-;  fn = fn + '.cdf'
-;
-;  nullp = ptr_new()
-;  varinfo_format = {name:'',num:0, is_zvar:0, datatype:'',type:0, $
-;    ;   depend_0:'', $
-;    numattr:-1,  $
-;    ;   userflag1:0, $
-;    ;   userstr1:'', $
-;    ;   index:0,     $
-;    numelem:0, recvary:0b, numrec:0l, $
-;    ndimen:0, d:lonarr(6) , $
-;    dataptr:ptr_new(), attrptr:ptr_new()  }
-;
-;  nv = inq.nvars+inq.nzvars
-;  vinfo = nv gt 0 ? replicate(varinfo_format, nv) : 0
-;  i = 0
-;  g_atts = cdf_var_atts(id)
-;  g_att_names = cdf_var_atts(id,/names_only)   ; If cdf_var_atts were modified slightly these calls could be made in parallel
-;  num_recs =0
-;  t0=systime(1)
-;
-;  att=0
-;  for zvar = 0,1 do begin   ; regular variables first, then zvariables
-;    nvars = zvar ? inq.nzvars : inq.nvars
-;    for v = 0,nvars-1 do begin
-;      vi = cdf_varinq(id,v,zvar=zvar)
-;      vinfo[i].num = v
-;      vinfo[i].is_zvar = zvar
-;      vinfo[i].name = vi.name
-;      vinfo[i].datatype = vi.datatype
-;      vinfo[i].type = self.cdf_var_type(vi.datatype)
-;      vinfo[i].numelem = vi.numelem
-;      recvar = vi.recvar eq 'VARY'
-;      vinfo[i].recvary = recvar
-;
-;      if recvar then begin
-;        ;if vb ge 6 then print,ptrace(),v,' '+vi.name
-;        !quiet = 1
-;        cdf_control,id,var=v,get_var_info=info,zvar = zvar
-;        !quiet = q
-;        ;if vb ge 7 then print,ptrace(),vi.name
-;        nrecs = info.maxrec+1
-;      endif else nrecs = -1
-;      vinfo[i].numrec = nrecs
-;
-;      if zvar then begin
-;        dimen = [vi.dim]
-;        ndimen = total(vi.dimvar)
-;      endif else begin
-;        dimc = vi.dimvar * inq.dim
-;        w = where(dimc ne 0,ndimen)
-;        if ndimen ne 0 then dimen = dimc[w] else dimen=0
-;      endelse
-;      vinfo[i].ndimen = ndimen
-;      vinfo[i].d =  dimen
-;      ;dprint,dlevel=3,phelp=3,vi,dimen,dimc
-;      t2 = systime(1)
-;      dprint,dlevel=8,verbose=verbose,v,systime(1)-t2,' '+vi.name
-;      if keyword_set(ret_data) then begin
-;        message,'Routine not finished use cdf_load_vars'
-;        ;       var_type=''
-;        ;       str_element,attr,'VAR_TYPE',var_type
-;        cdf_varget,id,vi.name,value  ;,rec_count=nrecs                ;,string= var_type eq 'metadata'
-;        value=reform(value,/overwrite)                             ;  get rid of trailing 1's
-;        vinfo[i].dataptr = ptr_new(value,/no_copy)
-;      endif
-;
-;      if keyword_set(ret_attr) then begin
-;        ;       attr = cdf_var_atts(id,vi.name,attribute=att, convert_int1_to_int2=convert_int1_to_int2)   ;   Slow version
-;        attr = cdf_var_atts(id, v,zvar=zvar,  attribute=att, convert_int1_to_int2=convert_int1_to_int2)   ; Fast Version
-;        vinfo[i].attrptr = ptr_new(attr,/no_copy)
-;      endif
-;      i = i+1
-;      dprint,dlevel=8,verbose=verbose,v,systime(1)-t0,' '+vi.name
-;      t0=systime(1)
-;    endfor
-;  endfor
-;
-;  res = create_struct('filename',fn,'inq',inq,'g_attributes',g_atts,'g_att_names',g_att_names,'nv',nv,'vars',vinfo)  ;'num_recs',num_recs,'nvars',nv
-;  if size(/type,id0) eq 7 then cdf_close,id
-;
-;  dprint,dlevel=4,verbose=verbose,'Time=',systime(1)-tstart
-;  return,res
-;end
-
- 
- ;  The following function is obsolete and will be changed
-; function cdf_tools::cdf_load_vars,files,varnames=vars,varformat=vars_fmt,info=info,verbose=verbose,all=all, $
-;  record=record,convert_int1_to_int2=convert_int1_to_int2, $
-;  spdf_dependencies=spdf_dependencies, $
-;  var_type=var_type, $
-;  no_attributes=no_attributes,$
-;  number_records=number_records
-;
-;  vb = keyword_set(verbose) ? verbose : 0
-;  vars=''
-;  info = 0
-;  dprint,dlevel=4,verbose=verbose,'$Id: cdf_tools__define.pro 26218 2018-12-01 15:54:56Z davin-mac $'
-;
-;    on_ioerror, ferr
-;  for fi=0,n_elements(files)-1 do begin
-;    if file_test(files[fi]) eq 0 then begin
-;      dprint,dlevel=1,verbose=verbose,'File not found: "'+files[fi]+'"'
-;      continue
-;    endif
-;    id=cdf_open(files[fi])
-;    if not keyword_set(info) then begin
-;      info = cdf_info(id,verbose=verbose) ;, convert_int1_to_int2=convert_int1_to_int2)
-;    endif
-;    ; if there are no variables loaded
-;    if info.nv eq 0 or ~is_struct(info.vars) then begin
-;      dprint,verbose=verbose,'No valid variables in the CDF file!'
-;      return,info
-;    endif
-;
-;    if n_elements(spdf_dependencies) eq 0 then spdf_dependencies =1
-;
-;    if not keyword_set(vars) then begin
-;      if keyword_set(all) then vars_fmt = '*'
-;      if keyword_set(vars_fmt) then vars = [vars, strfilter(info.vars.name,vars_fmt,delimiter=' ')]
-;      if keyword_set(var_type) then begin
-;        vtypes = strarr(info.nv)
-;        for v=0,info.nv-1 do begin
-;          vtypes[v] = cdf_var_atts(id,info.vars[v].num,zvar=info.vars[v].is_zvar,'VAR_TYPE',default='')
-;        endfor
-;        w = strfilter(vtypes,var_type,delimiter=' ',count=count,/index)
-;        if count ge 1 then vars= [vars, info.vars[w].name] else dprint,dlevel=1,verbose=verbose,'No VAR_TYPE matching: ',VAR_TYPE
-;      endif
-;      vars = vars[uniq(vars,sort(vars))]
-;      if n_elements(vars) le 1 then begin
-;        dprint,verbose=verbose,'No valid variables selected to load!'
-;        return,info
-;      endif else vars=vars[1:*]
-;      vars2=vars
-;
-;      ;        if vb ge 4 then printdat,/pgmtrace,vars,width=200
-;
-;      if keyword_set(spdf_dependencies) then begin  ; Get all the variable names that are dependents
-;        depnames = ''
-;        for i=0,n_elements(vars)-1 do begin
-;          vnum = where(vars[i] eq info.vars.name,nvnum)
-;          if nvnum eq 0 then message,'This should never happen, report error to D. Larson: davin@ssl.berkeley.edu'
-;          vi = info.vars[vnum]
-;          depnames = [depnames, cdf_var_atts(id,vi.num,zvar=vi.is_zvar,'DEPEND_TIME',default='')]   ;bpif vars[i] eq 'tha_fgl'
-;          depnames = [depnames, cdf_var_atts(id,vi.num,zvar=vi.is_zvar,'DEPEND_0',default='')]
-;          depnames = [depnames, cdf_var_atts(id,vi.num,zvar=vi.is_zvar,'LABL_PTR_1',default='')]
-;          ndim = vi.ndimen
-;          for j=1,ndim do begin
-;            depnames = [depnames, cdf_var_atts(id,vi.num,zvar=vi.is_zvar,'DEPEND_'+strtrim(j,2),default='')]
-;          endfor
-;        endfor
-;        if keyword_set(depnames) then depnames=depnames[[where(depnames)]]
-;        depnames = depnames[uniq(depnames,sort(depnames))]
-;        vars2 = [vars2,depnames]
-;        vars2 = vars2[uniq(vars2,sort(vars2))]
-;        vars2 = vars2[where(vars2)]
-;        ;            if vb ge 4 then printdat,/pgmtrace,depnames,width=200
-;      endif
-;    endif
-;
-;    dprint,dlevel=2,verbose=verbose,'Loading file: "'+files[fi]+'"'
-;    for j=0,n_elements(vars2)-1 do begin
-;      w = (where( strcmp(info.vars.name, vars2[j]) , nw))[0]
-;      if nw ne 0 && cdf_varnum(id,info.vars[w].name) ne -1 then begin ; cdf_varnum call avoids crash for cdfs with non-existent dependent variables
-;        vi = info.vars[w]
-;        dprint,verbose=verbose,dlevel=7,vi.name
-;
-;        ;            if vb ge 9 then  wait,.2
-;        ;            if   vi.recvary or 1  then begin ;disabling logic that does nothing, pcruce@igpp.ucla.edu
-;
-;        q=!quiet & !quiet=1 & cdf_control,id,variable=vi.name,get_var_info=vinfo & !quiet=q
-;
-;        ;adding logic to select the number of records that are loaded.  Helps for testing with large CDFs, can be used with the record= keyword
-;        if n_elements(number_records) ne 0 then begin
-;          numrec=number_records<(vinfo.maxrec+1)
-;        endif else begin
-;          if n_elements(record) ne 0 then begin
-;            numrec=1<(vinfo.maxrec+1)
-;          endif else begin
-;            numrec = vinfo.maxrec+1
-;          endelse
-;        endelse
-;        ;                dprint,verbose=vb,dlevel=7,vi.name
-;        ;                if vb ge 9 then  wait,.2
-;        ;            endif else numrec = 0
-;
-;        if numrec gt 0 then begin
-;          q = !quiet
-;          !quiet = keyword_set(convert_int1_to_int2)
-;          if n_elements(record) ne 0  then begin
-;            value = 0 ;THIS line TO AVOID A CDF BUG IN CDF VERSION 3.1
-;            cdf_varget,id,vi.name,value ,/string ,rec_start=record,rec_count=numrec
-;          endif else begin
-;
-;            if vi.is_zvar then begin
-;              value = 0 ;THIS Line TO AVOID A CDF BUG IN CDF VERSION 3.1
-;              cdf_varget,id,vi.name,value ,/string ,rec_count=numrec
-;              ;CDF_varget,id,CDF_var,x,REC_COUNT=nrecs,zvariable = zvar,rec_start=rec_start
-;            endif else begin
-;
-;              if 1 then begin     ; this cluge works but is not efficient!
-;                vinq = cdf_varinq(id,vi.num,zvar=vi.is_zvar)
-;                dimc = vinq.dimvar * info.inq.dim
-;                dimw = where(dimc eq 0,c)
-;                if c ne 0 then dimc[dimw] = 1  ;bpif vi.name eq 'ion_vel'
-;              endif
-;              value = 0   ;THIS Line TO AVOID A CDF BUG IN CDF VERSION 3.1
-;              CDF_varget,id,vi.num,zvar=0,value,/string,COUNT=dimc,REC_COUNT=numrec  ;,rec_start=rec_start
-;              value = reform(value,/overwrite)
-;              dprint,phelp=2,dlevel=5,vi,dimc,value
-;            endelse
-;          endelse
-;          !quiet = q
-;          if vi.recvary then begin
-;            if (vi.ndimen ge 1 and n_elements(record) eq 0) then begin
-;              if numrec eq 1 then begin
-;                dprint,dlevel=3,'Warning: Single record! ',vi.name,vi.ndimen,vi.d
-;                value = reform(/overwrite,value, [1,size(/dimensions,value)] )  ; Special case for variables with a single record
-;              endif else begin
-;                transshift = shift(indgen(vi.ndimen+1),1)
-;                value=transpose(value,transshift)
-;              endelse
-;            endif else value = reform(value,/overwrite)
-;            if not keyword_set(vi.dataptr) then  vi.dataptr = ptr_new(value,/no_copy)  $
-;            else  *vi.dataptr = [*vi.dataptr,temporary(value)]
-;          endif else begin
-;            if not keyword_set(vi.dataptr) then vi.dataptr = ptr_new(value,/no_copy)
-;          endelse
-;        endif
-;        if not keyword_set(vi.attrptr) then begin
-;          var_atts = cdf_var_atts(id,vi.name,convert_int1_to_int2=convert_int1_to_int2)
-;          if not keyword_set(var_atts) then vi.attrptr = ptr_new(/allocate_heap) $
-;          else vi.attrptr = ptr_new(var_atts)
-;        end
-;        info.vars[w] = vi
-;      endif else  dprint,dlevel=1,verbose=verbose,'variable "'+vars2[j]+'" not found!'
-;    endfor
-;    cdf_close,id
-;  endfor
-;
-;  if keyword_set(info) and keyword_set(convert_int1_to_int2) then begin
-;    w = where(info.vars.datatype eq 'CDF_INT1',nw)
-;    for i=0,nw-1 do begin
-;      v = info.vars[w[i]]
-;      if ptr_valid(v.dataptr) then begin
-;        dprint,dlevel=5,verbose=verbose,'Warning: Converting from INT1 to INT2 (',v.name ,')'
-;        val = *v.dataptr
-;        *v.dataptr = fix(val) - (val ge 128) * 256
-;      endif
-;    endfor
-;  endif
-;
-;  return,info
-;
-;  ferr:
-;  dprint,dlevel=0,"CDF FILE ERROR in: ",files[fi]
-;  msg = !error_state.msg ;copy to keep system var from being mutated when MESSAGE is called
-;  message, msg
-;  return,0
-;
-;end
+function cdf_tools::datavary_struct,varnames=varnames
+  strct0 = !null
+  maxrec = 0
+  foreach v,self.vars,k do begin
+    maxrec = maxrec > v.numrec
+    if 1 then begin
+      printdat,v
+      dat0 = make_array(type = v.type,dimension=v.d[0:v.ndimen-1 > 0] > 1 )
+      if v.ndimen eq 0 then dat0 = dat0[0]
+      printdat,dat0
+    endif else begin
+      dat=v.data.array
+      printdat,v
+      case v.ndimen of
+        0: dat0= dat[0]
+        1: dat0= reform(dat[0,*])
+        2: dat0= reform(dat[0,*,*])
+        3: dat0= reform(dat[0,*,*,*])
+      endcase      
+    endelse
+    strct0 = create_struct(strct0,k,dat0)
+  endforeach
+  strct = replicate(strct0,maxrec)
+  foreach v,self.vars,k do begin
+    dat=v.data.array
+    strct.(k) = transpose(dat)
+  endforeach
 
 
-
-;PRO cdf_tools_fileinfo__define
-;
-;  void = {cdf_fileinfo, $
-;    inherits generic_Object, $    ; superclass
-;    filename:'', $
-;    inq: obj_new(), $
-;    g_attributes:obj_new(), $
-;    nvars:0L, $
-;    vars: obj_new() $
-;    }
-;end
+  printdat,strct
+  
+  
+  return,strct
+end
 
 
 function cdf_tools::varnames,data=data
@@ -770,7 +440,7 @@ pro cdf_tools::read,filename
    self.filename = info.filename
    *self.inq_ptr = info.inq
    self.g_attributes = info.g_attributes
-   self.nv  = info.nv
+;   self.nv  = info.nv
    self.vars = info.vars
 end
 
@@ -808,6 +478,9 @@ FUNCTION cdf_tools::Init,filename,_EXTRA=ex
   if isa(filename,/string) then self.read,filename
   RETURN, 1
 END
+
+
+
 
 
 
