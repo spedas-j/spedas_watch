@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-04 11:47:01 -0800 (Tue, 04 Dec 2018) $
-; $LastChangedRevision: 26228 $
+; $LastChangedDate: 2018-12-05 09:59:57 -0800 (Wed, 05 Dec 2018) $
+; $LastChangedRevision: 26242 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -214,7 +214,7 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
         hvgain : 500., $
         fixgain : 13. * 2 $
       }
-      dprint,dlevel=2,'Generating Energy table - emode: '+strtrim(emode,2)
+      dprint,dlevel=2,'Generating Energy table - emode: '+strtrim(fix(emode),2)
       case emode  of
         1:  etables[1] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[0]   , emode=emode, _extra = spane_params)
         2:  etables[2] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[0]   , emode=emode, _extra = spane_params)
@@ -293,9 +293,9 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
     if ~ptables.haskey(pmode) then begin
       dprint, 'Generating new product table ',pmode,dlevel=2
       case pmode of
-        'FULL'       : binmap = indgen(16,8,32)   ; 4096 samples; full resolution
-        'ENERGY_32'  : binmap = reform( replicate(1,16*8) # indgen(32) , 16,8,32 )    ; 32 sample energy spectra
-        'ANODE_16'   : binmap = reform( indgen(16) # replicate(1,8*32) , 16,8,32)      ; 16 sample anode spectra
+        '16Ax8Dx32E'  : binmap = indgen(16,8,32)   ; 4096 samples; full resolution
+        '32E'  : binmap = reform( replicate(1,16*8) # indgen(32) , 16,8,32 )    ; 32 sample energy spectra
+        '16A'   : binmap = reform( indgen(16) # replicate(1,8*32) , 16,8,32)      ; 16 sample anode spectra
         else:   binmap = !null
       endcase
       ptable = dictionary()
@@ -305,9 +305,6 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
         ptable.binmap = binmap
         ptable.hist = hist
         ptable.reverse_ind = ri
-;        rlist = list()
-;        for i=0,n_elements(hist)-1 do rlist.add, hist[i] ne 0 ? ri[ri[i]:ri[i+1]-1]  : !null
-;        ptable.rlist = rlist        
       endif else dprint,dlevel=1,'Unknown pmode: "',pmode,'"'
       ptables[pmode] = ptable
     endif    

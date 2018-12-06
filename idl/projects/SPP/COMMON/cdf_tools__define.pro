@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-04 12:18:48 -0800 (Tue, 04 Dec 2018) $
-; $LastChangedRevision: 26230 $
+; $LastChangedDate: 2018-12-05 12:46:20 -0800 (Wed, 05 Dec 2018) $
+; $LastChangedRevision: 26252 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-04 12:18:48 -0800 (Tue, 04 Dec 2018) $
-; $LastChangedRevision: 26230 $
+; $LastChangedDate: 2018-12-05 12:46:20 -0800 (Wed, 05 Dec 2018) $
+; $LastChangedRevision: 26252 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-04 12:18:48 -0800 (Tue, 04 Dec 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26230 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-05 12:46:20 -0800 (Wed, 05 Dec 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 26252 $'
 
   return,sw_hash
 end
@@ -165,12 +165,6 @@ pro cdf_tools::write,pathname,cdftags=cdftags,trange=trange
       cdf_attput,self.fileid,name,gentnum,attvalue[gentnum]
     endfor
   endforeach
-
-  
- ; var_atts = self.cdf_variable_attributes()
-;  foreach att,var_atts,name do begin
-;    dummy = cdf_attcreate(fileid,name,/variable_scope)  ;  Variable attributes are created - but not filled
-;  endforeach
   
   vars = self.vars
   foreach v,vars,k do begin
@@ -361,10 +355,26 @@ return,strct_n
 end
 
 
+pro cdf_tools::filter_variables, index
+;  vnames = self.vars.keys()
+  foreach var,self.vars,vname do begin
+    if var.recvary then begin
+      array = var.data.array
+      case var.ndimen of  
+        0:  var.data.array = array[index] 
+        1:  var.data.array = array[index,*]
+        2:  var.data.array = array[index,*,*]
+        3:  var.data.array = array[index,*,*,*]
+      endcase
+    endif
+  endforeach
+end
+
+
 
 
 pro cdf_tools::add_variable,vi
-  if isa(vi,'cdf_tools_varinfo') then begin
+  if isa(vi,'OBJREF') then begin
     self.vars[vi.name] = vi.getattr()
     return
   endif
@@ -472,7 +482,7 @@ FUNCTION cdf_tools::Init,filename,_EXTRA=ex
     ;  self.cdf_pathname = prefix + 'sweap/spx/
   endif
   ; self.data = dynamicarray(name=name)
-  self.dlevel = 2
+  self.dlevel = 3
   if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   if isa(filename,/string) then self.read,filename

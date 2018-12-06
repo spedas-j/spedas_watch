@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_span_prod
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-04 12:32:15 -0800 (Tue, 04 Dec 2018) $
-; $LastChangedRevision: 26232 $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2018-12-05 13:02:43 -0800 (Wed, 05 Dec 2018) $
+; $LastChangedRevision: 26255 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
@@ -43,8 +43,25 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
 
   header    = ccsds_data[0:19]
   ns = pksize - 20
-  log_flag  = header[12]
+  ; L = 1 = Log Compress on ON
+  ; CC = Meaningless
+  ; S = 1 if Arch is Sampling
+  ; S = 0 if Arch is Summing
+  ; NNNN = the number of accumulation periods (1/4 NYS) for Archive.
+  log_flag = header[12]
+  smp_flag = (ishft(header[12],-4) AND 1)
+  srvy_accum = (header[12] AND 15)
+  ; Format here is 000SNNNN
+  ; S = 1 if Arch is Sampling
+  ; S = 0 if Arch is Summing
+  ; NNNN = the number of accumulation periods (1/4 NYS) for Archive.
+  arch_sum  = header[13] ; leftover from old code, leave to not break things [plw'18]
   mode1 = header[13]
+  arch_smp_flag = ishft(header[13],-4) ; shift four bits to get 5th bit.
+  arch_accum = (header[13] AND 15) ; remove the lower 4 bits.
+  tot_accum_prd = 2 ^ (arch_accum + srvy_accum) ; in 1/4 NYS accumulation periods.
+  ; Hold up folks! : look at the awesome use of the xor function below to invert the sum/sample bit! [plw'18]
+  num_accum = 2 ^ (((arch_smp_flag xor 1) * arch_accum) + ((smp_flag xor 1) * srvy_accum)) 
   mode2 = (swap_endian(uint(ccsds_data,14) ,/swap_if_little_endian ))
   tmode = header[13]
   emode = header[14]
@@ -87,20 +104,25 @@ productstr = {spp_swp_span_prod, $
   ndat:        ndat, $
   datasize:    ns, $
   log_flag:    log_flag, $
-  mode1:        mode1,  $
-  mode2:        mode2,  $
+  smp_flag:    smp_flag, $
+  mode1:       mode1,  $
+  arch_sum:    arch_sum, $
+  arch_smp_flag:  arch_smp_flag, $
+  tot_accum_prd:  tot_accum_prd, $
+  num_accum:   num_accum, $
+  mode2:       mode2,  $
   tmode:       tmode, $
   emode:       emode, $
-  product_type: product_type,  $
-  f0:           f0,$
+  product_type:   product_type,  $
+  f0:          f0,$
   status_bits: status_bits,$
   peak_bin:    peak_bin, $
-  cnts:  tcnts,  $
+  cnts:        tcnts,  $
   anode_spec:  fltarr(16),  $
   nrg_spec:    fltarr(32),  $
   def_spec:    fltarr(8) ,  $
   ;  full_spec:   fltarr(256), $
-  pdata:        ptr_new(cnts), $
+  pdata:       ptr_new(cnts), $
   gap:         ccsds.gap  }
 
   
