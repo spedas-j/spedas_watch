@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2018-12-05 12:49:03 -0800 (Wed, 05 Dec 2018) $
-  ; $LastChangedRevision: 26253 $
+  ; $LastChangedDate: 2018-12-06 14:09:20 -0800 (Thu, 06 Dec 2018) $
+  ; $LastChangedRevision: 26271 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -42,13 +42,15 @@
   ;
   ; note that table files are doubled until [insert date here]
 
-pro spp_swp_span_make_l2,init=init,trange=trange
+pro spp_swp_spe_make_l2,init=init,trange=trange,all=all
+
+  if keyword_set(all) then trange= ['2018 8 30',time_string(systime(1))]
 
   compile_opt idl2
   dlevel=2
-  L1_fileformat = 'spp/data/sci/sweap/SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'  
+  L1_fileformat = 'psp/data/sci/sweap/SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'  
   pmodes = hash(16,'16A',32,'32E',4096,'16Ax8Dx32E')         ; product_size: product_name
-  if ~keyword_set(trange) then trange = ['2018 8 30',time_string(systime(1))]
+  if ~keyword_set(trange) then trange = timerange()
   
   spxs = ['spa','spb']
   types = ['sf0','sf1','st1','st0']   ; add archive when available
@@ -134,6 +136,7 @@ pro spp_swp_span_make_l2,init=init,trange=trange
           l2_file = file
           l2_file = str_sub(l2_file,'L1','L2')
           l2_file = str_sub(l2_file,'_L2_', '_L2_'+pmode+'_')
+;          l2_file = str_sub(l2_file,'_v00.', '_v01.')
           l2_cdf.write,L2_file
          
         endforeach

@@ -16,7 +16,7 @@
 
 
 function cdf_tools_varinfo::variable_attributes, vname,value
-  dlevel =3
+  dlevel =4
   fnan = !values.f_nan
   att = orderedhash()
   ;  Create default value place holders
@@ -25,6 +25,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
   att['LABLAXIS']    = vname
   att['DEPEND_0'] = 'Epoch'
   att['DISPLAY_TYPE'] = ''
+  att['MONOTON']    = ''
   case vname of
     'Epoch': begin
       att['CATDESC']    = 'Time at middle of sample'
@@ -66,6 +67,52 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
     end
+    'EFLUX': begin
+      att['CATDESC']    = 'Energy Flux in Energy/angle bin'
+      att['FIELDNAM']    = 'Counts in '
+      att['DEPEND_0']    = 'Epoch'
+      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Energy (eV)'
+      att['UNITS']    = 'eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 0.001
+      att['VALIDMAX']    = 1e12
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
+    'EFLUX': begin
+      att['CATDESC']    = 'Differential Energy Flux in Energy/angle bin'
+      att['FIELDNAM']    = 'Counts in '
+      att['DEPEND_0']    = 'Epoch'
+      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Energy Flux'
+      att['UNITS']    = 'eV/cm2/sec/eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 0.001
+      att['VALIDMAX']    = 1e12
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
+    'ENERGY': begin
+      att['CATDESC']    = 'Energy'
+      att['FIELDNAM']    = 'Counts in '
+      att['DEPEND_0']    = 'Epoch'
+      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Energy Flux'
+      att['UNITS']    = 'eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 1
+      att['VALIDMAX']    = 1e5
+      att['VAR_TYPE']    = 'support_data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
+
     else:  begin    ; assumed to be support
       att['CATDESC']    = 'Not known'
       att['FIELDNAM']    = 'Unknown '
@@ -108,7 +155,7 @@ END
 
 FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,_EXTRA=ex   
   COMPILE_OPT IDL2
-  self.dlevel = 3
+  self.dlevel = 4
   void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
   if isa(name,/string) then begin
     self.name  =name
@@ -119,7 +166,7 @@ FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,_EXTRA=ex
   self.type = size(/type,value)
   self.ndimen = size(/n_dimensions,value)
   self.d = size(/dimen,value)
-  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=2
+  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=4
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   RETURN, 1
 end

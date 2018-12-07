@@ -1,19 +1,19 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-05 12:46:20 -0800 (Wed, 05 Dec 2018) $
-; $LastChangedRevision: 26252 $
+; $LastChangedDate: 2018-12-06 11:22:43 -0800 (Thu, 06 Dec 2018) $
+; $LastChangedRevision: 26270 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 
-pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
+pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load,make_cdf=make_cdf,make_ql=make_ql
   
 ;  login_info = get_login_info()
 ;  test = login_info.user_name eq 'davin'
  test=1
   
 ;  dummy = {cdf_tools}  ; not needed anymore
-  make_ql=1
+  make_ql=0
   make_sav=0
   make_cdf=1
 
@@ -35,28 +35,11 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
 
 
   if keyword_set(test) then begin     ; newer method
-    make_ql=0
     output_prefix = 'psp/data/sci/sweap/'
     ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
     ssr_format = 'YYYY/DOY/*_?_E?'
     idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
     ql_dir = output_prefix+'ql/'
-    
-    if keyword_set(make_cdf) then begin ;make cdf files
-;      cdf_pathformat = output_prefix+'cdf/YYYY/MM/DD/spp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;      spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      ;      spp_apdat_info,'spa_hkp',cdf_pathname = cdf_pathformat
-      ;      spp_apdat_info,'spb_hkp',cdf_pathname = cdf_pathformat
-      ;      spp_apdat_info,'spi_hkp',cdf_pathname = cdf_pathformat
-      ;      spp_apdat_info,'spi_tof',cdf_pathname = cdf_pathformat
-      ;      spp_apdat_info,'spi_rates',cdf_pathname = cdf_pathformat
-      ;    spp_apdat_info,'sp?_sf1',cdf_pathname = cdf_pathformat
-    endif
-
     
     
     tr = timerange(trange_full)
@@ -79,6 +62,15 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
         endif
       endelse
       
+    endif
+
+    if keyword_set(make_cdf) then begin ;make cdf files
+      spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'    
     endif
     
     for day=daynum[0],daynum[1] do begin ;loop over days
@@ -108,98 +100,15 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load
       endif
 
       if keyword_set(make_cdf) then begin ;make cdf files
-;        cdf_pathformat = output_prefix+'cdf/YYYY/MM/DD/spp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        ;      spp_apdat_info,'swem_ana_hkp',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'swem_event_log',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'swem_timing',cdf_pathname = cdf_pathformat
-;        spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        ;      spp_apdat_info,'spa_hkp',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'spb_hkp',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'spi_hkp',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'spi_tof',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'spi_rates',cdf_pathname = cdf_pathformat
-;        ;    spp_apdat_info,'sp?_sf1',cdf_pathname = cdf_pathformat
-        timespan,tr ;for cdf pathnames to work!
-        
-        dummy = {cdf_tools}   ; dummy statement to force compile of routine
-;        aps = [spp_apdat('sp[ab]_s??'),spp_apdat('spi_s???')]
-        aps = spp_apdat('sp[abi]_*')
+        aps = [spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*')]
         foreach a,aps do begin
           a.print
           a.cdf_makefile,trange=trange   
         endforeach
-;        spp_apdat_info,make_cdf=make_cdf,/print
       endif
 
     endfor
         
-  endif else begin    ; Old method
-;    output_prefix = 'spp/data/sci/sweap/prelaunch/test7/'
-;    ssr_prefix='spp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
-;    ssr_format = 'YYYY/DOY/*_?_E?'
-;    idlsav_format=output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD.sav'
-;    ql_dir = output_prefix+'ql/'
-;    for i=0L,nd-1 do begin ;loop over days
-;      tr = trange[0] + [i,i+1] * res
-;      ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)
-;      if total(file_test(/regular,ssr_files)) eq 0 then begin
-;        dprint,dlevel=2,'No ssr files found for '+time_string(tr[0])
-;        continue
-;      endif
-;
-;      sav_file=spp_file_retrieve(idlsav_format,trange=tr,/create_dir,/daily_names)
-;
-;      ssr_info = file_info(ssr_files)
-;      sav_info = file_info(sav_file)
-;      ssr_timestamp=max([ssr_info.mtime,ssr_info.ctime])
-;      sav_timestamp=sav_info.mtime
-;      if ssr_timestamp lt sav_timestamp then continue    ; skip if sav does not need to be regenerated
-;
-;      store_data,/delete,'*'
-;      spp_swp_apdat_init,/reset
-;      spp_ssr_file_read,ssr_files,/sort_flag
-;
-;      if keyword_set(make_sav) then spp_apdat_info,file_save=sav_file,/compress
-;
-;      if 0 then spp_apdat_info,file_restore=sav_file,/finish
-;
-;      if keyword_set(make_ql) then begin
-;        window,xsize=1200,ysize=800
-;        tplot,'APID'
-;        tlimit,0,0
-;        for it=0L,nt-1 do begin ;loop over tplots
-;          pngpath=ql_dir+names[it]+'/YYYY/MM/spp_ql_'+names[it]+'_YYYYMMDD'
-;          pngfile=spp_file_retrieve(pngpath,trange=tr,/create_dir,/daily_names)
-;          spp_swp_tplot,names[it],/setlim
-;          makepng,pngfile
-;        endfor
-;      endif
-;
-;      if keyword_set(make_cdf) then begin ;make cdf files
-;        cdf_pathformat = output_prefix+'cdf/YYYY/MM/DD/spp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        ;      spp_apdat_info,'swem_ana_hkp',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'swem_event_log',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'swem_timing',cdf_pathname = cdf_pathformat
-;        spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-;        ;      spp_apdat_info,'spa_hkp',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'spb_hkp',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'spi_hkp',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'spi_tof',cdf_pathname = cdf_pathformat
-;        ;      spp_apdat_info,'spi_rates',cdf_pathname = cdf_pathformat
-;        ;    spp_apdat_info,'sp?_sf1',cdf_pathname = cdf_pathformat
-;        timespan,tr ;for cdf pathnames to work!
-;        spp_apdat_info,make_cdf=make_cdf,/print
-;      endif
-;
-;    endfor
-;    
-  endelse
-
+  endif 
 
 end

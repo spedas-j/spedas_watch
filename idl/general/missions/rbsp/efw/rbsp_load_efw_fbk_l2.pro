@@ -34,8 +34,8 @@
 ;   1. Written by Aaron Breneman, August, 2015
 ;
 ; $LastChangedBy: aaronbreneman $
-; $LastChangedDate: 2018-11-30 07:38:18 -0800 (Fri, 30 Nov 2018) $
-; $LastChangedRevision: 26198 $
+; $LastChangedDate: 2018-12-06 09:26:12 -0800 (Thu, 06 Dec 2018) $
+; $LastChangedRevision: 26262 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/rbsp_load_efw_fbk_l2.pro $
 ;-
 
@@ -47,7 +47,7 @@ pro rbsp_load_efw_fbk_l2,probe=probe, trange=trange, $
                               etu=etu,tper = tper, tphase = tphase, _extra = _extra
 
   rbsp_efw_init
-  dprint,verbose=verbose,dlevel=4,'$Id: rbsp_load_efw_fbk_l2.pro 26198 2018-11-30 15:38:18Z aaronbreneman $'
+  dprint,verbose=verbose,dlevel=4,'$Id: rbsp_load_efw_fbk_l2.pro 26262 2018-12-06 17:26:12Z aaronbreneman $'
 
   UMN_data_location = 'http://rbsp.space.umn.edu/data/rbsp/'
   cache_remote_data_dir = !rbsp_efw.remote_data_dir
@@ -101,10 +101,6 @@ pro rbsp_load_efw_fbk_l2,probe=probe, trange=trange, $
     files = !rbsp_efw.local_data_dir + localpath + lf
 
 
-;     files = file_retrieve(relpathnames, /last_version, _extra=!rbsp_efw)
-
-
-
 
 
 
@@ -125,7 +121,7 @@ pro rbsp_load_efw_fbk_l2,probe=probe, trange=trange, $
 
         dprint, dlevel = 5, verbose = verbose, 'Setting options...'
 
-        options, /def, tns, code_id = '$Id: rbsp_load_efw_fbk_l2.pro 26198 2018-11-30 15:38:18Z aaronbreneman $'
+        options, /def, tns, code_id = '$Id: rbsp_load_efw_fbk_l2.pro 26262 2018-12-06 17:26:12Z aaronbreneman $'
 
         store_data,new_name,/delete
         store_data,old_name,newname=new_name

@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-01 07:52:04 -0800 (Sat, 01 Dec 2018) $
-; $LastChangedRevision: 26217 $
+; $LastChangedDate: 2018-12-06 09:22:42 -0800 (Thu, 06 Dec 2018) $
+; $LastChangedRevision: 26259 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ; 
 ; ;  This routine will read SSR files that (series of CCSDS packets)
@@ -39,7 +39,7 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
   
 
     fst = fstat(lun)
-    dprint,dlevel=2,'File:',fst.name,' Compression: ',float(fst.cur_ptr)/fst.size
+    dprint,dlevel=2,'File:'+fst.name+' Compression: '+strtrim(float(fst.cur_ptr)/fst.size,2)
     free_lun,lun
     if 0 then begin
       nextfile:

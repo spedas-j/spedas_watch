@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-05 12:46:20 -0800 (Wed, 05 Dec 2018) $
-; $LastChangedRevision: 26252 $
+; $LastChangedDate: 2018-12-06 11:22:43 -0800 (Thu, 06 Dec 2018) $
+; $LastChangedRevision: 26270 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-05 12:46:20 -0800 (Wed, 05 Dec 2018) $
-; $LastChangedRevision: 26252 $
+; $LastChangedDate: 2018-12-06 11:22:43 -0800 (Thu, 06 Dec 2018) $
+; $LastChangedRevision: 26270 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-05 12:46:20 -0800 (Wed, 05 Dec 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26252 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-06 11:22:43 -0800 (Thu, 06 Dec 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 26270 $'
 
   return,sw_hash
 end
@@ -145,24 +145,24 @@ pro cdf_tools::write,pathname,cdftags=cdftags,trange=trange
 ;  if not keyword_set(self.cdf_pathname) then return
   
   global_attributes = self.g_attributes
-  if keyword_set(trange) then begin
-    if not keyword_set(trange) then trange=timerange()
-    pathname =  spp_file_retrieve(self.cdf_pathname ,trange=trange,/create_dir,/daily_names)
-    global_attributes['Logical_file_id'] = str_sub(pathname,'$NAME$',self.name)
-
-    pathname = global_attributes['Logical_file_id']
-    
-  endif 
+;  if keyword_set(trange) then begin
+;    if not keyword_set(trange) then trange=timerange()
+;    pathname =  spp_file_retrieve(self.cdf_pathname ,trange=trange,/create_dir,/daily_names)
+;    global_attributes['Logical_file_id'] = str_sub(pathname,'$NAME$',self.name)
+;
+;    pathname = global_attributes['Logical_file_id']
+;    
+;  endif 
   if ~isa(pathname,/string) then  pathname = 'temp.cdf'
   file_mkdir2,file_dirname(pathname)
   self.fileid = cdf_create(pathname,/clobber)
-  dprint,'Making CDF file: ',pathname,dlevel=self.dlevel
+ ; dprint,'Making CDF file: ',pathname,dlevel=self.dlevel
 
   global_attributes = self.g_attributes  
   foreach attvalue,global_attributes,name do begin
     dummy = cdf_attcreate(self.fileid,name,/global_scope)
     for gentnum=0,n_elements(attvalue)-1 do begin
-      cdf_attput,self.fileid,name,gentnum,attvalue[gentnum]
+      if keyword_set(attvalue[gentnum]) then    cdf_attput,self.fileid,name,gentnum,attvalue[gentnum]
     endfor
   endforeach
   
@@ -174,7 +174,7 @@ pro cdf_tools::write,pathname,cdftags=cdftags,trange=trange
    
   cdf_close,self.fileid
   self.fileid = 0
-  dprint,'Created:  ',pathname,dlevel=self.dlevel
+  dprint,'Created:  '+pathname,dlevel=self.dlevel
 end
 
 
