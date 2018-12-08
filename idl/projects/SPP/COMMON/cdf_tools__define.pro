@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-06 11:22:43 -0800 (Thu, 06 Dec 2018) $
-; $LastChangedRevision: 26270 $
+; $LastChangedDate: 2018-12-07 12:44:53 -0800 (Fri, 07 Dec 2018) $
+; $LastChangedRevision: 26273 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-06 11:22:43 -0800 (Thu, 06 Dec 2018) $
-; $LastChangedRevision: 26270 $
+; $LastChangedDate: 2018-12-07 12:44:53 -0800 (Fri, 07 Dec 2018) $
+; $LastChangedRevision: 26273 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-06 11:22:43 -0800 (Thu, 06 Dec 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26270 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-07 12:44:53 -0800 (Fri, 07 Dec 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 26273 $'
 
   return,sw_hash
 end
@@ -446,12 +446,30 @@ end
 
 
 pro cdf_tools::read,filename
-   info = cdf_info2(filename,/data,/attri)
-   self.filename = info.filename
-   *self.inq_ptr = info.inq
-   self.g_attributes = info.g_attributes
-;   self.nv  = info.nv
-   self.vars = info.vars
+
+  info2 = cdf_info2(filename,/attri,/data)
+  self.filename = info2.filename
+  *self.inq_ptr = info2.inq
+  self.g_attributes = info2.g_attributes
+  ;   self.nv  = info.nv
+  if 1 then begin               ; info2 not working yet ????
+    self.vars = info2.vars
+  endif else begin
+    info = cdf_load_vars(filename,varformat='*')   ; get all variables for now
+    for i= 0,n_elements(info.vars)-1 do begin
+      v = info.vars[i]
+      if ptr_valid(v.dataptr) then values = *v.dataptr else values = !null
+      vho = cdf_tools_varinfo(v.name,all_values=values,recvary=v.recvary)
+      attr = *v.attrptr
+      tagnames = tag_names(attr)
+      for j=0,n_elements(tagnames)-1 do begin
+        vho.attributes[tagnames[j]] = attr.(j)
+      endfor
+      self.add_variable,vho
+    endfor
+    ptr_free,info.vars.dataptr
+    prt_free,info.vars.attrptr
+  endelse
 end
 
 

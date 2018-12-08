@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-05 09:59:57 -0800 (Wed, 05 Dec 2018) $
-; $LastChangedRevision: 26242 $
+; $LastChangedDate: 2018-12-07 14:27:21 -0800 (Fri, 07 Dec 2018) $
+; $LastChangedRevision: 26274 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -232,7 +232,7 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
         14: etables[14] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[3]   , emode=14, _extra = spane_params)
         15: etables[15] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[3]   , emode=15, _extra = spane_params)
         16: etables[16] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[3]   , emode=16, _extra = spane_params)
-        17: etables[17] = spp_swp_spanx_sweep_tables([20.,20000.],spfac=ratios[4]   , emode=17, _extra = spane_params)
+        17: etables[17] = spp_swp_spanx_sweep_tables([2.,2000.],spfac=ratios[4]   , emode=17, _extra = spane_params)
         18: etables[18] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[4]   , emode=18, _extra = spane_params)
         19: etables[19] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[4]   , emode=19, _extra = spane_params)
         20: etables[20] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[4]   , emode=20, _extra = spane_params)

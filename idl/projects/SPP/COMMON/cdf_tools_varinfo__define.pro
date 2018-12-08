@@ -19,6 +19,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
   dlevel =4
   fnan = !values.f_nan
   att = orderedhash()
+  if ~isa(vname,/string) then return,att
   ;  Create default value place holders
   att['CATDESC']    = ''
   att['FIELDNAM']    = vname
@@ -68,7 +69,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['MONOTON']    = ''
     end
     'EFLUX': begin
-      att['CATDESC']    = 'Energy Flux in Energy/angle bin'
+      att['CATDESC']    = 'Differential Energy Flux vs Energy/angle bin'
       att['FIELDNAM']    = 'Counts in '
       att['DEPEND_0']    = 'Epoch'
       att['DEPEND_1']    = 'ENERGY'
@@ -81,21 +82,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
-    end
-    'EFLUX': begin
-      att['CATDESC']    = 'Differential Energy Flux in Energy/angle bin'
-      att['FIELDNAM']    = 'Counts in '
-      att['DEPEND_0']    = 'Epoch'
-      att['DEPEND_1']    = 'ENERGY'
-      att['LABLAXIS']    = 'Energy Flux'
-      att['UNITS']    = 'eV/cm2/sec/eV'
-      att['FILLVAL']    = fnan
-      att['VALIDMIN']    = 0.001
-      att['VALIDMAX']    = 1e12
-      att['VAR_TYPE']    = 'data'
-      att['DICT_KEY']    = ''
-      att['SCALETYP']    = 'log'
-      att['MONOTON']    = ''
+      att['DISPLAY_TYPE'] = 'spectrogram'
     end
     'ENERGY': begin
       att['CATDESC']    = 'Energy'
@@ -159,9 +146,9 @@ FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,_EXTRA=ex
   void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
   if isa(name,/string) then begin
     self.name  =name
+    self.attributes = self.variable_attributes(name,value)
   endif
   self.data = dynamicarray(all_values,name=self.name)
-  self.attributes = self.variable_attributes(name,value)
   self.is_zvar = 1
   self.type = size(/type,value)
   self.ndimen = size(/n_dimensions,value)

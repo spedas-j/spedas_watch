@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2018-12-06 14:09:20 -0800 (Thu, 06 Dec 2018) $
-  ; $LastChangedRevision: 26271 $
+  ; $LastChangedDate: 2018-12-07 12:44:53 -0800 (Fri, 07 Dec 2018) $
+  ; $LastChangedRevision: 26273 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -42,26 +42,26 @@
   ;
   ; note that table files are doubled until [insert date here]
 
-pro spp_swp_spe_make_l2,init=init,trange=trange,all=all
+pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
 
   if keyword_set(all) then trange= ['2018 8 30',time_string(systime(1))]
 
   compile_opt idl2
-  dlevel=2
+  dlevel=3
   L1_fileformat = 'psp/data/sci/sweap/SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'  
   pmodes = hash(16,'16A',32,'32E',4096,'16Ax8Dx32E')         ; product_size: product_name
-  if ~keyword_set(trange) then trange = timerange()
+  trange = timerange(trange)
   
   spxs = ['spa','spb']
-  types = ['sf0','sf1','st1','st0']   ; add archive when available
+  types = ['sf1','sf0','st1','st0']   ; add archive when available
   
-  foreach type,types do begin
-    foreach spx, spxs do begin
+  foreach spx, spxs do begin
+    foreach type,types do begin
       fileformat = str_sub(L1_fileformat,'SP?', spx)              ; instrument string substitution
       fileformat = str_sub(fileformat,'TYP',type)                 ; packet type substitution
       dprint,dlevel=dlevel,fileformat
 
-      files = spp_file_retrieve(fileformat,trange=trange,/daily)    ; retrieve all daily files within the time range
+      files = spp_file_retrieve(fileformat,trange=trange,/daily,verbose=2)    ; retrieve all daily files within the time range
       w= where( file_test(files),/null,nw )
       if ~isa(w) then begin
         dprint,dlevel=dlevel,'No files found matching: "',fileformat,'"'
@@ -79,17 +79,17 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all
         l1_counts = l1_cdf.vars['PDATA'].data.array
         l1_datasize = l1_cdf.vars['DATASIZE'].data.array
         l1_nrecs = n_elements(l1_datasize)
-        dprint,dlevel=dlevel,/phelp,uniq(l1_datasize);,varname='uniq'
-        dprint,dlevel=dlevel,/phelp,l1_datasize[uniq(l1_datasize)];,varname='datasize'
         l1_emode = l1_cdf.vars['EMODE'].data.array
-        dprint,dlevel=dlevel,uniq(l1_emode)
-        dprint,dlevel=dlevel,l1_emode[uniq(l1_emode)]
+        dprint,verbose=verbose,dlevel=dlevel,/phelp,uniq(l1_datasize);,varname='uniq'
+        dprint,verbose=verbose,dlevel=dlevel,/phelp,l1_datasize[uniq(l1_datasize)];,varname='datasize'
+        dprint,verbose=verbose,dlevel=dlevel,uniq(l1_emode)
+        dprint,verbose=verbose,dlevel=dlevel,l1_emode[uniq(l1_emode)]
         
         foreach pmode,pmodes,psize do begin
 
           records = where(/null,l1_datasize eq psize, l2_nrecs)
           if ~isa(records) then continue
-          dprint,dlevel=dlevel,'Found '+strtrim(l2_nrecs,2)+' of '+strtrim(l1_nrecs,2)+' packets of pmode: '+pmode+' in file: '+file
+          dprint,dlevel=dlevel,verbose=verbose,'Found '+strtrim(l2_nrecs,2)+' of '+strtrim(l1_nrecs,2)+' packets of pmode: '+pmode+' in file: '+file
 
           l2_cdf = cdf_tools(file)   ; make a copy
           l2_cdf.filter_variables, records                  ; down  select the pmodes
