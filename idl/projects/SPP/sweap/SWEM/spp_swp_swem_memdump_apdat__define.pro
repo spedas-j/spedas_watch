@@ -8,6 +8,7 @@ function spp_swp_swem_memdump_apdat::decom,ccsds,  source_dict=source_dict  ;,he
 
   strct = {  $
     time:ccsds.time, $
+    met: ccsds.met,  $
     seqn:ccsds.seqn, $
     bsize: ccsds.pkt_size-14, $
     addr: 0ul, $

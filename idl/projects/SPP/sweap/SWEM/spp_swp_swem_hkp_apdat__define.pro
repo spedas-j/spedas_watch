@@ -34,6 +34,7 @@ temp_par_10bit.xmax = 1023
 ;     gap:  ccsds.gap }
 ;
    str2 = {time:   ccsds.time  ,$
+     met: ccsds.met , $
      seqn: ccsds.seqn, $
      dcb_temp:   func( (swap_endian(uint(ccsds_data, 86/8)) and '3ff'x  ) * 1.,param = temp_par_10bit)   ,  $
      lvps_temp:  func( ( swap_endian(uint(ccsds_data, 102/8)) and '3ff'x ) * 1.,param = temp_par_10bit)   , $
@@ -90,8 +91,8 @@ function spp_swp_swem_hkp_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-09-14 17:17:54 -0700 (Fri, 14 Sep 2018) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 25813 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2018-12-08 13:40:15 -0800 (Sat, 08 Dec 2018) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 26285 $'
 
   return,global_att
 end

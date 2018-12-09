@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2018-12-07 12:44:53 -0800 (Fri, 07 Dec 2018) $
-  ; $LastChangedRevision: 26273 $
+  ; $LastChangedDate: 2018-12-08 06:44:14 -0800 (Sat, 08 Dec 2018) $
+  ; $LastChangedRevision: 26278 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -61,7 +61,7 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
       fileformat = str_sub(fileformat,'TYP',type)                 ; packet type substitution
       dprint,dlevel=dlevel,fileformat
 
-      files = spp_file_retrieve(fileformat,trange=trange,/daily,verbose=2)    ; retrieve all daily files within the time range
+      files = spp_file_retrieve(fileformat,trange=trange,/daily,verbose=1)    ; retrieve all daily files within the time range
       w= where( file_test(files),/null,nw )
       if ~isa(w) then begin
         dprint,dlevel=dlevel,'No files found matching: "',fileformat,'"'

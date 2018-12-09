@@ -19,6 +19,7 @@ end
 function spp_swp_swem_dhkp_oper_struct,ccsds_data
 if n_elements(ccsds_data) eq 0 then ccsds_data = bytarr(90)
 str = {time:   !values.d_nan  ,$
+  met: !values.d_nan,  $
   seqn: 0u, $
   pkt_size: 0u,  $
   SW_PWR_CONFIG_bits: spp_swp_data_select(ccsds_data, 80  ,  8), $   ;   SW_PWRSPARE, SW_ACTPWR ,  SW_SPANBHTR, SW_SPANAHTR  , SW_SPANBPWR ,   SW_SPANAEPWR  , SW_SPANAIPWR ,  SW_SPCPWR   87  UB  1

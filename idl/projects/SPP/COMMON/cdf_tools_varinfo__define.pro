@@ -142,7 +142,7 @@ END
 
 FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,_EXTRA=ex   
   COMPILE_OPT IDL2
-  self.dlevel = 4
+;  self.dlevel = 4
   void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
   if isa(name,/string) then begin
     self.name  =name
@@ -153,7 +153,7 @@ FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,_EXTRA=ex
   self.type = size(/type,value)
   self.ndimen = size(/n_dimensions,value)
   self.d = size(/dimen,value)
-  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=4
+;  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=4
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   RETURN, 1
 end

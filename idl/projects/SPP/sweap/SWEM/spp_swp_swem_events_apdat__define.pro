@@ -604,6 +604,7 @@ function spp_swp_swem_events_apdat::decom,ccsds  ,source_dict = source_dict  ;,h
 
   strct = {  $
     time:ccsds.time, $
+    met: ccsds.met,  $
     seqn:ccsds.seqn, $
     num: 0, $
     subtime: 0ul, $
@@ -636,17 +637,17 @@ function spp_swp_swem_events_apdat::decom,ccsds  ,source_dict = source_dict  ;,h
   if 1 then begin
     for i = 0, n_elements(strcts)-1 do begin
       s = strcts[i]
-      strng = string( format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s )
+      strng = string( format='(a,": ",f1,f1,TL2,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s )  ; this is poor coding!
       if self.output_lun ne 0 then begin
         printf,self.output_lun,strng
         flush,self.output_lun
       endif
     endfor    
   endif
-  if debug(self.dlevel+2) then begin
+  if 0 && debug(self.dlevel+2) then begin
     for i = 0, n_elements(strcts)-1 do begin
       s = strcts[i]
-      strng = string( format='(a,": ",f1,TL1,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s )
+      strng = string( format='(a,": ",f1,f1,TL2,Z04,i3,": ",z08,i,4(" ",Z02)," ",a,f6.2,i)',time_string(s.time),s )
       if s.code ne 278 then $
         dprint,dlevel=self.dlevel+2,strng
     endfor

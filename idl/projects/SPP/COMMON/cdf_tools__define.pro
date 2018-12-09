@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-07 12:44:53 -0800 (Fri, 07 Dec 2018) $
-; $LastChangedRevision: 26273 $
+; $LastChangedDate: 2018-12-08 17:25:50 -0800 (Sat, 08 Dec 2018) $
+; $LastChangedRevision: 26292 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-07 12:44:53 -0800 (Fri, 07 Dec 2018) $
-; $LastChangedRevision: 26273 $
+; $LastChangedDate: 2018-12-08 17:25:50 -0800 (Sat, 08 Dec 2018) $
+; $LastChangedRevision: 26292 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-07 12:44:53 -0800 (Fri, 07 Dec 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26273 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-08 17:25:50 -0800 (Sat, 08 Dec 2018) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 26292 $'
 
   return,sw_hash
 end
@@ -141,7 +141,7 @@ end
 ;end
 
 
-pro cdf_tools::write,pathname,cdftags=cdftags,trange=trange
+pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
 ;  if not keyword_set(self.cdf_pathname) then return
   
   global_attributes = self.g_attributes
@@ -156,7 +156,7 @@ pro cdf_tools::write,pathname,cdftags=cdftags,trange=trange
   if ~isa(pathname,/string) then  pathname = 'temp.cdf'
   file_mkdir2,file_dirname(pathname)
   self.fileid = cdf_create(pathname,/clobber)
- ; dprint,'Making CDF file: ',pathname,dlevel=self.dlevel
+ ; dprint,'Making CDF file: '+pathname,dlevel=self.dlevel,verbose=verbose
 
   global_attributes = self.g_attributes  
   foreach attvalue,global_attributes,name do begin
@@ -174,7 +174,7 @@ pro cdf_tools::write,pathname,cdftags=cdftags,trange=trange
    
   cdf_close,self.fileid
   self.fileid = 0
-  dprint,'Created:  '+pathname,dlevel=self.dlevel
+  dprint,'Created: '+pathname,dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
 end
 
 
@@ -271,7 +271,7 @@ pro cdf_tools::var_att_create,var
     12: cdf_type = {cdf_uint2:1}
     13: cdf_type = {cdf_uint4:1}
     else: begin
-      dprint,'Please add data type '+string(type)+' to this case statement for variable: '+varname
+      dprint,'Please add data type '+string(type)+' to this case statement for variable: '+varname,dlevel=4
       return
     end
   endcase
@@ -293,7 +293,11 @@ pro cdf_tools::var_att_create,var
     endelse
   endelse
 
-  if keyword_set(data) then cdf_varput,fileid,varname,data else dprint,dlevel=self.dlevel,'Warning! No data written for '+varname
+  if isa(data) then begin
+    cdf_varput,fileid,varname,data 
+  endif else begin
+   dprint,dlevel=self.dlevel,'Warning! No data written for '+varname
+  endelse
 
 
   if isa(var.attributes,'ORDEREDHASH')  then begin
@@ -301,7 +305,7 @@ pro cdf_tools::var_att_create,var
       if not keyword_set(attname) then continue      ; ignore null strings
       if ~cdf_attexists(fileid,attname) then begin
         dummy = cdf_attcreate(fileid,attname,/variable_scope)
-        dprint,dlevel=dlevel,'Created new Attribute: ',attname, ' for: ',varname
+        dprint,verbose=verbose,dlevel=dlevel,'Created new Attribute: ',attname, ' for: ',varname
       endif
       if keyword_set(value) then begin
         cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE        
@@ -490,7 +494,7 @@ END
 FUNCTION cdf_tools::Init,filename,_EXTRA=ex
   COMPILE_OPT IDL2
   ; Call our superclass Initialization method.
-; void = self.generic_Object::Init()
+  void = self.generic_Object::Init(_extra=ex)
   self.inq_ptr = ptr_new(!null)
   self.g_attributes = orderedhash()
   self.vars = orderedhash()
@@ -500,8 +504,8 @@ FUNCTION cdf_tools::Init,filename,_EXTRA=ex
     ;  self.cdf_pathname = prefix + 'sweap/spx/
   endif
   ; self.data = dynamicarray(name=name)
-  self.dlevel = 3
-  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
+;  self.dlevel = 3
+;  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   if isa(filename,/string) then self.read,filename
   RETURN, 1

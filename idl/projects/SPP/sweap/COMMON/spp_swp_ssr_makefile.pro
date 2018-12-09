@@ -1,12 +1,12 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-06 11:22:43 -0800 (Thu, 06 Dec 2018) $
-; $LastChangedRevision: 26270 $
+; $LastChangedDate: 2018-12-08 17:24:40 -0800 (Sat, 08 Dec 2018) $
+; $LastChangedRevision: 26290 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 
-pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load,make_cdf=make_cdf,make_ql=make_ql
+pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_load,make_cdf=make_cdf,make_ql=make_ql,verbose=verbose,reset=reset
   
 ;  login_info = get_login_info()
 ;  test = login_info.user_name eq 'davin'
@@ -15,10 +15,10 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load,make
 ;  dummy = {cdf_tools}  ; not needed anymore
   make_ql=0
   make_sav=0
-  make_cdf=1
+  if n_elements(make_cdf) eq 0 then make_cdf=1
 
   ;if not keyword_set(trange_full) then trange_full = [time_double('2018-8-30'),systime(1)] else trange_full = timerange(trange_full)
-  if not keyword_set(trange_full) then begin
+  if keyword_set(all) then begin
     trange_full = [time_double('2018-8-30'),systime(1)] 
   endif else begin
     trange_full = timerange(trange_full)
@@ -55,7 +55,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load,make
       endif else begin
         ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)  ; load all data over many days (full orbit)
         ;      spp_swp_apdat_init,/reset
-        spp_ssr_file_read,ssr_files,/sort_flag
+        spp_ssr_file_read,ssr_files,/sort_flag,no_init = ~keyword_set(reset)
         if keyword_set(make_sav) then begin
           spp_apdat_info,file_save=sav_file,/compress
           save,file=sav_file+'.code',/routines,/verbose
@@ -76,6 +76,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load,make
     for day=daynum[0],daynum[1] do begin ;loop over days
       trdaily = double(day * res)
       trange = trdaily + [0,1]*res
+      dprint,dlevel=2,verbose=verbose,'Time: '+strjoin("'"+time_string(trange)+"'",' to ')
       if 0 then begin
         ssr_info = file_info(ssr_files)
         sav_info = file_info(sav_file)
@@ -102,7 +103,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,restore=restore,no_load=no_load,make
       if keyword_set(make_cdf) then begin ;make cdf files
         aps = [spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*')]
         foreach a,aps do begin
-          a.print
+;          a.print
           a.cdf_makefile,trange=trange   
         endforeach
       endif
