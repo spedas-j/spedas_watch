@@ -119,6 +119,41 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
         'ephem_SPP_HGMAG', $
         'ephem_SPP_HGSPEC']
 
+      if file_types[0] EQ 'p4' and n_elements(file_types) EQ 1 then $
+        file_types = [$
+        'rfs_hfr_auto', $
+        'rfs_hfr_cross', $
+        'rfs_lfr_auto', $
+        'rfs_lfr_hires', $
+        'rfs_hfr_cross', $
+        'dfb_dc_spec_1', $
+        'dfb_dc_spec_2', $
+        'dfb_dc_spec_3', $
+        'dfb_dc_spec_4', $
+        'dfb_ac_spec_1', $
+        'dfb_ac_spec_2', $
+        'dfb_ac_spec_3', $
+        'dfb_ac_spec_4', $
+        'dfb_dc_bpf_1', $
+        'dfb_dc_bpf_2', $
+        'dfb_ac_bpf_1', $
+        'dfb_ac_bpf_2', $
+        'dfb_wf_01', $
+        'dfb_wf_02', $
+        'dfb_wf_03', $
+        'dfb_wf_04', $
+        'dfb_wf_05', $
+        'dfb_wf_06', $
+        'dfb_wf_07', $
+        'dfb_wf_08', $
+        'dfb_wf_09', $
+        'dfb_wf_10', $
+        'dfb_wf_11', $
+        'dfb_wf_12', $
+        'mago_survey', $
+        'magi_survey']
+
+
       spp_fld_tmlib_init, server = 'spffmdb.ssl.berkeley.edu', /daily
 
       foreach file_type, file_types do begin

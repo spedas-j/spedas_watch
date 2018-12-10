@@ -157,6 +157,11 @@ pro spp_fld_f1_100bps_load_l1, file, prefix = prefix
 
   endif
 
-  options, '*f1_100*', 'datagap', 30.
+  options, '*f1_100*', 'datagap', 120.
+
+;  options, '*f1_100*', 'datagap', 60.
+
+
+  options, '*f1_100*converted', 'datagap'
 
 end
