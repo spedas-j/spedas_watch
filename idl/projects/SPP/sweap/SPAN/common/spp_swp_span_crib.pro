@@ -7,8 +7,8 @@
 ; In the future this will include instructions for looking at flight data:  IN PROG
 ; 
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-07 14:52:40 -0800 (Fri, 07 Dec 2018) $
-; $LastChangedRevision: 26276 $
+; $LastChangedDate: 2018-12-09 21:25:16 -0800 (Sun, 09 Dec 2018) $
+; $LastChangedRevision: 26303 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_crib.pro $
 ;--------------------------------------------------------------------
 
@@ -93,27 +93,47 @@ pro spp_swp_span_load,spxs=spxs,types=types,trange=trange,no_load=no_load
 
 end
 
+
+
+
+
 if 0 then begin
-  timespan,'2018 10 2',3
-  spp_swp_spe_make_l2  
+  timespan,'2018 10 2',70
+  spp_swp_ssr_makefile
+  spp_swp_spe_make_l2 
+  spp_swp_spi_make_l2 
 endif
 
+
 if 0 then begin
-  spc_format = 'psp/data/sci/sweap/spc/L2/YYYY/MM/spp_swp_spc_l2i_YYYYMMDD_v??.cdf'
-  spc_files = spp_file_retrieve(spc_format,/daily_names,/valid_only,/last_version,prefix=ssr_prefix,verbose=2,trange=tr)
-  cdf2tplot,spc_files,prefix= 'psp_swp_spc_'
+  
+  spp_swp_tplot,/setlim
+  spp_swp_tplot,'swem2'
+  spp_swp_tplot,'sa_sum'
+  spp_swp_tplot,'sb_sum'
+  spp_swp_tplot,'si_rate1',/setlim
+  
+    
+  
+  
+  
 
-  spa_format = 'psp/data/sci/sweap/spa/L2/YYYY/MM/spa_sf1/spp_swp_spa_sf1_L2_*_YYYYMMDD_v??.cdf'
-  spa_files = spp_file_retrieve(spa_format,/daily_names,/valid_only,/last_version,prefix=ssr_prefix,verbose=2,trange=tr)
-  cdf2tplot,spa_files,prefix = 'psp_swp_spa_sf1_',varformat='EFLUX EMODE'
+  tplot,/add,'spp_spi_SF20_NRG_SPEC'
+endif
 
-  spa_format = 'psp/data/sci/sweap/spa/L1/YYYY/MM/spa_sf1/spp_swp_spa_sf1_L1_YYYYMMDD_v??.cdf'
-  spa_files = spp_file_retrieve(spa_format,/daily_names,/valid_only,/last_version,prefix=ssr_prefix,verbose=2,trange=tr)
-  cdf2tplot,spa_files,prefix = 'psp_swp_spa_L1_sf1_',varformat='PDATA'
 
-  spb_format = 'psp/data/sci/sweap/spb/L2/YYYY/MM/spa_sf0/spp_swp_spb_sf0_*_YYYYMMDD_v??.cdf'
-  spb_files = spp_file_retrieve(spa_format,/daily_names,/valid_only,/last_version,prefix=ssr_prefix,verbose=2,trange=tr)
-  cdf2tplot,spb_files,prefix = 'psp_swp_spb_sf0_'
+
+if 0 then begin
+  spp_swp_spc_load
+  spp_swp_spe_load
+  
+  spp_swp_tplot,setlim=2
+  tplot_options,'datagap',7200.*3
+  
+  
+  tplot,'spp_spi_rates_VALID_CNTS spp_spi_SF23_NRG_SPEC spp_spi_SF22_NRG_SPEC spp_spi_SF21_NRG_SPEC spp_spi_SF20_NRG_SPEC psp_swp_spc_l2i_diff_charge_flux_density',/rev
+  
+
   
 endif
 

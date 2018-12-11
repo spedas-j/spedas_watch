@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-06-03 18:19:29 -0700 (Sun, 03 Jun 2018) $
-; $LastChangedRevision: 25316 $
+; $LastChangedDate: 2018-12-10 11:16:06 -0800 (Mon, 10 Dec 2018) $
+; $LastChangedRevision: 26306 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_spc_hkp_apdat__define.pro $
 
 
@@ -13,6 +13,14 @@ function spp_swp_spc_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,heade
     hexprint,ccsds_data[0:31]
     hexprint,spp_swp_data_select(ccsds_data,80,8)
   endif
+
+  temp_par = spp_swp_therm_temp()
+
+  temp_par_10bit      = temp_par
+  temp_par_10bit.xmax = 1023
+ ; MON_TEMP =   func((spp_swp_word_decom(b,20) and '3ff'x) *1., param = temp_par_10bit)
+
+
     
   flt=1.
   str = {time:ccsds.time,  $
@@ -31,7 +39,8 @@ function spp_swp_spc_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,heade
          adc_railctl:  spp_swp_data_select(ccsds_data,204 , 12) * 5./4095*5/5 , $
          adc_P5_V:     spp_swp_data_select(ccsds_data,216 , 12) * 5./4095*5/2.5 , $
          adc_N5_V:     spp_swp_data_select(ccsds_data,228 , 12) * 5./4095*(-5)/1.67 , $
-         rio_LV_TEMP:  spp_swp_data_select(ccsds_data,240 , 10) * flt , $
+;         rio_LV_TEMP:  spp_swp_data_select(ccsds_data,240 , 10) * flt , $
+         rio_LV_TEMP:  func( spp_swp_data_select(ccsds_data,240 , 10)   *flt, param = temp_par_10bit)  , $
          rio_3p3_V:    spp_swp_data_select(ccsds_data,250 , 10) * 0.00363147605083089 , $
          rio_1p5_v:    spp_swp_data_select(ccsds_data,260 , 10) * 0.00239607843137255 , $
          rio_22_v:     spp_swp_data_select(ccsds_data,270 , 10) * 0.02619320388349510 , $ 
