@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-08 17:24:40 -0800 (Sat, 08 Dec 2018) $
-; $LastChangedRevision: 26290 $
+; $LastChangedDate: 2018-12-11 02:26:36 -0800 (Tue, 11 Dec 2018) $
+; $LastChangedRevision: 26313 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -13,9 +13,9 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
  test=1
   
 ;  dummy = {cdf_tools}  ; not needed anymore
-  make_ql=0
+  ;make_ql=0
   make_sav=0
-  if n_elements(make_cdf) eq 0 then make_cdf=1
+  ;if n_elements(make_cdf) eq 0 then make_cdf=1
 
   ;if not keyword_set(trange_full) then trange_full = [time_double('2018-8-30'),systime(1)] else trange_full = timerange(trange_full)
   if keyword_set(all) then begin
@@ -27,19 +27,21 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
   daynum = round( timerange(trange_full) /res )
   nd = daynum[1]-daynum[0]
   trange = res* double( daynum  ) ; round to days
+ 
   names=strlowcase(['CMDCTR','SE','SE_HV','SA_SUM','SA_HV','SB_HV','SC_HV','SE_LV',$
     'SE_SPEC','SA_SPEC','SB_SPEC','SE_A_SPEC','SA_A_SPEC','SB_A_SPEC',$
     'SI_RATE','SI_RATE1','SI_HV2','SI_MON','SI_HV','MANIP','SI_GSE','SI','SI_SCAN','SC','ACT','SI_COVER','SA_COVER','SB_COVER',$
     'SWEM','SWEM2','TIMING','TEMP','TEMPS','CRIT'])
   nt=n_elements(names)
 
+  ql_names=['SWEM2','SE_SUM1','SI_SUM1']
 
   if keyword_set(test) then begin     ; newer method
     output_prefix = 'psp/data/sci/sweap/'
     ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
     ssr_format = 'YYYY/DOY/*_?_E?'
     idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
-    ql_dir = output_prefix+'ql/'
+    ql_dir = output_prefix+'swem/ql/'
     
     
     tr = timerange(trange_full)
@@ -61,7 +63,22 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
           save,file=sav_file+'.code',/routines,/verbose
         endif
       endelse
+      spp_swp_tplot,setlim=2
+      spp_swp_spc_load
       
+    endif
+    if keyword_set(make_ql) then begin
+      wi,size=[1200,800]
+      tplot_options,'datagap',7200*3.
+      tplot,'APID'
+      nt = n_elements(ql_names)
+      tlimit,trange
+      for it=0L,nt-1 do begin ;loop over tplots
+        pngpath=ql_dir+ql_names[it]+'/spp_ql_'+ql_names[it]+'_FULL'
+        pngfile=spp_file_retrieve(pngpath,trange=trdaily,/create_dir,/daily_names)
+        spp_swp_tplot,ql_names[it],/setlim
+        makepng,pngfile
+      endfor
     endif
 
     if keyword_set(make_cdf) then begin ;make cdf files
@@ -90,12 +107,12 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
 
       if keyword_set(make_ql) then begin
         wi,size=[1200,800]
-        tplot,'APID'
+        nt = n_elements(ql_names)
         tlimit,trange
         for it=0L,nt-1 do begin ;loop over tplots
-          pngpath=ql_dir+names[it]+'/YYYY/MM/spp_ql_'+names[it]+'_YYYYMMDD'
+          pngpath=ql_dir+ql_names[it]+'/YYYY/MM/spp_ql_'+ql_names[it]+'_YYYYMMDD'
           pngfile=spp_file_retrieve(pngpath,trange=trdaily,/create_dir,/daily_names)
-          spp_swp_tplot,names[it],/setlim
+          spp_swp_tplot,ql_names[it],/setlim
           makepng,pngfile
         endfor
       endif

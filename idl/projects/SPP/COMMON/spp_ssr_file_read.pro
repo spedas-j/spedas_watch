@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-08 17:51:45 -0800 (Sat, 08 Dec 2018) $
-; $LastChangedRevision: 26294 $
+; $LastChangedDate: 2018-12-11 01:19:53 -0800 (Tue, 11 Dec 2018) $
+; $LastChangedRevision: 26309 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ; 
 ; ;  This routine will read SSR files that (series of CCSDS packets)
@@ -41,21 +41,18 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
       dprint,dlevel=1,'Warning: Skipping file '+filename+time_string(filetime,tformat='  YYYY-MM-DD/hh:mm:ss (DOY)')+' which has already been loaded.',verbose=verbose
       continue
     endif
-    spp_apdat_info,current_filename = basename   ; info.input_sourcename
- ;   tplot_options,title=info.input_sourcename 
+    spp_apdat_info,current_filename = filename   ; info.input_sourcename
     file_open,'r',info.input_sourcename ,unit=lun,dlevel=3,compress=-1
- ;   sizebuf = bytarr(2)
- ;   filename = ulong(strmid(file_basename(files[i]),0,10)))
     if lun eq 0 then begin
       dprint,'Bad file: '+filename
       continue
     endif
-;    dprint,dlevel=2,'Reading file: '+info.input_sourcename+' Size: '+strtrim(fi.size,2)+time_string(filetime,tformat='  YYYY-MM-DD/hh:mm:ss (DOY)')
     dprint,dlevel=2,'Loading File: '+info.input_sourcename+' LUN:'+strtrim(lun,2)+' Size: '+strtrim(fi.size,2)+time_string(filetime,tformat='  YYYY-MM-DD/hh:mm:ss (DOY)')
     spp_ssr_lun_read,lun,info=info
   
     fst = fstat(lun)
-    dprint,dlevel=2,'Loaded File:'+fst.name+' Compression: '+strtrim(float(fst.cur_ptr)/fst.size,2)
+    compression = float(fst.cur_ptr)/fst.size
+    dprint,dlevel=3,'Loaded File:'+fst.name+' Compression: '+strtrim(float(fst.cur_ptr)/fst.size,2)
     free_lun,lun
     if 0 then begin
       nextfile:

@@ -7,8 +7,8 @@
 ; In the future this will include instructions for looking at flight data:  IN PROG
 ; 
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-09 21:25:16 -0800 (Sun, 09 Dec 2018) $
-; $LastChangedRevision: 26303 $
+; $LastChangedDate: 2018-12-11 01:08:06 -0800 (Tue, 11 Dec 2018) $
+; $LastChangedRevision: 26308 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_crib.pro $
 ;--------------------------------------------------------------------
 
@@ -107,6 +107,7 @@ endif
 
 if 0 then begin
   
+  tplot_options,'datagap',7200*2
   spp_swp_tplot,/setlim
   spp_swp_tplot,'swem2'
   spp_swp_tplot,'sa_sum'
