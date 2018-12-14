@@ -30,9 +30,9 @@
 ;CREATED BY:
 ;  Alexander Drozdov
 ;   
-; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-10-12 17:42:18 -0700 (Fri, 12 Oct 2018) $
-; $LastChangedRevision: 25972 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2018-12-13 08:17:53 -0800 (Thu, 13 Dec 2018) $
+; $LastChangedRevision: 26322 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot2cdf.pro $
 ;-
 
@@ -47,6 +47,8 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
     return 
   endif
   
+  if undefined(default_cdf_structure) then default_cdf_structure = 1b
+  
   if undefined(inq_structure) then inq_structure = cdf_default_inq_structure()
   g_attributes_structure = cdf_default_g_attributes_structure()
   if ~undefined(g_attributes_custom) then begin
@@ -54,7 +56,15 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
     for i=0,N_ELEMENTS(g_tag)-1 do begin    
       str_element,g_attributes_structure,g_tag[i],g_attributes_custom.(i),/add
     endfor
-  endif
+  endif else begin
+    get_data, tplot_vars[0], dlimits=dl
+
+    g_attributes_custom = dl.cdf.gatt
+    g_tag = tag_names(g_attributes_custom)
+    for i=0,N_ELEMENTS(g_tag)-1 do begin
+      str_element,g_attributes_structure,g_tag[i],g_attributes_custom.(i),/add
+    endfor
+  endelse
   
   
   ; main structure
@@ -81,13 +91,13 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
     tname = tplot_vars[i]
     if KEYWORD_SET(default_cdf_structure) then tplot_add_cdf_structure,tname,tt2000=tt2000
     
-    get_data,tname,data=d,alimit=s
+    get_data,tname,data=d,alimit=s, dlimits=dl
     
     str_element,s,'CDF',SUCCESS=cdf_s
-    if cdf_s eq 0  then begin
+    if cdf_s eq 0 || ~is_struct(dl) then begin
       print, "ERROR: Missing CDF structure in tplot variable " + tname
       print, "Use tplot_add_cdf_structure procedure to define CDF structure or use /default_cdf_structure keyword"
-      return
+      continue
     endif
         
     ; extract data
@@ -103,7 +113,7 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
     ; here we don't check existence of CDF structure, it must be defined before
     ; we also don't check existence of x field
     VAR = s.CDF.VARS
-    
+
     t = TAG_NAMES(s.CDF)
     
     if ~undefined(x) then begin
@@ -122,7 +132,8 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
       endif
       
       if array_contains(t,'DEPEND_0') then begin
-        if s.CDF.DEPEND_0.DATATYPE eq EpochType then EpochVAR  = s.CDF.DEPEND_0
+        ;if s.CDF.DEPEND_0.DATATYPE eq EpochType then EpochVAR  = s.CDF.DEPEND_0
+        EpochVAR  = s.CDF.DEPEND_0
       endif
       
       if undefined(EpochVAR) then begin
@@ -150,7 +161,7 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
         EpochVAR.DATAPTR = ptr_new(time_epoch(x), /NO_COPY)    
       end
       
-      
+
       
       InArray = 0 ; flag of having Epoch in array EpochVARS  
       for j=0,N_ELEMENTS(EpochVARS)-1 do begin
@@ -192,7 +203,8 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
      endfor
    
      if InArray eq 0 then begin ; add new support variable
-       attr = *SupportVAR.ATTRPTR                         
+       attr = *SupportVAR.ATTRPTR               
+    
        if ndimen(v) eq 2 then str_element, attr,'DEPEND_0',EpochName,/add ; if support variable is 2d, then the first dimension corresponds to time               
        if STRCMP(attr.VAR_TYPE, 'undefined') then attr.VAR_TYPE = 'support_data' ;Change attributes for support variable variable
        SupportVAR.ATTRPTR = ptr_new(attr)
@@ -253,12 +265,12 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
         SupportVARS3 = array_concat(SupportVAR,SupportVARS3)
       endif
     endif
-    
+
     ;
     ; Now work with the data
     ;
     if ~undefined(VAR) then begin
-      attr = *VAR.ATTRPTR
+      attr = dl.cdf.vatt
       if STRCMP(attr.VAR_TYPE, 'undefined') then attr.VAR_TYPE = 'data' ;Change attributes for data variable variable
       if STRCMP(attr.DISPLAY_TYPE, 'undefined') then begin
         attr.DISPLAY_TYPE = 'time_series' ; if display type is not defined we assume that it is a time_series        
@@ -272,11 +284,11 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
           endelse
         endif
       endif
-      if array_contains(t,'DEPEND_0') then str_element, attr,'DEPEND_0',EpochName,/add            
-      if array_contains(t,'DEPEND_1') then str_element, attr,'DEPEND_1',SupportName1,/add 
-      if array_contains(t,'DEPEND_2') then str_element, attr,'DEPEND_2',SupportName2,/add
-      if array_contains(t,'DEPEND_3') then str_element, attr,'DEPEND_3',SupportName3,/add
-      
+      if array_contains(t,'DEPEND_0') then str_element, attr,'DEPEND_0',strjoin(strsplit(EpochName, '-', /extract), '_'),/add            
+      if array_contains(t,'DEPEND_1') then str_element, attr,'DEPEND_1',strjoin(strsplit(SupportName1, '-', /extract), '_'),/add 
+      if array_contains(t,'DEPEND_2') then str_element, attr,'DEPEND_2',strjoin(strsplit(SupportName2, '-', /extract), '_'),/add
+      if array_contains(t,'DEPEND_3') then str_element, attr,'DEPEND_3',strjoin(strsplit(SupportName3, '-', /extract), '_'),/add
+
       VAR.ATTRPTR = ptr_new(attr)
       VAR.DATAPTR = ptr_new(y, /NO_COPY)
             

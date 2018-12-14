@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-11 01:19:53 -0800 (Tue, 11 Dec 2018) $
-; $LastChangedRevision: 26309 $
+; $LastChangedDate: 2018-12-12 23:06:05 -0800 (Wed, 12 Dec 2018) $
+; $LastChangedRevision: 26318 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ; 
 ; ;  This routine will read SSR files that (series of CCSDS packets)
@@ -30,6 +30,10 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
 
 
   for i=0,n_elements(files)-1 do begin
+    if apdat_info.haskey('break') then begin
+      dprint,'Break point here'
+      if apdat_info['break'] ne 0 then stop
+    endif
     filename = files[i]
     basename = file_basename(filename)
     hashcode = basename.hashcode()

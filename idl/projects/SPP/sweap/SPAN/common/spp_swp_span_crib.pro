@@ -6,9 +6,9 @@
 ; 
 ; In the future this will include instructions for looking at flight data:  IN PROG
 ; 
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-11 01:08:06 -0800 (Tue, 11 Dec 2018) $
-; $LastChangedRevision: 26308 $
+; $LastChangedBy: davin $
+; $LastChangedDate: 2018-12-13 00:48:06 -0800 (Thu, 13 Dec 2018) $
+; $LastChangedRevision: 26319 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_crib.pro $
 ;--------------------------------------------------------------------
 
@@ -125,17 +125,27 @@ endif
 
 
 if 0 then begin
+  loadct2,43
   spp_swp_spc_load
+  zlim,'psp_swp_spc_l2i_diff_charge_flux_density',1,50,1
+  
   spp_swp_spe_load
+  zlim,'psp_swp_sp[ab]_*EFLUX',100,1e4
   
   spp_swp_tplot,setlim=2
   tplot_options,'datagap',7200.*3
   
+  zlim,'spp_sp[ab]_SF0_NRG_SPEC',10,1e5,1
+  
   
   tplot,'spp_spi_rates_VALID_CNTS spp_spi_SF23_NRG_SPEC spp_spi_SF22_NRG_SPEC spp_spi_SF21_NRG_SPEC spp_spi_SF20_NRG_SPEC psp_swp_spc_l2i_diff_charge_flux_density',/rev
   
-
+  tplot,'spp_sp[ab]_SF0_NRG_SPEC',/add
   
+  tplot,'psp*EFLUX',/add
+  
+  timespan,['2018 10 1','2018 12 10']
+  tplot
 endif
 
 

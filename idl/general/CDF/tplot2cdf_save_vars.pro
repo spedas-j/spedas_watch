@@ -23,9 +23,9 @@
 ;CREATED BY:
 ;  Alexander Drozdov
 ;
-; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-03-05 11:27:44 -0800 (Mon, 05 Mar 2018) $
-; $LastChangedRevision: 24829 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2018-12-13 08:16:04 -0800 (Thu, 13 Dec 2018) $
+; $LastChangedRevision: 26321 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot2cdf_save_vars.pro $
 ;-
 
@@ -97,7 +97,7 @@ endfor  ; i
 ;-------------------------------------------
 
 for i=0,cdf_structure.nv-1 do begin
-
+  var_name = strjoin(strsplit(cdf_structure.vars[i].name, '-', /extract), '_')
 
 	;create variable
 	;---------------
@@ -124,7 +124,7 @@ for i=0,cdf_structure.nv-1 do begin
  endif else begin
   data_dimen=0
   data_nimen=0
-  dprint,'Warning: variable ' + cdf_structure.vars[i].name + ' has no valid data pointer',dlevel=2   
+  dprint,'Warning: variable ' + var_name + ' has no valid data pointer',dlevel=2   
  endelse
 	 
 	;
@@ -152,9 +152,9 @@ for i=0,cdf_structure.nv-1 do begin
 	
 	if (data_ndimen eq 0) or (data_ndimen eq 1 and cdf_structure.vars[i].recvary eq 1) then begin
    	 ; Scalar or 1d recvary 
-	   dummy=cdf_varcreate(id,cdf_structure.vars[i].name,_extra=var_parameters,/zvariable)
+	   dummy=cdf_varcreate(id,var_name,_extra=var_parameters,/zvariable)
 	endif else begin
-	   dummy=cdf_varcreate(id,cdf_structure.vars[i].name,data_dimvary,dim=data_dimen,_extra=var_parameters,/zvariable)
+	   dummy=cdf_varcreate(id,var_name,data_dimvary,dim=data_dimen,_extra=var_parameters,/zvariable)
 	endelse
 		
 	
@@ -169,8 +169,8 @@ for i=0,cdf_structure.nv-1 do begin
 		att_exists=cdf_attexists(id,va_names[j],/zvariable)
 		if (att_exists eq 0) then dummy=cdf_attcreate(id,va_names[j],/variable_scope)
 		if ( cdf_structure.vars[i].datatype eq 'CDF_EPOCH' or cdf_structure.vars[i].datatype eq 'CDF_TIME_TT2000' ) && ((va_names[j] eq 'FILLVAL') || (va_names[j] eq 'VALIDMIN') || (va_names[j] eq 'VALIDMAX')) then begin
-		  cdf_attput,id,va_names[j],cdf_structure.vars[i].name,va.(j),/zvariable,/cdf_epoch
-		endif else cdf_attput,id,va_names[j],cdf_structure.vars[i].name,va.(j),/zvariable
+		  cdf_attput,id,va_names[j],var_name,va.(j),/zvariable,/cdf_epoch
+		endif else cdf_attput,id,va_names[j],var_name,va.(j),/zvariable
 			
 	endfor  ; j
 	
@@ -192,8 +192,9 @@ for i=0,cdf_structure.nv-1 do begin
 			transshift=shift(indgen(data_ndimen),-1)
 			vd=transpose(vd,transshift)
 		endif
-		cdf_varput,id,cdf_structure.vars[i].name,vd,/zvariable
-		VARINQ = CDF_VARINQ(id, cdf_structure.vars[i].name)
+		
+		cdf_varput,id,var_name,vd,/zvariable
+		VARINQ = CDF_VARINQ(id, var_name)
 		
 	endif
 endfor  ; i

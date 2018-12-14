@@ -55,9 +55,9 @@
 ;CREATED BY:
 ;  Alexander Drozdov
 ;
-; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-03-12 18:05:53 -0700 (Mon, 12 Mar 2018) $
-; $LastChangedRevision: 24880 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2018-12-13 08:16:04 -0800 (Thu, 13 Dec 2018) $
+; $LastChangedRevision: 26321 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot_add_cdf_structure.pro $
 ;-
 
@@ -89,6 +89,8 @@ pro tplot_add_cdf_structure, tplot_vars, tt2000=tt2000, new=new
     
     ; extract metadata
      metadata = spd_extract_tvar_metadata(tplot_vars[i])
+     
+     if ~is_struct(metadata) then continue
     
     ; cases:
     ; d is an array
