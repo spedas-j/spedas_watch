@@ -37,15 +37,16 @@
 pro lomo_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remote_data_dir,$
   no_color_setup=no_color_setup
 
+  def_struct = file_retrieve(/structure_format)
+  
   defsysv,'!lomo',exists=exists
 
   if not keyword_set(exists) then begin; if !mms does not exist
     defsysv,'!lomo', file_retrieve(/structure_format)
   endif
 
-  !lomo.local_data_dir = !lomo.local_data_dir + 'lomo/elfin/'
-  !lomo.remote_data_dir = 'http://themis-data.igpp.ucla.edu/ell/'   ; use as backup web server
-    
+  !lomo.local_data_dir = !lomo.local_data_dir + 'lomo/'
+  !lomo.remote_data_dir = 'http://themis-data.igpp.ucla.edu/lomo/'   ; use as backup web server
   return
   
 END

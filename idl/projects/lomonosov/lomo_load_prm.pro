@@ -74,9 +74,10 @@ PRO lomo_load_prm, datatype=datatype, level=level, trange=trange, $
   mo = strmid(trange[0],5,2)
   day = strmid(trange[0],8,2)
   
-  local_file = !lomo.local_data_dir + level+'/prm/'+yr+'/lomo_'+level+'_'+yr+mo+day+'_prm_v01.cdf'
+  local_file = !lomo.local_data_dir +level+'/prm/'+yr+'/lomo_'+level+'_'+yr+mo+day+'_prm_v01.cdf'
 
   no_download = !lomo.no_download or !lomo.no_server or ~undefined(no_update) 
+
   if no_download eq 0 then begin
         
           ; Construct file name

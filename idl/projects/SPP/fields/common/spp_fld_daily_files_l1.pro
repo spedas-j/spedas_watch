@@ -32,7 +32,6 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
         'rfs_hfr_cross', $
         'rfs_lfr_auto', $
         'rfs_lfr_hires', $
-        'rfs_hfr_cross', $
         'dfb_dc_spec_1', $
         'dfb_dc_spec_2', $
         'dfb_dc_spec_3', $
@@ -119,13 +118,33 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
         'ephem_SPP_HGMAG', $
         'ephem_SPP_HGSPEC']
 
+      if file_types[0] EQ 'p1' and n_elements(file_types) EQ 1 then $
+        file_types = [$
+        'sc_hk_1df', $
+        'sc_hk_191', $
+        'sc_hk_high', $
+        'sc_hk_med', $
+        'sc_fsw_rec_alloc']
+
+      if file_types[0] EQ 'p3' and n_elements(file_types) EQ 1 then $
+        file_types = ['f1_100bps']
+
+      if file_types[0] EQ 'p2' and n_elements(file_types) EQ 1 then $
+        file_types = [$
+        'mago_hk', $
+        'magi_hk', $
+        'dcb_analog_hk', $
+        'dcb_events', $
+        'dcb_ssr_telemetry', $
+        'aeb1_hk', $
+        'aeb2_hk']
+
       if file_types[0] EQ 'p4' and n_elements(file_types) EQ 1 then $
         file_types = [$
         'rfs_hfr_auto', $
         'rfs_hfr_cross', $
         'rfs_lfr_auto', $
         'rfs_lfr_hires', $
-        'rfs_hfr_cross', $
         'dfb_dc_spec_1', $
         'dfb_dc_spec_2', $
         'dfb_dc_spec_3', $
@@ -153,6 +172,12 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
         'mago_survey', $
         'magi_survey']
 
+      if file_types[0] EQ 'rfs' and n_elements(file_types) EQ 1 then $
+        file_types = [$
+        'rfs_hfr_auto', $
+        'rfs_hfr_cross', $
+        'rfs_lfr_auto', $
+        'rfs_lfr_hires']
 
       spp_fld_tmlib_init, server = 'spffmdb.ssl.berkeley.edu', /daily
 
