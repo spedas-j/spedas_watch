@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-07 14:27:21 -0800 (Fri, 07 Dec 2018) $
-; $LastChangedRevision: 26274 $
+; $LastChangedDate: 2018-12-17 12:09:03 -0800 (Mon, 17 Dec 2018) $
+; $LastChangedRevision: 26338 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -259,11 +259,11 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
       case strupcase(detname) of
         'SPA' : begin
           dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40.
-          phi  = total(dphi,/cumulative)
+          phi  = total(dphi,/cumulative) +60 ; +180
           end
         'SPB' : begin
           dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40.
-          phi = total(dphi,/cumulative) - 120 - 12
+          phi = total(dphi,/cumulative) - 120 - 12 +180
           end
       endcase
       n_anodes  = 16
@@ -291,7 +291,7 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
     if ~spe_param_dict.haskey('ptables') then spe_param_dict.ptables = orderedhash()
     ptables = spe_param_dict.ptables
     if ~ptables.haskey(pmode) then begin
-      dprint, 'Generating new product table ',pmode,dlevel=2
+      dprint, 'Generating new product table ',pmode,dlevel=1
       case pmode of
         '16Ax8Dx32E'  : binmap = indgen(16,8,32)   ; 4096 samples; full resolution
         '32E'  : binmap = reform( replicate(1,16*8) # indgen(32) , 16,8,32 )    ; 32 sample energy spectra

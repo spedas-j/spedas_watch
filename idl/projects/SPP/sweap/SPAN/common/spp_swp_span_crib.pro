@@ -6,9 +6,9 @@
 ; 
 ; In the future this will include instructions for looking at flight data:  IN PROG
 ; 
-; $LastChangedBy: davin $
-; $LastChangedDate: 2018-12-13 00:48:06 -0800 (Thu, 13 Dec 2018) $
-; $LastChangedRevision: 26319 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2018-12-17 12:09:03 -0800 (Mon, 17 Dec 2018) $
+; $LastChangedRevision: 26338 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_crib.pro $
 ;--------------------------------------------------------------------
 
@@ -95,6 +95,46 @@ end
 
 
 
+pro spp_swp_spx_conv_units,d3d,scale=scale,units
+  dprint,'do nothing',dlevel=3
+;  ap = spp_apdat('spa_sf0')
+;  d3d = spp_swp_spe_3dstruct(dat[i])
+;  printdat,d3d
+;  for a=0,15 do begin
+
+end
+
+
+pro spplot,trange,cursor=cursor,zero=zero,lim=lim
+
+if ~isa(lim) then begin
+  ylim,lim,10,1e6,1
+endif
+
+d3d1 = spp_swp_3dstruct('spa_sf0',trange=trange,cursor=cursor)
+wi,1
+wshow,1
+spec3d,d3d1,lim=lim,/phi
+
+wi,2
+wshow,2
+plot3d_new,d3d1,zero=zero
+
+d3d2 = spp_swp_3dstruct('spb_sf0',trange=trange)
+wi,3,/wshow
+spec3d,d3d2,lim=lim,/phi
+wi,4,/wshow
+plot3d_new,d3d2,zero=zero
+timebar,trange
+
+wshow,2
+wshow,4
+wshow,1
+wshow,3
+;wshow,4
+
+
+end
 
 
 if 0 then begin
@@ -132,7 +172,7 @@ if 0 then begin
   spp_swp_spe_load
   zlim,'psp_swp_sp[ab]_*EFLUX',100,1e4
   
-  spp_swp_tplot,setlim=2
+;  spp_swp_tplot,setlim=2
   tplot_options,'datagap',7200.*3
   
   zlim,'spp_sp[ab]_SF0_NRG_SPEC',10,1e5,1
@@ -146,6 +186,24 @@ if 0 then begin
   
   timespan,['2018 10 1','2018 12 10']
   tplot
+endif
+
+
+
+if 0 then begin
+  !p.charsize=1.6
+  set_plot,'z'
+  init_devices,colort=43
+  device,set_res=[4000,1000] 
+  init_devices,colorta = 43
+  tplot, trange = ['2018 8 8','2018 12 14']
+  timebar,'2018 8 12'
+  makepng,'ztest'
+  set_plot,'x'
+  init_devices,colort=43
+  
+  tplot
+ 
 endif
 
 

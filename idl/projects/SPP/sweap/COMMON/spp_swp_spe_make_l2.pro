@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2018-12-11 01:08:06 -0800 (Tue, 11 Dec 2018) $
-  ; $LastChangedRevision: 26308 $
+  ; $LastChangedDate: 2018-12-17 12:09:03 -0800 (Mon, 17 Dec 2018) $
+  ; $LastChangedRevision: 26338 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -41,6 +41,9 @@
   ;
   ;
   ; note that table files are doubled until [insert date here]
+  
+  
+  
 
 pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
 
@@ -76,7 +79,7 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
         if file_test(file) eq 0 then continue
         l1_cdf = cdf_tools(file)                           ; Read in file
 
-        l1_counts = l1_cdf.vars['PDATA'].data.array
+        l1_counts = l1_cdf.vars['DATA'].data.array
         l1_datasize = l1_cdf.vars['DATASIZE'].data.array
         l1_nrecs = n_elements(l1_datasize)
         l1_emode = l1_cdf.vars['EMODE'].data.array
@@ -94,7 +97,7 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
           l2_cdf = cdf_tools(file)   ; make a copy
           l2_cdf.filter_variables, records                  ; down  select the pmodes
 
-          l2_counts = l2_cdf.vars['PDATA'].data.array
+          l2_counts = l2_cdf.vars['DATA'].data.array
           l2_emode = l2_cdf.vars['EMODE'].data.array
                     
           l2_counts = l2_counts[*,0:psize-1]
