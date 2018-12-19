@@ -38,28 +38,30 @@ pro elf_config, colortable=colortable, no_color_setup=no_color_setup
   ;--------------------
   ; LOCAL_DATA_DIR
   ;--------------------
-  !elf.local_data_dir = spd_default_local_data_dir() + 'elfin/'
+  !elf.local_data_dir = spd_default_local_data_dir() + 'elfin'
 
   ;--------------------
   ; Local Config File
   ;--------------------
   cfg = elf_config_read(); read config file
+
   if (size(cfg,/type) eq 8)then begin; if config file exists, update !elf from the file
     !elf.LOCAL_DATA_DIR = cfg.local_data_dir
   endif else begin; if cfg not found,
     dir = elf_config_filedir(); create config directory
-    !elf.LOCAL_DATA_DIR = spd_default_local_data_dir() + 'elfin/'
+    !elf.LOCAL_DATA_DIR = spd_default_local_data_dir() + 'elfin'
     pref = {LOCAL_DATA_DIR: !elf.LOCAL_DATA_DIR}
     elf_config_write, pref
   endelse
 
   ; Settings of environment variables can override elf_config
   if getenv('ELF_REMOTE_DATA_DIR') ne '' then $
-    !elf.remote_data_dir = getenv('ELF_REMOTE_DATA_DIR')
+    !elf.remote_data_dir = getenv('ELF_REMOTE_DATA_DIR') else $
+    !elf.remote_data_dir = 'http:://themis-data.igpp.ucla.edu/themis/data/elfin'
   !elf.remote_data_dir = spd_addslash(!elf.remote_data_dir)
 
   if getenv('ROOT_DATA_DIR') ne '' then $
-    !elf.LOCAL_DATA_DIR = spd_addslash(getenv('ROOT_DATA_DIR'))+'elfin/'
+    !elf.LOCAL_DATA_DIR = spd_addslash(getenv('ROOT_DATA_DIR'))+'elfin'
 
   ; Settings of environment variables can override elf_config
   if getenv('ELF_DATA_DIR') ne '' then $
@@ -71,7 +73,8 @@ pro elf_config, colortable=colortable, no_color_setup=no_color_setup
   ;------------------------
   ; Please note: These settings will affect all IDL routines, NOT JUST ELF routines!
 
-  ;========= COLOR SETUP
+  ;====
+  ;===== COLOR SETUP
   ;
   ; Do not do color setup if taken care for already
   if not keyword_set(no_color_setup) then begin

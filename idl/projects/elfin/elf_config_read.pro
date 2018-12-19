@@ -23,7 +23,7 @@ FUNCTION elf_config_read
     ;Is there a trailing slash? Not for linux or windows, not sure about Mac
     ll = strmid(dir, strlen(dir)-1, 1)
     If(ll Eq '/' Or ll Eq '\') Then filex = dir+'elf_config.txt' $
-    Else filex = dir+'/'+'elf_config.txt'
+    Else filex = dir+'\'+'elf_config.txt'
     if file_test(filex) then begin;........ if dir found, look for the config file
       ttt = elf_config_read_template()
       rst = read_ascii(filex,template=ttt,header=hhh)
