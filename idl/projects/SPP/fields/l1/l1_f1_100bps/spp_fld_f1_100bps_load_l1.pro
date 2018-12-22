@@ -124,6 +124,17 @@ pro spp_fld_f1_100bps_load_l1, file, prefix = prefix
 
   options, prefix + ['RFS*'], 'colors', 6
 
+  options, prefix + ['RFS_HITS'], 'tplot_routine', 'bitplot'
+  options, prefix + ['RFS_HITS'], 'numbits', 2
+  options, prefix + ['RFS_HITS'], 'psyms', 7
+  options, prefix + ['RFS_HITS'], 'yminor', 1
+  options, prefix + ['RFS_HITS'], 'yticks', 3
+  options, prefix + ['RFS_HITS'], 'ytickformat', 'spp_fld_ticks_blank'
+
+  options, prefix + ['RFS_HITS'], 'labels', $
+    ['LO', 'HI']
+
+
   f1_100bps_names = tnames(prefix + '*')
 
   if f1_100bps_names[0] NE '' then begin

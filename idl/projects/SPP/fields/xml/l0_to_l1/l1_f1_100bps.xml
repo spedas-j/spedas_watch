@@ -655,6 +655,48 @@
   </cdf_var>
 
   <cdf_var
+      name = "RFS_HITS_HI"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "RFS_HITS_HI"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "RFS_HITS_HI"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "1"
+        SCALEMIN = "0"
+        SCALEMAX = "1"
+        UNITS = "None"
+        CATDESC = "RFS Hits High Gain Indicator"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
+      name = "RFS_HITS_LO"
+      type = "Integer"> 
+    <cdf_att
+        FIELDNAM = "RFS_HITS_LO"
+        FORMAT = "I016"
+        DATA_TYPE = "CDF_INT4"
+        LABLAXIS = "RFS_HITS_LO"
+        VAR_TYPE = "data"
+        FILLVAL = "-2147483647"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "1"
+        SCALEMIN = "0"
+        SCALEMAX = "1"
+        UNITS = "None"
+        CATDESC = "RFS Hits Low Gain Indicator"
+        DEPEND_0 = "epoch">
+    </cdf_att>
+  </cdf_var>
+
+  <cdf_var
       name = "RFS_PLASMA"
       type = "Integer"> 
     <cdf_att
