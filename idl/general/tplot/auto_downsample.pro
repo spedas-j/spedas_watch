@@ -19,9 +19,9 @@
 ;                            input coordinates, but to the output coordinates
 ;HISTORY:
 ; 31-aug-2018, jmm, jimm@ssl.berkeley.edu
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2018-09-04 15:23:09 -0700 (Tue, 04 Sep 2018) $
-; $LastChangedRevision: 25723 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2018-12-27 09:17:14 -0800 (Thu, 27 Dec 2018) $
+; $LastChangedRevision: 26405 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/auto_downsample.pro $
 ;-
 Function auto_downsample, spec_in, x_in, x_out, $
@@ -55,7 +55,7 @@ Function auto_downsample, spec_in, x_in, x_out, $
      If(rii[j] Ne rii[j+1]) Then Begin
         ss = rii[rii[j]:rii[j+1]-1]
         If(ny Eq 1) Then spec_new[j] = total(spec_in[ss]) $
-        Else spec_new[j, *] = total(spec_in[ss, *], 1)/float(n_elements(ss))
+        Else spec_new[j, *] = mean(spec_in[ss, *], dim=1, /nan)
      Endif
   Endfor
 ;Need bin mipoints
