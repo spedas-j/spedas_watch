@@ -16,10 +16,10 @@
 ;              For purposes of demonstration, this rouine uses the following 
 ;              parameters:
 ;              instrument - character string (or array) containing the name of
-;                           the instrument such as 'fgm', 'epd', or eng
+;                           the instrument such as 'fgm', 'epd', 'mrma', 'mrmi,
+;                           or 'state'
 ;              datalevel - L1 or L2 
-;              datatype - for fgm (mag) 
-;                       - add types for epd and eng
+;              datatype - dependent on instrument and level
 ;              time range - an array of 2 character strings containing the 
 ;                           start and stop times of the data to be loaded.
 ;                           ['2007-03-23/00:00:00', '2007-03-24/00:00:00']       
@@ -60,7 +60,7 @@ pro elf_ui_load_data_load_pro,$
                          overwrite_selections=overwrite_selections
                          
   compile_opt hidden,idl2
-  
+stop  
   ; initialize variables
   loaded = 0
   new_vars = ''
@@ -71,9 +71,10 @@ pro elf_ui_load_data_load_pro,$
   endif
 
   ; extract the variables from the load structure
+  probes=loadStruc.probes
   instrument=loadStruc.instrument
-  datalevel=loadStruc.datalevels
-  datatype=loadStruc.datatypes
+  level=loadStruc.level
+  types=loadStruc.types
   timeRange=loadStruc.timerange
 
   ; **** Specify the starting and ending time ranges for this mission *****
@@ -90,7 +91,7 @@ pro elf_ui_load_data_load_pro,$
   ; ***** This is the routine that loads the actual data *****
   ; ***** This routine is provided by each mission ***** 
   ; ***** Parameters for the load routines will vary per mission *****
-  elf_load_data, instrument=instrument, datatype=datatype, level=datalevel, $
+  elf_load_data, probes=probes, instrument=instrument, datatype=types, level=level, $
                     trange=timeRange 
 
   ;if instrument EQ 'epd' then del_data, 'ell_epdi'
@@ -99,8 +100,8 @@ pro elf_ui_load_data_load_pro,$
   spd_ui_cleanup_tplot, tn_before, create_time_before=cn_before, del_vars=to_delete,$
                         new_vars=new_vars
 
-  idx=where(new_vars EQ 'ell_epdi', ncnt)
-  if ncnt GT 0 then new_vars='ell_epde'
+;  idx=where(new_vars EQ 'ell_epdi', ncnt)
+;  if ncnt GT 0 then new_vars='ell_epde'
 
   if new_vars[0] ne '' then begin
     loaded = 1
@@ -112,7 +113,7 @@ pro elf_ui_load_data_load_pro,$
       spd_ui_check_overwrite_data,new_vars[i],loadedData,parent_widget_id,statusBar,historyWin, $
         overwrite_selection,overwrite_count,replay=replay,overwrite_selections=overwrite_selections
       if strmid(overwrite_selection, 0, 2) eq 'no' then continue
-      
+stop      
       ; this statement adds the variable to the loadedData object
       result = loadedData->add(new_vars[i],mission='elf', $            ;,observatory=probe, $
                                instrument=instrument)
@@ -120,7 +121,7 @@ pro elf_ui_load_data_load_pro,$
       ; report errors to the status bar and add them to the history window
       if ~result then begin
         statusBar->update,'Error loading: ' + new_vars[i]
-        historyWin->update,'elf: Error loading: ' + new_vars[i]
+        historyWin->update,'ELFIN: Error loading: ' + new_vars[i]
         return
       endif
     endfor
@@ -133,19 +134,19 @@ pro elf_ui_load_data_load_pro,$
   
   ; inform the user that the load was successful and add it to the history   
   if loaded eq 1 then begin  
-     statusBar->update,'elf Data Loaded Successfully'
-     historyWin->update,'elf Data Loaded Successfully'
+     statusBar->update,'ELFIN Data Loaded Successfully'
+     historyWin->update,'ELFIN Data Loaded Successfully'
   endif else begin
  
      ; if the time range specified by the user is not within the time range 
      ; of available data for this mission and instrument then inform the user 
      if time_double(elfmaxtime) lt time_double(timerange[0]) || $
         time_double(elfmintime) gt time_double(timerange[1]) then begin
-        statusBar->update,'No elf Data Loaded, elf data is only available between ' + elfmintime + ' and ' + elfmaxtime
-        historyWin->update,'No elf Data Loaded, elf data is only available between ' + elfmintime + ' and ' + elfmaxtime
+        statusBar->update,'No ELFIN Data Loaded, ELFIN data is only available between ' + elfmintime + ' and ' + elfmaxtime
+        historyWin->update,'No ELFIN Data Loaded, ELFIN data is only available between ' + elfmintime + ' and ' + elfmaxtime
      endif else begin   
-        statusBar->update,'No elf Data Loaded'
-        historyWin->update,'No elf Data Loaded'
+        statusBar->update,'No ELFIN Data Loaded'
+        historyWin->update,'No ELFIN Data Loaded'
      endelse
     
   endelse

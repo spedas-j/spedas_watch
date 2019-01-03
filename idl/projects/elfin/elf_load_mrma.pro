@@ -64,7 +64,7 @@
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_load_mrma.pro $
 ;-
 
-pro elf_load_mrma, trange = trange, probes = probes, datatypes = datatypes, $
+pro elf_load_mrma, trange = trange, probes = probes, datatype = datatype, $
   level = level, data_rate = data_rate, $
   local_data_dir = local_data_dir, source = source, $
   get_support_data = get_support_data, $
@@ -77,8 +77,14 @@ pro elf_load_mrma, trange = trange, probes = probes, datatypes = datatypes, $
   always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
   if undefined(probes) then probes = ['a'] ; default to ela
+  if probes EQ ['*'] then probes = ['a', 'b']
   if undefined(level) then level = 'l1'
   if undefined(datatype) then datatype = ['mrma'] ; this is the only type of mrm data
+  if datatype NE 'mrma' then begin
+    dprint, dlevel = 1, 'MRMa data has only one variable = mrma' 
+    dprint, dlevel = 1, 'Defaulting to mrma.'
+    datatype = 'mrma'
+  endif
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ''
 

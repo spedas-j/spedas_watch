@@ -80,8 +80,21 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
 
   if undefined(probes) then probes = ['a'] ; default to ela
   if probes EQ ['*'] then probes = ['a', 'b']
+  if n_elements(probes) GT 2 then begin
+    dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
+    return
+  endif
+  ; check for valid probe names
+  probes = strlowcase(probes)
+  idx = where(probes EQ 'a', acnt)
+  idx = where(probes EQ 'b', bcnt)
+  if acnt EQ 0 && bcnt EQ 0 then begin
+    dprint, dlevel = 1, 'Invalid probe name. Valid probes are a and/or b. Please select again.'
+    return    
+  endif
   if undefined(datatype) then datatype = ['pos', 'vel']
   if datatype EQ ['*'] then datatype =  ['pos', 'vel']
+  varformat = '*'+datatype
   if undefined(level) then level = 'l1'
   if level NE 'l1' then begin
     dprint, dlevel = 1, 'State data does not have level = ' + level
@@ -107,18 +120,5 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
 
   ; no reason to continue if no data were loaded
   if undefined(tplotnames) then return
-
-  ; turn the right ascension and declination of the L vector into separate tplot variables
-  ; this is for passing to dmpa2gse.
-;  for probe_idx = 0, n_elements(probes)-1 do begin
-;    if tnames('el'+strcompress(string(probes[probe_idx]), /rem)+'_pos'+suffix) ne '' then begin
-;      split_vec, 'el'+strcompress(string(probes[probe_idx]), /rem)+'_mec_L_vec'+suffix, $
-;        names_out=ras_dec_vars
-;      copy_data, ras_dec_vars[0], 'el'+strcompress(string(probes[probe_idx]), /rem)+'_defatt_spinras'+suffix
-;      copy_data, ras_dec_vars[1], 'el'+strcompress(string(probes[probe_idx]), /rem)+'_defatt_spindec'+suffix
-;    endif else dprint, dlevel = 1, 'No right ascension/declination of the L-vector found.'
-    ; fix the metadata
-    ;elf_mec_fix_metadata, probes[probe_idx], suffix = suffix
-;  endfor
 
 end

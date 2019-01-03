@@ -16,6 +16,89 @@
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/tags/spedas_1_00/spedas/gui/api_examples/load_data_tab/elf_ui_load_data.pro $
 ;
 ;--------------------------------------------------------------------------------
+
+; This helper function queries the widgets and creates a structure based on the user selections
+function elf_ui_get_user_selections, state, event
+
+  ; retrieve the instrument selected
+  instlist = widget_info(event.handler,find_by_uname='instrument')
+  instrument = widget_info(instlist,/combobox_gettext)
+  
+  ; retrieve the probe[s] selected 
+  probelist = widget_info(event.handler,find_by_uname='probelist')
+  probeSelect = widget_info(probelist,/list_select)
+  if probeSelect[0] eq -1 then begin
+    state.statusBar->update,'You must select at least one probe'
+    state.historyWin->update,'elf add attempted without selecting probe'
+    return, -1
+  endif
+  probes=state.probeArray[probeSelect]
+  
+  ; retrieve the level[s] selected
+  levellist = widget_info(event.handler,find_by_uname='levellist')
+  levelSelect = widget_info(levellist,/list_select)
+  if levelSelect[0] eq -1 then begin
+    state.statusBar->update,'You must select at least one level'
+    state.historyWin->update,'elf add attempted without selecting level'
+    return, -1
+  endif
+  level = state.levelArray[levelSelect]
+  
+  ; retrieve the data types (first need to determin which array to use
+  if level EQ 'L1' then begin
+    Case instrument of
+      'fgm': setType = state.fgmL1TypeArray
+      'epd': setType = state.epdL1TypeArray
+      'mrma': setType = state.mrmaL1TypeArray
+      'mrmi': setType = state.mrmiL1TypeArray
+      'state': setType = state.stateTypeArray
+    Endcase
+  endif else begin
+    Case instrument of
+      'fgm': setType = state.fgmL2TypeArray
+      'epd': setType = state.epdL2TypeArray
+      'mrma': setType = state.mrmaL2TypeArray
+      'mrmi': setType = state.mrmiL2TypeArray
+      'state': setType = state.stateTypeArray
+    Endcase
+  endelse
+  typelist = widget_info(event.handler,find_by_uname='typelist')
+  typeSelect = widget_info(typelist, /list_select)
+  if typeSelect[0] eq -1 then begin
+    state.statusBar->update,'You must select at least one data type'
+    state.historyWin->update,'elf add attempted without selecting data type'
+    return, -1
+  endif
+  types = setType[typeSelect]
+
+  ;get the start and stop times
+  timeRangeObj = state.timeRangeObj
+  timeRangeObj->getProperty,startTime=startTimeObj,endTime=endTimeObj
+  startTimeObj->getProperty,tdouble=startTimeDouble,tstring=startTimeString
+  endTimeObj->getProperty,tdouble=endTimeDouble,tstring=endTimeString
+  
+  ;report errors
+  if startTimeDouble ge endTimeDouble then begin
+    state.statusBar->update,'Cannot add data unless end time is greater than start time.'
+    state.historyWin->update,'elf add attempted with start time greater than end time.'
+    return, -1
+  endif
+
+  ;create a load structure to pass the parameters needed by the load
+  ;procedure
+  selections = { instrument:instrument, $
+    probes:probes, $
+    level:level, $
+    types:types, $
+    timeRange:[startTimeString, endTimeString] }
+    
+  return, selections  
+  
+end
+
+;----------------------
+; START EVENT HANDLER
+;----------------------
 pro elf_ui_load_data_event,event
 
   compile_opt hidden,idl2
@@ -61,30 +144,82 @@ pro elf_ui_load_data_event,event
 
   if is_string(uval) then begin
     case uval of
+
       'INSTRUMENT': begin
-        ;retrieve the instrument type that was selected by the user and 
-        ;update state
-        ;instrlist = widget_info(event.handler,find_by_uname='instrument')
-        ;stop 
-        ;widget_control,instrlist,set_value=state.instrumentArray[event.index],set_list_select=0
+        ; based on instrument type set the approprate level
         levellist = widget_info(event.handler,find_by_uname='levellist')
-        if event.index eq 0 then levelArray = state.prmLevelArray
-        if event.index eq 1 then levelArray = state.epdLevelArray
-        if event.index eq 2 then levelArray = state.engLevelArray
-        widget_control, levellist, set_value=levelArray
+        levelSelect = widget_info(levellist, /list_select)
+print, levelSelect
+print, event.index
+        if event.index eq 4 then widget_control, levellist, set_value=['L1'] $
+           else  widget_control, levellist, set_value=state.levelArray
+        if levelSelect LT 1 then begin
+          if event.index eq 0 then setType = state.fgmL1TypeArray
+          if event.index eq 1 then setType = state.epdL1TypeArray
+          if event.index eq 2 then setType = state.mrmaL1TypeArray
+          if event.index eq 3 then setType = state.mrmiL1TypeArray
+          if event.index eq 4 then setType = state.stateTypeArray
+          widget_control, levelList, set_list_select=0
+        endif else begin
+          if event.index eq 0 then setType = state.fgmL2TypeArray
+          if event.index eq 1 then setType = state.epdL2TypeArray
+          if event.index eq 2 then setType = state.mrmaL2TypeArray
+          if event.index eq 3 then setType = state.mrmiL2TypeArray
+          if event.index eq 4 then setType = state.stateTypeArray
+          widget_control, levelList, set_list_select=0
+        endelse
         typelist = widget_info(event.handler,find_by_uname='typelist')
-        if event.index eq 0 then typeArray = state.prmTypeArray
-        if event.index eq 1 then typeArray = state.epdTypeArray
-        if event.index eq 2 then typeArray = state.engTypeArray
-        widget_control, typelist, set_value=typeArray
+        widget_control, typelist, set_value=setType
       end    
+
+      'LEVELLIST': begin
+        ; retrieve the instrument selected
+        instlist = widget_info(event.handler,find_by_uname='instrument')
+        instrument = widget_info(instlist,/combobox_gettext)
+        ; retrieve the level
+        levellist = widget_info(event.handler,find_by_uname='levellist')
+        level = widget_info(levellist,/list_select)
+        ; Now, based on the type of instrument and the level set the data 
+        ; type list to the appropriate values
+        if n_elements(level) GT 1 then begin
+          ; reset levels
+          widget_control, levellist, set_list_select=0
+          state.statusBar->update,'You may only select one level at a time. Defaulting to L1.'
+          state.historyWin->update,'Error - only one level can be selected at a time.'
+          break
+        endif
+        if level LT 1 then begin
+          Case instrument of
+            'fgm': setType = state.fgmL1TypeArray
+            'epd': setType = state.epdL1TypeArray
+            'mrma': setType = state.mrmaL1TypeArray
+            'mrmi': setType = state.mrmiL1TypeArray
+            'state': setType = state.stateTypeArray        
+          Endcase
+        endif else begin
+          Case instrument of
+            'fgm': setType = state.fgmL2TypeArray
+            'epd': setType = state.epdL2TypeArray
+            'mrma': setType = state.mrmaL2TypeArray
+            'mrmi': setType = state.mrmiL2TypeArray
+            'state': setType = state.stateTypeArray
+          Endcase
+        endelse
+        typelist = widget_info(event.handler,find_by_uname='typelist')
+        widget_control, typelist, set_value=setType        
+      end
+
+
       'CLEARPARAMS': begin
         ;clear the level and type list widget of all selections
+        probelist = widget_info(event.handler,find_by_uname='probelist')
+        widget_control,levellist,set_list_select=-1
         levellist = widget_info(event.handler,find_by_uname='levellist')
         widget_control,levellist,set_list_select=-1
         typelist = widget_info(event.handler,find_by_uname='typelist')
         widget_control,typelist,set_list_select=-1
       end
+
       'CLEARDATA': begin
         ;clear the actual data that has been loaded. this will delete all 
         ;data loaded into the gui memory so warn user first
@@ -131,79 +266,25 @@ pro elf_ui_load_data_event,event
       end
       'ADD': begin
       
-        ;retrieve the data types that were selected by the user
-        levellist = widget_info(event.handler,find_by_uname='levellist')
-        levelSelect = widget_info(levellist,/list_select)
-        typelist = widget_info(event.handler,find_by_uname='typelist')
-        typeSelect = widget_info(typelist,/list_select)      
-        ;if no selections were made, report this to the user via the 
-        ;status bar and log the error to the history window
-        state.statusBar->update,'Nothing to load. Widgets for probe and data type selection have not yet been provided.'
-        state.historyWin->update,'There are no widgets for probe and data type selection.'
-        if typeSelect[0] eq -1 then begin
-          state.statusBar->update,'You must select at least one data type'
-          state.historyWin->update,'elf add attempted without selecting data type'
-          break
-        endif    
-        ;retrieve the probes that were selected by the user
-         
-        instlist = widget_info(event.handler,find_by_uname='instrument')
-        instrument = widget_info(instlist,/combobox_gettext)        
-        instNum = widget_info(instlist,/combobox_number)        
-
-        if instrument eq 'prm' then levelArray = state.prmLevelArray
-        if instrument eq 'epd' then levelArray = state.epdLeveLArray
-        if instrument eq 'eng' then levelArray = state.engLeveLArray
-        levels = levelArray[levelSelect]
-        if instrument eq 'prm' then typeArray = state.prmTypeArray
-        if instrument eq 'epd' then typeArray = state.epdTypeArray
-        if instrument eq 'eng' then typeArray = state.engTypeArray
-        types = typeArray[typeSelect]
-
-        ;report errors to status bar and history window
-        if  instNum eq -1 then begin
-          state.statusBar->update,'You must select at least one instrument'
-          state.historyWin->update,'elf add attempted without selecting an instrument'
-          break
-        endif
-
-        ;get the start and stop times 
-        timeRangeObj = state.timeRangeObj      
-        timeRangeObj->getProperty,startTime=startTimeObj,endTime=endTimeObj      
-        startTimeObj->getProperty,tdouble=startTimeDouble,tstring=startTimeString
-        endTimeObj->getProperty,tdouble=endTimeDouble,tstring=endTimeString
-        
-        ;report errors
-        if startTimeDouble ge endTimeDouble then begin
-          state.statusBar->update,'Cannot add data unless end time is greater than start time.'
-          state.historyWin->update,'elf add attempted with start time greater than end time.'
-          break
-        endif
-        
+        ;retrieve the selections made by the user
+        loadstruc = elf_ui_get_user_selections(state, event)
+      
         ;turn on the hour glass while the data is being loaded
         widget_control, /hourglass
-       
-        ;create a load structure to pass the parameters needed by the load
-        ;procedure
-        loadStruc = { instrument:instrument, $
-                      datalevels:levels, $
-                      datatypes:types, $
-                      timeRange:[startTimeString, endTimeString] }
-
+      
         ;call the routine that loads the data and update the loaded data tree
         ;this routine is specific to each mission 
         elf_ui_load_data_load_pro, $
-                         loadStruc,$
+                         loadstruc,$
                          state.loadedData,$
                          state.statusBar,$
                          state.historyWin,$
-                         state.baseid,$  ;needed for appropriate layering and modality of popups
                          replay=replay,$
                          overwrite_selections=overwrite_selections ;allows replay of user overwrite selections from spedas 
 
          ;update the loaded data object
          state.loadTree->update
-
+stop
          ;create a structure that will be used by the call sequence object. the
          ;call sequence object tracks the sequences of dprocs that have been 
          ;executed during a gui session. This is so it can be replayed in a 
@@ -292,12 +373,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
                                   uname='time_widget')
     
   ;create the dropdown menu that lists the various instrument types for this mission
-  instrumentArray = ['fgm','epd','eng']
-  ;Note: these type arrays are temporarily commented out because LOMO data only has one type of data - level 1
-  ;prm may have level 2 data in the future
-    ;prmTypeArray = ['fgs','fgf','fgs_dsl_gei_mag','fgf_dsl_gei_mag']
-    ;epdTypeArray = ['pis_en_counts','pif_en_counts','pis_en_eflux','pif_en_eflux']
-    ;engTypeArray = ['temp','volt']
+  instrumentArray = ['fgm','epd','mrma','mrmi','state']
   instrumentBase = widget_base(selectionBase,/row) 
   instrumentLabel = widget_label(instrumentBase,value='Instrument Type: ')
   instrumentCombo = widget_combobox(instrumentBase,$
@@ -305,67 +381,82 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
                                        uvalue='INSTRUMENT',$
                                        uname='instrument')
                                   
+  selectionTypesBase = widget_base(selectionBase, /row)
   ;create the list box that lists all the probes that are associated with this 
   ;mission along with the clear all button
-  dataBase = widget_base(selectionBase,/row)
-  
-  ;create the list box and a clear all button for the data types for a given 
-  ;instrument             
-  prmLevelArray = ['L1', 'L2']
-  epdLevelArray = ['L1']
-  engLevelArray = ['L1','L2']
-  levelBase = widget_base(dataBase,/col)
+  probeArray = ['a', 'b']
+  probeBase = widget_base(selectionTypesBase, /col)
+  probeLabel = widget_label(probeBase,value='Probe:')
+  probeList = widget_list(probeBase,$
+    value=probeArray,$
+    /multiple,$
+    uname='probelist',$
+    uvalue='PROBELIST',$
+    xsize=16,$
+    ysize=15)
+  ;widget_control, probeList, set_list_select=0
+ 
+  ; create the list box that lists the data processing levels  
+  levelArray = ['L1', 'L2']
+  levelBase = widget_base(selectionTypesBase,/col)
   levelLabel = widget_label(levelBase,value='Level:')
   levelList = widget_list(levelBase,$
-                         value=prmlevelArray,$
+                         value=levelArray,$
                          /multiple,$
                          uname='levellist',$
                          uvalue='LEVELLIST',$
                          xsize=16,$
-                         ysize=15)                         
-;  clearLevelButton = widget_button(levelBase,value='Clear Level',uvalue='CLEARLEVEL',ToolTip='Deselect level')
-
-  ;create the list box and a clear all button for the data types for a given
-  ;instrument
-  prmtypeArray = ['mag']
-  epdtypeArray = ['epde']
-  engtypeArray = ['*', 'bias_temp', '23v_temp', '8v6_temp', '5v7_temp', '5v0_dig_temp', '3v3_temp', '1v5_dig_temp', $
-                  '1v5_epd_temp', '1v5_prm_temp', '30v_volt_mon','23v_volt_mon', '22v_volt_mon', $
-                  '8v6_volt_mon', '8v_volt_mon', '5v_dig_volt_mon', '5v_epd_volt_mon', '4v5_volt_mon', $
-                  '3v3_volt_mon', '1v5_volt_dig_volt_mon', '1v5_epd_volt_mon', '1v5_prm_volt_mon', $
-                  'epd_biasl_volt_mon', 'epd_biash_volt_mon', 'epd_fend_temp']
-  engIndex=1
-  typeBase = widget_base(dataBase,/col)
-  typeLabel = widget_label(typeBase,value='Type:')
-  typeList = widget_list(typeBase,$
-    value=prmtypeArray,$
-    /multiple,$
-    uname='typelist',$
-    uvalue='TYPELIST',$
-    xsize=16,$
-    ysize=15)
-
+                         ysize=15)   
+   ;widget_control, levelList, set_list_select=0
+                                               
+   ;create the list box and a clear all button for the data types for a given
+   ;instrument
+   fgmL1TypeArray = ['fgs','fgf']
+   fgmL2TypeArray = ['fgs_dsl','fgs_gei','fgs_sm','fgf_dsl','fgf_gei','fgf_sm']
+   epdL1TypeArray = ['pis_enphi_counts','pif_enphi_counts','pes_enphi_counts','pef_enphi_counts']
+   epdL2TypeArray = ['pis_enphi_eflux','pif_enphi_eflux','pes_enphi_eflux','pef_enphi_eflux']
+   stateTypeArray = ['pos','vel']
+   mrmaL1TypeArray = ['mrma']
+   mrmaL2TypeArray = ['mrma']
+   mrmiL1TypeArray = ['mrmi']
+   mrmiL2TypeArray = ['mrmi']
+   typeBase = widget_base(selectionTypesBase,/col)
+   typeLabel = widget_label(typeBase,value='Data Type:')
+   typeList = widget_list(typeBase,$
+     value=fgmL1TypeArray,$
+     /multiple,$
+     uname='typelist',$
+     uvalue='TYPELIST',$
+     xsize=16,$
+     ysize=15)
+  ;widget_control, typeList, set_list_select = 0
+  
   clearBase = widget_base(selectionBase,/row, /align_center)
   clearTypeButton = widget_button(clearBase,value='Clear Parameter Selections',uvalue='CLEARPARAMS',/align_center,ToolTip='Deselect all parameter selections')
 
   ;create the state variable with all the parameters that are needed by this 
   ;panels event handler routine                                                               
-  state = {baseid:topBase,$
-           loadTree:loadTree,$
-           treeCopyPtr:treeCopyPtr,$
-           timeRangeObj:timeRangeObj,$
-           statusBar:statusBar,$
-           historyWin:historyWin,$
-           loadedData:loadedData,$
-           callSequence:callSequence,$
-           instrumentArray:instrumentArray,$
-           prmLevelArray:prmLevelArray, $
-           epdLevelArray:epdLevelArray, $
-           engLevelArray:engLevelArray, $            
-           prmTypeArray:prmTypeArray, $
-           epdTypeArray:epdTypeArray, $
-           engTypeArray:engTypeArray, $
-           engIndex:engIndex}
+  state = {baseid:topBase, $
+           loadTree:loadTree, $
+           treeCopyPtr:treeCopyPtr, $
+           timeRangeObj:timeRangeObj, $
+           statusBar:statusBar, $
+           historyWin:historyWin, $
+           loadedData:loadedData, $
+           callSequence:callSequence, $
+           probeArray:probeArray, $
+           instrumentArray:instrumentArray, $
+           levelArray:levelArray, $
+           fgmL1TypeArray:fgmL1TypeArray, $
+           epdL1TypeArray:epdL1TypeArray, $
+           stateTypeArray:stateTypeArray, $
+           mrmaL1TypeArray:mrmaL1TypeArray, $
+           mrmiL1TypeArray:mrmiL1TypeArray, $
+           fgmL2TypeArray:fgmL2TypeArray, $
+           epdL2TypeArray:epdL2TypeArray, $
+           mrmaL2TypeArray:mrmaL2TypeArray, $
+           mrmiL2TypeArray:mrmiL2TypeArray }
+           
   widget_control,topBase,set_uvalue=state
                                   
   return

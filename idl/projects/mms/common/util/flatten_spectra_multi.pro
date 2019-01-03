@@ -29,6 +29,7 @@
 ;                    If TRANGE is specify, the the time center point is computed.
 ;       RANGETITLE:  If keyword is set, display range of the averagind time instead of the center time
 ;                    Does not affect deafult name of the png or postscript file 
+;       TO_KEV:      Converts the x-axis to keV from eV (assumes x-axis is already in eV)
 ;
 ; EXAMPLE:
 ;     To create line plots of FPI electron energy spectra for all MMS spacecraft:
@@ -47,8 +48,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-11-02 14:38:03 -0700 (Fri, 02 Nov 2018) $
-;$LastChangedRevision: 26053 $
+;$LastChangedDate: 2019-01-02 16:21:35 -0800 (Wed, 02 Jan 2019) $
+;$LastChangedRevision: 26414 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -88,7 +89,7 @@ end
 pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, replot=replot, disable_auto_unit_conv=disable_auto_unit_conv, legend_left=legend_left, bar=bar, _extra=_extra
+   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, _extra=_extra
    
   @tplot_com.pro
 
@@ -260,6 +261,14 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
           
         if dimen2(vardata.v) eq 1 then x_data = vardata.v else x_data = vardata.v[idx_to_plot, *]
 
+        if keyword_set(to_kev) && tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '' then begin
+          if vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)' then begin
+            xunit_str = '[keV]'
+            x_data /= 1000d
+            xrange /= 1000d
+          endif
+        endif
+        
         title_format = 'YYYY-MM-DD/hh:mm:ss.fff'
         title_str = (KEYWORD_SET(rangetitle) and ~undefined(trange)) ? $
           strjoin(time_string(trange, tformat=title_format),' - ') : $

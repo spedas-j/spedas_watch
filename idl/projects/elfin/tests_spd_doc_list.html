@@ -11,7 +11,7 @@ This page was created by the IDL library routine
 <CODE>mk_html_help2</CODE>.
 <br>
 <P>
-<STRONG>Last modified: </STRONG>Tue Jan  1 18:16:38 2019.<P>
+<STRONG>Last modified: </STRONG>Wed Jan  2 18:16:33 2019.<P>
  
 <HR>
  
@@ -19,14 +19,49 @@ This page was created by the IDL library routine
 <H1>Directory Listing of Routines</H1></A>
 <UL>
 <H1>projects/elfin/tests</H1>
+<LI><A HREF="#ELF_MRMA_LOAD_CLTESTSUITE">ELF_MRMA_LOAD_CLTESTSUITE</A>
 <LI><A HREF="#ELF_STATE_LOAD_CLTESTSUITE">ELF_STATE_LOAD_CLTESTSUITE</A>
 <br>
 </UL><P>
 <HR>
  
 <H1>Routine Descriptions</H1>
+<A NAME="ELF_MRMA_LOAD_CLTESTSUITE">
+<H2>ELF_MRMA_LOAD_CLTESTSUITE</H2></A>
+<A HREF="#ELF_STATE_LOAD_CLTESTSUITE">[Next Routine]</A>
+<A HREF="#ROUTINELIST">[List of Routines]</A>
+<PRE>
+ Name: elf_mrm_load_cltestsuite.pro
+
+ Purpose: command line test script for loading ELFIN MRM data
+
+ Notes: run it by compiling in idl and then typing &quot;.go&quot;
+        or copy and paste.
+
+Test 1: No parameters or keywords used
+Test 2: Single probe
+Test 3: Multiple probe parameters passed as an array of strings)
+Test 4: All probes requested (*)
+Test 5: Requested predictive data, all datatypes
+Test 6: Tested suffix for tplot var names
+Test 7: One data type
+Test 8: Mixed case datatype parameter used
+Test 9: All upper case datatype
+Test 10: All upper case multiple datatypes used
+Test 11: Time range passed as an array of 2 strings
+Test 12: Time range passed as an array of 2 doubles; Datatype as an array of multiple strings
+Test 13: Invalid probe
+Test 14: Invalid datatype
+Test 15: No data available for date
+Test 16: Bad date
+
+</PRE><P>
+<STRONG>(See <A href="tests/elf_mrma_load_cltestsuite.pro">projects/elfin/tests/elf_mrma_load_cltestsuite.pro</A>)</STRONG><P>
+<HR>
+ 
 <A NAME="ELF_STATE_LOAD_CLTESTSUITE">
 <H2>ELF_STATE_LOAD_CLTESTSUITE</H2></A>
+<A HREF="#ELF_MRMA_LOAD_CLTESTSUITE">[Previous Routine]</A>
 <A HREF="#ROUTINELIST">[List of Routines]</A>
 <PRE>
  Name: elf_state_load_cltestsuite.pro

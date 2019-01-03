@@ -78,30 +78,24 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   ;  -assume file names are of the form:
   ;     spacecraft_level_instrument_YYYYMMDD_version.cdf
   dir_pattern = strjoin(basic_inputs, s) + s   ; + '('+s+dir_datatype+')?' +s+ '[0-9]{4}' +s+ '[0-9]{2}' + s
+  if instrument eq 'state' then dir_pattern = dir_pattern + 'pred' + s
   file_pattern = strjoin( basic_inputs, f) + f + '([0-9]{8})' 
 
   ;escape backslash in case of Windows
-  ;search_pattern =  dir_pattern + file_pattern 
   search_pattern = escape_string(dir_pattern  + file_pattern, list='\')
   ;get list of all .cdf files in local directory
-  instr_data_dir = filepath('', ROOT_DIR=!elf.local_data_dir, $
-      SUBDIRECTORY=[probe, level, instrument])
-  files = file_search(instr_data_dir,'*.cdf')
+  
+  instr_data_dir = filepath('', ROOT_DIR=!elf.local_data_dir + dir_pattern) 
+  files = file_search(instr_data_dir, '*.cdf')
 
   ;perform search
-;  filedate = dir_pattern + strjoin( basic_inputs, f) + f + time_string(trange_in[0], format=6, precision=-3) + '_v01.cdf' 
-;  idx = where(all_files EQ filedate, n_files) 
-;  ;idx = where( stregex( all_files, search_pattern, /bool, /fold_case), n_files)
-;  idx = where( stregex( all_files, file_pattern, /bool, /fold_case), n_files);
-
-;  if n_files eq 0 then begin
-;    ; suppress redundant error message
-;    ; dprint, dlevel=2, 'No local files found for: '+strjoin(basic_inputs,' ') + ' ' +$
-;    ;                   (undefined(datatype) ? '':datatype)
+;  filedate = !elf.local_data_dir + dir_pattern + strjoin( basic_inputs, f) + f + time_string(trange_in[0], format=6, precision=-3) + '_v01.cdf' 
+;  result=file_search(filedate)
+;  if result NE 1 then begin
+;     dprint, dlevel=2, 'No local files found for: '+strjoin(basic_inputs,' ') + ' ' +$
+;                       (undefined(datatype) ? '':datatype)
 ;    return, error
 ;  endif
-
-;  files = all_files
 
   ;----------------------------------------------------------------
   ;Restrict list to files within the time range
