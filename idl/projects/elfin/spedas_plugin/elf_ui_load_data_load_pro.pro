@@ -91,8 +91,10 @@ stop
   ; ***** This is the routine that loads the actual data *****
   ; ***** This routine is provided by each mission ***** 
   ; ***** Parameters for the load routines will vary per mission *****
+
+  varformat = '*'+types
   elf_load_data, probes=probes, instrument=instrument, datatype=types, level=level, $
-                    trange=timeRange 
+                    trange=timeRange, varformat=varformat 
 
   ;if instrument EQ 'epd' then del_data, 'ell_epdi'
   ; determine which tplot variables to delete and which ones are the new temporary 
@@ -113,7 +115,7 @@ stop
       spd_ui_check_overwrite_data,new_vars[i],loadedData,parent_widget_id,statusBar,historyWin, $
         overwrite_selection,overwrite_count,replay=replay,overwrite_selections=overwrite_selections
       if strmid(overwrite_selection, 0, 2) eq 'no' then continue
-stop      
+      
       ; this statement adds the variable to the loadedData object
       result = loadedData->add(new_vars[i],mission='elf', $            ;,observatory=probe, $
                                instrument=instrument)

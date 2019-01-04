@@ -95,7 +95,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   if undefined(datatype) then datatype = ['pos', 'vel']
   if datatype EQ ['*'] then datatype =  ['pos', 'vel']
   varformat = '*'+datatype
-  if undefined(level) then level = 'l1'
+  if undefined(level) then level = 'l1' else level=strlowcase(level)
   if level NE 'l1' then begin
     dprint, dlevel = 1, 'State data does not have level = ' + level
     dprint, dlevel = 1, 'Defaulting to l1.'

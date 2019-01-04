@@ -88,7 +88,7 @@ function elf_ui_get_user_selections, state, event
   ;procedure
   selections = { instrument:instrument, $
     probes:probes, $
-    level:level, $
+    level:strlowcase(level), $
     types:types, $
     timeRange:[startTimeString, endTimeString] }
     
@@ -284,7 +284,7 @@ print, event.index
 
          ;update the loaded data object
          state.loadTree->update
-stop
+
          ;create a structure that will be used by the call sequence object. the
          ;call sequence object tracks the sequences of dprocs that have been 
          ;executed during a gui session. This is so it can be replayed in a 
