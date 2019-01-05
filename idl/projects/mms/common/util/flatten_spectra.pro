@@ -41,8 +41,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-02 12:37:17 -0800 (Wed, 02 Jan 2019) $
-;$LastChangedRevision: 26410 $
+;$LastChangedDate: 2019-01-04 10:57:06 -0800 (Fri, 04 Jan 2019) $
+;$LastChangedRevision: 26423 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -155,8 +155,15 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
     ; determine max and min  
     if N_ELEMENTS(xrange) ne 2 or N_ELEMENTS(yrange) ne 2 then begin 
       tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
+      
+      if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
+      if keyword_set(to_kev) && tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '' then begin
+        if metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)' then begin
+          data_x = data_x/1000d
+        endif
+      endif
       append_array,yr,reform(vardata.Y[idx_to_plot, *])
-      if dimen2(vardata.v) eq 1 then  append_array,xr,reform(vardata.v) else append_array,xr,reform(vardata.v[idx_to_plot, *])     
+      append_array,xr,reform(data_x)     
     endif      
     
     ; filename if we need to save file
@@ -166,7 +173,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   ; select [xy] range
   if N_ELEMENTS(xrange) ne 2 then xrange = KEYWORD_SET(xlog) ? [min(xr(where(xr>0))), max(xr(where(xr>0)))] : [min(xr), max(xr)]
   if N_ELEMENTS(yrange) ne 2 then yrange = KEYWORD_SET(ylog) ? [min(yr(where(yr>0))), max(yr(where(yr>0)))] : [min(yr), max(yr)]
-  
+
   ; user defined colors indexes
   if ~KEYWORD_SET(colors) or (N_ELEMENTS(colors) lt n_elements(vars_to_plot)) then begin
     colors = indgen(n_elements(vars_to_plot),start=0,increment=2)
@@ -251,7 +258,6 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         if vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)' then begin
           xunit_str = '[keV]'
           x_data /= 1000d
-          xrange /= 1000d
         endif
       endif
       
@@ -278,7 +284,8 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       if ~keyword_set(nolegend) then begin
         leg_y -= leg_dy
         XYOUTS, leg_x, leg_y, vars_to_plot[v_idx], /normal, color=colors[v_idx], charsize=1.5
-      endif      
+      endif
+        
   endfor
   
   if keyword_set(bar) then timebar, t

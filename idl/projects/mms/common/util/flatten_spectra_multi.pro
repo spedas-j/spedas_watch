@@ -48,8 +48,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-02 16:21:35 -0800 (Wed, 02 Jan 2019) $
-;$LastChangedRevision: 26414 $
+;$LastChangedDate: 2019-01-04 10:57:06 -0800 (Fri, 04 Jan 2019) $
+;$LastChangedRevision: 26423 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -190,9 +190,16 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
       ; determine max and min  
       if N_ELEMENTS(xrange) ne 2 or N_ELEMENTS(yrange) ne 2 then begin 
         tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
+        
+        if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
+        if keyword_set(to_kev) && tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '' then begin
+          if metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)' then begin
+            data_x = data_x/1000d
+          endif
+        endif
         append_array,yr,reform(vardata.Y[idx_to_plot, *])
-        if dimen2(vardata.v) eq 1 then  append_array,xr,reform(vardata.v) else append_array,xr,reform(vardata.v[idx_to_plot, *])     
-      endif      
+        append_array,xr,reform(data_x)     
+      endif       
       
       ; filename if we need to save file
       fname += vars_to_plot[v_idx] + '_'      
@@ -265,7 +272,6 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
           if vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)' then begin
             xunit_str = '[keV]'
             x_data /= 1000d
-            xrange /= 1000d
           endif
         endif
         
@@ -274,7 +280,6 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
           strjoin(time_string(trange, tformat=title_format),' - ') : $
           time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
           
-;        stop
         if v_idx eq 0 and undefined(plot_created) then begin
           plot, x_data, data_to_plot[0, *], $
             xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
