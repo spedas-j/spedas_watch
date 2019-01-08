@@ -20,8 +20,8 @@
 ;HISTORY:
 ; 31-aug-2018, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-12-27 09:17:14 -0800 (Thu, 27 Dec 2018) $
-; $LastChangedRevision: 26405 $
+; $LastChangedDate: 2019-01-08 08:51:00 -0800 (Tue, 08 Jan 2019) $
+; $LastChangedRevision: 26434 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/auto_downsample.pro $
 ;-
 Function auto_downsample, spec_in, x_in, x_out, $
@@ -66,10 +66,10 @@ Function auto_downsample, spec_in, x_in, x_out, $
 ;quite, interploate back using interp.pro
   If(keyword_set(downsample_interp2out)) Then Begin
      spec_out = interp(spec_new, x_new, x_out, $
-                       /no_check_monotonic, /ignore_nan)
+                       /no_check_monotonic, /ignore_nan, /no_extrap)
   Endif Else Begin
      spec_out = interp(spec_new, x_new, x_in, $
-                       /no_check_monotonic, /ignore_nan)
+                       /no_check_monotonic, /ignore_nan, /no_extrap)
   Endelse
   
   Return, spec_out
