@@ -25,7 +25,7 @@ pro mvn_sep_elec_rotate_bcrust
     endfor
   endfor
   p=image(reform(bcr[0,*,*]),rgb=colortable(70,/reverse),margin=0,min=-100,max=100)
-  p=colorbar()
+  p=colorbar('Crustal Field (nT) at 150 km')
 
 stop
 end

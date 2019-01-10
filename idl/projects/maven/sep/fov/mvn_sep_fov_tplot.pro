@@ -1,5 +1,8 @@
 ;20180414 Ali
 ;mvn_sep_fov tplotter
+;tplot: tplots a few important panels
+;store: stores tplot variables
+;nofrac: ignores mars shine calculations
 ;resdeg: angular resolution for fov fraction calculations
 
 pro mvn_sep_fov_tplot,tplot=tplot,store=store,nofrac=nofrac,resdeg=resdeg
@@ -12,6 +15,7 @@ pro mvn_sep_fov_tplot,tplot=tplot,store=store,nofrac=nofrac,resdeg=resdeg
   endif
 
   if mvn_sep_fov0.lowres then lrs='5min_' else lrs=''
+  if mvn_sep_fov0.arc then arc='arc' else arc='svy'
   if keyword_set(store) then begin
     pos   =mvn_sep_fov.pos
     rad   =mvn_sep_fov.rad
@@ -21,17 +25,21 @@ pro mvn_sep_fov_tplot,tplot=tplot,store=store,nofrac=nofrac,resdeg=resdeg
     crh   =mvn_sep_fov.crh
     crl   =mvn_sep_fov.crl
     times =mvn_sep_fov.time
+    
+    crl[where(crl lt .01,/null)]=0. ;to prevent interpolation of sep2 to cause too small count rates and mess up log plotting of data
+    crh[where(crh lt .01,/null)]=0.
 
     tag=strlowcase(tag_names(pdm))
     npos=n_tags(pos)
     for ipos=0,npos-1 do begin
       store_data,'mvn_sep_dot_'+tag[ipos],times,transpose(pos.(ipos)),dlim={yrange:[-1,1],constant:0.,colors:'bgr',labels:['SEP1','SEP1y','SEP2'],labflag:-1,ystyle:2}
-      store_data,'mvn_rad_'+tag[ipos]+'_(km)',times,rad.(ipos),dlim={ylog:1,colors:'b',labels:tag[ipos],labflag:-1,ystyle:2}
     endfor
 
+    store_data,'mvn_radial_distance_(km)',times,[[rad.sun],[rad.ear],[rad.mar],[rad.pho],[rad.dem]],dlim={ylog:1,colors:'kbrgm',labels:mvn_sep_fov0.objects,labflag:-1,ystyle:2}
     store_data,'mvn_mars_dot_object',data={x:times,y:[[pdm.cm1],[pdm.sx1],[pdm.sun],[pdm.mar]]},dlim={colors:'rbgk',labels:['Crab','Sco X1','Sun','Surface'],labflag:-1,ystyle:2,constant:0}
     store_data,'mvn_sep_occultation',data={x:times,y:[[occ.cm1],[occ.sx1],[occ.sun]]},dlim={panel_size:.5,yrange:[0,5],ystyle:2,colors:'rbg',labels:['Crab','Sco X1','Sun'],labflag:-1}
     store_data,'mvn_mars_tanalt(km)',data={x:times,y:transpose([tal[0,*].cm1,tal[2,*].sx1,tal[0,*].sun])},dlim={colors:'rbg',labels:['Crab','Sco X1','Sun'],labflag:-1,ystyle:2,constant:0}
+    store_data,'mvn_areoid_alt_(km)',times,tal[2,*].mar
 
     dlim={colors:mvn_sep_fov0.detcol,labels:mvn_sep_fov0.detlab,labflag:-1,ystyle:2,ylog:1,ytickunits:'scientific'}
     store_data,'mvn_sep1_xray_crate',data={x:times,y:transpose(crl[0,*,*])},dlim=dlim
@@ -49,7 +57,7 @@ pro mvn_sep_fov_tplot,tplot=tplot,store=store,nofrac=nofrac,resdeg=resdeg
 
   if keyword_set(tplot) then begin
     case tplot of
-      1: tplot,'mvn_sep??_fov_fraction mvn_sep_dot_sun mvn_sep_dot_sx1 mvn_mars_dot_object mvn_mars_tanalt(km) mvn_sep_occultation mvn_sep?_xray_crate mvn_sep?_hibc_crate mvn_'+lrs+'SEPS_svy_ATT mvn_SEPS_???_DURATION'
+      1: tplot,'mvn_sep??_fov_fraction mvn_sep_dot_sun mvn_sep_dot_sx1 mvn_radial_distance_(km) mvn_mars_tanalt(km) mvn_sep_occultation mvn_sep?_xray_crate mvn_sep?_hibc_crate mvn_'+lrs+'SEPS_'+arc+'_ATT mvn_SEPS_'+arc+'_DURATION'
       2: tplot,'mvn_'+lrs+'sep?_?-?_Rate_Energy',/add
     endcase
   endif

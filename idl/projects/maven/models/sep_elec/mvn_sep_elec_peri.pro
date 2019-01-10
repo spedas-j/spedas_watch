@@ -1,5 +1,5 @@
 ;20171031 Ali
-;Electron flux dispersions at periapse during the Sep 2017 SEP event
+;Modeling electron flux dispersions at periapse during the Sep 2017 SEP event
 ;loads the data and tplots stuff
 
 pro mvn_sep_elec_peri,loaddata=loaddata,orbit=orbit,arc=arc,bmap=bmap,savetplot=savetplot,model=model,trange=trange,mhd=mhd
@@ -9,9 +9,9 @@ common mvn_orbit_num_com,alldat,time_cached,filenames
   if keyword_set(arc) then septplot='mvn_arc_sep?_?-F_Eflux_Energy' else septplot='mvn_sep?_?-F_Eflux_Energy'
 
   if keyword_set(loaddata) then begin
-    if keyword_set(trange) then timespan,trange else timespan,'17-9-13',1
+    if keyword_set(trange) then timespan,trange else timespan,'17-9-12',2
 ;    timespan,'17-7-20',10
-;    timespan,'14-12-15',10mvn_
+;    timespan,'14-12-15',10
     cdf2tplot,mvn_pfp_file_retrieve('maven/data/sci/sep/anc/cdf/YYYY/MM/mvn_sep_l2_anc_YYYYMMDD_v??_r??.cdf',/daily),prefix='SepAnc_' ;sep ancillary data
     mvn_sep_var_restore,/basic,arc=arc
     ylim,septplot,10,500
@@ -26,9 +26,6 @@ common mvn_orbit_num_com,alldat,time_cached,filenames
     mvn_swe_sumplot,eph=0,orb=0,/loadonly ;plot SWEA data, without calling maven_orbit_tplot, changing orbnum tplot variable, or plotting anything!
     zlim,'swe_a4',1e5,1e8
     maven_orbit_tplot,colors=[4,6,2],/loadonly ;loads the color-coded orbit info
-    store_data,'orbnum2',alldat.peri_time,alldat.num,dlimit={ytitle:'Orbit'} ;because maven_orbit_tplot messes up orbnum!
-    tplot_options,'var_label','orbnum2'
-    tplot_options,'timebar','orbnum2'
     mvn_sep_elec_peri_stats,mhd=mhd
   endif
   if keyword_set(model) then mvn_sep_elec_peri_model,lowalt=trange,mhd=mhd

@@ -14,6 +14,8 @@ pro mvn_sep_fov_calc
   tal=mvn_sep_fov.tal
   qrot=mvn_sep_fov.qrot
   qrot_iau=mvn_sep_fov.qrot_iau
+  times=mvn_sep_fov.time
+  nt=n_elements(times)
 
   ;m1=[0.102810,0.921371,0.374841] ;crab nebula coordinates in J2000 from NAIF
   ;cbnm1rd=[05h 34m 31.94s , +22° 00′ 52.2″] ;Crab Nebula (M1) Right Ascention/Declination
@@ -29,42 +31,42 @@ pro mvn_sep_fov_calc
   pos.sx1=quaternion_rotation(sx1,qrot,/last_ind)
   ;  pos.cx1=quaternion_rotation(cx1,qrot,/last_ind)
 
-  map1=mvn_sep_get_bmap(9,1)
-  if mvn_sep_fov0.arc then begin
-    sep1=*(sep1_arc.x)
-    sep2=*(sep2_arc.x)
-  endif else begin
-    sep1=*(sep1_svy.x)
-    sep2=*(sep2_svy.x)
-  endelse
-  times=sep1.time
-  nt=n_elements(times)
-  ndet=n_elements(mvn_sep_fov0.detlab)
-  for idet=0,ndet-1 do begin
-    ;get_data,'mvn_'+lrs+'sep'+strtrim(isep+1,2)+'_'+detlab[idet]+'_Rate_Energy',dat=sepdat
-    ind=where(map1.name eq mvn_sep_fov0.detlab[idet])
-    mvn_sep_fov.crl[0,idet]=total(sep1.data[ind[0]+0:ind[0]+5],1)/sep1.delta_time ;low  energy count rate
-    mvn_sep_fov.crh[0,idet]=total(sep1.data[ind[0]+6:ind[0]+9],1)/sep1.delta_time ;high energy count rate (for hi background elimination)
-    sep2crl_before_interpol=total(sep2.data[ind[0]+0:ind[0]+5],1)/sep2.delta_time
-    sep2crh_before_interpol=total(sep2.data[ind[0]+6:ind[0]+9],1)/sep2.delta_time
-;    mvn_sep_fov.crl[1,idet]=exp(interpol(alog(sep2crl_before_interpol),sep2.time,times,/nan))
-;    mvn_sep_fov.crh[1,idet]=exp(interpol(alog(sep2crh_before_interpol),sep2.time,times,/nan))
-    mvn_sep_fov.crl[1,idet]=interpol(sep2crl_before_interpol,sep2.time,times,/nan)
-    mvn_sep_fov.crh[1,idet]=interpol(sep2crh_before_interpol,sep2.time,times,/nan)
-  endfor
+  if keyword_set(sep1_svy) then begin
+    map1=mvn_sep_get_bmap(9,1)
+    if mvn_sep_fov0.arc then begin
+      sep1=*(sep1_arc.x)
+      sep2=*(sep2_arc.x)
+    endif else begin
+      sep1=*(sep1_svy.x)
+      sep2=*(sep2_svy.x)
+    endelse
+    ndet=n_elements(mvn_sep_fov0.detlab)
+    for idet=0,ndet-1 do begin
+      ;get_data,'mvn_'+lrs+'sep'+strtrim(isep+1,2)+'_'+detlab[idet]+'_Rate_Energy',dat=sepdat
+      ind=where(map1.name eq mvn_sep_fov0.detlab[idet])
+      mvn_sep_fov.crl[0,idet]=total(sep1.data[ind[0]+0:ind[0]+5],1)/sep1.delta_time ;low  energy count rate
+      mvn_sep_fov.crh[0,idet]=total(sep1.data[ind[0]+6:ind[0]+9],1)/sep1.delta_time ;high energy count rate (for hi background elimination)
+      sep2crl_before_interpol=total(sep2.data[ind[0]+0:ind[0]+5],1)/sep2.delta_time
+      sep2crh_before_interpol=total(sep2.data[ind[0]+6:ind[0]+9],1)/sep2.delta_time
+      ;    mvn_sep_fov.crl[1,idet]=exp(interpol(alog(sep2crl_before_interpol),sep2.time,times,/nan))
+      ;    mvn_sep_fov.crh[1,idet]=exp(interpol(alog(sep2crh_before_interpol),sep2.time,times,/nan))
+      mvn_sep_fov.crl[1,idet]=interpol(sep2crl_before_interpol,sep2.time,times,/nan)
+      mvn_sep_fov.crh[1,idet]=interpol(sep2crh_before_interpol,sep2.time,times,/nan)
+    endfor
 
-  sep2_att=exp(interpol(alog(sep2.att),sep2.time,times,/nan))
-  att=transpose([[sep1.att],[sep2_att]])
+    sep2_att=exp(interpol(alog(sep2.att),sep2.time,times,/nan))
+    att=transpose([[sep1.att],[sep2_att]])
+  endif else att=replicate(1.,[2,nt])
 
-  crosalt=110. ;crossing altitude (km) maximum altitude for along path integration
+  crosalt=mvn_sep_fov0.occalt ;crossing altitude (km) maximum altitude for along path integration
   occos=cos(!dtor*14.) ;within 14 degrees of detector fov center
   alt=rad.mar-rmars ;altitude (km)
   npos=n_tags(pos)
   for ipos=0,npos-1 do begin
     pdm.(ipos)=total(pos.(ipos)*pos.mar,1)
-    tal[0,*].(ipos)=transpose(rad.mar*sqrt(1.d0-pdm.(ipos)^2)-rmars)
-    wpdmlt0=where(pdm.(ipos) lt 0.,/null)
-    if n_elements(wpdmlt0) gt 0 then tal[0,wpdmlt0].(ipos)=transpose(alt[wpdmlt0])
+    tal[0,*].(ipos)=transpose(rad.mar*sqrt(1.d0-pdm.(ipos)^2)-rmars) ;temporary inaccurate tangent altitude
+    wpdmlt0=where(pdm.(ipos) lt 0.,/null) ;where line of sight away from Mars
+    if n_elements(wpdmlt0) gt 0 then tal[0,wpdmlt0].(ipos)=transpose(alt[wpdmlt0]) ;set tangent altitude equal to altitude
     horcro=((tal[0,*].(ipos)-crosalt)*shift((tal[0,*].(ipos)-crosalt),1)) lt 0. ;crossed the crosalt
     occ.(ipos)=0
     occ[where((pos[0,*].(ipos) gt +occos) and horcro and att[0,*] eq 1.,/null)].(ipos)=1 ;sep1f
@@ -74,18 +76,18 @@ pro mvn_sep_fov_calc
   endfor
   marsur=sqrt(1.-(rmars/rad.mar)^2) ;dot product of mars surface by mars center
   pdm.mar=marsur
-;  tal.mar=alt
-;  occtimes=where(occ.sx1 ne 0,/null)
+  ;  tal.mar=alt
+  ;  occtimes=where(occ.sx1 ne 0,/null)
 
-;  cspice_bodvrd, 'MARS', 'RADII', 3, radii ;rmars=[3396.2,3396.2,3376.2] km
-;  re = total(radii[0:1])/2. ;equatorial radius (km)
-;  rp = radii[2] ;polar radius (km)
-;  mdz=-total(pos.mar*pos.mnp,1) ;maven dot mars north pole (cosine of polar angle)
+  ;  cspice_bodvrd, 'MARS', 'RADII', 3, radii ;rmars=[3396.2,3396.2,3376.2] km
+  ;  re = total(radii[0:1])/2. ;equatorial radius (km)
+  ;  rp = radii[2] ;polar radius (km)
+  ;  mdz=-total(pos.mar*pos.mnp,1) ;maven dot mars north pole (cosine of polar angle)
   ones3=replicate(1d,3)
   talsx1=(ones3#rad.mar)*((ones3#pdm.sx1)*pos.sx1-pos.mar) ;sco x-1 tangent altitude vector from Mars center (km)
-;  tdz=total(talsx1*pos.mnp,1)/sqrt(total(talsx1^2,1)) ;cosine of polar angle (90-latitude) of sub-tangent altitude point
-;  rad.mnp=sqrt((re^4*(1.-mdz^2)+rp^4*mdz^2)/(re^2*(1.-mdz^2)+rp^2*mdz^2)) ;radius of sub-maven surface point (km)
-;  tal.mnp=sqrt((re^4*(1.-tdz^2)+rp^4*tdz^2)/(re^2*(1.-tdz^2)+rp^2*tdz^2)) ;radius of sub-tangent altitude point (km)
+  ;  tdz=total(talsx1*pos.mnp,1)/sqrt(total(talsx1^2,1)) ;cosine of polar angle (90-latitude) of sub-tangent altitude point
+  ;  rad.mnp=sqrt((re^4*(1.-mdz^2)+rp^4*mdz^2)/(re^2*(1.-mdz^2)+rp^2*mdz^2)) ;radius of sub-maven surface point (km)
+  ;  tal.mnp=sqrt((re^4*(1.-tdz^2)+rp^4*tdz^2)/(re^2*(1.-tdz^2)+rp^2*tdz^2)) ;radius of sub-tangent altitude point (km)
   posmar_iau=quaternion_rotation(-pos.mar,qrot_iau,/last_ind)*(ones3#rad.mar) ;MAVEN position from Mars center in IAU_MARS
   possx1_iau=quaternion_rotation( pos.sx1,qrot_iau,/last_ind)
   talsx1_iau=quaternion_rotation(  talsx1,qrot_iau,/last_ind)
@@ -101,11 +103,11 @@ pro mvn_sep_fov_calc
   tal[1,*].sx1=transpose(adat.alt)
   mvn_altitude,cart=talsx1_iau,datum='areoid',result=adat
   tal[2,*].sx1=transpose(adat.alt)
-  
+
   wpdmlt0=where(pdm.sx1 lt 0.,/null)
-  if n_elements(wpdmlt0) gt 0 then tal[*,wpdmlt0].sx1=tal[*,wpdmlt0].mar
-  
-;  wtal=where((abs(pos[0,*].sx1) gt occos or abs(pos[2,*].sx1) gt occos) and tal[2,*].sx1 gt 0. and tal[2,*].sx1 lt crosalt,ntal,/null)
+  if n_elements(wpdmlt0) gt 0 then tal[*,wpdmlt0].sx1=tal[*,wpdmlt0].mar ;set the tangent altitude equal to altitude
+
+  ;  wtal=where((abs(pos[0,*].sx1) gt occos or abs(pos[2,*].sx1) gt occos) and tal[2,*].sx1 gt 0. and tal[2,*].sx1 lt crosalt,ntal,/null)
   ntal=nt
   wtal=lindgen(nt)
   if ntal eq 0 then return
@@ -133,9 +135,9 @@ pro mvn_sep_fov_calc
   store_data,'mvn_sep_xray_transmittance',data={x:mvn_sep_fov[wtal].time,y:transm},dlim={ylog:1,yrange:[.01,1],colors:'rb',labels:['warm','cold'],labflag:-1}
   store_data,'mvn_sep_xray_crate_model',data={x:mvn_sep_fov[wtal].time,y:5.*transm},dlim={ylog:1,yrange:[.1,10],colors:'rb',labels:['warm','cold'],labflag:-1}
   store_data,'mvn_sep_xray_model-data',data='mvn_sep2_xray_crate mvn_sep_xray_crate_model
-  
+
   mvn_sep_fov.pos=pos
-  mvn_sep_fov.rad=rad
+  mvn_sep_fov.rad=rad ;redundant: not being updated in this code!
   mvn_sep_fov.pdm=pdm
   mvn_sep_fov.tal=tal
   mvn_sep_fov.att=att

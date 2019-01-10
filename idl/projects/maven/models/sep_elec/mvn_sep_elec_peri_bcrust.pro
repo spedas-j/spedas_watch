@@ -6,8 +6,9 @@ function mvn_sep_elec_peri_bcrust,x,b,lowres=lowres,mhd=mhd,t=time
   rmars=3390. ;km
   sizeb=size(b,/dim) ;[3,rad,lat,lon] or [3,r,t,p]
   tbin=0
-  if keyword_set(time) then begin
-    tbin=floor((time-time_double('2017-9-13/3:00'))/60./5.)
+  if keyword_set(mhd) then begin
+    if mhd eq 3 then tbin=floor((time-time_double('2017-9-13/3:00'))/60./5.)
+    if mhd eq 4 then tbin=3+floor((time-time_double('2017-9-12/22:00'))/60./5.)
     if tbin lt 0 or tbin gt sizeb[4]-1 then return,!values.f_nan
   endif
 

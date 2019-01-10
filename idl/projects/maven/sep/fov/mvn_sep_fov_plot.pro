@@ -17,10 +17,13 @@ pro mvn_sep_fov_plot,pos=pos,suredge=suredge,fraction=fraction,time=time,tal=tal
   shcoa=30.
   srefa=15.5 ;ref angle
   scrsa=21.0 ;cross angle
+  sref0=20.5 ;Sun keep-out
+  scrs0=25.0 ;
   phi=!dtor*findgen(360) ;azimuth angle
   x=shcoa*cos(phi)
   y=shcoa*sin(phi)
   edges=[[-srefa,-scrsa],[-srefa,scrsa],[srefa,scrsa],[srefa,-scrsa],[-srefa,-scrsa]]
+  edge0=[[-sref0,-scrs0],[-sref0,scrs0],[sref0,scrs0],[sref0,-scrs0],[-sref0,-scrs0]]
   title=['1F','2F','1R','2R']
 
   p=getwindows('mvn_sep_fov')
@@ -33,7 +36,7 @@ pro mvn_sep_fov_plot,pos=pos,suredge=suredge,fraction=fraction,time=time,tal=tal
     p=scatterplot(/o,sepphi,septheta,rgb=33,sym='.',magnitude=cr)
     for pn=-1,2 do begin  ;SEP 2R,1F,2F,1R
       p=plot(edges+rebin([90.*pn-45.,0.],[2,5]),/o)
-      p=text((3.-pn)/5.,.89,'SEP'+title[pn])
+      p=text((3.-pn)/5.,.76,'SEP'+title[pn])
     endfor
     p=text(.02,.13,time_string(time))
     return
@@ -57,10 +60,11 @@ pro mvn_sep_fov_plot,pos=pos,suredge=suredge,fraction=fraction,time=time,tal=tal
 
   for pn=-1,2 do begin  ;SEP 2R,1F,2F,1R
     p=plot(edges+rebin([90.*pn-45.,0.],[2,5]),/o)
-    p=text((3.-pn)/5.,.89,'SEP'+title[pn])
+    p=plot(edge0+rebin([90.*pn-45.,0.],[2,5]),/o,'--')
     p=text((3.-pn)/5.,.86,strtrim(fraction.mars_surfa[pn],2))
     p=text((3.-pn)/5.,.83,strtrim(fraction.mars_shine[pn],2))
     p=text((3.-pn)/5.,.80,strtrim(fraction.mshine_fov[pn],2))
+    p=text((3.-pn)/5.,.76,'SEP'+title[pn])
   endfor
   p=plot(45.*[-3.,-1.,0.,1.,3.],[0.,0.,0.,0.,0.],'+',/o) ;centers of fov
   p=text(0,.86,'Mars Surface')

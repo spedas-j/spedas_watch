@@ -1,6 +1,5 @@
 ;20171109 Ali
-;Electron flux dispersions at periapse during the Sep 2017 SEP event
-;calculates useful stats
+;calculates useful stats related to electron flux dispersions at periapse during the Sep 2017 SEP event
 
 pro mvn_sep_elec_peri_stats,mhd=mhd,xyz=xyz
 
@@ -42,7 +41,7 @@ endif else begin
     b=transpose(morschhauser.b,[0,1,3,2]) ;[r,t,p]
   endelse
 endelse
-bcr=replicate(0.,[nt,3])
+bcr=replicate(!values.f_nan,[nt,3])
 rcr=bcr
 b0r=bcr
 for it=0,nt-1 do begin
@@ -74,31 +73,28 @@ evel=velocity(50e3,/elec,/true) ;50 keV electron speed (km/s)
 xdir=[1.,0.,0.]#replicate(1.,nt) ;X-direction (SEP front FOV)
 sep1fov=transpose(spice_vector_rotate(xdir,time,'MAVEN_SEP1',frame,check_objects='MAVEN_SPACECRAFT',/force_objects)); sep1 look direction
 sep2fov=transpose(spice_vector_rotate(xdir,time,'MAVEN_SEP2',frame,check_objects='MAVEN_SPACECRAFT',/force_objects)); sep2 look direction
-cosvb1=total(mag*sep1fov,2)/magtot
-cosvb2=total(mag*sep2fov,2)/magtot
-vpara1=evel*cosvb1 ;parallel speed (km/s) Note: can be negative! meaning direction is opposite of mag
-vpara2=evel*cosvb2
-vperp1=sqrt(evel^2-vpara1^2) ;perpendicular speed (km/s)
-vperp2=sqrt(evel^2-vpara2^2)
+cosvb=[[total(mag*sep1fov,2)/magtot],[total(mag*sep2fov,2)/magtot]]
+vpara=evel*cosvb ;parallel speed (km/s) Note: can be negative! meaning direction is opposite of mag
+vperp=sqrt(evel^2-vpara^2) ;perpendicular speed (km/s)
 vparahat=mag/rebin(magtot,[nt,3]) ;parallel velocity unit vector
-vparadir1=rebin(vpara1,[nt,3])*vparahat ;parallel velocity direction (km/s)
-vparadir2=rebin(vpara2,[nt,3])*vparahat
+vparadir1=rebin(vpara[*,0],[nt,3])*vparahat ;parallel velocity direction (km/s)
+vparadir2=rebin(vpara[*,1],[nt,3])*vparahat
 vperpdir1=evel*sep1fov-vparadir1 ;perpendicular velocity direction (km/s)
 vperpdir2=evel*sep2fov-vparadir2
-vperptot1=sqrt(total(vperpdir1^2,2)) ;should be equal to vperp1
+vperptot1=sqrt(total(vperpdir1^2,2)) ;should be equal to vperp[*,0]
 
 me=!const.me ;electron mass (kg)
 qe=!const.e ;electron charge (C)
 cc=float(!const.c/1e3) ;speed of light (km/s)
-rmars=3400.; mars radius (km)
+rmars=3390.; mars radius (km)
 gama=1./sqrt(1.-(evel/cc)^2) ;relativistic gamma
 gyroperiod=gama*me/qe/(1e-9*magtot) ;gyro-period/2pi (s)
 gyrofreq=1./gyroperiod ;gyro-frequency (rad/s)
-gyroradius1=gyroperiod*vperp1 ;gyro-radius (km)
-gyroradius2=gyroperiod*vperp2
+gyroradius1=gyroperiod*vperp[*,0] ;gyro-radius (km)
+gyroradius2=gyroperiod*vperp[*,1]
 store_data,'mvn_electron_gyroperiod_(s)',data={x:time,y:2.*!pi*gyroperiod},lim={ylog:1,ytickunits:'scientific'}
 store_data,'mvn_50keV_electron_gyroradius_(km)',data={x:time,y:[[gyroradius1],[gyroradius2]]},lim={ylog:1,colors:'br',labels:['SEP1','SEP2'],labflag:-1,ytickunits:'scientific'}
-store_data,'mvn_cos_B_FOV',data={x:time,y:[[cosvb1],[cosvb2]]},lim={yrange:[-1,1],colors:'br',labels:['SEP1A','SEP2A'],labflag:-1,constant:0}
+store_data,'mvn_cos_B_FOV',data={x:time,y:cosvb},lim={yrange:[-1,1],colors:'br',labels:['SEP1A','SEP2A'],labflag:-1,constant:0}
 
 force1=crossp2(sep1fov,mag) ;centripetal force acting on an electron going backward in time!
 force2=crossp2(sep2fov,mag)
