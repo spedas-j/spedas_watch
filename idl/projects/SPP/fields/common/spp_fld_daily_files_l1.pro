@@ -64,6 +64,7 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
         'dfb_ac_bpf_2', $
         'dfb_ac_bpf_3', $
         'dfb_ac_bpf_4', $
+        'dfb_hk', $
         'dfb_wf_01', $
         'dfb_wf_02', $
         'dfb_wf_03', $
@@ -136,6 +137,7 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
         'dcb_analog_hk', $
         'dcb_events', $
         'dcb_ssr_telemetry', $
+        'dfb_hk', $
         'aeb1_hk', $
         'aeb2_hk']
 

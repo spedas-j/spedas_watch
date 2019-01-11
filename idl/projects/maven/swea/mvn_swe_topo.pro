@@ -65,9 +65,9 @@
 ;       success:     Returns 1 if topology information available (at whatever
 ;                    quality), 0 otherwise.
 ;
-; $LastChangedBy: xussui $
-; $LastChangedDate: 2018-11-29 15:52:36 -0800 (Thu, 29 Nov 2018) $
-; $LastChangedRevision: 26185 $
+; $LastChangedBy: tweber $
+; $LastChangedDate: 2019-01-10 15:47:13 -0800 (Thu, 10 Jan 2019) $
+; $LastChangedRevision: 26451 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_topo.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 11/03/2017
@@ -80,7 +80,8 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
 
   success = 0
   quality = [0,0,0]
-
+  padScoreFlag = 1
+  shapeFlag = 1
   ;set the default to be creating tplot variables
   if (size(storeTplot,/type) eq 0) then storeTplot=1 $
     else storeTplot=keyword_set(storeTplot)
@@ -151,6 +152,7 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
     numShp = n_elements(jshp_away)
   endif else begin
     print,"Warning: PAD Shape not available!"
+    shapeFlag = 0
     return
   endelse
 
@@ -193,6 +195,7 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
     endif
   endif else begin
     print,"Warning: PAD Score not available!"
+    padScoreFlag = 0
     jupz = replicate(2B, numShp)  ; fill with unknowns
     jdnz = replicate(2B, numShp)  ; fill with unknowns
   endelse
@@ -304,18 +307,20 @@ Pro mvn_swe_topo,trange = trange, result=result, storeTplot = storeTplot, $
       options,ename,'symsize',sysz[i]
     endfor
     store_data,'topo_alt',data=['topo_lab','alt_'+ft[1:7]]
-
-    store_data,'PAD_LC',data={x:padLC.time, y:[[padLC.zScoreUp], [padLC.zScoreDown]]}
-    options,'PAD_LC','ytitle',('PAD!cZ-Scores')
-    options,'PAD_LC','labels',['Away','Towards']
-    options,'PAD_LC','labflag',1
-    options,'PAD_LC','constant',[0,2]
-    ylim,'PAD_LC',-6, 6, 0
-
+    
+    if padScoreFlag eq 1 then begin
+      store_data,'PAD_LC',data={x:padLC.time, y:[[padLC.zScoreUp], [padLC.zScoreDown]]}
+      options,'PAD_LC','ytitle',('PAD!cZ-Scores')
+      options,'PAD_LC','labels',['Away','Towards']
+      options,'PAD_LC','labflag',1
+      options,'PAD_LC','constant',[0,2]
+      ylim,'PAD_LC',-6, 6, 0
+    endif
+    
     get_data,'rat_a2t',data=rat
     store_data,'frat_a2t',data={x:rat.x,y:reform(rat.y[*,0])}
     options,'frat_a2t',yrange=[0.1,10],constant=[thrd_frat,1,thrd_frat2],$
-            ytitle='flux ratio!C35-60 eV!Caway/twd!CPA 0-30',ylog=1
+          ytitle='flux ratio!C35-60 eV!Caway/twd!CPA 0-30',ylog=1
             ;ytitle='flux ratio!C100-300 eV!Caway/twd!CPA 0-30',ylog=1
 
   endif

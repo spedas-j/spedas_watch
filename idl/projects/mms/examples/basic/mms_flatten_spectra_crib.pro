@@ -9,8 +9,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-08-30 15:29:33 -0700 (Thu, 30 Aug 2018) $
-; $LastChangedRevision: 25711 $
+; $LastChangedDate: 2019-01-10 08:57:15 -0800 (Thu, 10 Jan 2019) $
+; $LastChangedRevision: 26449 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/basic/mms_flatten_spectra_crib.pro $
 ;-
 
@@ -44,6 +44,32 @@ stop
 
 ; save the figure as a postscript file
 flatten_spectra, /xlog, /ylog, time='2015-10-16/13:07', filename='spectra', /postscript
+stop
+
+; Convert the x-axis to keV before plotting
+; note: FEEPS data are already in keV, FPI data are in eV; the to_kev keyword uses 
+; the units in the ysubtitle to determine which to convert; the y-axis units are still different.
+mms_load_feeps, data_rate='brst', trange=['2015-10-16/13', '2015-10-16/13:10'], /time_clip, probe=1
+
+tplot, ['mms1_des_energyspectr_omni_brst', $
+        'mms1_epd_feeps_brst_l2_electron_intensity_omni']
+
+flatten_spectra, /to_kev, /xlog, /ylog, time='2015-10-16/13:07'
+stop
+
+; Convert the y-axis to flux [1/(cm^2 s sr keV)] before plotting
+mms_load_fpi, probe=1, data_rate='brst', datatype=['dis-moms'], trange=['2015-10-16/13', '2015-10-16/13:10'], /time_clip
+mms_load_eis, datatype=['extof', 'phxtof'], data_rate='brst', trange=['2015-10-16/13', '2015-10-16/13:10'], /time_clip, probe=1
+mms_load_hpca, data_rate='brst', trange=['2015-10-16/13', '2015-10-16/13:10'], /time_clip, probe=1, datatype='ion', /major
+mms_hpca_calc_anodes, fov=[0, 360]
+mms_hpca_spin_sum, probe=1, /avg
+
+tplot, ['mms1_dis_energyspectr_omni_brst', $
+  'mms1_hpca_hplus_flux_elev_0-360_spin', $
+  'mms1_epd_eis_brst_phxtof_proton_flux_omni', $
+  'mms1_epd_eis_brst_extof_proton_flux_omni']
+
+flatten_spectra, /to_flux, /to_kev, /xlog, /ylog, time='2015-10-16/13:07', filename='spectra', /png
 stop
 
 end

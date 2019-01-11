@@ -26,7 +26,9 @@
 ;                    If TRANGE is specify, the the time center point is computed.
 ;       RANGETITLE:  If keyword is set, display range of the averagind time instead of the center time
 ;                    Does not affect deafult name of the png or postscript file 
-;       TO_KEV:      Converts the x-axis to keV from eV (assumes x-axis is already in eV)
+;       TO_KEV:      Converts the x-axis to keV from eV (checks units in ysubtitle)
+;       TO_FLUX: Converts the y-axis to units of flux, i.e., '1/(cm^2 s sr keV)', as with TO_KEV, 
+;                     this keyword uses the units string in the ztitle
 ;
 ; EXAMPLE:
 ;     To create line plots of FPI electron energy spectra for all MMS spacecraft:
@@ -41,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-04 10:57:06 -0800 (Fri, 04 Jan 2019) $
-;$LastChangedRevision: 26423 $
+;$LastChangedDate: 2019-01-10 08:52:23 -0800 (Thu, 10 Jan 2019) $
+;$LastChangedRevision: 26448 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -82,7 +84,7 @@ end
 pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, _extra=_extra
+   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, _extra=_extra
    
   @tplot_com.pro
   
@@ -135,6 +137,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   ; loop to get supporting information
   for v_idx=0, n_elements(vars_to_plot)-1 do begin  
     get_data, vars_to_plot[v_idx], data=vardata, alimits=metadata
+    m = spd_extract_tvar_metadata(vars_to_plot[v_idx])
 
     if ~is_struct(vardata) or ~is_struct(metadata) then begin
       dprint, dlevel=0, 'Could not plot: ' + vars_to_plot[v_idx]
@@ -157,12 +160,30 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
       
       if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
-      if keyword_set(to_kev) && tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '' then begin
-        if metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)' then begin
+      data_y = vardata.Y[idx_to_plot, *]
+            
+      if keyword_set(to_kev) && (tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '') || (tag_exist(metadata, 'yunits' && metadata.yunits ne '')) then begin
+        if tag_exist(metadata, 'ysubtitle') && (metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)') then begin
+          data_x = data_x/1000d
+        endif else if tag_exist(metadata, 'yunits') && (metadata.yunits eq 'eV' || metadata.yunits eq '[eV]' || metadata.yunits eq '(eV)') then begin
           data_x = data_x/1000d
         endif
       endif
-      append_array,yr,reform(vardata.Y[idx_to_plot, *])
+      if keyword_set(to_flux) && m.units ne '' then begin
+        ztitle = string(m.units)
+        ztitle = ztitle.replace('!U', '')
+        ztitle = ztitle.replace('!N', '')
+        ztitle = ztitle.replace('^', '')
+        ztitle = ztitle.replace('-', ' ')
+        if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
+          data_y = data_y/data_x
+        endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
+            data_y = data_y*1000d/data_x
+        endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
+            data_y = data_y*1000d
+        endif
+      endif
+      append_array,yr,reform(data_y)
       append_array,xr,reform(data_x)     
     endif      
     
@@ -205,6 +226,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   for v_idx=0, n_elements(vars_to_plot)-1 do begin
 
       get_data, vars_to_plot[v_idx], data=vardata, alimits=vardl
+      m = spd_extract_tvar_metadata(vars_to_plot[v_idx])
 
       if ~is_struct(vardata) or ~is_struct(vardl) then begin
         dprint, dlevel=0, 'Could not plot: ' + vars_to_plot[v_idx]
@@ -253,14 +275,36 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       endelse
         
       if dimen2(vardata.v) eq 1 then x_data = vardata.v else x_data = vardata.v[idx_to_plot, *]
-
-      if keyword_set(to_kev) && tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '' then begin
-        if vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)' then begin
+      y_data = data_to_plot
+      
+      if keyword_set(to_kev) && (tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits' && vardl.yunits ne '')) then begin
+        if tag_exist(vardl, 'ysubtitle') && (vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)') then begin
+          xunit_str = '[keV]'
+          x_data /= 1000d
+        endif else if tag_exist(vardl, 'yunits') && (vardl.yunits eq 'eV' || vardl.yunits eq '[eV]' || vardl.yunits eq '(eV)') then begin
           xunit_str = '[keV]'
           x_data /= 1000d
         endif
       endif
       
+      if keyword_set(to_flux) && m.units ne '' then begin
+        ztitle = string(m.units)
+        ztitle = ztitle.replace('!U', '')
+        ztitle = ztitle.replace('!N', '')
+        ztitle = ztitle.replace('^', '')
+        ztitle = ztitle.replace('-', ' ')
+        if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
+          yunit_str = '1/(cm!U2!N sr s keV)'
+          y_data = y_data/x_data
+        endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
+          yunit_str = '1/(cm!U2!N sr s keV)'
+          y_data = y_data*1000d/x_data
+        endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
+          yunit_str = '1/(cm!U2!N sr s keV)'
+          y_data = y_data*1000d
+        endif
+      endif
+
       if v_idx eq 0 then begin
       
         title_format = 'YYYY-MM-DD/hh:mm:ss.fff'
@@ -268,7 +312,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
           strjoin(time_string(trange, tformat=title_format),' - ') : $
           time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
  
-        plot, x_data, data_to_plot[0, *], $
+        plot, x_data, y_data, $
           xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
           xtitle=xunit_str, ytitle=yunit_str, $
           charsize=charsize, title=title_str, color=colors[v_idx], _extra=_extra
@@ -278,7 +322,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
             leg_y = !y.WINDOW[1] - leg_y
           endif            
       endif else begin
-        oplot, x_data, data_to_plot[0, *], color=colors[v_idx], _extra=_extra
+        oplot, x_data, y_data, color=colors[v_idx], _extra=_extra
       endelse      
       
       if ~keyword_set(nolegend) then begin
