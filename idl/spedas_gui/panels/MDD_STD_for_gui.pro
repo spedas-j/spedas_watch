@@ -40,7 +40,6 @@ pro MDD_STD_for_gui,xname,yname,  $
   if not keyword_set(fl3) then fl3=1.0
 
 
-
   for i=0,3 do begin
     tinterpol,xname[i],yname[0],/overwrite
   endfor
@@ -49,7 +48,6 @@ pro MDD_STD_for_gui,xname,yname,  $
   get_data,yname[1],data=mag2   &   get_data,xname[1],data=pos2
   get_data,yname[2],data=mag3   &   get_data,xname[2],data=pos3
   get_data,yname[3],data=mag4   &   get_data,xname[3],data=pos4
-
 
   aaa=mag1.x[1:n_elements(mag1.x)-1]-mag1.x[0:n_elements(mag1.x)-2]
   his=histogram(aaa)
@@ -78,7 +76,6 @@ pro MDD_STD_for_gui,xname,yname,  $
   get_data,'mag3',data=mag3
   get_data,'mag4',data=mag4
 
-
   index1=where(pos1.x ge time_double(trange[0])-exp and pos1.x le time_double(trange[1])+exp)
   store_data,'pos1',data={x:pos1.x[index1],y:pos1.y[index1,*]}
   get_data,'pos1',data=pos1
@@ -92,15 +89,7 @@ pro MDD_STD_for_gui,xname,yname,  $
   store_data,'pos4',data={x:pos4.x[index4],y:pos4.y[index4,*]}
   get_data,'pos4',data=pos4
 
-
   if not keyword_set(points) and keyword_set(delta_t) then points=fix(delta_t/dpre)
-  ; index=min([n_elements(pos1.x),n_elements(pos2.x),n_elements(pos3.x),n_elements(pos4.x),n_elements(mag1.x),n_elements(mag2.x),n_elements(mag3.x),n_elements(mag4.x)])-1
-  ; mag1.x=mag1.x[0:index]  &  mag1.y=mag1.y[0:index,*]  &  pos1.x=pos1.x[0:index]  &  pos1.y=pos1.y[0:index,*]
-  ; mag2.x=mag2.x[0:index]  &  mag2.y=mag2.y[0:index,*]  &  pos2.x=pos2.x[0:index]  &  pos2.y=pos2.y[0:index,*]
-  ; mag3.x=mag3.x[0:index]  &  mag3.y=mag3.y[0:index,*]  &  pos3.x=pos3.x[0:index]  &  pos3.y=pos3.y[0:index,*]
-  ; mag4.x=mag4.x[0:index]  &  mag4.y=mag4.y[0:index,*]  &  pos4.x=pos4.x[0:index]  &  pos4.y=pos4.y[0:index,*]
-
-
 
   sc_d_11 = [[pos1.x],[pos1.y - pos3.y]]
   sc_d_12 = [[pos2.x],[pos2.y - pos3.y]]
@@ -181,17 +170,7 @@ pro MDD_STD_for_gui,xname,yname,  $
 
     A[0:2,0:2]=All_A[j,0:2,0:2]
 
-    ;     A[0,0]=All_A(j,0,0)   &   A[1,0]=All_a(j,1,0)   &   A[2,0]=All_a(j,2,0)
-    ;     A[0,1]=All_A(j,0,1)   &   A[1,1]=All_a(j,1,1)   &   A[2,1]=All_a(j,2,1)
-    ;     A[0,2]=All_a(j,0,2)   &   A[1,2]=All_a(j,1,2)   &   A[2,2]=All_a(j,2,2)
-
-
     A1=transpose(A)#A+0d
-
-    ;     A2=[[A(0,0)^2+A(1,0)^2+A(2,0)^2                  ,   A(0,0)*A(0,1)+A(1,0)*A(1,1)+A(2,0)*A(2,1)   ,   A(0,0)*A(0,2)+A(1,0)*A(1,2)+A(2,0)*A(2,2)],$
-    ;         [A(0,0)*A(0,1)+A(1,0)*A(1,1)+A(2,0)*A(2,1)   ,   A(0,1)^2+A(1,1)^2+A(2,1)^2                  ,   A(0,1)*A(0,2)+A(1,1)*A(1,2)+A(2,1)*A(2,2)],$
-    ;         [A(0,0)*A(0,2)+A(1,0)*A(1,2)+A(2,0)*A(2,2)   ,   A(0,1)*A(0,2)+A(1,1)*A(1,2)+A(2,1)*A(2,2)   ,   A(0,2)^2+A(1,2)^2+A(2,2)^2 ]               ];
-
 
     DD = LA_EIGENproblem(A1,eigenvectors = eigenvectors,/double)
     vv=eigenvectors
@@ -200,7 +179,6 @@ pro MDD_STD_for_gui,xname,yname,  $
       DDmin=where(abs(DD) eq min([abs(DD[0]),abs(DD[1]),abs(DD[2])]))   &    DDmax=where(abs(DD) eq max([abs(DD[0]),abs(DD[1]),abs(DD[2])]))
       if n_elements(DDmin) gt 1 then continue
       if total([double(DDmin),double(DDmax)]) eq 1 then DDmid=2   &   if total([double(DDmin),double(DDmax)]) eq 2 then DDmid=1   &   if total([double(DDmin),double(DDmax)]) eq 3 then DDmid=0
-
       lambda1R=real_part(DD[DDmax])   &   lambda2R=real_part(DD[DDmid])   &   lambda3R=real_part(DD[DDmin])
       lambda1I=imaginary(DD[DDmax])   &   lambda2I=imaginary(DD[DDmid])   &   lambda3I=imaginary(DD[DDmin])
       N1=VV(*,DDmax)   &   N2=VV(*,DDmid)   &   N3=VV(*,DDmin);
@@ -217,8 +195,8 @@ pro MDD_STD_for_gui,xname,yname,  $
       lambda1R=real_part(DD[kk3])   &   lambda2R=real_part(DD[kk2])   &   lambda3R=real_part(DD[kk1])
       lambda1I=imaginary(DD[kk3])   &   lambda2I=imaginary(DD[kk2])   &   lambda3I=imaginary(DD[kk1])
       N1=VV(*,kk3)   &   N2=VV(*,kk2)   &   N3=VV(*,kk1)
-
     endelse
+    
     if keyword_set(std) then begin
       PBx_Pt1=PBx_Pt[j]   &   PBy_Pt1=PBy_Pt[j]   &   PBz_Pt1=PBz_Pt[j];
       VINTNeg_PB_pt=-[PBx_Pt1,PBy_Pt1,PBz_Pt1]    &    Vs=VINTNeg_PB_pt#matrix_power([[A[0,0],A[0,1],A[0,2]],[A[1,0],A[1,1],A[1,2]],[A[2,0],A[2,1],A[2,2]]],-1);
@@ -241,7 +219,6 @@ pro MDD_STD_for_gui,xname,yname,  $
       N_2d=N1+N2   &   Nx_2d[j]=N_2d[0]/sqrt(2)   &   Ny_2d[j]=N_2d[1]/sqrt(2)   &   Nz_2d[j]=N_2d[2]/sqrt(2);
     endif
 
-
     lamda3[j]=lambda3R   &   lamda2[j]=lambda2R   &   lamda1[j]=lambda1R
     egvt3[j,0]=N3[0]   &   egvt2[j,0]=N2[0]   &   egvt1[j,0]=N1[0]
     egvt3[j,1]=N3[1]   &   egvt2[j,1]=N2[1]   &   egvt1[j,1]=N1[1]
@@ -259,23 +236,6 @@ pro MDD_STD_for_gui,xname,yname,  $
       egvt3[k,*]=-egvt3[k,*];
     endif
   endfor
-
-  ;
-  ;  for k=0,n_elements(mag1.x)-1 do begin
-  ;    if egvt1[k,0] lt 0 then egvt1[k,0]=-egvt1[k,0]
-  ;    if egvt1[k,1] gt 0 then egvt1[k,1]=-egvt1[k,1]
-  ;    if egvt1[k,2] gt 0 then egvt1[k,2]=-egvt1[k,2]
-  ;
-  ;    if egvt2[k,0] lt 0 then egvt2[k,0]=-egvt2[k,0]
-  ;    if egvt2[k,1] gt 0 then egvt2[k,1]=-egvt2[k,1]
-  ;    if egvt2[k,2] gt 0 then egvt2[k,2]=-egvt2[k,2]
-  ;
-  ;    if egvt3[k,0] lt 0 then egvt3[k,0]=-egvt3[k,0]
-  ;    if egvt3[k,1] gt 0 then egvt3[k,1]=-egvt3[k,1]
-  ;    if egvt3[k,2] gt 0 then egvt3[k,2]=-egvt3[k,2]
-  ;
-  ;
-  ;  endfor
 
   lamda1=sqrt(lamda1)
   lamda2=sqrt(lamda2)
@@ -371,7 +331,6 @@ pro MDD_STD_for_gui,xname,yname,  $
     store_data,'SC2_B',data=[yname[1]+'_x',yname[1]+'_y',yname[1]+'_z'],dlimit={colors:['b','g','r'],labflag:1,labels:['Bx','By','Bz']}
     store_data,'SC3_B',data=[yname[2]+'_x',yname[2]+'_y',yname[2]+'_z'],dlimit={colors:['b','g','r'],labflag:1,labels:['Bx','By','Bz']}
     store_data,'SC4_B',data=[yname[3]+'_x',yname[3]+'_y',yname[3]+'_z'],dlimit={colors:['b','g','r'],labflag:1,labels:['Bx','By','Bz']}
-
 
   del_data,['pos1','pos2','pos3','pos4','mag1','mag2','mag3','mag4']
 end

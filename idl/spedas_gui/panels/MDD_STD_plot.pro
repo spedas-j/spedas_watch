@@ -19,7 +19,6 @@ pro MDD_STD_plot,  $
   options,'Eigenvector_mid_dots',psym=8
   options,'Eigenvector_min_dots',psym=8
   options,'Structure_Dimentions_dots',psym=8
-stop
   if keyword_set(std) then begin
     options,'V_max_dots',psym=8   &  options,'Vstructure1_dots',psym=8
     options,'V_mid_dots',psym=8   &  options,'Vstructure_dots',psym=8
@@ -39,7 +38,6 @@ stop
     timebar,0,varname='Eigenvector_mid_c',color=0,linestyle=1,thick=2,/databar
     timebar,0,varname='Eigenvector_max_c',color=0,linestyle=1,thick=2,/databar
     timebar,0.4,varname='Error_c',color=0,linestyle=1,thick=2,/databar
-stop
     if keyword_set(files) then $
       makepng,files+'\MDD_'+strmid(time_string(trange[0]),0,10)+strtrim(time_string(time_double(trange[0]),tformat=' hh-mm-ss'))+strtrim(time_string(time_double(trange[1]),tformat=' hh-mm-ss'))+''
   endif
