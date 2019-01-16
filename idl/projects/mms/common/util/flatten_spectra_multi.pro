@@ -29,7 +29,9 @@
 ;                    If TRANGE is specify, the the time center point is computed.
 ;       RANGETITLE:  If keyword is set, display range of the averagind time instead of the center time
 ;                    Does not affect deafult name of the png or postscript file 
-;       TO_KEV:      Converts the x-axis to keV from eV (assumes x-axis is already in eV)
+;       TO_KEV:      Converts the x-axis to keV from eV (checks units in ysubtitle)
+;       TO_FLUX: Converts the y-axis to units of flux, i.e., '1/(cm^2 s sr keV)', as with TO_KEV,
+;                     this keyword uses the units string in the ztitle
 ;
 ; EXAMPLE:
 ;     To create line plots of FPI electron energy spectra for all MMS spacecraft:
@@ -48,8 +50,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-04 10:57:06 -0800 (Fri, 04 Jan 2019) $
-;$LastChangedRevision: 26423 $
+;$LastChangedDate: 2019-01-15 11:27:25 -0800 (Tue, 15 Jan 2019) $
+;$LastChangedRevision: 26464 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -61,12 +63,12 @@ pro mfs_warning, str
   dprint, dlevel=0, '#################################################################'
 end
 
-function mfs_get_unit_string, unit_array
+function mfs_get_unit_string, unit_array, disable_warning=disable_warning
   compile_opt idl2, hidden
   ; prepare string of units from the given array. If there is more that one unit in the array, print the warning 
   if ~undefined(unit_array) then begin
     if N_ELEMENTS(unit_array) gt 1 then begin
-      mfs_warning, 'Units of the tplot variables are different!'
+      if undefined(disable_warning) then mfs_warning, 'Units of the tplot variables are different!'
       return, STRJOIN(unit_array, ', ')             
     endif else RETURN, unit_array[0]
   endif else return, ''
@@ -89,7 +91,7 @@ end
 pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, _extra=_extra
+   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, _extra=_extra
    
   @tplot_com.pro
 
@@ -170,6 +172,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
     ; loop to get supporting information
     for v_idx=0, n_elements(vars_to_plot)-1 do begin  
       get_data, vars_to_plot[v_idx], data=vardata, alimits=metadata
+      m = spd_extract_tvar_metadata(vars_to_plot[v_idx])
   
       if ~is_struct(vardata) or ~is_struct(metadata) then begin
         dprint, dlevel=0, 'Could not plot: ' + vars_to_plot[v_idx]
@@ -192,12 +195,30 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
         
         if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
+        data_y = vardata.Y[idx_to_plot, *]
+        
         if keyword_set(to_kev) && tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '' then begin
           if metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)' then begin
             data_x = data_x/1000d
+          endif else if tag_exist(metadata, 'yunits') && (metadata.yunits eq 'eV' || metadata.yunits eq '[eV]' || metadata.yunits eq '(eV)') then begin
+            data_x = data_x/1000d
           endif
         endif
-        append_array,yr,reform(vardata.Y[idx_to_plot, *])
+        if keyword_set(to_flux) && m.units ne '' then begin
+          ztitle = string(m.units)
+          ztitle = ztitle.replace('!U', '')
+          ztitle = ztitle.replace('!N', '')
+          ztitle = ztitle.replace('^', '')
+          ztitle = ztitle.replace('-', ' ')
+          if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
+            data_y = data_y/data_x
+          endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
+            data_y = data_y*1000d/data_x
+          endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
+            data_y = data_y*1000d
+          endif
+        endif
+        append_array,yr,reform(data_y)
         append_array,xr,reform(data_x)     
       endif       
       
@@ -210,8 +231,8 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
     if N_ELEMENTS(yrange) ne 2 then yrange = KEYWORD_SET(ylog) ? [min(yr(where(yr>0))), max(yr(where(yr>0)))] : [min(yr), max(yr)]
     
     ; units string
-    xunit_str = mfs_get_unit_string(xunits)
-    yunit_str = mfs_get_unit_string(yunits)
+    xunit_str = mfs_get_unit_string(xunits, disable_warning=to_kev)
+    yunit_str = mfs_get_unit_string(yunits, disable_warning=to_flux)
      
     ; loop plot
     for v_idx=0, n_elements(vars_to_plot)-1 do begin
@@ -267,11 +288,33 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         endelse
           
         if dimen2(vardata.v) eq 1 then x_data = vardata.v else x_data = vardata.v[idx_to_plot, *]
+        y_data = data_to_plot
 
         if keyword_set(to_kev) && tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '' then begin
           if vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)' then begin
             xunit_str = '[keV]'
             x_data /= 1000d
+          endif else if tag_exist(vardl, 'yunits') && (vardl.yunits eq 'eV' || vardl.yunits eq '[eV]' || vardl.yunits eq '(eV)') then begin
+            xunit_str = '[keV]'
+            x_data /= 1000d
+          endif
+        endif
+        
+        if keyword_set(to_flux) && m.units ne '' then begin
+          ztitle = string(m.units)
+          ztitle = ztitle.replace('!U', '')
+          ztitle = ztitle.replace('!N', '')
+          ztitle = ztitle.replace('^', '')
+          ztitle = ztitle.replace('-', ' ')
+          if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
+            yunit_str = '1/(cm!U2!N sr s keV)'
+            y_data = y_data/x_data
+          endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
+            yunit_str = '1/(cm!U2!N sr s keV)'
+            y_data = y_data*1000d/x_data
+          endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
+            yunit_str = '1/(cm!U2!N sr s keV)'
+            y_data = y_data*1000d
           endif
         endif
         
@@ -281,7 +324,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
           time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
           
         if v_idx eq 0 and undefined(plot_created) then begin
-          plot, x_data, data_to_plot[0, *], $
+          plot, x_data, y_data, $
             xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
             xtitle=xunit_str, ytitle=yunit_str, $
             charsize=charsize, title=varinfo.catdesc, color=colors[time_idx], _extra=_extra
@@ -291,7 +334,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
               leg_y = !y.WINDOW[1] - leg_y
             endif            
         endif else begin
-          oplot, x_data, data_to_plot[0, *], color=colors[time_idx], _extra=_extra
+          oplot, x_data, y_data, color=colors[time_idx], _extra=_extra
         endelse
         
         ; needed for multiple times

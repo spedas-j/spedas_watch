@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-10 08:52:23 -0800 (Thu, 10 Jan 2019) $
-;$LastChangedRevision: 26448 $
+;$LastChangedDate: 2019-01-15 11:26:24 -0800 (Tue, 15 Jan 2019) $
+;$LastChangedRevision: 26463 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -56,12 +56,12 @@ pro fs_warning, str
   dprint, dlevel=0, '#################################################################'
 end
 
-function fs_get_unit_string, unit_array
+function fs_get_unit_string, unit_array, disable_warning=disable_warning
   compile_opt idl2, hidden
   ; prepare string of units from the given array. If there is more that one unit in the array, print the warning 
   if ~undefined(unit_array) then begin
     if N_ELEMENTS(unit_array) gt 1 then begin
-      fs_warning, 'Units of the tplot variables are different!'
+      if undefined(disable_warning) then fs_warning, 'Units of the tplot variables are different!'
       return, STRJOIN(unit_array, ', ')             
     endif else RETURN, unit_array[0]
   endif else return, ''
@@ -178,9 +178,9 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
           data_y = data_y/data_x
         endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
-            data_y = data_y*1000d/data_x
+          data_y = data_y*1000d/data_x
         endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
-            data_y = data_y*1000d
+          data_y = data_y*1000d
         endif
       endif
       append_array,yr,reform(data_y)
@@ -201,8 +201,8 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   endif 
   
   ; units string
-  xunit_str = fs_get_unit_string(xunits)
-  yunit_str = fs_get_unit_string(yunits)
+  xunit_str = fs_get_unit_string(xunits, disable_warning=to_kev)
+  yunit_str = fs_get_unit_string(yunits, disable_warning=to_flux)
    
   ; position for the legend
   if keyword_set(legend_left) then leg_x = 0.04 else leg_x = 0.60
