@@ -7,19 +7,20 @@
 ;       PSP SWEAP SPAN-Ai Flight energy and telemetry mode configurations.
 ;    modeid : in, optional, type=integer
 ;       
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-04 12:31:25 -0800 (Tue, 04 Dec 2018) $
-; $LastChangedRevision: 26231 $
+; $LastChangedBy: rlivi2 $
+; $LastChangedDate: 2019-01-15 22:37:05 -0800 (Tue, 15 Jan 2019) $
+; $LastChangedRevision: 26467 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spi_tables.pro $
 ;-
 
-PRO spp_swp_spi_tables, table, modeid=modeid
+PRO spp_swp_spi_tables, table, modeid=modeid, verbose=verbose
 
    ;; Parse MODE ID
    IF ~keyword_set(modeid) THEN BEGIN
       print, 'MODEID not defined. Using default 0x0015'
       modeid = '15'x
    ENDIF 
+
    energy_id = (ishft(modeid,-4) and 15)
    tmode_id  = (ishft(modeid,-8) and 15)
 
@@ -41,27 +42,57 @@ PRO spp_swp_spi_tables, table, modeid=modeid
    CASE energy_id OF
       ;; Science Tables 0x01
       '01'x: BEGIN
+         IF keyword_set(verbose) THEN print, 'Science Tables 0x01'
+         ;; Launch
          emin  = 500.
          emax  = 2000.
-         spfac = 0.15
+         spfac_a = 0.10
+         spfac_b = 0.25
+         ;; 1st orbit (only ping side changed)
+         emin  = 500.
+         emax  = 10000.
+         spfac_a = 0.10
+         spfac_b = 0.25
       END
       ;; Science Tables 0x02
       '02'x: BEGIN
+         IF keyword_set(verbose) THEN print, 'Science Tables 0x02'
          emin  = 5.
          emax  = 1500.
-         spfac = 0.15
+         spfac_a = 0.10
+         spfac_b = 0.25
       END
       ;; Science Tables 0x03
       '03'x: BEGIN
+         IF keyword_set(verbose) THEN print, 'Science Tables 0x03'
          emin  = 1500.
          emax  = 20000.
-         spfac = 0.15
+         spfac_a = 0.10
+         spfac_b = 0.25
       END
       ;; Science Tables 0x04
       '04'x: BEGIN
-         emin  = 5.
+         IF keyword_set(verbose) THEN print, 'Science Tables 0x04'
+         emin  = 1000.
+         emax  = 4000.
+         spfac_a = 0.10
+         spfac_b = 0.25
+         ;; Science Tables 0x05
+      END 
+      '05'x: BEGIN
+         IF keyword_set(verbose) THEN print, 'Science Tables 0x05'
+         emin  = 125.
          emax  = 20000.
-         spfac = 0.15
+         spfac_a = 0.10
+         spfac_b = 0.25
+      END 
+      ;; Science Tables 0x06
+      '06'x: BEGIN
+         IF keyword_set(verbose) THEN print, 'Science Tables 0x06'
+         emin  = 4000.
+         emax  = 40000.
+         spfac_a = 0.10
+         spfac_b = 0.25
       END
    ENDCASE
 
@@ -76,7 +107,7 @@ PRO spp_swp_spi_tables, table, modeid=modeid
              nen:nen,$
              emin:emin,$
              emax:emax,$
-             spfac:spfac,$
+             spfac:spfac_a,$
              maxspen:maxspen,$
              hvgain:hvgain,$
              spgain:spgain,$
@@ -107,6 +138,4 @@ PRO spp_swp_spi_tables, table, modeid=modeid
    ;; Targeted Sweep Index
    FOR i=0, 255 DO spp_swp_spx_get_tslut, table, i
 
-   stop
-   
 END
