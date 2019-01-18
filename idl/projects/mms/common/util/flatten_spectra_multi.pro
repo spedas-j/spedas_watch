@@ -50,8 +50,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-15 11:27:25 -0800 (Tue, 15 Jan 2019) $
-;$LastChangedRevision: 26464 $
+;$LastChangedDate: 2019-01-17 12:26:24 -0800 (Thu, 17 Jan 2019) $
+;$LastChangedRevision: 26478 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -197,7 +197,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
         data_y = vardata.Y[idx_to_plot, *]
         
-        if keyword_set(to_kev) && tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '' then begin
+        if keyword_set(to_kev) && (tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '') || (tag_exist(metadata, 'yunits') && metadata.yunits ne '') then begin
           if metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)' then begin
             data_x = data_x/1000d
           endif else if tag_exist(metadata, 'yunits') && (metadata.yunits eq 'eV' || metadata.yunits eq '[eV]' || metadata.yunits eq '(eV)') then begin
@@ -290,7 +290,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         if dimen2(vardata.v) eq 1 then x_data = vardata.v else x_data = vardata.v[idx_to_plot, *]
         y_data = data_to_plot
 
-        if keyword_set(to_kev) && tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '' then begin
+        if keyword_set(to_kev) && (tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits') && vardl.yunits ne '') then begin
           if vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)' then begin
             xunit_str = '[keV]'
             x_data /= 1000d
