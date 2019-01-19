@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-17 12:26:24 -0800 (Thu, 17 Jan 2019) $
-;$LastChangedRevision: 26478 $
+;$LastChangedDate: 2019-01-18 11:30:16 -0800 (Fri, 18 Jan 2019) $
+;$LastChangedRevision: 26482 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -87,6 +87,8 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
    charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, _extra=_extra
    
   @tplot_com.pro
+  
+  spd_graphics_config
   
   ;
   ; Time selection
