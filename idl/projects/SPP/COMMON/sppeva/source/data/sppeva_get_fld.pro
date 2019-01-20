@@ -4,8 +4,9 @@ PRO sppeva_get_fld, apid_name
 
   if undefined(apid_name) then apid_name = 'f1_100bps'
 
-  remote_site = 'http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/l1/'
-
+  ;remote_site = 'http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/l1/'
+  remote_site = 'http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/staging/l1/'
+  
   if strmid(apid_name, 0, 3) EQ 'dfb' then begin
     final_underscore = strpos(apid_name, '_', /reverse_search)
     apid_name = strmid(apid_name, 0, final_underscore) + $
