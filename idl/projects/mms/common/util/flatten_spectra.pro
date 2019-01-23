@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-18 11:30:16 -0800 (Fri, 18 Jan 2019) $
-;$LastChangedRevision: 26482 $
+;$LastChangedDate: 2019-01-22 11:43:09 -0800 (Tue, 22 Jan 2019) $
+;$LastChangedRevision: 26489 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -164,7 +164,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
       data_y = vardata.Y[idx_to_plot, *]
             
-      if keyword_set(to_kev) && (tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '') || (tag_exist(metadata, 'yunits') && metadata.yunits ne '') then begin
+      if keyword_set(to_kev) && ((tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '') || (tag_exist(metadata, 'yunits') && metadata.yunits ne '')) then begin
         if tag_exist(metadata, 'ysubtitle') && (metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)') then begin
           data_x = data_x/1000d
         endif else if tag_exist(metadata, 'yunits') && (metadata.yunits eq 'eV' || metadata.yunits eq '[eV]' || metadata.yunits eq '(eV)') then begin
@@ -205,7 +205,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   ; units string
   xunit_str = fs_get_unit_string(xunits, disable_warning=to_kev)
   yunit_str = fs_get_unit_string(yunits, disable_warning=to_flux)
-   
+
   ; position for the legend
   if keyword_set(legend_left) then leg_x = 0.04 else leg_x = 0.60
   leg_y = 0.04
@@ -278,8 +278,8 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         
       if dimen2(vardata.v) eq 1 then x_data = vardata.v else x_data = vardata.v[idx_to_plot, *]
       y_data = data_to_plot
-      
-      if keyword_set(to_kev) && (tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits') && vardl.yunits ne '') then begin
+
+      if keyword_set(to_kev) && ((tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits') && vardl.yunits ne '')) then begin
         if tag_exist(vardl, 'ysubtitle') && (vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)') then begin
           xunit_str = '[keV]'
           x_data /= 1000d
@@ -288,7 +288,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
           x_data /= 1000d
         endif
       endif
-      
+
       if keyword_set(to_flux) && m.units ne '' then begin
         ztitle = string(m.units)
         ztitle = ztitle.replace('!U', '')
