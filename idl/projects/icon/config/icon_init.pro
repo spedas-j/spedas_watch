@@ -11,8 +11,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-10 10:41:33 -0700 (Thu, 10 May 2018) $
-;$LastChangedRevision: 25192 $
+;$LastChangedDate: 2019-01-25 11:45:17 -0800 (Fri, 25 Jan 2019) $
+;$LastChangedRevision: 26500 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/config/icon_init.pro $
 ;
 ;-------------------------------------------------------------------
@@ -46,7 +46,7 @@ pro icon_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remot
     endelse
     !icon.local_data_dir  = spd_default_local_data_dir() + 'icon' + path_sep()
     ;http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/LEVEL.1/FUV/2017/
-    !icon.remote_data_dir = 'http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/'
+    !icon.remote_data_dir = 'http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/Simulated-Data/'
   endelse
   !icon.min_age_limit = 900    ; Don't check for new files if local file is less than 900 seconds old.
 
