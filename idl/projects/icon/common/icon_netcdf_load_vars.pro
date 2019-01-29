@@ -15,8 +15,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-06-04 10:13:39 -0700 (Mon, 04 Jun 2018) $
-;$LastChangedRevision: 25319 $
+;$LastChangedDate: 2019-01-28 11:22:00 -0800 (Mon, 28 Jan 2019) $
+;$LastChangedRevision: 26502 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/common/icon_netcdf_load_vars.pro $
 ;
 ;-------------------------------------------------------------------
@@ -59,7 +59,7 @@ function icon_netcdf_load_vars, ncfile
     dims = {dimid:0,name:'',size:0l}
     ;    gdims = replicate(dims,ndims)
 
-    ncdf_diminq, file, dimensionid, name, size
+    ;ncdf_diminq, file, dimensionid, name, size
     ;    if size eq 0 then continue
 
     if size(netCDFi, /type) ne 8 then begin ; check that 'netCDFi' structure doesn't already exist

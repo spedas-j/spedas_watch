@@ -87,8 +87,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-11-15 11:00:16 -0800 (Thu, 15 Nov 2018) $
-; $LastChangedRevision: 26127 $
+; $LastChangedDate: 2019-01-28 13:47:37 -0800 (Mon, 28 Jan 2019) $
+; $LastChangedRevision: 26503 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/flipbookify/spd_flipbookify.pro $
 ;-
 
@@ -103,7 +103,8 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
   plotbfield=plotbfield, plotbulk=plotbulk, background_color_index=background_color_index, background_color_rgb=background_color_rgb, $
   all_colorbars=all_colorbars, include_1d_vx=include_1d_vx, include_1d_vy=include_1d_vy, $
   lineplot_yrange=lineplot_yrange, lineplot_xrange=lineplot_xrange, lineplot_thickness=lineplot_thickness, $
-  ps_xsize=ps_xsize, ps_ysize=ps_ysize, ps_aspect=ps_aspect, nopng=nopng, custom_rotation=custom_rotation, erange=erange
+  ps_xsize=ps_xsize, ps_ysize=ps_ysize, ps_aspect=ps_aspect, nopng=nopng, custom_rotation=custom_rotation, erange=erange, $
+  gif=gif, jpg=jpg
   @tplot_com.pro
   
   if undefined(filename_prefix) then filename_prefix = 'spd'
@@ -123,6 +124,7 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
   if undefined(vid_fps) then vid_fps = 6 ; video frames per second
   if undefined(vid_bit_rate) then vid_bit_rate = 3000
   if ~undefined(charsize) then !p.charsize = charsize
+  if ~undefined(gif) or ~undefined(jpg) then nopng = 1b
   window_num = 0b
 
   if ~is_struct(tplot_vars) then begin
@@ -219,7 +221,9 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
     if ~undefined(draw_box) then timebar, (minmax(trange))[1], color=box_color, linestyle=box_style, thick=box_thickness
     wait, 0.02
     if keyword_set(postscript) then pclose
-    if ~keyword_set(postscript) and ~keyword_set(nopng) then makepng, output_dir+filename_prefix+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix
+   ; if ~keyword_set(postscript) and ~keyword_set(nopng) then makepng, output_dir+filename_prefix+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix
+    if keyword_set(gif) then makegif, output_dir+filename_prefix+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix
+    if keyword_set(jpg) then makejpg, output_dir+filename_prefix+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix
     if keyword_set(video) then begin
       void = video.put(stream, tvrd(/true))
     endif
