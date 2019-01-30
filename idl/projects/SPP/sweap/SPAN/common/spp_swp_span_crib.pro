@@ -7,8 +7,8 @@
 ; In the future this will include instructions for looking at flight data:  IN PROG
 ; 
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-17 12:09:03 -0800 (Mon, 17 Dec 2018) $
-; $LastChangedRevision: 26338 $
+; $LastChangedDate: 2019-01-29 16:17:12 -0800 (Tue, 29 Jan 2019) $
+; $LastChangedRevision: 26514 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_crib.pro $
 ;--------------------------------------------------------------------
 
@@ -154,11 +154,6 @@ if 0 then begin
   spp_swp_tplot,'sb_sum'
   spp_swp_tplot,'si_rate1',/setlim
   
-    
-  
-  
-  
-
   tplot,/add,'spp_spi_SF20_NRG_SPEC'
 endif
 
