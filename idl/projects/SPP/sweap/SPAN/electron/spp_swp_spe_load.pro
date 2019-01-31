@@ -1,7 +1,7 @@
-; $LastChangedBy: dac $
-; $LastChangedDate: 2018-11-10 18:25:15 -0800 (Sat, 10 Nov 2018) $
-; $LastChangedRevision: 26106 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu:36867/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2019-01-30 12:44:56 -0800 (Wed, 30 Jan 2019) $
+; $LastChangedRevision: 26516 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 
 
