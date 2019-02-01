@@ -64,7 +64,7 @@
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_load_mrma.pro $
 ;-
 
-pro elf_load_mrmi, trange = trange, probes = probes, datatypes = datatypes, $
+pro elf_load_mrmi, trange = trange, probes = probes, datatype = datatype, $
   level = level, data_rate = data_rate, $
   local_data_dir = local_data_dir, source = source, $
   get_support_data = get_support_data, $

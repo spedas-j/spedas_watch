@@ -55,9 +55,9 @@ pro elf_config, colortable=colortable, no_color_setup=no_color_setup
   endelse
 
   ; Settings of environment variables can override elf_config
-  if getenv('ELF_REMOTE_DATA_DIR') ne '' then $
-    !elf.remote_data_dir = getenv('ELF_REMOTE_DATA_DIR') else $
-    !elf.remote_data_dir = 'http:://themis-data.igpp.ucla.edu/themis/data/elfin'
+;  if getenv('ELF_REMOTE_DATA_DIR') ne '' then $
+;    !elf.remote_data_dir = getenv('ELF_REMOTE_DATA_DIR') else $
+  !elf.remote_data_dir = 'ftp://themis-data.igpp.ucla.edu/themis/data/elfin'
   !elf.remote_data_dir = spd_addslash(!elf.remote_data_dir)
 
 ;  if getenv('ROOT_DATA_DIR') ne '' then $

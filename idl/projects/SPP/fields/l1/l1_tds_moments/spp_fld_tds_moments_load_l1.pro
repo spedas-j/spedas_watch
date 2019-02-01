@@ -2,7 +2,7 @@ pro spp_fld_tds_moments_load_l1, file, prefix = prefix
 
   if not keyword_set(prefix) then prefix = 'spp_fld_tds_moments_'
 
-  cdf2tplot, file, prefix = prefix
+  cdf2tplot, /get_support_data, file, prefix = prefix
 
   options, '*tds_moments*', 'datagap', 30.
 

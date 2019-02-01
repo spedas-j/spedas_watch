@@ -24,8 +24,9 @@ del_data, 'el*'
 ;;    ===================================
 probe = 'a'
 datatypes = 'mrma'    ; mrma is the only data type
-
-elf_load_mrma, probes=probe, datatypes=datatypes
+stop
+elf_load_mrma, probes=probe
+stop
 tplot, 'ela_mrma'
 stop
 

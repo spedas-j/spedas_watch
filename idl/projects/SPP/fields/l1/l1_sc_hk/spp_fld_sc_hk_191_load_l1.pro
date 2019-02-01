@@ -2,7 +2,7 @@ pro spp_fld_sc_hk_191_load_l1, file, prefix = prefix
 
   if not keyword_set(prefix) then prefix = 'spp_fld_sc_hk_191_'
   
-  cdf2tplot, file, prefix = prefix
+  cdf2tplot, /get_support_data, file, prefix = prefix
   
   sc_hk_191_names = tnames(prefix + '*')
   

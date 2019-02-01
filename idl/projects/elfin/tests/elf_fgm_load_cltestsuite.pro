@@ -39,10 +39,11 @@ if err eq 0 then begin
   elf_load_fgm
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs ela_fgf','2018-10-14','2018-10-15')  || $
+  if ~spd_data_exists('ela_fgs','2018-10-14','2018-10-15')  || $
     ~spd_data_exists('ela_*','2018-10-14','2018-10-15') || $
     spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
     then message,'data error '+t_name
+stop
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
@@ -58,7 +59,7 @@ if err eq 0 then begin
   elf_load_fgm,probe='a'
   spd_print_tvar_info,'elb_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgf ela_fgs','2018-10-14','2018-10-15')  || $
+  if ~spd_data_exists('ela_fgs','2018-10-14','2018-10-15')  || $
     spd_data_exists('elb_*','2018-10-14','2018-10-15')   $
     then message,'data error ' + t_name
 endif

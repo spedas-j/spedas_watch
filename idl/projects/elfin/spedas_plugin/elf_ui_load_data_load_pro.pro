@@ -60,7 +60,7 @@ pro elf_ui_load_data_load_pro,$
                          overwrite_selections=overwrite_selections
                          
   compile_opt hidden,idl2
-stop  
+  
   ; initialize variables
   loaded = 0
   new_vars = ''
@@ -93,6 +93,7 @@ stop
   ; ***** Parameters for the load routines will vary per mission *****
 
   varformat = '*'+types
+
   elf_load_data, probes=probes, instrument=instrument, datatype=types, level=level, $
                     trange=timeRange, varformat=varformat 
 

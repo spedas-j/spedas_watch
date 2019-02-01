@@ -1,6 +1,6 @@
 pro spp_fld_ephem_load_l1, file, prefix = prefix
 
-  cdf2tplot, file, prefix = prefix
+  cdf2tplot, /get_support_data, file, prefix = prefix
 
   frame = strjoin((strsplit(/ex, prefix, '_'))[3:*],'_')
 

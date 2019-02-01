@@ -2,7 +2,7 @@ pro spp_fld_f1_100bps_load_l1, file, prefix = prefix
 
   if not keyword_set(prefix) then prefix = 'spp_fld_f1_100bps_'
 
-  cdf2tplot, file, prefix = prefix
+  cdf2tplot, /get_support_data, file, prefix = prefix
 
   options, prefix + 'DCB_ARCWRPTR', 'ytickformat', '(I16)'
   options, prefix + 'DCB_ARCWRPTR', 'colors', '6'
