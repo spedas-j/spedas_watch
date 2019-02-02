@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-10 10:41:33 -0700 (Thu, 10 May 2018) $
-;$LastChangedRevision: 25192 $
+;$LastChangedDate: 2019-02-01 15:04:50 -0800 (Fri, 01 Feb 2019) $
+;$LastChangedRevision: 26540 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/common/icon_check_att.pro $
 ;
 ;-------------------------------------------------------------------
@@ -53,7 +53,7 @@ pro icon_check_att, var, gdims, var_dim, replaced, depend_only=depend_only
           6: add_value = 'linear'
           8: add_value = min(*var.dataptr)
           9: add_value = max(*var.dataptr)
-          else:add_value = "THIS WASN'T IN THE ORIGINAL NETCDF FILE.  I ADDED THIS TO MAKE SPEDAS WORK!"
+          else:add_value = "" ;"THIS WASN'T IN THE ORIGINAL NETCDF FILE.  I ADDED THIS TO MAKE SPEDAS WORK!"
         endcase
         str_element,var,sample_cdf[j],add_value,/add_rep
         ;      stop
@@ -86,14 +86,13 @@ pro icon_check_att, var, gdims, var_dim, replaced, depend_only=depend_only
     endfor
   endif
 
-
   ;stop
   if(~keyword_set(depend_only)) then begin
     if(strmatch(var.name, 'Epoch',/FOLD_CASE)) then begin
-      if(~tag_exist(var, sample_cdf_time[0])) then str_element,var,sample_cdf_time[0], $
-        "THIS WASN'T IN THE ORIGINAL NETCDF FILE.  I ADDED THIS TO MAKE SPEDAS WORK!",/add_rep
-      if(~tag_exist(var, sample_cdf_time[1])) then str_element,var,sample_cdf_time[1], $
-        "THIS WASN'T IN THE ORIGINAL NETCDF FILE.  I ADDED THIS TO MAKE SPEDAS WORK!",/add_rep
+     ; if(~tag_exist(var, sample_cdf_time[0])) then str_element,var,sample_cdf_time[0], $
+     ;   "THIS WASN'T IN THE ORIGINAL NETCDF FILE.  I ADDED THIS TO MAKE SPEDAS WORK!",/add_rep
+     ; if(~tag_exist(var, sample_cdf_time[1])) then str_element,var,sample_cdf_time[1], $
+     ;   "THIS WASN'T IN THE ORIGINAL NETCDF FILE.  I ADDED THIS TO MAKE SPEDAS WORK!",/add_rep
     endif
   endif
 end

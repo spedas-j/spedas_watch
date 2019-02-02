@@ -31,7 +31,7 @@ pro MDD_STD_plot,  $
   !p.charthick=1.4   &   !p.charsize=1.4   &  !p.font=-1
   if not keyword_set(std) then begin
     window,0,xsize=1400,ysize=1000
-    tplot,[B_opt,'lamda_c','Structure_Dimentions_c','Eigenvector_max_c','Eigenvector_mid_c','Eigenvector_min_c','Error_indicator'],trange=trange,window=0,$
+    tplot,[B_opt, 'lamda_c','Structure_Dimentions_c','Eigenvector_max_c','Eigenvector_mid_c','Eigenvector_min_c','Error_indicator'],trange=trange,window=0,$
       title='MDD '+strmid(time_string(trange[0]),0,10)+'/'+strtrim(time_string(time_double(trange[0]),tformat='hh:mm:ss'))+'_'+strtrim(time_string(time_double(trange[1]),tformat='hh:mm:ss'))+''
     if keyword_set(evalue_err) then timebar,evalue_err,varname='lamda_c',color=0,linestyle=1,thick=2,/databar
     timebar,0,varname='Eigenvector_min_c',color=0,linestyle=1,thick=2,/databar

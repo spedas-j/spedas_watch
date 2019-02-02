@@ -72,7 +72,7 @@ pro spd_ui_mdd_help, parent_tlb
   endif
 
   ; create the base widget for the neutral models panel
-  tlb = Widget_Base(/Col, Title='MVA GUI Help', Group_Leader=parent_tlb, $
+  tlb = Widget_Base(/Col, Title='MDD STD GUI Help', Group_Leader=parent_tlb, $
     /Floating, /tlb_kill_request_events,/modal)
   mainBase = Widget_Base(tlb, /col)
   bottomBase = Widget_Base(tlb, /col, /base_align_center, /align_center)

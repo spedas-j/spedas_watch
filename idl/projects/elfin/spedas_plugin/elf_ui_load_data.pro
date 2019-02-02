@@ -223,8 +223,7 @@ print, event.index
       'CLEARDATA': begin
         ;clear the actual data that has been loaded. this will delete all 
         ;data loaded into the gui memory so warn user first
-        ok = dialog_message("This will delete all currently loaded data.  Are you sure you wish to continue?",/question,/default_no,/center)
-        
+        ok = dialog_message("This will delete all currently loaded data.  Are you sure you wish to continue?",/question,/default_no,/center)        
         if strlowcase(ok) eq 'yes' then begin
           datanames = state.loadedData->getAll(/parent)
           if is_string(datanames) then begin
@@ -242,9 +241,11 @@ print, event.index
           ;object which tracks sequences of calls during the gui session
           state.loadTree->update
           state.callSequence->clearCalls
-        endif
-        
-      end   
+        endif        
+      end      
+      
+      'CHECK_DATA_AVAIL':  spd_ui_open_url, 'ftp://themis-data.igpp.ucla.edu/themis/data/elfin'
+
       'DEL': begin
         ;get the current list of loaded data
         dataNames = state.loadTree->getValue()
@@ -433,6 +434,10 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
   
   clearBase = widget_base(selectionBase,/row, /align_center)
   clearTypeButton = widget_button(clearBase,value='Clear Parameter Selections',uvalue='CLEARPARAMS',/align_center,ToolTip='Deselect all parameter selections')
+
+  davailabilitybutton = widget_button(selectionBase, val = ' Check Data Availability', $
+    uval = 'CHECK_DATA_AVAIL', /align_center, $
+    ToolTip = 'Check data availability on the web')
 
   ;create the state variable with all the parameters that are needed by this 
   ;panels event handler routine                                                               
