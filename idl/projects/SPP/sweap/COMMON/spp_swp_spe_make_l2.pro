@@ -4,9 +4,9 @@
   ; PSP SPAN make L2
   ;
   ;
-  ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2018-12-17 12:09:03 -0800 (Mon, 17 Dec 2018) $
-  ; $LastChangedRevision: 26338 $
+  ; $LastChangedBy: phyllisw2 $
+  ; $LastChangedDate: 2019-02-04 10:49:07 -0800 (Mon, 04 Feb 2019) $
+  ; $LastChangedRevision: 26542 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -112,7 +112,7 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
           for i = 0 , l2_nrecs-1 do begin
             emode = l2_emode[i]
             if emode_last ne  emode then begin
-              param = spp_swp_spe_param(detname='spa',emode=emode,pmode=pmode)
+              param = spp_swp_spe_param(detname=spx,emode=emode,pmode=pmode)
               fswp = spp_swp_span_sweeps(param=param)
               ptable = param['PTABLE']
               rswp =  spp_swp_span_reduced_sweep(fullsweep=fswp,ptable=ptable)

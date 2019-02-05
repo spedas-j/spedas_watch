@@ -38,7 +38,7 @@ pro elf_config, colortable=colortable, no_color_setup=no_color_setup
   ;--------------------
   ; LOCAL_DATA_DIR
   ;--------------------
-  !elf.local_data_dir = spd_default_local_data_dir() + 'elfin'
+  !elf.local_data_dir = spd_default_local_data_dir() + 'elfin/'
 
   ;--------------------
   ; Local Config File
@@ -49,24 +49,24 @@ pro elf_config, colortable=colortable, no_color_setup=no_color_setup
     !elf.LOCAL_DATA_DIR = cfg.local_data_dir
   endif else begin; if cfg not found,
     dir = elf_config_filedir(); create config directory
-    !elf.LOCAL_DATA_DIR = spd_default_local_data_dir() + 'elfin'
+    !elf.LOCAL_DATA_DIR = spd_default_local_data_dir() + 'elfin/'
     pref = {LOCAL_DATA_DIR: !elf.LOCAL_DATA_DIR}
     elf_config_write, pref
   endelse
 
   ; Settings of environment variables can override elf_config
-;  if getenv('ELF_REMOTE_DATA_DIR') ne '' then $
-;    !elf.remote_data_dir = getenv('ELF_REMOTE_DATA_DIR') else $
-  !elf.remote_data_dir = 'ftp://themis-data.igpp.ucla.edu/themis/data/elfin'
+  if getenv('ELF_REMOTE_DATA_DIR') ne '' then $
+    !elf.remote_data_dir = getenv('ELF_REMOTE_DATA_DIR') else $
+    !elf.remote_data_dir = 'ftp://themis-data.igpp.ucla.edu/themis/data/elfin/'
   !elf.remote_data_dir = spd_addslash(!elf.remote_data_dir)
 
-;  if getenv('ROOT_DATA_DIR') ne '' then $
-;    !elf.LOCAL_DATA_DIR = spd_addslash(getenv('ROOT_DATA_DIR'))+'elfin'
+  if getenv('ROOT_DATA_DIR') ne '' then $
+    !elf.LOCAL_DATA_DIR = spd_addslash(getenv('ROOT_DATA_DIR'))+'elfin/'
 
   ; Settings of environment variables can override elf_config
-;  if getenv('ELF_DATA_DIR') ne '' then $
-;    !elf.local_data_dir = getenv('ELF_DATA_DIR')
-;  !elf.local_data_dir = spd_addslash(!elf.local_data_dir)
+  if getenv('ELF_DATA_DIR') ne '' then $
+    !elf.local_data_dir = getenv('ELF_DATA_DIR')
+  !elf.local_data_dir = spd_addslash(!elf.local_data_dir)
 
   ;------------------------
   ; Global Sytem Variables
@@ -82,7 +82,6 @@ pro elf_config, colortable=colortable, no_color_setup=no_color_setup
   endif ; no_color_setup
 
   ;===========  DEBUGGING OPTIONS
-  ;if !prompt eq 'IDL> ' then !prompt = 'ELFIN> '
   if !prompt ne 'ELFIN> ' then !prompt = 'ELFIN> '
 
   ; The following calls set persistent flags in dprint that change subsequent output

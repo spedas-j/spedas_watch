@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-17 12:09:03 -0800 (Mon, 17 Dec 2018) $
-; $LastChangedRevision: 26338 $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2019-02-04 10:49:07 -0800 (Mon, 04 Feb 2019) $
+; $LastChangedRevision: 26542 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -258,12 +258,14 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
       dprint,dlevel=2,'Generating cal structure for ',detname
       case strupcase(detname) of
         'SPA' : begin
-          dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40.
-          phi  = total(dphi,/cumulative) +60 ; +180
+          dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40. ;width
+          phi = [9.,15.,21.,27.,33.,39.,45.,51.,66.,90.,114.,138.,162.,186.,210.,234.]; hard code for now, center of pixel
+          ;phi  = total(dphi,/cumulative) -3 ; +180
           end
         'SPB' : begin
-          dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40.
-          phi = total(dphi,/cumulative) - 120 - 12 +180
+          dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40. ;width
+          phi = [-108.,-84.,-60.,-36.,-21.,-15.,-9.,-3.,3.,9.,15.,21.,36.,60.,84.,108.]; hard code for now, center of pixel
+          ;phi = total(dphi,/cumulative) - 120 -12; +180
           end
       endcase
       n_anodes  = 16

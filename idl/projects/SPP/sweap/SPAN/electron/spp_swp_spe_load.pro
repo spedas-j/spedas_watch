@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-01-30 12:44:56 -0800 (Wed, 30 Jan 2019) $
-; $LastChangedRevision: 26516 $
+; $LastChangedDate: 2019-02-04 10:49:07 -0800 (Mon, 04 Feb 2019) $
+; $LastChangedRevision: 26542 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 
@@ -8,7 +8,7 @@
 pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose
 
   if ~keyword_set(spxs) then spxs = ['spa','spb']
-  if ~keyword_set(types) then types = ['sf1'] ;,'sf0']  ;,'st1','st0']   ; add archive when available
+  if ~keyword_set(types) then types = ['sf1', 'sf0']  ;,'st1','st0']   ; add archive when available
 
   fileprefix = 'psp/data/sci/sweap/'
   
@@ -21,7 +21,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   ;test                                  ='psp/data/sci/sweap/spa/L1/2018/10/spa_hkp/spp_swp_spa_hkp_20181004_v??.cdf
   vars = orderedhash()
   vars['sf1'] = 'EFLUX EMODE'
-  vars['sf0'] = 'EFLUX'
+  vars['sf0'] = 'EFLUX EMODE THETA PHI ENERGY'
   vars['hkp'] = '*TEMP* *_BITS *_FLAG*'
   
   tr = timerange(trange)
