@@ -15,18 +15,16 @@
 ;; 1) Select date and time interval
 ;;    ============================
 ; download data for 8/2/2015
-date = '2018-10-12/00:00:00'
+date = '2018-11-01/00:00:00'
 timespan,date,1,/day
-del_data, 'el*'
 
 ;;    ===================================
 ;; 2) Select probe, datatype
 ;;    ===================================
 probe = 'a'
-datatypes = 'mrma'    ; mrma is the only data type
-stop
-elf_load_mrma, probes=probe
-stop
+datatype = 'mrma'    ; mrma is the only data type
+
+elf_load_mrma, probes=probe, datatype='mrma'
 tplot, 'ela_mrma'
 stop
 

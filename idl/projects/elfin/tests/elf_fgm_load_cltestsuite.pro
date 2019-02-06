@@ -27,7 +27,7 @@
 
 elf_init
 spd_init_tests
-timespan,'2018-10-14'
+timespan,'2019-01-26'
 t_num = 0
 
 ;1 no keywords
@@ -39,11 +39,10 @@ if err eq 0 then begin
   elf_load_fgm
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs','2018-10-14','2018-10-15')  || $
-    ~spd_data_exists('ela_*','2018-10-14','2018-10-15') || $
+  if ~spd_data_exists('ela_fgs','2019-01-26','2019-01-27')  || $
+    ~spd_data_exists('ela_*','2019-01-26','2019-01-27') || $
     spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
     then message,'data error '+t_name
-stop
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
@@ -59,8 +58,8 @@ if err eq 0 then begin
   elf_load_fgm,probe='a'
   spd_print_tvar_info,'elb_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs','2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_*','2018-10-14','2018-10-15')   $
+  if ~spd_data_exists('ela_fgs','2019-01-26','2019-01-27')  || $
+    spd_data_exists('elb_*','2019-01-26','2019-01-27')   $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -96,8 +95,8 @@ if err eq 0 then begin
   elf_load_fgm,probe='*'
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs','2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_fgs','2019-01-26','2019-01-27')  || $
+    spd_data_exists('elb_*','2019-01-26','2019-01-27')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -114,8 +113,8 @@ if err eq 0 then begin
   elf_load_fgm,probe='a',suffix='_test'
   spd_print_tvar_info,'ela_fgs_test'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs_test', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_vel','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('ela_fgs_test', '2019-01-26','2019-01-27')  || $
+    spd_data_exists('elb_vel','2019-01-26','2019-01-27')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -132,8 +131,8 @@ if err eq 0 then begin
   elf_load_fgm,probe='a',datatype='fgs'
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('ela_fgf','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_fgs', '2019-01-26','2019-01-27')  || $
+    spd_data_exists('ela_fgf','2019-01-26','2019-01-27')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -147,11 +146,11 @@ stop
 t_name='Mixed case datatype parameter used'
 catch,err
 if err eq 0 then begin
-  elf_load_fgm,probe='a',datatype='pOs'
+  elf_load_fgm,probe='a',datatype='fGs'
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_fgf','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_fgs', '2019-01-26','2019-01-27')  || $
+    spd_data_exists('elb_fgf','2019-01-26','2019-01-27')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -168,8 +167,8 @@ if err eq 0 then begin
   elf_load_fgm,probe='a',datatype='FGS'
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_fgs','2018-10-14','2018-10-15') || $
+  if ~spd_data_exists('ela_fgs', '2019-01-26','2019-01-27')  || $
+    spd_data_exists('elb_fgs','2019-01-26','2019-01-27') || $
     spd_data_exists('ela_fgf','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
@@ -185,11 +184,11 @@ stop
 t_name='All upper probe and datatypes'
 catch,err
 if err eq 0 then begin
-  elf_load_fgm,probe='A',datatype=['FGF']
+  elf_load_fgm,probe='A',datatype=['FGS']
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_pos','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_fgs', '2019-01-26','2019-01-27')  || $
+    spd_data_exists('elb_pos','2019-01-26','2019-01-27')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -203,12 +202,12 @@ stop
 t_name='Time range passed as an array of 2 strings'
 catch,err
 if err eq 0 then begin
-  trange=['2018-10-14','2018-10-15']
+  trange=['2018-11-10','2018-11-11']
   elf_load_fgm,probe='A',trange=trange
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_fgf','2018-10-14','2018-10-15')  $    
+  if ~spd_data_exists('ela_fgs', '2018-11-10','2018-11-11')  || $
+    spd_data_exists('elb_fgf', '2018-11-10','2018-11-11')  $    
 ;    spd_data_exists('ela_fgf','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
@@ -227,8 +226,8 @@ if err eq 0 then begin
   elf_load_fgm,probe='A',trange=trange, datatype=['fgs']
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_fgs elb_fgf ','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_fgs',  '2018-11-10','2018-11-11')  || $
+    spd_data_exists('elb_fgs elb_fgf ', '2018-11-10','2018-11-11')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -245,8 +244,8 @@ if err eq 0 then begin
   elf_load_fgm,probe=1,trange=trange, datatype=['fgs']
   spd_print_tvar_info,'elb_fgs'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_fgs','2018-10-14','2018-10-15')  $
+  if spd_data_exists('ela_fgs', '2018-11-10','2018-11-11')  || $
+    spd_data_exists('elb_fgs', '2018-11-10','2018-11-11')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -263,8 +262,8 @@ if err eq 0 then begin
   elf_load_fgm,probe='a',trange=trange, datatype=['xxx']
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_pos', '2018-10-14','2018-10-15')  $
+  if spd_data_exists('ela_fgs',  '2018-11-10','2018-11-10')  || $
+    spd_data_exists('elb_pos',  '2018-11-10','2018-11-10')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -278,7 +277,7 @@ stop
 t_name='Invalid date'
 catch,err
 if err eq 0 then begin
-  elf_load_fgm,probe='a',trange=['2021-10-10','2021-10-11'], datatype=['pos']
+  elf_load_fgm,probe='a',trange=['2021-10-10','2021-10-11'], datatype=['fgs']
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
   if spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $

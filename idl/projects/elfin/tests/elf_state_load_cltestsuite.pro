@@ -112,7 +112,6 @@ t_name='Requested predicted data, all datatypes'
 catch,err
 if err eq 0 then begin
   elf_load_state,probe='a', /pred
-stop
   spd_print_tvar_info,'ela_vel'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('ela_vel ela_pos','2018-10-14','2018-10-15')  || $
@@ -242,12 +241,13 @@ stop
 t_name='Time range passed as an array of 2 doubles; Datatype as an array of multiple strings'
 catch,err
 if err eq 0 then begin
-  trange=time_double(trange)
-  elf_load_state,probe='B',trange=trange, datatype=['vel', 'POS']
+  trange=['2018-10-15', '2018-10-16']
+  tr=time_double(trange)
+  elf_load_state,probe='B',trange=tr, datatype=['vel', 'POS']
   spd_print_tvar_info,'elb_vel'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel ela_pos', '2018-10-10','2018-10-11')  || $
-    spd_data_exists('elb_pos','2018-10-10','2018-10-11')  $
+  if ~spd_data_exists('elb_vel elb_pos', '2018-10-15','2018-10-16')  || $
+    spd_data_exists('ela_pos','2018-10-15','2018-10-16')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel

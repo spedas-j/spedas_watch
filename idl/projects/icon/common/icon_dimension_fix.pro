@@ -3,14 +3,14 @@
 ;   icon_dimension_fix
 ;
 ;PURPOSE:
-;   Fixes netcdf dimansions
+;   Fixes netcdf dimensions
 ;
 ;KEYWORDS:
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-10 10:41:33 -0700 (Thu, 10 May 2018) $
-;$LastChangedRevision: 25192 $
+;$LastChangedDate: 2019-02-05 14:12:12 -0800 (Tue, 05 Feb 2019) $
+;$LastChangedRevision: 26552 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/common/icon_dimension_fix.pro $
 ;
 ;--------------------------------------------------------------------------------
@@ -36,7 +36,7 @@ pro icon_dimension_fix, netcdfi
   for i=0,n_t-1 do begin
     dim_size[i] = netcdfi.dims.(i).size
     dim_name[i] = netcdfi.dims.(i).name
-    if((dim_size[i] eq 0 || dim_size[i] eq 1) && strmatch(dim_name[i],'epoch',/fold_case) eq 1 ) then begin
+    if(strmatch(dim_name[i],'epoch',/fold_case) eq 1 ) then begin
       dim_size[i] = size(*netcdfi.vars.epoch.dataptr,/n_elements)
     endif
     if(strmatch(dim_name[i],'epoch',/fold_case) eq 1 ) then time_size = dim_size[i]

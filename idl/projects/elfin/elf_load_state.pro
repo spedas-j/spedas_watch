@@ -92,8 +92,10 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
     dprint, dlevel = 1, 'Invalid probe name. Valid probes are a and/or b. Please select again.'
     return    
   endif
+
   if undefined(datatype) then datatype = ['pos', 'vel']
   if datatype EQ ['*'] then datatype =  ['pos', 'vel']
+  datatype = strlowcase(datatype)
   varformat = '*'+datatype
   if undefined(level) then level = 'l1' else level=strlowcase(level)
   if level NE 'l1' then begin
