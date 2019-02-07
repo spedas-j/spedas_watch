@@ -972,21 +972,21 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   
   instrArray = ['Magnetic Field', 'Electric Field', 'Velocity']
 
-  mmsinstrBase = widget_base(instrBase, /row, ypad=3)
+  mmsinstrBase = widget_base(instrBase, /row, ypad=6)
   mmsinstrCombo = widget_combobox(mmsinstrBase,$
     value=instrArray,$
     uvalue='MMS_INSTRUMENT',$
     uname='mms_instr')
   currentinstr=instrArray[0]
 
-  thminstrBase = widget_base(instrBase, /row, ypad=3)
+  thminstrBase = widget_base(instrBase, /row, ypad=6)
   thminstrCombo = widget_combobox(thminstrBase,$
     value=instrArray,$
     uvalue='THM_INSTRUMENT',$
     uname='thm_instr')
   currentinstr=instrArray[0]
 
-  clusterinstrBase = widget_base(instrBase, /row, ypad=3)
+  clusterinstrBase = widget_base(instrBase, /row, ypad=6)
   clusterinstrCombo = widget_combobox(clusterinstrBase,$
     value=instrArray,$
     uvalue='CLUSTER_INSTRUMENT',$
@@ -1004,21 +1004,21 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   mmsVeldataArray = ['brst', 'fast']
   clusterdataArray = ['5vps', 'full', 'spin']
 
-  mmsdataBase = widget_base(dataBase, /row, ypad=3)
+  mmsdataBase = widget_base(dataBase, /row, ypad=6)
   mmsdataCombo = widget_combobox(mmsdataBase,$
     value=mmsMagdataArray,$
     uvalue='MMS_DATA',$
     uname='mms_data',$
     xsize=70)
 
-  thmdataBase = widget_base(dataBase, /row, ypad=3)
+  thmdataBase = widget_base(dataBase, /row, ypad=6)
   thmdataCombo = widget_combobox(thmdataBase,$
     value=thmMagdataArray,$
     uvalue='THM_DATA',$
     uname='thm_data',$
     xsize=70)
 
-  clusterdataBase = widget_base(dataBase, /row, ypad=3)
+  clusterdataBase = widget_base(dataBase, /row, ypad=6)
   clusterdataCombo = widget_combobox(clusterdataBase,$
     value=clusterdataArray,$
     uvalue='CLUSTER_DATA',$
@@ -1031,21 +1031,21 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   mmsVelCoordArray = ['gsm', 'gse', 'dbcs'] 
   clusterCoordinateArray = ['gsm', 'gse']
 
-  mmscoordinateBase=widget_base(coordinateBase, /row, ypad=3)
+  mmscoordinateBase=widget_base(coordinateBase, /row, ypad=6)
   mmscoordinateCombo = widget_combobox(mmscoordinateBase,$
     value=mmsMagCoordArray,$
     xsize=70,$
     uvalue='MMS_COORDINATE',$
     uname='mms_coordinate')
 
-  thmcoordinateBase=widget_base(coordinateBase, /row, ypad=3)
+  thmcoordinateBase=widget_base(coordinateBase, /row, ypad=6)
   thmcoordinateCombo = widget_combobox(thmcoordinateBase,$
     value=thmcoordinateArray,$
     xsize=70,$
     uvalue='THM_COORDINATE',$
     uname='thm_coordinate')
 
-  clustercoordinateBase=widget_base(coordinateBase, /row, ypad=3)
+  clustercoordinateBase=widget_base(coordinateBase, /row, ypad=6)
   clustercoordinateCombo = widget_combobox(clustercoordinateBase,$
     value=clustercoordinateArray,$
     xsize=70,$
@@ -1053,8 +1053,8 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
     uname='cluster_coordinate')
 
   ; time widget
-  st_text = '2015-11-24/19:20:00'
-  et_text = '2015-11-24/20:00:00'
+  st_text = '2015-11-24/19:20:00.000'
+  et_text = '2015-11-24/20:00:00.100'
   plotdur = time_double(et_text)-time_double(st_text)
   plotTime=time_double([st_text, et_text])
 ;  st_text = '2015-11-24/00:00:00'
@@ -1075,7 +1075,7 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   durBase = widget_base(selectTimeBase, /row)
   durLabel = widget_label(durBase, value='Duration (sec):   ')
   durIncrement = spd_ui_spinner(durBase, $
-    Increment=1, Value=plotdur, UValue='PLOT_DURATION', UName='plotduration',min_value=1, $
+    Increment=1, Value=plotdur, UValue='PLOT_DURATION', UName='plotduration',min_value=1., $
     tooltip='When the duration is changed, the stop time will be changed to reflect the new duration')
 
   ; plot data button

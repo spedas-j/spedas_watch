@@ -100,7 +100,7 @@ pro spd_ui_mdd_help, parent_tlb
     '2. STD method can be used to calculate the velocity of quasi-stationary structures at every observed moment in', $
     'time from multi-point magnetic field measurements.', $
     ' ', $
-    'Tutorial of using this GUI: http://....', $ 
+    'For additional help using this GUI go to: http://spedas.org/wiki/index.php?title=Tools_Menu_-_SPEDAS_GUI', $ 
     ' ', $
     ' ', $
     'REFERENCES:', $

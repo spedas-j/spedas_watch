@@ -1,7 +1,13 @@
 FUNCTION sppeva_sitl_get_block, START, STOP
   compile_opt idl2
   
+  mode = strlowcase(!SPPEVA.COM.MODE)
+  if strmatch(mode,'swp') then begin
+    return, 0
+  endif
+  
   tp = 'spp_fld_f1_100bps_DCB_ARCWRPTR'
+  
   ; BL
   BL = 0
   tn=tnames(tp,ct)

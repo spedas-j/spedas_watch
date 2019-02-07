@@ -102,13 +102,14 @@ PRO sppeva
   ;------------------
   ; System Variable
   ;------------------
-  user = {id:'Tohban', pw:'Tohban', fullname:'Solar Probe', email:'psp@dummy.berkeley.edu', $
-    team:'FIELDS',sppfldsoc_id:'',sppfldsoc_pw:''}
-  pref = {fom_max_value:25, basepos:0, split_size_in_sec:600, FLD_LOCAL_DATA_DIR:'./'}
+  user = {id:'Tohban', fullname:'Solar Probe', $
+    email:'(Go to Preference to set your email address)', team:'FIELDS'}
+  fild = {sppfldsoc_id:'',sppfldsoc_pw:'',FLD_LOCAL_DATA_DIR:'./'}
+  gene = {fom_max_value:25, basepos:0, split_size_in_sec:600}
   dash = {widget:0}
   stack = {fld_i:0L, fld_list:list({Nsegs:0L}), swp_i:0L, swp_list:list({Nsegs:0L})}
   com   = {mode:'FLD', strTR:['',''], parameterset:'01_WIND_basic.txt', commDay:'5'}
-  def_struct = {user:user, pref:pref, dash:dash, com:com, stack:stack}
+  def_struct = {user:user, gene:gene, fild:fild, dash:dash, com:com, stack:stack}
   defsysv,'!sppeva',exists=exists
   if not exists then begin
     defsysv,'!sppeva', def_struct
@@ -117,12 +118,21 @@ PRO sppeva
   ;--------------------------
   ; Import Saved Preferences
   ;--------------------------
-  fname = 'sppeva_preferences.sav'
+  fname = 'sppeva_setting.sav'
   found = file_test(fname)
   if found then begin
     restore, fname
     sppeva_pref_import, 'USER', sppeva_user_values
-    sppeva_pref_import, 'PREF', sppeva_pref_values
+    sppeva_pref_import, 'GENE', sppeva_gene_values
+    sppeva_pref_import, 'FILD', sppeva_fild_values
+  endif
+  
+  if compare_struct(def_struct.user, !SPPEVA.USER) then begin
+    msg = 'EVA suggests you to update your user profile'
+    msg = [msg, 'in the Preference menu so that your info']
+    msg = [msg, 'will be properly included in your selection report.']
+    msg = [msg, 'This needs to be done only once.']
+    result = dialog_message(msg,/center)
   endif
   
   ;----------------

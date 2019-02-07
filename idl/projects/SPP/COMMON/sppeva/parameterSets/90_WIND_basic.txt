@@ -23,7 +23,7 @@ wi_3dp_elpd_FLUX
 ;------------------
 ; Tohban Selection
 ;------------------
-spp_fld_fomstr
-spp_fld_fomstr_copy
-spp_swp_fomstr
-spp_swp_fomstr_copy
+psp_fld_fomstr
+psp_fld_fomstr_copy
+psp_swp_fomstr
+psp_swp_fomstr_copy

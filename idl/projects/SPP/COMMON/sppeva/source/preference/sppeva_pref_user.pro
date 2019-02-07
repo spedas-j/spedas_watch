@@ -83,7 +83,7 @@ FUNCTION sppeva_pref_user, parent, GROUP_LEADER=group_leader, $
     XSIZE = xsize, YSIZE = ysize,sensitive=1,/base_align_left)
   str_element,/add,wid,'base',base
   lbl2 = widget_label(base,VALUE=' ')
-  lbl1 = widget_label(base,VALUE='These info will be inserted into the CSV file to be sent to SOC.')
+  lbl1 = widget_label(base,VALUE='These info will be inserted into the CSV output file.')
   str_element,/add,wid,'fldFullName',cw_field(base,VALUE=!SPPEVA.USER.FULLNAME,TITLE='Full Name',/ALL_EVENTS,xsize=50)
   str_element,/add,wid,'fldEmail',   cw_field(base,VALUE=!SPPEVA.USER.EMAIL,   TITLE='Email    ',/ALL_EVENTS,xsize=50)
   str_element,/add,wid,'fldID',      cw_field(base,VALUE=!SPPEVA.USER.ID,      TITLE='ID       ',/ALL_EVENTS,xsize=20)

@@ -46,6 +46,9 @@ PRO sppeva_dash_update, activate
           BL += (ptr_stop - ptr_start)
         endfor
       endif
+      if strmatch(!SPPEVA.COM.MODE,'SWP') then begin
+        BL = 0
+      endif
       strBL = strtrim(string(floor(BL)),2)
     endelse
   endif

@@ -92,6 +92,7 @@ PRO sppeva_load, parameterSet = parameterSet, no_gui=no_gui, force=force, $
         'wi': pcode=sppeva_load_wind(paramlist[i], perror)
         'st': 
         'sp': pcode=sppeva_load_spp(paramlist[i], perror)
+        'ps': pcode=sppeva_load_spp(paramlist[i], perror)
         else:
       endcase
     endif; if not PRELOADED

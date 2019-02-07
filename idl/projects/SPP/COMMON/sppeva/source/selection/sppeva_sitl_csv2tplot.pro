@@ -50,7 +50,8 @@ PRO sppeva_sitl_csv2tplot, filename, var=var, status=status, suffix=suffix
     STOP: time_double(result.FIELD2), $
     FOM: float(result.FIELD3), $
     SOURCEID: result.FIELD4, $
-    DISCUSSION: result.FIELD5}
+    BLOCK: result.FIELD5, $
+    DISCUSSION: result.FIELD6}
   
   ;----------------
   ; TPLOT VARIABLE

@@ -20,6 +20,6 @@ PRO sppeva_sitl_strct2tplot, s, var
 
   str_element,/add,dl,'FOMstr',s
   store_data,var,data=D,lim=lim,dl=dl
-  ylim,var,0,!SPPEVA.PREF.FOM_MAX_VALUE,0
-  options,var,ystyle=1,constant=[5,10,15,20]
+  ylim,var,0,!SPPEVA.GENE.FOM_MAX_VALUE,0
+  options,var,ystyle=1,constant=[5,10,15,20]; Don't just add yrange; Look at the 'fom_vax_value' parameter of eva_sitl_FOMedit
 END

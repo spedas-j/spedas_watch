@@ -46,7 +46,7 @@ PRO sppeva_sitl_seg_add, trange, state=state, var=var
     ts_limit:ts_limit, te_limit:te_limit}
   vvv = 'spp_'+strlowcase(!SPPEVA.COM.MODE)+'_fomstr' 
   eva_sitl_FOMedit, state, segSelect, wgrid=wgrid, vvv=vvv, proj='spp', $
-    fom_min_value = 0, fom_max_value=!SPPEVA.PREF.fom_max_value, basepos=!SPPEVA.PREF.BASEPOS
+    fom_min_value = 0, fom_max_value=!SPPEVA.GENE.fom_max_value, basepos=!SPPEVA.GENE.BASEPOS
 
 END
 
@@ -163,7 +163,7 @@ PRO sppeva_sitl_seg_edit, t, state=state, var=var, delete=delete, split=split
   if keyword_set(split) then begin
     gTmin = segSelect.TS
     gTmax = segSelect.TE
-    gTdel = double(!SPPEVA.PREF.split_size_in_sec)
+    gTdel = double(!SPPEVA.GENE.split_size_in_sec)
     gFOM = segSelect.FOM
     gBAK = segSelect.BAK
     gDIS = segSelect.DISCUSSION
@@ -193,7 +193,7 @@ PRO sppeva_sitl_seg_edit, t, state=state, var=var, delete=delete, split=split
   ; EDIT segSelect
   ;---------------------
   eva_sitl_FOMedit, state, segSelect, wgrid=wgrid, vvv=vvv, proj='spp', $
-    fom_min_value = 0, fom_max_value=!SPPEVA.PREF.fom_max_value, basepos=!SPPEVA.PREF.BASEPOS
+    fom_min_value = 0, fom_max_value=!SPPEVA.GENE.fom_max_value, basepos=!SPPEVA.GENE.BASEPOS
 END
 
 PRO sppeva_sitl_seg_delete, t, state=state, var=var
@@ -205,7 +205,7 @@ PRO sppeva_sitl_seg_delete_all
   fomstr = {Nsegs:0L}
   store_data, vvv, data = {x:time_double(!SPPEVA.COM.STRTR), y:[0.,0.]}, dl={fomstr:fomstr}
   ylim,vvv,0,25,0
-  options,vvv,ystyle=1,constant=[5,10,15,20]
+  options,vvv,ystyle=1,constant=[5,10,15,20]; Don't just add yrange; Look at the 'fom_vax_value' parameter of eva_sitl_FOMedit
   tplot
 END
 
@@ -313,11 +313,12 @@ FUNCTION sppeva_sitl_event, event
       case type of
         'Save As'     : sppeva_sitl_save
         'Restore From': sppeva_sitl_restore
+        'Merge Files': sppeva_sitl_merge
         else: message, 'Something is wrong.'
       endcase
       end
-    wid.btnValidate:answer=dialog_message('This feature is not available yet.',/center)
-    wid.btnSubmit:  answer=dialog_message('This feature is not available yet.',/center)
+;    wid.btnValidate:answer=dialog_message('This feature is not available yet.',/center)
+;    wid.btnSubmit:  answer=dialog_message('This feature is not available yet.',/center)
     else:
   endcase
   
@@ -386,7 +387,7 @@ FUNCTION sppeva_sitl, parent, $
     str_element,/add,wid,'btnUndo',widget_button(bsActionMisc,VALUE=' Undo ')
     str_element,/add,wid,'btnRedo',widget_button(bsActionMisc,VALUE=' Redo ')
     str_element,/add,wid,'btnSpace',widget_base(bsActionMisc,xsize=10)
-    svSet = ['Restore From', 'Save As']
+    svSet = ['Restore From', 'Merge Files', 'Save As']
     str_element,/add,wid,'drpSave',widget_droplist(bsActionMisc,VALUE=svSet,$
       TITLE='FOM:',SENSITIVE=1)
     str_element,/add,wid,'svSet',svSet
@@ -394,12 +395,12 @@ FUNCTION sppeva_sitl, parent, $
   ;-----------------------
   ; SAVE/VALIDATE/SUBMIT
   ;-----------------------
-  bsActionSubmit = widget_base(base,/ROW, SENSITIVE=1)
-  str_element,/add,wid,'bsActionSubmit',bsActionSubmit
-    str_element,/add,wid,'btnValidate',widget_button(bsActionSubmit,VALUE=' Validate ')
-    dumSubmit = widget_base(bsActionSubmit,xsize=100)
-    str_element,/add,wid,'btnSubmit',widget_button(bsActionSubmit,VALUE='   SUBMIT    ')
-
+;  bsActionSubmit = widget_base(base,/ROW, SENSITIVE=1)
+;  str_element,/add,wid,'bsActionSubmit',bsActionSubmit
+;    str_element,/add,wid,'btnValidate',widget_button(bsActionSubmit,VALUE=' Validate ')
+;    dumSubmit = widget_base(bsActionSubmit,xsize=100)
+;    str_element,/add,wid,'btnSubmit',widget_button(bsActionSubmit,VALUE='   SUBMIT    ')
+;
 
 
   ; Save out the initial wid structure into the first childs UVALUE.

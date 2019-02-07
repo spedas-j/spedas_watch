@@ -31,7 +31,9 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   spp_fld_cdf_timespan, trange = trange, success = ts_success, $
     filename_timestring = filename_timestring
 
-  if n_elements(l1_cdf_dir) EQ 0 then begin
+  if n_elements(no_load_l1) EQ 0 then no_load_l1 = 0
+
+  if n_elements(l1_cdf_dir) EQ 0 and no_load_l1 NE 1 then begin
 
     ; TODO: Set up default location for L1 input CDF files based on
     ; requested input time
@@ -52,7 +54,10 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
         l1_cdf_datatypes = ['mago_survey', 'magi_survey', 'mago_hk', 'magi_hk']
       end
       'rfs_lfr': begin
-        l1_cdf_datatypes = ['rfs_lfr_auto']
+        l1_cdf_datatypes = ['rfs_lfr_auto', 'rfs_lfr_cross', 'rfs_lfr_hires']
+      end
+      'rfs_hfr': begin
+        l1_cdf_datatypes = ['rfs_hfr_auto', 'rfs_hfr_cross']
       end
       'rfs': begin
         l1_cdf_datatypes = ['rfs_lfr_auto']
@@ -86,22 +91,24 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   make_cdf_l2_pro = 'spp_fld_make_cdf_l2_' + l2_datatype
 
-  l1_cdf_files = dictionary(l1_cdf_datatypes)
-
-  foreach l1_cdf_datatype, l1_cdf_datatypes do begin
-
-    ; TODO: Increment version number
-
-    l1_cdf_files[l1_cdf_datatype] = l1_cdf_dir + 'spp_fld_l1_' + $
-      l1_cdf_datatype + '_' + filename_timestring + '_v00.cdf'
-
-  end
 
   ; Read in the L1 CDF files
 
-  if n_elements(no_load_l1) EQ 0 then $
+  if n_elements(no_load_l1) EQ 0 then begin
     foreach l1_cdf_file, l1_cdf_files do spp_fld_load_l1, l1_cdf_file
 
+    l1_cdf_files = dictionary(l1_cdf_datatypes)
+
+    foreach l1_cdf_datatype, l1_cdf_datatypes do begin
+
+      ; TODO: Increment version number
+
+      l1_cdf_files[l1_cdf_datatype] = l1_cdf_dir + 'spp_fld_l1_' + $
+        l1_cdf_datatype + '_' + filename_timestring + '_v00.cdf'
+
+    end
+
+  end
 
   ; Define the L2 master and buffer CDF files based on the L2 skeleton file
 
