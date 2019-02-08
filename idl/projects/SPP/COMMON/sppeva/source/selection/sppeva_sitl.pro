@@ -122,15 +122,16 @@ PRO sppeva_sitl_seg_edit, t, state=state, var=var, delete=delete, split=split
   ;---------------------
   if n_elements(t) eq 1 then begin
     idx = where((s.START le t) and (t le s.STOP), ct)
-    if ct eq 1 then begin
+    if ct ge 1 then begin
       ts = s.START[idx[0]]
       te = s.STOP[idx[0]]
       fom = s.FOM[idx[0]]
       discussion = s.DISCUSSION[idx[0]]
-    endif else begin
-      result = dialog_message("SPPEVA: Please choose a segment.",/center)
-      return
-    endelse
+    endif
+;     else begin
+;      result = dialog_message("SPPEVA: Please choose a segment.",/center)
+;      return
+;    endelse
   endif else begin
     ts = t[0]
     te = t[1]

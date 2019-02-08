@@ -41,6 +41,8 @@ PRO sppeva_sitl_csv2tplot_multi, files, status=status, suffix=suffix
     status = 3
     return
   endif else nmin = n 
+
+  str_element,/add,result0,'FIELD6',result0.FIELD4+':'+result0.FIELD6
   
   ;----------------------------
   ; READ THE REST OF THE FILES
@@ -54,7 +56,7 @@ PRO sppeva_sitl_csv2tplot_multi, files, status=status, suffix=suffix
       str_element,/add,result0,'FIELD3', [result0.FIELD3, result.FIELD3]
       str_element,/add,result0,'FIELD4', [result0.FIELD4, result.FIELD4]
       str_element,/add,result0,'FIELD5', [result0.FIELD5, result.FIELD5]
-      str_element,/add,result0,'FIELD6', [result0.FIELD6, result.FIELD6]
+      str_element,/add,result0,'FIELD6', [result0.FIELD6, result.FIELD4+':'+result.FIELD6]
     endif
   endfor
   
