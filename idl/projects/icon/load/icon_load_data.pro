@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-02-05 14:21:01 -0800 (Tue, 05 Feb 2019) $
-;$LastChangedRevision: 26554 $
+;$LastChangedDate: 2019-02-08 13:40:08 -0800 (Fri, 08 Feb 2019) $
+;$LastChangedRevision: 26575 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -217,7 +217,7 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
     datal1type = '*'
     datal2type = ''
     minutes = '*'
-    remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/ICON_L' + level + '_' + strupcase(instrument) + '_Science_YYYY-MM-DD_' + minutes +'_v' + v_str + 'r' + r_str + '.NC'
+    remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Data/ICON_L' + level + '_' + strupcase(instrument) + '_Science_YYYY-MM-DD_' + minutes +'_v' + v_str + 'r' + r_str + '.NC'
     pathformat = [pathformat, remote_path]  
     
   endif
