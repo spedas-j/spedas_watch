@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-02-04 10:49:07 -0800 (Mon, 04 Feb 2019) $
-; $LastChangedRevision: 26542 $
+; $LastChangedDate: 2019-02-11 10:47:27 -0800 (Mon, 11 Feb 2019) $
+; $LastChangedRevision: 26593 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -141,7 +141,7 @@ function  spp_swp_span_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbi
   new_dimen = [n_anodes,dimensions]
 
   nrg_all = reform(cal.k_anal # hemv[*],new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
-  defa_all = reform(cal.k_defl # defv[*],new_dimen,/overwrite)    ;  this should be evaluated as a cubic spline in the future
+  defa_all = reform(cal.k_defl # defv[*],new_dimen,/overwrite) * (-1.)   ;  this should be evaluated as a cubic spline in the future, flips for particle velocity direction not look direction
 
   geomdt_all = reform(cal.dphi # delt[*],new_dimen,/overwrite)
   
@@ -260,11 +260,23 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
         'SPA' : begin
           dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40. ;width
           phi = [9.,15.,21.,27.,33.,39.,45.,51.,66.,90.,114.,138.,162.,186.,210.,234.]; hard code for now, center of pixel
+          lookdir = fltarr(n_elements(phi))
+          for i = 0, n_elements(phi)-1 do begin
+            lookdir[i] = float(phi[i] + 180.)
+            if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
+          endfor
+          phi = lookdir
           ;phi  = total(dphi,/cumulative) -3 ; +180
           end
         'SPB' : begin
           dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40. ;width
           phi = [-108.,-84.,-60.,-36.,-21.,-15.,-9.,-3.,3.,9.,15.,21.,36.,60.,84.,108.]; hard code for now, center of pixel
+          lookdir = fltarr(n_elements(phi))
+          for i = 0, n_elements(phi)-1 do begin
+            lookdir[i] = float(phi[i] + 180.)
+            if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
+          endfor
+          phi = lookdir
           ;phi = total(dphi,/cumulative) - 120 -12; +180
           end
       endcase

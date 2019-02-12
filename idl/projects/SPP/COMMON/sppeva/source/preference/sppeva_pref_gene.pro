@@ -39,7 +39,7 @@ FUNCTION sppeva_pref_gene_event, event
   case event.id of
     wid.SPLITSIZE:begin
       widget_control, event.id, GET_VALUE=strNew
-      wid.pref_copy.SPLIT_SIZE_IN_SEC = strNew
+      wid.gene_copy.SPLIT_SIZE_IN_SEC = strNew
       end
     else:
   endcase

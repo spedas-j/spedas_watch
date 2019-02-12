@@ -73,7 +73,7 @@ pro mdd_ui_update_mms_instrument, state, event
 
     ; update the menu values based on the type of data selected
     if strpos(event.str, 'Magnetic Field') NE -1 && state.mmsStructure.instr NE 'Magnetic Field' then begin
-       widget_control, dtypeid, set_value=state.thmMagdataArray
+       widget_control, dtypeid, set_value=state.mmsMagdataArray
        widget_control, coordid, set_value=state.mmsMagCoordArray
     endif
     if strpos(event.str, 'Electric Field') NE -1 && state.mmsStructure.instr NE 'Electric Field' then begin
@@ -85,8 +85,10 @@ pro mdd_ui_update_mms_instrument, state, event
       widget_control, coordid, set_value=state.mmsVelCoordArray
     endif
     ;widget_control, coordid, sensitive=1
-
+stop
     state.mmsStructure.instr = event.str
+    state.mmsStructure.dtype = dtypeid
+    state.mmsStructure.coord = coordid
     state.statusbar -> update, 'Instrument type updated to '+event.str+'.'
 
   endif
@@ -333,12 +335,13 @@ pro mdd_ui_update_analysis_structure, state, use_mdd_time=use_mdd_time
   state.analysisStructure.f3=f3 ;mdd_options[f3]
   fieldsid=widget_info(state.tlb, find_by_uname='fields')
   widget_control, fieldsid, get_value=fields
-  idx = where(fields EQ 1, ncnt)
-  if ncnt LT 1 then begin
-    state.statusbar -> update, 'You must check at least 1 box in the Fields Section.'
-    return    
-  endif
-  state.analysisStructure.fields=b_options[idx]
+;  idx = where(fields EQ 1, ncnt)
+;  if ncnt LT 1 then begin
+;    state.statusbar -> update, 'You must check at least 1 box in the Fields Section.'
+;    return    
+;  endif
+  state.analysisStructure.fields=fields
+
   dtid=widget_info(state.tlb, find_by_uname='deltat')
   widget_control, dtid, get_value=deltat
   state.analysisStructure.deltaT=deltat
@@ -423,6 +426,53 @@ function mdd_ui_load_themis, state, load_structs
 
 end
 
+
+;--------------------------------------------------------
+; This procedure handles plotting the data by extracting
+; the individual parameters
+; -------------------------------------------------------
+pro mdd_ui_plot_fields, state
+
+  ; split the components 
+  split_vec, state.loadedTvars
+  ; create new tplot vars for the 4 s/c
+  midx = where(state.analysisStructure.mmssats EQ 1, mcnt)
+  if mcnt EQ 4 then bt=tnames('*_'+state.mmsStructure.coord+'_'+state.mmsStructure.dtype+'*_btot') $
+     else bt=tnames('*_btot')
+
+  store_data, 'Bt', data=bt
+  bx=tnames('*_x')
+  store_data, 'Bx', data=bx
+  by=tnames('*_y')
+  store_data, 'By', data=by
+  bz=tnames('*_z')
+  store_data, 'Bz', data=bz
+
+  all_fields = ['Bt','Bx','By','Bz']
+  pvars = all_fields[state.analysisStructure.fields]
+  idx = where(all_fields NE pvars, ncnt)
+  append_array, pvars, all_fields[idx]
+stop
+  options,['Bt','Bx','By','Bz'],labels=['SC1','SC2','SC3','SC4'],colors=['x','r','b','g'],labflag=1
+  options,'Bt',ytitle='Bt'
+  options,'Bx',ytitle='Bx'
+  options,'By',ytitle='By'
+  options,'Bz',ytitle='Bz'
+  ; set the time frame
+
+  state.timeRangeObjplot->getproperty, starttime=starttime, endtime=endtime
+  starttime->getproperty, tdouble=st0, sec=sec
+  endtime->getproperty, tdouble=et0, sec=sec
+  
+  ; plot the data
+  tplot, pvars, trange=[st0,et0]
+;  tplot, state.loadedTvars
+
+  state.plotWindow = !d.WINDOW
+  state.statusbar -> update, 'Created plot for requested data.'
+
+end
+
 ; -------------------------------------------------------
 ;  This function handles the loading of data for the
 ;  MMS Mission
@@ -431,11 +481,11 @@ function mdd_ui_load_mms, state, load_structs
 
   Case load_structs.instrtype of
     'Magnetic Field': begin
-      tvar = 'mms'+ load_structs.probe + '_fgm_b_' + load_structs.coordinate + '_' + load_structs.data + '_l2'
+      tvar = 'mms'+ load_structs.probe + '_fgm_b_' + load_structs.coordinate + '_' + load_structs.data + '_l2_bvec'
       load = mdd_ui_check_loaded_data(state, load_structs, tvar)
       if load then begin
         mms_load_fgm, trange=load_structs.timeRange, probes=load_structs.probe, data_rate=load_structs.data, $
-          varformat=tvar, level='l2', /keep_flagged, get_support_data=0
+          level='l2', get_support_data=0
         state.statusbar -> update, 'Loaded data '+tvar+'.'
       endif
     end
@@ -458,7 +508,10 @@ function mdd_ui_load_mms, state, load_structs
    if undefined(tvar) OR tnames(tvar) EQ '' then begin
     tvar='err'
     state.statusbar -> update, 'Problems loading MMS data.'
-  endif 
+  endif else begin
+    state.mmsStructure.dtype = load_structs.data
+    state.mmsStructure.coord = load_structs.coordinate
+  endelse
   
   return, tvar
 
@@ -694,15 +747,8 @@ pro spd_ui_mdd_std_event,event
          mdd_ui_load_data, state, load_structs
          didx = where(state.loadedTvars NE 'err', ncnt)
          if ncnt GE 4 then begin
-            ; plot the data
-            tplot, state.loadedTvars
-            ; set the time frame
-            state.timeRangeObjplot->getproperty, starttime=starttime, endtime=endtime
-            starttime->getproperty, tdouble=st0, sec=sec
-            endtime->getproperty, tdouble=et0, sec=sec
-            tlimit, st0, et0
-            state.plotWindow = !d.WINDOW
-            state.statusbar -> update, 'Created plot for requested data.'
+            mdd_ui_update_analysis_structure, state
+            mdd_ui_plot_fields, state
          endif else begin
            state.statusBar->update, 'Not all data was loaded. At least 4 satellites data must be loaded.'          
          endelse
@@ -999,7 +1045,7 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   thmVeldataArray = ['peif', 'peir', 'peib', 'peim', 'peef', 'peer', 'peeb', 'peem']
 
   ;mmsdataArray = ['srvy', 'brst']
-  mmsMagdataArray = ['srvy', 'brst']
+  mmsMagdataArray = ['brst', 'srvy']
   mmsElecdataArray = ['brst', 'fast', 'slow', 'srvy']
   mmsVeldataArray = ['brst', 'fast']
   clusterdataArray = ['5vps', 'full', 'spin']
@@ -1053,8 +1099,8 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
     uname='cluster_coordinate')
 
   ; time widget
-  st_text = '2015-11-24/19:20:00.000'
-  et_text = '2015-11-24/20:00:00.100'
+  st_text = '2015-11-24/11:07:48'
+  et_text = '2015-11-24/11:08:08'
   plotdur = time_double(et_text)-time_double(st_text)
   plotTime=time_double([st_text, et_text])
 ;  st_text = '2015-11-24/00:00:00'
@@ -1101,10 +1147,9 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
     uval='CLUSTER_FIELDS', uname='cluster_fields')
   widget_control, clusterButtons, sensitive=0
   fields = [' Field (Total)', ' Field (X Component)', ' Field (Y Component)',' Field (Z Component)']
-  fieldOptions = fix([1,0,0,0]) 
   fieldStrings = ['Bt', 'Bx', 'By', 'Bz']
   fieldSelections = ['Bt']
-  fieldsButtons = CW_BGROUP(fieldButtonBase, fields, /col, /nonexclusive, set_value=fieldOptions, UNAME='fields')
+  fieldsButtons = CW_BGROUP(fieldButtonBase, fields, /col, /exclusive, set_value=0, UNAME='fields')
 
   f1Label = widget_label(f1Base, value='f1 (Max): ', /align_left)
   xyzStrings = ['X', 'Y', 'Z']
@@ -1179,7 +1224,7 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
 ;  analysisStructure = { trange:mddTime, thmsats:thmSelections, mmssats:mmsSelections, thmfields:thmFieldSelections, $
 ;      mmsfields:mmsFieldSelections, fields:fieldStringSel, f1:0, f2:1, f3:2, deltaT:fix(1), dimensionality:'3D' }
   analysisStructure = { trange:mddTime, thmsats:thmSelections, mmssats:mmsSelections, $
-      fields:fieldSelections, f1:0, f2:1, f3:2, deltaT:fix(1), dimensionality:'3D' }
+      fields:0, f1:0, f2:1, f3:2, deltaT:fix(1), dimensionality:'3D' }
 
   state = {tlb:tlb,$
     timeRangeObjPlot:tr_obj_plot, $

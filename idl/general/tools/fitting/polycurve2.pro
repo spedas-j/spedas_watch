@@ -5,7 +5,7 @@
 ;-
 
 function polycurve2, x,  $
-    parameters=p,  p_names = p_names, pder_values= pder_values, order = order
+    parameters=p,  p_names = p_names, order = order  , pder_values= pder_values
 
 if n_elements(order) eq 0 then order = 6
 if not keyword_set(p) then $
@@ -23,20 +23,24 @@ endfor
 ;f = p.a6*x^6 + p.a5*x^5 + p.a4*x^4 + p.a3*x^3 + p.a2*x^2 + p.a1*x + p.a0
 
 if keyword_set(p_names) then begin
-   message, 'Not tested'
+;   message, 'Not tested',/info
    np = n_elements(p_names)
    nd = n_elements(f)
    pder_values = dblarr(nd,np)
    for i=0,np-1 do begin
-      case strupcase(p_names[i]) of
-          'A6': pder_values[*,i] = x^6
-          'A5': pder_values[*,i] = x^5
-          'A4': pder_values[*,i] = x^4
-          'A3': pder_values[*,i] = x^3
-          'A2': pder_values[*,i] = x^2
-          'A1': pder_values[*,i] = x
-          'A0': pder_values[*,i] = 1
-      endcase
+      n = fix(strmid( p_names[i],2 ) )
+      pder_values[*,i] = x^n
+;     printdat,n,p_names[i]
+;      case strupcase(p_names[i]) of
+;          'A[6]': pder_values[*,i] = x^6
+;          'A[5]': pder_values[*,i] = x^5
+;          'A[4]': pder_values[*,i] = x^4
+;          'A[3]': pder_values[*,i] = x^3
+;          'A[2]': pder_values[*,i] = x^2
+;          'A[1]': pder_values[*,i] = x
+;          'A[0]': pder_values[*,i] = 1
+;          else:  n = int(strmid(p_names[i],0,2))
+;      endcase
    endfor
 endif
 

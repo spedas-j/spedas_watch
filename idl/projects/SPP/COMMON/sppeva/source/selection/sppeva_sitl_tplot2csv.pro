@@ -30,16 +30,23 @@ PRO sppeva_sitl_tplot2csv, var, filename=filename, msg=msg, error=error, auto=au
     return
   endif
   
-  strBL = strarr(s.Nsegs)
+  strBLstart = strarr(s.Nsegs)
+  strBLlen   = strarr(s.Nsegs)
+  strFOM     = strarr(s.Nsegs)
   for n=0,s.Nsegs-1 do begin
-    strBL[n] = strtrim(string(sppeva_sitl_get_block(s.START[n], s.STOP[n])),2)
+    PTR = sppeva_sitl_get_block(s.START[n], s.STOP[n])
+    strBLstart[n] = strtrim(string(PTR.START),2)
+    strBLlen[n]   = strtrim(string(PTR.LENGTH),2)
+    strFOM[n]     = string(s.FOM[n], format='(F4.1)')
   endfor
+  
   
   ;------------------------------------------
   ; HEADER
   ;------------------------------------------
   date = time_string(systime(/seconds,/utc))
-  header = [' Start UT            ',' End UT              ','FOM', 'Tohban','Blocks','Comments']
+  header = [' Start UT            ',' End UT              ','FOM   ', 'Tohban','Start Block',$
+    'Length in Blocks','Comments']
   instr = strmatch(var,'*_fld_*') ? 'FIELDS' : 'SWEAP'
   instr2= strmatch(var,'*_fld_*') ? 'FIELDS' : 'SWEM'
   l1 = strmid(date,0,10)+' '+instr +' Selected Events from Archive Data'
@@ -51,6 +58,6 @@ PRO sppeva_sitl_tplot2csv, var, filename=filename, msg=msg, error=error, auto=au
   ;------------------------------------------
   ; WRITE
   ;------------------------------------------
-  write_csv, filename, time_string(s.START), time_string(s.STOP), s.FOM, s.SOURCEID, strBL, s.DISCUSSION,$
-    header=header, table_header = [l1,l2,l3,l4,l5,'']
+  write_csv, filename, time_string(s.START), time_string(s.STOP), strFOM, s.SOURCEID, $
+    strBLstart, strBLlen, s.DISCUSSION, header=header, table_header = [l1,l2,l3,l4,l5,'']
 END

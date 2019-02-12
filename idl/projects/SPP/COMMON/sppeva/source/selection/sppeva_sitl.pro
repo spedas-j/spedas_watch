@@ -171,6 +171,7 @@ PRO sppeva_sitl_seg_edit, t, state=state, var=var, delete=delete, split=split
     gVAR = segSelect.VAR
     nmax = ceil((gTmax-gTmin)/gTdel)
     gTdel = (gTmax-gTmin)/double(nmax)
+
     if nmax gt 0 then begin
 
       ; delete the segment
@@ -263,26 +264,23 @@ FUNCTION sppeva_sitl_event, event
     return, { ID:event.handler, TOP:event.top, HANDLER:0L }
   endif
   
-  SAVE = 0
+  SAVE = 1
   
   case event.id of
     wid.btnAdd:  begin
       print,'EVA: ***** EVENT: btnAdd *****'
       str_element,/add,wid,'group_leader',event.top
       eva_ctime,/silent,routine_name='sppeva_sitl_seg_add',state=wid,occur=2,npoints=2;npoints
-      SAVE = 1
       end
     wid.btnFill:  begin
       print,'EVA: ***** EVENT: btnFill *****'
       str_element,/add,wid,'group_leader',event.top
       eva_ctime,/silent,routine_name='sppeva_sitl_seg_fill',state=wid,occur=1,npoints=1;npoints
-      SAVE = 1
       end
     wid.btnEdit:  begin
       print,'EVA: ***** EVENT: btnEdit *****'
       str_element,/add,wid,'group_leader',event.top
       eva_ctime,/silent,routine_name='sppeva_sitl_seg_edit',state=wid,occur=1,npoints=1;npoints
-      SAVE = 1
       end
     wid.btnSplit:begin
       eva_ctime,/silent,routine_name='sppeva_sitl_seg_split',state=wid,occur=1,npoints=1
@@ -291,24 +289,28 @@ FUNCTION sppeva_sitl_event, event
       print,'EVA: ***** EVENT: btnDelete *****'
       npoints = 1 & occur = 1
       eva_ctime,/silent,routine_name='sppeva_sitl_seg_delete',state=wid,occur=occur,npoints=npoints
-      SAVE = 1
       end
     wid.btnDWR: begin; Delete N segment within a range specified by 2-clicks
       print,'EVA: ***** EVENT: btnDWR *****'
       npoints = 2 & occur = 2
       eva_ctime,/silent,routine_name='sppeva_sitl_seg_delete',state=wid,occur=occur,npoints=npoints
-      SAVE = 1
       end
     wid.btnDelAll: begin
       print,'EVA: ***** EVENT: btnDelAll *****'
       sppeva_sitl_seg_delete_all
-      SAVE = 1
       end
-    wid.btnSWP: !SPPEVA.COM.MODE = 'SWP'
-    wid.btnFLD: !SPPEVA.COM.MODE = 'FLD'
+    wid.btnSWP: begin
+      !SPPEVA.COM.MODE = 'SWP'
+      SAVE = 0
+      end
+    wid.btnFLD: begin
+      !SPPEVA.COM.MODE = 'FLD'
+      SAVE = 0
+      end
     wid.btnUndo: sppeva_sitl_fom_recover,'Undo'
     wid.btnRedo: sppeva_sitl_fom_recover,'Redo'
     wid.drpSave: begin
+      SAVE = 0
       print,'EVA: ***** EVENT: drpSave *****'
       type = wid.svSet[event.index]
       case type of
