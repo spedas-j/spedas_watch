@@ -217,17 +217,11 @@ function mdd_ui_get_load_data_structure, state, use_mdd_time=use_mdd_time
     state.timeRangeObjmdd->getproperty, starttime=starttime, endtime=endtime
     starttime->getproperty, tdouble=st0, sec=sec
     endtime->getproperty, tdouble=et0, sec=sec
-;    state.analysisStructure.trange=[st0,et0]
   endif else begin
     state.timeRangeObjplot->getproperty, starttime=starttime, endtime=endtime
     starttime->getproperty, tdouble=st0, sec=sec
     endtime->getproperty, tdouble=et0, sec=sec
-;    state.analysisStructure.trange=[st0,et0]
   endelse
-  ; extract the start and stop times from the time range object
-;  state.timeRangeObjplot->getproperty, starttime=starttime, endtime=endtime
-;  starttime->getproperty, tdouble=st0, sec=sec
-;  endtime->getproperty, tdouble=et0, sec=sec
   trange=[st0,et0]
 
   ; this structure will contain information about the data that is or will 
@@ -335,11 +329,6 @@ pro mdd_ui_update_analysis_structure, state, use_mdd_time=use_mdd_time
   state.analysisStructure.f3=f3 ;mdd_options[f3]
   fieldsid=widget_info(state.tlb, find_by_uname='fields')
   widget_control, fieldsid, get_value=fields
-;  idx = where(fields EQ 1, ncnt)
-;  if ncnt LT 1 then begin
-;    state.statusbar -> update, 'You must check at least 1 box in the Fields Section.'
-;    return    
-;  endif
   state.analysisStructure.fields=fields
 
   dtid=widget_info(state.tlb, find_by_uname='deltat')
@@ -452,7 +441,7 @@ pro mdd_ui_plot_fields, state
   pvars = all_fields[state.analysisStructure.fields]
   idx = where(all_fields NE pvars, ncnt)
   append_array, pvars, all_fields[idx]
-stop
+
   options,['Bt','Bx','By','Bz'],labels=['SC1','SC2','SC3','SC4'],colors=['x','r','b','g'],labflag=1
   options,'Bt',ytitle='Bt'
   options,'Bx',ytitle='Bx'
@@ -466,7 +455,6 @@ stop
   
   ; plot the data
   tplot, pvars, trange=[st0,et0]
-;  tplot, state.loadedTvars
 
   state.plotWindow = !d.WINDOW
   state.statusbar -> update, 'Created plot for requested data.'
@@ -759,7 +747,7 @@ pro spd_ui_mdd_std_event,event
          mdd_ui_load_data, state, load_structs
          mdd_ui_load_pos, state, load_structs         
          mdd_ui_update_analysis_structure, state
-         MDD_STD_for_gui, state.Loadedtpos, state.loadedTvars+'_bvec', trange=state.analysisStructure.trange, $
+         MDD_STD_for_gui, state.Loadedtpos, state.loadedTvars, trange=state.analysisStructure.trange, $
             fl1=state.analysisStructure.f1, fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3     
          mdd_ui_print_results, state, load_structs
          state.statusbar -> update, 'MDD analysis performed and results displayed.'
@@ -771,7 +759,7 @@ pro spd_ui_mdd_std_event,event
         mdd_ui_load_data, state, load_structs
         mdd_ui_load_pos, state, load_structs
         mdd_ui_update_analysis_structure, state
-        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars+'_bvec', trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
+        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars, trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
           fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3
         MDD_STD_plot,files=files,trange=state.analysisStructure.trange,mode=state.analysisStructure.dimensionality, $
           B_opt=state.analysisStructure.fields
@@ -783,7 +771,7 @@ pro spd_ui_mdd_std_event,event
         mdd_ui_load_data, state, load_structs
         mdd_ui_load_pos, state, load_structs
         mdd_ui_update_analysis_structure, state
-        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars+'_bvec', trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
+        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars, trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
           fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3, delta_t=state.analysisStructure.deltat, $
           /std
         std_ui_print_results, state, load_structs
@@ -796,7 +784,7 @@ pro spd_ui_mdd_std_event,event
         mdd_ui_load_data, state, load_structs
         mdd_ui_load_pos, state, load_structs
         mdd_ui_update_analysis_structure, state
-        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars+'_bvec', trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
+        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars, trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
           fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3, delta_t=state.analysisStructure.deltat, $
           /std
         MDD_STD_plot,files=files,trange=state.analysisStructure.trange,mode=state.analysisStructure.dimensionality, $
@@ -809,7 +797,7 @@ pro spd_ui_mdd_std_event,event
         mdd_ui_load_data, state, load_structs
         mdd_ui_load_pos, state, load_structs
         mdd_ui_update_analysis_structure, state, /use_mdd_time
-        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars+'_bvec', trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
+        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars, trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
           fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3, delta_t=state.analysisStructure.deltat
         mdd_ui_print_results, state, load_structs
         state.statusbar -> update, 'Mean directions calculated and results displayed.'

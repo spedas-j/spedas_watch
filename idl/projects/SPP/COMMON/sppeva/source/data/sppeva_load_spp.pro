@@ -58,6 +58,18 @@ FUNCTION sppeva_load_spp, param, perror
     sppeva_get_fld,'f1_100bps'
   endif
   
+  ;----------------------
+  ; FIELDS RFS Level 1
+  ;----------------------
+  pcode=1
+  ip=where(perror eq pcode,cp)
+  if(strmatch(param,'*_rfs_hfr_auto_*') and (cp eq 0))then begin
+    sppeva_get_fld,'rfs_hfr_auto'
+  endif  
+  if(strmatch(param,'*_rfs_lfr_auto_*') and (cp eq 0))then begin
+    sppeva_get_fld,'rfs_lfr_auto'
+  endif
+
   ;---------------------
   ; SWEAP SPC Level 2
   ;---------------------
