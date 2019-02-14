@@ -127,13 +127,15 @@ PRO sppeva
     sppeva_pref_import, 'FILD', sppeva_fild_values
   endif
   
-  if compare_struct(def_struct.user, !SPPEVA.USER) then begin
-    msg = 'EVA suggests you to update your user profile'
-    msg = [msg, 'in the Preference menu so that your info']
-    msg = [msg, 'will be properly included in your selection report.']
-    msg = [msg, 'This needs to be done only once.']
-    result = dialog_message(msg,/center)
-  endif
+  info = get_login_info()
+  !SPPEVA.USER.ID = info.USER_NAME
+;  if compare_struct(def_struct.user, !SPPEVA.USER) then begin
+;    msg = 'EVA suggests you to update your user profile'
+;    msg = [msg, 'in the Preference menu so that your info']
+;    msg = [msg, 'will be properly included in your selection report.']
+;    msg = [msg, 'This needs to be done only once.']
+;    result = dialog_message(msg,/center)
+;  endif
   
   ;----------------
   ; Top Level Base

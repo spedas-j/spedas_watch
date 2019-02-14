@@ -45,10 +45,10 @@ FUNCTION sppeva_pref_user_event, event
       widget_control, event.id, GET_VALUE=strNew
       wid.user_copy.EMAIL = strNew
       end
-    wid.fldID:begin
-      widget_control, event.id, GET_VALUE=strNew
-      wid.user_copy.ID = strNew
-      end
+;    wid.fldID:begin
+;      widget_control, event.id, GET_VALUE=strNew
+;      wid.user_copy.ID = strNew
+;      end
     wid.fldTeam:begin
       widget_control, event.id, GET_VALUE=strNew
       wid.user_copy.TEAM = strNew
@@ -86,7 +86,7 @@ FUNCTION sppeva_pref_user, parent, GROUP_LEADER=group_leader, $
   lbl1 = widget_label(base,VALUE='These info will be inserted into the CSV output file.')
   str_element,/add,wid,'fldFullName',cw_field(base,VALUE=!SPPEVA.USER.FULLNAME,TITLE='Full Name',/ALL_EVENTS,xsize=50)
   str_element,/add,wid,'fldEmail',   cw_field(base,VALUE=!SPPEVA.USER.EMAIL,   TITLE='Email    ',/ALL_EVENTS,xsize=50)
-  str_element,/add,wid,'fldID',      cw_field(base,VALUE=!SPPEVA.USER.ID,      TITLE='ID       ',/ALL_EVENTS,xsize=20)
+  ;str_element,/add,wid,'fldID',      cw_field(base,VALUE=!SPPEVA.USER.ID,      TITLE='ID       ',/ALL_EVENTS,xsize=20)
   str_element,/add,wid,'fldTeam',    cw_field(base,VALUE=!SPPEVA.USER.TEAM,    TITLE='Team (e.g. FIELDS, SWEAP)',/ALL_EVENTS,xsize=20)
 
   WIDGET_CONTROL, WIDGET_INFO(base, /CHILD), SET_UVALUE=wid, /NO_COPY

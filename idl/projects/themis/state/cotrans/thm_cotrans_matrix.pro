@@ -36,6 +36,10 @@
 ; use_spinaxis_correction: uses spinaxis correction as in THM_COTRANS
 ; use_spinphase_correction: uses spinphase correction as in THM_COTRANS
 ; use_eclipse_correction: uses eclipse correction as in THM_COTRANS
+; support_suffix: if support_data is loaded with a suffix you can
+; specify it here
+; slp_suffix: if slp_sun_pos, slp_lun_pos, slp_lunn_att variables have
+; this suffix, you can specify it here
 ;EXAMPLE:
 ; For converting DSL to GSE coordinates, using ptens variable
 ;  rotmat = thm_cotrans_matrix('tha_peif_ptens', out_coord = 'GSE')
@@ -45,8 +49,8 @@
 ;HISTORY:
 ; 2019-01-16, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2019-01-18 12:44:58 -0800 (Fri, 18 Jan 2019) $
-; $LastChangedRevision: 26484 $
+; $LastChangedDate: 2019-02-13 11:37:26 -0800 (Wed, 13 Feb 2019) $
+; $LastChangedRevision: 26620 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/state/cotrans/thm_cotrans_matrix.pro $
 ;-
 Function thm_cotrans_matrix, in_name, $
@@ -57,6 +61,8 @@ Function thm_cotrans_matrix, in_name, $
                              use_spinaxis_correction=use_spinaxis_correction, $
                              use_spinphase_correction=use_spinphase_correction, $
                              use_eclipse_corrections=use_eclipse_corrections, $
+                             support_suffix=support_suffix, $
+                             slp_suffix=slp_suffix, $
                              _extra=_extra
 ;First get the data, all that is really needed is the time
   get_data, in_name, data = d, dlimits = dl
@@ -80,8 +86,20 @@ Function thm_cotrans_matrix, in_name, $
      dprint, 'Invalid probe: '+probe
      Return, -1
   Endif
-;Load state data
-  thm_load_state, probe=probe, trange=minmax(d.x), /get_support
+;Load state data, if not available
+  have_state = 0b
+  If(keyword_set(support_suffix)) Then Begin
+     tn_state = tnames('th'+probe+'_state_man'+support_suffix)
+  Endif Else tn_state = tnames('th'+probe+'_state_man')
+  Get_data, tn_state[0], data = s
+  If(is_struct(s)) Then Begin
+     state_trange = minmax(s.x)
+     data_trange = minmax(d.x)
+     If(state_trange[0] Le data_trange[0] And $
+        state_trange[1] Ge data_trange[1]) Then have_state = 1b
+  Endif
+  If(~have_state) Then thm_load_state, probe=probe, trange=minmax(d.x), $
+                                       suffix = support_suffix, /get_support
 ;Create 'basis' variables, and cotrans
   nx = n_elements(d.x)
   ytmp = dblarr(nx, 3) & ytmp[*, 0] = 1
@@ -95,7 +113,8 @@ Function thm_cotrans_matrix, in_name, $
                interpolate_state=interpolate_state, $
                use_spinaxis_correction=use_spinaxis_correction, $
                use_spinphase_correction=use_spinphase_correction, $
-               use_eclipse_corrections=use_eclipse_corrections
+               use_eclipse_corrections=use_eclipse_corrections, $
+               support_suffix=support_suffix, slp_suffix=slp_suffix
 ;If the dlimits structure does no have the correct output cordinates,
 ;then the transform did not happen
   oc_check = cotrans_get_coord('tmp_xbasis')
@@ -116,7 +135,9 @@ Function thm_cotrans_matrix, in_name, $
 ;No transpose here, r gives the correct answer when using tvector_rotate
   out_name = in_name+'_matrix_'+icoord+'2'+ocoord
   out_name = out_name[0] ;Not clear why out_name isn't scalar
-  store_data, out_name, data = {x:d.x, y:r}
+;Dlimits structure, hacked from thm_fac_matrix_make
+  dlimits = {data_att:{source_sys:icoord[0],coord_sys:ocoord[0]}}
+  store_data, out_name, data = {x:d.x, y:r}, dlimits=dlimits
 ;  rt = transpose(temporary(r)) ;so that e.g., data.y[0, *]#rt[*, *, 0] gives transformed velocity
 ;cleanup
   del_data, 'tmp_?basis'
