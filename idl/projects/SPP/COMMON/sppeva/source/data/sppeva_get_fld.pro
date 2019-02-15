@@ -1,7 +1,7 @@
 
-;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2019-02-13 17:49:40 -0800 (Wed, 13 Feb 2019) $
-;$LastChangedRevision: 26627 $
+;$LastChangedBy: moka $
+;$LastChangedDate: 2019-02-14 11:06:55 -0800 (Thu, 14 Feb 2019) $
+;$LastChangedRevision: 26628 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sppeva/source/data/sppeva_get_fld.pro $
 
 
@@ -10,6 +10,19 @@ PRO sppeva_get_fld, apid_name,trange=trange
   compile_opt idl2
 
 
+;  ;-----------
+;  ; ID & PW
+;  ;-----------
+;  if strlen(getenv('SPP_USER_PASS')) eq 0 then begin
+;    setenv,'SPP_USER_PASS='+!SPPEVA.FILD.SPPFLDSOC_ID+':'+!SPPEVA.FILD.SPPFLDSOC_PW
+;  endif
+;  if strlen(getenv('PSP_STAGING_PW')) eq 0 then begin
+;    setenv, 'PSP_STAGING_PW='+!SPPEVA.FILD.SPPFLDSOC_PW
+;  endif
+;  if strlen(getenv('PSP_STAGING_ID')) eq 0 then begin
+;    setenv, 'PSP_STAGING_ID='+!SPPEVA.FILD.SPPFLDSOC_ID
+;  endif
+  
   if undefined(apid_name) then apid_name = 'f1_100bps'
 
   ;remote_site = 'http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/l1/'
@@ -29,6 +42,11 @@ PRO sppeva_get_fld, apid_name,trange=trange
   prefix = 'spp/data/sci/fields/staging/l1/'  
   source = spp_file_source(source_key='FIELDS')
   source.local_data_dir += prefix
+  ;a = getenv('FIELDS_USER_PASS')
+;  if strlen(a) eq 0 then begin
+;    a = !SPPEVA.FILD.SPPFLDSOC_ID+':'+!SPPEVA.FILD.SPPFLDSOC_PW
+;  endif
+  source.USER_PASS = getenv('FIELDS_USER_PASS')
   pathname = prefix + apid_name +'/YYYY/MM/spp_fld_l1_' + apid_name + '_YYYYMMDD_v00.cdf'
   files = file_retrieve(pathname,/daily,valid_only=1,  trange = trange, _extra=source)
   

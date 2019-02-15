@@ -2,7 +2,7 @@
 ;NAME: SPP_SPICE_KERNELS
 ; function: spp_spice_kernels(name)
 ;PURPOSE:
-; Provides maven spice kernel filename of specified type
+; Provides psp spice kernel filename of specified type
 ;  
 ;Typical CALLING SEQUENCE:
 ;  kernels=mvn_spice_kernel() 
@@ -20,10 +20,10 @@
 ;PLEASE DO NOT USE this routine within general "LOAD" routines using the LOAD keyword. "LOAD" routines should assume that SPICE kernels are already loaded.
 ; 
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: ali $
-; $LastChangedDate: 2017-02-14 18:29:05 -0800 (Tue, 14 Feb 2017) $
-; $LastChangedRevision: 22786 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu:36867/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_kernels.pro $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2019-02-14 14:23:38 -0800 (Thu, 14 Feb 2019) $
+; $LastChangedRevision: 26632 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
   ,reconstruct=reconstruct,no_update=no_update,no_server=no_server,no_download=no_download,last_version=last_version
@@ -41,7 +41,7 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,ver
  ; filesource.remote_data_dir = "http://sprg.ssl.berkeley.edu/data/'
  ; filesource.local_data_dir = "/cache/misc
    src = spp_file_source()
-   naif = spice_file_source()
+   naif = spice_file_source(valid_only=valid_only,verbose=verbose,last_version=last_version)
   ;all=1
   if keyword_set(sck) then names = ['STD','SCK']
   if keyword_set(all) or not keyword_set(names) then names=['STD','SCK','FRM','IK','SPK','CK','CK_APP','CK_SWE']
@@ -50,36 +50,34 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,ver
   ;waittime = 10.                 ; search no more often than this number of seconds
   ;if 1 || ~keyword_set(kernels) || (ct - retrievetime) gt waittime then begin
   if ~keyword_set(source) then source = src
+  
   if keyword_set(no_download) or keyword_set(no_server) then source.no_server = 1
   dprint,dlevel=2,phelp=2,source
   kernels=''
   for i=0,n_elements(names)-1 do begin
+    print, 'name ', names[i]
      case strupcase(names[i]) of
-;        'STD':    begin
-;           append_array, kernels, spice_standard_kernels(source=source,/mars,no_update=no_update) ;  "Standard" kernels
-;        end
-        ;swapped out file_retrieve calls for spd_download_plus for https access, 2017-01-30, jmm
-        'CSS': append_array,kernels, spd_download_plus(remote_file = source.remote_data_dir+'generic_kernels/spk/comets/siding_spring_8-19-14.bsp', $
-                                                  local_path = source.local_data_dir+'generic_kernels/spk/comets/', no_update = no_update, $
-                                                  last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
-        'LSK': append_array,kernels, spd_download_plus(remote_file = naif.remote_data_dir+'generic_kernels/lsk/naif00??.tls', $
-                                                  local_path = naif.local_data_dir+'generic_kernels/lsk/', no_update = no_update, $
-                                                  last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
-        'SCK': begin
-;          sclk_path = 'psp/data/sci/sweap/sao/moc_data_products/operations_sclk_kernel/'
+        'STD':    begin
+           append_array, kernels, spice_standard_kernels(source=naif,no_update=no_update) ;  "Standard" kernels
+        end
+;        ;swapped out file_retrieve calls for spd_download_plus for https access, 2017-01-30, jmm
+;        'CSS': append_array,kernels, spd_download_plus(remote_file = source.remote_data_dir+'generic_kernels/spk/comets/siding_spring_8-19-14.bsp', $
+;                                                  local_path = source.local_data_dir+'generic_kernels/spk/comets/', no_update = no_update, $
+;                                                  last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
+;        'LSK': append_array,kernels, spd_download_plus(remote_file = naif.remote_data_dir+'generic_kernels/lsk/naif00??.tls', $
+;                                                  local_path = naif.local_data_dir+'generic_kernels/lsk/', no_update = no_update, $
+;                                                  last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
+        'SCK':  begin
           sclk_path = 'psp/data/sci/MOC/SPP/data_products/operations_sclk_kernel/'
           append_array,kernels, spp_file_retrieve(sclk_path+'spp_sclk_????.tsc',/last)
-           end                                       
-        'FRM':    begin         ; Frame kernels
-           if 0 then begin
-              append_array, kernels, spd_download_plus(remote_file = source.remote_data_dir+'MAVEN/kernels/fk/maven_v??.tf', $
-                                                  local_path = source.local_data_dir+'MAVEN/kernels/fk/', no_update = no_update, $
-                                                  last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
-           endif else begin
-              append_array, kernels, this_dir+'kernels/fk/maven_v09.tf'
-           endelse
-           append_array, kernels, this_dir+'kernels/fk/maven_misc.tf' ; Use this file to make temporary changes to the maven_v??.tf file
-        end
+                end                                       
+        'FRM':  begin         ; Frame kernels
+          frm_path = '/spp/data/sci/MOC/SPP/data_products/frame_kernel/';spp_v100.tf
+          append_array,kernels, spp_file_retrieve(frm_path+'spp_v100.tf',/last)
+;              append_array, kernels, spd_download_plus(remote_file = source.remote_data_dir+'MAVEN/kernels/fk/maven_v??.tf', $
+;                                                  local_path = source.local_data_dir+'MAVEN/kernels/fk/', no_update = no_update, $
+;                                                  last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
+                end
         'IK':  begin          ; Instrument Kernels
         if 0 then begin
           append_array, kernels, spd_download_plus(remote_file = source.remote_data_dir+'MAVEN/kernels/ik/maven_ant_v??.ti', $

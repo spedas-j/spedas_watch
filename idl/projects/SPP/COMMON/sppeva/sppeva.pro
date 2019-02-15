@@ -129,6 +129,21 @@ PRO sppeva
   
   info = get_login_info()
   !SPPEVA.USER.ID = info.USER_NAME
+  
+  ;---------------------
+  ; ID & PW for FIELDS
+  ;---------------------
+  a = getenv('FIELDS_USER_PASS')
+  if strlen(a) eq 0 then begin
+    setenv,'FIELDS_USER_PASS='+!SPPEVA.FILD.SPPFLDSOC_ID+':'+!SPPEVA.FILD.SPPFLDSOC_PW
+  endif
+  
+  ;
+;  if strlen(getenv('SPP_USER_PASS')) eq 0 then begin
+;    setenv,'SPP_USER_PASS='+!SPPEVA.FILD.SPPFLDSOC_ID+':'+!SPPEVA.FILD.SPPFLDSOC_PW
+;  endif
+  
+  
 ;  if compare_struct(def_struct.user, !SPPEVA.USER) then begin
 ;    msg = 'EVA suggests you to update your user profile'
 ;    msg = [msg, 'in the Preference menu so that your info']

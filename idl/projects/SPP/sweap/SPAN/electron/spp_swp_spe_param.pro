@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-02-11 10:47:27 -0800 (Mon, 11 Feb 2019) $
-; $LastChangedRevision: 26593 $
+; $LastChangedDate: 2019-02-14 14:20:40 -0800 (Thu, 14 Feb 2019) $
+; $LastChangedRevision: 26630 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -75,7 +75,9 @@ end
 ; fswp = spp_swp_span_sweeps(param = spe)
 
 
-function spp_swp_spe_deflector, defangle   ; this is a temporary location for this function - It should be put in a calibration file
+function spp_swp_spe_deflector_func, defangle   ; this is a temporary location for this function - It should be put in a calibration file
+;this converts angles to deflector dacs.
+;solve for all possible combinations of deflector DAC and just make a lookup table.
    common spp_swp_spe_deflector_com, par
    
    if ~keyword_set(par) then begin
@@ -87,12 +89,28 @@ function spp_swp_spe_deflector, defangle   ; this is a temporary location for th
       par.a[4] = -0.000163369d
       par.a[5] = 0.00000319759d
    endif
-   return, func(defangle,par)
+   return, func(defangle,p = par)
 
 end
 
+;;----------------------------------------------------------------------
+;; Calculate all possible Angle values for each Deflector DAC difference
+;; Return these in a structure
+function spp_swp_spe_deflut_cal
+  par = polycurve2(order= 5)
+  anglerange = findgen(141,start = -70, increment = 1)
+  anglerangedefs = spp_swp_spe_deflector_func(anglerange)
+  fit, anglerange, anglerangedefs, param = par
+  diffdefs = findgen(0xffff * 2 + 1) - 0xffff
+  guess = diffdefs * 0 + 0.5
+  angles = solve(diffdefs, xguess = guess, param = par)
+  deflookup = {defdac:  diffdefs, $
+                theta:  angles}
+  return, deflookup
+end
 
-
+;;----------------------------------------------
+;; The gen L2 code calls this for params
 function  spp_swp_span_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin,param=param
 
   if isa(param) then begin
@@ -112,7 +130,7 @@ function  spp_swp_span_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbi
   endif else index = reform(etable.fsindex,4,256)  ; full sweep
 
   hemv_dac  = etable.sweepv_dac[index]  
-  defv_dac  = etable.defv1_dac[index]  -  etable.defv2_dac[index]  
+  defv_dac  = etable.defv1_dac[index]  -  etable.defv2_dac[index]  ; use this later to collect theta angles.
   splv_dac  = etable.spv_dac[index]
   delt_dac  = substep_time[index * 0]               ; time duration with same dimensions
 
@@ -120,7 +138,7 @@ function  spp_swp_span_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbi
   
   defConvEst = 0.0025
   hemv  = float( hemv_dac * cal.hem_scale * 4. / 2.^16  )   ;  approximate voltage,  average over substeps
-  defv  = float( defv_dac  * cal.defl_scale   )   ; approximate angle (degrees)
+  defv  = float( defv_dac  * cal.defl_scale   )   ; approximate angle (degrees) ; ideally this is not used (direct dac - theta conversion)
   splv  = float( splv_dac  * cal.spoil_scale * 4./2.^16  ) ;  approximate voltage
   delt = delt_dac
   
@@ -139,9 +157,16 @@ function  spp_swp_span_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbi
   dimensions = size(/dimen,hemv)
   nelem = n_elements(hemv)
   new_dimen = [n_anodes,dimensions]
+  
+  ;def_angs = 
 
   nrg_all = reform(cal.k_anal # hemv[*],new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
-  defa_all = reform(cal.k_defl # defv[*],new_dimen,/overwrite) * (-1.)   ;  this should be evaluated as a cubic spline in the future, flips for particle velocity direction not look direction
+  defa_all_old = reform(cal.k_defl # defv[*],new_dimen,/overwrite) * (-1.)   ;  this should be evaluated as a cubic spline in the future, flips for particle velocity direction not look direction
+  thetas = findgen(n_elements(defv_dac))
+  for i=0,n_elements(defv_dac)-1  do begin
+    thetas[i] = cal.deflut_ang[where(cal.deflut_dac eq defv_dac[i])]
+  endfor
+  defa_all = reform(cal.k_defl # thetas, new_dimen, /overwrite)
 
   geomdt_all = reform(cal.dphi # delt[*],new_dimen,/overwrite)
   
@@ -253,6 +278,7 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
   
   if isa(detname) then begin
     if ~spe_param_dict.haskey('CALS') then   spe_param_dict.cals  = dictionary()
+    deflut = spp_swp_spe_deflut_cal()
     cals = spe_param_dict.cals
     if ~cals.haskey(strupcase(detname))  then begin
       dprint,dlevel=2,'Generating cal structure for ',detname
@@ -263,7 +289,7 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
           lookdir = fltarr(n_elements(phi))
           for i = 0, n_elements(phi)-1 do begin
             lookdir[i] = float(phi[i] + 180.)
-            if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
+            ;if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
           endfor
           phi = lookdir
           ;phi  = total(dphi,/cumulative) -3 ; +180
@@ -274,7 +300,7 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
           lookdir = fltarr(n_elements(phi))
           for i = 0, n_elements(phi)-1 do begin
             lookdir[i] = float(phi[i] + 180.)
-            if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
+            ;if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
           endfor
           phi = lookdir
           ;phi = total(dphi,/cumulative) - 120 -12; +180
@@ -289,6 +315,8 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
         dphi: dphi,  $
         eff:  eff,   $
         defl_scale: .0028d,  $  ; conversion from dac to angle  - This is not quite appropriate - works for now
+        deflut_dac: deflut.defdac, $
+        deflut_ang: deflut.theta * (-1.), $
         hem_scale:    500.d  , $
         spoil_scale:  80./2.^16   ,  $  ; Needs correction
         k_anal:  replicate(16.7,n_anodes) ,  $
