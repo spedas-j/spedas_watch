@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-22 11:43:09 -0800 (Tue, 22 Jan 2019) $
-;$LastChangedRevision: 26489 $
+;$LastChangedDate: 2019-02-15 13:26:38 -0800 (Fri, 15 Feb 2019) $
+;$LastChangedRevision: 26637 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -84,7 +84,8 @@ end
 pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, _extra=_extra
+   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, xvalues=xvalues, yvalues=yvalues, $
+   _extra=_extra
    
   @tplot_com.pro
   
@@ -123,6 +124,9 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       trange = [t , t + window_time]
     endelse    
   endif
+  
+  yvalues = hash()
+  xvalues = hash()
   
   if undefined(charsize) then charsize = 2.0
     
@@ -326,6 +330,9 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       endif else begin
         oplot, x_data, y_data, color=colors[v_idx], _extra=_extra
       endelse      
+      
+      yvalues[vars_to_plot[v_idx]] = reform(y_data)
+      xvalues[vars_to_plot[v_idx]] = reform(x_data)
       
       if ~keyword_set(nolegend) then begin
         leg_y -= leg_dy

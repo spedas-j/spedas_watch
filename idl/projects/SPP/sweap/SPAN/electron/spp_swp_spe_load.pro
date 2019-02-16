@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-02-04 10:49:07 -0800 (Mon, 04 Feb 2019) $
-; $LastChangedRevision: 26542 $
+; $LastChangedDate: 2019-02-15 14:29:34 -0800 (Fri, 15 Feb 2019) $
+; $LastChangedRevision: 26638 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 
@@ -21,7 +21,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   ;test                                  ='psp/data/sci/sweap/spa/L1/2018/10/spa_hkp/spp_swp_spa_hkp_20181004_v??.cdf
   vars = orderedhash()
   vars['sf1'] = 'EFLUX EMODE'
-  vars['sf0'] = 'EFLUX EMODE THETA PHI ENERGY'
+  vars['sf0'] = '*';'EFLUX EMODE THETA PHI ENERGY'
   vars['hkp'] = '*TEMP* *_BITS *_FLAG*'
   
   tr = timerange(trange)
@@ -35,12 +35,41 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       prefix = 'psp_swp_'+spx+'_'+type+'_'
       if keyword_set(varformat) then vfm = varformat else vfm=vars[type]
       cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose
+      if type eq 'sf0' then begin ;; will need to change this in the future if sf0 isn't 3d spectra.
+        ;; make a line here to get data from tplot
+        ;; Hard code bins for now, retain option to keep flexible later
+        nrg_bins = 32
+        def_bins = 8
+        anode_bins = 16
+        ; order of the below should be anode, deflector, energy bin
+        get_data, 'psp_swp_' + spx + '_sf0_EFLUX' , data = span_eflux
+        get_data, 'psp_swp_' + spx + '_sf0_ENERGY', data = span_energy
+        ;; make an nrg spec
+        nTimePoints = size(span_eflux.v)
+        xpandEflux = reform(span_eflux.y, nTimePoints[1],  (def_bins * anode_bins), nrg_bins)
+        xpandEbins = reform(span_eflux.v, nTimePoints[1], (def_bins * anode_bins), nrg_bins)
+        flatEbins = reform(xpandEbins[*,0,*])
+        totalEflux = total(xpandEflux, 2)
+        ;; Make a new struct for NRG spec and put into tplot
+        sum_nrg_spec = {x: span_eflux.x, $
+                        y: totalEflux, $
+                        v: flatEbins }
+        store_data, 'psp_swp_' + spx + '_sf0_ENERGY_SPEC', data = sum_nrg_spec
+        ;; make a line here to generate def spec / TBD
+        ;; make a line here to generate anode spec / TBD
+        ;; some lines here to put these back in tplot - done for NRG spec
+        ;; be done?
+      endif
       if type eq 'hkp' then begin
         continue
       endif
       ylim,prefix+'EFLUX',1.,10000.,1,/default
+      ylim,'*ENERGY*',1.,10000.,1,/default
       Zlim,prefix+'*EFLUX',100.,2000.,1,/default
-
+      Zlim,'*ENERGY*',1,1,1,/default
+      options, '*ENERGY*', spec = 1
+      tplot_options, 'no_interp', 1
+      
     endforeach
   endforeach
 
