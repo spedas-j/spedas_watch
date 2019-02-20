@@ -68,7 +68,7 @@
 pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   level = level, data_rate = data_rate, $
   local_data_dir = local_data_dir, source = source, $
-  get_support_data = get_support_data, $
+  get_support_data = get_support_data, no_cal=no_cal, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
   time_clip = time_clip, no_update = no_update, suffix = suffix, $
   varformat = varformat, cdf_filenames = cdf_filenames, $
@@ -98,7 +98,14 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   datatype = strlowcase(datatype) 
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ''
+  if undefined(no_cal) then no_cal = 0
 
+  ; For now delete existing data types - TO DO: Query user to delete
+  tvars2del=tnames('el*fg*') 
+  del_data, tvars2del 
+  ; track existing vars for commparison later
+  existing_tvars = tnames()
+    
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'fgm', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
     datatype = datatype, get_support_data = get_support_data, $
@@ -107,10 +114,17 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
     cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
     cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
     always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
+ 
+  ; check that tvars were loaded
+  if existing_tvars NE '' then  new_tvars = ssl_set_complement(existing_tvars, tnames()) $
+     else new_tvars=tnames()
+  ; Perform pseudo calibration for level 1 fgm
+  error = 0
+  if no_cal NE 1 && n_elements(new_tvars) GT 0 then elf_cal_fgm, new_tvars, level=level, error=error
 
   ; no reason to continue if the user only requested available data
   if keyword_set(available) then return
-
+  
   ; no reason to continue if no data were loaded
   if undefined(tplotnames) then return
 

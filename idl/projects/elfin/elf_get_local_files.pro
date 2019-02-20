@@ -62,7 +62,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   f = '_'
 
   ;inputs common to all file paths and folder names
-  basic_inputs = [probe, level, instrument]
+  dir_inputs = [probe, level, instrument]   
 
 ;  if undefined(datatype) || datatype eq '*' then begin
 ;    dir_datatype = '[^'+s+']+'
@@ -77,9 +77,14 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   ;     /spacecraft/level/instrument/
   ;  -assume file names are of the form:
   ;     spacecraft_level_instrument_YYYYMMDD_version.cdf
-  dir_pattern = strjoin(basic_inputs, s) + s   ; + '('+s+dir_datatype+')?' +s+ '[0-9]{4}' +s+ '[0-9]{2}' + s
+  dir_pattern = strjoin(dir_inputs, s) + s   ; + '('+s+dir_datatype+')?' +s+ '[0-9]{4}' +s+ '[0-9]{2}' + s
   if instrument eq 'state' then dir_pattern = dir_pattern + 'pred' + s
-  file_pattern = strjoin( basic_inputs, f) + f + '([0-9]{8})' 
+  if instrument EQ 'epd' && level EQ 'l1' then file_inputs = [probe, level, instrument+strmid(datatype, 3, 2)] $
+     else file_inputs = [probe, level, instrument]
+  if instrument EQ 'fgm' && level EQ 'l1' then file_inputs = [probe, level, datatype] $
+     else file_inputs = [probe, level, instrument]
+
+  file_pattern = strjoin( file_inputs, f) + f + '([0-9]{8})' 
 
   ;escape backslash in case of Windows
   search_pattern = escape_string(dir_pattern  + file_pattern, list='\')
@@ -87,7 +92,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   
   instr_data_dir = filepath('', ROOT_DIR=!elf.local_data_dir + dir_pattern) 
   files = file_search(instr_data_dir, '*.cdf')
-
+  
   ;perform search
 ;  filedate = !elf.local_data_dir + dir_pattern + strjoin( basic_inputs, f) + f + time_string(trange_in[0], format=6, precision=-3) + '_v01.cdf' 
 ;  result=file_search(filedate)

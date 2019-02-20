@@ -61,8 +61,8 @@
 ; delete_rotation_matrix: If set, delete the rotation matirx variable
 ;
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2019-02-13 16:05:02 -0800 (Wed, 13 Feb 2019) $
-; $LastChangedRevision: 26625 $
+; $LastChangedDate: 2019-02-19 11:14:39 -0800 (Tue, 19 Feb 2019) $
+; $LastChangedRevision: 26642 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/state/cotrans/thm_cotrans_tensor.pro $
 ;-
 Pro thm_cotrans_tensor, in_name, out_name, $
@@ -148,10 +148,11 @@ Pro thm_cotrans_tensor, in_name, out_name, $
 ;Confusion may exist if there is a coordinate_system tag from input
 ;variable
         get_data, newnamej, dlimits = dl
-        If(is_struct(dl) && is_struct(dl.cdf) && is_struct(dl.cdf.vatt) $
-           && tag_exist(dl.cdf.vatt, 'COORDINATE_SYSTEM') Then $
-              dl.cdf.vatt.coordinate_system = strupcase(out_coord[0])
-        store_data, newnamej, dlimits = dl
+        If(tag_exist(dl, 'CDF') && tag_exist(dl.cdf, 'vatt') $
+           && tag_exist(dl.cdf.vatt, 'COORDINATE_SYSTEM')) Then Begin
+           dl.cdf.vatt.coordinate_system = strupcase(out_coord[0])
+           store_data, newnamej, dlimits = dl
+        Endif
         options, newnamej, 'ytitle', newnamej, /default
      Endelse
 ;populate out_vars variable array

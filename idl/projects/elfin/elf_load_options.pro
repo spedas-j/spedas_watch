@@ -115,20 +115,18 @@ function elf_load_options_fgm
       l1: ['fgf' $
       ], $
       l2: [ $
-      'fgf_btotal', $
+      'fgf_gei', $
       'fgf_dsl', $
-      'fgf_gse', $
-      'fgf_gsm' $
+      'fgf_sm' $
       ] $
     }, $
     srvy: { $
       l1: ['fgs' $
       ], $
       l2: [ $
-      'fgs_btotal', $
+      'fgs_gei', $
       'fgs_dsl', $
-      'fgs_gse', $
-      'fgs_gsm' $
+      'fgs_sm' $
       ] $
     } $
   }
@@ -150,22 +148,22 @@ function elf_load_options_epd
   s = { $
     fast: { $
       l1: [ $
-      'pif_enphi_counts', $
-      'pef_enphi_counts' $
+      'pif', $
+      'pef' $
       ], $
       l2: [ $
-      'pif_enphi_eflux', $
-      'pef_enphi_eflux' $
+      'pif_eflux', $
+      'pef_eflux' $
       ] $
     }, $
     srvy: { $
       l1: [ $
-      'pis_enphi_counts', $
-      'pes_enphi_counts' $
+      'pis', $
+      'pes' $
       ], $
       l2: [ $
-      'pis_enphi_eflux', $
-      'pes_enphi_eflux' $
+      'pis_eflux', $
+      'pes_eflux' $
       ] $
     } $
    }
