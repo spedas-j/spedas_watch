@@ -9,16 +9,16 @@
 pro mvn_sep_average, trange = trange,load = load
 
   if keyword_set (load) then mvn_sep_load, trange = trange
-  get_data,  'MVN_SEP1f_ion_eflux', data = ion_1F
-  get_data,  'MVN_SEP2f_ion_eflux', data = ion_2F
-  get_data,  'MVN_SEP1r_ion_eflux', data = ion_1R
-  get_data,  'MVN_SEP2r_ion_eflux', data = ion_2R
+  get_data,  'mvn_SEP1F_ion_eflux', data = ion_1F
+  get_data,  'mvn_SEP2F_ion_eflux', data = ion_2F
+  get_data,  'mvn_SEP1R_ion_eflux', data = ion_1R
+  get_data,  'mvn_SEP2R_ion_eflux', data = ion_2R
   
 ; get electron flux data
-  get_data,  'MVN_SEP1f_electron_eflux', data = electron_1F
-  get_data,  'MVN_SEP2f_electron_eflux', data = electron_2F
-  get_data,  'MVN_SEP1r_electron_eflux', data = electron_1R
-  get_data,  'MVN_SEP2r_electron_eflux', data = electron_2R
+  get_data,  'mvn_SEP1F_elec_eflux', data = electron_1F
+  get_data,  'mvn_SEP2F_elec_eflux', data = electron_2F
+  get_data,  'mvn_SEP1R_elec_eflux', data = electron_1R
+  get_data,  'mvn_SEP2R_elec_eflux', data = electron_2R
 
   store_data, 'Attenuator', data = ['MVN_SEP1attenuator_state', 'MVN_SEP2attenuator_state']
   options, 'Attenuator', 'colors',[70, 221]
@@ -34,13 +34,13 @@ pro mvn_sep_average, trange = trange,load = load
   ion_eflux_2F = ion_1f.y
   ion_eflux_2R = ion_1f.y
    
-  for J = 0, n_elements (electron_1F.v)-1 do begin
+  for J = 0, n_elements (electron_1F.v[0, *])-1 do begin
      Electron_eflux_2F[*,J] = $
      10.0^interpol (alog10(electron_2F.y[*,J]), electron_2F.x, electron_1F.x, /nan)
      Electron_eflux_2R[*,J] = $
      10.0^interpol (alog10(electron_2R.y[*,J]), electron_2R.x, electron_1R.x, /nan)
   endfor
-  for J = 0, n_elements (Ion_1F.v)-1 do begin
+  for J = 0, n_elements (Ion_1F.v[0, *])-1 do begin
      Ion_eflux_2F[*,J] = $
      10.0^interpol (alog10(Ion_2F.y[*,J]), Ion_2F.x, Ion_1F.x, /nan)
      Ion_eflux_2R[*,J] = $

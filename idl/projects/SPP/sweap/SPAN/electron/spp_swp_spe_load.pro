@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-02-19 16:23:50 -0800 (Tue, 19 Feb 2019) $
-; $LastChangedRevision: 26653 $
+; $LastChangedDate: 2019-02-20 10:56:58 -0800 (Wed, 20 Feb 2019) $
+; $LastChangedRevision: 26656 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -49,10 +49,10 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         ;;----------------------------------------------------------
         ;; make an nrg spec
         nTimePoints = size(span_eflux.v)
-        xpandEflux_nrg = reform(span_eflux.y, nTimePoints[1],  (def_bins * anode_bins), nrg_bins)
+        xpandEflux_nrg = reform(span_eflux.y, nTimePoints[1],  anode_bins, def_bins, nrg_bins)
         xpandEbins = reform(span_eflux.v, nTimePoints[1], (def_bins * anode_bins), nrg_bins)
-        flatEbins = reform(xpandEbins[*,*,0])
-        totalEflux_nrg = total(xpandEflux_nrg, 2)
+        flatEbins = reform(xpandEbins[*,0,*])
+        totalEflux_nrg = total(total(xpandEflux_nrg, 2) , 2)
         ;; Make a new struct for NRG spec and put into tplot
         sum_nrg_spec = {x: span_eflux.x, $
                         y: totalEflux_nrg, $
@@ -60,8 +60,6 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         store_data, 'psp_swp_' + spx + '_sf0_ENERGY_SPEC_new', data = sum_nrg_spec
         ;;----------------------------------------------------------
         ;; make an anode spec
-        ;xpandEflux_anode = reform(span_eflux.y, nTimePoints[1],  anode_bins, (def_bins * nrg_bins))
-        ;xpandEflux_anode = reform(span_eflux.y, nTimePoints[1], (def_bins * nrg_bins), anode_bins)
         xpandEflux_anode = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
         xpandPhi = reform(span_phi.y, nTimePoints[1], anode_bins, (def_Bins*nrg_bins))
         flatAnodeBins = xpandphi[*,*,0]
@@ -72,6 +70,15 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
                           v: flatAnodeBins }
         store_data, 'psp_swp_' + spx + '_sf0_ANODE_SPEC_new', data = sum_anode_spec
         ;; make a line here to generate def spec / TBD
+        xpandEflux_def = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
+        xpandTheta = reform(span_phi.y, nTimePoints[1], def_Bins, (anode_bins*nrg_bins))
+        flatDefBins = xpandTheta[*,*,0]
+        totalEflux_def = total(total(xpandEflux_def, 2),3)
+        ;; Make a new struct for anode spec and put into tplot
+        sum_def_spec = {x: span_eflux.x, $
+                          y: totalEflux_def, $
+                          v: flatDefBins }
+        store_data, 'psp_swp_' + spx + '_sf0_DEF_SPEC_new', data = sum_def_spec
         
         ;; some lines here to put these back in tplot - done for NRG spec
         ;; be done?

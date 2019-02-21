@@ -35,8 +35,13 @@ PRO sppeva_sitl_tplot2csv, var, filename=filename, msg=msg, error=error, auto=au
   strFOM     = strarr(s.Nsegs)
   for n=0,s.Nsegs-1 do begin
     PTR = sppeva_sitl_get_block(s.START[n], s.STOP[n])
-    strBLstart[n] = strtrim(string(PTR.START),2)
-    strBLlen[n]   = strtrim(string(PTR.LENGTH),2)
+    if n_tags(PTR) eq 0 then begin
+      strBLstart[n] = '0'
+      strBLlen[n] = '0'
+    endif else begin
+      strBLstart[n] = strtrim(string(PTR.START),2)
+      strBLlen[n]   = strtrim(string(PTR.LENGTH),2)
+    endelse
     strFOM[n]     = string(s.FOM[n], format='(F4.1)')
   endfor
   

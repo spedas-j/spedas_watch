@@ -15,8 +15,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-01-28 11:22:00 -0800 (Mon, 28 Jan 2019) $
-;$LastChangedRevision: 26502 $
+;$LastChangedDate: 2019-02-20 14:03:40 -0800 (Wed, 20 Feb 2019) $
+;$LastChangedRevision: 26661 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/common/icon_netcdf_load_vars.pro $
 ;
 ;-------------------------------------------------------------------
@@ -117,7 +117,18 @@ function icon_netcdf_load_vars, ncfile
         ;        if(varinq.name eq 'ICON_L0_MIGHTI_A_Image_ROI_Pixels') then stop
         var_str = {}
         ;;;    IF(varinq.name eq 'ROWS' || varinq.name eq 'EPOCH') then stop
-        data = {name: varinq.name, datatype: varinq.datatype, ndims: varinq.ndims, natts: varinq.natts}
+        
+        ; Fix mighti spectrograms
+        myndims = varinq.ndims
+        display_type = NCDF_ATTINQ( file, i , 'Display_Type')
+        if display_type.datatype ne 'UNKNOWN' then begin
+          NCDF_ATTget, file, i , 'Display_Type', myatt
+          if myatt eq 'spectrogram' then begin
+            myndims = 2
+          endif
+        endif           
+        
+        data = {name: varinq.name, datatype: varinq.datatype, ndims: myndims, natts: varinq.natts}
         ; loop through the variable attributes
         for k = 0, varinq.natts-1 do begin
 
@@ -192,7 +203,17 @@ function icon_netcdf_load_vars, ncfile
         ; Concatenate arrays
         d_old = size(olddata, /N_DIMENSIONS)
         d_new = size(value, /N_DIMENSIONS)
-        if (d_old eq d_new) or ((d_old - d_new) eq 1) then begin
+        
+        ; Fix mighti spectrograms
+        display_type = NCDF_ATTINQ( file, i , 'Display_Type')
+        if display_type.datatype ne 'UNKNOWN' then begin
+          NCDF_ATTget, file, i , 'Display_Type', myatt
+          if myatt eq 'spectrogram' then begin
+            d_new = 2
+          endif
+        endif
+        
+        if (d_old eq d_new) or (abs(d_old - d_new) eq 1) then begin
           newdata = []
           if varinq.ndims eq 1 then begin
             newdata = [olddata, value]

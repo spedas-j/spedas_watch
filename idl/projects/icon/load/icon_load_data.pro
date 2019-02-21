@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-02-08 13:40:08 -0800 (Fri, 08 Feb 2019) $
-;$LastChangedRevision: 26575 $
+;$LastChangedDate: 2019-02-20 14:00:14 -0800 (Wed, 20 Feb 2019) $
+;$LastChangedRevision: 26659 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -210,15 +210,21 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
       remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Data/ICON_L' + level + '_' + strupcase(instrument) + '_Daytime_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
     endif
     pathformat = [pathformat, remote_path]
-  endif else if strlowcase(instrument) eq 'mighti-a' then begin
+  endif else if strlowcase(instrument) eq 'mighti-a' or strlowcase(instrument) eq 'mighti' then begin
     ;http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/Simulated-Data/LEVEL.1/MIGHTI-A/2010/140/ICON_L1_MIGHTI-A_Science_2010-05-20_000027_v01r000.NC
     level = '1'
-    instrument = 'mighti-a'
-    datal1type = '*'
-    datal2type = ''
+    instrument = strlowcase(instrument)
     minutes = '*'
-    remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Data/ICON_L' + level + '_' + strupcase(instrument) + '_Science_YYYY-MM-DD_' + minutes +'_v' + v_str + 'r' + r_str + '.NC'
-    pathformat = [pathformat, remote_path]  
+    if datal1type[0] ne '' then begin
+      level = '1'
+      remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Data/ICON_L' + level + '_' + strupcase(instrument) + '_Science_YYYY-MM-DD_' + minutes +'_v' + v_str + 'r' + r_str + '.NC'
+     endif
+    if datal2type[0] ne '' then begin
+      ;LEVEL.2/MIGHTI/2010/141/Vector-Winds/ICON_L2_MIGHTI_Vector-Wind-Green_2010-05-21_v01r000.NC
+      level = '2'
+      remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Vector-Winds/ICON_L' + level + '_' + strupcase(instrument) + '_Vector-Wind-' + ['Green','Red'] + '_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
+    endif
+   pathformat = [pathformat, remote_path]  
     
   endif
 

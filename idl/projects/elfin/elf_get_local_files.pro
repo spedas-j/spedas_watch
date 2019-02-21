@@ -79,10 +79,9 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   ;     spacecraft_level_instrument_YYYYMMDD_version.cdf
   dir_pattern = strjoin(dir_inputs, s) + s   ; + '('+s+dir_datatype+')?' +s+ '[0-9]{4}' +s+ '[0-9]{2}' + s
   if instrument eq 'state' then dir_pattern = dir_pattern + 'pred' + s
-  if instrument EQ 'epd' && level EQ 'l1' then file_inputs = [probe, level, instrument+strmid(datatype, 3, 2)] $
+  if instrument EQ 'epd' && level EQ 'l1' then file_inputs = [probe, level, instrument+strmid(datatype, 1, 2)] $
      else file_inputs = [probe, level, instrument]
-  if instrument EQ 'fgm' && level EQ 'l1' then file_inputs = [probe, level, datatype] $
-     else file_inputs = [probe, level, instrument]
+  if instrument EQ 'fgm' && level EQ 'l1' then file_inputs = [probe, level, datatype]
 
   file_pattern = strjoin( file_inputs, f) + f + '([0-9]{8})' 
 

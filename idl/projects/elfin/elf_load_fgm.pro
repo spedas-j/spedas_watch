@@ -101,6 +101,7 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   if undefined(no_cal) then no_cal = 0
 
   ; For now delete existing data types - TO DO: Query user to delete
+  ; may want to add this check in elf_load_data
   tvars2del=tnames('el*fg*') 
   del_data, tvars2del 
   ; track existing vars for commparison later
