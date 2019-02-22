@@ -280,7 +280,7 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
           end
         'SPI' : begin
           dphi = [11.25,11.25,11.25,11.25,11.25,11.25,11.25,11.25,11.25,11.25, 22.5,22.5,22.5,22.5,22.5,22.5]
-          phi = total(dphi,/cumulative) + 10.   ; This number needs fixing!
+          phi = total(dphi,/cumulative) + 10. + dphi/2  ; This number needs fixing!
           n_anodes  = 16
           eff = replicate(1.,n_anodes)
           cal  = {   $
