@@ -91,12 +91,16 @@ pro elf_ui_load_data_load_pro,$
   ; ***** This is the routine that loads the actual data *****
   ; ***** This routine is provided by each mission ***** 
   ; ***** Parameters for the load routines will vary per mission *****
-
   varformat = '*'+types
-
-  elf_load_data, probes=probes, instrument=instrument, datatype=types, level=level, $
-                    trange=timeRange, varformat=varformat 
-
+  
+  Case instrument of
+     'epd':   elf_load_epd, probes=probes, datatype=types, level=level, trange=timeRange
+     'state': elf_load_state, probes=probes, datatype=types, level=level, trange=timeRange
+     'fgm':   elf_load_fgm, probes=probes, datatype=types, level=level, trange=timeRange
+     else:    elf_load_data, probes=probes, instrument=instrument, datatype=types, level=level, $
+                  trange=timeRange, varformat=varformat
+  endcase
+  
   ;if instrument EQ 'epd' then del_data, 'ell_epdi'
   ; determine which tplot variables to delete and which ones are the new temporary 
   ; variables

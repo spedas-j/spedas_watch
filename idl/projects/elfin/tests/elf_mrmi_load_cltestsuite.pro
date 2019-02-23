@@ -27,7 +27,7 @@
 
 elf_init
 spd_init_tests
-timespan,'2018-10-14'
+timespan,'2019-01-11'
 t_num = 0
 
 ;1 no keywords
@@ -39,9 +39,9 @@ if err eq 0 then begin
   elf_load_mrmi
   spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_mrmi','2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_*','2018-10-14','2018-10-15') || $
-    spd_data_exists('elb_mrma','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_mrmi','2019-01-11','2019-01-12')  || $
+    spd_data_exists('elb_*','2019-01-11','2019-01-12') || $
+    spd_data_exists('elb_mrma','2019-01-11','2019-01-12')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -58,8 +58,8 @@ if err eq 0 then begin
   elf_load_mrmi, probe='a'
   spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_mrmi','2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_mrmi','2019-01-11','2019-01-12')  || $
+    spd_data_exists('elb_*','2019-01-11','2019-01-12')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -69,21 +69,22 @@ stop
 
 ;3 2 probes (string)
 ;
-
-t_name='Multiple probe parameters passed as an array of strings)'
-catch,err
-if err eq 0 then begin
-  elf_load_mrmi,probes=['a', 'b']
-  spd_print_tvar_info,'ela_mrmi'
-  ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_mrmi elb_mrmi','2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_*','2018-12-14','2018-12-15')  $
-    then message,'data error '+t_name
-endif
-catch,/cancel
-spd_handle_error,err,t_name,++t_num
-del_data,'*'
-stop
+;;; Commented out this test since elb does not have mrmi data
+;t_name='Multiple probe parameters passed as an array of strings)'
+;catch,err
+;if err eq 0 then begin
+;  timespan, '2018-11-02'
+;  elf_load_mrmi,probes=['a', 'b']
+;  spd_print_tvar_info,'ela_mrmi'
+;  ;just spot checking cause there are a lot of data types
+;  if ~spd_data_exists('ela_mrmi elb_mrmi','2018-10-14','2018-10-15')  || $
+;    spd_data_exists('elb_*','2018-12-14','2018-12-15')  $
+;    then message,'data error '+t_name
+;endif
+;catch,/cancel
+;spd_handle_error,err,t_name,++t_num
+;del_data,'*'
+;stop
 
 
 ;4 All probes ('*')
@@ -95,8 +96,8 @@ if err eq 0 then begin
   elf_load_mrmi,probe='*'
   spd_print_tvar_info,'elb_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_mrmi elb_mrmi','2018-10-14','2018-10-15')  || $
-    spd_data_exists('elb_mrma','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_mrmi','2019-01-11','2019-01-12')  || $
+    spd_data_exists('ela_mrma','2019-01-11','2019-01-12')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -111,11 +112,11 @@ stop
 t_name='Used suffix for tplot variable names'
 catch,err
 if err eq 0 then begin
-  timespan, '2018-10-21', 1
-  elf_load_mrmi,probe='b',suffix='_test'
-  spd_print_tvar_info,'elb_mrmi_test'
+  timespan, '2018-11-30', 1
+  elf_load_mrmi,probe='a',suffix='_test'
+  spd_print_tvar_info,'ela_mrmi_test'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_mrmi_test', '2018-10-21','2018-10-22')  || $
+  if ~spd_data_exists('ela_mrmi_test', '2018-11-30','2018-12-01')  || $
     spd_data_exists('ela_*','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
@@ -130,10 +131,10 @@ stop
 t_name='Only one data type requested'
 catch,err
 if err eq 0 then begin
-  elf_load_mrmi,probe='b',datatype='mrmi'
-  spd_print_tvar_info,'elb_mrmi'
+  elf_load_mrmi,probe='a',datatype='mrmi'
+  spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_mrmi',  '2018-10-21','2018-10-22')  || $
+  if ~spd_data_exists('ela_mrmi', '2018-11-30','2018-12-01')  || $
     spd_data_exists('ela_mrma', '2018-10-21','2018-10-22')  $
     then message,'data error ' + t_name
 endif
@@ -148,11 +149,11 @@ stop
 t_name='Mixed case datatype parameter used'
 catch,err
 if err eq 0 then begin
-  elf_load_mrmi,probe='b',datatype='MMra'
-  spd_print_tvar_info,'elb_mrmi'
+  elf_load_mrmi,probe='a',datatype='MRmi'
+  spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_mrmi',  '2018-10-21','2018-10-22')  || $
-    spd_data_exists('elb_mrma','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('ela_mrmi', '2018-11-30','2018-12-01')  || $
+    spd_data_exists('ela_mrma','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -166,10 +167,10 @@ stop
 t_name='All uppper case datatype'
 catch,err
 if err eq 0 then begin
-  elf_load_mrmi,probe='a',datatype='mrmi'
+  elf_load_mrmi,probe='a',datatype='MRMI'
   spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_mrmi', '2018-10-21','2018-10-22')  || $
+  if ~spd_data_exists('ela_mrmi', '2018-11-30','2018-12-01')  || $
     spd_data_exists('elb_mrmi','2018-10-21','2018-10-22')  $
     then message,'data error ' + t_name
 endif
@@ -181,14 +182,13 @@ stop
 
 ;10  Upper case probes
 ;
-
 t_name='All upper probes'
 catch,err
 if err eq 0 then begin
-  elf_load_mrmi,probe=['A', 'B']
+ elf_load_mrmi,probe=['A']
   spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_mrmi', '2018-10-21','2018-10-22')  || $
+  if ~spd_data_exists('ela_mrmi', '2018-11-30','2018-12-01')  || $
     spd_data_exists('elb_pos','2018-10-21','2018-10-22')  $
     then message,'data error ' + t_name
 endif
@@ -203,11 +203,11 @@ stop
 t_name='Time range passed as an array of 2 strings'
 catch,err
 if err eq 0 then begin
-  trange=['2018-10-10', '2018-10-11']
+  trange=['2018-11-10', '2018-11-11']
   elf_load_mrmi,probe='A',trange=trange
   spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_mrmi', '2018-10-10','2018-10-11')  || $
+  if ~spd_data_exists('ela_mrmi', '2018-11-10','2018-11-11')  || $
     spd_data_exists('elb_mrmi','2018-10-10','2018-10-11')  $
     then message,'data error ' + t_name
 endif
@@ -223,10 +223,10 @@ t_name='Time range passed as an array of 2 doubles; Datatype as an array of mult
 catch,err
 if err eq 0 then begin
   trange=time_double(trange)
-  elf_load_mrmi,probe='B',trange=trange
-  spd_print_tvar_info,'elb_mrmi'
+  elf_load_mrmi,probe='a',trange=trange
+  spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_mrmi', '2018-10-10','2018-10-11')  || $
+  if ~spd_data_exists('ela_mrmi', '2018-11-10','2018-11-11')  || $
     spd_data_exists('ela_mrmi','2018-10-10','2018-10-11')  $
     then message,'data error ' + t_name
 endif
@@ -244,7 +244,7 @@ if err eq 0 then begin
   elf_load_mrmi,probe=1,trange=trange
   spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_mrmi', '2018-10-10','2018-10-11')  || $
+  if spd_data_exists('ela_mrmi', '2018-11-10','2018-11-11')  || $
     spd_data_exists('elb_pos','2018-10-10','2018-10-11')  $
     then message,'data error ' + t_name
 endif
@@ -262,8 +262,8 @@ if err eq 0 then begin
   elf_load_mrmi,probe='a',trange=trange, datatype=['xxx']
   ;spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_mrmi', '2018-10-10','2018-10-11')  || $
-    spd_data_exists('elb_mrmi', '2018-10-10','2018-10-11')  $
+  if spd_data_exists('ela_mrmi', '2018-11-10','2018-11-11')  || $
+    spd_data_exists('elb_mrmi', '2018-11-10','2018-11-11')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -278,7 +278,7 @@ t_name='Invalid date'
 catch,err
 if err eq 0 then begin
   elf_load_mrmi,probe='a',trange=['2021-10-10','2021-10-11'], datatype=['pos']
-  spd_print_tvar_info,'elb_mrmi'
+  spd_print_tvar_info,'ela_mrmi'
   ;just spot checking cause there are a lot of data types
   if spd_data_exists('ela_mrmi ela_mrmi', '2018-12-04','2018-12-05')  || $
     spd_data_exists('elb_mrmi','2018-12-04','2018-12-05')  $

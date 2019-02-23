@@ -77,10 +77,35 @@ pro elf_load_mrmi, trange = trange, probes = probes, datatype = datatype, $
   always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
   if undefined(probes) then probes = ['a'] ; default to ela
+  ; temporarily removed 'b' since there is no b fgm data yet
+  if probes EQ ['*'] then probes = ['a'] ; ['a', 'b']
+  if n_elements(probes) GT 2 then begin
+    dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
+    return
+  endif
+  ; check for valid probe names
+  probes = strlowcase(probes)
+  idx = where(probes EQ 'a', acnt)
+  idx = where(probes EQ 'b', bcnt)
+  if acnt EQ 0 && bcnt EQ 0 then begin
+    dprint, dlevel = 1, 'Invalid probe name. Valid probes are a and/or b. Please select again.'
+    return
+  endif
   if undefined(level) then level = 'l1'
-  if undefined(datatype) then datatype = ['mrmi'] ; this is the only type of mrm data
+  if undefined(datatype) then datatype = ['mrmi'] else datatype = strlowcase(datatype) ; this is the only type of mrm data
+  if datatype NE 'mrmi' then begin
+    dprint, dlevel = 1, 'Invalid data type. The only valid data type is mrmi.'
+    return    
+  endif
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ''
+
+  ; For now delete existing data types - TO DO: Query user to delete
+  ; may want to add this check in elf_load_data
+  tvars2del=tnames('el*mrmi*')
+  del_data, tvars2del
+  ; track existing vars for commparison later
+  existing_tvars = tnames()
 
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'mrmi', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $

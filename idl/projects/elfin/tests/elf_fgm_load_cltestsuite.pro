@@ -55,11 +55,12 @@ stop
 t_name='Single probe'
 catch,err
 if err eq 0 then begin
-  elf_load_fgm,probe='a'
+  timespan,'2019-02-05'
+  elf_load_fgm,probe='b'
   spd_print_tvar_info,'elb_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs','2019-01-26','2019-01-27')  || $
-    spd_data_exists('elb_*','2019-01-26','2019-01-27')   $
+  if ~spd_data_exists('elb_fgs','2019-02-05','2019-02-06')  || $
+    spd_data_exists('ela_*','2019-01-26','2019-01-27')   $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -92,6 +93,7 @@ stop
 t_name='All probes requested (*)'
 catch,err
 if err eq 0 then begin
+  timespan,'2019-01-26'
   elf_load_fgm,probe='*'
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
@@ -184,11 +186,12 @@ stop
 t_name='All upper probe and datatypes'
 catch,err
 if err eq 0 then begin
-  elf_load_fgm,probe='A',datatype=['FGS']
-  spd_print_tvar_info,'ela_fgs'
+  timespan,'2019-02-05'
+  elf_load_fgm,probe='B',datatype=['FGS']
+  spd_print_tvar_info,'elb_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs', '2019-01-26','2019-01-27')  || $
-    spd_data_exists('elb_pos','2019-01-26','2019-01-27')  $
+  if ~spd_data_exists('elb_fgs', '2019-02-05','2019-02-06')  || $
+    spd_data_exists('ela_pos','2019-01-26','2019-01-27')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel

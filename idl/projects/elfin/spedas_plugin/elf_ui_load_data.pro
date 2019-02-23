@@ -414,7 +414,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
    ;instrument
    fgmL1TypeArray = ['fgs','fgf']
    fgmL2TypeArray = ['fgs_dsl','fgs_gei','fgs_sm','fgf_dsl','fgf_gei','fgf_sm']
-   epdL1TypeArray = ['pis_enphi_counts','pif_enphi_counts','pes_enphi_counts','pef_enphi_counts']
+   epdL1TypeArray = ['pis','pif','pes','pef']
    epdL2TypeArray = ['pis_enphi_eflux','pif_enphi_eflux','pes_enphi_eflux','pef_enphi_eflux']
    stateTypeArray = ['pos','vel']
    mrmaL1TypeArray = ['mrma']

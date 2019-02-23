@@ -8,17 +8,17 @@
 
 pro mvn_sep_average, trange = trange,load = load
 
-  if keyword_set (load) then mvn_sep_load, trange = trange
-  get_data,  'mvn_SEP1F_ion_eflux', data = ion_1F
-  get_data,  'mvn_SEP2F_ion_eflux', data = ion_2F
-  get_data,  'mvn_SEP1R_ion_eflux', data = ion_1R
-  get_data,  'mvn_SEP2R_ion_eflux', data = ion_2R
+  if keyword_set (load) then mvn_sep_load, trange = trange, format = 'L2_CDF'
+  get_data,  'MVN_SEP1f_ion_flux', data = ion_1F
+  get_data,  'MVN_SEP2f_ion_flux', data = ion_2F
+  get_data,  'MVN_SEP1r_ion_flux', data = ion_1R
+  get_data,  'MVN_SEP2r_ion_flux', data = ion_2R
   
 ; get electron flux data
-  get_data,  'mvn_SEP1F_elec_eflux', data = electron_1F
-  get_data,  'mvn_SEP2F_elec_eflux', data = electron_2F
-  get_data,  'mvn_SEP1R_elec_eflux', data = electron_1R
-  get_data,  'mvn_SEP2R_elec_eflux', data = electron_2R
+  get_data,  'MVN_SEP1f_elec_flux', data = electron_1F
+  get_data,  'MVN_SEP2f_elec_flux', data = electron_2F
+  get_data,  'MVN_SEP1r_elec_flux', data = electron_1R
+  get_data,  'MVN_SEP2r_elec_flux', data = electron_2R
 
   store_data, 'Attenuator', data = ['MVN_SEP1attenuator_state', 'MVN_SEP2attenuator_state']
   options, 'Attenuator', 'colors',[70, 221]
