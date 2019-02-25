@@ -32,8 +32,8 @@
 ;       RESULT:        Named variable to hold the result structure.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-02-22 16:43:56 -0800 (Fri, 22 Feb 2019) $
-; $LastChangedRevision: 26693 $
+; $LastChangedDate: 2019-02-24 11:07:39 -0800 (Sun, 24 Feb 2019) $
+; $LastChangedRevision: 26696 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/time_to_periapsis.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -146,13 +146,16 @@ pro time_to_periapsis, h, time=tref, result=dat
   print,"  [km]        [sec]  [hh:mm:ss]"
   print,"-------------------------------"
 
+  indx = where((alt.x ge (atime - 60D)) and (alt.x le (ptime + 60D)))
+  t = atime + dindgen(round(ptime - atime) + 1L)
+  y = spline(alt.x[indx], alt.y[indx], t)
 
-  dat = {alt   : h                 , $
-         dt    : replicate(1D, nh) , $
-         ptime : ptime             , $
-         atime : atime             , $
-         palt  : palt              , $
-         aalt  : aalt                 }
+  dat = {alt   : h                            , $
+         dt    : replicate(!values.d_nan, nh) , $
+         ptime : ptime                        , $
+         atime : atime                        , $
+         palt  : palt                         , $
+         aalt  : aalt                            }
 
   for i=0,(n_elements(h)-1) do begin
     if ((h[i] ge palt) and (h[i] le aalt)) then begin
