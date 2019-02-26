@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-02-14 14:20:40 -0800 (Thu, 14 Feb 2019) $
-; $LastChangedRevision: 26630 $
+; $LastChangedDate: 2019-02-25 14:17:11 -0800 (Mon, 25 Feb 2019) $
+; $LastChangedRevision: 26704 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -100,7 +100,7 @@ function spp_swp_spe_deflut_cal
   par = polycurve2(order= 5)
   anglerange = findgen(141,start = -70, increment = 1)
   anglerangedefs = spp_swp_spe_deflector_func(anglerange)
-  fit, anglerange, anglerangedefs, param = par
+  fit, anglerange, anglerangedefs, param = par, verbose = 0
   diffdefs = findgen(0xffff * 2 + 1) - 0xffff
   guess = diffdefs * 0 + 0.5
   angles = solve(diffdefs, xguess = guess, param = par)

@@ -57,6 +57,9 @@ FUNCTION sppeva_load_spp, param, perror
   if(strmatch(param,'*_f1_100bps_*') and (cp eq 0))then begin
     sppeva_get_fld,'f1_100bps'
   endif
+  if(strmatch(param,'*_dcb_events_*') and (cp eq 0))then begin
+    sppeva_get_fld,'dcb_events'
+  endif
   
   ;----------------------
   ; FIELDS RFS Level 1

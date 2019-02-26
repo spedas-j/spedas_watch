@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-02-22 12:00:21 -0800 (Fri, 22 Feb 2019) $
-; $LastChangedRevision: 26685 $
+; $LastChangedDate: 2019-02-25 14:17:11 -0800 (Mon, 25 Feb 2019) $
+; $LastChangedRevision: 26704 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -54,7 +54,6 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         xpandEbins = reform(span_eflux.v, nTimePoints[1], (def_bins * anode_bins), nrg_bins)
         flatEbins = reform(xpandEbins[*,0,*])
         totalEflux_nrg = total(total(xpandEflux_nrg, 2) , 2)
-        ;; Make a new struct for NRG spec and put into tplot
         sum_nrg_spec = {x: span_eflux.x, $
                         y: totalEflux_nrg, $
                         v: flatEbins }
@@ -65,17 +64,16 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         xpandPhi = reform(span_phi.y, nTimePoints[1], anode_bins, (def_Bins*nrg_bins))
         flatAnodeBins = xpandphi[*,*,0]
         totalEflux_anode = total(total(xpandEflux_anode, 3),3)
-        ;; Make a new struct for anode spec and put into tplot
         sum_anode_spec = {x: span_eflux.x, $
                           y: totalEflux_anode, $
                           v: flatAnodeBins }
         store_data, 'psp_swp_' + spx + '_sf0_ANODE_SPEC_ql', data = sum_anode_spec
-        ;; make a line here to generate def spec / TBD
+        ;;----------------------------------------------------------
+        ;; Gen Def Spec
         xpandEflux_def = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
         xpandTheta = reform(span_theta.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
         flatDefBins = reform(xpandTheta[*,0,*,0])
         totalEflux_def = total(total(xpandEflux_def, 2),3)
-        ;; Make a new struct for anode spec and put into tplot
         sum_def_spec = {x: span_eflux.x, $
                           y: totalEflux_def, $
                           v: flatDefBins }
