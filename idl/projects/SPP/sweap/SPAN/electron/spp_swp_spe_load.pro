@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-02-25 14:17:11 -0800 (Mon, 25 Feb 2019) $
-; $LastChangedRevision: 26704 $
+; $LastChangedDate: 2019-02-26 12:52:49 -0800 (Tue, 26 Feb 2019) $
+; $LastChangedRevision: 26709 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -22,7 +22,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   ;test                                  ='psp/data/sci/sweap/spa/L1/2018/10/spa_hkp/spp_swp_spa_hkp_20181004_v??.cdf
   vars = orderedhash()
   vars['sf1'] = 'EFLUX EMODE'
-  vars['sf0'] = '*';'EFLUX EMODE THETA PHI ENERGY'
+  vars['sf0'] = 'EFLUX EMODE *THETA* *PHI* *ENERGY*'
   vars['hkp'] = '*TEMP* *_BITS *_FLAG*'
   
   tr = timerange(trange)
@@ -48,7 +48,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         get_data, 'psp_swp_' + spx + '_sf0_PHI', data = span_phi
         get_data, 'psp_swp_' + spx + '_sf0_THETA', data = span_theta
         ;;----------------------------------------------------------
-        ;; make an nrg spec
+        ;; Make an Nrg Sypec
         nTimePoints = size(span_eflux.v)
         xpandEflux_nrg = reform(span_eflux.y, nTimePoints[1],  anode_bins, def_bins, nrg_bins)
         xpandEbins = reform(span_eflux.v, nTimePoints[1], (def_bins * anode_bins), nrg_bins)
@@ -59,7 +59,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
                         v: flatEbins }
         store_data, 'psp_swp_' + spx + '_sf0_ENERGY_SPEC_ql', data = sum_nrg_spec
         ;;----------------------------------------------------------
-        ;; make an anode spec
+        ;; Make an Anode Apec
         xpandEflux_anode = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
         xpandPhi = reform(span_phi.y, nTimePoints[1], anode_bins, (def_Bins*nrg_bins))
         flatAnodeBins = xpandphi[*,*,0]

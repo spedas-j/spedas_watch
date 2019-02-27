@@ -26,7 +26,7 @@ pro spp_fld_sc_hk_high_load_l1, file, prefix = prefix
       options, name, 'psym_lim', 200
       options, name, 'symsize', 0.75
       
-      options, name, 'datagap', 120d
+      options, name, 'datagap', 1200d
 
     endfor
 
