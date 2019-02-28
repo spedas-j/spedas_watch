@@ -153,11 +153,22 @@ endif
 	e0=3.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; default
 
 
+; 15-09-02	Deep Dip 4 begins
 
 
-;if time gt time_double('2015-11-24/00:00') then begin
+
+; 15-09-10	Deep Dip 4 ends
+
+if time gt time_double('2015-09-12/00:00') then begin
+	e0=7.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; 1 ram horizontal - second periapsis checked 20190218
+endif
+
+
+
+
+if time gt time_double('2015-11-24/00:00') then begin
 	e0=3.6 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; scenario 1, 5th orbit ram horizontal, 20170103
-;endif
+endif
 
 ;if time gt time_double('2015-11-27/00:00') then begin
 ;	e0=3.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; scenario 1, 6th orbit ram horizontal, 20161230
@@ -749,6 +760,10 @@ if time gt time_double('2018-06-05/00:00') then begin					; checked 20180tbd, SZ
 	e0=3.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, ok determined, assumed vert wind was zero in att=3 
 endif
 
+if time gt time_double('2018-06-12/00:00') then begin					; checked 20190105, SZA=67 rapidly changing, -2 to -4V = Vsc, 
+	e0=3.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 6th orbit, ok determined, assumed vert wind was zero in att=3 
+endif
+
 if time gt time_double('2018-06-19/00:00') then begin					; checked 20180tbd, SZA=? rapidly changing, -? to -?V = Vsc, 
 	e0=3.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5th orbit, ok determined, assumed vert wind was zero in att=3 
 endif
@@ -851,10 +866,62 @@ if time gt time_double('2018-10-09/00:00') then begin					; checked 20181021, SZ
 endif
 
 if time gt time_double('2018-11-07/00:00') then begin					; checked tbd, SZA=98, s/c potential alternating on even/odd orbits scenario 1, 
-	e0=2.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; tbd ram horizontal 1th orbit, poor determination, assumed vertical wind roughly zero in att=2 
+	e0=2.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; tbd ram horizontal 1th orbit, ok determination, assumed vertical wind roughly zero in att=3 
 endif
 
 
+if time gt time_double('2018-11-02/00:00') then begin					; checked 20181130, SZA=99, s/c pot ~ -0.4 to -2.2 
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 6th orbit, ok determination, assumed vertical wind zero in att=2,3 
+endif
+
+if time gt time_double('2018-11-13/00:00') then begin					; checked 20181129, SZA=99, s/c pot ~ -0.2 to -2.0 
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 2nd orbit, ok determination, assumed vertical wind zero in att=2,3 
+endif
+
+if time gt time_double('2018-11-17/00:00') then begin					; checked 20181129, SZA=100, s/c pot ~ -0.3 
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 2nd orbit, ok determination, assumed vertical wind zero in att=2,3 
+endif
+
+if time gt time_double('2018-11-20/00:00') then begin					; checked 20181128, SZA=102, s/c pot ~ -0.5 
+	e0=2.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		;  
+	e0=2.0 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		;  
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 6th orbit, ok determination, assumed vertical wind roughly zero in att=2 
+endif
+
+if time gt time_double('2018-12-18/00:00') then begin					; checked 20190102, SZA=130, s/c pot ~ -0.1-1.0 
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 3 orbits, poor determination, assumed vertical wind roughly zero in att=2 
+endif
+
+
+if time gt time_double('2019-01-02/00:00') then begin					; checked 20190116, SZA=148, s/c pot ~ -0.3 
+	e0=2.3 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		;  
+	e0=2.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 6 orbits, ok determination, assumed vertical wind roughly zero in att=2 
+endif
+
+if time gt time_double('2019-01-25/00:00') then begin					; checked 20190116, SZA=148, s/c pot ~ -0.3 
+;	e0=2.8 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 5 orbits, no determination in att=1,2 
+endif
+
+
+if time gt time_double('2019-02-05/00:00') then begin					; checked 20190218, SZA=161, s/c pot ~ -0.3 
+	e0=2.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 4 orbits, att=1,2
+endif
+
+if time gt time_double('2019-02-05/00:00') then begin					; checked 20190226, SZA=130, s/c pot ~ -0.3 
+	e0=2.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; no ram horizontal, assume roughly zero in att=1,2
+endif
+
+;**************************************************************************************************************************************************
+; 2019-02-11  aerobraking begins - no ram horizontal data until 19-05-01
+; e0 offsets will have to be estimated by assuming winds are near zero - which is not accurate near the terminator
+;**************************************************************************************************************************************************
+
+if time gt time_double('2019-02-13/00:00') then begin					; checked 20190220, SZA=150, s/c pot ~ -0.1 
+	e0=2.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; no ram horizontal, att=1,2 assume wind~0
+endif
+
+
+; Problem - the offsets for different attenuator states may need sc_pot dependence. For 2018-12-18, the att 1->2 needs to be larger for pot=-.7V
 
 
 ;tplot,['mvn_sta_c6_O2+_lpw_sc_pot_all','mvn_sta_c8_P2_D_ram','mvn_sta_o2+_c8_th','mvn_sta_o2+_c8_vperp','mvn_sta_o2+_wind_along_track','mvn_sta_c6_scpot','mvn_sta_c6_att'],var_label=['orbit_mvn','LT','LAT','sza','alt'],title='MAVEN STATIC

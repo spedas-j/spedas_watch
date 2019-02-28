@@ -32,8 +32,8 @@
 ;  
 ;   
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-01-18 15:12:18 -0800 (Fri, 18 Jan 2019) $
-; $LastChangedRevision: 26485 $
+; $LastChangedDate: 2019-02-27 11:50:14 -0800 (Wed, 27 Feb 2019) $
+; $LastChangedRevision: 26717 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot2cdf.pro $
 ;-
 
@@ -59,8 +59,12 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
     endfor
   endif else begin
     get_data, tplot_vars[0], dlimits=dl
-
-    g_attributes_custom = dl.cdf.gatt
+    
+    if ~is_struct(dl) then begin
+      dprint, dlevel=0, 'Error, no global attributes structure found; using the default..'
+      g_attributes_custom = g_attributes_structure
+    endif else g_attributes_custom = dl.cdf.gatt
+    
     g_tag = tag_names(g_attributes_custom)
     for i=0,N_ELEMENTS(g_tag)-1 do begin
       str_element,g_attributes_structure,g_tag[i],g_attributes_custom.(i),/add

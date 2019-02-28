@@ -154,6 +154,8 @@ get_ind=ind
 
 ; remove everything but co2
 
+	dat2=dat 
+
 	mass_arr=reform(dat.mass_arr[31,*])
 	ms3 = 40.
 	ms4 = 60.
@@ -163,7 +165,9 @@ get_ind=ind
 ;	mass_scale=8.0 & cnts_scale=0.90 & ms1=29.2 & ms2=37.9			; testing - works better for 20170712 for along-track near zero
 ;	mass_scale=8.0 & cnts_scale=0.80 & ms1=29.2 & ms2=37.9			; testing - not that good for 201805 co2 mode - .85 still best
 
-	mass_scale=7.5 & cnts_scale=0.70 & ms1=29.2 & ms2=37.9			; testing 20180922, used nightside O2+ for calibration (very little CO2+) 20180908/0357UT
+;	mass_scale=7.5 & cnts_scale=0.70 & ms1=29.2 & ms2=37.9			; testing 20180922, used nightside O2+ for calibration (very little CO2+) 20180908/0357UT
+
+;	mass_scale=7.5 & cnts_scale=0.55 & ms1=29.2 & ms2=37.9			; testing 20181212, on 20180526 data
 
 	ind32 = where(mass_arr ge ms1 and mass_arr le ms2,count)		 
 
@@ -175,6 +179,16 @@ get_ind=ind
 	ind33 = where(total(dat.cnts,2) lt 0.,count)
 	if count ge 1 then dat.cnts[ind33,*]=0.
 	dat.data=dat.cnts
+
+; fix the dat.dead for co2 by adjusting it for differences in efficiency between o2 and co2.
+	mass_arr=reform(dat2.mass_arr(16,*))
+	ind_o2 = where(mass_arr lt 40.)
+	cnt_o2 = total(dat2.cnts[*,ind_o2],2)>10.
+;	co2_eff_corr = 1.6				; ground calibrations indicated this was ~1.6, perhaps foil outgassing increased co2+ penetration
+	co2_eff_corr = 1.25				; determined from inflight calibration using apid d9 - program plot_d9r.pro - checked several days during mission
+	cnt_co2 = total(dat.data,2)>10.
+	eff_corr = (cnt_o2*co2_eff_corr+cnt_co2)/(cnt_o2+cnt_co2)
+	dat.dead = dat.dead*(eff_corr#replicate(1.,64))
 
 endelse
 endelse

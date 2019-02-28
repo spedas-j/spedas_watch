@@ -20,7 +20,7 @@ timespan,date,1,/day
 tr = timerange()
 
 ;;    ===================================
-;; 2) Select probe, datatype
+;; 2) Select probe, datatype=electron
 ;;    ===================================
 probe = 'a'          ; currently on ELFIN, only A data is available for EPD (B coming soon)
 datatype = 'pef'    ; currently pef (electron fast mode) data is the only type available, pif coming soon
@@ -32,6 +32,16 @@ timespan, '2019-01-05'
 tr = timerange()
 elf_load_epd, probes='a', datatype='pef', trange=tr
 tplot, 'ela_pef'
+stop
+
+
+;;    ===================================
+;; 2) Select probe, datatype=electron
+;;    ===================================
+timespan, '2018-12-22'
+tr = timerange()
+elf_load_epd, probes='a', datatype='pif', trange=tr
+tplot, 'ela_pif'
 stop
 
 ; remove tplot variables created so far
