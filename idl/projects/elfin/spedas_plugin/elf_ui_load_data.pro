@@ -213,7 +213,7 @@ print, event.index
       'CLEARPARAMS': begin
         ;clear the level and type list widget of all selections
         probelist = widget_info(event.handler,find_by_uname='probelist')
-        widget_control,levellist,set_list_select=-1
+        widget_control,probelist,set_list_select=-1
         levellist = widget_info(event.handler,find_by_uname='levellist')
         widget_control,levellist,set_list_select=-1
         typelist = widget_info(event.handler,find_by_uname='typelist')
@@ -280,6 +280,7 @@ print, event.index
                          state.loadedData,$
                          state.statusBar,$
                          state.historyWin,$
+                         state.baseid, $
                          replay=replay,$
                          overwrite_selections=overwrite_selections ;allows replay of user overwrite selections from spedas 
 
@@ -412,9 +413,9 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
                                                
    ;create the list box and a clear all button for the data types for a given
    ;instrument
-   fgmL1TypeArray = ['fgs','fgf']
+   fgmL1TypeArray = ['fgs']  ;,'fgf']
    fgmL2TypeArray = ['fgs_dsl','fgs_gei','fgs_sm','fgf_dsl','fgf_gei','fgf_sm']
-   epdL1TypeArray = ['pis','pif','pes','pef']
+   epdL1TypeArray = ['pif','pef']   ;['pis','pif','pes','pef']
    epdL2TypeArray = ['pis_enphi_eflux','pif_enphi_eflux','pes_enphi_eflux','pef_enphi_eflux']
    stateTypeArray = ['pos','vel']
    mrmaL1TypeArray = ['mrma']

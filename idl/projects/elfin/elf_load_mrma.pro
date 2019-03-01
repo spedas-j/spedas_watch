@@ -102,10 +102,10 @@ pro elf_load_mrma, trange = trange, probes = probes, datatype = datatype, $
 
   ; For now delete existing data types - TO DO: Query user to delete
   ; may want to add this check in elf_load_data
-  tvars2del=tnames('el*mrma*')
-  del_data, tvars2del
-  ; track existing vars for commparison later
-  existing_tvars = tnames()
+  ;tvars2del=tnames('el*mrma*')
+  ;del_data, tvars2del
+  ;; track existing vars for commparison later
+  ;existing_tvars = tnames()
 
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'mrma', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $

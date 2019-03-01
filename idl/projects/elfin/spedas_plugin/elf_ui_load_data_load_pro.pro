@@ -115,7 +115,7 @@ pro elf_ui_load_data_load_pro,$
   
     ; loop over loaded data
     for i = 0,n_elements(new_vars)-1 do begin
-     
+    
       ; check if data is already loaded, if so query the user on whether they want to overwrite data
       spd_ui_check_overwrite_data,new_vars[i],loadedData,parent_widget_id,statusBar,historyWin, $
         overwrite_selection,overwrite_count,replay=replay,overwrite_selections=overwrite_selections
