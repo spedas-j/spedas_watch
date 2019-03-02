@@ -25,14 +25,19 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-02-27 15:27:21 -0800 (Wed, 27 Feb 2019) $
-;$LastChangedRevision: 26725 $
+;$LastChangedDate: 2019-03-01 10:50:14 -0800 (Fri, 01 Mar 2019) $
+;$LastChangedRevision: 26732 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/fpi/mms_fpi_correct_photoelectrons.pro $
 ;-
 
 function mms_fpi_correct_photoelectrons, in_tvarname, scpot=scpot, _extra=_extra
 
   get_data, in_tvarname, data=indata
+  
+  if ~is_struct(indata) then begin
+    dprint, dlevel=0, 'Error, ' + in_tvarname + ' not found.'
+    return, -1
+  endif
   time_idx = lindgen(n_elements(indata.X))
   
   fpi_photoelectrons = mms_part_des_photoelectrons(in_tvarname)

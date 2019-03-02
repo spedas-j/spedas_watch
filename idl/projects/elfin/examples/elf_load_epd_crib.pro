@@ -45,6 +45,6 @@ tplot, 'ela_pif'
 stop
 
 ; remove tplot variables created so far
-del_data, 'ela_pef'
+del_data, 'ela_p*f'
 
 end
