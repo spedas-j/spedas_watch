@@ -12,8 +12,16 @@ pro mvn_sep_fov_mapper,pdf,sepphi,septheta
 
 end
 
-pro mvn_sep_fov_plot,pos=pos,suredge=suredge,fraction=fraction,time=time,tal=tal,cr=cr,rad=rad
+pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fraction=fraction,cr=cr
 
+  @mvn_sep_fov_common.pro
+  
+  pos= mvn_sep_fov[tms].pos
+  time=mvn_sep_fov[tms].time
+  tal= mvn_sep_fov[tms].tal
+  rad= mvn_sep_fov[tms].rad
+  att= mvn_sep_fov[tms].att
+  
   shcoa=30.
   srefa=15.5 ;ref angle
   scrsa=21.0 ;cross angle
@@ -42,42 +50,66 @@ pro mvn_sep_fov_plot,pos=pos,suredge=suredge,fraction=fraction,time=time,tal=tal
     return
   endif
 
-  p=image(fraction.cossza,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=0.,max=1.) ;Mars surface
-  p=colorbar(target=p,rgb=colortable(64,/reverse),range=[0,1],title='cos(SZA)',position=[0.7,.1,.95,.15])
+  logfrac=1
+  if keyword_set(logfrac) then begin
+    cossza=alog10(fraction.cossza)
+    atmosh=alog10(fraction.atmosh)
+    tanalt=alog10(fraction.tanalt)
+    cosszamin=-2
+    cosszamax=0
+    tanaltmin=0
+    tanaltmax=3
+  endif
+  tanalt=fraction.tanalt
+  tanaltmin=0
+  tanaltmax=100
+  p=image(tanalt,fraction.phid,fraction.thed-90.,rgb=colortable(62,/reverse),/o,min=tanaltmin,max=tanaltmax,transparency=10) ;Mars surface
+  p=image(cossza,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Mars surface
+  p=image(atmosh,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Mars surface
+  p=colorbar(rgb=colortable(62,/reverse),range=[tanaltmin,tanaltmax],title='Tangent Altitude (km)',position=[0.7,.15,.95,.2],transparency=10)
+  p=colorbar(rgb=colortable(64,/reverse),range=[cosszamin,cosszamax],title='Log10[cos(SZA)]',position=[0.7,.05,.95,.1],transparency=10)
 
   tags=strlowcase(tag_names(pos))
-  tags=[tags,'Mars Surface']
-  colors=['orange','deep_sky_blue','r','g','m','c','b','r']
-  syms=['o','o','o','o','o','*','*','.']
+  tags=[tags,strtrim(fix(mvn_sep_fov0.occalt),2)+' km','Sunward','Mars Surface']
+  colors=['orange','deep_sky_blue','r','g','m','c','b','k','b','r']
+  syms=['o','o','o','o','o','*','*','x','.','.']
   npos=n_tags(pos)
-  for ipos=-1,npos-2 do begin
+  for ipos=-2,npos-1 do begin
+    if ipos eq -3 then pdf=occedge ;Mars occultation altitude
+    if ipos eq -2 then pdf=sunedge ;Sun-ward hemisphere
     if ipos eq -1 then pdf=suredge ;Mars edge
     if ipos ge 0  then pdf=pos.(ipos) ;planets and x-ray sources
     mvn_sep_fov_mapper,pdf,sepphi,septheta
     p=plot([sepphi,sepphi],[septheta,septheta],/o,name=tags[ipos],sym_color=colors[ipos],sym=syms[ipos],/sym_filled,' ')
   endfor
-  p=legend(/orient)
+  p=legend(/orient,position=[1,1],SAMPLE_WIDTH=0)
 
   for pn=-1,2 do begin  ;SEP 2R,1F,2F,1R
-    p=plot(edges+rebin([90.*pn-45.,0.],[2,5]),/o)
+    if att[pn and 1] eq 1. then p=plot(edges    +rebin([90.*pn-45.,0.],[2,5]),/o)
+    if att[pn and 1] eq 2. then p=plot(edges/2.+rebin([90.*pn-45.,0.],[2,5]),/o)
     p=plot(edge0+rebin([90.*pn-45.,0.],[2,5]),/o,'--')
-    p=text((3.-pn)/5.,.86,strtrim(fraction.mars_surfa[pn],2))
+    p=text((3.-pn)/5.,.92,strtrim(fraction.mars_surfa[pn],2))
+    p=text((3.-pn)/5.,.89,strtrim(fraction.atmo_shine[pn],2))
+    p=text((3.-pn)/5.,.86,strtrim(fraction.ashine_fov[pn],2))
     p=text((3.-pn)/5.,.83,strtrim(fraction.mars_shine[pn],2))
     p=text((3.-pn)/5.,.80,strtrim(fraction.mshine_fov[pn],2))
     p=text((3.-pn)/5.,.76,'SEP'+title[pn])
   endfor
   p=plot(45.*[-3.,-1.,0.,1.,3.],[0.,0.,0.,0.,0.],'+',/o) ;centers of fov
-  p=text(0,.86,'Mars Surface')
+  p=text(0,.92,'Mars Surface')
+  p=text(0,.89,'Atmo Shine')
+  p=text(0,.86,'Atmo Shine*FOV')
   p=text(0,.83,'Mars Shine')
-  p=text(0,.80,'Shine*FOV')
+  p=text(0,.80,'Mars Shine*FOV')
   p=text(0,.09,'mvn alt (km)')
   p=text(0,.06,'Sco X-1 tanalt (km)')
-  p=text(0,.03,'Distance to Phobos (km)='+strtrim(rad.pho,2))
+  p=text(0,.03,'Distance to Phobos (km)='+strtrim(fix(rad.pho),2)+', mvn speed (km/s)='+strtrim(rad.ram,2))
   for pn=0,2 do begin  ;tangent altitude
     p=text((3.-pn)/5.5,.12,(['sphere','ellipsoid','areoid'])[pn])
     p=text((3.-pn)/5.5,.09,strtrim(tal[pn].mar,2))
     p=text((3.-pn)/5.5,.06,strtrim(tal[pn].sx1,2))
   endfor
   p=text(0,0,time_string(time))
+  p=text(.3,0,'SEP1 ATT='+strtrim(att[0],2)+', SEP2 ATT='+strtrim(att[1],2))
 
 end

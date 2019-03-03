@@ -29,7 +29,9 @@ pro mvn_sep_fov_calc
   cx1=[cos(cx1r[0])*cos(cx1r[1]),sin(cx1r[0])*cos(cx1r[1]),sin(cx1r[1])]
   pos.cm1=quaternion_rotation(cm1,qrot,/last_ind)
   pos.sx1=quaternion_rotation(sx1,qrot,/last_ind)
+  pos.ram=quaternion_rotation(pos.ram,qrot,/last_ind) ;MAVEN velocity unit vector wrt Mars in SEP1 frame
   ;  pos.cx1=quaternion_rotation(cx1,qrot,/last_ind)
+
 
   if keyword_set(sep1_svy) then begin
     map1=mvn_sep_get_bmap(9,1)
@@ -58,7 +60,7 @@ pro mvn_sep_fov_calc
     att=transpose([[sep1.att],[sep2_att]])
   endif else att=replicate(1.,[2,nt])
 
-  crosalt=mvn_sep_fov0.occalt ;crossing altitude (km) maximum altitude for along path integration
+  occalt=mvn_sep_fov0.occalt ;crossing altitude (km) maximum altitude for along path integration
   occos=cos(!dtor*14.) ;within 14 degrees of detector fov center
   alt=rad.mar-rmars ;altitude (km)
   npos=n_tags(pos)
@@ -67,15 +69,15 @@ pro mvn_sep_fov_calc
     tal[0,*].(ipos)=transpose(rad.mar*sqrt(1.d0-pdm.(ipos)^2)-rmars) ;temporary inaccurate tangent altitude
     wpdmlt0=where(pdm.(ipos) lt 0.,/null) ;where line of sight away from Mars
     if n_elements(wpdmlt0) gt 0 then tal[0,wpdmlt0].(ipos)=transpose(alt[wpdmlt0]) ;set tangent altitude equal to altitude
-    horcro=((tal[0,*].(ipos)-crosalt)*shift((tal[0,*].(ipos)-crosalt),1)) lt 0. ;crossed the crosalt
+    horcro=((tal[0,*].(ipos)-occalt)*shift((tal[0,*].(ipos)-occalt),1)) lt 0. ;crossed the occalt
     occ.(ipos)=0
     occ[where((pos[0,*].(ipos) gt +occos) and horcro and att[0,*] eq 1.,/null)].(ipos)=1 ;sep1f
     occ[where((pos[2,*].(ipos) gt +occos) and horcro and att[1,*] eq 1.,/null)].(ipos)=2 ;sep2f
     occ[where((pos[0,*].(ipos) lt -occos) and horcro and att[0,*] eq 1.,/null)].(ipos)=3 ;sep1r
     occ[where((pos[2,*].(ipos) lt -occos) and horcro and att[1,*] eq 1.,/null)].(ipos)=4 ;sep2r
   endfor
-  marsur=sqrt(1.-(rmars/rad.mar)^2) ;dot product of mars surface by mars center
-  pdm.mar=marsur
+  pdm.mar=sqrt(1.-(rmars/rad.mar)^2) ;dot product of mars surface by mars center
+  pdm.ram=sqrt(1.-((rmars+occalt)/rad.mar)^2) ;dot product of mars occalt by mars center
   ;  tal.mar=alt
   ;  occtimes=where(occ.sx1 ne 0,/null)
 
@@ -107,11 +109,11 @@ pro mvn_sep_fov_calc
   wpdmlt0=where(pdm.sx1 lt 0.,/null)
   if n_elements(wpdmlt0) gt 0 then tal[*,wpdmlt0].sx1=tal[*,wpdmlt0].mar ;set the tangent altitude equal to altitude
 
-  ;  wtal=where((abs(pos[0,*].sx1) gt occos or abs(pos[2,*].sx1) gt occos) and tal[2,*].sx1 gt 0. and tal[2,*].sx1 lt crosalt,ntal,/null)
+  ;  wtal=where((abs(pos[0,*].sx1) gt occos or abs(pos[2,*].sx1) gt occos) and tal[2,*].sx1 gt 0. and tal[2,*].sx1 lt occalt,ntal,/null)
   ntal=nt
   wtal=lindgen(nt)
   if ntal eq 0 then return
-  tadsx1=sqrt((rmars+2.*crosalt)^2-(rmars+reform(tal[2,wtal].sx1))^2); distance between tangent altitude and 2*crosalt
+  tadsx1=sqrt((rmars+2.*occalt)^2-(rmars+reform(tal[2,wtal].sx1))^2); distance between tangent altitude and 2*occalt
   psx1n=rad[wtal].mar*pdm[wtal].sx1 ;distance from MAVEN to tanalt point (km)
 
   nd=1000 ;integration elements

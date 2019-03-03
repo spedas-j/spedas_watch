@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-02-20 14:00:14 -0800 (Wed, 20 Feb 2019) $
-;$LastChangedRevision: 26659 $
+;$LastChangedDate: 2019-03-02 16:20:46 -0800 (Sat, 02 Mar 2019) $
+;$LastChangedRevision: 26743 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -217,12 +217,15 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
     minutes = '*'
     if datal1type[0] ne '' then begin
       level = '1'
-      remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Data/ICON_L' + level + '_' + strupcase(instrument) + '_Science_YYYY-MM-DD_' + minutes +'_v' + v_str + 'r' + r_str + '.NC'
+      remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '-A/YYYY/DOY/Data/ICON_L' + level + '_' + strupcase(instrument) + '-A_Science_YYYY-MM-DD_' + minutes +'_v' + v_str + 'r' + r_str + '.NC'
      endif
     if datal2type[0] ne '' then begin
       ;LEVEL.2/MIGHTI/2010/141/Vector-Winds/ICON_L2_MIGHTI_Vector-Wind-Green_2010-05-21_v01r000.NC
+      ;LEVEL.2/MIGHTI/2010/141/Temperature/ICON_L2_MIGHTI-A_Temperature-A-Band_2010-05-21_v01r000.NC
       level = '2'
-      remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Vector-Winds/ICON_L' + level + '_' + strupcase(instrument) + '_Vector-Wind-' + ['Green','Red'] + '_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
+      remote_path0 = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Vector-Winds/ICON_L' + level + '_' + strupcase(instrument) + '_Vector-Wind-' + ['Green','Red'] + '_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
+      remote_path1 = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Temperature/ICON_L' + level + '_' + strupcase(instrument) + '-A_Temperature-A-Band_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
+      remote_path = [remote_path0, remote_path1]
     endif
    pathformat = [pathformat, remote_path]  
     
@@ -241,7 +244,7 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
     if instrument eq 'euv' and level eq '1' then begin
       ; For EUV level 1, we have to search and find the actual filenames
       relpathnames = icon_euv_filesnames(relpathnames, !icon.remote_data_dir, trange, fversion=fversion, frevision=frevision)
-    endif else if instrument eq 'mighti-a' and level eq '1' then begin 
+    endif else if instrument eq 'mighti' and level eq '1' then begin 
       ; For MIGHTI level 1, we have to search and find the actual filenames
       relpathnames = icon_mighti_filesnames(relpathnames, !icon.remote_data_dir, trange, fversion=fversion, frevision=frevision)
     endif 

@@ -37,19 +37,38 @@ function mvn_sep_fov_mars_shine,rmars,posmar,possun,fov=fov,resdeg=resdeg,respon
   if n_elements(sizemar) eq 1 then nt=1 else nt=sizemar[1]
   mars_surfa=replicate(fnan,[4,nt])
   mars_shine=mars_surfa
-  mshine_fov=mars_shine
-; for it=0,nt-1 do begin
+  atmo_shine=mars_surfa
+  mshine_fov=mars_surfa
+  ashine_fov=mars_surfa
+
   if keyword_set(vector) then begin ;vectorization: faster, but uses more memory!
     dvec=[transpose(reform(x,nphi*nthe)),transpose(reform(z,nphi*nthe)),transpose(reform(y,nphi*nthe))]
     mvn_sep_fov_mars_incidence,rmars,posmar,dvec,spoint
     cossza=reform(total((spoint-transpose(rebin(posmar,[3,nt,nphi*nthe]),[0,2,1]))*transpose(rebin(possun,[3,nt,nphi*nthe]),[0,2,1]),1),[nphi,nthe,nt])/rmars
+    tanalt=cossza
   endif else begin
     cossza=replicate(fnan,[nphi,nthe,nt])
+    tanalt=cossza
+    atmosh=cossza
+    radmar=sqrt(total(posmar^2,1)) ;radial distance of MAVEN from Mars (km)
     for ithe=0,nthe-1 do begin
       for iphi=0,nphi-1 do begin
         dvec=[x[iphi,ithe],z[iphi,ithe],y[iphi,ithe]]
-        mvn_sep_fov_mars_incidence,rmars,posmar,dvec,spoint
-        cossza[iphi,ithe,*]=total((reform(spoint)-posmar)*possun,1)/rmars
+        pdmmar=total(posmar*rebin(dvec,[3,nt]),1)/radmar
+        talt=radmar*sqrt(1.d0-pdmmar^2)-rmars ;tangent altitude of dvec (km)
+        wtalt0=where(talt lt 0. and pdmmar gt 0.,/null,nws) ;surface
+        wtagt0=where(talt gt 0. and talt lt 100. and pdmmar gt 0.,/null,nwt) ;for atmosphere shine
+        talt[where(pdmmar lt 0. or talt lt 0.,/null)]=fnan  ;where dvec away from Mars or negative tanalt
+        tanalt[iphi,ithe,*]=talt
+        if nws gt 0 then begin
+          mvn_sep_fov_mars_incidence,rmars,posmar[*,wtalt0],dvec,spoint
+          cossza[iphi,ithe,wtalt0]=total((reform(spoint)-posmar[*,wtalt0])*possun[*,wtalt0],1)/rmars
+        endif
+;        if nwt gt 0 then begin
+          postal=dvec#(radmar*pdmmar)-posmar ;tangent altitude vector from Mars center (km)
+          cosszatal=total(postal*possun,1)/sqrt(total(postal^2,1)) ;cos(sza of tanalt)
+          atmosh[iphi,ithe,*]=(cosszatal gt 0.)*(10.+cosszatal)*exp(-talt/10.)
+;        endif
       endfor
     endfor
   endelse
@@ -59,15 +78,16 @@ function mvn_sep_fov_mars_shine,rmars,posmar,possun,fov=fov,resdeg=resdeg,respon
     wfov=replicate(1.,[nph2,nth2]) ;constant (uniform) weighting for fov elements
     wfo2=fphi#fthe
     if keyword_set(response) then p=image(wfo2,phid[wph2],thed[wthe]-90.,rgb=33,/o,min=0.,max=1.)
-    infov0=cossza[wph2,*,*] ;elements within fov
-    infov=infov0[*,wthe,*]
-    mars_surfa[isep,*]=total(total(finite(infov)*rebin(wfov,[nph2,nth2,nt]),1),1)/total(wfov) ;mars surface (disc)
-    mars_shine[isep,*]=total(total((infov gt 0.)*infov*rebin(wfov,[nph2,nth2,nt]),/nan,1),1)/total(wfov) ;mars shine
-    mshine_fov[isep,*]=total(total((infov gt 0.)*infov*rebin(wfo2,[nph2,nth2,nt]),/nan,1),1)/total(wfo2) ;mars shine convolved w/ fov response
+    cosszafov=cossza[wph2,wthe,*] ;elements within fov
+    atmoshfov=atmosh[wph2,wthe,*]
+    mars_surfa[isep,*]=total(total(finite(cosszafov)*rebin(wfov,[nph2,nth2,nt]),1),1)/total(wfov) ;mars surface (disc)
+    mars_shine[isep,*]=total(total((cosszafov gt 0.)*cosszafov*rebin(wfov,[nph2,nth2,nt]),/nan,1),1)/total(wfov) ;mars shine
+    atmo_shine[isep,*]=total(total((atmoshfov gt 0.)*atmoshfov*rebin(wfov,[nph2,nth2,nt]),/nan,1),1)/total(wfov) ;atmo shine
+    mshine_fov[isep,*]=total(total((cosszafov gt 0.)*cosszafov*rebin(wfo2,[nph2,nth2,nt]),/nan,1),1)/total(wfo2) ;mars shine convolved w/ fov response
+    ashine_fov[isep,*]=total(total((atmoshfov gt 0.)*atmoshfov*rebin(wfo2,[nph2,nth2,nt]),/nan,1),1)/total(wfo2) ;mars shine convolved w/ fov response
   endfor
-;endfor
 
-  fraction={fov:['SEP1F','SEP2F','SEP1R','SEP2R'],mars_surfa:mars_surfa,mars_shine:mars_shine,mshine_fov:mshine_fov,cossza:cossza,phid:phid,thed:thed}
+  fraction={fov:['SEP1F','SEP2F','SEP1R','SEP2R'],mars_surfa:mars_surfa,mars_shine:mars_shine,atmo_shine:atmo_shine,mshine_fov:mshine_fov,ashine_fov:ashine_fov,cossza:cossza,tanalt:tanalt,atmosh:atmosh,phid:phid,thed:thed}
   return,fraction
 
   if 0 then begin ;old method: Mars shine on surface based on cos(sza)

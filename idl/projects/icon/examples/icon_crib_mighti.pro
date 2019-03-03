@@ -98,5 +98,40 @@ pro icon_crib_mighti, step=step, img_path=img_path
 
   endif  
 
+  if step eq 3 or step eq 99 then begin
+    ;MIGHTI Level-2 Temperature
+    del_data, '*'
+
+    timeRange = ['2010-05-21/00:00:00', '2010-05-21/23:59:59']
+    instrument = 'mighti'
+    datal1type = ''
+    datal2type = '*'
+    icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
+
+    ;options, 'ICON_L2_MIGHTI_A_TEC_COLD_TEMPERATURE', 'ytitle', 'Cold Temp'
+    ;options, 'ICON_L1_MIGHTI_A_QUALITY_FLAG_NEAR_TERMINATOR', 'ytitle', 'Quality FLag'
+    options, 'ICON_L2_MIGHTI_A_Temperatures', 'ytitle', 'Temperatures'
+    
+    get_data, 'ICON_L2_MIGHTI_A_Relative_Radiance', data=d, dlimits=dlimits
+    store_data, 'Relative_Radiance', data={x:d.x, y:reform(d.y[*,2,*]), v:d.v1}, dlimits=dlimits
+    
+    options, 'Relative_Radiance', 'ytitle', 'Relative Radiance'
+
+    tplot_options, 'title', 'ICON MIGHTI Temperature (Level-2 Data)'
+
+    makepng,img_path + 'ICON_MIGHTI_L2_Temp_Example'
+
+    tplot, ['Relative_Radiance','ICON_L2_MIGHTI_A_Temperatures' ]
+
+    ;Line plot:
+    ;ICON_L2_MIGHTI_A_TEC_COLD_TEMPERATURE
+    ;ICON_L1_MIGHTI_A_QUALITY_FLAG_NEAR_TERMINATOR
+    ;
+    ;Spectrogram:
+    ;ICON_L2_MIGHTI_A_TEMPERATURES
+    ;ICON_L2_MIGHTI_A_RELATIVE_RADIANCE[*,2,*]              ; this is a 3D variable
+
+  endif
+  
   print, 'icon_crib_mighti finished'
 end

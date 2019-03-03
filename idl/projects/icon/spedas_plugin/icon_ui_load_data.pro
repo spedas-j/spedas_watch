@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-02-05 14:19:25 -0800 (Tue, 05 Feb 2019) $
-;$LastChangedRevision: 26553 $
+;$LastChangedDate: 2019-03-02 16:20:46 -0800 (Sat, 02 Mar 2019) $
+;$LastChangedRevision: 26743 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/spedas_plugin/icon_ui_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -270,8 +270,8 @@ pro icon_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRang
     uname='time_widget',$
     startyear=1995)
 
-  instrumentArrayValues = ['FUV', 'IVM', 'EUV', 'MIGHTI-A']  ; ['FUV', 'IVM', 'INST2', 'INST3']
-  instrumentArrayDisplayed = ['FUV', 'IVM', 'EUV', 'MIGHTI-A']  ; ['FUV', 'IVM', 'INST2', 'INST3']
+  instrumentArrayValues = ['FUV', 'IVM', 'EUV', 'MIGHTI']  ; ['FUV', 'IVM', 'INST2', 'INST3']
+  instrumentArrayDisplayed = ['FUV', 'IVM', 'EUV', 'MIGHTI']  ; ['FUV', 'IVM', 'INST2', 'INST3']
   
   ;Level 1
   datal1typeArray0 = ['*', 'lwp', 'sli', 'ssi', 'swp'] ;fuv

@@ -44,7 +44,8 @@ pro mvn_sep_fov,lowres=lowres,tplot=tplot,load=load,spice=spice,trange=trange,ar
 
   if ~keyword_set(occalt) then occalt=110.
   objects=['sun','earth','mars','phobos','deimos']
-  mvn_sep_fov0={rmars:3390.d,$ ;km (not accurate)
+  mvn_sep_fov0={                                 $
+    rmars:3390.d                                ,$ ;km (not accurate)
     detlab:['A-O','A-T','A-F','B-O','B-T','B-F'],$ ;single detector label
     detcol:['k',  'g',  'r',  'b',  'c',  'm']  ,$ ;single detector color
     lowres:keyword_set(lowres)                  ,$
@@ -55,8 +56,8 @@ pro mvn_sep_fov,lowres=lowres,tplot=tplot,load=load,spice=spice,trange=trange,ar
 
   nt=n_elements(times)
   nobj=n_elements(objects)
-  fnan=!values.d_nan ;dnan really!
-  pos=replicate({sun:fnan,ear:fnan,mar:fnan,pho:fnan,dem:fnan,cm1:fnan,sx1:fnan,mnp:fnan},[3,nt])
+  fnan=!values.d_nan ;dnan really! Am I using double due to higher precision for dot products?
+  pos=replicate({sun:fnan,ear:fnan,mar:fnan,pho:fnan,dem:fnan,cm1:fnan,sx1:fnan,ram:fnan},[3,nt])
   tal=pos ;tangent altitude (km) ['sphere','ellipsoid','areoid']
   pdm=reform(pos[0,*]) ;position dot mars (for occultation)
   rad=pdm ;radial distance from the center of the object (km)
@@ -69,8 +70,11 @@ pro mvn_sep_fov,lowres=lowres,tplot=tplot,load=load,spice=spice,trange=trange,ar
     rad.(iobj)=sqrt(total(pos.(iobj)^2,1)) ;distance (km)
     pos.(iobj)/=replicate(1.d,3)#rad.(iobj)
   endfor
-
   from_frame='j2000'
+  pos.ram=spice_body_vel('mars',observer,frame=from_frame,utc=times,check_objects=['mars',observer,check_maven],/force_objects) ;maven velocity wrt Mars in J2000 (km/s)
+  rad.ram=sqrt(total(pos.ram^2,1)) ;maven speed (km/s)
+  pos.ram/=-replicate(1.d,3)#rad.ram ;MAVEN velocity unit vector wrt Mars in J2000
+
   qrot=spice_body_att(from_frame,to_frame,times,/quaternion,check_objects=check_maven,/force_objects)
   ;  from_frame='IAU_MARS'
   ;  zdir=[0.,0.,1.] ;Mars North pole in IAU_MARS (oblate spheroid symmetry axis)
