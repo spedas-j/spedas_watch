@@ -104,6 +104,7 @@ pro spp_fld_f1_100bps_load_l1, file, prefix = prefix
       options, dfb_bpf_item + '_converted', 'spec', 1
       options, dfb_bpf_item + '_converted', 'no_interp', 1
       options, dfb_bpf_item + '_converted', 'ylog', 1
+      options, dfb_bpf_item + '_converted', 'zlog', 1
       options, dfb_bpf_item + '_converted', 'ystyle', 1
       options, dfb_bpf_item + '_converted', 'yrange', minmax(dfb_bpf_bins.freq_avg)
       options, dfb_bpf_item + '_converted', 'ysubtitle', 'Freq [Hz]'
@@ -168,11 +169,11 @@ pro spp_fld_f1_100bps_load_l1, file, prefix = prefix
 
   endif
 
-  options, '*f1_100*', 'datagap', 120.
+  options, '*f1_100*', 'datagap', 300.
 
 ;  options, '*f1_100*', 'datagap', 60.
 
 
-  options, '*f1_100*converted', 'datagap'
+  options, '*f1_100*converted', 'datagap',300.
 
 end

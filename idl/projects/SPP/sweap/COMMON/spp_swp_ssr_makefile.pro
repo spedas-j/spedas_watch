@@ -1,12 +1,12 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-11 02:26:36 -0800 (Tue, 11 Dec 2018) $
-; $LastChangedRevision: 26313 $
+; $LastChangedDate: 2019-03-04 12:17:16 -0800 (Mon, 04 Mar 2019) $
+; $LastChangedRevision: 26751 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 
-pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_load,make_cdf=make_cdf,make_ql=make_ql,verbose=verbose,reset=reset
+pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_load,make_cdf=make_cdf,make_ql=make_ql,verbose=verbose,reset=reset,sc_files=sc_files
   
 ;  login_info = get_login_info()
 ;  test = login_info.user_name eq 'davin'
@@ -39,10 +39,11 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
   if keyword_set(test) then begin     ; newer method
     output_prefix = 'psp/data/sci/sweap/'
     ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
+    ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
     ssr_format = 'YYYY/DOY/*_?_E?'
     idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
     ql_dir = output_prefix+'swem/ql/'
-    
+    if keyword_set(sc_files) then ssr_format = 'YYYY/DOY/*_?_FP'
     
     tr = timerange(trange_full)
     sav_file=spp_file_retrieve(idlsav_format,trange=tr[0],/create_dir,/daily_names)
@@ -64,7 +65,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
         endif
       endelse
       spp_swp_tplot,setlim=2
-      spp_swp_spc_load
+ ;     spp_swp_spc_load
       
     endif
     if keyword_set(make_ql) then begin

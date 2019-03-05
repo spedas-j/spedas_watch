@@ -26,7 +26,7 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix
       ;options, name, 'psym', 4
       options, name, 'psym_lim', 200
       options, name, 'symsize', 0.75
-      options, name, 'datagap', 600d
+      options, name, 'datagap', 3600d
 
       if strpos(name, 'alloc_alloc') NE -1 or $
         strpos(name, 'alloc_used') NE -1 and $
@@ -43,20 +43,20 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix
   endif
 
   for i = 0, n_elements(instruments) - 1 do begin
-    
+
     inst = instruments[i]
-    
+
     inst_names = tnames(prefix + '*' + inst + '*')
-    
+
     for j = 0, n_elements(inst_names) -1 do begin
-      
+
       name = inst_names[j]
-      
+
       options, name, 'colors', [inst_colors[i]]
       options, name, 'labels', inst_abb[i]
-      
+
     endfor
-    
+
   endfor
 
   store_data, prefix + 'instrument_alloc', $
