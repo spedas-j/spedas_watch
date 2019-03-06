@@ -1,12 +1,14 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-04 12:17:16 -0800 (Mon, 04 Mar 2019) $
-; $LastChangedRevision: 26751 $
+; $LastChangedDate: 2019-03-05 06:49:31 -0800 (Tue, 05 Mar 2019) $
+; $LastChangedRevision: 26762 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 
-pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_load,make_cdf=make_cdf,make_ql=make_ql,verbose=verbose,reset=reset,sc_files=sc_files
+pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_load,   $
+   make_cdf=make_cdf,make_ql=make_ql,verbose=verbose,reset=reset,sc_files=sc_files,    $
+   ssr_format=ssr_format
   
 ;  login_info = get_login_info()
 ;  test = login_info.user_name eq 'davin'
@@ -19,7 +21,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
 
   ;if not keyword_set(trange_full) then trange_full = [time_double('2018-8-30'),systime(1)] else trange_full = timerange(trange_full)
   if keyword_set(all) then begin
-    trange_full = [time_double('2018-8-30'),systime(1)] 
+    trange_full = [time_double('2018-10-3'),systime(1)] 
   endif else begin
     trange_full = timerange(trange_full)
   endelse
@@ -40,7 +42,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
     output_prefix = 'psp/data/sci/sweap/'
     ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
     ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
-    ssr_format = 'YYYY/DOY/*_?_E?'
+    if ~ isa(ssr_format,/string) then ssr_format = 'YYYY/DOY/*_?_E?'
     idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
     ql_dir = output_prefix+'swem/ql/'
     if keyword_set(sc_files) then ssr_format = 'YYYY/DOY/*_?_FP'
