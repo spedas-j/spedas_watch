@@ -41,13 +41,13 @@
   ;
   ;
   ; note that table files are doubled until [insert date here]
-
+  
 pro spp_swp_spi_make_l2,init=init,trange=trange,all=all,verbose=verbose,no_server=no_server
 
   if keyword_set(all) then trange= ['2018 8 30',time_string(systime(1))]
 
   compile_opt idl2
-  dlevel=2
+  dlevel=3
   L1_fileformat = 'psp/data/sci/sweap/SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v00.cdf'  
 ;  pmodes = hash(16,'16A',32,'32E',4096,'16Ax8Dx32E')         ; product_size: product_name
   pmodes1 =  orderedhash(1,'16A',2,'32E',3,'16Ax16M',4,'32Ex16A',5,'32Ex16Ax4M',6,'8Dx32Ex16A') 
@@ -63,7 +63,7 @@ pro spp_swp_spi_make_l2,init=init,trange=trange,all=all,verbose=verbose,no_serve
   trange = timerange(trange)
   
   spxs = ['spi' ] ;,'spb']
-  types = ['sf00']  ;,'sf01' ] ;,'sf0','st1','st0']   ; add archive when available
+  types = ['sf00','sf01' ] ;,'sf0','st1','st0']   ; add archive when available
   
   foreach spx, spxs do begin
     foreach type,types do begin
@@ -86,7 +86,7 @@ pro spp_swp_spi_make_l2,init=init,trange=trange,all=all,verbose=verbose,no_serve
         if file_test(file) eq 0 then continue
         l1_cdf = cdf_tools(file)                           ; Read in file
 
-        l1_counts = l1_cdf.vars['PDATA'].data.array
+        l1_counts = l1_cdf.vars['DATA'].data.array
         l1_datasize = l1_cdf.vars['DATASIZE'].data.array
         l1_nrecs = n_elements(l1_datasize)
         if 1 then begin
@@ -108,7 +108,7 @@ pro spp_swp_spi_make_l2,init=init,trange=trange,all=all,verbose=verbose,no_serve
           l2_cdf = cdf_tools(file)   ; make a copy
           l2_cdf.filter_variables, records                  ; down  select the pmodes
 
-          l2_counts = l2_cdf.vars['PDATA'].data.array
+          l2_counts = l2_cdf.vars['DATA'].data.array
           l2_mode2 = l2_cdf.vars['MODE2'].data.array
     ;      l2_emode = ishft(l2_mode2,-4
                     

@@ -4,9 +4,9 @@
   ; PSP SPAN make L2
   ;
   ;
-  ; $LastChangedBy: phyllisw2 $
-  ; $LastChangedDate: 2019-02-04 10:49:07 -0800 (Mon, 04 Feb 2019) $
-  ; $LastChangedRevision: 26542 $
+  ; $LastChangedBy: davin-mac $
+  ; $LastChangedDate: 2019-03-07 09:54:46 -0800 (Thu, 07 Mar 2019) $
+  ; $LastChangedRevision: 26770 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -56,7 +56,9 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
   trange = timerange(trange)
   
   spxs = ['spa','spb']
-  types = ['sf1','sf0','st1','st0']   ; add archive when available
+  types = ['sf0','sf1']
+  if (get_login_info()).user_name eq 'davin' then $
+    types = ['sf1','sf0','st1','st0']   ; add archive when available
   
   foreach type,types do begin
     foreach spx, spxs do begin
@@ -64,7 +66,7 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
       fileformat = str_sub(fileformat,'TYP',type)                 ; packet type substitution
       dprint,dlevel=dlevel,fileformat
 
-      files = spp_file_retrieve(fileformat,trange=trange,/daily,verbose=1)    ; retrieve all daily files within the time range
+      files = spp_file_retrieve(fileformat,trange=trange,/daily,verbose=verbose)    ; retrieve all daily files within the time range
       w= where( file_test(files),/null,nw )
       if ~isa(w) then begin
         dprint,dlevel=dlevel,'No files found matching: "',fileformat,'"'

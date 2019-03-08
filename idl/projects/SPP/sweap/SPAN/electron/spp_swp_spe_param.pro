@@ -1,6 +1,6 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-03-01 15:45:11 -0800 (Fri, 01 Mar 2019) $
-; $LastChangedRevision: 26737 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-03-07 09:54:46 -0800 (Thu, 07 Mar 2019) $
+; $LastChangedRevision: 26770 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -100,7 +100,7 @@ function spp_swp_spe_deflut_cal
   par = polycurve2(order= 5)
   anglerange = findgen(141,start = -70, increment = 1)
   anglerangedefs = spp_swp_spe_deflector_func(anglerange)
-  fit, anglerange, anglerangedefs, param = par, verbose = 0
+  fit, anglerange, anglerangedefs, param = par, verbose = 1
   diffdefs = findgen('ffff'x * 2 + 1) - 'ffff'x
   guess = diffdefs * 0 + 0.5
   angles = solve(diffdefs, xguess = guess, param = par)
@@ -212,7 +212,7 @@ end
 
 
 
-function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
+function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset,plot=plot
 
   ;;------------------------------------------------------
   ;; COMMON BLOCK
@@ -257,7 +257,7 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
         14: etables[14] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[3]   , emode=14, _extra = spane_params)
         15: etables[15] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[3]   , emode=15, _extra = spane_params)
         16: etables[16] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[3]   , emode=16, _extra = spane_params)
-        17: etables[17] = spp_swp_spanx_sweep_tables([2.,2000.],spfac=ratios[4]   , emode=17, _extra = spane_params)
+        17: etables[17] = spp_swp_spanx_sweep_tables([2.,2000.],spfac=ratios[4]   , emode=17, _extra = spane_params,plot=plot)
         18: etables[18] = spp_swp_spanx_sweep_tables([10.,10000.],spfac=ratios[4]   , emode=18, _extra = spane_params)
         19: etables[19] = spp_swp_spanx_sweep_tables([ 5., 5000.],spfac=ratios[4]   , emode=19, _extra = spane_params)
         20: etables[20] = spp_swp_spanx_sweep_tables([ 5.,  500.],spfac=ratios[4]   , emode=20, _extra = spane_params)
@@ -278,31 +278,31 @@ function spp_swp_spe_param,detname=detname,emode=emode,pmode=pmode,reset=reset
   
   if isa(detname) then begin
     if ~spe_param_dict.haskey('CALS') then   spe_param_dict.cals  = dictionary()
-    deflut = spp_swp_spe_deflut_cal()
     cals = spe_param_dict.cals
     if ~cals.haskey(strupcase(detname))  then begin
       dprint,dlevel=2,'Generating cal structure for ',detname
+      deflut = spp_swp_spe_deflut_cal()
       case strupcase(detname) of
         'SPA' : begin
           dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40. ;width
           phi = [9.,15.,21.,27.,33.,39.,45.,51.,66.,90.,114.,138.,162.,186.,210.,234.]; hard code for now, center of pixel
-          lookdir = fltarr(n_elements(phi))
-          for i = 0, n_elements(phi)-1 do begin
-            lookdir[i] = float(phi[i] + 180.)
-            ;if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
-          endfor
-          phi = lookdir
+;          lookdir = fltarr(n_elements(phi))
+;          for i = 0, n_elements(phi)-1 do begin
+;            lookdir[i] = float(phi[i] + 180.)
+;            ;if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
+;          endfor
+          phi = phi + 180
           ;phi  = total(dphi,/cumulative) -3 ; +180
           end
         'SPB' : begin
           dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40. ;width
           phi = [-108.,-84.,-60.,-36.,-21.,-15.,-9.,-3.,3.,9.,15.,21.,36.,60.,84.,108.]; hard code for now, center of pixel
-          lookdir = fltarr(n_elements(phi))
-          for i = 0, n_elements(phi)-1 do begin
-            lookdir[i] = float(phi[i] + 180.)
-            ;if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
-          endfor
-          phi = lookdir
+;          lookdir = fltarr(n_elements(phi))
+;          for i = 0, n_elements(phi)-1 do begin
+;            lookdir[i] = float(phi[i] + 180.)
+ ;           ;if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
+ ;         endfor
+          phi = phi + 180
           ;phi = total(dphi,/cumulative) - 120 -12; +180
           end
       endcase

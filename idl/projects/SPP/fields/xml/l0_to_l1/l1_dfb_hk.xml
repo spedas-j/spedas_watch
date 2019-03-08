@@ -43,6 +43,28 @@
   </cdf_att>
   </cdf_var>
 
+	<cdf_var
+      name = "orbital_mode"
+      type = "integer"
+      convert_routine = "none">
+  <cdf_att
+        FIELDNAM = "orbital_mode"
+        FORMAT = "I8"
+        DATA_TYPE = "CDF_UINT4"
+        LABLAXIS = "orbital_mode"
+        VAR_TYPE = "data"
+        FILLVAL = "65534"
+        DISPLAY_TYPE = "time_series"
+        VALIDMIN = "0"
+        VALIDMAX = "255"
+        SCALEMIN = "0"
+        SCALEMAX = "255"
+        UNITS = "None"
+        CATDESC = "DFB Orbital Mode"
+        DEPEND_0 = "epoch">  
+  </cdf_att>
+  </cdf_var>
+
  	<cdf_var
       name = "edc_gain"
       type = "integer"
@@ -64,7 +86,7 @@
         UNITS = "None"
         CATDESC = "Flag indicating E measured at high (1) vs low (0) gain"
         DEPEND_0 = "epoch">  
- </cdf_att>
+ 	</cdf_att>
   </cdf_var>
 
   

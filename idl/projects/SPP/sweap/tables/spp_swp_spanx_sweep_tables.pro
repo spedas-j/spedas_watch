@@ -5,8 +5,6 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
     rmax = rmax,$
     vmax = vmax,$
     nen = nen,$
-;    e0 = e0,$
-;    emax = emax,$
     spfac = spfac,$
     maxspen = maxspen,$
     hvgain = hvgain,$
@@ -53,24 +51,25 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
    emax = erange[1]
 
 
+  version = 2
    ;; --------------- DACS --------------------
-   spp_swp_sweepv_dacv, $
+   spp_swp_sweepv_dacv_v2, $
     sweepv_dac,defv1_dac,defv2_dac,spv_dac,$
     k=k, rmax=rmax,vmax=vmax,nen=nen,e0=emin,$
-    emax=emax,spfac=spfac,maxspen=maxspen,$
+    emax=emax,spfac=spfac,maxspen=maxspen,version=version,plot=plot,$
     hvgain=hvgain,spgain=spgain,fixgain=fixgain
 
    ;; ------------ Full Index -----------------
-   spp_swp_sweepv_new_fslut,$ 
-    sweepv,defv1,defv2,spv,fsindex,$
+   spp_swp_sweepv_new_fslut_v2,$ 
+    sweepv,defv1,defv2,spv,fsindex,version=version, $
     nen = nen/4,plot = plot,spfac = spfac
 
 
    ;; ---------- Targeted Index ---------------
    FOR i=0, 255 DO BEGIN
-      spp_swp_sweepv_new_tslut, $
-       sweepv,defv1,defv2,spv,fsindex_tmp,tsindex,$
-       nen=nen,edpeak=edpeak,spfac=spfac
+      spp_swp_sweepv_new_tslut_v2, version=version ,$
+       sweepv,defv1,defv2,spv,fsindex_tmp,tsindex,plot=plot,$
+       nen=nen,edpeak=i,spfac=spfac
       IF i EQ 0 THEN index = tsindex $
       ELSE index = [index,tsindex]      
    ENDFOR
