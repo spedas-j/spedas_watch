@@ -26,11 +26,15 @@ pro spp_fld_make_or_retrieve_cdf, $
     if apid_name EQ 'dcb_ssr_telemetry' then apid_name = 'dcb_s\sr_telemetry'
     if apid_name EQ 'rfs_hfr_cross' then apid_name = 'rfs_hfr_cros\s'
 
+    psp_staging_id = getenv('PSP_STAGING_ID')
+    
+    if psp_staging_id EQ '' then psp_staging_id = getenv('USER')
+
     files = file_retrieve(apid_name + '/YYYY/MM/spp_fld_l1_' + apid_name + '_YYYYMMDD_v00.cdf', $
       local_data_dir = getenv('PSP_STAGING_DIR'), $
       remote_data_dir = remote_site, no_update = 0, $
       trange = time_string(ts, tformat = 'YYYY-MM-DD/hh:mm:ss'), $
-      user_pass = getenv('USER') + ':' + getenv('PSP_STAGING_PW'))
+      user_pass = psp_staging_id + ':' + getenv('PSP_STAGING_PW'))
 
     valid_files = where(file_test(files) EQ 1, valid_count)
 
