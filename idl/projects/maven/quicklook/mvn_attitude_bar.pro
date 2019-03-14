@@ -6,6 +6,8 @@
 ;
 ;    orange = Sun point
 ;    blue   = Earth point
+;    green  = Fly +/- Y
+;    red    = Fly-Z
 ;
 ;USAGE:
 ;  mvn_attitude_bar
@@ -17,13 +19,15 @@
 ;       none
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-02-17 09:13:07 -0800 (Sun, 17 Feb 2019) $
-; $LastChangedRevision: 26640 $
+; $LastChangedDate: 2019-03-13 12:44:17 -0700 (Wed, 13 Mar 2019) $
+; $LastChangedRevision: 26787 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_attitude_bar.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
 pro mvn_attitude_bar
+
+; Determine when the HGA points to the Sun or Earth
 
   mvn_sundir, frame='spacecraft', /pol
   get_data,'Sun_PL_The',data=sth
@@ -36,22 +40,43 @@ pro mvn_attitude_bar
   xearth = pearth[*,0]/sqrt(total(pearth*pearth,2))
   earth_th = 90D - acos(xearth)*!radeg  ; elongation of Earth from Mars
 
-  bname = 'mvn_att_bar'
   y = replicate(!values.f_nan,npts,2)
-  indx = where(abs(sun_th - 90.) lt 0.5, count)      ; s/c pointing at Sun
-  if (count gt 0L) then y[indx,*] = 0.8
-  indx = where(abs(sun_th - earth_th) lt 0.5, count) ; s/c pointing at Earth
-  if (count gt 0L) then y[indx,*] = 0.3
+  indx = where(abs(sun_th - 90.) lt 0.5, count)      ; HGA pointing at Sun
+  if (count gt 0L) then y[indx,*] = 8.
+  indx = where(abs(sun_th - earth_th) lt 0.5, count) ; HGA pointing at Earth
+  if (count gt 0L) then y[indx,*] = 3.
 
+; Identify Fly+-Y and Fly-Z
+
+  mvn_ramdir, minmax(sth.x) + [-10D, 10D], dt=1D, frame='spacecraft', pans=rampan
+  get_data, rampan[0], data=ram, index=i
+  if (i gt 0) then begin
+    indx = where(ram.x ge min(sth.x) and ram.x le max(sth.x), count)
+    ram_x = ram.x[indx]
+    ram_y = ram.y[indx,*]
+    ram_v = sqrt(total(ram_y^2.,2))
+    ram_y /= (ram_v # replicate(1.,3))
+
+    get_data, 'alt', data=alt
+    alt = spline(alt.x, alt.y, sth.x)
+
+    indx = where((alt lt 800.) and (abs(abs(ram_y[*,1]) - 1.) lt 0.001), count)
+    if (count gt 0L) then y[indx,*] = 4.85  ; Fly-Y or Fly+Y
+
+    indx = where((alt lt 800.) and (abs(abs(ram_y[*,2]) - 1.) lt 0.005), count)
+    if (count gt 0L) then y[indx,*] = 10.   ; Fly-Z
+  endif
+
+  bname = 'mvn_att_bar'
   store_data,bname,data={x:sth.x, y:y, v:[0,1]}
   ylim,bname,0,1,0
-  zlim,bname,0,1,0
+  zlim,bname,0,10,0
   options,bname,'spec',1
   options,bname,'panel_size',0.05
   options,bname,'ytitle',''
   options,bname,'yticks',1
   options,bname,'yminor',1
-  options,bname,'no_interp',1
+  options,bname,'x_no_interp',1
   options,bname,'xstyle',4
   options,bname,'ystyle',4
   options,bname,'no_color_scale',1
