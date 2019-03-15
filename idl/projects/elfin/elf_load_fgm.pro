@@ -58,6 +58,8 @@
 ;
 ; NOTES:
 ;
+; HISTORY:
+;         egrimes, replaced new_tvars code with tplotnames and enabled calibration by default, 14 March 2019 
 ;
 ;$LastChangedBy: clrussell $
 ;$LastChangedDate: 2018-12-06 11:58:25 -0700 (Mon, 06 Aug 2018) $
@@ -109,12 +111,8 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
     cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
     always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
  
-  ; check that tvars were loaded
-;  if existing_tvars NE '' then  new_tvars = ssl_set_complement(existing_tvars, tnames()) $
-;     else new_tvars=tnames()
   ; Perform pseudo calibration for level 1 fgm
-  error = 0
-  if no_cal NE 1 && n_elements(new_tvars) GT 0 then elf_cal_fgm, new_tvars, level=level, error=error
+  if no_cal NE 1 and tplotnames[0] ne '' then elf_cal_fgm, tplotnames, level=level, error=error
 
   ; no reason to continue if the user only requested available data
   if keyword_set(available) then return

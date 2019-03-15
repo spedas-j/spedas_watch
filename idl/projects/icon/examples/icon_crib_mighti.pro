@@ -81,7 +81,7 @@ pro icon_crib_mighti, step=step, img_path=img_path
     options, 'ICON_L2_MIGHTI_RED_ZONAL_WIND', 'ytitle', 'Red Zonal'    
     options, 'ICON_L2_MIGHTI_RED_MERIDIONAL_WIND', 'ytitle', 'Red Meridional'    
     options, 'ICON_L2_MIGHTI_GREEN_ZONAL_WIND', 'ytitle', 'Green Zonal'    
-    options, 'ICON_L2_MIGHTI_GREEN_MERIDIONAL_WIND', 'ytitle', 'Green Meridional'
+    options, 'ICON_L2_MIGHTI_GREEN_MERIDIONAL_WIND', 'ytitle', 'Green Meridional'    
 
     tplot_options, 'title', 'ICON MIGHTI Wind (Level-2 Data)'
 
@@ -108,28 +108,32 @@ pro icon_crib_mighti, step=step, img_path=img_path
     datal2type = '*'
     icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
 
-    ;options, 'ICON_L2_MIGHTI_A_TEC_COLD_TEMPERATURE', 'ytitle', 'Cold Temp'
-    ;options, 'ICON_L1_MIGHTI_A_QUALITY_FLAG_NEAR_TERMINATOR', 'ytitle', 'Quality FLag'
-    options, 'ICON_L2_MIGHTI_A_Temperatures', 'ytitle', 'Temperatures'
-    
-    get_data, 'ICON_L2_MIGHTI_A_Relative_Radiance', data=d, dlimits=dlimits
-    store_data, 'Relative_Radiance', data={x:d.x, y:reform(d.y[*,2,*]), v:d.v1}, dlimits=dlimits
-    
-    options, 'Relative_Radiance', 'ytitle', 'Relative Radiance'
 
+    get_data, 'ICON_L2_MIGHTI_A_Temperatures', data=d, dlimits=dlimits
+    store_data, 'ICON_L2_MIGHTI_A_Temperatures0', data={x:d.x, y:d.y, v:d.v[*, 0]}, dlimits=dlimits
+
+    get_data, 'ICON_L2_MIGHTI_A_Temp_Total_Uncertainties', data=d, dlimits=dlimits
+    store_data, 'ICON_L2_MIGHTI_A_Temp_Total_Uncertainties0', data={x:d.x, y:d.y, v:d.v[*, 0]}, dlimits=dlimits
+
+
+    options, 'ICON_L2_MIGHTI_A_Boresight_Sun_Angle', 'ytitle', 'Boresight!CSun Angle'
+    options, 'ICON_L2_Ancillary_SC_LST', 'ytitle', 'Ancillary SC LST'
+    options, 'ICON_L2_MIGHTI_A_Temperatures0', 'ytitle', 'Temperatures'
+    options, 'ICON_L2_MIGHTI_A_Temp_Total_Uncertainties0', 'ytitle', 'Total Uncertainties'
+    
     tplot_options, 'title', 'ICON MIGHTI Temperature (Level-2 Data)'
+ 
+    makepng, img_path + 'ICON_MIGHTI_L2_Temp_Example'
 
-    makepng,img_path + 'ICON_MIGHTI_L2_Temp_Example'
-
-    tplot, ['Relative_Radiance','ICON_L2_MIGHTI_A_Temperatures' ]
+    tplot, ['ICON_L2_MIGHTI_A_Boresight_Sun_Angle','ICON_L2_Ancillary_SC_LST', 'ICON_L2_MIGHTI_A_Temperatures0', 'ICON_L2_MIGHTI_A_Temp_Total_Uncertainties0' ]
 
     ;Line plot:
-    ;ICON_L2_MIGHTI_A_TEC_COLD_TEMPERATURE
-    ;ICON_L1_MIGHTI_A_QUALITY_FLAG_NEAR_TERMINATOR
+    ;ICON_L2_MIGHTI_A_Boresight_Sun_Angle
+    ;ICON_L2_Ancillary_SC_LST
     ;
     ;Spectrogram:
-    ;ICON_L2_MIGHTI_A_TEMPERATURES
-    ;ICON_L2_MIGHTI_A_RELATIVE_RADIANCE[*,2,*]              ; this is a 3D variable
+    ;ICON_L2_MIGHTI_A_Temperatures0
+    ;ICON_L2_MIGHTI_A_Temp_Total_Uncertainties0 
 
   endif
   

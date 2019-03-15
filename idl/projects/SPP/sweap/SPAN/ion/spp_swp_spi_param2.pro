@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-13 09:33:42 -0700 (Wed, 13 Mar 2019) $
-; $LastChangedRevision: 26786 $
+; $LastChangedBy: mdmcmanus $
+; $LastChangedDate: 2019-03-14 17:49:53 -0700 (Thu, 14 Mar 2019) $
+; $LastChangedRevision: 26798 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param2.pro $
 ;
 
@@ -144,7 +144,7 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
          '32Ex16M' : begin
            binmap =  reform( replicate(1,16*8) # indgen(32) , 16,8,32 )    ; 32 sample energy spectra ;  8,32,16 ; 4096 samples; full resolution
            end
-        '8Dx32Ex8A'  : binmap = indgen(8,32,8) +256  ; 2048 samples; full resolution
+        '8Dx32Ex8A'  : binmap = [indgen(n_anodes/2,256),make_array(n_anodes/2,256,value=-1)] ; 2048 samples, -1 used as a mask in histogram (min=0)
     ;    '16Ax8D'   :  binmap = indgen()  ;  128 sample
 ;        '32E'  : binmap = reform( replicate(1,16*8) # indgen(32) , 16,8,32 )    ; 32 sample energy spectra
 ;        '16A'   : binmap = reform( indgen(16) # replicate(1,8*32) , 16,8,32)      ; 16 sample anode spectra
@@ -153,7 +153,7 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
       ptable = dictionary()
       ptable.pmode = pmode
       if isa(binmap) then begin
-        hist = histogram(binmap,locations=loc,omin=omin,omax=omax,reverse_ind=ri)
+        hist = histogram(binmap,locations=loc,min=0,omin=omin,omax=omax,reverse_ind=ri)
         ptable.binmap = binmap
         ptable.hist = hist
         ptable.reverse_ind = ri

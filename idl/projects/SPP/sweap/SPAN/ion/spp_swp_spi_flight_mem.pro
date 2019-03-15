@@ -11,8 +11,8 @@
 ; SVN Properties
 ; --------------
 ; $LastChangedBy: rlivi2 $
-; $LastChangedDate: 2019-01-06 22:07:29 -0800 (Sun, 06 Jan 2019) $
-; $LastChangedRevision: 26430 $
+; $LastChangedDate: 2019-03-13 21:05:20 -0700 (Wed, 13 Mar 2019) $
+; $LastChangedRevision: 26788 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_mem.pro $
 ;-
 
@@ -134,6 +134,13 @@ PRO spp_swp_spi_flight_mem, tbl
          mode7_edlut_mram_addr: '10E980'x,$
          mode7_pmbins_mram_addr:'10EA00'x,$
 
+         ;; Description: MODE 8
+         mode8_psum_mram_addr:  '10F000'x,$
+         mode8_mrlut_mram_addr: '10F080'x,$
+         mode8_allut_mram_addr: '10F100'x,$
+         mode8_edlut_mram_addr: '10F180'x,$
+         mode8_pmbins_mram_addr:'10F200'x,$
+         
          ;; Description: Evenly Space FSLUT
          es_fslut_mram_addr:'7C000'x,$
          
@@ -198,10 +205,11 @@ PRO spp_swp_spi_flight_mem, tbl
          prod_08D_dpp_size: 		'0008'x,$
          prod_32E_dpp_size: 		'0020'x,$
          prod_16A_dpp_size: 		'0010'x,$
-         prod_08Dx32E_dpp_size: 	'0100'x,$
-         prod_32Ex16A_dpp_size: 	'0200'x,$
-         prod_08Dx16A_dpp_size: 	'0080'x,$
-         prod_08Dx32Ex16A_dpp_size: 	'1000'x,$
+         prod_08DX32E_dpp_size: 	'0100'x,$
+         prod_32EX16A_dpp_size: 	'0200'x,$
+         prod_08DX16A_dpp_size: 	'0080'x,$
+         prod_08DX32EX16A_dpp_size: 	'1000'x,$
+         prod_08DX32EX08A_dpp_size:     '0800'x,$
 
          prod_order_sram: [$
          'fs_p0_m0','fs_p0_m1','fs_p0_m2','fs_p0_m3',$

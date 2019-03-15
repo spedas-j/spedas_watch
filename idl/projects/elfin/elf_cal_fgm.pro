@@ -16,6 +16,9 @@
 ; NOTES:
 ;
 ;
+; HISTORY:
+;         - egrimes, fixed bug in calibration calculations reported by Andrei, 14 March 2019
+;
 ;$LastChangedBy: clrussell $
 ;$LastChangedDate: 2018-12-06 11:58:25 -0700 (Mon, 06 Aug 2018) $
 ;$LastChangedRevision: 25588 $
@@ -46,9 +49,10 @@ pro elf_cal_fgm, tvars, level=level, error=error
      for i=0,n_elements(tvars)-1 do begin
          get_data, tvars[i], data=d, dlimits=dl, limits=l
          if is_struct(d) then begin
-            bx_nt = ax1_off + ax1_scl * d.y[*,0]
-            by_nt = ax2_off + ax2_scl * d.y[*,1]
-            bz_nt = ax3_off + ax3_scl * d.y[*,2]
+            bx_nt = d.y[*,0]/ax1_scl - ax1_off
+            by_nt = d.y[*,1]/ax2_scl - ax2_off
+            bz_nt = d.y[*,2]/ax3_scl - ax3_off
+            
             b_nt = [[bx_nt], [by_nt], [bz_nt]]
             dl.ysubtitle='[nT]'
             cal_data = {x:d.x, y:b_nt}    
