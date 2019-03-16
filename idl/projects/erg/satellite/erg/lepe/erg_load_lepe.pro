@@ -39,19 +39,18 @@
 ;
 ; :Examples:
 ;  IDL> timespan,'2017-03-24'
-;  IDL> erg_load_lepe  ;;omniflux data
-;  IDL> erg_load_lepe,datatype='3dflux'   ;;3D flux data
-;  IDL> erg_load_lepe,datatype='3dflux',/split_ch   ;;3D flux data for each Channel
+;  IDL> erg_load_lepe,uname=uname,pass=pass   ;;3D flux data
+;  IDL> erg_load_lepe,uname=uname,pass=pass,/split_ch   ;;3D flux data for each Channel
+;  IDL> erg_load_lepe,uname=uname,pass=pass,datatype='omniflux'  ;;omniflux data
 ;
+; :revised by Tzu-Fang Chang (E-mail: jocelyn at isee.nagoya-u.ac.jp)
+; $LastChangedDate: 2018-05-02 10:00:00
 ;
 ; :Authors:
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
-;   Tzu-Fang Chang, ERG Science Center (E-mail: jocelyn at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/lepe/erg_load_lepe.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;-
 pro erg_load_lepe, $
    debug=debug, $
@@ -67,6 +66,7 @@ pro erg_load_lepe, $
    remotedir=remotedir, $
    datafpath=datafpath, $
    split_ch=split_ch, $
+   no_sort_enebin=no_sort_enebin, $
    _extra=_extra
 
   ;;Initialize the user environmental variables for ERG
@@ -78,7 +78,13 @@ pro erg_load_lepe, $
   if ~keyword_set(datatype) then datatype = 'omniflux'
   if ~keyword_set(downloadonly) then downloadonly = 0
   if ~keyword_set(no_download) then no_download = 0
-
+  if undefined(no_sort_enebin) then sort_enebin = 1 else sort_enebin = 0
+  
+  
+  ;; ; ; ; USER NAME ; ; ; ;
+  if keyword_set(datafpath) or keyword_set(no_download) then begin
+    uname = ' ' & passwd = ' '  ;;padding with a blank
+  endif
 
   ;;Local and remote data file paths
   if ~keyword_set(localdir) then begin
@@ -124,65 +130,101 @@ pro erg_load_lepe, $
              varformat=varformat, verbose=verbose
 
 
-      ;;Options for tplot variables
-      vns = ''
-      if total(strcmp( datatype, '3dflux' )) then $
-        append_array, vns, prefix+['FEDU', 'FEEDU', 'Count_Raw']  ;;common to flux/count arrays
-      if total(strcmp( datatype, 'omniflux')) then $
-        append_array, vns, prefix+'FEDO'  ;;Omni flux array
-      options, vns, spec=1, ysubtitle='[eV]', ztickformat='pwr10tick', extend_y_edges=1, $
-        datagap=17., zticklen=-0.4
+  ;;Options for tplot variables
+  vns = ''
+  if total(strcmp( datatype, '3dflux' )) then $
+     append_array, vns, prefix+['FEDU', 'FEEDU', 'Count_Raw']  ;;common to flux/count arrays
+  if total(strcmp( datatype, 'omniflux')) then $
+     append_array, vns, prefix+'FEDO'  ;;Omni flux array
+  options, vns, spec=1, ysubtitle='[eV]', ztickformat='pwr10tick', extend_y_edges=1, $
+           datagap=17., zticklen=-0.4
 
-      ;;sorted flux and count arrays for plotting the spectrum
-      for i=0, n_elements(vns)-1 do begin
-        if tnames(vns[i]) eq '' then continue
-        get_data, vns[i], data=data, dl=dl, lim=lim
+  ;;Filter vns with varformat to avoid manipulating pre-existing
+  ;;tplot variables in the part below
+  if keyword_set(varformat) then vns = strfilter( vns, prefix+strsplit(/ext, varformat) )
+  
+  ;;sorted flux and count arrays for plotting the spectrum
+  for i=0, n_elements(vns)-1 do begin
+    if tnames(vns[i]) eq '' then continue
+    get_data, vns[i], data=data, dl=dl, lim=lim
 
-        if vns[i] eq prefix+'FEDO' then begin
-          ene = total(data.v,2)/2
-          for n = 0, n_elements(data.x)-1 do begin
-            sort_idx=sort(ene[n,*])
-            data.y[n,*]=data.y[n,sort_idx]
-            ene[n,*]=ene[n,sort_idx]
-          endfor
-          store_data, vns[i], data={x:data.x, y:data.y, v:ene }, dl=dl, lim=lim
-          options, vns[i], ztitle='[/s-cm!U2!N-sr-eV]',ytitle='ERG!CLEP-e!CFEDO!CEnergy'
-        endif else begin
+    if vns[i] eq prefix+'FEDO' then begin
+      ene = total(data.v, 2)/2
 
-          ene = total(data.v1,2)/2
-          for n = 0, n_elements(data.x)-1 do begin
-            sort_idx=sort(ene[n,*])
-            data.y[n,*,*,*]=data.y[n,sort_idx,*,*]
-            ene[n,*]=ene[n,sort_idx]
-          endfor
-          store_data, vns[i], data={x:data.x, y:data.y, v:ene, v2:data.v2, $
-            v3:indgen(16) }, dl=dl, lim=lim
-          options, vns[i], ztitle='['+dl.cdf.vatt.units+']'
-          options, vns[i], ytitle='ERG!CLEP-e!C'+dl.cdf.vatt.fieldnam+'!CEnergy'
-        endelse
+      if sort_enebin then begin
+        if debug then begin
+          dprint, 'Sorting in energy bin '+vns[i]
+        endif
+        for n=0, n_elements(data.x)-1 do begin
+          sort_idx = sort(ene[n, *])
+          data.y[n, *] = data.y[n, sort_idx]
+          ene[n, *] = ene[n, sort_idx]
+        endfor
+      endif
+      
+      store_data, vns[i], data={x:data.x, y:data.y, v:ene }, dl=dl, lim=lim
+      options, vns[i], ztitle='[/s-cm!U2!N-sr-eV]', ytitle='ERG!CLEP-e!CFEDO!CEnergy'
 
-        ylim, vns[i], 1e+1, 3e+4, 1
-        zlim, vns[i], 0, 0, 1
-      endfor
+    endif else begin
 
-      ;; Exit here unless the 3dflux variables are loaded.
-      if total(strcmp( vns, prefix+'FEDU' )) eq 0 then return
+      ene = total(data.v1, 2)/2
 
-    ;;Generate separate tplot variables for Channels
-    if keyword_set(split_ch) then begin
-      get_data, prefix+'FEDU', data=d, dl=dl, lim=lim
-      for i=0, n_elements(d.y[0, 0, *, 0])-1 do begin
-        if i lt 5 then vn = prefix+'FEDU_ch'+string(i+1, '(i02)')
-        if i gt 6 then vn = prefix+'FEDU_ch'+string(i+11, '(i02)')
-        if i eq 5 then vn = prefix+'FEDU_chA'
-        if i eq 6 then vn = prefix+'FEDU_chB'
-        store_data, vn, data={x:d.x, y:reform(d.y[*, *, i, *]), v:d.v, v2:indgen(16)}, dl=dl, lim=lim
-        if i lt 5 then options, vn, ytitle='ERG!CLEP-e!CFEDU_Ch'+string(i+1, '(i02)')+'!CEnergy'
-        if i gt 6 then options, vn, ytitle='ERG!CLEP-e!CFEDU_Ch'+string(i+11, '(i02)')+'!CEnergy'
-        if i eq 5 then options, vn, ytitle='ERG!CLEP-e!CFEDU_ChA!CEnergy'
-        if i eq 6 then options, vn, ytitle='ERG!CLEP-e!CFEDU_ChB!CEnergy'
-      endfor
-    endif
+      if sort_enebin then begin
+        if debug then begin
+          dprint, 'Sorting in energy bin '+vns[i]
+        endif
+        for n=0, n_elements(data.x)-1 do begin
+          sort_idx = sort(ene[n, *])
+          data.y[n, *, *, *] = data.y[n, sort_idx, *, *]
+          ene[n, *] = ene[n, sort_idx]
+        endfor
+      endif
+      
+      store_data, vns[i], data={x:data.x, y:data.y, v:ene, v2:data.v2, $
+                                v3:indgen(16) }, dl=dl, lim=lim
+      options, vns[i], ztitle='['+dl.cdf.vatt.units+']'
+      options, vns[i], ytitle='ERG!CLEP-e!C'+dl.cdf.vatt.fieldnam+'!CEnergy'
+    endelse
+
+    ylim, vns[i], 1e+1, 3e+4, 1
+    zlim, vns[i], 0, 0, 1
+  endfor
+
+  ;;Generate separate tplot variables for Channels
+  if keyword_set(split_ch) and total(strcmp( vns, prefix+'FEDU' )) gt 0 then begin
+    get_data, prefix+'FEDU', data=d, dl=dl, lim=lim
+    for i=0, n_elements(d.y[0, 0, *, 0])-1 do begin
+      if i lt 5 then vn = prefix+'FEDU_ch'+string(i+1, '(i02)')
+      if i gt 6 then vn = prefix+'FEDU_ch'+string(i+11, '(i02)')
+      if i eq 5 then vn = prefix+'FEDU_chA'
+      if i eq 6 then vn = prefix+'FEDU_chB'
+      store_data, vn, data={x:d.x, y:reform(d.y[*, *, i, *]), v:d.v, v2:indgen(16)}, dl=dl, lim=lim
+      if i lt 5 then options, vn, ytitle='ERG!CLEP-e!CFEDU_Ch'+string(i+1, '(i02)')+'!CEnergy'
+      if i gt 6 then options, vn, ytitle='ERG!CLEP-e!CFEDU_Ch'+string(i+11, '(i02)')+'!CEnergy'
+      if i eq 5 then options, vn, ytitle='ERG!CLEP-e!CFEDU_ChA!CEnergy'
+      if i eq 6 then options, vn, ytitle='ERG!CLEP-e!CFEDU_ChB!CEnergy'
+    endfor
+  endif
+
+  
+  ;;--- print PI info and rules of the road
+  gatt = dl.cdf.gatt
+
+  print_str_maxlet, ' '
+  print, '**********************************************************************'
+  print, gatt.PROJECT
+  print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 70
+  print, ''
+  print, 'Information about ERG LEP-e'
+  print, ''
+  print, 'PI: ', gatt.PI_NAME
+  print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
+  print, ''
+  for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
+  print, ''
+  print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+  print, '**********************************************************************'
+  print, ''
 
   return
 end

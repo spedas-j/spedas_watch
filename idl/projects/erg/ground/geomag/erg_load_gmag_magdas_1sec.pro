@@ -33,10 +33,8 @@
 ;             ERG-Science Center, STEL, Nagoya Univ.
 ;             erg-sc-core at st4a.stelab.nagoya-u.ac.jp
 ;
-;   $LastChangedBy: nikos $
-;   $LastChangedDate: 2017-12-05 22:09:27 -0800 (Tue, 05 Dec 2017) $
-;   $LastChangedRevision: 24403 $
-;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/ground/geomag/erg_load_gmag_magdas_1sec.pro $
+;   $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+;   $LastChangedRevision: 26822 $
 ;-
 
 pro erg_load_gmag_magdas_1sec, site=site, datatype=datatype, $

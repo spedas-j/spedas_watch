@@ -32,38 +32,9 @@
 ;   Kuni Keika, Department of Earth and Planetary Science,
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-09-04 16:03:06 -0700 (Tue, 04 Sep 2018) $
-; $LastChangedRevision: 25726 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/orb/erg_load_orb_predict.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;-
-pro remove_duplicated_tframe2, tvars
-
-  if n_params() ne 1 then return
-  tvars = tnames(tvars)
-  if strlen(tvars[0]) lt 1 then return
-
-  for i=0L, n_elements(tvars)-1 do begin
-    tvar = tvars[i]
-
-    get_data, tvar, time, data, dl=dl, lim=lim
-    n = n_elements(time)
-    dt = [ time[1:(n-1)], time[n-1]+1 ] - time[0:(n-1)]
-    idx = where( abs(dt) gt 0d, n1 )
-
-    if n ne n1 then begin
-      newtime = time[idx]
-      if size(data,/n_dim) eq 1 then begin
-        newdata = data[idx]
-      endif else newdata = data[ idx, *]
-      store_data, tvar, data={x:newtime, y:newdata},dl=dl, lim=lim
-    endif
-  endfor
-
-
-
-  return
-end
 
 
 pro erg_load_orb_predict, $
@@ -128,7 +99,7 @@ pro erg_load_orb_predict, $
     store_data, tvar_pos, data=data, dlim=dlim
 
 
-    remove_duplicated_tframe2, tnames('erg_orb_'+suf+'_l2_*')
+    remove_duplicated_tframe, tnames('erg_orb_'+suf+'_l2_*')
 
     ; - - - - OPTIONS FOR TPLOT VARIABLES - - - -
     options, prefix+'pos_'+['gse','gsm','sm'], 'labels', ['X','Y','Z']

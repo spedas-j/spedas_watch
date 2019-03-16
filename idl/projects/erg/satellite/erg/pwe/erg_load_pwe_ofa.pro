@@ -21,20 +21,21 @@
 ;          authentication.
 ;   passwd: password to be passed to the remote server for
 ;           authentication.
+;   band_width: return a hash variable for band width of each mode.
+;               ex: band_width[132], band_width[256] return band width
+;               with datapoints of 132, 256, respectively.
 ;
 ; :Examples:
 ;   IDL> timespan, '2017-04-01'
 ;   IDL> erg_load_pwe_ofa
-;   IDL> erg_load_ofa, datatype='spec'
+;   IDL> erg_load_pwe_ofa, datatype='spec'
 ;
 ; :Authors:
 ;   Masafumi Shoji, ERG Science Center (E-mail: masafumi.shoji at nagoya-u.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
-; $URL:
-; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/mep/erg_load_pwe_ofa.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
+; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_ofa.pro $
 ;-
 
 pro erg_load_pwe_ofa, $
@@ -47,6 +48,7 @@ pro erg_load_pwe_ofa, $
    verbose=verbose, $
    uname=uname, $
    passwd=passwd, $
+   band_width=band_width, $
    _extra=_extra
 
   erg_init
@@ -91,13 +93,24 @@ pro erg_load_pwe_ofa, $
   endif else return
 
   
- ; stop
+;  stop
 
   prefix = 'erg_pwe_ofa_'+datatype+'_'+level+'_'
-  if ~downloadonly then $
+  if ~downloadonly then begin
      cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
                 verbose = verbose
-  
+
+     cdfi = cdf_load_vars(datfiles,varformat=varformat,var_type='support_data',/spdf_depend, $
+                          varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, all=all)
+     
+     idx_bw=where(strmatch(cdfi.vars.name, 'band_width_*') eq 1)
+     n=n_elements(idx_bw)
+     band_width=hash()
+     for i=0, n-1 do begin
+        x=fix(strmid(cdfi.vars[idx_bw[i]].name, 12, 5))
+        band_width[x]=*cdfi.vars[idx_bw[i]].dataptr
+     endfor
+  endif
 
   if strcmp(datatype, 'spec') then begin
      
@@ -151,7 +164,6 @@ pro erg_load_pwe_ofa, $
    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
    print, '**********************************************************************'
    
-  
    gt1:
    
 END

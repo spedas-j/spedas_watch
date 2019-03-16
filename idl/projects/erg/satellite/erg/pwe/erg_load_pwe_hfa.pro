@@ -29,10 +29,8 @@
 ;   Masafumi Shoji ERG Science Center (E-mail: masafumi.shoji at
 ;   nagoya-u.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-09-04 15:57:53 -0700 (Tue, 04 Sep 2018) $
-; $LastChangedRevision: 25725 $
-; $URL:
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_hfa.pro $
 ;-
 
@@ -86,27 +84,25 @@ pro erg_load_pwe_hfa, $
     endelse
   endelse
 
-  if ~strcmp(lvl,'l2') then begin
+  if strcmp(lvl,'l3') then begin
     nmd=0
-    imd=''
+    imd='ne'
   endif
 
   for j=0, nmd do begin
-
-  ;  remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/low/'
-    remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/spec/'+imd[j]+'/'
-  ;  localdir = root_data_dir() + 'ergsc/satellite/erg/pwe/hfa/'+lvl+'/'
-  ;  localdir = !erg.local_data_dir + 'satellite/erg/pwe/hfa/'+lvl+'/low/'
-    localdir = !erg.local_data_dir + 'satellite/erg/pwe/hfa/'+lvl+'/spec/'+imd[j]+'/'
-  ;  localdir = './'+imd[j]+'/'
     
     if strcmp(lvl,'l2') then begin
       relfpathfmt = 'YYYY/MM/erg_pwe_hfa_' + lvl + '_spec_' + imd[j] + '_YYYYMMDD_v??_??.cdf' 
       prefix = 'erg_pwe_hfa_'+lvl+'_'+imd[j]+'_'
+      remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/spec/'+imd[j]+'/'
+      localdir = !erg.local_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/spec/'+imd[j]+'/'
     endif else begin
       relfpathfmt = 'YYYY/MM/erg_pwe_hfa_' + lvl + '_YYYYMMDD_v??_??.cdf'
       prefix = 'erg_pwe_hfa_'+lvl+'_'
+      remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/'
+      localdir = !erg.local_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/'
     endelse
+  ;  localdir = './'+imd[j]+'/'
       
     relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
 

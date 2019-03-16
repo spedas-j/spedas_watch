@@ -33,25 +33,37 @@
 ;       none
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-02-22 18:19:46 -0800 (Fri, 22 Feb 2019) $
-; $LastChangedRevision: 26694 $
+; $LastChangedDate: 2019-03-15 12:33:21 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26801 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_eph.pro $
 ;-
 function maven_orbit_eph
 
   @maven_orbit_common
 
-  if (size(state,/type) gt 0) then begin
-    eph = state
-    str_element, eph, 'alt', hgt, /add
-    str_element, eph, 'lon', lon, /add
-    str_element, eph, 'lat', lat, /add
-    str_element, eph, 'sza', sza*!radeg, /add
-    str_element, eph, 'datum', datum, /add
-    return, eph
-  endif else begin
+  if (size(state,/type) eq 0) then begin
     print,"Ephemeris not defined.  Use maven_orbit_tplot first."
     return, 0
-  endelse
+  endif
+  
+  eph = state
+  str_element, eph, 'r', sqrt(total(state.mso_x^2.,2)), /add
+  str_element, eph, 'r_m', 3389.5, /add
+  str_element, eph, 'vmag_mso', sqrt(total(state.mso_v^2.,2)), /add
+  str_element, eph, 'vmag_geo', sqrt(total(state.geo_v^2.,2)), /add
+  str_element, eph, 'alt', hgt, /add
+  str_element, eph, 'lon', lon, /add
+  str_element, eph, 'lat', lat, /add
+  str_element, eph, 'datum', datum, /add
+  str_element, eph, 'sza', sza*!radeg, /add
+
+  mvn_mars_localtime, result=lst
+  if (size(lst,/type) eq 8) then begin
+    str_element, eph, 'lst', lst.lst, /add
+    str_element, eph, 'slon', lst.slon, /add
+    str_element, eph, 'slat', lst.slat, /add
+  endif
+
+  return, eph
 
 end

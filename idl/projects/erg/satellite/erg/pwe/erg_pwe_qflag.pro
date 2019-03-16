@@ -1,4 +1,3 @@
-+
 ; PRO erg_pwe_qflag
 ;
 ; Quality flag viewer for PWE data
@@ -16,10 +15,8 @@
 ;   Masafumi Shoji ERG Science Center (E-mail: masafumi.shoji at
 ;   nagoya-u.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
-; $URL:
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/mep/erg_pwe_qflag.pro $
 ;-
 

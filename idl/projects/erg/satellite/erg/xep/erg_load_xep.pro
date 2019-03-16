@@ -6,7 +6,7 @@
 ;
 ; :Keywords:
 ;   level: level of data products. Currently only 'l2' is acceptable.
-;   datatype: Data type to be loaded. Currently "omniflux" is acceptable.
+;   datatype: Data type to be loaded. Currently "omniflux" and "2dflux" are acceptable.
 ;   trange: If a time range is set, timespan is executed with it at the end of this program
 ;   /get_support_data, load support_data variables as well as data variables into tplot variables.
 ;   /downloadonly, if set, then only download the data, do not load it into variables.
@@ -30,19 +30,19 @@
 ;   IDL> timespan, '2017-04-01'
 ;   IDL> erg_load_xep
 ;   IDL> erg_load_xep, datatype='omniflux'
+;   IDL> erg_load_xep, datatype='2dflux'
 ;
 ; :History:
 ; 2016/02/01: first protetype
-; 2018/08/01: modified to load omni-directional XEP data
+; 2018/08/01: modified to load omni-directional XEP L2 data
+; 2019/01/22: modified to load spin-phase XEP L2 data 
 ;
 ; :Author:
 ;   Y. Miyashita, ERG Science Center, ISEE, Nagoya Univ. (erg-sc-core at isee.nagoya-u.ac.jp)
 ;   M. Teramoto, ERG Science Center, ISEE, Nagoya Univ.
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/xep/erg_load_xep.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;-
 pro erg_load_xep, $
   debug=debug, $
@@ -69,6 +69,8 @@ pro erg_load_xep, $
   if ~keyword_set(downloadonly) then downloadonly = 0
   if ~keyword_set(no_download) then no_download = 0
   if ~keyword_set(varformat) then varformat='*'
+  if undefined( azch_for_spinph ) then azch_for_spinph = -1
+  if azch_for_spinph lt 0 or azch_for_spinph gt 14 then azch_for_spinph = -1
   ;Local and remote data file paths
 
   ;;Local and remote data file paths
@@ -109,23 +111,58 @@ pro erg_load_xep, $
   cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
     verbose = verbose, varformat=varformat
 
-  if tnames(prefix+'FEDO_SSD') eq '' then begin
-    dprintf, prefix+'Failed loading FEDO_SSD data! Exit.'
-    return
-  endif
+  for i=0, 1 do begin
+    case (i) of
+      0: begin
+        suf = 'SSD'
+      end
+      1: begin
+        suf = 'GSO'
+      end
+    endcase
 
+    if datatype eq 'omniflux' then begin
+      if tnames(prefix+'FEDO_SSD') eq '' then begin
+        dprintf, prefix+'Failed loading FEDO_SSD data! Exit.'
+        return
+      endif
+      get_data,prefix+'FEDO_'+suf,data=fedo,dl=dl,lim=lim
+      new_v=fltarr(n_elements(fedo.v(0,*)))
+      for ik=0, n_elements(fedo.v(0,*))-1 do $
+        new_v[ik]=sqrt(fedo.v(0,ik)*fedo.v(1,ik))
+      store_data,prefix+'FEDO_'+suf,data={x:fedo.x,y:fedo.y,v:new_v},$
+        dl=dl,lim=lim
+      tclip,prefix+'FEDO_'+suf,0.05,2.0e5,/over
+      options,prefix+'FEDO_'+suf,labels=strcompress(string(new_v,format='(I4.4)')+' keV'),$
+        labflag=-1,ylog=1,zlog=1, ztickformat='pwr10tick',ytitle='ERG XEP!CFEDO_'+suf,ysubtitle='Energy [keV]',$
+        ztitle='[/cm!U2!N-str-s-keV]'
+      ylim,prefix+'FEDO_'+suf,450,5000
+    endif
 
-  get_data,prefix+'FEDO_SSD',data=fedo,dl=dl,lim=lim
-  new_v=fltarr(n_elements(fedo.v(0,*)))
-  for ik=0, n_elements(fedo.v(0,*))-1 do $
-    new_v[ik]=sqrt(fedo.v(0,ik)*fedo.v(1,ik))
-  store_data,prefix+'FEDO_SSD',data={x:fedo.x,y:fedo.y,v:new_v},$
-    dl=dl,lim=lim
-  tclip,prefix+'FEDO_SSD',0.05,2.0e5,/over
-  options,prefix+'FEDO_SSD',labels=strcompress(string(new_v,format='(I4.4)')+' keV'),$
-    labflag=-1,ylog=1,zlog=1, ztickformat='pwr10tick',ytitle='ERG XEP!CFEDO_SSD',ysubtitle='Energy [keV]',$
-    ztitle='[/cm!U2!N-str-s-keV]'
-  ylim,prefix+'FEDO_SSD',450,5000
+    ;; Skip the following part unless 2-D flux data are loaded.
+    if strcmp(datatype, '2dflux')  then begin
+      get_data, prefix+'FEDU_'+suf, data=fedu, dl=dl, lim=lim
+     get_data, prefix+'rawcnt_'+suf, data=rwcnt, dl=dl_rwcnt, lim=lim_rwcnt 
+     new_v=fltarr(n_elements(fedu.v(*,0)))
+      for ik=0, n_elements(fedu.v(*,0))-1 do $
+        new_v[ik]=sqrt(fedu.v(ik,0)*fedu.v(ik,1))
+      store_data,prefix+'FEDU_'+suf,data={x:fedu.x,y:fedu.y,v:new_v},$
+        dl=dl,lim=lim
+      store_data,prefix+'rawcnt_'+suf,data={x:rwcnt.x,y:rwcnt.y,v:new_v},$
+        dl=dl_rwcnt,lim=lim_rwcnt
+      ;Split into each azimuthal channel
+     options,prefix+'FEDU_'+suf,labels=strcompress(string(new_v,format='(I4.4)')+' keV'),spec=1,$
+        labflag=-1,ylog=1,zlog=1, ztickformat='pwr10tick',ytitle='ERG XEP!CFEDU_'+suf,ysubtitle='Energy [keV]',$
+        ztitle='[/cm!U2!N-str-s-keV]'
+     options,prefix+'rawcnt_'+suf,labels=strcompress(string(new_v,format='(I4.4)')+' keV'),spec=1,$
+        labflag=-1,ylog=1,zlog=1, ztickformat='pwr10tick',ytitle='ERG XEP!Crawcnt'+suf,ysubtitle='Energy [keV]',$
+        ztitle='[count/sample]'
+      ylim,prefix+'FEDU_*'+suf,450,5000
+      ylim,prefix+'rawcnt_*'+suf,450,5000
+    endif
+
+  endfor
+
 
   ;--- print PI info and rules of the road
   gatt=dl.cdf.gatt

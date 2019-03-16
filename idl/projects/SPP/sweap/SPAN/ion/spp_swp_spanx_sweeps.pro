@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-12 15:36:27 -0700 (Tue, 12 Mar 2019) $
-; $LastChangedRevision: 26783 $
+; $LastChangedBy: mdmcmanus $
+; $LastChangedDate: 2019-03-15 15:32:10 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26825 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spanx_sweeps.pro $
 ;
 
@@ -58,7 +58,7 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
   
   anode_all = reform(anodes # replicate(1,nelem),new_dimen,/overwrite)
 
-  geom_all = cal.dphi[anode_all] / 360.
+  geom_all = cal.dphi[anode_all]
   phi_all  = cal.phi[anode_all]
   
   delt_all = reform( replicate(1,n_anodes) # delt[*],new_dimen)

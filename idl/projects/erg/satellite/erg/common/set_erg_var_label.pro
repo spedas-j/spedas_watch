@@ -1,8 +1,6 @@
 ;+
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-12-05 22:09:27 -0800 (Tue, 05 Dec 2017) $
-; $LastChangedRevision: 24403 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/common/set_erg_var_label.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;-
 pro set_erg_var_label, predict=predict, erase=erase, no_download=no_download, $
    withr=withr

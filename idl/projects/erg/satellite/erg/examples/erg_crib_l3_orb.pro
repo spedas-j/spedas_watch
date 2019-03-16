@@ -12,10 +12,8 @@
 ;             ERG Science Center, ISEE, Nagoya Univ.
 ;             erg-sc-core at isee.nagoya-u.ac.jp
 ;
-;   $LastChangedBy: c0084chang $
-;   $LastChangedDate: 2018-09-02 23:57:46 +0900 (Sun, 02 Sep 2018) $
-;   $LastChangedRevision: 584 $
-;   $URL: https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/examples/erg_crib_l3_orb.pro $
+;   $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+;   $LastChangedRevision: 26822 $
 ;-
 
 ; Initialize the user environmental variables for ERG

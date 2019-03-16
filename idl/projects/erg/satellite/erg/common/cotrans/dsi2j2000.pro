@@ -18,10 +18,8 @@
 ;
 ; :Author: Tomo Hori, ISEE (tomo.hori at nagoya-u.jp)
 ;
-;   $LastChangedBy: nikos $
-;   $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-;   $LastChangedRevision: 25628 $
-;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/common/cotrans/dsi2j2000.pro $
+;   $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+;   $LastChangedRevision: 26822 $
 ;
 ;-
 pro dsi2j2000, name_in, name_out, J20002DSI=J20002DSI, $

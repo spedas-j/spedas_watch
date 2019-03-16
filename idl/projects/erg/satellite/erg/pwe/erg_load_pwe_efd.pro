@@ -6,7 +6,7 @@
 ;
 ; :Keywords:
 ;   level: level of data products. Currently only 'l2' is acceptable.
-;   datatype: types of data products. Currently only 'E_spin' is
+;   datatype: types of data products. 'E_spin', 'pot', 'spec' are
 ;   acceptable. 
 ;   varformat: If set a string with wildcards, only variables with
 ;              matching names are extrancted as tplot variables.
@@ -22,20 +22,20 @@
 ;          authentication.
 ;   passwd: password to be passed to the remote server for
 ;           authentication.
+;   band_width: return the band width of the variable "spectra".
 ;
 ; :Examples:
-;   IDL> timespan, '2017-04-01'
-;   IDL> erg_load_pwe_efd
-;   IDL> erg_load_efd, datatype='E_spin'
+;   ERG> timespan, '2017-04-01'
+;   ERG> erg_load_pwe_efd
+;   ERG> erg_load_pwe_efd, datatype='E_spin'
+;   ERG> erg_load_pwe_efd, datatype='spec', band_width=band_width
 ;
 ; :Authors:
 ;   Masafumi Shoji, ERG Science Center (E-mail: masafumi.shoji at
 ;   nagoya-u.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-09-04 15:57:53 -0700 (Tue, 04 Sep 2018) $
-; $LastChangedRevision: 25725 $
-; $URL:
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_efd.pro $
 ;-
 
@@ -49,10 +49,11 @@ pro erg_load_pwe_efd, $
    verbose=verbose, $
    uname=uname, $
    passwd=passwd, $
+   band_width=band_width, $
    _extra=_extra  
   
   erg_init
-
+  
   if ~keyword_set(downloadonly) then downloadonly = 0
   if ~keyword_set(no_download) then begin
      no_download = 0
@@ -66,24 +67,24 @@ pro erg_load_pwe_efd, $
 ;        read, passwd, prompt='Enter passwd: '
 ;     endif
   endif
-
+  
   if ~keyword_set(level) then begin 
      level='l2'
   endif
-
+  
   if isa(level, 'INT') then begin
      level=strcompress('l'+string(level), /remove_all)
   endif
-
+  
   if ~keyword_set(datatype) then datatype='E_spin'
-
+  
   case level of
-
+     
      'l2': begin
         Lvl = 'L2'
         prefix='erg_pwe_efd_l2_'        
      end
-
+     
      'l3': begin
         Lvl = 'L3'
         prefix='erg_pwe_efd_l3_'
@@ -108,7 +109,7 @@ pro erg_load_pwe_efd, $
         labels=['Ex', 'Ey']
      end
      'spec': begin
-        md='SPEC'
+        md='spec'
      end
      '64': begin
         md='E64Hz'
@@ -129,23 +130,16 @@ pro erg_load_pwe_efd, $
      end
 
   endcase
-
+  
   localdir=!erg.local_data_dir+'satellite/erg/pwe/efd/'+level+'/'+md+'/'
   remotedir=!erg.remote_data_dir+'satellite/erg/pwe/efd/'+level+'/'+md+'/'
-
+  
   relfpathfmt= 'YYYY/'+'MM/' + 'erg_pwe_efd_'+level+'_'+md+'_YYYYMMDD_v??_??.cdf'
   relfpaths=file_dailynames(file_format=relfpathfmt)
   files=spd_download(remote_file=relfpaths,remote_path = remotedir,local_path=localdir,no_download=no_download,$
                      _extra=source,authentication=2, url_username=uname, url_password=passwd, /last_version)
-
-;  stop
-
-  filestest=file_test(files)
-
-;  net_obj = obj_new('idlneturl')
-;  net_obj->getproperty, response_code=response_code
-
-;  stop
+  
+  filestest=file_test(files)  
   
   if(total(filestest) ge 1) then begin
      datfiles=files[where(filestest eq 1)]
@@ -153,43 +147,47 @@ pro erg_load_pwe_efd, $
      print, 'No file is loaded.'
      return
   endelse
-
+  
   if keyword_set(downloadonly) then return
   cdf2tplot, file=datfiles, prefix=prefix, get_support_data=get_support_data
-
-;  if strcmp(level,'l2') or strcmp(level,'l3') then return
-
+  
   if strcmp(md,'E_spin') then begin
      foreach elem, component do $
         options, prefix+elem+'_dsi', labels=labels, ytitle=elem+' vector in DSI', constant=0
      goto, gt0
-;     return
   endif
-
+  
   if strcmp(md,'pot') then begin
      foreach elem, component do $
         options, prefix+elem, labels=labels, ytitle=elem+' potential', constant=0
      goto, gt0
-;     return
   endif
-
-
-  if strcmp(md,'SPEC') then begin
-
-     zlim, 'erg_pwe_efd_l2_E_spectra', 1e-4, 1e-1
-     ylim, 'erg_pwe_efd_l2_E_spectra', 0,250
-
-     goto, gt0
-;     return
-
-  endif
-
-  foreach elem, component do begin
+  
+  
+  if strcmp(md,'spec') then begin
+     cdfi = cdf_load_vars(datfiles,varformat=varformat,var_type='support_data',/spdf_depend, $
+                          varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, all=all)
+     idx_bw=where(strmatch(cdfi.vars.name, 'band_width_*') eq 1)
+     band_width=*cdfi.vars[idx_bw].dataptr
      
-     get_data, prefix+elem, data=data, dlim=dlim
+     
+     zlim, 'erg_pwe_efd_l2_spectra*', 1e-6, 1e-2, 1
+     ylim, 'erg_pwe_efd_l2_spectra', 0,220.5,0
+     ylim, 'erg_pwe_efd_l2_spectra_*',0,100,0
+     
+     options, 'erg_pwe_efd_l2_spectra*', 'ysubtitle', '[Hz]'
+     options, 'erg_pwe_efd_l2_spectra*', 'ztitle','[mV^2/m^2/Hz]'
+     
+     goto, gt0
 
-     time1=data.x
-     dt=data.v;time offsets
+  endif
+
+foreach elem, component do begin
+   
+   get_data, prefix+elem, data=data, dlim=dlim
+   
+   time1=data.x
+   dt=data.v                    ;time offsets
      delta=time1[1]-time1[0]
      nt=n_elements(time1)
 

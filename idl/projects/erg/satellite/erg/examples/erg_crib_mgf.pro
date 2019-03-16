@@ -13,10 +13,8 @@
 ;             ERG Science Center, ISEE, Nagoya University
 ;             erg-sc-core at isee.nagoya-u.ac.jp
 ;
-;   $LastChangedBy: c0004hori $
-;   $LastChangedDate: 2018-09-02 18:35:51 +0900 (Sun, 02 Sep 2018) $
-;   $LastChangedRevision: 582 $
-;   $URL: https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/examples/erg_crib_mgf.pro $
+;   $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+;   $LastChangedRevision: 26822 $
 ;-
 
 ; initialize

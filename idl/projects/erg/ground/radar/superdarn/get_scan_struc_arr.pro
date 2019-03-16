@@ -14,10 +14,8 @@
 ; :HISTORY:
 ; 	2011/07/01: Initial release
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-12-05 22:09:27 -0800 (Tue, 05 Dec 2017) $
-; $LastChangedRevision: 24403 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/ground/radar/superdarn/get_scan_struc_arr.pro $;
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;-
 
 FUNCTION get_scan_struc_arr, vn

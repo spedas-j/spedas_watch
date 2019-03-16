@@ -1,6 +1,6 @@
 ; $LastChangedBy: mdmcmanus $
-; $LastChangedDate: 2019-03-14 17:49:53 -0700 (Thu, 14 Mar 2019) $
-; $LastChangedRevision: 26798 $
+; $LastChangedDate: 2019-03-15 15:06:50 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26823 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param2.pro $
 ;
 
@@ -144,7 +144,10 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
          '32Ex16M' : begin
            binmap =  reform( replicate(1,16*8) # indgen(32) , 16,8,32 )    ; 32 sample energy spectra ;  8,32,16 ; 4096 samples; full resolution
            end
-        '8Dx32Ex8A'  : binmap = [indgen(n_anodes/2,256),make_array(n_anodes/2,256,value=-1)] ; 2048 samples, -1 used as a mask in histogram (min=0)
+        '8Dx32Ex8A'  : begin
+           binmap = shift([indgen(n_anodes/2,256),make_array(n_anodes/2,256,value=-1)],1,0)
+           ; 2048 samples, -1 used as a mask in histogram (min=0). shift to get anodes 1 through 8
+           end
     ;    '16Ax8D'   :  binmap = indgen()  ;  128 sample
 ;        '32E'  : binmap = reform( replicate(1,16*8) # indgen(32) , 16,8,32 )    ; 32 sample energy spectra
 ;        '16A'   : binmap = reform( indgen(16) # replicate(1,8*32) , 16,8,32)      ; 16 sample anode spectra

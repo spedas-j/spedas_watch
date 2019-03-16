@@ -31,10 +31,8 @@
 ; Tomo Hori, ERG Science Center ( E-mail: tomo.hori _at_ nagoya-u.jp )
 ;
 ; Written by: T. Hori
-;   $LastChangedBy: nikos $
-;   $LastChangedDate: 2018-09-04 15:57:53 -0700 (Tue, 04 Sep 2018) $
-;   $LastChangedRevision: 25725 $
-;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/hep/erg_load_hep.pro $
+;   $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+;   $LastChangedRevision: 26822 $
 ;-
 pro erg_load_hep, files=files, datatype=datatype, varformat=varformat, $
                   trange=trange, splitazim=splitazim, $

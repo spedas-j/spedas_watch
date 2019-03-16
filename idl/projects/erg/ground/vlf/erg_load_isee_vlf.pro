@@ -35,10 +35,8 @@
 ;        2016-02-21 : Initial release by Yoshi Miyoshi(ERG-Science Center, ISEE, Nagoya Univ.)
 ;        2017-07-07 : Modified by Satoshi Kurita (ISEE, Nagoya Univ., kurita at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/ground/vlf/erg_load_isee_vlf.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;
 ;-
 

@@ -29,10 +29,8 @@
 ; :Author:
 ;   Tomo Hori (E-mail: horit at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-12-05 22:09:27 -0800 (Tue, 05 Dec 2017) $
-; $LastChangedRevision: 24403 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/ground/radar/superdarn/get_sd_vlshell.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;-
 PRO get_sd_vlshell, vlos_vn, angle_var=angle_var, exclude_angle=exclude_angle, glatp=glatp,glonp=glonp,glatm=glatm,glonm=glonm, $
   vmag=vmag

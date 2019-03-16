@@ -14,10 +14,8 @@
 ;
 ; :Author: Tomo Hori, ISEE (tomo.hori at nagoya-u.jp)
 ;
-;   $LastChangedBy: nikos $
-;   $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-;   $LastChangedRevision: 25628 $
-;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/common/cotrans/vector_rotate.pro $
+;   $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+;   $LastChangedRevision: 26822 $
 ;-
 pro vector_rotate, x0, y0, z0, nx, ny, nz, theta, x1, y1, z1
   ;It is recommended that all arguments are given as double-precision for a better precision. 

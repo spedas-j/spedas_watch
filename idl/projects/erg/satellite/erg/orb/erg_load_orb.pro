@@ -13,7 +13,9 @@
 ;           Default is 'l2'.
 ;
 ; :Examples:
-;    erg_load_orb ; load definitive orbit data.
+;    erg_load_orb ; load Level-2 definitive orbit data.
+;    erg_load_orb,level='l3' ; load Level-3 orbit data with OP77Q model.
+;    erg_load_orb,level='l3',/t89 ; load Level-3 orbit data with T89 model.
 ;
 ; :History:
 ;    Prepared by Kunihiro Keika, ISEE, Nagoya University in July 2016
@@ -22,6 +24,7 @@
 ;                Pasted it to 'erg_load_orb_predict.pro'
 ;                by Mariko Teramoto, ISEE, Nagoya University
 ;    2018/07/31: Marge 'erg_load_orb_l3.pro' with this erg_load_orb.pro
+;    2019/02/17: add t89 keyword in Level-3 data
 ;
 ; :Author:
 ;   Tzu-Fang Chang, ISEE, Nagoya University (jocelyn at isee.nagoya-u.ac.jp)
@@ -29,42 +32,9 @@
 ;   Kuni Keika, Department of Earth and Planetary Science,
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-08-10 15:43:17 -0700 (Fri, 10 Aug 2018) $
-; $LastChangedRevision: 25628 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/orb/erg_load_orb.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;-
-pro remove_duplicated_tframe, tvars
-
-  if n_params() ne 1 then return
-  tvars = tnames(tvars)
-  if strlen(tvars[0]) lt 1 then return
-
-  for i=0L, n_elements(tvars)-1 do begin
-    tvar = tvars[i]
-
-    get_data, tvar, time, data, dl=dl, lim=lim
-    n = n_elements(time)
-    dt = [ time[1:(n-1)], time[n-1]+1 ] - time[0:(n-1)]
-    idx = where( abs(dt) gt 0d, n1 )
-
-    if n ne n1 then begin
-      newtime = time[idx]
-      if size(data,/n_dim) eq 1 then begin
-        newdata = data[idx]
-      endif else newdata = data[ idx, *]
-      store_data, tvar, data={x:newtime, y:newdata},dl=dl, lim=lim
-    endif
-
-
-  endfor
-
-
-
-  return
-end
-
-
 
 pro erg_load_orb, $
   level=level, $
@@ -75,6 +45,7 @@ pro erg_load_orb, $
   downloadonly=downloadonly, $
   no_download=no_download, $
   verbose=verbose, $
+  t89=t89, $
   _extra=_extra
 
 
@@ -86,42 +57,36 @@ pro erg_load_orb, $
   if ~keyword_set(downloadonly) then downloadonly = 0
   if ~keyword_set(no_download) then no_download = 0
 
-  ;
   ; - - - FOR CONFIRMED ORBIT DATA - - -
   ;Local and remote data file paths
-  if level eq 'l2' then tpath='satellite/erg/orb/def/' $
-  else if level eq 'l3' then tpath='satellite/erg/orb/l3/'
 
-  remotedir = !erg.remote_data_dir+tpath
-  ;
-  localdir = !erg.local_data_dir+ tpath
-  ;
-  ;Relative file path
-  relfpathfmt = 'YYYY/erg_orb_' + level + '_YYYYMMDD_v??.cdf'
-  ;
-  ;Expand the wildcards for the designated time range
-  relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
-  ;
-  ;Download data files
-  datfiles = $
-    spd_download( remote_file = relfpaths, $
-    remote_path = remotedir, local_path = localdir, /last_version, $
-    no_download=no_download, no_update=no_download, _extra=_extra )
-  ;
-  ;Read CDF files and generate tplot variables
-  prefix = 'erg_orb_'+level+'_'
-  if ~downloadonly then $
-    cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
-    verbose = verbose
-
+  ;; for Level-2 definitive orbit data
   if level eq 'l2' then begin
+    tpath='satellite/erg/orb/def/'
+    remotedir = !erg.remote_data_dir+tpath
+    localdir = !erg.local_data_dir+ tpath
+    ;Relative file path
+    relfpathfmt = 'YYYY/erg_orb_' + level + '_YYYYMMDD_v??.cdf'
+    ;Expand the wildcards for the designated time range
+    relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
+    ;Download data files
+    datfiles = $
+      spd_download( remote_file = relfpaths, $
+      remote_path = remotedir, local_path = localdir, /last_version, $
+      no_download=no_download, no_update=no_download, _extra=_extra )
+    ;
+    ;Read CDF files and generate tplot variables
+    prefix = 'erg_orb_'+level+'_'
+    if ~downloadonly then $
+      cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
+      verbose = verbose
+    ;
     tvar_pos = 'erg_orb_'+level+'_pos_gsm'
     get_data, tvar_pos, data=data, dlim=dlim
     str_element, dlim, 'data_att.coord_sys', strmid(tvar_pos,2,3,/rev), /add
     store_data, tvar_pos, data=data, dlim=dlim
 
-
-    if  total(strlen(tnames('erg_orb_'+level+'_*')) gt 1) eq 19 then begin
+    if  total(strlen(tnames('erg_orb_'+level+'_*')) gt 1) eq 20 then begin
       remove_duplicated_tframe, tnames('erg_orb_'+level+'_*')
 
       ; - - - - OPTIONS FOR TPLOT VARIABLES - - - -
@@ -145,9 +110,29 @@ pro erg_load_orb, $
     endif else print,'Orb L2 CDF file has not been created yet!'
   endif
 
-  if  level eq 'l3' then begin
-    if  total(strlen(tnames('erg_orb_'+level+'_*')) gt 1) eq 8 then begin
-      remove_duplicated_tframe, tnames('erg_orb_'+level+'_*')
+  ;; for Level-3 with OP77Q model 
+  if  level eq 'l3' and ~keyword_set(t89) then begin
+    tpath='satellite/erg/orb/l3/'
+    remotedir = !erg.remote_data_dir+tpath
+    localdir = !erg.local_data_dir+ tpath
+    ;Relative file path
+    relfpathfmt = 'YYYY/erg_orb_' + level + '_YYYYMMDD_v??.cdf'
+    ;Expand the wildcards for the designated time range
+    relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
+    ;Download data files
+    datfiles = $
+      spd_download( remote_file = relfpaths, $
+      remote_path = remotedir, local_path = localdir, /last_version, $
+      no_download=no_download, no_update=no_download, _extra=_extra )
+    ;
+    ;Read CDF files and generate tplot variables
+    prefix = 'erg_orb_'+level+'_'
+    if ~downloadonly then $
+      cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
+      verbose = verbose
+    ;
+    if  total(strlen(tnames('erg_orb_l3_*_op')) gt 1) eq 8 then begin
+       remove_duplicated_tframe, tnames('erg_orb_l3_*_op')
 
       ; - - - - OPTIONS FOR TPLOT VARIABLES - - - -
       options,  prefix+'pos_lmc_op', ytitle='Lmc (OP77Q)',ysubtitle='[dimensionless]'
@@ -163,13 +148,57 @@ pro erg_load_orb, $
       options,  prefix+'pos_lstar_op', 'labels', ['90deg','80deg','70deg','60deg','50deg','40deg','30deg','20deg','10deg']
       options,  prefix+'pos_I_op', 'labels', ['90deg','80deg','70deg','60deg','50deg','40deg','30deg','20deg','10deg']
       options,  prefix+'pos_'+'eq_op', 'labels', ['Re','MLT']
-      options,  prefix+'pos_iono_'+['north_op','south_op'], 'labels', ['MLAT','MLON']
+      options,  prefix+'pos_iono_'+['north_op','south_op'], 'labels', ['GLAT','GLON']
       options,  prefix+'pos_b'+['local_op','eq_op'], 'ylog', 1
       options,  prefix+'pos_b'+['local_op','eq_op'], 'labels', '|B|'
 
-    endif else print,'Orb L3 CDF file has not been created yet!'
+    endif else print,'Orb L3 CDF file (OP77Q) has not been created yet!'
   endif
 
+  ;; for Level-3 with T89 model 
+  if  level eq 'l3' and keyword_set(t89) then begin
+    tpath='satellite/erg/orb/l3_t89/'
+    remotedir = !erg.remote_data_dir+tpath
+    localdir = !erg.local_data_dir+ tpath
+    ;Relative file path
+    relfpathfmt = 'YYYY/erg_orb_' + level + '_t89_YYYYMMDD_v??.cdf'
+    ;Expand the wildcards for the designated time range
+    relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
+    ;Download data files
+    datfiles = $
+      spd_download( remote_file = relfpaths, $
+      remote_path = remotedir, local_path = localdir, /last_version, $
+      no_download=no_download, no_update=no_download, _extra=_extra )
+    ;
+    ;Read CDF files and generate tplot variables
+    prefix = 'erg_orb_'+level+'_'
+    if ~downloadonly then $
+      cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
+      verbose = verbose
+    ;
+    if  total(strlen(tnames('erg_orb_l3_*_t89')) gt 1) eq 8 then begin
+      remove_duplicated_tframe, tnames('erg_orb_l3_*_t89')
+
+      ; - - - - OPTIONS FOR TPLOT VARIABLES - - - -
+       options,  prefix+'pos_lmc_t89', ytitle='Lmc (T89)',ysubtitle='[dimensionless]'
+       options,  prefix+'pos_lstar_t89', ytitle='Lstar (T89)',ysubtitle='[dimensionless]'
+       options,  prefix+'pos_I_t89', ytitle='I (T89)',ysubtitle='[Re]'
+       options,  prefix+'pos_blocal_t89', ytitle='Blocal (T89)',ysubtitle='[nT]'
+       options,  prefix+'pos_beq_t89', ytitle='Beq (T89)',ysubtitle='[nT]'
+       options,  prefix+'pos_eq_t89', ytitle='Eq_pos (T89)',ysubtitle='[Re Hour]'
+       options,  prefix+'pos_iono_north_t89', ytitle='footprint_north (T89)',ysubtitle='[deg. deg.]'
+       options,  prefix+'pos_iono_south_t89', ytitle='footprint_south (T89)',ysubtitle='[deg. deg.]'
+
+       options,  prefix+'pos_lmc_t89', 'labels', ['90deg','80deg','70deg','60deg','50deg','40deg','30deg','20deg','10deg']
+       options,  prefix+'pos_lstar_t89', 'labels', ['90deg','80deg','70deg','60deg','50deg','40deg','30deg','20deg','10deg']
+       options,  prefix+'pos_I_t89', 'labels', ['90deg','80deg','70deg','60deg','50deg','40deg','30deg','20deg','10deg']
+       options,  prefix+'pos_'+'eq_t89', 'labels', ['Re','MLT']
+       options,  prefix+'pos_iono_'+['north_t89','south_t89'], 'labels', ['GLAT','GLON']
+       options,  prefix+'pos_b'+['local_t89','eq_t89'], 'ylog', 1
+       options,  prefix+'pos_b'+['local_t89','eq_t89'], 'labels', '|B|'
+
+    endif else print,'Orb L3 CDF file (T89) has not been created yet!'
+  endif
 
   return
 end

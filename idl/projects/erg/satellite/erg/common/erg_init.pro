@@ -25,10 +25,8 @@
 ; :Author:
 ;   Tomo Hori, ERG Science Center, ISEE, Nagoya Univ. (tomo.hori at nagoya-u.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2017-12-05 22:09:27 -0800 (Tue, 05 Dec 2017) $
-; $LastChangedRevision: 24403 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/common/erg_init.pro $
+; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
+; $LastChangedRevision: 26822 $
 ;-
 pro erg_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remote_data_dir, $
   no_color_setup=no_color_setup,no_download=no_download, silent=silent
