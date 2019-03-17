@@ -7,7 +7,7 @@
 function get_mms_gls_selections, start_time=start_time, end_time=end_time,  $
   local_dir=local_dir, filename= filename, algorithm=algorithm
   
-  if n_elements(algorithm) eq 0 then algorithm = "mp-unh"
+  if n_elements(algorithm) eq 0 then algorithm = "mp-dl-unh"
   type = "gls_selections_" + algorithm
 
   status = get_mms_selections_file(type, start_time=start_time, $
