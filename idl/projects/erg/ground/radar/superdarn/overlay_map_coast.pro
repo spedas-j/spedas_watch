@@ -28,8 +28,8 @@
 ; 	2011/11/10: Created
 ; 	2011/06/15: renamed to overlay_map_coast
 ;
-; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26822 $
+; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
+; $LastChangedRevision: 26838 $
 ;-
 PRO overlay_map_coast,fill=fill,col=col, $
       static=static,time=time, geo_plot=geo_plot, coord=coord, $

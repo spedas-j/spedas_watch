@@ -1,5 +1,23 @@
-PRO spp_swp_spi_flight_mram_map
+;+
+;
+; spp_swp_spi_flight_mram_map
+;
+; :Params:
+;    tables : in, optional, type=structure
+;       PSP SWEAP SPAN-Ai Flight MRAM Memory Map.
+;    config : in, optional, type=structure
+;       PSP SWEAP SPAN-Ai Flight Instrument Configuration       
+; $LastChangedBy: rlivi2 $
+; $LastChangedDate: 2019-03-17 20:19:01 -0700 (Sun, 17 Mar 2019) $
+; $LastChangedRevision: 26832 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_mram_map.pro $
+;-
 
+
+PRO spp_swp_spi_flight_mram_map, tables, config
+
+   None = !VALUES.F_NAN
+   
    tables = { $
             
             ;;---------------------------
@@ -228,7 +246,7 @@ PRO spp_swp_spi_flight_mram_map
             'fs_p1_m0','fs_p1_m1','fs_p1_m2','fs_p1_m3',$
             'ts_p1_m0','ts_p1_m1','ts_p1_m2','ts_p1_m3',$
             'fs_p2_m0','fs_p2_m1','fs_p2_m2','fs_p2_m3',$
-            'ts_p2_m0','ts_p2_m1','ts_p2_m2','ts_p2_m3']
+            'ts_p2_m0','ts_p2_m1','ts_p2_m2','ts_p2_m3'] $
    }
 
 

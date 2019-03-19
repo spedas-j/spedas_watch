@@ -93,10 +93,11 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
     return    
   endif
 
-  if undefined(datatype) then datatype = ['pos', 'vel']
-  if datatype EQ ['*'] then datatype =  ['pos', 'vel']
-  datatype = strlowcase(datatype)
-  varformat = '*'+datatype
+;  if undefined(datatype) then datatype = ['pos', 'vel']
+;  if datatype EQ ['*'] then datatype =  ['pos', 'vel']
+;  datatype = strlowcase(datatype)
+;  varformat = '*'+datatype
+
   if undefined(level) then level = 'l1' else level=strlowcase(level)
   if level NE 'l1' then begin
     dprint, dlevel = 1, 'State data does not have level = ' + level
@@ -106,7 +107,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ''
   ; temporarily set predicted flag
-  pred = 1 
+  ; pred = 1 
 
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $

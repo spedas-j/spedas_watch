@@ -20,8 +20,8 @@
 ; :HISTORY:
 ; 	2011/01/11: Created
 ;
-; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26822 $
+; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
+; $LastChangedRevision: 26838 $
 ;-
 PRO sd_latlt_grid, dlat=dlat, dlt=dlt, color=color, linethick=linethick, $
   twohourmltgrid=twohourmltgrid, whitebgk=whitebgk 

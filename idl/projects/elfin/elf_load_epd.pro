@@ -92,7 +92,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     return
   endif
   if undefined(level) then level = 'l1'
-  if undefined(datatype) AND level eq 'l1' then datatype = ['pef']
+  if undefined(datatype) AND level eq 'l1' then datatype = ['pef', 'pif']
   if undefined(datatype) AND level eq 'l2' then datatype = ['pef_eflux']
   datatype = strlowcase(datatype) 
   if undefined(suffix) then suffix = ''
@@ -101,16 +101,14 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'epd', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
     datatype = datatype, get_support_data = get_support_data, $
-    tplotnames = tplotnames, no_color_setup = no_color_setup, time_clip = time_clip, $
+    tplotnames = new_tvars, no_color_setup = no_color_setup, time_clip = time_clip, $
     no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
     cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
     cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
     always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
-  ; check that tvars were loaded
-  ;if existing_tvars NE '' then  new_tvars = ssl_set_complement(existing_tvars, tnames()) $
-  ;else new_tvars=tnames()
-  new_tvars=tnames()
+  ; no reason to continue if no data were loaded
+  if undefined(new_tvars) then return
   
   ; fix metadata 
   if n_elements(new_tvars) GT 0 && new_tvars[0] NE '' then begin
@@ -129,7 +127,5 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   ; no reason to continue if the user only requested available data
   if keyword_set(available) then return
 
-  ; no reason to continue if no data were loaded
-  if undefined(tplotnames) then return
 
 END

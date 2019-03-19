@@ -25,8 +25,8 @@
 ; :Author:
 ;   Tomo Hori, ERG Science Center, ISEE, Nagoya Univ. (tomo.hori at nagoya-u.jp)
 ;
-; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26822 $
+; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
+; $LastChangedRevision: 26838 $
 ;-
 pro erg_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remote_data_dir, $
   no_color_setup=no_color_setup,no_download=no_download, silent=silent

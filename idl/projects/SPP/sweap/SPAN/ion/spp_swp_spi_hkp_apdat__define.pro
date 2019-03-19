@@ -159,56 +159,56 @@ endif
          MON_1P5_C:       (spp_swp_word_decom(b,42) AND '3FF'x) * 0.64516,$
          MON_P5I_c:       (spp_swp_word_decom(b,44) AND '3FF'x) * 2.4340,$
          MON_N5I_C:       (spp_swp_word_decom(b,46) AND '3FF'x) * 2.4340,$
-         ACC_ERR_CNT:     ishft(b[48],-6),$                                ; First 2 bits
-         CDI_ERR_CNT:     ishft(b[48],-4) AND '11'b,$                      ; Next  2 bits
-         MON_ACC_V:       (spp_swp_word_decom(b,48) AND 'FFF'x) * 3.6630,$ ; Last 12 bits of word
+         ACC_ERR_CNT:     ishft(b[48],-6),$
+         CDI_ERR_CNT:     ishft(b[48],-4) AND '11'b,$
+         MON_ACC_V:       (spp_swp_word_decom(b,48) AND 'FFF'x) * 3.6630,$
 
-         SRAM_ERR_CNT:    ishft(b[50],-6),$                                ; First 2 bits
-         TLM_ERR_CNT:     ishft(b[50],-4) AND '11'b,$                      ; Next  2 bits
-         MON_DEF1_V:      (spp_swp_word_decom(b,50) AND 'FFF'x) * 0.9768,$ ; Last 12 bits of word
+         SRAM_ERR_CNT:    ishft(b[50],-6),$
+         TLM_ERR_CNT:     ishft(b[50],-4) AND '11'b,$
+         MON_DEF1_V:      (spp_swp_word_decom(b,50) AND 'FFF'x) * 0.9768,$
 
-         TOF_ERR_CNT:     ishft(b[52],-6),$                                ; First 2 bits
-         HV_ERR_CNT:      ishft(b[52],-4) AND '11'b,$                      ; Next  2 bits
-         MON_ACC_C:       (spp_swp_word_decom(b,52) AND 'FFF'x) * 0.0075,$ ; Last 12 bits of word  
+         TOF_ERR_CNT:     ishft(b[52],-6),$
+         HV_ERR_CNT:      ishft(b[52],-4) AND '11'b,$
+         MON_ACC_C:       (spp_swp_word_decom(b,52) AND 'FFF'x) * 0.0075,$
 
-         PROD_ERR_CNT:    ishft(b[54],-6),$                                ; First 2 bits
-         SP_ERR_CNT:      ishft(b[54],-4) AND '11'b,$                      ; Next  2 bits
-         MON_DEF2_V:      (spp_swp_word_decom(b,54) AND 'FFF'x) * 0.9768,$ ; Last 12 bits of word
+         PROD_ERR_CNT:    ishft(b[54],-6),$
+         SP_ERR_CNT:      ishft(b[54],-4) AND '11'b,$
+         MON_DEF2_V:      (spp_swp_word_decom(b,54) AND 'FFF'x) * 0.9768,$
          
-         FSM_ERR_CNT:     ishft(b[56],-4),$                                ; First 4 bits
-         MON_MCP_V:       (spp_swp_word_decom(b,56) AND 'FFF'x) * (850.*4./4095),$ ; Last 12 bits of word
+         FSM_ERR_CNT:     ishft(b[56],-4),$
+         MON_MCP_V:       (spp_swp_word_decom(b,56) AND 'FFF'x) * (850.*4./4095),$
+         
+         MEM_ERR_CNT:     ishft(b[58],-4),$
+         MON_SPOIL_V:     (spp_swp_word_decom(b,58) AND 'FFF'x) * 0.0195,$
 
-         MEM_ERR_CNT:     ishft(b[58],-4),$                                ; First 4 bits
-         MON_SPOIL_V:     (spp_swp_word_decom(b,58) AND 'FFF'x) * 0.0195,$ ; Last 12 bits of word 
+         PROD_LUT_MSB:    ishft(b[60],-7) AND '1'b,$
+         HV_LUT_MSB:      ishft(b[60],-6) AND '1'b,$
+         READ_NONVE:      ishft(b[60],-5) AND '1'b,$
+         CAL_RESET:       ishft(b[60],-4) AND '1'b,$
+         MON_MCP_C:       (spp_swp_word_decom(b,60) AND 'FFF'x) * 0.0199,$
 
-         PROD_LUT_MSB:    ishft(b[60],-7) AND '1'b,$    ; First  bit
-         HV_LUT_MSB:      ishft(b[60],-6) AND '1'b,$    ; Second bit
-         READ_NONVE:      ishft(b[60],-5) AND '1'b,$    ; Third  bit
-         CAL_RESET:       ishft(b[60],-4) AND '1'b,$    ; Fourth bit
-         MON_MCP_C:       (spp_swp_word_decom(b,60) AND 'FFF'x) * 0.0199,$ ; Last 12 bits of word
-
-         HKP_SIZE:        ishft(b[62],-7) AND '1'b,$    ; First  bit
-         TOF_COMPR:       ishft(b[62],-6) AND '1'b,$    ; Second bit
-         TP_ENA:          ishft(b[62],-5) AND '1'b,$    ; Third  bit
-         ALL_FULL_SWP:    ishft(b[62],-4) AND '1'b,$    ; Fourth bit
+         HKP_SIZE:        ishft(b[62],-7) AND '1'b,$
+         TOF_COMPR:       ishft(b[62],-6) AND '1'b,$
+         TP_ENA:          ishft(b[62],-5) AND '1'b,$
+         ALL_FULL_SWP:    ishft(b[62],-4) AND '1'b,$
          MON_TDC_TEMP:    MON_TDC_TEMP , $
 
-         RESET_CNT:       ishft(b[64],-4),$                                ; First 4 bits
-         MON_RAW_V:       (spp_swp_word_decom(b,64) AND 'FFF'x) * 1.2210,$ ; Last 12 bits of word
+         RESET_CNT:       ishft(b[64],-4),$
+         MON_RAW_V:       (spp_swp_word_decom(b,64) AND 'FFF'x) * 1.2210,$
 
-         PROD_SV:         ishft(b[66],-7) AND '1'b,$      ; First  bit
-         PROD_AP:         ishft(b[66],-6) AND '1'b,$      ; Second bit
-         TOF_HIST:        ishft(b[66],-5) AND '1'b,$      ; Third  bit
-         RAW_EVENTS:      ishft(b[66],-4) AND '1'b,$      ; Fourth bit
+         PROD_SV:         ishft(b[66],-7) AND '1'b,$
+         PROD_AP:         ishft(b[66],-6) AND '1'b,$
+         TOF_HIST:        ishft(b[66],-5) AND '1'b,$
+         RAW_EVENTS:      ishft(b[66],-4) AND '1'b,$
          MON_FPGA_TEMP:   MON_FPGA_TEMP , $
 
-         BOARD_ID:        ishft(b[68],-6),$               ; First 2 bits
-         HV_KEY_ENA:      ishft(b[68],-5) AND '1'b,$      ; Next bit
-         HV_ENABLED:      ishft(b[68],-4) AND '1'b,$      ; Next bit
-         MON_RAW_C:       (spp_swp_word_decom(b,68) AND 'FFF'x) * 0.0244,$ ; Last 12 bits of word
+         BOARD_ID:        ishft(b[68],-6),$
+         HV_KEY_ENA:      ishft(b[68],-5) AND '1'b,$
+         HV_ENABLED:      ishft(b[68],-4) AND '1'b,$
+         MON_RAW_C:       (spp_swp_word_decom(b,68) AND 'FFF'x) * 0.0244,$
 
-         HV_MODE:         ishft(b[70],-4),$               ; First 4 bits
-         MON_HEM_V:       (spp_swp_word_decom(b,70) AND 'FFF'x) * 0.9768,$ ; Last 12 bits of word
+         HV_MODE:         ishft(b[70],-4),$
+         MON_HEM_V:       (spp_swp_word_decom(b,70) AND 'FFF'x) * 0.9768,$
 
          MAXCNT:          spp_swp_word_decom(b,72), $
          MODE_ID:         spp_swp_word_decom(b,74), $

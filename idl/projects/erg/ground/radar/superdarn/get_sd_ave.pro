@@ -25,8 +25,8 @@
 ; :HISTORY:
 ; 	2011/07/03: Created
 ;
-; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26822 $
+; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
+; $LastChangedRevision: 26838 $
 ;-
 ; A helper function to check if the argument x (scalar or array) falls in the angular range given by 
 ; the argument range (a 2-element 1-D array). Both x and range should be given in degree. 

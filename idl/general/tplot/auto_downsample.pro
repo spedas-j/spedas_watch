@@ -5,7 +5,8 @@
 ; Downsamples spectral data to fit a given array and interpolates back
 ; to the original. For specplot.pro in cases where there is a time
 ; variation faster than the time resolution of device pixels. Not
-; done if n_elements(x_out) > n_elements(x_in)/2.
+; done if n_elements(x_out) > n_elements(x_in)/2, or if dx_out/dx_in
+; is less than 2.0.
 ;CALLING SEQUENCE:
 ; spec_out = auto_downsample(spec_in, x_in, x_out)
 ;INPUT:
@@ -19,9 +20,9 @@
 ;                            input coordinates, but to the output coordinates
 ;HISTORY:
 ; 31-aug-2018, jmm, jimm@ssl.berkeley.edu
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-01-08 08:51:00 -0800 (Tue, 08 Jan 2019) $
-; $LastChangedRevision: 26434 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2019-03-18 11:26:36 -0700 (Mon, 18 Mar 2019) $
+; $LastChangedRevision: 26846 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/auto_downsample.pro $
 ;-
 Function auto_downsample, spec_in, x_in, x_out, $
@@ -58,8 +59,8 @@ Function auto_downsample, spec_in, x_in, x_out, $
         Else spec_new[j, *] = mean(spec_in[ss, *], dim=1, /nan)
      Endif
   Endfor
-;Need bin mipoints
-  yyy = [yyy, yyy[nx_new-1]-yyy[nx_new-2]]
+;Need bin mipoints, fixed last point, 2019-03-18, jmm
+  yyy = [yyy, 2.0*yyy[nx_new-1]-yyy[nx_new-2]]
   x_new = 0.5*(yyy[1:*]+yyy)
 
 ;New spectrum is sort of the same as a spectrum on x_out, but not
@@ -71,6 +72,6 @@ Function auto_downsample, spec_in, x_in, x_out, $
      spec_out = interp(spec_new, x_new, x_in, $
                        /no_check_monotonic, /ignore_nan, /no_extrap)
   Endelse
-  
+
   Return, spec_out
 End

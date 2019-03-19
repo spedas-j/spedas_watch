@@ -1,7 +1,7 @@
-; $LastChangedBy: mdmcmanus $
-; $LastChangedDate: 2019-03-15 15:32:10 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26825 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spanx_sweeps.pro $
+; $LastChangedBy: rlivi2 $
+; $LastChangedDate: 2019-03-17 20:19:01 -0700 (Sun, 17 Mar 2019) $
+; $LastChangedRevision: 26832 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_sweeps.pro $
 ;
 
 function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin,param=param

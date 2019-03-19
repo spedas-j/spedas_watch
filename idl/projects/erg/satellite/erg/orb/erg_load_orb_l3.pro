@@ -35,11 +35,10 @@
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26822 $
+; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
+; $LastChangedRevision: 26838 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/orb/erg_load_orb_l3.pro $
 ;-
-
 pro erg_load_orb_l3, $
   t89=t89, $
   trange=trange, $

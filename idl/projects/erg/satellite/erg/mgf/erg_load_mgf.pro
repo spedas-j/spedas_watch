@@ -42,8 +42,8 @@
 ; Modified by: MT, June 28, 2018
 ;                 change the directroy structure of 8sec data from IYYYY to IYYYY/IMM
 ;
-;   $LastChangedDate: 2019-03-15 12:52:35 -0700 (Fri, 15 Mar 2019) $
-;   $LastChangedRevision: 26822 $
+;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
+;   $LastChangedRevision: 26838 $
 ;-
 
 pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_data, $
