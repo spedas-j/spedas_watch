@@ -1,7 +1,7 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-12 15:36:27 -0700 (Tue, 12 Mar 2019) $
-; $LastChangedRevision: 26783 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_reduced_sweep.pro $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2019-03-19 14:37:43 -0700 (Tue, 19 Mar 2019) $
+; $LastChangedRevision: 26855 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_reduced_sweep.pro $
 ;
 
 
@@ -12,17 +12,17 @@
 
 
 ;usage:
-; rswp = spp_swp_span_reduced_sweep(fullsweep=fswp,  ptable=spe.ptable)
+; rswp = spp_swp_spe_reduced_sweep(fullsweep=fswp,  ptable=spe.ptable)
 
-function spp_swp_span_reduced_sweep,fullsweep=fswp,ptable=ptable
+function spp_swp_spe_reduced_sweep,fullsweep=fswp,ptable=ptable
 
 
-message,'Old routine'
+;message,'Old routine',/cont
 
 rswp = dictionary()
 
-average_quants = ['energy','theta','phi','time']
-total_quants = ['delt','geom','geomdt']
+average_quants = ['energy','theta','phi','time', 'geom']
+total_quants = ['delt','geomdt']
 
 quantnames = [average_quants,total_quants]
 normalize = [average_quants eq average_quants, total_quants eq '']

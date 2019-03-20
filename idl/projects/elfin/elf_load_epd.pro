@@ -111,17 +111,17 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if undefined(new_tvars) then return
   
   ; fix metadata 
-  if n_elements(new_tvars) GT 0 && new_tvars[0] NE '' then begin
-    for i=0,n_elements(new_tvars)-1 do begin
-      get_data, new_tvars[i], data=d, dlimits=dl
-;      ebins = elf_convert_epd_mv2eng()
-      store_data, new_tvars[i], data={x:d.x, y:d.y, v:findgen(16) } 
-      options, /def, new_tvars[i], 'spec', 1
-      options, /def, new_tvars[i], 'zlog', 1
-      options, /def, new_tvars[i], 'no_interp', 1
-      options, /def, new_tvars[i], 'ystyle', 1
-    endfor
-  endif
+
+  for i=0,n_elements(new_tvars)-1 do begin
+    get_data, new_tvars[i], data=d, dlimits=dl
+;   ebins = elf_convert_epd_mv2eng()
+    store_data, new_tvars[i], data={x:d.x, y:d.y, v:findgen(16) } 
+    options, /def, new_tvars[i], 'spec', 1
+    options, /def, new_tvars[i], 'zlog', 1
+    options, /def, new_tvars[i], 'no_interp', 1
+    options, /def, new_tvars[i], 'ystyle', 1
+  endfor
+    
   ; add energy numbers
   
   ; no reason to continue if the user only requested available data

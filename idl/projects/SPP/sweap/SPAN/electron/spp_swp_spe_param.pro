@@ -1,6 +1,6 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-03-12 16:20:16 -0700 (Tue, 12 Mar 2019) $
-; $LastChangedRevision: 26785 $
+; $LastChangedDate: 2019-03-19 17:20:53 -0700 (Tue, 19 Mar 2019) $
+; $LastChangedRevision: 26858 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -217,7 +217,11 @@ end
 
 
 
-function spp_swp_spe_param, detname = detname, emode = emode, pmode = pmode, status_bits = status_bits, reset = reset, plot = plot
+function spp_swp_spe_param, detname = detname, $
+                            emode = emode, $
+                            pmode = pmode, $
+                            status_bits = status_bits, $
+                            reset = reset
 
   ;;------------------------------------------------------
   ;; COMMON BLOCK
@@ -262,7 +266,7 @@ function spp_swp_spe_param, detname = detname, emode = emode, pmode = pmode, sta
         14: etables[14] = spp_swp_spanx_sweep_tables([10.,10000.], spfac = ratios[3], emode = 14, _extra = spane_params)
         15: etables[15] = spp_swp_spanx_sweep_tables([ 5., 5000.], spfac = ratios[3], emode = 15, _extra = spane_params)
         16: etables[16] = spp_swp_spanx_sweep_tables([ 5.,  500.], spfac = ratios[3], emode = 16, _extra = spane_params)
-        17: etables[17] = spp_swp_spanx_sweep_tables([2.,2000.],    spfac = ratios[4], emode = 17, _extra = spane_params,plot=plot)
+        17: etables[17] = spp_swp_spanx_sweep_tables([2.,2000.],    spfac = ratios[4], emode = 17, _extra = spane_params)
         18: etables[18] = spp_swp_spanx_sweep_tables([10.,10000.], spfac = ratios[4], emode = 18, _extra = spane_params)
         19: etables[19] = spp_swp_spanx_sweep_tables([ 5., 5000.], spfac = ratios[4], emode = 19, _extra = spane_params)
         20: etables[20] = spp_swp_spanx_sweep_tables([ 5.,  500.], spfac = ratios[4], emode = 20, _extra = spane_params)
@@ -275,14 +279,14 @@ function spp_swp_spe_param, detname = detname, emode = emode, pmode = pmode, sta
     endif    
     retval.etable = etables[emode]
     
-    def5coeff = [-1396.73, 539.083, 0.802293, -0.0462400, -0.000163369, 0.00000319759]
+    ;def5coeff = [-1396.73, 539.083, 0.802293, -0.0462400, -0.000163369, 0.00000319759]
 
   endif
   
   
   
   if isa(detname) then begin
-    if ~spe_param_dict.haskey('CALS') then   spe_param_dict.cals  = dictionary()
+    if ~spe_param_dict.haskey('CALS') then   spe_param_dict.cals  = dictionary() ; should this be an ordered hash?
     cals = spe_param_dict.cals
     if ~cals.haskey(strupcase(detname))  then begin
       dprint,dlevel=2,'Generating cal structure for ',detname
@@ -325,7 +329,8 @@ function spp_swp_spe_param, detname = detname, emode = emode, pmode = pmode, sta
         hem_scale:    500.d  , $
         spoil_scale:  80./2.^16   ,  $  ; Needs correction
         k_anal:  replicate(16.7,n_anodes) ,  $
-        k_defl:  replicate(1.,n_anodes) $
+        k_defl:  replicate(1.,n_anodes), $
+        mech_attnx: 10. $
       }
       cals[strupcase(detname)] = cal
     endif
@@ -338,7 +343,7 @@ function spp_swp_spe_param, detname = detname, emode = emode, pmode = pmode, sta
     if ~spe_param_dict.haskey('ptables') then spe_param_dict.ptables = orderedhash()
     ptables = spe_param_dict.ptables
     if ~ptables.haskey(pmode) then begin
-      dprint, 'Generating new product table ',pmode,dlevel=1
+      dprint, 'Generating new product table ', pmode, dlevel=1
       case pmode of
         '16Ax8Dx32E'  : binmap = indgen(16,8,32)   ; 4096 samples; full resolution
         '32E'  : binmap = reform( replicate(1,16*8) # indgen(32) , 16,8,32 )    ; 32 sample energy spectra
@@ -354,10 +359,28 @@ function spp_swp_spe_param, detname = detname, emode = emode, pmode = pmode, sta
         ptable.reverse_ind = ri
       endif else dprint,dlevel=1,'Unknown pmode: "',pmode,'"'
       ptables[pmode] = ptable
-    endif    
+    endif
     retval.ptable  = ptables[pmode]
   endif
   
+  if isa(status_bits) then begin
+    if ~spe_param_dict.haskey('status') then spe_param_dict.status = orderedhash()
+    status = spe_param_dict.status
+    if ~status.haskey(strupcase(status_bits))  then begin
+      if (fix(status_bits) and 128) eq 128 then mech_attn = 1 ; in 
+      if (fix(status_bits) and 64) eq 64 then mech_attn = 0 ; out
+      if ~((fix(status_bits) and 128) eq 128) and ~((fix(status_bits) and 64) eq 64) then mech_attn = 'f'x ; illegal state
+      hv_sweep = 'f'x and fix(status_bits)
+      stat  = {   $
+        mech_attn: mech_attn, $ ; 0 is out, 1 is in
+        ;test_pulser: , $
+        ;hv_enable: , $
+        hv_sweep: hv_sweep $
+      }
+      status[strupcase(status_bits)] = stat
+    endif
+    retval.stat = status[strupcase(status_bits)]
+  endif
   
   if n_elements(retval) eq 0 then retval = spe_param_dict
   

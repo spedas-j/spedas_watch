@@ -4,9 +4,9 @@
   ; PSP SPAN make L2
   ;
   ;
-  ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2019-03-07 09:54:46 -0800 (Thu, 07 Mar 2019) $
-  ; $LastChangedRevision: 26770 $
+  ; $LastChangedBy: phyllisw2 $
+  ; $LastChangedDate: 2019-03-19 17:20:53 -0700 (Tue, 19 Mar 2019) $
+  ; $LastChangedRevision: 26858 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -85,10 +85,12 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
         l1_datasize = l1_cdf.vars['DATASIZE'].data.array
         l1_nrecs = n_elements(l1_datasize)
         l1_emode = l1_cdf.vars['EMODE'].data.array
+        l1_status_bits = l1_cdf.vars['STATUS_BITS'].data.array
         dprint,verbose=verbose,dlevel=dlevel,/phelp,uniq(l1_datasize);,varname='uniq'
         dprint,verbose=verbose,dlevel=dlevel,/phelp,l1_datasize[uniq(l1_datasize)];,varname='datasize'
         dprint,verbose=verbose,dlevel=dlevel,uniq(l1_emode)
         dprint,verbose=verbose,dlevel=dlevel,l1_emode[uniq(l1_emode)]
+        dprint,verbose=verbose,dlevel=dlevel,l1_status_bits[uniq(l1_status_bits)]
         
         foreach pmode,pmodes,psize do begin
 
@@ -101,6 +103,7 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
 
           l2_counts = l2_cdf.vars['DATA'].data.array
           l2_emode = l2_cdf.vars['EMODE'].data.array
+          l2_status_bits = l2_cdf.vars['STATUS_BITS'].data.array
                     
           l2_counts = l2_counts[*,0:psize-1]
 
@@ -110,14 +113,17 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
           phi    = energy
 
           emode_last = -1
+          status_bits_last = -1
+          
 
           for i = 0 , l2_nrecs-1 do begin
             emode = l2_emode[i]
-            if emode_last ne  emode then begin
-              param = spp_swp_spe_param(detname=spx,emode=emode,pmode=pmode)
-              fswp = spp_swp_span_sweeps(param=param)
+            status_bits = l2_status_bits[i]
+            if (emode_last ne emode) or (status_bits_last ne status_bits) then begin
+              param = spp_swp_spe_param(detname = spx, emode = emode, pmode = pmode, status_bits = status_bits)
+              fswp = spp_swp_spe_sweeps(param=param)
               ptable = param['PTABLE']
-              rswp =  spp_swp_span_reduced_sweep(fullsweep=fswp,ptable=ptable)
+              rswp =  spp_swp_spe_reduced_sweep(fullsweep=fswp,ptable=ptable)
               emode_last = emode
             endif
 

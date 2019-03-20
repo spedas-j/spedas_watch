@@ -95,6 +95,8 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes = datatypes_in, $
     datatypes = datatypes_in
   endelse
 
+  if is_string(datatypes) && ~is_array(datatypes) then datatypes = strsplit(datatypes, ' ', /extract)
+
   if undefined(remote_data_dir) then remote_data_dir = source.remote_data_dir
  
   if undefined(local_data_dir) then local_data_dir = source.local_data_dir
@@ -190,7 +192,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes = datatypes_in, $
           endif
           
           ;clear so new names are not appended to existing array
-          undefine, tplotnames
+       ;   undefine, tplotnames
           ; clear CDF filenames, so we're not appending to an existing array
           undefine, cdf_filenames
 

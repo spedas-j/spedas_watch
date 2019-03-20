@@ -1,3 +1,10 @@
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2019-03-19 16:26:12 -0700 (Tue, 19 Mar 2019) $
+; $LastChangedRevision: 26857 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spanx_sweep_tables.pro $
+;
+
+
 function spp_swp_spanx_sweep_tables,erange, deflrange,  $
     plot = plot,$
     emode=emode, sensor=sensor,  $
