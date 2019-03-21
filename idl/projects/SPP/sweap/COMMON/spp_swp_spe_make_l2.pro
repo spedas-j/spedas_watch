@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: phyllisw2 $
-  ; $LastChangedDate: 2019-03-19 17:20:53 -0700 (Tue, 19 Mar 2019) $
-  ; $LastChangedRevision: 26858 $
+  ; $LastChangedDate: 2019-03-20 14:35:43 -0700 (Wed, 20 Mar 2019) $
+  ; $LastChangedRevision: 26865 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -120,14 +120,17 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
             emode = l2_emode[i]
             status_bits = l2_status_bits[i]
             if (emode_last ne emode) or (status_bits_last ne status_bits) then begin
+            ;if (emode_last ne emode) then begin
               param = spp_swp_spe_param(detname = spx, emode = emode, pmode = pmode, status_bits = status_bits)
               fswp = spp_swp_spe_sweeps(param=param)
               ptable = param['PTABLE']
               rswp =  spp_swp_spe_reduced_sweep(fullsweep=fswp,ptable=ptable)
+              attn_fact = param['STAT'].mech_attn * param['CAL'].mech_attnx
               emode_last = emode
+              status_bits_last = status_bits
             endif
-
-            eflux[i,*] = l2_counts[i,*] / rswp['geomdt']
+            if attn_fact eq 0 then attn_fact = 1
+            eflux[i,*] = l2_counts[i,*] / rswp['geomdt'] * attn_fact
             energy[i,*] = rswp['energy']
             theta[i,*] = rswp['theta']
             phi[i,*] = rswp['phi']

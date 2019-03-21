@@ -43,8 +43,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2017-02-14 11:10:35 -0800 (Tue, 14 Feb 2017) $
-; $LastChangedRevision: 22776 $
+; $LastChangedDate: 2019-03-20 10:40:40 -0700 (Wed, 20 Mar 2019) $
+; $LastChangedRevision: 26859 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/time/TT2000/add_tt2000_offset.pro $
 ;-
 
@@ -72,14 +72,14 @@ function add_tt2000_offset,dates,subtract=subtract,offsets=offsets
   
   ;leap seconds occur at the TT calendar date in the file.  This date will already include leap seconds.
   if keyword_set(subtract) then begin
-    leap_dates+=32.184 ;offset between unix epoch(TAI) & J2000.0 epoch(TT)
+    leap_dates+=32.184d ;offset between unix epoch(TAI) & J2000.0 epoch(TT)
     leap_dates+=[0,leap_offsets[1:n_elements(leap_offsets)-1]]
     ;leap_dates-=leap_offsets
   endif 
   
   ;finds which offset parameters apply to which input dates
   offset_indexes=value_locate(leap_dates,dates,/l64) ;this assumes that leap_dates is monotone
-  offsets=([0,leap_offsets])[offset_indexes+1]+32.184 ;offset_indexes has range [-1,n-1], so prepending the zero offset element allows indexing without error 
+  offsets=([0,leap_offsets])[offset_indexes+1]+32.184d ;offset_indexes has range [-1,n-1], so prepending the zero offset element allows indexing without error 
 
   if keyword_set(subtract) then begin
     offsets*=-1
