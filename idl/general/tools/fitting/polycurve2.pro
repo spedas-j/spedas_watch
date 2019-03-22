@@ -1,17 +1,27 @@
 ;+
-;FUNCTION  polycurve(x,par=p)
+;FUNCTION  polycurve2(x,par=p)
 ;PURPOSE:
-;   Evaluates a (5th degree) polynomial (can be used with "FIT")
+;   Evaluates a (Nth degree) polynomial (can be used with "FIT")
 ;-
 
 function polycurve2, x,  $
-    parameters=p,  p_names = p_names, order = order  , pder_values= pder_values
+    parameters=p, coeff=coeff, order = order ,  p_names = p_names , pder_values= pder_values,invert=invert
 
-if n_elements(order) eq 0 then order = 6
-if not keyword_set(p) then $
-   p = {func:'polycurve2', order:fix(order),  a:dblarr(order+1)}
+if n_elements(order) eq 0 then order = 5
+if not keyword_set(p) or n_elements(coeff) gt 0 then begin
+  if n_elements(coeff) gt 0 then order = n_elements(coeff) -1 else coeff = dblarr(order+1)
+  p = {func:'polycurve2', order:fix(order),  a:double(coeff), invert:keyword_set(invert)}
+endif
 
 if n_params() eq 0 then return,p
+
+if keyword_set(invert) || p.invert then begin
+  xguess= (x-p.a[0])/p.a[1]
+  ptemp = p
+  ptemp.invert = 0
+  xy = solve(x,xguess=xguess,param=ptemp)
+  return,xy
+endif
 
 f= 0
 n = p.order
@@ -30,17 +40,6 @@ if keyword_set(p_names) then begin
    for i=0,np-1 do begin
       n = fix(strmid( p_names[i],2 ) )
       pder_values[*,i] = x^n
-;     printdat,n,p_names[i]
-;      case strupcase(p_names[i]) of
-;          'A[6]': pder_values[*,i] = x^6
-;          'A[5]': pder_values[*,i] = x^5
-;          'A[4]': pder_values[*,i] = x^4
-;          'A[3]': pder_values[*,i] = x^3
-;          'A[2]': pder_values[*,i] = x^2
-;          'A[1]': pder_values[*,i] = x
-;          'A[0]': pder_values[*,i] = 1
-;          else:  n = int(strmid(p_names[i],0,2))
-;      endcase
    endfor
 endif
 

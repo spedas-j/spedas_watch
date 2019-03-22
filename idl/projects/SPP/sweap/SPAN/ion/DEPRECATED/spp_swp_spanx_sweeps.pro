@@ -1,6 +1,6 @@
-; $LastChangedBy: rlivi2 $
-; $LastChangedDate: 2019-03-17 20:19:01 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26832 $
+; $LastChangedBy: mdmcmanus $
+; $LastChangedDate: 2019-03-21 13:09:47 -0700 (Thu, 21 Mar 2019) $
+; $LastChangedRevision: 26873 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_sweeps.pro $
 ;
 
@@ -22,10 +22,10 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
     index = [1,1,1,1] # reform(tsindex[*,peakbin])    
   endif else index = reform(etable.fsindex,4,256)  ; full sweep
 
-  hemv_dac  = etable.sweepv_dac[index]  
-  defv_dac  = etable.defv1_dac[index]  -  etable.defv2_dac[index]  
-  splv_dac  = etable.spv_dac[index]
-  delt_dac  = substep_time[index * 0]               ; time duration with same dimensions
+  hemv_dac = etable.hem_dac[index]
+  defv_dac = etable.def1_dac[index] - etable.def2_dac[index]
+  splv_dac = etable.spl_dac[index]
+  delt_dac = substep_time[index * 0]               ; time duration with same dimensions
 
   ; move from dacs to energy and defl  average over substeps
   
@@ -63,13 +63,13 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
   
   delt_all = reform( replicate(1,n_anodes) # delt[*],new_dimen)
   
-  timesort = etable.timesort
-  deflsort = etable.deflsort
+;  timesort = etable.timesort
+;  deflsort = etable.deflsort
   
-  timesort_all =  replicate(1,n_anodes) # timesort[*]*n_anodes  + indgen(n_anodes) # replicate(1,nelem) 
-  timesort_all =  reform( timesort_all , [n_anodes,size(/dimensions,timesort)],  /overwrite)
-  deflsort_all =  replicate(1,n_anodes) # deflsort[*]*n_anodes  + indgen(n_anodes) # replicate(1,nelem)                ; data varies with anode
-  deflsort_all =  reform( deflsort_all , [n_anodes,size(/dimensions,deflsort)],  /overwrite)
+;  timesort_all =  replicate(1,n_anodes) # timesort[*]*n_anodes  + indgen(n_anodes) # replicate(1,nelem) 
+;  timesort_all =  reform( timesort_all , [n_anodes,size(/dimensions,timesort)],  /overwrite)
+;  deflsort_all =  replicate(1,n_anodes) # deflsort[*]*n_anodes  + indgen(n_anodes) # replicate(1,nelem)                ; data varies with anode
+;  deflsort_all =  reform( deflsort_all , [n_anodes,size(/dimensions,deflsort)],  /overwrite)
 
 ;  timesort= indgen(16,8,32)
 ;
@@ -88,8 +88,8 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
   fswp.theta = defa_all
   fswp.geom  = geom_all
   fswp.geomdt = geomdt_all
-  fswp.timesort = timesort_all
-  fswp.deflsort = deflsort_all
+;  fswp.timesort = timesort_all
+;  fswp.deflsort = deflsort_all
   return,fswp
 end
 

@@ -43,8 +43,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-03-20 10:40:40 -0700 (Wed, 20 Mar 2019) $
-; $LastChangedRevision: 26859 $
+; $LastChangedDate: 2019-03-21 10:47:10 -0700 (Thu, 21 Mar 2019) $
+; $LastChangedRevision: 26870 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/time/TT2000/add_tt2000_offset.pro $
 ;-
 
@@ -57,7 +57,7 @@ function add_tt2000_offset,dates,subtract=subtract,offsets=offsets
     message,'Error. !CDF_LEAP_SECONDS, must be defined.  Try calling cdf_leap_second_init'
   endif
 
-  leap_data = read_asc(!cdf_leap_seconds.local_data_dir+'/CDFLeapSeconds.txt')
+  leap_data = read_asc(!cdf_leap_seconds.local_data_dir+'/CDFLeapSeconds.txt', /double)
 
   if ~is_struct(leap_data) then begin
       ; reload the leap second file if there's trouble loading it
