@@ -1,6 +1,6 @@
-; $LastChangedBy: mdmcmanus $
-; $LastChangedDate: 2019-03-21 13:09:47 -0700 (Thu, 21 Mar 2019) $
-; $LastChangedRevision: 26873 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-03-22 17:10:25 -0700 (Fri, 22 Mar 2019) $
+; $LastChangedRevision: 26882 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_sweeps.pro $
 ;
 
@@ -49,19 +49,19 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
 
   dimensions = size(/dimen,hemv)
   nelem = n_elements(hemv)
-  new_dimen = [n_anodes,dimensions]
+  new_dimen = [dimensions,n_anodes]   ; Ion data is generated differently from the electron data,   output is transposed  ( time , anode)  
 
-  nrg_all = reform(cal.k_anal # hemv[*],new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
-  defa_all = reform(cal.k_defl # defv[*],new_dimen,/overwrite)    ;  this should be evaluated as a cubic spline in the future
+  nrg_all = reform(hemv[*] # cal.k_anal ,new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
+  defa_all = reform(defv[*] # cal.k_defl,new_dimen,/overwrite)    ;  this should be evaluated as a cubic spline in the future
 
-  geomdt_all = reform(cal.dphi # delt[*],new_dimen,/overwrite)
+  geomdt_all = reform(delt[*] # cal.dphi,new_dimen,/overwrite)
   
-  anode_all = reform(anodes # replicate(1,nelem),new_dimen,/overwrite)
+  anode_all = reform(replicate(1,nelem) # anodes ,new_dimen,/overwrite)
 
   geom_all = cal.dphi[anode_all]
   phi_all  = cal.phi[anode_all]
   
-  delt_all = reform( replicate(1,n_anodes) # delt[*],new_dimen)
+  delt_all = reform(  delt[*] # replicate(1,n_anodes),new_dimen)
   
 ;  timesort = etable.timesort
 ;  deflsort = etable.deflsort

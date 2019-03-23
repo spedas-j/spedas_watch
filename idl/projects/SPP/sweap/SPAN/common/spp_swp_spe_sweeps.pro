@@ -1,6 +1,6 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-03-19 17:20:53 -0700 (Tue, 19 Mar 2019) $
-; $LastChangedRevision: 26858 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-03-22 17:14:38 -0700 (Fri, 22 Mar 2019) $
+; $LastChangedRevision: 26883 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_sweeps.pro $
 ;
 
@@ -15,7 +15,7 @@ function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin
     etable = param.etable
     ptable = param.ptable
     cal    = param.cal
-    status = param.stat
+    ;status = param.stat
   endif
 
   ; this portion of code assumes  4 substeps, 8 deflectors and 32 energies  (ptable correponds to full distribution)

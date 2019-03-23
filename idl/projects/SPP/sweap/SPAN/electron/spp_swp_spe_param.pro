@@ -1,6 +1,6 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-03-19 17:20:53 -0700 (Tue, 19 Mar 2019) $
-; $LastChangedRevision: 26858 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-03-22 17:15:53 -0700 (Fri, 22 Mar 2019) $
+; $LastChangedRevision: 26884 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -14,55 +14,6 @@
 ;usage:
 ; rswp = spp_swp_span_reduced_sweep(fullsweep=fswp,  ptable=spe.ptable)
 
-;function spp_swp_span_reduced_sweep,fullsweep=fswp,ptable=ptable
-;
-;
-;message,'Old routine'
-;
-;rswp = dictionary()
-;
-;average_quants = ['energy','theta','phi','time']
-;total_quants = ['delt','geom','geomdt']
-;
-;quantnames = [average_quants,total_quants]
-;normalize = [average_quants eq average_quants, total_quants eq '']
-;
-;hist = ptable.hist
-;ri  = ptable.reverse_ind
-;substep_dim = 2
-;
-;
-;for q=0,n_elements(quantnames)-1  do begin
-;  qname = quantnames[q]
-;  if ~fswp.haskey(qname) then continue
-;  quant = fswp[qname]
-;  norm  = normalize[q] 
-;  if substep_dim ne 0 then begin
-;    qmin  = min(quant, dimen = substep_dim)
-;    qmax  = max(quant, dimen = substep_dim)
-;    qval = total(quant,substep_dim)
-;    if norm then  qval /= 4
-;  endif else begin
-;    qmin = quant
-;    qmax = quant
-;    qval = quant
-;  endelse
-;  rqarray = replicate(!values.f_nan,n_elements(hist) )
-;  for i = 0,n_elements(hist)-1 do begin
-;    if hist[i] eq 0 then continue
-;    ind0 = ri[i] 
-;    ind1 = ri[i+1]-1
-;    ind =  ri[ ind0 :ind1 ]
-;    rqval = total( qval[ ind ] ) 
-;    if norm then   rqval = rqval / hist[i] 
-;    rqarray[i] =rqval
-;  endfor
-;  rswp[qname] = rqarray
-;endfor
-;
-;return,rswp
-;end
-;
 
 
 ;  counts = counts(phi,theta,energy)
@@ -83,15 +34,10 @@ function spp_swp_spe_deflector_func, defangle   ; this is a temporary location f
 ;solve for all possible combinations of deflector DAC and just make a lookup table.
    common spp_swp_spe_deflector_com, par
    
-   if ~keyword_set(par) then begin
-      par = polycurve2(order=5)
-      par.a[0] = -1396.73d
-      par.a[1] = 539.083d
-      par.a[2] = 0.802293d
-      par.a[3] = -0.04624d
-      par.a[4] = -0.000163369d
-      par.a[5] = 0.00000319759d
+   if ~keyword_set(par) then begin    
+      par = polycurve2(coeff = [-1396.73d, 539.083d, 0.802293d, -0.04624d, -0.000163369d, 0.00000319759d],/invert )
    endif
+   if  n_params() eq 0 then return, par
    return, func(defangle,p = par)
 
 end
@@ -100,10 +46,10 @@ end
 ;; Calculate all possible Angle values for each Deflector DAC difference
 ;; Return these in a structure
 function spp_swp_spe_deflut_cal
-  par = polycurve2(order= 5)
+  par = spp_swp_spe_deflector_func()
   anglerange = findgen(141,start = -70, increment = 1)
   anglerangedefs = spp_swp_spe_deflector_func(anglerange)
-  fit, anglerange, anglerangedefs, param = par, verbose = 1
+;  fit, anglerange, anglerangedefs, param = par, verbose = 1
   diffdefs = findgen('ffff'x * 2 + 1) - 'ffff'x
   guess = diffdefs * 0 + 0.5
   angles = solve(diffdefs, xguess = guess, param = par)
@@ -112,106 +58,6 @@ function spp_swp_spe_deflut_cal
   return, deflookup
 end
 
-;;----------------------------------------------
-;; The gen L2 code calls this for params
-;function  spp_swp_span_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin,param=param
-;
-;message,'Old routine'
-;
-;  if isa(param) then begin
-;    etable = param.etable
-;    ptable = param.ptable
-;    cal    = param.cal
-;  endif
-;
-;  ; this portion of code assumes  4 substeps, 8 deflectors and 32 energies  (ptable correponds to full distribution)
-;  ;  index = reform(etable.index,4,256)   ; full sweep
-;
-;  substep_time = 0.873/4/256 /4  ; integration time of single substep   
-;  
-;  if isa(peakbin) then begin      ; targeted sweap
-;    tsindex = reform(etable.tsindex,256,256)
-;    index = [1,1,1,1] # reform(tsindex[*,peakbin])    
-;  endif else index = reform(etable.fsindex,4,256)  ; full sweep
-;
-;  hemv_dac  = etable.sweepv_dac[index]  
-;  defv_dac  = etable.defv1_dac[index]  -  etable.defv2_dac[index]  ; use this later to collect theta angles.
-;  splv_dac  = etable.spv_dac[index]
-;  delt_dac  = substep_time[index * 0]               ; time duration with same dimensions
-;
-;  ; move from dacs to energy and defl  average over substeps
-;  
-;  defConvEst = 0.0025
-;  hemv  = float( hemv_dac * cal.hem_scale * 4. / 2.^16  )   ;  approximate voltage,  average over substeps
-;  defv  = float( defv_dac  * cal.defl_scale   )   ; approximate angle (degrees) ; ideally this is not used (direct dac - theta conversion)
-;  splv  = float( splv_dac  * cal.spoil_scale * 4./2.^16  ) ;  approximate voltage
-;  delt = delt_dac
-;  
-;  if 0 then begin
-;    hemv  = average(hemv ,1 )   ;    average over substeps
-;    defv  = average(defv ,1 )   ; average of theta
-;    splv  = average(splv ,1 ) ;  average over substeps
-;    delt = total(delt,1)  ; integration time    
-;  endif
-;
-;; Increase dimension for anodes
-;
-;  n_anodes = cal.n_anodes
-;  anodes = indgen(n_anodes)
-;
-;  dimensions = size(/dimen,hemv)
-;  nelem = n_elements(hemv)
-;  new_dimen = [n_anodes,dimensions]
-;  
-;  ;def_angs = 
-;
-;  nrg_all = reform(cal.k_anal # hemv[*],new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
-;  defa_all_old = reform(cal.k_defl # defv[*],new_dimen,/overwrite) * (-1.)   ;  this should be evaluated as a cubic spline in the future, flips for particle velocity direction not look direction
-;  thetas = findgen(n_elements(defv_dac))
-;  for i=0,n_elements(defv_dac)-1  do begin
-;    thetas[i] = cal.deflut_ang[where(cal.deflut_dac eq defv_dac[i])]
-;  endfor
-;  defa_all = reform(cal.k_defl # thetas, new_dimen, /overwrite)
-;
-;  geomdt_all = reform(cal.dphi # delt[*],new_dimen,/overwrite)
-;  
-;  anode_all = reform(anodes # replicate(1,nelem),new_dimen,/overwrite)
-;
-;  geom_all = cal.dphi[anode_all] / 360.
-;  phi_all  = cal.phi[anode_all]
-;  
-;  delt_all = reform( replicate(1,n_anodes) # delt[*],new_dimen)
-;  
-;  timesort = etable.timesort
-;  deflsort = etable.deflsort
-;  
-;  timesort_all =  replicate(1,n_anodes) # timesort[*]*n_anodes  + indgen(n_anodes) # replicate(1,nelem) 
-;  timesort_all =  reform( timesort_all , [n_anodes,size(/dimensions,timesort)],  /overwrite)
-;  deflsort_all =  replicate(1,n_anodes) # deflsort[*]*n_anodes  + indgen(n_anodes) # replicate(1,nelem)                ; data varies with anode
-;  deflsort_all =  reform( deflsort_all , [n_anodes,size(/dimensions,deflsort)],  /overwrite)
-;
-;;  timesort= indgen(16,8,32)
-;;
-;;  defsort = indgen(8,2,16)
-;;  if not keyword_set(timesort_flag) then for i = 0,15 do defsort[*,1,i] = reverse(defsort[*,1,i])           ; reverse direction of every other deflector sweep
-;;  defsort = reform(defsort,8,32)                                       ; defsort will reorder data so that it is no longer in time order - but deflector values are regular
-;;  datsort = reform( replicate(1,16) # defsort[*]*16 , 16,8,32 ) + reform( indgen(16) # replicate(1,8*32) , 16,8,32 )                ; data varies with anode
-;
-;
-;  fswp = dictionary()          ; full sweep dictionary
-;;  fswp.cal = cal
-;  fswp.anode = anode_all
-;  fswp.energy = nrg_all
-;  fswp.phi    = phi_all
-;  fswp.delt   = delt_all
-;  fswp.theta = defa_all
-;  fswp.geom  = geom_all
-;  fswp.geomdt = geomdt_all
-;  fswp.timesort = timesort_all
-;  fswp.deflsort = deflsort_all
-;  return,fswp
-;end
-;
 
 
 
@@ -294,13 +140,9 @@ function spp_swp_spe_param, detname = detname, $
       case strupcase(detname) of
         'SPA' : begin
           dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40. ;width
+          ;phi = total(/cum,dphi)- dphi/2 + 6.
           phi = [9.,15.,21.,27.,33.,39.,45.,51.,66.,90.,114.,138.,162.,186.,210.,234.]
-;          lookdir = fltarr(n_elements(phi)) ; deal with 360 degree boudnaries
-;          for i = 0, n_elements(phi)-1 do begin
-;            lookdir[i] = float(phi[i] + 180.)
-;            ;if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
-;          endfor
-          phi = phi + 180
+          phi = phi - 180   
           ;phi  = total(dphi,/cumulative) -3 ; +180
           end
         'SPB' : begin
@@ -330,7 +172,8 @@ function spp_swp_spe_param, detname = detname, $
         spoil_scale:  80./2.^16   ,  $  ; Needs correction
         k_anal:  replicate(16.7,n_anodes) ,  $
         k_defl:  replicate(1.,n_anodes), $
-        mech_attnx: 10. $
+        mech_attnx: 10. , $
+        defl_cal:    polycurve2(coeff = [-1396.73d, 539.083d, 0.802293d, -0.04624d, -0.000163369d, 0.00000319759d],/invert )  $
       }
       cals[strupcase(detname)] = cal
     endif

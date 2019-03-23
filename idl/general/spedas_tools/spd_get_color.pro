@@ -3,14 +3,66 @@
 ;   spd_get_color
 ; 
 ; PURPOSE:
-;   Return color index by name (uses current color table, whatever that might be)
-;   
+;   Return color index by name
+; 
+; SUPPORTED COLORS:
+;   This function does a nearest neighbor search on your colorbar, so the actual colors 
+;   available depend on your current colorbar; the possible options are:
+;      Almond                              Linen
+;      Antique White                       Magenta
+;      Aquamarine                          Maroon
+;      Beige                               Medium Gray
+;      Bisque                              Medium Orchid
+;      Black                               Moccasin
+;      Blue                                Navy
+;      Blue Violet                         Olive
+;      Brown                               Olive Drab
+;      Burlywood                           Orange
+;      Charcoal                            Orange Red
+;      Chartreuse                          Orchid
+;      Chocolate                           Pale Goldenrod
+;      Coral                               Pale Green
+;      Cornsilk                            Papaya
+;      Cyan                                Peru
+;      Dark Goldenrod                      Pink
+;      Dark Gray                           Plum
+;      Dark Green                          Powder Blue
+;      Dark Khaki                          Purple
+;      Dark Orchid                         Red
+;      Dark Salmon                         Rose
+;      Deep Pink                           Rosy Brown
+;      Dodger Blue                         Royal Blue
+;      Firebrick                           Saddle Brown
+;      Forest Green                        Salmon
+;      Gold                                Sandy Brown
+;      Goldenrod                           Sea Green
+;      Gray                                Seashell
+;      Green                               Sienna
+;      Green Yellow                        Sky Blue
+;      Honeydew                            Slate Gray
+;      Hot Pink                            Snow
+;      Indian Red                          Spring Green
+;      Ivory                               Steel Blue
+;      Khaki                               Tan
+;      Lavender                            Thistle
+;      Lawn Green                          Tomato
+;      Light Coral                         Turquoise
+;      Light Cyan                          Violet
+;      Light Gray                          Violet Red
+;      Light Salmon                        Wheat
+;      Light Yellow                        White
+;      Lime Green                          Yellow
+; 
 ; NOTES:
-;   spd_get_color_index was heisted from get_colors, and the color table was heisted from fsc_color
+;   - spd_get_color_index was heisted from get_colors, and the color table was heisted from fsc_color
 ;
+;   - you can change your current color table with the loadct2 procedure
+;   
+;   - you can visualize the current color table with the xpalette procedure
+;   
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-03-21 17:46:22 -0700 (Thu, 21 Mar 2019) $
-; $LastChangedRevision: 26877 $
+; $LastChangedDate: 2019-03-22 11:27:33 -0700 (Fri, 22 Mar 2019) $
+; $LastChangedRevision: 26881 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/spd_get_color.pro $
 ;-
 
