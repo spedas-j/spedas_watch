@@ -61,8 +61,8 @@
 ;   - you can visualize the current color table with the xpalette procedure
 ;   
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-03-22 11:27:33 -0700 (Fri, 22 Mar 2019) $
-; $LastChangedRevision: 26881 $
+; $LastChangedDate: 2019-03-23 08:22:15 -0700 (Sat, 23 Mar 2019) $
+; $LastChangedRevision: 26886 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/spd_get_color.pro $
 ;-
 
@@ -76,6 +76,12 @@ function spd_get_color_index,color
 end
 
 function spd_get_color, name
+
+  if undefined(name) then begin
+    dprint, 'ERROR - no color name is given!'
+    return, 0B
+  endif
+  
   colors = ['White']
   rvalue = [ 255]
   gvalue = [ 255]
@@ -141,8 +147,12 @@ function spd_get_color, name
   gvalue = [ gvalue,           50,           43,           32 ]
   bvalue = [ bvalue,          204,          226,          240 ]
 
-  color_idx = where(strlowcase(colors) eq strlowcase(name), colorcount)
-  if colorcount ne 0 then begin
-    return, spd_get_color_index([rvalue[color_idx], gvalue[color_idx], bvalue[color_idx]])
-  endif
+  for n=0, n_elements(name)-1 do begin
+    color_idx = where(strlowcase(colors) eq strlowcase(name[n]), colorcount)
+    ;; Padded with color id #0 (black) unless a matched color is found. 
+    col_id = colorcount ne 0 ? spd_get_color_index([rvalue[color_idx], gvalue[color_idx], bvalue[color_idx]]) : 0B
+    append_array, col_ids, col_id
+  endfor
+  return, col_ids
+      
 end
