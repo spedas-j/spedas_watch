@@ -114,6 +114,14 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   ; Perform pseudo calibration for level 1 fgm
   if no_cal NE 1 and tplotnames[0] ne '' then elf_cal_fgm, tplotnames, level=level, error=error
 
+  ; Set colors to RGB
+  if  ~undefined(tplotnames) && tplotnames[0] ne '' then begin
+    for i=0,n_elements(tplotnames)-1 do begin
+        get_data, tplotnames[i], data=d, dlimits=dl, limits=l
+        options, /def, tplotnames[i], 'colors', [2,4,6]
+    endfor
+  endif
+
   ; no reason to continue if the user only requested available data
   if keyword_set(available) then return
   

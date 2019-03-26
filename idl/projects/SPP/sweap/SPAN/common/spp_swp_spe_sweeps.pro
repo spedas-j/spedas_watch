@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-22 17:14:38 -0700 (Fri, 22 Mar 2019) $
-; $LastChangedRevision: 26883 $
+; $LastChangedDate: 2019-03-25 13:41:53 -0700 (Mon, 25 Mar 2019) $
+; $LastChangedRevision: 26895 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_sweeps.pro $
 ;
 
@@ -28,17 +28,17 @@ function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin
     index = [1,1,1,1] # reform(tsindex[*,peakbin])    
   endif else index = reform(etable.fsindex,4,256)  ; full sweep
 
-  hemv_dac  = etable.sweepv_dac[index]  
-  defv_dac  = etable.defv1_dac[index]  -  etable.defv2_dac[index]  ; use this later to collect theta angles.
-  splv_dac  = etable.spv_dac[index]
+  hem_dac  = etable.hem_dac[index]  
+  def_dac  = etable.def1_dac[index]  -  etable.def2_dac[index]  ; use this later to collect theta angles.
+  spl_dac  = etable.spl_dac[index]
   delt_dac  = substep_time[index * 0]               ; time duration with same dimensions
 
   ; move from dacs to energy and defl  average over substeps
   
   defConvEst = 0.0025
-  hemv  = float( hemv_dac * cal.hem_scale * 4. / 2.^16  )   ;  approximate voltage,  average over substeps
-  defv  = float( defv_dac  * cal.defl_scale   )   ; approximate angle (degrees) ; ideally this is not used (direct dac - theta conversion)
-  splv  = float( splv_dac  * cal.spoil_scale * 4./2.^16  ) ;  approximate voltage
+  hemv  = float( hem_dac * cal.hem_scale * 4. / 2.^16  )   ;  approximate voltage,  average over substeps
+  defv  = float( def_dac  * cal.defl_scale   )   ; approximate angle (degrees) ; ideally this is not used (direct dac - theta conversion)
+  splv  = float( spl_dac  * cal.spoil_scale * 4./2.^16  ) ;  approximate voltage
   delt = delt_dac
   
   if 0 then begin
@@ -61,9 +61,9 @@ function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin
 
   nrg_all = reform(cal.k_anal # hemv[*],new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
   defa_all_old = reform(cal.k_defl # defv[*],new_dimen,/overwrite) * (-1.)   ;  this should be evaluated as a cubic spline in the future, flips for particle velocity direction not look direction
-  thetas = findgen(n_elements(defv_dac))
-  for i=0,n_elements(defv_dac)-1  do begin
-    thetas[i] = cal.deflut_ang[where(cal.deflut_dac eq defv_dac[i])]
+  thetas = findgen(n_elements(def_dac))
+  for i=0,n_elements(def_dac)-1  do begin
+    thetas[i] = cal.deflut_ang[where(cal.deflut_dac eq def_dac[i])]
   endfor
   defa_all = reform(cal.k_defl # thetas, new_dimen, /overwrite)
 

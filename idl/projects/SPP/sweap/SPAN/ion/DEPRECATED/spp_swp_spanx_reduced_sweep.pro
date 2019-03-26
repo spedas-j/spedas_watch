@@ -1,6 +1,6 @@
-; $LastChangedBy: rlivi2 $
-; $LastChangedDate: 2019-03-17 20:19:01 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26832 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-03-25 17:31:20 -0700 (Mon, 25 Mar 2019) $
+; $LastChangedRevision: 26897 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_reduced_sweep.pro $
 ;
 
@@ -18,7 +18,7 @@ function spp_swp_spanx_reduced_sweep,fullsweep=fswp,ptable=ptable
 
 rswp = dictionary()
 
-average_quants = ['energy','theta','phi','time','geom']
+average_quants = ['energy','theta','phi','rtime','geom']
 total_quants = ['delt','geomdt']
 
 quantnames = [average_quants,total_quants]
@@ -26,7 +26,7 @@ normalize = [average_quants eq average_quants, total_quants eq '']
 
 hist = ptable.hist
 ri  = ptable.reverse_ind
-substep_dim = 2
+substep_dim = 1    ; should be 1 for ions ; 2 for electrons ; 0 for targeted?
 
 
 for q=0,n_elements(quantnames)-1  do begin
@@ -37,14 +37,17 @@ for q=0,n_elements(quantnames)-1  do begin
   if substep_dim ne 0 then begin
     qmin  = min(quant, dimen = substep_dim)
     qmax  = max(quant, dimen = substep_dim)
-    qval = total(quant,substep_dim)
+    qval = total(quant,substep_dim)                ; Average over the micro steps
     if norm then  qval /= 4
   endif else begin
     qmin = quant
     qmax = quant
     qval = quant
   endelse
-  rqarray = replicate(!values.f_nan,n_elements(hist) )
+  w = where(hist gt 0,nc)
+  rqarray = replicate(!values.f_nan,nc )
+;  whist = hist[w]
+  j=0
   for i = 0,n_elements(hist)-1 do begin
     if hist[i] eq 0 then continue
     ind0 = ri[i] 
@@ -52,10 +55,13 @@ for q=0,n_elements(quantnames)-1  do begin
     ind =  ri[ ind0 :ind1 ]
     rqval = total( qval[ ind ] ) 
     if norm then   rqval = rqval / hist[i] 
-    rqarray[i] =rqval
+    rqarray[j++] = rqval
   endfor
   rswp[qname] = rqarray
 endfor
+
+;timesort = 
+
 
 return,rswp
 end

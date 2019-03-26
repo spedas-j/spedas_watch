@@ -1,6 +1,6 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-03-19 16:26:12 -0700 (Tue, 19 Mar 2019) $
-; $LastChangedRevision: 26857 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-03-25 13:41:53 -0700 (Mon, 25 Mar 2019) $
+; $LastChangedRevision: 26895 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spanx_sweep_tables.pro $
 ;
 
@@ -102,10 +102,10 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
    ;; -------- Structure with values ----------
    table = { emode:emode, $
              sensor:sensor, $
-             sweepv_dac:sweepv_dac,$
-             defv1_dac:defv1_dac,$
-             defv2_dac:defv2_dac,$
-             spv_dac:spv_dac,$
+             hem_dac:sweepv_dac,$
+             def1_dac:defv1_dac,$
+             def2_dac:defv2_dac,$
+             spl_dac:spv_dac,$
              fsindex: reform(fsindex,4,256),$
              tsindex: reform(tsindex,256,256),$
              timesort: timesort,  $

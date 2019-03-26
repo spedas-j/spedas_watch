@@ -16,13 +16,14 @@
 ;Outputs:
 ;  vtitle=vtitle: title for var labels
 ;  vlab=vlab: formatted var labels
-;  time_offset=time_offset: Used by tplot for ???
-;  time_scale=time_scale: Used by tplot for ???
-;  
-;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-03-21 18:22:23 -0700 (Thu, 21 Mar 2019) $
-; $LastChangedRevision: 26878 $
+;  time_offset=time_offset: Used by tplot, as the start time of the
+;                           plot in unix time
+;  time_scale=time_scale: Used by tplot to scale the time variable,
+;                         typically 1.0, but larger for longer time
+;                         ranges
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2019-03-25 11:48:41 -0700 (Mon, 25 Mar 2019) $
+; $LastChangedRevision: 26890 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot_var_labels.pro $
 ;-
 

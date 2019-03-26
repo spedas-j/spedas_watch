@@ -90,9 +90,9 @@
 ;Still have questions:
 ;   Send e-mail to:  tplot@ssl.berkeley.edu    someone might answer!
 ;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-03-21 18:22:23 -0700 (Thu, 21 Mar 2019) $
-; $LastChangedRevision: 26878 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2019-03-25 11:48:41 -0700 (Mon, 25 Mar 2019) $
+; $LastChangedRevision: 26890 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot.pro $
 ;-
 
@@ -404,6 +404,8 @@ for i=0,nd-1 do begin
         tshift=tshift[0]
 ;  printdat,name,tshift,limits2,dtype
         data.x = (data.x - (time_offset-tshift))/time_scale
+;data.x is no longer unix time here, but is measured from th
+;time_offset value
      endif  else data={x:dindgen(2),y:findgen(2)}
      extract_tags,newlim,data,      except = ['x','y','dy','v']
      extract_tags,newlim,limits2

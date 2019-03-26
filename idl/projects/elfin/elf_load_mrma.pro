@@ -116,6 +116,14 @@ pro elf_load_mrma, trange = trange, probes = probes, datatype = datatype, $
     cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
     always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
+  ; Set colors to RGB
+  if  ~undefined(tplotnames) && tplotnames[0] ne '' then begin
+    for i=0,n_elements(tplotnames)-1 do begin
+      get_data, tplotnames[i], data=d, dlimits=dl, limits=l
+      options, /def, tplotnames[i], 'colors', [2,4,6]
+    endfor
+  endif
+
   ; no reason to continue if the user only requested available data
   if keyword_set(available) then return
 

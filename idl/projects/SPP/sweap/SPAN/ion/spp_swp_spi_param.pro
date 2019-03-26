@@ -5,9 +5,9 @@
 ;;
 ;; EXAMPLE:
 ;;
-;; $LastChangedBy: rlivi2 $
-;; $LastChangedDate: 2019-03-17 22:50:45 -0700 (Sun, 17 Mar 2019) $
-;; $LastChangedRevision: 26841 $
+;; $LastChangedBy: davin-mac $
+;; $LastChangedDate: 2019-03-25 13:41:53 -0700 (Mon, 25 Mar 2019) $
+;; $LastChangedRevision: 26895 $
 ;; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param.pro $
 
 
@@ -55,21 +55,21 @@ FUNCTION spp_swp_spi_param, detname = detname,$
        spi_param_dict.etables =orderedhash()
       etables = spi_param_dict.etables
       IF ~etables.haskey(emode) THEN BEGIN
-         ratios = [1.,.3,.1,.1,.001]
-
-         ;; SPAN-Ai Instrument Parameters
-         spani_params = {$
-                        k:        16.7,$
-                        nen:     128.0,$
-                        emin:      5.0,$
-                        emax:   4000.0,$
-                        rmax:     11.0,$
-                        vmax:   4000.0,$
-                        spfac:     0.0,$
-                        maxspen:5000.0,$
-                        hvgain: 1000.0,$
-                        spgain:   20.12,$
-                        fixgain:  13.0}
+;         ratios = [1.,.3,.1,.1,.001]
+;
+;         ;; SPAN-Ai Instrument Parameters
+;         spani_params = {$
+;                        k:        16.7,$
+;                        nen:     128.0,$
+;                        emin:      5.0,$
+;                        emax:   4000.0,$
+;                        rmax:     11.0,$
+;                        vmax:   4000.0,$
+;                        spfac:     0.0,$
+;                        maxspen:5000.0,$
+;                        hvgain: 1000.0,$
+;                        spgain:   20.12,$
+;                        fixgain:  13.0}
 
          ;; Debug Printing
          dprint,dlevel=2,'Generating Energy table - emode: '+$
@@ -143,15 +143,15 @@ FUNCTION spp_swp_spi_param, detname = detname,$
       IF ~ptables.haskey(pmode) THEN BEGIN
          dprint, 'Generating new product table ',pmode,dlevel=2
          CASE pmode OF
-            '08Dx32Ex08A':spp_swp_spi_flight_get_prod_08Dx32Ex08A, binmap
-            '08Dx32E':spp_swp_spi_flight_get_prod_08Dx32E, binmap
-            '08Dx16A':spp_swp_spi_flight_get_prod_08Dx16A, binmap
+            '8Dx32Ex8A':spp_swp_spi_flight_get_prod_08Dx32Ex08A, binmap
+            '8Dx32E':spp_swp_spi_flight_get_prod_08Dx32E, binmap
+            '8Dx16A':spp_swp_spi_flight_get_prod_08Dx16A, binmap
             '32Ex16A':spp_swp_spi_flight_get_prod_32Ex16A, binmap
             '32Ex16M':spp_swp_spi_flight_get_prod_32Ex16M, binmap
-            '16Ax08D':spp_swp_spi_flight_get_prod_16Ax08D, binmap
+            '16Ax8D':spp_swp_spi_flight_get_prod_16Ax08D, binmap
             '32E':spp_swp_spi_flight_get_prod_32E, binmap 
             '16A':spp_swp_spi_flight_get_prod_16A, binmap
-            '08D':spp_swp_spi_flight_get_prod_08D, binmap
+            '8D':spp_swp_spi_flight_get_prod_08D, binmap
             ELSE:binmap = !null
          ENDCASE
          ptable = dictionary()

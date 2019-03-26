@@ -1,14 +1,14 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-22 17:10:25 -0700 (Fri, 22 Mar 2019) $
-; $LastChangedRevision: 26882 $
+; $LastChangedDate: 2019-03-25 17:31:20 -0700 (Mon, 25 Mar 2019) $
+; $LastChangedRevision: 26897 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_sweeps.pro $
 ;
 
-function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin,param=param
+function  spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
 
   if isa(param) then begin
     etable = param.etable
-    ptable = param.ptable
+  ;  ptable = param.ptable
     cal    = param.cal
   endif
 
@@ -22,18 +22,19 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
     index = [1,1,1,1] # reform(tsindex[*,peakbin])    
   endif else index = reform(etable.fsindex,4,256)  ; full sweep
 
-  hemv_dac = etable.hem_dac[index]
-  defv_dac = etable.def1_dac[index] - etable.def2_dac[index]
-  splv_dac = etable.spl_dac[index]
+  hem_dac = etable.hem_dac[index]
+  def_dac = etable.def1_dac[index] - etable.def2_dac[index]
+  spl_dac = etable.spl_dac[index]
   delt_dac = substep_time[index * 0]               ; time duration with same dimensions
 
   ; move from dacs to energy and defl  average over substeps
   
   defConvEst = 0.0025
-  hemv  = float( hemv_dac * cal.hem_scale * 4. / 2.^16  )   ;  approximate voltage,  average over substeps
-  defv  = float( defv_dac  * cal.defl_scale   )   ; approximate angle (degrees)
-  splv  = float( splv_dac  * cal.spoil_scale * 4./2.^16  ) ;  approximate voltage
+  hemv  = float( hem_dac * cal.hem_scale * 4. / 2.^16  )   ;  approximate voltage,  average over substeps
+  defv  = float( def_dac  * cal.defl_scale   )   ; approximate angle (degrees)
+  splv  = float( spl_dac  * cal.spoil_scale * 4./2.^16  ) ;  approximate voltage
   delt = delt_dac
+  rtime = findgen(4,256) * substep_time 
   
   if 0 then begin
     hemv  = average(hemv ,1 )   ;    average over substeps
@@ -49,6 +50,9 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
 
   dimensions = size(/dimen,hemv)
   nelem = n_elements(hemv)
+  
+  
+  ; ***************  Add in the anode dimension here  **********************
   new_dimen = [dimensions,n_anodes]   ; Ion data is generated differently from the electron data,   output is transposed  ( time , anode)  
 
   nrg_all = reform(hemv[*] # cal.k_anal ,new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
@@ -61,6 +65,7 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
   geom_all = cal.dphi[anode_all]
   phi_all  = cal.phi[anode_all]
   
+  rtime_all = reform(rtime[*] # replicate(1,n_anodes),new_dimen)
   delt_all = reform(  delt[*] # replicate(1,n_anodes),new_dimen)
   
 ;  timesort = etable.timesort
@@ -85,6 +90,7 @@ function  spp_swp_spanx_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakb
   fswp.energy = nrg_all
   fswp.phi    = phi_all
   fswp.delt   = delt_all
+  fswp.rtime  = rtime_all
   fswp.theta = defa_all
   fswp.geom  = geom_all
   fswp.geomdt = geomdt_all
