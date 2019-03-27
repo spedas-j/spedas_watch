@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-25 17:31:20 -0700 (Mon, 25 Mar 2019) $
-; $LastChangedRevision: 26897 $
+; $LastChangedDate: 2019-03-26 17:00:04 -0700 (Tue, 26 Mar 2019) $
+; $LastChangedRevision: 26913 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param2.pro $
 ;
 
@@ -140,22 +140,7 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
     ptables = spi_param_dict.ptables
     if ~ptables.haskey(pmode) then begin
       dprint, 'Generating new product table ',pmode,dlevel=2
-      case pmode of
-;        '8Dx32Ex8A'  : binmap = [indgen(n_anodes/2,256),make_array(n_anodes/2,256,value=-1)] ; 2048 samples, -1 used as a mask in histogram (min=0)
-        '8Dx32Ex8A': begin
-           spp_swp_spi_flight_get_prod_08Dx32Ex08A, binmap
-;           binmap[2048:*] = 'ffff'x
-           end
-        '8Dx32E':spp_swp_spi_flight_get_prod_08Dx32E, binmap
-        '8Dx16A':spp_swp_spi_flight_get_prod_08Dx16A, binmap
-        '32Ex16A':spp_swp_spi_flight_get_prod_32Ex16A, binmap
-        '32Ex16M':spp_swp_spi_flight_get_prod_32Ex16M, binmap
-        '16Ax8D':spp_swp_spi_flight_get_prod_16Ax08D, binmap
-        '32E':spp_swp_spi_flight_get_prod_32E, binmap
-        '16A':spp_swp_spi_flight_get_prod_16A, binmap
-        '8D':spp_swp_spi_flight_get_prod_08D, binmap
-        else:   binmap = !null
-      endcase
+      binmap = spp_swp_spi_flight_product_tables('prod_'+pmode)
       ptable = dictionary()
       ptable.pmode = pmode
       if isa(binmap) then begin

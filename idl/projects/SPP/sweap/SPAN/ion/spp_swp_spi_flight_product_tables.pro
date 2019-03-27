@@ -1,3 +1,13 @@
+
+
+
+;; $LastChangedBy: davin-mac $
+;; $LastChangedDate: 2019-03-26 17:00:04 -0700 (Tue, 26 Mar 2019) $
+;; $LastChangedRevision: 26913 $
+;; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_product_tables.pro $
+
+
+
 ;; Sweep [32D x 128E x 16A] ----->  [1D]
 PRO spp_swp_spi_flight_get_prod_1D, arr
    arr = intarr(4096)
@@ -515,41 +525,56 @@ END
 
    
 
-PRO spp_swp_spi_flight_product_tables ;;, arr, product
-
+FUNCTION spp_swp_spi_flight_product_tables, pmode
+   
    ;; Keyword Check
-   ;;IF ~keyword_set(product) THEN BEGIN
-   ;;   print, 'No product selected. '+$
-   ;;          'Using default mode 08Dx32Ex16A.'
-   ;;   product = 'prod_08D_32E_16A'
-   ;;ENDIF
-   IF 0 THEN BEGIN 
-      CASE product OF
-         'prod_1D': spp_swp_spi_flight_get_prod_1D, arr
-         'prod_08D': spp_swp_spi_flight_get_prod_08D, arr
-         'prod_32E': spp_swp_spi_flight_get_prod_32E, arr
-         'prod_16A': spp_swp_spi_flight_get_prod_16A, arr
-         'prod_32E_16A': spp_swp_spi_flight_get_prod_32E_16A, arr
-         'prod_08D_32E': spp_swp_spi_flight_get_prod_08D_32E, arr
-         'prod_08D_16A': spp_swp_spi_flight_get_prod_08D_16A, arr
-         'prod_08D_32E_16A': spp_swp_spi_flight_get_prod_08D_32E_16A, arr
-         'prod_08D_32E_08A': spp_swp_spi_flight_get_prod_08D_32E_08A, arr
-         'help': BEGIN
-            print,'----------------------------------'
-            print,'Choose from the following options:'
-            print,'prod_1D'
-            print,'prod_08D'
-            print,'prod_32E'
-            print,'prod_16A'
-            print,'prod_32E_16A'
-            print,'prod_08D_32E'
-            print,'prod_08D_16A'
-            print,'prod_08D_32E_16A'
-            print,'prod_08D_32E_08A'
-            print,'----------------------------------'
-         END
-         ELSE: print, 'Error: Wrong product name.'
-      ENDCASE
+   IF ~keyword_set(pmode) THEN BEGIN
+      print, 'No product selected.'
+      pmode = 'help'
    ENDIF
+   arr = !null
+
+
+   CASE pmode OF
+
+      ;; With zeroes name
+      'prod_1D': spp_swp_spi_flight_get_prod_1D, arr
+      'prod_08D': spp_swp_spi_flight_get_prod_08D, arr
+      'prod_32E': spp_swp_spi_flight_get_prod_32E, arr
+      'prod_16A': spp_swp_spi_flight_get_prod_16A, arr
+      'prod_32E_16A': spp_swp_spi_flight_get_prod_32E_16A, arr
+      'prod_08D_32E': spp_swp_spi_flight_get_prod_08D_32E, arr
+      'prod_08D_16A': spp_swp_spi_flight_get_prod_08D_16A, arr
+      'prod_08D_32E_16A': spp_swp_spi_flight_get_prod_08D_32E_16A, arr
+      'prod_08D_32E_08A': spp_swp_spi_flight_get_prod_08D_32E_08A, arr
+
+      ;; Without zeroes in name
+      'prod_1D': spp_swp_spi_flight_get_prod_1D, arr
+      'prod_8D': spp_swp_spi_flight_get_prod_08D, arr
+      'prod_32E': spp_swp_spi_flight_get_prod_32E, arr
+      'prod_16A': spp_swp_spi_flight_get_prod_16A, arr
+      'prod_32Ex16A': spp_swp_spi_flight_get_prod_32Ex16A, arr
+      'prod_8Dx32E': spp_swp_spi_flight_get_prod_08Dx32E, arr
+      'prod_8Dx16A': spp_swp_spi_flight_get_prod_08Dx16A, arr
+      'prod_8Dx32Ex16A': spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
+      'prod_8Dx32Ex8A': spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
+
+      'help': BEGIN
+         print,'----------------------------------'
+         print,'Choose from the following options:'
+         print,'prod_1D'
+         print,'prod_08D'
+         print,'prod_32E'
+         print,'prod_16A'
+         print,'prod_32E_16A'
+         print,'prod_08D_32E'
+         print,'prod_08D_16A'
+         print,'prod_08D_32E_16A'
+         print,'prod_08D_32E_08A'
+         print,'----------------------------------'
+      END
+      ELSE: print, 'Error: Wrong product name.'
+   ENDCASE
+   return,arr
    
 END 

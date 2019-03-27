@@ -6,10 +6,16 @@
 ;     IDL> mgunit, 'flatten_spectra_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-01-22 12:00:19 -0800 (Tue, 22 Jan 2019) $
-; $LastChangedRevision: 26490 $
+; $LastChangedDate: 2019-03-26 11:17:09 -0700 (Tue, 26 Mar 2019) $
+; $LastChangedRevision: 26904 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/flatten_spectra_ut__define.pro $
 ;-
+
+;function flatten_spectra_ut::test_xvals_yvals_multi
+;  tplot, ['mms3_hpca_hplus_flux_elev_0-360_spin']
+;  flatten_spectra_multi
+;  return, 1
+;end
 
 function flatten_spectra_ut::test_to_kev_flux_samples
   tplot, ['mms3_hpca_hplus_flux_elev_0-360_spin', 'mms3_epd_eis_extof_proton_flux_omni_spin', 'mms3_epd_eis_phxtof_proton_flux_omni_spin', 'mms3_dis_energyspectr_omni_fast']
@@ -41,10 +47,7 @@ function flatten_spectra_ut::test_no_conversion
   return, 1
 end
 
-function flatten_spectra_ut::init, _extra=e
-  if (~self->MGutTestCase::init(_extra=e)) then return, 0
-  ; the following adds code coverage % to the output
-  self->addTestingRoutine, ['flatten_spectra', 'flatten_spectra_multi']
+pro flatten_spectra_ut::setup
   trange=['2017-09-10/09:30:20', '2017-09-10/09:34:20']
   probe=3
 
@@ -53,6 +56,12 @@ function flatten_spectra_ut::init, _extra=e
   mms_load_hpca, trange=trange, probe=probe, datatype='ion'
   mms_hpca_calc_anodes, fov=[0, 360]
   mms_hpca_spin_sum, /avg, probe=probe
+end
+
+function flatten_spectra_ut::init, _extra=e
+  if (~self->MGutTestCase::init(_extra=e)) then return, 0
+  ; the following adds code coverage % to the output
+  self->addTestingRoutine, ['flatten_spectra', 'flatten_spectra_multi']
   return, 1
 end
 

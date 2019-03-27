@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_spi_prod_apdat
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-25 12:10:05 -0700 (Mon, 25 Mar 2019) $
-; $LastChangedRevision: 26892 $
+; $LastChangedDate: 2019-03-26 08:56:32 -0700 (Tue, 26 Mar 2019) $
+; $LastChangedRevision: 26902 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/spp_swp_spi_prod_apdat__define.pro $
 ;-
 
@@ -377,7 +377,7 @@ FUNCTION spp_swp_spi_prod_apdat::decom,ccsds,source_dict=source_dict
    ENDELSE 
    
    emode2_ori = mode2
-   if ccsds.time gt 1.5409458e+09 &&  ccsds.time lt 1.5422472e+09 then mode2 = '0025'x
+   if ccsds.time gt 1.5409458e+09 &&  ccsds.time lt 1.5422472e+09 then mode2 = uint('0025'x)
    tmode = mode2 and 'f'x
    emode = ishft(mode2,-4) and 'f'x
 ;   emode = emode_ori

@@ -6,8 +6,8 @@
 ;
 ; SVN Properties
 ; --------------
-; $LastChangedRevision: 26781 $
-; $LastChangedDate: 2019-03-11 13:44:26 -0700 (Mon, 11 Mar 2019) $
+; $LastChangedRevision: 26901 $
+; $LastChangedDate: 2019-03-25 23:09:09 -0700 (Mon, 25 Mar 2019) $
 ; $LastChangedBy: rlivi2 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_loa.pro $
 ;
@@ -86,5 +86,26 @@ PRO spp_swp_spi_flight_loa
       dict += orderedhash(str_tmp,file[ind:ind+siz]) 
 
    ENDIF
+
+   ;; Science table parsing for IDL routine comaprison
+   keys = dict.keys()
+   FOR i=0, n_elements(keys)-1 DO BEGIN
+      tmp1 = strsplit(keys[i],"_",/extract)
+      IF tmp1[0] EQ 'SCI' THEN BEGIN
+         tmp2 = dict[keys[i]]
+         tmp3 = reform(tmp2,2,n_elements(tmp2)/2.)
+         tmp4 = reform(ishft(fix(tmp3[0,*]),8) OR $
+                       fix(tmp3[1,*]))
+         ind = indgen(4096)*4
+         spl_dac  = tmp4[ind+0]
+         hem_dac  = tmp4[ind+1]
+         def2_dac = tmp4[ind+2]
+         def1_dac = tmp4[ind+3]
+         dict += orderedhash($
+                 keys[i]+'_DACS',$
+                 {hem_dac:hem_dac,spl_dac:spl_dac,$
+                  def1_dac:def1_dac,def2_dac:def2_dac})
+      ENDIF
+   ENDFOR
 
 END

@@ -1,9 +1,35 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-25 17:31:20 -0700 (Mon, 25 Mar 2019) $
-; $LastChangedRevision: 26897 $
+; $LastChangedDate: 2019-03-26 08:56:52 -0700 (Tue, 26 Mar 2019) $
+; $LastChangedRevision: 26903 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_reduced_sweep.pro $
 ;
 
+function spp_swp_multi_sort,var1,var2,var3
+  svar = 0
+  n = n_elements(var1)
+  threshold_res = 1e-3
+  
+  range = minmax(var1)
+  drange = double(range[1] - range[0])
+  if drange ne 0 then svar += (var1-range[0]+drange/10)/drange/1.2
+  if keyword_set(var2) then begin
+    if n_elements(var2) ne n then message,'Arrays must be the same size'
+    range = minmax(var2)
+    drange = double(range[1] - range[0])
+    svar /= threshold_res
+    if drange ne 0 then svar += (var2-range[0]+drange/10)/drange/1.2
+  endif
+  if keyword_set(var3) then begin
+    if n_elements(var3) ne n then message,'Arrays must be the same size'
+    range = minmax(var3)
+    drange = double(range[1] - range[0])
+    svar /= threshold_res
+    if drange ne 0 then svar += (var3-range[0]+drange/10)/drange/1.2
+  endif
+  svar /= threshold_res
+  svar += (dindgen(n)+.5)/(n+1)
+  return,sort(svar)
+end
 
 
 ;; ************************************************************
@@ -59,6 +85,9 @@ for q=0,n_elements(quantnames)-1  do begin
   endfor
   rswp[qname] = rqarray
 endfor
+
+timesort =spp_swp_multi_sort(rswp['rtime'])
+
 
 ;timesort = 
 

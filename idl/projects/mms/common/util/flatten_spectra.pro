@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-02-15 13:26:38 -0800 (Fri, 15 Feb 2019) $
-;$LastChangedRevision: 26637 $
+;$LastChangedDate: 2019-03-26 11:21:41 -0700 (Tue, 26 Mar 2019) $
+;$LastChangedRevision: 26905 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -196,6 +196,11 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
     ; filename if we need to save file
     fname += vars_to_plot[v_idx] + '_'      
   endfor
+
+  if undefined(xr) then begin
+    dprint, dlevel=0, 'Error: no valid plots found; try resetting your session'
+    return
+  endif
   
   ; select [xy] range
   if N_ELEMENTS(xrange) ne 2 then xrange = KEYWORD_SET(xlog) ? [min(xr(where(xr>0))), max(xr(where(xr>0)))] : [min(xr), max(xr)]
