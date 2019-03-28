@@ -6,8 +6,8 @@
 ;
 ; SVN Properties
 ; --------------
-; $LastChangedRevision: 26780 $
-; $LastChangedDate: 2019-03-11 13:43:33 -0700 (Mon, 11 Mar 2019) $
+; $LastChangedRevision: 26914 $
+; $LastChangedDate: 2019-03-26 22:09:16 -0700 (Tue, 26 Mar 2019) $
 ; $LastChangedBy: rlivi2 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_par.pro $
 ;
@@ -19,7 +19,7 @@ PRO spp_swp_spi_flight_par
    COMMON spi_param, param, dict
 
    ;; Compile Functions
-   spp_swp_spi_flight_product_tables
+   res = spp_swp_spi_flight_product_tables('compile')
    
    ;; Events
    spp_swp_spi_flight_evt, evt

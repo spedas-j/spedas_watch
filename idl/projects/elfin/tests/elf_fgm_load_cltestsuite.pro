@@ -69,7 +69,7 @@ del_data,'*'
 stop
 
 ;3 2 probes (string)
-;  Temporarily commented out since there is no FGM data for probe b - yet
+;  Temporarily commented out since there is no FGM data for probe b on the same day
 ;
 ;t_name='Multiple probe parameters passed as an array of strings)'
 ;catch,err
@@ -285,6 +285,63 @@ if err eq 0 then begin
   ;just spot checking cause there are a lot of data types
   if spd_data_exists('ela_fgs', '2018-10-14','2018-10-15')  || $
     spd_data_exists('elb_pos','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+;16 Test fgf (for probe a only) 
+;
+
+t_name='FGF data'
+catch,err
+if err eq 0 then begin
+  timespan,'2019-03-22'
+  elf_load_fgm,probe='a',datatype='fgf'
+  spd_print_tvar_info,'ela_fgf'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_fgf', '2019-03-22','2019-03-23')  || $
+    spd_data_exists('ela_fgs','2019-02-26','2019-02-27')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+;17 Test for multiple days
+;
+
+t_name='Multiple days'
+catch,err
+if err eq 0 then begin
+  timespan,'2019-02-17', 2d
+  elf_load_fgm,probe='a',datatype=['fgs']
+  spd_print_tvar_info,'ela_fgs'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_fgs', '2019-02-17','2019-02-19')  || $
+    spd_data_exists('ela_fgf', '2019-02-17','2019-02-19')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+;18 Fractional days
+;
+
+t_name='Multiple days'
+catch,err
+if err eq 0 then begin
+  timespan,'2019-02-17', 0.5d
+  elf_load_fgm,probe='a',datatype=['fgs']
+  spd_print_tvar_info,'ela_fgs'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_fgs', '2019-02-17','2019-02-18')  || $
+    spd_data_exists('ela_fgf', '2019-02-17','2019-02-18')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel

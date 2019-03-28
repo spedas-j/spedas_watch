@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-22 17:15:53 -0700 (Fri, 22 Mar 2019) $
-; $LastChangedRevision: 26884 $
+; $LastChangedDate: 2019-03-27 11:40:06 -0700 (Wed, 27 Mar 2019) $
+; $LastChangedRevision: 26918 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -142,19 +142,14 @@ function spp_swp_spe_param, detname = detname, $
           dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40. ;width
           ;phi = total(/cum,dphi)- dphi/2 + 6.
           phi = [9.,15.,21.,27.,33.,39.,45.,51.,66.,90.,114.,138.,162.,186.,210.,234.]
-          phi = phi - 180   
           ;phi  = total(dphi,/cumulative) -3 ; +180
+          phi = phi - 180   
           end
         'SPB' : begin
           dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40. ;width
           phi = [-108.,-84.,-60.,-36.,-21.,-15.,-9.,-3.,3.,9.,15.,21.,36.,60.,84.,108.]
-;          lookdir = fltarr(n_elements(phi)) ; deal with 360 degree boudnaries
-;           for i = 0, n_elements(phi)-1 do begin
-;            lookdir[i] = float(phi[i] + 180.)
-;           ;if lookdir[i] ge 360 then lookdir[i] = lookdir[i] - 360
-;           endfor
-          phi = phi + 180
           ;phi = total(dphi,/cumulative) - 120 -12; +180
+          phi = phi + 180
           end
       endcase
       n_anodes  = 16
@@ -165,6 +160,7 @@ function spp_swp_spe_param, detname = detname, $
         phi: phi, $
         dphi: dphi,  $
         eff:  eff,   $
+        geomfactor_full: .00152,  $     ; cm2-ster-eV/eV  - does not account for grids or efficiency !!
         defl_scale: .0028d,  $  ; conversion from dac to angle  - This is not quite appropriate - works for now
         deflut_dac: deflut.defdac, $
         deflut_ang: deflut.theta * (-1.), $

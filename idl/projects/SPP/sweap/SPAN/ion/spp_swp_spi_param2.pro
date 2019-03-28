@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-26 17:00:04 -0700 (Tue, 26 Mar 2019) $
-; $LastChangedRevision: 26913 $
+; $LastChangedDate: 2019-03-27 11:40:06 -0700 (Wed, 27 Mar 2019) $
+; $LastChangedRevision: 26918 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param2.pro $
 ;
 
@@ -73,42 +73,6 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
     if ~cals.haskey(strupcase(detname))  then begin
       dprint,dlevel=2,'Generating cal structure for ',detname
       case strupcase(detname) of
-        'SPA' : begin
-          dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40.
-          phi  = total(dphi,/cumulative)
-          n_anodes  = 16
-          eff = replicate(1.,n_anodes)
-          cal  = {   $
-            name: detname,  $
-            n_anodes: n_anodes, $
-            phi: phi, $
-            dphi: dphi,  $
-            eff:  eff,   $
-            defl_scale: .0028d,  $  ; conversion from dac to angle  - This is not quite appropriate - works for now
-            hem_scale:    500.d  , $
-            spoil_scale:  80./2.^16   ,  $  ; Needs correction
-            k_anal:  replicate(16.7,n_anodes) ,  $
-            k_defl:  replicate(1.,n_anodes) $
-          }
-          end
-        'SPB' : begin
-          dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40.
-          phi = total(dphi,/cumulative) - 120 - 12
-          n_anodes  = 16
-          eff = replicate(1.,n_anodes)
-          cal  = {   $
-            name: detname,  $
-            n_anodes: n_anodes, $
-            phi: phi, $
-            dphi: dphi,  $
-            eff:  eff,   $
-            defl_scale: .0028d,  $  ; conversion from dac to angle  - This is not quite appropriate - works for now
-            hem_scale:    500.d  , $
-            spoil_scale:  80./2.^16   ,  $  ; Needs correction
-            k_anal:  replicate(16.7,n_anodes) ,  $
-            k_defl:  replicate(1.,n_anodes) $
-          }
-          end
         'SPI' : begin
           dphi = [11.25,11.25,11.25,11.25,11.25,11.25,11.25,11.25,11.25,11.25, 22.5,22.5,22.5,22.5,22.5,22.5]
           phi = total(dphi,/cumulative) + 10. + dphi/2  ; This number needs fixing!
@@ -120,6 +84,7 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
             phi: phi, $
             dphi: dphi,  $
             eff:  eff,   $
+            geomfactor_full: 0.000628,  $     ; cm2-ster-eV/eV  - include grid efficiency
             defl_scale: .0028d,  $  ; conversion from dac to angle  - This is not quite appropriate - works for now
             hem_scale:    1000.d  , $
             spoil_scale:  80./2.^16   ,  $  ; Needs correction

@@ -40,7 +40,6 @@ if err eq 0 then begin
   spd_print_tvar_info,'ela_pos'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('ela_vel ela_pos','2018-10-14','2018-10-15')  || $
-    ~spd_data_exists('ela_*','2018-10-14','2018-10-15') || $
     spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
     then message,'data error '+t_name
 endif
@@ -153,7 +152,7 @@ if err eq 0 then begin
   spd_print_tvar_info,'elb_vel'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('elb_vel', '2018-12-04','2018-12-05')  || $
-    spd_data_exists('elb_pos','2018-12-04','2018-12-05')  $
+    spd_data_exists('ela_pos','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -171,7 +170,7 @@ if err eq 0 then begin
   spd_print_tvar_info,'elb_pos'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('elb_pos', '2018-12-04','2018-12-05')  || $
-    spd_data_exists('elb_vel','2018-12-04','2018-12-05')  $
+    spd_data_exists('ela_vel','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -308,6 +307,105 @@ catch,/cancel
 spd_handle_error,err,t_name,++t_num
 del_data,'*'
 stop
+
+;;;;;;;;;;;;;; NEW TESTS ;;;;;;;;;;;;;;;;;;;;
+;16 Set predicted flag for past dates
+;
+
+t_name='Predicted data flag (past)'
+catch,err
+if err eq 0 then begin
+  elf_load_state,probe='b',trange=['2018-10-10','2018-10-11'], datatype=['pos', 'vel'], /pred
+  spd_print_tvar_info,'elb_pos'
+  spd_print_tvar_info,'elb_vel'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('elb_pos elb_vel', '2018-10-10','2018-10-11')  || $
+    spd_data_exists('ela_pos','2018-12-04','2018-12-05')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+;17 Set predicted flag for future dates
+;
+
+t_name='Predicted data flag (future)'
+catch,err
+if err eq 0 then begin
+  elf_load_state,probe='b',trange=['2019-09-13','2019-09-14'], /pred
+  spd_print_tvar_info,'elb_pos'
+  spd_print_tvar_info,'elb_vel'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('elb_vel elb_pos', '2019-09-13','2019-09-14')  || $
+    spd_data_exists('ela_pos','2018-12-04','2018-12-05')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+
+;18 Set predicted flag for past dates
+;
+
+t_name='No predicted flag set but future date'
+t_name='Predicted data flag (future)'
+catch,err
+if err eq 0 then begin
+  elf_load_state,probe='b',trange=['2019-09-13','2019-09-13']
+  spd_print_tvar_info,'elb_pos'
+  spd_print_tvar_info,'elb_vel'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('elb_vel elb_pos', '2019-09-13','2019-09-14')  || $
+    spd_data_exists('ela_pos','2019-09-13','2019-09-14')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+;19 Test for multiple days
+;
+
+t_name='Multiple days'
+catch,err
+if err eq 0 then begin
+  elf_load_state,probe='a',trange=['2019-02-10','2019-02-12'], datatype=['pos']
+  spd_print_tvar_info,'ela_pos'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pos', '2019-02-10','2019-02-12')  || $
+    ~spd_data_exists('ela_vel', '2019-02-10','2019-02-12')  || $
+    spd_data_exists('elb_pos','2019-02-10','2019-02-12')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+;20 Test for factional days
+;
+
+t_name='Fractional days'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-02-10', 0.5d
+  elf_load_state,probe='a', datatype=['pos']
+  spd_print_tvar_info,'ela_pos'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pos', '2019-02-10','2019-02-11')  || $
+    spd_data_exists('elb_pos','2018-12-04','2018-12-05')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
 
 
 spd_end_tests

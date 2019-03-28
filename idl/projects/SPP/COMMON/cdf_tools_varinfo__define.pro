@@ -21,17 +21,18 @@ function cdf_tools_varinfo::variable_attributes, vname,value
   att = orderedhash()
   if ~isa(vname,/string) then return,att
   ;  Create default value place holders
+  EPOCHname = 'Epoch'
   att['CATDESC']    = ''
   att['FIELDNAM']    = vname
   att['LABLAXIS']    = vname
-  att['DEPEND_0'] = 'Epoch'
+  att['DEPEND_0'] = EPOCHname
   att['DISPLAY_TYPE'] = ''
   att['MONOTON']    = ''
-  case vname of
-    'Epoch': begin
+  case strupcase(vname) of
+    'EPOCH': begin
       att['CATDESC']    = 'Time at middle of sample'
       att['FIELDNAM']    = 'Time in TT2000 format'
-      att['LABLAXIS']    = 'Epoch'
+      att['LABLAXIS']    = EPOCHname
       att['UNITS']    = 'ns'
       att['FILLVAL']    = -1
       att['VALIDMIN']    = -315575942816000000
@@ -56,10 +57,10 @@ function cdf_tools_varinfo::variable_attributes, vname,value
     end
     'COUNTS': begin
       att['CATDESC']    = 'Counts in Energy/angle bin'
-      att['FIELDNAM']    = 'Counts in '
-      att['DEPEND_0']    = 'Epoch'
+      att['FIELDNAM']    = 'Counts'
+      att['DEPEND_0']    = EPOCHname
       att['LABLAXIS']    = 'Counts'
-      att['UNITS']    = ''
+      att['UNITS']    = 'Counts'
       att['FILLVAL']    = fnan
       att['VALIDMIN']    = 0
       att['VALIDMAX']    = 1e6
@@ -70,11 +71,11 @@ function cdf_tools_varinfo::variable_attributes, vname,value
     end
     'EFLUX': begin
       att['CATDESC']    = 'Differential Energy Flux vs Energy/angle bin'
-      att['FIELDNAM']    = 'Counts in '
-      att['DEPEND_0']    = 'Epoch'
+      att['FIELDNAM']    = 'Eflux'
+      att['DEPEND_0']    = EPOCHname
       att['DEPEND_1']    = 'ENERGY'
-      att['LABLAXIS']    = 'Energy (eV)'
-      att['UNITS']    = 'eV'
+      att['LABLAXIS']    = 'Diff Energy Flux'
+      att['UNITS']    = 'eV/cm2-s-ster-eV'
       att['FILLVAL']    = fnan
       att['VALIDMIN']    = 0.001
       att['VALIDMAX']    = 1e12
@@ -87,9 +88,9 @@ function cdf_tools_varinfo::variable_attributes, vname,value
     'ENERGY': begin
       att['CATDESC']    = 'Energy'
       att['FIELDNAM']    = 'Counts in '
-      att['DEPEND_0']    = 'Epoch'
-      att['DEPEND_1']    = 'ENERGY'
-      att['LABLAXIS']    = 'Energy Flux'
+      att['DEPEND_0']    = EPOCHname
+;      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Energy'
       att['UNITS']    = 'eV'
       att['FILLVAL']    = fnan
       att['VALIDMIN']    = 1
@@ -99,11 +100,40 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
     end
-
+    'THETA': begin
+      att['CATDESC']    = 'THETA'
+      att['FIELDNAM']    = 'Elevation Angle in instrument coordinates'
+      att['DEPEND_0']    = EPOCHname
+;      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Elevation Angle'
+      att['UNITS']    = 'Degrees'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 1
+      att['VALIDMAX']    = 1e5
+      att['VAR_TYPE']    = 'support_data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
+    'PHI': begin
+      att['CATDESC']    = 'PHI'
+      att['FIELDNAM']    = 'Azimuth Angle in instrument coordinates'
+      att['DEPEND_0']    = EPOCHname
+      ;      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Azimuth Angle'
+      att['UNITS']    = 'Degrees'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 1
+      att['VALIDMAX']    = 1e5
+      att['VAR_TYPE']    = 'support_data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
     else:  begin    ; assumed to be support
       att['CATDESC']    = 'Not known'
       att['FIELDNAM']    = 'Unknown '
-      att['DEPEND_0']    = 'Epoch'
+      att['DEPEND_0']    = EPOCHname
       att['LABLAXIS']    = vname
       att['UNITS']    = ''
       att['FILLVAL']    = fnan

@@ -1,13 +1,3 @@
-
-
-
-;; $LastChangedBy: davin-mac $
-;; $LastChangedDate: 2019-03-26 17:00:04 -0700 (Tue, 26 Mar 2019) $
-;; $LastChangedRevision: 26913 $
-;; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_product_tables.pro $
-
-
-
 ;; Sweep [32D x 128E x 16A] ----->  [1D]
 PRO spp_swp_spi_flight_get_prod_1D, arr
    arr = intarr(4096)
@@ -54,7 +44,7 @@ PRO spp_swp_spi_flight_get_prod_08D , arr
 END
 
 ;; Sweep  [32D x 128E x 16A]  ----->  [32E x 16A]   
-PRO spp_swp_spi_flight_get_prod_32EX16A, arr
+PRO spp_swp_spi_flight_get_prod_32E_16A, arr
    arr = intarr(4096)
    FOR ianode=0, '10'x-1 DO $
     FOR ienergy=0, '20'x-1 DO $
@@ -67,7 +57,7 @@ PRO spp_swp_spi_flight_get_prod_32EX16A, arr
 END
    
 ;; Sweep [32D x 128E x 16A x 16 Mass Bins]  ----->  [08D x 16A]   
-PRO spp_swp_spi_flight_get_prod_08DX16A, arr
+PRO spp_swp_spi_flight_get_prod_08D_16A, arr
    arr = intarr(4096)
    FOR ianode=0, '10'x-1 DO $
     FOR ienergy=0, '20'x-1 DO $
@@ -80,7 +70,7 @@ PRO spp_swp_spi_flight_get_prod_08DX16A, arr
 END
    
 ;; Sweep [32D x 128E x 16A x 16 Mass Bins]  ----->  [08D x 32E]   
-PRO spp_swp_spi_flight_get_prod_08DX32E, arr
+PRO spp_swp_spi_flight_get_prod_08D_32E, arr
    arr = intarr(4096)
    FOR ianode=0, '10'x-1 DO $
     FOR ienergy=0, '20'x-1 DO $
@@ -93,7 +83,7 @@ PRO spp_swp_spi_flight_get_prod_08DX32E, arr
 END
    
 ;; Sweep [32D x 128E x 16A x 16 Mass Bins]  ----->  [08D x 32E x 16A]   
-PRO spp_swp_spi_flight_get_prod_08DX32EX16A, arr
+PRO spp_swp_spi_flight_get_prod_08D_32E_16A, arr
    arr = intarr(4096)
    bitpar = 0
    FOR ianode=0, '10'x-1 DO BEGIN 
@@ -113,7 +103,7 @@ END
 
 
 ;; Sweep [32D x 128E x 08A x 16 Mass Bins]  ----->  [08D x 32E x 08A]
-PRO spp_swp_spi_flight_get_prod_08DX32EX08A, arr
+PRO spp_swp_spi_flight_get_prod_08D_32E_08A, arr
    arr = intarr(4096)
    bitpar = 0
    FOR ianode=0, '10'x-1 DO BEGIN
@@ -507,7 +497,8 @@ PRO spp_swp_spi_get_pilut, mem, prod_type, pilut, pilut_chk
    tnames = tag_names(mem)
 
    FOR i=0, nn-1 DO BEGIN
-      pp = where(strupcase('PROD_'+prod_type[i]+'_DPP_SIZE') EQ strupcase(tnames),cc)
+      pp = where(strupcase('PROD_'+prod_type[i]+'_DPP_SIZE') EQ $
+                 strupcase(tnames),cc)
       IF cc EQ 0 THEN stop, 'Error: Wrong PI-LUT Name.'
       tmp = execute('spp_swp_spi_flight_get_prod_'+prod_type[i]+',arr') 
       IF tmp THEN pilut[i,*] = arr
@@ -532,8 +523,6 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
       print, 'No product selected.'
       pmode = 'help'
    ENDIF
-   arr = !null
-
 
    CASE pmode OF
 
@@ -553,12 +542,27 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
       'prod_8D': spp_swp_spi_flight_get_prod_08D, arr
       'prod_32E': spp_swp_spi_flight_get_prod_32E, arr
       'prod_16A': spp_swp_spi_flight_get_prod_16A, arr
-      'prod_32Ex16A': spp_swp_spi_flight_get_prod_32Ex16A, arr
-      'prod_8Dx32E': spp_swp_spi_flight_get_prod_08Dx32E, arr
-      'prod_8Dx16A': spp_swp_spi_flight_get_prod_08Dx16A, arr
-      'prod_8Dx32Ex16A': spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
-      'prod_8Dx32Ex8A': spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
+      'prod_32Ex16A': spp_swp_spi_flight_get_prod_32E_16A, arr
+      'prod_8Dx32E': spp_swp_spi_flight_get_prod_08D_32E, arr
+      'prod_8Dx16A': spp_swp_spi_flight_get_prod_08D_16A, arr
+      'prod_8D_32Ex16A': spp_swp_spi_flight_get_prod_08D_32E_16A, arr
+      'prod_8Dx32Ex8A': spp_swp_spi_flight_get_prod_08D_32E_08A, arr
 
+      ;; Compile all functions
+      'compile':BEGIN
+         spp_swp_spi_flight_get_prod_1D, arr
+         spp_swp_spi_flight_get_prod_08D, arr
+         spp_swp_spi_flight_get_prod_32E, arr
+         spp_swp_spi_flight_get_prod_16A, arr
+         spp_swp_spi_flight_get_prod_32E_16A, arr
+         spp_swp_spi_flight_get_prod_08D_32E, arr
+         spp_swp_spi_flight_get_prod_08D_16A, arr
+         spp_swp_spi_flight_get_prod_08D_32E_16A, arr
+         spp_swp_spi_flight_get_prod_08D_32E_08A, arr
+         return, 1
+      END 
+
+      ;; List all available binmaps
       'help': BEGIN
          print,'----------------------------------'
          print,'Choose from the following options:'
@@ -572,9 +576,15 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
          print,'prod_08D_32E_16A'
          print,'prod_08D_32E_08A'
          print,'----------------------------------'
+         return, 0
       END
-      ELSE: print, 'Error: Wrong product name.'
+      ELSE:BEGIN
+         print, 'Error: Wrong product name.'
+         return, 0
+      END
+      
    ENDCASE
-   return,arr
+
+   return, arr
    
 END 

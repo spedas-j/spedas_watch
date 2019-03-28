@@ -279,7 +279,7 @@ stop
 t_name='Invalid date'
 catch,err
 if err eq 0 then begin
-  elf_load_mrma,probe='a',trange=['2021-10-10','2021-10-11'], datatype=['pos']
+  elf_load_mrma,probe='a',trange=['2021-10-10','2021-10-11'], datatype=['mrma']
   spd_print_tvar_info,'ela_mrma'
   ;just spot checking cause there are a lot of data types
   if spd_data_exists('ela_mrma','2021-10-10','2021-10-11')  || $
@@ -291,6 +291,65 @@ spd_handle_error,err,t_name,++t_num
 del_data,'*'
 stop
 
+; 16 Multiple days
+; 
+
+t_name='Multiple days'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-02-24', 2d
+  tr=timerange()
+  elf_load_mrma,probe='a',trange=tr
+  spd_print_tvar_info,'ela_mrma'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_mrma','2019-02-24','2019-02-26')  || $
+    spd_data_exists('elb_mrma','2019-02-24','2019-02-24')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+; 17 Fractional days
+;
+
+t_name='Fractional days'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-02-24', 0.5d
+  tr=timerange()
+  elf_load_mrma,probe='a',trange=tr
+  spd_print_tvar_info,'ela_mrma'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_mrma','2019-02-24/00:00:00','2019-02-25/00:00:00')  || $
+    spd_data_exists('ela_mrma','2019-02-25','2019-02-26')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+; 18 Probe B mrma (only)
+;
+
+t_name='Multiple days for B'
+catch,err
+if err eq 0 then begin
+  timespan, '2018-11-05', 2d
+  tr=timerange()
+  elf_load_mrma,probe='b',trange=tr
+  spd_print_tvar_info,'elb_mrma'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('elb_mrma','2018-11-05','2018-11-07')  || $
+    spd_data_exists('ela_mrma','2018-11-05','2018-11-07')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
 
 spd_end_tests
 

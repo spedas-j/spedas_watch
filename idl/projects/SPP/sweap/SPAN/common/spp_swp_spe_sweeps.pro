@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-25 13:41:53 -0700 (Mon, 25 Mar 2019) $
-; $LastChangedRevision: 26895 $
+; $LastChangedDate: 2019-03-27 11:40:06 -0700 (Wed, 27 Mar 2019) $
+; $LastChangedRevision: 26918 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_sweeps.pro $
 ;
 
@@ -67,11 +67,11 @@ function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin
   endfor
   defa_all = reform(cal.k_defl # thetas, new_dimen, /overwrite)
 
-  geomdt_all = reform(cal.dphi # delt[*],new_dimen,/overwrite)
+  geomdt_all = reform(cal.dphi # delt[*],new_dimen,/overwrite) * cal.geomfactor_full / 360.
   
   anode_all = reform(anodes # replicate(1,nelem),new_dimen,/overwrite)
 
-  geom_all = cal.dphi[anode_all] / 360.
+  geom_all = cal.dphi[anode_all] * cal.geomfactor_full / 360.
   phi_all  = cal.phi[anode_all]
   
   delt_all = reform( replicate(1,n_anodes) # delt[*],new_dimen)

@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-25 17:31:20 -0700 (Mon, 25 Mar 2019) $
-; $LastChangedRevision: 26897 $
+; $LastChangedDate: 2019-03-27 11:40:06 -0700 (Wed, 27 Mar 2019) $
+; $LastChangedRevision: 26918 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_sweeps.pro $
 ;
 
@@ -58,11 +58,11 @@ function  spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
   nrg_all = reform(hemv[*] # cal.k_anal ,new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
   defa_all = reform(defv[*] # cal.k_defl,new_dimen,/overwrite)    ;  this should be evaluated as a cubic spline in the future
 
-  geomdt_all = reform(delt[*] # cal.dphi,new_dimen,/overwrite)
+  geomdt_all = reform(delt[*] # (cal.dphi *cal.geomfactor_full/360),new_dimen,/overwrite)
   
   anode_all = reform(replicate(1,nelem) # anodes ,new_dimen,/overwrite)
 
-  geom_all = cal.dphi[anode_all]
+  geom_all = cal.dphi[anode_all] * cal.geomfactor_full / 360.
   phi_all  = cal.phi[anode_all]
   
   rtime_all = reform(rtime[*] # replicate(1,n_anodes),new_dimen)
