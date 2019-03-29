@@ -83,6 +83,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
     return
   endif
+
   ; check for valid probe names
   probes = strlowcase(probes)
   idx = where(probes EQ 'a', acnt)
@@ -91,10 +92,20 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     dprint, dlevel = 1, 'Invalid probe name. Valid probes are a and/or b. Please select again.'
     return
   endif
-  if undefined(level) then level = 'l1'
-  if undefined(datatype) AND level eq 'l1' then datatype = ['pef', 'pif']
-  if undefined(datatype) AND level eq 'l2' then datatype = ['pef_eflux']
-  datatype = strlowcase(datatype) 
+  
+  if undefined(level) then level = 'l1' 
+  ; check for valid datatypes for level 1
+  if undefined(datatype) AND level eq 'l1' then datatype = ['pef', 'pif'] $
+    else datatype = strlowcase(datatype) 
+  idx = where(datatype EQ 'pif', icnt)
+  idx = where(datatype EQ 'pef', ecnt)
+  if icnt EQ 0 && ecnt EQ 0 then begin
+    dprint, dlevel = 1, 'Invalid data type name. Valid types are pef and/or pif. Please select again.'
+    return
+  endif
+  
+  if undefined(datatype) AND level eq 'l2' then datatype = ['pef_eflux'] $
+    else datatype = strlowcase(datatype)
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ''
 
@@ -108,10 +119,12 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
   ; no reason to continue if no data were loaded
-  if undefined(new_tvars) then return
+  if undefined(new_tvars) || new_tvars[0] EQ '' then begin
+    dprint, dlevel = 1, 'No data was loaded.'
+    return
+  endif
   
   ; fix metadata 
-
   for i=0,n_elements(new_tvars)-1 do begin
     get_data, new_tvars[i], data=d, dlimits=dl
 ;   ebins = elf_convert_epd_mv2eng()

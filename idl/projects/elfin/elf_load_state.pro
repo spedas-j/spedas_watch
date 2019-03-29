@@ -118,6 +118,20 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
     cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
     always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
+  ; check that data was loaded, if not and the keyword_set pred was not set then 
+  ; try predicted data  
+  if (undefined(tplotnames) || tplotnames[0] eq '') && ~keyword_set(pred) then begin
+     dprint, dlevel = 1, 'Definitive state data not found. Downloading predicted state data. '
+     elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
+      data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
+      datatype = datatype, get_support_data = get_support_data, pred = 1, $
+      tplotnames = tplotnames, no_color_setup = no_color_setup, time_clip = time_clip, $
+      no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
+      cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
+      cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
+      always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
+  endif
+
   ; Set colors to RGB
   if  ~undefined(tplotnames) && tplotnames[0] ne '' then begin
     for i=0,n_elements(tplotnames)-1 do begin

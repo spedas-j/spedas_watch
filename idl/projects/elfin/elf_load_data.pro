@@ -56,7 +56,7 @@
 ;   Current file naming convention is el[a/b]_ll_instr_yyyymmdd_v01.cdf.
 ;     
 ;--------------------------------------------------------------------------------------
-PRO elf_load_data, trange = trange, probes = probes, datatypes = datatypes_in, $
+PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in, $
   levels = levels, instrument = instrument, data_rates = data_rates, $
   local_data_dir = local_data_dir, source = source, pred = pred, $
   get_support_data = get_support_data, login_info = login_info, $

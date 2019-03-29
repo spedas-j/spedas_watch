@@ -46,8 +46,10 @@ if err eq 0 then begin
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
+
 
 ;2 single probe
 ;
@@ -57,16 +59,19 @@ catch,err
 if err eq 0 then begin
   elf_load_epd,probe='a'
   spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pif'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef','2019-02-14','2019-02-15')  || $
+  if ~spd_data_exists('ela_pef ela_pif','2019-02-14','2019-02-15')  || $
     spd_data_exists('ela_*','2019-02-15','2019-02-16') || $
     spd_data_exists('elb_*','2019-02-14','2019-02-15')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
+
 
 ;3 2 probes (string)
 ;  Temporarily commented out since there is no FGM data for probe b - yet
@@ -97,14 +102,15 @@ if err eq 0 then begin
   elf_load_epd,probe='*'
   spd_print_tvar_info,'ela_pef'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef','2018-12-23','2018-12-24')  || $
+  if ~spd_data_exists('ela_pif ela_pef','2018-12-23','2018-12-24')  || $
     spd_data_exists('elb_*','2018-12-23','2018-12-24')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
 
 ;6 suffix
 ;
@@ -121,8 +127,9 @@ if err eq 0 then begin
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
 
 ;7 one datatype
 ;
@@ -140,8 +147,9 @@ if err eq 0 then begin
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
 
 ;8 datatype = PiF
 ;
@@ -158,8 +166,9 @@ if err eq 0 then begin
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
 
 ;9 All upper case datatype
 ;
@@ -178,8 +187,9 @@ if err eq 0 then begin
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
 
 
 ;10 datatype = [FGS]
@@ -197,8 +207,9 @@ if err eq 0 then begin
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
 
 ;11 trange as a string array
 ;
@@ -216,8 +227,9 @@ if err eq 0 then begin
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
+tplot_names
 stop
+del_data,'*'
 
 ;12 trange as a double array
 ;
@@ -234,9 +246,10 @@ if err eq 0 then begin
     then message,'data error ' + t_name
 endif
 catch,/cancel
+tplot_names
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
 stop
+del_data,'*'
 
 ;13 Ivalid probe
 ;
@@ -252,9 +265,10 @@ if err eq 0 then begin
     then message,'data error ' + t_name
 endif
 catch,/cancel
+tplot_names
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
 stop
+del_data,'*'
 
 ;14 Invalid datatype
 ;
@@ -265,14 +279,15 @@ if err eq 0 then begin
   elf_load_epd,probe='a',trange=trange, datatype=['xxx']
   spd_print_tvar_info,'ela_pif'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_pif',  '2018-11-10','2018-11-10')  || $
+  if spd_data_exists('ela_pif',  '2018-12-23','2018-12-23')  || $
     spd_data_exists('elb_xxx',  '2018-11-10','2018-11-10')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
+tplot_names
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
 stop
+del_data,'*'
 
 ;15 Invalid date
 ;
@@ -284,13 +299,73 @@ if err eq 0 then begin
   spd_print_tvar_info,'ela_pef'
   ;just spot checking cause there are a lot of data types
   if spd_data_exists('ela_pef', '2021-10-10','2021-10-11')  || $
+    spd_data_exists('elb_pif','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+tplot_names
+spd_handle_error,err,t_name,++t_num
+stop
+del_data,'*'
+
+;16 Test for both datatypes 
+;
+
+t_name='Both data types'
+catch,err
+if err eq 0 then begin
+  elf_load_epd,probe='a',trange=['2019-02-17','2019-02-18'], datatype=['pef', 'pif']
+  spd_print_tvar_info,'ela_pef'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-18')  || $
     spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
+tplot_names
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
 stop
+del_data,'*'
+
+;17 More than one day
+;
+
+t_name='Two days'
+catch,err
+if err eq 0 then begin
+  elf_load_epd,probe='a',trange=['2019-02-17','2019-02-19'], datatype=['pef', 'pif']
+  spd_print_tvar_info,'ela_pef'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-19')  || $
+    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+tplot_names
+spd_handle_error,err,t_name,++t_num
+stop
+del_data,'*'
+
+;18 Fractional days
+;
+
+t_name='Fractional days'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-02-17', 0.5d
+  tr=timerange()
+  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif']
+  spd_print_tvar_info,'ela_pef'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-19')  || $
+    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+tplot_names
+spd_handle_error,err,t_name,++t_num
+stop
+del_data,'*'
 
 
 spd_end_tests
