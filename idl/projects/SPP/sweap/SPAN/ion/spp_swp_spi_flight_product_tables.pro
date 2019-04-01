@@ -44,7 +44,7 @@ PRO spp_swp_spi_flight_get_prod_08D , arr
 END
 
 ;; Sweep  [32D x 128E x 16A]  ----->  [32E x 16A]   
-PRO spp_swp_spi_flight_get_prod_32E_16A, arr
+PRO spp_swp_spi_flight_get_prod_32Ex16A, arr
    arr = intarr(4096)
    FOR ianode=0, '10'x-1 DO $
     FOR ienergy=0, '20'x-1 DO $
@@ -57,7 +57,7 @@ PRO spp_swp_spi_flight_get_prod_32E_16A, arr
 END
    
 ;; Sweep [32D x 128E x 16A x 16 Mass Bins]  ----->  [08D x 16A]   
-PRO spp_swp_spi_flight_get_prod_08D_16A, arr
+PRO spp_swp_spi_flight_get_prod_08Dx16A, arr
    arr = intarr(4096)
    FOR ianode=0, '10'x-1 DO $
     FOR ienergy=0, '20'x-1 DO $
@@ -70,7 +70,7 @@ PRO spp_swp_spi_flight_get_prod_08D_16A, arr
 END
    
 ;; Sweep [32D x 128E x 16A x 16 Mass Bins]  ----->  [08D x 32E]   
-PRO spp_swp_spi_flight_get_prod_08D_32E, arr
+PRO spp_swp_spi_flight_get_prod_08Dx32E, arr
    arr = intarr(4096)
    FOR ianode=0, '10'x-1 DO $
     FOR ienergy=0, '20'x-1 DO $
@@ -83,7 +83,7 @@ PRO spp_swp_spi_flight_get_prod_08D_32E, arr
 END
    
 ;; Sweep [32D x 128E x 16A x 16 Mass Bins]  ----->  [08D x 32E x 16A]   
-PRO spp_swp_spi_flight_get_prod_08D_32E_16A, arr
+PRO spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
    arr = intarr(4096)
    bitpar = 0
    FOR ianode=0, '10'x-1 DO BEGIN 
@@ -103,7 +103,7 @@ END
 
 
 ;; Sweep [32D x 128E x 08A x 16 Mass Bins]  ----->  [08D x 32E x 08A]
-PRO spp_swp_spi_flight_get_prod_08D_32E_08A, arr
+PRO spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
    arr = intarr(4096)
    bitpar = 0
    FOR ianode=0, '10'x-1 DO BEGIN
@@ -510,7 +510,7 @@ PRO spp_swp_spi_get_pilut, mem, prod_type, pilut, pilut_chk
       ENDFOR 
    ENDFOR
    pilut_chk = pilut_chk AND 'FF'x
-   print, format='(A19,z02)','PI-LUT Checksum: 0x', pilut_chk
+   ;;print, format='(A19,z02)','PI-LUT Checksum: 0x', pilut_chk
 
 END
 
@@ -531,22 +531,22 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
       'prod_08D': spp_swp_spi_flight_get_prod_08D, arr
       'prod_32E': spp_swp_spi_flight_get_prod_32E, arr
       'prod_16A': spp_swp_spi_flight_get_prod_16A, arr
-      'prod_32E_16A': spp_swp_spi_flight_get_prod_32E_16A, arr
-      'prod_08D_32E': spp_swp_spi_flight_get_prod_08D_32E, arr
-      'prod_08D_16A': spp_swp_spi_flight_get_prod_08D_16A, arr
-      'prod_08D_32E_16A': spp_swp_spi_flight_get_prod_08D_32E_16A, arr
-      'prod_08D_32E_08A': spp_swp_spi_flight_get_prod_08D_32E_08A, arr
+      'prod_32E_16A': spp_swp_spi_flight_get_prod_32Ex16A, arr
+      'prod_08D_32E': spp_swp_spi_flight_get_prod_08Dx32E, arr
+      'prod_08D_16A': spp_swp_spi_flight_get_prod_08Dx16A, arr
+      'prod_08D_32E_16A': spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
+      'prod_08D_32E_08A': spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
 
       ;; Without zeroes in name
       'prod_1D': spp_swp_spi_flight_get_prod_1D, arr
       'prod_8D': spp_swp_spi_flight_get_prod_08D, arr
       'prod_32E': spp_swp_spi_flight_get_prod_32E, arr
       'prod_16A': spp_swp_spi_flight_get_prod_16A, arr
-      'prod_32Ex16A': spp_swp_spi_flight_get_prod_32E_16A, arr
-      'prod_8Dx32E': spp_swp_spi_flight_get_prod_08D_32E, arr
-      'prod_8Dx16A': spp_swp_spi_flight_get_prod_08D_16A, arr
-      'prod_8D_32Ex16A': spp_swp_spi_flight_get_prod_08D_32E_16A, arr
-      'prod_8Dx32Ex8A': spp_swp_spi_flight_get_prod_08D_32E_08A, arr
+      'prod_32Ex16A': spp_swp_spi_flight_get_prod_32Ex16A, arr
+      'prod_8Dx32E': spp_swp_spi_flight_get_prod_08Dx32E, arr
+      'prod_8Dx16A': spp_swp_spi_flight_get_prod_08Dx16A, arr
+      'prod_8D_32Ex16A': spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
+      'prod_8Dx32Ex8A': spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
 
       ;; Compile all functions
       'compile':BEGIN
@@ -554,11 +554,11 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
          spp_swp_spi_flight_get_prod_08D, arr
          spp_swp_spi_flight_get_prod_32E, arr
          spp_swp_spi_flight_get_prod_16A, arr
-         spp_swp_spi_flight_get_prod_32E_16A, arr
-         spp_swp_spi_flight_get_prod_08D_32E, arr
-         spp_swp_spi_flight_get_prod_08D_16A, arr
-         spp_swp_spi_flight_get_prod_08D_32E_16A, arr
-         spp_swp_spi_flight_get_prod_08D_32E_08A, arr
+         spp_swp_spi_flight_get_prod_32Ex16A, arr
+         spp_swp_spi_flight_get_prod_08Dx32E, arr
+         spp_swp_spi_flight_get_prod_08Dx16A, arr
+         spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
+         spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
          return, 1
       END 
 

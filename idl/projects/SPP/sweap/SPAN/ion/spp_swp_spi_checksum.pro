@@ -47,7 +47,7 @@ PRO spp_swp_spi_checksum, tbl=tbl, mas=mas
    ENDIF
 
    ;; Mass LUT
-   IF keyword_set(mas) THEN BEGIN
+   IF 0 THEN BEGIN
       arr = mas
       mas_chk = 0
       FOR i=0, n_elements(arr)-1 DO BEGIN
