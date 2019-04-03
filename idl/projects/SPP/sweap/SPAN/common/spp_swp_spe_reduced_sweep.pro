@@ -1,6 +1,6 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-03-19 14:37:43 -0700 (Tue, 19 Mar 2019) $
-; $LastChangedRevision: 26855 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-04-02 08:42:29 -0700 (Tue, 02 Apr 2019) $
+; $LastChangedRevision: 26932 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_reduced_sweep.pro $
 ;
 
@@ -14,10 +14,12 @@
 ;usage:
 ; rswp = spp_swp_spe_reduced_sweep(fullsweep=fswp,  ptable=spe.ptable)
 
-function spp_swp_spe_reduced_sweep,fullsweep=fswp,ptable=ptable
+function spp_swp_spe_reduced_sweep,fullsweep=fswp,ptable=ptable,data_struct=data_struct
 
 
 ;message,'Old routine',/cont
+;atten_status = ishft(data_struct.status_bits,-6) and 0x3
+;atten_factor = 
 
 rswp = dictionary()
 

@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-27 11:40:06 -0700 (Wed, 27 Mar 2019) $
-; $LastChangedRevision: 26918 $
+; $LastChangedDate: 2019-04-02 11:55:09 -0700 (Tue, 02 Apr 2019) $
+; $LastChangedRevision: 26934 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -66,7 +66,8 @@ end
 function spp_swp_spe_param, detname = detname, $
                             emode = emode, $
                             pmode = pmode, $
-                            status_bits = status_bits, $
+                            data = data,  $
+;                            status_bits = status_bits, $
                             reset = reset
 
   ;;------------------------------------------------------
@@ -132,7 +133,8 @@ function spp_swp_spe_param, detname = detname, $
   
   
   if isa(detname) then begin
-    if ~spe_param_dict.haskey('CALS') then   spe_param_dict.cals  = dictionary() ; should this be an ordered hash?
+    nan= !values.f_nan
+    if ~spe_param_dict.haskey('CALS') then   spe_param_dict.cals  = dictionary() 
     cals = spe_param_dict.cals
     if ~cals.haskey(strupcase(detname))  then begin
       dprint,dlevel=2,'Generating cal structure for ',detname
@@ -143,13 +145,13 @@ function spp_swp_spe_param, detname = detname, $
           ;phi = total(/cum,dphi)- dphi/2 + 6.
           phi = [9.,15.,21.,27.,33.,39.,45.,51.,66.,90.,114.,138.,162.,186.,210.,234.]
           ;phi  = total(dphi,/cumulative) -3 ; +180
-          phi = phi - 180   
+          phi = phi - 180               ; rotate by 180 to account for travel directions instead of look direction
           end
         'SPB' : begin
           dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40. ;width
           phi = [-108.,-84.,-60.,-36.,-21.,-15.,-9.,-3.,3.,9.,15.,21.,36.,60.,84.,108.]
           ;phi = total(dphi,/cumulative) - 120 -12; +180
-          phi = phi + 180
+          phi = phi + 180      ; rotate by 180 to account for travel directions instead of look direction
           end
       endcase
       n_anodes  = 16
@@ -162,14 +164,14 @@ function spp_swp_spe_param, detname = detname, $
         eff:  eff,   $
         geomfactor_full: .00152,  $     ; cm2-ster-eV/eV  - does not account for grids or efficiency !!
         defl_scale: .0028d,  $  ; conversion from dac to angle  - This is not quite appropriate - works for now
-        deflut_dac: deflut.defdac, $
-        deflut_ang: deflut.theta * (-1.), $
+;        deflut_dac: deflut.defdac, $
+;        deflut_ang: deflut.theta * (-1.), $
         hem_scale:    500.d  , $
         spoil_scale:  80./2.^16   ,  $  ; Needs correction
         k_anal:  replicate(16.7,n_anodes) ,  $
         k_defl:  replicate(1.,n_anodes), $
-        mech_attnx: 10. , $
-        defl_cal:    polycurve2(coeff = [-1396.73d, 539.083d, 0.802293d, -0.04624d, -0.000163369d, 0.00000319759d],/invert )  $
+        mech_attnxs: [nan,1.,10.,nan]   , $   ; 0:undefined,  1:atten_out,   2: atten_in,   3: undefined
+        defl_cal:    polycurve2(coeff = [-1396.73d, 539.083d, 0.802293d, -0.04624d, -0.000163369d, 0.00000319759d],/invert )  $  
       }
       cals[strupcase(detname)] = cal
     endif
@@ -202,24 +204,25 @@ function spp_swp_spe_param, detname = detname, $
     retval.ptable  = ptables[pmode]
   endif
   
-  if isa(status_bits) then begin
-    if ~spe_param_dict.haskey('status') then spe_param_dict.status = orderedhash()
-    status = spe_param_dict.status
-    if ~status.haskey(strupcase(status_bits))  then begin
-      if (fix(status_bits) and 128) eq 128 then mech_attn = 1 ; in 
-      if (fix(status_bits) and 64) eq 64 then mech_attn = 0 ; out
-      if ~((fix(status_bits) and 128) eq 128) and ~((fix(status_bits) and 64) eq 64) then mech_attn = 'f'x ; illegal state
-      hv_sweep = 'f'x and fix(status_bits)
-      stat  = {   $
-        mech_attn: mech_attn, $ ; 0 is out, 1 is in
-        ;test_pulser: , $
-        ;hv_enable: , $
-        hv_sweep: hv_sweep $
-      }
-      status[strupcase(status_bits)] = stat
-    endif
-    retval.stat = status[strupcase(status_bits)]
-  endif
+;  if isa(status_bits) then begin
+;    message,'Old code'
+;    if ~spe_param_dict.haskey('status') then spe_param_dict.status = orderedhash()
+;    status = spe_param_dict.status
+;    if ~status.haskey(strupcase(status_bits))  then begin
+;      if (fix(status_bits) and 128) eq 128 then mech_attn = 1 ; in 
+;      if (fix(status_bits) and 64) eq 64 then mech_attn = 0 ; out
+;      if ~((fix(status_bits) and 128) eq 128) and ~((fix(status_bits) and 64) eq 64) then mech_attn = 'f'x ; illegal state
+;      hv_sweep = 'f'x and fix(status_bits)
+;      stat  = {   $
+;        mech_attn: mech_attn, $ ; 0 is out, 1 is in
+;        ;test_pulser: , $
+;        ;hv_enable: , $
+;        hv_sweep: hv_sweep $
+;      }
+;      status[strupcase(status_bits)] = stat
+;    endif
+;    retval.stat = status[strupcase(status_bits)]
+;  endif
   
   if n_elements(retval) eq 0 then retval = spe_param_dict
   

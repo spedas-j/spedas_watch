@@ -1,13 +1,13 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-27 11:40:06 -0700 (Wed, 27 Mar 2019) $
-; $LastChangedRevision: 26918 $
+; $LastChangedDate: 2019-04-02 11:56:30 -0700 (Tue, 02 Apr 2019) $
+; $LastChangedRevision: 26935 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_sweeps.pro $
 ;
 
 
 ;;----------------------------------------------
 ;; The gen L2 code calls this for params
-function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin,param=param
+function  spp_swp_spe_sweeps, param=param, data_struct=dat  ;,etable=etable,ptable=ptable,cal=cal
 
 ;message,'Old routine',/cont
 
@@ -17,15 +17,26 @@ function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin
     cal    = param.cal
     ;status = param.stat
   endif
+  
+  if ~isa(dat) then begin
+    dat = { $
+      apid: '360'x  ,$
+      peak_bin: 140 ,$
+      mode2: '1101'x ,$
+      status_bits: 125b $
+      }
+  endif
+
 
   ; this portion of code assumes  4 substeps, 8 deflectors and 32 energies  (ptable correponds to full distribution)
   ;  index = reform(etable.index,4,256)   ; full sweep
 
   substep_time = 0.873/4/256 /4  ; integration time of single substep   
   
-  if isa(peakbin) then begin      ; targeted sweap
+  targeted =  (dat.apid and 2 ) ne 0      ; targeted apids have the 2bit set.
+  if targeted then begin      ; targeted sweap
     tsindex = reform(etable.tsindex,256,256)
-    index = [1,1,1,1] # reform(tsindex[*,peakbin])    
+    index = [1,1,1,1] # reform(tsindex[*,dat.peak_bin])    
   endif else index = reform(etable.fsindex,4,256)  ; full sweep
 
   hem_dac  = etable.hem_dac[index]  
@@ -35,7 +46,7 @@ function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin
 
   ; move from dacs to energy and defl  average over substeps
   
-  defConvEst = 0.0025
+ ; defConvEst = 0.0025
   hemv  = float( hem_dac * cal.hem_scale * 4. / 2.^16  )   ;  approximate voltage,  average over substeps
   defv  = float( def_dac  * cal.defl_scale   )   ; approximate angle (degrees) ; ideally this is not used (direct dac - theta conversion)
   splv  = float( spl_dac  * cal.spoil_scale * 4./2.^16  ) ;  approximate voltage
@@ -60,18 +71,33 @@ function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin
   ;def_angs = 
 
   nrg_all = reform(cal.k_anal # hemv[*],new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
-  defa_all_old = reform(cal.k_defl # defv[*],new_dimen,/overwrite) * (-1.)   ;  this should be evaluated as a cubic spline in the future, flips for particle velocity direction not look direction
-  thetas = findgen(n_elements(def_dac))
-  for i=0,n_elements(def_dac)-1  do begin
-    thetas[i] = cal.deflut_ang[where(cal.deflut_dac eq def_dac[i])]
-  endfor
-  defa_all = reform(cal.k_defl # thetas, new_dimen, /overwrite)
+ ; defa_all_old = reform(cal.k_defl # defv[*],new_dimen,/overwrite) * (-1.)   ;  this should be evaluated as a cubic spline in the future, flips for particle velocity direction not look direction
+ ; if 1 then begin
+    thetas = - func(def_dac,param = cal.defl_cal)  ; add minus sign to account for travel direction instead of look direction.
+    defa_all = reform(cal.k_defl # thetas[*], new_dimen, /overwrite)    
+ ; endif else begin
+ ;   thetas = findgen(n_elements(def_dac))
+ ;   for i=0,n_elements(def_dac)-1  do begin
+ ;     thetas[i] = cal.deflut_ang[where(cal.deflut_dac eq def_dac[i])]
+ ;   endfor
+ ;   defa_all = reform(cal.k_defl # thetas, new_dimen, /overwrite)    
+ ; endelse
+  
+  atten_code = ishft(dat.status_bits , -6) and 3   ; 0:undefined,  1:atten_out,   2: atten_in,   3: undefined
+  geomfactor_full = cal.geomfactor_full / cal.MECH_ATTNXS[atten_code]
+;  if atten_in then begin
+;    dprint,dat.status_bits
+;    geomfactor_full = geomfactor_full / cal.MECH_ATTNX
+;  endif else begin
+;    dprint,'atten_out',dat.status_bits
+;  endelse
 
-  geomdt_all = reform(cal.dphi # delt[*],new_dimen,/overwrite) * cal.geomfactor_full / 360.
+  geomdt_all = reform(cal.dphi # delt[*],new_dimen,/overwrite) * geomfactor_full / 360.
   
   anode_all = reform(anodes # replicate(1,nelem),new_dimen,/overwrite)
 
-  geom_all = cal.dphi[anode_all] * cal.geomfactor_full / 360.
+;  atten_factor = cal.atten_factor
+  geom_all = cal.dphi[anode_all] * geomfactor_full / 360.
   phi_all  = cal.phi[anode_all]
   
   delt_all = reform( replicate(1,n_anodes) # delt[*],new_dimen)
@@ -101,8 +127,10 @@ function  spp_swp_spe_sweeps,etable=etable,ptable=ptable,cal=cal,peakbin=peakbin
   fswp.theta = defa_all
   fswp.geom  = geom_all
   fswp.geomdt = geomdt_all
-  fswp.timesort = timesort_all
-  fswp.deflsort = deflsort_all
+;  fswp.timesort = timesort_all
+;  fswp.deflsort = deflsort_all
+  fswp.targeted = targeted
+  fswp.peak_bin = dat.peak_bin
   return,fswp
 end
 

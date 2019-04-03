@@ -4,9 +4,9 @@
   ; PSP SPAN make L2
   ;
   ;
-  ; $LastChangedBy: phyllisw2 $
-  ; $LastChangedDate: 2019-03-20 14:35:43 -0700 (Wed, 20 Mar 2019) $
-  ; $LastChangedRevision: 26865 $
+  ; $LastChangedBy: davin-mac $
+  ; $LastChangedDate: 2019-04-02 11:21:23 -0700 (Tue, 02 Apr 2019) $
+  ; $LastChangedRevision: 26933 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -47,7 +47,7 @@
 
 pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
 
-  if keyword_set(all) then trange= ['2018 8 30',time_string(systime(1))]
+  if keyword_set(all) then trange= ['2018 10 3',time_string(systime(1))]
 
   compile_opt idl2
   dlevel=3
@@ -56,9 +56,9 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
   trange = timerange(trange)
   
   spxs = ['spa','spb']
-  types = ['sf0','sf1']
-  if (get_login_info()).user_name eq 'davin' then $
-    types = ['sf1','sf0','st1','st0']   ; add archive when available
+  types = ['sf1','sf0']
+  if 0 && (get_login_info()).user_name eq 'davin' then $
+    types = ['sf0','sf1','st1','st0']   ; add archive when available
   
   foreach type,types do begin
     foreach spx, spxs do begin
@@ -80,6 +80,7 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
         file = files[fn]
         if file_test(file) eq 0 then continue
         l1_cdf = cdf_tools(file)                           ; Read in file
+        l1_dat = l1_cdf.get_var_struct()
 
         l1_counts = l1_cdf.vars['DATA'].data.array
         l1_datasize = l1_cdf.vars['DATASIZE'].data.array
@@ -100,10 +101,11 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
 
           l2_cdf = cdf_tools(file)   ; make a copy
           l2_cdf.filter_variables, records                  ; down  select the pmodes
+          l2_dat = l2_cdf.get_var_struct()
 
           l2_counts = l2_cdf.vars['DATA'].data.array
-          l2_emode = l2_cdf.vars['EMODE'].data.array
-          l2_status_bits = l2_cdf.vars['STATUS_BITS'].data.array
+ ;         l2_emode = l2_cdf.vars['EMODE'].data.array
+ ;         l2_status_bits = l2_cdf.vars['STATUS_BITS'].data.array
                     
           l2_counts = l2_counts[*,0:psize-1]
 
@@ -112,28 +114,31 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
           theta  = energy
           phi    = energy
 
-          emode_last = -1
-          status_bits_last = -1
-          
+;          emode_last = -1
+;          status_bits_last = -1
+;          peak_bin_last = -1
+          dati_last = !null
 
           for i = 0 , l2_nrecs-1 do begin
-            emode = l2_emode[i]
-            status_bits = l2_status_bits[i]
-            if (emode_last ne emode) or (status_bits_last ne status_bits) then begin
-            ;if (emode_last ne emode) then begin
-              param = spp_swp_spe_param(detname = spx, emode = emode, pmode = pmode, status_bits = status_bits)
-              fswp = spp_swp_spe_sweeps(param=param)
+            dati= l2_dat[i]
+ ;           emode = dati.emode  ;l2_emode[i]
+ ;           status_bits = dati.status_bits   ;l2_status_bits[i]
+ ;           peak_bin = dati.peak_bin
+            if ~isa(dati_last) || dati_last.emode ne dati.emode || (dati.status_bits ne dati_last.status_bits) then begin
+              param = spp_swp_spe_param(detname = spx, emode = dati.emode, pmode = pmode,data=dati)
+              fswp = spp_swp_spe_sweeps(param=param,data=dati)
               ptable = param['PTABLE']
-              rswp =  spp_swp_spe_reduced_sweep(fullsweep=fswp,ptable=ptable)
-              attn_fact = param['STAT'].mech_attn * param['CAL'].mech_attnx
-              emode_last = emode
-              status_bits_last = status_bits
+              rswp =  spp_swp_spe_reduced_sweep(fullsweep=fswp,ptable=ptable,data=dati)
             endif
-            if attn_fact eq 0 then attn_fact = 1
-            eflux[i,*] = l2_counts[i,*] / rswp['geomdt'] * attn_fact
+;              emode_last = emode
+;              status_bits_last = status_bits
+;            endif
+ ;           if attn_fact eq 0 then attn_fact = 1
+            eflux[i,*] = l2_counts[i,*] / rswp['geomdt']  ; * attn_fact
             energy[i,*] = rswp['energy']
             theta[i,*] = rswp['theta']
             phi[i,*] = rswp['phi']
+            dati_last = dati
             
           endfor
           
