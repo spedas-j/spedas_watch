@@ -367,6 +367,28 @@ spd_handle_error,err,t_name,++t_num
 stop
 del_data,'*'
 
+;18 No spec flag
+;
+
+t_name='Fractional days'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-02-17', 0.5d, /no_spec
+  tr=timerange()
+  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif']
+  spd_print_tvar_info,'ela_pef'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-19')  || $
+    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+tplot_names
+stop
+spd_handle_error,err,t_name,++t_num
+stop
+del_data,'*'
+
 
 spd_end_tests
 

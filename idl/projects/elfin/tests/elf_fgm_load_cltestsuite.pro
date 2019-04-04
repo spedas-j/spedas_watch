@@ -28,6 +28,7 @@
 elf_init
 spd_init_tests
 timespan,'2019-01-26'
+tr=timerange()
 t_num = 0
 
 ;1 no keywords
@@ -40,14 +41,15 @@ if err eq 0 then begin
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('ela_fgs','2019-01-26','2019-01-27')  || $
-    ~spd_data_exists('ela_*','2019-01-26','2019-01-27') || $
+    spd_data_exists('ela_*','2019-01-26','2019-01-27') || $
     spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
-del_data,'*'
 stop
+del_data,'*'
+
 
 ;2 single probe
 ;
@@ -295,21 +297,21 @@ stop
 ;16 Test fgf (for probe a only) 
 ;
 
-t_name='FGF data'
-catch,err
-if err eq 0 then begin
-  timespan,'2019-03-22'
-  elf_load_fgm,probe='a',datatype='fgf'
-  spd_print_tvar_info,'ela_fgf'
-  ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgf', '2019-03-22','2019-03-23')  || $
-    spd_data_exists('ela_fgs','2019-02-26','2019-02-27')  $
-    then message,'data error ' + t_name
-endif
-catch,/cancel
-spd_handle_error,err,t_name,++t_num
-del_data,'*'
-stop
+;t_name='FGF data'
+;catch,err
+;if err eq 0 then begin
+;  timespan,'2019-03-22'
+;  elf_load_fgm,probe='a',datatype='fgf'
+;  spd_print_tvar_info,'ela_fgf'
+;  ;just spot checking cause there are a lot of data types
+;  if ~spd_data_exists('ela_fgf', '2019-03-22','2019-03-23')  || $
+;    spd_data_exists('ela_fgs','2019-02-26','2019-02-27')  $
+;    then message,'data error ' + t_name
+;endif
+;catch,/cancel
+;spd_handle_error,err,t_name,++t_num
+;del_data,'*'
+;stop
 
 ;17 Test for multiple days
 ;

@@ -111,6 +111,9 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
     cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
     always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
  
+  ; no reason to continue if no data were loaded
+  if undefined(tplotnames) then return
+
   ; Perform pseudo calibration for level 1 fgm
   if no_cal NE 1 and tplotnames[0] ne '' then elf_cal_fgm, tplotnames, level=level, error=error
 
@@ -125,7 +128,4 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   ; no reason to continue if the user only requested available data
   if keyword_set(available) then return
   
-  ; no reason to continue if no data were loaded
-  if undefined(tplotnames) then return
-
 end

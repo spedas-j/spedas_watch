@@ -93,10 +93,16 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
     return    
   endif
 
+;  TODO: may want to add check of var types
 ;  if undefined(datatype) then datatype = ['pos', 'vel']
 ;  if datatype EQ ['*'] then datatype =  ['pos', 'vel']
 ;  datatype = strlowcase(datatype)
 ;  varformat = '*'+datatype
+ 
+   ;clear so new names are not appended to existing array
+   undefine, tplotnames
+   ; clear CDF filenames, so we're not appending to an existing array
+   undefine, cdf_filenames
 
   if undefined(level) then level = 'l1' else level=strlowcase(level)
   if level NE 'l1' then begin
@@ -106,9 +112,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   endif
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ''
-  ; temporarily set predicted flag
-  ; pred = 1 
-
+  
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
     datatype = datatype, get_support_data = get_support_data, pred = pred, $
@@ -132,8 +136,14 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
       always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
   endif
 
+  ; no reason to continue if no data were loaded
+  if undefined(tplotnames) || tplotnames[0] EQ '' then begin
+    dprint, dlevel = 1, 'No data was loaded.'
+    return
+  endif
+ 
   ; Set colors to RGB
-  if  ~undefined(tplotnames) && tplotnames[0] ne '' then begin
+  if tplotnames[0] ne '' then begin
     for i=0,n_elements(tplotnames)-1 do begin
       get_data, tplotnames[i], data=d, dlimits=dl, limits=l
       options, /def, tplotnames[i], 'colors', [2,4,6]
@@ -144,6 +154,6 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   if keyword_set(available) then return
 
   ; no reason to continue if no data were loaded
-  if undefined(tplotnames) then return
+  if undefined(new_tvars) then return
 
 end

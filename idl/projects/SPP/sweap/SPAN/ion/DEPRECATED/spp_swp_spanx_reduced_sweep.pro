@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-26 08:56:52 -0700 (Tue, 26 Mar 2019) $
-; $LastChangedRevision: 26903 $
+; $LastChangedBy: mdmcmanus $
+; $LastChangedDate: 2019-04-03 11:37:21 -0700 (Wed, 03 Apr 2019) $
+; $LastChangedRevision: 26943 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_reduced_sweep.pro $
 ;
 
@@ -44,8 +44,8 @@ function spp_swp_spanx_reduced_sweep,fullsweep=fswp,ptable=ptable
 
 rswp = dictionary()
 
-average_quants = ['energy','theta','phi','rtime','geom']
-total_quants = ['delt','geomdt']
+average_quants = ['energy','theta','theta_new','phi','rtime','geom','dE','dphi']
+total_quants = ['delt','geomdt','dtheta']
 
 quantnames = [average_quants,total_quants]
 normalize = [average_quants eq average_quants, total_quants eq '']

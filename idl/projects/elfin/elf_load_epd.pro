@@ -50,6 +50,7 @@
 ;                       useful if you accidently save an incorrect password, or if your SDC password has changed
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
 ;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
+;         no_spec:      flag to set tplot options to linear rather than the default of spec
 ;
 ; EXAMPLES:
 ;         to load/plot the EPD data for probe a on 2/20/2019:
@@ -65,7 +66,7 @@
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_load_fgm.pro $
 ;-
 pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
-  level = level, data_rate = data_rate, $
+  level = level, data_rate = data_rate, no_spec = no_spec, $
   local_data_dir = local_data_dir, source = source, $
   get_support_data = get_support_data, no_cal=no_cal, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
@@ -125,15 +126,15 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   endif
   
   ; fix metadata 
-  for i=0,n_elements(new_tvars)-1 do begin
-    get_data, new_tvars[i], data=d, dlimits=dl
-;   ebins = elf_convert_epd_mv2eng()
-    store_data, new_tvars[i], data={x:d.x, y:d.y, v:findgen(16) } 
-    options, /def, new_tvars[i], 'spec', 1
-    options, /def, new_tvars[i], 'zlog', 1
-    options, /def, new_tvars[i], 'no_interp', 1
-    options, /def, new_tvars[i], 'ystyle', 1
-  endfor
+;  for i=0,n_elements(new_tvars)-1 do begin
+;    get_data, new_tvars[i], data=d, dlimits=dl, limits=l
+;    ebins = elf_convert_epd_mv2eng()
+;    store_data, new_tvars[i], data={x:d.x, y:d.y, v:findgen(16) } 
+;    options, /def, new_tvars[i], 'spec', 1
+;    options, /def, new_tvars[i], 'zlog', 1
+;    options, /def, new_tvars[i], 'no_interp', 1
+;    options, /def, new_tvars[i], 'ystyle', 1
+;  endfor
     
   ; add energy numbers
   
