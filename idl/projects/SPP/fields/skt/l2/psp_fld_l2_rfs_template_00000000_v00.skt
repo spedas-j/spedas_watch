@@ -45,9 +45,9 @@
 
   "MODS"                1:    CDF_CHAR     { "Revision 0" } .
 
-  "Logical_file_id"     1:    CDF_CHAR     { "psp_l2_rfs_<RECEIVER>_00000000_v00" } .
+  "Logical_file_id"     1:    CDF_CHAR     { "psp_fld_l2_rfs_<receiver>_00000000_v00" } .
 
-  "Logical_source"      1:    CDF_CHAR     { "psp_l2_rfs_<RECEIVER>" } .
+  "Logical_source"      1:    CDF_CHAR     { "psp_fld_rfs_<receiver>" } .
 
   "Logical_source_description"
                         1:    CDF_CHAR     { "PSP FIELDS RFS <RECEIVER> Data" } .

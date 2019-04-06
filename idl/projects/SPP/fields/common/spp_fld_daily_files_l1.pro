@@ -122,9 +122,11 @@ pro spp_fld_daily_files_l1, start_day, n_days, $
       if file_types[0] EQ 'p1' and n_elements(file_types) EQ 1 then $
         file_types = [$
         'sc_hk_1df', $
+        'sc_hk_184', $
         'sc_hk_191', $
         'sc_hk_high', $
         'sc_hk_med', $
+        'sc_hk_lo', $
         'sc_fsw_rec_alloc']
 
       if file_types[0] EQ 'p3' and n_elements(file_types) EQ 1 then $
