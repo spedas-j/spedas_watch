@@ -18,7 +18,9 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   l1_cdf_files = l1_cdf_files, $
   filename = filename, $
   load = load, $
-  no_load_l1 = no_load_l1
+  no_load_l1 = no_load_l1, $
+  daily = daily, $
+  downsample_cadence = downsample_cadence
 
   if n_elements(trange) EQ 0 then begin
 
@@ -29,7 +31,7 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
   endif
 
   spp_fld_cdf_timespan, trange = trange, success = ts_success, $
-    filename_timestring = filename_timestring
+    filename_timestring = filename_timestring, daily = daily
 
   if n_elements(no_load_l1) EQ 0 then no_load_l1 = 0
 
@@ -94,8 +96,8 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   ; Read in the L1 CDF files
 
-  if n_elements(no_load_l1) EQ 0 then begin
-    foreach l1_cdf_file, l1_cdf_files do spp_fld_load_l1, l1_cdf_file
+  if no_load_l1 EQ 0 then begin
+    foreach l1_cdf_datatype, l1_cdf_datatypes do spp_fld_load_l1, l1_cdf_file
 
     l1_cdf_files = dictionary(l1_cdf_datatypes)
 
@@ -145,12 +147,22 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
     l2_datatype + '_00000000_v' + $
     l2_version + '.cdf'
 
+  if n_elements(downsample_cadence) GT 0 then begin
+
+    downsample_string = '_1sec'
+
+  endif else begin
+
+    downsample_string = ''
+
+  endelse
+
   l2_cdf = l2_cdf_test_dir + 'psp_fld_l2_' + $
-    l2_datatype + '_' + filename_timestring + '_v' + $
+    l2_datatype + downsample_string + '_' + filename_timestring + '_v' + $
     l2_version + '.cdf'
 
   l2_cdf_dump = l2_cdf_test_dir + 'psp_fld_l2_' + $
-    l2_datatype + '_' + filename_timestring + '_v' + $
+    l2_datatype + downsample_string + '_' + filename_timestring + '_v' + $
     l2_version + '.cdfdump.txt'
 
 
@@ -186,7 +198,8 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   endif
 
-  call_procedure, make_cdf_l2_pro, l2_master_cdf, l2_cdf, trange = trange
+  call_procedure, make_cdf_l2_pro, l2_master_cdf, l2_cdf, trange = trange, $
+    downsample_cadence = downsample_cadence
 
   ; The write_data_to_cdf procedure doesn't allow for easy modification
   ; of global variables, so we do it here instead.
