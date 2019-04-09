@@ -58,6 +58,9 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
       'rfs_lfr': begin
         l1_cdf_datatypes = ['rfs_lfr_auto', 'rfs_lfr_cross', 'rfs_lfr_hires']
       end
+      'rfs_lfr_ne': begin
+        l1_cdf_datatypes = ['rfs_lfr_auto']
+      end
       'rfs_hfr': begin
         l1_cdf_datatypes = ['rfs_hfr_auto', 'rfs_hfr_cross']
       end

@@ -26,12 +26,12 @@ probe = 'a'
 datatype = 'pos'    ; 'vel', ; to be added 'spinras', 'spindec'
 
 elf_load_state, probes=probe, datatype=datatype
-tplot, 'ela_pos'
+tplot, 'ela_pos_gei'
 stop
 
 ; load velocity data only
-elf_load_state, probes=['a', 'b'], datatype='vel'
-tplot, ['el*_vel']
+elf_load_state, probes=['a', 'b'], datatype='vel_gei'
+tplot, ['el*_vel_gei']
 stop
 
 ; same with position
@@ -53,8 +53,8 @@ date = '2019-11-31/00:00:00'
 timespan,date,1,/day
 
 ; request predictive data (because date is in the future) 
-elf_load_state, probes= ['a'], datatype='pos', /pred
-tplot, ['ela_pos']
+elf_load_state, probes= ['a'], datatype='pos_gei', /pred
+tplot, ['ela_pos_gei']
 stop
 
 ; request definitive data (because date is in the future definitive
@@ -63,8 +63,9 @@ stop
 ; TO DO - the elf_load_state routine only has access to pred so the load
 ;         routine is temporarily hard coded to use predicted. This will
 ;         change as soon as definitive data is automated.
-elf_load_state, probes= ['b'], datatype='pos'
-tplot, ['elb_vel']
+timespan, '2019-06-12',1d
+elf_load_state, probes= ['b'], datatype='vel_gei'
+tplot, ['elb_vel_gei']
 stop
 
 end

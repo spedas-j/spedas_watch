@@ -1,7 +1,7 @@
 ;+
 ; Name: elf_state_load_cltestsuite.pro
 ;
-; Purpose: command line test script for loading ELFIN state data
+; Purpos_geie: command line test script for loading ELFIN state data
 ;
 ; Notes: run it by compiling in idl and then typing ".go"
 ;        or copy and paste.
@@ -37,9 +37,9 @@ t_name='No parameters or keywords used'
 catch,err
 if err eq 0 then begin
   elf_load_state
-  spd_print_tvar_info,'ela_pos'
+  spd_print_tvar_info,'ela_pos_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel ela_pos','2018-10-14','2018-10-15')  || $
+  if ~spd_data_exists('ela_vel_gei ela_pos_gei','2018-10-14','2018-10-15')  || $
     spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
     then message,'data error '+t_name
 endif
@@ -55,9 +55,9 @@ t_name='Single probe'
 catch,err
 if err eq 0 then begin
   elf_load_state,probe='b'
-  spd_print_tvar_info,'elb_vel'
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_vel elb_pos','2018-10-14','2018-10-15')  || $
+  if ~spd_data_exists('elb_vel_gei elb_pos_gei','2018-10-14','2018-10-15')  || $
     spd_data_exists('ela_*','2018-10-14','2018-10-15')   $
     then message,'data error ' + t_name
 endif
@@ -73,9 +73,9 @@ t_name='Multiple probe parameters passed as an array of strings)'
 catch,err
 if err eq 0 then begin
   elf_load_state,probe=['a', 'b']
-  spd_print_tvar_info,'elb_pos'
+  spd_print_tvar_info,'elb_pos_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel elb_vel','2018-10-14','2018-10-15')  || $
+  if ~spd_data_exists('ela_vel_gei elb_vel_gei','2018-10-14','2018-10-15')  || $
     spd_data_exists('elb_*','2018-12-14','2018-12-15')  $
     then message,'data error '+t_name
 endif
@@ -92,9 +92,9 @@ t_name='All probes requested (*)'
 catch,err
 if err eq 0 then begin
   elf_load_state,probe='*'
-  spd_print_tvar_info,'ela_vel'
+  spd_print_tvar_info,'ela_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pos elb_pos','2018-10-14','2018-10-15')  || $
+  if ~spd_data_exists('ela_pos_gei elb_pos_gei','2018-10-14','2018-10-15')  || $
     ~spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
     then message,'data error '+t_name
 endif
@@ -111,9 +111,9 @@ t_name='Requested predicted data, all datatypes'
 catch,err
 if err eq 0 then begin
   elf_load_state,probe='a', /pred
-  spd_print_tvar_info,'ela_vel'
+  spd_print_tvar_info,'ela_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel ela_pos','2018-10-14','2018-10-15')  || $
+  if ~spd_data_exists('ela_vel_gei ela_pos_gei','2018-10-14','2018-10-15')  || $
     spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
     then message,'data error '+t_name
 endif
@@ -131,10 +131,10 @@ catch,err
 if err eq 0 then begin
   timespan, '2018-12-04', 1
   elf_load_state,probe='a',suffix='_test'
-  spd_print_tvar_info,'ela_vel_test'
+  spd_print_tvar_info,'ela_vel_gei_test'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel_test ela_pos_test', '2018-12-04','2018-12-05')  || $
-    spd_data_exists('elb_vel','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('ela_vel_gei_test ela_pos_gei_test', '2018-12-04','2018-12-05')  || $
+    spd_data_exists('elb_vel_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -148,11 +148,11 @@ stop
 t_name='Only one data type requested'
 catch,err
 if err eq 0 then begin
-  elf_load_state,probe='b',datatype='vel'
-  spd_print_tvar_info,'elb_vel'
+  elf_load_state,probe='b',datatype='vel_gei'
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_vel', '2018-12-04','2018-12-05')  || $
-    spd_data_exists('ela_pos','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('elb_vel_gei', '2018-12-04','2018-12-05')  || $
+    spd_data_exists('ela_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -160,17 +160,17 @@ spd_handle_error,err,t_name,++t_num
 del_data,'*'
 stop
 
-;8 datatype = pOs
+;8 datatype = pos_gei
 ;
 
 t_name='Mixed case datatype parameter used'
 catch,err
 if err eq 0 then begin
-  elf_load_state,probe='b',datatype='pOs'
-  spd_print_tvar_info,'elb_pos'
+  elf_load_state,probe='b',datatype='pOs_gei'
+  spd_print_tvar_info,'elb_pos_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_pos', '2018-12-04','2018-12-05')  || $
-    spd_data_exists('ela_vel','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('elb_pos_gei', '2018-12-04','2018-12-05')  || $
+    spd_data_exists('ela_vel_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -184,11 +184,11 @@ stop
 t_name='All uppper case datatype'
 catch,err
 if err eq 0 then begin
-  elf_load_state,probe='a',datatype='VEL'
-  spd_print_tvar_info,'ela_vel'
+  elf_load_state,probe='a',datatype='VEL_GEI'
+  spd_print_tvar_info,'ela_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel', '2018-12-04','2018-12-05')  || $
-    spd_data_exists('elb_pos','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('ela_vel_gei', '2018-12-04','2018-12-05')  || $
+    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -197,17 +197,17 @@ del_data,'*'
 stop
 
 
-;10 datatype = [POS, VEL]
+;10 datatype = [POS_GEI, vel_gei]
 ;
 
 t_name='All upper probe and datatypes'
 catch,err
 if err eq 0 then begin
-  elf_load_state,probe='A',datatype=['VEL', 'POS']
-  spd_print_tvar_info,'ela_vel'
+  elf_load_state,probe='A',datatype=['VEL_GEI', 'POS_GEI']
+  spd_print_tvar_info,'ela_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel ela_pos', '2018-12-04','2018-12-05')  || $
-    spd_data_exists('elb_pos','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('ela_vel_gei ela_pos_gei', '2018-12-04','2018-12-05')  || $
+    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -223,10 +223,10 @@ catch,err
 if err eq 0 then begin
   trange=['2018-10-10', '2018-10-11']
   elf_load_state,probe='A',trange=trange
-  spd_print_tvar_info,'ela_vel'
+  spd_print_tvar_info,'ela_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel ela_pos', '2018-10-10','2018-10-11')  || $
-    spd_data_exists('elb_pos','2018-10-10','2018-10-11')  $
+  if ~spd_data_exists('ela_vel_gei ela_pos_gei', '2018-10-10','2018-10-11')  || $
+    spd_data_exists('elb_pos_gei','2018-10-10','2018-10-11')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -242,11 +242,11 @@ catch,err
 if err eq 0 then begin
   trange=['2018-10-15', '2018-10-16']
   tr=time_double(trange)
-  elf_load_state,probe='B',trange=tr, datatype=['vel', 'POS']
-  spd_print_tvar_info,'elb_vel'
+  elf_load_state,probe='B',trange=tr, datatype=['vel_gei', 'POS_GEI']
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_vel elb_pos', '2018-10-15','2018-10-16')  || $
-    spd_data_exists('ela_pos','2018-10-15','2018-10-16')  $
+  if ~spd_data_exists('elb_vel_gei elb_pos_gei', '2018-10-15','2018-10-16')  || $
+    spd_data_exists('ela_pos_gei','2018-10-15','2018-10-16')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -260,11 +260,11 @@ stop
 t_name='Invalid probe'
 catch,err
 if err eq 0 then begin
-  elf_load_state,probe=1,trange=trange, datatype=['vel']
-  spd_print_tvar_info,'elb_vel'
+  elf_load_state,probe=1,trange=trange, datatype=['vel_gei']
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_vel ela_pos', '2018-10-10','2018-10-11')  || $
-    spd_data_exists('elb_pos','2018-10-10','2018-10-11')  $
+  if spd_data_exists('ela_vel_gei ela_pos_gei', '2018-10-10','2018-10-11')  || $
+    spd_data_exists('elb_pos_gei','2018-10-10','2018-10-11')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -279,10 +279,10 @@ t_name='Invalid datatype'
 catch,err
 if err eq 0 then begin
   elf_load_state,probe='a',trange=trange, datatype=['xxx']
-  spd_print_tvar_info,'elb_vel'
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_vel ela_pos', '2018-10-10','2018-10-11')  || $
-    spd_data_exists('elb_pos', '2018-10-10','2018-10-11')  $
+  if spd_data_exists('ela_vel_gei ela_pos_gei', '2018-10-10','2018-10-11')  || $
+    spd_data_exists('elb_pos_gei', '2018-10-10','2018-10-11')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -296,11 +296,11 @@ stop
 t_name='Invalid date'
 catch,err
 if err eq 0 then begin
-  elf_load_state,probe='a',trange=['2021-10-10','2021-10-11'], datatype=['pos']
-  spd_print_tvar_info,'elb_vel'
+  elf_load_state,probe='a',trange=['2021-10-10','2021-10-11'], datatype=['pos_gei']
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_vel ela_pos', '2018-12-04','2018-12-05')  || $
-    spd_data_exists('elb_pos','2018-12-04','2018-12-05')  $
+  if spd_data_exists('ela_vel_gei ela_pos_gei', '2018-12-04','2018-12-05')  || $
+    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -315,12 +315,12 @@ stop
 t_name='Predicted data flag (past)'
 catch,err
 if err eq 0 then begin
-  elf_load_state,probe='b',trange=['2018-10-10','2018-10-11'], datatype=['pos', 'vel'], /pred
-  spd_print_tvar_info,'elb_pos'
-  spd_print_tvar_info,'elb_vel'
+  elf_load_state,probe='b',trange=['2018-10-10','2018-10-11'], datatype=['pos_gei', 'vel_gei'], /pred
+  spd_print_tvar_info,'elb_pos_gei'
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_pos elb_vel', '2018-10-10','2018-10-11')  || $
-    spd_data_exists('ela_pos','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('elb_pos_gei elb_vel_gei', '2018-10-10','2018-10-11')  || $
+    spd_data_exists('ela_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -335,11 +335,11 @@ t_name='Predicted data flag (future)'
 catch,err
 if err eq 0 then begin
   elf_load_state,probe='b',trange=['2019-09-13','2019-09-14'], /pred
-  spd_print_tvar_info,'elb_pos'
-  spd_print_tvar_info,'elb_vel'
+  spd_print_tvar_info,'elb_pos_gei'
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_vel elb_pos', '2019-09-13','2019-09-14')  || $
-    spd_data_exists('ela_pos','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('elb_vel_gei elb_pos_gei', '2019-09-13','2019-09-14')  || $
+    spd_data_exists('ela_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -356,11 +356,11 @@ t_name='Predicted data flag (future)'
 catch,err
 if err eq 0 then begin
   elf_load_state,probe='b',trange=['2019-09-13','2019-09-13']
-  spd_print_tvar_info,'elb_pos'
-  spd_print_tvar_info,'elb_vel'
+  spd_print_tvar_info,'elb_pos_gei'
+  spd_print_tvar_info,'elb_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('elb_vel elb_pos', '2019-09-13','2019-09-14')  || $
-    spd_data_exists('ela_pos','2019-09-13','2019-09-14')  $
+  if ~spd_data_exists('elb_vel_gei elb_pos_gei', '2019-09-13','2019-09-14')  || $
+    spd_data_exists('ela_pos_gei','2019-09-13','2019-09-14')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -374,12 +374,12 @@ stop
 t_name='Multiple days'
 catch,err
 if err eq 0 then begin
-  elf_load_state,probe='a',trange=['2019-02-10','2019-02-12'], datatype=['pos']
-  spd_print_tvar_info,'ela_pos'
+  elf_load_state,probe='a',trange=['2019-02-10','2019-02-12'], datatype=['pos_gei']
+  spd_print_tvar_info,'ela_pos_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pos', '2019-02-10','2019-02-12')  || $
-    ~spd_data_exists('ela_vel', '2019-02-10','2019-02-12')  || $
-    spd_data_exists('elb_pos','2019-02-10','2019-02-12')  $
+  if ~spd_data_exists('ela_pos_gei', '2019-02-10','2019-02-12')  || $
+    ~spd_data_exists('ela_vel_gei', '2019-02-10','2019-02-12')  || $
+    spd_data_exists('elb_pos_gei','2019-02-10','2019-02-12')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -394,11 +394,11 @@ t_name='Fractional days'
 catch,err
 if err eq 0 then begin
   timespan, '2019-02-10', 0.5d
-  elf_load_state,probe='a', datatype=['pos']
-  spd_print_tvar_info,'ela_pos'
+  elf_load_state,probe='a', datatype=['pos_gei']
+  spd_print_tvar_info,'ela_pos_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pos', '2019-02-10','2019-02-11')  || $
-    spd_data_exists('elb_pos','2018-12-04','2018-12-05')  $
+  if ~spd_data_exists('ela_pos_gei', '2019-02-10','2019-02-11')  || $
+    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel

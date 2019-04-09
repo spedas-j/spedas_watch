@@ -94,15 +94,16 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   endif
 
 ;  TODO: may want to add check of var types
-;  if undefined(datatype) then datatype = ['pos', 'vel']
-;  if datatype EQ ['*'] then datatype =  ['pos', 'vel']
-;  datatype = strlowcase(datatype)
-;  varformat = '*'+datatype
- 
-   ;clear so new names are not appended to existing array
-   undefine, tplotnames
-   ; clear CDF filenames, so we're not appending to an existing array
-   undefine, cdf_filenames
+  if undefined(datatype) then datatype = ['pos_gei', 'vel_gei']
+  idx=where(datatype EQ 'pos', ncnt)
+  if ncnt GT 0 then datatype[idx]='pos_gei'
+  idx=where(datatype EQ 'vel', ncnt)
+  if ncnt GT 0 then datatype[idx]='pos_vel'
+   
+  ;clear so new names are not appended to existing array
+  undefine, tplotnames
+  ; clear CDF filenames, so we're not appending to an existing array
+  undefine, cdf_filenames
 
   if undefined(level) then level = 'l1' else level=strlowcase(level)
   if level NE 'l1' then begin
@@ -112,20 +113,21 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   endif
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ''
-  
-  elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
-    data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
-    datatype = datatype, get_support_data = get_support_data, pred = pred, $
-    tplotnames = tplotnames, no_color_setup = no_color_setup, time_clip = time_clip, $
-    no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
-    cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
-    cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
-    always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
-
+ 
+  if ~keyword_set(pred) then begin
+    elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
+      data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
+      datatype = datatype, get_support_data = get_support_data, pred = pred, $
+      tplotnames = tplotnames, no_color_setup = no_color_setup, time_clip = time_clip, $
+      no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
+      cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
+      cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
+      always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
+  endif
   ; check that data was loaded, if not and the keyword_set pred was not set then 
   ; try predicted data  
-  if (undefined(tplotnames) || tplotnames[0] eq '') && ~keyword_set(pred) then begin
-     dprint, dlevel = 1, 'Definitive state data not found. Downloading predicted state data. '
+  if keyword_set(pred) || undefined(tplotnames) || tplotnames[0] eq '' then begin
+     dprint, dlevel = 1, 'Downloading predicted state data. '
      elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
       data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
       datatype = datatype, get_support_data = get_support_data, pred = 1, $
@@ -147,6 +149,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
     for i=0,n_elements(tplotnames)-1 do begin
       get_data, tplotnames[i], data=d, dlimits=dl, limits=l
       options, /def, tplotnames[i], 'colors', [2,4,6]
+      options, /def, tplotnames[i], 'ysubtitle', 'km'
     endfor
   endif
 

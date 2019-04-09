@@ -9,14 +9,14 @@
 ;  mvn_swe_getlut
 ;
 ;INPUTS:
+;       None.
 ;
 ;KEYWORDS:
-;
 ;       TPLOT:    Make a tplot variable.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-03-15 12:35:23 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26804 $
+; $LastChangedDate: 2019-04-08 16:56:31 -0700 (Mon, 08 Apr 2019) $
+; $LastChangedRevision: 26962 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getlut.pro $
 ;-
 pro mvn_swe_getlut, tplot=tplot
@@ -52,19 +52,25 @@ pro mvn_swe_getlut, tplot=tplot
 ; (Only tables 0-3 are recognized by the PFDPU.)
 
   indx = where(lutnum gt 3, count)
-  if (count gt 0L) then tabnum[indx] = 0
+  if (count gt 0L) then tabnum[indx] = 0B
 
 ; Use V0V to identify table 6
 
-  indx = where(swe_hsk.v0v lt -0.1, count)
-  if (count gt 0L) then tabnum[indx] = 6  ; V0 enabled
+  indx = where(lutnum eq 1, count)
+  if (count gt 0L) then begin
+    indx = where(swe_hsk.v0v lt -0.1, count)
+    if (count gt 0L) then tabnum[indx] = 6B  ; V0 enabled
+  endif
 
 ; Use ANALV to identify tables 7 and 8
 
-  indx = where(abs(swe_hsk.analv - 8.13) lt 0.7, count)
-  if (count gt 0L) then tabnum[indx] = 8  ; hires @ 50 eV
-  indx = where(abs(swe_hsk.analv - 32.5) lt 2.0, count)
-  if (count gt 0L) then tabnum[indx] = 7  ; hires @ 200 eV
+  indx = where(lutnum eq 2 or lutnum eq 3, count)
+  if (count gt 0L) then begin
+    indx = where(abs(swe_hsk.analv - 8.13) lt 0.7, count)
+    if (count gt 0L) then tabnum[indx] = 8B  ; hires @ 50 eV
+    indx = where(abs(swe_hsk.analv - 32.5) lt 2.0, count)
+    if (count gt 0L) then tabnum[indx] = 7B  ; hires @ 200 eV
+  endif
 
 ; Insert LUT information into data structures
 

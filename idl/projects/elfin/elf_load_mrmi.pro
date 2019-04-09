@@ -91,6 +91,12 @@ pro elf_load_mrmi, trange = trange, probes = probes, datatype = datatype, $
     dprint, dlevel = 1, 'Invalid probe name. Valid probes are a and/or b. Please select again.'
     return
   endif
+
+  ;clear so new names are not appended to existing array
+  undefine, tplotnames
+  ; clear CDF filenames, so we're not appending to an existing array
+  undefine, cdf_filenames
+
   if undefined(level) then level = 'l1'
   if undefined(datatype) then datatype = ['mrmi'] else datatype = strlowcase(datatype) ; this is the only type of mrm data
   if datatype NE 'mrmi' then begin

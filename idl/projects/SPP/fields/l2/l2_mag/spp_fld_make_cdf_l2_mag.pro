@@ -27,8 +27,10 @@ pro spp_fld_make_cdf_l2_mag, $
 
   ; Read Andriy Koval's time dependent offset files
 
-  mago_offset_file_2018 = '/Users/pulupa/Documents/spp_svn/06_SOC/calibrations/mag_offsets_andriy/psp_mago_zeros_range0_2018_v00.dat'
-  mago_offset_file_2019 = '/Users/pulupa/Documents/spp_svn/06_SOC/calibrations/mag_offsets_andriy/psp_mago_zeros_range0_2019_v00.dat'
+  svn_dir = getenv('SPP_FLD_SOC_SVN_DIR')
+
+  mago_offset_file_2018 = svn_dir + '/calibrations/mag_offsets_andriy/psp_mago_zeros_range0_2018_v00.dat'
+  mago_offset_file_2019 = svn_dir + '/calibrations/mag_offsets_andriy/psp_mago_zeros_range0_2019_v00.dat'
 
   mago_offset_2018 = read_ascii(mago_offset_file_2018)
   mago_offset_2019 = read_ascii(mago_offset_file_2019)
@@ -113,9 +115,9 @@ pro spp_fld_make_cdf_l2_mag, $
 
   ; Define MAG metadata variables (1 per sample)
 
-  mag_mode = lonarr(n_full)
-  mago_rate = lonarr(n_full)
-  magi_rate = lonarr(n_full)
+  mag_mode =     lonarr(n_full)
+  mago_rate =    lonarr(n_full)
+  magi_rate =    lonarr(n_full)
   quality_flag = lonarr(n_full)
   
   mago_rng = mago_range.y

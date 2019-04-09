@@ -56,20 +56,14 @@ function elf_load_options_state
   s = { $
     v1: { $
     pred: $
-    ['pos', $
-     'vel', $
-     'spinras', $
-     'spindec', $ 
-     'spinper', $
-     'spinphase' $
+    ['pos_gei', $
+     'vel_gei', $
+     'att_gei' $
     ], $
     defn: $
-    ['pos', $
-     'vel', $
-     'spinras', $
-     'spindec', $
-     'spinper', $
-     'spinphase' $
+    ['pos_gei', $
+     'vel_gei', $
+     'att_gei' $
     ] $
    } $
   }
