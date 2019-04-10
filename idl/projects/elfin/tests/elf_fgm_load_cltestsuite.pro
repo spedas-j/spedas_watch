@@ -41,7 +41,7 @@ if err eq 0 then begin
   spd_print_tvar_info,'ela_fgs'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('ela_fgs','2019-01-26','2019-01-27')  || $
-    spd_data_exists('ela_*','2019-01-26','2019-01-27') || $
+    ~spd_data_exists('ela_*','2019-01-26','2019-01-27') || $
     spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
     then message,'data error '+t_name
 endif

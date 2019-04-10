@@ -88,8 +88,11 @@ pro spp_fld_make_cdf_l2_mag, $
   unix_time_1min = trange[0] + 60d * dindgen(n_min)
 
   ; Load the SC to RTN rotation matrix at a time cadence of 1 minute
+  ; calculate a little before and after so we interpolate correctly at
+  ; the beginning/end of interval
 
-  spp_fld_load_ephem, ref = 'SPP_RTN', timein = unix_time_1min
+  spp_fld_load_ephem, ref = 'SPP_RTN', $
+    timein = [unix_time_1min[0] - 60d, unix_time_1min, unix_time_1min[-1] + 60d]
 
   get_data, 'spp_fld_cmat_SPP_RTN', data = cmat_rtn
 
@@ -119,9 +122,17 @@ pro spp_fld_make_cdf_l2_mag, $
   mago_rate =    lonarr(n_full)
   magi_rate =    lonarr(n_full)
   quality_flag = lonarr(n_full)
-  
+
   mago_rng = mago_range.y
 
+
+  ; Rotate to RTN coordinates
+
+  mag_data_rtn = mag_data * 0 + !values.f_nan
+
+  for i = 0, n_full-1 do begin
+    mag_data_rtn[*,i] = transpose(cmat_rtn_full[i,*,*]) ## mag_data[*,i]
+  endfor
 
   ; Limit to fixed boundaries
 
@@ -131,10 +142,11 @@ pro spp_fld_make_cdf_l2_mag, $
   tt2000_valid = where((tt2000_time GE tt2000_min) and (tt2000_time LT tt2000_max), valid_count)
 
   if valid_count EQ 0 then return
-  
+
   tt2000_time  = tt2000_time[tt2000_valid]
-  
+
   mag_data     = mag_data[*,tt2000_valid]
+  mag_data_rtn     = mag_data_rtn[*,tt2000_valid]
 
   mag_mode     = mag_mode[tt2000_valid]
   mago_rate    = mago_rate[tt2000_valid]
@@ -145,16 +157,17 @@ pro spp_fld_make_cdf_l2_mag, $
   ;stop
 
   if keyword_set(downsample_cadence) then begin
-    
+
     ns_interval = downsample_cadence * 1e9
-    
+
     n_intervals = long((tt2000_max - tt2000_min) / ns_interval)
-    
+
     h = histogram(tt2000_time, binsize = ns_interval, min = tt2000_min, nbins = n_intervals, rev = ri, locations = loc)
-    
+
     tt2000_time_ds  = lon64arr(n_intervals)
 
     mag_data_ds     = dblarr(3,n_intervals)
+    mag_data_rtn_ds = dblarr(3,n_intervals)
 
     mag_mode_ds     = lonarr(n_intervals)
     mago_rate_ds    = lonarr(n_intervals)
@@ -163,14 +176,15 @@ pro spp_fld_make_cdf_l2_mag, $
     quality_flag_ds = lonarr(n_intervals)
 
     for i = 0, n_elements(h) - 1 do begin
-      
+
       tt2000_time_ds[i] = loc[i] + ns_interval / 2
-      
+
       ri0 = ri[ri[i]]
       ri1 = ri[ri[i+1]-1]
-      
+
       if ri1 GE ri0 then begin
         mag_data_ds[*,i] = mean(mag_data[*,ri0:ri1],dim=2)
+        mag_data_rtn_ds[*,i] = mean(mag_data_rtn[*,ri0:ri1],dim=2)
         mag_mode_ds[i] = mag_mode[ri0]
         mago_rate_ds[i] = mago_rate[ri0]
         mago_rng_ds[i] = mago_rng[ri0]
@@ -178,25 +192,23 @@ pro spp_fld_make_cdf_l2_mag, $
         quality_flag_ds[i] = quality_flag[ri0]
       endif
 
-      
+
     endfor
-    
+
     tt2000_time  = tt2000_time_ds
 
     mag_data     = mag_data_ds
+    mag_data_rtn = mag_data_rtn_ds
     mag_mode     = mag_mode_ds
     mago_rate    = mago_rate_ds
     mago_rng     = mago_rng_ds
     magi_rate    = magi_rate_ds
     quality_flag = quality_flag_ds
-    
+
     ;stop
-    
+
   endif
 
-  ; Rotate to RTN coordinates
-
-  mag_data_rtn = transpose(cmat_rtn_full,[1,2,0]) # mag_data
 
   ; Define 1 minute metadata
 

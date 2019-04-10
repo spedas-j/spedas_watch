@@ -149,7 +149,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
     for i=0,n_elements(tplotnames)-1 do begin
       get_data, tplotnames[i], data=d, dlimits=dl, limits=l
       options, /def, tplotnames[i], 'colors', [2,4,6]
-      options, /def, tplotnames[i], 'ysubtitle', 'km'
+;      options, /def, tplotnames[i], 'ysubtitle', 'km'
     endfor
   endif
 

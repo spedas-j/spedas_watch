@@ -17,8 +17,8 @@
 ;         WARNING: this routine requires an internet connection
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-02-12 13:43:50 -0800 (Tue, 12 Feb 2019) $
-;$LastChangedRevision: 26617 $
+;$LastChangedDate: 2019-04-09 11:06:47 -0700 (Tue, 09 Apr 2019) $
+;$LastChangedRevision: 26972 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/mms_remove_old_files.pro $
 ;-
 
@@ -64,9 +64,9 @@ pro mms_remove_old_files, probes=probes, instruments=instruments, data_rates=dat
 
       if is_string(files[0]) then begin
         append_array, local_files, files
-        for file_idx=0, n_elements(files)-1 do begin
+        for file_idx=0l, n_elements(files)-1 do begin
 
-          data_file = mms_get_science_file_info(file=(strsplit(files[file_idx], '/', /extract))[-1], public=public)
+          data_file = mms_get_science_file_info(file=(strsplit(files[file_idx], strlowcase(!version.os_family) eq 'windows' ? '\' : '/', /extract))[-1], public=public)
           
           if data_file[0] eq '' then append_array, remove_files, files[file_idx]
         endfor
