@@ -16,12 +16,15 @@ pro spp_fld_make_cdf_l2_mag, $
   get_data, 'spp_fld_mago_survey_mag_by', data = mago_by
   get_data, 'spp_fld_mago_survey_mag_bz', data = mago_bz
 
-  get_data, 'spp_fld_mago_survey_range', data = mago_range
+  get_data, 'spp_fld_mago_survey_range', data = d_mago_range
+  get_data, 'spp_fld_mago_survey_rate', data = d_mago_rate
 
   get_data, 'spp_fld_mago_survey_CCSDS_MET_Seconds', data = mago_met
   get_data, 'spp_fld_mago_survey_CCSDS_MET_SubSeconds', data = mago_ssec
 
   ; Raw vectors
+
+  if size(/type, mago_bx) NE 8 then return
 
   rawVectors = transpose([[mago_bx.y], [mago_by.y], [mago_bz.y]])
 
@@ -64,6 +67,8 @@ pro spp_fld_make_cdf_l2_mag, $
   mago_yzero = interp(mago_off.yzero, mago_off.time, mago_by.x)
   mago_zzero = interp(mago_off.zzero, mago_off.time, mago_bz.x)
 
+
+
   ; Use magConvertAndRotate to subtract the offsets
 
   mag_data = magConvertAndRotate('MAGo', rawVectors, 0, transpose([[mago_xzero], [mago_yzero],[mago_zzero]]))
@@ -87,12 +92,21 @@ pro spp_fld_make_cdf_l2_mag, $
 
   unix_time_1min = trange[0] + 60d * dindgen(n_min)
 
+  ; Interpolate offset values for each minute
+
+  mago_xzero_1min = interp(mago_off.xzero, mago_off.time, unix_time_1min)
+  mago_yzero_1min = interp(mago_off.yzero, mago_off.time, unix_time_1min)
+  mago_zzero_1min = interp(mago_off.zzero, mago_off.time, unix_time_1min)
+
+
   ; Load the SC to RTN rotation matrix at a time cadence of 1 minute
   ; calculate a little before and after so we interpolate correctly at
   ; the beginning/end of interval
 
+  ephem_timein = [unix_time_1min[0] - 60d, unix_time_1min, unix_time_1min[-1] + 60d]
+
   spp_fld_load_ephem, ref = 'SPP_RTN', $
-    timein = [unix_time_1min[0] - 60d, unix_time_1min, unix_time_1min[-1] + 60d]
+    timein = ephem_timein
 
   get_data, 'spp_fld_cmat_SPP_RTN', data = cmat_rtn
 
@@ -105,7 +119,7 @@ pro spp_fld_make_cdf_l2_mag, $
   for i = 0, 2 do begin
     for j = 0, 2 do begin
 
-      cmat_rtn_full[*,i,j] = interp(cmat_rtn.y[*,i,j],unix_time_1min,unix_time)
+      cmat_rtn_full[*,i,j] = interp(cmat_rtn.y[*,i,j],ephem_timein,unix_time)
 
     endfor
   endfor
@@ -123,7 +137,8 @@ pro spp_fld_make_cdf_l2_mag, $
   magi_rate =    lonarr(n_full)
   quality_flag = lonarr(n_full)
 
-  mago_rng = mago_range.y
+  mago_rng = d_mago_range.y
+  mago_rate = d_mago_rate.y
 
 
   ; Rotate to RTN coordinates
@@ -131,7 +146,7 @@ pro spp_fld_make_cdf_l2_mag, $
   mag_data_rtn = mag_data * 0 + !values.f_nan
 
   for i = 0, n_full-1 do begin
-    mag_data_rtn[*,i] = transpose(cmat_rtn_full[i,*,*]) ## mag_data[*,i]
+    mag_data_rtn[*,i] = reform(cmat_rtn_full[i,*,*]) # mag_data[*,i]
   endfor
 
   ; Limit to fixed boundaries
@@ -160,7 +175,7 @@ pro spp_fld_make_cdf_l2_mag, $
 
     ns_interval = downsample_cadence * 1e9
 
-    n_intervals = long((tt2000_max - tt2000_min) / ns_interval)
+    n_intervals = long((tt2000_max - tt2000_min) / ns_interval) + 1
 
     h = histogram(tt2000_time, binsize = ns_interval, min = tt2000_min, nbins = n_intervals, rev = ri, locations = loc)
 
@@ -175,35 +190,60 @@ pro spp_fld_make_cdf_l2_mag, $
     magi_rate_ds    = lonarr(n_intervals)
     quality_flag_ds = lonarr(n_intervals)
 
-    for i = 0, n_elements(h) - 1 do begin
+    for i = 0, n_elements(h) - 2 do begin
 
       tt2000_time_ds[i] = loc[i] + ns_interval / 2
 
-      ri0 = ri[ri[i]]
-      ri1 = ri[ri[i+1]-1]
+      if ri[i+1] GT ri[i] then begin
 
-      if ri1 GE ri0 then begin
-        mag_data_ds[*,i] = mean(mag_data[*,ri0:ri1],dim=2)
-        mag_data_rtn_ds[*,i] = mean(mag_data_rtn[*,ri0:ri1],dim=2)
+        ri0 = ri[ri[i]]
+        ri1 = ri[ri[i+1]-1]
+
+        if ndimen(mag_data[*,ri0:ri1]) EQ 1 then begin
+          mag_data_ds[*,i] = mag_data[*,ri0:ri1]
+          mag_data_rtn_ds[*,i] = mag_data_rtn[*,ri0:ri1]
+        endif else begin
+          mag_data_ds[*,i] = mean(mag_data[*,ri0:ri1],dim=2)
+          mag_data_rtn_ds[*,i] = mean(mag_data_rtn[*,ri0:ri1],dim=2)
+        endelse
         mag_mode_ds[i] = mag_mode[ri0]
         mago_rate_ds[i] = mago_rate[ri0]
         mago_rng_ds[i] = mago_rng[ri0]
         magi_rate_ds[i] = magi_rate[ri0]
         quality_flag_ds[i] = quality_flag[ri0]
-      endif
+      endif else begin
+
+        tt2000_time_ds[i] = -1
+
+        mag_data_ds[*,i] = !values.f_nan
+        mag_data_rtn_ds[*,i] = !values.f_nan
+        mag_mode_ds[i] = -1
+        mago_rate_ds[i] = -1 ; mago_rate[ri0]
+        mago_rng_ds[i] = -1 ; mago_rng[ri0]
+        ;magi_rate_ds[i] = magi_rate[ri0]
+        quality_flag_ds[i] = -1 ; quality_flag[ri0]
+
+      endelse
 
 
     endfor
 
-    tt2000_time  = tt2000_time_ds
 
-    mag_data     = mag_data_ds
-    mag_data_rtn = mag_data_rtn_ds
-    mag_mode     = mag_mode_ds
-    mago_rate    = mago_rate_ds
-    mago_rng     = mago_rng_ds
-    magi_rate    = magi_rate_ds
-    quality_flag = quality_flag_ds
+    tt2000_time_ds_valid = where(tt2000_time_ds GT 0, tt2000_time_valid_count)
+
+    if tt2000_time_valid_count GT 0 then begin
+
+      tt2000_time  = tt2000_time_ds[tt2000_time_ds_valid]
+
+      mag_data     = mag_data_ds[*,tt2000_time_ds_valid]
+      mag_data_rtn = mag_data_rtn_ds[*,tt2000_time_ds_valid]
+      mag_mode     = mag_mode_ds[tt2000_time_ds_valid]
+      mago_rate    = mago_rate_ds[tt2000_time_ds_valid]
+      mago_rng     = mago_rng_ds[tt2000_time_ds_valid]
+      magi_rate    = magi_rate_ds[tt2000_time_ds_valid]
+      quality_flag = quality_flag_ds[tt2000_time_ds_valid]
+
+    end
 
     ;stop
 
@@ -218,7 +258,7 @@ pro spp_fld_make_cdf_l2_mag, $
   orth1_i = rebin(identity(3), 3, 3, n_min, /sample)
   payld1_i = rebin(identity(3), 3, 3, n_min, /sample)
 
-  zero1_o = dblarr(3,4,n_min)
+  zero1_o = dblarr(3,4,n_min) + !values.f_nan
   sens1_o = dblarr(3,4,n_min)
   ampl1_o = dblarr(3,4,n_min)
 
@@ -226,31 +266,35 @@ pro spp_fld_make_cdf_l2_mag, $
   sens1_i = dblarr(3,4,n_min)
   ampl1_i = dblarr(3,4,n_min)
 
+  zero1_o[0,0,*] = mago_xzero_1min
+  zero1_o[1,0,*] = mago_yzero_1min
+  zero1_o[2,0,*] = mago_zzero_1min
+
   ; Write data to the L2 CDF buffer (see spp_fld_make_cdf_l2)
 
-  *l2_cdf_buffer.Epoch.data         = tt2000_time
-  *l2_cdf_buffer.Epoch1.data        = tt2000_time_1min
+  *l2_cdf_buffer.psp_fld_mag_epoch.data         = tt2000_time
+  *l2_cdf_buffer.psp_fld_mag_epoch1.data        = tt2000_time_1min
 
-  *l2_cdf_buffer.B_SC.data          = mag_data
-  *l2_cdf_buffer.B_RTN.data         = mag_data_rtn
-  *l2_cdf_buffer.RANGE.data         = mago_rng
+  *l2_cdf_buffer.psp_fld_mag_sc.data          = mag_data
+  *l2_cdf_buffer.psp_fld_mag_rtn.data         = mag_data_rtn
+  *l2_cdf_buffer.psp_fld_mag_range.data       = mago_rng
 
-  *l2_cdf_buffer.MAG_MODE.data      = mag_mode
-  *l2_cdf_buffer.MAGO_RATE.data     = mago_rate
-  *l2_cdf_buffer.MAGI_RATE.data     = magi_rate
-  *l2_cdf_buffer.QUALITY_FLAG.data  = quality_flag
+  *l2_cdf_buffer.psp_fld_mag_mode.data      = mag_mode
+  *l2_cdf_buffer.psp_fld_mag_rate.data     = mago_rate
+  ;  *l2_cdf_buffer.MAGI_RATE.data     = magi_rate
+  *l2_cdf_buffer.psp_fld_mag_quality_flag.data  = quality_flag
 
-  *l2_cdf_buffer.ORTH1_O.data       = orth1_o
-  *l2_cdf_buffer.ZERO1_O.data       = zero1_o
-  *l2_cdf_buffer.SENS1_O.data       = sens1_o
-  *l2_cdf_buffer.AMPL1_O.data       = ampl1_o
-  *l2_cdf_buffer.PAYLD1_O.data      = payld1_o
+  ;  *l2_cdf_buffer.ORTH1_O.data       = orth1_o
+  *l2_cdf_buffer.psp_fld_mag_zero.data       = zero1_o
+  ;  *l2_cdf_buffer.SENS1_O.data       = sens1_o
+  ;  *l2_cdf_buffer.AMPL1_O.data       = ampl1_o
+  ;  *l2_cdf_buffer.PAYLD1_O.data      = payld1_o
 
-  *l2_cdf_buffer.ORTH1_I.data = orth1_i
-  *l2_cdf_buffer.ZERO1_I.data = zero1_i
-  *l2_cdf_buffer.SENS1_I.data = sens1_i
-  *l2_cdf_buffer.AMPL1_I.data = ampl1_i
-  *l2_cdf_buffer.PAYLD1_I.data = payld1_i
+  ;  *l2_cdf_buffer.ORTH1_I.data = orth1_i
+  ;  *l2_cdf_buffer.ZERO1_I.data = zero1_i
+  ;  *l2_cdf_buffer.SENS1_I.data = sens1_i
+  ;  *l2_cdf_buffer.AMPL1_I.data = ampl1_i
+  ;  *l2_cdf_buffer.PAYLD1_I.data = payld1_i
 
   l2_write_status = write_data_to_cdf(l2_cdf, l2_cdf_buffer)
 

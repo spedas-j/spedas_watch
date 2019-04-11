@@ -21,8 +21,7 @@
 ! Name              Number      Type       Value
 ! ---------         ------      ----       -----
 
-  "TITLE"               1:    CDF_CHAR     { "PSP FIELDS Outboard " -
-                                             "Magnetometer" } .
+  "TITLE"               1:    CDF_CHAR     { "PSP FIELDS Magnetometer" } .
 
   "Project"             1:    CDF_CHAR     { "PSP" } .
 
@@ -56,13 +55,12 @@
                                              "Magnetometer" } .
 
   "PI_name"             1:    CDF_CHAR     { "Stuart D. Bale " -
-                                             "(bale@ssl.berkeley.edu)" } .
+                                             "(bale@berkeley.edu)" } .
 
   "PI_affiliation"      1:    CDF_CHAR     { "UC Berkeley Space Sciences" -
                                              " Laboratory" } .
 
-  "Instrument_type"     1:    CDF_CHAR     { "Electric Fields (space)" }
-                        2:    CDF_CHAR     { "Magnetic Fields (space)" } .
+  "Instrument_type"     1:    CDF_CHAR     { "Magnetic Fields (space)" } .
 
   "Mission_group"       1:    CDF_CHAR     { "PSP" } .
 
@@ -94,14 +92,6 @@
   "Time_resolution" .
 
   "l1_mago_survey_file"
-                        1:    CDF_CHAR     { "spp_fld_l1_mago_survey_000" -
-                                             "00000_v00.cdf" }
-                        2:    CDF_CHAR     { "spp_fld_l1_mago_survey_000" -
-                                             "00000_v00.cdf" }
-                        3:    CDF_CHAR     { "spp_fld_l1_mago_survey_000" -
-                                             "00000_v00.cdf" } .
-
-  "l1_magi_survey_file"
                         1:    CDF_CHAR     { "spp_fld_l1_mago_survey_000" -
                                              "00000_v00.cdf" }
                         2:    CDF_CHAR     { "spp_fld_l1_mago_survey_000" -
@@ -159,7 +149,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "Epoch"     CDF_TIME_TT2000     1       0              T
+  "psp_fld_mag_epoch"     CDF_TIME_TT2000     1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -171,10 +161,10 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "epoch" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_epoch" }
     "MONOTON"     CDF_CHAR     { "INCREASE" }
     "FORMAT"      CDF_CHAR     { "I22" }
-    "LABLAXIS"    CDF_CHAR     { "epoch" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_epoch" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"
               CDF_TIME_TT2000   { 9999-12-31T23:59:59.999999999 }
@@ -200,7 +190,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "B_SC"          CDF_REAL4      1       1     3        T         T
+  "psp_fld_mag_sc"          CDF_REAL4      1       1     3        T         T
 
   ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -212,21 +202,21 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "B_SC" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_sc" }
     "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "B_SC" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_sc" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch" }
+    "DEPEND_0"    CDF_CHAR     { "psp_fld_mag_epoch" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "VALIDMIN"    CDF_REAL4    { -65536.0, -65536.0, -65536.0 }
     "VALIDMAX"    CDF_REAL4    { 65536.0, 65536.0, 65536.0 }
     "UNITS"       CDF_CHAR     { "nT" }
     "SI_conv"     CDF_CHAR     { "1.0e-9>Tesla" }
-    "CATDESC"     CDF_CHAR     { "Magnetic field in SC coordinates" }
+    "CATDESC"     CDF_CHAR     { "Magnetic field in spacecraft coordinates" }
     "SCALETYP"    CDF_CHAR     { "linear" }
-    "LABL_PTR_1"  CDF_CHAR     { "label_B_SC" } .
+    "LABL_PTR_1"  CDF_CHAR     { "label_sc" } .
 
   ! RV values were not requested.
 
@@ -235,7 +225,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "B_RTN"         CDF_REAL4      1       1     3        T         T
+  "psp_fld_mag_rtn"         CDF_REAL4      1       1     3        T         T
 
   ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -247,12 +237,12 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "B_RTN" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_rtn" }
     "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "B_RTN" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_rtn" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch" }
+    "DEPEND_0"    CDF_CHAR     { "psp_fld_mag_epoch" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "time_series" }
     "VALIDMIN"    CDF_REAL4    { -65536.0, -65536.0, -65536.0 }
@@ -261,7 +251,7 @@
     "SI_conv"     CDF_CHAR     { "1.0e-9>Tesla" }
     "CATDESC"     CDF_CHAR     { "Magnetic field in RTN coordinates" }
     "SCALETYP"    CDF_CHAR     { "linear" }
-    "LABL_PTR_1"  CDF_CHAR     { "label_B_RTN" } .
+    "LABL_PTR_1"  CDF_CHAR     { "label_rtn" } .
 
   ! RV values were not requested.
 
@@ -270,7 +260,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "RANGE"         CDF_INT4       1       0              T
+  "psp_fld_mag_range"         CDF_INT4       1       0              T
 
   ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -282,12 +272,12 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "RANGE_O" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_range" }
     "FORMAT"      CDF_CHAR     { "I8" }
-    "LABLAXIS"    CDF_CHAR     { "RANGE_O" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_range" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"     CDF_INT4     { -2147483648 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch" }
+    "DEPEND_0"    CDF_CHAR     { "psp_fld_mag_epoch" }
     "VALIDMIN"    CDF_INT4     { 0 }
     "VALIDMAX"    CDF_INT4     { 3 }
     "UNITS"       CDF_CHAR     { "None" }
@@ -301,7 +291,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "MAG_MODE"      CDF_INT4       1       0              T
+  "psp_fld_mag_mode"      CDF_INT4       1       0              T
 
   ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -313,12 +303,12 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "MAG_MODE" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_mode" }
     "FORMAT"      CDF_CHAR     { "I8" }
-    "LABLAXIS"    CDF_CHAR     { "MAG_MODE" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_mode" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"     CDF_INT4     { -2147483648 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch" }
+    "DEPEND_0"    CDF_CHAR     { "psp_fld_mag_epoch" }
     "VALIDMIN"    CDF_INT4     { 0 }
     "VALIDMAX"    CDF_INT4     { 3 }
     "UNITS"       CDF_CHAR     { "None" }
@@ -332,7 +322,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "MAGO_RATE"     CDF_INT4       1       0              T
+  "psp_fld_mag_rate"     CDF_INT4       1       0              T
 
   ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -344,21 +334,17 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "MAGO_RATE" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_rate" }
     "FORMAT"      CDF_CHAR     { "I8" }
-    "LABLAXIS"    CDF_CHAR     { "MAGO_RATE" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_rate" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"     CDF_INT4     { -2147483648 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch" }
+    "DEPEND_0"    CDF_CHAR     { "psp_fld_mag_epoch" }
     "VALIDMIN"    CDF_INT4     { 0 }
-    "VALIDMAX"    CDF_INT4     { 7 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Outer Magnetometer Rate" }
-    "VAR_NOTES"   CDF_CHAR     { "0: 002 samples/cycle 1: 004 " -
-                                 "samples/cycle 2: 008 samples/cycle 3: " -
-                                 "016 samples/cycle 4: 032 samples/cycle" -
-                                 " 5: 064 samples/cycle 6: 128 " -
-                                 "samples/cycle 7: 256 samples/cycle" }
+    "VALIDMAX"    CDF_INT4     { 256 }
+    "UNITS"       CDF_CHAR     { "Samples/cycle" }
+    "CATDESC"     CDF_CHAR     { "Magnetometer Rate" }
+    "VAR_NOTES"   CDF_CHAR     { "Magnetometer rate, in samples/cycle" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
@@ -368,43 +354,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "MAGI_RATE"     CDF_INT4       1       0              T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -2147483647
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "MAGI_RATE" }
-    "FORMAT"      CDF_CHAR     { "I8" }
-    "LABLAXIS"    CDF_CHAR     { "MAGI_RATE" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_INT4     { -2147483648 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch" }
-    "VALIDMIN"    CDF_INT4     { 0 }
-    "VALIDMAX"    CDF_INT4     { 7 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Inner Magnetometer Rate" }
-    "VAR_NOTES"   CDF_CHAR     { "0: 002 samples/cycle 1: 004 " -
-                                 "samples/cycle 2: 008 samples/cycle 3: " -
-                                 "016 samples/cycle 4: 032 samples/cycle" -
-                                 " 5: 064 samples/cycle 6: 128 " -
-                                 "samples/cycle 7: 256 samples/cycle" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "QUALITY_FLAG"
+  "psp_fld_mag_quality_flag"
                   CDF_INT4       1       0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -417,12 +367,12 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "QUALITY_FLAG" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_quality_flag" }
     "FORMAT"      CDF_CHAR     { "I8" }
-    "LABLAXIS"    CDF_CHAR     { "QUALITY_FLAG" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_quality_flag" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"     CDF_INT4     { -2147483648 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch" }
+    "DEPEND_0"    CDF_CHAR     { "psp_fld_mag_epoch" }
     "VALIDMIN"    CDF_INT4     { 0 }
     "VALIDMAX"    CDF_INT4     { 7 }
     "UNITS"       CDF_CHAR     { "None" }
@@ -436,7 +386,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "Epoch1"    CDF_TIME_TT2000     1       0              T
+  "psp_fld_mag_epoch1"    CDF_TIME_TT2000     1       0              T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -448,9 +398,9 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "Epoch1" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_epoch1" }
     "MONOTON"     CDF_CHAR     { "INCREASE" }
-    "LABLAXIS"    CDF_CHAR     { "Epoch1" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_epoch1" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"
               CDF_TIME_TT2000   { 9999-12-31T23:59:59.999999999 }
@@ -459,9 +409,7 @@
     "VALIDMAX"
               CDF_TIME_TT2000   { 2029-12-31T23:59:59.999000000 }
     "UNITS"       CDF_CHAR     { "ns" }
-    "CATDESC"     CDF_CHAR     { "Time in TT2000 for MAG calibration " -
-                                 "data (zeros, amplitudes, orthogonality" -
-                                 " matrix)" }
+    "CATDESC"     CDF_CHAR     { "Time in TT2000 for MAG zero data" }
     "TIME_BASE"   CDF_CHAR     { "J2000" }
     "SCALETYP"    CDF_CHAR     { "linear" }
     "TIME_SCALE"  CDF_CHAR     { "Terrestrial Time" }
@@ -471,11 +419,12 @@
   ! RV values were not requested.
 
 
+
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ORTH1_O"       CDF_REAL4      1       2    3 3       T        T T
+  "psp_fld_mag_zero"       CDF_REAL4      1       2    3 4       T        T T
 
   ! VAR_COMPRESSION: GZIP.6
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -487,17 +436,16 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "ORTH1_O" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_mag_zero" }
     "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "ORTH1_O" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
+    "LABLAXIS"    CDF_CHAR     { "psp_fld_mag_zero" }
+    "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
+    "DEPEND_0"    CDF_CHAR     { "psp_fld_mag_epoch1" }
     "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
     "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Outer Sensor Orthogonalization Matrix " -
-                                 "(1 min)" }
+    "UNITS"       CDF_CHAR     { "Counts" }
+    "CATDESC"     CDF_CHAR     { "MAG Sensor Zeros (1 min)" }
     "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
@@ -507,291 +455,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ZERO1_O"       CDF_REAL4      1       2    3 4       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "ZERO1_O" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "ZERO1_O" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Outer Sensor Zeros (1 min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "SENS1_O"       CDF_REAL4      1       2    3 4       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "SENS1_O" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "SENS1_O" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Outer Sensor Sensitivities (1 min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "AMPL1_O"       CDF_REAL4      1       2    3 4       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "AMPL1_O" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "AMPL1_O" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Outer Sensor Amplitude Correction (1 " -
-                                 "min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "PAYLD1_O"      CDF_REAL4      1       2    3 3       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "PAYLD1_O" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "PAYLD1_O" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Outer Sensor Payload Rotation Matrix " -
-                                 "(1 min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "ORTH1_I"       CDF_REAL4      1       2    3 3       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "ORTH1_I" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "ORTH1_O" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Inner Sensor Orthogonalization Matrix " -
-                                 "(1 min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "ZERO1_I"       CDF_REAL4      1       2    3 4       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "ZERO1_I" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "ZERO1_I" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Inner Sensor Zeros (1 min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "SENS1_I"       CDF_REAL4      1       2    3 4       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "SENS1_I" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "SENS1_I" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Inner Sensor Sensitivities (1 min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "AMPL1_I"       CDF_REAL4      1       2    3 4       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "AMPL1_I" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "AMPL1_I" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Inner Sensor Amplitude Correction (1 " -
-                                 "min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "PAYLD1_I"      CDF_REAL4      1       2    3 3       T        T T
-
-  ! VAR_COMPRESSION: GZIP.6
-  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
-  ! VAR_SPARSERECORDS: None
-  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
-  ! VAR_PADVALUE: -1.0e+30
-
-  ! Attribute       Data
-  ! Name            Type       Value
-  ! --------        ----       -----
-
-    "FIELDNAM"    CDF_CHAR     { "PAYLD1_I" }
-    "FORMAT"      CDF_CHAR     { "E12.2" }
-    "LABLAXIS"    CDF_CHAR     { "PAYLD1_I" }
-    "VAR_TYPE"    CDF_CHAR     { "metadata" }
-    "FILLVAL"     CDF_REAL4    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "Epoch1" }
-    "VALIDMIN"    CDF_REAL4    { -1.0e+30 }
-    "VALIDMAX"    CDF_REAL4    { 1.0e+30 }
-    "UNITS"       CDF_CHAR     { "None" }
-    "CATDESC"     CDF_CHAR     { "Inner Sensor Payload Rotation Matrix " -
-                                 "(1 min)" }
-    "SCALETYP"    CDF_CHAR     { "linear" } .
-
-  ! RV values were not requested.
-
-
-! Variable          Data      Number                 Record   Dimension
-! Name              Type     Elements  Dims  Sizes  Variance  Variances
-! --------          ----     --------  ----  -----  --------  ---------
-
-  "label_B_SC"    CDF_CHAR      20       1     3        F         T
+  "label_sc"    CDF_CHAR      20       1     3        F         T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -803,9 +467,9 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "B_SC_LABL_1" }
+    "FIELDNAM"    CDF_CHAR     { "sc_LABL_1" }
     "FORMAT"      CDF_CHAR     { "A21" }
-    "LABLAXIS"    CDF_CHAR     { "B_SC_LABL_1" }
+    "LABLAXIS"    CDF_CHAR     { "sc_LABL_1" }
     "VAR_TYPE"    CDF_CHAR     { "metadata" }
     "UNITS"       CDF_CHAR     { "None" }
     "CATDESC"     CDF_CHAR     { "Labels for B in SC coordinates" } .
@@ -821,7 +485,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "label_B_RTN"   CDF_CHAR      20       1     3        F         T
+  "label_rtn"   CDF_CHAR      20       1     3        F         T
 
   ! VAR_COMPRESSION: None
   ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
@@ -833,9 +497,9 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "B_RTN_LABL_1" }
+    "FIELDNAM"    CDF_CHAR     { "rtn_LABL_1" }
     "FORMAT"      CDF_CHAR     { "A21" }
-    "LABLAXIS"    CDF_CHAR     { "B_RTN_LABL_1" }
+    "LABLAXIS"    CDF_CHAR     { "rtn_LABL_1" }
     "VAR_TYPE"    CDF_CHAR     { "metadata" }
     "UNITS"       CDF_CHAR     { "None" }
     "CATDESC"     CDF_CHAR     { "Labels for B in RTN coordinates" } .

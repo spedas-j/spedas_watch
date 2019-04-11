@@ -17,8 +17,8 @@
 ;         WARNING: this routine requires an internet connection
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-04-09 11:06:47 -0700 (Tue, 09 Apr 2019) $
-;$LastChangedRevision: 26972 $
+;$LastChangedDate: 2019-04-10 13:26:52 -0700 (Wed, 10 Apr 2019) $
+;$LastChangedRevision: 26996 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/mms_remove_old_files.pro $
 ;-
 
@@ -50,6 +50,8 @@ pro mms_remove_old_files, probes=probes, instruments=instruments, data_rates=dat
     dprint, dlevel=0, 'Error, trouble connecting to the SDC; try again later.'
     return
   endif
+  
+  dprint, dlevel=2, 'Checking local files against those available at the SDC...'
   
   for probe_idx = 0, n_elements(probes)-1 do begin
   for instr_idx = 0, n_elements(instruments)-1 do begin

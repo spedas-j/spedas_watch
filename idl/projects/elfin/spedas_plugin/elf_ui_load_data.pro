@@ -43,7 +43,8 @@ function elf_ui_get_user_selections, state, event
     return, -1
   endif
   level = state.levelArray[levelSelect]
-  
+ 
+setType=''
   ; retrieve the data types (first need to determin which array to use
   if level EQ 'L1' then begin
     Case instrument of
@@ -269,40 +270,46 @@ print, event.index
       
         ;retrieve the selections made by the user
         loadstruc = elf_ui_get_user_selections(state, event)
-      
-        ;turn on the hour glass while the data is being loaded
-        widget_control, /hourglass
-      
-        ;call the routine that loads the data and update the loaded data tree
-        ;this routine is specific to each mission 
-        elf_ui_load_data_load_pro, $
-                         loadstruc,$
-                         state.loadedData,$
-                         state.statusBar,$
-                         state.historyWin,$
-                         state.baseid, $
-                         replay=replay,$
-                         overwrite_selections=overwrite_selections ;allows replay of user overwrite selections from spedas 
 
-         ;update the loaded data object
-         state.loadTree->update
-
-         ;create a structure that will be used by the call sequence object. the
-         ;call sequence object tracks the sequences of dprocs that have been 
-         ;executed during a gui session. This is so it can be replayed in a 
-         ;later session. The callSeqStruc.type for ALL new missions is 
-         ;'loadapidata'.
-         callSeqStruc = { type:'loadapidata', $
-                          subtype:'elf_ui_load_data_load_pro', $
-                          loadStruc:loadStruc, $
-                          overwrite_selections:overwrite_selections }
-         ; add the information regarding this load to the call sequence object
-         state.callSequence->addSt, callSeqStruc
-         
-         ;NOTE: In order to replay a session the user must save the sequence of
-         ;commands by selecting 'Save SPEDAS document' under the 'File' 
-         ;pull down menu prior to exiting the gui session. 
-              
+        if size(loadstruc, /type) NE 8 then begin
+          ;report errors to the status bar for the user to see and log the
+          ;error to the history window
+          state.statusBar->update,'Not all parameters were selected.'
+          state.historyWin->update,'Not all parameters were selected.'
+        endif else begin             
+          ;turn on the hour glass while the data is being loaded
+          widget_control, /hourglass
+      
+          ;call the routine that loads the data and update the loaded data tree
+          ;this routine is specific to each mission 
+          elf_ui_load_data_load_pro, $
+                           loadstruc,$
+                           state.loadedData,$
+                           state.statusBar,$
+                           state.historyWin,$
+                           state.baseid, $
+                           replay=replay,$
+                           overwrite_selections=overwrite_selections ;allows replay of user overwrite selections from spedas 
+  
+           ;update the loaded data object
+           state.loadTree->update
+  
+           ;create a structure that will be used by the call sequence object. the
+           ;call sequence object tracks the sequences of dprocs that have been 
+           ;executed during a gui session. This is so it can be replayed in a 
+           ;later session. The callSeqStruc.type for ALL new missions is 
+           ;'loadapidata'.
+           callSeqStruc = { type:'loadapidata', $
+                            subtype:'elf_ui_load_data_load_pro', $
+                            loadStruc:loadStruc, $
+                            overwrite_selections:overwrite_selections }
+           ; add the information regarding this load to the call sequence object
+           state.callSequence->addSt, callSeqStruc
+           
+           ;NOTE: In order to replay a session the user must save the sequence of
+           ;commands by selecting 'Save SPEDAS document' under the 'File' 
+           ;pull down menu prior to exiting the gui session. 
+         endelse     
       end
       else:
     endcase

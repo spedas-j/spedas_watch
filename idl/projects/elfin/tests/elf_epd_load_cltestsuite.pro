@@ -373,12 +373,12 @@ del_data,'*'
 t_name='Fractional days'
 catch,err
 if err eq 0 then begin
-  timespan, '2019-02-17', 0.5d, /no_spec
+  timespan, '2019-02-17', 0.5d
   tr=timerange()
-  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif']
+  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif'], /no_spec
   spd_print_tvar_info,'ela_pef'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-19')  || $
+  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-18')  || $
     spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif

@@ -394,10 +394,10 @@ t_name='Fractional days'
 catch,err
 if err eq 0 then begin
   timespan, '2019-02-10', 0.5d
-  elf_load_state,probe='a', datatype=['pos_gei']
-  spd_print_tvar_info,'ela_pos_gei'
+  elf_load_state,probe='a', datatype=['vel_gei']
+  spd_print_tvar_info,'ela_vel_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pos_gei', '2019-02-10','2019-02-11')  || $
+  if ~spd_data_exists('ela_vel_gei', '2019-02-10','2019-02-11')  || $
     spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
