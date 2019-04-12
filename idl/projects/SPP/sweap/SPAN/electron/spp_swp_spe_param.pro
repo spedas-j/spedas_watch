@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-02 11:55:09 -0700 (Tue, 02 Apr 2019) $
-; $LastChangedRevision: 26934 $
+; $LastChangedDate: 2019-04-11 16:40:26 -0700 (Thu, 11 Apr 2019) $
+; $LastChangedRevision: 27003 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -66,13 +66,14 @@ end
 function spp_swp_spe_param, detname = detname, $
                             emode = emode, $
                             pmode = pmode, $
-                            data = data,  $
+                            param = param, $
+                            data_struct = data_struct,  $
 ;                            status_bits = status_bits, $
                             reset = reset
 
   ;;------------------------------------------------------
-  ;; COMMON BLOCK
-  common spp_swp_spe_param_com, spe_param_dict  ;, etables, cal, a,b
+  ;; COMMON BLOCK   - DO NOT CALL THIS COMMON BLOCK EXTERNAL TO THIS ROUTINE!!!!!!!
+  common spp_swp_spe_param_com, spe_param_dict  
 
   if keyword_set(reset) then begin
     if isa(spe_param_dict, 'OBJREF') then  obj_destroy, spe_param_dict
@@ -83,7 +84,75 @@ function spp_swp_spe_param, detname = detname, $
     spe_param_dict = dictionary()
   endif
   
-  retval = dictionary()
+  if ~isa(param,'dictionary') then param = dictionary()
+  
+  if isa(data_struct) then begin    
+    detnum = (ishft(data_struct.apid,-4) and 'F'x) < 8
+    detectors = ['?','?','?','?','SWEM','SPC','SPA','SPB','SPI']
+    detname = detectors[detnum]
+
+    targeted =  (data_struct.apid and 2 ) ne 0      ; targeted apids have the 2bit set
+    emode = ishft(data_struct.mode2,-8) and 'ff'x
+
+    pmodes = hash(16,'16A',32,'32E',4096,'16Ax8Dx32E')         ; product_size: product_name
+    pmode = pmodes[data_struct.datasize]
+
+    sweep_index = targeted ? data_struct.peak_bin : -1
+  endif
+  
+
+
+  if isa(detname) then begin
+    nan= !values.f_nan
+    if ~spe_param_dict.haskey('CALS') then   spe_param_dict.cals  = dictionary()
+    cals = spe_param_dict.cals
+    if ~cals.haskey(strupcase(detname))  then begin
+      dprint,dlevel=2,'Generating cal structure for ',detname
+      deflut = spp_swp_spe_deflut_cal()
+      case strupcase(detname) of
+        'SPA' : begin
+          dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40. ;width
+          ;phi = total(/cum,dphi)- dphi/2 + 6.
+          phi = [9.,15.,21.,27.,33.,39.,45.,51.,66.,90.,114.,138.,162.,186.,210.,234.]
+          ;phi  = total(dphi,/cumulative) -3 ; +180
+          phi = phi - 180               ; rotate by 180 to account for travel directions instead of look direction
+          quaternion = [0.58030356d, 0.40403933d, 0.40403933d, 0.58030356d]
+        end
+        'SPB' : begin
+          dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40. ;width
+          phi = [-108.,-84.,-60.,-36.,-21.,-15.,-9.,-3.,3.,9.,15.,21.,36.,60.,84.,108.]
+          ;phi = total(dphi,/cumulative) - 120 -12; +180
+          phi = phi + 180      ; rotate by 180 to account for travel directions instead of look direction
+          quaternion = [0.25882519d, 0d,0d, 0.96592418d]
+        end
+      endcase
+      n_anodes  = 16
+      eff = replicate(1.,n_anodes)
+      cal  = {   $
+        name: detname,  $
+        n_anodes: n_anodes, $
+        phi: phi, $
+        dphi: dphi,  $
+        eff:  eff,   $
+        geomfactor_full: .00152,  $     ; cm2-ster-eV/eV  - does not account for grids or efficiency !!
+        defl_scale: .0028d,  $  ; conversion from dac to angle  - This is not quite appropriate - works for now
+        ;        deflut_dac: deflut.defdac, $
+        ;        deflut_ang: deflut.theta * (-1.), $
+        hem_scale:    500.d  , $
+        spoil_scale:  80./2.^16   ,  $  ; Needs correction
+        k_anal:  replicate(16.7,n_anodes) ,  $
+        k_defl:  replicate(1.,n_anodes), $
+        mech_attnxs: [nan,1.,10.,nan]   , $   ; 0:undefined,  1:atten_out,   2: atten_in,   3: undefined
+        quaternion : quaternion,  $
+        defl_cal:    polycurve2(coeff = [-1396.73d, 539.083d, 0.802293d, -0.04624d, -0.000163369d, 0.00000319759d],/invert )  $
+      }
+      cals[strupcase(detname)] = cal
+    endif
+
+    param.cal = cals[strupcase(detname)]
+  endif
+
+
 
 
   if isa(emode) then begin
@@ -124,60 +193,12 @@ function spp_swp_spe_param, detname = detname, $
         end
       endcase    
     endif    
-    retval.etable = etables[emode]
+    param.etable = etables[emode]
     
     ;def5coeff = [-1396.73, 539.083, 0.802293, -0.0462400, -0.000163369, 0.00000319759]
 
   endif
   
-  
-  
-  if isa(detname) then begin
-    nan= !values.f_nan
-    if ~spe_param_dict.haskey('CALS') then   spe_param_dict.cals  = dictionary() 
-    cals = spe_param_dict.cals
-    if ~cals.haskey(strupcase(detname))  then begin
-      dprint,dlevel=2,'Generating cal structure for ',detname
-      deflut = spp_swp_spe_deflut_cal()
-      case strupcase(detname) of
-        'SPA' : begin
-          dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40. ;width
-          ;phi = total(/cum,dphi)- dphi/2 + 6.
-          phi = [9.,15.,21.,27.,33.,39.,45.,51.,66.,90.,114.,138.,162.,186.,210.,234.]
-          ;phi  = total(dphi,/cumulative) -3 ; +180
-          phi = phi - 180               ; rotate by 180 to account for travel directions instead of look direction
-          end
-        'SPB' : begin
-          dphi =  [4,4,4,4,1,1,1,1,1,1,1,1,4,4,4,4] * 240./40. ;width
-          phi = [-108.,-84.,-60.,-36.,-21.,-15.,-9.,-3.,3.,9.,15.,21.,36.,60.,84.,108.]
-          ;phi = total(dphi,/cumulative) - 120 -12; +180
-          phi = phi + 180      ; rotate by 180 to account for travel directions instead of look direction
-          end
-      endcase
-      n_anodes  = 16
-      eff = replicate(1.,n_anodes)
-      cal  = {   $
-        name: detname,  $
-        n_anodes: n_anodes, $
-        phi: phi, $
-        dphi: dphi,  $
-        eff:  eff,   $
-        geomfactor_full: .00152,  $     ; cm2-ster-eV/eV  - does not account for grids or efficiency !!
-        defl_scale: .0028d,  $  ; conversion from dac to angle  - This is not quite appropriate - works for now
-;        deflut_dac: deflut.defdac, $
-;        deflut_ang: deflut.theta * (-1.), $
-        hem_scale:    500.d  , $
-        spoil_scale:  80./2.^16   ,  $  ; Needs correction
-        k_anal:  replicate(16.7,n_anodes) ,  $
-        k_defl:  replicate(1.,n_anodes), $
-        mech_attnxs: [nan,1.,10.,nan]   , $   ; 0:undefined,  1:atten_out,   2: atten_in,   3: undefined
-        defl_cal:    polycurve2(coeff = [-1396.73d, 539.083d, 0.802293d, -0.04624d, -0.000163369d, 0.00000319759d],/invert )  $  
-      }
-      cals[strupcase(detname)] = cal
-    endif
-      
-    retval.cal = cals[strupcase(detname)]
-  endif
   
   
   if isa(pmode) then begin
@@ -201,7 +222,7 @@ function spp_swp_spe_param, detname = detname, $
       endif else dprint,dlevel=1,'Unknown pmode: "',pmode,'"'
       ptables[pmode] = ptable
     endif
-    retval.ptable  = ptables[pmode]
+    param.ptable  = ptables[pmode]
   endif
   
 ;  if isa(status_bits) then begin
@@ -221,12 +242,12 @@ function spp_swp_spe_param, detname = detname, $
 ;      }
 ;      status[strupcase(status_bits)] = stat
 ;    endif
-;    retval.stat = status[strupcase(status_bits)]
+;    param.stat = status[strupcase(status_bits)]
 ;  endif
   
-  if n_elements(retval) eq 0 then retval = spe_param_dict
+  if n_elements(param) eq 0 then param = spe_param_dict
   
-  return,retval
+  return,param
      
 END
 

@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-27 11:40:06 -0700 (Wed, 27 Mar 2019) $
-; $LastChangedRevision: 26918 $
+; $LastChangedDate: 2019-04-11 17:29:05 -0700 (Thu, 11 Apr 2019) $
+; $LastChangedRevision: 27004 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param2.pro $
 ;
 
@@ -63,6 +63,8 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
     
   ;  def5coeff = [-1396.73, 539.083, 0.802293, -0.0462400, -0.000163369, 0.00000319759]
 
+
+
   endif
   
   
@@ -89,7 +91,9 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
             hem_scale:    1000.d  , $
             spoil_scale:  80./2.^16   ,  $  ; Needs correction
             k_anal:  replicate(16.7,n_anodes) ,  $
-            k_defl:  replicate(1.,n_anodes) $
+            k_defl:  replicate(1.,n_anodes), $
+            defl_par : polycurve2(coeff =  [-0.10455392d, 0.00091165009, 4.9989460e-10, -1.8446723e-15, -1.0461697e-18, 5.4448921e-23]) $
+;            defl_par : polycurve2(coeff =  [ -6.6967358589d, 1118.9683837891, 0.5826185942, -0.0928234607 ,  0.0000374681,  0.0000016514 ],/invert )  $
           }
           end
       endcase

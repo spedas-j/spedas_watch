@@ -44,7 +44,6 @@ function elf_ui_get_user_selections, state, event
   endif
   level = state.levelArray[levelSelect]
  
-setType=''
   ; retrieve the data types (first need to determin which array to use
   if level EQ 'L1' then begin
     Case instrument of
@@ -150,10 +149,8 @@ pro elf_ui_load_data_event,event
         ; based on instrument type set the approprate level
         levellist = widget_info(event.handler,find_by_uname='levellist')
         levelSelect = widget_info(levellist, /list_select)
-print, levelSelect
-print, event.index
         if event.index eq 4 then widget_control, levellist, set_value=['L1'] $
-           else  widget_control, levellist, set_value=state.levelArray
+           else  widget_control, levellist, set_value=state.levelArray[levelSelect]
         if levelSelect LT 1 then begin
           if event.index eq 0 then setType = state.fgmL1TypeArray
           if event.index eq 1 then setType = state.epdL1TypeArray
@@ -171,6 +168,7 @@ print, event.index
         endelse
         typelist = widget_info(event.handler,find_by_uname='typelist')
         widget_control, typelist, set_value=setType
+        widget_control, typelist, set_list_select=0
       end    
 
       'LEVELLIST': begin
@@ -403,7 +401,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
     uvalue='PROBELIST',$
     xsize=16,$
     ysize=15)
-  ;widget_control, probeList, set_list_select=0
+  widget_control, probeList, set_list_select=0
  
   ; create the list box that lists the data processing levels  
   levelArray = ['L1', 'L2']
@@ -416,7 +414,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
                          uvalue='LEVELLIST',$
                          xsize=16,$
                          ysize=15)   
-   ;widget_control, levelList, set_list_select=0
+   widget_control, levelList, set_list_select=0
                                                
    ;create the list box and a clear all button for the data types for a given
    ;instrument
@@ -438,7 +436,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
      uvalue='TYPELIST',$
      xsize=16,$
      ysize=15)
-  ;widget_control, typeList, set_list_select = 0
+  widget_control, typeList, set_list_select = 0
   
   clearBase = widget_base(selectionBase,/row, /align_center)
   clearTypeButton = widget_button(clearBase,value='Clear Parameter Selections',uvalue='CLEARPARAMS',/align_center,ToolTip='Deselect all parameter selections')
