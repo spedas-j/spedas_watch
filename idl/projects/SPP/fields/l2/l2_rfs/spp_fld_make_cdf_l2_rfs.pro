@@ -257,24 +257,28 @@ pro spp_fld_make_cdf_l2_rfs, $
 
       get_data, item, dat = d
 
-      unix_time=d.x
-      y=d.y
+      if size(/type, d) EQ 8 then begin
 
-      if hk_time_set EQ 0 then begin
+        unix_time=d.x
+        y=d.y
 
-        ; TODO: fix time here
+        if hk_time_set EQ 0 then begin
 
-        met_time = unix_time - time_double('2010-01-01/00:00:00')
-        t = long64((add_tt2000_offset(unix_time) - $
-          time_double('2000-01-01/12:00:00'))*1.e9)
+          ; TODO: fix time here
 
-        *l2.(ep_hk_tag_ind).data = t
-        
-        hk_time_set = 1
+          met_time = unix_time - time_double('2010-01-01/00:00:00')
+          t = long64((add_tt2000_offset(unix_time) - $
+            time_double('2000-01-01/12:00:00'))*1.e9)
 
-      end
+          *l2.(ep_hk_tag_ind).data = t
 
-      *l2.(hk_tag_ind).data = y
+          hk_time_set = 1
+
+        end
+
+        *l2.(hk_tag_ind).data = y
+
+      endif
 
     endif
 

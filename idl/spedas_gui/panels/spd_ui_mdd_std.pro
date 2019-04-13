@@ -85,7 +85,7 @@ pro mdd_ui_update_mms_instrument, state, event
       widget_control, coordid, set_value=state.mmsVelCoordArray
     endif
     ;widget_control, coordid, sensitive=1
-stop
+
     state.mmsStructure.instr = event.str
     state.mmsStructure.dtype = dtypeid
     state.mmsStructure.coord = coordid
@@ -327,9 +327,18 @@ pro mdd_ui_update_analysis_structure, state, use_mdd_time=use_mdd_time
   f3id=widget_info(state.tlb, find_by_uname='F3')
   widget_control, f3id, get_value=f3
   state.analysisStructure.f3=f3 ;mdd_options[f3]
+
   fieldsid=widget_info(state.tlb, find_by_uname='fields')
   widget_control, fieldsid, get_value=fields
-  state.analysisStructure.fields=fields
+  idx = where(fields EQ 1, ncnt)
+  if ncnt EQ 0 then begin
+     fields = [1,0,0,0]
+     widget_control, fieldsid, set_value=fields
+  endif
+  this_b_opt = ['','','','']
+  idx = where(fields EQ 1, ncnt)
+  this_b_opt[idx]=b_options[idx] 
+  state.analysisStructure.fields=this_b_opt
 
   dtid=widget_info(state.tlb, find_by_uname='deltat')
   widget_control, dtid, get_value=deltat
@@ -362,6 +371,116 @@ function mdd_ui_check_loaded_data, state, load_structs, tvar
   endelse
 
   return, load
+  
+end
+
+; -------------------------------------------------------
+;  This function checks to see if the selected data is
+;  already loaded (no point in loading it twice)
+; --------------------------------------------------------
+pro mdd_ui_update_yrange, state, update=update
+
+   if ~keyword_set(update) then update = 1 else update = update
+   
+   ;set widgets to sensitive
+   yvarid = widget_info(state.tlb, find_by_uname='yrange_var')
+   yminid = widget_info(state.tlb, find_by_uname='yrange_min')
+   ymaxid = widget_info(state.tlb, find_by_uname='yrange_max')
+   widget_control, yvarid, sensitive=1
+   widget_control, yminid, sensitive=1
+   widget_control, ymaxid, sensitive=1
+ 
+   yvar=widget_info(yvarid, /combobox_gettext)
+   Case yvar of
+     'Eigenvalue': get_data, 'lamda', data=d
+     'Vmax': get_data, 'Eigenvector_max_c', data=d
+     'Vmid': get_data, 'Eigenvector_mid_c', data=d
+     'Vmin': get_data, 'Eigenvector_min_c', data=d
+     else: begin
+       state.statusbar -> update, 'There is no Loaded data for tplot variable '+yvar+'.'
+       return
+     end
+   Endcase    
+
+   if size(d[0], /type) EQ 8 then begin
+     state.yrangeStructure.ymin = min(d.y)
+     state.yrangeStructure.ymax = max(d.y)
+   endif else begin
+     state.statusbar -> update, 'There is no Loaded data for tplot variable '+yvar+'.'
+     return   
+   endelse
+ 
+   if update then begin
+     widget_control, yminid, set_value=string(state.yrangeStructure.ymin)
+     widget_control, ymaxid, set_value=string(state.yrangeStructure.ymax) 
+   endif
+       
+end
+
+; -------------------------------------------------------
+;  This function checks to see if the selected data is
+;  already loaded (no point in loading it twice)
+; --------------------------------------------------------
+pro mdd_ui_apply_yrange, state, std=std
+
+  if ~keyword_set(update) then update = 1 else update = update
+
+  yvarid = widget_info(state.tlb, find_by_uname='yrange_var')
+  yminid = widget_info(state.tlb, find_by_uname='yrange_min')
+  ymaxid = widget_info(state.tlb, find_by_uname='yrange_max')
+  
+  ; get var name and min and max values
+  yvar=widget_info(yvarid, /combobox_gettext)
+  widget_control, yminid, get_value=ymin
+  widget_control, ymaxid, get_value=ymax
+
+  if ~keyword_set(std) then begin  
+    Case yvar of
+      'Eigenvalue': begin
+        ylim, 'lamda_c', double(ymin),double(ymax)
+        options, 'lamda_c', ystyle=1
+      end
+      'Vmax': begin
+        ylim, 'Eigenvector_max_c', double(ymin), double(ymax)
+        options, 'Eigenvector_max_c', ystyle=1
+      end
+      'Vmid': begin
+        ylim, 'Eigenvector_mid_c', double(ymin),double(ymax)
+        options, 'Eigenvector_mid_c', ystyle=1
+      end
+      'Vmin': begin
+        ylim, 'Eigenvector_min_c', double(ymin),double(ymax)
+        options, 'Eigenvector_min_c', ystyle=1
+      end
+      else: begin
+        state.statusbar -> update, 'There is no Loaded data for tplot variable '+yvar+'.'
+        return
+      end
+    Endcase
+  endif else begin
+    Case yvar of
+      'Eigenvalue': begin
+        ylim, 'lamda_c', double(ymin),double(ymax)
+        options, 'lamda_c', ystyle=1
+      end
+      'Vmax': begin
+        ylim, 'V_max_c', double(ymin), double(ymax)
+        options, 'V_max_c', ystyle=1
+      end
+      'Vmid': begin
+        ylim, 'V_mid_c', double(ymin),double(ymax)
+        options, 'V_mid_c', ystyle=1
+      end
+      'Vmin': begin
+        ylim, 'V_min_c', double(ymin),double(ymax)
+        options, 'V_min_c', ystyle=1
+      end
+      else: begin
+        state.statusbar -> update, 'There is no Loaded data for tplot variable '+yvar+'.'
+        return
+      end 
+    Endcase   
+  endelse
   
 end
 
@@ -438,23 +557,21 @@ pro mdd_ui_plot_fields, state
   store_data, 'Bz', data=bz
 
   all_fields = ['Bt','Bx','By','Bz']
-  pvars = all_fields[state.analysisStructure.fields]
-  idx = where(all_fields NE pvars, ncnt)
-  append_array, pvars, all_fields[idx]
 
   options,['Bt','Bx','By','Bz'],labels=['SC1','SC2','SC3','SC4'],colors=['x','r','b','g'],labflag=1
   options,'Bt',ytitle='Bt'
   options,'Bx',ytitle='Bx'
   options,'By',ytitle='By'
   options,'Bz',ytitle='Bz'
-  ; set the time frame
 
+  ; set the time frame
   state.timeRangeObjplot->getproperty, starttime=starttime, endtime=endtime
   starttime->getproperty, tdouble=st0, sec=sec
   endtime->getproperty, tdouble=et0, sec=sec
+
   
   ; plot the data
-  tplot, pvars, trange=[st0,et0]
+  tplot, all_fields, trange=[st0,et0]
 
   state.plotWindow = !d.WINDOW
   state.statusbar -> update, 'Created plot for requested data.'
@@ -750,6 +867,7 @@ pro spd_ui_mdd_std_event,event
          MDD_STD_for_gui, state.Loadedtpos, state.loadedTvars, trange=state.analysisStructure.trange, $
             fl1=state.analysisStructure.f1, fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3     
          mdd_ui_print_results, state, load_structs
+         mdd_ui_update_yrange, state, /update
          state.statusbar -> update, 'MDD analysis performed and results displayed.'
          state.mddCount = state.mddCount + 1
       end
@@ -761,6 +879,13 @@ pro spd_ui_mdd_std_event,event
         mdd_ui_update_analysis_structure, state
         MDD_STD_for_gui, state.loadedTpos, state.loadedTvars, trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
           fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3
+        mdd_ui_update_yrange, state, /update     
+        idx = where(state.analysisStructure.fields NE '', ncnt)
+        if ncnt EQ 0 then begin
+           B_opt = ['Bt']
+        endif else begin
+           B_opt = state.analysisStructure.fields[idx]
+        endelse
         MDD_STD_plot,files=files,trange=state.analysisStructure.trange,mode=state.analysisStructure.dimensionality, $
           B_opt=state.analysisStructure.fields
         state.statusbar -> update, 'MDD analysis performed and plotted.'
@@ -775,6 +900,7 @@ pro spd_ui_mdd_std_event,event
           fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3, delta_t=state.analysisStructure.deltat, $
           /std
         std_ui_print_results, state, load_structs
+        mdd_ui_update_yrange, state, /update
         state.statusbar -> update, 'STD analysis performed and results displayed.'
         state.stdCount = state.stdCount + 1 
       end
@@ -787,11 +913,49 @@ pro spd_ui_mdd_std_event,event
         MDD_STD_for_gui, state.loadedTpos, state.loadedTvars, trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
           fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3, delta_t=state.analysisStructure.deltat, $
           /std
+        mdd_ui_update_yrange, state, /update
+        idx = where(state.analysisStructure.fields NE '', ncnt)
+        if ncnt EQ 0 then begin
+           B_opt = ['Bt']
+        endif else begin
+           B_opt = state.analysisStructure.fields[idx]
+        endelse
         MDD_STD_plot,files=files,trange=state.analysisStructure.trange,mode=state.analysisStructure.dimensionality, $
-          B_opt=state.analysisStructure.fields, delta_t=state.analysisStructure.deltat,/std
+          B_opt=B_Opt, delta_t=state.analysisStructure.deltat,/std
         state.statusbar -> update, 'STD analysis performed and plotted.'
       end
-      
+
+      'YRANGE_VAR' : mdd_ui_update_yrange, state, /update
+        
+      'REPLOT_MDD' : begin
+        load_structs=mdd_ui_get_load_data_structure(state)
+        mdd_ui_load_data, state, load_structs
+        mdd_ui_load_pos, state, load_structs
+        mdd_ui_update_analysis_structure, state
+        mdd_ui_apply_yrange, state
+        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars, trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
+          fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3
+        ;mdd_ui_update_yrange, state, /update
+        MDD_STD_plot,files=files,trange=state.analysisStructure.trange,mode=state.analysisStructure.dimensionality, $
+          B_opt=state.analysisStructure.fields
+        state.statusbar -> update, 'MDD analysis performed and plotted.'
+      end
+
+      'REPLOT_STD' : begin
+        load_structs=mdd_ui_get_load_data_structure(state)
+        mdd_ui_load_data, state, load_structs
+        mdd_ui_load_pos, state, load_structs
+        mdd_ui_update_analysis_structure, state
+        mdd_ui_apply_yrange, state, /std
+        MDD_STD_for_gui, state.loadedTpos, state.loadedTvars, trange=state.analysisStructure.trange, fl1=state.analysisStructure.f1, $
+          fl2=state.analysisStructure.f2, fl3=state.analysisStructure.f3, delta_t=state.analysisStructure.deltat, $
+          /std
+        ;mdd_ui_update_yrange, state, /update
+        MDD_STD_plot,files=files,trange=state.analysisStructure.trange,mode=state.analysisStructure.dimensionality, $
+          B_opt=B_Opt, delta_t=state.analysisStructure.deltat,/std
+        state.statusbar -> update, 'STD analysis performed and plotted.'
+      end
+          
       'CALC_MEAN_DIR' : begin
         load_structs=mdd_ui_get_load_data_structure(state, /use_mdd_time)
         mdd_ui_load_data, state, load_structs
@@ -972,7 +1136,10 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   dimensionButtonBase = widget_base(dimensionBase, /col)
   dimensionPlotBase = widget_base(dimensionBase,  /row, /align_center)
   dimensionLabel = widget_label(dimensionButtonBase, value = 'Dimensionality:', /align_left)
-    
+ 
+  yrangeBase = widget_base(mddBase, /col, /frame, uvalue='yrange')
+  yrangeLabel = widget_label(yrangeBase, value = 'Y Axis Range: ', /align_left)
+     
 ;  mddTimeCalcBase = widget_base(mddBase, /row, /frame)
   mddTimeCalcBase = widget_base(leftBase, /row, /frame)
   mddTimeBase = widget_base(mddTimeCalcBase, /col)
@@ -1134,10 +1301,11 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   clusterButtons = CW_BGROUP(clusterBase2, clusterProbes, /row, /nonexclusive, set_value=clusterFieldSelections, $
     uval='CLUSTER_FIELDS', uname='cluster_fields')
   widget_control, clusterButtons, sensitive=0
+  
   fields = [' Field (Total)', ' Field (X Component)', ' Field (Y Component)',' Field (Z Component)']
   fieldStrings = ['Bt', 'Bx', 'By', 'Bz']
   fieldSelections = ['Bt']
-  fieldsButtons = CW_BGROUP(fieldButtonBase, fields, /col, /exclusive, set_value=0, UNAME='fields')
+  fieldsButtons = CW_BGROUP(fieldButtonBase, fields, /col, /nonexclusive, set_value=[1,0,0,0], UNAME='fields')
 
   f1Label = widget_label(f1Base, value='f1 (Max): ', /align_left)
   xyzStrings = ['X', 'Y', 'Z']
@@ -1163,7 +1331,34 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   dimenButtons = CW_BGROUP(dimensionButtonBase, dimenStrings, /col, /exclusive, set_value=2, UNAME='dimensionality')
   dimenPlotButtons = widget_button(dimensionPlotBase, value='Plot', uvalue='PLOT_STD', uname='plot_std', $
     xsize=100,tooltip='This button will plot the results of the STD analysis')
- 
+
+  varComboBase = widget_base(yrangeBase, /row, ypad=3)
+  varLabel = widget_label(varComboBase, value='Select Variable: ', /align_left)
+  varArray = ['Eigenvalue', 'Vmax', 'Vmid', 'Vmin']
+  varCombo = widget_combobox(varComboBase,$
+    value=varArray,$
+    uvalue='YRANGE_VAR',$
+    uname='yrange_var', $
+    sensitive=0)
+  currentvar=varArray[0]
+  yRangeMinBase = widget_base(varComboBase, /row, xpad=6)
+  yRangeMinLabel = widget_label(yRangeMinBase, value='Min: ')
+  yRangeMinText = widget_text(yRangeMinBase, value='0.0', /editable, uvalue='YRANGE_MIN', uname='yrange_min', $
+    sensitive=0, xsize=15)
+  yRangeMaxBase = widget_base(varComboBase, /row, xpad=4)
+  yRangeMaxLabel = widget_label(yRangeMaxBase, value='Max: ')
+  yRangeMaxText = widget_text(yRangeMaxBase, value='0.0', /editable, uvalue='YRANGE_MAX', uname='yrange_max', $
+     sensitive=0, xsize=15)
+  yrangeStructure = { varNames: ['lamba', 'Eigenvector_max', 'Eigenvector_mid', 'Eigenvector_min'], $
+                      ymin: 0., $
+                      ymax: 0. }
+
+  replotBase = widget_base(yrangeBase, /row, ypad=3, xpad=75)
+  replotMDD = widget_button(replotBase, value='Replot MDD Results', uvalue='REPLOT_MDD', uname='replot_mdd', xsize=120, $
+    tooltip = 'This button will replot the MDD results with the Yaxis range specified in the min/max text boxes')
+  replotMDD = widget_button(replotBase, value='Replot STD Results', uvalue='REPLOT_STD', uname='replot_std', xsize=120, $
+    tooltip = 'This button will replot the STD results with the Yaxis range specified in the min/max text boxes')
+  
   st_text = '2015-11-24/19:40:00'
   et_text = '2015-11-24/19:42:00'
   plotdur = time_double(et_text)-time_double(st_text)
@@ -1197,7 +1392,7 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   ;
   resultLabel =  widget_label(rightBase, value='Results:', /align_left, /align_top)
   resultBase = widget_base(rightBase, /col, /frame)
-  resultText = widget_text(resultBase, xsize=42, ysize=46, /scroll, uname='resulttext')
+  resultText = widget_text(resultBase, xsize=50, ysize=54, /scroll, uname='resulttext')
   plotResBase = widget_base(rightBase, /col, /align_center, ypad=5)
   plotResButton = widget_button(plotResBase, value='Plot Data in New Coordinate System', uval='NEW_PLOT', uname='new_plot')
   
@@ -1209,10 +1404,8 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
   mmsStructure = { sats:mmsSelections, instr:'Magnetic Field', dtype:'srvy', coord:'dmpa', satFields:mmsFieldSelections }
   loadedTvars = make_array(4, /string)
   loadedTpos = make_array(4, /string)
-;  analysisStructure = { trange:mddTime, thmsats:thmSelections, mmssats:mmsSelections, thmfields:thmFieldSelections, $
-;      mmsfields:mmsFieldSelections, fields:fieldStringSel, f1:0, f2:1, f3:2, deltaT:fix(1), dimensionality:'3D' }
   analysisStructure = { trange:mddTime, thmsats:thmSelections, mmssats:mmsSelections, $
-      fields:0, f1:0, f2:1, f3:2, deltaT:fix(1), dimensionality:'3D' }
+      fields:['Bt', '', '', ''], f1:0, f2:1, f3:2, deltaT:fix(1), dimensionality:'3D' }
 
   state = {tlb:tlb,$
     timeRangeObjPlot:tr_obj_plot, $
@@ -1245,6 +1438,7 @@ pro spd_ui_mdd_std, gui_ID=gui_id, $
     loadedTvars:loadedTvars, $
     loadedTpos:loadedTpos, $
     xyzstrings:xyzstrings, $
+    yrangeStructure:yrangeStructure, $    
     analysisStructure:analysisStructure }
 
   Centertlb, tlb

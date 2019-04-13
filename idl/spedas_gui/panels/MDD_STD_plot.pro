@@ -24,7 +24,8 @@ pro MDD_STD_plot,  $
     options,'V_mid_dots',psym=8   &  options,'Vstructure_dots',psym=8
     options,'V_min_dots',psym=8   &  options,'V_str_2d_dots',psym=8
   endif
-
+  if ~keyword_set(B_opt) then B_opt='Bt'
+  
   thm_init
   tplot_options,'ymargin',[5,5]
   tplot_options,'xmargin',[20,27]

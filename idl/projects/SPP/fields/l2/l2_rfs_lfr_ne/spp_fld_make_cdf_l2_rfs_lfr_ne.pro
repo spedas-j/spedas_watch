@@ -51,7 +51,7 @@ pro spp_fld_make_cdf_l2_rfs_lfr_ne, $
 
   *l2_cdf_buffer.Epoch.data         = tt2000_time
 
-  *l2_cdf_buffer.N_e.data            = ne_data
+  *l2_cdf_buffer.psp_fld_l2_rfs_lfr_ne.data            = ne_data
 
   l2_write_status = write_data_to_cdf(l2_cdf, l2_cdf_buffer)
 

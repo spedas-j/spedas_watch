@@ -33,8 +33,8 @@
 ;         click 'Allow' for private networks)
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-08-08 10:07:41 -0700 (Wed, 08 Aug 2018) $
-; $LastChangedRevision: 25610 $
+; $LastChangedDate: 2019-04-12 08:47:04 -0700 (Fri, 12 Apr 2019) $
+; $LastChangedRevision: 27005 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/tplot2ap/ap2tplot.pro $
 ;-
 
@@ -48,6 +48,13 @@ pro ap2tplot, port=port, connect_timeout=connect_timeout, read_timeout=read_time
   if keyword_set(clear_cache) then begin ; here be dragons
     file_delete, local_data_dir, /recursive
     return
+  endif
+  
+  ; check that the output directory exists
+  dir_test = file_test(local_data_dir, /directory)
+  
+  if ~dir_test then begin
+    file_mkdir2, local_data_dir
   endif
   
   spd_graphics_config ; setup the standard SPEDAS graphics config
