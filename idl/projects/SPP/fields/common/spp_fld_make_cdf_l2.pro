@@ -258,4 +258,6 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   end
 
+  filename = l2_cdf
+
 end

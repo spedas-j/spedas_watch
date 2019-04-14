@@ -200,9 +200,9 @@ pro spp_fld_make_cdf_l2_rfs, $
 
           if ndimen(f) EQ 1 then f = transpose(rebin(transpose(f), n_elements(t), n_elements(f))) else f= transpose(f)
 
-          ep_tag = strupcase('epoch_' + dt + '_' + ch + '_' + src)
-          sp_tag = strupcase(dt + '_' + ch + '_' + src)
-          f_tag = strupcase('frequency_' + dt + '_' + ch + '_' + src)
+          ep_tag = strupcase('epoch_' + rec + '_' + dt + '_' + ch + '_' + src)
+          sp_tag = strupcase('psp_fld_rfs_' + rec + '_' + dt + '_' + ch + '_' + src)
+          f_tag = strupcase('frequency_' + rec + '_' + dt + '_' + ch + '_' + src)
 
           ep_tag = ep_tag.Replace('__','_')
           sp_tag = sp_tag.Replace('__','_')
@@ -220,17 +220,17 @@ pro spp_fld_make_cdf_l2_rfs, $
 
           ; TODO: fix time here too
 
-          ep_var_del = 'epoch_' + dt + '_' + ch + '_' + src
-          sp_var_del = dt + '_' + ch + '_' + src
-          f_var_del = 'frequency_' + dt + '_' + ch + '_' + src
+          ep_var_del = 'epoch_' + rec + '_' + dt + '_' + ch + '_' + src
+          sp_var_del = 'psp_fld_rfs_' + rec + '_' + dt + '_' + ch + '_' + src
+          f_var_del = 'frequency_' + rec + '_' + dt + '_' + ch + '_' + src
 
           ep_var_del = ep_var_del.Replace('__','_')
           sp_var_del = sp_var_del.Replace('__','_')
           f_var_del = f_var_del.Replace('__','_')
 
-          ep_vars_del = [ep_vars_del, ep_var_del]
-          sp_vars_del = [sp_vars_del, sp_var_del]
-          f_vars_del = [f_vars_del, f_var_del]
+          ;ep_vars_del = [ep_vars_del, ep_var_del]
+          ;sp_vars_del = [sp_vars_del, sp_var_del]
+          ;f_vars_del = [f_vars_del, f_var_del]
 
         endelse
 
@@ -251,7 +251,7 @@ pro spp_fld_make_cdf_l2_rfs, $
     cdf_item = hk_item.Replace('auto_','')
 
     ep_hk_tag_ind = (where(buffer_tags EQ strupcase(cdf_hk_epoch)))[0]
-    hk_tag_ind = (where(buffer_tags EQ strupcase(cdf_item)))[0]
+    hk_tag_ind = (where(buffer_tags EQ strupcase('psp_fld_rfs_' + rec + '_' + cdf_item)))[0]
 
     if hk_tag_ind GE 0 and ep_hk_tag_ind GE 0 then begin
 

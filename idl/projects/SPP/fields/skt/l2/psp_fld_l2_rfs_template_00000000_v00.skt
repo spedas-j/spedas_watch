@@ -158,7 +158,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "epoch_<DATATYPE>_<CHANNEL>_<SOURCE>"  
+  "epoch_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>"  
             CDF_TIME_TT2000     1       0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -171,7 +171,7 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "epoch_<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "FIELDNAM"    CDF_CHAR     { "epoch_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" }
     "MONOTON"     CDF_CHAR     { "INCREASE" }
     "FORMAT"      CDF_CHAR     { "I22" }
     "LABLAXIS"    CDF_CHAR     { "epoch" }
@@ -199,7 +199,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "<DATATYPE>_<CHANNEL>_<SOURCE>"   
+  "psp_fld_rfs_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>"   
                   CDF_REAL8      1       1     64       T         T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -212,13 +212,13 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" }
     "FORMAT"      CDF_CHAR     { "E12.2" }
     "LABLAXIS"    CDF_CHAR     { "<LABLAXIS>" }
     "VAR_TYPE"    CDF_CHAR     { "data" }
     "FILLVAL"     CDF_REAL8    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "epoch_<DATATYPE>_<CHANNEL>_<SOURCE>" }
-    "DEPEND_1"    CDF_CHAR     { "frequency_<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "DEPEND_0"    CDF_CHAR     { "epoch_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "DEPEND_1"    CDF_CHAR     { "frequency_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" }
     "DISPLAY_TYPE"
                   CDF_CHAR     { "spectrogram" }
     "VALIDMIN"    CDF_REAL8    { 0.0e+0 }
@@ -235,7 +235,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "frequency_<DATATYPE>_<CHANNEL>_<SOURCE>" 
+  "frequency_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" 
                   CDF_REAL8      1       1     64       T         T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -248,17 +248,17 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "frequency_<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "FIELDNAM"    CDF_CHAR     { "frequency_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" }
     "FORMAT"      CDF_CHAR     { "E12.2" }
     "LABLAXIS"    CDF_CHAR     { "Frequency" }
     "VAR_TYPE"    CDF_CHAR     { "support_data" }
     "FILLVAL"     CDF_REAL8    { -1.0e+31 }
-    "DEPEND_0"    CDF_CHAR     { "epoch_<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "DEPEND_0"    CDF_CHAR     { "epoch_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" }
     "VALIDMIN"    CDF_REAL8    { 0.0 }
     "VALIDMAX"    CDF_REAL8    { 2.0e+7 }
     "UNITS"       CDF_CHAR     { "Hz" }
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
-    "CATDESC"     CDF_CHAR     { "frequency_<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "CATDESC"     CDF_CHAR     { "frequency_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" }
     "SCALETYP"    CDF_CHAR     { "log" } .
 
   ! RV values were not requested.
@@ -282,7 +282,7 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "FIELDNAM"    CDF_CHAR     { "epoch_<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "FIELDNAM"    CDF_CHAR     { "epoch_<receiver>" }
     "MONOTON"     CDF_CHAR     { "INCREASE" }
     "FORMAT"      CDF_CHAR     { "I22" }
     "LABLAXIS"    CDF_CHAR     { "epoch" }
@@ -309,7 +309,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "averages" 
+  "psp_fld_rfs_<receiver>_averages" 
                   CDF_INT1      1        0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -322,8 +322,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "averages" }
-    "FIELDNAM"    CDF_CHAR     { "averages" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_averages" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_averages" }
     "FORMAT"      CDF_CHAR     { "I1" }
     "FILLVAL"     CDF_INT1     { -127 }
     "VALIDMIN"    CDF_INT1     { 0 }
@@ -343,7 +343,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "peaks" 
+  "psp_fld_rfs_<receiver>_peaks" 
                   CDF_INT1      1        0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -356,8 +356,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "peaks" }
-    "FIELDNAM"    CDF_CHAR     { "peaks" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_peaks" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_peaks" }
     "FORMAT"      CDF_CHAR     { "I1" }
     "FILLVAL"     CDF_INT1     { -127 }
     "VALIDMIN"    CDF_INT1     { 0 }
@@ -377,7 +377,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ch0" 
+  "psp_fld_rfs_<receiver>_ch0" 
                   CDF_INT1      1        0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -390,8 +390,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "ch0" }
-    "FIELDNAM"    CDF_CHAR     { "ch0" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_ch0" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_ch0" }
     "FORMAT"      CDF_CHAR     { "I1" }
     "FILLVAL"     CDF_INT1     { -127 }
     "VALIDMIN"    CDF_INT1     { 0 }
@@ -416,7 +416,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ch0_string" 
+  "psp_fld_rfs_<receiver>_ch0_string" 
                   CDF_CHAR      20       0              T         
 
   ! VAR_COMPRESSION: GZIP.6
@@ -429,8 +429,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "ch0_string" }
-    "FIELDNAM"    CDF_CHAR     { "ch0_string" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_ch0_string" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_ch0_string" }
     "FORMAT"      CDF_CHAR     { "A8" }
     "FILLVAL"     CDF_CHAR     { "                    " }
     "DEPEND_0"    CDF_CHAR     { "epoch_<receiver>" }
@@ -444,7 +444,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ch1" 
+  "psp_fld_rfs_<receiver>_ch1" 
                   CDF_INT1      1        0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -457,8 +457,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "ch1" }
-    "FIELDNAM"    CDF_CHAR     { "ch1" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_ch1" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_ch1" }
     "FORMAT"      CDF_CHAR     { "I1" }
     "FILLVAL"     CDF_INT1     { -127 }
     "VALIDMIN"    CDF_INT1     { 0 }
@@ -483,7 +483,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "ch1_string" 
+  "psp_fld_rfs_<receiver>_ch1_string" 
                   CDF_CHAR      20       0              T         
 
   ! VAR_COMPRESSION: GZIP.6
@@ -496,8 +496,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "ch1_string" }
-    "FIELDNAM"    CDF_CHAR     { "ch1_string" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_ch1_string" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_ch1_string" }
     "FORMAT"      CDF_CHAR     { "A8" }
     "FILLVAL"     CDF_CHAR     { "                    " }
     "DEPEND_0"    CDF_CHAR     { "epoch_<receiver>" }
@@ -511,7 +511,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "nsum" 
+  "psp_fld_rfs_<receiver>_nsum" 
                   CDF_INT1      1        0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -524,8 +524,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "nsum" }
-    "FIELDNAM"    CDF_CHAR     { "nsum" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_nsum" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_nsum" }
     "FORMAT"      CDF_CHAR     { "I1" }
     "FILLVAL"     CDF_INT1     { -127 }
     "VALIDMIN"    CDF_INT1     { 0 }
@@ -544,7 +544,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "gain" 
+  "psp_fld_rfs_<receiver>_gain" 
                   CDF_INT1      1        0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -557,8 +557,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "gain" }
-    "FIELDNAM"    CDF_CHAR     { "gain" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_gain" }
     "FORMAT"      CDF_CHAR     { "I1" }
     "FILLVAL"     CDF_INT1     { -127 }
     "VALIDMIN"    CDF_INT1     { 0 }
@@ -580,7 +580,7 @@
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
 ! --------          ----     --------  ----  -----  --------  ---------
 
-  "hl" 
+  "psp_fld_rfs_<receiver>_hl" 
                   CDF_INT1      1        0              T
 
   ! VAR_COMPRESSION: GZIP.6
@@ -593,8 +593,8 @@
   ! Name            Type       Value
   ! --------        ----       -----
 
-    "CATDESC"     CDF_CHAR     { "hl" }
-    "FIELDNAM"    CDF_CHAR     { "hl" }
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_hl" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_hl" }
     "FORMAT"      CDF_CHAR     { "I1" }
     "FILLVAL"     CDF_INT1     { -127 }
     "VALIDMIN"    CDF_INT1     { 0 }
