@@ -216,6 +216,27 @@ pro spp_fld_make_cdf_l2_rfs, $
           if sp_tag_ind GE 0 then *l2.(sp_tag_ind).data = y
           if f_tag_ind GE 0 then *l2.(f_tag_ind).data = f
 
+          case dt of
+            'auto_averages':dt_hk='auto'
+            else:dt_hk = ''
+          endcase
+
+          if dt_hk NE '' then begin
+            item_gain = 'spp_fld_rfs_' + rec + '_' + dt_hk + '_gain_' + src
+
+            get_data, item_gain, data = data_gain
+
+            if size(/type, data_gain) EQ 8 then begin
+
+              gain_tag = sp_tag + strupcase('_gain')
+
+              gain_tag_ind = (where(buffer_tags EQ gain_tag))[0]
+
+              if gain_tag_ind GE 0 then *l2.(gain_tag_ind).data = data_gain.y
+            end
+
+          endif
+
         endif else begin
 
           ; TODO: fix time here too

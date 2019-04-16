@@ -33,8 +33,8 @@
 ;         click 'Allow' for private networks)
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-04-12 08:47:04 -0700 (Fri, 12 Apr 2019) $
-; $LastChangedRevision: 27005 $
+; $LastChangedDate: 2019-04-15 14:00:43 -0700 (Mon, 15 Apr 2019) $
+; $LastChangedRevision: 27020 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/tplot2ap/ap2tplot.pro $
 ;-
 
@@ -61,6 +61,11 @@ pro ap2tplot, port=port, connect_timeout=connect_timeout, read_timeout=read_time
   
   socket, unit, '127.0.0.1', port, /get_lun, error=error, read_timeout=read_timeout, connect_timeout=connect_timeout
 
+  if (n_elements(unit) eq 0) then begin
+    dprint, dlevel=0, 'Unable to connect to Autoplot, see Options->Enable Feature->Server'
+    return
+  endif
+  
   ; wait for the connection
   wait, 0.1
   
@@ -68,11 +73,25 @@ pro ap2tplot, port=port, connect_timeout=connect_timeout, read_timeout=read_time
   printf, unit, "print len(dom.plots)"
   len_plots = ''
   readf, unit, len_plots
+  
+  if (strlen(len_plots) eq 0) then begin
+    readf, unit, len_plots
+  endif
+  
   len_plots = (strsplit(len_plots, 'autoplot> ', /extract))[0]
   len_plots = fix(len_plots)
+  
+  ; Reset the prompt to start with a newline.
+  printf, unit, "dom.controller.applicationModel.prompt='\nautoplot> '"     ; WRITE
+ ; wait, 1
+  ap_var = ''
+  readf, unit, ap_var
+  readf, unit, ap_var
+  
   for i=0l, len_plots-1 do begin
     printf, unit, "print guessName(dom.plotElements["+strcompress(string(i), /rem)+"].controller.dataSet)" 
     ap_var = ''
+    readf, unit, ap_var
     readf, unit, ap_var
 
     ; variable name returned with autoplot>
@@ -84,7 +103,9 @@ pro ap2tplot, port=port, connect_timeout=connect_timeout, read_timeout=read_time
     tmp_filename = local_data_dir + 'ap2tplot'+strcompress(string(randomu(seed, 1, /long)), /rem)+'.cdf'
     wait, 1
     printf, unit, "formatDataSet(dom.plotElements["+strcompress(string(i), /rem)+"].controller.dataSet, '"+tmp_filename+"?"+var_name+"')"
-    wait, 3
+
+    readf, unit, ap_var                                          ; READ
+    
     spd_cdf2tplot, tmp_filename, /all
     
     undefine, var_name

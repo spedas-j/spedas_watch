@@ -1,15 +1,16 @@
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-02-26 12:52:49 -0800 (Tue, 26 Feb 2019) $
-; $LastChangedRevision: 26709 $
+; $LastChangedDate: 2019-04-15 09:53:46 -0700 (Mon, 15 Apr 2019) $
+; $LastChangedRevision: 27016 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
 
 
-pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose
+pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose, all = all, hkp = hkp
 
   if ~keyword_set(spxs) then spxs = ['spa','spb']
   if ~keyword_set(types) then types = ['sf1', 'sf0']  ;,'st1','st0']   ; add archive when available
+  if keyword_set(all) then types = [types, 'hkp']
 
   fileprefix = 'psp/data/sci/sweap/'
   
@@ -23,7 +24,12 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   vars = orderedhash()
   vars['sf1'] = 'EFLUX EMODE'
   vars['sf0'] = 'EFLUX EMODE *THETA* *PHI* *ENERGY*'
+  if keyword_set(all) then begin
+    vars['sf1'] = '*'
+    vars['sf0'] = '*'
+  endif
   vars['hkp'] = '*TEMP* *_BITS *_FLAG*'
+  if keyword_set(all) then vars['hkp'] = vars['hkp'] + ' *CNT*' + ' *PEAK*'
   
   tr = timerange(trange)
   foreach spx, spxs do begin
@@ -83,6 +89,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         ;; be done?
       endif
       if type eq 'hkp' then begin
+        cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose
         continue
       endif
       ylim,prefix+'EFLUX',1.,10000.,1,/default
@@ -91,6 +98,8 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       ylim,'*DEF*_ql',0,0,0,/default
       Zlim,prefix+'*EFLUX',100.,2000.,1,/default
       Zlim,'*_ql',1,1,1,/default
+      ylim, '*spb*ANODE*ql*', 50,310,0, /default
+      ylim, '*spa*ANODE*ql*', 180,420,0, /default
       options, '*_ql', spec = 1
       tplot_options, 'no_interp', 1
       

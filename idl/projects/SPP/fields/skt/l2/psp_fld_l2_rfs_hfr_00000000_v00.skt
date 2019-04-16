@@ -262,6 +262,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch0_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch0_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -369,6 +399,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_averages_ch0_V1V3" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch0_V1V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_V1V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_V1V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch0_V1V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -482,6 +542,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch0_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch0_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -589,6 +679,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_averages_ch0_V1" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch0_V1_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_V1_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_V1_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch0_V1" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -702,6 +822,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch0_V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch0_V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -809,6 +959,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_averages_ch0_GND" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch0_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch0_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch0_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -922,6 +1102,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch1_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch1_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -1029,6 +1239,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_averages_ch1_V3V2" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch1_V3V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V3V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V3V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch1_V3V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -1142,6 +1382,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch1_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch1_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -1249,6 +1519,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_averages_ch1_SCM" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch1_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch1_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -1362,6 +1662,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch1_V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch1_V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -1469,6 +1799,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_averages_ch1_V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch1_V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch1_V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -1582,6 +1942,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_ch1_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_ch1_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_ch1_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -1689,6 +2079,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_averages_V1V2_V3V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_averages_V1V2_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_V1V2_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_averages_V1V2_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_averages_V1V2_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -1802,6 +2222,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch0_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch0_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -1909,6 +2359,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_peaks_ch0_V1V3" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch0_V1V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_V1V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_V1V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch0_V1V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -2022,6 +2502,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch0_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch0_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -2129,6 +2639,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_peaks_ch0_V1" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch0_V1_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_V1_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_V1_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch0_V1" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -2242,6 +2782,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch0_V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch0_V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -2349,6 +2919,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_peaks_ch0_GND" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch0_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch0_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch0_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -2462,6 +3062,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch1_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch1_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -2569,6 +3199,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_peaks_ch1_V3V2" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch1_V3V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V3V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V3V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch1_V3V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -2682,6 +3342,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch1_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch1_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -2789,6 +3479,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_peaks_ch1_SCM" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch1_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch1_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -2902,6 +3622,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch1_V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch1_V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -3009,6 +3759,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_peaks_ch1_V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch1_V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch1_V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -3122,6 +3902,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_ch1_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_ch1_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_ch1_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -3229,6 +4039,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_auto_peaks_V1V2_V3V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_auto_peaks_V1V2_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_V1V2_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_auto_peaks_V1V2_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_auto_peaks_V1V2_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -3342,6 +4182,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch0_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch0_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -3449,6 +4319,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_im_ch0_V1V3" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch0_V1V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_V1V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_V1V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch0_V1V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -3562,6 +4462,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch0_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch0_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -3669,6 +4599,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_im_ch0_V1" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch0_V1_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_V1_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_V1_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch0_V1" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -3782,6 +4742,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch0_V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch0_V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -3889,6 +4879,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_im_ch0_GND" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch0_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch0_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch0_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -4002,6 +5022,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch1_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch1_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -4109,6 +5159,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_im_ch1_V3V2" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch1_V3V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V3V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V3V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch1_V3V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -4222,6 +5302,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch1_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch1_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -4329,6 +5439,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_im_ch1_SCM" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch1_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch1_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -4442,6 +5582,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch1_V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch1_V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -4549,6 +5719,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_im_ch1_V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch1_V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch1_V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -4662,6 +5862,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_ch1_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_ch1_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_ch1_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -4769,6 +5999,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_im_V1V2_V3V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_im_V1V2_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_V1V2_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_im_V1V2_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_im_V1V2_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -4882,6 +6142,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch0_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch0_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -4989,6 +6279,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_re_ch0_V1V3" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch0_V1V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_V1V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_V1V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch0_V1V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -5102,6 +6422,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch0_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch0_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -5209,6 +6559,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_re_ch0_V1" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch0_V1_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_V1_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_V1_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch0_V1" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -5322,6 +6702,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch0_V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch0_V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -5429,6 +6839,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_re_ch0_GND" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch0_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch0_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch0_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -5542,6 +6982,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch1_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch1_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -5649,6 +7119,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_re_ch1_V3V2" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch1_V3V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V3V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V3V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch1_V3V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -5762,6 +7262,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch1_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch1_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -5869,6 +7399,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_re_ch1_SCM" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch1_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch1_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -5982,6 +7542,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch1_V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch1_V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -6089,6 +7679,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_re_ch1_V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch1_V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch1_V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -6202,6 +7822,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_ch1_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_ch1_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_ch1_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -6309,6 +7959,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_cross_re_V1V2_V3V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_cross_re_V1V2_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_V1V2_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_cross_re_V1V2_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_cross_re_V1V2_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -6422,6 +8102,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch0_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch0_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -6529,6 +8239,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_coher_ch0_V1V3" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch0_V1V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_V1V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_V1V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch0_V1V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -6642,6 +8382,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch0_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch0_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -6749,6 +8519,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_coher_ch0_V1" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch0_V1_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_V1_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_V1_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch0_V1" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -6862,6 +8662,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch0_V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch0_V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -6969,6 +8799,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_coher_ch0_GND" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch0_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch0_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch0_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -7082,6 +8942,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch1_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch1_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -7189,6 +9079,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_coher_ch1_V3V2" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch1_V3V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V3V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V3V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch1_V3V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -7302,6 +9222,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch1_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch1_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -7409,6 +9359,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_coher_ch1_SCM" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch1_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch1_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -7522,6 +9502,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch1_V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch1_V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -7629,6 +9639,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_coher_ch1_V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch1_V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch1_V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -7742,6 +9782,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_ch1_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_ch1_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_ch1_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -7849,6 +9919,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_coher_V1V2_V3V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_coher_V1V2_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_coher_V1V2_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_coher_V1V2_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_coher_V1V2_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -7962,6 +10062,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch0_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch0_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -8069,6 +10199,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_phase_ch0_V1V3" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch0_V1V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_V1V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_V1V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch0_V1V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -8182,6 +10342,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch0_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch0_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -8289,6 +10479,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_phase_ch0_V1" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch0_V1_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_V1_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_V1_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch0_V1" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -8402,6 +10622,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch0_V3_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_V3_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_V3_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch0_V3" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -8509,6 +10759,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_phase_ch0_GND" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch0_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch0_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch0_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -8622,6 +10902,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch1_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch1_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -8729,6 +11039,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_phase_ch1_V3V2" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch1_V3V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V3V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V3V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch1_V3V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -8842,6 +11182,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch1_V1V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V1V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V1V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch1_V1V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -8949,6 +11319,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_phase_ch1_SCM" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch1_SCM_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_SCM_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_SCM_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch1_SCM" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -9062,6 +11462,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch1_V2_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V2_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V2_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch1_V2" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -9169,6 +11599,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_phase_ch1_V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch1_V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch1_V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 
@@ -9282,6 +11742,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_ch1_GND_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_GND_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_ch1_GND_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_ch1_GND" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 
 ! Variable          Data      Number                 Record   Dimension
 ! Name              Type     Elements  Dims  Sizes  Variance  Variances
@@ -9389,6 +11879,36 @@
     "SI_conv"     CDF_CHAR     { "1.0>Hz"}
     "CATDESC"     CDF_CHAR     { "frequency_hfr_phase_V1V2_V3V4" }
     "SCALETYP"    CDF_CHAR     { "log" } .
+
+  ! RV values were not requested.
+
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_hfr_phase_V1V2_V3V4_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_hfr_phase_V1V2_V3V4_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_hfr_phase_V1V2_V3V4_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_hfr_phase_V1V2_V3V4" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
 
   ! RV values were not requested.
 

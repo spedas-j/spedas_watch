@@ -263,6 +263,36 @@
 
   ! RV values were not requested.
 
+! Variable          Data      Number                 Record   Dimension
+! Name              Type     Elements  Dims  Sizes  Variance  Variances
+! --------          ----     --------  ----  -----  --------  ---------
+
+  "psp_fld_rfs_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>_gain"   
+                  CDF_INT1      1        0              T
+  ! VAR_COMPRESSION: GZIP.6
+  ! (Valid compression: None, GZIP.1-9, RLE.0, HUFF.0, AHUFF.0)
+  ! VAR_SPARSERECORDS: None
+  ! (Valid sparserecords: None, sRecords.PAD, sRecords.PREV)
+  ! VAR_PADVALUE: -127
+
+  ! Attribute       Data
+  ! Name            Type       Value
+  ! --------        ----       -----
+
+    "CATDESC"     CDF_CHAR     { "psp_fld_rfs_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>_gain" }
+    "FIELDNAM"    CDF_CHAR     { "psp_fld_rfs_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>_gain" }
+    "FORMAT"      CDF_CHAR     { "I1" }
+    "LABLAXIS"    CDF_CHAR     { "gain" }
+    "VAR_TYPE"    CDF_CHAR     { "data" }
+    "FILLVAL"     CDF_REAL8    { -127 }
+    "DEPEND_0"    CDF_CHAR     { "epoch_<receiver>_<DATATYPE>_<CHANNEL>_<SOURCE>" }
+    "VALIDMIN"    CDF_REAL8    { 0 }
+    "VALIDMAX"    CDF_REAL8    { 1 }
+    "UNITS"       CDF_CHAR     { "None" }
+    "SCALETYP"    CDF_CHAR     { "linear" } .
+
+  ! RV values were not requested.
+
 !! End RFS loop
 
 ! Variable          Data      Number                 Record   Dimension
