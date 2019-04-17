@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-25 13:41:53 -0700 (Mon, 25 Mar 2019) $
-; $LastChangedRevision: 26895 $
+; $LastChangedDate: 2019-04-16 02:12:01 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27032 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spanx_sweep_tables.pro $
 ;
 
@@ -99,6 +99,20 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
    if total(/pres,(defv1_dac ne 0) and (defv2_dac ne 0)) then message,'Bad deflector sweep table'
 
 
+   sweep_params = {  $
+     emin:emin,$
+     emax:emax,$
+     k:k,$
+     rmax:rmax,$
+     vmax:vmax,$
+     nen:nen,$
+     spfac:spfac,$
+     maxspen:maxspen,$
+     hvgain:hvgain,$
+     spgain:spgain,$
+     fixgain:fixgain }
+
+
    ;; -------- Structure with values ----------
    table = { emode:emode, $
              sensor:sensor, $
@@ -108,19 +122,11 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
              spl_dac:spv_dac,$
              fsindex: reform(fsindex,4,256),$
              tsindex: reform(tsindex,256,256),$
+             fullsweeps: orderedhash(), $
              timesort: timesort,  $
              deflsort:  defsort,   $
-             emin:emin,$
-             emax:emax,$
-             k:k,$
-             rmax:rmax,$
-             vmax:vmax,$
-             nen:nen,$
-             spfac:spfac,$
-             maxspen:maxspen,$
-             hvgain:hvgain,$
-             spgain:spgain,$
-             fixgain:fixgain }
+             sweep_params: sweep_params $
+            }
 
 return,table
 END

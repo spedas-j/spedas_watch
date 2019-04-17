@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-11 16:40:26 -0700 (Thu, 11 Apr 2019) $
-; $LastChangedRevision: 27003 $
+; $LastChangedDate: 2019-04-16 01:27:24 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27022 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_param.pro $
 ;
 
@@ -108,7 +108,7 @@ function spp_swp_spe_param, detname = detname, $
     cals = spe_param_dict.cals
     if ~cals.haskey(strupcase(detname))  then begin
       dprint,dlevel=2,'Generating cal structure for ',detname
-      deflut = spp_swp_spe_deflut_cal()
+;      deflut = spp_swp_spe_deflut_cal()
       case strupcase(detname) of
         'SPA' : begin
           dphi =  [1,1,1,1,1,1,1,1,4,4,4,4,4,4,4,4] * 240./40. ;width
@@ -245,7 +245,7 @@ function spp_swp_spe_param, detname = detname, $
 ;    param.stat = status[strupcase(status_bits)]
 ;  endif
   
-  if n_elements(param) eq 0 then param = spe_param_dict
+;  if n_elements(param) eq 0 then param = spe_param_dict
   
   return,param
      

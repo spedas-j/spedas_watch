@@ -1,12 +1,12 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-04-15 09:53:46 -0700 (Mon, 15 Apr 2019) $
-; $LastChangedRevision: 27016 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-04-16 02:11:00 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27031 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
 
 
-pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose, all = all, hkp = hkp
+pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose, all = all, hkp = hkp,save=save
 
   if ~keyword_set(spxs) then spxs = ['spa','spb']
   if ~keyword_set(types) then types = ['sf1', 'sf0']  ;,'st1','st0']   ; add archive when available
@@ -16,7 +16,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   
   loc = orderedhash()
   loc['sf1'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
-  loc['sf0'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_*_YYYYMMDD_v??.cdf'
+  loc['sf0'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
   loc['hkp'] = 'SP?/L1/YYYY/MM/SP?_hkp/spp_swp_SP?_hkp_L1_YYYYMMDD_v??.cdf'
   
   ;test='http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spa/L1/2018/09/spa_hkp/spp_swp_spa_hkp_L1_20180924_v00.cdf
@@ -38,6 +38,12 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       fileformat = str_sub(fileformat,'TYP',type)                 ; packet type substitution
       dprint,fileformat,/phelp                                   
       files = spp_file_retrieve(fileformat,trange=tr,/daily_names,/valid_only,prefix=fileprefix,verbose=verbose)
+      if keyword_set(save) then begin
+        vardata = !null
+        novardata = !null
+        loadcdfstr,filenames=files,vardata,novardata
+        dummy = spp_data_product_hash(spx+'_'+type,vardata)
+      endif
       if keyword_set(no_load) then continue
       prefix = 'psp_swp_'+spx+'_'+type+'_'
       if keyword_set(varformat) then vfm = varformat else vfm=vars[type]

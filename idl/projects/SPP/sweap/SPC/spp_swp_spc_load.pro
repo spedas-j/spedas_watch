@@ -1,9 +1,9 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-02-05 16:17:41 -0800 (Tue, 05 Feb 2019) $
-; $LastChangedRevision: 26558 $
+; $LastChangedDate: 2019-04-16 01:39:02 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27027 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
-pro spp_swp_spc_load,files,  trange=trange, type = type
+pro spp_swp_spc_load,files,  trange=trange, type = type,save=save
 
 
    if not keyword_set(type) then type = 'l2i'
@@ -15,6 +15,11 @@ pro spp_swp_spc_load,files,  trange=trange, type = type
    if not keyword_set(files) then files = spp_file_retrieve(pathname,trange=trange,/last_version,/daily_names,verbose=2)
    prefix = 'psp_swp_spc_'+type+'_'
    cdf2tplot,files,prefix = prefix,verbose=1
+   
+   if keyword_set(save) then begin
+    loadcdfstr,filenames=files,vardata,novardata
+    dummy = spp_data_product_hash('SPC_'+type,vardata)
+   endif
    
    if type eq 'l2i' then begin
      ylim,prefix+'*charge_flux_density',100.,4000.,1,/default

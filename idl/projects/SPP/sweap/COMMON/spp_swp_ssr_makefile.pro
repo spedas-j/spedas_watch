@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-03-05 06:49:31 -0800 (Tue, 05 Mar 2019) $
-; $LastChangedRevision: 26762 $
+; $LastChangedDate: 2019-04-16 01:40:02 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27029 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -8,7 +8,7 @@
 
 pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_load,   $
    make_cdf=make_cdf,make_ql=make_ql,verbose=verbose,reset=reset,sc_files=sc_files,    $
-   ssr_format=ssr_format
+   ssr_format=ssr_format, mtime_range=mtime_range
   
 ;  login_info = get_login_info()
 ;  test = login_info.user_name eq 'davin'
@@ -60,6 +60,17 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
       endif else begin
         ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)  ; load all data over many days (full orbit)
         ;      spp_swp_apdat_init,/reset
+        if keyword_set(mtime_range) then begin
+          fi = file_info(ssr_files)
+          mtrge = time_double(mtime_range)
+          w= where(fi.mtime ge mtrge[0],/null)
+          fi=fi[w]
+          if n_elements(mtrge) ge 2 then begin
+            w = where(fi.mtime lt mtrge[1],/null)
+            fi=fi[w]
+          endif
+          ssr_files = fi.name
+        endif
         spp_ssr_file_read,ssr_files,/sort_flag,no_init = ~keyword_set(reset)
         if keyword_set(make_sav) then begin
           spp_apdat_info,file_save=sav_file,/compress

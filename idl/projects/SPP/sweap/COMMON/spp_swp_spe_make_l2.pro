@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2019-04-02 11:21:23 -0700 (Tue, 02 Apr 2019) $
-  ; $LastChangedRevision: 26933 $
+  ; $LastChangedDate: 2019-04-16 01:28:14 -0700 (Tue, 16 Apr 2019) $
+  ; $LastChangedRevision: 27023 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -45,10 +45,11 @@
   
   
 
-pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
+pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose,download_only=download_only
+
 
   if keyword_set(all) then trange= ['2018 10 3',time_string(systime(1))]
-
+  t1 = systime(1)
   compile_opt idl2
   dlevel=3
   L1_fileformat = 'psp/data/sci/sweap/SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'  
@@ -59,6 +60,10 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
   types = ['sf1','sf0']
   if 0 && (get_login_info()).user_name eq 'davin' then $
     types = ['sf0','sf1','st1','st0']   ; add archive when available
+
+ ; types = ['sf1']
+ ; spxs = ['spa']
+
   
   foreach type,types do begin
     foreach spx, spxs do begin
@@ -75,98 +80,165 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose
         dprint,dlevel=dlevel,'Found '+strtrim(nw)+' files matching: "'+fileformat+'"'
         files = files[w]
       endelse
+      if keyword_set(download_only) then continue
+      
+      if 1 then begin                ; old method
+        for fn = 0,n_elements(files)-1 do begin
+          file = files[fn]
+          if file_test(file) eq 0 then continue
+          l1_cdf = cdf_tools(file)                           ; Read in file
+          l1_dat = l1_cdf.get_var_struct()
 
-      for fn = 0,n_elements(files)-1 do begin
-        file = files[fn]
-        if file_test(file) eq 0 then continue
-        l1_cdf = cdf_tools(file)                           ; Read in file
-        l1_dat = l1_cdf.get_var_struct()
+          l1_counts = l1_cdf.vars['DATA'].data.array
+          l1_datasize = l1_cdf.vars['DATASIZE'].data.array
+          l1_nrecs = n_elements(l1_datasize)
+          l1_emode = l1_cdf.vars['EMODE'].data.array
+          l1_status_bits = l1_cdf.vars['STATUS_BITS'].data.array
+          dprint,verbose=verbose,dlevel=dlevel,/phelp,uniq(l1_datasize);,varname='uniq'
+          dprint,verbose=verbose,dlevel=dlevel,/phelp,l1_datasize[uniq(l1_datasize)];,varname='datasize'
+          dprint,verbose=verbose,dlevel=dlevel,uniq(l1_emode)
+          dprint,verbose=verbose,dlevel=dlevel,l1_emode[uniq(l1_emode)]
+          dprint,verbose=verbose,dlevel=dlevel,l1_status_bits[uniq(l1_status_bits)]
 
-        l1_counts = l1_cdf.vars['DATA'].data.array
-        l1_datasize = l1_cdf.vars['DATASIZE'].data.array
-        l1_nrecs = n_elements(l1_datasize)
-        l1_emode = l1_cdf.vars['EMODE'].data.array
-        l1_status_bits = l1_cdf.vars['STATUS_BITS'].data.array
-        dprint,verbose=verbose,dlevel=dlevel,/phelp,uniq(l1_datasize);,varname='uniq'
-        dprint,verbose=verbose,dlevel=dlevel,/phelp,l1_datasize[uniq(l1_datasize)];,varname='datasize'
-        dprint,verbose=verbose,dlevel=dlevel,uniq(l1_emode)
-        dprint,verbose=verbose,dlevel=dlevel,l1_emode[uniq(l1_emode)]
-        dprint,verbose=verbose,dlevel=dlevel,l1_status_bits[uniq(l1_status_bits)]
+          foreach pmode,pmodes,psize do begin
+
+            records = where(/null,l1_datasize eq psize, l2_nrecs)
+            if ~isa(records) then continue
+            dprint,dlevel=dlevel,verbose=verbose,'Found '+strtrim(l2_nrecs,2)+' of '+strtrim(l1_nrecs,2)+' packets of pmode: '+pmode+' in file: '+file
+
+            l2_cdf = cdf_tools(file)   ; make a copy
+            l2_cdf.filter_variables, records                  ; down  select the pmodes
+            l2_dat = l2_cdf.get_var_struct()
+
+            l2_counts = l2_cdf.vars['DATA'].data.array
+
+            l2_counts = l2_counts[*,0:psize-1]
+
+            eflux = l2_counts
+            energy = fill_nan(l2_counts)
+            theta  = energy
+            phi    = energy
+
+            dati_last = !null
+
+            dprint,'Nrecs=',l2_nrecs, '  File: '+file,dlevel=3
+            for i = 0 , l2_nrecs-1 do begin
+              dati= l2_dat[i]
+              param = spp_swp_spe_param(detname = spx, emode = dati.emode, pmode = pmode,data=dati,param=param)
+              if ~isa(dati_last) || dati_last.emode ne dati.emode || (dati.status_bits ne dati_last.status_bits) then begin
+                fswp = spp_swp_spe_sweeps(param=param,data=dati)
+                ptable = param['PTABLE']
+                rswp =  spp_swp_spe_reduced_sweep(fullsweep=fswp,ptable=param.ptable)
+              endif
+
+              eflux[i,*] = l2_counts[i,*] / rswp['geomdt']  ; * attn_fact
+              energy[i,*] = rswp['energy']
+              theta[i,*] = rswp['theta']
+              phi[i,*] = rswp['phi']
+              dati_last = dati
+
+            endfor
+
+
+            eflux_var = cdf_tools_varinfo('EFLUX',reform(eflux[0,*]),all_values=eflux,/recvary,dlevel=4)
+            l2_cdf.add_variable, eflux_var
+            energy_var = cdf_tools_varinfo('ENERGY',reform(energy[0,*]),all_values=energy,/recvary,dlevel=4)
+            l2_cdf.add_variable, energy_Var
+            THETA_var = cdf_tools_varinfo('THETA',reform(theta[0,*]),all_values=theta,/recvary,dlevel=4)
+            l2_cdf.add_variable, theta_var
+            PHI_var = cdf_tools_varinfo('PHI',reform(phi[0,*]),all_values=phi,/recvary,dlevel=4)
+            l2_cdf.add_variable, phi_var
+            ;    printdat,cdf
+            l2_file = file
+            l2_file = str_sub(l2_file,'L1','L2')
+            l2_file = str_sub(l2_file,'_L2_', '_L2_'+pmode+'_')
+            ;          l2_file = str_sub(l2_file,'_v00.', '_v01.')
+            l2_cdf.write,L2_file
+
+          endforeach
+
+        endfor
         
-        foreach pmode,pmodes,psize do begin
+      endif else begin
+        for fn = 0,n_elements(files)-1 do begin
+          file = files[fn]
+          if file_test(file) eq 0 then continue
+          l1_cdf = cdf_tools(file)                           ; Read in file
+          l1_dat = l1_cdf.get_var_struct()
 
-          records = where(/null,l1_datasize eq psize, l2_nrecs)
-          if ~isa(records) then continue
-          dprint,dlevel=dlevel,verbose=verbose,'Found '+strtrim(l2_nrecs,2)+' of '+strtrim(l1_nrecs,2)+' packets of pmode: '+pmode+' in file: '+file
+;          l1_counts = l1_cdf.vars['DATA'].data.array
+;          l1_datasize = l1_cdf.vars['DATASIZE'].data.array
+;          l1_nrecs = n_elements(l1_datasize)
+;          l1_emode = l1_cdf.vars['EMODE'].data.array
+;          l1_status_bits = l1_cdf.vars['STATUS_BITS'].data.array
+;          dprint,verbose=verbose,dlevel=dlevel,/phelp,uniq(l1_datasize);,varname='uniq'
+;          dprint,verbose=verbose,dlevel=dlevel,/phelp,l1_datasize[uniq(l1_datasize)];,varname='datasize'
+;          dprint,verbose=verbose,dlevel=dlevel,uniq(l1_emode)
+;          dprint,verbose=verbose,dlevel=dlevel,l1_emode[uniq(l1_emode)]
+;          dprint,verbose=verbose,dlevel=dlevel,l1_status_bits[uniq(l1_status_bits)]
 
-          l2_cdf = cdf_tools(file)   ; make a copy
-          l2_cdf.filter_variables, records                  ; down  select the pmodes
-          l2_dat = l2_cdf.get_var_struct()
+          foreach pmode,pmodes,psize do begin
 
-          l2_counts = l2_cdf.vars['DATA'].data.array
- ;         l2_emode = l2_cdf.vars['EMODE'].data.array
- ;         l2_status_bits = l2_cdf.vars['STATUS_BITS'].data.array
-                    
-          l2_counts = l2_counts[*,0:psize-1]
+            records = where(/null,l1_dat.datasize eq psize, l2_nrecs)
+            if ~isa(records) then continue
+ ;           dprint,dlevel=dlevel,verbose=verbose,'Found '+strtrim(l2_nrecs,2)+' of '+strtrim(l1_nrecs,2)+' packets of pmode: '+pmode+' in file: '+file
 
-          eflux = l2_counts
-          energy = fill_nan(l2_counts)
-          theta  = energy
-          phi    = energy
+            l2_cdf = cdf_tools(file)   ; make a copy
+            l2_cdf.filter_variables, records                  ; down  select the pmodes
+            l2_dat = l2_cdf.get_var_struct()
 
-;          emode_last = -1
-;          status_bits_last = -1
-;          peak_bin_last = -1
-          dati_last = !null
+            l2_counts = l2_cdf.vars['DATA'].data.array
 
-          for i = 0 , l2_nrecs-1 do begin
-            dati= l2_dat[i]
- ;           emode = dati.emode  ;l2_emode[i]
- ;           status_bits = dati.status_bits   ;l2_status_bits[i]
- ;           peak_bin = dati.peak_bin
-            if ~isa(dati_last) || dati_last.emode ne dati.emode || (dati.status_bits ne dati_last.status_bits) then begin
-              param = spp_swp_spe_param(detname = spx, emode = dati.emode, pmode = pmode,data=dati)
-              fswp = spp_swp_spe_sweeps(param=param,data=dati)
-              ptable = param['PTABLE']
-              rswp =  spp_swp_spe_reduced_sweep(fullsweep=fswp,ptable=ptable,data=dati)
-            endif
-;              emode_last = emode
-;              status_bits_last = status_bits
-;            endif
- ;           if attn_fact eq 0 then attn_fact = 1
-            eflux[i,*] = l2_counts[i,*] / rswp['geomdt']  ; * attn_fact
-            energy[i,*] = rswp['energy']
-            theta[i,*] = rswp['theta']
-            phi[i,*] = rswp['phi']
-            dati_last = dati
-            
-          endfor
-          
-          
-          eflux_var = cdf_tools_varinfo('EFLUX',reform(eflux[0,*]),all_values=eflux,/recvary)
-          l2_cdf.add_variable, eflux_var
-          energy_var = cdf_tools_varinfo('ENERGY',reform(energy[0,*]),all_values=energy,/recvary)
-          l2_cdf.add_variable, energy_Var
-          THETA_var = cdf_tools_varinfo('THETA',reform(theta[0,*]),all_values=theta,/recvary)
-          l2_cdf.add_variable, theta_var
-          PHI_var = cdf_tools_varinfo('PHI',reform(phi[0,*]),all_values=phi,/recvary)
-          l2_cdf.add_variable, phi_var
-          ;    printdat,cdf
-          l2_file = file
-          l2_file = str_sub(l2_file,'L1','L2')
-          l2_file = str_sub(l2_file,'_L2_', '_L2_'+pmode+'_')
-;          l2_file = str_sub(l2_file,'_v00.', '_v01.')
-          l2_cdf.write,L2_file
-         
-        endforeach
+            l2_counts = l2_counts[*,0:psize-1]
+
+            eflux = l2_counts
+            energy = fill_nan(l2_counts)
+            theta  = energy
+            phi    = energy
+
+            dati_last = !null
+
+            for i = 0 , l2_nrecs-1 do begin
+              dati= l2_dat[i]
+              rswp = spp_swp_spe_reduced_product(data_struct = dati, param = param)
+
+              eflux[i,*] = l2_counts[i,*] / rswp['geomdt']  ; * attn_fact
+              energy[i,*] = rswp['energy']
+              theta[i,*] = rswp['theta']
+              phi[i,*] = rswp['phi']
+              dati_last = dati
+
+            endfor
+
+
+            eflux_var = cdf_tools_varinfo('EFLUX',reform(eflux[0,*]),all_values=eflux,/recvary)
+            l2_cdf.add_variable, eflux_var
+            energy_var = cdf_tools_varinfo('ENERGY',reform(energy[0,*]),all_values=energy,/recvary)
+            l2_cdf.add_variable, energy_Var
+            THETA_var = cdf_tools_varinfo('THETA',reform(theta[0,*]),all_values=theta,/recvary)
+            l2_cdf.add_variable, theta_var
+            PHI_var = cdf_tools_varinfo('PHI',reform(phi[0,*]),all_values=phi,/recvary)
+            l2_cdf.add_variable, phi_var
+            ;    printdat,cdf
+            l2_file = file
+            l2_file = str_sub(l2_file,'L1','L2')
+            l2_file = str_sub(l2_file,'_L2_', '_L2_'+pmode+'_')
+            ;          l2_file = str_sub(l2_file,'_v00.', '_v01.')
+            l2_cdf.write,L2_file
+
+          endforeach
+
+        endfor
         
-       endfor
+      endelse
+      
+
       
     endforeach
   endforeach
 
 
-
+dprint,'elapsed time: ',systime(1) - t1
 end
 
 

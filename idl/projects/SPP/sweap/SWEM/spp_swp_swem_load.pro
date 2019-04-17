@@ -22,7 +22,7 @@ if ~keyword_set(type) then type = 'swem_dig_hkp'
   prefix = 'psp_swp_'+type+'_'
   
   case type of
-    'swem_dig_hkp': varformat = 'SW_SSRWRADDR *OSCPUUSAGE'
+    'swem_dig_hkp': varformat = 'SW_SSRWRADDR *OSCPUUSAGE *CMDCOUNTER'
     'swem_ana_hkp': varformat = '*TEMP'
     else:
   endcase

@@ -42,7 +42,7 @@
   ;
   ; note that table files are doubled until [insert date here]
   
-pro spp_swp_spi_make_l2,init=init,trange=trange,all=all,verbose=verbose,no_server=no_server
+pro spp_swp_spi_make_l2,init=init,trange=trange,all=all,verbose=verbose,no_server=no_server,download_only=download_only
 
   if keyword_set(all) then trange= ['2018 8 30',time_string(systime(1))]
 
@@ -63,7 +63,7 @@ pro spp_swp_spi_make_l2,init=init,trange=trange,all=all,verbose=verbose,no_serve
   trange = timerange(trange)
   
   spxs = ['spi' ] ;,'spb']
-  types = ['sf00','sf01' ] ;,'sf0','st1','st0']   ; add archive when available
+  types = ['sf00','sf01' ]    ; add archive when available
   
   foreach spx, spxs do begin
     foreach type,types do begin
@@ -80,6 +80,8 @@ pro spp_swp_spi_make_l2,init=init,trange=trange,all=all,verbose=verbose,no_serve
         dprint,dlevel=dlevel,'Found '+strtrim(nw)+' files matching: "'+fileformat+'"'
         files = files[w]
       endelse
+      
+      if keyword_set(download_only) then continue
 
       for fn = 0,n_elements(files)-1 do begin
         file = files[fn]

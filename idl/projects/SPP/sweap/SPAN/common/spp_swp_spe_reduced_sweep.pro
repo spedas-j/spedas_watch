@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-02 08:42:29 -0700 (Tue, 02 Apr 2019) $
-; $LastChangedRevision: 26932 $
+; $LastChangedDate: 2019-04-16 02:13:09 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27033 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_reduced_sweep.pro $
 ;
 
@@ -14,7 +14,7 @@
 ;usage:
 ; rswp = spp_swp_spe_reduced_sweep(fullsweep=fswp,  ptable=spe.ptable)
 
-function spp_swp_spe_reduced_sweep,fullsweep=fswp,ptable=ptable,data_struct=data_struct
+function spp_swp_spe_reduced_sweep,fullsweep=fswp,ptable=ptable  ;,data_struct=data_struct
 
 
 ;message,'Old routine',/cont

@@ -1,43 +1,55 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-02 11:56:30 -0700 (Tue, 02 Apr 2019) $
-; $LastChangedRevision: 26935 $
+; $LastChangedDate: 2019-04-16 01:33:21 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27026 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_sweeps.pro $
 ;
 
 
 ;;----------------------------------------------
 ;; The gen L2 code calls this for params
-function  spp_swp_spe_sweeps, param=param, data_struct=dat  ;,etable=etable,ptable=ptable,cal=cal
+function  spp_swp_spe_sweeps, param=param, data_struct=dat  
 
-;message,'Old routine',/cont
 
-  if isa(param) then begin
-    etable = param.etable
-    ptable = param.ptable
-    cal    = param.cal
-    ;status = param.stat
-  endif
+
+  etable = param.etable
+  cal    = param.cal
   
-  if ~isa(dat) then begin
-    dat = { $
-      apid: '360'x  ,$
-      peak_bin: 140 ,$
-      mode2: '1101'x ,$
-      status_bits: 125b $
-      }
-  endif
+
+  targeted =  (dat.apid and 2 ) ne 0      ; targeted apids have the 2 bit set.
+  
+  if targeted then begin      ; targeted sweap
+    tsindex = reform(etable.tsindex,256,256)
+    sweep_index = dat.peak_bin
+    index = [1,1,1,1] # reform(tsindex[*,sweep_index])
+  endif else begin
+    sweep_index = -1
+    index = reform(etable.fsindex,4,256)  ; full sweep
+  endelse
+
+  dprint,dlevel=3,'Generating sweeps for sweep_index:',sweep_index,'  Emode =',etable.emode, '  status_bits= ',dat.status_bits
+
+
+;  if param.haskey('fullsweeps') then begin
+;    if param.fullsweeps.haskey(peak_bin) then begin
+;      fswp = param.fullsweeps[peak_bin]
+;      if fswp.status_bits eq dati.status_bits
+;      return, param.fullsweeps[peak_bin]
+;    endif
+;  endif else begin
+;    param.fullsweep
+;  endelse
+  
+;  if ~isa(spe_param_dict, 'dictionary')  then begin
+;    spe_param_dict = dictionary()
+;  endif
 
 
   ; this portion of code assumes  4 substeps, 8 deflectors and 32 energies  (ptable correponds to full distribution)
   ;  index = reform(etable.index,4,256)   ; full sweep
 
-  substep_time = 0.873/4/256 /4  ; integration time of single substep   
-  
-  targeted =  (dat.apid and 2 ) ne 0      ; targeted apids have the 2bit set.
-  if targeted then begin      ; targeted sweap
-    tsindex = reform(etable.tsindex,256,256)
-    index = [1,1,1,1] # reform(tsindex[*,dat.peak_bin])    
-  endif else index = reform(etable.fsindex,4,256)  ; full sweep
+
+
+  substep_time = 0.873/4/256 /4  ; integration time of single substep
 
   hem_dac  = etable.hem_dac[index]  
   def_dac  = etable.def1_dac[index]  -  etable.def2_dac[index]  ; use this later to collect theta angles.
@@ -120,6 +132,7 @@ function  spp_swp_spe_sweeps, param=param, data_struct=dat  ;,etable=etable,ptab
 
   fswp = dictionary()          ; full sweep dictionary
 ;  fswp.cal = cal
+  fswp.sweep_index = sweep_index
   fswp.anode = anode_all
   fswp.energy = nrg_all
   fswp.phi    = phi_all

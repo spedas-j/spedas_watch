@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-08 17:25:50 -0800 (Sat, 08 Dec 2018) $
-; $LastChangedRevision: 26292 $
+; $LastChangedDate: 2019-04-16 01:26:27 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27021 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-08 17:25:50 -0800 (Sat, 08 Dec 2018) $
-; $LastChangedRevision: 26292 $
+; $LastChangedDate: 2019-04-16 01:26:27 -0700 (Tue, 16 Apr 2019) $
+; $LastChangedRevision: 27021 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2018-12-08 17:25:50 -0800 (Sat, 08 Dec 2018) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 26292 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-04-16 01:26:27 -0700 (Tue, 16 Apr 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 27021 $'
 
   return,sw_hash
 end
@@ -278,7 +278,7 @@ pro cdf_tools::var_att_create,var
   opts = struct(cdf_type,ZVARIABLE=ZVARIABLE,rec_novary=rec_novary,numelem=numelem)
 
   
-  dprint,dlevel=dlevel,phelp=2,varname,dim,opts,data
+  dprint,dlevel=self.dlevel+2,phelp=2,varname,dim,opts,data
   if ~keyword_set(rec_novary)  then  begin
     if ndim ge 1 then begin
       varid = cdf_varcreate(fileid, varname,dim ne 0, DIMENSION=dim,_extra=opts)
@@ -340,13 +340,15 @@ for i=0,n_elements(names)-1 do begin   ;    define first record structure;
   numrec = numrec > vi.numrec    ; get largest record size
 endfor
 
+;if numrec eq 1 then stop
 strct_n = replicate(strct0,numrec)
 for i=0,n_elements(names)-1 do begin
   vi = self.vars[names[i]]
   vals = vi.data.array
+;  dprint,size(/n_dimen,vals),names[i]
   if size(/n_dimen,vals) ge 2 then begin   ; need a correction if ndimen >= 3
     vals = transpose(vals)
-  endif
+  endif  else if numrec eq 1 then vals = vals[0]
   str_element,/add,strct_n,names[i], vals 
 endfor
   
@@ -475,6 +477,18 @@ pro cdf_tools::read,filename
     prt_free,info.vars.attrptr
   endelse
 end
+
+
+function cdf_tools::structures
+   vnames = self.vars.keys()
+   strct = !null
+   foreach vn,vnames do begin
+     strct = create_struct(strct,vn,(self.vars[vn])[0] )
+    
+   endforeach
+   retstrct = replicate(strct,n)
+end
+
 
 
 
