@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-16 01:30:57 -0700 (Tue, 16 Apr 2019) $
-; $LastChangedRevision: 27024 $
+; $LastChangedBy: mdmcmanus $
+; $LastChangedDate: 2019-04-17 15:42:42 -0700 (Wed, 17 Apr 2019) $
+; $LastChangedRevision: 27039 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param2.pro $
 ;
 
@@ -51,7 +51,7 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
         2:  etables[2] = spp_swp_spanx_sweep_tables([500.,2000.],spfac=ratios[2]   , emode=emode, _extra = spani_params)
         3:  etables[3] = spp_swp_spanx_sweep_tables([ 250., 1000.],spfac=ratios[2]   , emode=emode, _extra = spani_params)
         4:  etables[4] = spp_swp_spanx_sweep_tables([ 1000.,4000.],spfac=ratios[2]   , emode=emode, _extra = spani_params)
-        5:  etables[5] = spp_swp_spanx_sweep_tables([ 125.,10000.],spfac=ratios[2]   , emode=emode, _extra = spani_params)
+        5:  etables[5] = spp_swp_spanx_sweep_tables([ 125.,20000.],spfac=ratios[2]   , emode=emode, _extra = spani_params)
 ;        6:  etables[6] = spp_swp_spanx_sweep_tables([ 4000.,40000.],spfac=ratios[2]   , emode=emode, _extra = spani_params)
         else: begin
           etables[emode] = 'Invalid'

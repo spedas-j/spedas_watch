@@ -152,7 +152,8 @@ pro spp_fld_make_cdf_l2, l2_datatype, $
 
   if n_elements(downsample_cadence) GT 0 then begin
 
-    downsample_string = '_1sec'
+    if downsample_cadence EQ 1d then downsample_string = '_1sec'
+    if downsample_cadence EQ 60d then downsample_string = '_1min'
 
   endif else begin
 

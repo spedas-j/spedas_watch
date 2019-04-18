@@ -8,13 +8,20 @@ pro spp_fld_make_cdf_l2_rfs, $
   if n_elements(rec) EQ 0 then rec = 'hfr'
 
   if rec EQ 'lfr' then $
-    datatypes = ['auto_averages','auto_peaks','hires_averages','hires_peaks'] $
+    datatypes = ['auto_averages','auto_peaks','hires_averages','hires_peaks','cross_im','cross_re','coher','phase'] $
   else $
     datatypes = ['auto_averages','auto_peaks','cross_im','cross_re','coher','phase']
   channels = ['ch0','ch1','']
   ch0_sources = ['V1V2','V1V3','SCM','V1','V3','GND']
   ch1_sources = ['V3V4','V3V2','V1V2','SCM','V2','V4','GND']
-  cross_sources = ['V1V2_V3V4']
+  cross_sources = []; ['V1V2_V3V4']
+
+  foreach ch0_source, ch0_sources do begin
+    foreach ch1_source, ch1_sources do begin
+      cross_sources = [cross_sources, ch0_source + '_' + ch1_source]
+    endforeach
+  endforeach
+
   hk_items = ['auto_peaks','auto_averages',$
     'auto_ch0','auto_ch0_string','auto_ch1',$
     'auto_ch1_string','auto_nsum','auto_gain','auto_hl']
@@ -30,7 +37,7 @@ pro spp_fld_make_cdf_l2_rfs, $
     lines_loop = []
     lines_end = []
 
-    lines_out = []
+    lines_out = list()
 
     loop_start = 0
     loop_end = 0
@@ -68,18 +75,28 @@ pro spp_fld_make_cdf_l2_rfs, $
 
     free_lun, unit
 
-    lines_out = lines_start
+    foreach ln, lines_start do lines_out.Add, ln
 
     foreach dt, datatypes do begin
       foreach ch, channels do begin
         if ch EQ 'ch0' then begin
           sources = ch0_sources
+          if dt.StartsWith('cross') then sources = []
+          if dt.StartsWith('coher') then sources = []
+          if dt.StartsWith('phase') then sources = []
         endif else if ch EQ 'ch1' then begin
           sources = ch1_sources
+          if dt.StartsWith('cross') then sources = []
+          if dt.StartsWith('coher') then sources = []
+          if dt.StartsWith('phase') then sources = []
         endif else begin
           sources = cross_sources
+          if dt.StartsWith('auto') then sources = []
+          if dt.StartsWith('hires') then sources = []
         endelse
         foreach src, sources do begin
+
+          print, dt, ch, src
 
           cross_linear_set = 0
           phase_lim_set = 0
@@ -92,7 +109,6 @@ pro spp_fld_make_cdf_l2_rfs, $
             ln = ln.Replace('<SOURCE>', src)
             if dt NE 'coher' and dt NE 'phase' then $
               ln = ln.Replace('<LABLAXIS>', 'PSD')
-
 
             ln = ln.Replace('__','_')
 
@@ -132,14 +148,17 @@ pro spp_fld_make_cdf_l2_rfs, $
               end
             end
 
-            lines_out = [lines_out, ln]
+            lines_out.Add, ln
 
           endforeach
+
+          print, n_elements(lines_out)
+
         endforeach
       endforeach
     endforeach
 
-    lines_out = [lines_out, lines_end]
+    foreach ln, lines_end do lines_out.Add, ln
 
     l2_master_cdf = template.Replace('rfs_template', 'rfs_' + rec)
 
@@ -218,6 +237,11 @@ pro spp_fld_make_cdf_l2_rfs, $
 
           case dt of
             'auto_averages':dt_hk='auto'
+            'auto_peaks':dt_hk='auto'
+            'cross_im':dt_hk='cross'
+            'cross_re':dt_hk='cross'
+            'coher':dt_hk='cross'
+            'phase':dt_hk='cross'
             else:dt_hk = ''
           endcase
 
@@ -233,6 +257,32 @@ pro spp_fld_make_cdf_l2_rfs, $
               gain_tag_ind = (where(buffer_tags EQ gain_tag))[0]
 
               if gain_tag_ind GE 0 then *l2.(gain_tag_ind).data = data_gain.y
+            end
+
+            item_nsum = 'spp_fld_rfs_' + rec + '_' + dt_hk + '_nsum_' + src
+
+            get_data, item_nsum, data = data_nsum
+
+            if size(/type, data_nsum) EQ 8 then begin
+
+              nsum_tag = sp_tag + strupcase('_nsum')
+
+              nsum_tag_ind = (where(buffer_tags EQ nsum_tag))[0]
+
+              if nsum_tag_ind GE 0 then *l2.(nsum_tag_ind).data = data_nsum.y
+            end
+
+            item_hl = 'spp_fld_rfs_' + rec + '_' + dt_hk + '_hl_' + src
+
+            get_data, item_hl, data = data_hl
+
+            if size(/type, data_hl) EQ 8 then begin
+
+              hl_tag = sp_tag + strupcase('_hl')
+
+              hl_tag_ind = (where(buffer_tags EQ hl_tag))[0]
+
+              if hl_tag_ind GE 0 then *l2.(hl_tag_ind).data = data_hl.y
             end
 
           endif
