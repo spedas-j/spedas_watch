@@ -72,6 +72,7 @@ pro elf_ui_load_data_load_pro,$
 
   ; extract the variables from the load structure
   probes=loadStruc.probes
+  coordinate=loadStruc.coordinate
   instrument=loadStruc.instrument
   level=loadStruc.level
   types=loadStruc.types
@@ -101,15 +102,16 @@ pro elf_ui_load_data_load_pro,$
                   trange=timeRange, varformat=varformat
   endcase
   
-  ;if instrument EQ 'epd' then del_data, 'ell_epdi'
+  stop
+;  if coordinate NE 'GEI' then begin
+;     cotrans, 
+;  endif
+  
   ; determine which tplot variables to delete and which ones are the new temporary 
   ; variables
   spd_ui_cleanup_tplot, tn_before, create_time_before=cn_before, del_vars=to_delete,$
                         new_vars=new_vars
-
-;  idx=where(new_vars EQ 'ell_epdi', ncnt)
-;  if ncnt GT 0 then new_vars='ell_epde'
-
+stop
   if new_vars[0] ne '' then begin
     loaded = 1
   

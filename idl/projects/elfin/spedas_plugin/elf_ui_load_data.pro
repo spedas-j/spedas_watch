@@ -23,6 +23,9 @@ function elf_ui_get_user_selections, state, event
   ; retrieve the instrument selected
   instlist = widget_info(event.handler,find_by_uname='instrument')
   instrument = widget_info(instlist,/combobox_gettext)
+
+  coordlist = widget_info(event.handler,find_by_uname='coordinate')
+  coordinate = widget_info(coordlist,/combobox_gettext)
   
   ; retrieve the probe[s] selected 
   probelist = widget_info(event.handler,find_by_uname='probelist')
@@ -87,6 +90,7 @@ function elf_ui_get_user_selections, state, event
   ;create a load structure to pass the parameters needed by the load
   ;procedure
   selections = { instrument:instrument, $
+    coordinate:coordinate, $
     probes:probes, $
     level:strlowcase(level), $
     types:types, $
@@ -169,6 +173,10 @@ pro elf_ui_load_data_event,event
         typelist = widget_info(event.handler,find_by_uname='typelist')
         widget_control, typelist, set_value=setType
         widget_control, typelist, set_list_select=0
+        coordlist = widget_info(event.handler, find_by_uname='coordinate')
+        if event.index EQ 0 || event.index EQ 4 then widget_control, coordlist, sensitive=1 $
+          else widget_control, coordlist, sensitive=0
+         
       end    
 
       'LEVELLIST': begin
@@ -372,21 +380,33 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
   ;the ui time widget handles all widgets and events that are associated with the 
   ;time widget and includes Start/Stop Time labels, text boxes, calendar icons, and
   ;other items associated with setting the time for the data to be loaded.
+  if ~obj_valid(tr_obj) then begin
+    st_text = '2018-09-17/00:00:00.0'
+    et_text = '2018-09-18/00:00:00.0'
+    tr_obj=obj_new('spd_ui_time_range',starttime=st_text,endtime=et_text)
+  endif
+  
   timeWidget = spd_ui_time_widget(selectionBase,$
                                   statusBar,$
                                   historyWin,$
-                                  timeRangeObj=timeRangeObj,$
+                                  timeRangeObj=tr_obj,$
                                   uvalue='TIME_WIDGET',$
                                   uname='time_widget')
     
   ;create the dropdown menu that lists the various instrument types for this mission
   instrumentArray = ['fgm','epd','mrma','mrmi','state']
-  instrumentBase = widget_base(selectionBase,/row) 
+  instrumentBase = widget_base(selectionBase,/row, xpad=3) 
   instrumentLabel = widget_label(instrumentBase,value='Instrument Type: ')
   instrumentCombo = widget_combobox(instrumentBase,$
                                        value=instrumentArray,$
                                        uvalue='INSTRUMENT',$
                                        uname='instrument')
+
+  validCoords = ['GEI', 'MAG', 'SM']
+  coordBase = widget_base(instrumentBase, /row, xpad=4)
+  coordDroplistLabel = Widget_Label(coordBase, Value=' Output Coordinates:  ')
+  coordDroplist = Widget_ComboBox(coordBase, Value=validCoords, $ ;XSize=165, $
+                 Sensitive=0, uval='COORDINATE', uname='coordinate')
                                   
   selectionTypesBase = widget_base(selectionBase, /row)
   ;create the list box that lists all the probes that are associated with this 
@@ -458,6 +478,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
            probeArray:probeArray, $
            instrumentArray:instrumentArray, $
            levelArray:levelArray, $
+           validCoords:validCoords, $
            fgmL1TypeArray:fgmL1TypeArray, $
            epdL1TypeArray:epdL1TypeArray, $
            stateTypeArray:stateTypeArray, $
