@@ -1,8 +1,8 @@
 ;+
 ;
-; $LastChangedBy: rlivi2 $
-; $LastChangedDate: 2019-03-29 10:14:06 -0700 (Fri, 29 Mar 2019) $
-; $LastChangedRevision: 26928 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-04-19 16:24:07 -0700 (Fri, 19 Apr 2019) $
+; $LastChangedRevision: 27047 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -60,6 +60,9 @@ PRO spp_swp_spi_load, types=types, $
 
    loc['hkp'] = 'SP?/L1/YYYY/MM/SP?_hkp/spp_swp_SP?_hkp_L1_YYYYMMDD_v??.cdf'
    loc['tof'] = 'SP?/L1/YYYY/MM/SP?_tof/spp_swp_SP?_tof_L1_YYYYMMDD_v??.cdf'
+   loc['rates'] = 'spi/L1/YYYY/MM/SP?_rates/spp_swp_spi_rates_L1_YYYYMMDD_v??.cdf'
+   
+   ;http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spi/L1/2019/03/spi_rates/spp_swp_spi_rates_L1_20190307_v00.cdf
 
    ;; Product TPLOT Parameters
    vars = orderedhash()
@@ -76,8 +79,9 @@ PRO spp_swp_spi_load, types=types, $
    vars['sf22'] = 'EFLUX EMODE *ENERG* *MASS*'
    vars['sf23'] = 'EFLUX EMODE *ENERG* *MASS*'
 
-   vars['hkp']    = '*TEMP* *_BITS *_FLAG*'
+   vars['hkp']    = '*TEMP* *_BITS *_FLAG* RAW_EVENTS'
    vars['tof']    = '_*TOF'
+   vars['rates']  = '*VALID*'
    ;;vars['events'] 
    
    tr = timerange(trange)
