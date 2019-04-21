@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-16 01:33:21 -0700 (Tue, 16 Apr 2019) $
-; $LastChangedRevision: 27026 $
+; $LastChangedDate: 2019-04-19 18:29:55 -0700 (Fri, 19 Apr 2019) $
+; $LastChangedRevision: 27051 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_spe_sweeps.pro $
 ;
 
@@ -85,7 +85,7 @@ function  spp_swp_spe_sweeps, param=param, data_struct=dat
   nrg_all = reform(cal.k_anal # hemv[*],new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
  ; defa_all_old = reform(cal.k_defl # defv[*],new_dimen,/overwrite) * (-1.)   ;  this should be evaluated as a cubic spline in the future, flips for particle velocity direction not look direction
  ; if 1 then begin
-    thetas = - func(def_dac,param = cal.defl_cal)  ; add minus sign to account for travel direction instead of look direction.
+    thetas =  func(def_dac,param = cal.defl_cal)  ; add minus sign to account for travel direction instead of look direction.
     defa_all = reform(cal.k_defl # thetas[*], new_dimen, /overwrite)    
  ; endif else begin
  ;   thetas = findgen(n_elements(def_dac))

@@ -9,7 +9,7 @@
 ;COMPILE_OPT IDL2
 
 
-FUNCTION spp_data_product::Init,apid,name,_EXTRA=ex
+FUNCTION spp_data_product::Init,_EXTRA=ex
   COMPILE_OPT IDL2
   ; Call our superclass Initialization method.
   void = self->generic_object::Init()
@@ -41,6 +41,18 @@ function spp_data_product::getdat,trange=trange
   endif
   return, *self.data_ptr
 end
+
+
+
+PRO spp_data_product::GetProperty,  ptr=ptr, name=name 
+  ; This method can be called either as a static or instance.
+  COMPILE_OPT IDL2
+  dprint,'hello',dlevel=3
+  IF (ARG_PRESENT(ptr)) THEN ptr = self.data_ptr
+  IF (ARG_PRESENT(name)) THEN name = self.name
+END
+
+
 
 
 

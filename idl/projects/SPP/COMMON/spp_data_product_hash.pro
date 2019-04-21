@@ -9,12 +9,15 @@
 ;COMPILE_OPT IDL2
 
 
-FUNCTION spp_data_product_hash,name,data
+FUNCTION spp_data_product_hash,name,data,help=help
   COMPILE_OPT IDL2
   common spp_data_product_com, alldat
   if ~ keyword_set(alldat) then begin
     dprint,'Initializing Storage space'
     alldat = orderedhash()
+  endif
+  if keyword_set(help) then begin
+    print,alldat.keys()
   endif
   if isa(name,/string) then begin
     if ~ alldat.haskey(name) then begin

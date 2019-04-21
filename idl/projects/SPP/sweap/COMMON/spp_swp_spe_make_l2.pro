@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2019-04-16 01:28:14 -0700 (Tue, 16 Apr 2019) $
-  ; $LastChangedRevision: 27023 $
+  ; $LastChangedDate: 2019-04-19 18:28:22 -0700 (Fri, 19 Apr 2019) $
+  ; $LastChangedRevision: 27050 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -57,9 +57,9 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose,download
   trange = timerange(trange)
   
   spxs = ['spa','spb']
-  types = ['sf1','sf0']
-  if 0 && (get_login_info()).user_name eq 'davin' then $
-    types = ['sf0','sf1','st1','st0']   ; add archive when available
+  types = ['sf0','sf1']
+  if  (get_login_info()).user_name eq 'davin' then $
+    types = ['sf0']  ;,'sf1','st1','st0']   ; add archive when available
 
  ; types = ['sf1']
  ; spxs = ['spa']
