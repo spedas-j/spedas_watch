@@ -79,7 +79,7 @@ function elf_ui_get_user_selections, state, event
   timeRangeObj->getProperty,startTime=startTimeObj,endTime=endTimeObj
   startTimeObj->getProperty,tdouble=startTimeDouble,tstring=startTimeString
   endTimeObj->getProperty,tdouble=endTimeDouble,tstring=endTimeString
-  
+ 
   ;report errors
   if startTimeDouble ge endTimeDouble then begin
     state.statusBar->update,'Cannot add data unless end time is greater than start time.'
@@ -470,7 +470,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
   state = {baseid:topBase, $
            loadTree:loadTree, $
            treeCopyPtr:treeCopyPtr, $
-           timeRangeObj:timeRangeObj, $
+           timeRangeObj:tr_obj, $
            statusBar:statusBar, $
            historyWin:historyWin, $
            loadedData:loadedData, $
