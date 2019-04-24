@@ -22,7 +22,7 @@ FUNCTION sppeva_sitl_get_block, START, STOP
     
     PTR = {start:ptr_start, stop: ptr_stop, length: ptr_stop-ptr_start+1L}
   endif else begin
-    message,tp+' not found (sppeva_sitl_get_block)'
+    ;message,tp+' not found (sppeva_sitl_get_block)'
   endelse
   return, PTR
 END

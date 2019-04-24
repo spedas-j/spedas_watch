@@ -114,7 +114,7 @@ PRO spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
                   ianode*'20'x*'08'x
             IF bitpar MOD 2 THEN idef = ideflector $
             ELSE idef = 7-ideflector
-            IF ianode GT 0 && ianode LT 9 THEN $
+            IF ianode GT 0 && ianode LT 8 THEN $                      ; changed from flight version
              arr[ind] = idef+ienergy*'08'x+ianode*'08'x*'20'x $
             ELSE arr[ind] = 'FFFF'x ;; Trash Bin
          ENDFOR

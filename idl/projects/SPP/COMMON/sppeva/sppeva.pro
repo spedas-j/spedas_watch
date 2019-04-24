@@ -56,7 +56,7 @@ PRO sppeva_event, event
     tplot_options,'base',-1
     obj_destroy, obj_valid()
     tn=tnames('*',ct)
-    if ct gt 0 then del_data,'*'
+    ;if ct gt 0 then del_data,'*'
     widget_control, event.top, /DESTROY
     if (!d.flags and 256) ne 0  then begin    ; windowing devices
       str_element,tplot_vars,'options.window',!d.window,/add_replace

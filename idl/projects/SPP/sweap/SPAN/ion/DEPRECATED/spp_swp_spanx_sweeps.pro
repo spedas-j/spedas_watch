@@ -1,6 +1,6 @@
 ; $LastChangedBy: mdmcmanus $
-; $LastChangedDate: 2019-04-03 11:36:57 -0700 (Wed, 03 Apr 2019) $
-; $LastChangedRevision: 26942 $
+; $LastChangedDate: 2019-04-23 11:14:43 -0700 (Tue, 23 Apr 2019) $
+; $LastChangedRevision: 27069 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_sweeps.pro $
 ;
 
@@ -28,7 +28,7 @@ function spp_swp_spi_lengthen_arr, x, y
 end
 
 function spp_swp_spi_delta_array, arr, delta_max=delta_max
-  ;Create array of deltas from arr, where delta[i] is the average of the left and right differences
+  ; Create array of deltas from arr, where delta[i] is the average of the left and right differences
 
   thresh = 0.0
   diffs = abs(shift(arr, 1) - arr)
@@ -37,31 +37,29 @@ function spp_swp_spi_delta_array, arr, delta_max=delta_max
   if count eq 0 then dupe_idxs = []
 
   d = 0.5 * abs(shift(no_dupes,-1) - no_dupes) + 0.5 * abs(shift(no_dupes,1) - no_dupes)
-
   d[0] = 0.5 * abs(no_dupes[1] - no_dupes[0])
   d[-1] = 0.5 * abs(no_dupes[-1] - no_dupes[-2])
 
   if isa(delta_max) then begin
-    foreach i, where(d ge delta_max) do begin
-      ; should double check that where does not return -1 here
-      ; jump at start of energy sweep, get two diffs > max_delta (bc using average of both sides)
-
-      if d[i+1] gt delta_max then begin
-        d[i] = 0.5 * abs(no_dupes[i] - no_dupes[i-1]) ; average left
-      endif else begin
-        d[i] = 0.5 * abs(no_dupes[i] - no_dupes[i+1]) ; average right
-      endelse
-    endforeach
+    idxs = where(d ge delta_max,counts)
+    if counts ne 0 then begin
+      foreach i, idxs do begin
+        ; jump at start of energy sweep, get two diffs > max_delta (bc using average of both sides)
+        if d[i+1] gt delta_max then begin
+          d[i] = 0.5 * abs(no_dupes[i] - no_dupes[i-1]) ; average left
+        endif else begin
+          d[i] = 0.5 * abs(no_dupes[i] - no_dupes[i+1]) ; average right
+        endelse
+      endforeach
+    endif
   endif
 
-  d = spp_swp_spi_lengthen_arr(d, dupe_idxs) ; extend array back to original length w repeated values
+  d = spp_swp_spi_lengthen_arr(d, dupe_idxs) ; extend array back to original length with repeated values
 
   return, d
-
 end
 
-
-function  spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
+function spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
 
   if isa(param) then begin
     etable = param.etable
@@ -88,7 +86,9 @@ function  spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
   
   defConvEst = 0.0025
   hemv  = float( hem_dac * cal.hem_scale * 4. / 2.^16  )   ;  approximate voltage,  average over substeps
-  defv  = float( def_dac  * cal.defl_scale   )   ; approximate angle (degrees)
+  ;defv  = float( def_dac  * cal.defl_scale   )   ; approximate angle (degrees)
+  defv = func(def_dac, param=cal.defl_par) ; use polycurve2 cubic spline
+  
   splv  = float( spl_dac  * cal.spoil_scale * 4./2.^16  ) ;  approximate voltage
   delt = delt_dac
   rtime = findgen(4,256) * substep_time 
@@ -113,7 +113,8 @@ function  spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
   new_dimen = [dimensions,n_anodes]   ; Ion data is generated differently from the electron data,   output is transposed  ( time , anode)  
 
   nrg_all = reform(hemv[*] # cal.k_anal ,new_dimen,/overwrite)     ; energy = k_anal * voltage on inner hemisphere
-  defa_all = reform(defv[*] # cal.k_defl,new_dimen,/overwrite)    ;  this should be evaluated as a cubic spline in the future
+  
+  defa_all = reform(defv[*] # cal.k_defl,new_dimen,/overwrite)
 
   geomdt_all = reform(delt[*] # (cal.dphi *cal.geomfactor_full/360),new_dimen,/overwrite)
   
@@ -128,8 +129,12 @@ function  spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
   
   ; Create delta arrays
   dphi_all = reform(spp_swp_spi_delta_array(phi_all),new_dimen)
-  dE_all = reform(spp_swp_spi_delta_array(nrg_all,delta_max=3000.0),new_dimen)
-  dtheta_all = reform(spp_swp_spi_delta_array(defa_all,delta_max=40.0),new_dimen)
+
+  ; delta max depends on which energy table we're using
+  if param.etable.emode eq 2 then dE_all = reform(spp_swp_spi_delta_array(nrg_all,delta_max=500.0),new_dimen) else $
+  if param.etable.emode eq 5 then dE_all = reform(spp_swp_spi_delta_array(nrg_all,delta_max=3000.0),new_dimen)
+  
+  dtheta_all = reform(spp_swp_spi_delta_array(defa_all,delta_max=15.0),new_dimen)
   
 
 ;  timesort = etable.timesort
@@ -155,8 +160,7 @@ function  spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
   fswp.phi    = phi_all
   fswp.delt   = delt_all
   fswp.rtime  = rtime_all
-  fswp.theta = defa_all
-  ;fswp.theta_new = defa_all_new
+  fswp.theta = defa_all ; using polycurve2 now
   fswp.geom  = geom_all
   fswp.geomdt = geomdt_all
   fswp.dtheta = dtheta_all

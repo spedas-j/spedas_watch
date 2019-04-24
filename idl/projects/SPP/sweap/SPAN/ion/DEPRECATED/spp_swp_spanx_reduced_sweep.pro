@@ -1,6 +1,6 @@
-; $LastChangedBy: mdmcmanus $
-; $LastChangedDate: 2019-04-03 11:37:21 -0700 (Wed, 03 Apr 2019) $
-; $LastChangedRevision: 26943 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-04-22 18:29:07 -0700 (Mon, 22 Apr 2019) $
+; $LastChangedRevision: 27067 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_reduced_sweep.pro $
 ;
 
@@ -70,21 +70,23 @@ for q=0,n_elements(quantnames)-1  do begin
     qmax = quant
     qval = quant
   endelse
-  w = where(hist gt 0,nc)
-  rqarray = replicate(!values.f_nan,nc )
+ ; w = where(hist gt 0,nc)
+  rqarray = replicate(!values.f_nan,n_elements(hist) )
 ;  whist = hist[w]
-  j=0
+;  j=0
   for i = 0,n_elements(hist)-1 do begin
     if hist[i] eq 0 then continue
     ind0 = ri[i] 
     ind1 = ri[i+1]-1
     ind =  ri[ ind0 :ind1 ]
     rqval = total( qval[ ind ] ) 
-    if norm then   rqval = rqval / hist[i] 
-    rqarray[j++] = rqval
+    if norm then   rqval = rqval / float( hist[i] )
+;    rqarray[j++] = rqval
+    rqarray[i] = rqval
   endfor
   rswp[qname] = rqarray
 endfor
+
 
 timesort =spp_swp_multi_sort(rswp['rtime'])
 

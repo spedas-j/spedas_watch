@@ -27,9 +27,9 @@
 ; Author: Davin Larson -  20th century
 ;   Forked from MMS, 04/09/2018, adrozdov
 ;
-; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-11-15 11:37:22 -0800 (Thu, 15 Nov 2018) $
-; $LastChangedRevision: 26128 $
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2019-04-23 15:15:44 -0700 (Tue, 23 Apr 2019) $
+; $LastChangedRevision: 27077 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf2tplot.pro $
 ;-
 
@@ -56,6 +56,12 @@ if keyword_set(get_support_data) then var_type = ['data','support_data']
 ;;;; the following is a filter for CDF file versions (specific to MMS)
 files = unh_mms_file_filter(files, min_version=min_version, version=version, $
   latest_version=latest_version, loaded_versions = loaded_versions, major_version=major_version, /no_time)
+
+  ; Rename cdf files that cannot be opened (adding the file extension .todelete).
+  cant_open = spd_cdf_check_delete(files, /iscdf)
+  if n_elements(cant_open) gt 0 then begin
+    dprint, dlevel=2, 'spd_cdf2tplot: Error! Some files cannot be opened and were renamed:  ' + cant_open
+  endif
 
 cdfi = mms_cdf_load_vars(files,varformat=varformat,var_type=var_type,/spdf_depend, $
      varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, $
