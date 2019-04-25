@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2019-04-19 18:28:22 -0700 (Fri, 19 Apr 2019) $
-  ; $LastChangedRevision: 27050 $
+  ; $LastChangedDate: 2019-04-24 11:18:02 -0700 (Wed, 24 Apr 2019) $
+  ; $LastChangedRevision: 27080 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -92,13 +92,13 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose,download
           l1_counts = l1_cdf.vars['DATA'].data.array
           l1_datasize = l1_cdf.vars['DATASIZE'].data.array
           l1_nrecs = n_elements(l1_datasize)
-          l1_emode = l1_cdf.vars['EMODE'].data.array
-          l1_status_bits = l1_cdf.vars['STATUS_BITS'].data.array
-          dprint,verbose=verbose,dlevel=dlevel,/phelp,uniq(l1_datasize);,varname='uniq'
-          dprint,verbose=verbose,dlevel=dlevel,/phelp,l1_datasize[uniq(l1_datasize)];,varname='datasize'
-          dprint,verbose=verbose,dlevel=dlevel,uniq(l1_emode)
-          dprint,verbose=verbose,dlevel=dlevel,l1_emode[uniq(l1_emode)]
-          dprint,verbose=verbose,dlevel=dlevel,l1_status_bits[uniq(l1_status_bits)]
+ ;         l1_emode = l1_cdf.vars['EMODE'].data.array
+ ;         l1_status_bits = l1_cdf.vars['STATUS_BITS'].data.array
+ ;         dprint,verbose=verbose,dlevel=dlevel,/phelp,uniq(l1_datasize);,varname='uniq'
+ ;         dprint,verbose=verbose,dlevel=dlevel,/phelp,l1_datasize[uniq(l1_datasize)];,varname='datasize'
+ ;         dprint,verbose=verbose,dlevel=dlevel,uniq(l1_emode)
+ ;         dprint,verbose=verbose,dlevel=dlevel,l1_emode[uniq(l1_emode)]
+ ;         dprint,verbose=verbose,dlevel=dlevel,l1_status_bits[uniq(l1_status_bits)]
 
           foreach pmode,pmodes,psize do begin
 

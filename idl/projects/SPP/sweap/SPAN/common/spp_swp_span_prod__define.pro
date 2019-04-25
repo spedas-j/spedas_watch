@@ -1,17 +1,21 @@
 ;+
 ; spp_swp_span_prod
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2018-12-05 13:02:43 -0800 (Wed, 05 Dec 2018) $
-; $LastChangedRevision: 26255 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-04-24 11:18:02 -0700 (Wed, 24 Apr 2019) $
+; $LastChangedRevision: 27080 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
 
 function spp_swp_span_prod::fill,ccsds
 
-
+message,'Not working yet'
 return,str
 end
+
+
+
+
 
  
 PRO spp_swp_span_prod__define ,productstr, ccsds
@@ -42,6 +46,31 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
   endif
 
   header    = ccsds_data[0:19]
+
+  apid = byte(ccsds.apid)
+;  detnum = (ishft(apid,-4) and 'F'x) < 8
+;  detectors = ['?','?','?','?','SWEM','SPC','SPA','SPB','SPI']
+;  detname = detectors[detnum]
+
+  if (apid and 'E0'x) eq '60'x then begin   ;  span - electron packets
+    product_type = ishft( ((apid and 'ff'xb) - '60'xb ) and '6'xb , 3)
+    product_type or= ishft( (apid and '10'xb) , 2)    ; set detector num (spa or spb)
+    product_type or= ishft( (apid and '1'xb)  , 2)    ; set product number 
+  endif
+
+  if (apid and '80'x) ne 0  then begin   ;  span - ion packets
+    tmp = (apid and 'ff'xb) -'80'xb 
+    product_type =  ishft(  tmp / 12b, 4 ) 
+    product_type or=  tmp mod 12b
+    product_type or=  '80'xb
+  endif
+
+  ion       =  (product_type and '80'xb  ) ne 0
+  det       =  (product_type and '40'xb  ) ne 0
+  survey    =  (product_type and '20'xb ) ne 0 
+  targeted  =  (product_type and '10'xb   ) ne 0  
+  prodnum   =  product_type and '0f'xb 
+
   ns = pksize - 20
   ; L = 1 = Log Compress on ON
   ; CC = Meaningless
@@ -63,8 +92,16 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
   ; Hold up folks! : look at the awesome use of the xor function below to invert the sum/sample bit! [plw'18]
   num_accum = 2 ^ (((arch_smp_flag xor 1) * arch_accum) + ((smp_flag xor 1) * srvy_accum)) 
   mode2 = (swap_endian(uint(ccsds_data,14) ,/swap_if_little_endian ))
-  tmode = header[13]
-  emode = header[14]
+  if ion then begin
+    tmode = mode2 and 'f'x
+    emode = ishft(mode2,-4) and 'f'x
+    ;   emode = emode_ori
+    pmode = ishft(mode2,-8) and 'f'x
+    mmode = ishft(mode2,-12) and 'f'x
+  endif else begin
+    tmode = header[13]
+    emode = header[14]    
+  endelse
   f0 = (swap_endian(uint(header,16), /swap_if_little_endian))
   status_bits = header[18]
   peak_bin = header[19]
@@ -86,7 +123,6 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
     cnts = 0.
   endelse
 
-  product_type = 0
 
 
 
@@ -110,17 +146,19 @@ productstr = {spp_swp_span_prod, $
   arch_smp_flag:  arch_smp_flag, $
   tot_accum_prd:  tot_accum_prd, $
   num_accum:   num_accum, $
+  mode2_ori:   mode2,  $
   mode2:       mode2,  $
-  tmode:       tmode, $
-  emode:       emode, $
+ ; tmode:       tmode, $
+ ; emode:       emode, $
   product_type:   product_type,  $
   f0:          f0,$
   status_bits: status_bits,$
   peak_bin:    peak_bin, $
   cnts:        tcnts,  $
-  anode_spec:  fltarr(16),  $
+  ano_spec:    fltarr(16),  $
   nrg_spec:    fltarr(32),  $
   def_spec:    fltarr(8) ,  $
+  mas_spec:    fltarr(16),  $
   ;  full_spec:   fltarr(256), $
   pdata:       ptr_new(cnts), $
   gap:         ccsds.gap  }
