@@ -34,7 +34,7 @@
 
 function elf_get_local_files, probe = probe, instrument = instrument, data_rate = data_rate, $
   level = level, datatype = datatype, trange = trange_in, cdf_version = cdf_version, $
-  latest_version = latest_version, min_version = min_version, mirror = mirror
+  latest_version = latest_version, min_version = min_version, mirror = mirror, pred=pred
 
   compile_opt idl2, hidden
 
@@ -78,7 +78,10 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   ;  -assume file names are of the form:
   ;     spacecraft_level_instrument_YYYYMMDD_version.cdf
   dir_pattern = strjoin(dir_inputs, s) + s   ; + '('+s+dir_datatype+')?' +s+ '[0-9]{4}' +s+ '[0-9]{2}' + s
-  if instrument eq 'state' then dir_pattern = dir_pattern + 'pred' + s
+  if instrument eq 'state' then begin
+     if keyword_set(pred) then dir_pattern = dir_pattern + 'pred' + s $
+        else dir_pattern = dir_pattern + 'defn' + s
+  endif
   if instrument EQ 'epd' && level EQ 'l1' then file_inputs = [probe, level, instrument+strmid(datatype, 1, 2)] $
      else file_inputs = [probe, level, instrument]
   if instrument EQ 'fgm' && level EQ 'l1' then file_inputs = [probe, level, datatype]
@@ -91,7 +94,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   
   instr_data_dir = filepath('', ROOT_DIR=!elf.local_data_dir + dir_pattern) 
   files = file_search(instr_data_dir, '*.cdf')
-  
+
   ;perform search
 ;  filedate = !elf.local_data_dir + dir_pattern + strjoin( basic_inputs, f) + f + time_string(trange_in[0], format=6, precision=-3) + '_v01.cdf' 
 ;  result=file_search(filedate)
@@ -113,7 +116,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   time_strings = file_strings[1,*]
   times = time_double(time_strings, tformat=tformat)
   time_idx = where( times ge trange[0] and times lt trange[1], n_times)
-
+  
   if n_times eq 0 then begin
     ; suppress redundant error message
     ;dprint, dlevel=2, 'No local files found between '+time_string(trange[0])+' and '+time_string(trange[1])

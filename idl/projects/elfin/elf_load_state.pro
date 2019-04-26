@@ -124,6 +124,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
       cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
       always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
   endif
+  
   ; check that data was loaded, if not and the keyword_set pred was not set then 
   ; try predicted data  
   if keyword_set(pred) || undefined(tplotnames) || tplotnames[0] eq '' then begin
@@ -143,20 +144,9 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
     dprint, dlevel = 1, 'No data was loaded.'
     return
   endif
- 
-  ; Set colors to RGB
-  if tplotnames[0] ne '' then begin
-    for i=0,n_elements(tplotnames)-1 do begin
-      get_data, tplotnames[i], data=d, dlimits=dl, limits=l
-      options, /def, tplotnames[i], 'colors', [2,4,6]
-;      options, /def, tplotnames[i], 'ysubtitle', 'km'
-    endfor
-  endif
-
-  ; no reason to continue if the user only requested available data
-  if keyword_set(available) then return
-
-  ; no reason to continue if no data were loaded
-  if undefined(new_tvars) then return
+  
+  for probe_idx = 0, n_elements(probes)-1 do begin
+    elf_state_fix_metadata, probes[probe_idx], suffix = suffix
+  endfor
 
 end

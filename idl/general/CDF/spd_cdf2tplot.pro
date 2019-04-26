@@ -27,9 +27,9 @@
 ; Author: Davin Larson -  20th century
 ;   Forked from MMS, 04/09/2018, adrozdov
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2019-04-23 15:15:44 -0700 (Tue, 23 Apr 2019) $
-; $LastChangedRevision: 27077 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2019-04-25 12:57:36 -0700 (Thu, 25 Apr 2019) $
+; $LastChangedRevision: 27090 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf2tplot.pro $
 ;-
 
@@ -39,7 +39,7 @@ pro spd_cdf2tplot,files,files=files2,prefix=prefix,midfix=midfix,midpos=midpos,s
    ,record=record, tplotnames=tplotnames,load_labels=load_labels, loaded_versions=loaded_versions $
    ,min_version=min_version,version=version,latest_version=latest_version $
    ,number_records=number_records, center_measurement=center_measurement, major_version=major_version, $
-   tt2000=tt2000
+   tt2000=tt2000, disable_cdfcheck=disable_cdfcheck
 
 
 dprint,dlevel=4,verbose=verbose,'Id:'
@@ -57,11 +57,13 @@ if keyword_set(get_support_data) then var_type = ['data','support_data']
 files = unh_mms_file_filter(files, min_version=min_version, version=version, $
   latest_version=latest_version, loaded_versions = loaded_versions, major_version=major_version, /no_time)
 
+if ~keyword_set(disable_cdfcheck) then begin
   ; Rename cdf files that cannot be opened (adding the file extension .todelete).
   cant_open = spd_cdf_check_delete(files, /iscdf)
   if n_elements(cant_open) gt 0 then begin
     dprint, dlevel=2, 'spd_cdf2tplot: Error! Some files cannot be opened and were renamed:  ' + cant_open
   endif
+endif
 
 cdfi = mms_cdf_load_vars(files,varformat=varformat,var_type=var_type,/spdf_depend, $
      varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, $
