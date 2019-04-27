@@ -1,6 +1,6 @@
-; $LastChangedBy: mdmcmanus $
-; $LastChangedDate: 2019-04-17 15:42:42 -0700 (Wed, 17 Apr 2019) $
-; $LastChangedRevision: 27039 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-04-26 15:38:42 -0700 (Fri, 26 Apr 2019) $
+; $LastChangedRevision: 27104 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param2.pro $
 ;
 
@@ -81,6 +81,10 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
           n_anodes  = 16
           phi =  - phi+180
           eff = replicate(1.,n_anodes)
+          rot_th = 20. ; rotation angle
+          rotr = [[1,0,0.],[0,cosd(rot_th),sind(rot_th)],[0,-sind(throt_th),cosd(rot_th)]]         
+          rel = [[0,-1,0],[0,0,-1],[1,0,0]]    ; effective relabelling of axes
+          RotMat = rel ## rotr ; transformation matrix from ion instrument coordinates TO spacecraft          
           cal  = {   $
             name: detname,  $
             n_anodes: n_anodes, $
@@ -93,6 +97,7 @@ function spp_swp_spi_param2,detname=detname,emode=emode,pmode=pmode,reset=reset
             spoil_scale:  80./2.^16   ,  $  ; Needs correction
             k_anal:  replicate(16.7,n_anodes) ,  $
             k_defl:  replicate(1.,n_anodes), $
+            rotmat_spi_sc:  rotmat,  $
             defl_par : polycurve2(coeff =  [-0.10455392d, 0.00091165009, 4.9989460e-10, -1.8446723e-15, -1.0461697e-18, 5.4448921e-23]) $
 ;            defl_par : polycurve2(coeff =  [ -6.6967358589d, 1118.9683837891, 0.5826185942, -0.0928234607 ,  0.0000374681,  0.0000016514 ],/invert )  $
           }

@@ -19,24 +19,22 @@ pro elf_state_fix_metadata, probe, suffix = suffix
   probe = strcompress(string(probe), /rem)
   position_vars = tnames('el'+probe+'_pos_*')
   velocity_vars = tnames('el'+probe+'_vel_*')
-  attitude_vars = tnames('el'+probe+'_att_*')
-
+ 
   for pos_idx = 0, n_elements(position_vars)-1 do begin
     get_data, position_vars[pos_idx], data=d, dlimits=dl, limits=l
-    dl = create_struct(dl, 'colors', [2, 4, 6])
+    coloridx=where(tag_names(dl) EQ 'COLORS', ccnt)
+    if ccnt EQ 0 then dl = create_struct(dl, 'colors', [2, 4, 6])
+    labelidx=where(tag_names(dl) EQ 'LABELS', lcnt)
+    if lcnt EQ 0 then dl = create_struct(dl, 'labels', ['X', 'Y', 'Z'])
     store_data, position_vars[pos_idx], data=d, dlimits=dl, limits=l
   endfor
   for vel_idx = 0, n_elements(velocity_vars)-1 do begin
     get_data, velocity_vars[vel_idx], data=d, dlimits=dl, limits=l
-    dl = create_struct(dl, 'colors', [2, 4, 6])
+    coloridx=where(tag_names(dl) EQ 'COLORS', ccnt)
+    if ccnt EQ 0 then dl = create_struct(dl, 'colors', [2, 4, 6])
+    labelidx=where(tag_names(dl) EQ 'LABELS', lcnt)
+    if lcnt EQ 0 then dl = create_struct(dl, 'labels', ['X', 'Y', 'Z'])
     store_data, velocity_vars[vel_idx], data=d, dlimits=dl, limits=l
   endfor
-  if attitude_vars[0] NE '' then begin
-    for att_idx = 0, n_elements(attitude_vars)-1 do begin
-      get_data, attitude_vars[att_idx], data=d, dlimits=dl, limits=l
-      dl = create_struct(dl, 'colors', [2, 4, 6])
-      store_data, attitude_vars[att_idx], data=d, dlimits=dl, limits=l
-    endfor
-  endif
 
 end

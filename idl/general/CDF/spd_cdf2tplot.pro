@@ -16,8 +16,6 @@
 ;         resolve labels implemented as keyword to preserve backwards compatibility 
 ;
 ; NOTE:
-;   The function uses several function from mms package, however it can be used 
-;   for other missions (and cdf files) as well.
 ;   The used function spd_cdf_info_to_tplot rely on the order of the variables 
 ;   in the cdf file. According to ISTP/IACG guidelines "Epoch" should be the 
 ;   first variable in each CDF data set.
@@ -27,9 +25,9 @@
 ; Author: Davin Larson -  20th century
 ;   Forked from MMS, 04/09/2018, adrozdov
 ;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-04-25 12:57:36 -0700 (Thu, 25 Apr 2019) $
-; $LastChangedRevision: 27090 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2019-04-26 16:18:53 -0700 (Fri, 26 Apr 2019) $
+; $LastChangedRevision: 27108 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf2tplot.pro $
 ;-
 
@@ -54,7 +52,7 @@ if not keyword_set(varformat) then var_type = 'data'
 if keyword_set(get_support_data) then var_type = ['data','support_data']
 
 ;;;; the following is a filter for CDF file versions (specific to MMS)
-files = unh_mms_file_filter(files, min_version=min_version, version=version, $
+files = spd_unh_mms_file_filter(files, min_version=min_version, version=version, $
   latest_version=latest_version, loaded_versions = loaded_versions, major_version=major_version, /no_time)
 
 if ~keyword_set(disable_cdfcheck) then begin
@@ -65,7 +63,7 @@ if ~keyword_set(disable_cdfcheck) then begin
   endif
 endif
 
-cdfi = mms_cdf_load_vars(files,varformat=varformat,var_type=var_type,/spdf_depend, $
+cdfi = spd_mms_cdf_load_vars(files,varformat=varformat,var_type=var_type,/spdf_depend, $
      varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, $
      number_records=number_records)
 

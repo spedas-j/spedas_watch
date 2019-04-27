@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-19 16:24:07 -0700 (Fri, 19 Apr 2019) $
-; $LastChangedRevision: 27047 $
+; $LastChangedDate: 2019-04-26 15:38:42 -0700 (Fri, 26 Apr 2019) $
+; $LastChangedRevision: 27104 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -12,6 +12,7 @@ PRO spp_swp_spi_load, types=types, $
                       varformat=varformat, $
                       trange=trange, $
                       no_load=no_load, $
+                      save=save,  $
                       verbose=verbose
 
    ;; Add Archive and Tagerted when available
@@ -100,6 +101,15 @@ PRO spp_swp_spi_load, types=types, $
               fileformat,trange=tr,/daily_names,$
               /valid_only,prefix=fileprefix,$
               verbose=verbose)
+              
+      ;;               
+      if keyword_set(save) then begin
+        vardata = !null
+        novardata = !null
+        loadcdfstr,filenames=files,vardata,novardata
+        dummy = spp_data_product_hash('spi_'+type,vardata)
+      endif
+
 
       ;; Do not load the files
       IF keyword_set(no_load) THEN CONTINUE
@@ -118,8 +128,8 @@ PRO spp_swp_spi_load, types=types, $
       ENDIF
 
       ;; Set tplot Preferences
-      ylim,prefix+'*EFLUX',  1.,10000.,1,/default
-      Zlim,prefix+'*EFLUX',100., 2000.,1,/default
+  ;    ylim,prefix+'*EFLUX',  1.,10000.,1,/default
+  ;    Zlim,prefix+'*EFLUX',100., 2000.,1,/default
       
    endforeach
    ;; format = 'psp/data/sci/sweap/spa/L2/YYYY/MM/spa_sf1/spp_swp_spa_sf1_L2_*_YYYYMMDD_v??.cdf'

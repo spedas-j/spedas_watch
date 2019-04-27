@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_span_prod
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-24 11:18:02 -0700 (Wed, 24 Apr 2019) $
-; $LastChangedRevision: 27080 $
+; $LastChangedDate: 2019-04-26 15:38:42 -0700 (Fri, 26 Apr 2019) $
+; $LastChangedRevision: 27104 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
@@ -94,13 +94,14 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
   mode2 = (swap_endian(uint(ccsds_data,14) ,/swap_if_little_endian ))
   if ion then begin
     tmode = mode2 and 'f'x
-    emode = ishft(mode2,-4) and 'f'x
-    ;   emode = emode_ori
-    pmode = ishft(mode2,-8) and 'f'x
-    mmode = ishft(mode2,-12) and 'f'x
+    emode = ishft(mode2,-4) and 'f'xb
+    pmode = ishft(mode2,-8) and 'f'xb
+    mmode = ishft(mode2,-12) and 'f'xb
   endif else begin
     tmode = header[13]
-    emode = header[14]    
+    emode = header[14]  
+    pmode = header[13]
+    mmode = 0b  
   endelse
   f0 = (swap_endian(uint(header,16), /swap_if_little_endian))
   status_bits = header[18]
@@ -142,23 +143,25 @@ productstr = {spp_swp_span_prod, $
   log_flag:    log_flag, $
   smp_flag:    smp_flag, $
   mode1:       mode1,  $
+  mode2_ori:   mode2,  $
   arch_sum:    arch_sum, $
   arch_smp_flag:  arch_smp_flag, $
   tot_accum_prd:  tot_accum_prd, $
   num_accum:   num_accum, $
-  mode2_ori:   mode2,  $
   mode2:       mode2,  $
- ; tmode:       tmode, $
- ; emode:       emode, $
+;  tmode:       byte(tmode), $
+;  emode:       byte(emode), $
+;  pmode:       byte(pmode), $
+;  mmode:       byte(mmode), $
   product_type:   product_type,  $
   f0:          f0,$
   status_bits: status_bits,$
   peak_bin:    peak_bin, $
   cnts:        tcnts,  $
-  ano_spec:    fltarr(16),  $
-  nrg_spec:    fltarr(32),  $
-  def_spec:    fltarr(8) ,  $
-  mas_spec:    fltarr(16),  $
+;  ano_spec:    fltarr(16),  $
+;  nrg_spec:    fltarr(32),  $
+;  def_spec:    fltarr(8) ,  $
+;  mas_spec:    fltarr(16),  $
   ;  full_spec:   fltarr(256), $
   pdata:       ptr_new(cnts), $
   gap:         ccsds.gap  }

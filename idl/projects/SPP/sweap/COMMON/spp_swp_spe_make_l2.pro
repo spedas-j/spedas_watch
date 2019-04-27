@@ -5,8 +5,8 @@
   ;
   ;
   ; $LastChangedBy: davin-mac $
-  ; $LastChangedDate: 2019-04-24 11:18:02 -0700 (Wed, 24 Apr 2019) $
-  ; $LastChangedRevision: 27080 $
+  ; $LastChangedDate: 2019-04-26 15:38:42 -0700 (Fri, 26 Apr 2019) $
+  ; $LastChangedRevision: 27104 $
   ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_spe_make_l2.pro $
   ;--------------------------------------------------------------------
 
@@ -124,8 +124,9 @@ pro spp_swp_spe_make_l2,init=init,trange=trange,all=all,verbose=verbose,download
             dprint,'Nrecs=',l2_nrecs, '  File: '+file,dlevel=3
             for i = 0 , l2_nrecs-1 do begin
               dati= l2_dat[i]
-              param = spp_swp_spe_param(detname = spx, emode = dati.emode, pmode = pmode,data=dati,param=param)
-              if ~isa(dati_last) || dati_last.emode ne dati.emode || (dati.status_bits ne dati_last.status_bits) then begin
+;              emode = ishft(dati.mode2 ,-8 ) and 'ff'x
+              param = spp_swp_spe_param(detname = spx, emode = emode, pmode = pmode,data=dati,param=param)
+              if ~isa(dati_last) || dati_last.mode2 ne dati.mode2 || (dati.status_bits ne dati_last.status_bits) then begin
                 fswp = spp_swp_spe_sweeps(param=param,data=dati)
                 ptable = param['PTABLE']
                 rswp =  spp_swp_spe_reduced_sweep(fullsweep=fswp,ptable=param.ptable)

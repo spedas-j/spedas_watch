@@ -1,6 +1,6 @@
-; $LastChangedBy: mdmcmanus $
-; $LastChangedDate: 2019-04-23 11:14:43 -0700 (Tue, 23 Apr 2019) $
-; $LastChangedRevision: 27069 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-04-26 15:36:59 -0700 (Fri, 26 Apr 2019) $
+; $LastChangedRevision: 27103 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/DEPRECATED/spp_swp_spanx_sweeps.pro $
 ;
 
@@ -58,6 +58,36 @@ function spp_swp_spi_delta_array, arr, delta_max=delta_max
 
   return, d
 end
+
+
+function spp_swp_spi_array_width,array,dim
+dimensions = size(/dimen,array)
+ndim = size(/n_dimension,array)
+shift_array =( indgen(ndim) +1 ) eq dim
+
+delta_1  = (array - shift(array,shift_array))    ; get + difference along the dimension
+delta_2  = (shift(array,-shift_array) - array)   ; get - difference along the dimension
+case dim of
+  1: begin
+     delta_1[0,*,*] = delta_1[1,*,*]                       ; correct first index of edge
+     delta_2[-1,*,*] = delta_2[-2,*,*]             ;  correct last index of edge
+  end
+  2: begin
+    delta_1[*,0,*] = delta_1[*,1,*]                       ; correct first index of edge
+    delta_2[*,-1,*] = delta_2[*,-2,*]             ;  correct last index of edge
+  end
+  3: begin
+    delta_1[*,*,0] = delta_1[*,*,1]                       ; correct first index of edge
+    delta_2[*,*,-1] = delta_2[*,*,-2]             ;  correct last index of edge
+  end
+endcase
+width = abs(delta_1 /2) + abs(delta_2 /2)    ; use sum of  half width on either side
+return, width
+end
+
+
+
+
 
 function spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
 
@@ -128,13 +158,23 @@ function spp_swp_spanx_sweeps,etable=etable,cal=cal,param=param,peakbin=peakbin
   
   
   ; Create delta arrays
-  dphi_all = reform(spp_swp_spi_delta_array(phi_all),new_dimen)
 
-  ; delta max depends on which energy table we're using
-  if param.etable.emode eq 2 then dE_all = reform(spp_swp_spi_delta_array(nrg_all,delta_max=500.0),new_dimen) else $
-  if param.etable.emode eq 5 then dE_all = reform(spp_swp_spi_delta_array(nrg_all,delta_max=3000.0),new_dimen)
-  
-  dtheta_all = reform(spp_swp_spi_delta_array(defa_all,delta_max=15.0),new_dimen)
+  if 0 then begin   ; this method fails if emode is anything other than 2 or 5
+    dphi_all = reform(spp_swp_spi_delta_array(phi_all),new_dimen)
+
+    ; delta max depends on which energy table we're using
+    if param.etable.emode eq 2 then dE_all = reform(spp_swp_spi_delta_array(nrg_all,delta_max=500.0),new_dimen) else $
+    if param.etable.emode eq 5 then dE_all = reform(spp_swp_spi_delta_array(nrg_all,delta_max=3000.0),new_dimen)
+   
+    dtheta_all = reform(spp_swp_spi_delta_array(defa_all,delta_max=15.0),new_dimen)
+
+  endif else begin
+    rect_dim = [4*8,32,16]    ; this only works for rectangular sweeps!
+;    dphi_all     = reform ( spp_swp_spi_array_width(  reform(    phi_all   ,rect_dim)  , 3 ) , new_dimen )                 ; this is not optimal - Use the original dphi's
+    dphi_all = cal.dphi[anode_all]
+    de_all     = reform (spp_swp_spi_array_width(  reform( alog(nrg_all)  ,rect_dim)  , 2 )  , new_dimen )  * nrg_all           ;  Get energy widths
+    dtheta_all     = reform ( spp_swp_spi_array_width(  reform(    defa_all  ,rect_dim)  , 1 ) , new_dimen )                   ;  Get theta widths
+  endelse
   
 
 ;  timesort = etable.timesort

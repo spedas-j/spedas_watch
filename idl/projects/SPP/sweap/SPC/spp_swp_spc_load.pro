@@ -1,12 +1,12 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-16 01:39:02 -0700 (Tue, 16 Apr 2019) $
-; $LastChangedRevision: 27027 $
+; $LastChangedDate: 2019-04-26 15:38:42 -0700 (Fri, 26 Apr 2019) $
+; $LastChangedRevision: 27104 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 pro spp_swp_spc_load,files,  trange=trange, type = type,save=save
 
 
-   if not keyword_set(type) then type = 'l2i'
+   if not keyword_set(type) then type = 'l3i'
    
    Ltype = 'L'+strmid(type,1,1)
 
@@ -14,7 +14,7 @@ pro spp_swp_spc_load,files,  trange=trange, type = type,save=save
    
    if not keyword_set(files) then files = spp_file_retrieve(pathname,trange=trange,/last_version,/daily_names,verbose=2)
    prefix = 'psp_swp_spc_'+type+'_'
-   cdf2tplot,files,prefix = prefix,verbose=1
+   cdf2tplot,files,prefix = prefix,verbose=2
    
    if keyword_set(save) then begin
     loadcdfstr,filenames=files,vardata,novardata
@@ -31,3 +31,4 @@ pro spp_swp_spc_load,files,  trange=trange, type = type,save=save
      
    endif
 end
+

@@ -116,7 +116,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   time_strings = file_strings[1,*]
   times = time_double(time_strings, tformat=tformat)
   time_idx = where( times ge trange[0] and times lt trange[1], n_times)
-  
+
   if n_times eq 0 then begin
     ; suppress redundant error message
     ;dprint, dlevel=2, 'No local files found between '+time_string(trange[0])+' and '+time_string(trange[1])

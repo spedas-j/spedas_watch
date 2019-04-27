@@ -102,7 +102,6 @@ pro elf_ui_load_data_load_pro,$
                   trange=timeRange, varformat=varformat
   endcase
   
-  stop
 ;  if coordinate NE 'GEI' then begin
 ;     cotrans, 
 ;  endif
@@ -111,7 +110,7 @@ pro elf_ui_load_data_load_pro,$
   ; variables
   spd_ui_cleanup_tplot, tn_before, create_time_before=cn_before, del_vars=to_delete,$
                         new_vars=new_vars
-stop
+
   if new_vars[0] ne '' then begin
     loaded = 1
   
