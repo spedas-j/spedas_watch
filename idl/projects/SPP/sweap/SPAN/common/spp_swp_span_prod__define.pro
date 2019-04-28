@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_span_prod
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-26 15:38:42 -0700 (Fri, 26 Apr 2019) $
-; $LastChangedRevision: 27104 $
+; $LastChangedDate: 2019-04-27 07:57:38 -0700 (Sat, 27 Apr 2019) $
+; $LastChangedRevision: 27113 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
@@ -158,10 +158,10 @@ productstr = {spp_swp_span_prod, $
   status_bits: status_bits,$
   peak_bin:    peak_bin, $
   cnts:        tcnts,  $
-;  ano_spec:    fltarr(16),  $
-;  nrg_spec:    fltarr(32),  $
-;  def_spec:    fltarr(8) ,  $
-;  mas_spec:    fltarr(16),  $
+  ano_spec:    fltarr(16),  $
+  nrg_spec:    fltarr(32),  $
+  def_spec:    fltarr(8) ,  $
+  mas_spec:    fltarr(16),  $
   ;  full_spec:   fltarr(256), $
   pdata:       ptr_new(cnts), $
   gap:         ccsds.gap  }
