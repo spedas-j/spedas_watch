@@ -235,18 +235,18 @@ stop
 ;=============================================================================
 ;3) Calculating EIS pitch angle distributions
 
-mms_eis_pad, species='ion', ion_type='proton', datatype='phxtof', probe=3
+mms_eis_pad, species='proton', datatype='phxtof', probe=3
 
 tplot, 'mms3_epd_eis_phxtof_0-1000keV_proton_flux_omni_pad'+['', '_spin']
 stop
 
 ; calculate the PAD in counts per second
-mms_eis_pad, data_units='cps', species='ion', ion_type='proton', datatype='phxtof', probe=3
+mms_eis_pad, data_units='cps', species='proton', datatype='phxtof', probe=3
 
 tplot, 'mms3_epd_eis_phxtof_0-1000keV_proton_cps_omni_pad'+['', '_spin']
 stop
 
-mms_eis_pad, energy=[30, 40], species='ion', ion_type='proton', datatype='phxtof', probe=3
+mms_eis_pad, energy=[30, 40], species='proton', datatype='phxtof', probe=3
 
 tplot, 'mms3_epd_eis_phxtof_30-40keV_proton_flux_omni_pad'+['', '_spin']
 stop

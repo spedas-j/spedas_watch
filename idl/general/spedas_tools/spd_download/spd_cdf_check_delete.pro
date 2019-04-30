@@ -27,8 +27,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-04-23 13:26:08 -0700 (Tue, 23 Apr 2019) $
-;$LastChangedRevision: 27074 $
+;$LastChangedDate: 2019-04-29 12:00:37 -0700 (Mon, 29 Apr 2019) $
+;$LastChangedRevision: 27131 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/spd_download/spd_cdf_check_delete.pro $
 ;
 ;-------------------------------------------------------------------
@@ -88,7 +88,7 @@ function spd_cdf_check_delete, filenames, iscdf=iscdf, isnetcdf=isnetcdf, delete
 
     ; check if file can be opened (cdf or netcdf)
     if ~keyword_set(cdfornetcdf) then begin
-      dprint, dlevel=1, 'spd_cdf_check_delete: Could not determine if this is cdf or netcdf file: ', nfile
+      dprint, dlevel=5, 'spd_cdf_check_delete: Warning. Could not determine if this is cdf or netcdf file: ', nfile
     endif else begin
       if cdfornetcdf eq 1 then begin
         ; cdf file

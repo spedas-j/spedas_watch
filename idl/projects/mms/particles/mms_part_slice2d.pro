@@ -219,15 +219,15 @@
 ;         This routine always centers the distribution/moments data
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-11-27 09:47:35 -0800 (Tue, 27 Nov 2018) $
-;$LastChangedRevision: 26177 $
+;$LastChangedDate: 2019-04-29 17:42:15 -0700 (Mon, 29 Apr 2019) $
+;$LastChangedRevision: 27143 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
 pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, species=species, instrument=instrument, $
                       trange=trange, subtract_bulk=subtract_bulk, spdf=spdf, rotation=rotation, output=output, $
                       units=units, subtract_error=subtract_error, plotbulk=plotbulk, plotsun=plotsun, fgm_data_rate=fgm_data_rate, $
-                      _extra=_extra
+                      correct_photoelectrons=correct_photoelectrons, _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -247,6 +247,11 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
       if instrument eq 'hpca' then data_rate = 'srvy'
     endif
 
+    if keyword_set(correct_photoelectrons) && (instrument ne 'fpi' or species ne 'e') then begin
+      dprint, dlevel=0, 'Photoelectron corrections only valid for FPI electron data'
+      return
+    endif
+    
     if undefined(fgm_data_rate) then fgm_data_rate = data_rate eq 'brst' ? 'brst' : 'srvy'
     
     if undefined(probe) then probe = '1' else probe = strcompress(string(probe), /rem)
@@ -274,14 +279,16 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     endif else if instrument eq 'hpca' then begin
       name = 'mms'+probe+'_hpca_'+species+'_phase_space_density'
       vname = 'mms'+probe+'_hpca_'+species+'_ion_bulk_velocity'
-      if ~spd_data_exists(name, trange[0], trange[1]) then mms_load_hpca, datatype='ion', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip, varformat='*_hpca_'+species+'_phase_space_density *_hpca_azimuth_angles_per_ev_degrees', /major
-      if load_support && ~spd_data_exists(vname, trange[0], trange[1]) then mms_load_hpca, datatype='moments', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip, varformat='*_hpca_'+species+'_ion_bulk_velocity', /major
+      if ~spd_data_exists(name, trange[0], trange[1]) then mms_load_hpca, datatype='ion', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip, varformat='*_hpca_'+species+'_phase_space_density *_hpca_azimuth_angles_per_ev_degrees', /major_version
+      if load_support && ~spd_data_exists(vname, trange[0], trange[1]) then mms_load_hpca, datatype='moments', data_rate=data_rate, /center, level=level, probe=probe, trange=trange, spdf=spdf, /time_clip, varformat='*_hpca_'+species+'_ion_bulk_velocity', /major_version
     endif else begin
       dprint, dlevel=0, 'Error, unknown instrument; valid options are: fpi, hpca'
       return
     endelse
 
-    dist = mms_get_dist(name, trange=trange, subtract_error=subtract_error, error=error_variable, /structure)
+    if keyword_set(correct_photoelectrons) then begin
+      dist = mms_fpi_correct_photoelectrons(name, probe=probe, trange=trange, subtract_error=subtract_error, error=error_variable, /structure)
+    endif else dist = mms_get_dist(name, instrument=instrument, probe=probe, trange=trange, subtract_error=subtract_error, error=error_variable, /structure)
     
     if keyword_set(units) then begin
       for dist_idx=0, n_elements(dist)-1 do begin
