@@ -21,13 +21,13 @@
 ;         This routine always centers the distribution/moments data
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-06-29 10:38:01 -0700 (Fri, 29 Jun 2018) $
-;$LastChangedRevision: 25421 $
+;$LastChangedDate: 2019-04-30 09:44:09 -0700 (Tue, 30 Apr 2019) $
+;$LastChangedRevision: 27150 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_isee3d.pro $
 ;-
 
 pro mms_part_isee3d, time=time, probe=probe, level=level, data_rate=data_rate, species=species, instrument=instrument, $
-                      trange=trange, subtract_error=subtract_error, spdf=spdf, _extra=_extra
+                      trange=trange, subtract_error=subtract_error, spdf=spdf, correct_photoelectrons=correct_photoelectrons, _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -48,6 +48,11 @@ pro mms_part_isee3d, time=time, probe=probe, level=level, data_rate=data_rate, s
     endif
     if undefined(probe) then probe = '1' else probe = strcompress(string(probe), /rem)
 
+    if keyword_set(correct_photoelectrons) && (instrument ne 'fpi' or species ne 'e') then begin
+      dprint, dlevel=0, 'Photoelectron corrections only valid for FPI electron data'
+      return
+    endif
+    
     mms_load_fgm, trange=trange, probe=probe, spdf=spdf
     bname = 'mms'+probe+'_fgm_b_gse_srvy_l2_bvec'
     
@@ -67,8 +72,10 @@ pro mms_part_isee3d, time=time, probe=probe, level=level, data_rate=data_rate, s
       return
     endelse
     
-    dist = mms_get_dist(name, trange=trange, subtract_error=subtract_error, error=error_variable)
-    
+    if keyword_set(correct_photoelectrons) then begin
+      dist = mms_fpi_correct_photoelectrons(name, trange=trange, subtract_error=subtract_error, error=error_variable)
+    endif else dist = mms_get_dist(name, trange=trange, subtract_error=subtract_error, error=error_variable)
+
     data = spd_dist_to_hash(dist)
     
     isee_3d, data=data, trange=trange, bfield=bname, velocity=vname, unit='psd', /slice_volume, _extra=_extra

@@ -22,8 +22,8 @@
 ;     Initial call will take more time than subsequent calls, due to the need to download the event index
 ;     
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-04-29 11:19:29 -0700 (Mon, 29 Apr 2019) $
-; $LastChangedRevision: 27128 $
+; $LastChangedDate: 2019-04-30 10:13:02 -0700 (Tue, 30 Apr 2019) $
+; $LastChangedRevision: 27151 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/events/mms_event_search.pro $
 ;-
 
@@ -81,8 +81,8 @@ pro mms_events, quiet=quiet
       endif else begin
         mms_events_search_table[tokens[token_idx]] = [event_count]
       endelse
-      mms_event_table[event_count] = create_struct('author', authors[event_idx], 'description', descriptions[event_idx], 'start_time', start_tai[event_idx], 'end_time', end_tai[event_idx])
     endfor
+    mms_event_table[event_count] = create_struct('author', authors[event_idx], 'description', descriptions[event_idx], 'start_time', start_tai[event_idx], 'end_time', end_tai[event_idx])
     event_count += 1l
   endfor
 
