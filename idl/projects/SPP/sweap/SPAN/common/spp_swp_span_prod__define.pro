@@ -1,10 +1,60 @@
 ;+
 ; spp_swp_span_prod
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-27 07:57:38 -0700 (Sat, 27 Apr 2019) $
-; $LastChangedRevision: 27113 $
+; $LastChangedDate: 2019-05-01 09:18:21 -0700 (Wed, 01 May 2019) $
+; $LastChangedRevision: 27156 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
+
+
+
+; SPP_SWP_SPI_PROD_APDAT
+;
+; APID: 0x380-0x3AF
+; Descritpion: SPAN-Ai Science Packet
+; Size: Vairable
+;
+;----------------------------------------------
+; Byte  |   Bits   |        Data Value
+;----------------------------------------------
+;   0   | 00001aaa | ApID Upper Byte
+;   1   | aaaaaaaa | ApID Lower Byte
+;   2   | 11cccccc | Sequence Count Upper Byte
+;   3   | cccccccc | Sequence Count Lower Byte
+;   4   | LLLLLLLL | Message Length Upper Byte
+;   5   | LLLLLLLL | Message Length Lower Byte
+;   6   | MMMMMMMM | MET Byte 5
+;   7   | MMMMMMMM | MET Byte 4
+;   8   | MMMMMMMM | MET Byte 3
+;   9   | MMMMMMMM | MET Byte 2
+;  10   | ssssssss | MET Byte 1 [subseconds]
+;  11   | ssssssss | s = MET subseconds
+;       |          | x = Cycle Count LSBs
+;       |          |     (sub NYS Indicator)
+;  12   | LTCSNNNN | L = Log Compressed
+;       |          | T = No Targeted Sweep
+;       |          | C = Compress/Truncate TOF
+;       |          | S = Summing
+;       |          | N = 2^N Sum/Sample Period
+;  13   | QQQQQQQQ | Spare
+;  14   | mmmmmmmm | Mode ID Upper Byte
+;  15   | mmmmmmmm | Mode ID Lower Byte
+;  16   | FFFFFFFF | F0 Counter Upper Byte
+;  17   | FFFFFFFF | F0 Counter Lower Byte
+;  18   | AAtHDDDD | A = Attenuator State
+;       |          | t = Test Pulser
+;       |          | H = HV Enable
+;       |          | D = HV Mode
+;  19   | XXXXXXXX | X = Peak Count Step
+;
+; 20 - ???
+; --------
+; Science Product Data
+;
+
+
+
+
 
 
 function spp_swp_span_prod::fill,ccsds
@@ -53,23 +103,23 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
 ;  detname = detectors[detnum]
 
   if (apid and 'E0'x) eq '60'x then begin   ;  span - electron packets
-    product_type = ishft( ((apid and 'ff'xb) - '60'xb ) and '6'xb , 3)
-    product_type or= ishft( (apid and '10'xb) , 2)    ; set detector num (spa or spb)
-    product_type or= ishft( (apid and '1'xb)  , 2)    ; set product number 
+    product_bits = ishft( ((apid and 'ff'xb) - '60'xb ) and '6'xb , 3)
+    product_bits or= ishft( (apid and '10'xb) , 2)    ; set detector num (spa or spb)
+    product_bits or= ishft( (apid and '1'xb)  , 2)    ; set product number 
   endif
 
   if (apid and '80'x) ne 0  then begin   ;  span - ion packets
     tmp = (apid and 'ff'xb) -'80'xb 
-    product_type =  ishft(  tmp / 12b, 4 ) 
-    product_type or=  tmp mod 12b
-    product_type or=  '80'xb
+    product_bits =  ishft(  tmp / 12b, 4 ) 
+    product_bits or=  tmp mod 12b
+    product_bits or=  '80'xb
   endif
 
-  ion       =  (product_type and '80'xb  ) ne 0
-  det       =  (product_type and '40'xb  ) ne 0
-  survey    =  (product_type and '20'xb ) ne 0 
-  targeted  =  (product_type and '10'xb   ) ne 0  
-  prodnum   =  product_type and '0f'xb 
+  ion       =  (product_bits and '80'xb  ) ne 0
+  det       =  (product_bits and '40'xb  ) ne 0
+  survey    =  (product_bits and '20'xb ) ne 0 
+  targeted  =  (product_bits and '10'xb   ) ne 0  
+  prodnum   =  product_bits and '0f'xb 
 
   ns = pksize - 20
   ; L = 1 = Log Compress on ON
@@ -78,19 +128,24 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
   ; S = 0 if Arch is Summing
   ; NNNN = the number of accumulation periods (1/4 NYS) for Archive.
   log_flag = header[12]
+  LTCSNNNN_bits = header[12]
   smp_flag = (ishft(header[12],-4) AND 1)
-  srvy_accum = (header[12] AND 15)
+  smp_accum = (header[12] AND 15)
   ; Format here is 000SNNNN
   ; S = 1 if Arch is Sampling
   ; S = 0 if Arch is Summing
   ; NNNN = the number of accumulation periods (1/4 NYS) for Archive.
   arch_sum  = header[13] ; leftover from old code, leave to not break things [plw'18]
   mode1 = header[13]
-  arch_smp_flag = ishft(header[13],-4) ; shift four bits to get 5th bit.
+  arch_smp_flag = ishft(header[13],-4)  AND 1  ; shift four bits to get 5th bit.
   arch_accum = (header[13] AND 15) ; remove the lower 4 bits.
-  tot_accum_prd = 2 ^ (arch_accum + srvy_accum) ; in 1/4 NYS accumulation periods.
+  tot_accum_prd = 2u ^ (arch_accum + smp_accum) ; in 1/4 NYS accumulation periods.
   ; Hold up folks! : look at the awesome use of the xor function below to invert the sum/sample bit! [plw'18]
-  num_accum = 2 ^ (((arch_smp_flag xor 1) * arch_accum) + ((smp_flag xor 1) * srvy_accum)) 
+  if survey then begin
+    num_accum = 2u ^ (((arch_smp_flag xor 1) * arch_accum) + ((smp_flag xor 1) * smp_accum)) 
+  endif else begin
+    num_accum = 2u ^ ((smp_flag xor 1) * smp_accum)
+  endelse
   mode2 = (swap_endian(uint(ccsds_data,14) ,/swap_if_little_endian ))
   if ion then begin
     tmode = mode2 and 'f'x
@@ -142,6 +197,7 @@ productstr = {spp_swp_span_prod, $
   datasize:    ns, $
   log_flag:    log_flag, $
   smp_flag:    smp_flag, $
+  LTCSNNNN_bits : LTCSNNNN_bits, $
   mode1:       mode1,  $
   mode2_ori:   mode2,  $
   arch_sum:    arch_sum, $
@@ -153,8 +209,8 @@ productstr = {spp_swp_span_prod, $
 ;  emode:       byte(emode), $
 ;  pmode:       byte(pmode), $
 ;  mmode:       byte(mmode), $
-  product_type:   product_type,  $
-  f0:          f0,$
+  product_bits:   product_bits,  $
+  f0:          f0,   $
   status_bits: status_bits,$
   peak_bin:    peak_bin, $
   cnts:        tcnts,  $

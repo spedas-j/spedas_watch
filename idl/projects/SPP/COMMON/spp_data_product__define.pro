@@ -44,11 +44,13 @@ end
 
 
 
-PRO spp_data_product::GetProperty,  ptr=ptr, name=name 
+PRO spp_data_product::GetProperty,  ptr=ptr, name=name , data=data
   ; This method can be called either as a static or instance.
   COMPILE_OPT IDL2
-  dprint,'hello',dlevel=3
+;  dprint,'hello',dlevel=3
   IF (ARG_PRESENT(ptr)) THEN ptr = self.data_ptr
+  IF (ARG_PRESENT(data_ptr)) THEN data_ptr = self.data_ptr
+  IF (ARG_PRESENT(data)) THEN data = *self.data_ptr
   IF (ARG_PRESENT(name)) THEN name = self.name
 END
 
