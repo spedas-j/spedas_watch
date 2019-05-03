@@ -21,7 +21,7 @@ FUNCTION spp_data_product_hash,name,data,help=help
   endif
   if isa(name,/string) then begin
     if ~ alldat.haskey(name) then begin
-      dp = spp_data_product()
+      dp = spp_data_product(name=name)
       alldat[name] = dp
     endif else dp = alldat[name]
     if isa(data) then begin

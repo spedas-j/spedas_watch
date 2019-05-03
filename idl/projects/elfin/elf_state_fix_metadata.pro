@@ -26,7 +26,7 @@ pro elf_state_fix_metadata, probe, suffix = suffix
     if ccnt EQ 0 then dl = create_struct(dl, 'colors', [2, 4, 6])
     labelidx=where(tag_names(dl) EQ 'LABELS', lcnt)
     if lcnt EQ 0 then dl = create_struct(dl, 'labels', ['X', 'Y', 'Z'])
-    store_data, position_vars[pos_idx], data=d, dlimits=dl, limits=l
+    store_data, position_vars[pos_idx]+suffix, data=d, dlimits=dl, limits=l
   endfor
   for vel_idx = 0, n_elements(velocity_vars)-1 do begin
     get_data, velocity_vars[vel_idx], data=d, dlimits=dl, limits=l
@@ -34,7 +34,7 @@ pro elf_state_fix_metadata, probe, suffix = suffix
     if ccnt EQ 0 then dl = create_struct(dl, 'colors', [2, 4, 6])
     labelidx=where(tag_names(dl) EQ 'LABELS', lcnt)
     if lcnt EQ 0 then dl = create_struct(dl, 'labels', ['X', 'Y', 'Z'])
-    store_data, velocity_vars[vel_idx], data=d, dlimits=dl, limits=l
+    store_data, velocity_vars[vel_idx]+suffix, data=d, dlimits=dl, limits=l
   endfor
 
 end

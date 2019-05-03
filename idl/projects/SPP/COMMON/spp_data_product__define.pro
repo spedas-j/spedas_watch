@@ -9,12 +9,13 @@
 ;COMPILE_OPT IDL2
 
 
-FUNCTION spp_data_product::Init,_EXTRA=ex
+FUNCTION spp_data_product::Init,_EXTRA=ex,data=data
   COMPILE_OPT IDL2
   ; Call our superclass Initialization method.
   void = self->generic_object::Init()
-  printdat,ex
+;  printdat,ex
 ;  self.data = dynamicarray(name=self.name)
+  if keyword_set(data) then self.data_ptr = ptr_new(data)
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   RETURN, 1
@@ -23,6 +24,17 @@ END
 
 pro spp_data_product::savedat,data
   if ~ptr_valid(self.data_ptr) then self.data_ptr = ptr_new(data) else *self.data_ptr = data
+end
+
+pro spp_data_product::make_tplot_var,tagnames
+  if ptr_valid(self.data_ptr) then begin
+    if ~keyword_set(tagnames) then begin
+      print, 'Here are you options:'
+      print,(tag_names(*self.data_ptr))
+      return
+    endif
+    store_data,self.name+'_',data= *self.data_ptr,tagnames=strupcase(tagnames)
+  endif
 end
 
 

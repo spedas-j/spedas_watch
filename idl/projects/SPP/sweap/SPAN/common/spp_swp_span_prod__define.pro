@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_span_prod
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-01 09:18:21 -0700 (Wed, 01 May 2019) $
-; $LastChangedRevision: 27156 $
+; $LastChangedDate: 2019-05-02 00:05:13 -0700 (Thu, 02 May 2019) $
+; $LastChangedRevision: 27165 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
@@ -129,6 +129,7 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
   ; NNNN = the number of accumulation periods (1/4 NYS) for Archive.
   log_flag = header[12]
   LTCSNNNN_bits = header[12]
+  smp_bits = header[12]
   smp_flag = (ishft(header[12],-4) AND 1)
   smp_accum = (header[12] AND 15)
   ; Format here is 000SNNNN
@@ -137,15 +138,28 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
   ; NNNN = the number of accumulation periods (1/4 NYS) for Archive.
   arch_sum  = header[13] ; leftover from old code, leave to not break things [plw'18]
   mode1 = header[13]
+  arch_bits = header[13]
   arch_smp_flag = ishft(header[13],-4)  AND 1  ; shift four bits to get 5th bit.
   arch_accum = (header[13] AND 15) ; remove the lower 4 bits.
-  tot_accum_prd = 2u ^ (arch_accum + smp_accum) ; in 1/4 NYS accumulation periods.
-  ; Hold up folks! : look at the awesome use of the xor function below to invert the sum/sample bit! [plw'18]
-  if survey then begin
-    num_accum = 2u ^ (((arch_smp_flag xor 1) * arch_accum) + ((smp_flag xor 1) * smp_accum)) 
+  if 0 then begin
+    tot_accum_prd = 2ul ^ (arch_accum + smp_accum) ; in 1/4 NYS accumulation periods.
+    ; Hold up folks! : look at the awesome use of the xor function below to invert the sum/sample bit! [plw'18]
+    if survey then begin
+      num_accum = 2ul ^ (((arch_smp_flag xor 1) * arch_accum) + ((smp_flag xor 1) * smp_accum))
+    endif else begin
+      num_accum = 2ul ^ ((smp_flag xor 1) * smp_accum)
+    endelse    
   endif else begin
-    num_accum = 2u ^ ((smp_flag xor 1) * smp_accum)
+    
+    if survey then begin
+      tot_accum_prd = 2ul ^ (arch_accum + smp_accum) ; in 1/4 NYS accumulation periods.
+      num_accum = 2ul ^ (((arch_smp_flag ne 0) * arch_accum) + ((smp_flag ne 0) * smp_accum))
+    endif else begin
+      tot_accum_prd = 2ul ^  smp_accum ; in 1/4 NYS accumulation periods.
+      num_accum = 2ul ^ ((smp_flag ne 0) * smp_accum)
+    endelse    
   endelse
+  
   mode2 = (swap_endian(uint(ccsds_data,14) ,/swap_if_little_endian ))
   if ion then begin
     tmode = mode2 and 'f'x
@@ -163,9 +177,11 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
   peak_bin = header[19]
 
 
-  compression = (log_flag and 'a0'x) ne 0
+  compression = (log_flag and '80'x) ne 0
+  if compression eq 0 then dprint,'Log Compression is NOT on!',dlevel=1
+  
   bps =  ([4,1])[ compression ]
-
+ 
   ndat = ns / bps
 
   if ns gt 0 then begin
@@ -180,39 +196,39 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
   endelse
 
 
-
-
-
 productstr = {spp_swp_span_prod, $
   time:        ccsds.time, $
 ;  Epoch:      0LL,  $
   MET:         ccsds.met,  $
   apid:        ccsds.apid, $
-  time_delta:  ccsds.time_delta, $
+;  time_delta:  ccsds.time_delta, $
   seqn:        ccsds.seqn,  $
   seqn_delta:  ccsds.seqn_delta,  $
   seq_group:   ccsds.seq_group,  $
   pkt_size :   ccsds.pkt_size,  $
+  source   :   ccsds.source,  $
+  source_hash:  ccsds.source_hash,  $
+  compr_ratio:  ccsds.compr_ratio,  $
   ndat:        ndat, $
   datasize:    ns, $
-  log_flag:    log_flag, $
-  smp_flag:    smp_flag, $
-  LTCSNNNN_bits : LTCSNNNN_bits, $
+;  log_flag:    log_flag, $
+  smp_bits:    smp_flag, $
+;  LTCSNNNN_bits : LTCSNNNN_bits, $
   mode1:       mode1,  $
-  mode2_ori:   mode2,  $
   arch_sum:    arch_sum, $
   arch_smp_flag:  arch_smp_flag, $
-  tot_accum_prd:  tot_accum_prd, $
+  tot_accum_period:  tot_accum_prd, $
   num_accum:   num_accum, $
+  mode2_ori:   mode2,  $
   mode2:       mode2,  $
 ;  tmode:       byte(tmode), $
 ;  emode:       byte(emode), $
 ;  pmode:       byte(pmode), $
 ;  mmode:       byte(mmode), $
-  product_bits:   product_bits,  $
   f0:          f0,   $
   status_bits: status_bits,$
   peak_bin:    peak_bin, $
+  product_bits:   product_bits,  $
   cnts:        tcnts,  $
   ano_spec:    fltarr(16),  $
   nrg_spec:    fltarr(32),  $

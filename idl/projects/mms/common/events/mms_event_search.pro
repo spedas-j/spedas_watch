@@ -10,6 +10,7 @@
 ;     term: term to search for in the events database (description)
 ;
 ; KEYWORDS:
+;     trange: two element array specifying time range; default is to return all events
 ;     descriptions: returns the list of descriptions for found events
 ;     authors: returns the list of authors for found events
 ;     start_times: returns the list of start times for found events
@@ -22,8 +23,8 @@
 ;     Initial call will take more time than subsequent calls, due to the need to download the event index
 ;     
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-04-30 10:13:02 -0700 (Tue, 30 Apr 2019) $
-; $LastChangedRevision: 27151 $
+; $LastChangedDate: 2019-05-02 10:36:22 -0700 (Thu, 02 May 2019) $
+; $LastChangedRevision: 27171 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/events/mms_event_search.pro $
 ;-
 
@@ -90,7 +91,7 @@ pro mms_events, quiet=quiet
 
 end
 
-pro mms_event_search, term, authors=authors, descriptions=descriptions, start_times=start_times, end_times=end_times, quiet=quiet
+pro mms_event_search, term, trange=trange, authors=authors, descriptions=descriptions, start_times=start_times, end_times=end_times, quiet=quiet
   common MMSEVENTS, mms_events_search_table, mms_event_table
   if undefined(mms_events_search_table) then mms_events, quiet=quiet
   
@@ -99,9 +100,20 @@ pro mms_event_search, term, authors=authors, descriptions=descriptions, start_ti
   start_times = []
   end_times = []
   
+  if keyword_set(trange) then trange = time_double(trange)
+  
+  if undefined(term) then begin
+    dprint, dlevel=0, 'Please specify term to search for; e.g., mms_event_search, "current sheet"'
+    return
+  endif
+  
   tokens = strsplit(strlowcase(term), ' ', /extract)
 
   for token_idx=0, n_elements(tokens)-1 do begin
+    if ~mms_events_search_table.haskey(tokens[token_idx]) then begin
+      dprint, dlevel=0, 'Term not found: ' + tokens[token_idx]
+      return
+    endif
     desc = mms_events_search_table[tokens[token_idx]]
     if token_idx eq 0 then begin
       events = desc
@@ -109,13 +121,22 @@ pro mms_event_search, term, authors=authors, descriptions=descriptions, start_ti
       events = ssl_set_intersection(events, desc)
     endelse
   endfor
+  
+  if events[0] eq -1 then begin
+    dprint, dlevel=0, 'No events found matching: ' + term
+    return
+  endif
 
   for event_idx=0, n_elements(events)-1 do begin
-    if ~keyword_set(quiet) then print, mms_event_table[events[event_idx]].author + ': ' + mms_event_table[events[event_idx]].description + ' [' + time_string(mms_tai2unix(mms_event_table[events[event_idx]].start_time)) + ' to ' + time_string(mms_tai2unix(mms_event_table[events[event_idx]].end_time)) + ']'
+    start_time = mms_tai2unix(mms_event_table[events[event_idx]].start_time)
+    end_time = mms_tai2unix(mms_event_table[events[event_idx]].end_time)
+    if keyword_set(trange) && ~(start_time ge trange[0] and start_time le trange[1]) && ~(end_time le trange[1] and end_time ge trange[0]) then continue
+    
+    if ~keyword_set(quiet) then print, mms_event_table[events[event_idx]].author + ': ' + mms_event_table[events[event_idx]].description + ' [' + time_string(start_time) + ' to ' + time_string(end_time) + ']'
     
     append_array, authors, mms_event_table[events[event_idx]].author
     append_array, descriptions, mms_event_table[events[event_idx]].description
-    append_array, start_times, mms_tai2unix(mms_event_table[events[event_idx]].start_time)
-    append_array, end_times, mms_tai2unix(mms_event_table[events[event_idx]].end_time)
+    append_array, start_times, start_time
+    append_array, end_times, end_time
   endfor
 end
