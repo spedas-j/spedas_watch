@@ -40,8 +40,7 @@ if err eq 0 then begin
   spd_print_tvar_info,'ela_pef'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('ela_pef','2019-02-14','2019-02-15')  || $
-    spd_data_exists('ela_*','2019-02-15','2019-02-16') || $
-    spd_data_exists('elb_*','2019-02-14','2019-02-15')  $
+    spd_data_exists('elb_pif','2019-02-14','2019-02-15')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -62,8 +61,8 @@ if err eq 0 then begin
   spd_print_tvar_info,'ela_pif'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('ela_pef ela_pif','2019-02-14','2019-02-15')  || $
-    spd_data_exists('ela_*','2019-02-15','2019-02-16') || $
-    spd_data_exists('elb_*','2019-02-14','2019-02-15')  $
+    spd_data_exists('ela_pes','2019-02-15','2019-02-16') || $
+    spd_data_exists('elb_pis','2019-02-14','2019-02-15')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -103,7 +102,7 @@ if err eq 0 then begin
   spd_print_tvar_info,'ela_pef'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('ela_pif ela_pef','2018-12-23','2018-12-24')  || $
-    spd_data_exists('elb_*','2018-12-23','2018-12-24')  $
+    spd_data_exists('elb_pif','2018-12-23','2018-12-24')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -384,11 +383,52 @@ if err eq 0 then begin
 endif
 catch,/cancel
 tplot_names
-stop
 spd_handle_error,err,t_name,++t_num
 stop
 del_data,'*'
 
+;19 Test cal flag
+;
+
+t_name='EPDe calibration'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-02-17'
+  tr=timerange()
+  elf_load_epd,probe='a',trange=tr, datatype=['pef'], /no_spec
+  spd_print_tvar_info,'ela_pef'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pef', '2019-02-17','2019-02-18')  || $
+    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+tplot_names
+spd_handle_error,err,t_name,++t_num
+stop
+del_data,'*'
+
+;19 Test cal flag
+;
+
+t_name='EPDe and EPDi calibration'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-02-17'
+  tr=timerange()
+  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif'], /no_spec
+  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pif'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-18')  || $
+    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+tplot_names
+spd_handle_error,err,t_name,++t_num
+stop
+del_data,'*'
 
 spd_end_tests
 

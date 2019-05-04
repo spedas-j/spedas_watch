@@ -36,13 +36,44 @@ stop
 
 
 ;;    ===================================
-;; 2) Select probe, datatype=electron
+;; 3) Select probe, datatype=ion
 ;;    ===================================
 timespan, '2018-12-22'
 tr = timerange()
 elf_load_epd, probes='a', datatype='pif', trange=tr
 tplot, 'ela_pif'
 stop
+
+
+;;    ===================================
+;; 4) Select probe, datatype=pef and pif
+;;    ===================================
+timespan, '2018-12-22'
+tr = timerange()
+elf_load_epd, probes='a', datatype=['pef','pif'], trange=tr
+tplot, ['ela_pef', 'ela_pif']
+stop
+
+
+;;    ===================================
+;; 5) Select probe, type raw
+;;    ===================================
+timespan, '2019-01-05'
+tr = timerange()
+elf_load_epd, probes='a', datatype='pef', trange=tr, type='raw', suffix='_raw'
+tplot, 'ela_pef_raw'
+stop
+
+
+;;    ===================================
+;; 6) Select probe, type calibrated (default)
+;;    ===================================
+timespan, '2019-01-05'
+tr = timerange()
+elf_load_epd, probes='a', datatype='pef', trange=tr, type='calibrated', suffix='_cal'
+tplot, 'ela_pef_cal'
+stop
+
 
 ; remove tplot variables created so far
 del_data, 'ela_p*f'

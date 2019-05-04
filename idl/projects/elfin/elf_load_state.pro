@@ -146,7 +146,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   endif
   
   for probe_idx = 0, n_elements(probes)-1 do begin
-    elf_state_fix_metadata, probes[probe_idx], suffix = suffix
+    elf_state_fix_metadata, probes[probe_idx]
   endfor
 
 end

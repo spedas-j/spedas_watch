@@ -85,6 +85,13 @@ FUNCTION spp_swp_spi_tof_apdat::decom, ccsds, source_dict=source_dict
               met:ccsds.met,$
               seqn:ccsds.seqn, $
               pkt_size:ccsds.pkt_size,$
+              header_bytes:  b[0:23] , $
+              full_hist:ishft(b[20] AND '11'b,-1),$
+              targ_hist:b[20] AND '1'b,$
+              accum:ishft(b[21],-4),$
+              channel:b[21] AND '1111'b,$
+              max_hv:b[22],$
+              min_hv:b[23],$
               tof:cnts,$
               gap:0b}
 

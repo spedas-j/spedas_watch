@@ -28,7 +28,7 @@ pro elf_cal_fgm, tvars, level=level, error=error
 
   ; check and initialize parameters
   error = 0
-  if undefined(tvars) or tvars EQ '' then begin
+  if undefined(tvars) or tvars[0] EQ '' then begin
      dprint, dlevel=1, 'You must pass at least one tplot variable into elf_cal_fgm.'
      error = 1
      return

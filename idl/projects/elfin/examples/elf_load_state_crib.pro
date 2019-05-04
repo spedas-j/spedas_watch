@@ -68,4 +68,10 @@ elf_load_state, probes= ['b'], datatype='vel_gei'
 tplot, ['elb_vel_gei']
 stop
 
+; request other coordinate systems
+timespan, '2019-02-12',1d
+elf_load_state, probes= ['a'], datatype=['pos_mag', 'pos_gei']
+tplot, ['ela_pos_gei','ela_pos_mag']
+stop
+
 end

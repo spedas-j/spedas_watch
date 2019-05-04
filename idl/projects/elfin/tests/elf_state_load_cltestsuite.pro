@@ -390,14 +390,33 @@ stop
 ;20 Test for factional days
 ;
 
-t_name='Fractional days'
+;t_name='Fractional days'
+;catch,err
+;if err eq 0 then begin
+;  timespan, '2019-02-10/12:00:00', 0.5d
+;  elf_load_state,probe='a', datatype=['vel_gei']
+;  spd_print_tvar_info,'ela_vel_gei'
+;  ;just spot checking cause there are a lot of data types
+;  if ~spd_data_exists('ela_vel_gei', '2019-02-10','2019-02-11')  || $
+;    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
+;    then message,'data error ' + t_name
+;endif
+;catch,/cancel
+;spd_handle_error,err,t_name,++t_num
+;del_data,'*'
+;stop
+
+;21 Test for other coord
+;
+
+t_name='Mag Coordinates'
 catch,err
 if err eq 0 then begin
-  timespan, '2019-02-10', 0.5d
-  elf_load_state,probe='a', datatype=['vel_gei']
-  spd_print_tvar_info,'ela_vel_gei'
+  timespan, '2019-02-11'
+  elf_load_state,probe='a', datatype=['vel_mag']
+  spd_print_tvar_info,'ela_vel_mag'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel_gei', '2019-02-10','2019-02-11')  || $
+  if ~spd_data_exists('ela_vel_mag', '2019-02-11','2019-02-12')  || $
     spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
     then message,'data error ' + t_name
 endif
@@ -406,6 +425,24 @@ spd_handle_error,err,t_name,++t_num
 del_data,'*'
 stop
 
+;21 Test for other coord
+;
+
+t_name='SM Coordinates'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-02-11'
+  elf_load_state,probe='a', datatype=['pos_sm']
+  spd_print_tvar_info,'ela_pos_mag'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pos_sm', '2019-02-11','2019-02-12')  || $
+    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
 
 
 spd_end_tests
