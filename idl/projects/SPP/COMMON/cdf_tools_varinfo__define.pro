@@ -16,8 +16,9 @@
 
 
 function cdf_tools_varinfo::variable_attributes, vname,value
-  dlevel =4
+  dlevel =3
   fnan = !values.f_nan
+  dprint,dlevel=dlevel,'Creating variable attributes for: ',vname
   att = orderedhash()
   if ~isa(vname,/string) then return,att
   ;  Create default value place holders
@@ -170,11 +171,16 @@ END
 
 
 
-FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,_EXTRA=ex   
+FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_array=str_arr,set_default_atts=set_default_atts,attr_name=attr_name,_EXTRA=ex   
   COMPILE_OPT IDL2
 ;  self.dlevel = 4
   void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
-  if isa(name,/string) then begin
+  if keyword_set(str_arr) then begin
+    str_element,str_arr,name,dat_values
+    all_values = transpose(dat_values)
+    str_element,str_arr[0],name,value
+  endif
+  if isa(name,/string) && keyword_set(set_default_atts) then begin
     self.name  =name
     self.attributes = self.variable_attributes(name,value)
   endif

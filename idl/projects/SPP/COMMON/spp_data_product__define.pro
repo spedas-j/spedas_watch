@@ -38,19 +38,38 @@ pro spp_data_product::make_tplot_var,tagnames
 end
 
 
-function spp_data_product::getdat,trange=trange
+function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,valname=valname
   if ~ptr_valid(self.data_ptr) then begin
     dprint,'No data loaded for: ',self.name
     return,!null
   endif
+
+  ns = n_elements(*self.data_ptr)
   
   if isa(trange) then begin
-    index = interp(lindgen(n_elements((*self.data_ptr))),(*self.data_ptr).time,trange)
+    index = interp(lindgen(ns),(*self.data_ptr).time,trange)    
+    index_range = minmax(round(index))
+    index = [index_range[0]: index_range[1]]
     printdat,index
-    index = minmax(round(index))
-    dats = (*self.data_ptr)[index[0]:index[1]]
+  endif
+
+  if keyword_set(index) then begin
+    dats = (*self.data_ptr)[index]
+    if keyword_set(valname) then begin
+      retval =!null
+      str_element,dats,valname,retval
+      return, retval
+    endif
     return,dats
   endif
+
+  if keyword_set(valname) then begin
+    retval = !null
+    str_element,(*self.data_ptr),valname,retval
+    return, retval
+  endif
+
+
   return, *self.data_ptr
 end
 

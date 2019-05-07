@@ -1,8 +1,8 @@
 ;+
 ;
-; $LastChangedBy: rlivi2 $
-; $LastChangedDate: 2019-04-29 15:15:55 -0700 (Mon, 29 Apr 2019) $
-; $LastChangedRevision: 27141 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-05-06 11:27:01 -0700 (Mon, 06 May 2019) $
+; $LastChangedRevision: 27200 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -23,14 +23,14 @@ PRO spp_swp_spi_load, types=types, $
       types = ['sf00', 'sf01']
    ENDIF
       
-   dir = 'SP?/L2/YYYY/MM/SP?_TYP/'
+   dir = 'SP?/L3/YYYY/MM/SP?_TYP/'
    fileprefix = 'psp/data/sci/sweap/'
 
    IF ~keyword_set(loc) THEN BEGIN 
       ;; Product File Names
       loc = orderedhash()
-      loc['sf00'] = dir+'spp_swp_SP?_TYP_L2_8Dx32Ex8A_YYYYMMDD_v??.cdf'
-      loc['sf01'] = dir+'spp_swp_SP?_TYP_L2_8Dx32Ex8A_YYYYMMDD_v??.cdf'
+      loc['sf00'] = dir+'spp_swp_SP?_TYP_L3_8Dx32Ex8A_YYYYMMDD_v??.cdf'
+      loc['sf01'] = dir+'spp_swp_SP?_TYP_L3_8Dx32Ex8A_YYYYMMDD_v??.cdf'
       loc['hkp'] = 'SP?/L1/YYYY/MM/SP?_hkp/spp_swp_SP?_hkp_L1_YYYYMMDD_v??.cdf'
       loc['tof'] = 'SP?/L1/YYYY/MM/SP?_tof/spp_swp_SP?_tof_L1_YYYYMMDD_v??.cdf'
       loc['rates'] = 'spi/L1/YYYY/MM/SP?_rates/spp_swp_spi_rates_L1_YYYYMMDD_v??.cdf'      
