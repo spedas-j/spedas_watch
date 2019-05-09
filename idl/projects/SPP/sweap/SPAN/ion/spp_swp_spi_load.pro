@@ -1,8 +1,8 @@
 ;+
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-06 11:27:01 -0700 (Mon, 06 May 2019) $
-; $LastChangedRevision: 27200 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2019-05-08 12:55:43 -0700 (Wed, 08 May 2019) $
+; $LastChangedRevision: 27208 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -79,8 +79,8 @@ PRO spp_swp_spi_load, types=types, $
 
       ;; Load TPLOT Formats
       IF keyword_set(varformat) THEN $
-       vfm = varformat ELSE vfm=vars[type]
-
+;       vfm = varformat ELSE vfm=vars[type]
+       vfm = varformat
       ;; Convert to TPLOT
       cdf2tplot, files, prefix=prefix, $
                  varformat=vfm, verbose=verbose

@@ -23,7 +23,7 @@
 pro icon_crib_mighti, step=step, img_path=img_path
 
   ; Specify a time range
-  timeRange = ['2010-05-21/23:58:00', '2010-05-22/00:02:00']
+  timeRange = ['2010-05-21/22:58:00', '2010-05-22/01:02:00']
   ; Specify a directory for images
   if ~keyword_set(img_path) then begin
     if (!D.NAME eq 'WIN') then img_path = 'C:\temp\icon\' else img_path = 'temp/icon/'
@@ -36,28 +36,39 @@ pro icon_crib_mighti, step=step, img_path=img_path
   if step eq 1 or step eq 99 then begin
     ;MIGHTI-A Level-1
     del_data, '*'
-    instrument = 'mighti-a'
+    instrument = 'mighti'
     datal1type = '*'
     datal2type = ''
     icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
 
     tplot_options, 'title', 'ICON MIGHTI-A'
 
-    ylim, 'ICON_L0_MIGHTI_A_Optics_Temperature_Aft', 24500D, 24800D
+    ylim, 'ICON_L0_MIGHTI_A_Optics_Temperature_Aft', 24500D, 24800D, style=0
     options, 'ICON_L0_MIGHTI_A_Optics_Temperature_Aft', 'psym', 4
     options, 'ICON_L0_MIGHTI_A_Optics_Temperature_Aft', 'ytitle', 'Temperature'
 
     tplot, ['ICON_L0_MIGHTI_A_Optics_Temperature_Aft']    
 
     makepng,img_path + 'ICON_MIGHTI_A_L1_Example'
+    
+    ; The following variables depend of altitudes 
     get_data, 'ICON_L1_MIGHTI_A_Green_Relative_Brightness', data=d, dl=dl
-    yyy = transpose(d.y)
+    ;store_data, 'ICON_L1_MIGHTI_A_Green_Relative_Brightness2', data={x:d.x, y:d.y, v1:transpose(d.v1), v2:transpose(d.v2), dl:dl} 
+    store_data, 'ICON_L1_MIGHTI_A_Green_Relative_Brightness2', data={x:d.x, y:d.y}
+    options, 'ICON_L1_MIGHTI_A_Green_Relative_Brightness2', 'ytitle', 'Green Relative!CBrightness'
+ 
+    get_data, 'ICON_L1_MIGHTI_A_Red_Relative_Brightness', data=d2, dl=dl2
+    ;store_data, 'ICON_L1_MIGHTI_A_Red_Relative_Brightness2', data={x:d.x, y:d2.y, v1:transpose(d2.v1), v2:transpose(d2.v2), dl:dl2}
+    store_data, 'ICON_L1_MIGHTI_A_Red_Relative_Brightness2', data={x:d.x, y:d2.y}
+    options, 'ICON_L1_MIGHTI_A_Red_Relative_Brightness2', 'ytitle', 'Red Relative!CBrightness' 
     
-    store_data, 'ICON_L1_MIGHTI_A_Green_Relative_Brightness2', data={x:d.x, y:yyy} 
-    
+    get_data, 'ICON_L1_MIGHTI_A_Red_Array_Altitudes', data=d3, dl=dl3
+    store_data, 'ICON_L1_MIGHTI_A_Red_Array_Altitudes2', data={x:d.x, y:transpose(d3.y)}        
+    options, 'ICON_L1_MIGHTI_A_Red_Array_Altitudes2', 'ytitle', 'Red Altitudes'
     
     tplot, ['ICON_L0_MIGHTI_A_Optics_Temperature_Aft', 'ICON_L1_MIGHTI_A_Green_Relative_Brightness2', $
-      'ICON_L1_MIGHTI_A_Red_Relative_Brightness','ICON_L1_MIGHTI_A_Red_Array_Altitudes']
+      'ICON_L1_MIGHTI_A_Red_Relative_Brightness2','ICON_L1_MIGHTI_A_Red_Array_Altitudes2']
+      
     ;Time series:
     ;ICON_L0_MIGHTI_A_OPTICS_TEMPERATURE_AFT
 

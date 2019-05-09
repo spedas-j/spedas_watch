@@ -90,7 +90,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['CATDESC']    = 'Energy'
       att['FIELDNAM']    = 'Counts in '
       att['DEPEND_0']    = EPOCHname
-;      att['DEPEND_1']    = 'ENERGY'
+      ;      att['DEPEND_1']    = 'ENERGY'
       att['LABLAXIS']    = 'Energy'
       att['UNITS']    = 'eV'
       att['FILLVAL']    = fnan
@@ -105,7 +105,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['CATDESC']    = 'THETA'
       att['FIELDNAM']    = 'Elevation Angle in instrument coordinates'
       att['DEPEND_0']    = EPOCHname
-;      att['DEPEND_1']    = 'ENERGY'
+      ;      att['DEPEND_1']    = 'ENERGY'
       att['LABLAXIS']    = 'Elevation Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
@@ -117,6 +117,99 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['MONOTON']    = ''
     end
     'PHI': begin
+      att['CATDESC']    = 'PHI'
+      att['FIELDNAM']    = 'Azimuth Angle in instrument coordinates'
+      att['DEPEND_0']    = EPOCHname
+      ;      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Azimuth Angle'
+      att['UNITS']    = 'Degrees'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 1
+      att['VALIDMAX']    = 1e5
+      att['VAR_TYPE']    = 'support_data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
+    'EFLUX_VS_ENERGY': begin
+      att['CATDESC']    = 'Differential Energy Flux vs Energy'
+      att['FIELDNAM']    = 'Eflux vs Energy'
+      att['DEPEND_0']    = EPOCHname
+      att['DEPEND_1']    = 'ENERGY_VALS'
+      att['LABLAXIS']    = 'Eflux vs Energy'
+      att['UNITS']    = 'eV/cm2-s-ster-eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 0.001
+      att['VALIDMAX']    = 1e12
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+      att['DISPLAY_TYPE'] = 'spectrogram'
+    end
+    'EFLUX_VS_THETA': begin
+      att['CATDESC']    = 'Differential Energy Flux vs Theta'
+      att['FIELDNAM']    = 'Eflux vs Theta'
+      att['DEPEND_0']    = EPOCHname
+      att['DEPEND_1']    = 'THETA_VALS'
+      att['LABLAXIS']    = 'Eflux vs Theta'
+      att['UNITS']    = 'eV/cm2-s-ster-eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 0.001
+      att['VALIDMAX']    = 1e12
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+      att['DISPLAY_TYPE'] = 'spectrogram'
+    end
+    'EFLUX_VS_PHI': begin
+      att['CATDESC']    = 'Differential Energy Flux vs Phi'
+      att['FIELDNAM']    = 'Eflux vs Phi'
+      att['DEPEND_0']    = EPOCHname
+      att['DEPEND_1']    = 'PHI_VALS'
+      att['LABLAXIS']    = 'Eflux vs Phi'
+      att['UNITS']    = 'eV/cm2-s-ster-eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 0.001
+      att['VALIDMAX']    = 1e12
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+      att['DISPLAY_TYPE'] = 'spectrogram'
+    end
+    'ENERGY_VALS': begin
+      att['CATDESC']    = 'Energy'
+      att['FIELDNAM']    = 'Energy'
+      att['DEPEND_0']    = EPOCHname
+      ;      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Energy'
+      att['UNITS']    = 'eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 1
+      att['VALIDMAX']    = 1e5
+      att['VAR_TYPE']    = 'support_data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
+    'THETA_VALS': begin
+      att['CATDESC']    = 'THETA'
+      att['FIELDNAM']    = 'Elevation Angle in instrument coordinates'
+      att['DEPEND_0']    = EPOCHname
+      ;      att['DEPEND_1']    = 'ENERGY'
+      att['LABLAXIS']    = 'Elevation Angle'
+      att['UNITS']    = 'Degrees'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 1
+      att['VALIDMAX']    = 1e5
+      att['VAR_TYPE']    = 'support_data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
+    'PHI_VALS': begin
       att['CATDESC']    = 'PHI'
       att['FIELDNAM']    = 'Azimuth Angle in instrument coordinates'
       att['DEPEND_0']    = EPOCHname
@@ -171,9 +264,9 @@ END
 
 
 
-FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_array=str_arr,set_default_atts=set_default_atts,attr_name=attr_name,_EXTRA=ex   
+FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_array=str_arr,set_default_atts=set_default_atts,attr_name=attr_name,_EXTRA=ex
   COMPILE_OPT IDL2
-;  self.dlevel = 4
+  ;  self.dlevel = 4
   void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
   if keyword_set(str_arr) then begin
     str_element,str_arr,name,dat_values
@@ -189,7 +282,7 @@ FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_arra
   self.type = size(/type,value)
   self.ndimen = size(/n_dimensions,value)
   self.d = size(/dimen,value)
-;  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=4
+  ;  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=4
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   RETURN, 1
 end
