@@ -12,19 +12,27 @@
 ;-
 
 pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,$
-  quaternion=quaternion,no_download=no_download,res=res,load=load,position=position
-
+  quaternion=quaternion,no_download=no_download,res=res,load=load,position=position,angle_error,att_frame = att_frame,ref_frame=ref_frame
+  
+  common spp_spice_kernels_com, last_check_time
+  if ~keyword_set(ref_frame) then ref_frame = 'J2000'
+  if ~keyword_set(att_frame) then att_frame = 'SPP_RTN'
+  
+  if ~keyword_set(res) then res=300d  ;5min resolution
+  if ~keyword_set(angle_error) then angle_error = 1.   ;  error in degrees
+  
+  retrievetime = systime(1)
+ ; if keyword_set(last_check_time) && retrievetime -last_time lt 3600. then 
 
   if keyword_set(load) then kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download)
+ 
   if keyword_set(download_only) then return
 
-  if ~keyword_set(res) then res=300d  ;5min resolution
 
   if keyword_set(position) then begin
-    spice_position_to_tplot,'SPP','SUN',frame='J2000',res=res,scale=1e6,name=n1,trange=trange,/force_objects ;million km
-    xyz_to_polar,n1
+    spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=1e6,name=n1,trange=trange,/force_objects ;million km
+    xyz_to_polar,n1,/ph_0_360
   endif
-
-  if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT','J2000',get_omega=3,res=res,names=tn,check_obj=['SPP_SPACECRAFT','J2000'],/force_objects,error=3. *!pi/180. ;3 degree error
+  if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,check_obj=['SPP_SPACECRAFT'],/force_objects,error=angle_error *!pi/180.
 
 end

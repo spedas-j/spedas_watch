@@ -18,9 +18,9 @@
 ;"LOAD" routines should assume that SPICE kernels are already loaded.
 ;
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: ali $
-; $LastChangedDate: 2019-05-10 14:46:06 -0700 (Fri, 10 May 2019) $
-; $LastChangedRevision: 27216 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-05-11 13:55:16 -0700 (Sat, 11 May 2019) $
+; $LastChangedRevision: 27224 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -49,19 +49,19 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
       ;Leap Second (TLS)
       'LSK':append_array,kernels,file_retrieve(source.remote_data_dir+'generic_kernels/lsk/naif00??.tls',last=last,/valid_only)
       ;Spacecraft Clock (TSC)
-      'SCK':append_array,kernels,file_retrieve(pathname+'operations_sclk_kernel/spp_sclk_????.tsc',last=last,/valid_only)
+      'SCK':append_array,kernels,spp_file_retrieve(pathname+'operations_sclk_kernel/spp_sclk_????.tsc',last=last,/valid_only)
       ;Frame kernels (TF)
       'FRM':begin
-        append_array,kernels,file_retrieve(pathname+'frame_kernel/spp_v100.tf',last=last,/valid_only)
-        append_array,kernels,file_retrieve(pathname+'frame_kernel/spp_dyn_v200.tf',last=last,/valid_only)
+        append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_v100.tf',last=last,/valid_only)
+        append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_dyn_v201.tf',last=last,/valid_only)
       end
       ;Spacecraft position (BSP)
       'SPK':begin
-        append_array,kernels,file_search('/disks/data/'+pathname+'reconstructed_ephemeris/2018/*')
-        append_array,kernels,file_search('/disks/data/'+pathname+'reconstructed_ephemeris/2019/*')
+        append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/2018/*')
+        append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/2019/*')
       end
       ; Spacecraft Attitude (BC)
-      'CK': append_array,kernels,file_retrieve(pathname+'attitude_history/YYYY/spp_YYYY_DOY_??.ah.bc',trange=trange,last=last,/valid_only)
+      'CK': append_array,kernels,spp_file_retrieve(pathname+'attitude_history/YYYY/spp_YYYY_DOY_??.ah.bc',trange=trange,last=last,/valid_only,/daily)
       ; Instrument Kernels (TI)
       'IK':
     endcase
