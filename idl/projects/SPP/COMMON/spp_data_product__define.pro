@@ -15,6 +15,7 @@ FUNCTION spp_data_product::Init,_EXTRA=ex,data=data
   void = self->generic_object::Init()
 ;  printdat,ex
 ;  self.data = dynamicarray(name=self.name)
+  self.dict = dictionary()
   if keyword_set(data) then self.data_ptr = ptr_new(data)
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
@@ -75,13 +76,19 @@ end
 
 
 
-PRO spp_data_product::GetProperty,  ptr=ptr, name=name , data=data
+PRO spp_data_product::GetProperty,  ptr=ptr, name=name , data=data,dict=dict
   ; This method can be called either as a static or instance.
   COMPILE_OPT IDL2
 ;  dprint,'hello',dlevel=3
   IF (ARG_PRESENT(ptr)) THEN ptr = self.data_ptr
-  IF (ARG_PRESENT(data_ptr)) THEN data_ptr = self.data_ptr
-  IF (ARG_PRESENT(data)) THEN data = *self.data_ptr
+;  IF (ARG_PRESENT(data_ptr)) THEN data_ptr = self.data_ptr
+  if arg_present(dict) then dict = self.dict
+  IF (ARG_PRESENT(data)) THEN begin
+    if ptr_valid(self.data_ptr) then data = *self.data_ptr else begin
+      data = !null
+      dprint,dlevel=self.dlevel,'Warning: Invalid pointer for: '+self.name
+    endelse
+  ENDIF
   IF (ARG_PRESENT(name)) THEN name = self.name
 END
 
@@ -95,7 +102,8 @@ PRO spp_data_product__define
     name: '',  $
     tname: '',  $
     ttags: '',  $
-    data_obj: obj_new(), $
+    dict: obj_new() , $
+;    data_obj: obj_new(), $
     data_ptr: ptr_new(), $
     cdf_pathname:'', $
     cdf_tagnames:'', $

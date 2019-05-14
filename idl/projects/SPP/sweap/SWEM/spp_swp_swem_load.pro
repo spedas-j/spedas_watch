@@ -6,7 +6,7 @@
 ;this is a test routine for now.
 ;
 
-pro spp_swp_swem_load,type=type,trange=trange
+pro spp_swp_swem_load,type=type,trange=trange,save=save
 
 
 example = 'http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/swem/L1/2018/11/swem_dig_hkp/spp_swp_swem_dig_hkp_L1_20181106_v00.cdf'
@@ -27,6 +27,13 @@ if ~keyword_set(type) then type = 'swem_dig_hkp'
     else:
   endcase
   
+  if keyword_set(save) then begin
+    vardata = !null
+    novardata = !null
+    loadcdfstr,filenames=files,vardata,novardata
+    dummy = spp_data_product_hash(type,vardata)
+  endif
+
   cdf2tplot,files,prefix = prefix,verbose=1,varformat = varformat
 
 ;ctime,t
