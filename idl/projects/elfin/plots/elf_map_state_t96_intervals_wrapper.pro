@@ -38,7 +38,7 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south=south
 
   dprint,"Processing start time " + time_string(systime(/seconds)) + ' UT'
 
-  dprint,"Generating THEMIS T96 Maps for date " + date + " with duration " + strtrim(dur,2) + " days."
+  dprint,"Generating ELFIN T96 Maps for date " + date + " with duration " + strtrim(dur,2) + " days."
 
   dir_products=!elf.local_data_dir + 'gtrackplots'
 
@@ -46,11 +46,11 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south=south
 
     in_date = time_double(date)+j*60.*60.*24.
 
-;    if keyword_set(south) then begin
-;      batch_procedure_error_handler,'map_themis_state_south_t96_intervals',time_string(in_date),/quick,/gif,/move,/noview,dir_move=dir_products
-;    endif else begin
+    if keyword_set(south) then begin
+     elf_map_state_south_t96_intervals,time_string(in_date),/quick,/gif,/move,/noview,dir_move=dir_products
+    endif else begin
      elf_map_state_t96_intervals,time_string(in_date),/quick,/gif,/move,/noview,dir_move=dir_products
-;    endelse
+    endelse
 
   endfor
 
