@@ -152,8 +152,8 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
 
         ytitle = rec + '!C' + strupcase(type)
 
-        ytitle = repstr(ytitle, 'AVERAGES', 'AV')
-        ytitle = repstr(ytitle, 'PEAKS', 'PK')
+        str_replace, ytitle, 'AVERAGES', 'AV'
+        str_replace, ytitle, 'PEAKS', 'PK'
 
         ; don't reset the title if it's already set with a source appended
 

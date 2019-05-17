@@ -19,8 +19,8 @@
 ;
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-11 13:55:16 -0700 (Sat, 11 May 2019) $
-; $LastChangedRevision: 27224 $
+; $LastChangedDate: 2019-05-16 13:19:38 -0700 (Thu, 16 May 2019) $
+; $LastChangedRevision: 27249 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -53,7 +53,7 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
       ;Frame kernels (TF)
       'FRM':begin
         append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_v100.tf',last=last,/valid_only)
-        append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_dyn_v201.tf',last=last,/valid_only)
+        append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_dyn_v20?.tf',last=last,/valid_only)
       end
       ;Spacecraft position (BSP)
       'SPK':begin

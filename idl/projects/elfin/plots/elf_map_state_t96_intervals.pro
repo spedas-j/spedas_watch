@@ -133,19 +133,23 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, noview=noview,$
   g1 = swv*hb*sin(th/2.)^3
   g2 = 0.005 * swv*bs
   if keyword_set(model) then tsyg_mod=model else tsyg_mod='t96'
-
+goto, no_calc
   ; now loop through spacecraft
   for sc=0,1 do begin
 
+  for nd=0,1 do begin
     ; load spacecraft data
-    tr=timerange()
+    tr=timerange()+nd*86400.
     elf_load_state,probe=probes[sc], trange=tr
     comm="get_data,'el"+probes[sc]+"_pos_gei',data=dats"  ; position in GEI
     res=execute(comm)
     ; also get data for 30 minutes into next day
-;    elf_load_state,probe=probes[sc], trange=tr+86400.
-;    comm="get_data,'el"+probes[sc]+"_pos_gei',data=dats1"  ; position in GEI
-;    res=execute(comm)
+ ;   elf_load_state,probe=probes[sc], trange=tr+86400., suffix='_nextday'
+ ;   comm="get_data,'el"+probes[sc]+"_pos_gei_nextday',data=datnd"  ; position in GEI
+ ;   res=execute(comm)
+ ;   new_data={x:datnd.x[0:1800],y:datnd.y[0:1800,*]}
+ ;   comm="store_data,'el"+probes[sc]+"_pos_gei_nextday',data=new_data" ; position in GEI
+ ;   res=execute(comm)
 ;    new_t=array_concat(dats.x, dats1.x[0:1800])
 ;    new_x=array_concat(dats.y[*,0], dats1.y[0:1800,0])
 ;    new_y=array_concat(dats.y[*,1], dats1.y[0:1800,1])
@@ -155,15 +159,13 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, noview=noview,$
 ;    res=execute(comm)
 
     ; prepare arrays for Tsyganenko
- ;   comm="get_data,'el"+probes[sc]+"_pos_gei',data=dats"  ; position in GEI
- ;   res=execute(comm)
     comm="cotrans, 'el"+probes[sc]+"_pos_gei', 'el"+probes[sc]+"_pos_gse', /gei2gse"
     res=execute(comm)
     comm="cotrans, 'el"+probes[sc]+"_pos_gse', 'el"+probes[sc]+"_pos_gsm', /gse2gsm"
     res=execute(comm)
     comm="cotrans, 'el"+probes[sc]+"_pos_gsm', 'el"+probes[sc]+"_pos_sm', /gsm2sm"
     res=execute(comm)
-    comm="get_data,'el"+probes[sc]+"_pos_gsm',data=dats"  ; position in GSM
+    comm="get_data,'el"+probes[sc]+"_pos_sm',data=dats"  ; position in GSM
     res=execute(comm)
     
     count=n_elements(dats.x)
@@ -191,10 +193,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, noview=noview,$
     comm="ttrace2iono,'el"+probes[sc]+"_pos_gsm',newname='el"+probes[sc]+$
       "_ifoot_geo',external_model=tsyg_mod,par=tsyg_parameter,/km,in_coord='gsm',out_coord='geo'"
     res=execute(comm)
-    Case sc of
-      0: tplot_save, tnames('ela*'), file='C:\Users\clrussell\Desktop\save_iono_a_'+strmid(tstart, 0, 10)
-      1: tplot_save, tnames('elb*'), file='C:\Users\clrussell\Desktop\save_iono_b_'+strmid(tstart, 0, 10)
-    endcase
 
 skip_trace:
 
@@ -226,6 +224,7 @@ skip_trace:
     Endcase
 
     ; time markers
+    if nd EQ 0 then begin
     if (sc eq 0) then begin
       posa_00={time:time_dummy[0]         ,ft_geo:[lon[0],lat[0]]}
       posa_06={time:time_dummy[count/4l]  ,ft_geo:[lon[count/4l],lat[count/4l]]}
@@ -240,38 +239,124 @@ skip_trace:
       posb_18={time:time_dummy2[count*3l/4],ft_geo:[lon2[count*3l/4],lat2[count*3l/4]]}
       ;posb_24={time:time_dummy2[count-1]   ,ft_geo:[lon2[count-1],lat2[count-1]]}
     endif
-
+    endif
     print,'Done '+tsyg_mod+' ',probes[sc]
 
+    ; get positions for orbit plots
+    if (sc EQ 0) then begin
+      if nd eq 0 then begin
+         get_data,'ela_pos_sm',data=ela_state_pos_sm_d1
+         lon_d1=lon
+         lat_d1=lat
+      endif else begin
+         get_data,'ela_pos_sm',data=ela_state_pos_sm_d2
+         lon_d2=lon
+         lat_d2=lat
+      endelse      
+    endif else begin
+      if nd eq 0 then begin
+        get_data,'elb_pos_sm',data=elb_state_pos_sm_d1
+        lon2_d1=lon2
+        lat2_d1=lat2
+      endif else begin
+        get_data,'elb_pos_sm',data=elb_state_pos_sm_d2
+        lon2_d2=lon2
+        lat2_d2=lat2
+      endelse  
+    endelse
+
+  endfor    
   endfor  ; end of sc loop
 
-  ; get positions for orbit plots
-  get_data,'ela_pos_sm',data=ela_state_pos_sm
-  get_data,'elb_pos_sm',data=elb_state_pos_sm
+  no_calc:
+  restore, file='elfinlatlon.sav'
+
+  ; now combine next day data
+  new_t=array_concat(ela_state_pos_sm_d2.x[0:1800],ela_state_pos_sm_d1.x)
+  new_x=array_concat(ela_state_pos_sm_d2.y[0:1800,0],ela_state_pos_sm_d1.y[*,0])
+  new_y=array_concat(ela_state_pos_sm_d2.y[0:1800,1],ela_state_pos_sm_d1.y[*,1])
+  new_z=array_concat(ela_state_pos_sm_d2.y[0:1800,2],ela_state_pos_sm_d1.y[*,2])
+  ela_state_pos_sm={x:new_t, y:[[new_x], [new_y], [new_z]]}
+  new_t=array_concat(elb_state_pos_sm_d1.x,elb_state_pos_sm_d2.x[0:1800])
+  new_x=array_concat(elb_state_pos_sm_d1.y[*,0],elb_state_pos_sm_d2.y[0:1800,0])
+  new_y=array_concat(elb_state_pos_sm_d1.y[*,1],elb_state_pos_sm_d2.y[0:1800,1])
+  new_z=array_concat(elb_state_pos_sm_d1.y[*,2],elb_state_pos_sm_d2.y[0:1800,2]) 
+  elb_state_pos_sm={x:new_t, y:[[new_x], [new_y], [new_z]]}
+  lon = array_concat(lon_d2[0:1800],lon_d1)
+  lat = array_concat(lat_d2[0:1800],lat_d1)
+  lon2 = array_concat(lon2_d2[0:1800],lon2_d1)
+  lat2 = array_concat(lat2_d2[0:1800],lat2_d1)
+
+  ;mlat contours
+  ;the call of cnv_aacgm here converts from geomagnetic to geographic
+  latstep=10   ; 5.
+  latstart=-10; 40.
+  latend=90
+  lonstep=30
+  lonstart=0
+  lonend=360
+  nmlats=round((latend-latstart)/float(latstep)+1)
+  mlats=latstart+findgen(nmlats)*latstep
+  n2=150
+  v_lat=fltarr(nmlats,n2)
+  v_lon=fltarr(nmlats,n2)
+  height=100.
+  for i=0,nmlats-1 do begin
+    for j=0,n2-1 do begin
+      cnv_aacgm,mlats[i],j/float(n2-1)*360,height,u,v,r1,error,/geo
+      v_lat[i,j]=u
+      v_lon[i,j]=v
+    endfor
+  endfor
+
+  ;mlon contours
+  ;magnetic lat/lons
+  nmlons=12 ;mlons shown at intervals of 15 degrees or one hour of MLT
+  mlon_step=round(360/float(nmlons))
+  n2=20
+  u_lat=fltarr(nmlons,n2)
+  u_lon=fltarr(nmlons,n2)
+  cnv_aacgm, 56.35, 265.34, height, outlat,outlon,r1,error   ;Gillam
+  mlats=latstart+findgen(n2)/float(n2-1)*(latend-latstart)
+  for i=0,nmlons-1 do begin
+    for j=0,n2-1 do begin
+      cnv_aacgm,mlats[j],((outlon+mlon_step*i) mod 360),height,u,v,r1,error
+      u_lat[i,j]=u
+      u_lon[i,j]=v
+    endfor
+  endfor
+  ;
+  for i=0,nmlons-1 do begin
+    for j=0,n2-1 do begin
+      cnv_aacgm,mlats[j],((outlon+mlon_step*i) mod 360),height,u,v,r1,error,/geo
+      u_lat[i,j]=u
+      u_lon[i,j]=v
+    endfor
+  endfor
 
   ; setup for orbits
   ; 1 24 hour plot, 4 6 hr plots, 12 2 hr plots
-  hr_st = indgen(25)   ;[0, 6*indgen(4), 2*indgen(12)]
-  hr_en = hr_st + 1.5
-  
+  hr_st = indgen(25)   ;[0, 6*indgen(4), 2*indgen(12)]  
   ; Stings for labels, filenames
   hr_ststr = string(hr_st, format='(i2.2)')
   plot_lbl=strarr(25)
   for m=0,23 do plot_lbl[m] = ' ' + hr_ststr[m] + ':00 to ' + hr_ststr[m+1] + ':30'  ;+'-'+hr_enstr
   file_lbl = '_'+hr_ststr   ;+hr_enstr
-
-  min_st = hr_st[0:23]*3600.    ;*60.  ;*3600.   ;*res
-;  idx=where(min_st LT 86400., ncnt) 
-;  min_st = min_st[idx]
+  min_st = hr_st*3600.    ;*60.  ;*3600.   ;*res
   min_en = min_st + 90.*60
   idx=where(min_en GT n_elements(ela_state_pos_sm.x), ncnt)
-  if ncnt GT 0 then min_en[idx]=n_elements(ela_state_pos_sm.x)-2 
+  if ncnt GT 0 then min_en[idx]=n_elements(ela_state_pos_sm.x)-1 
   nplots = n_elements(min_st)
-  
+
+  ; for gif-output
+  date=strmid(tstart,0,10)
+  timespan, tstart
+  tr=timerange()
+
   ;----------------------------------
   ; Start Plots
   ;----------------------------------
-  for k=0,nplots-1 do begin
+  for k=0,nplots-2 do begin
 
     !p.multi=0
     if keyword_set(gifout) then begin
@@ -292,64 +377,15 @@ skip_trace:
 
     ; display latitude/longitude
     ;-------------------------------------------------------------------------------
-    ;mlat contours
-    ;the call of cnv_aacgm here converts from geomagnetic to geographic
-    latstep=10   ; 5.
-    latstart=-10; 40.
-    latend=90
-    lonstep=30
-    lonstart=0
-    lonend=360
-    nmlats=round((latend-latstart)/float(latstep)+1)
-    mlats=latstart+findgen(nmlats)*latstep
-    n2=150
-    v_lat=fltarr(nmlats,n2)
-    v_lon=fltarr(nmlats,n2)
-    height=100.
-    for i=0,nmlats-1 do begin
-      for j=0,n2-1 do begin
-        cnv_aacgm,mlats[i],j/float(n2-1)*360,height,u,v,r1,error,/geo
-        v_lat[i,j]=u
-        v_lon[i,j]=v
-      endfor
-    endfor
     for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-
-    ;mlon contours
-    ;magnetic lat/lons
-    nmlons=12 ;mlons shown at intervals of 15 degrees or one hour of MLT
-    mlon_step=round(360/float(nmlons))
-    n2=20
-    u_lat=fltarr(nmlons,n2)
-    u_lon=fltarr(nmlons,n2)
-    cnv_aacgm, 56.35, 265.34, height, outlat,outlon,r1,error   ;Gillam
-    mlats=latstart+findgen(n2)/float(n2-1)*(latend-latstart)
-    for i=0,nmlons-1 do begin
-      for j=0,n2-1 do begin
-        cnv_aacgm,mlats[j],((outlon+mlon_step*i) mod 360),height,u,v,r1,error
-        u_lat[i,j]=u
-        u_lon[i,j]=v
-      endfor
-    endfor
-    ;
-    for i=0,nmlons-1 do begin
-      for j=0,n2-1 do begin
-        cnv_aacgm,mlats[j],((outlon+mlon_step*i) mod 360),height,u,v,r1,error,/geo
-        u_lat[i,j]=u
-        u_lon[i,j]=v
-      endfor
-    endfor
-
     for i=0,nmlons-1 do begin
       idx=where(u_lon[i,*] NE 0)
       oplot,u_lon[i,idx],u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
     endfor
     ;
 
-    this_time=time_dummy[min_st[k]:min_en[k]]
     this_lon=lon[min_st[k]:min_en[k]]
     this_lat=lat[min_st[k]:min_en[k]]
-    this_time2=time_dummy2[min_st[k]:min_en[k]]
     this_lon2=lon2[min_st[k]:min_en[k]]
     this_lat2=lat2[min_st[k]:min_en[k]]
 
@@ -447,7 +483,7 @@ skip_trace:
 ;    if bncnt GT 0 then oplot, this_b_pos[bidx,0]/6378., this_b_pos[bidx,2]/6378., color=254
 ;pstop
     for sc=1,2 do res=execute("oplot,el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],0]/6378."+$
-      ",el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],2]/6378.,color=252+sc");
+      ",el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],2]/6378.,color=252+sc,psym=3");
     ; plot lines to separate plots 
     plots,[600./800.*0.96,1.],[0.005+0.96*3./3.,0.005+0.96*3./3.]-0.007,/normal
     plots,[600./800.*0.96,1.],[0.005+0.96*2./3.,0.005+0.96*2./3.]-0.005,/normal
@@ -467,11 +503,10 @@ skip_trace:
     xyouts,.05,1.7,'Y'
 
     for dd=-30,30,10 do oplot,[-0.5,0.5],[dd,dd]
-;    oplot,xmp,ymp,line=2
     for sc=1,2 do res=execute("plots,el"+probes[sc-1]+"_state_pos_sm.y[0,0]/6378."+$
       ",el"+probes[sc-1]+"_state_pos_sm.y[0,1]/6378.,color=252+sc,psym=symbols[sc-1],symsize=0.8")
     for sc=1,2 do res=execute("oplot,el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],0]/6378."+$
-      ",el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],1]/6378.,color=252+sc,thick=1.5")
+      ",el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],1]/6378.,color=252+sc,psym=3")
     plots,[600./800.*0.96,1.],[0.005+0.96*1./3.,0.005+0.96*1./3.]-0.0025,/normal
 
     ; GSE Y-Z
@@ -493,11 +528,10 @@ skip_trace:
     for sc=1,2 do res=execute("plots,el"+probes[sc-1]+"_state_pos_sm.y[0,1]/6378."+$
       ",el"+probes[sc-1]+"_state_pos_sm.y[0,2]/6378.,color=252+sc,psym=symbols[sc-1],symsize=0.8")
     for sc=1,2 do res=execute("oplot,el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],1]/6378."+$
-      ",el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],2]/6378.,color=252+sc")
+      ",el"+probes[sc-1]+"_state_pos_sm.y[min_st[k]:min_en[k],2]/6378.,color=252+sc,psym=3")
     plots,[600./800.*0.96,1.],[0.005+0.96*0./3.,0.005+0.96*0./3.],/normal
 
     ; gif-output
-    date=strmid(tstart,0,10)
     if keyword_set(gifout) then begin
       image=tvrd()
       device,/close

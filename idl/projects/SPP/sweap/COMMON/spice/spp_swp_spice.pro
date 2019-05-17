@@ -14,20 +14,27 @@
 pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,$
   quaternion=quaternion,no_download=no_download,res=res,load=load,position=position,angle_error,att_frame = att_frame,ref_frame=ref_frame
   
-  common spp_spice_kernels_com, last_check_time
+  common spp_spice_kernels_com, last_load_time, last_trange
   if ~keyword_set(ref_frame) then ref_frame = 'J2000'
   if ~keyword_set(att_frame) then att_frame = 'SPP_RTN'
   
   if ~keyword_set(res) then res=300d  ;5min resolution
   if ~keyword_set(angle_error) then angle_error = 1.   ;  error in degrees
+  trange = timerange(trange)   ; get default trange
   
-  retrievetime = systime(1)
- ; if keyword_set(last_check_time) && retrievetime -last_time lt 3600. then 
+  current_time = systime(1)
+  if n_elements(load) eq 0 then begin
+    if ~keyword_set(last_load_time) || current_time gt (last_load_time + 24*3600.) then load_anyway=1
+    if ~keyword_set(last_trange) || trange[0] lt last_trange[0] || trange[1] gt last_trange[1]  then load_anyway=1
+  endif
 
-  if keyword_set(load) then kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download)
- 
+  if keyword_set(load) || keyword_set(load_anyway) then begin
+    kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download)
+    last_load_time = systime(1)
+    last_trange = trange
+  endif
+  
   if keyword_set(download_only) then return
-
 
   if keyword_set(position) then begin
     spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=1e6,name=n1,trange=trange,/force_objects ;million km

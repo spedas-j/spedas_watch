@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-02 11:11:02 -0700 (Thu, 02 May 2019) $
-; $LastChangedRevision: 27173 $
+; $LastChangedDate: 2019-05-16 13:11:51 -0700 (Thu, 16 May 2019) $
+; $LastChangedRevision: 27241 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-02 11:11:02 -0700 (Thu, 02 May 2019) $
-; $LastChangedRevision: 27173 $
+; $LastChangedDate: 2019-05-16 13:11:51 -0700 (Thu, 16 May 2019) $
+; $LastChangedRevision: 27241 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-05-02 11:11:02 -0700 (Thu, 02 May 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 27173 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-05-16 13:11:51 -0700 (Thu, 16 May 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 27241 $'
 
   return,sw_hash
 end
@@ -231,6 +231,11 @@ function cdf_tools::cdf_var_type,strng
 end
 
 
+pro cdf_tools::help,vname
+   print_struct, self.var_info_structures()
+
+end
+
 ;+
 ; This is a wrapper routine to create CDF variables within an open CDF file.
 ; usage:
@@ -316,7 +321,7 @@ pro cdf_tools::var_att_create,var
 end
 
 
-
+;  return an array of structures
 function cdf_tools::get_var_struct,  names, struct0=struct0,add_time = add_time
 if not keyword_set(names) then names = self.varnames()
 ;if isa(struct0,'STRUCT') then strct0 = !null
@@ -359,6 +364,8 @@ endif
 
 return,strct_n
 end
+
+
 
 
 pro cdf_tools::filter_variables, index
@@ -418,12 +425,11 @@ function cdf_tools::datavary_struct,varnames=varnames
     strct.(k) = transpose(dat)
   endforeach
 
-
   printdat,strct
-  
-  
+
   return,strct
 end
+
 
 
 function cdf_tools::varnames,data=data
@@ -441,7 +447,7 @@ function cdf_tools::varnames,data=data
     endforeach
     depend = depend.sort()
     depend = depend[ uniq( depend.toarray() ) ]
-    l = l + depend
+    l.add, depend
     return, l.toarray()
     
   endif
@@ -450,56 +456,206 @@ function cdf_tools::varnames,data=data
 end
 
 
+;
+;function cdf_tools_var_type2,string
+;  stypes = 'CDF_'+strsplit(/extr,'XXX BYTE UINT1 INT1 CHAR UCHAR INT2 UINT2 INT4 UINT4 REAL4 FLOAT DOUBLE REAL8 EPOCH EPOCH16 LONG_EPOCH TIME_TT2000')
+;  vtypes = [0,1,1,1,1,1,2,12,3,13,4,4,5,5,5,9,9,14]
+;  type = array_union(string,stypes)
+;  return,(vtypes[type])[0]
+;end
 
 
 
-pro cdf_tools::read,filename
 
-  info2 = cdf_info2(filename,/attri,/data)
-  self.filename = info2.filename
-  *self.inq_ptr = info2.inq
-  self.g_attributes = info2.g_attributes
-  ;   self.nv  = info.nv
-  if 1 then begin               ; info2 not working yet ????
-    self.vars = info2.vars
-  endif else begin
-    info = cdf_load_vars(filename,varformat='*')   ; get all variables for now
-    for i= 0,n_elements(info.vars)-1 do begin
-      v = info.vars[i]
-      if ptr_valid(v.dataptr) then values = *v.dataptr else values = !null
-      vho = cdf_tools_varinfo(v.name,all_values=values,recvary=v.recvary)
-      attr = *v.attrptr
-      tagnames = tag_names(attr)
-      for j=0,n_elements(tagnames)-1 do begin
-        vho.attributes[tagnames[j]] = attr.(j)
+pro cdf_tools::read,filenames
+
+  tstart = systime(1)
+  ret_data=1
+  if 0 then begin
+    info2 = cdf_info2(filenames,/attri,/data)
+    self.filenames.add,filenames
+    self.filename = info2.filename
+    *self.inq_ptr = info2.inq
+    self.g_attributes = info2.g_attributes
+    ;   self.nv  = info.nv
+    if 1 then begin               ; info2 not working yet ????
+      self.vars = info2.vars
+    endif else begin
+      info = cdf_load_vars(filename,varformat='*')   ; get all variables for now
+      for i= 0,n_elements(info.vars)-1 do begin
+        v = info.vars[i]
+        if ptr_valid(v.dataptr) then values = *v.dataptr else values = !null
+        vho = cdf_tools_varinfo(v.name,all_values=values,recvary=v.recvary)
+        attr = *v.attrptr
+        tagnames = tag_names(attr)
+        for j=0,n_elements(tagnames)-1 do begin
+          vho.attributes[tagnames[j]] = attr.(j)
+        endfor
+        self.add_variable,vho
       endfor
-      self.add_variable,vho
-    endfor
-    ptr_free,info.vars.dataptr
-    prt_free,info.vars.attrptr
+      ptr_free,info.vars.dataptr
+      prt_free,info.vars.attrptr
+    endelse
+  endif else begin
+    for n=0,n_elements(filenames)-1 do begin
+      file = filenames[n]
+      if file_test(file) then  self.fileid=cdf_open(file)      else begin
+        dprint,dlevel=2,verbose=verbose,'File not found: "'+file+'"'
+        continue
+      endelse
+      ;   res = create_struct('filename',fn,'inq',inq,'g_attributes',g_atts,'nv',nv,'vars',vinfo)  ;'num_recs',num_recs,'nvars',nv
+
+      inq = cdf_inquire(self.fileid)
+      q = !quiet
+      nv = inq.nvars+inq.nzvars
+      vinfo = self.vars   ;      vinfo = orderedhash()
+      
+      self.filename = file
+      *self.inq_ptr = inq
+      self.filenames.add,file
+      self.nvars = nv
+      self.g_attributes = cdf_var_atts2(self.fileid)   ; global attributes
+      num_recs =0
+      t0=systime(1)
+      
+      ; should make a check here to insure the same file type is loaded
+
+      varinfo_format= {cdf_tools_varinfo}
+      for zvar = 0,1 do begin   ; regular variables first, then zvariables
+        nvars = zvar ? inq.nzvars : inq.nvars
+        for v = 0,nvars-1 do begin
+          vi = cdf_varinq(self.fileid,v,zvar=zvar)
+          vname = vi.name
+          if ~self.vars.haskey(vname) then begin
+            vinfo_i = varinfo_format
+            vinfo_i.data = dynamicarray(name=vname)
+          endif    else begin
+            vinfo_i = self.vars[vname]
+            ; should make a check here to insure the same var type is loaded
+          endelse
+          vinfo_i.num = v
+          vinfo_i.numattr = -1
+          vinfo_i.is_zvar = zvar
+          vinfo_i.name = vi.name
+          vinfo_i.datatype = vi.datatype
+          vinfo_i.type = self.cdf_var_type(vi.datatype)
+          vinfo_i.numelem = vi.numelem
+          recvar = vi.recvar eq 'VARY'
+          vinfo_i.recvary = recvar            
+
+          if recvar then begin
+;            !quiet = 1
+            cdf_control,self.fileid,var=v,get_var_info=info,zvar = zvar
+;            !quiet = q
+            ;if vb ge 7 then print,ptrace(),vi.name
+            nrecs = info.maxrec+1
+          endif else nrecs = 0
+          vinfo_i.numrec += nrecs
+
+          if zvar then begin
+            dimen = [vi.dim]
+            ndimen = total(/preserve,vi.dimvar)
+          endif else begin
+            dimc = vi.dimvar * inq.dim
+            w = where(dimc ne 0,ndimen)
+            if ndimen ne 0 then dimen = dimc[w] else dimen=0
+            dprint,'Warning!  rvars not debugged',dlevel=1
+          endelse
+          vinfo_i.ndimen = ndimen
+          vinfo_i.d =  dimen
+          ;dprint,dlevel=3,phelp=3,vi,dimen,dimc
+          t2 = systime(1)
+          dprint,dlevel=4,verbose=verbose,v,systime(1)-t2,' '+vi.name
+          
+          if 1 ||  keyword_set(ret_attr) then begin                                                      ; Get attributes first
+            attr = cdf_var_atts2(self.fileid, v,zvar=zvar, convert_int1_to_int2=convert_int1_to_int2)   ; Fast Version
+            vinfo_i.attributes = attr
+            vinfo_i.numattr = n_elements(attr)
+          endif
+          
+          if keyword_set(ret_data) then begin    ; Get data
+            if  nrecs ge 1 then begin
+              cdf_varget,self.fileid,vinfo_i.name,value ,rec_count=nrecs    ,string= vinfo_i.numelem gt 1
+              if vinfo_i.recvary then begin
+                if (vinfo_i.ndimen ge 1 && n_elements(record) eq 0) then begin
+                  if nrecs eq 1 then begin
+                    dprint,dlevel=3,'Warning: Single record! ',vinfo_i.name,vinfo_i.ndimen,vinfo_i.d
+                    value = reform(/overwrite,value, [1,size(/dimensions,value)] )  ; Special case for variables with a single record
+                  endif else begin
+                    transshift = shift(indgen(vinfo_i.ndimen+1),1)
+                    value=transpose(value,transshift)
+                  endelse
+                endif else value = reform(value,/overwrite)
+
+              endif
+              vinfo_i.data.append , value
+
+            endif else begin   ; not record varying
+              cdf_varget,self.fileid,vi.name,value     ,string= vinfo_i.numelem gt 1
+              vinfo_i.data.array = value
+            endelse
+          endif
+          vinfo[vname] = vinfo_i
+          dprint,dlevel=4,verbose=verbose,v,systime(1)-t0,' '+vi.name
+          t0=systime(1)
+        endfor
+      endfor
+      cdf_close,self.fileid
+      self.fileid = 0
+    endfor    ;files
+
+    dprint,dlevel=3,verbose=verbose,'Time=',systime(1)-tstart
+    return
+    
   endelse
 end
 
 
-function cdf_tools::structures
-   vnames = self.vars.keys()
-   strct = !null
-   foreach vn,vnames do begin
-     strct = create_struct(strct,vn,(self.vars[vn])[0] )
-    
-   endforeach
-   retstrct = replicate(strct,n)
+function cdf_tools::var_info_structures   ; not ready yet
+
+  strct = replicate( {cdf_tools_varinfo},self.nvars )
+  i = 0
+  foreach v,self.vars,vname do begin
+    strct[i++] = v
+  endforeach
+  return,strct
+  
 end
 
 
 
+pro cdf_tools::make_tplot_var,varnames,prefix=prefix
+
+   default_epoch = 'epoch'
+   if ~keyword_set(prefix) then prefix = ''
+   foreach vname,varnames do begin
+      
+      if self.vars.haskey(vname) then begin
+        var_str = self.vars[vname]
+        depend_0 = default_epoch
+        str_element,var_str.attributes,'DEPEND_0',depend_0
+        time_str = self.vars[depend_0]
+        time = time_ephemeris(time_str.data.array / 1d9,/et2ut)
+        store_data,prefix+vname,time,var_str.data.array
+      endif else begin
+        dprint , var ,' not found'
+      endelse
+     
+    
+   endforeach
+
+
+end
+
+
 
  
  
-PRO cdf_tools::GetProperty, filename=filename, vars=vars, G_attributes=G_attributes, nvars=nvars
+PRO cdf_tools::GetProperty, filename=filename, vars=vars, G_attributes=G_attributes,files=files ;, nvars=nvars
 COMPILE_OPT IDL2
 IF (ARG_PRESENT(filename)) THEN filename = self.filename
-IF (ARG_PRESENT(nvars)) THEN nv = n_elements(self.vars)
+IF (ARG_PRESENT(files)) THEN files = self.filenames
+IF (ARG_PRESENT(nvars)) THEN nvars = n_elements(self.vars)
 IF (ARG_PRESENT(G_attributes)) THEN G_attributes = self.G_attributes
 IF (ARG_PRESENT(vars)) THEN vars = self.vars
 END
@@ -507,11 +663,12 @@ END
  
 
 
-FUNCTION cdf_tools::Init,filename,_EXTRA=ex
+FUNCTION cdf_tools::Init,filenames,_EXTRA=ex
   COMPILE_OPT IDL2
   ; Call our superclass Initialization method.
   void = self.generic_Object::Init(_extra=ex)
   self.inq_ptr = ptr_new(!null)
+  self.filenames = list()
   self.g_attributes = orderedhash()
   self.vars = orderedhash()
   if keyword_set(name) then begin
@@ -522,8 +679,8 @@ FUNCTION cdf_tools::Init,filename,_EXTRA=ex
   ; self.data = dynamicarray(name=name)
 ;  self.dlevel = 3
 ;  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
-  IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
-  if isa(filename,/string) then self.read,filename
+  IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex    
+  self.read,filenames   
   RETURN, 1
 END
 
@@ -538,13 +695,15 @@ PRO cdf_tools__define
 void = {cdf_tools, $
   inherits generic_object, $    ; superclass
   filename: '',  $
+  filenames: obj_new(), $
   fileid:  0uL,  $
   inq_ptr:  ptr_new() ,  $          ; pointer to inquire structure 
   G_attributes: obj_new(),  $     ; ordered hash
 ;  nv:  0     , $
-  vars:  obj_new(),   $           ; ordered hash with variables
-  dummy:0 }
-
+  nvars: 0, $
+  vars:  obj_new() $
+}  
+ 
 END
 
 
