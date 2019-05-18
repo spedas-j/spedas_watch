@@ -5,33 +5,33 @@
 ; Demonstrates usage of SPP SPICE ROUTINES
 ;
 ;  Author:  Davin Larson
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2014-01-21 17:01:02 -0800 (Tue, 21 Jan 2014) $
-; $LastChangedRevision: 13960 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu:36867/repos/idl_socware/trunk/projects/maven/general/mvn_file_source.pro $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2019-05-17 11:15:05 -0700 (Fri, 17 May 2019) $
+; $LastChangedRevision: 27257 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spice/spp_swp_spice.pro $
 ;-
 
 pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,$
-  quaternion=quaternion,no_download=no_download,res=res,load=load,position=position,angle_error,att_frame = att_frame,ref_frame=ref_frame
+  quaternion=quaternion,no_download=no_download,res=res,load=load,position=position,angle_error=angle_error,att_frame=att_frame,ref_frame=ref_frame
   
-  common spp_spice_kernels_com, last_load_time, last_trange
-  if ~keyword_set(ref_frame) then ref_frame = 'J2000'
-  if ~keyword_set(att_frame) then att_frame = 'SPP_RTN'
+  common spp_spice_kernels_com, last_load_time,last_trange
+  if ~keyword_set(ref_frame) then ref_frame ='J2000'
+  if ~keyword_set(att_frame) then att_frame ='SPP_RTN'
   
-  if ~keyword_set(res) then res=300d  ;5min resolution
-  if ~keyword_set(angle_error) then angle_error = 1.   ;  error in degrees
-  trange = timerange(trange)   ; get default trange
+  if ~keyword_set(res) then res=300d ;5min resolution
+  if ~keyword_set(angle_error) then angle_error=3. ;error in degrees
+  trange=timerange(trange) ;get default trange
   
-  current_time = systime(1)
+  current_time=systime(1)
   if n_elements(load) eq 0 then begin
     if ~keyword_set(last_load_time) || current_time gt (last_load_time + 24*3600.) then load_anyway=1
-    if ~keyword_set(last_trange) || trange[0] lt last_trange[0] || trange[1] gt last_trange[1]  then load_anyway=1
+    if ~keyword_set(last_trange) || trange[0] lt last_trange[0] || trange[1] gt last_trange[1] then load_anyway=1
   endif
 
   if keyword_set(load) || keyword_set(load_anyway) then begin
     kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download)
-    last_load_time = systime(1)
-    last_trange = trange
+    last_load_time=systime(1)
+    last_trange=trange
   endif
   
   if keyword_set(download_only) then return
@@ -40,6 +40,6 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
     spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=1e6,name=n1,trange=trange,/force_objects ;million km
     xyz_to_polar,n1,/ph_0_360
   endif
-  if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,check_obj=['SPP_SPACECRAFT'],/force_objects,error=angle_error *!pi/180.
+  if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
 
 end
