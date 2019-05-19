@@ -1,9 +1,9 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-26 15:38:42 -0700 (Fri, 26 Apr 2019) $
-; $LastChangedRevision: 27104 $
+; $LastChangedDate: 2019-05-18 11:17:57 -0700 (Sat, 18 May 2019) $
+; $LastChangedRevision: 27259 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
-pro spp_swp_spc_load,files,  trange=trange, type = type,save=save
+pro spp_swp_spc_load,  trange=trange,type = type,files=files,no_load=no_load,save=save,load_labels=load_labels
 
 
    if not keyword_set(type) then type = 'l3i'
@@ -12,14 +12,15 @@ pro spp_swp_spc_load,files,  trange=trange, type = type,save=save
 
    pathname = 'psp/data/sci/sweap/spc/'+Ltype+'/YYYY/MM/spp_swp_spc_'+type+'_YYYYMMDD_v??.cdf'
    
-   if not keyword_set(files) then files = spp_file_retrieve(pathname,trange=trange,/last_version,/daily_names,verbose=2)
+   files = spp_file_retrieve(pathname,trange=trange,/last_version,/daily_names,verbose=2)
    prefix = 'psp_swp_spc_'+type+'_'
-   cdf2tplot,files,prefix = prefix,verbose=2
+   cdf2tplot,files,prefix = prefix,verbose=2,/all,load_labels=load_labels
+     
    
-   if keyword_set(save) then begin
-    loadcdfstr,filenames=files,vardata,novardata
-    dummy = spp_data_product_hash('SPC_'+type,vardata)
-   endif
+;   if keyword_set(save) then begin
+;    loadcdfstr,filenames=files,vardata,novardata,/time
+;    dummy = spp_data_product_hash('SPC_'+type,vardata)
+;   endif
    
    if type eq 'l2i' then begin
      ylim,prefix+'*charge_flux_density',100.,4000.,1,/default
@@ -28,7 +29,10 @@ pro spp_swp_spc_load,files,  trange=trange, type = type,save=save
      zlim,prefix+'*_current',1.,100.,1    ,/default
    endif
    if type eq 'l3i' then begin
-     
+     ylim,prefix+'vp_moment_SC',-500,200,0    ,/default
+     options,prefix+'vp_*_SC',colors='bgr'     ,/default
+     options,prefix+'vp_*_RTN',colors='bgr'  ,/default
+     options,prefix+'DQF',spec=1,zrange=[-3,2]
    endif
 end
 
