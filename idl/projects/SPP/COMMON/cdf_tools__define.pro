@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-16 13:11:51 -0700 (Thu, 16 May 2019) $
-; $LastChangedRevision: 27241 $
+; $LastChangedDate: 2019-05-19 14:24:13 -0700 (Sun, 19 May 2019) $
+; $LastChangedRevision: 27263 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-16 13:11:51 -0700 (Thu, 16 May 2019) $
-; $LastChangedRevision: 27241 $
+; $LastChangedDate: 2019-05-19 14:24:13 -0700 (Sun, 19 May 2019) $
+; $LastChangedRevision: 27263 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-05-16 13:11:51 -0700 (Thu, 16 May 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 27241 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-05-19 14:24:13 -0700 (Sun, 19 May 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 27263 $'
 
   return,sw_hash
 end
@@ -432,7 +432,7 @@ end
 
 
 
-function cdf_tools::varnames,data=data
+function cdf_tools::varnames,namematch,data=data
   vnames = self.vars.keys()
   l=list()
   depend = list()
@@ -620,6 +620,17 @@ function cdf_tools::var_info_structures   ; not ready yet
   endforeach
   return,strct
   
+end
+
+function cdf_tools::get_variable_structure,varns
+  namelist = self.vars.keys()
+  vars=!null
+  foreach v,varns do begin
+     if isa(/string,v) then vstruct = self.vars[varns]
+     if isa(/number,v) then vstruct = self.vars[namelist[v]]   
+  vars = [vars,vstruct]
+  endforeach
+return,vars
 end
 
 

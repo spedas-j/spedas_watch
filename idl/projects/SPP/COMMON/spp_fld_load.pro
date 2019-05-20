@@ -6,7 +6,7 @@
 ; $LastChangedRevision:  $
 ; $URL:  $
 
-pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefix, pathformat=pathformat
+pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefix,tname_prefix=tname_prefix, pathformat=pathformat,no_load=no_load,varformat=varformat
 
   if not keyword_set(fileprefix) then fileprefix = 'psp/data/sci/fields/staging/l2/'
   if not keyword_set(pathformat) then pathformat =  'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDD_v??.cdf'
@@ -28,7 +28,7 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
   files=spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,/last_version,/daily_names,/valid_only)
   
   if not keyword_set(no_load) then begin
-    cdf2tplot,files    
+    cdf2tplot,files    ,varformat=varformat,prefix=tname_prefix
 
     if strmatch(type,'rfs_?fr') then begin
       dprint,'Modifying limits'
