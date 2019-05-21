@@ -50,12 +50,14 @@ PRO sppeva_dash_activate
   oHH      = obj_new('IDLgrText',' 0 hrs',FONT=myfont,COLOR=black,   LOCATION=[0, 1-4.5*dy])
   oMM      = obj_new('IDLgrText',' 0 min',  FONT=myfont,COLOR=black,   LOCATION=[0, 1-5.5*dy])
   oBL      = obj_new('IDLgrText',' 0 blocks',  FONT=myfont,COLOR=black,   LOCATION=[0, 1-6.5*dy])
+  oGb      = obj_new('IDLgrText',' 0 Gbits',  FONT=myfont,COLOR=black,   LOCATION=[0, 1-7.5*dy])
   myview  ->Add, mymodel
   mymodel ->Add, oMode
   mymodel ->Add, oTime
   mymodel ->Add, oHH
   mymodel ->Add, oMM
   mymodel ->Add, oBL
+  mymodel ->Add, oGb
   
   ;----------------
   ; DRAW & SAVE
@@ -68,6 +70,7 @@ PRO sppeva_dash_activate
   str_element,/add,com_dash,'oHH',oHH
   str_element,/add,com_dash,'oMM',oMM
   str_element,/add,com_dash,'oBL',oBL
+  str_element,/add,com_dash,'oGb',oGb
   str_element,/add,com_dash,'color',color
   str_element,/add,com_dash,'instr','FLD'
   ;======================================================

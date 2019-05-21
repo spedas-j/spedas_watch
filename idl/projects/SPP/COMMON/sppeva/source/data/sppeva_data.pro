@@ -72,30 +72,30 @@ FUNCTION sppeva_data_event, event
       ;str_element,/add,wid,'end_time',new_time
       ;str_element,/add,wid,'trangeChanged',1
     end
+    wid.drpOrbit: begin
+      print, event.index
+      stime = wid.orbHist.stime[event.index]
+      etime = wid.orbHist.etime[event.index]
+      !SPPEVA.COM.STRTR = [stime,etime]
+      widget_control, wid.fldStartTime, SET_VALUE=stime; update GUI field
+      widget_control, wid.fldEndTime,   SET_VALUE=etime
+      end
     wid.calStartTime: begin
       print,'EVA: ***** EVENT: calStartTime *****'
       otime = obj_new('spd_ui_time')
-      ;otime->SetProperty,tstring=wid.start_time
       otime->SetProperty,tstring=tr_old[0]
       spd_ui_calendar,'EVA Calendar',otime,event.top, startyear = 2018
       otime->GetProperty,tstring=tstring         ; get tstring
       !SPPEVA.COM.STRTR = [tstring, tr_old[1]]
       widget_control, wid.fldStartTime, SET_VALUE=tstring; update GUI field
-      ;str_element,/add,wid,'start_time',tstring; put tstring into wid structure
-      ;str_element,/add,wid,'trangeChanged',1
-      ;widget_control, wid.fldStartTime, SET_VALUE=wid.start_time; update GUI field
       obj_destroy, otime
     end
     wid.calEndTime: begin
       print,'EVA: ***** EVENT: calEndTime *****'
       otime = obj_new('spd_ui_time')
-      ;otime->SetProperty,tstring=wid.end_time
       otime->SetProperty,tstring=tr_old[1]
       spd_ui_calendar,'EVA Calendar',otime,event.top, startyear = 2018
       otime->GetProperty,tstring=tstring
-      ;str_element,/add,wid,'end_time',tstring
-      ;str_element,/add,wid,'trangeChanged',1
-      ;widget_control, wid.fldEndTime, SET_VALUE=wid.end_time
       !SPPEVA.COM.STRTR = [tr_old[0], tstring]
       widget_control, wid.fldEndTime, SET_VALUE=tstring
       obj_destroy, otime
@@ -195,7 +195,23 @@ FUNCTION sppeva_data, parent, $
   str_element,/add,wid,'fldEndTime',cw_field(baseEndTime,VALUE=!SPPEVA.COM.STRTR[1],TITLE='',/ALL_EVENTS,XSIZE=20)
   str_element,/add,wid,'calEndTime',widget_button(baseEndTime,VALUE=cal)
 
-
+  orbHist = sppeva_orbit_history()
+  mmax = n_elements(orbHist.STIME)
+  orbSet = strarr(mmax)
+  for m=0, mmax-1 do begin
+    sdate = strmid(orbHist.STIME[m],0,10)
+    edate = strmid(orbHist.ETIME[m],0,10)
+    if(m eq 0)then begin
+      pfx = 'Test     '
+    endif else begin
+      pfx = 'Orbit'+string(m,format='(I4)')
+    endelse
+    orbSet[m] = pfx+': '+sdate+' - '+edate
+  endfor
+  str_element,/add,wid,'lblOrbit',widget_label(base,VALUE='Pre-defined Time Range')
+  str_element,/add,wid,'drpOrbit',widget_droplist(base,VALUE=orbSet,TITLE='',SENSITIVE=1)
+  str_element,/add,wid,'orbHist',orbHist
+  
   ;------------
   ; PARAMETER SETS
   ;------------

@@ -18,6 +18,7 @@ PRO sppeva_dash_update, activate
   strHH = '0'
   strMM = '0'
   strBL = '0'
+  strGb = '0'
   var = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr')
   get_data,var,data=D,dl=dl,lim=lim
   if n_tags(dl) gt 0 then begin
@@ -39,7 +40,9 @@ PRO sppeva_dash_update, activate
         tn=tnames('spp_fld_f1_100bps_DCB_ARCWRPTR',ct)
         if ct eq 1 then begin
           get_data,'spp_fld_f1_100bps_DCB_ARCWRPTR',data=DD
-          mmax = n_elements(DD.x)
+          ;mmax = n_elements(DD.x)
+          ;lst = lonarr(mmax)
+          mmax = max(DD.y,/nan)
           lst = lonarr(mmax)
           for n=0,s.Nsegs-1 do begin
             
@@ -51,14 +54,16 @@ PRO sppeva_dash_update, activate
             result = min(DD.x-s.STOP[n],min_subscript,/abs)
             ptr_stop = DD.y[min_subscript]
             if DD.x[min_subscript] lt s.STOP[n] then ptr_stop += 1
-            ;if ptr_stop gt
-             
+
             lst[ptr_start:ptr_stop] = 1L
           endfor
           BL = total(lst)
         endif
       endif
       strBL = strtrim(string(floor(BL)),2)
+      strGb = string(BL/512.2,format='(F6.3)')
+      print,'$$$$$$$$$$$$$$$$$'
+      print, BL/512.,'Gbits'
     endelse
   endif
   
@@ -75,6 +80,7 @@ PRO sppeva_dash_update, activate
   com_dash.oHH -> SetProperty,STRING=' '+strHH+' hrs'
   com_dash.oMM -> SetProperty,STRING=' '+strMM+' min'
   com_dash.oBL -> SetProperty,STRING=' '+strBL+' blocks'
+  com_dash.oGb -> SetProperty,STRING=' '+strGb+' Gbit'
   
   ;======================================================
   mywindow->Draw, com_dash.myview
