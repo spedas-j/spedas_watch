@@ -10,11 +10,13 @@ pro spp_fld_make_or_retrieve_cdf, $
 
   endif else begin
 
-    remote_site = 'http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/staging/l1/'
-
     get_timespan, ts
 
-    if strmid(apid_name, 0, 3) EQ 'dfb' then begin
+    ; The DFB APID definitions usually contain an underscore specifying which 
+    ; waveform/spectra/bandpass channel is being sampled (e.g. dfb_wf_01) but
+    ; the Level 1 CDF files don't have that underscore (e.g. dfb_wf01)
+
+    if strmid(apid_name, 0, 3) EQ 'dfb' and apid_name NE 'dfb_hk' then begin
 
       final_underscore = strpos(apid_name, '_', /reverse_search)
 
@@ -22,19 +24,19 @@ pro spp_fld_make_or_retrieve_cdf, $
         strmid(apid_name, final_underscore + 1)
 
     endif
-    
-    if apid_name EQ 'dcb_ssr_telemetry' then apid_name = 'dcb_s\sr_telemetry'
-    if apid_name EQ 'rfs_hfr_cross' then apid_name = 'rfs_hfr_cros\s'
 
     psp_staging_id = getenv('PSP_STAGING_ID')
-    
+
     if psp_staging_id EQ '' then psp_staging_id = getenv('USER')
 
-    files = file_retrieve(apid_name + '/YYYY/MM/spp_fld_l1_' + apid_name + '_YYYYMMDD_v00.cdf', $
-      local_data_dir = getenv('PSP_STAGING_DIR'), $
-      remote_data_dir = remote_site, no_update = 0, $
-      trange = time_string(ts, tformat = 'YYYY-MM-DD/hh:mm:ss'), $
-      user_pass = psp_staging_id + ':' + getenv('PSP_STAGING_PW'))
+    fileprefix = 'psp/data/sci/fields/staging/l1/'
+
+    pathformat = apid_name + '/YYYY/MM/spp_fld_l1_' + $
+      apid_name + '_YYYYMMDD_v00.cdf'
+
+    spp_fld_load, type = apid_name, fileprefix = fileprefix, $
+      pathformat = pathformat, /no_load, files = files, $
+      trange = time_string(ts, tformat = 'YYYY-MM-DD/hh:mm:ss')
 
     valid_files = where(file_test(files) EQ 1, valid_count)
 

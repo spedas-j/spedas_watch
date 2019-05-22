@@ -9,22 +9,9 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
 
   endif else if n_elements(files) EQ 0 then begin
 
-    remote_site = $
-      'http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/staging/'
-
     if keyword_set(hfr_only) then rec = 'hfr' else rec = 'lfr'
 
-    get_timespan, ts
-
-    psp_staging_id = getenv('PSP_STAGING_ID')
-
-    if psp_staging_id EQ '' then psp_staging_id = getenv('USER')
-
-    files = file_retrieve('l2/rfs_' + rec + '/YYYY/MM/psp_fld_l2_rfs_' + rec + '_YYYYMMDD_v00.cdf', $
-      local_data_dir = getenv('PSP_STAGING_DIR'), $
-      remote_data_dir = remote_site, no_update = 0, $
-      trange = time_string(ts, tformat = 'YYYY-MM-DD/hh:mm:ss'), $
-      user_pass = psp_staging_id + ':' + getenv('PSP_STAGING_PW'))
+    spp_fld_load, type = 'rfs_' + rec, /no_load, files = files
 
     valid_files = where(file_test(files) EQ 1, valid_count)
 
@@ -32,7 +19,7 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
       filenames = files[valid_files]
       psp_fld_rfs_load_l2, filenames
     end
-    
+
     return
 
   endif
@@ -45,7 +32,7 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
 
     cdf_id = cdf_open(file)
 
-    info = cdf_info(cdf_id,verbose=verbose) ;, convert_int1_to_int2=convert_int1_to_int2)
+    info = cdf_info(cdf_id,verbose=verbose)
 
     for j = 0, info.nv - 1 do begin
       name = info.vars[j].name
@@ -58,12 +45,9 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
 
     cdf_close, cdf_id
 
-    ;if n_elements(vars_fmt) GT 0 then vars_fmt = vars_fmt[sort(vars_fmt)]
-
   endfor
 
   cdf2tplot, files, varformat = vars_fmt, varnames = varnames
-
 
   meta_end = ['averages', 'peaks', 'ch0', 'ch1', 'string', $
     'nsum', 'gain', 'hl']

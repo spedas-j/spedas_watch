@@ -37,33 +37,23 @@ PRO sppeva_dash_update, activate
       ; BL
       BL = 0
       if strmatch(!SPPEVA.COM.MODE,'FLD') then begin
-        tn=tnames('spp_fld_f1_100bps_DCB_ARCWRPTR',ct)
-        if ct eq 1 then begin
-          get_data,'spp_fld_f1_100bps_DCB_ARCWRPTR',data=DD
-          ;mmax = n_elements(DD.x)
-          ;lst = lonarr(mmax)
-          mmax = max(DD.y,/nan)
-          lst = lonarr(mmax)
-          for n=0,s.Nsegs-1 do begin
-            
-            result = min(DD.x-s.START[n],min_subscript,/abs)
-            ptr_start = DD.y[min_subscript]
-            if DD.x[min_subscript] gt s.START[n] then ptr_start -= 1
-            ;if ptr_start lt 0 then ptr_start = 0
-            
-            result = min(DD.x-s.STOP[n],min_subscript,/abs)
-            ptr_stop = DD.y[min_subscript]
-            if DD.x[min_subscript] lt s.STOP[n] then ptr_stop += 1
-
-            lst[ptr_start:ptr_stop] = 1L
-          endfor
-          BL = total(lst)
-        endif
+        tnptr = !SPPEVA.COM.FIELDPTR
+      endif else begin
+        tnptr = !SPPEVA.COM.SWEAPPTR
+      endelse
+      tn=tnames(tnptr,ct)
+      if ct eq 1 then begin
+        get_data,tnptr,data=DD
+        mmax = max(DD.y,/nan)
+        lst = lonarr(mmax)
+        for n=0,s.Nsegs-1 do begin
+          PTR = sppeva_sitl_get_block(s.START[n], s.STOP[n])
+          lst[PTR.start:PTR.stop] = 1L
+        endfor
+        BL = total(lst)
       endif
       strBL = strtrim(string(floor(BL)),2)
       strGb = string(BL/512.2,format='(F6.3)')
-      print,'$$$$$$$$$$$$$$$$$'
-      print, BL/512.,'Gbits'
     endelse
   endif
   

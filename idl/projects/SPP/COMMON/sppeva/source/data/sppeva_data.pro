@@ -180,21 +180,6 @@ FUNCTION sppeva_data, parent, $
   ; START & STOP TIMES
   ;--------------------
 
-  ; calendar icon
-  getresourcepath,rpath
-  cal = read_bmp(rpath + 'cal.bmp', /rgb)
-  spd_ui_match_background, base, cal
-
-  baseStartTime = widget_base(base,/row, SPACE=0, YPAD=0)
-  lblStartTime = widget_label(baseStartTime,VALUE='Start Time',/align_left,xsize=70)
-  str_element,/add,wid,'fldStartTime',cw_field(baseStartTime,VALUE=!SPPEVA.COM.STRTR[0],TITLE='',/ALL_EVENTS,XSIZE=20)
-  str_element,/add,wid,'calStartTime',widget_button(baseStartTime,VALUE=cal)
-
-  baseEndTime = widget_base(base,/row)
-  lblEndTime = widget_label(baseEndTime,VALUE='End Time',/align_left,xsize=70)
-  str_element,/add,wid,'fldEndTime',cw_field(baseEndTime,VALUE=!SPPEVA.COM.STRTR[1],TITLE='',/ALL_EVENTS,XSIZE=20)
-  str_element,/add,wid,'calEndTime',widget_button(baseEndTime,VALUE=cal)
-
   orbHist = sppeva_orbit_history()
   mmax = n_elements(orbHist.STIME)
   orbSet = strarr(mmax)
@@ -211,6 +196,23 @@ FUNCTION sppeva_data, parent, $
   str_element,/add,wid,'lblOrbit',widget_label(base,VALUE='Pre-defined Time Range')
   str_element,/add,wid,'drpOrbit',widget_droplist(base,VALUE=orbSet,TITLE='',SENSITIVE=1)
   str_element,/add,wid,'orbHist',orbHist
+  
+  ; calendar icon
+  getresourcepath,rpath
+  cal = read_bmp(rpath + 'cal.bmp', /rgb)
+  spd_ui_match_background, base, cal
+
+  baseStartTime = widget_base(base,/row, SPACE=0, YPAD=0)
+  lblStartTime = widget_label(baseStartTime,VALUE='Start Time',/align_left,xsize=70)
+  str_element,/add,wid,'fldStartTime',cw_field(baseStartTime,VALUE=!SPPEVA.COM.STRTR[0],TITLE='',/ALL_EVENTS,XSIZE=20)
+  str_element,/add,wid,'calStartTime',widget_button(baseStartTime,VALUE=cal)
+
+  baseEndTime = widget_base(base,/row)
+  lblEndTime = widget_label(baseEndTime,VALUE='End Time',/align_left,xsize=70)
+  str_element,/add,wid,'fldEndTime',cw_field(baseEndTime,VALUE=!SPPEVA.COM.STRTR[1],TITLE='',/ALL_EVENTS,XSIZE=20)
+  str_element,/add,wid,'calEndTime',widget_button(baseEndTime,VALUE=cal)
+
+  
   
   ;------------
   ; PARAMETER SETS

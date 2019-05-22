@@ -32,6 +32,9 @@ PRO sppeva_pref_event, event
       sppeva_fild_values = !SPPEVA.FILD
       save, sppeva_user_values, sppeva_gene_values, sppeva_fild_values, $
         filename='sppeva_setting.sav'
+      if(strlen(!SPPEVA.GENE.ROOT_DATA_DIR) gt 0) then begin
+        setenv,'ROOT_DATA_DIR='+!SPPEVA.GENE.ROOT_DATA_DIR
+      endif
       exitcode=1
     end
     wid.btnCancel:begin

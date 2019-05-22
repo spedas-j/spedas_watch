@@ -73,6 +73,17 @@ FUNCTION sppeva_load_spp, param, perror
     sppeva_get_fld,'rfs_lfr_auto'
   endif
 
+  ;----------------------
+  ; SWEAP POINTER ADDRESS
+  ;----------------------
+  if(strmatch(param,'*_swp_*'))then begin
+    tr = time_double(!SPPEVA.COM.STRTR)
+    tp = 'psp_swp_swem_dig_hkp_SW_SSRWRADDR'
+    if ~spd_data_exists(tp, tr[0], tr[1]) then begin
+      spp_swp_swem_load, trange=tr
+    endif
+  endif
+  
   ;---------------------
   ; SWEAP SPC Level 2
   ;---------------------

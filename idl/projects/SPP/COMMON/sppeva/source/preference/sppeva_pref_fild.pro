@@ -78,8 +78,9 @@ FUNCTION sppeva_pref_fild, parent, GROUP_LEADER=group_leader, $
     PRO_SET_VALUE = "sppeva_pref_fild_set_value",/column,$
     XSIZE = xsize, YSIZE = ysize,sensitive=1,/base_align_left)
   str_element,/add,wid,'base',base
-  lbl4 = widget_label(base,VALUE='It is recommended to use an IDL startup file. The settings ')
-  lbl3 = widget_label(base,VALUE='below do not override the settings in the startup file.')
+  lbl4 = widget_label(base,VALUE='The settings below can be configured in an idl_startup file')
+  lbl3 = widget_label(base,VALUE='as well. The settings in the idl_startup file will override')
+  lbl2 = widget_label(base,VALUE='the settings below.')
   lbl2 = widget_label(base,VALUE=' ')
   lbl1 = widget_label(base,VALUE='Credential for retrieving files from SPPFLDSOC.')
   str_element,/add,wid,'ID',      cw_field(base,VALUE=!SPPEVA.FILD.SPPFLDSOC_ID,TITLE='ID      ',/ALL_EVENTS,xsize=50)

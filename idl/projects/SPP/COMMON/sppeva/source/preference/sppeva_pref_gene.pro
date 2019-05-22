@@ -41,6 +41,10 @@ FUNCTION sppeva_pref_gene_event, event
       widget_control, event.id, GET_VALUE=strNew
       wid.gene_copy.SPLIT_SIZE_IN_SEC = strNew
       end
+    wid.ROOT_DATA_DIR:begin
+      widget_control, event.id, GET_VALUE=strRootDir
+      wid.gene_copy.ROOT_DATA_DIR = strRootDir
+    end
     else:
   endcase
   ;-----
@@ -72,7 +76,11 @@ FUNCTION sppeva_pref_gene, parent, GROUP_LEADER=group_leader, $
   str_element,/add,wid,'base',base
   lbl2 = widget_label(base,VALUE=' ')
   str_element,/add,wid,'splitsize', cw_field(base,VALUE=!SPPEVA.GENE.SPLIT_SIZE_IN_SEC, TITLE='Split size in sec (default:600)',/ALL_EVENTS,xsize=20)
-  
+  lbl5 = widget_label(base,VALUE='--------------')
+  lbl4 = widget_label(base,VALUE='The settings below can be configured in an idl_startup file')
+  lbl3 = widget_label(base,VALUE='as well. The settings in the idl_startup file will override')
+  lbl2 = widget_label(base,VALUE='the settings below.')
+  str_element,/add,wid,'ROOT_DATA_DIR',cw_field(base,VALUE=!SPPEVA.GENE.ROOT_DATA_DIR,TITLE='ROOT_DATA_DIR',/ALL_EVENTS,xsize=40)
   
   WIDGET_CONTROL, WIDGET_INFO(base, /CHILD), SET_UVALUE=wid, /NO_COPY
   RETURN, base
