@@ -10,7 +10,7 @@ PRO sppeva_sitl_strct2tplot, s, var
         msg = "Start time > stop time ?"
         msg = [msg, "Check the "+strtrim(string(N),2)+"th segment"]
         msg = [msg, "between "+time_string(s.START[N])+' and '+time_string(s.STOP[N])]
-        message,msg
+        message,msg[0]
       endif
     endfor
     D = {x:fom_x[1:*], y:fom_y[1:*]}

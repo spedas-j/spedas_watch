@@ -1,7 +1,7 @@
 
 ;$LastChangedBy: moka $
-;$LastChangedDate: 2019-02-14 11:06:55 -0800 (Thu, 14 Feb 2019) $
-;$LastChangedRevision: 26628 $
+;$LastChangedDate: 2019-05-22 14:58:22 -0700 (Wed, 22 May 2019) $
+;$LastChangedRevision: 27276 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sppeva/source/data/sppeva_get_fld.pro $
 
 
@@ -46,15 +46,16 @@ PRO sppeva_get_fld, apid_name,trange=trange
 ;  if strlen(a) eq 0 then begin
 ;    a = !SPPEVA.FILD.SPPFLDSOC_ID+':'+!SPPEVA.FILD.SPPFLDSOC_PW
 ;  endif
-  source.USER_PASS = getenv('FIELDS_USER_PASS')
-  pathname = prefix + apid_name +'/YYYY/MM/spp_fld_l1_' + apid_name + '_YYYYMMDD_v00.cdf'
-  files = file_retrieve(pathname,/daily,valid_only=1,  trange = trange, _extra=source)
+  ;source.USER_PASS = getenv('FIELDS_USER_PASS')
+  ;pathname = prefix + apid_name +'/YYYY/MM/spp_fld_l1_' + apid_name + '_YYYYMMDD_v00.cdf'
+  ;files = file_retrieve(pathname,/daily,valid_only=1,  trange = trange, _extra=source)
   
   ;------------
   ; LOAD
   ;------------
   
-  files = spp_file_retrieve(prefix + apid_name +'/YYYY/MM/spp_fld_l1_' + apid_name + '_YYYYMMDD_v00.cdf', source=source,/daily_names,/valid_only,  trange = trange)
+  files = spp_file_retrieve(prefix + apid_name +'/YYYY/MM/spp_fld_l1_' + apid_name + '_YYYYMMDD_v00.cdf', $
+    source=source,/daily_names,/valid_only,  trange = trange)
   
  ; http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/staging/l1/mago_survey/2018/11/
 

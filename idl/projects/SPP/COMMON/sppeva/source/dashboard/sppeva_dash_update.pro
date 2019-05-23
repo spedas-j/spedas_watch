@@ -48,7 +48,9 @@ PRO sppeva_dash_update, activate
         lst = lonarr(mmax)
         for n=0,s.Nsegs-1 do begin
           PTR = sppeva_sitl_get_block(s.START[n], s.STOP[n])
-          lst[PTR.start:PTR.stop] = 1L
+          if PTR.ERROR eq 0 then begin
+            lst[PTR.start:PTR.stop] = 1L
+          endif
         endfor
         BL = total(lst)
       endif

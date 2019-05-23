@@ -42,8 +42,8 @@ PRO sppeva_sitl_tplot_update, segSelect, var
     for N=0, s.Nsegs-1 do begin
       ; Each pre-existing segment is compared to the User's new/modified segment
       rr = segment_overlap([s.START[N], s.STOP[N]],[segSelect.TS, segSelect.TE])
+      print,rr
       case abs(rr) of
-        0:; smaller than segSelect --> ignore (will be added anyway)
         1: begin; partial overlap --> split
           newDISCUSSION = [newDISCUSSION, s.DISCUSSION[N]]
           newSOURCEID   = [newSOURCEID, s.SOURCEID[N]]
@@ -63,15 +63,15 @@ PRO sppeva_sitl_tplot_update, segSelect, var
           newSTOP       = [newSTOP,  s.STOP[N]]
           newFOM        = [newFOM,   s.FOM[N]]
         end
-        3:; exactly the same as segSelect --> ignore (will be added anyway)
+;        3:; exactly the same as segSelect --> ignore (will be added anyway)
         4: begin; larger than segSelect -->
-          if s.FOM[N] ge segSelect.FOM then begin; if already high FOM than segSelect
-            ADD = 0; ignore the new selection, segSelect
-            newDISCUSSION = [newDISCUSSION, s.DISCUSSION[N]]
-            newSOURCEID   = [newSOURCEID, s.SOURCEID[N]]
-            newSTART      = [newSTART, s.START[N]]
-            newSTOP       = [newSTOP,  s.STOP[N]]
-            newFOM        = [newFOM,   s.FOM[N]]
+          if s.FOM[N] eq segSelect.FOM then begin; if already high FOM than segSelect
+;            ADD = 0; ignore the new selection, segSelect
+;            newDISCUSSION = [newDISCUSSION, s.DISCUSSION[N]]
+;            newSOURCEID   = [newSOURCEID, s.SOURCEID[N]]
+;            newSTART      = [newSTART, s.START[N]]
+;            newSTOP       = [newSTOP,  s.STOP[N]]
+;            newFOM        = [newFOM,   s.FOM[N]]
           endif else begin; split
             ; The leading part
             newDISCUSSION = [newDISCUSSION, s.DISCUSSION[N]]

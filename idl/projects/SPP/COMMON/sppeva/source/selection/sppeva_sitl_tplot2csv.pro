@@ -34,7 +34,7 @@ PRO sppeva_sitl_tplot2csv, var, filename=filename, msg=msg, error=error, auto=au
   strBLlen   = strarr(s.Nsegs)
   strFOM     = strarr(s.Nsegs)
   for n=0,s.Nsegs-1 do begin
-    PTR = sppeva_sitl_get_block(s.START[n], s.STOP[n])
+    PTR = sppeva_sitl_get_block(s.START[n], s.STOP[n],/quiet)
     if n_tags(PTR) eq 0 then begin
       strBLstart[n] = '0'
       strBLlen[n] = '0'

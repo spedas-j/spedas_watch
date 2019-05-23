@@ -71,7 +71,20 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix
   options, prefix + 'instrument_used', 'ytitle', 'Inst DCP!CUsed'
   options, prefix + 'instrument_used', 'ysubtitle', 'Gbits'
 
+  deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit'
 
-  ;options, prefix + 'percent_used_fields', 'ytitle', 'PCT!CUSED!CFIELDS'
+  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_ddt', dat = d_ddt
+
+  if size(/type, d_ddt) EQ 8 then begin
+
+    store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', $
+      dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
+
+  endif
+
+  options, '*fsw_rec_alloc*', 'xticklen', 1
+  options, '*fsw_rec_alloc*', 'yticklen', 1
+  options, '*fsw_rec_alloc*', 'xgridstyle', 1
+  options, '*fsw_rec_alloc*', 'ygridstyle', 1
 
 end
