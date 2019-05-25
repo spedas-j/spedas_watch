@@ -47,7 +47,7 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south=south
     in_date = time_double(date)+j*60.*60.*24.
 
     if keyword_set(south) then begin
-     elf_map_state_south_t96_intervals,time_string(in_date),/quick,/gif,/move,/noview,dir_move=dir_products
+     elf_map_state_t96_intervals,time_string(in_date),/quick,/gif,/move,/noview,dir_move=dir_products,/south
     endif else begin
      elf_map_state_t96_intervals,time_string(in_date),/quick,/gif,/move,/noview,dir_move=dir_products
     endelse
