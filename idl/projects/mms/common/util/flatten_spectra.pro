@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-03-26 11:21:41 -0700 (Tue, 26 Mar 2019) $
-;$LastChangedRevision: 26905 $
+;$LastChangedDate: 2019-05-28 12:04:07 -0700 (Tue, 28 May 2019) $
+;$LastChangedRevision: 27299 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -161,6 +161,10 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
     fs_get_unit_array, metadata, 'ysubtitle', arr=xunits
     fs_get_unit_array, metadata, 'ztitle', arr=yunits
     
+    ; units string
+    xunit_str = fs_get_unit_string(xunits, disable_warning=to_kev)
+    yunit_str = fs_get_unit_string(yunits, disable_warning=to_flux)
+    
     ; determine max and min  
     if N_ELEMENTS(xrange) ne 2 or N_ELEMENTS(yrange) ne 2 then begin 
       tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
@@ -177,10 +181,11 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       endif
       if keyword_set(to_flux) && m.units ne '' then begin
         ztitle = string(m.units)
-        ztitle = ztitle.replace('!U', '')
-        ztitle = ztitle.replace('!N', '')
-        ztitle = ztitle.replace('^', '')
-        ztitle = ztitle.replace('-', ' ')
+        ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
+        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
+        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
+        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '-', /extract), '')
+        ztitle = ztitle_stripped
         if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
           data_y = data_y/data_x
         endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
@@ -210,10 +215,6 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   if ~KEYWORD_SET(colors) or (N_ELEMENTS(colors) lt n_elements(vars_to_plot)) then begin
     colors = indgen(n_elements(vars_to_plot),start=0,increment=2)
   endif 
-  
-  ; units string
-  xunit_str = fs_get_unit_string(xunits, disable_warning=to_kev)
-  yunit_str = fs_get_unit_string(yunits, disable_warning=to_flux)
 
   ; position for the legend
   if keyword_set(legend_left) then leg_x = 0.04 else leg_x = 0.60
@@ -290,39 +291,36 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
 
       if keyword_set(to_kev) && ((tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits') && vardl.yunits ne '')) then begin
         if tag_exist(vardl, 'ysubtitle') && (vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)') then begin
-          xunit_str = '[keV]'
           x_data /= 1000d
         endif else if tag_exist(vardl, 'yunits') && (vardl.yunits eq 'eV' || vardl.yunits eq '[eV]' || vardl.yunits eq '(eV)') then begin
-          xunit_str = '[keV]'
           x_data /= 1000d
         endif
       endif
-
+      
       if keyword_set(to_flux) && m.units ne '' then begin
         ztitle = string(m.units)
-        ztitle = ztitle.replace('!U', '')
-        ztitle = ztitle.replace('!N', '')
-        ztitle = ztitle.replace('^', '')
-        ztitle = ztitle.replace('-', ' ')
+        ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
+        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
+        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
+        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '-', /extract), '')
+        ztitle = ztitle_stripped
         if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
-          yunit_str = '1/(cm!U2!N sr s keV)'
           y_data = y_data/x_data
         endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
-          yunit_str = '1/(cm!U2!N sr s keV)'
           y_data = y_data*1000d/x_data
         endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
-          yunit_str = '1/(cm!U2!N sr s keV)'
           y_data = y_data*1000d
         endif
       endif
 
       if v_idx eq 0 then begin
-      
         title_format = 'YYYY-MM-DD/hh:mm:ss.fff'
         title_str = (KEYWORD_SET(rangetitle) and ~undefined(trange)) ? $
           strjoin(time_string(trange, tformat=title_format),' - ') : $
           time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
- 
+        if keyword_set(to_kev) then xunit_str = '[keV]'
+        if keyword_set(to_flux) then yunit_str = '1/(cm!U2!N sr s keV)'
+        
         plot, x_data, y_data, $
           xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
           xtitle=xunit_str, ytitle=yunit_str, $
