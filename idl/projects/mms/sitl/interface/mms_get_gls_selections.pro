@@ -2,6 +2,7 @@ pro mms_get_gls_selections, gls_name, local_flist, pw_flag, pw_message, trange=t
 
 mms_init
 
+pw_flag = 0
 login_flag = 0
 
 ; Define local data directory

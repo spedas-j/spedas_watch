@@ -22,6 +22,7 @@ END
 
 function mms_read_gls_file, filename
 
+if strlen(filename) eq 0 then return, 0
 
 ;output = read_csv(filename)
 output = read_ascii(filename,template=mms_read_gls_file_template())
@@ -35,5 +36,6 @@ outstruct = {start: start_time, $
              stop: stop_time, $
              fom: fom, $
              comment: comment}
-             
+
+return, outstruct
 end
