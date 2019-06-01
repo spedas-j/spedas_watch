@@ -50,8 +50,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-01-22 11:43:09 -0800 (Tue, 22 Jan 2019) $
-;$LastChangedRevision: 26489 $
+;$LastChangedDate: 2019-05-31 10:12:38 -0700 (Fri, 31 May 2019) $
+;$LastChangedRevision: 27310 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -91,7 +91,8 @@ end
 pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
-   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, _extra=_extra
+   charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, yvalues=yvalues, xvalues=xvalues, $
+   _extra=_extra
    
   @tplot_com.pro
   
@@ -119,6 +120,9 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
   endif
   
   window, 1
+  
+  yvalues = hash()
+  xvalues = hash()
   
   ; position for the legend
   if keyword_set(legend_left) then leg_x = 0.04 else leg_x = 0.70
@@ -208,10 +212,11 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         endif
         if keyword_set(to_flux) && m.units ne '' then begin
           ztitle = string(m.units)
-          ztitle = ztitle.replace('!U', '')
-          ztitle = ztitle.replace('!N', '')
-          ztitle = ztitle.replace('^', '')
-          ztitle = ztitle.replace('-', ' ')
+          ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
+          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
+          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
+          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '-', /extract), '')
+          ztitle = ztitle_stripped
           if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
             data_y = data_y/data_x
           endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
@@ -304,10 +309,11 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         
         if keyword_set(to_flux) && m.units ne '' then begin
           ztitle = string(m.units)
-          ztitle = ztitle.replace('!U', '')
-          ztitle = ztitle.replace('!N', '')
-          ztitle = ztitle.replace('^', '')
-          ztitle = ztitle.replace('-', ' ')
+          ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
+          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
+          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
+          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '-', /extract), '')
+          ztitle = ztitle_stripped
           if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
             yunit_str = '1/(cm!U2!N sr s keV)'
             y_data = y_data/x_data
@@ -325,6 +331,9 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
           strjoin(time_string(trange, tformat=title_format),' - ') : $
           time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
           
+        if keyword_set(to_kev) then xunit_str = '[keV]'
+        if keyword_set(to_flux) then yunit_str = '1/(cm!U2!N sr s keV)'
+        
         if v_idx eq 0 and undefined(plot_created) then begin
           plot, x_data, y_data, $
             xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
@@ -338,6 +347,10 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         endif else begin
           oplot, x_data, y_data, color=colors[time_idx], _extra=_extra
         endelse
+        
+        ; to return the actual values via keywords
+        yvalues[vars_to_plot[v_idx]] = reform(y_data)
+        xvalues[vars_to_plot[v_idx]] = reform(x_data)
         
         ; needed for multiple times
         plot_created = 1b
