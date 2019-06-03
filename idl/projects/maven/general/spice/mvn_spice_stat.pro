@@ -31,28 +31,51 @@
 ;                      red    = spacecraft position only
 ;                      blank  = no geometry at all
 ;
+;    SUMMARY:       Provides a concise summary.
+;
+;    SILENT:        Shhh.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-02-24 16:43:01 -0800 (Sun, 24 Feb 2019) $
-; $LastChangedRevision: 26698 $
+; $LastChangedDate: 2019-06-02 16:15:35 -0700 (Sun, 02 Jun 2019) $
+; $LastChangedRevision: 27311 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
 ;-
-pro mvn_spice_stat, list=list, info=info, tplot=tplot
+pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=silent
 
-  print,''
+  blab = ~keyword_set(silent)
+
+  summary = {spk_exists    : 0       , $
+             spk_trange    : [0D,0D] , $
+             spk_ngaps     : 0       , $
+             ck_sc_exists  : 0       , $
+             ck_sc_trange  : [0D,0D] , $
+             ck_sc_ngaps   : 0       , $
+             ck_app_exists : 0       , $
+             ck_app_trange : [0D,0D] , $
+             ck_app_ngaps  : 0          }
+
+  if (blab) then print,''
 
   mk = spice_test('*')
   indx = where(mk ne '', n_ker)
   if (n_ker eq 0) then begin
-    print,"  No kernels are loaded."
-    print,''
+    if (blab) then begin
+      print,"  No kernels are loaded."
+      print,''
+    endif
     return
   endif
 
-  if keyword_set(list) then begin
+  loadlist = ['']
+  for i=0,(n_ker-1) do loadlist = [loadlist, file_basename(mk[i])]
+  loadlist = loadlist[1:*]
+  str_element, summary, 'loadlist', loadlist, /add
+
+  if (keyword_set(list) and blab) then begin
     print,"  SPICE kernels in use:"
-    for i=0,(n_ker-1) do print,"    ",file_basename(mk[i])
+    for i=0,(n_ker-1) do print,"    ",loadlist[i]
     print,''
   endif
 
@@ -73,14 +96,16 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
   indx = where((info.interval lt 1) or (abs(dt) gt 1D), count)
   if (count gt 0) then info = info[indx]  ; discard intervals of zero length
 
-  print,"  SPICE coverage:"
+  if (blab) then print,"  SPICE coverage:"
   fmt1 = '(4x,a3,2x,a3,2x,a19,2x,a19,$)'
   fmt2 = '(8x,4a,"  ",2a)'
   indx = where(info.obj_name eq 'MAVEN', nfiles)
   if (nfiles gt 0) then begin
-    tsp = time_string(minmax(time_double(info[indx].trange)))
+    summary.spk_exists = 1
+    summary.spk_trange = minmax(time_double(info[indx].trange))
+    tsp = time_string(summary.spk_trange)
     i = indx[0]
-    print,info[i].type,"S/C",tsp,format=fmt1
+    if (blab) then print,info[i].type,"S/C",tsp,format=fmt1
     if (dobar) then begin
       tt = time_double(tsp)
       kndx = where((x lt tt[0]) or (x gt tt[1]), count)
@@ -103,11 +128,12 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
     if (fgaps gt 0) then ftsp = ftsp[1:*]
 
     jndx = where(info[indx].interval gt 0, ngaps)
-    if ((fgaps + ngaps) eq 0) then print,'  no gaps' else print,'  gaps (see list)'
+    if (blab) then if ((fgaps + ngaps) eq 0) then print,'  no gaps' else print,'  gaps (see list)'
+    summary.spk_ngaps = fgaps + ngaps
     gapnum = 1
     for j=0,(fgaps-1) do begin
       k = 2*j
-      print,"  * GAP ",strtrim(gapnum++,2),": ",ftsp[k:k+1]," *",format=fmt2
+      if (blab) then print,"  * GAP ",strtrim(gapnum++,2),": ",ftsp[k:k+1]," *",format=fmt2
       if (dobar) then begin
         tt = time_double(ftsp[k:k+1])
         kndx = where((x ge tt[0]) and (x le tt[1]), count)
@@ -117,7 +143,7 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
     for j=0,(ngaps-1) do begin
       i = indx[jndx[j]]
       tsp = time_string([info[(i-1) > 0].trange[1], info[i].trange[0]])
-      print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
+      if (blab) then print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
       if (dobar) then begin
         tt = time_double(tsp)
         kndx = where((x ge tt[0]) and (x le tt[1]), count)
@@ -125,15 +151,17 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
       endif
     endfor
   endif else begin
-    print,"    No S/C SPK coverage!"
+    if (blab) then print,"    No S/C SPK coverage!"
     y[*] = 0
   endelse
 
   indx = where(info.obj_name eq 'MAVEN_SC_BUS', nfiles)
   if (nfiles gt 0) then begin
-    tsp = time_string(minmax(time_double(info[indx].trange)))
+    summary.ck_sc_exists = 1
+    summary.ck_sc_trange = minmax(time_double(info[indx].trange))
+    tsp = time_string(summary.ck_sc_trange)
     i = indx[0]
-    print,info[i].type,"S/C",tsp,format=fmt1
+    if (blab) then print,info[i].type,"S/C",tsp,format=fmt1
     if (dobar) then begin
       tt = time_double(tsp)
       kndx = where(((x lt tt[0]) or (x gt tt[1])) and (y[*,0] ne 0), count)
@@ -156,11 +184,12 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
     if (fgaps gt 0) then ftsp = ftsp[1:*]
 
     jndx = where(info[indx].interval gt 0, ngaps)
-    if ((fgaps + ngaps) eq 0) then print,'  no gaps' else print,'  gaps (see list)'
+    if (blab) then if ((fgaps + ngaps) eq 0) then print,'  no gaps' else print,'  gaps (see list)'
+    summary.ck_sc_ngaps = fgaps + ngaps
     gapnum = 1
     for j=0,(fgaps-1) do begin
       k = 2*j
-      print,"  * GAP ",strtrim(gapnum++,2),": ",ftsp[k:k+1]," *",format=fmt2
+      if (blab) then print,"  * GAP ",strtrim(gapnum++,2),": ",ftsp[k:k+1]," *",format=fmt2
       if (dobar) then begin
         tt = time_double(ftsp[k:k+1])
         kndx = where((x ge tt[0]) and (x le tt[1]), count)
@@ -170,7 +199,7 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
     for j=0,(ngaps-1) do begin
       i = indx[jndx[j]]
       tsp = time_string([info[(i-1) > 0].trange[1], info[i].trange[0]])
-      print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
+      if (blab) then print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
       if (dobar) then begin
         tt = time_double(tsp)
         kndx = where((x ge tt[0]) and (x le tt[1]), count)
@@ -178,15 +207,17 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
       endif
     endfor
   endif else begin
-    print,"    No S/C CK coverage!"
+    if (blab) then print,"    No S/C CK coverage!"
     y[*] = 1
   endelse
 
   indx = where(info.obj_name eq 'MAVEN_APP_IG', nfiles)
   if (nfiles gt 0) then begin
-    tsp = time_string(minmax(time_double(info[indx].trange)))
+    summary.ck_app_exists = 1
+    summary.ck_app_trange = minmax(time_double(info[indx].trange))
+    tsp = time_string(summary.ck_app_trange)
     i = indx[0]
-    print,info[i].type,"APP",tsp,format=fmt1
+    if (blab) then print,info[i].type,"APP",tsp,format=fmt1
     if (dobar) then begin
       tt = time_double(tsp)
       kndx = where(((x lt tt[0]) or (x gt tt[1])) and $
@@ -210,11 +241,12 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
     if (fgaps gt 0) then ftsp = ftsp[1:*]
 
     jndx = where(info[indx].interval gt 0, ngaps)
-    if ((fgaps + ngaps) eq 0) then print,'  no gaps' else print,'  gaps (see list)'
+    if (blab) then if ((fgaps + ngaps) eq 0) then print,'  no gaps' else print,'  gaps (see list)'
+    summary.ck_app_ngaps = fgaps + ngaps
     gapnum = 1
     for j=0,(fgaps-1) do begin
       k = 2*j
-      print,"  * GAP ",strtrim(gapnum++,2),": ",ftsp[k:k+1]," *",format=fmt2
+      if (blab) then print,"  * GAP ",strtrim(gapnum++,2),": ",ftsp[k:k+1]," *",format=fmt2
       if (dobar) then begin
         tt = time_double(ftsp[k:k+1])
         kndx = where((x ge tt[0]) and (x le tt[1]) and (y[*,0] ne cols[2]), count)
@@ -224,7 +256,7 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
     for j=0,(ngaps-1) do begin
       i = indx[jndx[j]]
       tsp = time_string([info[(i-1) > 0].trange[1], info[i].trange[0]])
-      print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
+      if (blab) then print,"  * GAP ",strtrim(gapnum++,2),": ",tsp," *",format=fmt2
       if (dobar) then begin
         tt = time_double(tsp)
         kndx = where((x ge tt[0]) and (x le tt[1]) and (y[*,0] ne cols[2]), count)
@@ -232,11 +264,11 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot
       endif
     endfor
   endif else begin
-    print,"    No APP CK coverage!"
+    if (blab) then print,"    No APP CK coverage!"
     y[*] = 1
   endelse
 
-  print,''
+  if (blab) then print,''
 
   if (dobar) then begin
     indx = where(y eq 0, count)
