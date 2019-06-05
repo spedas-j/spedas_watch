@@ -50,8 +50,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-05-31 10:12:38 -0700 (Fri, 31 May 2019) $
-;$LastChangedRevision: 27310 $
+;$LastChangedDate: 2019-06-04 12:35:36 -0700 (Tue, 04 Jun 2019) $
+;$LastChangedRevision: 27315 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -198,7 +198,12 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
       
       ; determine max and min  
       if N_ELEMENTS(xrange) ne 2 or N_ELEMENTS(yrange) ne 2 then begin 
-        tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
+        ;tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
+        idx_to_plot = where(vardata.X eq find_nearest_neighbor(vardata.X, t), idx_count)
+        if idx_count eq 0 then begin
+          dprint, dlevel=0, 'Error, time not found: ' + time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff') + ' with variable ' + vars_to_plot[v_idx]
+          continue
+        endif
         
         if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
         data_y = vardata.Y[idx_to_plot, *]
@@ -261,7 +266,12 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         endif
         
         ; work with averaging      
-        tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
+        ;tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
+        idx_to_plot = where(vardata.X eq find_nearest_neighbor(vardata.X, t), idx_count)
+        if idx_count eq 0 then begin
+          dprint, dlevel=0, 'Error, time not found: ' + time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff') + ' with variable ' + vars_to_plot[v_idx]
+          continue
+        endif
         
         ; Process samles keyword
         if ~undefined(samples) then begin
@@ -286,7 +296,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
           t_idx  = [t_idx_min , t_idx_max] 
         endif          
         
-        ; t_idx is defined if we do averagind       
+        ; t_idx is defined if we do averaging   
        if ~undefined(t_idx) then begin
           data_to_plot = mean(vardata.Y[t_idx[0]:t_idx[1], *],dimension=1) ; creates vector
           data_to_plot = reform(data_to_plot,[1,n_elements(data_to_plot)]) ; fix dimentions to [1,n]

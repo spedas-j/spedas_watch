@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'flatten_spectra_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-03-26 11:17:09 -0700 (Tue, 26 Mar 2019) $
-; $LastChangedRevision: 26904 $
+; $LastChangedDate: 2019-06-04 12:41:45 -0700 (Tue, 04 Jun 2019) $
+; $LastChangedRevision: 27316 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/flatten_spectra_ut__define.pro $
 ;-
 
@@ -16,6 +16,20 @@
 ;  flatten_spectra_multi
 ;  return, 1
 ;end
+
+function flatten_spectra_ut::test_to_kev_flux_window_time_replot
+  tplot, ['mms3_hpca_hplus_flux_elev_0-360_spin', 'mms3_epd_eis_extof_proton_flux_omni_spin', 'mms3_epd_eis_phxtof_proton_flux_omni_spin', 'mms3_dis_energyspectr_omni_fast']
+  flatten_spectra, /xlog, /ylog, /to_kev, /to_flux, time='2017-09-10/08:57:00', /png, filename='flatten_spectra_ut_to_kev_flux_window_replot1', window_time=2
+  flatten_spectra, /replot, /xlog, /ylog, /to_kev, /to_flux, time='2017-09-10/08:57:00', /png, filename='flatten_spectra_ut_to_kev_flux_window_replot2', window_time=2
+  return, 1
+end
+
+function flatten_spectra_ut::test_to_kev_flux_samples_replot
+  tplot, ['mms3_hpca_hplus_flux_elev_0-360_spin', 'mms3_epd_eis_extof_proton_flux_omni_spin', 'mms3_epd_eis_phxtof_proton_flux_omni_spin', 'mms3_dis_energyspectr_omni_fast']
+  flatten_spectra, /xlog, /ylog, /to_kev, /to_flux, time='2017-09-10/08:57:00', /png, filename='flatten_spectra_ut_to_kev_flux_samples_replot1', samples=20
+  flatten_spectra, /replot, /xlog, /ylog, /to_kev, /to_flux, time='2017-09-10/08:57:00', /png, filename='flatten_spectra_ut_to_kev_flux_samples_replot2', samples=20
+  return, 1
+end
 
 function flatten_spectra_ut::test_to_kev_flux_samples
   tplot, ['mms3_hpca_hplus_flux_elev_0-360_spin', 'mms3_epd_eis_extof_proton_flux_omni_spin', 'mms3_epd_eis_phxtof_proton_flux_omni_spin', 'mms3_dis_energyspectr_omni_fast']
