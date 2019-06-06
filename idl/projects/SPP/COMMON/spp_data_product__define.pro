@@ -54,8 +54,13 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
     printdat,index
   endif
 
-  if keyword_set(index) then begin
+  if isa(index,/integer) then begin
     dats = (*self.data_ptr)[index]
+    wbad = where(index lt 0,/null,nbad)
+    if nbad gt 0 then begin
+      fill = fill_nan(dats[wbad])
+      dats[wbad] = fill
+    endif
     if keyword_set(valname) then begin
       retval =!null
       str_element,dats,valname,retval
@@ -100,13 +105,13 @@ PRO spp_data_product__define
   void = {spp_data_product, $
     inherits generic_object, $    ; superclas
     name: '',  $
-    tname: '',  $
-    ttags: '',  $
+;    tname: '',  $
+;    ttags: '',  $
     dict: obj_new() , $
 ;    data_obj: obj_new(), $
     data_ptr: ptr_new(), $
-    cdf_pathname:'', $
-    cdf_tagnames:'', $
+;    cdf_pathname:'', $
+;    cdf_tagnames:'', $
     user_ptr: ptr_new() $
   }
 END
