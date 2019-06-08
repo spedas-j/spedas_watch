@@ -27,10 +27,10 @@ PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
   
   tn = tnames(['*pef*', '*pes*'])
   if tn[0] NE '' then instrument='epde' else instrument='epdi'  
-  if instrument EQ 'epdi' then begin
-    dprint, dlevel = 1, 'EPD calibration is yet not available for epdi.'
-    return    
-  endif
+;  if instrument EQ 'epdi' then begin
+;    dprint, dlevel = 1, 'EPD calibration is yet not available for epdi.'
+;    return    
+;  endif
 
   for k=0, n_elements(probes)-1 do begin
 
@@ -38,8 +38,8 @@ PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
           
     if instrument EQ 'epde' then begin
 
-      elf_cal = elf_get_epd_calibration(probe=probes[k], instrument=instrument, trange=tr)
-      if size(elf_cal, /type) NE 8 then begin
+      epd_cal = elf_get_epd_calibration(probe=probes[k], instrument=instrument, trange=tr)
+      if size(epd_cal, /type) NE 8 then begin
         dprint, dlevel = 1, 'EPD calibration data was not retrieved. Unable to calibrate the data.'
         return
       endif
@@ -48,9 +48,9 @@ PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
       num_samples = (size(elf_pef.x))[1]
       dt = 0.
       sec_num = 0
-      ebins = elf_cal.epde_ebins
-      cal_ch_factors = elf_cal.epde_cal_ch_factors
-      overint_factors = elf_cal.epd_overaccumulation_factors
+      ebins = epd_cal.epd_ebins
+      cal_ch_factors = epd_cal.epd_cal_ch_factors
+      overint_factors = epd_cal.epd_overaccumulation_factors
  
       for i = 0, num_samples-1 do begin
         sec_num = i mod 16
@@ -61,9 +61,9 @@ PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
         endfor
       endfor
 
-;      ylim, l, elf_cal.epde_ebins[0], elf_cal.epde_ebins[15]
+;      ylim, l, epd_cal.epde_ebins[0], epd_cal.epde_ebins[15]
 ;      zlim, l, 1, 1, 1      
-      store_data, tplotname, data={x:elf_pef.x, y:elf_pef.y, v:elf_cal.epde_ebins }, dlimits=dl, limits=l
+      store_data, tplotname, data={x:elf_pef.x, y:elf_pef.y, v:epd_cal.epd_ebins }, dlimits=dl, limits=l
 
     endif
     

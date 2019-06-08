@@ -23,7 +23,8 @@
 ;    noview   do not open window for display
 ;    move     move file to summary plot directory
 ;    model    specify Tsyganenko model like 't89' or 't01', default is 't96'
-;    quick    plot only every minute to speed up
+;    clean    attempt to filter anomalous points returned by tracing model
+;    quick    plot only every minute to speed up (DEPRECATED)
 ;    dir_move directory name to move plots to
 ;
 ; OUTPUTS:
@@ -59,7 +60,8 @@
 
 pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=noview,$
   move=move, model=model, quick=quick, dir_move=dir_move, $
-  insert_stop=insert_stop, no_trace=no_trace, tstep=tstep
+  insert_stop=insert_stop, no_trace=no_trace, tstep=tstep, $
+  clean=clean
 
   ; ACN
   pro_start_time=SYSTIME(/SECONDS)
@@ -78,7 +80,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
   ; annotate constants
   xann=10
-  yann=485
+  yann=505
 
   elf_init
   aacgmidl
@@ -144,6 +146,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     comm="get_data,'el"+probes[sc]+"_pos_gei',data=dat_d1"  ; position in GEI
     res=execute(comm)
     ; also get data for 30 minutes into next day
+
     tr=timerange()+86400.
     elf_load_state,probe=probes[sc], trange=tr, suffix='_d2'
     comm="get_data,'el"+probes[sc]+"_pos_gei_d2',data=dat_d2"  ; position in GEI
@@ -211,18 +214,18 @@ skip_trace:
         lon = !radeg * atan(d.y[*,1],d.y[*,0])
         lat = !radeg * atan(d.y[*,2],sqrt(d.y[*,0]^2+d.y[*,1]^2))
         time_dummy=time_string(d.x)
-        
+       
         ; clean up data that's out of scope
-        if keyword_set(south) then begin
-          junk=where(lat gt 0.,count2)
-        endif else begin
-          junk=where(lat lt 0.,count2)
-        endelse
+;        if keyword_set(south) then begin
+;          junk=where(lat gt 0.,count2)
+;        endif else begin
+;          junk=where(lat lt 0.,count2)
+;        endelse
         
-        if (count2 gt 0) then begin
-          lat[junk]=!values.f_nan
-          lon[junk]=!values.f_nan
-        endif
+;        if (count2 gt 0) then begin
+;          lat[junk]=!values.f_nan
+;          lon[junk]=!values.f_nan
+;        endif
       end
       
       1: begin
@@ -231,16 +234,16 @@ skip_trace:
         time_dummy2=time_string(d.x)
         
         ; clean up data that's out of scope
-        if keyword_set(south) then begin
-          junk=where(lat gt 0.,count2)
-        endif else begin
-          junk=where(lat lt 0.,count2)
-        endelse
+;        if keyword_set(south) then begin
+;          junk2=where(lat2 gt 0.,count2)
+;        endif else begin
+;          junk2=where(lat2 lt 0.,count2)
+;        endelse
 
-        if (count2 gt 0) then begin
-          lat2[junk]=!values.f_nan
-          lon2[junk]=!values.f_nan
-        endif
+;        if (count2 gt 0) then begin
+;          lat2[junk2]=!values.f_nan
+;          lon2[junk2]=!values.f_nan
+;        endif
       end
     Endcase
 
@@ -336,6 +339,23 @@ skip_trace:
   if ncnt GT 0 then min_en[idx]=n_elements(ela_state_pos_sm.x)-1
   nplots = n_elements(min_st)
 
+  ; determine times at orbit apogee (needed for determining total orbital period)
+  ; Elfin A
+  ax=ela_state_pos_sm.y[*,0]
+  ay=ela_state_pos_sm.y[*,1]
+  az=ela_state_pos_sm.y[*,2]
+  find_orbits, ax, ay, az, a_ind_pg, a_ind_ag
+  at_ag=d.x[a_ind_ag]
+  an_ag = n_elements(at_ag)
+  
+  ; Elfin B
+  bx=elb_state_pos_sm.y[*,0]
+  by=elb_state_pos_sm.y[*,1]
+  bz=elb_state_pos_sm.y[*,2]
+  find_orbits, bx, by, bz, b_ind_pg, b_ind_ag
+  bt_ag=d.x[b_ind_ag]
+  bn_ag = n_elements(bt_ag)
+  
   ; for gif-output
   date=strmid(tstart,0,10)
   timespan, tstart
@@ -382,41 +402,69 @@ skip_trace:
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
     this_lon=lon[min_st[k]:min_en[k]]
     this_lat=lat[min_st[k]:min_en[k]]
+    if keyword_set(south) then begin
+      not_junk=where(this_lat lt 0.,count)
+    endif else begin
+      not_junk=where(this_lat gt 0.,count)
+    endelse
+    this_time=this_time[not_junk]
+    this_lat=this_lat[not_junk]
+    this_lon=this_lon[not_junk]
+
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     this_lon2=lon2[min_st[k]:min_en[k]]
     this_lat2=lat2[min_st[k]:min_en[k]]
-    
-    npts=n_elements(this_lat)
-    diff=this_lat[1:npts-1] - this_lat[0:npts-2]
-    idx = where(abs(diff) GT 1.5, ncnt)
-    idxs=idx[0]
-    idxe=idx[ncnt-1]
-    if ncnt GT 2 then begin
-      plots, this_lon[0:idxs], this_lat[0:idxs], psym=2, symsize=.08, color=253   ; thick=3
-      plots, this_lon[idxe+1:npts-1], this_lat[idxe+1:npts-1], psym=2, symsize=.08, color=253   ; thick=3
-      plots, this_lon[0], this_lat[0], psym=symbols[0], symsize=1.5, color=253   ; thick=3
-    endif
-
-    npts=n_elements(this_lat2)
-    diff=this_lat2[1:npts-1] - this_lat2[0:npts-2]
-    idx = where(abs(diff) GT 1.5, ncnt)
-    idxs=idx[0]
-    idxe=idx[ncnt-1]
-    if ncnt GT 2 then begin
-      plots, this_lon2[0:idxs], this_lat2[0:idxs], psym=2, symsize=.08, color=254    ; thick=3
-      plots, this_lon2[idxe+1:npts-1], this_lat2[idxe+1:npts-1], psym=2, symsize=.08, color=254    ; thick=3
-      plots, this_lon2[0], this_lat2[0], psym=2, symsize=1.5, color=254    ; thick=3
-    endif
-
-    plots, this_lon, this_lat, psym=2, symsize=.08, color=253   ; thick=3
-    plots, this_lon2, this_lat2, psym=2, symsize=.08, color=254    ; thick=3
+    if keyword_set(south) then begin
+      not_junk2=where(this_lat2 lt 0.,count)
+    endif else begin
+      not_junk2=where(this_lat2 gt 0.,count)
+    endelse
+    this_time2=this_time2[not_junk2]
+    this_lat2=this_lat2[not_junk2]
+    this_lon2=this_lon2[not_junk2]
+stop
+    ; Check for gaps/anomalous points in the magnetic tracks
+    if keyword_set(clean) then begin
+      npts=n_elements(this_lat)
+      diff=this_lat[1:npts-1] - this_lat[0:npts-2]
+      idx = where(abs(diff) GT 1.5, ncnt)
+ 
+      if ncnt EQ 0 then begin
+        plots, this_lon[0:npts-1], this_lat[0:npts-1], psym=2, symsize=.08, color=253   ; thick=3
+      endif
+      idxs=idx[0]
+      idxe=idx[ncnt-1]
+      if ncnt GT 2 then begin
+        plots, this_lon[0:idxs], this_lat[0:idxs], psym=2, symsize=.08, color=253   ; thick=3
+        plots, this_lon[idxe+1:npts-1], this_lat[idxe+1:npts-1], psym=2, symsize=.08, color=253   ; thick=3  
+      endif
+      
+      npts=n_elements(this_lat2)
+      diff=this_lat2[1:npts-1] - this_lat2[0:npts-2]
+      idx = where(abs(diff) GT 1.5, ncnt)
+      
+      if ncnt EQ 0 then begin
+        plots, this_lon2[0:npts-1], this_lat2[0:npts-1], psym=2, symsize=.08, color=254   ; thick=3
+      endif
+      idxs=idx[0]
+      idxe=idx[ncnt-1]
+      if ncnt GT 2 then begin
+        plots, this_lon2[0:idxs], this_lat2[0:idxs], psym=2, symsize=.08, color=254    ; thick=3
+        plots, this_lon2[idxe+1:npts-1], this_lat2[idxe+1:npts-1], psym=2, symsize=.08, color=254    ; thick=3
+      endif
+    ; Plot everything
+    endif else begin
+      plots, this_lon, this_lat, psym=2, symsize=.08, color=253   ; thick=3
+      plots, this_lon2, this_lat2, psym=2, symsize=.08, color=254    ; thick=3
+    endelse
+    ; Plot dataset start position markers
     plots, this_lon[0], this_lat[0], psym=symbols[0], symsize=1.5, color=253   ; thick=3
     plots, this_lon2[0], this_lat2[0], psym=2, symsize=1.5, color=254    ; thick=3
 
     if keyword_set(tstep) then begin
       tstep=300.
       ; add tick marks for A
-      res=this_time[1] - this_time[0] 
+      res=this_time[1] - this_time[0]
       istep=tstep/res
       last = n_elements(this_time)
       steps=lindgen(last/istep+1)*istep
@@ -438,7 +486,22 @@ skip_trace:
       isteps=steps+istep0
       plots, this_lon2[isteps], this_lat2[isteps], psym=1, symsize=1.5, color=254
     endif
-     
+
+    ; find total orbit time for this plot
+    idx = where(this_time[0] GT at_ag, ncnt)
+    if ncnt EQ 0 then a_period=at_ag[1]-at_ag[0]
+    if ncnt EQ 1 then a_period=at_ag[an_ag-1]-at_ag[an_ag-2]
+    if ncnt GE 2 then a_period=at_ag[idx[1]]-at_ag[idx[0]]
+    a_period_str = strmid(strtrim(string(a_period/60.), 1),0,6)
+    idx = where(this_time2[0] GT bt_ag, ncnt)
+    if ncnt EQ 0 then b_period=bt_ag[1]-bt_ag[0]
+    if ncnt EQ 1 then b_period=bt_ag[bn_ag-1]-bt_ag[bn_ag-2]
+    if ncnt GE 2 then b_period=bt_ag[idx[1]]-bt_ag[idx[0]]
+    b_period_str = strmid(strtrim(string(b_period/60.), 1),0,6)
+    
+    ; calculate orbit track 
+        
+    ; Get auroral zones and plot
     ovalget,6,pwdboundlonlat,ewdboundlonlat ; get oval data, north first, then mirror lat to south
     if keyword_set(south) then begin
       plots,pwdboundlonlat[*,0],-pwdboundlonlat[*,1],color=155, thick=1.05
@@ -449,8 +512,10 @@ skip_trace:
     endelse
 
     ; annotate
-    xyouts,xann,yann+18*4,'ELFIN (A)',/device,charsize=charsize,color=253
-    xyouts,xann,yann+18*3,'ELFIN (B)',/device,charsize=charsize,color=254
+    xyouts,xann,yann+15*4,'ELFIN (A)',/device,charsize=.75,color=253
+    xyouts,xann,yann+15*3,'Period, min: '+a_period_str,/device,charsize=.65,color=253    
+    xyouts,xann,yann+15*2,'ELFIN (B)',/device,charsize=.75,color=254    
+    xyouts,xann,yann+15*1,'Period, min: '+b_period_str,/device,charsize=.65,color=254    
     case 1 of
       tsyg_mod eq 't89': xyouts,.6,.02,'Tsyganenko-1989',/normal, charsize=.75,color=255
       tsyg_mod eq 't96': xyouts,.6,.02,'Tsyganenko-1996',/normal, charsize=.75,color=255
@@ -464,28 +529,26 @@ skip_trace:
     xyouts, .01, .02, msg, /normal, color=155, charsize=.75
 
     ; mark times for A
-    year=fix(strmid(tstart,0,4))
-    month=fix(strmid(tstart,5,2))
-    if (hr_st[k] EQ 0) && (posa_00.ft_geo[1] ge 45.) then xyouts,posa_00.ft_geo[0]+20,posa_00.ft_geo[1],$
-      strmid(posa_00.time,11,5),color=253,/data,charsize=charsize+0.5
-    if (hr_st[k] LE 6 AND hr_en[k] GE 6) && (posa_06.ft_geo[1] ge 45.) then xyouts,posa_06.ft_geo[0],posa_06.ft_geo[1],$
-      strmid(posa_06.time,11,5),color=253,/data,charsize=charsize+0.5
-    if (hr_st[k] LE 12 AND hr_en[k] GE 12) && (posa_12.ft_geo[1] ge 45.) then xyouts,posa_12.ft_geo[0],posa_12.ft_geo[1],$
-      strmid(posa_12.time,11,5),color=253,/data,charsize=charsize+0.5
-    if (hr_st[k] LE 18 AND hr_en[k] GE 18) &&(posa_18.ft_geo[1] ge 45.) then xyouts,posa_18.ft_geo[0],posa_18.ft_geo[1],$
-      strmid(posa_18.time,11,5),color=253,/data,charsize=charsize+0.5
+;    year=fix(strmid(tstart,0,4))
+;    month=fix(strmid(tstart,5,2))
+;    if (hr_st[k] EQ 0) && (posa_00.ft_geo[1] ge 45.) then xyouts,posa_00.ft_geo[0]+20,posa_00.ft_geo[1],$
+;      strmid(posa_00.time,11,5),color=253,/data,charsize=charsize+0.5
+;    if (hr_st[k] LE 6 AND hr_en[k] GE 6) && (posa_06.ft_geo[1] ge 45.) then xyouts,posa_06.ft_geo[0],posa_06.ft_geo[1],$
+;      strmid(posa_06.time,11,5),color=253,/data,charsize=charsize+0.5
+;    if (hr_st[k] LE 12 AND hr_en[k] GE 12) && (posa_12.ft_geo[1] ge 45.) then xyouts,posa_12.ft_geo[0],posa_12.ft_geo[1],$
+;      strmid(posa_12.time,11,5),color=253,/data,charsize=charsize+0.5
+;    if (hr_st[k] LE 18 AND hr_en[k] GE 18) &&(posa_18.ft_geo[1] ge 45.) then xyouts,posa_18.ft_geo[0],posa_18.ft_geo[1],$
+;      strmid(posa_18.time,11,5),color=253,/data,charsize=charsize+0.5
 
     ; mark times for B
-    year=fix(strmid(tstart,0,4))
-    month=fix(strmid(tstart,5,2))
-    if (hr_st[k] EQ 0) && (posb_00.ft_geo[1] ge 45.) then xyouts,posb_00.ft_geo[0],posb_00.ft_geo[1],$
-      strmid(posb_00.time,11,5),color=254,/data,charsize=charsize+0.5
-    if (hr_st[k] LE 6 AND hr_en[k] GE 6) && (posb_06.ft_geo[1] ge 45.) then xyouts,posb_06.ft_geo[0],posb_06.ft_geo[1],$
-      strmid(posb_06.time,11,5),color=254,/data,charsize=charsize+0.5
-    if (hr_st[k] LE 12 AND hr_en[k] GE 12) && (posb_12.ft_geo[1] ge 45.) then xyouts,posb_12.ft_geo[0],posb_12.ft_geo[1],$
-      strmid(posb_12.time,11,5),color=254,/data,charsize=charsize+0.5
-    if (hr_st[k] LE 18 AND hr_en[k] GE 18) &&(posb_18.ft_geo[1] ge 45.) then xyouts,posb_18.ft_geo[0],posb_18.ft_geo[1],$
-      strmid(posb_18.time,11,5),color=254,/data,charsize=charsize+0.5
+;    if (hr_st[k] EQ 0) && (posb_00.ft_geo[1] ge 45.) then xyouts,posb_00.ft_geo[0],posb_00.ft_geo[1],$
+;      strmid(posb_00.time,11,5),color=254,/data,charsize=charsize+0.5
+;    if (hr_st[k] LE 6 AND hr_en[k] GE 6) && (posb_06.ft_geo[1] ge 45.) then xyouts,posb_06.ft_geo[0],posb_06.ft_geo[1],$
+;      strmid(posb_06.time,11,5),color=254,/data,charsize=charsize+0.5
+;    if (hr_st[k] LE 12 AND hr_en[k] GE 12) && (posb_12.ft_geo[1] ge 45.) then xyouts,posb_12.ft_geo[0],posb_12.ft_geo[1],$
+;      strmid(posb_12.time,11,5),color=254,/data,charsize=charsize+0.5
+;    if (hr_st[k] LE 18 AND hr_en[k] GE 18) &&(posb_18.ft_geo[1] ge 45.) then xyouts,posb_18.ft_geo[0],posb_18.ft_geo[1],$
+;      strmid(posb_18.time,11,5),color=254,/data,charsize=charsize+0.5
 
     xcenter=median([median(ela_state_pos_sm.y[*,0]),median(elb_state_pos_sm.y[*,0])])/6378.
     ycenter=median([median(ela_state_pos_sm.y[*,1]),median(elb_state_pos_sm.y[*,1])])/6378.
@@ -576,8 +639,8 @@ skip_trace:
     if keyword_set(gifout) then begin
       image=tvrd()
       device,/close
-      ;set_plot,'x'
       set_plot,'z'
+      ;set_plot,'z'
       image[where(image eq 255)]=1
       image[where(image eq 0)]=255
       if not keyword_set(noview) then window,3,xsize=800,ysize=600
