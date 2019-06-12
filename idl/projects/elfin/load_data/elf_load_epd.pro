@@ -142,7 +142,9 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   for i=0,n_elements(tplotnames)-1 do begin
 
     ; calibrate data
-    if type EQ 'calibrated' or type EQ 'cal' then elf_cal_epd, probe=probes, trange=trange, tplotname=tplotnames[i]
+    tn=tnames('*spinper')
+    if tplotnames[i] EQ tn then continue ; don't need to calibrate spin period
+    if (type EQ 'calibrated' or type EQ 'cal') then elf_cal_epd, probe=probes, trange=trange, tplotname=tplotnames[i]
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
     dl.ysubtitle=unit
 
