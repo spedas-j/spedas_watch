@@ -3,8 +3,8 @@
 ; Written by Davin Larson  
 ; 
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-11-01 15:52:23 -0700 (Thu, 01 Nov 2018) $
-; $LastChangedRevision: 26044 $
+; $LastChangedDate: 2019-06-12 01:51:13 -0700 (Wed, 12 Jun 2019) $
+; $LastChangedRevision: 27334 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_ccsds_spkt_handler.pro $
 ;-
 
@@ -43,7 +43,7 @@ pro spp_ccsds_spkt_handler,dbuffer, source_dict = source_dict , wrap_ccsds=wrap_
     endif
 
     apdat.handler, ccsds , source_dict=source_dict    ;.source_info, header
-    dummy = spp_rt(ccsds.time)     ; This line helps keep track of the current real time
+;    dummy = spp_rt(ccsds.time)     ; This line helps keep track of the current real time
 
     ;;  Save statistics - get APID_ALL and APID_GAP
     apdat.increment_counters, ccsds

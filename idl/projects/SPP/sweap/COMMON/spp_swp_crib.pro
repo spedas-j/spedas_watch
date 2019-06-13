@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-06-05 08:06:09 -0700 (Wed, 05 Jun 2019) $
-; $LastChangedRevision: 27324 $
+; $LastChangedDate: 2019-06-12 01:49:56 -0700 (Wed, 12 Jun 2019) $
+; $LastChangedRevision: 27333 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_crib.pro $
 ;spp_swp_crib
 ;
@@ -11,15 +11,18 @@
 ; define the FIELDS username:password combination
 ;setenv,'FIELDS_USER_PASS=username:password'    ; A line like this can be put in each user's personal startup file.  I recommend: "idl_startup_$user$"  Where $user$ is your username.
 
-stop
 
 ; Define a time range
 timespan,'2018-11-3',5   ; 5 days starting on venus encounter
+timespan,'2019-3-20',26   ; 5 days starting on venus encounter
+stop
+
 
 ; Subsequent load routines will use this timespan for the default time range
 
 ; Load some L2 highest resolution mag data:
-spp_fld_load,type='mag_RTN',trange='2018 11 2'   ; Get a single day of high res mag data
+centertime = average( timerange() )
+spp_fld_load,type='mag_RTN',trange=centertime   ; Get a single day of high res mag data
 
 ; plot it:
 tplot,'psp_fld_l2_mag_RTN'
@@ -73,7 +76,7 @@ spp_swp_spe_load
 ; Load L3 SPC data
 spp_swp_spc_load ,type='l2i'
 
-
+spp_swp_spice
 
 ; Extracting data
 

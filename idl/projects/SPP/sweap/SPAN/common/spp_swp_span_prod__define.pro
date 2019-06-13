@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_span_prod
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-02 00:05:13 -0700 (Thu, 02 May 2019) $
-; $LastChangedRevision: 27165 $
+; $LastChangedDate: 2019-06-12 01:49:23 -0700 (Wed, 12 Jun 2019) $
+; $LastChangedRevision: 27332 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
@@ -213,7 +213,8 @@ productstr = {spp_swp_span_prod, $
   datasize:    ns, $
 ;  log_flag:    log_flag, $
   smp_bits:    smp_flag, $
-;  LTCSNNNN_bits : LTCSNNNN_bits, $
+  LTCSNNNN_bits : LTCSNNNN_bits, $
+  arch_bits : arch_bits, $              ; byte 12
   mode1:       mode1,  $
   arch_sum:    arch_sum, $
   arch_smp_flag:  arch_smp_flag, $

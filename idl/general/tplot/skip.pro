@@ -14,11 +14,10 @@
 ;                 this would be an integer, but it can also be a float.
 ;
 ;KEYWORDS:
-;       ORB:      Shift in orbits. (Default.)  This keyword and the next 5
-;                 define the shift units.  Once you set the units, it remains
-;                 in effect until you explicitly select different units.
-;
-;                 Keyword ORB currently only works for MAVEN.
+;       PAGE:     (Default) Shift in units of the time range currently displayed.
+;                 This keyword and the next 5 define the shift units.  Once you 
+;                 set the units, it remains in effect until you explicitly select 
+;                 different units.
 ;
 ;       DAY:      Shift in days.
 ;
@@ -28,7 +27,7 @@
 ;
 ;       SEC:      Shift in seconds.
 ;
-;       PAGE:     Shift in units of the time range currently displayed.
+;       ORB:      Shift in orbits.  Currently only works for MAVEN.
 ;
 ;       FIRST:    Go to the beginning of the loaded time range and
 ;                 plot the requested interval from there.  Do not
@@ -38,8 +37,8 @@
 ;                 interval from there.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-06-10 13:23:39 -0700 (Mon, 10 Jun 2019) $
-; $LastChangedRevision: 27328 $
+; $LastChangedDate: 2019-06-12 13:37:59 -0700 (Wed, 12 Jun 2019) $
+; $LastChangedRevision: 27344 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/skip.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -49,21 +48,10 @@ pro skip, n, orb=orb, day=day, sec=sec, minute=minute, hour=hour, page=page, $
 
   common skip_com, ptime, period, mode
 
-; Get the orbit period
-
-  if (size(period,/type) eq 0) then begin
-    orb = mvn_orbit_num()
-    period = orb.peri_time - shift(orb.peri_time,1)
-    period[0] = period[1]
-    ptime = orb.peri_time
-  endif
-
-; Determine skip interval
+; Determine skip units
 
   tplot_options, get=topt
   t = minmax(topt.trange_full)
-  i = nn2(ptime,[t[0],mean(topt.trange),t[1]])
-  p = period[i]
 
   ok = 0
   if ((not ok) and keyword_set(sec)) then begin
@@ -90,7 +78,19 @@ pro skip, n, orb=orb, day=day, sec=sec, minute=minute, hour=hour, page=page, $
     mode = 6
     ok = 1
   endif
-  if ((not ok) and (size(mode,/type) ne 2)) then mode = 6
+  if ((not ok) and (size(mode,/type) ne 2)) then mode = 5
+
+; Get orbit data if needed
+
+  if ((mode eq 6) and (size(period,/type) eq 0)) then begin
+    orb = mvn_orbit_num()
+    period = orb.peri_time - shift(orb.peri_time,1)
+    period[0] = period[1]
+    ptime = orb.peri_time
+
+    i = nn2(ptime,[t[0],mean(topt.trange),t[1]])
+    p = period[i]
+  endif
 
   case mode of
     1 : delta_t = 1D

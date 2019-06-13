@@ -1,12 +1,12 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-05-24 16:02:45 -0700 (Fri, 24 May 2019) $
-; $LastChangedRevision: 27296 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-06-12 01:49:56 -0700 (Wed, 12 Jun 2019) $
+; $LastChangedRevision: 27333 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
 
 
-pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose, all = all, hkp = hkp,save=save
+pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose, all = all, hkp = hkp,save=save,level=level
 
   if ~keyword_set(spxs) then spxs = ['spa','spb']
   if ~keyword_set(types) then types = ['sf1', 'sf0']  ;,'st1','st0']   ; add archive when available
@@ -16,24 +16,38 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   
   loc = orderedhash()
   loc['sf1'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
+  loc['st1'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
   loc['sf0'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
+  loc['st0'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
   loc['af1'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
   loc['af0'] = 'SP?/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
   loc['hkp'] = 'SP?/L1/YYYY/MM/SP?_hkp/spp_swp_SP?_hkp_L1_YYYYMMDD_v??.cdf'
+
   
   ;test='http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spa/L1/2018/09/spa_hkp/spp_swp_spa_hkp_L1_20180924_v00.cdf
   ;test                                  ='psp/data/sci/sweap/spa/L1/2018/10/spa_hkp/spp_swp_spa_hkp_20181004_v??.cdf
   vars = orderedhash()
   vars['sf1'] = 'EFLUX EMODE'
   vars['sf0'] = 'EFLUX EMODE *THETA* *PHI* *ENERGY*'
+  vars['st0'] = 'EFLUX EMODE *THETA* *PHI* *ENERGY*'
   vars['af1'] = 'EFLUX EMODE'
   vars['af0'] = 'EFLUX EMODE *THETA* *PHI* *ENERGY*'
   if keyword_set(all) then begin
     vars['sf1'] = '*'
     vars['sf0'] = '*'
   endif
-  vars['hkp'] = '*TEMP* *_BITS *_FLAG*'
+  vars['hkp'] = '*TEMP* *_BITS *_FLAG* *CMD*'
   if keyword_set(all) then vars['hkp'] = vars['hkp'] + ' *CNT*' + ' *PEAK*' + ' *CMD*'
+  
+  if keyword_set(level) && level eq 'L1' then begin
+    loc['sf1'] = 'SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+    loc['st1'] = 'SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+    loc['sf0'] = 'SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+    loc['st0'] = 'SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+    loc['af1'] = 'SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+    loc['af0'] = 'SP?/L1/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+  endif
+
   
   tr = timerange(trange)
   foreach spx, spxs do begin

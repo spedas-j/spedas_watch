@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-16 01:40:02 -0700 (Tue, 16 Apr 2019) $
-; $LastChangedRevision: 27029 $
+; $LastChangedDate: 2019-06-12 01:51:53 -0700 (Wed, 12 Jun 2019) $
+; $LastChangedRevision: 27335 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -96,12 +96,12 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,no_load=no_l
     endif
 
     if keyword_set(make_cdf) then begin ;make cdf files
-      spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-      spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/spp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'    
+      spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+      spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'    
     endif
     
     for day=daynum[0],daynum[1] do begin ;loop over days
