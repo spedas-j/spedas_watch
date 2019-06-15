@@ -19,8 +19,8 @@
 ;
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-16 13:19:38 -0700 (Thu, 16 May 2019) $
-; $LastChangedRevision: 27249 $
+; $LastChangedDate: 2019-06-14 15:40:33 -0700 (Fri, 14 Jun 2019) $
+; $LastChangedRevision: 27351 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -41,7 +41,7 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
   if ~keyword_set(trange) then trange = timerange()
 
   kernels=''
-  pathname='spp/data/sci/MOC/SPP/data_products/'
+  pathname='psp/data/sci/MOC/SPP/data_products/'
   for i=0,n_elements(names)-1 do begin
     case strupcase(names[i]) of
       ;  "Standard" kernels

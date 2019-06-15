@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-06-12 01:49:56 -0700 (Wed, 12 Jun 2019) $
-; $LastChangedRevision: 27333 $
+; $LastChangedDate: 2019-06-14 15:55:40 -0700 (Fri, 14 Jun 2019) $
+; $LastChangedRevision: 27353 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -68,6 +68,7 @@ pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=n
   
 
   case strupcase(level) of
+    'L1' : 
     'L2' : fileformat = L2_fileformat
     'L3' : fileformat = L3_fileformat
   endcase
@@ -126,17 +127,19 @@ pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=n
       spcname = 'psp_swp_spc_l3i_vp_fit_SC'
       if keyword_set(spcname) then begin   ; add SPC data
         dat = data_cut(spcname,time)       ; interpolate onto span timescale
-        store_data,prefix+'SPCVEL',time,dat
-        param=spp_swp_spi_param2(detname='spi')
-        rotmat = param.cal.rotmat_sc_inst
-        newname = rotate_data(prefix+'SPCVEL',rotmat,name='SPI' )   ;,repname='_SC')
-        xyz_to_polar,newname,/ph_0_360
-        get_data,newname+'_mag',time,vel_mag
-        store_data,newname+'_nrg',time,velocity(vel_mag,/proton,/inverse)
-        options,newname+'_*',colors='b'
-        vname_nrg = [vname_nrg,newname+'_nrg']
-        vname_th = [vname_th,newname+'_th']
-        vname_phi = [vname_phi,newname+'_phi']
+        if keyword_set(dat) then begin
+          store_data,prefix+'SPCVEL',time,dat
+          param=spp_swp_spi_param2(detname='spi')
+          rotmat = param.cal.rotmat_sc_inst
+          newname = rotate_data(prefix+'SPCVEL',rotmat,name='SPI' )   ;,repname='_SC')
+          xyz_to_polar,newname,/ph_0_360
+          get_data,newname+'_mag',time,vel_mag
+          store_data,newname+'_nrg',time,velocity(vel_mag,/proton,/inverse)
+          options,newname+'_*',colors='b'
+          vname_nrg = [vname_nrg,newname+'_nrg']
+          vname_th = [vname_th,newname+'_th']
+          vname_phi = [vname_phi,newname+'_phi']          
+        endif
       endif
       
       store_data,prefix+'EFLUX_VS_ENERGY_OVL',data = vname_nrg,dlimit={yrange:[100.,10000.],ylog:1,zlog:1}
