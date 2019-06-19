@@ -1006,14 +1006,14 @@ pro spd_ui_mdd_std_event,event
         store_data,'mva_mat',data={x:average(time_double(state.analysisStructure.tRange)),y:a}
         rotated_tvars = state.loadedTvars + '_bvec_rot'
         for i = 0, n_elements(state.loadedTvars)-1 do $
-           tvector_rotate, 'mva_mat', state.loadedTvars[i]+'_bvec', newname=rotated_tvars[i]
+          tvector_rotate, 'mva_mat', state.loadedTvars[i], newname=rotated_tvars[I]
         split_vec, rotated_tvars
         coord=load_structs.coordinate
         data_rate=load_structs.data
         tnx=tnames(rotated_tvars+'_x')
         tny=tnames(rotated_tvars+'_y')
         tnz=tnames(rotated_tvars+'_z')
-        tnt=tnames('*_l2_btot')
+        tnt=tnames('*'+load_structs[0].coordinate+'_'+load_structs[0].data+'_l2_btot')
         store_data, 'Bmax_'+load_structs[0].coordinate+'_'+load_structs[0].data, data=tnx
         store_data, 'Bmid_'+load_structs[0].coordinate+'_'+load_structs[0].data, data=tny
         store_data, 'Bmin_'+load_structs[0].coordinate+'_'+load_structs[0].data, data=tnz
