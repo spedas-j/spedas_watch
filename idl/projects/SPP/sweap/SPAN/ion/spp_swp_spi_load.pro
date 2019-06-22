@@ -1,8 +1,8 @@
 ;+
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-06-14 15:55:40 -0700 (Fri, 14 Jun 2019) $
-; $LastChangedRevision: 27353 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2019-06-20 18:24:51 -0700 (Thu, 20 Jun 2019) $
+; $LastChangedRevision: 27362 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -55,6 +55,7 @@ pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=n
   
 
   if ~keyword_set(level) then level='L3'
+  level=strupcase(level)
   if ~keyword_set(types) then types=['sf00','sf01','af00','af01']
 
   ;; Product File Names
@@ -67,7 +68,7 @@ pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=n
   L3_fileformat =   'spi/L3/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L3_mom_INST_YYYYMMDD_v00.cdf'
   
 
-  case strupcase(level) of
+  case level of
     'L1' : 
     'L2' : fileformat = L2_fileformat
     'L3' : fileformat = L3_fileformat
@@ -115,6 +116,7 @@ pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=n
     options,prefix+'VEL',colors='bgr',/default,yrange=[-800,200]
     options,prefix+'ADC',zlog=1,spec=1,/default,verbose=0
     options,prefix+'*_CNTS',zlog=1,spec=1,/default,verbose=0
+    options,'psp_swp_spi_tof_L1_TOF',zlog=1,spec=1,/default,verbose=0
     if keyword_set(overlay) && strmatch(type,'[sa]f??') then begin
       xyz_to_polar,prefix+'VEL'
       get_data,prefix+'VEL_mag',time,vel_mag

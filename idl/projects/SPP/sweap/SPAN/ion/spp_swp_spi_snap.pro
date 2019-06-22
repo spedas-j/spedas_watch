@@ -1,12 +1,12 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-06-17 20:06:18 -0700 (Mon, 17 Jun 2019) $
-; $LastChangedRevision: 27354 $
+; $LastChangedDate: 2019-06-20 18:24:51 -0700 (Thu, 20 Jun 2019) $
+; $LastChangedRevision: 27362 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 
-pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,maxcalc=maxcalc,nmaxcalc=nmaxcalc,rate=rate,accum=accum,snap=snap,spectra=spectra
+pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,maxcalc=maxcalc,nmaxcalc=nmaxcalc,rate=rate,accum=accum,snap=snap,spectra=spectra,mode=mode
 
   if ~keyword_set(types) then types=['sf00','sf01','sf10','sf11','sf20','sf21','sf22','sf23']
   if keyword_set(all) then begin
@@ -67,6 +67,14 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,max
           maxcounts[where(maxcounts eq 0,/null)]=-1
           nmax=total(transpose(data) eq rebin(maxcounts,nt,dim[0]),2)
           store_data,prefix+'maxbins',times,nmax,dlim={ylog:1,ystyle:3}
+        endif
+        if keyword_set(mode) then begin
+          mode2=vardata.mode2
+          tmode=mode2 and 0xf
+          emode=(mode2 and 0xf0)/16
+          pmode=(mode2 and 0xf00)/16^2
+          mmode=(mode2 and 0xf000)/16^3
+          store_data,prefix+'mode',times,[[tmode],[emode],[pmode],[mmode]],dlim={ystyle:3,colors:'rbgk',labels:['t','e','p','m'],labflag:-1}
         endif
         if keyword_set(rate) then begin
           data/=transpose(rebin(totaccum,[nt,dim[0]]))
