@@ -21,8 +21,8 @@
 ;         get_support_data: load support data (defined by VAR_TYPE="support_data" in the CDF)
 ;         no_color_setup: don't setup graphics configuration; use this keyword when you're 
 ;                       using this load routine from a terminal without an X server running
-;         time_clip:    clip the data to the requested time range; note that if you do not use 
-;                       this keyword you may load a longer time range than requested
+;         no_time_clip: don't clip the data to the requested time range; note that if you do use 
+;                       this keyword you may load a longer time range than requested. 
 ;         no_update:    set this flag to preserve the original data. if not set and newer 
 ;                       data is found the existing data will be overwritten
 ;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
@@ -44,6 +44,7 @@
 ;         versions:     this keyword returns the version #s of the CDF files used when loading the data
 ;         always_prompt: set this keyword to always prompt for the user's username and password;
 ;                       useful if you accidently save an incorrect password, or if your SDC password has changed
+;         no_time_sort:    set this flag to not order by time and remove duplicates
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
 ;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
 ;         pred: set this flag for 'predicted' state data. default state data is 'definitive'.  
@@ -57,14 +58,14 @@
 ;     
 ;--------------------------------------------------------------------------------------
 PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in, $
-  levels = levels, instrument = instrument, data_rates = data_rates, $
-  local_data_dir = local_data_dir, source = source, pred = pred, $
-  get_support_data = get_support_data, login_info = login_info, $
+  levels = levels, instrument = instrument, data_rates = data_rates, spdf = spdf, $
+  local_data_dir = local_data_dir, source = source, pred = pred, versions = versions, $
+  get_support_data = get_support_data, login_info = login_info, no_time_sort=no_time_sort, $
   tplotnames = tplotnames, varformat = varformat, no_color_setup = no_color_setup, $
-  suffix = suffix, time_clip = time_clip, no_update = no_update, $
+  suffix = suffix, no_time_clip = no_time_clip, no_update = no_update, always_prompt = always_prompt, $
   cdf_filenames = cdf_filenames, cdf_version = cdf_version, latest_version = latest_version, $
-  min_version = min_version, cdf_records = cdf_records, spdf = spdf, major_version=major_version, $
-  available = available, versions = versions, always_prompt = always_prompt, tt2000=tt2000
+  min_version = min_version, cdf_records = cdf_records, major_version=major_version, $
+  available = available, tt2000=tt2000
 
   ;temporary variables to track elapsed times
   t0 = systime(/sec)
@@ -96,7 +97,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   endelse
 
   if is_string(datatypes) && ~is_array(datatypes) then datatypes = strsplit(datatypes, ' ', /extract)
-
   if undefined(remote_data_dir) then remote_data_dir = source.remote_data_dir
  
   if undefined(local_data_dir) then local_data_dir = source.local_data_dir
@@ -285,14 +285,24 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
   if n_elements(tplotnames) eq 1 && tplotnames[0] eq '' then return ; no data loaded
 
-  ; time clip the data
   if ~undefined(tr) && ~undefined(tplotnames) then begin
+
+    ; time clip the data
     dt_timeclip = 0.0
-    if (n_elements(tr) eq 2) and (tplotnames[0] ne '') and ~undefined(time_clip) then begin
+    if (n_elements(tr) eq 2) and (tplotnames[0] ne '') and ~keyword_set(no_time_clip) then begin
       tc0 = systime(/sec)
       time_clip, tplotnames, tr[0], tr[1], replace=1, error=error
       dt_timeclip = systime(/sec)-tc0
     endif
+
+    ; sort times and remove duplicates
+    if ~keyword_set(no_time_sort) then for t=0,n_elements(tplotnames)-1 do tplot_sort, tplotnames[t]
+;        get_data, tplotnames[t], data=d, dlimits=dl, limits=l
+;        idx=uniq(d.x,sort(d.x))
+;        store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*]}, dlimits=dl, limits=l
+;      endfor
+;    endif
+
     ;temporary messages for diagnostic purposes
     dprint, dlevel=2, 'Successfully loaded: '+ $
       strjoin( ['el'+probes, instrument, data_rates, levels, datatypes, time_string(tr)],' ')

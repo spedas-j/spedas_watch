@@ -55,6 +55,7 @@ function elf_ui_get_user_selections, state, event
       'mrma': setType = state.mrmaL1TypeArray
       'mrmi': setType = state.mrmiL1TypeArray
       'state': setType = state.stateTypeArray
+      'eng': setType = state.engL1TypeArray
     Endcase
   endif else begin
     Case instrument of
@@ -63,6 +64,7 @@ function elf_ui_get_user_selections, state, event
       'mrma': setType = state.mrmaL2TypeArray
       'mrmi': setType = state.mrmiL2TypeArray
       'state': setType = state.stateTypeArray
+      'eng': setType = state.engL2TypeArray
     Endcase
   endelse
   typelist = widget_info(event.handler,find_by_uname='typelist')
@@ -161,6 +163,7 @@ pro elf_ui_load_data_event,event
           if event.index eq 2 then setType = state.mrmaL1TypeArray
           if event.index eq 3 then setType = state.mrmiL1TypeArray
           if event.index eq 4 then setType = state.stateTypeArray
+          if event.index eq 5 then setType = state.engL1TypeArray
           widget_control, levelList, set_list_select=0
         endif else begin
           if event.index eq 0 then setType = state.fgmL2TypeArray
@@ -168,6 +171,7 @@ pro elf_ui_load_data_event,event
           if event.index eq 2 then setType = state.mrmaL2TypeArray
           if event.index eq 3 then setType = state.mrmiL2TypeArray
           if event.index eq 4 then setType = state.stateTypeArray
+          if event.index eq 5 then setType = state.engL2TypeArray
           widget_control, levelList, set_list_select=0
         endelse
         typelist = widget_info(event.handler,find_by_uname='typelist')
@@ -202,6 +206,7 @@ pro elf_ui_load_data_event,event
             'mrma': setType = state.mrmaL1TypeArray
             'mrmi': setType = state.mrmiL1TypeArray
             'state': setType = state.stateTypeArray        
+            'eng': setType = state.engL1TypeArray
           Endcase
         endif else begin
           Case instrument of
@@ -210,6 +215,7 @@ pro elf_ui_load_data_event,event
             'mrma': setType = state.mrmaL2TypeArray
             'mrmi': setType = state.mrmiL2TypeArray
             'state': setType = state.stateTypeArray
+            'eng': setType = state.engL2TypeArray
           Endcase
         endelse
         typelist = widget_info(event.handler,find_by_uname='typelist')
@@ -394,7 +400,7 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
                                   uname='time_widget')
     
   ;create the dropdown menu that lists the various instrument types for this mission
-  instrumentArray = ['fgm','epd','mrma','mrmi','state']
+  instrumentArray = ['fgm','epd','mrma','mrmi','state','eng']
   instrumentBase = widget_base(selectionBase,/row, xpad=3) 
   instrumentLabel = widget_label(instrumentBase,value='Instrument Type: ')
   instrumentCombo = widget_combobox(instrumentBase,$
@@ -443,6 +449,9 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
    epdL1TypeArray = ['pif','pef']   ;['pis','pif','pes','pef']
    epdL2TypeArray = ['pis_enphi_eflux','pif_enphi_eflux','pes_enphi_eflux','pef_enphi_eflux']
    stateTypeArray = ['pos_gei','vel_gei', 'att_gei']
+   valid_eng=elf_load_options_eng()
+   engL1TypeArray=valid_eng.v1.l1
+   engL2TypeArray=valid_eng.v1.l1
    mrmaL1TypeArray = ['mrma']
    mrmaL2TypeArray = ['mrma']
    mrmiL1TypeArray = ['mrmi']
@@ -482,6 +491,8 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
            fgmL1TypeArray:fgmL1TypeArray, $
            epdL1TypeArray:epdL1TypeArray, $
            stateTypeArray:stateTypeArray, $
+           engL1TypeArray:engL1TypeArray, $
+           engL2TypeArray:engL2TypeArray, $
            mrmaL1TypeArray:mrmaL1TypeArray, $
            mrmiL1TypeArray:mrmiL1TypeArray, $
            fgmL2TypeArray:fgmL2TypeArray, $

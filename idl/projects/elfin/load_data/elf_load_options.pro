@@ -76,19 +76,105 @@ end
 ;+
 ;Purpose:
 ;  Helper function to return structure describing
-;  the available data types for MRM
+;  the available data types for MRM ACB
 ;-
-function elf_load_options_mrm
+function elf_load_options_mrma
   compile_opt idl2, hidden
 
   s = { $
     v1: { $
-    l1: ['mrm_att' $
+    l1: ['mrma' $
     ], $
-    l2: ['mrm_att' $
+    l2: ['mrma' $
     ] $
    } $
  }
+
+return, s
+
+end
+
+
+;+
+;Purpose:
+;  Helper function to return structure describing
+;  the available data types for MRM IDPU
+;-
+function elf_load_options_mrmi
+  compile_opt idl2, hidden
+
+  s = { $
+    v1: { $
+    l1: ['mrmi' $
+    ], $
+    l2: ['mrmi' $
+    ] $
+  } $
+}
+
+return, s
+
+end
+
+
+;+
+;Purpose:
+;  Helper function to return structure describing
+;  the available data types for engineering data
+;-
+function elf_load_options_eng
+  compile_opt idl2, hidden
+
+  s = { $
+    v1: { $
+    l1: ['sips_5v0_voltage', $
+    'sips_5v0_current', $
+    'sips_input_voltage', $
+    'sips_input_current', $
+    'sips_input_temp', $
+    'epd_biash', $
+    'epd_biasl', $
+    'epd_efe_temp', $
+    'idpu_msp_version', $
+    'fgm_3_3_volt', $
+    'fgm_8_volt', $
+    'fgm_analog_ground', $
+    'fgm_sh_temp', $
+    'fgm_eu_temp', $
+    'fc_chassis_temp', $
+    'fc_idpu_temp', $
+    'fc_batt_temp_1', $
+    'fc_batt_temp_2', $
+    'fc_batt_temp_3', $
+    'fc_batt_temp_4', $
+    'fc_avionics_temp_1', $
+    'fc_avionics_temp_2' $
+    ], $
+    l2: ['sips_5v0_voltage', $
+    'sips_5v0_current', $
+    'sips_input_voltage', $
+    'sips_input_current', $
+    'sips_input_temp', $
+    'epd_biash', $
+    'epd_biasl', $
+    'epd_efe_temp', $
+    'idpu_msp_version', $
+    'fgm_3_3_volt', $
+    'fgm_8_volt', $
+    'fgm_analog_ground', $
+    'fgm_sh_temp', $
+    'fgm_eu_temp', $
+    'fc_chassis_temp', $
+    'fc_idpu_temp', $
+    'fc_batt_temp_1', $
+    'fc_batt_temp_2', $
+    'fc_batt_temp_3', $
+    'fc_batt_temp_4', $
+    'fc_avionics_temp_1', $
+    'fc_avionics_temp_2' $
+    ] $
+  } $
+}
 
 return, s
 
@@ -265,6 +351,7 @@ pro elf_load_options, $
     'FGM': s = elf_load_options_fgm()
     'EPD': s = elf_load_options_epd()
     'STATE': s = elf_load_options_state()
+    'ENG': s = elf_load_options_eng()
     else: begin
       dprint, dlevel=1, 'Instrument "'+instrument+'" not recognized'
       return

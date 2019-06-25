@@ -98,6 +98,7 @@ pro elf_ui_load_data_load_pro,$
      'epd':   elf_load_epd, probes=probes, datatype=types, level=level, trange=timeRange
      'state': elf_load_state, probes=probes, datatype=types, level=level, trange=timeRange
      'fgm':   elf_load_fgm, probes=probes, datatype=types, level=level, trange=timeRange
+     'eng':   elf_load_eng, probes=probes, datatype=types, level=level, trange=timeRange
      else:    elf_load_data, probes=probes, instrument=instrument, datatype=types, level=level, $
                   trange=timeRange, varformat=varformat
   endcase

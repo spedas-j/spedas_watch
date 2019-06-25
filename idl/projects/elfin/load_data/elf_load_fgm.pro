@@ -24,8 +24,7 @@
 ;         tplotnames:   names for tplot variables
 ;         no_color_setup: don't setup graphics configuration; use this keyword when you're
 ;                       using this load routine from a terminal without an X server running
-;         time_clip:    clip the data to the requested time range; note that if you do not use
-;                       this keyword you may load a longer time range than requested
+;         no_time_clip: set this keyword to not clip the data to the requested time range; 
 ;         no_update:    set this flag to preserve the original data. if not set and newer data is
 ;                       found the existing data will be overwritten
 ;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
@@ -48,6 +47,7 @@
 ;         versions:     this keyword returns the version #s of the CDF files used when loading the data
 ;         always_prompt: set this keyword to always prompt for the user's username and password;
 ;                       useful if you accidently save an incorrect password, or if your SDC password has changed
+;         no_time_sort: set this flag if you don't want the time ordered
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
 ;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
 ;
@@ -68,11 +68,11 @@
 ;-
 
 pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
-  level = level, data_rate = data_rate, $
+  level = level, data_rate = data_rate, no_time_sort=no_time_sort, $
   local_data_dir = local_data_dir, source = source, $
   get_support_data = get_support_data, no_cal=no_cal, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
-  time_clip = time_clip, no_update = no_update, suffix = suffix, $
+  no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
   varformat = varformat, cdf_filenames = cdf_filenames, $
   cdf_version = cdf_version, latest_version = latest_version, $
   min_version = min_version, cdf_records = cdf_records, $
@@ -110,8 +110,8 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
     
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'fgm', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
-    datatype = datatype, get_support_data = get_support_data, $
-    tplotnames = tplotnames, no_color_setup = no_color_setup, time_clip = time_clip, $
+    datatype = datatype, get_support_data = get_support_data, no_time_sort=no_time_sort, $
+    tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
     no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
     cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
     cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $

@@ -1,99 +1,136 @@
 ;+
-;NAME:
-;  elf_load_eng
-;           This routine loads local ELFIN ENG Lomonosov data.
-;KEYWORDS (commonly used by other load routines):
-;  DATATYPE = (Currently downloads all data types. Should change that.)
-;  LEVEL    = levels include 1 (2 will be available shortly)
-;  TRANGE   = (Optional) Time range of interest  (2 element array), if
-;             this is not set, the default is to prompt the user. Note
-;             that if the input time range is not a full day, a full
-;             day's data is loaded
-;  LOCAL_DATA_DIR = local directory to store the CDF files; should be set if
-;             you're on *nix or OSX, the default currently assumes the IDL working directory
-;  SOURCE   = sets a different system variable. By default the MMS mission system variable
-;             is !elf
-;  TPLOTNAMES = set to override default names for tplot variables
-;  NO_UPDATES = use local data only, don't query the http site for updated files.
-;  SUFFIX   = append a suffix to tplot variables names
+; PROCEDURE:
+;         elf_load_eng
 ;
-;EXAMPLE:
-;   elf_load_eng, trange=['2016-06-24', '2016-06-25']
-
-;NOTES:
-;  Need to add feature to handle more than one days worth of data
-;  Need to add feature to delete variables that weren't requested by the user
-;--------------------------------------------------------------------------------------
+; PURPOSE:
+;         Load the ELFIN engineering data 
+;
+; KEYWORDS:
+;         trange:       time range of interest [starttime, endtime] with the format
+;                       ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;                       ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
+;         probes:       list of probes, valid values for elf probes are ['a','b'].
+;                       if no probe is specified the default is probe 'a'
+;         datatypes:    see list below 
+;         data_rate:    instrument data rates are not applicable
+;         level:        indicates level of data processing. levels include 'l1' and 'l2'
+;                       The default if no level is specified is 'l1' (l1 default needs to be confirmed)
+;         local_data_dir: local directory to store the CDF files; should be set if
+;                       you're on *nix or OSX, the default currently assumes Windows (c:\data\elfin\)
+;         source:       specifies a different system variable. By default the elf mission system
+;                       variable is !elf
+;         get_support_data: load support data (defined by support_data attribute in the CDF)
+;         tplotnames:   names for tplot variables
+;         no_color_setup: don't setup graphics configuration; use this keyword when you're
+;                       using this load routine from a terminal without an X server running
+;         no_time_clip: don't clip the data to the requested time range; note that if you do use
+;                       this keyword you may load a longer time range than requested
+;         no_update:    set this flag to preserve the original data. if not set and newer data is
+;                       found the existing data will be overwritten
+;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
+;                       preserving original tplot variable.
+;         varformat:    should be a string (wildcards accepted) that will match the CDF variables
+;                       that should be loaded into tplot variables
+;         cdf_filenames:  this keyword returns the names of the CDF files used when loading the data
+;         cdf_version:  specify a specific CDF version # to load (e.g., cdf_version='4.3.0')
+;         latest_version: only grab the latest CDF version in the requested time interval
+;                       (e.g., /latest_version)
+;         major_version: only open the latest major CDF version (e.g., X in vX.Y.Z) in the requested time interval
+;         min_version:  specify a minimum CDF version # to load
+;         cdf_records:  specify a number of records to load from the CDF files.
+;                       e.g., cdf_records=1 only loads in the first data point in the file
+;                       This is especially useful for loading S/C position for a single time
+;         spdf:         grab the data from the SPDF instead of the LASP SDC (only works for public access)
+;         available:    returns a list of files available at the SDC for the requested parameters
+;                       this is useful for finding which files would be downloaded (along with their sizes) if
+;                       you didn't specify this keyword (also outputs total download size)
+;         versions:     this keyword returns the version #s of the CDF files used when loading the data
+;         always_prompt: set this keyword to always prompt for the user's username and password;
+;                       useful if you accidently save an incorrect password, or if your SDC password has changed
+;         no_time_sort: set this flag if you don't want to order time and remove duplicates
+;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
+;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
+;
+; EXAMPLES:
+;         to load/plot the eng  data for probe a on 2/20/2019:
+;         elf> elf_load_eng, probe='a', trange=['2016-02-20', '2016-02-21'], level='l1'
+;         elf> tplot, 'ela_sips_5v0_voltage'
+;
+; NOTES:
+;
+;
+;$LastChangedBy: clrussell $
+;$LastChangedDate: 2018-12-06 11:58:25 -0700 (Mon, 06 Aug 2018) $
+;$LastChangedRevision: 25588 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_load_eng.pro $
 ;-
-PRO elf_load_eng, datatype=datatype, level=level, trange=trange, $
-  source=source, local_data_dir=local_data_dir, tplotnames=tplotnames, $
-  no_updates=no_updates, suffix=suffix
 
-  ; this sets the time range for use with the thm_load routines
-  if ~undefined(trange) && n_elements(trange) eq 2 $
-    then tr=timerange(trange) $
-  else tr=timerange()
-  timespan, trange
+pro elf_load_eng, trange = trange, probes = probes, datatype = datatype, $
+  level = level, data_rate = data_rate, $
+  local_data_dir = local_data_dir, source = source, $
+  get_support_data = get_support_data, no_time_sort=no_time_sort, $
+  tplotnames = tplotnames, no_color_setup = no_color_setup, $
+  no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
+  varformat = varformat, cdf_filenames = cdf_filenames, $
+  cdf_version = cdf_version, latest_version = latest_version, $
+  min_version = min_version, cdf_records = cdf_records, $
+  spdf = spdf, available = available, versions = versions, $
+  always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
-  ; set up system variable for MMS if not already set
-  defsysv, '!elf', exists=exists
-  if not(exists) then elf_init
-
-  if undefined(source) then source=!elf
-
-  validtypes = ['bias_temp', '23v_temp', '8v6_temp', '5v7_temp', '5v0_dig_temp', '3v3_temp', '1v5_dig_temp', $
-    '1v5_epd_temp', '1v5_prm_temp', '30v_volt_mon','23v_volt_mon', '22v_volt_mon', $
-    '8v6_volt_mon', '8v_volt_mon', '5v_dig_volt_mon', '5v_epd_volt_mon', '4v5_volt_mon', $
-    '3v3_volt_mon', '1v5_volt_dig_volt_mon', '1v5_epd_volt_mon', '1v5_prm_volt_mon', $
-    'epd_biasl_volt_mon', 'epd_biash_volt_mon', 'epd_fend_temp']
-  validlevels = ['l1', 'l2']
-
-  if undefined(level) then level = 'l1' else level=strlowcase(level)  
-  if undefined(datatype) then datatype=validtypes
-  if datatype[0] EQ '*' then datatype=validtypes else datatype=strlowcase(datatype)
-  if undefined(local_data_dir) then local_data_dir = !elf.local_data_dir
-  spawn, 'echo ' + local_data_dir, local_data_dir
-  if is_array(local_data_dir) then local_data_dir = local_data_dir[0]
- 
-  ; check for valid types and levels
-  for i = 0, n_elements(datatype)-1 do begin
-    idx = where(validtypes eq datatype[i], ncnt)
-    if ncnt EQ 0 then begin
-      dprint, 'elf_load_eng error, found unrecognized datatype: ' + datatype[i]
-      return
-    endif
-  endfor
-
-  for i = 0, n_elements(level)-1 do begin
-    idx = where(validlevels eq level[i], ncnt)
-    if ncnt EQ 0 then begin
-      dprint, 'elf_load_eng error, found unrecognized level: ' + level[i]
-      return
-    endif
-  endfor
-
-  ts = time_struct(trange[0])
-  yr = strmid(trange[0],0,4)
-  mo = strmid(trange[0],5,2)
-  day = strmid(trange[0],8,2)
-
-  ;local_file = !elf.local_data_dir + level+'/eng/'+yr+'/lomo_'+level+'_'+yr+mo+day+'_eng_v01.cdf'
-  local_file = !elf.local_data_dir + level+'/eng/'+yr+'/lomo_'+level+'_'+yr+mo+day+'_eng_v01.cdf'
-  no_download = !elf.no_download or !elf.no_server or ~undefined(no_update)
-
-  if no_download eq 0 then begin
-    ; Construct file name
-    ; temporary kluge for l2 data
-    ; for now use level 1 and calibrate on the fly.
-    remote_file = !elf.remote_data_dir + 'l1_ingo/ENG/lomo_L1_elfin_'+yr+mo+day+'_ENG.cdf'
-    ; download data
-    paths=spd_download(remote_file=remote_file, local_file=local_file)
+  if undefined(probes) then probes = ['a'] ; default to ela
+  ; temporarily removed 'b' since there is no b fgm data yet
+  if probes EQ ['*'] then probes = ['a','b'] 
+  if n_elements(probes) GT 2 then begin
+    dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
+    return
+  endif
+  ; check for valid probe names
+  probes = strlowcase(probes)
+  idx = where(probes EQ 'a', acnt)
+  idx = where(probes EQ 'b', bcnt)
+  if acnt EQ 0 && bcnt EQ 0 then begin
+    dprint, dlevel = 1, 'Invalid probe name. Valid probes are a and/or b. Please select again.'
+    return
   endif
 
-  init_time=systime(/sec)
-  cdf2tplot, file=local_file   ;, get_support_data=1
-  If level EQ 'l2' then begin
-     calibrate_lomo_engineering
-  Endif
+  ;clear so new names are not appended to existing array
+  undefine, tplotnames
+  ; clear CDF filenames, so we're not appending to an existing array
+  undefine, cdf_filenames
 
-END
+  if undefined(level) then level = 'l1'
+  ; valid data types
+  valid_types = elf_load_options_eng()
+    
+  if undefined(datatype) then datatype = '' else datatype = strlowcase(datatype) ; this is the only type of mrm data
+;  if datatype NE 'eng' then begin
+;    dprint, dlevel = 1, 'Invalid data type. The only valid data type for eng is eng.'
+;    return    
+;  endif
+  if undefined(suffix) then suffix = ''
+  if undefined(data_rate) then data_rate = ''
+
+  elf_load_data, trange = trange, probes = probes, level = level, instrument = 'eng', $
+    data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
+    datatype = datatype, get_support_data = get_support_data, no_time_sort=no_time_sort, $
+    tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
+    no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
+    cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
+    cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
+    always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
+
+  ; Set colors to RGB
+;  if  ~undefined(tplotnames) && tplotnames[0] ne '' then begin
+;    for i=0,n_elements(tplotnames)-1 do begin
+;      elf_cal_eng, tplotnames[i]
+;      options, /def, tplotnames[i], 'colors', [2,4,6]
+;    endfor
+;  endif
+
+  ; no reason to continue if the user only requested available data
+  if keyword_set(available) then return
+
+  ; no reason to continue if no data were loaded
+  if undefined(tplotnames) then return
+
+end
