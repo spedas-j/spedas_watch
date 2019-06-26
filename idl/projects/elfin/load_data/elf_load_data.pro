@@ -296,13 +296,15 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
     endif
 
     ; sort times and remove duplicates
-    if ~keyword_set(no_time_sort) then for t=0,n_elements(tplotnames)-1 do tplot_sort, tplotnames[t]
-;        get_data, tplotnames[t], data=d, dlimits=dl, limits=l
-;        idx=uniq(d.x,sort(d.x))
-;        store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*]}, dlimits=dl, limits=l
-;      endfor
-;    endif
-
+    if ~keyword_set(no_time_sort) then begin
+      for t=0,n_elements(tplotnames)-1 do begin
+         tplot_sort, tplotnames[t]
+         get_data, tplotnames[t], data=d, dlimits=dl, limits=l
+         idx=uniq(d.x,sort(d.x))
+         store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*]}, dlimits=dl, limits=l
+      endfor
+    endif
+    
     ;temporary messages for diagnostic purposes
     dprint, dlevel=2, 'Successfully loaded: '+ $
       strjoin( ['el'+probes, instrument, data_rates, levels, datatypes, time_string(tr)],' ')

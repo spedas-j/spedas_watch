@@ -304,6 +304,11 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
   ; Get auroral zones and plot
   ovalget,6,pwdboundlonlat,ewdboundlonlat 
+  if keyword_set(south) then begin
+    pwdboundlonlat[*, 1]=-pwdboundlonlat[*, 1]
+    ewdboundlonlat[*, 1]=-ewdboundlonlat[*, 1]
+  endif
+  ; mirror to south
   rp=make_array(n_elements(pwdboundlonlat[*,0]), /double)+100.
   t=make_array(n_elements(pwdboundlonlat[*,0]), /double)+ela_state_pos_sm.x[0]
   sphere_to_cart, rp, pwdboundlonlat[*,1], pwdboundlonlat[*,0], vec=oval_sm
@@ -316,6 +321,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
   pwdboundlonlat[*,0]=phi
   pwdboundlonlat[*,1]=theta
+  ;if keyword_set(south) then pwdboundlonlat[*,1]=-theta else pwdboundlonlat[*,1]=theta
 
   sphere_to_cart, rp, ewdboundlonlat[*,1], ewdboundlonlat[*,0], vec=oval_sm
   store_data, 'oval_sm', data={x:t, y:oval_sm}
@@ -391,12 +397,20 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endelse
 
     ; display latitude/longitude
-    for i=0,nmlats-1 do oplot,v_lon[i,*]+ mid_hr*15.,v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-    for i=0,nmlons-1 do begin
-      idx=where(u_lon[i,*] NE 0)
-      oplot,u_lon[i,idx]+ mid_hr*15.,u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
-    endfor
-    
+    if keyword_set(south) then begin
+      for i=0,nmlats-1 do oplot,v_lon[i,*]-mid_hr*15.,v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+      for i=0,nmlons-1 do begin
+        idx=where(u_lon[i,*] NE 0)
+        oplot,u_lon[i,idx]-mid_hr*15.,u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+      endfor
+    endif else begin
+      for i=0,nmlats-1 do oplot,v_lon[i,*]+ mid_hr*15.,v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+      for i=0,nmlons-1 do begin
+        idx=where(u_lon[i,*] NE 0)
+        oplot,u_lon[i,idx]+ mid_hr*15.,u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+      endfor
+    endelse
+       
     ; ELFIN A
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
     this_lon=lon[min_st[k]:min_en[k]]+mid_hr*15.
@@ -509,8 +523,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
     ; Plot auroral zones and plot
     if keyword_set(south) then begin
-      plots,pwdboundlonlat[*,0]+mid_hr*15.,-pwdboundlonlat[*,1],color=155, thick=1.05
-      plots,ewdboundlonlat[*,0]+mid_hr*15.,-ewdboundlonlat[*,1],color=155, thick=1.05
+      plots,pwdboundlonlat[*,0]-mid_hr*15.,pwdboundlonlat[*,1],color=155, thick=1.05
+      plots,ewdboundlonlat[*,0]-mid_hr*15.,ewdboundlonlat[*,1],color=155, thick=1.05
     endif else begin
       plots,pwdboundlonlat[*,0]+mid_hr*15.,pwdboundlonlat[*,1],color=155, thick=1.05
       plots,ewdboundlonlat[*,0]+mid_hr*15.,ewdboundlonlat[*,1],color=155, thick=1.05
@@ -566,7 +580,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     idx = where(this_ay lt 0, ncnt)
     if ncnt gt 0 then begin
       find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_ax[istart[sidx]:iend[sidx]]/6378., this_az[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 2, thick=.75
+      for sidx = 0, n_elements(istart)-1 do oplot, this_ax[istart[sidx]:iend[sidx]]/6378., this_az[istart[sidx]:iend[sidx]]/6378., color=252, psym = 3  ;, thick=.75
     endif
     ; plot orbit in front of earth
     idx = where(this_ay ge 0, ncnt)
@@ -579,16 +593,19 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     idx = where(this_by lt 0, ncnt)
     if ncnt gt 0 then begin
       find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 2, thick=.75
+      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 1  ;, thick=.75
     endif
     idx = where(this_by ge 0, ncnt)
     if ncnt GT 0 then begin
       find_interval,idx,istart,iend
       for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
     endif
-    ;plot start points
+    ;plot start/end points
+    npts = n_elements(this_ax)-1
     plots, this_ax[0]/6378.,this_az[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_bx[0]/6378.,this_bz[0]/6378.,color=254,psym=symbols[0],symsize=0.8
+    plots, this_ax[npts]/6378.,this_az[npts]/6378.,color=253,psym=2,symsize=0.8
+    plots, this_bx[npts]/6378.,this_bz[npts]/6378.,color=254,psym=2,symsize=0.8
 
     ; plot lines to separate plots
     plots,[600./800.*0.96,1.],[0.005+0.96*3./3.,0.005+0.96*3./3.]-0.007,/normal
@@ -636,9 +653,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       find_interval,idx,istart,iend
       for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_by[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
     endif
-    ;plot start points
+
+    ;plot start and end points
     plots, this_ax[0]/6378.,this_ay[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_bx[0]/6378., this_by[0]/6378.,color=254,psym=symbols[0],symsize=0.8
+    plots, this_ax[npts]/6378.,this_ay[npts]/6378.,color=253,psym=2,symsize=0.8
+    plots, this_bx[npts]/6378., this_by[npts]/6378.,color=254,psym=2,symsize=0.8
 
     ; plot lines to separate plots
     plots,[600./800.*0.96,1.],[0.005+0.96*1./3.,0.005+0.96*1./3.]-0.0025,/normal
@@ -687,9 +707,11 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       find_interval,idx,istart,iend
       for sidx = 0, n_elements(istart)-1 do oplot, this_by[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
     endif
-    ;plot start points
+    ;plot start and end points
     plots, this_ay[0]/6378.,this_az[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_by[0]/6378.,this_bz[0]/6378.,color=254,psym=symbols[0],symsize=0.8
+    plots, this_ay[npts]/6378.,this_az[npts]/6378.,color=253,psym=2,symsize=0.8
+    plots, this_by[npts]/6378.,this_bz[npts]/6378.,color=254,psym=2,symsize=0.8
 
     ; plot lines to separate plots
     plots,[600./800.*0.96,1.],[0.005+0.96*0./3.,0.005+0.96*0./3.],/normal
