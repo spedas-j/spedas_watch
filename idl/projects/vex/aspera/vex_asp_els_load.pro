@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-16 06:35:06 -0700 (Mon, 16 Apr 2018) $
-; $LastChangedRevision: 25048 $
+; $LastChangedDate: 2019-06-26 12:37:01 -0700 (Wed, 26 Jun 2019) $
+; $LastChangedRevision: 27381 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_load.pro $
 ;
 ;-
@@ -35,8 +35,8 @@ PRO vex_asp_els_list, trange, verbose=verbose, save=save, file=file, time=modify
 
   w = WHERE(phase EQ '0', nw, complement=v, ncomplement=nv)
   IF nw GT 0 THEN phase[w] = ''
-  IF nv GT 0 THEN phase[v] = 'EXT' + phase[v]
-  pdir = 'VEX-V-SW-ASPERA-2-' + phase + '-ELS-V1.0/' ; pdir stands for "phase dir".
+  IF nv GT 0 THEN phase[v] = '-EXT' + phase[v]
+  pdir = 'VEX-V-SW-ASPERA-2' + phase + '-ELS-V1.0/' ; pdir stands for "phase dir".
 
   dprint, dlevel=2, verbose=verbose, 'Starts connecting ESA/PSA FTP server...'
 
