@@ -7,7 +7,6 @@
 
 pro spp_swp_mag_load,trange=trange,resname=resname,save=save,no_load=no_load,files=files,type=type,rtn=rtn
 
-
   tr = timerange(trange)
   if keyword_set(rtn) then type = 'mag_RTN' else type = 'mag_SC'
 
@@ -19,7 +18,7 @@ pro spp_swp_mag_load,trange=trange,resname=resname,save=save,no_load=no_load,fil
 ;  fileformat = 'psp/data/sci/sweap/external/fields/'+tpname+'/YYYY/MM/'+tpname+'_YYYYMMDD_v00.tplot'
 ;/cache/psp/data/sci/sweap/external/fields/psp_fld_l2_1Hz_mag_SC/2019/04/psp_fld_l2_1Hz_mag_SC_20190406_v00
 ;  resname=''
-tpname0 = 'psp_fld_l2_RES_'+type
+  tpname0 = 'psp_fld_l2_RES_'+type
   
   if keyword_set(resname)  then begin
     tpname = str_sub(tpname0,'RES',resname)
@@ -28,6 +27,9 @@ tpname0 = 'psp_fld_l2_RES_'+type
     del_data,tpname  ; Delete any previous data stored
     tplot_restore,filenames=files,/verbose,/append    
   endif
+  
+  
+  
   
   if 0 then  begin
     fileformat = 'psp/data/sci/fields/staging/l2_draft/mag/YYYY/MM/psp_fld_l2_mag_YYYYMMDD_v??.cdf'

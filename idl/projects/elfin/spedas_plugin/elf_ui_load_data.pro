@@ -449,9 +449,31 @@ pro elf_ui_load_data,tabid,loadedData,historyWin,statusBar,treeCopyPtr,timeRange
    epdL1TypeArray = ['pif','pef']   ;['pis','pif','pes','pef']
    epdL2TypeArray = ['pis_enphi_eflux','pif_enphi_eflux','pes_enphi_eflux','pef_enphi_eflux']
    stateTypeArray = ['pos_gei','vel_gei', 'att_gei']
-   valid_eng=elf_load_options_eng()
-   engL1TypeArray=valid_eng.v1.l1
-   engL2TypeArray=valid_eng.v1.l1
+   valid_eng=['sips_5v0_voltage', $
+     'sips_5v0_current', $
+     'sips_input_voltage', $
+     'sips_input_current', $
+     'sips_input_temp', $
+     'epd_biash', $
+     'epd_biasl', $
+     'epd_efe_temp', $
+     'idpu_msp_version', $
+     'fgm_3_3_volt', $
+     'fgm_8_volt', $
+     'fgm_analog_ground', $
+     'fgm_sh_temp', $
+     'fgm_eu_temp', $
+     'fc_chassis_temp', $
+     'fc_idpu_temp', $
+     'fc_batt_temp_1', $
+     'fc_batt_temp_2', $
+     'fc_batt_temp_3', $
+     'fc_batt_temp_4', $
+     'fc_avionics_temp_1', $
+     'fc_avionics_temp_2' $
+     ]   
+   engL1TypeArray=valid_eng
+   engL2TypeArray=valid_eng
    mrmaL1TypeArray = ['mrma']
    mrmaL2TypeArray = ['mrma']
    mrmiL1TypeArray = ['mrmi']
