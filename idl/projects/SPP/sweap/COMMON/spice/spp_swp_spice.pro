@@ -6,8 +6,8 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-05-17 11:15:05 -0700 (Fri, 17 May 2019) $
-; $LastChangedRevision: 27257 $
+; $LastChangedDate: 2019-06-28 13:54:33 -0700 (Fri, 28 Jun 2019) $
+; $LastChangedRevision: 27390 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spice/spp_swp_spice.pro $
 ;-
 
@@ -39,6 +39,7 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
   if keyword_set(position) then begin
     spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=1e6,name=n1,trange=trange,/force_objects ;million km
     xyz_to_polar,n1,/ph_0_360
+    options,'SPP_POS_(SUN-J2000)_mag',ysubtitle='(Mkm)',ystyle=3
   endif
   if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
 
