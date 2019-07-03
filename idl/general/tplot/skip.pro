@@ -37,8 +37,8 @@
 ;                 interval from there.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-06-12 13:37:59 -0700 (Wed, 12 Jun 2019) $
-; $LastChangedRevision: 27344 $
+; $LastChangedDate: 2019-07-02 13:04:31 -0700 (Tue, 02 Jul 2019) $
+; $LastChangedRevision: 27398 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/skip.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -82,11 +82,13 @@ pro skip, n, orb=orb, day=day, sec=sec, minute=minute, hour=hour, page=page, $
 
 ; Get orbit data if needed
 
-  if ((mode eq 6) and (size(period,/type) eq 0)) then begin
-    orb = mvn_orbit_num()
-    period = orb.peri_time - shift(orb.peri_time,1)
-    period[0] = period[1]
-    ptime = orb.peri_time
+  if (mode eq 6) then begin
+    if (size(period,/type) eq 0) then begin
+      orb = mvn_orbit_num()
+      period = orb.peri_time - shift(orb.peri_time,1)
+      period[0] = period[1]
+      ptime = orb.peri_time
+    endif
 
     i = nn2(ptime,[t[0],mean(topt.trange),t[1]])
     p = period[i]
@@ -116,12 +118,12 @@ pro skip, n, orb=orb, day=day, sec=sec, minute=minute, hour=hour, page=page, $
 ; Shift the time window
 
   if keyword_set(first) then begin
-    tlimit, [t[0], t[0]+delta_t]
+    tlimit, [t[0], t[0]+abs(delta_t)]
     return
   endif
 
   if keyword_set(last) then begin
-    tlimit, [t[1]-delta_t, t[1]]
+    tlimit, [t[1]-abs(delta_t), t[1]]
     return
   endif
 
