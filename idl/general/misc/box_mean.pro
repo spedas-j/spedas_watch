@@ -26,13 +26,13 @@
 ;       RESULT:  Named variable to hold the result.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-07-02 09:55:25 -0700 (Tue, 02 Jul 2019) $
-; $LastChangedRevision: 27394 $
+; $LastChangedDate: 2019-07-03 16:33:00 -0700 (Wed, 03 Jul 2019) $
+; $LastChangedRevision: 27406 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/box_mean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
-pro box_mean, var, width=width, outlier=outlier, result=result
+pro box_mean, var, width=width, outlier=outlier, result=dat
   
   if not keyword_set(width) then width = 20L
   if not keyword_set(outlier) then outlier = 10.
@@ -94,14 +94,12 @@ pro box_mean, var, width=width, outlier=outlier, result=result
 
 ; Package the result
 
-  result = {median  : rmed    , $
-            mean    : ravg    , $
-            stddev  : rrms    , $
-            npts    : rpts    , $
-            width   : width   , $
-            outlier : outlier    }
-
-  if (n_elements(dat.x) eq npts) then str_element, result, 'time', dat.x, /add
+  str_element, dat, 'median' , rmed   , /add
+  str_element, dat, 'mean'   , ravg   , /add
+  str_element, dat, 'stddev' , rrms   , /add
+  str_element, dat, 'npts'   , rpts   , /add
+  str_element, dat, 'width'  , width  , /add
+  str_element, dat, 'outlier', outlier, /add
 
 ; Make a TPLOT variable
 

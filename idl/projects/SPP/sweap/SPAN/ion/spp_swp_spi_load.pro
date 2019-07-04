@@ -1,8 +1,8 @@
 ;+
 ;
-; $LastChangedBy: ali $
-; $LastChangedDate: 2019-06-20 18:24:51 -0700 (Thu, 20 Jun 2019) $
-; $LastChangedRevision: 27362 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-07-03 16:08:35 -0700 (Wed, 03 Jul 2019) $
+; $LastChangedRevision: 27405 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -51,7 +51,7 @@ end
 
 
 pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=no_load,tname_prefix=tname_prefix,save=save,$
-  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay
+  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay,alltypes=alltypes
   
 
   if ~keyword_set(level) then level='L3'
@@ -126,7 +126,7 @@ pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=n
       vname_phi = prefix+['EFLUX_VS_PHI','VEL_phi']
       
       spcname = 'psp_swp_spc_l3i_vp_moment_SC'
-      spcname = 'psp_swp_spc_l3i_vp_fit_SC'
+;      spcname = 'psp_swp_spc_l3i_vp_fit_SC'
       if keyword_set(spcname) then begin   ; add SPC data
         dat = data_cut(spcname,time)       ; interpolate onto span timescale
         if keyword_set(dat) then begin

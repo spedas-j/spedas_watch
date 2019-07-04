@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2019-06-26 12:37:01 -0700 (Wed, 26 Jun 2019) $
-; $LastChangedRevision: 27381 $
+; $LastChangedDate: 2019-07-03 16:58:39 -0700 (Wed, 03 Jul 2019) $
+; $LastChangedRevision: 27407 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_load.pro $
 ;
 ;-
@@ -287,7 +287,7 @@ PRO vex_asp_els_read, trange, verbose=verbose, time=stime, counts=counts, mode=m
   RETURN
 END
 
-PRO vex_asp_els_fill_nan, counts, energy, mode=mode, nenergy=nenergy
+PRO vex_asp_els_fill_nan, stime, counts, energy, mode=mode, nenergy=nenergy
   nan = !values.f_nan
   nene = [128, 32]
 
@@ -296,6 +296,19 @@ PRO vex_asp_els_fill_nan, counts, energy, mode=mode, nenergy=nenergy
   energy = list()
 
   FOR i=0, nlist-1 DO BEGIN
+     IF N_ELEMENTS(spd_uniq(mode[i])) GT 1 THEN BEGIN
+        w = WHERE(mode[i] EQ 0, nw, complement=v, ncomplement=nv)
+        IF nw GT nv THEN BEGIN
+           stime[i] = (stime[i])[w]
+           counts[i] = (counts[i])[w, *, *]
+           mode[i] = (mode[i])[w]
+        ENDIF ELSE BEGIN
+           stime[i] = (stime[i])[v]
+           counts[i] = (counts[i])[v, *, *]
+           mode[i] = (mode[i])[v]
+        ENDELSE 
+        undefine, w, v, nw, nv
+     ENDIF 
      ndat = N_ELEMENTS((counts[i])[*, 0, 0])
      nenergy.add, nene[mode[i]]
      
@@ -383,7 +396,7 @@ PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server
      ENDFOR 
   ENDELSE 
 
-  vex_asp_els_fill_nan, counts, energy, mode=mode, nenergy=nenergy
+  vex_asp_els_fill_nan, stime, counts, energy, mode=mode, nenergy=nenergy
 
   counts = counts.toarray(dim=1)
   stime = stime.toarray(dim=1)
