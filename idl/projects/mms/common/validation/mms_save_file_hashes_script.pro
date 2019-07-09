@@ -2,8 +2,8 @@
 ; this script downloads MMS files and saves the MD5 hashes for comparison with pySPEDAS
 ; 
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-07-05 11:23:16 -0700 (Fri, 05 Jul 2019) $
-; $LastChangedRevision: 27408 $
+; $LastChangedDate: 2019-07-08 12:44:02 -0700 (Mon, 08 Jul 2019) $
+; $LastChangedRevision: 27414 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/validation/mms_save_file_hashes_script.pro $
 ;-
 
@@ -12,6 +12,8 @@ mms_init, local_data_dir='/Users/eric/data/mms_validation_data/'
 undefine, filehashes
 undefine, all_files
 
+probes = [1]
+
 ; fast survey
 tranges = [['2015-10-1', '2015-10-3'], $
   ['2016-10-1', '2016-10-3'], $
@@ -19,27 +21,27 @@ tranges = [['2015-10-1', '2015-10-3'], $
   ['2018-10-1', '2018-10-3']]
 
 for time_idx=0, n_elements(tranges[0, *])-1 do begin
-  mms_load_fgm, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_fgm, trange=(tranges[*, time_idx]), cdf_filenames=fn, probes=probes
   append_array, all_files, fn
-  mms_load_scm, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_scm, trange=(tranges[*, time_idx]), cdf_filenames=fn, probes=probes
   append_array, all_files, fn
-  mms_load_fpi, trange=(tranges[*, time_idx]), datatype=['des-moms', 'dis-moms'], cdf_filenames=fn
+  mms_load_fpi, trange=(tranges[*, time_idx]), datatype=['des-moms', 'dis-moms'], cdf_filenames=fn, probes=probes
   append_array, all_files, fn
-  mms_load_hpca, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_hpca, trange=(tranges[*, time_idx]), cdf_filenames=fn, probes=probes
   append_array, all_files, fn
-  mms_load_edi, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_edi, trange=(tranges[*, time_idx]), cdf_filenames=fn, probes=probes
   append_array, all_files, fn
-  mms_load_dsp, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_dsp, trange=(tranges[*, time_idx]), cdf_filenames=fn, data_rate='fast', datatype='swd', level='l2', probes=probes
   append_array, all_files, fn
-  mms_load_aspoc, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_aspoc, trange=(tranges[*, time_idx]), cdf_filenames=fn, probes=probes
   append_array, all_files, fn
-  mms_load_edp, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_edp, trange=(tranges[*, time_idx]), cdf_filenames=fn, probes=probes
   append_array, all_files, fn
-  mms_load_eis, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_eis, trange=(tranges[*, time_idx]), cdf_filenames=fn, datatype=['extof', 'phxtof'], probes=probes
   append_array, all_files, fn
-  mms_load_feeps, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_feeps, trange=(tranges[*, time_idx]), cdf_filenames=fn, probes=probes
   append_array, all_files, fn
-  mms_load_mec, trange=(tranges[*, time_idx]), cdf_filenames=fn
+  mms_load_mec, trange=(tranges[*, time_idx]), cdf_filenames=fn, probes=probes
   append_array, all_files, fn
 endfor
 

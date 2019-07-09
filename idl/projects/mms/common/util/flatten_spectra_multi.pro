@@ -50,8 +50,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-06-04 12:35:36 -0700 (Tue, 04 Jun 2019) $
-;$LastChangedRevision: 27315 $
+;$LastChangedDate: 2019-07-08 14:11:07 -0700 (Mon, 08 Jul 2019) $
+;$LastChangedRevision: 27415 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -89,7 +89,7 @@ end
 
 
 pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
-   png=png, postscript=postscript, prefix=prefix, filename=filename, $   
+   thick=thick, linestyle=linestyle, png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
    charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, yvalues=yvalues, xvalues=xvalues, $
    _extra=_extra
@@ -129,10 +129,23 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
   leg_y = 0.04
   leg_dy = 0.04
   
-  ; user defined colors indexes
-  if ~KEYWORD_SET(colors) or (N_ELEMENTS(colors) lt n_elements(vars_to_plot)) then begin
+  ; user defined plot options
+  if ~KEYWORD_SET(colors) then begin
     colors = indgen(num_spec,start=0,increment=2)
   endif
+  
+  if ~undefined(thick) && n_elements(thick) ne num_spec && n_elements(thick) ne 1 then begin
+    dprint, dlevel=0, 'Error, the number of elements in thick keyword should match the number of times'
+    undefine, thick
+  endif
+  
+  if ~undefined(linestyle) && n_elements(linestyle) ne num_spec && n_elements(linestyle) ne 1 then begin
+    dprint, dlevel=0, 'Error, the number of elements in linestyle keyword should match the number of times'
+    undefine, linestyle
+  endif
+  
+  if n_elements(thick) eq 1 then thick = replicate(thick, num_spec)
+  if n_elements(linestyle) eq 1 then linestyle = replicate(linestyle, num_spec)
   
   for time_idx=0, num_spec-1 do begin
     if undefined(time_in) and undefined(trange_in) then begin ; use cursor or the input variable
@@ -348,14 +361,19 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
           plot, x_data, y_data, $
             xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
             xtitle=xunit_str, ytitle=yunit_str, $
-            charsize=charsize, title=varinfo.catdesc, color=colors[time_idx], _extra=_extra
+            charsize=charsize, title=varinfo.catdesc, $
+            thick=~undefined(thick) ? thick[time_idx] : 0, $
+            linestyle=~undefined(linestyle) ? linestyle[time_idx] : 0, $
+            color=colors[time_idx], _extra=_extra
             
             if ~keyword_set(nolegend) then begin
               if keyword_set(legend_left) then leg_x += !x.WINDOW[0]
               leg_y = !y.WINDOW[1] - leg_y
             endif            
         endif else begin
-          oplot, x_data, y_data, color=colors[time_idx], _extra=_extra
+          oplot, x_data, y_data, thick=~undefined(thick) ? thick[time_idx] : 0, $
+            linestyle=~undefined(linestyle) ? linestyle[time_idx] : 0,$
+             color=colors[time_idx], _extra=_extra
         endelse
         
         ; to return the actual values via keywords
