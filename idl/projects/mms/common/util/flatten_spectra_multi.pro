@@ -50,8 +50,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-07-08 14:11:07 -0700 (Mon, 08 Jul 2019) $
-;$LastChangedRevision: 27415 $
+;$LastChangedDate: 2019-07-09 15:38:36 -0700 (Tue, 09 Jul 2019) $
+;$LastChangedRevision: 27424 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -98,6 +98,13 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
   
   spd_graphics_config
 
+  str_element, tplot_vars.options, 'varnames', varnames, success=s
+
+  if ~s then begin
+    dprint, dlevel=0, 'No tplot window found!'
+    return
+  endif
+  
   if undefined(num_spec) then num_spec = 2
 
   ;
@@ -148,30 +155,26 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
   if n_elements(linestyle) eq 1 then linestyle = replicate(linestyle, num_spec)
   
   for time_idx=0, num_spec-1 do begin
-    if undefined(time_in) and undefined(trange_in) then begin ; use cursor or the input variable
-      ctime,t,npoints=1,prompt="Use cursor to select a time to plot the spectra", /silent 
+    ctime,t,npoints=1,prompt="Use cursor to select a time to plot the spectra", /silent 
         ;hours=hours,minutes=minutes,seconds=seconds,days=days  
-      if undefined(t) || t eq 0 then return ; exit on the right click or if t isn't defined for some reason
-    endif else begin    
-      if undefined(trange_in) then t = time_double(time_in) ; if user set time_in, but not trange
-      if ~undefined(trange_in) then begin ; if user set trange for the averaging
-        trange = minmax(time_double(trange_in))
-        t = trange[0] + (trange[1] - trange[0]) / 2.  
-      endif
-    endelse
+    append_array, selected_times, t
+  endfor
+  
+  ;
+  ; Plot or save to the file
+  ;
+
+  ; finalizing filename
+  fname += time_string(t, tformat='YYYYMMDD_hhmmss')
+  fname = prefix + fname
+  if ~UNDEFINED(filename) THEN fname = filename
+  
+  ; Device = postscript or window
+  if KEYWORD_SET(postscript) then popen, fname, /landscape
+  
+  for time_idx=0, num_spec-1 do begin
+    t = selected_times[time_idx]
     
-    ; finalizing filename
-    fname += time_string(t, tformat='YYYYMMDD_hhmmss')
-    fname = prefix + fname
-    if ~UNDEFINED(filename) THEN fname = filename
-
-    ;
-    ; Plot or save to the file
-    ;
-
-    ; Device = postscript or window
-    if KEYWORD_SET(postscript) then popen, fname, /landscape
-
     ; set the averaging time window
     if ~undefined(window_time) then begin
       if KEYWORD_SET(center_time) then begin

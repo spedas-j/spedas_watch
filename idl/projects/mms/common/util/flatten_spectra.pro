@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-06-04 12:32:47 -0700 (Tue, 04 Jun 2019) $
-;$LastChangedRevision: 27314 $
+;$LastChangedDate: 2019-07-09 15:24:30 -0700 (Tue, 09 Jul 2019) $
+;$LastChangedRevision: 27423 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -129,9 +129,17 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   xvalues = hash()
   
   if undefined(charsize) then charsize = 2.0
-    
+  
+  str_element, tplot_vars.options, 'varnames', varnames, success=s
+
+  if ~s then begin
+    dprint, dlevel=0, 'No tplot window found!'
+    return
+  endif
+  
   dprint, dlevel=1, 'time selected: ' + time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
   store_data, 'flatten_spectra_time', data={x: t, y: 1}
+  
   vars_to_plot = tplot_vars.options.varnames
    
   ; 
@@ -198,6 +206,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
           data_y = data_y*1000d
         endif
       endif
+
       append_array,yr,reform(data_y)
       append_array,xr,reform(data_x)     
     endif      

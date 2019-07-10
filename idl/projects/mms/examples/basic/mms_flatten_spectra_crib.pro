@@ -9,8 +9,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-01-10 08:57:15 -0800 (Thu, 10 Jan 2019) $
-; $LastChangedRevision: 26449 $
+; $LastChangedDate: 2019-07-09 15:39:57 -0700 (Tue, 09 Jul 2019) $
+; $LastChangedRevision: 27425 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/basic/mms_flatten_spectra_crib.pro $
 ;-
 
@@ -70,6 +70,20 @@ tplot, ['mms1_dis_energyspectr_omni_brst', $
   'mms1_epd_eis_brst_extof_proton_flux_omni']
 
 flatten_spectra, /to_flux, /to_kev, /xlog, /ylog, time='2015-10-16/13:07', filename='spectra', /png
+stop
+
+; to create line plots for multiple times instead of multiple plots, use flatten_spectra_multi, e.g.,
+tplot, 'mms1_dis_energyspectr_omni_brst'
+
+flatten_spectra_multi, 3, /to_flux, /to_kev, /xlog, /ylog
+stop
+
+; the colors, line thickness and linestyle can be set individually for each plot, e.g.,
+flatten_spectra_multi, 3, /to_flux, /to_kev, /xlog, /ylog, colors=[0, 4, 6], thick=[1, 3, 6], linestyle=[1, 2, 3]
+stop
+
+; save the output to a postscript file:
+flatten_spectra_multi, 3, filename='spectra_multi', /postscript, /to_flux, /to_kev, /xlog, /ylog
 stop
 
 end
