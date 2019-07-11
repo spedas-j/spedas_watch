@@ -1,8 +1,8 @@
-pro spp_fld_sc_hk_high_load_l1, file, prefix = prefix
+pro spp_fld_sc_hk_high_load_l1, file, prefix = prefix, varformat = varformat
 
   if not keyword_set(prefix) then prefix = 'spp_fld_sc_hk_high_'
 
-  cdf2tplot, /get_support_data, file, prefix = prefix
+  cdf2tplot, /get_support_data, file, prefix = prefix, varformat = varformat
 
   sc_hk_high_names = tnames(prefix + '*')
 

@@ -50,8 +50,8 @@
 ;     The MMS plug-in in SPEDAS requires IDL 8.4 to access data at the LASP SDC
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-08-06 11:58:25 -0700 (Mon, 06 Aug 2018) $
-;$LastChangedRevision: 25588 $
+;$LastChangedDate: 2019-07-10 14:19:15 -0700 (Wed, 10 Jul 2019) $
+;$LastChangedRevision: 27435 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/fsm/mms_load_fsm.pro $
 ;-
 
@@ -66,7 +66,7 @@ pro mms_load_fsm, trange = trange, probes = probes, datatype = datatype, $
   latest_version = latest_version, min_version = min_version, $
   spdf = spdf, available = available, versions = versions, $
   always_prompt = always_prompt, major_version=major_version, $
-  keep_flagged=keep_flagged, tt2000=tt2000
+  keep_flagged=keep_flagged, tt2000=tt2000, download_only=download_only
 
   if ~undefined(trange) && n_elements(trange) eq 2 $
     then tr = timerange(trange) $
@@ -96,10 +96,10 @@ pro mms_load_fsm, trange = trange, probes = probes, datatype = datatype, $
     suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
     cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
     spdf = spdf, available = available, versions = versions, always_prompt = always_prompt, $
-    major_version=major_version, tt2000=tt2000
+    major_version=major_version, tt2000=tt2000, download_only=download_only
 
   ; no reason to continue if the user only requested available data
-  if keyword_set(available) then return
+  if keyword_set(available) || keyword_set(download_only) then return
 
   if undefined(tplotnames) then return
 

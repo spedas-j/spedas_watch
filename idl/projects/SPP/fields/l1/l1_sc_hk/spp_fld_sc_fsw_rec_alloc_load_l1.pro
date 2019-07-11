@@ -1,10 +1,10 @@
-pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix
+pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varformat
 
   clusters_per_gbit = 3890d
 
   if not keyword_set(prefix) then prefix = 'spp_fld_sc_fsw_rec_alloc_'
 
-  cdf2tplot, /get_support_data, file, prefix = prefix
+  cdf2tplot, /get_support_data, file, prefix = prefix, varformat = varformat
 
   instruments = ['epihi','epilo','fields', 'sweap', 'wispr']
   inst_abb = ['   EH','     EL','F',' S','  W']

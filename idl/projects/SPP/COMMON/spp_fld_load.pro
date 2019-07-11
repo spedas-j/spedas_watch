@@ -39,7 +39,7 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
   if not keyword_set(no_load) then begin
     if level EQ 1 then begin
-      spp_fld_load_l1, files
+      spp_fld_load_l1, files, varformat = varformat
     endif else begin
 
       if strmatch(type,'rfs_?fr') then begin
