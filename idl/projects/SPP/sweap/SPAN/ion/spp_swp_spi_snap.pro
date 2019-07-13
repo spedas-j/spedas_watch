@@ -1,8 +1,8 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-06-28 13:54:33 -0700 (Fri, 28 Jun 2019) $
-; $LastChangedRevision: 27390 $
+; $LastChangedDate: 2019-07-11 20:28:54 -0700 (Thu, 11 Jul 2019) $
+; $LastChangedRevision: 27439 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 
@@ -62,14 +62,13 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,max
 
         data=vardata.data
         times=vardata.time
+        dt=times-shift(times,1)
         totaccum=vardata.tot_accum_period
         dim=size(/dimen,data)
         nt=dim[1]
+        maxcounts=max(data,dim=1)
         if keyword_set(accum) then store_data,prefix+'tot_accum_period',times,totaccum,dlim={ylog:1,ystyle:3}
-        if keyword_set(maxcalc) then begin
-          maxcounts=max(data,dim=1)
-          store_data,prefix+'maxcounts',times,maxcounts,dlim={ylog:1,yrange:[1,1e5],ystyle:3,constant:[1,2.^16]}
-        endif
+        if keyword_set(maxcalc) then store_data,prefix+'maxcounts',times,maxcounts,dlim={ylog:1,yrange:[1,1e5],ystyle:3,constant:[1,2.^16]}
         if keyword_set(nmaxcalc) then begin
           maxcounts[where(maxcounts eq 0,/null)]=-1
           nmax=total(transpose(data) eq rebin(maxcounts,nt,dim[0]),2)
@@ -87,6 +86,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,max
           tmin=min(abs(times-t),tminsub,/nan)
           data=data[*,tminsub]
           times=times[tminsub]
+          dt=dt[tminsub]
           totaccum=totaccum[tminsub]
           nt=1
         endif
@@ -113,7 +113,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,max
                 title=type,xtitle='Deflection bin',ytitle='Energy bin',xrange=[0,9],yrange=[33,0],/current,layout=[5,2,7-5*mbin])
               p=image(transpose(alog10(data_energy)),.5+findgen(8),-.5+findgen(8),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
                 ytitle='Deflection bin',xtitle='Anode #',yrange=[-1,8],xrange=[0,8],/current,layout=[5,6,9-5*mbin])
-              p=text(/relative,target=p,1.1,0,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2)])
+              p=text(/relative,target=p,1.1,0,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
             endif
             if keyword_set(spectra) then begin
               data_vs_theta=total(total(data,2),2,/nan)
@@ -128,7 +128,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,max
             if keyword_set(snap) then begin
               p=image(alog10(data),.5+findgen(8),.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
                 title='',xtitle='Deflection bin',ytitle='Energy bin',xrange=[0,9],yrange=[33,0],/current,layout=[5,2,8-5*mbin])
-              p=text(/relative,target=p,0,-.01,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2)])
+              p=text(/relative,target=p,0,-.01,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
             endif
             if keyword_set(spectra) then begin
               data_vs_theta=total(data,2)
@@ -141,46 +141,77 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,max
             if keyword_set(snap) then begin
               p=image(alog10(data),.5+findgen(32),.5+findgen(16),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
                 xtitle='Energy bin',ytitle='Mass bin',xrange=[33,0],yrange=[0,17],/current,layout=[2,6,12-2*mbin])
-              p=text(/relative,target=p,-.1,0,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2)])
+              p=text(/relative,target=p,-.1,0,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
             endif
             if keyword_set(spectra) then begin
+              yrange=[32,0]
+              yrange=[100,20000]
+              ylog=1
+              en=exp(9.825-findgen(32)/6.25) ;energy bins for encounter 2
+              ve=velocity(en,/proton) ;speeds corresponding to energy bins
+              data[0,*,*]=0. ;highest energy bin contains noise
               data_vs_energy=total(data,2)
               data_vs_mass=total(data,1)
-              store_data,prefix+'energy',times,transpose(data_vs_energy),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max]}
+              store_data,prefix+'energy',times,transpose(data_vs_energy),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max]}
               store_data,prefix+'mass',times,transpose(data_vs_mass),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max]}
               if mbin eq 0 then begin
                 data_vs_energy0=data_vs_energy
                 times0=times
-                datatot0=total(data_vs_energy0,1)
-                datatoten0=total(data_vs_energy0*rebin(findgen(32),[32,nt]),1)/datatot0
-                datatotte0=sqrt(total(data_vs_energy0*(rebin(findgen(32),[32,nt]))^2,1)/datatot0-datatoten0^2)
-                store_data,prefix+'enbin',times,datatoten0,dlim={yrange:[32,0],ystyle:3,colors:'b'}
-                store_data,prefix+'enbin_ovl',data=prefix+['energy','enbin'],dlim={yrange:[32,0],ystyle:3}
+                datatot0=total(data_vs_energy0,1) ;total rate (0th moment)
+                den0=total(data_vs_energy0/rebin(ve,[32,nt]),1) ;proportional to density
+                datatoten0=total(data_vs_energy0*rebin(en,[32,nt]),1)/datatot0 ;mean energy (1st moment)
+                datatotte0=sqrt(total(data_vs_energy0*(rebin(en,[32,nt]))^2,1)/datatot0-datatoten0^2) ;temperature
+                speed0=velocity(datatoten0,/proton)
+                vther0=velocity(datatotte0,/proton)
+                store_data,prefix+'energy_mean_(eV)',times,datatoten0,dlim={ylog:ylog,yrange:yrange,ystyle:3,colors:'b'}
+                store_data,prefix+'proton_energy_ovl',data=prefix+'energy'+['','_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^(min+1),10.^(max+1)]}
               endif
               if mbin eq 1 then begin
                 if total(times0 eq times) ne nt then message,'Different time cadence b/w sf20 and sf21'
                 data_vs_energy1=total(data[*,1:2,*],2) ;alpha mass bin peak
-                data_vs_energy2=data_vs_energy1-.0035*data_vs_energy0
+                data_vs_energy2=data_vs_energy1-.005*data_vs_energy0
                 data_vs_energy3=data_vs_energy2*(data_vs_energy2 ge 0.)
-                datatot2=total(data_vs_energy3,1)
-                datatoten2=total(data_vs_energy3*rebin(findgen(32),[32,nt]),1)/datatot2
-                datatotte2=sqrt(total(data_vs_energy3*(rebin(findgen(32),[32,nt]))^2,1)/datatot2-(datatoten2)^2)
-                store_data,prefix+'alpha_energy',times,transpose(data_vs_energy1),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max]}
-                store_data,prefix+'alpha-proton_energy',times,transpose(data_vs_energy2),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max]}
-                store_data,prefix+'-alpha+proton_energy',times,transpose(-data_vs_energy2),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max]}
-                store_data,prefix+'alpha-proton_enbin',times,datatoten2,dlim={yrange:[32,0],ystyle:3,colors:'r'}
-                store_data,prefix+'alpha-proton_enbin_ovl',data=prefix+['alpha-proton_energy','alpha-proton_enbin'],dlim={yrange:[32,0],ystyle:3,zrange:[10.^min,10.^(max-1)]}
-                store_data,prefix+'total',times,[[datatot0/100.],[datatot2]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton/100','alpha'],labflag:-1}
-                store_data,prefix+'ebin',times,[[datatoten0],[datatoten2]],dlim={yrange:[32,0],ystyle:3,colors:'br',labels:['proton','alpha'],labflag:-1}
-                store_data,prefix+'temp',times,[[datatotte0],[datatotte2]],dlim={ystyle:2,colors:'br',labels:['proton','alpha'],labflag:-1}
-                store_data,prefix+'alpha2proton_flux_ratio',times,datatot2/datatot0,dlim={ylog:1,ystyle:3}
-                store_data,prefix+'alpha2proton_energy_ratio',times,datatoten0-datatoten2,dlim={ystyle:3}
-                store_data,prefix+'enbin_ovl',data=prefix+['alpha_energy','ebin'],dlim={yrange:[32,0],ystyle:3,zrange:[10.^min,10.^(max-1)]}
+                datatot1=total(data_vs_energy3,1)
+                den1=total(data_vs_energy3/rebin(ve,[32,nt]),1)
+                datatoten1=total(data_vs_energy3*rebin(en,[32,nt]),1)/datatot1
+                datatotte1=sqrt(total(data_vs_energy3*(rebin(en,[32,nt]))^2,1)/datatot1-(datatoten1)^2)
+                speed1=velocity(datatoten1/2.,/proton)
+                vther1=velocity(datatotte1/2.,/proton)
+                store_data,prefix+'alpha_energy',times,transpose(data_vs_energy1),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max]}
+                store_data,prefix+'alpha-proton_energy',times,transpose(data_vs_energy2),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max]}
+                store_data,prefix+'-alpha+proton_energy',times,transpose(-data_vs_energy2),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max]}
+                store_data,prefix+'alpha-proton_energy_mean_(eV)',times,datatoten1,dlim={ylog:ylog,yrange:yrange,ystyle:3,colors:'r'}
+                store_data,prefix+'alpha_energy_ovl',data=prefix+'alpha-proton_energy'+['','_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^min,10.^(max-1)]}
+                store_data,prefix+'total',times,[[datatot0/100.],[datatot1]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton/100','alpha'],labflag:-1}
+                ;store_data,prefix+'density_(cm-3)',times,.1*[[datatot0],[datatot1]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:-1,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'density_(cm-3)',times,30.*[[den0],[den1]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:-1,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'energy_mean_(eV)',times,[[datatoten0],[datatoten1]],dlim={ylog:ylog,yrange:yrange,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:1}
+                store_data,prefix+'bulk_speed_(km/s)',times,[[speed1],[speed0]],dlim={ystyle:3,colors:'rb',labels:['alpha','proton'],labflag:-1,constant:findgen(10)*100.}
+                store_data,prefix+'thermal_speed_(km/s)',times,[[vther1],[vther0]],dlim={ystyle:3,colors:'rb',labels:['alpha','proton'],labflag:-1,constant:findgen(10)*100.}
+                store_data,prefix+'temperaure_(eV)',times,[[datatotte0],[datatotte1]],dlim={ystyle:3,colors:'br',labels:['proton','alpha'],labflag:1,ylog:1}
+                store_data,prefix+'dE/E',times,[[datatotte1/datatoten1],[datatotte0/datatoten0]],dlim={ystyle:3,colors:'rb',labels:['alpha','proton'],labflag:-1,ylog:1}
+                store_data,prefix+'speed_difference_(km/s)',times,speed1-speed0,dlim={ystyle:3,constant:0}
+                store_data,prefix+'speed_ratio',times,speed1/speed0,dlim={ystyle:3,constant:1}
+                store_data,prefix+'alpha2proton_flux_ratio',times,datatot1/datatot0,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
+                ;store_data,prefix+'alpha2proton_density_ratio',times,datatot1/datatot0*speed0/speed1,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'alpha2proton_density_ratio',times,den1/den0,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'energy_ovl',data=prefix+['alpha_energy','energy_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^min,10.^(max-1)]}
+
+                xyz_to_polar,'psp_swp_spi_sf01_L3_MAGF'
+                get_data,'psp_swp_spi_sf01_L3_MAGF_mag',data=mag
+                if keyword_set(mag) then begin
+;                  if total(mag.x eq times) ne nt then message,'Different time cadence b/w sf20 and sf01 mag'
+                  mp_kg = 1.6726231e-27 ;proton mass
+                  mu0 = 1.2566370614e-6
+                  np=.1*datatot0 ;proton density
+                  valf = (mag.y*(1e-9)/sqrt(mp_kg * np * 1e6 * mu0))/1e3
+                store_data,prefix+'alfven_speed_(km/s)',mag.x,valf,dlim={ystyle:3,constant:0}
+                endif
               endif
               if keyword_set(mass_explode) then begin
                 for mmbin=0,15 do begin
                   data_vs_energy1=total(data[*,mmbin,*],2) ;alpha mass bin peak
-                  store_data,prefix+strtrim(mmbin,2)+'_energy',times,transpose(data_vs_energy1),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max]}
+                  store_data,prefix+strtrim(mmbin,2)+'_energy',times,transpose(data_vs_energy1),en,dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max]}
                 endfor
               endif
             endif
@@ -193,7 +224,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,all=all,max
 
   if level eq 'L2' then begin
     if keyword_set(load) then begin
-      spp_swp_spi_load ;loads L3 files and cleates tplot variables
+      spp_swp_spi_load ;loads L3 files and creates tplot variables
       spp_swp_spi_load,/save,types=types,level=level,/no_load
     endif
 

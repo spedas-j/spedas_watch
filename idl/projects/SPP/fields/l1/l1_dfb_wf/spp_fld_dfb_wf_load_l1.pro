@@ -28,12 +28,33 @@
 ;   pulupa
 ;
 ;  $LastChangedBy: pulupalap $
-;  $LastChangedDate: 2019-07-10 16:33:08 -0700 (Wed, 10 Jul 2019) $
-;  $LastChangedRevision: 27436 $
+;  $LastChangedDate: 2019-07-12 12:04:21 -0700 (Fri, 12 Jul 2019) $
+;  $LastChangedRevision: 27441 $
 ;  $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/l1/l1_dfb_wf/spp_fld_dfb_wf_load_l1.pro $
 ;
 
 pro spp_fld_dfb_wf_load_l1, file, prefix = prefix, compressed = compressed, varformat = varformat
+
+  ; Some special cases for the varformat keyword, used in L1 -> L1b processing.
+
+  load_wf_v = 0
+  load_meta_only = 0
+
+  if n_elements(varformat) GT 0 then begin
+
+    ; Loading metadata only
+
+    if array_equal(['compression', 'wav_enable', 'wav_sel', $
+      'wav_sel_string', 'wav_tap'], varformat) then load_meta_only = 1
+
+    ; Not loading approximate voltage (to reduce memory usage)
+
+    if array_equal(['CCSDS_MET_Seconds', 'CCSDS_MET_SubSeconds', $
+      'compression', 'wav_enable', 'wav_sel', $
+      'wav_sel_string', 'wav_tap', 'wf_pkt_data'], varformat) then $
+      load_wf_v = 0
+
+  endif
 
   ; Check for existence of file
 
@@ -123,18 +144,19 @@ pro spp_fld_dfb_wf_load_l1, file, prefix = prefix, compressed = compressed, varf
   options, prefix + '*string', 'ytickformat', '(A1)'
   options, prefix + '*string', 'noclip', 0
 
-  if n_elements(varformat) GT 0 then return
-
   ;
   ; End plot options
   ;
+
+  if load_meta_only EQ 1 then return
 
   ;
   ; Store waveform data in useful tplot variables
   ;
 
   get_data, prefix + 'wf_pkt_data', data = d
-  get_data, prefix + 'wf_pkt_data_v', data = d_v
+  if load_wf_v EQ 1 then get_data, prefix + 'wf_pkt_data_v', data = d_v
+
   get_data, prefix + 'wav_tap', data = d_tap
   get_data, prefix + 'wav_sel', data = d_sel
   get_data, prefix + 'wav_sel_string', data = d_sel_str
@@ -204,7 +226,7 @@ pro spp_fld_dfb_wf_load_l1, file, prefix = prefix, compressed = compressed, varf
 
     ;    stop
 
-    indices = rebin(lindgen(1,max_samples), n_times_2d, max_samples)
+    indices = rebin(indgen(1,max_samples), n_times_2d, max_samples)
     indices_1d = reform(transpose(indices), n_elements(indices))
 
     times_1d += double(indices) / rate_arr
@@ -212,7 +234,7 @@ pro spp_fld_dfb_wf_load_l1, file, prefix = prefix, compressed = compressed, varf
 
     wf_1d = reform(transpose(d.y), n_elements(d.y))
 
-    wf_v_1d = reform(transpose(d_v.y), n_elements(d.y))
+    if load_wf_v EQ 1 then wf_v_1d = reform(transpose(d_v.y), n_elements(d.y))
 
     valid = where(wf_1d GT -2147483647l, n_valid)
 
@@ -225,7 +247,7 @@ pro spp_fld_dfb_wf_load_l1, file, prefix = prefix, compressed = compressed, varf
 
       times_1d = times_1d[valid]
       wf_1d = wf_1d[valid]
-      wf_v_1d = wf_v_1d[valid]
+      if load_wf_v EQ 1 then wf_v_1d = wf_v_1d[valid]
 
       tap_arr_1d = tap_arr_1d[valid]
       sel_str_arr_1d = sel_str_arr_1d[valid]
@@ -240,10 +262,12 @@ pro spp_fld_dfb_wf_load_l1, file, prefix = prefix, compressed = compressed, varf
 
     ; Store the voltage data in a tplot variable.
 
-    if size(d_v, /type) EQ 8 then $
-      store_data, prefix + 'wav_data_v', $
-      dat = {x:times_1d, y:wf_v_1d}, $
-      dlim = {panel_size:2}
+    if load_wf_v EQ 1 then begin
+      if size(d_v, /type) EQ 8 then $
+        store_data, prefix + 'wav_data_v', $
+        dat = {x:times_1d, y:wf_v_1d}, $
+        dlim = {panel_size:2}
+    end
 
     store_data, prefix + 'wav_pkt_index', $
       dat = {x:times_1d, y:indices_1d}
@@ -260,8 +284,13 @@ pro spp_fld_dfb_wf_load_l1, file, prefix = prefix, compressed = compressed, varf
     options, prefix + 'wav_data*', 'max_points', 40000l
     options, prefix + 'wav_data*', 'psym_lim', 200
     options, prefix + 'wav_data', 'ysubtitle', '[Counts]'
-    options, prefix + 'wav_data_v', 'ysubtitle', '[V]'
-    options, prefix + 'wav_data_v', 'datagap', 60d
+
+    if load_wf_v EQ 1 then begin
+
+      options, prefix + 'wav_data_v', 'ysubtitle', '[V]'
+      options, prefix + 'wav_data_v', 'datagap', 60d
+
+    end
 
     ; Set the ytitle for the DFB waveform tplot variable.
     ;

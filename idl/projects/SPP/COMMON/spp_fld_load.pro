@@ -1,3 +1,4 @@
+;+
 ;
 ;  Author: Davin Larson December 2018
 ;
@@ -5,6 +6,8 @@
 ; $LastChangedDate: 2019-02-05 16:17:41 -0800 (Tue, 05 Feb 2019) $
 ; $LastChangedRevision:  $
 ; $URL:  $
+;
+;-
 
 pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefix,tname_prefix=tname_prefix, pathformat=pathformat,no_load=no_load,varformat=varformat, $
   level = level
@@ -35,6 +38,9 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
   ;  example location: http://sprg.ssl.berkeley.edu/data/psp/data/sci/fields/staging/l2/mag_RTN/2019/04/psp_fld_l2_mag_RTN_20190401_v00.cdf
   pathformat = str_sub(pathformat,'ss', 's\s' )    ; replace ss with escape so that ss will not be converted to seconds
 
+  if level EQ 1.5 then pathformat = str_sub(pathformat,'/l1/', '/l1b/' )
+  if level EQ 1.5 then pathformat = str_sub(pathformat,'_l1_', '_l1b_' )
+
   files=spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,/last_version,/daily_names,/valid_only)
 
   if not keyword_set(no_load) then begin
@@ -48,7 +54,7 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
       endif else begin
 
-        cdf2tplot,files    ,varformat=varformat,prefix=tname_prefix
+        cdf2tplot,files,varformat=varformat,prefix=tname_prefix
 
       endelse
 
