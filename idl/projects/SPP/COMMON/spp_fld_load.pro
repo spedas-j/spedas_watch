@@ -10,7 +10,7 @@
 ;-
 
 pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefix,tname_prefix=tname_prefix, pathformat=pathformat,no_load=no_load,varformat=varformat, $
-  level = level
+  level = level, get_support = get_support
 
   if not keyword_set(level) then level = 2
 
@@ -54,7 +54,7 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
       endif else begin
 
-        cdf2tplot,files,varformat=varformat,prefix=tname_prefix
+        cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/get_support
 
       endelse
 

@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-07-09 15:24:30 -0700 (Tue, 09 Jul 2019) $
-;$LastChangedRevision: 27423 $
+;$LastChangedDate: 2019-07-15 16:16:31 -0700 (Mon, 15 Jul 2019) $
+;$LastChangedRevision: 27455 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -172,6 +172,15 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
     xunit_str = fs_get_unit_string(xunits, disable_warning=to_kev)
     yunit_str = fs_get_unit_string(yunits, disable_warning=to_flux)
     
+    cdf_yunits = ''
+    cdf_zunits = ''
+    cdf_units = spd_get_spectra_units(vars_to_plot[v_idx])
+    
+    if is_struct(cdf_units) then begin
+      cdf_zunits = cdf_units.zunits
+      cdf_yunits = cdf_units.yunits
+    endif
+    
     ; determine max and min  
     if N_ELEMENTS(xrange) ne 2 or N_ELEMENTS(yrange) ne 2 then begin 
       ;tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
@@ -184,15 +193,17 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
       data_y = vardata.Y[idx_to_plot, *]
             
-      if keyword_set(to_kev) && ((tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '') || (tag_exist(metadata, 'yunits') && metadata.yunits ne '')) then begin
-        if tag_exist(metadata, 'ysubtitle') && (metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)') then begin
+      if keyword_set(to_kev) && ((tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '') || (tag_exist(metadata, 'yunits') && metadata.yunits ne '') || (cdf_yunits ne '')) then begin
+        if cdf_yunits ne '' && (cdf_yunits eq 'eV' || cdf_yunits eq '[eV]' || cdf_yunits eq '(eV)') then begin
+          data_x = data_x/1000d
+        endif else if tag_exist(metadata, 'ysubtitle') && (metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)') then begin
           data_x = data_x/1000d
         endif else if tag_exist(metadata, 'yunits') && (metadata.yunits eq 'eV' || metadata.yunits eq '[eV]' || metadata.yunits eq '(eV)') then begin
           data_x = data_x/1000d
         endif
       endif
-      if keyword_set(to_flux) && m.units ne '' then begin
-        ztitle = string(m.units)
+      if keyword_set(to_flux) && (m.units ne '' || cdf_zunits ne '') then begin
+        if cdf_zunits ne '' then ztitle = cdf_zunits else ztitle = string(m.units)
         ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
         ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
         ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
@@ -306,17 +317,28 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         
       if dimen2(vardata.v) eq 1 then x_data = vardata.v else x_data = vardata.v[idx_to_plot, *]
       y_data = data_to_plot
+      
+      cdf_yunits = ''
+      cdf_zunits = ''
+      cdf_units = spd_get_spectra_units(vars_to_plot[v_idx])
 
-      if keyword_set(to_kev) && ((tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits') && vardl.yunits ne '')) then begin
-        if tag_exist(vardl, 'ysubtitle') && (vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)') then begin
+      if is_struct(cdf_units) then begin
+        cdf_zunits = cdf_units.zunits
+        cdf_yunits = cdf_units.yunits
+      endif
+      
+      if keyword_set(to_kev) && ((tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits') && vardl.yunits ne '') || (cdf_yunits ne '')) then begin
+        if cdf_yunits ne '' && (cdf_yunits eq 'eV' || cdf_yunits eq '[eV]' || cdf_yunits eq '(eV)') then begin
+          x_data /= 1000d
+        endif else if tag_exist(vardl, 'ysubtitle') && (vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)') then begin
           x_data /= 1000d
         endif else if tag_exist(vardl, 'yunits') && (vardl.yunits eq 'eV' || vardl.yunits eq '[eV]' || vardl.yunits eq '(eV)') then begin
           x_data /= 1000d
         endif
       endif
-      
-      if keyword_set(to_flux) && m.units ne '' then begin
-        ztitle = string(m.units)
+
+      if keyword_set(to_flux) && (m.units ne '' || cdf_zunits ne '') then begin
+        if cdf_zunits ne '' then ztitle = cdf_zunits else ztitle = string(m.units)
         ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
         ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
         ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
@@ -339,6 +361,9 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         if keyword_set(to_kev) then xunit_str = '[keV]'
         if keyword_set(to_flux) then yunit_str = '1/(cm!U2!N sr s keV)'
         
+        if xunit_str eq '' && cdf_yunits ne '' then xunit_str = cdf_yunits
+        if yunit_str eq '' && cdf_zunits ne '' then yunit_str = cdf_zunits
+        
         plot, x_data, y_data, $
           xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
           xtitle=xunit_str, ytitle=yunit_str, $
@@ -352,12 +377,13 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         oplot, x_data, y_data, color=colors[v_idx], _extra=_extra
       endelse      
       
-      yvalues[vars_to_plot[v_idx]] = reform(y_data)
-      xvalues[vars_to_plot[v_idx]] = reform(x_data)
+      yvalues[vars_to_plot[v_idx]] = reform(double(y_data))
+      xvalues[vars_to_plot[v_idx]] = reform(double(x_data))
       
       if ~keyword_set(nolegend) then begin
         leg_y -= leg_dy
-        XYOUTS, leg_x, leg_y, vars_to_plot[v_idx], /normal, color=colors[v_idx], charsize=1.5
+        str_element, vardl, 'legend_name', success=legend_name_set
+        XYOUTS, leg_x, leg_y, legend_name_set eq 1 ? vardl.legend_name : vars_to_plot[v_idx], /normal, color=colors[v_idx], charsize=1.5
       endif
         
   endfor

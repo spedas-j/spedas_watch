@@ -26,8 +26,8 @@
 ;       RESULT:  Named variable to hold the result.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-07-03 16:33:00 -0700 (Wed, 03 Jul 2019) $
-; $LastChangedRevision: 27406 $
+; $LastChangedDate: 2019-07-14 19:17:45 -0700 (Sun, 14 Jul 2019) $
+; $LastChangedRevision: 27444 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/box_mean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -104,9 +104,8 @@ pro box_mean, var, width=width, outlier=outlier, result=dat
 ; Make a TPLOT variable
 
   if (tndx gt 0) then begin
-    tplot_options, get=topt
-    str_element, topt, 'varnames', success=ok
-    if (ok) then vname = topt.varnames[tndx] + '_box_mean' else vname = 'box_mean'
+    tplot_names, var, name=vname
+    vname += '_box_mean'
 
     y = fltarr(npts,3)
     y[*,0] = ravg - rrms
