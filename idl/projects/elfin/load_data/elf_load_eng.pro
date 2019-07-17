@@ -100,7 +100,7 @@ pro elf_load_eng, trange = trange, probes = probes, datatype = datatype, $
 
   if undefined(level) then level = 'l1'
   ; valid data types
-  valid_types = elf_load_options_eng()
+;  valid_types = elf_load_options_eng()
     
   if undefined(datatype) then datatype = '' else datatype = strlowcase(datatype) ; this is the only type of mrm data
 ;  if datatype NE 'eng' then begin

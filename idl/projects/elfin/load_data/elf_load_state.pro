@@ -147,8 +147,6 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
     return
   endif
   
-  for probe_idx = 0, n_elements(probes)-1 do begin
-    elf_state_fix_metadata, probes[probe_idx]
-  endfor
+  elf_state_fix_metadata, tplotnames
 
 end

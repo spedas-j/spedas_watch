@@ -43,8 +43,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-07-15 16:16:31 -0700 (Mon, 15 Jul 2019) $
-;$LastChangedRevision: 27455 $
+;$LastChangedDate: 2019-07-16 13:52:51 -0700 (Tue, 16 Jul 2019) $
+;$LastChangedRevision: 27464 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -171,16 +171,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
     ; units string
     xunit_str = fs_get_unit_string(xunits, disable_warning=to_kev)
     yunit_str = fs_get_unit_string(yunits, disable_warning=to_flux)
-    
-    cdf_yunits = ''
-    cdf_zunits = ''
-    cdf_units = spd_get_spectra_units(vars_to_plot[v_idx])
-    
-    if is_struct(cdf_units) then begin
-      cdf_zunits = cdf_units.zunits
-      cdf_yunits = cdf_units.yunits
-    endif
-    
+   
     ; determine max and min  
     if N_ELEMENTS(xrange) ne 2 or N_ELEMENTS(yrange) ne 2 then begin 
       ;tmp = min(vardata.X - t, /ABSOLUTE, idx_to_plot) ; get the time index
@@ -192,31 +183,10 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       
       if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
       data_y = vardata.Y[idx_to_plot, *]
-            
-      if keyword_set(to_kev) && ((tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '') || (tag_exist(metadata, 'yunits') && metadata.yunits ne '') || (cdf_yunits ne '')) then begin
-        if cdf_yunits ne '' && (cdf_yunits eq 'eV' || cdf_yunits eq '[eV]' || cdf_yunits eq '(eV)') then begin
-          data_x = data_x/1000d
-        endif else if tag_exist(metadata, 'ysubtitle') && (metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)') then begin
-          data_x = data_x/1000d
-        endif else if tag_exist(metadata, 'yunits') && (metadata.yunits eq 'eV' || metadata.yunits eq '[eV]' || metadata.yunits eq '(eV)') then begin
-          data_x = data_x/1000d
-        endif
-      endif
-      if keyword_set(to_flux) && (m.units ne '' || cdf_zunits ne '') then begin
-        if cdf_zunits ne '' then ztitle = cdf_zunits else ztitle = string(m.units)
-        ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
-        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
-        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
-        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '-', /extract), '')
-        ztitle = ztitle_stripped
-        if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
-          data_y = data_y/data_x
-        endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
-          data_y = data_y*1000d/data_x
-        endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
-          data_y = data_y*1000d
-        endif
-      endif
+      
+      data_out = flatten_spectra_convert_units(vars_to_plot[v_idx], data_x, data_y, metadata, to_kev=to_kev, to_flux=to_flux)
+      data_y = data_out['data_y']
+      data_x = data_out['data_x']
 
       append_array,yr,reform(data_y)
       append_array,xr,reform(data_x)     
@@ -327,31 +297,9 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         cdf_yunits = cdf_units.yunits
       endif
       
-      if keyword_set(to_kev) && ((tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits') && vardl.yunits ne '') || (cdf_yunits ne '')) then begin
-        if cdf_yunits ne '' && (cdf_yunits eq 'eV' || cdf_yunits eq '[eV]' || cdf_yunits eq '(eV)') then begin
-          x_data /= 1000d
-        endif else if tag_exist(vardl, 'ysubtitle') && (vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)') then begin
-          x_data /= 1000d
-        endif else if tag_exist(vardl, 'yunits') && (vardl.yunits eq 'eV' || vardl.yunits eq '[eV]' || vardl.yunits eq '(eV)') then begin
-          x_data /= 1000d
-        endif
-      endif
-
-      if keyword_set(to_flux) && (m.units ne '' || cdf_zunits ne '') then begin
-        if cdf_zunits ne '' then ztitle = cdf_zunits else ztitle = string(m.units)
-        ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
-        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
-        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
-        ztitle_stripped = strjoin(strsplit(ztitle_stripped, '-', /extract), '')
-        ztitle = ztitle_stripped
-        if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
-          y_data = y_data/x_data
-        endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
-          y_data = y_data*1000d/x_data
-        endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
-          y_data = y_data*1000d
-        endif
-      endif
+      data_out = flatten_spectra_convert_units(vars_to_plot[v_idx], x_data, y_data, vardl, to_kev=to_kev, to_flux=to_flux)
+      x_data = data_out['data_x']
+      y_data = data_out['data_y']
 
       if v_idx eq 0 then begin
         title_format = 'YYYY-MM-DD/hh:mm:ss.fff'

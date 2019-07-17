@@ -50,8 +50,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-07-09 15:38:36 -0700 (Tue, 09 Jul 2019) $
-;$LastChangedRevision: 27424 $
+;$LastChangedDate: 2019-07-16 13:52:51 -0700 (Tue, 16 Jul 2019) $
+;$LastChangedRevision: 27464 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -123,7 +123,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
       dprint, dlevel=0, 'Error, replot keyword specified, but no previous time found'
       return
     endif
-    time_in = spec_time.X
+    selected_times = spec_time.X
   endif
   
   window, 1
@@ -154,25 +154,34 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
   if n_elements(thick) eq 1 then thick = replicate(thick, num_spec)
   if n_elements(linestyle) eq 1 then linestyle = replicate(linestyle, num_spec)
   
-  for time_idx=0, num_spec-1 do begin
-    ctime,t,npoints=1,prompt="Use cursor to select a time to plot the spectra", /silent 
-        ;hours=hours,minutes=minutes,seconds=seconds,days=days  
-    append_array, selected_times, t
-  endfor
+  if keyword_set(time_in) then begin
+    selected_times = time_double(time_in)
+    store_data, 'flatten_spectra_time_multi', data={x: selected_times, y: 1}
+  endif
+  
+  if undefined(selected_times) then begin
+    for time_idx=0, num_spec-1 do begin
+      ctime,t,npoints=1,prompt="Use cursor to select a time to plot the spectra", /silent 
+          ;hours=hours,minutes=minutes,seconds=seconds,days=days  
+      append_array, selected_times, t
+      wait, 0.3
+    endfor
+    store_data, 'flatten_spectra_time_multi', data={x: selected_times, y: 1}
+  endif 
   
   ;
   ; Plot or save to the file
   ;
 
   ; finalizing filename
-  fname += time_string(t, tformat='YYYYMMDD_hhmmss')
+  fname += time_string(selected_times[0], tformat='YYYYMMDD_hhmmss')
   fname = prefix + fname
   if ~UNDEFINED(filename) THEN fname = filename
   
   ; Device = postscript or window
   if KEYWORD_SET(postscript) then popen, fname, /landscape
   
-  for time_idx=0, num_spec-1 do begin
+  for time_idx=0, n_elements(selected_times)-1 do begin
     t = selected_times[time_idx]
     
     ; set the averaging time window
@@ -187,7 +196,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
     if undefined(charsize) then charsize = 2.0
       
     dprint, dlevel=1, 'time selected: ' + time_string(t, tformat='YYYY-MM-DD/hh:mm:ss.fff')
-    store_data, 'flatten_spectra_time', data={x: t, y: 1}
+
     vars_to_plot = tplot_vars.options.varnames
      
     
@@ -224,28 +233,10 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         if dimen2(vardata.v) eq 1 then data_x = vardata.v else data_x = vardata.v[idx_to_plot, *]
         data_y = vardata.Y[idx_to_plot, *]
         
-        if keyword_set(to_kev) && ((tag_exist(metadata, 'ysubtitle') && metadata.ysubtitle ne '') || (tag_exist(metadata, 'yunits') && metadata.yunits ne '')) then begin
-          if metadata.ysubtitle eq 'eV' || metadata.ysubtitle eq '[eV]' || metadata.ysubtitle eq '(eV)' then begin
-            data_x = data_x/1000d
-          endif else if tag_exist(metadata, 'yunits') && (metadata.yunits eq 'eV' || metadata.yunits eq '[eV]' || metadata.yunits eq '(eV)') then begin
-            data_x = data_x/1000d
-          endif
-        endif
-        if keyword_set(to_flux) && m.units ne '' then begin
-          ztitle = string(m.units)
-          ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
-          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
-          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
-          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '-', /extract), '')
-          ztitle = ztitle_stripped
-          if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
-            data_y = data_y/data_x
-          endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
-            data_y = data_y*1000d/data_x
-          endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
-            data_y = data_y*1000d
-          endif
-        endif
+        data_out = flatten_spectra_convert_units(vars_to_plot[v_idx], data_x, data_y, metadata, to_kev=to_kev, to_flux=to_flux)
+        data_y = data_out['data_y']
+        data_x = data_out['data_x']
+
         append_array,yr,reform(data_y)
         append_array,xr,reform(data_x)     
       endif       
@@ -323,34 +314,9 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         if dimen2(vardata.v) eq 1 then x_data = vardata.v else x_data = vardata.v[idx_to_plot, *]
         y_data = data_to_plot
 
-        if keyword_set(to_kev) && ((tag_exist(vardl, 'ysubtitle') && vardl.ysubtitle ne '') || (tag_exist(vardl, 'yunits') && vardl.yunits ne '')) then begin
-          if vardl.ysubtitle eq 'eV' || vardl.ysubtitle eq '[eV]' || vardl.ysubtitle eq '(eV)' then begin
-            xunit_str = '[keV]'
-            x_data /= 1000d
-          endif else if tag_exist(vardl, 'yunits') && (vardl.yunits eq 'eV' || vardl.yunits eq '[eV]' || vardl.yunits eq '(eV)') then begin
-            xunit_str = '[keV]'
-            x_data /= 1000d
-          endif
-        endif
-        
-        if keyword_set(to_flux) && m.units ne '' then begin
-          ztitle = string(m.units)
-          ztitle_stripped = strjoin(strsplit(ztitle, '!U', /extract), '')
-          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '!N', /extract), '')
-          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '^', /extract), '')
-          ztitle_stripped = strjoin(strsplit(ztitle_stripped, '-', /extract), '')
-          ztitle = ztitle_stripped
-          if ztitle eq 'keV/(cm2 sr s keV)' || ztitle eq '[keV/(cm2 sr s keV)]' || ztitle eq 'keV/(cm2 s sr keV)' || ztitle eq '[keV/(cm2 s sr keV)]' then begin
-            yunit_str = '1/(cm!U2!N sr s keV)'
-            y_data = y_data/x_data
-          endif else if ztitle eq 'eV/(cm2 sr s eV)' || ztitle eq '[eV/(cm2 sr s eV)]' || ztitle eq 'eV/(cm2 s sr eV)' || ztitle eq '[eV/(cm2 s sr eV)]' then begin
-            yunit_str = '1/(cm!U2!N sr s keV)'
-            y_data = y_data*1000d/x_data
-          endif else if ztitle eq '1/(cm2 sr s eV)' || ztitle eq '[1/(cm2 sr s eV)]' || ztitle eq '1/(cm2 s sr eV)' || ztitle eq '[1/(cm2 s sr eV)]' then begin
-            yunit_str = '1/(cm!U2!N sr s keV)'
-            y_data = y_data*1000d
-          endif
-        endif
+        data_out = flatten_spectra_convert_units(vars_to_plot[v_idx], x_data, y_data, vardl, to_kev=to_kev, to_flux=to_flux)
+        x_data = data_out['data_x']
+        y_data = data_out['data_y']
         
         title_format = 'YYYY-MM-DD/hh:mm:ss.fff'
         title_str = (KEYWORD_SET(rangetitle) and ~undefined(trange)) ? $
@@ -380,8 +346,8 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
         endelse
         
         ; to return the actual values via keywords
-        yvalues[vars_to_plot[v_idx]] = reform(y_data)
-        xvalues[vars_to_plot[v_idx]] = reform(x_data)
+        yvalues[vars_to_plot[v_idx]] = reform(double(y_data))
+        xvalues[vars_to_plot[v_idx]] = reform(double(x_data))
         
         ; needed for multiple times
         plot_created = 1b
