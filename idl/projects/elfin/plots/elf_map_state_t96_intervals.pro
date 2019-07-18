@@ -130,7 +130,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   for sc=0,1 do begin
 
     ; load spacecraft data
-    elf_load_state,probe=probes[sc]
+    elf_load_state,probe=probes[sc], /get_att
     get_data,'el'+probes[sc]+'_pos_gei',data=dat_d1, dlimits=dl, limits=l  ; position in GEI
     ; also get data for 30 minutes into next day
     tr=timerange()+86400.
@@ -232,6 +232,20 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
   elf_mlt_l_lat,'ela_pos_sm',MLT0=MLTA,L0=LA,LAT0=latA ;;subroutine to calculate mlt,l,mlat under dipole configuration
   elf_mlt_l_lat,'elb_pos_sm',MLT0=MLTB,L0=LB,LAT0=latB ;;subroutine to calculate mlt,l,mlat under dipole configuration
+
+  ; get attitude info for plot text
+  get_data, 'ela_spin_norm_ang', data=norma
+  get_data, 'ela_spin_sun_ang', data=suna 
+  get_data, 'ela_att_last_solution', data=solna
+  get_data, 'elb_spin_norm_ang', data=normb
+  get_data, 'elb_spin_sun_ang', data=sunb
+  get_data, 'elb_att_last_solution', data=solnb
+  norma_str=strmid(strtrim(string(norma.y[0]),1),0,7)
+  suna_str=strmid(strtrim(string(suna.y[0]),1),0,7)
+  solna_str=time_string(solna.x[0])
+  normb_str=strmid(strtrim(string(normb.y[0]),1),0,7)
+  sunb_str=strmid(strtrim(string(sunb.y[0]),1),0,7)
+  solnb_str=time_string(solnb.x[0])
   
   ;mlat contours
   ;the call of cnv_aacgm here converts from geomagnetic to geographic
@@ -339,7 +353,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ax=ela_state_pos_sm.y[*,0]
   ay=ela_state_pos_sm.y[*,1]
   az=ela_state_pos_sm.y[*,2]
-  find_orbits, ax, ay, az, a_ind_pg, a_ind_ag
+  find_orbits, ax, ay, az, a_ind_pg, a_ind_ag, /nostop
   at_ag=ela_state_pos_sm.x[a_ind_ag]
   an_ag = n_elements(at_ag)
 
@@ -347,7 +361,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   bx=elb_state_pos_sm.y[*,0]
   by=elb_state_pos_sm.y[*,1]
   bz=elb_state_pos_sm.y[*,2]
-  find_orbits, bx, by, bz, b_ind_pg, b_ind_ag
+  find_orbits, bx, by, bz, b_ind_pg, b_ind_ag, /nostop
   bt_ag=ela_state_pos_sm.x[b_ind_ag]
   bn_ag = n_elements(bt_ag)
 
@@ -535,21 +549,34 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=.65,color=253
     xyouts,xann,yann+12.5*6,as_string,/device,charsize=.65,color=253
     xyouts,xann,yann+12.5*5,ae_string,/device,charsize=.65,color=253
-    xyouts,xann,yann+12.5*3,'ELFIN (B)',/device,charsize=.75,color=254
-    xyouts,xann,yann+12.5*2,'Period, min: '+b_period_str,/device,charsize=.65,color=254
-    xyouts,xann,yann+12.5*1,bs_string,/device,charsize=.65,color=254
-    xyouts,xann,yann+12.5*0,be_string,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*4,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=.65,color=253
+    xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=.65,color=253
+    xyouts,xann,yann+12.5*2,'Time Att Soln: '+solna_str,/device,charsize=.65,color=253
 
+    yann=0.02
+    xyouts,xann,yann+12.5*7,'ELFIN (B)',/device,charsize=.75,color=254
+    xyouts,xann,yann+12.5*6.,'Period, min: '+b_period_str,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*5.,bs_string,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*4.,be_string,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*3,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*2,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*1,'Time Att Soln: '+solnb_str,/device,charsize=.65,color=254
+    
     case 1 of
-      tsyg_mod eq 't89': xyouts,.6,.02,'Tsyganenko-1989',/normal,charsize=.75,color=255
-      tsyg_mod eq 't96': xyouts,.6,.02,'Tsyganenko-1996',/normal,charsize=.75,color=255
-      tsyg_mod eq 't01': xyouts,.6,.02,'Tsyganenko-2001',/normal,charsize=.75,color=255
+      tsyg_mod eq 't89': xyouts,.6182,.84,'Tsyganenko-1989',/normal,charsize=.65,color=255
+      tsyg_mod eq 't96': xyouts,.6182,.84,'Tsyganenko-1996',/normal,charsize=.65,color=255
+      tsyg_mod eq 't01': xyouts,.6182,.84,'Tsyganenko-2001',/normal,charsize=.65,color=255
     endcase
-    xyouts, .01,.1,'Earth/Oval View Center Time (triangle)',/normal,color=255,charsize=.75
-    xyouts, .01,.08,'Tick Marks every 5min',/normal,color=255,charsize=.75
-    xyouts, .01,.06,'Geo Lat/Lon - Black dotted lines',/normal,color=255,charsize=.75
-    xyouts, .01,.04,'Mag Lat/Lon - Red dotted lines',/normal,color=251,charsize=.75
-    xyouts, .01,.02,'Auroral Oval - Green lines',/normal,color=155,charsize=.75
+    xyouts, .5,0.94,'Earth/Oval View Center Time (triangle)',/normal,color=255,charsize=.65
+    xyouts, .525,0.92,'Geo Lat/Lon - Black dotted lines',/normal,color=255,charsize=.65
+    xyouts, .5325,0.9,'Mag Lat/Lon - Red dotted lines',/normal,color=251,charsize=.65
+    xyouts, .57,0.88,'Auroral Oval - Green lines',/normal,color=155,charsize=.65
+    xyouts, .592,0.86,'Tick Marks every 5min',/normal,color=255,charsize=.65
+;    xyouts, .01,.1,'Earth/Oval View Center Time (triangle)',/normal,color=255,charsize=.75
+;    xyouts, .01,.08,'Tick Marks every 5min',/normal,color=255,charsize=.75
+;    xyouts, .01,.06,'Geo Lat/Lon - Black dotted lines',/normal,color=255,charsize=.75
+;    xyouts, .01,.04,'Mag Lat/Lon - Red dotted lines',/normal,color=251,charsize=.75
+;    xyouts, .01,.02,'Auroral Oval - Green lines',/normal,color=155,charsize=.75
 
     xyouts, .01, .475, '00:00', charsize=1.15, /normal
     xyouts, .663, .475, '12:00', charsize=1.15, /normal

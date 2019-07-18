@@ -5,7 +5,7 @@ pro elf_get_spin_angles, probes=probes, start_time=start_time, stop_time=stop_ti
   tr=timerange()
   if undefined(stop_time) then stop_time=time_string(time_double(start_time)+86400.)
 
-  for i = 0, n_elements(probes) do begin
+  for i = 0, n_elements(probes)-1 do begin
     
     sc='el'+probes[i]
     if ~spd_data_exists(sc+'_att_gei',start_time,stop_time) then elf_get_att, start_time=start_time, probe=probe  
