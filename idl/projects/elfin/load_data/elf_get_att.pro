@@ -78,34 +78,36 @@ pro elf_get_att, trange=trange, probe=probe
   endif
 
   ; interpolate pos and velocity to attitude time  
-  posx=interp(pos.y[*,0], pos.x, att.x)
-  posy=interp(pos.y[*,1], pos.x, att.x)
-  posz=interp(pos.y[*,2], pos.x, att.x)
-  velx=interp(vel1.y[*,0], vel1.x, att.x)
-  vely=interp(vel1.y[*,1], vel1.x, att.x)
-  velz=interp(vel1.y[*,2], vel1.x, att.x)
-  pos1=[[posx],[posy],[posz]]
-  vel1=[[velx],[vely],[velz]]
-  ; calculate angle between spin vector and orbit normal
-  orb_norm=crossp2(reform(pos1), reform(vel1))
-  spin_norm_ang=get_vec_ang(reform(att.y),(orb_norm))
-  store_data, sc+'_spin_norm_ang', data={x:att.x, y:spin_norm_ang}
- 
-  ; get the sun position 
-  thm_load_slp, datatype='sun_pos', trange=tr
-  get_data, 'slp_sun_pos', data=sun1
-  if size(sun1, /type) ne 8 then begin
-    print, 'No sun position data available.'
-    return
+  if ~undefined(att) then begin
+    posx=interp(pos.y[*,0], pos.x, att.x)
+    posy=interp(pos.y[*,1], pos.x, att.x)
+    posz=interp(pos.y[*,2], pos.x, att.x)
+    velx=interp(vel1.y[*,0], vel1.x, att.x)
+    vely=interp(vel1.y[*,1], vel1.x, att.x)
+    velz=interp(vel1.y[*,2], vel1.x, att.x)
+    pos1=[[posx],[posy],[posz]]
+    vel1=[[velx],[vely],[velz]]
+    ; calculate angle between spin vector and orbit normal
+    orb_norm=crossp2(reform(pos1), reform(vel1))
+    spin_norm_ang=get_vec_ang(reform(att.y),(orb_norm))
+    store_data, sc+'_spin_norm_ang', data={x:att.x, y:spin_norm_ang}
+   
+    ; get the sun position 
+    thm_load_slp, datatype='sun_pos', trange=tr
+    get_data, 'slp_sun_pos', data=sun1
+    if size(sun1, /type) ne 8 then begin
+      print, 'No sun position data available.'
+      return
+    endif
+    sunx=interp(sun1.y[*,0], sun1.x, att.x)
+    suny=interp(sun1.y[*,1], sun1.x, att.x)
+    sunz=interp(sun1.y[*,2], sun1.x, att.x)
+    sun1=[[sunx],[suny],[sunz]]
+    spin_sun_ang=get_vec_ang(reform(att.y),reform(sun1))
+    store_data, sc+'_spin_sun_ang', data={x:att.x, y:spin_sun_ang}
+    
+    ; remove tplot variable for sun position
+    del_data, 'slp_sun_pos'
   endif
-  sunx=interp(sun1.y[*,0], sun1.x, att.x)
-  suny=interp(sun1.y[*,1], sun1.x, att.x)
-  sunz=interp(sun1.y[*,2], sun1.x, att.x)
-  sun1=[[sunx],[suny],[sunz]]
-  spin_sun_ang=get_vec_ang(reform(att.y),reform(sun1))
-  store_data, sc+'_spin_sun_ang', data={x:att.x, y:spin_sun_ang}
-  
-  ; remove tplot variable for sun position
-  del_data, 'slp_sun_pos'
-  
+   
 end
