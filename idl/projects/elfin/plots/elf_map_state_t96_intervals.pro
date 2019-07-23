@@ -57,8 +57,8 @@
 ;-
 
 pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=noview,$
-  move=move, model=model, dir_move=dir_move, insert_stop=insert_stop, no_trace=no_trace, tstep=tstep, $
-  clean=clean
+  move=move, model=model, dir_move=dir_move, insert_stop=insert_stop, $
+  no_trace=no_trace, tstep=tstep, clean=clean
 
   ; ACN
   pro_start_time=SYSTIME(/SECONDS)
@@ -74,10 +74,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     dir_products=dir_move
   endif
   if ~keyword_set(quick) then quick=1
-
-  ; annotate constants
-  xann=10
-  yann=463
 
   elf_init
   aacgmidl
@@ -106,6 +102,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
   ; time input
   timespan,tstart,1,/day
+  tr=timerange()
   tend=time_string(time_double(tstart)+86400.0d0)
   sphere=1
   lim=2
@@ -129,8 +126,16 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ; now loop through spacecraft
   for sc=0,1 do begin
 
-    ; load spacecraft data
-    elf_load_state,probe=probes[sc], /get_att
+    timespan,tstart,1,/day
+    tr=timerange()
+    tend=time_string(time_double(tstart)+86400.0d0)
+    ; load attitude data
+    elf_get_att, trange=tr, probe=probes[sc]
+    
+    ; need to reset timespan (attitude solution could be days old)
+    timespan,tstart,1,/day
+    tr=timerange()
+    elf_load_state,probe=probes[sc]
     get_data,'el'+probes[sc]+'_pos_gei',data=dat_d1, dlimits=dl, limits=l  ; position in GEI
     ; also get data for 30 minutes into next day
     tr=timerange()+86400.
@@ -240,12 +245,18 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   get_data, 'elb_spin_norm_ang', data=normb
   get_data, 'elb_spin_sun_ang', data=sunb
   get_data, 'elb_att_last_solution', data=solnb
-  norma_str=strmid(strtrim(string(norma.y[0]),1),0,7)
-  suna_str=strmid(strtrim(string(suna.y[0]),1),0,7)
-  solna_str=time_string(solna.x[0])
-  normb_str=strmid(strtrim(string(normb.y[0]),1),0,7)
-  sunb_str=strmid(strtrim(string(sunb.y[0]),1),0,7)
-  solnb_str=time_string(solnb.x[0])
+  if size(norma, /type) EQ 8 then norma_str=strmid(strtrim(string(norma.y[0]),1),0,7) $
+    else norma_str = 'No att data'
+  if size(suna, /type) EQ 8 then suna_str=strmid(strtrim(string(suna.y[0]),1),0,7) $
+    else suna_str = 'No att data'
+  if size(solna, /type) EQ 8 then solna_str=time_string(solna.x[0]) $
+    else solna_str = 'No att data'
+  if size(normb, /type) EQ 8 then normb_str=strmid(strtrim(string(normb.y[0]),1),0,7) $
+    else normb_str = 'No att data'
+  if size(sunb, /type) EQ 8 then sunb_str=strmid(strtrim(string(sunb.y[0]),1),0,7) $
+    else sunb_str = 'No att data'
+  if size(solnb, /type) EQ 8 then solnb_str=time_string(solnb.x[0]) $
+    else solnb_str = 'No att data'
   
   ;mlat contours
   ;the call of cnv_aacgm here converts from geomagnetic to geographic
@@ -386,6 +397,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       charsize=1.5
     endelse
 
+    ; annotate constants
+    xann=10
+
     ; find midpt MLT for this orbit track
     midx=min_st[k] + (min_en[k] - min_st[k])/2.
     mid_mlta=MLTA[midx]
@@ -405,7 +419,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       map_grid,latdel=-10.,londel=30.
     endif else begin
       title='Northern footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
-      map_set,90.,-90.,this_rot,/orthographic, /conti,limit=[0.,-180.,90.,180.],$
+      map_set,90.,-90.,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
         title=title,position=[0.005,0.005,600./800.*0.96,0.96]
       map_grid,latdel=10.,londel=30.
     endelse
@@ -487,7 +501,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     as_string='Start time (diamond): ' + strmid(time_string(this_time[idx[0]]),11,5)
     ae_string='End time (asterisk): ' + strmid(time_string(this_time[idx[count-1]]),11,5)
     if keyword_set(south) then idx=where(this_bz lt 0.,count) else idx=where(this_bz gt 0.,count)
-    plots, this_lon2[0], this_lat2[0], psym=symbols[0], symsize=1.9, color=254    
+    plots, this_lon2[idx[0]], this_lat2[idx[0]], psym=symbols[0], symsize=1.9, color=254    
     plots, this_lon2[idx[count/2]], this_lat2[idx[count/2]], psym=5, symsize=1.9, color=254
     plots, this_lon2[idx[count-1]], this_lat2[idx[count-1]], psym=2, symsize=1.9, color=254
     plots, this_lon2[0], this_lat2[0], psym=symbols[0], symsize=1.75
@@ -545,6 +559,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endelse
 
     ; annotate
+    yann=463
     xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
     xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=.65,color=253
     xyouts,xann,yann+12.5*6,as_string,/device,charsize=.65,color=253
