@@ -12,7 +12,7 @@
 ;    trange: time range of interest [starttime, endtime] with the format
 ;                ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
 ;                ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
-;    probe:  elf probes include 'a', or 'b'
+;    probe:  elf probes include 'a' or 'b'
 ;
 ;EXAMPLE:
 ;    ela_get_att, trange=['2019-07-15','2019-07-16'], probe='a'
@@ -47,6 +47,7 @@ pro elf_get_att, trange=trange, probe=probe
         tr=tr-86400.
         day_count = day_count + 1
     endwhile 
+
     ; fix time stamp if not on same day
     ; create att last solution var
     if tnames(sc+'_att_gei_temp') ne sc+'_att_gei_temp' then begin
@@ -54,15 +55,16 @@ pro elf_get_att, trange=trange, probe=probe
     endif else begin
        midtr=time_double(tr[0])+(86400./2.)
        get_data, sc+'_att_gei_temp', data=att, dlimits=dl, limits=l
-       last_solution = att.x[0]
-       att.x[0] = midtr
-       store_data, sc+'_att_gei', data=att, dlimits=dl, limits=l
+       npts = n_elements(att.x)
+       last_solution = att.x[npts-1]
+       newatty = att.y[npts-1,*]
+       store_data, sc+'_att_gei', data={x:midtr, y:newatty}, dlimits=dl, limits=l
        store_data, sc+'_att_last_solution', data={x:last_solution}    
     endelse
     tn=tnames(sc+'*_temp')
     if tn[0] ne '' then del_data, tn
   endelse
-  
+ 
   ; load pos and vel data if needed
   if ~spd_data_exists(sc+'_pos_gei',time_string(tr[0]),time_string(tr[1])) then elf_load_state, probe=probe, trange=tr
   get_data, sc+'_pos_gei', data=pos
@@ -70,7 +72,7 @@ pro elf_get_att, trange=trange, probe=probe
     print, 'No position data available.'
     return
   endif
-  if ~spd_data_exists(sc+'_vel_gei',time_string(tr[0]),time_string(tr[1])) then elf_load_state, probe=probe, trange=tr
+;  if ~spd_data_exists(sc+'_vel_gei',time_string(tr[0]),time_string(tr[1])) then elf_load_state, probe=probe, trange=tr
   get_data, sc+'_vel_gei', data=vel1
   if size(vel1, /type) ne 8 then begin
     print, 'No velocity data available.'
@@ -79,35 +81,35 @@ pro elf_get_att, trange=trange, probe=probe
 
   ; interpolate pos and velocity to attitude time  
   if ~undefined(att) then begin
-    posx=interp(pos.y[*,0], pos.x, att.x)
-    posy=interp(pos.y[*,1], pos.x, att.x)
-    posz=interp(pos.y[*,2], pos.x, att.x)
-    velx=interp(vel1.y[*,0], vel1.x, att.x)
-    vely=interp(vel1.y[*,1], vel1.x, att.x)
-    velz=interp(vel1.y[*,2], vel1.x, att.x)
-    pos1=[[posx],[posy],[posz]]
-    vel1=[[velx],[vely],[velz]]
+    posx=interp(pos.y[*,0], pos.x, last_solution) ;att.x)
+    posy=interp(pos.y[*,1], pos.x, last_solution) ;att.x)
+    posz=interp(pos.y[*,2], pos.x, last_solution) ;att.x)
+    velx=interp(vel1.y[*,0], vel1.x, last_solution) ;att.x)
+    vely=interp(vel1.y[*,1], vel1.x, last_solution) ;att.x)
+    velz=interp(vel1.y[*,2], vel1.x, last_solution) ;att.x)
+    pos1=reform([[posx],[posy],[posz]])
+    vel2=reform([[velx],[vely],[velz]])
     ; calculate angle between spin vector and orbit normal
-    orb_norm=crossp2(reform(pos1), reform(vel1))
-    spin_norm_ang=get_vec_ang(reform(att.y),(orb_norm))
-    store_data, sc+'_spin_norm_ang', data={x:att.x, y:spin_norm_ang}
+    orb_norm=crossp2(pos1, vel2)
+    spin_norm_ang=get_vec_ang(reform(newatty),(orb_norm))
+    store_data, sc+'_spin_norm_ang', data={x:last_solution, y:spin_norm_ang}
    
-    ; get the sun position 
+    ; get the sun position     
     thm_load_slp, datatype='sun_pos', trange=tr
     get_data, 'slp_sun_pos', data=sun1
     if size(sun1, /type) ne 8 then begin
       print, 'No sun position data available.'
       return
     endif
-    sunx=interp(sun1.y[*,0], sun1.x, att.x)
-    suny=interp(sun1.y[*,1], sun1.x, att.x)
-    sunz=interp(sun1.y[*,2], sun1.x, att.x)
-    sun1=[[sunx],[suny],[sunz]]
-    spin_sun_ang=get_vec_ang(reform(att.y),reform(sun1))
-    store_data, sc+'_spin_sun_ang', data={x:att.x, y:spin_sun_ang}
+    sunx=interp(sun1.y[*,0], sun1.x, last_solution) ;att.x)
+    suny=interp(sun1.y[*,1], sun1.x, last_solution) ;att.x)
+    sunz=interp(sun1.y[*,2], sun1.x, last_solution) ;att.x)
+    sun2=[[sunx],[suny],[sunz]]
+    spin_sun_ang=get_vec_ang(reform(newatty),reform(sun2))
+    store_data, sc+'_spin_sun_ang', data={x:last_solution, y:spin_sun_ang}
     
     ; remove tplot variable for sun position
     del_data, 'slp_sun_pos'
   endif
-   
+  
 end
