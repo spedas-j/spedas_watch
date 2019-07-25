@@ -42,9 +42,6 @@ pro elf_attitude_crib
   print, 'available for the given time frame the routine will search '
   print, 'back in time to find the most recent attitude. '
   print, ''
-  print, 'For the sun and orbit normal angles, the date stamp will be '
-  print, 'the time of the last attitude solution.'
-  print, ''
   stop
 
   ; quick look at some of the tplot vars returned

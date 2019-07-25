@@ -31,39 +31,38 @@ pro elf_get_att, trange=trange, probe=probe
     then tr = timerange(trange) $
   else tr = timerange()
 
-  ; check if attitude data already exists for this timeframe (if so no need to reload)
-  if spd_data_exists(sc+'_att_gei',time_string(tr[0]),time_string(tr[1])) then begin
-     get_data, sc+'_att_gei', data=att
-     store_data, sc+'_att_last_solution', data={x:att.x}  
-  endif else begin
-    ; remove any other att data
-    del_data, sc+'_att_gei'
-    del_data, sc+'_att_last_solution'    
-    day_count = 0
-    ; find the most recent attitude solution  
-    while (day_count LT 50) do begin
-        elf_load_state, probe=probe, trange=tr, suffix='_temp'
-        if tnames(sc+'_att_gei_temp') eq sc+'_att_gei_temp' then break
-        tr=tr-86400.
-        day_count = day_count + 1
-    endwhile 
+  ; remove any other att data
+  del_data, sc+'_att_gei'
+  del_data, sc+'_att_last_solution'
+  del_data, sc+'_*ang'    
+  day_count = 0
 
-    ; fix time stamp if not on same day
-    ; create att last solution var
-    if tnames(sc+'_att_gei_temp') ne sc+'_att_gei_temp' then begin
-       print, 'Unable to retrieve attitude data within 50 days of start time.' 
-    endif else begin
-       midtr=time_double(tr[0])+(86400./2.)
-       get_data, sc+'_att_gei_temp', data=att, dlimits=dl, limits=l
-       npts = n_elements(att.x)
-       last_solution = att.x[npts-1]
-       newatty = att.y[npts-1,*]
-       store_data, sc+'_att_gei', data={x:midtr, y:newatty}, dlimits=dl, limits=l
-       store_data, sc+'_att_last_solution', data={x:last_solution}    
-    endelse
-    tn=tnames(sc+'*_temp')
-    if tn[0] ne '' then del_data, tn
+  ; find the most recent attitude solution  
+  this_tr = tr
+  while (day_count LT 50) do begin
+      elf_load_state, probe=probe, trange=this_tr, suffix='_temp'
+      if tnames(sc+'_att_gei_temp') eq sc+'_att_gei_temp' then break
+      this_tr=this_tr-86400.
+      day_count = day_count + 1
+  endwhile 
+
+  ; fix time stamp if not on same day
+  ; create att last solution var
+  if tnames(sc+'_att_gei_temp') ne sc+'_att_gei_temp' then begin
+      print, 'Unable to retrieve attitude data within 50 days of start time.' 
+  endif else begin
+     get_data, sc+'_att_gei_temp', data=att, dlimits=dl, limits=l
+     npts = n_elements(att.x)
+     last_solution = att.x[npts-1]
+     ; fix time stamp if not on same day
+     if day_count LT 1 then att_time=last_solution $
+       else att_time=time_double(tr[0])+(86400./2.)
+     newatty = att.y[npts-1,*]
+     store_data, sc+'_att_gei', data={x:att_time, y:newatty}, dlimits=dl, limits=l
+     store_data, sc+'_att_last_solution', data={x:last_solution}    
   endelse
+  tn=tnames(sc+'*_temp')
+  if tn[0] ne '' then del_data, tn
  
   ; load pos and vel data if needed
   if ~spd_data_exists(sc+'_pos_gei',time_string(tr[0]),time_string(tr[1])) then elf_load_state, probe=probe, trange=tr
@@ -72,7 +71,6 @@ pro elf_get_att, trange=trange, probe=probe
     print, 'No position data available.'
     return
   endif
-;  if ~spd_data_exists(sc+'_vel_gei',time_string(tr[0]),time_string(tr[1])) then elf_load_state, probe=probe, trange=tr
   get_data, sc+'_vel_gei', data=vel1
   if size(vel1, /type) ne 8 then begin
     print, 'No velocity data available.'
@@ -81,6 +79,7 @@ pro elf_get_att, trange=trange, probe=probe
 
   ; interpolate pos and velocity to attitude time  
   if ~undefined(att) then begin
+
     posx=interp(pos.y[*,0], pos.x, last_solution) ;att.x)
     posy=interp(pos.y[*,1], pos.x, last_solution) ;att.x)
     posz=interp(pos.y[*,2], pos.x, last_solution) ;att.x)
@@ -92,7 +91,7 @@ pro elf_get_att, trange=trange, probe=probe
     ; calculate angle between spin vector and orbit normal
     orb_norm=crossp2(pos1, vel2)
     spin_norm_ang=get_vec_ang(reform(newatty),(orb_norm))
-    store_data, sc+'_spin_norm_ang', data={x:last_solution, y:spin_norm_ang}
+    store_data, sc+'_spin_norm_ang', data={x:att_time, y:spin_norm_ang}
    
     ; get the sun position     
     thm_load_slp, datatype='sun_pos', trange=tr
@@ -106,7 +105,7 @@ pro elf_get_att, trange=trange, probe=probe
     sunz=interp(sun1.y[*,2], sun1.x, last_solution) ;att.x)
     sun2=[[sunx],[suny],[sunz]]
     spin_sun_ang=get_vec_ang(reform(newatty),reform(sun2))
-    store_data, sc+'_spin_sun_ang', data={x:last_solution, y:spin_sun_ang}
+    store_data, sc+'_spin_sun_ang', data={x:att_time, y:spin_sun_ang}
     
     ; remove tplot variable for sun position
     del_data, 'slp_sun_pos'

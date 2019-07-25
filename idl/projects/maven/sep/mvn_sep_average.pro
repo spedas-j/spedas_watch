@@ -20,6 +20,14 @@ pro mvn_sep_average, trange = trange,load = load
   get_data,  'MVN_SEP1r_elec_flux', data = electron_1R
   get_data,  'MVN_SEP2r_elec_flux', data = electron_2R
 
+  If(~is_struct(electron_1F) || ~is_struct(electron_1R) || $
+     ~is_struct(electron_2F) || ~is_struct(electron_2R) || $
+     ~is_struct(ion_1F) || ~is_struct(ion_1R) || $
+     ~is_struct(ion_2F) || ~is_struct(ion_2R)) Then Begin
+     dprint, 'Missing SEP data, returning'
+     Return
+  Endif
+
   store_data, 'Attenuator', data = ['MVN_SEP1attenuator_state', 'MVN_SEP2attenuator_state']
   options, 'Attenuator', 'colors',[70, 221]
   ylim, 'Attenuator', 0.5, 2.5
