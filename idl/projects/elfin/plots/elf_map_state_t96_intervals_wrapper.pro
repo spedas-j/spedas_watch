@@ -8,9 +8,10 @@
 ;
 ;Date: date for plot creation, if not set, assumes current date and duration counts backwards(ie last N days from today)
 ;Dur: If set, number of days to process, default is 1
-;South: If set, does tracing to southern hemisphere, rather than
-;northern hemisphere.
-;
+;South_only: If set, does tracing to southern hemisphere only
+;North_only: If set, does tracing to northern hemisphere only
+;            The default value is to plot both north and south
+;            
 ;Note:
 ;  This routine now called during periodic processing by the routine process_modified_orbit_dates.pro
 ;
@@ -19,7 +20,8 @@
 ; $LastChangedRevision: 10758 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/thmsoc/trunk/idl/thmsoc/asi/map_themis_state_t96_wrapper.pro $
 ;-
-pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south=south
+pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
+   north_only=north_only
 
   compile_opt idl2
 
@@ -46,11 +48,17 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south=south
 
     in_date = time_double(date)+j*60.*60.*24.
 
-    if keyword_set(south) then begin
+    if keyword_set(north_only) then begin
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products
+      return
+    endif
+    if keyword_set(south_only) then begin
      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south
-    endif else begin
-     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products
-    endelse
+     return
+    endif
+
+    elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products
+    elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south
 
   endfor
 
