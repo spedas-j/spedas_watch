@@ -103,6 +103,7 @@ END
 
 
 ;; Sweep [32D x 128E x 08A x 16 Mass Bins]  ----->  [08D x 32E x 08A]
+;; Anodes 1-7 (fixed in v2)
 PRO spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
    arr = intarr(4096)
    bitpar = 0
@@ -114,7 +115,52 @@ PRO spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
                   ianode*'20'x*'08'x
             IF bitpar MOD 2 THEN idef = ideflector $
             ELSE idef = 7-ideflector
-            IF ianode GT 0 && ianode LT 8 THEN $                      ; changed from flight version
+            IF ianode GT 0 && ianode LT 8 THEN $  
+             arr[ind] = idef+ienergy*'08'x+ianode*'08'x*'20'x $
+            ELSE arr[ind] = 'FFFF'x ;; Trash Bin
+         ENDFOR
+         bitpar = bitpar + 1
+      ENDFOR
+   ENDFOR
+END
+
+;; Sweep [32D x 128E x 08A x 16 Mass Bins]  ----->  [08D x 32E x 08A]
+;; Anodes 0-7
+PRO spp_swp_spi_flight_get_prod_08Dx32Ex08A_v2, arr
+   arr = intarr(4096)
+   bitpar = 0
+   FOR ianode=0, '10'x-1 DO BEGIN
+      FOR ienergy=0, '20'x-1 DO BEGIN
+         FOR ideflector=0, '08'x-1 DO BEGIN
+            ind = ideflector + $
+                  ienergy*'08'x + $
+                  ianode*'20'x*'08'x
+            IF bitpar MOD 2 THEN idef = ideflector $
+            ELSE idef = 7-ideflector
+            IF ianode GE 0 && ianode LT 8 THEN $  
+             arr[ind] = idef+ienergy*'08'x+ianode*'08'x*'20'x $
+            ELSE arr[ind] = 'FFFF'x ;; Trash Bin
+         ENDFOR
+         bitpar = bitpar + 1
+      ENDFOR
+   ENDFOR
+END
+
+
+;; Sweep [32D x 128E x 08A x 16 Mass Bins]  ----->  [08D x 32E x 08A]
+;; Anodes 8-15
+PRO spp_swp_spi_flight_get_prod_08Dx32Ex08A_v3, arr
+   arr = intarr(4096)
+   bitpar = 0
+   FOR ianode=0, '10'x-1 DO BEGIN
+      FOR ienergy=0, '20'x-1 DO BEGIN
+         FOR ideflector=0, '08'x-1 DO BEGIN
+            ind = ideflector + $
+                  ienergy*'08'x + $
+                  ianode*'20'x*'08'x
+            IF bitpar MOD 2 THEN idef = ideflector $
+            ELSE idef = 7-ideflector
+            IF ianode GE 8 && ianode LT 16 THEN $  
              arr[ind] = idef+ienergy*'08'x+ianode*'08'x*'20'x $
             ELSE arr[ind] = 'FFFF'x ;; Trash Bin
          ENDFOR
@@ -536,6 +582,9 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
       'prod_08D_16A': spp_swp_spi_flight_get_prod_08Dx16A, arr
       'prod_08D_32E_16A': spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
       'prod_08D_32E_08A': spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
+      'prod_08D_32E_08A_v2': spp_swp_spi_flight_get_prod_08Dx32Ex08A_v2, arr
+      'prod_08D_32E_08A_v3': spp_swp_spi_flight_get_prod_08Dx32Ex08A_v3, arr
+      
 
       ;; Without zeroes in name
       'prod_1D': spp_swp_spi_flight_get_prod_1D, arr
@@ -547,6 +596,8 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
       'prod_8Dx16A': spp_swp_spi_flight_get_prod_08Dx16A, arr
       'prod_8D_32Ex16A': spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
       'prod_8Dx32Ex8A': spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
+      'prod_8Dx32Ex8A_v2': spp_swp_spi_flight_get_prod_08Dx32Ex08A_v2, arr
+      'prod_8Dx32Ex8A_v3': spp_swp_spi_flight_get_prod_08Dx32Ex08A_v3, arr
 
       ;; Compile all functions
       'compile':BEGIN
@@ -559,6 +610,8 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
          spp_swp_spi_flight_get_prod_08Dx16A, arr
          spp_swp_spi_flight_get_prod_08Dx32Ex16A, arr
          spp_swp_spi_flight_get_prod_08Dx32Ex08A, arr
+         spp_swp_spi_flight_get_prod_08Dx32Ex08A_v2, arr
+         spp_swp_spi_flight_get_prod_08Dx32Ex08A_v3, arr
          return, 1
       END 
 
@@ -574,7 +627,9 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
          print,'prod_08D_32E'
          print,'prod_08D_16A'
          print,'prod_08D_32E_16A'
-         print,'prod_08D_32E_08A'
+         print,'prod_08D_32E_08A # Anodes 1-7'
+         print,'prod_08D_32E_08A_v2 # Anodes 0-7'
+         print,'prod_08D_32E_08A_v3 # Anodes 8-15'
          print,'----------------------------------'
          return, 0
       END
