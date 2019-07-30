@@ -39,7 +39,7 @@ pro elf_get_att, trange=trange, probe=probe
 
   ; find the most recent attitude solution  
   this_tr = tr
-  while (day_count LT 50) do begin
+  while (day_count LT 30) do begin
       elf_load_state, probe=probe, trange=this_tr, suffix='_temp'
       if tnames(sc+'_att_gei_temp') eq sc+'_att_gei_temp' then break
       this_tr=this_tr-86400.

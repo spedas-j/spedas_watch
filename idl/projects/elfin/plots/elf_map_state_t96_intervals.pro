@@ -237,28 +237,28 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   elf_get_att, trange=tr, probe='b'
   ; get attitude info for plot text
   get_data, 'ela_spin_norm_ang', data=norma
-  get_data, 'ela_spin_sun_ang', data=suna 
+  get_data, 'ela_spin_sun_ang', data=suna
   get_data, 'ela_att_last_solution', data=solna
   get_data, 'elb_spin_norm_ang', data=normb
   get_data, 'elb_spin_sun_ang', data=sunb
   get_data, 'elb_att_last_solution', data=solnb
   if size(norma, /type) EQ 8 then norma_str=strmid(strtrim(string(norma.y[0]),1),0,7) $
-    else norma_str = 'No att data'
+  else norma_str = 'No att data'
   if size(suna, /type) EQ 8 then suna_str=strmid(strtrim(string(suna.y[0]),1),0,7) $
-    else suna_str = 'No att data'
+  else suna_str = 'No att data'
   if size(solna, /type) EQ 8 then solna_str=time_string(solna.x[0]) $
-    else solna_str = 'No att data'
+  else solna_str = 'No att data'
   if size(normb, /type) EQ 8 then normb_str=strmid(strtrim(string(normb.y[0]),1),0,7) $
-    else normb_str = 'No att data'
+  else normb_str = 'No att data'
   if size(sunb, /type) EQ 8 then sunb_str=strmid(strtrim(string(sunb.y[0]),1),0,7) $
-    else sunb_str = 'No att data'
+  else sunb_str = 'No att data'
   if size(solnb, /type) EQ 8 then solnb_str=time_string(solnb.x[0]) $
-    else solnb_str = 'No att data'
+  else solnb_str = 'No att data'
   ;reset time frame since attitude data might be several days old
   timespan,tstart,1,/day
   tr=timerange()
   tend=time_string(time_double(tstart)+86400.0d0)
-  
+
   ;mlat contours
   ;the call of cnv_aacgm here converts from geomagnetic to geographic
   if keyword_set(south) then begin
@@ -315,21 +315,37 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
   ; setup for orbits
   ; 1 24 hour plot, 4 6 hr plots, 12 2 hr plots
-  hr_st = indgen(25)   ;[0, 6*indgen(4), 2*indgen(12)]
-  hr_en = hr_st + 1.5
-  ; Strings for labels, filenames
-  hr_ststr = string(hr_st, format='(i2.2)')
-  plot_lbl=strarr(25)
-  for m=0,23 do plot_lbl[m] = ' ' + hr_ststr[m] + ':00 to ' + hr_ststr[m+1] + ':30'  ;+'-'+hr_enstr
-  file_lbl = '_'+hr_ststr   ;+hr_enstr
-  min_st = hr_st*3600.    ;*60.  ;*3600.   ;*res
-  min_en = min_st + 90.*60
-  idx=where(min_en GT n_elements(ela_state_pos_sm.x), ncnt)
-  if ncnt GT 0 then min_en[idx]=n_elements(ela_state_pos_sm.x)-1
+  hr_arr = indgen(25)   ;[0, 6*indgen(4), 2*indgen(12)]
+  hr_ststr = string(hr_arr, format='(i2.2)')
+  ;  hr_en = hr_st + 1.5
+  ;  ; Strings for labels, filenames
+  for m=0,23 do begin
+    this_s = tr[0] + m*3600.
+    this_e = this_s + 90.*60.
+    idx = where(ela_state_pos_sm.x GE this_s AND ela_state_pos_sm.x LT this_e, ncnt)
+    if ncnt GT 10 then begin
+      append_array, min_st, idx[0]
+      append_array, min_en, idx[n_elements(idx)-1]
+      this_lbl = ' ' + hr_ststr[m] + ':00 to ' + hr_ststr[m+1] + ':30'
+      append_array, plot_lbl, this_lbl
+      this_file = '_'+hr_ststr[m]
+      append_array, file_lbl, this_file
+    endif
+  endfor
   nplots = n_elements(min_st)
 
+  ;  hr_ststr = string(hr_st, format='(i2.2)')
+  ;  plot_lbl=strarr(25)
+  ;  for m=0,23 do plot_lbl[m] = ' ' + hr_ststr[m] + ':00 to ' + hr_ststr[m+1] + ':30'  ;+'-'+hr_enstr
+  ;  file_lbl = '_'+hr_ststr   ;+hr_enstr
+  ;  min_st = hr_st*3600.    ;*60.  ;*3600.   ;*res
+  ;  min_en = min_st + 90.*60
+  ;  idx=where(min_en GT n_elements(ela_state_pos_sm.x), ncnt)
+  ;  if ncnt GT 0 then min_en[idx]=n_elements(ela_state_pos_sm.x)-1
+  ;  nplots = n_elements(min_st)
+  ;  stop
   ; Get auroral zones and plot
-  ovalget,6,pwdboundlonlat,ewdboundlonlat 
+  ovalget,6,pwdboundlonlat,ewdboundlonlat
   if keyword_set(south) then begin
     pwdboundlonlat[*, 1]=-pwdboundlonlat[*, 1]
     ewdboundlonlat[*, 1]=-ewdboundlonlat[*, 1]
@@ -385,7 +401,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ;----------------------------------
   ; Start Plots
   ;----------------------------------
-  for k=0,nplots-2 do begin
+  for k=0,nplots-1 do begin
 
     !p.multi=0
     if keyword_set(gifout) then begin
@@ -432,28 +448,28 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         idx=where(u_lon[i,*] NE 0)
         oplot,u_lon[i,idx],u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
       endfor
-;      for i=0,nmlats-1 do oplot,v_lon[i,*]+mid_hr*15.,v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-;      for i=0,nmlons-1 do begin
-;        idx=where(u_lon[i,*] NE 0)
-;        oplot,u_lon[i,idx]+mid_hr*15.,u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
-;      endfor
+      ;      for i=0,nmlats-1 do oplot,v_lon[i,*]+mid_hr*15.,v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+      ;      for i=0,nmlons-1 do begin
+      ;        idx=where(u_lon[i,*] NE 0)
+      ;        oplot,u_lon[i,idx]+mid_hr*15.,u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+      ;      endfor
     endif else begin
       for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=contour_thick,linestyle=1
       for i=0,nmlons-1 do begin
         idx=where(u_lon[i,*] NE 0)
         oplot,u_lon[i,idx],u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
       endfor
-;      for i=0,nmlats-1 do oplot,v_lon[i,*]+ mid_hr*15.,v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-;      for i=0,nmlons-1 do begin
-;        idx=where(u_lon[i,*] NE 0)
-;        oplot,u_lon[i,idx]+ mid_hr*15.,u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
-;      endfor
+      ;      for i=0,nmlats-1 do oplot,v_lon[i,*]+ mid_hr*15.,v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+      ;      for i=0,nmlons-1 do begin
+      ;        idx=where(u_lon[i,*] NE 0)
+      ;        oplot,u_lon[i,idx]+ mid_hr*15.,u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+      ;      endfor
     endelse
-       
+
     ; ELFIN A
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
     if ~keyword_set(south) then this_lon=lon[min_st[k]:min_en[k]]-mid_hr*15. $
-      else this_lon=lon[min_st[k]:min_en[k]]-mid_hr*15.
+    else this_lon=lon[min_st[k]:min_en[k]]-mid_hr*15.
     this_lat=lat[min_st[k]:min_en[k]]
     this_ax=ela_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_ay=ela_state_pos_sm.y[min_st[k]:min_en[k],1]
@@ -461,7 +477,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     if ~keyword_set(south) then this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15. $
-      else this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15. 
+    else this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15.
     this_lat2=lat2[min_st[k]:min_en[k]]
     this_bx=elb_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_by=elb_state_pos_sm.y[min_st[k]:min_en[k],1]
@@ -504,7 +520,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
     ; Plot dataset start/stop position markers
     if keyword_set(south) then idx=where(this_az lt 0.,count) else idx=where(this_az gt 0.,count)
-    plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.9, color=253   
+    plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.9, color=253
     plots, this_lon[idx[count/2]], this_lat[idx[count/2]], psym=5, symsize=1.9, color=253
     plots, this_lon[idx[count-1]], this_lat[idx[count-1]], psym=2, symsize=1.9, color=253
     plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.75
@@ -514,7 +530,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     as_string='Start time (diamond): ' + strmid(time_string(this_time[idx[0]]),11,5)
     ae_string='End time (asterisk): ' + strmid(time_string(this_time[idx[count-1]]),11,5)
     if keyword_set(south) then idx=where(this_bz lt 0.,count) else idx=where(this_bz gt 0.,count)
-    plots, this_lon2[idx[0]], this_lat2[idx[0]], psym=symbols[0], symsize=1.9, color=254    
+    plots, this_lon2[idx[0]], this_lat2[idx[0]], psym=symbols[0], symsize=1.9, color=254
     plots, this_lon2[idx[count/2]], this_lat2[idx[count/2]], psym=5, symsize=1.9, color=254
     plots, this_lon2[idx[count-1]], this_lat2[idx[count-1]], psym=2, symsize=1.9, color=254
     plots, this_lon2[0], this_lat2[0], psym=symbols[0], symsize=1.75
@@ -588,7 +604,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xyouts,xann,yann+12.5*3,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=.65,color=254
     xyouts,xann,yann+12.5*2,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=.65,color=254
     xyouts,xann,yann+12.5*1,'Time Att Soln: '+solnb_str,/device,charsize=.65,color=254
-    
+
     case 1 of
       tsyg_mod eq 't89': xyouts,.6182,.84,'Tsyganenko-1989',/normal,charsize=.65,color=255
       tsyg_mod eq 't96': xyouts,.6182,.84,'Tsyganenko-1996',/normal,charsize=.65,color=255
@@ -609,7 +625,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       xyouts, .335, .935, '18:00', charsize=1.15, /normal
       xyouts, .335, .0185, '06:00', charsize=1.15, /normal
     endelse
-    
+
     ; SM X-Z
     plot,findgen(10),xrange=[-2,2],yrange=[-2,2],$
       xstyle=5,ystyle=5,/nodata,/noerase,xtickname=replicate(' ',30),ytickname=replicate(' ',30),$
@@ -640,7 +656,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     idx = where(this_ay ge 0, ncnt)
     if ncnt GT 0 then begin
       find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_ax[istart[sidx]:iend[sidx]]/6378., this_az[istart[sidx]:iend[sidx]]/6378., color=253, thick=1.25      
+      for sidx = 0, n_elements(istart)-1 do oplot, this_ax[istart[sidx]:iend[sidx]]/6378., this_az[istart[sidx]:iend[sidx]]/6378., color=253, thick=1.25
     endif
 
     ; repeat for b
