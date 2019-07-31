@@ -119,7 +119,9 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     else datatype = strlowcase(datatype)
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ''
-  if undefined(type) then type='raw'  ;'calibrated'
+  if undefined(type) then type='calibrated' else type=type
+  if undefined(no_cal) then type = 'calibrated' else type='raw'
+  
   if undefined(unit) then begin
      if type EQ 'raw' then unit='[counts]' else unit='[flux]';'[MeV/cm^2-s-st-MeV]'   
   endif
@@ -143,8 +145,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   for i=0,n_elements(tplotnames)-1 do begin
 
     ; calibrate data
-    tn=tnames('*spinper')
-    if tplotnames[i] EQ tn then continue ; don't need to calibrate spin period
+    if tplotnames[i] EQ 'ela_spinper' OR tplotnames[i] EQ 'elb_spinper' then continue ; don't need to calibrate spin period
     if (type EQ 'calibrated' or type EQ 'cal') then elf_cal_epd, probe=probes, trange=trange, tplotname=tplotnames[i]
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
     dl.ysubtitle=unit
@@ -154,7 +155,6 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     store_data, tplotnames[i], data={x:d.x, y:d.y, v:v}, dlimits=dl, limits=l 
     options, tplotnames[i], ylog=1
     options, tplotnames[i], spec=0
-;    options, /def, tplotnames[i], 'spec', 0
 ;    options, /def, tplotnames[i], 'zlog', 1
 ;    options, /def, tplotnames[i], 'no_interp', 1
 ;    options, /def, tplotnames[i], 'ystyle', 1

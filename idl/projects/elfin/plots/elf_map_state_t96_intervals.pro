@@ -93,16 +93,21 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ; color=253 will be dark blue for ELFIN A
   ;A dark blue  [0,0,255],    57 IDL symbol 4
   ;r[index[0]]=0   & g[index[0]]=0   & b[index[0]]=255
-  r[index[0]]=30   & g[index[0]]=144   & b[index[0]]=255
+;  r[index[0]]=30   & g[index[0]]=144   & b[index[0]]=255
   ; color=254 will be green for ELFIN B
-  ;B purple     [0,255,0],   30 IDL symbol 6
-  r[index[1]]=138 & g[index[1]]=43   & b[index[1]]=226
-  r[index[2]]=170 & g[index[2]]=170   & b[index[2]]=170
+  ;A dark blue  [0,0,255],    57 IDL symbol 4
+  ;A orange
+   r[index[0]]=255 & g[index[0]]=99 & b[index[0]]=71
+  ;B blue     [0,255,0],   30 IDL symbol 6
+   r[index[1]]=0 & g[index[1]]=0  & b[index[1]]=255
+  ;  r[index[1]]=138 & g[index[1]]=43   & b[index[1]]=226
+  r[index[2]]=170 & g[index[2]]=170 & b[index[2]]=170
   tvlct,r,g,b
 
   ; time input
   timespan,tstart,1,/day
   tr=timerange()
+  tr[1]=tr[1]+60.*30
   tend=time_string(time_double(tstart)+86400.0d0)
   sphere=1
   lim=2
@@ -127,20 +132,20 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   for sc=0,1 do begin
 
     ; need to reset timespan (attitude solution could be days old)
-    timespan,tstart,1,/day
+    timespan,tstart,88200.,/sec
     tr=timerange()
     elf_load_state,probe=probes[sc]
-    get_data,'el'+probes[sc]+'_pos_gei',data=dat_d1, dlimits=dl, limits=l  ; position in GEI
+    get_data,'el'+probes[sc]+'_pos_gei',data=dats, dlimits=dl, limits=l  ; position in GEI
     ; also get data for 30 minutes into next day
-    tr=timerange()+86400.
-    elf_load_state,probe=probes[sc], trange=tr, suffix='_d2'
-    get_data,'el'+probes[sc]+'_pos_gei_d2',data=dat_d2  ; position in GEI
-    new_t=array_concat(dat_d2.x[0:1800], dat_d1.x)
-    new_x=array_concat(dat_d2.y[0:1800,0], dat_d1.y[*,0])
-    new_y=array_concat(dat_d2.y[0:1800,1], dat_d1.y[*,1])
-    new_z=array_concat(dat_d2.y[0:1800,2], dat_d1.y[*,2])
-    dats={x:new_t, y:[[new_x], [new_y], [new_z]]}
-    store_data,'el'+probes[sc]+'_pos_gei',data=dats  ; position in GEI
+;    tr=timerange()+86400.
+;    elf_load_state,probe=probes[sc], trange=tr, suffix='_d2'
+;    get_data,'el'+probes[sc]+'_pos_gei_d2',data=dat_d2  ; position in GEI
+;    new_t=array_concat(dat_d2.x[0:1800], dat_d1.x)
+;    new_x=array_concat(dat_d2.y[0:1800,0], dat_d1.y[*,0])
+;    new_y=array_concat(dat_d2.y[0:1800,1], dat_d1.y[*,1])
+;    new_z=array_concat(dat_d2.y[0:1800,2], dat_d1.y[*,2])
+;    dats={x:new_t, y:[[new_x], [new_y], [new_z]]}
+;    store_data,'el'+probes[sc]+'_pos_gei',data=dats  ; position in GEI
 
     ; Coordinate transform from gei to sm
     cotrans, 'el'+probes[sc]+'_pos_gei', 'el'+probes[sc]+'_pos_gse', /gei2gse
@@ -255,9 +260,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   if size(solnb, /type) EQ 8 then solnb_str=time_string(solnb.x[0]) $
   else solnb_str = 'No att data'
   ;reset time frame since attitude data might be several days old
-  timespan,tstart,1,/day
+  timespan,tstart,88200.,/day
   tr=timerange()
-  tend=time_string(time_double(tstart)+86400.0d0)
 
   ;mlat contours
   ;the call of cnv_aacgm here converts from geomagnetic to geographic
@@ -343,7 +347,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ;  idx=where(min_en GT n_elements(ela_state_pos_sm.x), ncnt)
   ;  if ncnt GT 0 then min_en[idx]=n_elements(ela_state_pos_sm.x)-1
   ;  nplots = n_elements(min_st)
-  ;  stop
+
   ; Get auroral zones and plot
   ovalget,6,pwdboundlonlat,ewdboundlonlat
   if keyword_set(south) then begin
@@ -474,6 +478,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_ax=ela_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_ay=ela_state_pos_sm.y[min_st[k]:min_en[k],1]
     this_az=ela_state_pos_sm.y[min_st[k]:min_en[k],2]
+    this_a_alt = median(sqrt(this_ax^2 + this_ay^2 + this_az^2))
+    this_a_alt_str = strtrim(string(this_a_alt),1)
     ; ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     if ~keyword_set(south) then this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15. $
@@ -482,6 +488,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_bx=elb_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_by=elb_state_pos_sm.y[min_st[k]:min_en[k],1]
     this_bz=elb_state_pos_sm.y[min_st[k]:min_en[k],2]
+    this_b_alt = median(sqrt(this_bx^2 + this_by^2 + this_bz^2))
+    this_b_alt_str = strtrim(string(this_b_alt),1)
 
     ; Check for gaps/anomalous points in the magnetic tracks
     if keyword_set(clean) then begin
@@ -595,15 +603,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xyouts,xann,yann+12.5*4,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=.65,color=253
     xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=.65,color=253
     xyouts,xann,yann+12.5*2,'Time Att Soln: '+solna_str,/device,charsize=.65,color=253
+    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_a_alt_str,/device,charsize=.65,color=253
 
     yann=0.02
-    xyouts,xann,yann+12.5*7,'ELFIN (B)',/device,charsize=.75,color=254
-    xyouts,xann,yann+12.5*6.,'Period, min: '+b_period_str,/device,charsize=.65,color=254
-    xyouts,xann,yann+12.5*5.,bs_string,/device,charsize=.65,color=254
-    xyouts,xann,yann+12.5*4.,be_string,/device,charsize=.65,color=254
-    xyouts,xann,yann+12.5*3,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=.65,color=254
-    xyouts,xann,yann+12.5*2,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=.65,color=254
-    xyouts,xann,yann+12.5*1,'Time Att Soln: '+solnb_str,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*8,'ELFIN (B)',/device,charsize=.75,color=254
+    xyouts,xann,yann+12.5*7.,'Period, min: '+b_period_str,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*6.,bs_string,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*5.,be_string,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*4,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*2,'Time Att Soln: '+solnb_str,/device,charsize=.65,color=254
+    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=.65,color=254
 
     case 1 of
       tsyg_mod eq 't89': xyouts,.6182,.84,'Tsyganenko-1989',/normal,charsize=.65,color=255
@@ -626,6 +636,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       xyouts, .335, .0185, '06:00', charsize=1.15, /normal
     endelse
 
+    ; add time of creation
+    xyouts,  .52, 0.0185, 'Created: '+systime(),/normal,color=255, charsize=.65
+    
     ; SM X-Z
     plot,findgen(10),xrange=[-2,2],yrange=[-2,2],$
       xstyle=5,ystyle=5,/nodata,/noerase,xtickname=replicate(' ',30),ytickname=replicate(' ',30),$
@@ -796,7 +809,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       image[where(image eq 0)]=255
       if not keyword_set(noview) then window,3,xsize=800,ysize=600
       if not keyword_set(noview) then tv,image
-      dir_products = !elf.local_data_dir + 'gtrackplots/'+ strmid(date,0,4)+'/'+strmid(date,5,2)+'/'
+      dir_products = !elf.local_data_dir + 'gtrackplots/'+ strmid(date,0,4)+'/'+strmid(date,5,2)+'/'+strmid(date,8,2)+'/'
       file_mkdir, dir_products
       filedate=file_dailynames(trange=tr, /unique, times=times)
 
