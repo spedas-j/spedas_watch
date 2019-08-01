@@ -31,6 +31,14 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
     dprint,'Default is: ', type
   endif
 
+  if (strmid(type, 0, 11) EQ 'dfb_dc_spec') or (strmid(type, 0, 11) EQ 'dfb_ac_spec') and level EQ 2 then begin
+    
+    pathformat = 'DIR' + pathformat
+    
+    pathformat = str_sub(pathformat, 'DIRTYPE', strmid(type, 0, 11))
+    
+  endif
+
   pathformat = str_sub(pathformat,'TYPE',type)
   pathformat = fileprefix+pathformat
 
