@@ -1,11 +1,17 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-06-28 13:54:33 -0700 (Fri, 28 Jun 2019) $
-; $LastChangedRevision: 27390 $
+; $LastChangedDate: 2019-08-01 15:40:42 -0700 (Thu, 01 Aug 2019) $
+; $LastChangedRevision: 27531 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,mag=mag,fld=fld,trange=trange,types=types
 
-  if keyword_set(all) then spe=1 & spi=1 & spc=1 & mag=1 & fld=1
+  if keyword_set(all) then begin
+    spe=1
+    spi=1
+    spc=1
+    mag=1
+    fld=1
+  endif
   
   if keyword_set(spe) then spp_swp_spe_load,trange=trange,types=types
   if keyword_set(spi) then spp_swp_spi_load,trange=trange,types=types
