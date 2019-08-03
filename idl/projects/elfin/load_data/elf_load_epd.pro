@@ -37,10 +37,6 @@
 ;                       that should be loaded into tplot variables
 ;         cdf_filenames:  this keyword returns the names of the CDF files used when loading the data
 ;         cdf_version:  specify a specific CDF version # to load (e.g., cdf_version='4.3.0')
-;         latest_version: only grab the latest CDF version in the requested time interval
-;                       (e.g., /latest_version)
-;         major_version: only open the latest major CDF version (e.g., X in vX.Y.Z) in the requested time interval
-;         min_version:  specify a minimum CDF version # to load
 ;         cdf_records:  specify a number of records to load from the CDF files.
 ;                       e.g., cdf_records=1 only loads in the first data point in the file
 ;                       This is especially useful for loading S/C position for a single time
@@ -76,14 +72,12 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
   no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
   varformat = varformat, cdf_filenames = cdf_filenames, $
-  cdf_version = cdf_version, latest_version = latest_version, $
-  min_version = min_version, cdf_records = cdf_records, $
+  cdf_version = cdf_version, cdf_records = cdf_records, $
   spdf = spdf, available = available, versions = versions, $
-  always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
+  tt2000=tt2000
 
-  if undefined(probes) then probes = ['a'] ; default to ela
-  ; temporarily removed 'b' since there is no b fgm data yet
-  if probes EQ ['*'] then probes = ['a'] ; ['a', 'b']
+  if undefined(probes) then probes = ['a', 'b'] 
+  if probes EQ ['*'] then probes = ['a', 'b']
   if n_elements(probes) GT 2 then begin
     dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
     return
@@ -103,22 +97,26 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   ; clear CDF filenames, so we're not appending to an existing array
   undefine, cdf_filenames
   
-  if undefined(level) then level = 'l1' 
-  ; check for valid datatypes for level 1
-  if undefined(datatype) AND level eq 'l1' then datatype = ['pef', 'pif', 'spinper'] $
+  if undefined(level) then level = ['l1'] 
+  if level EQ '*' then level = ['l1']  ; we don't have l2 data yet
+  ; check for valid datatypes for level 1 NOTE: we only have l1 data so far
+  if undefined(datatype) AND level eq 'l1' then datatype = ['pef', 'pif', 'pes', 'pis'] $
     else datatype = strlowcase(datatype) 
   idx = where(datatype EQ 'pif', icnt)
   idx = where(datatype EQ 'pef', ecnt)
-  idx = where(datatype EQ 'spinper', scnt)
-  if icnt EQ 0 && ecnt EQ 0 && scnt EQ 0 then begin
-    dprint, dlevel = 1, 'Invalid data type name. Valid types are pef and/or pif. Please select again.'
+  idx = where(datatype EQ 'pis', iscnt)
+  idx = where(datatype EQ 'pes', escnt)
+;  idx = where(datatype EQ 'spinper', scnt)
+  if icnt EQ 0 && ecnt EQ 0 && iscnt EQ 0 && escnt EQ 0 then begin
+    dprint, dlevel = 1, 'Invalid data type name. Valid types are pef, pif, pes, pef. Please select again.'
     return
   endif
   
-  if undefined(datatype) AND level eq 'l2' then datatype = ['pef_eflux'] $
-    else datatype = strlowcase(datatype)
+  ;if undefined(datatype) AND level eq 'l2' then datatype = ['pef_eflux'] $
+  ;  else datatype = strlowcase(datatype)
   if undefined(suffix) then suffix = ''
-  if undefined(data_rate) then data_rate = ''
+  if undefined(data_rate) then data_rate = ['fast'] else data_rate=strlowcase(data_rate)
+  if data_rate EQ  '*' then data_rate = ['fast', 'srvy']
   if undefined(type) then type='calibrated' else type=type
   if undefined(no_cal) then type = 'calibrated' else type='raw'
   
@@ -131,9 +129,8 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     datatype = datatype, get_support_data = get_support_data, no_time_sort=no_time_sort, $
     tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
     no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
-    cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
-    cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
-    always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
+    cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
+    versions = versions, tt2000=tt2000
 
   ; no reason to continue if no data were loaded
   if undefined(tplotnames) || tplotnames[0] EQ '' then begin

@@ -79,9 +79,8 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   spdf = spdf, available = available, versions = versions, $
   always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
-  if undefined(probes) then probes = ['a'] ; default to ela
-  ; temporarily removed 'b' since there is no b fgm data yet
-  if probes EQ ['*'] then probes = ['a'] ; ['a', 'b']
+  if undefined(probes) then probes = ['a', 'b'] else probes=strlowcase(probes)
+  if probes EQ ['*'] then probes = ['a', 'b']
   if n_elements(probes) GT 2 then begin
     dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
     return
@@ -101,11 +100,11 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   undefine, cdf_filenames
 
   if undefined(level) then level = 'l1'
-  if undefined(datatype) AND level eq 'l1' then datatype = ['fgs']
-  if undefined(datatype) AND level eq 'l2' then datatype = ['fgs_gei']
-  datatype = strlowcase(datatype) 
+  if undefined(datatype) then datatype = ['fgs', 'fgf'] else datatype=strlowcase(datatype)
+  if datatype EQ ['*'] then probes = ['a', 'b']
   if undefined(suffix) then suffix = ''
-  if undefined(data_rate) then data_rate = ''
+  if undefined(data_rate) then data_rate = 'srvy' else data_rate=strlowcase(data_rate)
+  if data_rate EQ '*' then data_rate=['srvy','fast']
   if undefined(no_cal) then no_cal = 0
     
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'fgm', $
@@ -113,9 +112,8 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
     datatype = datatype, get_support_data = get_support_data, no_time_sort=no_time_sort, $
     tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
     no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
-    cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
-    cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
-    always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
+    cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
+    versions = versions, tt2000=tt2000
  
   ; no reason to continue if no data were loaded
   if undefined(tplotnames) then return

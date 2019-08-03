@@ -23,7 +23,7 @@
 ;                       using this load routine from a terminal without an X server running
 ;         no_time_clip: don't clip the data to the requested time range; note that if you do use 
 ;                       this keyword you may load a longer time range than requested. 
-;         no_update:    set this flag to preserve the original data. if not set and newer 
+;         no_update:    (NOT YET IMPLEMENTED) set this flag to preserve the original data. if not set and newer 
 ;                       data is found the existing data will be overwritten
 ;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
 ;                       preserving original tplot variable.
@@ -31,19 +31,13 @@
 ;                       that should be loaded into tplot variables
 ;         cdf_filenames:  this keyword returns the names of the CDF files used when loading the data
 ;         cdf_version:  specify a specific CDF version # to load (e.g., cdf_version='4.3.0')
-;         latest_version: only grab the latest CDF version in the requested time interval
-;                       (e.g., /latest_version)
-;         major_version: only open the latest major CDF version (e.g., X in vX.Y.Z) in the requested time interval
-;         min_version:  specify a minimum CDF version # to load
 ;         cdf_records: specify the # of records to load from the CDF files; this is useful
 ;             for grabbing one record from a CDF file
-;         spdf:         grab the data from the SPDF instead of the LASP SDC (only works for public data)
-;         available:    returns a list of files available at the SDC for the requested parameters
+;         spdf:         grab the data from the SPDF instead of ELFIN server (only works for public data)
+;         available:    (NOT YET IMPLEMENTED) returns a list of files available at the SDC for the requested parameters
 ;                       this is useful for finding which files would be downloaded (along with their sizes) if
 ;                       you didn't specify this keyword (also outputs total download size)
 ;         versions:     this keyword returns the version #s of the CDF files used when loading the data
-;         always_prompt: set this keyword to always prompt for the user's username and password;
-;                       useful if you accidently save an incorrect password, or if your SDC password has changed
 ;         no_time_sort:    set this flag to not order by time and remove duplicates
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
 ;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
@@ -62,10 +56,9 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   local_data_dir = local_data_dir, source = source, pred = pred, versions = versions, $
   get_support_data = get_support_data, login_info = login_info, no_time_sort=no_time_sort, $
   tplotnames = tplotnames, varformat = varformat, no_color_setup = no_color_setup, $
-  suffix = suffix, no_time_clip = no_time_clip, no_update = no_update, always_prompt = always_prompt, $
-  cdf_filenames = cdf_filenames, cdf_version = cdf_version, latest_version = latest_version, $
-  min_version = min_version, cdf_records = cdf_records, major_version=major_version, $
-  available = available, tt2000=tt2000
+  suffix = suffix, no_time_clip = no_time_clip, no_update = no_update, $
+  cdf_filenames = cdf_filenames, cdf_version = cdf_version, cdf_records = cdf_records, $
+  available = available, tt2000 = tt2000 
 
   ;temporary variables to track elapsed times
   t0 = systime(/sec)
@@ -74,18 +67,20 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   dt_load = 0d
   public = 0
 
-  elf_init, remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, no_color_setup = no_color_setup
+  defsysv,'!elf',exists=exists
+  if not keyword_set(exists) then elf_init, remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, no_color_setup = no_color_setup
   
   if undefined(source) then source = !elf
 
   if undefined(probes) then probes = ['a'] else probes = strlowcase(probes) ; default to ELFIN A
   probes = strcompress(string(probes), /rem) ; probes should be strings
-  ;if undefined(instrument) then instrument = 'fgm' else instrument = strlowcase(instrument)
+  if undefined(instrument) then instrument = 'fgm' else instrument = strlowcase(instrument)
   if undefined(levels) then begin
     if instrument EQ 'state' then levels = 'l1' else levels = 'l2'
   endif
   levels = strlowcase(levels)  
   if undefined(data_rates) then data_rates = 'srvy' else data_rates = strlowcase(data_rates)
+  if (instrument NE 'epd' OR instrument NE 'fgm') then data_rates = ''
   if undefined(datatypes_in) then datatypes_in = '' else datatypes_in = strlowcase(datatypes_in)
   if undefined(pred) then pred = 0 else pred = 1
   
@@ -97,12 +92,11 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   endelse
 
   if is_string(datatypes) && ~is_array(datatypes) then datatypes = strsplit(datatypes, ' ', /extract)
-  if undefined(remote_data_dir) then remote_data_dir = source.remote_data_dir
- 
+
+  if undefined(remote_data_dir) then remote_data_dir = source.remote_data_dir 
   if undefined(local_data_dir) then local_data_dir = source.local_data_dir
   ; handle shortcut characters in the user's local data directory
   spawn, 'echo ' + local_data_dir, local_data_dir
-
   if is_array(local_data_dir) then local_data_dir = local_data_dir[0]
 
   ; varformat and get_support_data are conflicting; warn the user
@@ -162,20 +156,20 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
     endif
   endif
 
-  ;loop over probe, rate, level, and datatype
+  ;loop over probe, rate, level
   ;omitting some tabbing to keep format reasonable
   for probe_idx = 0, n_elements(probes)-1 do begin
     for rate_idx = 0, n_elements(data_rates)-1 do begin
       for level_idx = 0, n_elements(levels)-1 do begin
-        for datatype_idx = 0, n_elements(datatypes)-1 do begin
+
           ;options for this iteration
           probe = 'el' + strcompress(string(probes[probe_idx]), /rem)
           data_rate = data_rates[rate_idx]
           level = levels[level_idx]
-          datatype = datatypes[datatype_idx]
+          ;datatype = datatypes[datatype_idx]
 
           ;ensure no descriptor is used if instrument doesn't use datatypes
-          if datatype eq '' then undefine, descriptor else descriptor = datatype
+          ;if datatype eq '' then undefine, descriptor else descriptor = datatype
 
           day_string = time_string(tr[0], tformat='YYYYMMDD')
           ; note, -1 second so we don't download the data for the next day accidently
@@ -183,18 +177,40 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
           ; construct file names
           daily_names = file_dailynames(trange=tr, /unique, times=times)
-          if instrument EQ 'fgm' && level EQ 'l1' then $
-             fnames = probe + '_' + level + '_' + datatype + '_' + daily_names + '_v01.cdf' else $           
-             fnames = probe + '_' + level + '_' + instrument + '_' + daily_names + '_v01.cdf' 
-          if instrument EQ 'epd' && level EQ 'l1' then begin
-             ftype = instrument + strmid(datatype, 1, 2)
-             if datatype EQ 'spinper' then ftype = instrument + 'ef'
-             fnames = probe + '_' + level + '_' + ftype + '_' + daily_names + '_v01.cdf' 
-          endif
-          
+;          if instrument EQ 'fgm' && level EQ 'l1' then $
+;             fnames = probe + '_' + level + '_' + datatype + '_' + daily_names + '_v01.cdf' else $           
+;             fnames = probe + '_' + level + '_' + instrument + '_' + daily_names + '_v01.cdf' 
+;          if instrument EQ 'epd' && level EQ 'l1' then begin
+;             ftype = instrument + strmid(datatype, 1, 2)
+;             if datatype EQ 'spinper' then ftype = instrument + 'ef'
+;             fnames = probe + '_' + level + '_' + ftype + '_' + daily_names + '_v01.cdf' 
+;          endif
+          Case instrument of
+            'epd': begin
+                idx = where(datatypes EQ 'pif', ncnt)
+                if ncnt GT 0 then append_array, ftypes, 'epdif'  
+                idx = where(datatypes EQ 'pis', ncnt)
+                if ncnt GT 0 then append_array, ftypes, 'epdis'
+                idx = where(datatypes EQ 'pef', ncnt)
+                if ncnt GT 0 then append_array, ftypes, 'epdef'
+                idx = where(datatypes EQ 'pes', ncnt)
+                if ncnt GT 0 then append_array, ftypes, 'epdes'
+            end
+            'fgm': begin
+              idx = where(datatypes EQ 'fgs', ncnt)
+              if ncnt GT 0 then append_array, ftypes, 'fgs'
+              idx = where(datatypes EQ 'fgf', ncnt)
+              if ncnt GT 0 then append_array, ftypes, 'fgf'
+            end
+            'state': ftypes='state'
+            'mrma': ftypes='mrma'
+            'mrmi': ftypes='mrmi'
+          endcase
+          fnames = probe + '_' + level + '_' + ftypes + '_' + daily_names + '_v01.cdf'
+            
           ;clear so new names are not appended to existing array
-       ;   undefine, tplotnames
-          ; clear CDF filenames, so we're not appending to an existing array
+          undefine, tplotnames
+          ; clear CDF filenames so we're not appending to an existing array
           undefine, cdf_filenames
 
           ; set up the path names
@@ -205,7 +221,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           endif
 
           remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + state_subdir
-
           local_path = filepath('', ROOT_DIR=!elf.local_data_dir, $
             SUBDIRECTORY=[probe, level, instrument]) + state_subdir
 
@@ -218,8 +233,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               ; download data as long as no flags are set
               if no_download eq 0 then begin
                 if file_test(local_path,/dir) eq 0 then file_mkdir2, local_path
-                dprint, dlevel=1, 'Downloading ' + fnames[file_idx] + ' to ' + local_path   
-                 
+                dprint, dlevel=1, 'Downloading ' + fnames[file_idx] + ' to ' + local_path                    
                 paths = spd_download(remote_file=fnames[file_idx], remote_path=remote_path, $
                                      local_file=fnames[file_idx], local_path=local_path, $
                                      url_username=user, url_password=pw, ssl_verify_peer=1, $
@@ -270,11 +284,11 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           undefine, files
           undefine, loaded_tnames
           undefine, the_loaded_versions
+          undefine, ftypes
 
         endfor
       endfor
     endfor
-  endfor
 
   ; print the total size of requested data if the user specified /available
   if keyword_set(available) then print, 'Total download size: ' + strcompress(string(total_size, format='(F0.1)'), /rem) + ' MB'
