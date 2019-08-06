@@ -19,8 +19,8 @@
 ;
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-06-14 15:40:33 -0700 (Fri, 14 Jun 2019) $
-; $LastChangedRevision: 27351 $
+; $LastChangedDate: 2019-08-04 21:45:58 -0700 (Sun, 04 Aug 2019) $
+; $LastChangedRevision: 27537 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -47,7 +47,10 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
       ;  "Standard" kernels
       'STD':append_array, kernels,spice_standard_kernels(source=source,no_update=no_update)
       ;Leap Second (TLS)
-      'LSK':append_array,kernels,file_retrieve(source.remote_data_dir+'generic_kernels/lsk/naif00??.tls',last=last,/valid_only)
+      'LSK':append_array,kernels,spd_download_plus(remote_file = source.remote_data_dir+'generic_kernels/lsk/naif00??.tls', $
+        local_path = source.local_data_dir+'generic_kernels/lsk/', no_update = no_update, $
+        last_version = 1, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
+      ;file_retrieve(source.remote_data_dir+'generic_kernels/lsk/naif00??.tls',last=last,/valid_only)
       ;Spacecraft Clock (TSC)
       'SCK':append_array,kernels,spp_file_retrieve(pathname+'operations_sclk_kernel/spp_sclk_????.tsc',last=last,/valid_only)
       ;Frame kernels (TF)

@@ -36,7 +36,7 @@ pro spp_fld_make_or_retrieve_cdf, $
 
     spp_fld_load, type = apid_name, fileprefix = fileprefix, $
       pathformat = pathformat, /no_load, files = files, $
-      trange = time_string(ts, tformat = 'YYYY-MM-DD/hh:mm:ss')
+      level = 1, trange = time_string(ts, tformat = 'YYYY-MM-DD/hh:mm:ss')
 
     valid_files = where(file_test(files) EQ 1, valid_count)
 

@@ -30,7 +30,7 @@ end
 pro spp_data_product::make_tplot_var,tagnames
   if ptr_valid(self.data_ptr) then begin
     if ~keyword_set(tagnames) then begin
-      print, 'Here are you options:'
+      print, 'Here are your options:'
       print,(tag_names(*self.data_ptr))
       return
     endif
