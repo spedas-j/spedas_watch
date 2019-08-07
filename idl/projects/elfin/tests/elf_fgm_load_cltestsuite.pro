@@ -73,20 +73,21 @@ stop
 ;3 2 probes (string)
 ;  Temporarily commented out since there is no FGM data for probe b on the same day
 ;
-;t_name='Multiple probe parameters passed as an array of strings)'
-;catch,err
-;if err eq 0 then begin
-;  elf_load_fgm,probe=['a', 'b']
-;  spd_print_tvar_info,'elb_pos'
-;  ;just spot checking cause there are a lot of data types
-;  if ~spd_data_exists('ela_vel elb_vel','2018-10-14','2018-10-15')  || $
-;    spd_data_exists('elb_*','2018-12-14','2018-12-15')  $
-;    then message,'data error '+t_name
-;endif
-;catch,/cancel
-;spd_handle_error,err,t_name,++t_num
-;del_data,'*'
-;stop
+t_name='Multiple probe parameters passed as an array of strings)'
+catch,err
+if err eq 0 then begin
+  timespan,'2019-07-09'
+  elf_load_fgm,probe=['a', 'b']
+  spd_print_tvar_info,'elb_fgs'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_fgs elb_fgs','2019-07-09','2019-07-09')  || $
+    spd_data_exists('elb_*','2018-12-14','2018-12-15')  $
+    then message,'data error '+t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
 
 
 ;4 All probes ('*')
@@ -369,28 +370,6 @@ catch,/cancel
 spd_handle_error,err,t_name,++t_num
 del_data,'*'
 stop
-
-
-;19 Test for Fast and Survey mode data
-;
-
-t_name='Fast and Survey Mode'
-catch,err
-if err eq 0 then begin
-  timespan,'2019-03-13', 0.5d
-  elf_load_fgm,probe='a',datatype=['fgf', 'fgs']
-  spd_print_tvar_info,'ela_fgf'
-  spd_print_tvar_info,'ela_fgs'
-  ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgf ela_fgs', '2019-03-13','2019-03-14')  || $
-    spd_data_exists('elb_fgs', '2019-03-13','2019-03-14')  $
-    then message,'data error ' + t_name
-endif
-catch,/cancel
-spd_handle_error,err,t_name,++t_num
-del_data,'*'
-stop
-
 
 
 spd_end_tests

@@ -45,8 +45,6 @@
 ;                       this is useful for finding which files would be downloaded (along with their sizes) if
 ;                       you didn't specify this keyword (also outputs total download size)
 ;         versions:     this keyword returns the version #s of the CDF files used when loading the data
-;         always_prompt: set this keyword to always prompt for the user's username and password;
-;                       useful if you accidently save an incorrect password, or if your SDC password has changed
 ;         no_time_sort:  set this flag to not order time and remove duplicates
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
 ;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
@@ -54,7 +52,7 @@
 ;
 ; EXAMPLES:
 ;         to load/plot the EPD data for probe a on 2/20/2019:
-;         elf> elf_load_epd, probe='a', trange=['2016-02-20', '2016-02-21'], level='l1', data_type='pif_counts'
+;         elf> elf_load_epd, probe='a', trange=['2019-07-26', '2019-07-27'], level='l1', data_type='pif_counts'
 ;         elf> tplot, 'ela_pif'
 ;
 ; NOTES:
@@ -117,11 +115,11 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ['fast'] else data_rate=strlowcase(data_rate)
   if data_rate EQ  '*' then data_rate = ['fast', 'srvy']
+
   if undefined(type) then type='calibrated' else type=type
-  if undefined(no_cal) then type = 'calibrated' else type='raw'
-  
+  if ~undefined(no_cal) then type = 'calibrated' else type='raw'  
   if undefined(unit) then begin
-     if type EQ 'raw' then unit='[counts]' else unit='[flux]';'[MeV/cm^2-s-st-MeV]'   
+     if type EQ 'raw' then unit='[counts]' else unit='[nflux]';'[MeV/cm^2-s-st-MeV]'   
   endif
   
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'epd', $
@@ -137,21 +135,23 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     dprint, dlevel = 1, 'No data was loaded.'
     return
   endif
-  
+ 
   ; Post processing - calibration and fix meta data 
   for i=0,n_elements(tplotnames)-1 do begin
 
-    ; calibrate data
     if tplotnames[i] EQ 'ela_spinper' OR tplotnames[i] EQ 'elb_spinper' then continue ; don't need to calibrate spin period
+
+    ; calibrate data
     if (type EQ 'calibrated' or type EQ 'cal') then elf_cal_epd, probe=probes, trange=trange, tplotname=tplotnames[i]
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
     dl.ysubtitle=unit
-
+    
     if n_tags(d) LT 3 then v=findgen(16) else v=d.v
    
-    store_data, tplotnames[i], data={x:d.x, y:d.y, v:v}, dlimits=dl, limits=l 
+    store_data, tplotnames[i], data={x:d.x, y:d.y, v:v}, dlimits=dl, limits=l
     options, tplotnames[i], ylog=1
     options, tplotnames[i], spec=0
+    options, tplotnames[i], labflag=1
 ;    options, /def, tplotnames[i], 'zlog', 1
 ;    options, /def, tplotnames[i], 'no_interp', 1
 ;    options, /def, tplotnames[i], 'ystyle', 1

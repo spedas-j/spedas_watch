@@ -121,10 +121,8 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
       datatype = datatype, get_support_data = get_support_data, pred = pred, $
       tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
       no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
-      cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
-      cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
-      always_prompt = always_prompt, major_version=major_version, tt2000=tt2000, $
-      no_time_sort=no_time_sort
+      cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
+      versions = versions, tt2000=tt2000, no_time_sort=no_time_sort
   endif
   
   ; check that data was loaded, if not and the keyword_set pred was not set then 
@@ -136,10 +134,8 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
       datatype = datatype, get_support_data = get_support_data, pred = 1, $
       tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
       no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
-      cdf_version = cdf_version, latest_version = latest_version, min_version = min_version, $
-      cdf_records = cdf_records, spdf = spdf, available = available, versions = versions, $
-      always_prompt = always_prompt, major_version=major_version, tt2000=tt2000, $
-      no_time_sort=no_time_sort
+      cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
+      versions = versions, tt2000=tt2000, no_time_sort=no_time_sort
   endif
 
   ; no reason to continue if no data were loaded

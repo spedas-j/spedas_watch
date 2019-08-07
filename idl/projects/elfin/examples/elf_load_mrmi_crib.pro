@@ -29,10 +29,6 @@ elf_load_mrmi, probes=probe, datatype=datatype
 tplot, 'ela_mrmi'
 stop
 
-; load velocity data only
-elf_load_state, probes=['a', 'b']
-tplot, ['el*']
-
 ; variables loaded so far
 tplot_names
 stop

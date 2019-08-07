@@ -29,7 +29,7 @@ tplot, 'ela_mrma'
 stop
 
 ; load velocity data only
-elf_load_state, probes=['a', 'b']
+elf_load_mrma, probes=['a', 'b']
 tplot, ['el*']
 
 ; variables loaded so far

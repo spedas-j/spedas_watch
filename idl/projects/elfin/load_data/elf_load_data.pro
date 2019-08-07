@@ -161,15 +161,16 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   for probe_idx = 0, n_elements(probes)-1 do begin
     for rate_idx = 0, n_elements(data_rates)-1 do begin
       for level_idx = 0, n_elements(levels)-1 do begin
+         for datatypes_idx = 0, n_elements(datatypes)-1 do begin
 
           ;options for this iteration
           probe = 'el' + strcompress(string(probes[probe_idx]), /rem)
           data_rate = data_rates[rate_idx]
           level = levels[level_idx]
-          ;datatype = datatypes[datatype_idx]
+          datatype = datatypes[datatypes_idx]
 
           ;ensure no descriptor is used if instrument doesn't use datatypes
-          ;if datatype eq '' then undefine, descriptor else descriptor = datatype
+          if datatype eq '' then undefine, descriptor else descriptor = datatype
 
           day_string = time_string(tr[0], tformat='YYYYMMDD')
           ; note, -1 second so we don't download the data for the next day accidently
@@ -177,23 +178,23 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
           ; construct file names
           daily_names = file_dailynames(trange=tr, /unique, times=times)
-;          if instrument EQ 'fgm' && level EQ 'l1' then $
-;             fnames = probe + '_' + level + '_' + datatype + '_' + daily_names + '_v01.cdf' else $           
-;             fnames = probe + '_' + level + '_' + instrument + '_' + daily_names + '_v01.cdf' 
-;          if instrument EQ 'epd' && level EQ 'l1' then begin
-;             ftype = instrument + strmid(datatype, 1, 2)
-;             if datatype EQ 'spinper' then ftype = instrument + 'ef'
-;             fnames = probe + '_' + level + '_' + ftype + '_' + daily_names + '_v01.cdf' 
-;          endif
+          ;if instrument EQ 'fgm' && level EQ 'l1' then $
+          ;   fnames = probe + '_' + level + '_' + datatype + '_' + daily_names + '_v01.cdf' else $           
+          ;   fnames = probe + '_' + level + '_' + instrument + '_' + daily_names + '_v01.cdf' 
+          ;if instrument EQ 'epd' && level EQ 'l1' then begin
+          ;   ftype = instrument + strmid(datatype, 1, 2)
+          ;   fnames = probe + '_' + level + '_' + ftype + '_' + daily_names + '_v01.cdf' 
+          ;endif
+
           Case instrument of
             'epd': begin
-                idx = where(datatypes EQ 'pif', ncnt)
+                idx = where(datatype EQ 'pif', ncnt)
                 if ncnt GT 0 then append_array, ftypes, 'epdif'  
-                idx = where(datatypes EQ 'pis', ncnt)
+                idx = where(datatype EQ 'pis', ncnt)
                 if ncnt GT 0 then append_array, ftypes, 'epdis'
-                idx = where(datatypes EQ 'pef', ncnt)
+                idx = where(datatype EQ 'pef', ncnt)
                 if ncnt GT 0 then append_array, ftypes, 'epdef'
-                idx = where(datatypes EQ 'pes', ncnt)
+                idx = where(datatype EQ 'pes', ncnt)
                 if ncnt GT 0 then append_array, ftypes, 'epdes'
             end
             'fgm': begin
@@ -205,6 +206,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
             'state': ftypes='state'
             'mrma': ftypes='mrma'
             'mrmi': ftypes='mrmi'
+            'eng': ftypes='eng'
           endcase
           fnames = probe + '_' + level + '_' + ftypes + '_' + daily_names + '_v01.cdf'
             
@@ -285,11 +287,18 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           undefine, loaded_tnames
           undefine, the_loaded_versions
           undefine, ftypes
+          
+          ; don't go loop through data type for state, mrmi, mrma, or eng
+          if instrument EQ 'state' then break
+          if instrument EQ 'mrmi' then break
+          if instrument EQ 'mrma' then break
+          if instrument EQ 'eng' then break
 
         endfor
       endfor
     endfor
-
+  endfor
+  
   ; print the total size of requested data if the user specified /available
   if keyword_set(available) then print, 'Total download size: ' + strcompress(string(total_size, format='(F0.1)'), /rem) + ' MB'
 

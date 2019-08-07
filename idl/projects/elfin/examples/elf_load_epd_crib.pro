@@ -48,7 +48,7 @@ stop
 ;;    ===================================
 ;; 4) Select probe, datatype=pef and pif
 ;;    ===================================
-timespan, '2018-12-22'
+timespan, '2019-07-26'
 tr = timerange()
 elf_load_epd, probes='a', datatype=['pef','pif'], trange=tr
 tplot, ['ela_pef', 'ela_pif']
@@ -58,9 +58,8 @@ stop
 ;;    ===================================
 ;; 5) Select probe, type raw
 ;;    ===================================
-timespan, '2019-01-05'
-tr = timerange()
-elf_load_epd, probes='a', datatype='pef', trange=tr, type='raw', suffix='_raw'
+elf_load_epd, probes=['a','b'], datatype='pef', trange=tr, type='raw', suffix='_raw'
+options, 'ela_pef_raw', labflag=1
 tplot, 'ela_pef_raw'
 stop
 
@@ -72,6 +71,15 @@ timespan, '2019-01-05'
 tr = timerange()
 elf_load_epd, probes='a', datatype='pef', trange=tr, type='calibrated', suffix='_cal'
 tplot, 'ela_pef_cal'
+stop
+
+;;    ===================================
+;; 7) Select both probes and datatypes
+;;    ===================================
+timespan, '2019-07-26'
+tr = timerange()
+elf_load_epd, probes=['a','b'], datatype=['pef' ,'pif'], trange=tr
+tplot, ['ela_pef','ela_pif']
 stop
 
 
