@@ -74,4 +74,18 @@ elf_load_state, probes= ['a'], datatype=['pos_mag', 'pos_gei']
 tplot, ['ela_pos_gei','ela_pos_mag']
 stop
 
+
+;;    ===================================
+;; 2) Use no_download flag
+;;    ===================================
+probe = 'a'
+datatype = 'pos'    ; 'vel', ; to be added 'spinras', 'spindec'
+date = '2018-10-16/00:00:00'
+timespan,date,1,/day
+elf_load_state, probes=probe, datatype=datatype, /no_download
+tplot, 'ela_pos_gei'
+stop
+
+;
+
 end

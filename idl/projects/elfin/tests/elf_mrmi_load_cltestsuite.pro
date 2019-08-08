@@ -289,6 +289,25 @@ spd_handle_error,err,t_name,++t_num
 del_data,'*'
 stop
 
+;15 No download flag
+;
+
+t_name='No download flag'
+catch,err
+if err eq 0 then begin
+  timespan,'2019-01-11'
+  elf_load_mrmi,probe='a'
+  spd_print_tvar_info,'ela_mrmi'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_mrmi','2019-01-11','2019-01-12')  || $
+    spd_data_exists('elb_mrma','2019-01-11','2019-01-12')  $
+    then message,'data error '+t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
 
 spd_end_tests
 

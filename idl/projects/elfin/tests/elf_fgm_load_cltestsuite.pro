@@ -77,10 +77,10 @@ t_name='Multiple probe parameters passed as an array of strings)'
 catch,err
 if err eq 0 then begin
   timespan,'2019-07-09'
-  elf_load_fgm,probe=['a', 'b']
+  elf_load_fgm,probe=['a', 'b'], datatype='fgs'
   spd_print_tvar_info,'elb_fgs'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_fgs elb_fgs','2019-07-09','2019-07-09')  || $
+  if ~spd_data_exists('ela_fgs elb_fgs','2019-07-09','2019-07-10')  || $
     spd_data_exists('elb_*','2018-12-14','2018-12-15')  $
     then message,'data error '+t_name
 endif
@@ -360,6 +360,25 @@ catch,err
 if err eq 0 then begin
   timespan,'2019-03-13', 0.5d
   elf_load_fgm,probe='a',datatype=['fgf']
+  spd_print_tvar_info,'ela_fgf'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_fgf', '2019-03-13','2019-03-14')  || $
+    spd_data_exists('ela_fgs', '2019-03-13','2019-03-14')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
+;19 Test no download flag
+;
+
+t_name='No download flag'
+catch,err
+if err eq 0 then begin
+  timespan,'2019-03-13
+  elf_load_fgm,probe='a',datatype=['fgf'], /no_download
   spd_print_tvar_info,'ela_fgf'
   ;just spot checking cause there are a lot of data types
   if ~spd_data_exists('ela_fgf', '2019-03-13','2019-03-14')  || $

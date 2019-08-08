@@ -428,16 +428,36 @@ stop
 ;21 Test for other coord
 ;
 
-t_name='SM Coordinates'
+;t_name='SM Coordinates'
+;catch,err
+;if err eq 0 then begin
+;  timespan, '2019-02-11'
+;  elf_load_state,probe='a', datatype=['pos_sm']
+;  spd_print_tvar_info,'ela_pos_mag'
+;  ;just spot checking cause there are a lot of data types
+;  if ~spd_data_exists('ela_pos_sm', '2019-02-11','2019-02-12')  || $
+;    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
+;    then message,'data error ' + t_name
+;endif
+;catch,/cancel
+;spd_handle_error,err,t_name,++t_num
+;del_data,'*'
+;stop
+
+
+;1 no download keyword
+;
+
+t_name='No parameters or keywords used'
 catch,err
 if err eq 0 then begin
-  timespan, '2019-02-11'
-  elf_load_state,probe='a', datatype=['pos_sm']
-  spd_print_tvar_info,'ela_pos_mag'
+  timespan,'2018-10-14'
+  elf_load_state, /no_download
+  spd_print_tvar_info,'ela_pos_gei'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pos_sm', '2019-02-11','2019-02-12')  || $
-    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
-    then message,'data error ' + t_name
+  if ~spd_data_exists('ela_vel_gei ela_pos_gei','2018-10-14','2018-10-15')  || $
+    spd_data_exists('elb_*','2018-10-14','2018-10-15')  $
+    then message,'data error '+t_name
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num

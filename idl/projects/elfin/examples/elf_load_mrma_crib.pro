@@ -28,13 +28,19 @@ elf_load_mrma, probes=probe, datatype='mrma'
 tplot, 'ela_mrma'
 stop
 
-; load velocity data only
+; load mrma data only
 elf_load_mrma, probes=['a', 'b']
 tplot, ['el*']
 
 ; variables loaded so far
 tplot_names
 stop
+
+; use no_download flag
+elf_load_mrma, probes=probe, datatype='mrma', /no_download
+tplot, 'ela_mrma'
+stop
+
 
 ; remove tplot variables created so far
 del_data, 'el*'

@@ -56,7 +56,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   local_data_dir = local_data_dir, source = source, pred = pred, versions = versions, $
   get_support_data = get_support_data, login_info = login_info, no_time_sort=no_time_sort, $
   tplotnames = tplotnames, varformat = varformat, no_color_setup = no_color_setup, $
-  suffix = suffix, no_time_clip = no_time_clip, no_update = no_update, $
+  suffix = suffix, no_time_clip = no_time_clip, no_update = no_update, no_download=no_download, $
   cdf_filenames = cdf_filenames, cdf_version = cdf_version, cdf_records = cdf_records, $
   available = available, tt2000 = tt2000 
 
@@ -120,7 +120,9 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
   ;combine these flags for now, if we're not downloading files then there is
   ;no reason to contact the server unless mms_get_local_files is unreliable
-  no_download = source.no_download or source.no_server or (response_code ne 200) or ~undefined(no_update) or keyword_set(spdf)
+
+  if keyword_set(no_download) then no_download=1 else $
+     no_download = source.no_download or source.no_server or (response_code ne 200) or ~undefined(no_update) or keyword_set(spdf)
 
   ;clear so new names are not appended to existing array
   undefine, tplotnames
@@ -276,6 +278,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               number_records=cdf_records, center_measurement=center_measurement, $
               loaded_versions = the_loaded_versions, major_version=major_version, $
               tt2000=tt2000
+
           endif
           
           append_array, cdf_filenames, files

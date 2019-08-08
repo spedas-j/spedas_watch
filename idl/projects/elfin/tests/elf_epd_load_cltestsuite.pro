@@ -452,6 +452,51 @@ spd_handle_error,err,t_name,++t_num
 stop
 del_data,'*'
 
+;20 Test no download
+;
+
+t_name='EPDe and EPDi calibration with no_download'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-07-26'
+  tr=timerange()
+  elf_load_epd,probe=['a','b'],trange=tr, datatype=['pef', 'pif'], /no_spec, /no_download
+  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pif'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pef elb_pif', '2019-07-26','2019-07-27')  || $
+    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+tplot_names
+spd_handle_error,err,t_name,++t_num
+stop
+del_data,'*'
+
+;21 Test not using no_download
+;
+
+t_name='EPDe and EPDi calibration with download'
+catch,err
+if err eq 0 then begin
+  timespan, '2019-07-26'
+  tr=timerange()
+  elf_load_epd,probe=['a','b'],trange=tr, datatype=['pef', 'pif'], /no_spec
+  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pif'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('ela_pef elb_pif', '2019-07-26','2019-07-27')  || $
+    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+tplot_names
+spd_handle_error,err,t_name,++t_num
+stop
+del_data,'*'
+
+
 spd_end_tests
 
 end

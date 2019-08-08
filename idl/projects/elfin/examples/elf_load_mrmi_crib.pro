@@ -33,6 +33,10 @@ stop
 tplot_names
 stop
 
+elf_load_mrmi, probes=probe, datatype=datatype, /no_download
+tplot, 'ela_mrmi'
+stop
+
 ; remove tplot variables created so far
 del_data, 'el*'
 

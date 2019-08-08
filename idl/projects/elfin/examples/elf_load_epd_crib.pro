@@ -82,6 +82,15 @@ elf_load_epd, probes=['a','b'], datatype=['pef' ,'pif'], trange=tr
 tplot, ['ela_pef','ela_pif']
 stop
 
+;;    ===================================
+;; 7) Use no_download keyword
+;;    ===================================
+timespan, '2019-07-26'
+tr = timerange()
+elf_load_epd, probes=['a','b'], datatype=['pef' ,'pif'], trange=tr, /no_download
+tplot, ['ela_pef','ela_pif']
+stop
+
 
 ; remove tplot variables created so far
 del_data, 'ela_p*f'

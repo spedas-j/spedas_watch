@@ -24,9 +24,11 @@ PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
     return
   endif
   sc = 'el'+probes
-  
-  tn = tnames(['*pef*', '*pes*'])
-  if tn[0] NE '' then instrument='epde' else instrument='epdi'  
+ 
+;  itype = sc+'_pe'
+  ;tn = tnames(['pe*', '*pis'])
+  tn=tnames(tplotname)
+  if tn[0] NE ''  then instrument='epde' else instrument='epdi'  
 ;  if instrument EQ 'epdi' then begin
 ;    dprint, dlevel = 1, 'EPD calibration is yet not available for epdi.'
 ;    return    
@@ -45,6 +47,7 @@ PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
       endif
 
       get_data, tplotname, data=elf_pef, dlimits=dl, limits=l
+
       num_samples = (size(elf_pef.x))[1]
       dt = 0.
       sec_num = 0

@@ -351,6 +351,26 @@ spd_handle_error,err,t_name,++t_num
 del_data,'*'
 stop
 
+; 18 Probe B mrma (only)
+;
+
+t_name='No download flag'
+catch,err
+if err eq 0 then begin
+  timespan, '2018-11-05'
+  tr=timerange()
+  elf_load_mrma,probe='b',trange=tr, /no_download
+  spd_print_tvar_info,'elb_mrma'
+  ;just spot checking cause there are a lot of data types
+  if ~spd_data_exists('elb_mrma','2018-11-05','2018-11-07')  || $
+    spd_data_exists('ela_mrma','2018-11-05','2018-11-07')  $
+    then message,'data error ' + t_name
+endif
+catch,/cancel
+spd_handle_error,err,t_name,++t_num
+del_data,'*'
+stop
+
 spd_end_tests
 
 end

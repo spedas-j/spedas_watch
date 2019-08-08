@@ -69,7 +69,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   get_support_data = get_support_data, no_cal=no_cal, type=type, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
   no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
-  varformat = varformat, cdf_filenames = cdf_filenames, $
+  varformat = varformat, cdf_filenames = cdf_filenames, no_download=no_download, $
   cdf_version = cdf_version, cdf_records = cdf_records, $
   spdf = spdf, available = available, versions = versions, $
   tt2000=tt2000
@@ -117,18 +117,18 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if data_rate EQ  '*' then data_rate = ['fast', 'srvy']
 
   if undefined(type) then type='calibrated' else type=type
-  if ~undefined(no_cal) then type = 'calibrated' else type='raw'  
+  if undefined(no_cal) then type = 'calibrated' else type='raw'  
   if undefined(unit) then begin
      if type EQ 'raw' then unit='[counts]' else unit='[nflux]';'[MeV/cm^2-s-st-MeV]'   
   endif
-  
+ 
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'epd', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
     datatype = datatype, get_support_data = get_support_data, no_time_sort=no_time_sort, $
     tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
     no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
     cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
-    versions = versions, tt2000=tt2000
+    versions = versions, tt2000=tt2000, no_download=no_download
 
   ; no reason to continue if no data were loaded
   if undefined(tplotnames) || tplotnames[0] EQ '' then begin
@@ -139,12 +139,17 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   ; Post processing - calibration and fix meta data 
   for i=0,n_elements(tplotnames)-1 do begin
 
-    if tplotnames[i] EQ 'ela_spinper' OR tplotnames[i] EQ 'elb_spinper' then continue ; don't need to calibrate spin period
+    ; NOTE: Need to add pis, and pes
+    if tplotnames[i] EQ 'ela_spinper'+suffix OR tplotnames[i] EQ 'elb_spinper'+suffix then continue ; don't need to calibrate spin period
+    if tplotnames[i] EQ 'ela_pef_spinper'+suffix OR tplotnames[i] EQ 'elb_pef_spinper'+suffix then continue ; don't need to calibrate spin period
+    if tplotnames[i] EQ 'ela_pif_spinper'+suffix OR tplotnames[i] EQ 'elb_pif_spinper'+suffix then continue ; don't need to calibrate spin period
+    if tplotnames[i] EQ 'ela_pef_sectnum'+suffix OR tplotnames[i] EQ 'elb_pef_sectnum'+suffix then continue ; don't need to calibrate spin period
+    if tplotnames[i] EQ 'ela_pif_sectnum'+suffix OR tplotnames[i] EQ 'elb_pif_sectnum'+suffix then continue ; don't need to calibrate spin period
 
     ; calibrate data
     if (type EQ 'calibrated' or type EQ 'cal') then elf_cal_epd, probe=probes, trange=trange, tplotname=tplotnames[i]
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
-    dl.ysubtitle=unit
+    ;dl.ysubtitle=unit
     
     if n_tags(d) LT 3 then v=findgen(16) else v=d.v
    

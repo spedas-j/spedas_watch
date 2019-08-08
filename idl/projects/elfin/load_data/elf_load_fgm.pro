@@ -45,6 +45,7 @@
 ;                       this is useful for finding which files would be downloaded (along with their sizes) if
 ;                       you didn't specify this keyword (also outputs total download size)
 ;         versions:     this keyword returns the version #s of the CDF files used when loading the data
+;         no_download:  this keyword will turn downloading off and look for the file locally
 ;         always_prompt: set this keyword to always prompt for the user's username and password;
 ;                       useful if you accidently save an incorrect password, or if your SDC password has changed
 ;         no_time_sort: set this flag if you don't want the time ordered
@@ -69,7 +70,7 @@
 
 pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   level = level, data_rate = data_rate, no_time_sort=no_time_sort, $
-  local_data_dir = local_data_dir, source = source, $
+  local_data_dir = local_data_dir, source = source, no_download=no_download, $
   get_support_data = get_support_data, no_cal=no_cal, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
   no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
@@ -121,7 +122,7 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
     tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
     no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
     cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
-    versions = versions, tt2000=tt2000
+    versions = versions, tt2000=tt2000, no_download=no_download
  
   ; no reason to continue if no data were loaded
   if undefined(tplotnames) then return
