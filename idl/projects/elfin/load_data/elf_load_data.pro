@@ -200,9 +200,9 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                 if ncnt GT 0 then append_array, ftypes, 'epdes'
             end
             'fgm': begin
-              idx = where(datatypes EQ 'fgs', ncnt)
+              idx = where(datatype EQ 'fgs', ncnt)
               if ncnt GT 0 then append_array, ftypes, 'fgs'
-              idx = where(datatypes EQ 'fgf', ncnt)
+              idx = where(datatype EQ 'fgf', ncnt)
               if ncnt GT 0 then append_array, ftypes, 'fgf'
             end
             'state': ftypes='state'
@@ -278,7 +278,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               number_records=cdf_records, center_measurement=center_measurement, $
               loaded_versions = the_loaded_versions, major_version=major_version, $
               tt2000=tt2000
-
           endif
           
           append_array, cdf_filenames, files
@@ -297,49 +296,48 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'mrma' then break
           if instrument EQ 'eng' then break
 
+          ; print the total size of requested data if the user specified /available
+          if keyword_set(available) then print, 'Total download size: ' + strcompress(string(total_size, format='(F0.1)'), /rem) + ' MB'
+
+          ; just in case multiple datatypes loaded identical variables
+          ; (this occurs with hpca moments & logicals)
+          if ~undefined(tplotnames) then tplotnames = spd_uniq(tplotnames)
+
+          if n_elements(tplotnames) eq 1 && tplotnames[0] eq '' then continue ; no data loaded
+
+          if ~undefined(tr) && ~undefined(tplotnames) then begin
+
+            ; time clip the data
+            dt_timeclip = 0.0
+            if (n_elements(tr) eq 2) and (tplotnames[0] ne '') and ~keyword_set(no_time_clip) then begin
+              tc0 = systime(/sec)
+              time_clip, tplotnames, tr[0], tr[1], replace=1, error=error
+              dt_timeclip = systime(/sec)-tc0
+            endif
+
+            ; sort times and remove duplicates
+            if ~keyword_set(no_time_sort) then begin
+              for t=0,n_elements(tplotnames)-1 do begin
+                tplot_sort, tplotnames[t]
+                get_data, tplotnames[t], data=d, dlimits=dl, limits=l
+                idx=uniq(d.x,sort(d.x))
+                store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*]}, dlimits=dl, limits=l
+              endfor
+            endif
+          endif
+
+          ;temporary messages for diagnostic purposes
+          dprint, dlevel=2, 'Successfully loaded: '+ $
+            strjoin( ['el'+probes, instrument, data_rates, levels, datatypes, time_string(tr)],' ')
+          dprint, dlevel=2, 'Time querying remote server: '+strtrim(dt_query,2)+' sec'
+          dprint, dlevel=2, 'Time downloading remote files: '+strtrim(dt_download,2)+' sec'
+          dprint, dlevel=2, 'Time loading files into IDL: '+strtrim(dt_load,2)+' sec'
+          dprint, dlevel=2, 'Time spent time clipping variables: '+strtrim(dt_timeclip,2)+' sec'
+          dprint, dlevel=2, 'Total load time: '+strtrim(systime(/sec)-t0,2)+' sec'
+
         endfor
       endfor
     endfor
   endfor
-  
-  ; print the total size of requested data if the user specified /available
-  if keyword_set(available) then print, 'Total download size: ' + strcompress(string(total_size, format='(F0.1)'), /rem) + ' MB'
-
-  ; just in case multiple datatypes loaded identical variables
-  ; (this occurs with hpca moments & logicals)
-  if ~undefined(tplotnames) then tplotnames = spd_uniq(tplotnames)
-
-  if n_elements(tplotnames) eq 1 && tplotnames[0] eq '' then return ; no data loaded
-
-  if ~undefined(tr) && ~undefined(tplotnames) then begin
-
-    ; time clip the data
-    dt_timeclip = 0.0
-    if (n_elements(tr) eq 2) and (tplotnames[0] ne '') and ~keyword_set(no_time_clip) then begin
-      tc0 = systime(/sec)
-      time_clip, tplotnames, tr[0], tr[1], replace=1, error=error
-      dt_timeclip = systime(/sec)-tc0
-    endif
-
-    ; sort times and remove duplicates
-    if ~keyword_set(no_time_sort) then begin
-      for t=0,n_elements(tplotnames)-1 do begin
-         tplot_sort, tplotnames[t]
-         get_data, tplotnames[t], data=d, dlimits=dl, limits=l
-         idx=uniq(d.x,sort(d.x))
-         store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*]}, dlimits=dl, limits=l
-      endfor
-    endif
-    
-    ;temporary messages for diagnostic purposes
-    dprint, dlevel=2, 'Successfully loaded: '+ $
-      strjoin( ['el'+probes, instrument, data_rates, levels, datatypes, time_string(tr)],' ')
-    dprint, dlevel=2, 'Time querying remote server: '+strtrim(dt_query,2)+' sec'
-    dprint, dlevel=2, 'Time downloading remote files: '+strtrim(dt_download,2)+' sec'
-    dprint, dlevel=2, 'Time loading files into IDL: '+strtrim(dt_load,2)+' sec'
-    dprint, dlevel=2, 'Time spent time clipping variables: '+strtrim(dt_timeclip,2)+' sec'
-    dprint, dlevel=2, 'Total load time: '+strtrim(systime(/sec)-t0,2)+' sec'
-
-  endif
-
+ 
 END

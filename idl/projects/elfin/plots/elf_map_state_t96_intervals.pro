@@ -79,7 +79,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   aacgmidl
   loadct,39
   thm_init
-
+  
   ;if !d.name EQ 'WIN' then set_plot,'win' else set_plot,'x'
   set_plot,'z'
   device,set_resolution=[750,500]
@@ -88,7 +88,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ; colors and symbols, closest numbers for loadct,39
   symbols=[4, 2]  ;[5,2,1,4,6]
   probes=['a','b']
-  index=[253,254,252]  ;,252,253,254]
+  index=[254,253,252]  ;,252,253,254]
 
   ; color=253 will be dark blue for ELFIN A
   ;A dark blue  [0,0,255],    57 IDL symbol 4
@@ -136,16 +136,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     tr=timerange()
     elf_load_state,probe=probes[sc]
     get_data,'el'+probes[sc]+'_pos_gei',data=dats, dlimits=dl, limits=l  ; position in GEI
-    ; also get data for 30 minutes into next day
-;    tr=timerange()+86400.
-;    elf_load_state,probe=probes[sc], trange=tr, suffix='_d2'
-;    get_data,'el'+probes[sc]+'_pos_gei_d2',data=dat_d2  ; position in GEI
-;    new_t=array_concat(dat_d2.x[0:1800], dat_d1.x)
-;    new_x=array_concat(dat_d2.y[0:1800,0], dat_d1.y[*,0])
-;    new_y=array_concat(dat_d2.y[0:1800,1], dat_d1.y[*,1])
-;    new_z=array_concat(dat_d2.y[0:1800,2], dat_d1.y[*,2])
-;    dats={x:new_t, y:[[new_x], [new_y], [new_z]]}
-;    store_data,'el'+probes[sc]+'_pos_gei',data=dats  ; position in GEI
 
     ; Coordinate transform from gei to sm
     cotrans, 'el'+probes[sc]+'_pos_gei', 'el'+probes[sc]+'_pos_gse', /gei2gse
@@ -156,7 +146,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
     count=n_elements(dats.x)
     num=n_elements(dats.x)-1
-
+    
     ; prepare parameter for input into Tsyganenko models
     case 1 of
       (tsyg_mod eq 't89'): tsyg_parameter=2.0d
@@ -229,6 +219,29 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     print,'Done '+tsyg_mod+' ',probes[sc]
 
   endfor  ; end of sc loop
+
+  ; retrieve fgm and epd data if available
+  elf_load_epd
+  elf_load_fgm
+  ; get all the science data collected and append times
+  get_data, 'ela_pef', data=pefa
+  if size(pefa, /type) EQ 8 then append_array, sci_timea, pefa.x
+  get_data, 'ela_pif', data=pifa
+  if size(pifa, /type) EQ 8 then append_array, sci_timea, pifa.x
+  get_data, 'elb_pef', data=pefb
+  if size(pefb, /type) EQ 8 then append_array, sci_timeb, pefb.x
+  get_data, 'elb_pif', data=pifb
+  if size(pifb, /type) EQ 8 then append_array, sci_timeb, pifb.x
+  get_data, 'ela_fgf', data=fgfa
+  if size(fgfa, /type) EQ 8 then append_array, sci_timea, fgfa.x
+  get_data, 'ela_fgs', data=fgsa
+  if size(fgsa, /type) EQ 8 then append_array, sci_timea, fgsa.x
+  get_data, 'elb_fgf', data=fgfb
+  if size(fgfb, /type) EQ 8 then append_array, sci_timeb, fgfb.x
+  get_data, 'elb_fgs', data=fgsb
+  if size(fgsb, /type) EQ 8 then append_array, sci_timeb, fgsb.x
+  if ~undefined(sci_timea) then sci_timesa=sci_timea[UNIQ(sci_timea), SORT(sci_timea)]
+  if ~undefined(sci_timeb) then sci_timesb=sci_timeb[UNIQ(sci_timeb), SORT(sci_timeb)]
 
   ; get positions for orbit plots
   get_data,'ela_pos_sm',data=ela_state_pos_sm
@@ -321,8 +334,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ; 1 24 hour plot, 4 6 hr plots, 12 2 hr plots
   hr_arr = indgen(25)   ;[0, 6*indgen(4), 2*indgen(12)]
   hr_ststr = string(hr_arr, format='(i2.2)')
-  ;  hr_en = hr_st + 1.5
-  ;  ; Strings for labels, filenames
+  ; Strings for labels, filenames
   for m=0,23 do begin
     this_s = tr[0] + m*3600.
     this_e = this_s + 90.*60.
@@ -470,25 +482,28 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       ;      endfor
     endelse
 
-    ; ELFIN A
+    ; Set up data for ELFIN A for this time span
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
+    nptsa=n_elements(this_time)
     if ~keyword_set(south) then this_lon=lon[min_st[k]:min_en[k]]-mid_hr*15. $
     else this_lon=lon[min_st[k]:min_en[k]]-mid_hr*15.
     this_lat=lat[min_st[k]:min_en[k]]
     this_ax=ela_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_ay=ela_state_pos_sm.y[min_st[k]:min_en[k],1]
     this_az=ela_state_pos_sm.y[min_st[k]:min_en[k],2]
-    this_a_alt = median(sqrt(this_ax^2 + this_ay^2 + this_az^2))
+    this_a_alt = median(sqrt(this_ax^2 + this_ay^2 + this_az^2))-6371.
     this_a_alt_str = strtrim(string(this_a_alt),1)
-    ; ELFIN B
+    
+    ; repeat for ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
+    nptsb=n_elements(this_time2)
     if ~keyword_set(south) then this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15. $
     else this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15.
     this_lat2=lat2[min_st[k]:min_en[k]]
     this_bx=elb_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_by=elb_state_pos_sm.y[min_st[k]:min_en[k],1]
     this_bz=elb_state_pos_sm.y[min_st[k]:min_en[k],2]
-    this_b_alt = median(sqrt(this_bx^2 + this_by^2 + this_bz^2))
+    this_b_alt = median(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
     this_b_alt_str = strtrim(string(this_b_alt),1)
 
     ; Check for gaps/anomalous points in the magnetic tracks
@@ -522,21 +537,63 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       endif
       ; Plot everything
     endif else begin
-      plots, this_lon, this_lat, psym=2, symsize=.08, color=253   ; thick=3
+;      plots, this_lon, this_lat, psym=2, symsize=.08, color=253   ; thick=3
+;      plots, this_lon2, this_lat2, psym=2, symsize=.08, color=254    ; thick=3
       plots, this_lon2, this_lat2, psym=2, symsize=.08, color=254    ; thick=3
+      plots, this_lon, this_lat, psym=2, symsize=.08, color=253   ; thick=3
     endelse
 
+    ; check if there were any science collected this time frame
+    ; and oplot sci collection times
+;    if ~undefined(sci_timesa) then begin
+;      sci_idxa=where(sci_timesa GE this_time[0] AND sci_timesa LT this_time[nptsa-1], ncnt)
+;      if ncnt GT 5 then begin 
+;        find_interval, sci_idxa, sa_idx, ea_idx
+;        ta0 = sci_timesa[sci_idxa[sa_idx]]
+;        ta1 = sci_timesa[sci_idxa[ea_idx]]
+;        for sci=0, n_elements(ta0)-1 do begin
+;          tidx=where(this_time GE ta0[sci] and this_time LT ta1[sci], ncnt)
+;          if ncnt GT 5 then begin
+;             plots, this_lon[tidx], this_lat[tidx], psym=2, symsize=.4, color=253   ; thick=3
+;          endif
+;        endfor
+;      endif
+;    endif
+    
+    ; check if there were any science collected this time frame
+    ; and oplot sci collection times
+    if ~undefined(sci_timesb) then begin
+      sci_idxb=where(sci_timesb GE this_time2[0] AND sci_timesb LT this_time2[nptsb-1], ncnt)
+      if ncnt GT 5 then begin
+        find_interval, sci_idxb, sb_idx, eb_idx
+        tb0 = sci_timesb[sb_idx]
+        tb1 = sci_timesb[eb_idx]
+        for sci=0, n_elements(tb0)-1 do begin
+          tidx=where(this_time2 GE tb0[sci] and this_time2 LT tb1[sci], ncnt)
+          if ncnt GT 5 then begin
+            plots, this_lon2[tidx], this_lat2[tidx], psym=2, symsize=.5, color=254   ; thick=3
+          endif
+        endfor
+      endif
+    endif
+
+    ; Repeat for A
+    if ~undefined(sci_timesa) then begin
+      sci_idxa=where(sci_timesa GE this_time[0] AND sci_timesa LT this_time[nptsa-1], ncnt)
+      if ncnt GT 5 then begin
+        find_interval, sci_idxa, sa_idx, ea_idx
+        ta0 = sci_timesa[sa_idx]
+        ta1 = sci_timesa[ea_idx]
+        for sci=0, n_elements(ta0)-1 do begin
+          tidx=where(this_time GE ta0[sci] and this_time LT ta1[sci], ncnt)
+          if ncnt GT 5 then begin
+            plots, this_lon[tidx], this_lat[tidx], psym=2, symsize=.5, color=253   ; thick=3
+          endif
+        endfor
+      endif
+    endif
+    
     ; Plot dataset start/stop position markers
-    if keyword_set(south) then idx=where(this_az lt 0.,count) else idx=where(this_az gt 0.,count)
-    plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.9, color=253
-    plots, this_lon[idx[count/2]], this_lat[idx[count/2]], psym=5, symsize=1.9, color=253
-    plots, this_lon[idx[count-1]], this_lat[idx[count-1]], psym=2, symsize=1.9, color=253
-    plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.75
-    plots, this_lon[idx[count-1]], this_lat[idx[count-1]], psym=2, symsize=1.75
-    plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.6, color=253
-    plots, this_lon[idx[count-1]], this_lat[idx[count-1]], psym=2, symsize=1.6, color=253
-    as_string='Start time (diamond): ' + strmid(time_string(this_time[idx[0]]),11,5)
-    ae_string='End time (asterisk): ' + strmid(time_string(this_time[idx[count-1]]),11,5)
     if keyword_set(south) then idx=where(this_bz lt 0.,count) else idx=where(this_bz gt 0.,count)
     plots, this_lon2[idx[0]], this_lat2[idx[0]], psym=symbols[0], symsize=1.9, color=254
     plots, this_lon2[idx[count/2]], this_lat2[idx[count/2]], psym=5, symsize=1.9, color=254
@@ -547,20 +604,19 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     plots, this_lon2[idx[count-1]], this_lat2[idx[count-1]], psym=2, symsize=1.6, color=254
     bs_string='Start time (diamond): ' + strmid(time_string(this_time2[idx[0]]),11,5)
     be_string='End time (asterisk): ' + strmid(time_string(this_time2[idx[count-1]]),11,5)
+    if keyword_set(south) then idx=where(this_az lt 0.,count) else idx=where(this_az gt 0.,count)
+    plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.9, color=253
+    plots, this_lon[idx[count/2]], this_lat[idx[count/2]], psym=5, symsize=1.9, color=253
+    plots, this_lon[idx[count-1]], this_lat[idx[count-1]], psym=2, symsize=1.9, color=253
+    plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.75
+    plots, this_lon[idx[count-1]], this_lat[idx[count-1]], psym=2, symsize=1.75
+    plots, this_lon[idx[0]], this_lat[idx[0]], psym=symbols[0], symsize=1.6, color=253
+    plots, this_lon[idx[count-1]], this_lat[idx[count-1]], psym=2, symsize=1.6, color=253
+    as_string='Start time (diamond): ' + strmid(time_string(this_time[idx[0]]),11,5)
+    ae_string='End time (asterisk): ' + strmid(time_string(this_time[idx[count-1]]),11,5)
 
     if keyword_set(tstep) then begin
       tstep=300.
-      ; add tick marks for A
-      res=this_time[1] - this_time[0]
-      istep=tstep/res
-      last = n_elements(this_time)
-      steps=lindgen(last/istep+1)*istep
-      tmp=max(steps,nmax)
-      if tmp gt (last-1) then steps=steps[0:nmax-1]
-      tsteps0=this_time[steps[0]]
-      dummy=min(abs(this_time-tsteps0),istep0)
-      isteps=steps+istep0
-      plots, this_lon[isteps], this_lat[isteps], psym=1, symsize=1.35, color=253
       ; add tick marks for B
       res=this_time2[1] - this_time2[0]
       istep=tstep/res
@@ -572,6 +628,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       dummy=min(abs(this_time2-tsteps0),istep0)
       isteps=steps+istep0
       plots, this_lon2[isteps], this_lat2[isteps], psym=1, symsize=1.35, color=254
+      ; add tick marks for A
+      res=this_time[1] - this_time[0]
+      istep=tstep/res
+      last = n_elements(this_time)
+      steps=lindgen(last/istep+1)*istep
+      tmp=max(steps,nmax)
+      if tmp gt (last-1) then steps=steps[0:nmax-1]
+      tsteps0=this_time[steps[0]]
+      dummy=min(abs(this_time-tsteps0),istep0)
+      isteps=steps+istep0
+      plots, this_lon[isteps], this_lat[isteps], psym=1, symsize=1.35, color=253
     endif
 
     ; find total orbit time for this plot
@@ -616,14 +683,15 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=.65,color=254
 
     case 1 of
-      tsyg_mod eq 't89': xyouts,.6182,.84,'Tsyganenko-1989',/normal,charsize=.65,color=255
-      tsyg_mod eq 't96': xyouts,.6182,.84,'Tsyganenko-1996',/normal,charsize=.65,color=255
-      tsyg_mod eq 't01': xyouts,.6182,.84,'Tsyganenko-2001',/normal,charsize=.65,color=255
+      tsyg_mod eq 't89': xyouts,.6182,.82,'Tsyganenko-1989',/normal,charsize=.65,color=255
+      tsyg_mod eq 't96': xyouts,.6182,.82,'Tsyganenko-1996',/normal,charsize=.65,color=255
+      tsyg_mod eq 't01': xyouts,.6182,.82,'Tsyganenko-2001',/normal,charsize=.65,color=255
     endcase
     xyouts, .5,0.94,'Earth/Oval View Center Time (triangle)',/normal,color=255,charsize=.65
     xyouts, .525,0.92,'Geo Lat/Lon - Black dotted lines',/normal,color=255,charsize=.65
     xyouts, .5325,0.9,'Mag Lat/Lon - Red dotted lines',/normal,color=251,charsize=.65
     xyouts, .57,0.88,'Auroral Oval - Green lines',/normal,color=155,charsize=.65
+    xyouts, .595,0.84,'Thick - Sci Collection',/normal,color=255,charsize=.65
     xyouts, .592,0.86,'Tick Marks every 5min',/normal,color=255,charsize=.65
 
     xyouts, .01, .475, '00:00', charsize=1.15, /normal
@@ -660,6 +728,18 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     for dd=-30,30,10 do oplot,[-0.5,0.5],[dd,dd]
 
     ; plot orbit behind of earth
+    idx = where(this_by lt 0, ncnt)
+    if ncnt gt 0 then begin
+      find_interval,idx,istart,iend
+      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 1  ;, thick=.75
+    endif
+    idx = where(this_by ge 0, ncnt)
+    if ncnt GT 0 then begin
+      find_interval,idx,istart,iend
+      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
+    endif
+
+    ; repeat for A
     idx = where(this_ay lt 0, ncnt)
     if ncnt gt 0 then begin
       find_interval,idx,istart,iend
@@ -672,23 +752,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       for sidx = 0, n_elements(istart)-1 do oplot, this_ax[istart[sidx]:iend[sidx]]/6378., this_az[istart[sidx]:iend[sidx]]/6378., color=253, thick=1.25
     endif
 
-    ; repeat for b
-    idx = where(this_by lt 0, ncnt)
-    if ncnt gt 0 then begin
-      find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 1  ;, thick=.75
-    endif
-    idx = where(this_by ge 0, ncnt)
-    if ncnt GT 0 then begin
-      find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
-    endif
     ;plot start/end points
     npts = n_elements(this_ax)-1
-    plots, this_ax[0]/6378.,this_az[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_bx[0]/6378.,this_bz[0]/6378.,color=254,psym=symbols[0],symsize=0.8
-    plots, this_ax[npts]/6378.,this_az[npts]/6378.,color=253,psym=2,symsize=0.8
+    plots, this_ax[0]/6378.,this_az[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_bx[npts]/6378.,this_bz[npts]/6378.,color=254,psym=2,symsize=0.8
+    plots, this_ax[npts]/6378.,this_az[npts]/6378.,color=253,psym=2,symsize=0.8
 
     ; plot lines to separate plots
     plots,[600./800.*0.96,1.],[0.005+0.96*3./3.,0.005+0.96*3./3.]-0.007,/normal
@@ -714,6 +783,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     for dd=-30,30,10 do oplot,[-0.5,0.5],[dd,dd]
 
     ; plot orbit behind of earth
+    idx = where(this_bz lt 0, ncnt)
+    if ncnt gt 0 then begin
+      find_interval,idx,istart,iend
+      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_by[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 2, thick=.75
+    endif
+    idx = where(this_bz ge 0, ncnt)
+    if ncnt GT 0 then begin
+      find_interval,idx,istart,iend
+      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_by[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
+    endif
+    ; repeat for a
     idx = where(this_az lt 0, ncnt)
     if ncnt gt 0 then begin
       find_interval,idx,istart,iend
@@ -725,23 +805,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       find_interval,idx,istart,iend
       for sidx = 0, n_elements(istart)-1 do oplot, this_ax[istart[sidx]:iend[sidx]]/6378., this_ay[istart[sidx]:iend[sidx]]/6378., color=253, thick=1.25
     endif
-    ; repeat for b
-    idx = where(this_bz lt 0, ncnt)
-    if ncnt gt 0 then begin
-      find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_by[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 2, thick=.75
-    endif
-    idx = where(this_bz ge 0, ncnt)
-    if ncnt GT 0 then begin
-      find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_bx[istart[sidx]:iend[sidx]]/6378., this_by[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
-    endif
 
     ;plot start and end points
-    plots, this_ax[0]/6378.,this_ay[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_bx[0]/6378., this_by[0]/6378.,color=254,psym=symbols[0],symsize=0.8
-    plots, this_ax[npts]/6378.,this_ay[npts]/6378.,color=253,psym=2,symsize=0.8
+    plots, this_ax[0]/6378.,this_ay[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_bx[npts]/6378., this_by[npts]/6378.,color=254,psym=2,symsize=0.8
+    plots, this_ax[npts]/6378.,this_ay[npts]/6378.,color=253,psym=2,symsize=0.8
 
     ; plot lines to separate plots
     plots,[600./800.*0.96,1.],[0.005+0.96*1./3.,0.005+0.96*1./3.]-0.0025,/normal
@@ -766,6 +835,19 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     for dd=-30,30,10 do oplot,[-0.5,0.5],[dd,dd]
 
     ; plot orbit behind of earth
+    plots, this_by[0]/6378.,this_bz[0]/6378.,color=254,psym=symbols[0],symsize=0.8
+    idx = where(this_bx lt 0, ncnt)
+    if ncnt gt 0 then begin
+      find_interval,idx,istart,iend
+      for sidx = 0, n_elements(istart)-1 do oplot, this_by[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 2, thick=.75
+    endif
+    idx = where(this_bx ge 0, ncnt)
+    if ncnt GT 0 then begin
+      find_interval,idx,istart,iend
+      for sidx = 0, n_elements(istart)-1 do oplot, this_by[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
+    endif
+
+    ; repeat for a
     idx = where(this_ax lt 0, ncnt)
     if ncnt gt 0 then begin
       find_interval,idx,istart,iend
@@ -778,23 +860,11 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       for sidx = 0, n_elements(istart)-1 do oplot, this_ay[istart[sidx]:iend[sidx]]/6378., this_az[istart[sidx]:iend[sidx]]/6378., color=253, thick=1.25
     endif
 
-    ; repeat for b
-    plots, this_by[0]/6378.,this_bz[0]/6378.,color=254,psym=symbols[0],symsize=0.8
-    idx = where(this_bx lt 0, ncnt)
-    if ncnt gt 0 then begin
-      find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_by[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=252, linestyle = 2, thick=.75
-    endif
-    idx = where(this_bx ge 0, ncnt)
-    if ncnt GT 0 then begin
-      find_interval,idx,istart,iend
-      for sidx = 0, n_elements(istart)-1 do oplot, this_by[istart[sidx]:iend[sidx]]/6378., this_bz[istart[sidx]:iend[sidx]]/6378., color=254, thick=1.25
-    endif
     ;plot start and end points
-    plots, this_ay[0]/6378.,this_az[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_by[0]/6378.,this_bz[0]/6378.,color=254,psym=symbols[0],symsize=0.8
-    plots, this_ay[npts]/6378.,this_az[npts]/6378.,color=253,psym=2,symsize=0.8
+    plots, this_ay[0]/6378.,this_az[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_by[npts]/6378.,this_bz[npts]/6378.,color=254,psym=2,symsize=0.8
+    plots, this_ay[npts]/6378.,this_az[npts]/6378.,color=253,psym=2,symsize=0.8
 
     ; plot lines to separate plots
     plots,[600./800.*0.96,1.],[0.005+0.96*0./3.,0.005+0.96*0./3.],/normal
