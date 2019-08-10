@@ -409,21 +409,21 @@ stop
 ;21 Test for other coord
 ;
 
-t_name='Mag Coordinates'
-catch,err
-if err eq 0 then begin
-  timespan, '2019-02-11'
-  elf_load_state,probe='a', datatype=['vel_mag']
-  spd_print_tvar_info,'ela_vel_mag'
-  ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_vel_mag', '2019-02-11','2019-02-12')  || $
-    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
-    then message,'data error ' + t_name
-endif
-catch,/cancel
-spd_handle_error,err,t_name,++t_num
-del_data,'*'
-stop
+;t_name='Mag Coordinates'
+;catch,err
+;if err eq 0 then begin
+;  timespan, '2019-02-11'
+;  elf_load_state,probe='a', datatype=['vel_mag']
+;  spd_print_tvar_info,'ela_vel_mag'
+;  ;just spot checking cause there are a lot of data types
+;  if ~spd_data_exists('ela_vel_mag', '2019-02-11','2019-02-12')  || $
+;    spd_data_exists('elb_pos_gei','2018-12-04','2018-12-05')  $
+;    then message,'data error ' + t_name
+;endif
+;catch,/cancel
+;spd_handle_error,err,t_name,++t_num
+;del_data,'*'
+;stop
 
 ;21 Test for other coord
 ;

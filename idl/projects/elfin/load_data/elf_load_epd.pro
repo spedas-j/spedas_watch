@@ -98,14 +98,11 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if undefined(level) then level = ['l1'] 
   if level EQ '*' then level = ['l1']  ; we don't have l2 data yet
   ; check for valid datatypes for level 1 NOTE: we only have l1 data so far
-  if undefined(datatype) AND level eq 'l1' then datatype = ['pef', 'pif', 'pes', 'pis'] $
-    else datatype = strlowcase(datatype) 
+  if undefined(datatype) then datatype=['pef', 'pif'] else datatype = strlowcase(datatype)
+  if datatype[0] EQ '*' then datatype=['pef', 'pif']
   idx = where(datatype EQ 'pif', icnt)
   idx = where(datatype EQ 'pef', ecnt)
-  idx = where(datatype EQ 'pis', iscnt)
-  idx = where(datatype EQ 'pes', escnt)
-;  idx = where(datatype EQ 'spinper', scnt)
-  if icnt EQ 0 && ecnt EQ 0 && iscnt EQ 0 && escnt EQ 0 then begin
+  if icnt EQ 0 && ecnt EQ 0 then begin
     dprint, dlevel = 1, 'Invalid data type name. Valid types are pef, pif, pes, pef. Please select again.'
     return
   endif
@@ -114,14 +111,14 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   ;  else datatype = strlowcase(datatype)
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ['fast'] else data_rate=strlowcase(data_rate)
-  if data_rate EQ  '*' then data_rate = ['fast', 'srvy']
+  if data_rate EQ  '*' then data_rate = ['fast']  ;, 'srvy'] NO SURVEY DATA YET
 
   if undefined(type) then type='calibrated' else type=type
-  if undefined(no_cal) then type = 'calibrated' else type='raw'  
+  if ~undefined(no_cal) then type = 'raw' 
   if undefined(unit) then begin
-     if type EQ 'raw' then unit='[counts]' else unit='[nflux]';'[MeV/cm^2-s-st-MeV]'   
+     if type EQ 'raw' then unit='[counts/sector]' else unit='[nflux]';'[MeV/cm^2-s-st-MeV]'   
   endif
- 
+
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'epd', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
     datatype = datatype, get_support_data = get_support_data, no_time_sort=no_time_sort, $
@@ -141,10 +138,14 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
 
     ; NOTE: Need to add pis, and pes
     if tplotnames[i] EQ 'ela_spinper'+suffix OR tplotnames[i] EQ 'elb_spinper'+suffix then continue ; don't need to calibrate spin period
-    if tplotnames[i] EQ 'ela_pef_spinper'+suffix OR tplotnames[i] EQ 'elb_pef_spinper'+suffix then continue ; don't need to calibrate spin period
-    if tplotnames[i] EQ 'ela_pif_spinper'+suffix OR tplotnames[i] EQ 'elb_pif_spinper'+suffix then continue ; don't need to calibrate spin period
-    if tplotnames[i] EQ 'ela_pef_sectnum'+suffix OR tplotnames[i] EQ 'elb_pef_sectnum'+suffix then continue ; don't need to calibrate spin period
-    if tplotnames[i] EQ 'ela_pif_sectnum'+suffix OR tplotnames[i] EQ 'elb_pif_sectnum'+suffix then continue ; don't need to calibrate spin period
+    if strpos(tplotnames[i], 'sectnum') NE -1 then continue
+
+    if strpos(tplotnames[i], 'spinper') NE -1 then begin
+       get_data, tplotnames[i], data=d, dlimits=dl, limits=l
+       d.x=d.x/80.
+       store_data, tplotnames[i], data=d, dlimits=dl, limits=l
+       continue
+    endif
 
     ; calibrate data
     if (type EQ 'calibrated' or type EQ 'cal') then elf_cal_epd, probe=probes, trange=trange, tplotname=tplotnames[i]
@@ -157,14 +158,9 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     options, tplotnames[i], ylog=1
     options, tplotnames[i], spec=0
     options, tplotnames[i], labflag=1
-;    options, /def, tplotnames[i], 'zlog', 1
-;    options, /def, tplotnames[i], 'no_interp', 1
-;    options, /def, tplotnames[i], 'ystyle', 1
 
   endfor
-    
-  ; add energy numbers
-  
+      
   ; no reason to continue if the user only requested available data
   if keyword_set(available) then return
 
