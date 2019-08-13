@@ -97,6 +97,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
 
 ;  TODO: may want to add check of var types
   if undefined(datatype) then datatype = ['pos_gei', 'vel_gei']
+  if n_elements(datatype) EQ 1 then datatype=strsplit(datatype, ' ', /extract)
   idx=where(datatype EQ 'pos', ncnt)
   if ncnt GT 0 then datatype[idx]='pos_gei'
   idx=where(datatype EQ 'vel', ncnt)

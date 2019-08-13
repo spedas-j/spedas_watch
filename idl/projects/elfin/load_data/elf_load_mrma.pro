@@ -100,6 +100,7 @@ pro elf_load_mrma, trange = trange, probes = probes, datatype = datatype, $
 
   if undefined(level) then level = 'l1'
   if undefined(datatype) then datatype = ['mrma'] else datatype = strlowcase(datatype) ; this is the only type of mrm data
+  if n_elements(datatype) EQ 1 then datatype=strsplit(datatype, ' ', /extract)
   if datatype NE 'mrma' then begin
     dprint, dlevel = 1, 'Invalid data type. The only valid data type for MRMa is mrma.'
     return    

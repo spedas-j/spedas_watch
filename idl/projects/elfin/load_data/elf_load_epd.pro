@@ -97,9 +97,11 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   
   if undefined(level) then level = ['l1'] 
   if level EQ '*' then level = ['l1']  ; we don't have l2 data yet
+
   ; check for valid datatypes for level 1 NOTE: we only have l1 data so far
   if undefined(datatype) then datatype=['pef', 'pif'] else datatype = strlowcase(datatype)
   if datatype[0] EQ '*' then datatype=['pef', 'pif']
+  if n_elements(datatype) EQ 1 then datatype=strsplit(datatype, ' ', /extract)
   idx = where(datatype EQ 'pif', icnt)
   idx = where(datatype EQ 'pef', ecnt)
   if icnt EQ 0 && ecnt EQ 0 then begin
@@ -142,7 +144,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
 
     if strpos(tplotnames[i], 'spinper') NE -1 then begin
        get_data, tplotnames[i], data=d, dlimits=dl, limits=l
-       d.x=d.x/80.
+       d.y=d.y/80.
        store_data, tplotnames[i], data=d, dlimits=dl, limits=l
        continue
     endif

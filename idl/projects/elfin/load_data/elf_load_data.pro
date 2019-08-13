@@ -180,6 +180,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
           ; construct file names
           daily_names = file_dailynames(trange=tr, /unique, times=times)
+          fnames=make_array(n_elements(daily_names), /string)
           ;if instrument EQ 'fgm' && level EQ 'l1' then $
           ;   fnames = probe + '_' + level + '_' + datatype + '_' + daily_names + '_v01.cdf' else $           
           ;   fnames = probe + '_' + level + '_' + instrument + '_' + daily_names + '_v01.cdf' 
@@ -187,7 +188,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           ;   ftype = instrument + strmid(datatype, 1, 2)
           ;   fnames = probe + '_' + level + '_' + ftype + '_' + daily_names + '_v01.cdf' 
           ;endif
-
+          
           Case instrument of
             'epd': begin
                 idx = where(datatype EQ 'pif', ncnt)
@@ -210,7 +211,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
             'mrmi': ftypes='mrmi'
             'eng': ftypes='eng'
           endcase
-          fnames = probe + '_' + level + '_' + ftypes + '_' + daily_names + '_v01.cdf'
+          for dn=0, n_elements(daily_names)-1 do fnames[dn] = probe + '_' + level + '_' + ftypes + '_' + daily_names[dn] + '_v01.cdf'
             
           ;clear so new names are not appended to existing array
           undefine, tplotnames
@@ -300,7 +301,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
       endfor
     endfor
   endfor
- 
+
   ; print the total size of requested data if the user specified /available
   if keyword_set(available) then print, 'Total download size: ' + strcompress(string(total_size, format='(F0.1)'), /rem) + ' MB'
   if undefined(all_tnames) then return else tplotnames=all_tnames

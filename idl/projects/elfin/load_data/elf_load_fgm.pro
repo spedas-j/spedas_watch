@@ -103,10 +103,11 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   if undefined(level) then level = 'l1'
   if undefined(datatype) then datatype = ['fgs', 'fgf'] else datatype=strlowcase(datatype)
   if datatype EQ ['*'] then datatype = ['fgs', 'fgf']
+  if n_elements(datatype) EQ 1 then datatype=strsplit(datatype, ' ', /extract)
   idx = where(datatype EQ 'fgf', fcnt)
   idx = where(datatype EQ 'fgs', scnt)
   if fcnt EQ 0 && scnt EQ 0 then begin
-    dprint, dlevel = 1, 'Invalid data type name. Valid types are pef, pif, pes, pef. Please select again.'
+    dprint, dlevel = 1, 'Invalid data type. Valid types are [fgs, fgf]. Please select again.'
     return
   endif
 
