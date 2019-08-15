@@ -37,21 +37,25 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
     get_data, pre + '_TIME_MET', dat = t_met
     get_data, pre + '_TIME_UR8', dat = t_ur8
 
-    finite_ind = where(finite(t_ur8.y), finite_count)
+    if size(/type, t_ur8) EQ 8 and size(/type, t_met) EQ 8 then begin
 
-    if finite_count GT 0 then begin
+      finite_ind = where(finite(t_ur8.y), finite_count)
 
-      t_unix = t0_ur8 + t_ur8.y[finite_ind] * 24d * 60d * 60d
+      if finite_count GT 0 then begin
 
-      store_data, pre + '_TIME_COLLECT_TO_WRITE', $
-        dat = {x:t_unix, y:(t_ur8.x[finite_ind] - t_unix)/60d}
+        t_unix = t0_ur8 + t_ur8.y[finite_ind] * 24d * 60d * 60d
 
-      options, pre + '_TIME_COLLECT_TO_WRITE', 'ytitle', b + '!CCOLLECT!CTO WRITE'
-      options, pre + '_TIME_COLLECT_TO_WRITE', 'ysubtitle', '[Min]'
-      options, pre + '_TIME_COLLECT_TO_WRITE', 'psym', 4
-      options, pre + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.5
-      options, pre + '_TIME_COLLECT_TO_WRITE', 'colors', 6
-      options, pre + '_TIME_COLLECT_TO_WRITE', 'ylog', 1
+        store_data, pre + '_TIME_COLLECT_TO_WRITE', $
+          dat = {x:t_unix, y:(t_ur8.x[finite_ind] - t_unix)/60d}
+
+        options, pre + '_TIME_COLLECT_TO_WRITE', 'ytitle', b + '!CCOLLECT!CTO WRITE'
+        options, pre + '_TIME_COLLECT_TO_WRITE', 'ysubtitle', '[Min]'
+        options, pre + '_TIME_COLLECT_TO_WRITE', 'psym', 4
+        options, pre + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.5
+        options, pre + '_TIME_COLLECT_TO_WRITE', 'colors', 6
+        options, pre + '_TIME_COLLECT_TO_WRITE', 'ylog', 1
+
+      end
 
     end
 

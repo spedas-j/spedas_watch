@@ -79,6 +79,9 @@ FUNCTION spp_swp_spi_tof_apdat::decom, ccsds, source_dict=source_dict
 
    ;; TOF Counts
    cnts = b[24:(511+24)]
+
+   ;; Decompress TOF Counts
+   cnts = float(reform(spp_swp_log_decomp(temporary(cnts),0)))
    
    ;; Fill Structure
    tof_str = {time:ccsds.time,$
