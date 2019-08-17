@@ -2,23 +2,23 @@
 ; data from all four look directions. 
 
 ; It makes three tplot variables:
-; MVN_SEP_mean_ion_eflux
-; MVN_SEP_mean_electron_eflux
+; mvn_L2_sep_mean_ion_eflux
+; mvn_L2_sep_mean_electron_eflux
 ; Attenuator
 
-pro mvn_sep_average, trange = trange,load = load
+pro mvn_sep_average, trange = trange, load = load
 
   if keyword_set (load) then mvn_sep_load, trange = trange, format = 'L2_CDF'
-  get_data,  'MVN_SEP1f_ion_flux', data = ion_1F
-  get_data,  'MVN_SEP2f_ion_flux', data = ion_2F
-  get_data,  'MVN_SEP1r_ion_flux', data = ion_1R
-  get_data,  'MVN_SEP2r_ion_flux', data = ion_2R
+  get_data,  'mvn_L2_sep1f_ion_flux', data = ion_1F
+  get_data,  'mvn_L2_sep2f_ion_flux', data = ion_2F
+  get_data,  'mvn_L2_sep1r_ion_flux', data = ion_1R
+  get_data,  'mvn_L2_sep2r_ion_flux', data = ion_2R
   
 ; get electron flux data
-  get_data,  'MVN_SEP1f_elec_flux', data = electron_1F
-  get_data,  'MVN_SEP2f_elec_flux', data = electron_2F
-  get_data,  'MVN_SEP1r_elec_flux', data = electron_1R
-  get_data,  'MVN_SEP2r_elec_flux', data = electron_2R
+  get_data,  'mvn_L2_sep1f_elec_flux', data = electron_1F
+  get_data,  'mvn_L2_sep2f_elec_flux', data = electron_2F
+  get_data,  'mvn_L2_sep1r_elec_flux', data = electron_1R
+  get_data,  'mvn_L2_sep2r_elec_flux', data = electron_2R
 
   If(~is_struct(electron_1F) || ~is_struct(electron_1R) || $
      ~is_struct(electron_2F) || ~is_struct(electron_2R) || $
@@ -28,7 +28,7 @@ pro mvn_sep_average, trange = trange,load = load
      Return
   Endif
 
-  store_data, 'Attenuator', data = ['MVN_SEP1attenuator_state', 'MVN_SEP2attenuator_state']
+  store_data, 'Attenuator', data = ['mvn_L2_sep1attenuator_state', 'mvn_L2_sep2attenuator_state']
   options, 'Attenuator', 'colors',[70, 221]
   ylim, 'Attenuator', 0.5, 2.5
   options, 'Attenuator', 'labels',['SEP1', 'SEP2']
@@ -64,23 +64,23 @@ pro mvn_sep_average, trange = trange,load = load
   electron_eflux_mean = mean (electron_eflux_all, dim = 3,/NAN)
   Ion_eflux_mean = mean (Ion_eflux_all, dim = 3,/NAN)
   
-  store_data, 'MVN_SEP_mean_ion_eflux', Data = {x:ion_1F.x, y:Ion_eflux_mean, v:Ion_1F.v}
-  store_data, 'MVN_SEP_mean_electron_eflux', $
+  store_data, 'mvn_L2_sep_mean_ion_eflux', Data = {x:ion_1F.x, y:Ion_eflux_mean, v:Ion_1F.v}
+  store_data, 'mvn_L2_sep_mean_electron_eflux', $
               Data = {x:electron_1F.x, y:Electron_eflux_mean, v:Electron_1F.v}
   
-  options,'MVN_SEP_mean*flux', 'spec', 1
-  options,'MVN_SEP_mean*flux', 'ylog', 1
-  options,'MVN_SEP_mean*flux', 'zlog', 1
+  options,'mvn_L2_sep_mean*flux', 'spec', 1
+  options,'mvn_L2_sep_mean*flux', 'ylog', 1
+  options,'mvn_L2_sep_mean*flux', 'zlog', 1
   
-  options,'MVN_SEP_mean_ion_eflux','ytitle', 'Mean Ions, !C keV'
-  options,'MVN_SEP_mean_electron_eflux','ytitle', 'Mean Electrons, !C keV'
+  options,'mvn_L2_sep_mean_ion_eflux','ytitle', 'Mean Ions, !C keV'
+  options,'mvn_L2_sep_mean_electron_eflux','ytitle', 'Mean Electrons, !C keV'
   
 ; z-axis title & limits
-   options,'MVN_SEP_mean_*eflux', 'ztitle', 'Diff Flux, !c #/cm2/s/sr/keV'
-   ylim, 'MVN_SEP_mean_ion_eflux', 7,1e4, 1
-   ylim, 'MVN_SEP_mean_electron_eflux', 10,3e2, 1
+   options,'mvn_L2_sep_mean_*eflux', 'ztitle', 'Diff Flux, !c #/cm2/s/sr/keV'
+   ylim, 'mvn_L2_sep_mean_ion_eflux', 7,1e4, 1
+   ylim, 'mvn_L2_sep_mean_electron_eflux', 10,3e2, 1
 
-   zlim, 'MVN_SEP_mean_ion_eflux', 1, 1e5, 1
-   zlim, 'MVN_SEP_mean_electron_eflux', 1, 1e5, 1
+   zlim, 'mvn_L2_sep_mean_ion_eflux', 1, 1e5, 1
+   zlim, 'mvn_L2_sep_mean_electron_eflux', 1, 1e5, 1
 
 end

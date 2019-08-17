@@ -2,10 +2,10 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-02-05 16:17:41 -0800 (Tue, 05 Feb 2019) $
-; $LastChangedRevision:  $
-; $URL:  $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2019-08-16 10:52:47 -0700 (Fri, 16 Aug 2019) $
+; $LastChangedRevision: 27608 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
 
