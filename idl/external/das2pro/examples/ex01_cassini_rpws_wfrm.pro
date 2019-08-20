@@ -11,7 +11,7 @@ pro ex01_cassini_rpws_wfrm
 	sBeg = '2004-11-15T00:40:50.400'
 	sEnd = '2004-11-15T00:40:50.500'
 	sParams = '10khz Ew=false'
-	sFmt = '%s?server=dataset&dataset=%s&start_time=%s&end_time=%s&params=%s'
+	sFmt = '(%"%s?server=dataset&dataset=%s&start_time=%s&end_time=%s&params=%s")'
 	sUrl = string(sServer, sDataset, sBeg, sEnd, sParams, format=sFmt)
 
 	; Get the dataset
@@ -23,7 +23,7 @@ pro ex01_cassini_rpws_wfrm
 	endif
 	
 	ds = lDs[0]
-	print, n_elements(lDs), format="%d datesets read, first dataset contains:"
+	print, n_elements(lDs), format='(%"%d datesets read, first dataset contains:")'
 	print, ds
 	
 	xSampleTimes = ds['time','offset'].array
@@ -36,7 +36,7 @@ pro ex01_cassini_rpws_wfrm
 	
 	sTime = cdf_encode_tt2000(xStartTime, epoch=3)
 	
-	sXlabel = string(xUnits, sTime, format='Time [%s] from %s')
+	sXlabel = string(xUnits, sTime, format='(%"Time [%s] from %s")')
 	sYlabel = ds['WBR'].props['label'].strval
 	sTitle = ds.props['title'].strval
 	

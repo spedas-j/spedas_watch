@@ -6,14 +6,14 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-08-09 15:48:05 -0700 (Fri, 09 Aug 2019) $
-; $LastChangedRevision: 27592 $
+; $LastChangedDate: 2019-08-19 11:52:34 -0700 (Mon, 19 Aug 2019) $
+; $LastChangedRevision: 27616 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
 function mms_python_validation_ut::test_edi_default
-  mms_load_edi
-  spawn, 'python -m pyspedas.mms.tests.validation.edi', output
+  mms_load_edi, trange=['2016-10-16','2016-10-17'] ; problem with the data on 10/16/15
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.edi', output
 
   get_data, 'mms1_edi_e_gse_srvy_l2', data=d
   assert, self.compare(d.y[1300, *], self.str_to_arr(output[-1])), 'Problem with EDI'
@@ -37,7 +37,7 @@ end
 
 function mms_python_validation_ut::test_scm_default
   mms_load_scm
-  spawn, 'python -m pyspedas.mms.tests.validation.scm', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.scm', output
 
   get_data, 'mms1_scm_acb_gse_scsrvy_srvy_l2', data=d
   assert, self.compare(d.y[2000000, *], self.str_to_arr(output[-1])), 'Problem with SCM'
@@ -61,7 +61,7 @@ end
 
 function mms_python_validation_ut::test_mec_default
   mms_load_mec
-  spawn, 'python -m pyspedas.mms.tests.validation.mec', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.mec', output
 
   get_data, 'mms1_mec_r_gse', data=d
   assert, self.compare(d.y[2500, *], self.str_to_arr(output[-1])), 'Problem with MEC'
@@ -85,7 +85,7 @@ end
 
 function mms_python_validation_ut::test_fpi_default
   mms_load_fpi, probe=1, datatype=['des-moms', 'dis-moms']
-  spawn, 'python -m pyspedas.mms.tests.validation.fpi', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.fpi', output
 
   get_data, 'mms1_des_energyspectr_omni_fast', data=d
   assert, self.compare(d.y[9000, *], self.str_to_arr(output[-1])), 'Problem with FPI'
@@ -105,7 +105,7 @@ end
 
 function mms_python_validation_ut::test_feeps_default
   mms_load_feeps
-  spawn, 'python -m pyspedas.mms.tests.validation.feeps', output
+;  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.feeps', output
 
 
   return, 1
@@ -113,14 +113,14 @@ end
 
 function mms_python_validation_ut::test_dsp_default
   mms_load_dsp
-  spawn, 'python -m pyspedas.mms.tests.validation.dsp', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.dsp', output
 
   return, 1
 end
 
 function mms_python_validation_ut::test_edp_default
   mms_load_edp, probe=1
-  spawn, 'python -m pyspedas.mms.tests.validation.edp', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.edp', output
   
   get_data, 'mms1_edp_dce_gse_fast_l2', data=d
   assert, self.compare(d.y[1300000, *], self.str_to_arr(output[-1])), 'Problem with EDP'
@@ -145,7 +145,7 @@ end
 
 function mms_python_validation_ut::test_aspoc_default
   mms_load_aspoc
-  spawn, 'python -m pyspedas.mms.tests.validation.aspoc', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.aspoc', output
 
   get_data, 'mms1_aspoc_ionc_l2', data=d
   assert, d.y[60000, *] eq output[-1], 'Problem with ASPOC'
@@ -168,7 +168,7 @@ function mms_python_validation_ut::test_hpca_default
   mms_load_hpca, datatype='ion', trange=['2016-10-16', '2016-10-17']
   mms_hpca_calc_anodes, fov=[0, 360]
   mms_hpca_spin_sum, probe='1'
-  spawn, 'python -m pyspedas.mms.tests.validation.hpca', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.hpca', output
   
   get_data, 'mms1_hpca_hplus_flux_elev_0-360_spin', data=d
   assert, self.compare(d.y[7000, *], self.str_to_arr(output[-1])), 'Problem with HPCA'
@@ -186,7 +186,7 @@ end
 
 function mms_python_validation_ut::test_fgm_default
   mms_load_fgm
-  spawn, 'python -m pyspedas.mms.tests.validation.fgm', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.fgm', output
   
   get_data, 'mms1_fgm_b_gse_srvy_l2', data=d
   assert, self.compare(d.y[900000, *], self.str_to_arr(output[-1])), 'Problem with FGM'
@@ -206,8 +206,8 @@ end
 
 function mms_python_validation_ut::test_eis_default
   mms_load_eis, datatype=['extof', 'phxtof']
-  spawn, 'python -m pyspedas.mms.tests.validation.eis', output
-  
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.eis', output
+; stop
   get_data, 'mms1_epd_eis_extof_proton_flux_omni', data=d
   assert, self.compare(d.y[20000, *], self.str_to_arr(output[-1])), 'Problem with EIS (ExTOF)'
   assert, self.compare(d.y[15000, *], self.str_to_arr(output[-2])), 'Problem with EIS (ExTOF)'
@@ -240,7 +240,7 @@ end
 pro mms_python_validation_ut::setup
   del_data, '*'
   timespan, '2015-10-16', 1, /day
-
+  self.py_exe_dir = '/Users/eric/anaconda3/bin/'
   ; the pyspedas package is installed in my ~/pyspedas folder
   cd, 'pyspedas'
 end
@@ -249,5 +249,5 @@ pro mms_python_validation_ut::teardown
   cd, ''
 end
 pro mms_python_validation_ut__define
-  define = { mms_python_validation_ut, inherits MGutTestCase }
+  define = { mms_python_validation_ut, inherits MGutTestCase, py_exe_dir: '' }
 end

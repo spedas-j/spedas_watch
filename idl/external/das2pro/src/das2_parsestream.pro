@@ -775,7 +775,7 @@ function _das2_parsePackets, hStrmHdr, buffer, DEBUG=bDebug, MESSAGES=sMsg
 				; Use the name as the group name and change the name to the 
 				; name plus the packet ID
 				dataset.group = dataset.name
-				dataset.name = string(dataset.name, nPktId, format='%s_%02d')
+				dataset.name = string(dataset.name, nPktId, format='(%"%s_%02d")')
 
 				; Set this as the dataset object for this packet ID, and add it to
 				; the list of all datasets incase this packet ID is redefined
@@ -837,7 +837,7 @@ function das2_parsestream, buffer, MESSAGES=messages
        return, lErr
    endif
    nStreamHdrSz = long(string(buffer[4:9])) ; fixed length for stream header size
-	hStreamHdr = xml_parse(string(buffer[10:10+nStreamHdrSz-1]))
+	 hStreamHdr = xml_parse(string(buffer[10:10+nStreamHdrSz-1]))
    
    if hStreamHdr.haskey('stream') then begin
       ptrStream = 10 + nStreamHdrSz

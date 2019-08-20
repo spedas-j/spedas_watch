@@ -12,7 +12,7 @@ pro ex05_juno_waves_survey
 	
 	; ask for 60 second time bins ... or see below
 	sRes = '60.0'  
-	sFmt = '%s?server=dataset&dataset=%s&start_time=%s&end_time=%s&resolution=%s'
+	sFmt = '(%"%s?server=dataset&dataset=%s&start_time=%s&end_time=%s&resolution=%s")'
 	sUrl = string(sServer, sDataset, sBeg, sEnd, sRes, format=sFmt)
 	
 	; ...alternate version to get intrinsic resolution

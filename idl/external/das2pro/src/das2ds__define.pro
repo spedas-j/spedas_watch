@@ -177,7 +177,7 @@ function das2ds::_idxRangeStr
 	
 	; have the max extents in each axis, now make the string
 	for i = 0, self.rank - 1 do begin
-		aOut[i] = string(aIdxVar[i], aDsShape[i], format='%s=0:%d')
+		aOut[i] = string(aIdxVar[i], aDsShape[i], format='(%"%s=0:%d")')
 	endfor
 	
 	return, aOut.join(', ')
@@ -194,11 +194,11 @@ function das2ds::_overloadPrint
 	;n = self.recsize()
 	;s = string(n, format='Record Size: %d bytes')
 
-	sOut = string(self.name, self.group, s, format='Dataset: ''%s'' from group ''%s'' | %s')
+	sOut = string(self.name, self.group, s, format='(%"Dataset: `%s` from group `%s` | %s")')
 	aKeys = self.props.keys()
 	for i = 0, n_elements(aKeys) - 1 do begin
 		prop = self.props[aKeys[i]]
-		sOut += nl + string(aKeys[i], prop.strval, format='   Property: %s | %s')
+		sOut += nl + string(aKeys[i], prop.strval, format='(%"   Property: %s | %s")')
 	endfor
 	
 	; TODO: Refactor this.  Dims and Variables should be responsible for
@@ -222,13 +222,13 @@ function das2ds::_overloadPrint
 		
 		sDimName = aKeys[i]
 		
-		sOut += nl + nl + string(dim.kind, sDimName, format="   %s Dimension: %s")
+		sOut += nl + nl + string(dim.kind, sDimName, format='(%"   %s Dimension: %s")')
 		
 		aSubKeys = dim.props.keys()
 		for j = 0, n_elements(aSubKeys) - 1 do begin
 			prop = dim.props[aSubKeys[j]]
 			sOut += nl + string(aSubKeys[j], prop.strval, $
-			                    format='      Property: %s | %s')
+			                    format='(%"      Property: %s | %s")')
 		endfor
 		
 		aSubKeys = dim.vars.keys()
@@ -245,7 +245,7 @@ function das2ds::_overloadPrint
 			sSz = aSz.join(',')
 			sType = typename(*(var.values))
 			sOut += nl + string(sDimName, sRole, sSz, sType, var.units, $
-			                    format='      Variable: %s[''%s''][%s] (%s) %s')
+			                    format='(%"      Variable: %s[''%s''][%s] (%s) %s")')
 		endfor
 		
 	endfor

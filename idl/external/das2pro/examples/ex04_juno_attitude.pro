@@ -12,7 +12,7 @@ pro ex04_juno_attitude
 	sBeg = '2017-02-02T12:58'
 	sEnd = '2017-02-02T12:59'
 	sInt = '0.5'
-	sFmt = '%s?server=dataset&dataset=%s&start_time=%s&end_time=%s&interval=%s'
+	sFmt = '(%"%s?server=dataset&dataset=%s&start_time=%s&end_time=%s&interval=%s")'
 	sUrl = string(sServer, sDataset, sBeg, sEnd, sInt, format=sFmt)
 
 	; Get the dataset
@@ -20,7 +20,7 @@ pro ex04_juno_attitude
 	if lDs.length eq 0 then message, sMsg
 	
 	ds = lDs[0]
-	print, n_elements(lDs), format="%d datesets read, first dataset contains:"
+	print, n_elements(lDs), format='(%"%d datesets read, first dataset contains:")'
 	print, ds
 	
 	; make one plot for each data dimension

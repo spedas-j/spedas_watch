@@ -20,7 +20,7 @@ pro ex03_rbsp_ephem_loc
 	if lDs.length eq 0 then message, sMsg
 	
 	ds = lDs[0]
-	print, n_elements(lDs), format="%d datesets read, first dataset contains:"
+	print, n_elements(lDs), format='(%"%d datesets read, first dataset contains:")'
 	print, ds
 	
 	; make one plot for each data dimension
@@ -57,7 +57,7 @@ pro ex03_rbsp_ephem_loc
 		if i eq (nPlots - 1) then (aPlots[i])['axis0'].showtext = 1 ;label X				
 	endfor
 	
-	sFile = 'ex03_rbsp_ephem_loc.png'
+	sFile = 'ex03_rbsp_ephem_loc0.png'
 	aPlots[0].save, sFile, width=800, height=800, resolution=300
 	
 	print, 'Plot ', sFile, ' printed to the current directory'
