@@ -26,40 +26,78 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
 
   endif
 
-  burst_types = ['DFB_BURST','TDS_BURST']
+  get_data, 'spp_fld_dcb_events_CCSDS_MET_Seconds', data = d_met
+  get_data, 'spp_fld_dcb_events_EVNTCODE', dat = d_code
+  get_data, 'spp_fld_dcb_events_EVNTDATA0', dat = d_dat0
+  get_data, 'spp_fld_dcb_events_EVNTDATA1', dat = d_dat1
+  get_data, 'spp_fld_dcb_events_EVNTDATA2', dat = d_dat2
 
-  t0_ur8 = time_double('1982-01-01')
+  if size(/type, d_met) NE 8 then return
 
-  foreach b, burst_types do begin
 
-    pre = prefix + b
+  burst_types = prefix + ['DFB_BURST','TDS_QUALITY', 'TDS_HONESTY']
+  burst_codes = [0x3A, 0x2B, 0x2A]
+  burst_colors = [2,4,6]
 
-    get_data, pre + '_TIME_MET', dat = t_met
-    get_data, pre + '_TIME_UR8', dat = t_ur8
+  foreach b, burst_types, i do begin
 
-    if size(/type, t_ur8) EQ 8 and size(/type, t_met) EQ 8 then begin
+    ind = where(d_code.y EQ burst_codes[i], count)
 
-      finite_ind = where(finite(t_ur8.y), finite_count)
+    if count GT 0 then begin
 
-      if finite_count GT 0 then begin
+      burst_write_met = d_met.y[ind]
 
-        t_unix = t0_ur8 + t_ur8.y[finite_ind] * 24d * 60d * 60d
+      burst_collect_met = (d_met.y[ind] / 256ll^3) * 256ll^3 + $
+        d_dat0.y[ind] * 256ll^2 + $
+        d_dat1.y[ind] * 256ll + $
+        d_dat2.y[ind]
 
-        store_data, pre + '_TIME_COLLECT_TO_WRITE', $
-          dat = {x:t_unix, y:(t_ur8.x[finite_ind] - t_unix)/60d}
+      store_data, b + '_TIME_COLLECT_TO_WRITE', $
+        dat = {x:d_code.x[ind], y:(burst_write_met - burst_collect_met)>1}
 
-        options, pre + '_TIME_COLLECT_TO_WRITE', 'ytitle', b + '!CCOLLECT!CTO WRITE'
-        options, pre + '_TIME_COLLECT_TO_WRITE', 'ysubtitle', '[Min]'
-        options, pre + '_TIME_COLLECT_TO_WRITE', 'psym', 4
-        options, pre + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.5
-        options, pre + '_TIME_COLLECT_TO_WRITE', 'colors', 6
-        options, pre + '_TIME_COLLECT_TO_WRITE', 'ylog', 1
+      options, b + '_TIME_COLLECT_TO_WRITE', 'ytitle', b + '!CCOLLECT!CTO WRITE'
+      options, b + '_TIME_COLLECT_TO_WRITE', 'ysubtitle', '[Seconds]'
+      options, b + '_TIME_COLLECT_TO_WRITE', 'psym', 2
+      options, b + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.5
+      options, b + '_TIME_COLLECT_TO_WRITE', 'colors', burst_colors[i]
+      options, b + '_TIME_COLLECT_TO_WRITE', 'ylog', 1
 
-      end
+    endif
 
-    end
+  endforeach
 
-  end
+  ;  t0_ur8 = time_double('1982-01-01')
+  ;
+  ;  foreach b, burst_types do begin
+  ;
+  ;    pre = prefix + b
+  ;
+  ;    get_data, pre + '_TIME_MET', dat = t_met
+  ;    get_data, pre + '_TIME_UR8', dat = t_ur8
+  ;
+  ;    if size(/type, t_ur8) EQ 8 and size(/type, t_met) EQ 8 then begin
+  ;
+  ;      finite_ind = where(finite(t_ur8.y), finite_count)
+  ;
+  ;      if finite_count GT 0 then begin
+  ;
+  ;        t_unix = t0_ur8 + t_ur8.y[finite_ind] * 24d * 60d * 60d
+  ;
+  ;        store_data, pre + '_TIME_COLLECT_TO_WRITE', $
+  ;          dat = {x:t_unix, y:(t_ur8.x[finite_ind] - t_unix)/60d}
+  ;
+  ;        options, pre + '_TIME_COLLECT_TO_WRITE', 'ytitle', b + '!CCOLLECT!CTO WRITE'
+  ;        options, pre + '_TIME_COLLECT_TO_WRITE', 'ysubtitle', '[Min]'
+  ;        options, pre + '_TIME_COLLECT_TO_WRITE', 'psym', 4
+  ;        options, pre + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.5
+  ;        options, pre + '_TIME_COLLECT_TO_WRITE', 'colors', 6
+  ;        options, pre + '_TIME_COLLECT_TO_WRITE', 'ylog', 1
+  ;
+  ;      end
+  ;
+  ;    end
+  ;
+  ;  end
 
   ;  tu2=tu + u*24*60*60.
 

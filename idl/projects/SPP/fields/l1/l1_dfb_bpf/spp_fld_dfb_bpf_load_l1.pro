@@ -1,4 +1,4 @@
-pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix
+pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat
 
   if n_elements(file) LT 1 then begin
     print, 'Must provide a CDF file to load"
@@ -10,7 +10,7 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix
   if strpos(prefix, 'ac_bpf') NE -1 then is_ac = 1 else is_ac = 0
   if is_ac then ac_dc_str = 'AC' else ac_dc_str = 'DC'
 
-  cdf2tplot, /get_support_data, file, prefix = prefix, varnames = varnames
+  cdf2tplot, /get_support_data, file, prefix = prefix, varnames = varnames, varformat = varformat
 
   bpf_number = fix(strmid(prefix,1,1,/rev))
 
