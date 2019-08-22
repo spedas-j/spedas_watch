@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-08-16 18:18:47 -0700 (Fri, 16 Aug 2019) $
-; $LastChangedRevision: 27614 $
+; $LastChangedDate: 2019-08-20 18:35:15 -0700 (Tue, 20 Aug 2019) $
+; $LastChangedRevision: 27627 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sep/cdf/mvn_sep_make_cdf.pro $
 ; $ID: $
 
@@ -96,7 +96,7 @@ pro mvn_sep_make_cdf,data_vary,data_novary,filename=filename,dependencies=depend
   ; Variable attributes
   default_atts = {fieldnam:'',monoton:'',format:'E10.2',lablaxis:'',VAR_TYPE:'support_data',display_type:'time_series',fillval:!values.f_nan,scaletyp:'linear', $
     VALIDMIN:-1e31,VALIDMAX:1e31,SCALEMIN:0.,SCALEMAX:100.,UNITS:'',CATDESC:'', $
-    FORM_PTR:'',DEPEND_TIME:time_name,DEPEND_0:epoch_name,DEPEND_1:'',DEPEND_2:'',LABL_PTR_1:'' }
+    FORM_PTR:'',DEPEND_TIME:time_name,DEPEND_0:epoch_name,DEPEND_1:'',DEPEND_2:'',LABL_PTR_1:''}
 
   tags=tag_names(default_atts)
   for i=0,n_elements(tags)-1 do dummy=cdf_attcreate(fileid,tags[i],/variable_scope)
@@ -296,6 +296,7 @@ pro mvn_sep_make_cdf,data_vary,data_novary,filename=filename,dependencies=depend
           atts.var_type ='support_data'
           atts.catdesc = var_type2[varname2]+' Energy'+var_type5[varname5]+' (keV)'
           atts.units= 'keV'
+          atts.scaletyp= 'log'
           str_element,data_vary,varname,data
           mvn_sep_cdf_var_att_create,fileid,varname,data,attributes=atts
         endforeach
@@ -394,6 +395,8 @@ pro mvn_sep_make_cdf,data_vary,data_novary,filename=filename,dependencies=depend
     str_element,/add,atts,'SCALEMIN',0.
     str_element,/add,atts,'SCALEMAX',2.^16
     atts.catdesc = 'Raw Counts in each accumulation bin'
+    atts.display_type='spectrogram'
+    atts.scaletyp= 'log'
     mvn_sep_cdf_var_att_create,fileid,varname,data_vary.data,attributes=atts
 
     if keyword_set(data_novary) then begin
@@ -409,7 +412,7 @@ pro mvn_sep_make_cdf,data_vary,data_novary,filename=filename,dependencies=depend
       bmap = data_novary
       atts.catdesc = 'BIN Number -  Counts Accumulation Bin'
       atts.fieldnam = 'MAP.BIN'
-      mvn_sep_cdf_var_att_create,fileid,'MAP_BIN'  ,bmap.fto,attributes=atts,/rec_novary
+      mvn_sep_cdf_var_att_create,fileid,'MAP_BIN'  ,fix(bmap.bin),attributes=atts,/rec_novary
 
       atts.catdesc = 'FTO Pattern - Coincidence pattern for Telescope stack'
       atts.fieldnam = 'MAP.FTO'
@@ -458,7 +461,7 @@ pro mvn_sep_make_cdf,data_vary,data_novary,filename=filename,dependencies=depend
       atts.fieldnam = 'MAP.NRG_MEAS_AVG'
       mvn_sep_cdf_var_att_create,fileid,'MAP_NRG_MEAS_AVG'  ,bmap.nrg_meas_avg,attributes=atts,/rec_novary
 
-      atts.catdesc = 'Energy Width of bin'
+      atts.catdesc = 'Energy Width of Bin'
       atts.fieldnam = 'MAP.NRG_MEAS_DELTA'
       mvn_sep_cdf_var_att_create,fileid,'MAP_NRG_MEAS_DELTA'  ,bmap.nrg_meas_delta,attributes=atts,/rec_novary
     endif
