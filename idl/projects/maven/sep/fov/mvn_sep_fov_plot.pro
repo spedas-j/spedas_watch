@@ -12,15 +12,18 @@ pro mvn_sep_fov_mapper,pdf,sepphi,septheta
 
 end
 
-pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fraction=fraction,cr=cr
+pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fraction=fraction,cr=cr,pos=pos,time=time
 
   @mvn_sep_fov_common.pro
+  @mvn_pui_commonblock.pro ;common mvn_pui_common
   
-  pos= mvn_sep_fov[tms].pos
-  time=mvn_sep_fov[tms].time
-  tal= mvn_sep_fov[tms].tal
-  rad= mvn_sep_fov[tms].rad
-  att= mvn_sep_fov[tms].att
+  if ~keyword_set(pos) then begin
+    pos =mvn_sep_fov[tms].pos
+    time=mvn_sep_fov[tms].time
+    tal= mvn_sep_fov[tms].tal
+    rad= mvn_sep_fov[tms].rad
+    att= mvn_sep_fov[tms].att
+  endif
   
   shcoa=30.
   srefa=15.5 ;ref angle
@@ -63,9 +66,9 @@ pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fractio
   tanalt=fraction.tanalt
   tanaltmin=0
   tanaltmax=100
-  p=image(tanalt,fraction.phid,fraction.thed-90.,rgb=colortable(62,/reverse),/o,min=tanaltmin,max=tanaltmax,transparency=10) ;Mars surface
-  p=image(cossza,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Mars surface
-  p=image(atmosh,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Mars surface
+  p=image(tanalt,fraction.phid,fraction.thed-90.,rgb=colortable(62,/reverse),/o,min=tanaltmin,max=tanaltmax,transparency=10) ;Tangent Altitude
+  p=image(cossza,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Mars Surface
+;  p=image(atmosh,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Atmo Shine
   p=colorbar(rgb=colortable(62,/reverse),range=[tanaltmin,tanaltmax],title='Tangent Altitude (km)',position=[0.7,.15,.95,.2],transparency=10)
   p=colorbar(rgb=colortable(64,/reverse),range=[cosszamin,cosszamax],title='Log10[cos(SZA)]',position=[0.7,.05,.95,.1],transparency=10)
 
@@ -111,5 +114,7 @@ pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fractio
   endfor
   p=text(0,0,time_string(time))
   p=text(.3,0,'SEP1 ATT='+strtrim(att[0],2)+', SEP2 ATT='+strtrim(att[1],2))
+  
+;  if keyword_set(pui) then mvn_sep_fov_pui_plot ;to plot mag and pickup ion velocity distributions
 
 end

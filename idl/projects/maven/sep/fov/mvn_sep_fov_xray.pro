@@ -55,18 +55,17 @@ pro mvn_sep_fov_xray,det=det,sep=sep,sld=sld,occ=occ,spec=spec,fov=fov,ebin=ebin
     p=getwindows('mvn_sep_xray_occ')
     if keyword_set(p) then p.setcurrent else p=window(name='mvn_sep_xray_occ')
     p.erase
-    ;p=plot(sep2sx1[whr],sep2ao.y[whr,0],'.',/ylog,xtitle='sep2.m1',ytitle='sep2_AO_0')
     p=plot(/current,[0],/nodat,xrange=[-50,200],ytitle='SEP'+strtrim(sep+1,2)+' '+detlab[det]+' Count Rate (Hz)',xtitle='Sco X-1 Tangent Altitude (km)')
     ;    p=plot(/o,tal[2,whr].sx1,crl[sep,det,whr],'r1.')
     ;    crsep2bfbin=average_hist(crl[sep,det,whr],tal[2,whr].sx1,binsize=10.,xbins=taltsx1bin,/nan,stdev=stdev,hist=hist)
     ;    p=errorplot(/o,taltsx1bin,crsep2bfbin,stdev/sqrt(hist))
     p=text(0,0,time_string(minmax(times[whr])))
     if 1 then begin
-      get_data,'mvn_sep_xray_transmittance',data=modelcrate
-;      p=plot(tal[2,*].sx1,.7+2.*modelcrate.y[*,0],/o,'r',name='Warm')
-;      p=plot(tal[2,*].sx1,.7+2.*modelcrate.y[*,1],/o,'b',name='Cold')
-      p=plot(tal[2,*].sx1,1.83+2.47*modelcrate.y[*,0],/o,'r',name='Warm')
-      p=plot(tal[2,*].sx1,1.83+2.47*modelcrate.y[*,1],/o,'b',name='Cold')
+      bkg=.6
+      xflx=4.
+      get_data,'mvn_sep_xray_transmittance',data=trans
+      p=plot(tal[2,whr].sx1,bkg+xflx*trans.y[whr,0],/o,'r',name='Warm')
+      p=plot(tal[2,whr].sx1,bkg+xflx*trans.y[whr,1],/o,'b',name='Cold')
     endif
 
     if keyword_set(ebin) then begin

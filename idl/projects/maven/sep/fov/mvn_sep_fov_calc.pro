@@ -1,21 +1,43 @@
 ;20180419 Ali
 ;calculates a bunch of parameters for mvn_sep_fov
 
-pro mvn_sep_fov_calc
+pro mvn_sep_fov_calc,times
 
   @mvn_sep_fov_common.pro
   @mvn_sep_handler_commonblock.pro
 
+  objects=mvn_sep_fov0.objects
+  toframe=mvn_sep_fov0.toframe
   rmars=mvn_sep_fov0.rmars
-  pos=mvn_sep_fov.pos
-  rad=mvn_sep_fov.rad
-  pdm=mvn_sep_fov.pdm
-  occ=mvn_sep_fov.occ
-  tal=mvn_sep_fov.tal
-  qrot=mvn_sep_fov.qrot
-  qrot_iau=mvn_sep_fov.qrot_iau
-  times=mvn_sep_fov.time
+
   nt=n_elements(times)
+  nobj=n_elements(objects)
+  fnan=!values.d_nan ;dnan really! Am I using double due to higher precision for dot products?
+  pos=replicate({sun:fnan,ear:fnan,mar:fnan,pho:fnan,dem:fnan,cm1:fnan,sx1:fnan,ram:fnan},[3,nt])
+  tal=pos ;tangent altitude (km) ['sphere','ellipsoid','areoid']
+  pdm=reform(pos[0,*]) ;position dot mars (for occultation)
+  rad=pdm ;radial distance from the center of the object (km)
+  occ=pdm ;occultation flag
+
+  observer='maven'
+  check_maven=toframe eq 'maven_sep1' ? 'maven_spacecraft':'maven'
+  for iobj=0,nobj-1 do begin
+    pos.(iobj)=spice_body_pos(objects[iobj],observer,frame=toframe,utc=times,check_objects=[objects[iobj],observer,check_maven],/force_objects) ;position (km)
+    rad.(iobj)=sqrt(total(pos.(iobj)^2,1)) ;distance (km)
+    pos.(iobj)/=replicate(1.d,3)#rad.(iobj)
+  endfor
+  from_frame='j2000'
+  pos.ram=spice_body_vel('mars',observer,frame=from_frame,utc=times,check_objects=['mars',observer,check_maven],/force_objects) ;maven velocity wrt Mars in J2000 (km/s)
+  rad.ram=sqrt(total(pos.ram^2,1)) ;maven speed (km/s)
+  pos.ram/=-replicate(1.d,3)#rad.ram ;MAVEN velocity unit vector wrt Mars in J2000
+
+  qrot=spice_body_att(from_frame,toframe,times,/quaternion,check_objects=check_maven,/force_objects)
+  ;  from_frame='IAU_MARS'
+  ;  zdir=[0.,0.,1.] ;Mars North pole in IAU_MARS (oblate spheroid symmetry axis)
+  ;  pos.mnp=spice_vector_rotate(zdir,times,from_frame,toframe,check_objects=check_maven,/force_objects) ;Mars North pole in sep1 coordinates
+  qrot_iau=spice_body_att(toframe,'IAU_MARS',times,/quaternion,check_objects=check_maven,/force_objects)
+
+  mvn_sep_fov=replicate({pos:pos[*,0],rad:rad[0],pdm:pdm[0],occ:occ[0],tal:tal[*,0],qrot:qrot[*,0],qrot_iau:qrot_iau[*,0],time:times[0],att:[0.,0.],crl:fltarr(2,6),crh:fltarr(2,6)},nt) ;saving results to common block
 
   ;m1=[0.102810,0.921371,0.374841] ;crab nebula coordinates in J2000 from NAIF
   ;cbnm1rd=[05h 34m 31.94s , +22° 00′ 52.2″] ;Crab Nebula (M1) Right Ascention/Declination
@@ -132,18 +154,24 @@ pro mvn_sep_fov_calc
   optdep*=2.*(sco2*1e-3)*(rebin(dtad,[ntal,2])*1e5)
   transm=exp(-optdep)
 
-  store_data,'mvn_sep_xray_tanalt_d_(km)',mvn_sep_fov[wtal].time,tadsx1
-  store_data,'mvn_sep_xray_optical_depth',data={x:mvn_sep_fov[wtal].time,y:optdep},dlim={ylog:1,yrange:[.01,100],constant:1,colors:'rb',labels:['warm','cold'],labflag:-1}
-  store_data,'mvn_sep_xray_transmittance',data={x:mvn_sep_fov[wtal].time,y:transm},dlim={ylog:1,yrange:[.01,1],colors:'rb',labels:['warm','cold'],labflag:-1}
-  store_data,'mvn_sep_xray_crate_model',data={x:mvn_sep_fov[wtal].time,y:5.*transm},dlim={ylog:1,yrange:[.1,10],colors:'rb',labels:['warm','cold'],labflag:-1}
-  store_data,'mvn_sep_xray_model-data',data='mvn_sep2_xray_crate mvn_sep_xray_crate_model
+  store_data,'mvn_sep_xray_tanalt_d_(km)',times[wtal],tadsx1
+  store_data,'mvn_sep_xray_optical_depth',data={x:times[wtal],y:optdep},dlim={ylog:1,yrange:[.01,100],constant:1,colors:'rb',labels:['warm','cold'],labflag:-1}
+  store_data,'mvn_sep_xray_transmittance',data={x:times[wtal],y:transm},dlim={ylog:1,yrange:[.01,1],colors:'rb',labels:['warm','cold'],labflag:-1}
+  store_data,'mvn_sep_xray_crate_model',data={x:times[wtal],y:5.*transm},dlim={ylog:1,yrange:[.1,10],colors:'rb',labels:['warm','cold'],labflag:-1}
+  store_data,'mvn_sep1_xray_model-data',data='mvn_sep1_xray_crate mvn_sep_xray_crate_model
+  store_data,'mvn_sep2_xray_model-data',data='mvn_sep2_xray_crate mvn_sep_xray_crate_model
 
   mvn_sep_fov.pos=pos
-  mvn_sep_fov.rad=rad ;redundant: not being updated in this code!
-  mvn_sep_fov.pdm=pdm
   mvn_sep_fov.tal=tal
-  mvn_sep_fov.att=att
+  mvn_sep_fov.pdm=pdm
+  mvn_sep_fov.rad=rad
   mvn_sep_fov.occ=occ
+  mvn_sep_fov.att=att
+  mvn_sep_fov.qrot=qrot
+  mvn_sep_fov.qrot_iau=qrot_iau
+  mvn_sep_fov.time=times
+
+
   dprint,'successfully saved sep fov data to mvn_sep_fov common block'
 
 end

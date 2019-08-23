@@ -51,7 +51,6 @@
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
 ;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
 ;         pred: set this flag to retrieve predicted data. default is definitive.  
-;         get_att: set this flag to force retrieval of attitude data, even if there is none for this day
 ;                          
 ; EXAMPLES:
 ;         to load/plot the S/C position data for probe a on 2/20/2016:
@@ -69,7 +68,7 @@
 ;-
 
 pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
-  level = level, data_rate = data_rate, pred = pred, get_att=get_att, $
+  level = level, data_rate = data_rate, pred = pred, $
   local_data_dir = local_data_dir, source = source, no_download=no_download, $
   get_support_data = get_support_data, no_time_sort=no_time_sort, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
@@ -150,8 +149,8 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   elf_state_fix_metadata, tplotnames
   
   ; check for get attitude flag
-  if keyword_set(get_att) then begin
-    for i=0,n_elements(probes)-1 do elf_get_att, trange=trange, probe=probes[i]
-  endif
+;  if keyword_set(get_att) then begin
+;    for i=0,n_elements(probes)-1 do elf_get_att, trange=trange, probe=probes[i]
+;  endif
 
 end

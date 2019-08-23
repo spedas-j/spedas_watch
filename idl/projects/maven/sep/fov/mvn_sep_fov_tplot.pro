@@ -35,7 +35,7 @@ pro mvn_sep_fov_tplot,tplot=tplot,store=store,nofrac=nofrac,resdeg=resdeg
       store_data,'mvn_sep_dot_'+tag[ipos],times,transpose(pos.(ipos)),dlim={yrange:[-1,1],constant:0.,colors:'bgr',labels:['SEP1','SEP1y','SEP2'],labflag:-1,ystyle:2}
     endfor
 
-    store_data,'mvn_radial_distance_(km)',times,[[rad.sun],[rad.ear],[rad.mar],[rad.pho],[rad.dem]],dlim={ylog:1,colors:'kbrgm',labels:mvn_sep_fov0.objects,labflag:-1,ystyle:2}
+    store_data,'mvn_radial_distance_(km)',times,[[rad.sun],[rad.ear],[rad.mar],[rad.pho],[rad.dem]],dlim={ylog:1,colors:'kbrgm',labels:mvn_sep_fov0.objects,labflag:-1,ystyle:3}
     store_data,'mvn_speed_(km/s)',times,rad.ram,dlim={ylog:1,ystyle:2}
     store_data,'mvn_mars_dot_object',times,[[pdm.cm1],[pdm.sx1],[pdm.sun],[pdm.mar]],dlim={colors:'rbgk',labels:['Crab','Sco X1','Sun','Surface'],labflag:-1,ystyle:2,constant:0}
     store_data,'mvn_sep_occultation',times,[[occ.cm1],[occ.sx1],[occ.sun]],dlim={panel_size:.5,yrange:[0,5],ystyle:2,colors:'rbg',labels:['Crab','Sco X1','Sun'],labflag:-1}
