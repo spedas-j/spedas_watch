@@ -1,8 +1,12 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Program to preview a day's worth of ELFIN data for
-;; data inspection and analysis.
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; 
+;; Calibrate EPD raw data (counts/sector) into calibrated products.
+;; Supported product types are:
+;; - 'cps': counts per second [counts/s] in 16 ADC pulse-height channels
+;; - 'nflux': differential-directional number flux [#/cm^2-s-str-MeV] in 16 energy channels
+;; - 'eflux': differential-directional energy flux [MeV/cm^2-s-str-MeV] in 16 energy channels
 ;;
-;; Written by Colin Wilkins (colinwilkins@ucla.edu)
+;; Initially written by Colin Wilkins (colinwilkins@ucla.edu)
 ;;
 
 PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
@@ -25,14 +29,8 @@ PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
   endif
   sc = 'el'+probes
  
-;  itype = sc+'_pe'
-  ;tn = tnames(['pe*', '*pis'])
   tn=tnames(tplotname)
   if tn[0] NE ''  then instrument='epde' else instrument='epdi'  
-;  if instrument EQ 'epdi' then begin
-;    dprint, dlevel = 1, 'EPD calibration is yet not available for epdi.'
-;    return    
-;  endif
 
   for k=0, n_elements(probes)-1 do begin
 
@@ -64,8 +62,6 @@ PRO elf_cal_epd, probes=probes, trange=trange, tplotname=tplotname
         endfor
       endfor
 
-;      ylim, l, epd_cal.epde_ebins[0], epd_cal.epde_ebins[15]
-;      zlim, l, 1, 1, 1      
       store_data, tplotname, data={x:elf_pef.x, y:elf_pef.y, v:epd_cal.epd_ebins }, dlimits=dl, limits=l
 
     endif

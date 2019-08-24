@@ -55,9 +55,9 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
       store_data, b + '_TIME_COLLECT_TO_WRITE', $
         dat = {x:d_code.x[ind], y:(burst_write_met - burst_collect_met)>1}
 
-      options, b + '_TIME_COLLECT_TO_WRITE', 'ytitle', b + '!CCOLLECT!CTO WRITE'
+      options, b + '_TIME_COLLECT_TO_WRITE', 'ytitle', strmid(b,strlen(prefix)) + '!CCOLLECT!CTO WRITE'
       options, b + '_TIME_COLLECT_TO_WRITE', 'ysubtitle', '[Seconds]'
-      options, b + '_TIME_COLLECT_TO_WRITE', 'psym', 2
+      options, b + '_TIME_COLLECT_TO_WRITE', 'psym', 1
       options, b + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.5
       options, b + '_TIME_COLLECT_TO_WRITE', 'colors', burst_colors[i]
       options, b + '_TIME_COLLECT_TO_WRITE', 'ylog', 1

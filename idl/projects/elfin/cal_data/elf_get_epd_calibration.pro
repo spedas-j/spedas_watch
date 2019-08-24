@@ -16,12 +16,14 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
       epde_overaccumulation_factors = indgen(16)*0.+1.
       epde_overaccumulation_factors[15] = 1.15
       epde_thresh_factors = indgen(16)*0.+1.
-      epde_thresh_factors[0] = 1./2 ; change me to match the threshold curves
-      epde_thresh_factors[1] = 1.6
+      epde_thresh_factors[0] = 1./5 ; change me to match the threshold curves
+      epde_thresh_factors[1] = 1.
       epde_thresh_factors[2] = 1.2
+      epde_thresh_factors[3] = 1.
+      epde_thresh_factors[4] = 1.
       epde_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]
       epde_cal_ch_factors = 1./epde_gf*(epde_thresh_factors^(-1.))*(epde_ch_efficiencies^(-1.))
-      epde_ebins = [50., 80., 120., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3350., 4150., 5800.] ; in keV based on Jiang Liu's Geant4 code 2019-3-5      
+      epde_ebins = [50., 80., 120., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3350., 4150., 5800.] ; in keV based on Jiang Liu's Geant4 code 2019-3-5
       epde_ebin_lbls = ['50-80', '80-120', '120-160', '160-210', '210-270', '270-345', '345-430', '430-630', $
         '630-900', '900-1300', '1300-1800', '1800-2500', '2500-3350', '3350-4150', '4150-5800', '5800+'] 
       epd_calibration_data = { epd_gf:epde_gf, $

@@ -12,6 +12,8 @@
 ; Colors in SPEDAS:
 ;
 ;   To view the currently loaded color table, use: xpalette
+;   To retrieve a color index by its name, use the routine: spd_get_color (e.g., blue = spd_get_color('blue'))
+;       see the header of spd_get_color for supported colors
 ;   To load the default color table for SPEDAS, type: init_crib_colors
 ;   The procedure loadct2 loads a color table and changes 8 colors (the first 7 and the last) to these:
 ;       [black, magenta, blue, cyan, green, yellow, red, white]
@@ -58,6 +60,14 @@ loadct, get_names=cn_str
 ct = n_elements(cn_str)
 msg = 'This IDL version supports ' + string(ct) + ' color tables.'
 print, msg
+
+; Create line plot with area under the line filled in
+print, 'Example of line plot with area filled in'
+tplot, ['tha_psif_tot', 'tha_state_vel', 'tha_psif_en']
+
+; fill in tha_psif_tot 
+tplot_fill_color, 'tha_psif_tot', spd_get_color('blue')
+stop
 
 ; Plot with default colors
 init_crib_colors
