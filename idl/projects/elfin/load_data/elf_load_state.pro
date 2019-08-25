@@ -148,9 +148,4 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   ; make corrections to the metadata (dlimits)
   elf_state_fix_metadata, tplotnames
   
-  ; check for get attitude flag
-;  if keyword_set(get_att) then begin
-;    for i=0,n_elements(probes)-1 do elf_get_att, trange=trange, probe=probes[i]
-;  endif
-
 end

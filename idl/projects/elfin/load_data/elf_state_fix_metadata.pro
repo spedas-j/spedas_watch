@@ -19,8 +19,10 @@ pro elf_state_fix_metadata, tplotnames, suffix = suffix
   colors=[2,4,6]
   poslabels = ['X', 'Y', 'Z']
   vellabels = ['VX', 'VY', 'VZ']
-   
+  
   for i = 0, n_elements(tplotnames)-1 do begin
+
+    ; handle vectors
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
     if size(dl, /type) EQ 8 then begin
       coloridx=where(tag_names(dl) EQ 'COLORS', ccnt)
@@ -33,6 +35,14 @@ pro elf_state_fix_metadata, tplotnames, suffix = suffix
       dl={colors:[2,4,6], labels:labels}
     endelse
     store_data, tplotnames[i]+suffix, data=d, dlimits=dl, limits=l
+
+    ; handle time 
+    if strpos(tplotnames[i], 'solution_date') GE 0 then begin
+       get_data, tplotnames[i], data=d, dlimits=dl, limits=l
+       newy=time_double(LONG64(d.y), /tt2000)
+       store_data, tplotnames[i], data={x:d.x, y:newy}, dlimits=dl, limits=l
+    endif
+
   endfor
 
 end

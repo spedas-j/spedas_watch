@@ -11,14 +11,15 @@
 ;                       ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
 ;         probes:       list of probes, valid values for elf probes are ['a','b'].
 ;                       if no probe is specified the default is probe 'a'
-;         datatype:     valid datatypes include level 1 - ['pis', 'pif', 'pef', 'pes'] and 
-;                       level 2 -['pis_eflux', 'pif_eflux', 'pef_eflux', 'pes_eflux']
-;         data_rate:    instrument data rates include ['srvy', 'fast']. The default is 'srvy'.
+;         datatype:     valid datatypes include level 1 - ['pif', 'pef']  (there may be 
+;                       survey data for epd but it has not yet been downloaded ['pis', 'pes']
+;         data_rate:    instrument data rates include ['fast']. There may be srvy (survey data
+;                       is not yet available).
 ;         level:        indicates level of data processing. levels include 'l1' and 'l2'
 ;                       The default if no level is specified is 'l1' 
-;         unit:         Valid units include 'raw', 'flux', and 'eflux' where raw=ADC, 
-;                       flux=mev/cm^2-s-sr-mev and eflux
-;         type:         'raw' or 'calibrated'
+;         unit:         Valid units include raw='counts/sector', and calibrated=['cps', 'nflux','eflux'] default is 
+;                       nflux
+;         type:         ['raw','cps', 'nflux', 'eflux'] (eflux not yet available) 
 ;         local_data_dir: local directory to store the CDF files; should be set if
 ;                       you're on *nix or OSX, the default currently assumes Windows (c:\data\elfin\)
 ;         source:       specifies a different system variable. By default the elf mission system
@@ -33,6 +34,8 @@
 ;                       found the existing data will be overwritten
 ;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
 ;                       preserving original tplot variable.
+;         no_suffix:    keyword to turn off automatic suffix of data type (e.g. '_raw' or '_nflux)
+;                       note that no_suffix will override whatever value of suffix may have been passed in
 ;         varformat:    should be a string (wildcards accepted) that will match the CDF variables
 ;                       that should be loaded into tplot variables
 ;         cdf_filenames:  this keyword returns the names of the CDF files used when loading the data
@@ -40,10 +43,8 @@
 ;         cdf_records:  specify a number of records to load from the CDF files.
 ;                       e.g., cdf_records=1 only loads in the first data point in the file
 ;                       This is especially useful for loading S/C position for a single time
+;         no_download:  specify this keyword to load only data available on the local disk
 ;         spdf:         grab the data from the SPDF instead of the LASP SDC (only works for public access)
-;         available:    returns a list of files available at the SDC for the requested parameters
-;                       this is useful for finding which files would be downloaded (along with their sizes) if
-;                       you didn't specify this keyword (also outputs total download size)
 ;         versions:     this keyword returns the version #s of the CDF files used when loading the data
 ;         no_time_sort:  set this flag to not order time and remove duplicates
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
@@ -66,13 +67,12 @@
 pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   level = level, data_rate = data_rate, no_spec = no_spec, no_time_sort=no_time_sort, $
   local_data_dir = local_data_dir, source = source, units=units, $
-  get_support_data = get_support_data, no_cal=no_cal, type=type, $
+  get_support_data = get_support_data, type=type, no_suffix=no_suffix, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
   no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
   varformat = varformat, cdf_filenames = cdf_filenames, no_download=no_download, $
   cdf_version = cdf_version, cdf_records = cdf_records, $
-  spdf = spdf, available = available, versions = versions, $
-  tt2000=tt2000
+  spdf = spdf, versions = versions, tt2000=tt2000
 
   if undefined(probes) then probes = ['a', 'b'] 
   if probes EQ ['*'] then probes = ['a', 'b']
@@ -99,34 +99,39 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if level EQ '*' then level = ['l1']  ; we don't have l2 data yet
 
   ; check for valid datatypes for level 1 NOTE: we only have l1 data so far
+  ; NOTE: Might need to add pis, and pes
   if undefined(datatype) then datatype=['pef', 'pif'] else datatype = strlowcase(datatype)
   if datatype[0] EQ '*' then datatype=['pef', 'pif']
   if n_elements(datatype) EQ 1 then datatype=strsplit(datatype, ' ', /extract)
   idx = where(datatype EQ 'pif', icnt)
   idx = where(datatype EQ 'pef', ecnt)
   if icnt EQ 0 && ecnt EQ 0 then begin
-    dprint, dlevel = 1, 'Invalid data type name. Valid types are pef, pif, pes, pef. Please select again.'
+    dprint, dlevel = 1, 'Invalid data type name. Valid types are pef, pif. Please select again.'
     return
   endif
   
   ;if undefined(datatype) AND level eq 'l2' then datatype = ['pef_eflux'] $
   ;  else datatype = strlowcase(datatype)
-  if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = ['fast'] else data_rate=strlowcase(data_rate)
   if data_rate EQ  '*' then data_rate = ['fast']  ;, 'srvy'] NO SURVEY DATA YET
 
-  if undefined(type) then type='calibrated' else type=type
-  if ~undefined(no_cal) then type = 'raw' 
-  if undefined(unit) then begin
-     if type EQ 'raw' then unit='[counts/sector]' else unit='[nflux]';'[MeV/cm^2-s-st-MeV]'   
-  endif
+  if undefined(type) then type='nflux' else type=type
+  if type EQ 'cal' || type EQ 'calibrated' then type='nflux'
+  if undefined(suffix) OR keyword_set(no_suffix) then suffix = ''
+
+  Case type of
+    'raw': unit = 'counts/sector'
+    'cps': unit = 'counts/s'
+    'nflux': unit = '#/(s-cm!U2!N-str-MeV)'
+    ;'elfux': unit = 'eflux'
+  endcase
 
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'epd', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
     datatype = datatype, get_support_data = get_support_data, no_time_sort=no_time_sort, $
     tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
     no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
-    cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
+    cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, $
     versions = versions, tt2000=tt2000, no_download=no_download
 
   ; no reason to continue if no data were loaded
@@ -137,8 +142,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
  
   ; Post processing - calibration and fix meta data 
   for i=0,n_elements(tplotnames)-1 do begin
-
-    ; NOTE: Need to add pis, and pes
+    
     if tplotnames[i] EQ 'ela_spinper'+suffix OR tplotnames[i] EQ 'elb_spinper'+suffix then continue ; don't need to calibrate spin period
     if strpos(tplotnames[i], 'sectnum') NE -1 then continue
 
@@ -149,22 +153,22 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
        continue
     endif
 
+    ; add type of end of tplotnames
+    if ~keyword_set(no_suffix) then begin
+      tplot_rename, tplotnames[i], tplotnames[i]+'_'+type
+      tplotnames[i]=tplotnames[i]+'_'+type
+    endif
+
     ; calibrate data
-    if (type EQ 'calibrated' or type EQ 'cal') then elf_cal_epd, probe=probes, trange=trange, tplotname=tplotnames[i]
+    elf_cal_epd, tplotname=tplotnames[i], type=type
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
-    ;dl.ysubtitle=unit
-    
-    if n_tags(d) LT 3 then v=findgen(16) else v=d.v
+    dl.ysubtitle=unit
    
-    store_data, tplotnames[i], data={x:d.x, y:d.y, v:v}, dlimits=dl, limits=l
+    store_data, tplotnames[i], data={x:d.x, y:d.y, v:d.v}, dlimits=dl, limits=l
     options, tplotnames[i], ylog=1
     options, tplotnames[i], spec=0
     options, tplotnames[i], labflag=1
 
   endfor
       
-  ; no reason to continue if the user only requested available data
-  if keyword_set(available) then return
-
-
 END
