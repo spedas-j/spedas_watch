@@ -17,8 +17,6 @@
 ;                       is not yet available).
 ;         level:        indicates level of data processing. levels include 'l1' and 'l2'
 ;                       The default if no level is specified is 'l1' 
-;         unit:         Valid units include raw='counts/sector', and calibrated=['cps', 'nflux','eflux'] default is 
-;                       nflux
 ;         type:         ['raw','cps', 'nflux', 'eflux'] (eflux not yet available) 
 ;         local_data_dir: local directory to store the CDF files; should be set if
 ;                       you're on *nix or OSX, the default currently assumes Windows (c:\data\elfin\)
@@ -66,13 +64,22 @@
 ;-
 pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   level = level, data_rate = data_rate, no_spec = no_spec, no_time_sort=no_time_sort, $
-  local_data_dir = local_data_dir, source = source, units=units, $
+  local_data_dir = local_data_dir, source = source,  $
   get_support_data = get_support_data, type=type, no_suffix=no_suffix, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
   no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
   varformat = varformat, cdf_filenames = cdf_filenames, no_download=no_download, $
   cdf_version = cdf_version, cdf_records = cdf_records, $
   spdf = spdf, versions = versions, tt2000=tt2000
+
+  if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
+    dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
+    return
+  endif
+
+  if ~undefined(trange) && n_elements(trange) eq 2 $
+    then tr = timerange(trange) $
+  else tr = timerange()
 
   if undefined(probes) then probes = ['a', 'b'] 
   if probes EQ ['*'] then probes = ['a', 'b']
@@ -122,7 +129,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   Case type of
     'raw': unit = 'counts/sector'
     'cps': unit = 'counts/s'
-    'nflux': unit = '#/(s-cm!U2!N-str-MeV)'
+    'nflux': unit = '#/(scm!U2!NstrMeV)'
     ;'elfux': unit = 'eflux'
   endcase
 
