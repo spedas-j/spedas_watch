@@ -10,7 +10,7 @@ pro mvn_sep_fov_tplot,tplot=tplot,store=store,nofrac=nofrac,resdeg=resdeg
   @mvn_sep_fov_common.pro
 
   if ~keyword_set(mvn_sep_fov) then begin
-    dprint,'sep fov data not loaded. Please run mvn_sep_fov first! returning...'
+    dprint,'sep fov data not loaded. Please run mvn_sep_fov,/load,/calc first! returning...'
     return
   endif
 

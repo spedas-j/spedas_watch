@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2019-08-16 10:52:47 -0700 (Fri, 16 Aug 2019) $
-; $LastChangedRevision: 27608 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2019-08-26 22:19:43 -0700 (Mon, 26 Aug 2019) $
+; $LastChangedRevision: 27663 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -32,11 +32,11 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
   endif
 
   if (strmid(type, 0, 11) EQ 'dfb_dc_spec') or (strmid(type, 0, 11) EQ 'dfb_ac_spec') and level EQ 2 then begin
-    
+
     pathformat = 'DIR' + pathformat
-    
+
     pathformat = str_sub(pathformat, 'DIRTYPE', strmid(type, 0, 11))
-    
+
   endif
 
   pathformat = str_sub(pathformat,'TYPE',type)
@@ -66,15 +66,25 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
       endelse
 
-;      if strmatch(type,'rfs_?fr') then begin
-;        dprint,'Modifying limits'
-;        zlim,'*psp_fld_l2_rfs_?fr_*_V?V?',1e-16,1e-14,1 , /default
-;        ylim,'*psp_fld_l2_rfs_hfr_*_V?V?',1.1e6,22e6,1   , /default
-;        ylim,'*psp_fld_l2_rfs_lfr_*_V?V?',1e4,2e6,1   , /default
-;      endif
+      ;      if strmatch(type,'rfs_?fr') then begin
+      ;        dprint,'Modifying limits'
+      ;        zlim,'*psp_fld_l2_rfs_?fr_*_V?V?',1e-16,1e-14,1 , /default
+      ;        ylim,'*psp_fld_l2_rfs_hfr_*_V?V?',1.1e6,22e6,1   , /default
+      ;        ylim,'*psp_fld_l2_rfs_lfr_*_V?V?',1e4,2e6,1   , /default
+      ;      endif
 
       if strmatch(type,'mag_*') then begin
-        options,'psp_fld_l2_'+type,colors='bgr' ,/default
+
+        if tnames('psp_fld_l2_mag_RTN') NE '' then begin
+          options,'psp_fld_l2_mag_RTN',colors='bgr' ,/default
+          options,'psp_fld_l2_mag_RTN',labels=['R','T','N'] ,/default
+        endif
+
+        if tnames('psp_fld_l2_mag_SC') NE '' then begin
+          options,'psp_fld_l2_mag_SC',colors='bgr' ,/default
+          options,'psp_fld_l2_mag_SC',labels=['X','Y','Z'] ,/default
+        endif
+
       endif
 
     endelse

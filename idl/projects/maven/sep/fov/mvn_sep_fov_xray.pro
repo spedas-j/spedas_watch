@@ -107,7 +107,8 @@ pro mvn_sep_fov_xray,det=det,sep=sep,sld=sld,occ=occ,spec=spec,fov=fov,ebin=ebin
     wher=where(wcrl and wcrh and watt and wtal and wmsh,/null) ;where good signal
     range=[-1.,1.]
     crscaled=bytscl(alog10(reform(crl[sep,det,wher])),min=range[0],max=range[1])
-    mvn_sep_fov_plot,pos=pos[*,wher].sx1,cr=crscaled,time=minmax(times)
+    mvn_sep_fov_plot,pos=pos[*,wher].sx1,cr=crscaled
+    p=text(.02,.13,time_string(minmax(times)))
     p=colorbar(rgb=33,range=range,title='log10[SEP'+strtrim(sep+1,2)+' '+detlab[det]+' Count Rate (Hz)]',position=[0.5,.1,0.9,.15])
     if keyword_set(save) then p.save,resolution=150,'/home/rahmati/Desktop/sep/sep x-rays/fov response/sep'+strtrim(sep+1,2)+mvn_sep_fov0.detlab[det]+'_xray_fov_response.png'
   endif

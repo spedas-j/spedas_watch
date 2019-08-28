@@ -26,8 +26,8 @@
 ;       RESULT:  Named variable to hold the result.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-07-14 19:17:45 -0700 (Sun, 14 Jul 2019) $
-; $LastChangedRevision: 27444 $
+; $LastChangedDate: 2019-08-27 09:42:15 -0700 (Tue, 27 Aug 2019) $
+; $LastChangedRevision: 27664 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/box_mean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -70,7 +70,7 @@ pro box_mean, var, width=width, outlier=outlier, result=dat
   rmed = fltarr(npts)
   ravg = rmed
   rrms = rmed
-  rpts = intarr(npts)
+  rpts = lonarr(npts)
 
   for i=0L,(npts-1L) do begin
     imin = (i - width) > 0L

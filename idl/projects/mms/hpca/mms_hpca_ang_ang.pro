@@ -1,10 +1,27 @@
 ;+
 ; PROCEDURE:
 ;     mms_hpca_ang_ang
+; 
+; PURPOSE:
+;     Create angle-angle and angle-energy plots of HPCA distribution functions
+;     
+; INPUT:
+;     time: time of interest
+;     
+; KEYWORDS:
+;     species: HPCA species; e.g., hplus, oplus, etc (default: hplus)
+;     probe: MMS spacecraft # (default: '1')
+;     level: data level (default: 'l2')
+;     data_rate: instrument data rate (default: brst)
+;     energy_range: energy range of figures, in eV (default: full energy range)
+;     center_measurement: center the HPCA measurements (default: enabled)
+; 
+; NOTES:
+;     experimental, email questions to egrimes@igpp.ucla.edu
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-08-26 17:25:44 -0700 (Mon, 26 Aug 2019) $
-; $LastChangedRevision: 27662 $
+; $LastChangedDate: 2019-08-27 12:55:24 -0700 (Tue, 27 Aug 2019) $
+; $LastChangedRevision: 27678 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/hpca/mms_hpca_ang_ang.pro $
 ;-
 

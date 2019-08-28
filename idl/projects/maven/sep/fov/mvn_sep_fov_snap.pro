@@ -1,15 +1,16 @@
 ;20180411 Ali
 ;use mouse curser on a tplot window to choose times for plotting useful sep fov info
 
-pro mvn_sep_fov_snap,resdeg=resdeg,vector=vector
+pro mvn_sep_fov_snap,resdeg=resdeg,vector=vector,time=time
 
   @mvn_sep_fov_common.pro
   
   if ~keyword_set(mvn_sep_fov) then begin
-    dprint,'sep fov data not loaded. Please run mvn_sep_fov first! returning...'
+    dprint,'sep fov data not loaded. Please run mvn_sep_fov,/load,/calc first! returning...'
+    time=0
     return
   endif
-  dprint,'left click on the tplot window to choose a time for plotting sep fov, right click to exit.'
+  if ~keyword_set(time) then dprint,'left click on the tplot window to choose a time for plotting sep fov, right click to exit.'
 
   pos   =mvn_sep_fov.pos
   pdm   =mvn_sep_fov.pdm
@@ -22,7 +23,7 @@ pro mvn_sep_fov_snap,resdeg=resdeg,vector=vector
   th=2.*!pi*findgen(nth)/float(nth) ;angle (radians)
 
   while 1 do begin
-    ctime,t,np=1,/silent
+    if ~keyword_set(time) then ctime,t,np=1,/silent else t=time
     if ~keyword_set(t) then return
     tmin=min(abs(times-t),tminsub,/nan)
 
@@ -42,6 +43,7 @@ pro mvn_sep_fov_snap,resdeg=resdeg,vector=vector
     fraction=mvn_sep_fov_mars_shine(mvn_sep_fov0.rmars,rad[tminsub].mar*pos[*,tminsub].mar,pos[*,tminsub].sun,resdeg=resdeg,vector=vector)
 ;   fraction2=mvn_sep_anc_fov_mars_fraction(times[tminsub],check_objects=['MAVEN_SC_BUS']) ;Rob's routine (slow)
     mvn_sep_fov_plot,tminsub,suredge=suredge,occedge=occedge,sunedge=s4,fraction=fraction
+    if keyword_set(time) then return
   endwhile
 
 end

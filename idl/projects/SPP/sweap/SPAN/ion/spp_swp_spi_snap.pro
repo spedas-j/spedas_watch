@@ -1,8 +1,8 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-07-31 20:14:43 -0700 (Wed, 31 Jul 2019) $
-; $LastChangedRevision: 27527 $
+; $LastChangedDate: 2019-08-27 13:46:42 -0700 (Tue, 27 Aug 2019) $
+; $LastChangedRevision: 27680 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 ;
@@ -14,7 +14,7 @@
 ;alfven: calculates the Alfven speed from FIELDS QTN
 
 pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=alltypes,maxcalc=maxcalc,nmaxcalc=nmaxcalc,rate=rate,accum=accum,snap=snap,$
-  spectra=spectra,mode=mode,mass_explode=mass_explode,plots=plots,merge=merge,alfven=alfven
+  spectra=spectra,mode=mode,mass_explode=mass_explode,plots=plots,merge=merge,alfven=alfven,total=total
 
   if ~keyword_set(types) then types=['sf00','sf01','sf10','sf11','sf20','sf21','sf22','sf23']
   if keyword_set(alltypes) then begin
@@ -29,6 +29,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
     accum=1
     spectra=1
     mode=1
+    total=1
   endif
 
   if level eq 'L1' then begin
@@ -98,9 +99,9 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
           mmode=(mode2 and 0xf000)/16^3
           store_data,prefix+'mode',times,[[tmode],[emode],[pmode],[mmode]],dlim={ystyle:3,colors:'rbgk',labels:['t','e','p','m'],labflag:-1}
         endif
-        if keyword_set(merge) and type.charat(2) eq '0' and type.charat(3) eq '0' then begin
+        if 0 and type.charat(2) eq '0' and type.charat(3) eq '0' then begin
           nt/=2
-          data=2*rebin(data,[dim[0],nt]) ;summing over neiboring bins to go from 16 accum periods to 32 similar to other products
+          data=2*rebin(data,[dim[0],nt]) ;summing over neiboring bins to go from 16 accum periods to 32, similar to other products
           times=rebin(times,nt)
         endif
         if keyword_set(snap) then begin
@@ -149,11 +150,16 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
               store_data,prefix+'deflection',times,transpose(data_vs_theta),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
               store_data,prefix+'energy',times,transpose(data_vs_energy),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
               store_data,prefix+'anode',times,transpose(data_vs_phi),dlim={zlog:1,spec:1,yrange:[7,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+              if mbin eq 0 then begin
+                data00_phi=total(data,3,/nan)
+                times00=times
+                nt00=nt
+              endif
             endif
           end
           '1':begin
+            data[*,2*lindgen(16),*]=reverse(data[*,2*lindgen(16),*],1) ;sf1x has the "snake pattern" deflection
             if keyword_set(snap) then begin
-              data[*,2*lindgen(16)]=reverse(data[*,2*lindgen(16)])
               p=image(alog10(data),.5+findgen(8),.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
                 title='',xtitle='Deflection bin',ytitle='Energy bin',xrange=[0,9],yrange=[33,0],/current,layout=[5,2,8-5*mbin])
               p=text(/relative,target=p,0,-.01,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
@@ -163,6 +169,45 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
               data_vs_energy=total(data,1)
               store_data,prefix+'deflection',times,transpose(data_vs_theta),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
               store_data,prefix+'energy',times,transpose(data_vs_energy),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+              if keyword_set(merge) and mbin eq 0 then begin
+                indmerge=replicate(0l,nt00)
+                it10=0l
+                for it00=0l,nt00-2 do begin
+                  if times00[it00] eq times[it10] then begin
+                    indmerge[it00:it00+1]=[it00,it00+1]
+                    it00++
+                    it10++
+                  endif
+                endfor
+                indmerge2=where(indmerge ne 0,ntmerge)
+                if keyword_set(rate) then rebincoeff=1. else rebincoeff=2.
+                data00merge=rebincoeff*rebin(data00_phi[*,*,indmerge2],[datdimen,ntmerge/2]) ;summing over neiboring bins to go from 16 accum periods to 32, similar to other products
+                data00phi0=data-data00merge
+                data_vs_theta_nophi0=total(data00merge,2)
+                data_vs_energy_nophi0=total(data00merge,1)
+                datatot_nophi0=total(data_vs_energy_nophi0,1)
+                data_vs_theta_phi0=total(data00phi0,2)
+                data_vs_energy_phi0=total(data00phi0,1)
+                datatot_phi0=total(data_vs_energy_phi0,1)
+                phi0torest=datatot_phi0/datatot_nophi0 ;if this is high, most of protons are out of the fov
+                corrfac=1.7/(1.7-phi0torest)
+                wfov=where(phi0torest lt .5)
+                store_data,prefix+'sf00merge_deflection',times[0:-2],transpose(data_vs_theta_nophi0),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                store_data,prefix+'sf00anode0_deflection',times[0:-2],transpose(data_vs_theta_phi0),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                ;store_data,prefix+'-sf00anode0_deflection',times[0:-2],-transpose(data_vs_theta_phi0),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                store_data,prefix+'sf00merge_energy',times[0:-2],transpose(data_vs_energy_nophi0),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                store_data,prefix+'sf00anode0_energy',times[0:-2],transpose(data_vs_energy_phi0),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                ;store_data,prefix+'-sf00anode0_energy',times[0:-2],-transpose(data_vs_energy_phi0),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                ;store_data,prefix+'sf00anode0',times[0:-2],transpose(reform(data00phi0,[256,nt-1])),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                ;store_data,prefix+'-sf00anode0',times[0:-2],-transpose(reform(data00phi0,[256,nt-1])),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                store_data,prefix+'sf00merge_total',times[0:-2],datatot_nophi0,dlim={ylog:1,ystyle:2,labels:countrate,labflag:1}
+                store_data,prefix+'sf00mergefov_total',times[wfov],datatot_nophi0[wfov],dlim={ylog:1,ystyle:2,labels:countrate,labflag:1}
+                store_data,prefix+'sf00anode0_total',times[0:-2],datatot_phi0,dlim={ylog:1,ystyle:2,labels:countrate,labflag:1}
+                store_data,prefix+'sf00anode0/rest',times[0:-2],phi0torest,dlim={ylog:1,ystyle:2,labels:countrate,labflag:1}
+                store_data,prefix+'sf00corrfac',times[0:-2],corrfac,dlim={ylog:1,ystyle:2,labels:countrate,labflag:1}
+                ;store_data,prefix+'-sf00anode0_total',times[0:-2],-datatot_phi0,dlim={ylog:1,ystyle:2,labels:countrate,labflag:1} ;just one point for encounter 2!
+                store_data,prefix+'sf00merge_total_ovl',data=prefix+['sf00merge_total','sf00anode0_total'],dlim={yrange:[10.^(min+3),10.^(max+1)],labels:['no0','anode0'],labflag:-1,colors:'rb'}
+              endif
             endif
           end
           '2':begin
@@ -182,25 +227,26 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
               data_vs_mass=total(data,1)
               store_data,prefix+'energy',times,transpose(data_vs_energy),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
               store_data,prefix+'mass',times,transpose(data_vs_mass),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
-              if mbin eq 0 then begin
-                data_vs_energy0=data_vs_energy
-                times0=times
-                datatot0=total(data_vs_energy0,1) ;total rate (0th moment)
-                den0=total(data_vs_energy0/rebin(ve,[32,nt]),1) ;proportional to density
-                datatoten0=total(data_vs_energy0*rebin(en,[32,nt]),1)/datatot0 ;mean energy (1st moment)
-                datatotte0=sqrt(total(data_vs_energy0*(rebin(en,[32,nt]))^2,1)/datatot0-datatoten0^2) ;temperature
+              if keyword_set(merge) and mbin eq 0 then begin
+                data_vs_energy20=data_vs_energy
+                times20=times
+                datatot20=total(data_vs_energy20,1) ;total rate (0th moment)
+                den20=total(data_vs_energy20/rebin(ve,[32,nt]),1) ;proportional to density
+                den10=corrfac*total((data_vs_energy_phi0+data_vs_energy_nophi0)/rebin(ve,[32,nt]),1) ;proportional to density
+                datatoten0=total(data_vs_energy20*rebin(en,[32,nt]),1)/datatot20 ;mean energy (1st moment)
+                datatotte0=sqrt(total(data_vs_energy20*(rebin(en,[32,nt]))^2,1)/datatot20-datatoten0^2) ;temperature
                 speed0=velocity(datatoten0,/proton)
                 vther0=velocity(datatotte0,/proton)
                 store_data,prefix+'energy_mean_(eV)',times,datatoten0,dlim={ylog:ylog,yrange:yrange,ystyle:3,colors:'b'}
                 store_data,prefix+'proton_energy_ovl',data=prefix+'energy'+['','_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^(min+1),10.^max]}
               endif
-              if mbin eq 1 then begin
-                if total(times0 eq times) ne nt then message,'Different time cadence b/w sf20 and sf21, consider only loading data from 19-3-31 to 19-4-11'
+              if keyword_set(merge) and mbin eq 1 then begin
+                if total(times20 eq times) ne nt then message,'Different time cadence b/w sf20 and sf21, consider only loading data from 19-3-31 to 19-4-11'
                 data_vs_energy1=total(data[*,1:2,*],2) ;alpha mass bin peak
-                data_vs_energy2=data_vs_energy1-.005*data_vs_energy0
+                data_vs_energy2=data_vs_energy1-.005*data_vs_energy20
                 data_vs_energy3=data_vs_energy2*(data_vs_energy2 ge 0.)
                 datatot1=total(data_vs_energy3,1)
-                den1=total(data_vs_energy3/rebin(ve/sqrt(2.),[32,nt]),1)
+                den21=total(data_vs_energy3/rebin(ve/sqrt(2.),[32,nt]),1)
                 datatoten1=total(data_vs_energy3*rebin(en,[32,nt]),1)/datatot1
                 datatotte1=sqrt(total(data_vs_energy3*(rebin(en,[32,nt]))^2,1)/datatot1-(datatoten1)^2)
                 speed1=velocity(datatoten1/2.,/proton)
@@ -210,9 +256,9 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 store_data,prefix+'-alpha+proton_energy',times,transpose(-data_vs_energy2),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
                 store_data,prefix+'alpha-proton_energy_mean_(eV)',times,datatoten1,dlim={ylog:ylog,yrange:yrange,ystyle:3,colors:'r'}
                 store_data,prefix+'alpha_energy_ovl',data=prefix+'alpha-proton_energy'+['','_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^min,10.^(max-2)]}
-                store_data,prefix+'total_scaled',times,[[datatot0],[10*datatot1]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha*10'],labflag:-1}
-                ;store_data,prefix+'density_(cm-3)',times,.1*[[datatot0],[datatot1]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:-1,constant:10.^(findgen(10)-5)}
-                store_data,prefix+'density_(cm-3)',times,50.*[[den0],[10*den1]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha*10'],labflag:-1,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'total_0.1scaled',times,.1*[[datatot20],[datatot1]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:-1,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'density_(cm-3)',times,50.*[[den20],[den21]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:-1,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'corrdensity_(cm-3)',times[0:-2],50.*den10,dlim={ylog:1,ystyle:3,colors:'g',constant:10.^(findgen(10)-5)}
                 store_data,prefix+'energy_mean_(eV)',times,[[datatoten0],[datatoten1]],dlim={ylog:ylog,yrange:yrange,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:1}
                 store_data,prefix+'bulk_speed_(km/s)',times,[[speed1],[speed0]],dlim={ystyle:3,colors:'rb',labels:['alpha','proton'],labflag:-1,constant:findgen(10)*100.}
                 store_data,prefix+'thermal_speed_(km/s)',times,[[vther1],[vther0]],dlim={ystyle:3,colors:'rb',labels:['alpha','proton'],labflag:-1,constant:findgen(10)*100.}
@@ -220,9 +266,8 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 store_data,prefix+'dE/E',times,[[datatotte1/datatoten1],[datatotte0/datatoten0]],dlim={ystyle:3,colors:'rb',labels:['alpha','proton'],labflag:-1,ylog:1}
                 store_data,prefix+'speed_difference_(km/s)',times,speed1-speed0,dlim={ystyle:3,constant:0}
                 store_data,prefix+'speed_ratio',times,speed1/speed0,dlim={ystyle:3,constant:1}
-                store_data,prefix+'alpha2proton_flux_ratio',times,datatot1/datatot0,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
-                ;store_data,prefix+'alpha2proton_density_ratio',times,datatot1/datatot0*speed0/speed1,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
-                store_data,prefix+'alpha2proton_density_ratio',times,den1/den0,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'alpha2proton_flux_ratio',times,datatot1/datatot20,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
+                store_data,prefix+'alpha2proton_density_ratio',times,den21/den20,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
                 store_data,prefix+'energy_ovl',data=prefix+['alpha_energy','energy_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^min,10.^(max-2)]}
               endif
               if keyword_set(mass_explode) then begin
@@ -234,7 +279,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
             endif
           end
         endcase
-        if keyword_set(spectra) then begin
+        if keyword_set(spectra) and keyword_set(total) then begin
           datatot=total(data_vs_energy,1)
           store_data,prefix+'total',times,datatot,dlim={ylog:1,ystyle:2,labels:countrate,labflag:1}
         endif
@@ -243,25 +288,26 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
           max-=1
         endif
       endforeach
-      if keyword_set(spectra) then begin
+      if keyword_set(spectra) and keyword_set(total) then begin
         store_data,'psp_swp_spi_sfx0_L1_total_ovl',data='psp_swp_spi_sf?0_L1_total',dlim={yrange:[10.^(min+3),10.^(max+1)],colors:'bgr'}
         store_data,'psp_swp_spi_sfx1_L1_total_ovl',data='psp_swp_spi_sf?1_L1_total',dlim={yrange:[10.^(min+2),10.^(max-1)],colors:'bgr'}
       endif
       if keyword_set(alfven) then begin
-        spp_swp_load,/spi,type='sf01'
-        spp_swp_load,/fld,type='rfs_lfr
+        get_data,'psp_swp_spi_sf01_L3_MAGF',data=mag
+        get_data,'psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_fp',data=fp
+        if ~keyword_set(mag) then spp_swp_load,/spi,type='sf01'
+        if ~keyword_set(fp) then spp_swp_load,/fld,type='rfs_lfr
         psp_fld_rfs_convol_peak
         get_data,'psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_fp',data=fp
         nfp=(fp.y/9e3)^2 ;cm-3
         store_data,'psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_nfp_(cm-3)',fp.x,nfp,dlim={ylog:1,ystyle:3,labels:'QTN',labflag:1}
-        store_data,'psp_swp_spi_nfp_den_(cm-3)_ovl',data='psp_swp_spi_sf21_L1_density_(cm-3) psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_nfp_(cm-3)',dlim={yrange:[1,1000]}
+        store_data,'psp_swp_spi_nfp_den_(cm-3)_ovl',data='psp_swp_spi_sf21_L1_density_(cm-3) psp_swp_spi_sf21_L1_corrdensity_(cm-3) psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_nfp_(cm-3)',dlim={yrange:[1,1000]}
 
         xyz_to_polar,'psp_swp_spi_sf01_L3_MAGF'
         get_data,'psp_swp_spi_sf01_L3_MAGF_mag',data=mag
         if keyword_set(mag) then begin
           mp_kg = 1.6726231e-27 ;proton mass
           mu0 = 1.2566370614e-6
-          ;np=50.*den0 ;proton density
           np=interp(nfp,fp.x,mag.x)
           valf = (mag.y*(1e-9)/sqrt(mp_kg * np * 1e6 * mu0))/1e3
           store_data,'psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_nfp_interp_(cm-3)',mag.x,np,dlim={ylog:1,ystyle:3}

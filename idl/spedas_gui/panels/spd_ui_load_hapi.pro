@@ -8,8 +8,8 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-04-30 12:06:07 -0700 (Mon, 30 Apr 2018) $
-;$LastChangedRevision: 25147 $
+;$LastChangedDate: 2019-08-27 11:53:41 -0700 (Tue, 27 Aug 2019) $
+;$LastChangedRevision: 27673 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/panels/spd_ui_load_hapi.pro $
 ;-
 
@@ -191,8 +191,10 @@ Pro spd_ui_load_hapi, gui_id, historywin, statusbar,timeRangeObj=timeRangeObj
 
   ;Select hapi server
   selectServerLabel = widget_label(upLeftBase, value='1. Select HAPI server', /align_top)
-  hapi_servers=['http://datashop.elasticbeanstalk.com/hapi','http://tsds.org/get/SSCWeb/hapi', $
-    'http://mag.gmu.edu/TestData/hapi','https://voyager.gsfc.nasa.gov/hapiproto']
+  ; https://github.com/hapi-server/servers/blob/master/all.txt
+  hapi_servers=['https://cdaweb.gsfc.nasa.gov/hapi','https://pds-ppi.igpp.ucla.edu/hapi', $
+    'http://planet.physics.uiowa.edu/das/das2Server/hapi','https://iswa.gsfc.nasa.gov/IswaSystemWebApp/hapi', $
+    'http://lasp.colorado.edu/lisird/hapi']
   serverList = widget_list(upLeftBase, value=hapi_servers, /align_top, scr_xsize = 250, scr_ysize = 100, uvalue='SERVERLIST', uname='SERVERLIST')
   selectServerLabelEmpty11 = widget_label(upLeftBase, value=' ', /align_top, scr_xsize = 250)
   selectServerLabel = widget_label(upLeftBase, value='Selected HAPI server:', /align_top, scr_xsize = 250)

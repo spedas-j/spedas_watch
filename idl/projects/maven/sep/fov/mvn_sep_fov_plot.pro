@@ -12,19 +12,20 @@ pro mvn_sep_fov_mapper,pdf,sepphi,septheta
 
 end
 
-pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fraction=fraction,cr=cr,pos=pos,time=time
+;tms: time minimum subscript, normally supplied by mvn_sep_fov_snap
+;suredge: surface edge of mars
+;occedge: occultation altitude edge (~100 km, set by mvn_sep_fov)
+;sunedge: Sun-ward hemisphere edge
+;fraction: fraction of fov covered by mars, atmo and mars shine, etc.
+;pos: position of points to be plotted with colors given by cr
+;cr: colors corresponding to pos
+;overplot: if set, does not erase the previous mvn_sep_fov plot
+
+pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fraction=fraction,cr=cr,pos=pos,overplot=overplot
 
   @mvn_sep_fov_common.pro
   @mvn_pui_commonblock.pro ;common mvn_pui_common
-  
-  if ~keyword_set(pos) then begin
-    pos =mvn_sep_fov[tms].pos
-    time=mvn_sep_fov[tms].time
-    tal= mvn_sep_fov[tms].tal
-    rad= mvn_sep_fov[tms].rad
-    att= mvn_sep_fov[tms].att
-  endif
-  
+
   shcoa=30.
   srefa=15.5 ;ref angle
   scrsa=21.0 ;cross angle
@@ -39,19 +40,29 @@ pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fractio
 
   p=getwindows('mvn_sep_fov')
   if keyword_set(p) then p.setcurrent else p=window(name='mvn_sep_fov')
-  p.erase
-  p=plot([0],/nodat,/aspect_ratio,xrange=[180,-180],yrange=[-90,90],xtickinterval=45.,ytickinterval=45.,xminor=8.,yminor=8.,xtitle='SEP XZ (ref) angle',ytitle='SEP XY (cross) angle',/current)
+  if ~keyword_set(overplot) then begin
+    p.erase
+    p=plot([0],/nodat,/aspect_ratio,xrange=[180,-180],yrange=[-90,90],xtickinterval=45.,ytickinterval=45.,xminor=8.,yminor=8.,xtitle='SEP XZ (ref) angle',ytitle='SEP XY (cross) angle',/current)
+    if ~keyword_set(tms) then begin
+      for pn=-1,2 do begin  ;SEP 2R,1F,2F,1R
+        p=plot(edges+rebin([90.*pn-45.,0.],[2,5]),/o)
+        p=text((3.-pn)/5.,.76,'SEP'+title[pn])
+      endfor
+    endif
+  endif
 
   if keyword_set(cr) then begin
     mvn_sep_fov_mapper,pos,sepphi,septheta
     p=scatterplot(/o,sepphi,septheta,rgb=33,sym='.',magnitude=cr)
-    for pn=-1,2 do begin  ;SEP 2R,1F,2F,1R
-      p=plot(edges+rebin([90.*pn-45.,0.],[2,5]),/o)
-      p=text((3.-pn)/5.,.76,'SEP'+title[pn])
-    endfor
-    p=text(.02,.13,time_string(time))
-    return
   endif
+
+  if keyword_set(tms) then begin
+    pos =mvn_sep_fov[tms].pos
+    time=mvn_sep_fov[tms].time
+    tal= mvn_sep_fov[tms].tal
+    rad= mvn_sep_fov[tms].rad
+    att= mvn_sep_fov[tms].att
+  endif else return
 
   logfrac=1
   if keyword_set(logfrac) then begin
@@ -68,9 +79,9 @@ pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fractio
   tanaltmax=100
   p=image(tanalt,fraction.phid,fraction.thed-90.,rgb=colortable(62,/reverse),/o,min=tanaltmin,max=tanaltmax,transparency=10) ;Tangent Altitude
   p=image(cossza,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Mars Surface
-;  p=image(atmosh,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Atmo Shine
-  p=colorbar(rgb=colortable(62,/reverse),range=[tanaltmin,tanaltmax],title='Tangent Altitude (km)',position=[0.7,.15,.95,.2],transparency=10)
-  p=colorbar(rgb=colortable(64,/reverse),range=[cosszamin,cosszamax],title='Log10[cos(SZA)]',position=[0.7,.05,.95,.1],transparency=10)
+  ;  p=image(atmosh,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Atmo Shine
+  p=colorbar(rgb=colortable(62,/reverse),range=[tanaltmin,tanaltmax],title='Tangent Altitude (km)',position=[0.7,.125,.95,.145],transparency=10)
+  p=colorbar(rgb=colortable(64,/reverse),range=[cosszamin,cosszamax],title='Log10[cos(SZA)]',position=[0.7,.05,.95,.07],transparency=10)
 
   tags=strlowcase(tag_names(pos))
   tags=[tags,strtrim(fix(mvn_sep_fov0.occalt),2)+' km','Sunward','Mars Surface']
@@ -84,11 +95,12 @@ pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fractio
     if ipos ge 0  then pdf=pos.(ipos) ;planets and x-ray sources
     mvn_sep_fov_mapper,pdf,sepphi,septheta
     p=plot([sepphi,sepphi],[septheta,septheta],/o,name=tags[ipos],sym_color=colors[ipos],sym=syms[ipos],/sym_filled,' ')
+    ;the positions in the plot are repeated twice for the legend symbols to show up!
   endfor
-  p=legend(/orient,position=[1,1],SAMPLE_WIDTH=0)
+  p=legend(/orient,position=[1,1],sample_width=0)
 
   for pn=-1,2 do begin  ;SEP 2R,1F,2F,1R
-    if att[pn and 1] eq 1. then p=plot(edges    +rebin([90.*pn-45.,0.],[2,5]),/o)
+    if att[pn and 1] eq 1. then p=plot(edges   +rebin([90.*pn-45.,0.],[2,5]),/o)
     if att[pn and 1] eq 2. then p=plot(edges/2.+rebin([90.*pn-45.,0.],[2,5]),/o)
     p=plot(edge0+rebin([90.*pn-45.,0.],[2,5]),/o,'--')
     p=text((3.-pn)/5.,.92,strtrim(fraction.mars_surfa[pn],2))
@@ -104,17 +116,17 @@ pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fractio
   p=text(0,.86,'Atmo Shine*FOV')
   p=text(0,.83,'Mars Shine')
   p=text(0,.80,'Mars Shine*FOV')
-  p=text(0,.09,'mvn alt (km)')
-  p=text(0,.06,'Sco X-1 tanalt (km)')
-  p=text(0,.03,'Distance to Phobos (km)='+strtrim(fix(rad.pho),2)+', mvn speed (km/s)='+strtrim(rad.ram,2))
+  p=text(0,.13,'mvn alt (km)')
+  p=text(0,.10,'Sco X-1 tanalt (km)')
+  p=text(0,.07,'Distance to Phobos='+strtrim(fix(rad.pho),2)+' km, mvn speed='+strtrim(rad.ram,2)+' km/s')
   for pn=0,2 do begin  ;tangent altitude
-    p=text((3.-pn)/5.5,.12,(['sphere','ellipsoid','areoid'])[pn])
-    p=text((3.-pn)/5.5,.09,strtrim(tal[pn].mar,2))
-    p=text((3.-pn)/5.5,.06,strtrim(tal[pn].sx1,2))
+    p=text((3.-pn)/5.5,.16,(['sphere','ellipsoid','areoid'])[pn])
+    p=text((3.-pn)/5.5,.13,strtrim(tal[pn].mar,2))
+    p=text((3.-pn)/5.5,.10,strtrim(tal[pn].sx1,2))
   endfor
-  p=text(0,0,time_string(time))
+  p=text(0,0,time_string(time)+'sep1time')
   p=text(.3,0,'SEP1 ATT='+strtrim(att[0],2)+', SEP2 ATT='+strtrim(att[1],2))
-  
-;  if keyword_set(pui) then mvn_sep_fov_pui_plot ;to plot mag and pickup ion velocity distributions
+
+  ;if keyword_set(pui) then mvn_sep_fov_pui_plot ;to plot mag and pickup ion velocity distributions
 
 end
