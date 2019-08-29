@@ -15,17 +15,21 @@
 ;     data_rate: instrument data rate (default: brst)
 ;     energy_range: energy range of figures, in eV (default: full energy range)
 ;     center_measurement: center the HPCA measurements (default: enabled)
+;     png: save the plots as PNG files
+;     postscript: save the plots as PS files 
+;     filename_suffix: append a suffix to the plot file names
 ; 
 ; NOTES:
 ;     experimental, email questions to egrimes@igpp.ucla.edu
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-08-27 12:55:24 -0700 (Tue, 27 Aug 2019) $
-; $LastChangedRevision: 27678 $
+; $LastChangedDate: 2019-08-28 09:57:10 -0700 (Wed, 28 Aug 2019) $
+; $LastChangedRevision: 27689 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/hpca/mms_hpca_ang_ang.pro $
 ;-
 
-pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate=data_rate, energy_range=energy_range, center_measurement=center_measurement
+pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate=data_rate, energy_range=energy_range, $
+    center_measurement=center_measurement, postscript=postscript, png=png, filename_suffix=filename_suffix
 
   if undefined(time) then begin
     time = gettime(key='Enter time: ')
@@ -36,6 +40,12 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
   if undefined(energy_range) then energy_range = [0, 40000] ; eV
   if undefined(data_rate) then data_rate = 'brst'
   if undefined(center_measurement) then center_measurement=1b
+  if undefined(filename_suffix) then filename_suffix = ''
+  
+  if ~undefined(postscript) and ~undefined(png) then begin
+    dprint, dlevel = 0, 'Error, both PNG and POSTSCRIPT output requested, but can only do one at a time; defaulting to postscript'
+    undefine, png
+  endif
   
   mms_load_hpca, datatype='ion', level=level, data_rate=data_rate, trange=trange, probe=probe, center_measurement=center_measurement, /time_clip, tplotnames=tplotnames
   
@@ -93,15 +103,22 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
     endfor
   endfor
 
+  if ~undefined(postscript) then popen, 'azimuth_vs_zenith'+filename_suffix, /landscape else window, 1, xsize=xsize, ysize=ysize
+  
   ; angle-angle over the energy range
   plotxyz, window=1, phi_bins, theta_flow_direction, summed_out, /zlog, /noisotropic, xrange=[0, 360], yrange=[0, 180], zrange=zrange, xsize=xsize, ysize=ysize, $
     xtitle='Az flow angle (deg)', $
     ytitle='Zenith flow angle (deg)', $
     ztitle='f (s!U3!N/cm!U6!N)', $
     title=time_string(closest_time, tformat='YYYY-MM-DD/hh:mm:ss.fff')+' (' + strcompress(string(energy_range[0]) + '-'+string(energy_range[1]), /rem)+ ' eV)'
+    
+  if ~undefined(png) then makepng, 'azimuth_vs_zenith'+filename_suffix
+  if ~undefined(postscript) then pclose
   
   theta_en = total(data_at_ens, 2)
 
+  if ~undefined(postscript) then popen, 'zenith_vs_energy'+filename_suffix, /landscape else window, 2, xsize=xsize, ysize=ysize
+  
   ; Zenith vs. energy
   plotxyz, window=2, energies, theta_flow_direction, theta_en, /noisotropic, /zlog, xsize=xsize, ysize=ysize, $
     xtitle='Energy (eV)', $
@@ -109,6 +126,9 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
     ztitle='f (s!U3!N/cm!U6!N)', $
     title=time_string(closest_time, tformat='YYYY-MM-DD/hh:mm:ss.fff'), $
     /xlog, xrange=energy_axis, yrange=[0, 180.], zrange=zrange, yticks=6
+    
+  if ~undefined(png) then makepng, 'zenith_vs_energy'+filename_suffix
+  if ~undefined(postscript) then pclose
     
   phi_en = total(data_at_ens, 3)
   phi_out = dblarr(n_elements(energies), num_phi+1)
@@ -122,6 +142,8 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
     endfor
   endfor
 
+  if ~undefined(postscript) then popen, 'azimuth_vs_energy'+filename_suffix, /landscape else window, 3, xsize=xsize, ysize=ysize
+
   ; Azimuth vs. energy
   plotxyz, window=3, energies, phi_bins, phi_out, /noisotropic, /zlog, xsize=xsize, ysize=ysize, $
     xtitle='Energy (eV)', $
@@ -130,4 +152,6 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
     title=time_string(closest_time, tformat='YYYY-MM-DD/hh:mm:ss.fff'), $
     /xlog, xrange=energy_axis, yrange=[0, 360.], zrange=zrange, yticks=6
 
+  if ~undefined(png) then makepng, 'azimuth_vs_energy'+filename_suffix
+  if ~undefined(postscript) then pclose
 end

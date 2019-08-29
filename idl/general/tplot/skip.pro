@@ -36,17 +36,25 @@
 ;       LAST:     Go to end of loaded time range and plot the requested
 ;                 interval from there.
 ;
+;       PERI:     If the shift units are orbits and keyword FIRST or LAST is
+;                 set, then go to first or last periapsis and plot the
+;                 requested interval from there.
+;
+;       APO:      If the shift units are orbits and keyword FIRST or LAST is
+;                 set, then go to first or last apoapsis and plot the
+;                 requested interval from there.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-07-02 13:04:31 -0700 (Tue, 02 Jul 2019) $
-; $LastChangedRevision: 27398 $
+; $LastChangedDate: 2019-08-27 18:18:46 -0700 (Tue, 27 Aug 2019) $
+; $LastChangedRevision: 27687 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/skip.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
 pro skip, n, orb=orb, day=day, sec=sec, minute=minute, hour=hour, page=page, $
-             first=first, last=last
+             first=first, last=last, peri=peri, apo=apo
 
-  common skip_com, ptime, period, mode
+  common skip_com, ptime, atime, period, mode
 
 ; Determine skip units
 
@@ -88,11 +96,15 @@ pro skip, n, orb=orb, day=day, sec=sec, minute=minute, hour=hour, page=page, $
       period = orb.peri_time - shift(orb.peri_time,1)
       period[0] = period[1]
       ptime = orb.peri_time
+      atime = orb.apo_time
     endif
 
     i = nn2(ptime,[t[0],mean(topt.trange),t[1]])
     p = period[i]
-  endif
+  endif else begin
+    peri = 0
+    apo = 0
+  endelse
 
   case mode of
     1 : delta_t = 1D
@@ -118,12 +130,32 @@ pro skip, n, orb=orb, day=day, sec=sec, minute=minute, hour=hour, page=page, $
 ; Shift the time window
 
   if keyword_set(first) then begin
-    tlimit, [t[0], t[0]+abs(delta_t)]
+    t0 = t[0]
+    if keyword_set(peri) then begin
+      i = where(ptime gt t[0])
+      t0 = ptime[i[0]]
+    endif
+    if keyword_set(apo) then begin
+      i = where(atime gt t[0])
+      t0 = atime[i[0]]
+    endif
+      
+    tlimit, [t0, t0+abs(delta_t)]
     return
   endif
 
   if keyword_set(last) then begin
-    tlimit, [t[1]-abs(delta_t), t[1]]
+    t1 = t[1]
+    if keyword_set(peri) then begin
+      i = where(ptime lt t[1], n)
+      t1 = ptime[i[n-1]]
+    endif
+    if keyword_set(apo) then begin
+      i = where(atime lt t[1], n)
+      t1 = atime[i[n-1]]
+    endif
+
+    tlimit, [t1-abs(delta_t), t1]
     return
   endif
 
