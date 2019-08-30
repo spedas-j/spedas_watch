@@ -13,15 +13,14 @@ pro mvn_sep_fov_mapper,pdf,sepphi,septheta
 end
 
 ;tms: time minimum subscript, normally supplied by mvn_sep_fov_snap
-;suredge: surface edge of mars
-;occedge: occultation altitude edge (~100 km, set by mvn_sep_fov)
-;sunedge: Sun-ward hemisphere edge
+;edge: surface edge of mars, occultation altitude edge, Sun-ward hemisphere edge
 ;fraction: fraction of fov covered by mars, atmo and mars shine, etc.
 ;pos: position of points to be plotted with colors given by cr
 ;cr: colors corresponding to pos
+;sym: symbol used to plot pos
 ;overplot: if set, does not erase the previous mvn_sep_fov plot
 
-pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fraction=fraction,cr=cr,pos=pos,overplot=overplot
+pro mvn_sep_fov_plot,tms,edge=edge,fraction=fraction,pos=pos,cr=cr,sym=sym,overplot=overplot
 
   @mvn_sep_fov_common.pro
   @mvn_pui_commonblock.pro ;common mvn_pui_common
@@ -51,9 +50,9 @@ pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fractio
     endif
   endif
 
-  if keyword_set(cr) then begin
+  if keyword_set(pos) then begin
     mvn_sep_fov_mapper,pos,sepphi,septheta
-    p=scatterplot(/o,sepphi,septheta,rgb=33,sym='.',magnitude=cr)
+    if keyword_set(cr) then p=scatterplot(/o,sepphi,septheta,magnitude=cr,rgb=33,sym='.',name=' ') else p=plot([sepphi,sepphi],[septheta,septheta],/o,name=sym.name,sym_color=sym.color,sym=sym.symbol,' ')
   endif
 
   if keyword_set(tms) then begin
@@ -89,9 +88,9 @@ pro mvn_sep_fov_plot,tms,suredge=suredge,occedge=occedge,sunedge=sunedge,fractio
   syms=['o','o','o','o','o','*','*','x','.','.']
   npos=n_tags(pos)
   for ipos=-2,npos-1 do begin
-    if ipos eq -3 then pdf=occedge ;Mars occultation altitude
-    if ipos eq -2 then pdf=sunedge ;Sun-ward hemisphere
-    if ipos eq -1 then pdf=suredge ;Mars edge
+    if ipos eq -3 then pdf=edge.occedge ;Mars occultation altitude
+    if ipos eq -2 then pdf=edge.sunedge ;Sun-ward hemisphere
+    if ipos eq -1 then pdf=edge.suredge ;Mars edge
     if ipos ge 0  then pdf=pos.(ipos) ;planets and x-ray sources
     mvn_sep_fov_mapper,pdf,sepphi,septheta
     p=plot([sepphi,sepphi],[septheta,septheta],/o,name=tags[ipos],sym_color=colors[ipos],sym=syms[ipos],/sym_filled,' ')

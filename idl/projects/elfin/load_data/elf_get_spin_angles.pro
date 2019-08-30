@@ -1,21 +1,23 @@
-pro elf_get_spin_angles, probes=probes, start_time=start_time, stop_time=stop_time
+pro elf_get_spin_angles, probes=probes, att=att, start_time=start_time, stop_time=stop_time
 
-  if undefined(probe) then probe='a'
-  timespan, start_time
-  tr=timerange()
-  if undefined(stop_time) then stop_time=time_string(time_double(start_time)+86400.)
+  if undefined(probes) then probes='a'
+   timespan, start_time
+   tr=timerange()
+   if undefined(stop_time) then stop_time=time_string(time_double(start_time)+86400.)
 
   for i = 0, n_elements(probes)-1 do begin
     
-    sc='el'+probes[i]
-    if ~spd_data_exists(sc+'_att_gei',start_time,stop_time) then elf_get_att, start_time=start_time, probe=probe  
-    get_data, sc+'_att_gei', data=att
-    if size(att, /type) ne 8 then begin
-      print, 'No attitude data available.'
-      return
+    if undefined(att) then begin
+      sc='el'+probes[i]
+      if ~spd_data_exists(sc+'_att_gei',start_time,stop_time) then elf_get_att, start_time=start_time, probe=probe  
+      get_data, sc+'_att_gei', data=att
+      if size(att, /type) ne 8 then begin
+        print, 'No attitude data available.'
+        return
+      endif
     endif
-    
-    if ~spd_data_exists(sc+'_pos_gei',start_time,stop_time) then elf_load_state, probe=probe, trange=tr
+
+    if ~spd_data_exists(sc+'_pos_gei',start_time,stop_time) then elf_load_state, probe=probes[i], trange=tr
     get_data, sc+'_pos_gei', data=pos
     if size(pos, /type) ne 8 then begin
       print, 'No position data available.'

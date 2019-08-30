@@ -123,14 +123,14 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if data_rate EQ  '*' then data_rate = ['fast']  ;, 'srvy'] NO SURVEY DATA YET
 
   if undefined(type) then type='nflux' else type=type
-  if type EQ 'cal' || type EQ 'calibrated' then type='nflux'
+  if type EQ 'cal' || type EQ 'calibrated' then type='eflux'
   if undefined(suffix) OR keyword_set(no_suffix) then suffix = ''
 
   Case type of
     'raw': unit = 'counts/sector'
     'cps': unit = 'counts/s'
     'nflux': unit = '#/(scm!U2!NstrMeV)'
-    ;'elfux': unit = 'eflux'
+    'eflux': unit = 'keV/(scm!U2!NstrMeV)'
   endcase
 
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'epd', $

@@ -49,16 +49,16 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
     in_date = time_double(date)+j*60.*60.*24.
 
     if keyword_set(north_only) then begin
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
       return
     endif
     if keyword_set(south_only) then begin
-     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south
+     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
      return
     endif
 
-    elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products
-    elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south
+    elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
+    elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
 
   endfor
 

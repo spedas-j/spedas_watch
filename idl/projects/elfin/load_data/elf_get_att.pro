@@ -33,7 +33,7 @@ pro elf_get_att, trange=trange, probe=probe
 
   ; remove any other att data
   del_data, sc+'_att_gei'
-  del_data, sc+'_att_last_solution'
+  del_data, sc+'_att_solution_date'
   del_data, sc+'_*ang'    
   day_count = 0
 
@@ -59,7 +59,7 @@ pro elf_get_att, trange=trange, probe=probe
        else att_time=time_double(tr[0])+(86400./2.)
      newatty = att.y[npts-1,*]
      store_data, sc+'_att_gei', data={x:att_time, y:newatty}, dlimits=dl, limits=l
-     store_data, sc+'_att_last_solution', data={x:last_solution}    
+     store_data, sc+'_att_solution_date', data={x:last_solution}    
   endelse
   tn=tnames(sc+'*_temp')
   if tn[0] ne '' then del_data, tn

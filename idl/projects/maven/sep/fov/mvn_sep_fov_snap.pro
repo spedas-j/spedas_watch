@@ -42,7 +42,7 @@ pro mvn_sep_fov_snap,resdeg=resdeg,vector=vector,time=time
 
     fraction=mvn_sep_fov_mars_shine(mvn_sep_fov0.rmars,rad[tminsub].mar*pos[*,tminsub].mar,pos[*,tminsub].sun,resdeg=resdeg,vector=vector)
 ;   fraction2=mvn_sep_anc_fov_mars_fraction(times[tminsub],check_objects=['MAVEN_SC_BUS']) ;Rob's routine (slow)
-    mvn_sep_fov_plot,tminsub,suredge=suredge,occedge=occedge,sunedge=s4,fraction=fraction
+    mvn_sep_fov_plot,tminsub,edge={suredge:suredge,occedge:occedge,sunedge:s4},fraction=fraction
     if keyword_set(time) then return
   endwhile
 

@@ -56,6 +56,7 @@ PRO elf_cal_epd, tplotname=tplotname, type=type
   ebins = epd_cal.epd_ebins
   cal_ch_factors = epd_cal.epd_cal_ch_factors
   overint_factors = epd_cal.epd_overaccumulation_factors
+  ebins_logmean = epd_cal.epd_ebins_logmean
  
   Case type of
     'raw': store_data, tplotname, data={x:d.x, y:d.y, v:findgen(16) }, dlimits=dl, limits=l      
@@ -64,7 +65,7 @@ PRO elf_cal_epd, tplotname=tplotname, type=type
       dt=[dt, dt[n_elements(dt)-1]]
       y_cps=d.y
       for i=0,15 do y_cps[*,i]=d.y[*,i]/dt
-      store_data, tplotname, data={x:d.x, y:y_cps, v:findgen(16) }, dlimits=dl, limits=l
+      store_data, tplotname, data={x:d.x, y:y_cps, v:ebins }, dlimits=dl, limits=l
     end
     'nflux': begin
       for i = 0, num_samples-1 do begin
@@ -75,10 +76,18 @@ PRO elf_cal_epd, tplotname=tplotname, type=type
           d.y[i,j] *= cal_ch_factors[j]*overint_factors[sec_num]*1./dt*1./dE
         endfor
       endfor
-      store_data, tplotname, data={x:d.x, y:d.y, v:epd_cal.epd_ebins }, dlimits=dl, limits=l
+      store_data, tplotname, data={x:d.x, y:d.y, v:ebins }, dlimits=dl, limits=l
     end
     'eflux': begin
-      dprint, dlevel=1, 'eflux calibration not yet available.'
+      for i = 0, num_samples-1 do begin
+        sec_num = i mod 16
+        if (sec_num eq 0) then dt = d.x[i+1]-d.x[i]
+        for j = 0, 15 do begin
+          if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
+          d.y[i,j] *= ebins_logmean[j]*cal_ch_factors[j]*overint_factors[sec_num]*1./dt*1./dE
+        endfor
+      endfor
+      store_data, tplotname, data={x:d.x, y:d.y, v:ebins_logmean }, dlimits=dl, limits=l
     end
   Endcase
 
