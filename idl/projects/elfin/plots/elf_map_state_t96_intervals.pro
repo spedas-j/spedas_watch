@@ -25,7 +25,8 @@
 ;    model    specify Tsyganenko model like 't89' or 't01', default is 't96'
 ;    dir_move directory name to move plots to
 ;    quick_trace  run ttrace2iono on smaller set of points for speed
-;
+;    hires    set this flag to create a higher resolution plot
+;    
 ; OUTPUTS:
 ;    None
 ;
@@ -58,7 +59,7 @@
 ;-
 
 pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=noview,$
-  move=move, model=model, dir_move=dir_move, insert_stop=insert_stop, $
+  move=move, model=model, dir_move=dir_move, insert_stop=insert_stop, hires=hires, $
   no_trace=no_trace, tstep=tstep, clean=clean, quick_trace=quick_trace
 
   ; ACN
@@ -75,12 +76,16 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     dir_products=dir_move
   endif
   if ~keyword_set(quick) then quick=1
-
+  if keyword_set(hires) then hires=1 else hires=0
+  
   elf_init
   aacgmidl
   loadct,39
   thm_init
-  
+
+  set_plot,'z'
+  device,set_resolution=[750,500]
+
   tvlct,r,g,b,/get
 
   ; colors and symbols, closest numbers for loadct,39
@@ -179,10 +184,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       
       ; interpolate the minute-by-minute data back to the full array
       get_data,'el'+probes[sc]+'_ifoot_geo_mins',data=ifoot_mins
-      ;interp_x = interp(ifoot_mins.y[*,0], ifoot_mins.x, dats.x)
-      ;interp_y = interp(ifoot_mins.y[*,1], ifoot_mins.x, dats.x)
-      ;interp_z = interp(ifoot_mins.y[*,2], ifoot_mins.x, dats.x)
-      ;ifoot_geo_interp_full = reform([[interp_x, interp_y, interp_z]])
       store_data,'el'+probes[sc]+'_ifoot_geo',data={x: dats.x, y: interp(ifoot_mins.y[*,*], ifoot_mins.x, dats.x)}
       
       ; clean up the temporary data
@@ -276,24 +277,26 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   elf_mlt_l_lat,'elb_pos_sm',MLT0=MLTB,L0=LB,LAT0=latB ;;subroutine to calculate mlt,l,mlat under dipole configuration
 
   ; get attitude info for plot text
-  get_data, 'ela_spin_norm_ang', data=norma
-  get_data, 'ela_spin_sun_ang', data=suna
-  get_data, 'ela_att_last_solution', data=solna
-  get_data, 'elb_spin_norm_ang', data=normb
-  get_data, 'elb_spin_sun_ang', data=sunb
-  get_data, 'elb_att_last_solution', data=solnb
+  get_data, 'ela_spin_orbnorm_angle', data=norma
+  get_data, 'ela_spin_sun_angle', data=suna
+  get_data, 'ela_att_solution_date', data=solna
+  get_data, 'elb_spin_orbnorm_angle', data=normb
+  get_data, 'elb_spin_sun_angle', data=sunb
+  get_data, 'elb_att_solution_date', data=solnb
+
   if size(norma, /type) EQ 8 then norma_str=strmid(strtrim(string(norma.y[0]),1),0,5) $
-  else norma_str = 'No att data'
+    else norma_str = 'No att data'
   if size(suna, /type) EQ 8 then suna_str=strmid(strtrim(string(suna.y[0]),1),0,5) $
-  else suna_str = 'No att data'
+    else suna_str = 'No att data'
   if size(solna, /type) EQ 8 then solna_str=time_string(solna.x[0]) $
-  else solna_str = 'No att data'
+    else solna_str = 'No att data'
   if size(normb, /type) EQ 8 then normb_str=strmid(strtrim(string(normb.y[0]),1),0,5) $
-  else normb_str = 'No att data'
+    else normb_str = 'No att data'
   if size(sunb, /type) EQ 8 then sunb_str=strmid(strtrim(string(sunb.y[0]),1),0,5) $
-  else sunb_str = 'No att data'
+    else sunb_str = 'No att data'
   if size(solnb, /type) EQ 8 then solnb_str=time_string(solnb.x[0]) $
-  else solnb_str = 'No att data'
+    else solnb_str = 'No att data'
+
   ;reset time frame since attitude data might be several days old
   timespan,tstart,88200.,/day
   tr=timerange()
@@ -428,7 +431,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     !p.multi=0
     if keyword_set(gifout) then begin
       set_plot,'z'
-      device,set_resolution=[1200,900]
+      if hires then device,set_resolution=[1200,900] else device,set_resolution=[800,600]
       charsize=1
     endif else begin
       set_plot,'win'   ;'x'
@@ -438,8 +441,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
     ; annotate constants
     xann=9.96
-    yann=463
-    ;yann=510
+    if hires then yann=750 else yann=463
     
     ; find midpt MLT for this orbit track
     midx=min_st[k] + (min_en[k] - min_st[k])/2.
@@ -604,37 +606,59 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots,pwdboundlonlat[*,0]-mid_hr*15.,pwdboundlonlat[*,1],color=155, thick=1.05
       plots,ewdboundlonlat[*,0]-mid_hr*15.,ewdboundlonlat[*,1],color=155, thick=1.05
     endelse
-
+    
+    if hires then charsize=.75 else charsize=.65
     ; annotate
+    xann=9.6
     xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
-    xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=.65
-    xyouts,xann,yann+12.5*6,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=.65
-    xyouts,xann,yann+12.5*5,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=.65
-    xyouts,xann,yann+12.5*4,'Time Att Soln: '+solna_str,/device,charsize=.65
-    xyouts,xann,yann+12.5*3,'Altitude, km: '+this_a_alt_str,/device,charsize=.65
+    xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*6,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*5,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,'Time Att Soln: '+solna_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
 
     yann=0.02
     xyouts,xann,yann+12.5*6,'ELFIN (B)',/device,charsize=.75,color=254
-    xyouts,xann,yann+12.5*5.,'Period, min: '+b_period_str,/device,charsize=.65
-    xyouts,xann,yann+12.5*4,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=.65
-    xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=.65
-    xyouts,xann,yann+12.5*2,'Time Att Soln: '+solnb_str,/device,charsize=.65
-    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=.65
+    xyouts,xann,yann+12.5*5.,'Period, min: '+b_period_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,'Time Att Soln: '+solnb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
 
+    if hires then xann=670 else xann=410
+    if hires then yann=750 else yann=463
+    if hires then begin
+      yann=750
+      xann=670
+      xyouts, xann-5,yann+12.5*8,'Earth/Oval View Center Time (triangle)',/device,color=255,charsize=charsize
+      xyouts, xann+18,yann+12.5*7,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
+      xyouts, xann+25,yann+12.5*6,'Mag Lat/Lon - Red dotted lines',/device,color=251,charsize=charsize
+      xyouts, xann+55,yann+12.5*5,'Auroral Oval - Green lines',/device,color=155,charsize=charsize
+      xyouts, xann+75,yann+12.5*4,'Tick Marks every 5min',/device,color=255,charsize=charsize
+      xyouts, xann+75,yann+12.5*3,'Start Time - Diamond',/device,color=255,charsize=charsize
+      xyouts, xann+85,yann+12.5*2,'End Time - Asterisk',/device,color=255,charsize=charsize
+      xyouts, xann+105,yann+12.5*1,'Thick - Science',/device,color=255,charsize=charsize
+    endif else begin
+      yann=463
+      xann=410
+      xyouts, xann-5,yann+12.5*8,'Earth/Oval View Center Time (triangle)',/device,color=255,charsize=charsize
+      xyouts, xann+15,yann+12.5*7,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
+      xyouts, xann+21,yann+12.5*6,'Mag Lat/Lon - Red dotted lines',/device,color=251,charsize=charsize
+      xyouts, xann+47,yann+12.5*5,'Auroral Oval - Green lines',/device,color=155,charsize=charsize
+      xyouts, xann+66,yann+12.5*4,'Tick Marks every 5min',/device,color=255,charsize=charsize
+      xyouts, xann+66,yann+12.5*3,'Start Time - Diamond',/device,color=255,charsize=charsize
+      xyouts, xann+75,yann+12.5*2,'End Time - Asterisk',/device,color=255,charsize=charsize
+      xyouts, xann+93,yann+12.5*1,'Thick - Science',/device,color=255,charsize=charsize      
+    endelse
+    
+    yann=0.02    
+    if hires then xann = 660 else xann=393
     case 1 of
-      ;tsyg_mod eq 't89': xyouts,.6182,.82,'Tsyganenko-1989',/normal,charsize=.65,color=255
-      tsyg_mod eq 't89': xyouts,.6155,0.0385,'Tsyganenko-1989',/normal,charsize=.65,color=255
-      tsyg_mod eq 't96': xyouts,.6155,0.0385,'Tsyganenko-1996',/normal,charsize=.65,color=255
-      tsyg_mod eq 't01': xyouts,.6155,0.0385,'Tsyganenko-2001',/normal,charsize=.65,color=255
+      ;tsyg_mod eq 't89': xyouts,.6182,.82,'Tsyganenko-1989',/normal,charsize=.75,color=255
+      tsyg_mod eq 't89': xyouts,xann+20,yann+12.5*2,'Tsyganenko-1989',/device,charsize=charsize,color=255
+      tsyg_mod eq 't96': xyouts,xann+20,yann+12.5*2,'Tsyganenko-1996',/device,charsize=charsize,color=255
+      tsyg_mod eq 't01': xyouts,xann+20,yann+12.5*2,'Tsyganenko-2001',/device,charsize=charsize,color=255
     endcase
-    xyouts, .5,0.94,'Earth/Oval View Center Time (triangle)',/normal,color=255,charsize=.65
-    xyouts, .525,0.92,'Geo Lat/Lon - Black dotted lines',/normal,color=255,charsize=.65
-    xyouts, .5325,0.9,'Mag Lat/Lon - Red dotted lines',/normal,color=251,charsize=.65
-    xyouts, .57,0.88,'Auroral Oval - Green lines',/normal,color=155,charsize=.65
-    xyouts, .592,0.86,'Tick Marks every 5min',/normal,color=255,charsize=.65
-    xyouts, .592, 0.84,'Start Time - Diamond',/normal,color=255,charsize=.65
-    xyouts, .604, 0.82,'End Time - Asterisk',/normal,color=255,charsize=.65
-    xyouts, .628,0.8,'Thick - Science',/normal,color=255,charsize=.65
 
     xyouts, .01, .475, '00:00', charsize=1.15, /normal
     xyouts, .663, .475, '12:00', charsize=1.15, /normal
@@ -647,7 +671,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endelse
 
     ; add time of creation
-    xyouts,  .51, 0.0185, 'Created: '+systime(),/normal,color=255, charsize=.65
+    xyouts,  xann+20, yann+12.5, 'Created: '+systime(),/device,color=255, charsize=charsize
    
     ; SM X-Z
     plot,findgen(10),xrange=[-2,2],yrange=[-2,2],$
@@ -812,17 +836,19 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     plots,[600./800.*0.96,1.],[0.005+0.96*0./3.,0.005+0.96*0./3.],/normal
 
     ; gif-output
+    
     if keyword_set(gifout) then begin
+
+      ; Create small plot
       image=tvrd()
       device,/close
       set_plot,'z'
-      device,set_resolution=[1200,900]
+      ;device,set_resolution=[1200,900]
       image[where(image eq 255)]=1
       image[where(image eq 0)]=255
-      ;if not keyword_set(noview) then window,3,xsize=800,ysize=600
+      if not keyword_set(noview) then window,3,xsize=800,ysize=600
       if not keyword_set(noview) then tv,image
       dir_products = !elf.local_data_dir + 'gtrackplots/'+ strmid(date,0,4)+'/'+strmid(date,5,2)+'/'+strmid(date,8,2)+'/'
-
       file_mkdir, dir_products
       filedate=file_dailynames(trange=tr, /unique, times=times)
 
@@ -834,21 +860,19 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
       if keyword_set(move) then gif_name=dir_products+'/'+'elf_l2_'+plot_name+'_'+filedate+file_lbl[k] else $
         gif_name='elf_l2_'+plot_name+'_'+filedate+file_lbl[k]
-       if keyword_set(move) then gif_name=dir_products+'/'+'elf_l2_'+plot_name+'_'+filedate+file_lbl[k] else $
-           gif_name='elf_l2_'+plot_name+'_'+filedate+file_lbl[k]
 
-       write_gif,gif_name+'.gif',image,r,g,b
-       print,'Output in ',gif_name+'.gif'
-       stop
-    endif
+      if hires then gif_name=gif_name+'_hires'
+      write_gif,gif_name+'.gif',image,r,g,b
+      print,'Output in ',gif_name+'.gif'
+
+   endif
 
     if keyword_set(insert_stop) then stop
     prev_a_period = a_period
     prev_b_period = b_period
     
   endfor ; end of plotting loop
-
-
+  
   pro_end_time=SYSTIME(/SECONDS)
   print, SYSTIME(), ' -- Finished creating overview plots'
   print, 'Duration (s): ', pro_end_time - pro_start_time

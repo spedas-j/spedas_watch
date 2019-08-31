@@ -131,10 +131,11 @@ pro elf_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remote
   print,ptrace()
   print,days,hours,mins,secs,format= '("ELFIN countdown:",i4," Days, ",i02," Hours, ",i02," Minutes, ",i02," Seconds since launch")'
   
+  ; THIS HAS BEEN MOVED TO spedas_init
   ;debugging fix?
-  if !version.release ge '8.3' then begin
-    !debug_process_events = 0
-  endif
+;  if !version.release ge '8.3' then begin
+;    !debug_process_events = 0
+;  endif
   return
 
 END
