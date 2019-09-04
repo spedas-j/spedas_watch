@@ -15,21 +15,26 @@
 ;     data_rate: instrument data rate (default: brst)
 ;     energy_range: energy range of figures, in eV (default: full energy range)
 ;     center_measurement: center the HPCA measurements (default: enabled)
+;     flux: plot the flux instead of the distribution function
 ;     png: save the plots as PNG files
 ;     postscript: save the plots as PS files 
 ;     filename_suffix: append a suffix to the plot file names
 ; 
 ; NOTES:
+;     warning: the data plotted by this routine are not omni-directional, i.e. spin-averaged/spin-summed,
+;              so the azimuthal angles will be limited to those in the sample closest to
+;              the requested time
+;     
 ;     experimental, email questions to egrimes@igpp.ucla.edu
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-08-28 09:57:10 -0700 (Wed, 28 Aug 2019) $
-; $LastChangedRevision: 27689 $
+; $LastChangedDate: 2019-09-03 11:22:51 -0700 (Tue, 03 Sep 2019) $
+; $LastChangedRevision: 27714 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/hpca/mms_hpca_ang_ang.pro $
 ;-
 
 pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate=data_rate, energy_range=energy_range, $
-    center_measurement=center_measurement, postscript=postscript, png=png, filename_suffix=filename_suffix
+    center_measurement=center_measurement, postscript=postscript, png=png, filename_suffix=filename_suffix, flux=flux
 
   if undefined(time) then begin
     time = gettime(key='Enter time: ')
@@ -49,7 +54,9 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
   
   mms_load_hpca, datatype='ion', level=level, data_rate=data_rate, trange=trange, probe=probe, center_measurement=center_measurement, /time_clip, tplotnames=tplotnames
   
-  get_data, 'mms'+probe+'_hpca_'+species+'_phase_space_density', data=d, dlimits=dl
+  var = 'mms'+probe+'_hpca_'+species+'_'
+  var = keyword_set(flux) ? var+'flux' : var+'phase_space_density'
+  get_data, var, data=d, dlimits=dl
 
   if ~is_struct(d) then begin
     dprint, dlevel = 0, 'Error, no data found.'
@@ -66,14 +73,16 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
   idx_of_ens = where(energies ge energy_range[0] and energies le energy_range[1])
   energies = energies[idx_of_ens]
   
-  distptr = mms_get_dist('mms'+probe+'_hpca_'+species+'_phase_space_density', single_time=time)
-  
+  distptr = mms_get_dist(var, single_time=time)
+
   if ~ptr_valid(distptr) then begin
     dprint, dlevel = 4, 'Error, no data found for this time: '+time_string(time)
     return
   endif
   
   dist = *distptr
+  
+  units = spd_units_string(strlowcase(dist.units_name))
   
   ; energy-azimuth-elevation
   ; energy-phi-theta
@@ -109,7 +118,7 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
   plotxyz, window=1, phi_bins, theta_flow_direction, summed_out, /zlog, /noisotropic, xrange=[0, 360], yrange=[0, 180], zrange=zrange, xsize=xsize, ysize=ysize, $
     xtitle='Az flow angle (deg)', $
     ytitle='Zenith flow angle (deg)', $
-    ztitle='f (s!U3!N/cm!U6!N)', $
+    ztitle=units, $
     title=time_string(closest_time, tformat='YYYY-MM-DD/hh:mm:ss.fff')+' (' + strcompress(string(energy_range[0]) + '-'+string(energy_range[1]), /rem)+ ' eV)'
     
   if ~undefined(png) then makepng, 'azimuth_vs_zenith'+filename_suffix
@@ -123,7 +132,7 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
   plotxyz, window=2, energies, theta_flow_direction, theta_en, /noisotropic, /zlog, xsize=xsize, ysize=ysize, $
     xtitle='Energy (eV)', $
     ytitle='Zenith flow angle (deg)', $
-    ztitle='f (s!U3!N/cm!U6!N)', $
+    ztitle=units, $
     title=time_string(closest_time, tformat='YYYY-MM-DD/hh:mm:ss.fff'), $
     /xlog, xrange=energy_axis, yrange=[0, 180.], zrange=zrange, yticks=6
     
@@ -148,7 +157,7 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
   plotxyz, window=3, energies, phi_bins, phi_out, /noisotropic, /zlog, xsize=xsize, ysize=ysize, $
     xtitle='Energy (eV)', $
     ytitle='Azimuth flow angle (deg)', $
-    ztitle='f (s!U3!N/cm!U6!N)', $
+    ztitle=units, $
     title=time_string(closest_time, tformat='YYYY-MM-DD/hh:mm:ss.fff'), $
     /xlog, xrange=energy_axis, yrange=[0, 360.], zrange=zrange, yticks=6
 

@@ -400,23 +400,26 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ewdboundlonlat[*,1]=theta
   if keyword_set(south) then ewdboundlonlat[*,1]=-theta ;else pwdboundlonlat[*,1]=theta
 
-  ; determine times at orbit apogee (needed for determining total orbital period)
+  ; determine orbital period
   ; Elfin A
-  
-  ax=ela_state_pos_sm.y[*,0]
-  ay=ela_state_pos_sm.y[*,1]
-  az=ela_state_pos_sm.y[*,2]
-  find_orbits, ax, ay, az, a_ind_pg, a_ind_ag, /nostop
-  at_ag=ela_state_pos_sm.x[a_ind_ag]
+  res=where(ela_state_pos_sm.y[*,1] GE 0, ncnt)
+  find_interval, res, sres, eres
+  at_ag=(ela_state_pos_sm.x[eres]-ela_state_pos_sm.x[sres])/60.*2
+  at_s=ela_state_pos_sm.x[sres]
+  med_ag=median(at_ag)
   an_ag = n_elements(at_ag)
-
+  badidx = where(at_ag LT 80.,ncnt)
+  if ncnt GT 0 then at_ag[badidx]=med_ag
+  
   ; Elfin B
-  bx=elb_state_pos_sm.y[*,0]
-  by=elb_state_pos_sm.y[*,1]
-  bz=elb_state_pos_sm.y[*,2]
-  find_orbits, bx, by, bz, b_ind_pg, b_ind_ag, /nostop
-  bt_ag=ela_state_pos_sm.x[b_ind_ag]
+  res=where(elb_state_pos_sm.y[*,1] GE 0, ncnt)
+  find_interval, res, sres, eres
+  bt_ag=(elb_state_pos_sm.x[eres]-elb_state_pos_sm.x[sres])/60.*2
+  bt_s=elb_state_pos_sm.x[sres]
+  med_ag=median(bt_ag)
   bn_ag = n_elements(bt_ag)
+  badidx = where(bt_ag LT 80.,ncnt)
+  if ncnt GT 0 then bt_ag[badidx]=med_ag
 
   ; for gif-output
   date=strmid(tstart,0,10)
@@ -468,11 +471,19 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endelse
 
     ; display latitude/longitude
-    for i=0,nmlats-1 do oplot,v_lon[i,*]-mid_hr*15.,-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-    for i=0,nmlons-1 do begin
-       idx=where(u_lon[i,*] NE 0)
-       oplot,u_lon[i,idx]-mid_hr*15.,-u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
-    endfor
+    if keyword_set(south) then begin
+      for i=0,nmlats-1 do oplot,v_lon[i,*]-mid_hr*15.,-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+      for i=0,nmlons-1 do begin
+        idx=where(u_lon[i,*] NE 0)
+        oplot,u_lon[i,idx]-mid_hr*15.,-u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+      endfor     
+    endif else begin
+      for i=0,nmlats-1 do oplot,v_lon[i,*]-mid_hr*15.,v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+      for i=0,nmlons-1 do begin
+         idx=where(u_lon[i,*] NE 0)
+         oplot,u_lon[i,idx]-mid_hr*15.,u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+      endfor
+    endelse
 
     ; Set up data for ELFIN A for this time span
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
@@ -585,18 +596,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endif
 
     ; find total orbit time for this plot
-    idx = where(this_time[0] GT at_ag, ncnt)
-    if ncnt EQ 0 then a_period=at_ag[1]-at_ag[0]
-    if ncnt EQ 1 then a_period=at_ag[an_ag-1]-at_ag[an_ag-2]
-    if ncnt GE 2 then a_period=at_ag[idx[1]]-at_ag[idx[0]]
-    if a_period LT 80. && ~undefined(prev_a_period) then a_period=prev_a_period
-    a_period_str = strmid(strtrim(string(a_period/60.), 1),0,4)
-    idx = where(this_time2[0] GT bt_ag, ncnt)
-    if ncnt EQ 0 then b_period=bt_ag[1]-bt_ag[0]
-    if ncnt EQ 1 then b_period=bt_ag[bn_ag-1]-bt_ag[bn_ag-2]
-    if ncnt GE 2 then b_period=bt_ag[idx[1]]-bt_ag[idx[0]]
-    if b_period LT 80. && ~undefined(prev_b_period) then b_period=prev_b_period
-    b_period_str = strmid(strtrim(string(b_period/60.), 1),0,4)
+    idx = where(at_s GE this_time[0], ncnt)
+    if ncnt EQ 0 then idx=0
+    a_period_str = strmid(strtrim(string(at_ag[idx[0]]), 1),0,5)
+    idx = where(bt_s GE this_time2[0], ncnt)
+    if ncnt EQ 0 then idx=0
+    b_period_str = strmid(strtrim(string(bt_ag[idx[0]]), 1),0,5)
 
     ; Plot auroral zones and plot
     if keyword_set(south) then begin
@@ -868,8 +873,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
    endif
 
     if keyword_set(insert_stop) then stop
-    prev_a_period = a_period
-    prev_b_period = b_period
     
   endfor ; end of plotting loop
   
