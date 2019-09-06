@@ -247,7 +247,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   endfor  ; end of sc loop
 
   ; retrieve fgm and epd data if available
-  elf_load_epd
+  elf_load_epd, type='raw'
   elf_load_fgm
   ; get all the science data collected and append times
   get_data, 'ela_pef', data=pefa
