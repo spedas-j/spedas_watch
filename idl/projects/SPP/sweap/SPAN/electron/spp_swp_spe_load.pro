@@ -1,16 +1,16 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-08-16 09:12:39 -0700 (Fri, 16 Aug 2019) $
-; $LastChangedRevision: 27607 $
+; $LastChangedDate: 2019-09-06 12:49:23 -0700 (Fri, 06 Sep 2019) $
+; $LastChangedRevision: 27732 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
 
 
-pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose, all = all, hkp = hkp,save=save,level=level
+pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose, alltypes = alltypes,allvars=allvars, hkp = hkp,save=save,level=level
 
   if ~keyword_set(spxs) then spxs = ['spa','spb']
   if ~keyword_set(types) then types = ['sf1', 'sf0']  ;,'st1','st0']   ; add archive when available
-  if keyword_set(all) then types = ['sf1', 'sf0', 'af1', 'af0', 'hkp']
+  if keyword_set(alltypes) then types = ['sf1', 'sf0', 'af1', 'af0', 'hkp']
 
   fileprefix = 'psp/data/sci/sweap/'
   
@@ -28,16 +28,17 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   ;test                                  ='psp/data/sci/sweap/spa/L1/2018/10/spa_hkp/spp_swp_spa_hkp_20181004_v??.cdf
   vars = orderedhash()
   vars['sf1'] = 'EFLUX EMODE'
+  vars['st1'] = 'EFLUX EMODE'
   vars['sf0'] = 'EFLUX EMODE *THETA* *PHI* *ENERGY*'
   vars['st0'] = 'EFLUX EMODE *THETA* *PHI* *ENERGY*'
   vars['af1'] = 'EFLUX EMODE'
   vars['af0'] = 'EFLUX EMODE *THETA* *PHI* *ENERGY*'
-  if keyword_set(all) then begin
+  if keyword_set(allvars) then begin
     vars['sf1'] = '*'
     vars['sf0'] = '*'
   endif
   vars['hkp'] = '*TEMP* *_BITS *_FLAG* *CMD*'
-  if keyword_set(all) then vars['hkp'] = vars['hkp'] + ' *CNT*' + ' *PEAK*' + ' *CMD*'
+  if keyword_set(allvars) then vars['hkp'] = vars['hkp'] + ' *CNT*' + ' *PEAK*' + ' *CMD*'
   
   if keyword_set(level) && level eq 'L1' then begin
     loc['sf1'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
@@ -66,7 +67,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       prefix = 'psp_swp_'+spx+'_'+type+'_'
       if keyword_set(varformat) then vfm = varformat else vfm=vars[type]
       cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose
-      if type eq 'sf0' or type eq 'af0' then begin ;; will need to change this in the future if sf0 isn't 3d spectra.
+      if 0 and (type eq 'sf0' or type eq 'af0') then begin ;; will need to change this in the future if sf0 isn't 3d spectra.
         ;; make a line here to get data from tplot
         ;; Hard code bins for now, retain option to keep flexible later
         nrg_bins = 32
@@ -113,21 +114,21 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         
         ;; some lines here to put these back in tplot - done for NRG spec
         ;; be done?
+        ylim,prefix+'EFLUX',1.,10000.,1,/default
+        ylim,'*ENERGY*_ql',1,1,1,/default
+        ylim,'*ANODE*_ql',0,0,0,/default
+        ylim,'*DEF*_ql',0,0,0,/default
+        Zlim,prefix+'*EFLUX',100.,2000.,1,/default
+        Zlim,'*_ql',1,1,1,/default
+        ylim, '*spb*ANODE*ql*', 50,310,0, /default
+        ylim, '*spa*ANODE*ql*', 180,420,0, /default
+        options, '*_ql', spec = 1
+;        tplot_options, 'no_interp', 1
       endif
       if type eq 'hkp' then begin
         cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose
         continue
       endif
-      ylim,prefix+'EFLUX',1.,10000.,1,/default
-      ylim,'*ENERGY*_ql',1,1,1,/default
-      ylim,'*ANODE*_ql',0,0,0,/default
-      ylim,'*DEF*_ql',0,0,0,/default
-      Zlim,prefix+'*EFLUX',100.,2000.,1,/default
-      Zlim,'*_ql',1,1,1,/default
-      ylim, '*spb*ANODE*ql*', 50,310,0, /default
-      ylim, '*spa*ANODE*ql*', 180,420,0, /default
-      options, '*_ql', spec = 1
-      tplot_options, 'no_interp', 1
       
     endforeach
   endforeach

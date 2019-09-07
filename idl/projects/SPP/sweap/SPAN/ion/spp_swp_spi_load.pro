@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-07-03 16:08:35 -0700 (Wed, 03 Jul 2019) $
-; $LastChangedRevision: 27405 $
+; $LastChangedDate: 2019-09-06 12:47:39 -0700 (Fri, 06 Sep 2019) $
+; $LastChangedRevision: 27730 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -56,16 +56,16 @@ pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=n
 
   if ~keyword_set(level) then level='L3'
   level=strupcase(level)
-  if ~keyword_set(types) then types=['sf00','sf01','af00','af01']
+  if ~keyword_set(types) then types=['sf00','sf01'] ;,'af00','af01','st00']
 
   ;; Product File Names
   dir='spi/'+level+'/YYYY/MM/spi_TYP/'
-  fileformat=dir+'spp_swp_spi_TYP_'+level+'*_YYYYMMDD_v??.cdf'
+  fileformat=dir+'psp_swp_spi_TYP_'+level+'*_YYYYMMDD_v??.cdf'
   if not keyword_set(fileprefix) then fileprefix='psp/data/sci/sweap/'
 
-  L2_fileformat =   'spi/L2/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L2_8Dx32Ex8A_YYYYMMDD_v00.cdf'
-  ; L3_fileformat = 'spi/L3/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L3_8Dx32Ex8A_YYYYMMDD_v00.cdf' ; delete this line!
-  L3_fileformat =   'spi/L3/YYYY/MM/SP?_TYP/spp_swp_SP?_TYP_L3_mom_INST_YYYYMMDD_v00.cdf'
+  L2_fileformat =   'spi/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_8Dx32Ex8A_YYYYMMDD_v00.cdf'
+  ; L3_fileformat = 'spi/L3/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L3_8Dx32Ex8A_YYYYMMDD_v00.cdf' ; delete this line!
+  L3_fileformat =   'spi/L3/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L3_mom_INST_YYYYMMDD_v00.cdf'
   
 
   case level of

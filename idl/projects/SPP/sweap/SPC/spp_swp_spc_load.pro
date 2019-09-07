@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-07-03 16:08:35 -0700 (Wed, 03 Jul 2019) $
-; $LastChangedRevision: 27405 $
+; $LastChangedDate: 2019-09-06 12:49:46 -0700 (Fri, 06 Sep 2019) $
+; $LastChangedRevision: 27733 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 
@@ -73,7 +73,8 @@ end
 
 
 
-pro spp_swp_spc_load,  trange=trange,type = type,files=files,no_load=no_load,save=save,load_labels=load_labels,nul_bad=nul_bad,ltype=ltype,rapidshare=rapidshare
+pro spp_swp_spc_load,  trange=trange,type = type,files=files,no_load=no_load,save=save,load_labels=load_labels  $
+  ,nul_bad=nul_bad,ltype=ltype,rapidshare=rapidshare,extras=extras
 
 
    if keyword_set(rapidshare) then begin
@@ -100,8 +101,8 @@ pro spp_swp_spc_load,  trange=trange,type = type,files=files,no_load=no_load,sav
 ;   endif
    
    if type eq 'l2i' then begin
-     ylim,prefix+'*charge_flux_density',100.,4000.,1,/default
-     ylim,prefix+'*_current',100.,4000.,1, /default
+     ylim,prefix+'*charge_flux_density',100.,6000.,1,/default
+     ylim,prefix+'*_current',100.,6000.,1, /default
      Zlim,prefix+'*charge_flux_density',1.,100.,1, /default
      zlim,prefix+'*_current',1.,100.,1    ,/default
    endif
@@ -117,13 +118,14 @@ pro spp_swp_spc_load,  trange=trange,type = type,files=files,no_load=no_load,sav
        endfor
        w = where(0)
        extras = 1
+       
      endif
     
      ylim,prefix+'vp_moment_SC',-500,200,0    ,/default
      options,prefix+'vp_*_SC',colors='bgr'     ,/default
      options,prefix+'vp_*_RTN',colors='bgr'  ,/default
      options,prefix+'DQF',spec=1,zrange=[-3,2],yrange=[-1,18],/ystyle
-     spp_swp_spc_load_extra,prefix=prefix,nul_bad=nul_bad,extras=extras
+     if keyword_set(extras) then      spp_swp_spc_load_extra,prefix=prefix,nul_bad=nul_bad,extras=extras
    endif
 end
 

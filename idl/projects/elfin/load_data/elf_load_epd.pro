@@ -122,10 +122,10 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if undefined(data_rate) then data_rate = ['fast'] else data_rate=strlowcase(data_rate)
   if data_rate EQ  '*' then data_rate = ['fast']  ;, 'srvy'] NO SURVEY DATA YET
 
-  if undefined(type) then type='nflux' else type=type
+  if undefined(type) then type='eflux' else type=type
   if type EQ 'cal' || type EQ 'calibrated' then type='eflux'
   if undefined(suffix) OR keyword_set(no_suffix) then suffix = ''
-
+  
   Case type of
     'raw': unit = 'counts/sector'
     'cps': unit = 'counts/s'
@@ -150,8 +150,9 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   ; Post processing - calibration and fix meta data 
   for i=0,n_elements(tplotnames)-1 do begin
     
-    if tplotnames[i] EQ 'ela_spinper'+suffix OR tplotnames[i] EQ 'elb_spinper'+suffix then continue ; don't need to calibrate spin period
+    ;if tplotnames[i] EQ 'ela_spinper'+suffix OR tplotnames[i] EQ 'elb_spinper'+suffix then continue ; don't need to calibrate spin period
     if strpos(tplotnames[i], 'sectnum') NE -1 then continue
+    if strpos(tplotnames[i], 'energies') NE -1 then continue
 
     if strpos(tplotnames[i], 'spinper') NE -1 then begin
        get_data, tplotnames[i], data=d, dlimits=dl, limits=l
@@ -162,18 +163,24 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
 
     ; add type of end of tplotnames
     if ~keyword_set(no_suffix) then begin
+      if suffix eq '' then begin
       tplot_rename, tplotnames[i], tplotnames[i]+'_'+type
       tplotnames[i]=tplotnames[i]+'_'+type
+      endif else begin
+        newname=strmid(tplotnames[i],0,7)+'_'+type+suffix
+        tplot_rename, tplotnames[i], newname ;tplotnames[i]+'_'+type
+        tplotnames[i]=newname;tplotnames[i]+'_'+type        
+      endelse
     endif
 
     ; calibrate data
-    elf_cal_epd, tplotname=tplotnames[i], type=type
+    elf_cal_epd, tplotname=tplotnames[i], type=type, no_download=no_download
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
     dl.ysubtitle=unit
-   
+    if undefined(d.v) then d.v=findgen(16)
     store_data, tplotnames[i], data={x:d.x, y:d.y, v:d.v}, dlimits=dl, limits=l
     options, tplotnames[i], ylog=1
-    options, tplotnames[i], spec=0
+    if keyword_set(no_spec) then options, tplotnames[i], spec=0 else options, tplotnames[i], spec=1 
     options, tplotnames[i], labflag=1
 
   endfor

@@ -109,11 +109,11 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['LABLAXIS']    = 'Elevation Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
-      att['VALIDMIN']    = 1
-      att['VALIDMAX']    = 1e5
+      att['VALIDMIN']    = -90.
+      att['VALIDMAX']    = 90.
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = ''
-      att['SCALETYP']    = 'log'
+      att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
     end
     'PHI': begin
@@ -124,11 +124,11 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['LABLAXIS']    = 'Azimuth Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
-      att['VALIDMIN']    = 1
-      att['VALIDMAX']    = 1e5
+      att['VALIDMIN']    = -180.
+      att['VALIDMAX']    = 360.
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = ''
-      att['SCALETYP']    = 'log'
+      att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
     end
     'EFLUX_VS_ENERGY': begin
@@ -202,11 +202,11 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['LABLAXIS']    = 'Elevation Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
-      att['VALIDMIN']    = 1
-      att['VALIDMAX']    = 1e5
+      att['VALIDMIN']    = -90.
+      att['VALIDMAX']    = 90.
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = ''
-      att['SCALETYP']    = 'log'
+      att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
     end
     'PHI_VALS': begin
@@ -217,11 +217,11 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['LABLAXIS']    = 'Azimuth Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
-      att['VALIDMIN']    = 1
-      att['VALIDMAX']    = 1e5
+      att['VALIDMIN']    = -180.
+      att['VALIDMAX']    = 360.
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = ''
-      att['SCALETYP']    = 'log'
+      att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
     end
     else:  begin    ; assumed to be support

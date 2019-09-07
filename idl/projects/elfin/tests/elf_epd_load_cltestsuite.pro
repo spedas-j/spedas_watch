@@ -37,10 +37,10 @@ t_name='No parameters or keywords used'
 catch,err
 if err eq 0 then begin
   elf_load_epd
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef','2019-02-14','2019-02-15')  || $
-    spd_data_exists('elb_pif','2019-02-14','2019-02-15')  $
+  if ~spd_data_exists('ela_pef_eflux','2019-02-14','2019-02-15')  || $
+    spd_data_exists('elb_pif_nflux','2019-02-14','2019-02-15')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -57,11 +57,11 @@ t_name='Single probe'
 catch,err
 if err eq 0 then begin
   elf_load_epd,probe='a'
-  spd_print_tvar_info,'ela_pef'
-  spd_print_tvar_info,'ela_pif'
+  spd_print_tvar_info,'ela_pef_eflux'
+  spd_print_tvar_info,'ela_pif_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef ela_pif','2019-02-14','2019-02-15')  || $
-    spd_data_exists('ela_pes','2019-02-15','2019-02-16') || $
+  if ~spd_data_exists('ela_pef_eflux ela_pif_eflux','2019-02-14','2019-02-15')  || $
+    spd_data_exists('ela_pes_eflux','2019-02-15','2019-02-16') || $
     spd_data_exists('elb_pis','2019-02-14','2019-02-15')  $
     then message,'data error '+t_name
 endif
@@ -99,9 +99,9 @@ catch,err
 if err eq 0 then begin
   timespan,'2018-12-23'
   elf_load_epd,probe='*'
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pif ela_pef','2018-12-23','2018-12-24')  || $
+  if ~spd_data_exists('ela_pif_eflux ela_pef_eflux','2018-12-23','2018-12-24')  || $
     spd_data_exists('elb_pif','2018-12-23','2018-12-24')  $
     then message,'data error '+t_name
 endif
@@ -118,10 +118,10 @@ t_name='Used suffix for tplot variable names'
 catch,err
 if err eq 0 then begin
   elf_load_epd,probe='a',suffix='_test'
-  spd_print_tvar_info,'ela_pef_test'
+  spd_print_tvar_info,'ela_pef_eflux_test'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef_test','2018-12-23','2018-12-24')  || $
-    spd_data_exists('ela_pef','2018-12-23','2018-12-24')  $
+  if ~spd_data_exists('ela_pef_eflux_test','2018-12-23','2018-12-24')  || $
+    spd_data_exists('ela_pef_eflux','2018-12-23','2018-12-24')  $
     then message,'data error '+t_name
 endif
 catch,/cancel
@@ -138,10 +138,10 @@ catch,err
 if err eq 0 then begin
   timespan, '2019-02-18',1d
   elf_load_epd,probe='a',datatype='pif'
-  spd_print_tvar_info,'ela_pif'
+  spd_print_tvar_info,'ela_pif_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pif', '2019-02-18','2019-02-19')  || $
-    spd_data_exists('ela_pef','2019-02-18','2019-02-19')  $
+  if ~spd_data_exists('ela_pif_eflux', '2019-02-18','2019-02-19')  || $
+    spd_data_exists('ela_pef_eflux','2019-02-18','2019-02-19')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -157,10 +157,10 @@ t_name='Mixed case datatype parameter used'
 catch,err
 if err eq 0 then begin
   elf_load_epd,probe='a',datatype='PiF'
-  spd_print_tvar_info,'ela_pif'
+  spd_print_tvar_info,'ela_pif_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pif', '2019-02-18','2019-02-19')  || $
-    spd_data_exists('ela_pef','2019-02-18','2019-02-19')  $
+  if ~spd_data_exists('ela_pif_eflux', '2019-02-18','2019-02-19')  || $
+    spd_data_exists('ela_pef_eflux','2019-02-18','2019-02-19')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -177,11 +177,11 @@ catch,err
 if err eq 0 then begin
   timespan, '2018-12-23'
   elf_load_epd,probe='a',datatype='PEF'
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef', '2018-12-23','2018-12-24')  || $
-    spd_data_exists('elb_pif','2019-01-26','2019-01-27') || $
-    spd_data_exists('ela_pef','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_eflux', '2018-12-23','2018-12-24')  || $
+    spd_data_exists('elb_pif_eflux','2019-01-26','2019-01-27') || $
+    spd_data_exists('ela_pef_eflux','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -197,16 +197,19 @@ del_data,'*'
 t_name='All upper probe and datatypes'
 catch,err
 if err eq 0 then begin
-  elf_load_epd,probe='A',datatype=['PEF']
-  spd_print_tvar_info,'ela_pef'
+  elf_load_epd,probe='A',datatype=['PEF'], type='raw'
+  spd_print_tvar_info,'ela_pef_raw'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef', '2018-12-23','2018-12-24')  || $
-    spd_data_exists('ela_pif','2019-01-26','2019-01-27') $
+  if ~spd_data_exists('ela_pef_raw', '2018-12-23','2018-12-24')  || $
+    spd_data_exists('ela_pif_raw','2019-01-26','2019-01-27') $
     then message,'data error ' + t_name
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
 tplot_names
+get_data, 'ela_pef_raw', data=d
+help, d
+print, d.v
 stop
 del_data,'*'
 
@@ -217,16 +220,19 @@ t_name='Time range passed as an array of 2 strings'
 catch,err
 if err eq 0 then begin
   trange=['2018-12-23','2018-12-24']
-  elf_load_epd,probe='a',trange=trange
-  spd_print_tvar_info,'ela_pef'
+  elf_load_epd,probe='a',trange=trange, type='cps'
+  spd_print_tvar_info,'ela_pef_cps'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef', '2018-12-23','2018-12-24')  || $
-    spd_data_exists('ela_pif','2019-01-26','2019-01-27') $
+  if ~spd_data_exists('ela_pef_cps', '2018-12-23','2018-12-24')  || $
+    spd_data_exists('ela_pif_cps','2019-01-26','2019-01-27') $
     then message,'data error ' + t_name
 endif
 catch,/cancel
 spd_handle_error,err,t_name,++t_num
 tplot_names
+get_data, 'ela_pef_cps', data=d
+help, d
+print, d.v
 stop
 del_data,'*'
 
@@ -238,10 +244,10 @@ catch,err
 if err eq 0 then begin
   trange=time_double(trange)
   elf_load_epd,probe='a',trange=trange, datatype=['pef']
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef', '2018-12-23','2018-12-24')  || $
-    spd_data_exists('ela_pif','2019-01-26','2019-01-27') $
+  if ~spd_data_exists('ela_pef_eflux', '2018-12-23','2018-12-24')  || $
+    spd_data_exists('ela_pif_elfux','2019-01-26','2019-01-27') $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -257,10 +263,10 @@ t_name='Invalid probe'
 catch,err
 if err eq 0 then begin
   elf_load_epd,probe=1,trange=trange, datatype=['pef']
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_pef', '2018-12-23','2018-12-24')  || $
-    spd_data_exists('elb_pef', '2018-12-23','2018-12-24')  $
+  if spd_data_exists('ela_pef_eflux', '2018-12-23','2018-12-24')  || $
+    spd_data_exists('elb_pef_raw', '2018-12-23','2018-12-24')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -276,9 +282,9 @@ t_name='Invalid datatype'
 catch,err
 if err eq 0 then begin
   elf_load_epd,probe='a',trange=trange, datatype=['xxx']
-  spd_print_tvar_info,'ela_pif'
+  spd_print_tvar_info,'ela_pif_eflux'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_pif',  '2018-12-23','2018-12-23')  || $
+  if spd_data_exists('ela_pif_eflux',  '2018-12-23','2018-12-23')  || $
     spd_data_exists('elb_xxx',  '2018-11-10','2018-11-10')  $
     then message,'data error ' + t_name
 endif
@@ -295,10 +301,10 @@ t_name='Invalid date'
 catch,err
 if err eq 0 then begin
   elf_load_epd,probe='a',trange=['2021-10-10','2021-10-11'], datatype=['pef']
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if spd_data_exists('ela_pef', '2021-10-10','2021-10-11')  || $
-    spd_data_exists('elb_pif','2018-10-14','2018-10-15')  $
+  if spd_data_exists('ela_pef_eflux', '2021-10-10','2021-10-11')  || $
+    spd_data_exists('elb_pif_eflux','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -314,10 +320,10 @@ t_name='Both data types'
 catch,err
 if err eq 0 then begin
   elf_load_epd,probe='a',trange=['2019-02-17','2019-02-18'], datatype=['pef', 'pif']
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-18')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_eflux ela_pif_eflux', '2019-02-17','2019-02-18')  || $
+    spd_data_exists('elb_pif_eflux','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -333,10 +339,10 @@ t_name='Two days'
 catch,err
 if err eq 0 then begin
   elf_load_epd,probe='a',trange=['2019-02-17','2019-02-19'], datatype=['pef', 'pif']
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-19')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_eflux ela_pif_eflux', '2019-02-17','2019-02-19')  || $
+    spd_data_exists('elb_pif_eflux','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -353,11 +359,11 @@ catch,err
 if err eq 0 then begin
   timespan, '2019-02-17', 0.5d
   tr=timerange()
-  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif']
-  spd_print_tvar_info,'ela_pef'
+  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif'], type='nflux'
+  spd_print_tvar_info,'ela_pef_nflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-19')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_nflux ela_pif_nflux', '2019-02-17','2019-02-19')  || $
+    spd_data_exists('elb_pif','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -375,10 +381,10 @@ if err eq 0 then begin
   timespan, '2019-02-17', 0.5d
   tr=timerange()
   elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif'], /no_spec
-  spd_print_tvar_info,'ela_pef'
+  spd_print_tvar_info,'ela_pef_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-18')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_eflux ela_pif_eflux', '2019-02-17','2019-02-18')  || $
+    spd_data_exists('elb_pif_raw','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -395,11 +401,11 @@ catch,err
 if err eq 0 then begin
   timespan, '2019-02-17'
   tr=timerange()
-  elf_load_epd,probe='a',trange=tr, datatype=['pef'], /no_spec
-  spd_print_tvar_info,'ela_pef'
+  elf_load_epd,probe='a',trange=tr, datatype=['pef'], /no_spec, type='cps'
+  spd_print_tvar_info,'ela_pef_cps'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef', '2019-02-17','2019-02-18')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_cps', '2019-02-17','2019-02-18')  || $
+    spd_data_exists('elb_pif_cps','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
@@ -416,39 +422,41 @@ catch,err
 if err eq 0 then begin
   timespan, '2019-02-17'
   tr=timerange()
-  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif'], /no_spec
-  spd_print_tvar_info,'ela_pef'
-  spd_print_tvar_info,'ela_pif'
+  elf_load_epd,probe='a',trange=tr, datatype=['pef', 'pif'], type='eflux'
+  spd_print_tvar_info,'ela_pef_eflux'
+  spd_print_tvar_info,'ela_pif_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef ela_pif', '2019-02-17','2019-02-18')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_eflux ela_pif_eflux', '2019-02-17','2019-02-18')  || $
+    spd_data_exists('elb_pif_eflux','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
 tplot_names
 spd_handle_error,err,t_name,++t_num
+tplot, 'ela_pef_eflux'
 stop
 del_data,'*'
 
 ;19 Test cal flag
 ;
 
-t_name='EPDe and EPDi calibration'
+t_name='EPDe and EPDi no_spec'
 catch,err
 if err eq 0 then begin
   timespan, '2019-07-26'
   tr=timerange()
-  elf_load_epd,probe=['a','b'],trange=tr, datatype=['pef', 'pif'], /no_spec
-  spd_print_tvar_info,'ela_pef'
-  spd_print_tvar_info,'ela_pif'
+  elf_load_epd,probe=['a','b'],trange=tr, datatype=['pef', 'pif'], /no_spec, type='nflux'
+  spd_print_tvar_info,'ela_pef_nflux'
+  spd_print_tvar_info,'ela_pif_nflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef elb_pif', '2019-07-26','2019-07-27')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_nflux elb_pif_nflux', '2019-07-26','2019-07-27')  || $
+    spd_data_exists('elb_pif_nflux','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
 tplot_names
 spd_handle_error,err,t_name,++t_num
+tplot, 'ela_pef_nflux' 
 stop
 del_data,'*'
 
@@ -460,17 +468,18 @@ catch,err
 if err eq 0 then begin
   timespan, '2019-07-26'
   tr=timerange()
-  elf_load_epd,probe=['a','b'],trange=tr, datatype=['pef', 'pif'], /no_spec, /no_download
-  spd_print_tvar_info,'ela_pef'
-  spd_print_tvar_info,'ela_pif'
+  elf_load_epd,probe=['a','b'],trange=tr, datatype=['pef', 'pif'], /no_download, type='nflux'
+  spd_print_tvar_info,'ela_pef_nflux'
+  spd_print_tvar_info,'ela_pif_nflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef elb_pif', '2019-07-26','2019-07-27')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_nflux elb_pif_nflux', '2019-07-26','2019-07-27')  || $
+    spd_data_exists('elb_pif_eflux','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel
 tplot_names
 spd_handle_error,err,t_name,++t_num
+tplot, 'ela_pef_eflux'
 stop
 del_data,'*'
 
@@ -482,12 +491,12 @@ catch,err
 if err eq 0 then begin
   timespan, '2019-07-26'
   tr=timerange()
-  elf_load_epd,probe=['a','b'],trange=tr, datatype=['pef', 'pif'], /no_spec
-  spd_print_tvar_info,'ela_pef'
-  spd_print_tvar_info,'ela_pif'
+  elf_load_epd,probe=['a','b'],trange=tr, datatype=['pef', 'pif']
+  spd_print_tvar_info,'elb_pef_eflux'
+  spd_print_tvar_info,'ela_pif_eflux'
   ;just spot checking cause there are a lot of data types
-  if ~spd_data_exists('ela_pef elb_pif', '2019-07-26','2019-07-27')  || $
-    spd_data_exists('elb_piv','2018-10-14','2018-10-15')  $
+  if ~spd_data_exists('ela_pef_eflux elb_pif_eflux', '2019-07-26','2019-07-27')  || $
+    spd_data_exists('elb_pif','2018-10-14','2018-10-15')  $
     then message,'data error ' + t_name
 endif
 catch,/cancel

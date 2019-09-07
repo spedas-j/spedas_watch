@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-19 14:24:13 -0700 (Sun, 19 May 2019) $
-; $LastChangedRevision: 27263 $
+; $LastChangedDate: 2019-09-06 12:48:21 -0700 (Fri, 06 Sep 2019) $
+; $LastChangedRevision: 27731 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-05-19 14:24:13 -0700 (Sun, 19 May 2019) $
-; $LastChangedRevision: 27263 $
+; $LastChangedDate: 2019-09-06 12:48:21 -0700 (Fri, 06 Sep 2019) $
+; $LastChangedRevision: 27731 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-05-19 14:24:13 -0700 (Sun, 19 May 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 27263 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-09-06 12:48:21 -0700 (Fri, 06 Sep 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 27731 $'
 
   return,sw_hash
 end
@@ -143,7 +143,8 @@ end
 
 pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
 ;  if not keyword_set(self.cdf_pathname) then return
-  
+  dprint,'starting: '+pathname,dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
+
   global_attributes = self.g_attributes
 ;  if keyword_set(trange) then begin
 ;    if not keyword_set(trange) then trange=timerange()
