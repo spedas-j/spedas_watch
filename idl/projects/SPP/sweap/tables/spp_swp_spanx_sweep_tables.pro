@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-04-16 02:12:01 -0700 (Tue, 16 Apr 2019) $
-; $LastChangedRevision: 27032 $
+; $LastChangedDate: 2019-09-06 18:30:20 -0700 (Fri, 06 Sep 2019) $
+; $LastChangedRevision: 27736 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spanx_sweep_tables.pro $
 ;
 
@@ -17,6 +17,11 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
     hvgain = hvgain,$
     spgain = spgain,$
     fixgain = fixgain
+    
+    if n_elements(erange) eq 2 then valid=1b else begin
+      valid = 0b
+      erange=[!values.f_nan,!values.f_nan]
+    endelse
 
 ;  max = 65536.
 
@@ -125,7 +130,8 @@ function spp_swp_spanx_sweep_tables,erange, deflrange,  $
              fullsweeps: orderedhash(), $
              timesort: timesort,  $
              deflsort:  defsort,   $
-             sweep_params: sweep_params $
+             sweep_params: sweep_params, $
+             valid : valid $
             }
 
 return,table
