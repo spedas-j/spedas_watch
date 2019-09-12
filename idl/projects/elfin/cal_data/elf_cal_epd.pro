@@ -24,7 +24,8 @@ PRO elf_cal_epd, tplotname=tplotname, type=type, no_download=no_download
   if strpos(tplotname, 'pif') GE 0 then instrument='epdi'
   if undefined(type) then type = 'eflux'
 
-  epd_cal = elf_read_epd_calfile(probe=probe, instrument=instrument, no_download=no_download)
+  ;epd_cal = elf_read_epd_calfile(probe=probe, instrument=instrument, no_download=no_download)
+  epd_cal = elf_get_epd_calibration(probe=probe, instrument=instrument)
   if size(epd_cal, /type) NE 8 then begin
      dprint, dlevel = 1, 'EPD calibration data was not retrieved. Unable to calibrate the data.'
      return
