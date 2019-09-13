@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-08-26 22:19:43 -0700 (Mon, 26 Aug 2019) $
-; $LastChangedRevision: 27663 $
+; $LastChangedDate: 2019-09-12 17:06:03 -0700 (Thu, 12 Sep 2019) $
+; $LastChangedRevision: 27753 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -14,14 +14,28 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
   if not keyword_set(level) then level = 2
 
+  daily_names = 1
+
   if not keyword_set(fileprefix) then begin
     if level EQ 2 then fileprefix = 'psp/data/sci/fields/staging/l2/' else $
       fileprefix = 'psp/data/sci/fields/staging/l1/'
   endif
   if not keyword_set(pathformat) then begin
-    if level EQ 2 then pathformat =  'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDD_v??.cdf' else $
+    if level EQ 2 then begin
+      pathformat =  'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDD_v??.cdf'
+      if type EQ 'dfb_wf_dvdc' then pathformat = 'TYPE/YYYY/MM/psp_fld_l2_dfb_wf_dVdc_YYYYMMDDhhmm_????????????_vtest?.cdf'
+      if type EQ 'dfb_wf_vdc' then pathformat = 'TYPE/YYYY/MM/psp_fld_l2_dfb_wf_Vdc_YYYYMMDDhhmm_????????????_vtest?.cdf'
+      if type EQ 'dfb_wf_scm' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_dfb_wf_scm_YYYYMMDDhhmm_????????????_vtest?.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endif
+    endif else begin
       pathformat = 'TYPE/YYYY/MM/spp_fld_l1_TYPE_YYYYMMDD_v??.cdf'
+    endelse
   endif
+
+
 
 
   if not keyword_set(type) then begin
@@ -49,7 +63,7 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
   if level EQ 1.5 then pathformat = str_sub(pathformat,'/l1/', '/l1b/' )
   if level EQ 1.5 then pathformat = str_sub(pathformat,'_l1_', '_l1b_' )
 
-  files=spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,/last_version,/daily_names,/valid_only)
+  files=spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,/last_version,daily_names=daily_names,/valid_only,resolution = resolution, shiftres = 0)
 
   if not keyword_set(no_load) then begin
     if level EQ 1 then begin

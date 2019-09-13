@@ -1,4 +1,4 @@
-function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=trange
+function elf_get_epd_calibration, probe=probe, instrument=instrument
 
   if ~keyword_set(probe) then probe='a'
   if ~keyword_set(instrument) then instrument='epde'
@@ -6,9 +6,9 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
     return, -1
   endif
-  if ~undefined(trange) && n_elements(trange) eq 2 $
-    then tr = timerange(trange) $
-  else tr = timerange()
+;  if ~undefined(trange) && n_elements(trange) eq 2 $
+;    then tr = timerange(trange) $
+;  else tr = timerange()
   
   if probe EQ 'a' then begin 
     if instrument EQ 'epde' then begin

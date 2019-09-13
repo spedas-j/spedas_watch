@@ -152,7 +152,10 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     
     ;if tplotnames[i] EQ 'ela_spinper'+suffix OR tplotnames[i] EQ 'elb_spinper'+suffix then continue ; don't need to calibrate spin period
     if strpos(tplotnames[i], 'sectnum') NE -1 then continue
-    if strpos(tplotnames[i], 'energies') NE -1 then continue
+    if strpos(tplotnames[i], 'energies') NE -1 then begin
+      del_data, tplotnames[i]
+      continue
+    endif
 
     if strpos(tplotnames[i], 'spinper') NE -1 then begin
        get_data, tplotnames[i], data=d, dlimits=dl, limits=l

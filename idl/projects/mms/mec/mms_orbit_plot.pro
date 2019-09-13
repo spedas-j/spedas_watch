@@ -28,12 +28,12 @@
 ;       terminator line on Earth is probably going to be incorrect when plane is specified to be YZ
 ;       
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2017-12-14 13:23:43 -0800 (Thu, 14 Dec 2017) $
-; $LastChangedRevision: 24420 $
+; $LastChangedDate: 2019-09-12 10:29:05 -0700 (Thu, 12 Sep 2019) $
+; $LastChangedRevision: 27748 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/mec/mms_orbit_plot.pro $
 ;-
 
-pro mms_orbit_plot, trange=trange, probes=probes, xrange=xrange, yrange=yrange, plane=plane, coord=coord, title=title
+pro mms_orbit_plot, trange=trange, probes=probes, data_rate=data_rate, xrange=xrange, yrange=yrange, plane=plane, coord=coord, title=title
 
   if undefined(plane) then plane = 'xy' else plane = strlowcase(plane)
   if undefined(coord) then coord='gse' else coord=strlowcase(coord)
@@ -46,7 +46,7 @@ pro mms_orbit_plot, trange=trange, probes=probes, xrange=xrange, yrange=yrange, 
     then tr = timerange(trange) $
   else tr = timerange()
   
-  mms_load_mec, trange=tr, probes=probes, varformat='*_r_'+coord, /time_clip
+  mms_load_mec, trange=tr, data_rate=data_rate, probes=probes, varformat='*_r_'+coord, /time_clip
   
   trange_string = time_string(minmax(time_double(tr)))
   if undefined(title) then title_string = strjoin(trange_string, ' to ') else title_string = title
@@ -71,7 +71,8 @@ pro mms_orbit_plot, trange=trange, probes=probes, xrange=xrange, yrange=yrange, 
   im = image(mec_path+'/earth_polar1.png', image_dimensions=[2,2], image_location=[-1,-1], overplot=1, title=title_string)
   
   xl = p1.position[0] + 0.05
-  yl = 0.83
+  yl = p1.position[3] - 0.05
+
   for probe_idx=0, n_elements(probes)-1 do begin
     xs = xl + 0.1*probe_idx
     s1 = symbol(xs,yl,symbol='diamond', sym_color=spacecraft_colors[*,fix(probes[probe_idx])-1], overplot=1, /sym_filled, sym_size=1.0)
