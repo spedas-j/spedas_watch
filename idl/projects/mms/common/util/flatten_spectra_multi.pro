@@ -50,8 +50,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-07-16 13:52:51 -0700 (Tue, 16 Jul 2019) $
-;$LastChangedRevision: 27464 $
+;$LastChangedDate: 2019-09-13 17:00:06 -0700 (Fri, 13 Sep 2019) $
+;$LastChangedRevision: 27758 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_multi.pro $
 ;-
 
@@ -156,6 +156,7 @@ pro flatten_spectra_multi, num_spec, xlog=xlog, ylog=ylog, xrange=xrange, yrange
   
   if keyword_set(time_in) then begin
     selected_times = time_double(time_in)
+    colors = indgen(n_elements(selected_times),start=0,increment=2)
     store_data, 'flatten_spectra_time_multi', data={x: selected_times, y: 1}
   endif
   
