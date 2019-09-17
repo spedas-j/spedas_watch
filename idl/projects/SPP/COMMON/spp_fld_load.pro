@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-09-12 17:06:03 -0700 (Thu, 12 Sep 2019) $
-; $LastChangedRevision: 27753 $
+; $LastChangedDate: 2019-09-16 15:04:49 -0700 (Mon, 16 Sep 2019) $
+; $LastChangedRevision: 27761 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -67,7 +67,9 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
   if not keyword_set(no_load) then begin
     if level EQ 1 then begin
+
       spp_fld_load_l1, files, varformat = varformat
+
     endif else begin
 
       if strmatch(type,'rfs_?fr') then begin
@@ -76,7 +78,7 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
       endif else begin
 
-        cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/get_support
+        cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/all, /load_labels
 
       endelse
 
