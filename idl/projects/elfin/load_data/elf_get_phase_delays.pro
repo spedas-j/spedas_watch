@@ -3,10 +3,10 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
 
-  if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
-    dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
-    return, -1
-  endif
+;  if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
+;    dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
+;    return, -1
+;  endif
 
 ;  if ~undefined(trange) && n_elements(trange) eq 2 $
 ;    then tr = timerange(trange) $
@@ -20,15 +20,13 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
   sc='el'+probe
   remote_cal_dir=!elf.REMOTE_DATA_DIR+sc+'/calibration_files'
   local_cal_dir=!elf.LOCAL_DATA_DIR+sc+'/calibration_files'
-;  daily_name = file_dailynames(trange=tr, /unique, times=times)
-  fname = sc+'epde_phase_delays.txt'
   if strlowcase(!version.os_family) eq 'windows' then local_cal_dir = strjoin(strsplit(local_cal_dir, '/', /extract), path_sep())
 
   remote_filename=remote_cal_dir+'/'+sc+'_'+instrument+'_phase_delays.txt'
   local_filename=local_cal_dir+'/'+sc+'_'+instrument+'_phase_delays.txt'
   paths = ''
 
-  if keyword_set(no_download) then no_download=1
+  if keyword_set(no_download) then no_download=1 else no_download=0
 
   if no_download eq 0 then begin
     ; NOTE: directory is temporarily password protected. this will be
@@ -82,16 +80,16 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
     endwhile
 
   endelse  
-
+  
   phase_delay = { $
-    start:starttimes, $
+    starttimes:starttimes, $
     endtimes:endtimes, $
-    tspin:tpsin, $
+    tspin:tspin, $
     sect2add:dsect2add, $
     phang2add:dphang2add, $
     sectrconfig:sectrconfig, $
     phangconfig:phangconfig, $
-    lastestmediansectr:latestmediansector, $
+    lastestmediansectr:latestmediansectr, $
     latestmedianphang:latestmedianphang, $
     badflag:badflag }
     

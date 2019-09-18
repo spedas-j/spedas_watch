@@ -37,19 +37,19 @@ pro elf_load_sun_shadow_bar, tplotname=tplotname
   if undefined(shadow_bar_x) then return
  
   store_data, 'shadow_bar', data={x:shadow_bar_x, y:shadow_bar_y} 
-  options,'shadow_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.001,0.001],ytitle='',$
-    ticklen=0,panel_size=0.06, charsize=2.
+  options,'shadow_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.1,0.1],ytitle='',$
+    ticklen=0,panel_size=0.1, charsize=2.
 
   sun_bar_x=[elfin_pos.x[0],elfin_pos.x[0],elfin_pos.x[n_elements(elfin_pos.x)-1],elfin_pos.x[n_elements(elfin_pos.x)-1]]
   sun_bar_y=[!values.f_nan, 0.,0., !values.f_nan]
   store_data, 'sun_bar', data={x:sun_bar_x, y:sun_bar_y}
-  options,'sun_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.001,0.001],ytitle='',$
-    ticklen=0,panel_size=0.06,colors=5, charsize=2.
+  options,'sun_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.1,0.1],ytitle='',$
+    ticklen=0,panel_size=0.1,colors=5, charsize=2.
 
   store_data, 'sunlight_bar', data=['sun_bar','shadow_bar']
-  options, 'sunlight_bar', panel_size=0.06
+  options, 'sunlight_bar', panel_size=0.1
   options, 'sunlight_bar',ticklen=0
   options, 'sunlight_bar', 'ystyle',4
   options, 'sunlight_bar', 'xstyle',4
-
+  options, 'sunlight_bar', yrange=[-0.1,0.1]
 end

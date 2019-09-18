@@ -30,6 +30,6 @@ pro elf_load_epd_fast_segments, tplotname=tplotname
 
   store_data, 'epd_fast_bar', data={x:epd_fast_bar_x, y:epd_fast_bar_y}
   options,'epd_fast_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.001,0.001],ytitle='',$
-    ticklen=0,panel_size=0.06, charsize=2., colors=6
+    ticklen=0,panel_size=0.1, charsize=2., colors=6
 
 end

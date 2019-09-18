@@ -28,8 +28,8 @@
 ;     experimental, email questions to egrimes@igpp.ucla.edu
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-09-03 11:22:51 -0700 (Tue, 03 Sep 2019) $
-; $LastChangedRevision: 27714 $
+; $LastChangedDate: 2019-09-17 12:04:04 -0700 (Tue, 17 Sep 2019) $
+; $LastChangedRevision: 27763 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/hpca/mms_hpca_ang_ang.pro $
 ;-
 
@@ -46,13 +46,15 @@ pro mms_hpca_ang_ang, time, species=species, probe=probe, level=level, data_rate
   if undefined(data_rate) then data_rate = 'brst'
   if undefined(center_measurement) then center_measurement=1b
   if undefined(filename_suffix) then filename_suffix = ''
+  if undefined(xsize) then xsize = 550
+  if undefined(ysize) then ysize = 450
   
   if ~undefined(postscript) and ~undefined(png) then begin
     dprint, dlevel = 0, 'Error, both PNG and POSTSCRIPT output requested, but can only do one at a time; defaulting to postscript'
     undefine, png
   endif
   
-  mms_load_hpca, datatype='ion', level=level, data_rate=data_rate, trange=trange, probe=probe, center_measurement=center_measurement, /time_clip, tplotnames=tplotnames
+  mms_load_hpca, datatype='ion', level=level, data_rate=data_rate, trange=trange, probe=probe, center_measurement=center_measurement, tplotnames=tplotnames
   
   var = 'mms'+probe+'_hpca_'+species+'_'
   var = keyword_set(flux) ? var+'flux' : var+'phase_space_density'
