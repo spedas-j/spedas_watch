@@ -12,7 +12,7 @@
 ; It also assumes the user has the ability to run T89 routine (.dlm, .dll have been included in their distribution)!!!
 ;
 pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
-    type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec
+    type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download
 ;
 ;
 ; INPUTS
@@ -77,6 +77,7 @@ if keyword_set(userLCpartol) then LCfatol=userLCpartol else $
   LCfatol=FOVo2 ; in field aligned, fa, direction (para or anti)
 if keyword_set(userLCpertol) then LCfptol=userLCpartol else $
   LCfptol=-FOVo2 ; in field perp, fp, direction
+if keyword_set(no_download) then no_download=1 else no_download=0
 ;
 ; THESE "ELA" and "PEF" STRINGS IN THE FEW LINES BELOW CAN BE CAST INTO USER-SPECIFIED SC (A/B) AND PRODUCT (PEF/PIF) IN THE FUTURE
 ;

@@ -14,7 +14,7 @@
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elf/common/data_status_bar/elf_load_fast_segments.pro $
 ;-
 
-pro elf_load_epd_fast_segments, tplotname=tplotname
+pro elf_load_epd_fast_segments, tplotname=tplotname, no_download=no_download
 
   get_data, tplotname, data=epd
   if size(epd, /type) NE 8 then begin

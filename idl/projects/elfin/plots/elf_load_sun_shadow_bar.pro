@@ -16,7 +16,7 @@
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elf/common/data_status_bar/elf_load_fast_segments.pro $
 ;-
 
-pro elf_load_sun_shadow_bar, tplotname=tplotname
+pro elf_load_sun_shadow_bar, tplotname=tplotname, no_download=no_download
 
   get_data, tplotname, data=elfin_pos
   shadflag = intarr(n_elements(elfin_pos.x))

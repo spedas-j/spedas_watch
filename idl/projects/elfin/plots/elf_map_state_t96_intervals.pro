@@ -731,7 +731,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endif
 
     ;plot start/end points
-    npts = nptsb   ; n_elements(this_ax)-1
     plots, this_bx[0]/6378.,this_bz[0]/6378.,color=254,psym=symbols[0],symsize=0.8
     plots, this_ax[0]/6378.,this_az[0]/6378.,color=253,psym=symbols[0],symsize=0.8
     plots, this_bx[nptsb-1]/6378.,this_bz[nptsb-1]/6378.,color=254,psym=2,symsize=0.8
