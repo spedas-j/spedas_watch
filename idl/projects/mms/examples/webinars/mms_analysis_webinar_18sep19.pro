@@ -16,11 +16,16 @@
 ; Feel free to unmute and ask questions! You can also email me after: egrimes@igpp.ucla.edu
 ; 
 ; 
+; Note: for detailed science questions about the data products, please see the Release Notes for 
+;       the instrument you're interested in, then contact the instrument team
+; 
+; 
+; 
 ; ----------------------------------------------------------------------------
 ; ----------------------------------------------------------------------------
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-09-18 08:20:57 -0700 (Wed, 18 Sep 2019) $
-;$LastChangedRevision: 27778 $
+;$LastChangedDate: 2019-09-19 08:56:55 -0700 (Thu, 19 Sep 2019) $
+;$LastChangedRevision: 27785 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/webinars/mms_analysis_webinar_18sep19.pro $
 ;-
 
