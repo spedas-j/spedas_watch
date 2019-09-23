@@ -9,7 +9,7 @@ pro spp_fld_dfb_ac_bpf_load_l1, file, prefix = prefix, varformat = varformat
     return
 
   endif
-t
+
   spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat
 
 end
