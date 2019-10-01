@@ -1,8 +1,8 @@
 ;+
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-09-06 12:47:39 -0700 (Fri, 06 Sep 2019) $
-; $LastChangedRevision: 27730 $
+; $LastChangedBy: mdmcmanus $
+; $LastChangedDate: 2019-09-30 16:33:23 -0700 (Mon, 30 Sep 2019) $
+; $LastChangedRevision: 27800 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -51,7 +51,7 @@ end
 
 
 pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=no_load,tname_prefix=tname_prefix,save=save,$
-  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay,alltypes=alltypes
+  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay,alltypes=alltypes,zero_alpha=zero_alpha
   
 
   if ~keyword_set(level) then level='L3'
@@ -66,6 +66,7 @@ pro spp_swp_spi_load,types=types,level=level,files=files,trange=trange,no_load=n
   L2_fileformat =   'spi/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_8Dx32Ex8A_YYYYMMDD_v00.cdf'
   ; L3_fileformat = 'spi/L3/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L3_8Dx32Ex8A_YYYYMMDD_v00.cdf' ; delete this line!
   L3_fileformat =   'spi/L3/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L3_mom_INST_YYYYMMDD_v00.cdf'
+  if keyword_set(zero_alpha) then L3_fileformat = 'spi/L3/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L3_mom_INST_zero_YYYYMMDD_v00.cdf'
   
 
   case level of

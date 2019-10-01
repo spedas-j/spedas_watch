@@ -67,7 +67,13 @@ mvn_lpw_load_l0, packet='nohsbm', /notatlasp, /noserver  ;load LPW L0 data at SS
 fn = 'mvn_lpw_tplot_l0_'+date
 
 ;tplot_save, tsave, filename=saveDIR+fn   ;old version
-tplot_save, filename=saveDIR+fn
+
+;Check for existing tplot save file, as file_chmod may not work unless you're the owner of that file:
+file1 = file_search(saveDIR+fn+'.tplot', count=nfile)  ;note, tplot_save adds on '.tplot' automatically
+
+if nfile eq 1 then file_delete, saveDIR+fn+'.tplot' ;because maybe file_chmod does not work unless you are the owner
+
+tplot_save, filename=saveDIR+fn  ;save the new file
 
 file_chmod, saveDIR+fn+'.tplot', '664'o ;group-writeable
 
