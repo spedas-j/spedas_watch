@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-09-16 15:04:49 -0700 (Mon, 16 Sep 2019) $
-; $LastChangedRevision: 27761 $
+; $LastChangedDate: 2019-10-01 22:32:41 -0700 (Tue, 01 Oct 2019) $
+; $LastChangedRevision: 27809 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -78,7 +78,11 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
       endif else begin
 
-        cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/all, /load_labels
+        if n_elements(varformat) GT 0 then begin
+          cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/load_labels
+        endif else begin
+          cdf2tplot,files,prefix=tname_prefix,/all, /load_labels
+        endelse
 
       endelse
 
