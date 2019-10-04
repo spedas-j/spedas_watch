@@ -3,14 +3,14 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-10-01 22:32:41 -0700 (Tue, 01 Oct 2019) $
-; $LastChangedRevision: 27809 $
+; $LastChangedDate: 2019-10-03 16:20:19 -0700 (Thu, 03 Oct 2019) $
+; $LastChangedRevision: 27812 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
 
 pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefix,tname_prefix=tname_prefix, pathformat=pathformat,no_load=no_load,varformat=varformat, $
-  level = level, get_support = get_support
+  level = level, get_support = get_support, downsample = downsample
 
   if not keyword_set(level) then level = 2
 
@@ -68,7 +68,7 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
   if not keyword_set(no_load) then begin
     if level EQ 1 then begin
 
-      spp_fld_load_l1, files, varformat = varformat
+      spp_fld_load_l1, files, varformat = varformat, downsample = downsample
 
     endif else begin
 
