@@ -14,9 +14,9 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-25 12:51:09 -0700 (Fri, 25 May 2018) $
-;$LastChangedRevision: 25273 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/examples/icon_crib.pro $
+;$LastChangedDate: 2019-10-03 23:56:44 -0700 (Thu, 03 Oct 2019) $
+;$LastChangedRevision: 27815 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/examples/icon_crib_euv.pro $
 ;
 ;-------------------------------------------------------------------
 

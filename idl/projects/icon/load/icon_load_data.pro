@@ -10,13 +10,13 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-03-02 16:20:46 -0800 (Sat, 02 Mar 2019) $
-;$LastChangedRevision: 26743 $
+;$LastChangedDate: 2019-10-03 21:53:40 -0700 (Thu, 03 Oct 2019) $
+;$LastChangedRevision: 27814 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
 
-function icon_mighti_filesnames, relpathnames,remote_path, trange, fversion=fversion, frevision=frevision
+function icon_mighti_filenames, relpathnames,remote_path, trange, fversion=fversion, frevision=frevision
   ; Find the MIGHTI file names scanning the directory
   ;http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/Simulated-Data/LEVEL.1/MIGHTI-A/2010/143/ICON_L1_MIGHTI-A_Science_2010-05-23_000027_v01r000.NC
   files = []
@@ -72,7 +72,7 @@ function icon_mighti_filesnames, relpathnames,remote_path, trange, fversion=fver
   return, files
 end
 
-function icon_euv_filesnames, relpathnames,remote_path, trange, fversion=fversion, frevision=frevision
+function icon_euv_filenames, relpathnames,remote_path, trange, fversion=fversion, frevision=frevision
   ; Find the EUV file names scanning the directory
   ;http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/LEVEL.1/EUV/2010/143/Data/ICON_L1_EUV_Flux_2010-05-23_235959_v01r000.NC
   files = []
@@ -226,6 +226,9 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
       remote_path0 = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Vector-Winds/ICON_L' + level + '_' + strupcase(instrument) + '_Vector-Wind-' + ['Green','Red'] + '_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
       remote_path1 = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Temperature/ICON_L' + level + '_' + strupcase(instrument) + '-A_Temperature-A-Band_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
       remote_path = [remote_path0, remote_path1]
+      ; Oct 2019, change in name: ICON_L2_MIGHTI-A_Temperature_2010-05-27_v01r000.NC
+      remote_path1 = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/ICON_L' + level + '_' + strupcase(instrument) + '-A_Temperature_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'    
+      remote_path = [remote_path1]
     endif
    pathformat = [pathformat, remote_path]  
     
@@ -243,10 +246,10 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
 
     if instrument eq 'euv' and level eq '1' then begin
       ; For EUV level 1, we have to search and find the actual filenames
-      relpathnames = icon_euv_filesnames(relpathnames, !icon.remote_data_dir, trange, fversion=fversion, frevision=frevision)
+      relpathnames = icon_euv_filenames(relpathnames, !icon.remote_data_dir, trange, fversion=fversion, frevision=frevision)
     endif else if instrument eq 'mighti' and level eq '1' then begin 
       ; For MIGHTI level 1, we have to search and find the actual filenames
-      relpathnames = icon_mighti_filesnames(relpathnames, !icon.remote_data_dir, trange, fversion=fversion, frevision=frevision)
+      relpathnames = icon_mighti_filenames(relpathnames, !icon.remote_data_dir, trange, fversion=fversion, frevision=frevision)
     endif 
 
     files = spd_download(remote_file=relpathnames, remote_path=!icon.remote_data_dir, $

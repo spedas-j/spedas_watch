@@ -31,7 +31,7 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
   tr=timerange()
   
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ; Get Pseudo_ae data
+  ; Get position data
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   elf_load_state, probes=probe, no_download=no_download
   get_data, 'el'+probe+'_pos_gei', data=dat_gei
@@ -44,12 +44,7 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   elf_load_pseudo_ae, probe=probe, no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae
-  ae_max=max(pseudo_ae.y)
-  if ae_max GT 150. then ae_max=150.
-  ae_min=min(pseudo_ae.y)
   options, 'pseudo_ae', ysubtitle='[nT]'
-  options, 'pseudo_ae', yrange=[ae_min, ae_max]
-  options, 'pseudo_ae', ystyle=1
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... shadow/sunlight bar 0 (shadow) or 1 (sunlight)
@@ -103,9 +98,9 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
   append_array, file_lbl, '_24hr'
  
   nplots = n_elements(min_st)
- 
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ; MAIN LOOP for Orbit PLOTs
+  ; MAIN LOOP for PLOTs
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   for i=0,nplots-1 do begin
      
@@ -113,7 +108,7 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
     tdur=this_tr[1]-this_tr[0]
     timespan, this_tr[0], tdur, /sec
     elf_load_state, probes=probe, no_download=no_download 
-    
+
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Load state and calculate IGRF
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -179,11 +174,23 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
     phase_delay = elf_find_phase_delay(trange=tr, probe=probe, instrument='epde', no_download=no_download)
     if size(phase_delay, /type) NE 8 then elf_getspec,/regularize, no_download=no_download $
       else elf_getspec, /regularize, dSect2add=phase_delay.dsect2add, dSpinPh2add=phase_delay.dphang2add, no_download=no_download
-    
+
+    ; handle scaling of y axis 
+    idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
+    if ncnt GT 0 then ae_max=max(pseudo_ae.y[idx])
+    if ncnt LE 0 then continue
+    if ae_max LT 150. then begin
+      options, 'pseudo_ae', yrange=[0,150] 
+      options, 'pseudo_ae', ystyle=1
+    endif else begin
+      options, 'pseudo_ae', yrange=[0,ae_max]
+      options, 'pseudo_ae', ystyle=1
+    endelse 
+
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; PLOT
     window, xsize=750, ysize=1000
-    tplot_options, version=6
+    tplot_options, version=6   ;6
     tplot_options, 'ygap',0
     options, 'el'+probe+'_pef_en_spec2plot_omni', charsize=.9
     options, 'el'+probe+'_pef_en_spec2plot_anti', charsize=.9
@@ -212,7 +219,7 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
 
     ; add time of creation
     xyouts,  .775, .005, 'Created: '+systime(),/normal,color=10, charsize=.75
-
+    
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Create PNG file
     tr=timerange()

@@ -2,15 +2,45 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-10-03 16:20:19 -0700 (Thu, 03 Oct 2019) $
-; $LastChangedRevision: 27812 $
+; $LastChangedBy: pulupa $
+; $LastChangedDate: 2019-10-04 15:17:34 -0700 (Fri, 04 Oct 2019) $
+; $LastChangedRevision: 27821 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
 
-pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefix,tname_prefix=tname_prefix, pathformat=pathformat,no_load=no_load,varformat=varformat, $
+pro spp_fld_load, trange=trange, type = type, files=files, $
+  fileprefix=fileprefix,$
+  tname_prefix=tname_prefix, pathformat=pathformat,$
+  no_load=no_load,varformat=varformat, $
   level = level, get_support = get_support, downsample = downsample
+
+  if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' then begin
+
+    spec_types = ['dV12hg','dV12hg','dV12lg','dV12lg',$
+      'SCMulfhg','SCMvlfhg','SCMwlfhg', $
+      'SCMulflg','SCMvlflg','SCMwlflg', $
+      'SCMmf', 'V5']
+
+    foreach spec_type, spec_types do begin
+
+      spp_fld_load, trange=trange, type = type + '_' + spec_type, files=files, $
+        fileprefix=fileprefix,$
+        tname_prefix=tname_prefix, pathformat=pathformat,$
+        no_load=no_load,varformat=varformat, $
+        level = level, get_support = get_support, downsample = downsample
+
+      pathformat = !null
+
+      options, 'psp_fld_l2_dfb_ac_spec_' + spec_type, $
+        'no_interp', 1
+
+      ;stop
+
+    end
+
+
+  endif
 
   if not keyword_set(level) then level = 2
 
@@ -20,23 +50,42 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
     if level EQ 2 then fileprefix = 'psp/data/sci/fields/staging/l2/' else $
       fileprefix = 'psp/data/sci/fields/staging/l1/'
   endif
+
   if not keyword_set(pathformat) then begin
     if level EQ 2 then begin
       pathformat =  'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDD_v??.cdf'
-      if type EQ 'dfb_wf_dvdc' then pathformat = 'TYPE/YYYY/MM/psp_fld_l2_dfb_wf_dVdc_YYYYMMDDhhmm_????????????_vtest?.cdf'
-      if type EQ 'dfb_wf_vdc' then pathformat = 'TYPE/YYYY/MM/psp_fld_l2_dfb_wf_Vdc_YYYYMMDDhhmm_????????????_vtest?.cdf'
-      if type EQ 'dfb_wf_scm' then begin
-        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_dfb_wf_scm_YYYYMMDDhhmm_????????????_vtest?.cdf'
+      if type EQ 'mag_SC' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_06h_v??.cdf'
         resolution = 3600l * 6l ; hours
         daily_names = 0
+      endif
+      if type EQ 'mag_RTN' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_06h_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endif
+      if type EQ 'dfb_wf_dvdc' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_06h_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endif
+      if type EQ 'dfb_wf_vdc' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_06h_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endif
+      if type EQ 'dfb_wf_scm' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_06h_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endif
+      if type EQ 'dfb_dc_spec' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_*_YYYYMMDD_v??.cdf'
       endif
     endif else begin
       pathformat = 'TYPE/YYYY/MM/spp_fld_l1_TYPE_YYYYMMDD_v??.cdf'
     endelse
   endif
-
-
-
 
   if not keyword_set(type) then begin
     dprint,'Choices for type are: mag_SC mag_RTN
@@ -95,14 +144,32 @@ pro spp_fld_load,  trange=trange, type = type, files=files, fileprefix=fileprefi
 
       if strmatch(type,'mag_*') then begin
 
+        if tnames('psp_fld_l2_mag_RTN_4_Sa_per_Cyc') NE '' then begin
+          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc',colors='bgr' ,/default
+          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc',labels=['R','T','N'] ,/default
+          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc','max_points',10000
+          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc','psym_lim',300
+        endif
+
+        if tnames('psp_fld_l2_mag_SC_4_Sa_per_Cyc') NE '' then begin
+          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc',colors='bgr' ,/default
+          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc',labels=['X','Y','Z'] ,/default
+          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc','max_points',10000
+          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc','psym_lim',300
+        endif
+
         if tnames('psp_fld_l2_mag_RTN') NE '' then begin
           options,'psp_fld_l2_mag_RTN',colors='bgr' ,/default
           options,'psp_fld_l2_mag_RTN',labels=['R','T','N'] ,/default
+          options,'psp_fld_l2_mag_RTN','max_points',10000
+          options,'psp_fld_l2_mag_RTN','psym_lim',300
         endif
 
         if tnames('psp_fld_l2_mag_SC') NE '' then begin
           options,'psp_fld_l2_mag_SC',colors='bgr' ,/default
           options,'psp_fld_l2_mag_SC',labels=['X','Y','Z'] ,/default
+          options,'psp_fld_l2_mag_SC','max_points',10000
+          options,'psp_fld_l2_mag_SC','psym_lim',300
         endif
 
       endif

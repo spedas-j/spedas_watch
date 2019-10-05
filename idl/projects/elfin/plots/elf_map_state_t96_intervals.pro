@@ -602,7 +602,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     pwdboundlonlat[*,0]=phi
     pwdboundlonlat[*,1]=theta
-    if keyword_set(south) then pwdboundlonlat[*,1]=-outlat ;else pwdboundlonlat[*,1]=theta
+;    if keyword_set(south) then pwdboundlonlat[*,1]=-theta ;else pwdboundlonlat[*,1]=theta
+
     t=make_array(n_elements(ewdboundlonlat[*,0]), /double)+this_time[midpt]
     store_data, 'oval_sm', data={x:t, y:ewd_oval_sm}
     cotrans, 'oval_sm', 'oval_gsm', /sm2gsm
@@ -613,11 +614,26 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     ewdboundlonlat[*,0]=phi
     ewdboundlonlat[*,1]=theta
-    if keyword_set(south) then ewdboundlonlat[*,1]=-outlat ;else pwdboundlonlat[*,1]=theta
+;    if keyword_set(south) then ewdboundlonlat[*,1]=-theta ;else pwdboundlonlat[*,1]=theta
 
+    for lidx=0,n_elements(pwdboundlonlat[*,0])-1 do begin
+      cnv_aacgm, pwdboundlonlat[lidx,1],pwdboundlonlat[lidx,0],100.,plat,plon,r1,error,/geo
+      pwdboundlonlat[lidx,1]=plat
+      pwdboundlonlat[lidx,0]=plon
+    endfor
+    for lidx=0,n_elements(ewdboundlonlat[*,0])-1 do begin
+      cnv_aacgm, ewdboundlonlat[lidx,1],ewdboundlonlat[lidx,0],100.,elat,elon,r1,error,/geo
+      ewdboundlonlat[lidx,1]=elat
+      ewdboundlonlat[lidx,0]=elon
+    endfor
 
-    plots,pwdboundlonlat[*,0],pwdboundlonlat[*,1],color=155, thick=1.05
-    plots,ewdboundlonlat[*,0],ewdboundlonlat[*,1],color=155, thick=1.05
+    if keyword_set(south) then begin
+      plots,pwdboundlonlat[*,0],-pwdboundlonlat[*,1],color=155, thick=1.05
+      plots,ewdboundlonlat[*,0],-ewdboundlonlat[*,1],color=155, thick=1.05
+    endif else begin
+      plots,pwdboundlonlat[*,0],pwdboundlonlat[*,1],color=155, thick=1.05
+      plots,ewdboundlonlat[*,0],ewdboundlonlat[*,1],color=155, thick=1.05        
+    endelse
 
     if hires then charsize=.75 else charsize=.65
     ; annotate
@@ -844,8 +860,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ;plot start and end points
     plots, this_by[0]/6378.,this_bz[0]/6378.,color=254,psym=symbols[0],symsize=0.8
     plots, this_ay[0]/6378.,this_az[0]/6378.,color=253,psym=symbols[0],symsize=0.8
-    plots, this_by[nptsb-1]/6378.,this_bz[npts-1]/6378.,color=254,psym=2,symsize=0.8
-    plots, this_ay[nptsa-1]/6378.,this_az[npts-1]/6378.,color=253,psym=2,symsize=0.8
+    plots, this_by[nptsb-1]/6378.,this_bz[nptsb-1]/6378.,color=254,psym=2,symsize=0.8
+    plots, this_ay[nptsa-1]/6378.,this_az[nptsa-1]/6378.,color=253,psym=2,symsize=0.8
     plots, this_by[(nptsb-1)/2]/6378.,this_bz[(nptsa-1)/2]/6378.,color=254,psym=5,symsize=0.8
     plots, this_ay[(nptsa-1)/2]/6378.,this_az[(nptsa-1)/2]/6378.,color=253,psym=5,symsize=0.8
 
