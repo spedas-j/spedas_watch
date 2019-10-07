@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupa $
-; $LastChangedDate: 2019-10-04 15:17:34 -0700 (Fri, 04 Oct 2019) $
-; $LastChangedRevision: 27821 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2019-10-06 09:19:58 -0700 (Sun, 06 Oct 2019) $
+; $LastChangedRevision: 27822 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -14,6 +14,14 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   tname_prefix=tname_prefix, pathformat=pathformat,$
   no_load=no_load,varformat=varformat, $
   level = level, get_support = get_support, downsample = downsample
+
+  if not keyword_set(type) then begin
+    dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr
+    dprint,'See the directories at: "http://sprg.ssl.berkeley.edu/data/psp/data/sci/fields/staging/l2/" for other valid entries'
+    type = 'mag_RTN'
+    dprint,'Default is: ', type
+  endif
+
 
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' then begin
 
@@ -31,14 +39,17 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         level = level, get_support = get_support, downsample = downsample
 
       pathformat = !null
+      files = !null
 
-      options, 'psp_fld_l2_dfb_ac_spec_' + spec_type, $
-        'no_interp', 1
-
+      if (tnames('psp_fld_l2_dfb_?c_spec_' + spec_type))[0] NE '' then begin
+        options, 'psp_fld_l2_dfb_?c_spec_' + spec_type, $
+          'no_interp', 1
+      end
       ;stop
 
     end
 
+    return
 
   endif
 
@@ -87,12 +98,6 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     endelse
   endif
 
-  if not keyword_set(type) then begin
-    dprint,'Choices for type are: mag_SC mag_RTN
-    dprint,'See the directories at: "http://sprg.ssl.berkeley.edu/data/psp/data/sci/fields/staging/l2/" for other valid entries'
-    type = 'mag_RTN'
-    dprint,'Default is: ', type
-  endif
 
   if (strmid(type, 0, 11) EQ 'dfb_dc_spec') or (strmid(type, 0, 11) EQ 'dfb_ac_spec') and level EQ 2 then begin
 
@@ -113,6 +118,13 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   if level EQ 1.5 then pathformat = str_sub(pathformat,'_l1_', '_l1b_' )
 
   files=spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,/last_version,daily_names=daily_names,/valid_only,resolution = resolution, shiftres = 0)
+
+  if files[0] EQ '' then begin
+
+    dprint, 'No valid files found'
+    return
+
+  end
 
   if not keyword_set(no_load) then begin
     if level EQ 1 then begin
