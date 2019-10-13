@@ -1,9 +1,9 @@
-function dot, x, y
+function mdd_dot, x, y
   Compile_Opt StrictArr
   return, total(x*y)
 end
 
-pro MDD_STD_for_gui,xname,yname,  $
+pro mdd_std_for_gui,xname,yname,  $
   trange=trange,          $;the time range of the input data
   delta_t=delta_t,        $;(optional)Determine the time period to calculate the D/Dt  keyword only for std
   points=points,          $;(optional)Determine the time period to calculate the D/Dt    points=fix(delta_t/dpre)  dpre is the time resolution of the mag data keyword only for std
@@ -200,17 +200,17 @@ pro MDD_STD_for_gui,xname,yname,  $
     if keyword_set(std) then begin
       PBx_Pt1=PBx_Pt[j]   &   PBy_Pt1=PBy_Pt[j]   &   PBz_Pt1=PBz_Pt[j];
       VINTNeg_PB_pt=-[PBx_Pt1,PBy_Pt1,PBz_Pt1]    &    Vs=VINTNeg_PB_pt#matrix_power([[A[0,0],A[0,1],A[0,2]],[A[1,0],A[1,1],A[1,2]],[A[2,0],A[2,1],A[2,2]]],-1);
-      Vs_new_n1=dot(Vs,N1)
+      Vs_new_n1=mdd_dot(Vs,N1)
       ;      if Vs_new_n1 le 0 then begin
       ;        Vs_new_n1=-Vs_new_n1;
       ;        N1=-N1;
       ;      endif
-      Vs_new_n2=dot(Vs,N2)
+      Vs_new_n2=mdd_dot(Vs,N2)
       ;      if Vs_new_n2 le 0 then begin
       ;        Vs_new_n2=-Vs_new_n2;
       ;        N1=-N2;
       ;      endif
-      Vs_new_n3=dot(Vs,N3)
+      Vs_new_n3=mdd_dot(Vs,N3)
       Vx_L[j]=Vs_new_n1*N1[0]   &   Vy_L[j]=Vs_new_n1*N1[1]   &   Vz_L[j]=Vs_new_n1*N1[2]
       Vx_M[j]=Vs_new_n2*N2[0]   &   Vy_M[j]=Vs_new_n2*N2[1]   &   Vz_M[j]=Vs_new_n2*N2[2]
       Vx_N[j]=Vs_new_n3*N3[0]   &   Vy_N[j]=Vs_new_n3*N3[1]   &   Vz_N[j]=Vs_new_n3*N3[2]

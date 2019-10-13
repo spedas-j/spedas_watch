@@ -1,6 +1,6 @@
 ==================================================================
-; UDAS plug-in software package for spedas_2_10 (UDAS ver.s2.10.1)
-;                                                    Nov. 30, 2017
+; UDAS plug-in software package for spedas_3_20 (UDAS ver.s3.20.1)
+;                                                    Oct. 4, 2019
 ==================================================================
 
   UDAS is a plug-in software package for SPEDAS (Space Physics Environment 
@@ -209,5 +209,5 @@ Team in allowing us to use SPEDAS for our analysis software.
 +            Contact           +
 ++++++++++++++++++++++++++++++++
   For questions, comments, and requests about UDAS, please contact 
-the UDAS development team (iugonet2009 at gmail.com).
+the UDAS development team (iugonet-contact at gmail.com).
 

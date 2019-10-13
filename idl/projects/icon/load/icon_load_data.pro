@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-10-03 21:53:40 -0700 (Thu, 03 Oct 2019) $
-;$LastChangedRevision: 27814 $
+;$LastChangedDate: 2019-10-08 16:28:32 -0700 (Tue, 08 Oct 2019) $
+;$LastChangedRevision: 27841 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -210,7 +210,7 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
       remote_path = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Data/ICON_L' + level + '_' + strupcase(instrument) + '_Daytime_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
     endif
     pathformat = [pathformat, remote_path]
-  endif else if strlowcase(instrument) eq 'mighti-a' or strlowcase(instrument) eq 'mighti' then begin
+  endif else if strlowcase(instrument) eq 'mighti-a' or strlowcase(instrument) eq 'mighti-b' or strlowcase(instrument) eq 'mighti' then begin
     ;http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/Simulated-Data/LEVEL.1/MIGHTI-A/2010/140/ICON_L1_MIGHTI-A_Science_2010-05-20_000027_v01r000.NC
     level = '1'
     instrument = strlowcase(instrument)
@@ -227,7 +227,7 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
       remote_path1 = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/Temperature/ICON_L' + level + '_' + strupcase(instrument) + '-A_Temperature-A-Band_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'
       remote_path = [remote_path0, remote_path1]
       ; Oct 2019, change in name: ICON_L2_MIGHTI-A_Temperature_2010-05-27_v01r000.NC
-      remote_path1 = 'LEVEL.' + level + '/' + strupcase(instrument)  + '/YYYY/DOY/ICON_L' + level + '_' + strupcase(instrument) + '-A_Temperature_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'    
+      remote_path1 = 'LEVEL.' + level + '/' + strupcase('mighti')  + '/YYYY/DOY/ICON_L' + level + '_' + strupcase(instrument) + '_Temperature_YYYY-MM-DD_v' + v_str + 'r' + r_str + '.NC'    
       remote_path = [remote_path1]
     endif
    pathformat = [pathformat, remote_path]  

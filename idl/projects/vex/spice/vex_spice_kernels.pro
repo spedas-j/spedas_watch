@@ -22,8 +22,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-05 13:34:59 -0700 (Thu, 05 Apr 2018) $
-; $LastChangedRevision: 25004 $
+; $LastChangedDate: 2019-10-08 07:47:37 -0700 (Tue, 08 Oct 2019) $
+; $LastChangedRevision: 27829 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/spice/vex_spice_kernels.pro $
 ;
 ;-
@@ -84,14 +84,14 @@ FUNCTION vex_spice_kernels, names, trange=trange, all=all, load=load,       $
  
         'SPK': BEGIN            ; Spacecraft position
            spfile = 'kernels/spk/ORVV__' + time_intervals(trange=time, /daily_res, tformat='yyMMDD') + '*_*.BSP'
-           
-           append_array, kernels, spd_download_plus(remote_file=source.remote_data_dir + 'VEX/' + spfile, $ 
+           append_array, kernels, spd_download_plus(remote_file=source.remote_data_dir + 'VEX/' + spfile, /valid_only, $ 
                                                     local_path=source.local_data_dir + 'VEX/kernels/spk/', no_update=no_update, $
                                                     no_server=source.no_server, file_mode='666'o, dir_mode='777'o, last_version=last_version)
+
         END 
         'CK': BEGIN
            cfile = 'kernels/ck/ATPV_P*_' + time_intervals(trange=time, /daily_res, tformat='yyMMDD') + '_*.BC'
-           ck = spd_download(remote_file=source.remote_data_dir + 'VEX/' + cfile, $ 
+           ck = spd_download(remote_file=source.remote_data_dir + 'VEX/' + cfile, /valid_only, $ 
                              local_path=source.local_data_dir + 'VEX/kernels/ck/', no_update=no_update, $
                              no_server=source.no_server, file_mode='666'o, dir_mode='777'o, last_version=last_version)
            w = WHERE(STRPOS(ck, '*') EQ -1, nw)

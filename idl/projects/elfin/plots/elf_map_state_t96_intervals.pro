@@ -111,7 +111,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   sphere=1
   lim=2
   earth=findgen(361)
-
+  launch_date = time_double('2018-09-16')
+  
   ; average solar wind conditions
   dst=-10.
   dynp=2.
@@ -294,13 +295,13 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     else norma_str = 'No att data'
   if size(suna, /type) EQ 8 then suna_str=strmid(strtrim(string(suna.y[0]),1),0,5) $
     else suna_str = 'No att data'
-  if size(solna, /type) EQ 8 then solna_str=time_string(solna.x[0]) $
-    else solna_str = 'No att data'
+  if size(solna, /type) EQ 8 && solna.y[0] GT launch_date then solna_str=time_string(solna.y[0]) $
+    else solna_str = 'No att data'   
   if size(normb, /type) EQ 8 then normb_str=strmid(strtrim(string(normb.y[0]),1),0,5) $
     else normb_str = 'No att data'
   if size(sunb, /type) EQ 8 then sunb_str=strmid(strtrim(string(sunb.y[0]),1),0,5) $
     else sunb_str = 'No att data'
-  if size(solnb, /type) EQ 8 then solnb_str=time_string(solnb.x[0]) $
+  if size(solnb, /type) EQ 8 && solnb.y[0] GT launch_date then solnb_str=time_string(solnb.y[0]) $
     else solnb_str = 'No att data'
 
   ;reset time frame since attitude data might be several days old
@@ -598,7 +599,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     cotrans, 'oval_gsm', 'oval_gse', /gsm2gse
     cotrans, 'oval_gse', 'oval_gei', /gse2gei
     cotrans, 'oval_gei', 'oval_geo', /gei2geo
-    get_data, 'oval_geo', data=d
+    cotrans, 'oval_geo', 'oval_mag', /geo2mag
+    get_data, 'oval_mag', data=d
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     pwdboundlonlat[*,0]=phi
     pwdboundlonlat[*,1]=theta
@@ -610,7 +612,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     cotrans, 'oval_gsm', 'oval_gse', /gsm2gse
     cotrans, 'oval_gse', 'oval_gei', /gse2gei
     cotrans, 'oval_gei', 'oval_geo', /gei2geo
-    get_data, 'oval_geo', data=d
+    cotrans, 'oval_geo', 'oval_mag', /geo2mag
+    get_data, 'oval_mag', data=d
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     ewdboundlonlat[*,0]=phi
     ewdboundlonlat[*,1]=theta

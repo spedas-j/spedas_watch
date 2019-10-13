@@ -179,6 +179,64 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['MONOTON']    = ''
       att['DISPLAY_TYPE'] = 'spectrogram'
     end
+    'DENS': begin
+      att['CATDESC']    = 'Particle Density'
+      att['FIELDNAM']    = 'Partial Moment Density'
+      att['DEPEND_0']    = EPOCHname
+      att['LABLAXIS']    = 'Density'
+      att['UNITS']    = 'cm^-3'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 0.
+      att['VALIDMAX']    = 10000.
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''      
+    end
+    'VEL': begin
+      att['CATDESC']    = 'Particle Velocity'
+      att['FIELDNAM']    = 'Moment Velocity'
+      att['DEPEND_0']    = EPOCHname
+      att['LABLAXIS']    = 'Vx;Vy;Vz'
+      att['UNITS']    = 'km/s'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = -10000.
+      att['VALIDMAX']    = 10000.
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+      att['VAR_NOTES'] = 'In instrument frame'
+    end
+    'T_TENSOR': begin
+      att['CATDESC']    = 'Temperature Tensor in instrument frame'
+      att['FIELDNAM']    = 'Partial Moment Temperature Tensor'
+      att['DEPEND_0']    = EPOCHname
+      att['LABLAXIS']    = 'Txx;Tyy;Tzz;Txy;Txz;Tyz'   
+      att['UNITS']    = 'eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = -10000.
+      att['VALIDMAX']    = 10000.
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+      att['VAR_NOTES'] = 'In instrument frame'
+    end
+    'TEMP': begin
+      att['CATDESC']    = '1/3 of Trace of Temperature Tensor'
+      att['FIELDNAM']    = 'Partial Moment Temperature'
+      att['DEPEND_0']    = EPOCHname
+      att['LABLAXIS']    = 'Temperature'
+      att['UNITS']    = 'eV'
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 0.
+      att['VALIDMAX']    = 10000.
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+    end
     'ENERGY_VALS': begin
       att['CATDESC']    = 'Energy'
       att['FIELDNAM']    = 'Energy'

@@ -1,4 +1,4 @@
-pro spp_fld_mag_survey_4_Sa_per_Cyc, ppp, vectors, pkt_t, $
+pro spp_fld_mag_survey_4_sa_per_cyc, ppp, vectors, pkt_t, $
   times_1d = times_1d, b_1d = b_1d
 
   ; PPP   # full cadence samples   Sample rate       Vectors      Cycles
@@ -51,7 +51,7 @@ pro spp_fld_mag_survey_4_Sa_per_Cyc, ppp, vectors, pkt_t, $
 
     p = fix(ppp[pkt])
 
-    t0 = t0_all[p] 
+    t0 = t0_all[p]
 
     ds_vec = ds_vec_all[p]
 

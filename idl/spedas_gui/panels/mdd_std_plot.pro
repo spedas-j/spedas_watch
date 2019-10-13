@@ -1,5 +1,5 @@
 
-pro MDD_STD_plot,  $
+pro mdd_std_plot,  $
   trange=trange,          $;the time range of the input data
   files=files,            $;(optional)determine the path for output images
   std=std,                $;(optional)calculate the structure velocity using STD method

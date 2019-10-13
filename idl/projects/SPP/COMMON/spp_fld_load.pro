@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-10-06 09:19:58 -0700 (Sun, 06 Oct 2019) $
-; $LastChangedRevision: 27822 $
+; $LastChangedDate: 2019-10-12 09:27:05 -0700 (Sat, 12 Oct 2019) $
+; $LastChangedRevision: 27842 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -13,6 +13,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   fileprefix=fileprefix,$
   tname_prefix=tname_prefix, pathformat=pathformat,$
   no_load=no_load,varformat=varformat, $
+  no_server = no_server, $
   level = level, get_support = get_support, downsample = downsample
 
   if not keyword_set(type) then begin
@@ -117,7 +118,9 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   if level EQ 1.5 then pathformat = str_sub(pathformat,'/l1/', '/l1b/' )
   if level EQ 1.5 then pathformat = str_sub(pathformat,'_l1_', '_l1b_' )
 
-  files=spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,/last_version,daily_names=daily_names,/valid_only,resolution = resolution, shiftres = 0)
+  files = spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,$
+    /last_version,daily_names=daily_names,/valid_only,$
+    resolution = resolution, shiftres = 0, no_server = no_server)
 
   if files[0] EQ '' then begin
 

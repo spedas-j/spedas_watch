@@ -14,8 +14,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-10-03 23:56:44 -0700 (Thu, 03 Oct 2019) $
-;$LastChangedRevision: 27815 $
+;$LastChangedDate: 2019-10-08 16:28:32 -0700 (Tue, 08 Oct 2019) $
+;$LastChangedRevision: 27841 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/examples/icon_crib_mighti.pro $
 ;
 ;-------------------------------------------------------------------
@@ -149,18 +149,37 @@ pro icon_crib_mighti, step=step, img_path=img_path
   endif
   
   if step eq 4 or step eq 99 then begin
-    ;MIGHTI Level-2 Temperature
+    ;MIGHTI-A Level-2 Temperature
     del_data, '*'
 
     timeRange = ['2010-05-27/00:00:00', '2010-05-27/23:59:59']
-    instrument = 'mighti'
+    instrument = 'mighti-a'
     datal1type = ''
     datal2type = '*'
     icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
-
+    tplot_options, 'title', 'ICON MIGHTI-A Temperature (Level-2 Data)'
+    
     ;makepng, img_path + 'ICON_MIGHTI_L2_Temp_Example'
 
     tplot, ['ICON_L2_MIGHTI_A_Temperatures','ICON_L2_MIGHTI_A_Tangent_LST']
+
+  endif
+  
+  
+  if step eq 5 or step eq 99 then begin
+    ;MIGHTI-B Level-2 Temperature
+    del_data, '*'
+
+    timeRange = ['2010-05-27/00:00:00', '2010-05-27/23:59:59']
+    instrument = 'mighti-b'
+    datal1type = ''
+    datal2type = '*'
+    icon_load_data, trange = timeRange, instrument = instrument, datal1type = datal1type, datal2type = datal2type
+    tplot_options, 'title', 'ICON MIGHTI-B Temperature (Level-2 Data)'
+
+    ;makepng, img_path + 'ICON_MIGHTI_L2_Temp_Example'
+
+    tplot, ['ICON_L2_MIGHTI_B_Temperatures','ICON_L2_MIGHTI_B_Tangent_LST']
 
   endif
   print, 'icon_crib_mighti finished'
