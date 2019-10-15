@@ -7,6 +7,7 @@
 ;
 ; KEYWORDS:
 ;         tplotname:    name of tplot variable (should be ela_epdef or elb_ela_epdif)
+;         nodownload:   set this flag to force routine to load local data only (no download)
 ;
 ;$LastChangedBy: egrimes $
 ;$LastChangedDate: 2017-08-08 09:33:48 -0700 (Tue, 08 Aug 2017) $
@@ -16,6 +17,7 @@
 
 pro elf_load_epd_fast_segments, tplotname=tplotname, no_download=no_download
 
+  ; Get epd fast mode data and create an array of times for the bar display
   get_data, tplotname, data=epd
   if size(epd, /type) NE 8 then begin
     dprint, 'No data loaded for '+tplotname
@@ -26,6 +28,7 @@ pro elf_load_epd_fast_segments, tplotname=tplotname, no_download=no_download
     endfor
   endelse
 
+  ; no fast mode data found so nothing to load into tplot
   if undefined(epd_fast_bar_x) then return
 
   store_data, 'epd_fast_bar', data={x:epd_fast_bar_x, y:epd_fast_bar_y}

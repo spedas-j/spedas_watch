@@ -1,16 +1,26 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;; Calibrate EPD raw data (counts/sector) into calibrated products.
-;; Supported product types are:
-;; - 'cps': counts per second [counts/s] in 16 ADC pulse-height channels
-;; - 'nflux': differential-directional number flux [#/cm^2-s-str-MeV] in 16 energy channels
-;; - 'eflux': differential-directional energy flux [MeV/cm^2-s-str-MeV] in 16 energy channels
-;;
-;; Initially written by Colin Wilkins (colinwilkins@ucla.edu)
-;;
+;+
+;PROCEDURE:
+;   elf_cal_epd
+;   
+;PURPOSE:
+;   Calibrate EPD raw data (counts/sector) into calibrated products.
+;   Supported product types are:
+;   - 'cps': counts per second [counts/s] in 16 ADC pulse-height channels
+;   - 'nflux': differential-directional number flux [#/cm^2-s-str-MeV] in 16 energy channels
+;   - 'eflux': differential-directional energy flux [MeV/cm^2-s-str-MeV] in 16 energy channels
+;
+;KEYWORDS:
+;   tplotname: name of tplot variable containing epd data. tvars include ela_pef, ela_pif, 
+;              ela_pes, ela_pis (and same for elb)
+;   type: type of calibrated data cps, nflux, eflux
+;   nodownload: set this flag to force routine to use local files 
+;AUTHOR:
+; Initially written by Colin Wilkins (colinwilkins@ucla.edu)
+;-
 
 PRO elf_cal_epd, tplotname=tplotname, type=type, no_download=no_download
 
+  ; get epd data and double check that it exists
   get_data, tplotname, data=d, dlimits=dl, limits=l
   if size(d,/type) NE 8 then begin
      dprint, dlevel = 1, 'There is no data in ' + tplotname
@@ -20,6 +30,7 @@ PRO elf_cal_epd, tplotname=tplotname, type=type, no_download=no_download
   if undefined(probe) then probe = strmid(tplotname, 2, 1) else probe = probe
   sc='el'+probe
 
+  ; determine which epd instrument - ion or electron
   if strpos(tplotname, 'pef') GE 0 then instrument='epde' 
   if strpos(tplotname, 'pif') GE 0 then instrument='epdi'
   if undefined(type) then type = 'eflux'
@@ -31,6 +42,7 @@ PRO elf_cal_epd, tplotname=tplotname, type=type, no_download=no_download
      return
   endif
 
+  ; setup variables
   num_samples = (size(d.x))[1]
   dt = 0.
   sec_num = 0
@@ -39,6 +51,7 @@ PRO elf_cal_epd, tplotname=tplotname, type=type, no_download=no_download
   overint_factors = epd_cal.epd_overaccumulation_factors
   ebins_logmean = epd_cal.epd_ebins_logmean
  
+  ; Perform calibration
   Case type of
     'raw': store_data, tplotname, data={x:d.x, y:d.y, v:findgen(16) }, dlimits=dl, limits=l      
     'cps': begin

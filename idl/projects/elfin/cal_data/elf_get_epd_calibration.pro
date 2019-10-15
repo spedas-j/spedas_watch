@@ -1,3 +1,39 @@
+;+
+; PROCEDURE:
+;         elf_get_epd_calibration
+;
+; PURPOSE:
+;         returns epd calibration parameters
+;
+; OUTPUT: 
+;         EPD calibration data structure
+;         cal_params include: epd_gf
+;                             epd_overaccumulation_factors
+;                             epd_thresh_factors
+;                             epd_ch_efficiencies
+;                             epd_cal_ch_factors
+;                             epd_ebins
+;                             epd_ebins_logmean
+;                             epd_ebin_lbls 
+;
+; KEYWORDS:
+;         probe:       elfin probe name, 'a' or 'b'
+;         instrument:  epd instrument name, 'epde' or 'epdi'
+;
+; EXAMPLES:
+;         elf> cal_params = elf_get_epd_calibration(probe='a', instrument='epde')
+;
+; NOTES:
+;         This routine contains hard coded calibration values. To download the 
+;         calibration file from the server use elf_read_epd_calfile. 
+;
+; HISTORY:
+;
+;$LastChangedBy: clrussell $
+;$LastChangedDate: 2018-12-06 11:58:25 -0700 (Mon, 06 Aug 2018) $
+;$LastChangedRevision: 25588 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_cal_mrmi.pro $
+;-
 function elf_get_epd_calibration, probe=probe, instrument=instrument
 
   if ~keyword_set(probe) then probe='a'
@@ -6,9 +42,6 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
     return, -1
   endif
-;  if ~undefined(trange) && n_elements(trange) eq 2 $
-;    then tr = timerange(trange) $
-;  else tr = timerange()
   
   if probe EQ 'a' then begin 
     if instrument EQ 'epde' then begin
@@ -118,7 +151,6 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument
         epd_ebin_lbls:epdi_ebin_lbls }
     endif
   endif
-
 
   return, epd_calibration_data
   

@@ -133,7 +133,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     'eflux': unit = 'keV/(scm!U2!NstrMeV)'
   endcase
 
-  elf_load_data, trange = trange, probes = probes, level = level, instrument = 'epd', $
+  elf_load_data, trange = tr, probes = probes, level = level, instrument = 'epd', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
     datatype = datatype, get_support_data = get_support_data, no_time_sort=no_time_sort, $
     tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
@@ -143,7 +143,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
 
   ; no reason to continue if no data were loaded
   if undefined(tplotnames) || tplotnames[0] EQ '' then begin
-    dprint, dlevel = 1, 'No data was loaded.'
+    dprint, dlevel = 1, 'No data was loaded for EPD for ' + time_string(tr[0]) + ' to ' + time_string(tr[1])
     return
   endif
  

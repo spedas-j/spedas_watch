@@ -1,3 +1,41 @@
+;+
+; PROCEDURE:
+;         elf_read_epd_calibration
+;
+; PURPOSE:
+;         returns epd calibration parameters
+;
+; OUTPUT:
+;         EPD calibration data structure
+;         cal_params include: epd_gf
+;                             epd_overaccumulation_factors
+;                             epd_thresh_factors
+;                             epd_ch_efficiencies
+;                             epd_cal_ch_factors
+;                             epd_ebins
+;                             epd_ebins_logmean
+;                             epd_ebin_lbls
+;
+; KEYWORDS:
+;         probe:       elfin probe name, 'a' or 'b'
+;         instrument:  epd instrument name, 'epde' or 'epdi'
+;         no_download: if set this routine will look locally for calibration file
+;
+; EXAMPLES:
+;         elf> cal_params = elf_get_epd_calibration(probe='a', instrument='epde')
+;
+; NOTES:
+;         This routine will download the latest calibration file from the server.
+;         If no server is available or no_download is set the user can use the routine
+;         elf_get_epd_calibration
+;
+; HISTORY:
+;
+;$LastChangedBy: clrussell $
+;$LastChangedDate: 2018-12-06 11:58:25 -0700 (Mon, 06 Aug 2018) $
+;$LastChangedRevision: 25588 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_cal_mrmi.pro $
+;-
 function elf_read_epd_calfile, probe=probe, instrument=instrument, no_download=no_download
 
   ; check that the elfin system variable exits
@@ -32,8 +70,8 @@ function elf_read_epd_calfile, probe=probe, instrument=instrument, no_download=n
     if undefined(user) OR undefined(pw) then authorization = elf_get_authorization()
     user=authorization.user_name
     pw=authorization.password
-    ; only query user if authorization file not found
 
+    ; only query user if authorization file not found
     If user EQ '' OR pw EQ '' then begin
       print, 'Please enter your ELFIN user name and password'
       read,user,prompt='User Name: '
@@ -51,7 +89,8 @@ function elf_read_epd_calfile, probe=probe, instrument=instrument, no_download=n
 
     ;check that file exists
     local_file = file_search(local_filename)
-
+    
+    ; if file exists then open the file and read the calibration parameters
     if is_string(local_file) then begin
     
       ; open file and read first 7 lines (these are just headers)
@@ -96,7 +135,7 @@ function elf_read_epd_calfile, probe=probe, instrument=instrument, no_download=n
         endfor
       endif
     
-      ; read geometric factors
+      ; read GEOMETRIC_FACTORS
       readf, lun, le_string
       readf, lun, le_string
       if le_string EQ 'gf:' then begin

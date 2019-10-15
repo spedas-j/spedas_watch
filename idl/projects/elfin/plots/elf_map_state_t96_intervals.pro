@@ -14,9 +14,6 @@
 ; INPUTS:
 ;    tstart start time for the map
 ;
-; OPTIONAL INPUTS:
-;    None
-;
 ; KEYWORD PARAMETERS:
 ;    gifout   generate a gif image at output
 ;    south    use southern hemisphere (otherwise, north)
@@ -176,22 +173,22 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     if keyword_set(no_trace) then goto, skip_trace
     
     if keyword_set(quick_trace) then begin
+
       if keyword_set(south) then begin
         ttrace2iono,'el'+probes[sc]+'_pos_gsm_mins',newname='el'+probes[sc]+'_ifoot_gsm_mins', $
           external_model=tsyg_mod,par=tsyg_parameter,R0= 1.0156 ,/km,/south
       endif else begin
         ttrace2iono,'el'+probes[sc]+'_pos_gsm_mins',newname='el'+probes[sc]+'_ifoot_gsm_mins', $
           external_model=tsyg_mod,par=tsyg_parameter,R0= 1.0156,/km
-      endelse
-      
+      endelse      
       ; interpolate the minute-by-minute data back to the full array
       get_data,'el'+probes[sc]+'_ifoot_gsm_mins',data=ifoot_mins
-      store_data,'el'+probes[sc]+'_ifoot_gsm',data={x: dats.x, y: interp(ifoot_mins.y[*,*], ifoot_mins.x, dats.x)}
-     
+      store_data,'el'+probes[sc]+'_ifoot_gsm',data={x: dats.x, y: interp(ifoot_mins.y[*,*], ifoot_mins.x, dats.x)}     
       ; clean up the temporary data
-      del_data, '*_mins'
-      
+      del_data, '*_mins'      
+
     endif else begin
+
       if keyword_set(south) then begin
         ttrace2iono,'el'+probes[sc]+'_pos_gsm',newname='el'+probes[sc]+'_ifoot_gsm', $
           external_model=tsyg_mod,par=tsyg_parameter,R0= 1.0156 ,/km,/south
@@ -199,10 +196,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         ttrace2iono,'el'+probes[sc]+'_pos_gsm',newname='el'+probes[sc]+'_ifoot_gsm', $
           external_model=tsyg_mod,par=tsyg_parameter,R0= 1.0156 ,/km
       endelse
+
     endelse
 
     skip_trace:
 
+    ; convert coordinate system to geo
     cotrans, 'el'+probes[sc]+'_ifoot_gsm', 'el'+probes[sc]+'_ifoot_gse', /gsm2gse
     cotrans, 'el'+probes[sc]+'_ifoot_gse', 'el'+probes[sc]+'_ifoot_gei', /gse2gei
     cotrans, 'el'+probes[sc]+'_ifoot_gei', 'el'+probes[sc]+'_ifoot_geo', /gei2geo
@@ -290,7 +289,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   get_data, 'elb_spin_orbnorm_angle', data=normb
   get_data, 'elb_spin_sun_angle', data=sunb
   get_data, 'elb_att_solution_date', data=solnb
-
   if size(norma, /type) EQ 8 then norma_str=strmid(strtrim(string(norma.y[0]),1),0,5) $
     else norma_str = 'No att data'
   if size(suna, /type) EQ 8 then suna_str=strmid(strtrim(string(suna.y[0]),1),0,5) $
@@ -341,7 +339,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   u_lon=fltarr(nmlons,n2)
   ;cnv_aacgm, 56.35, 265.34, height, outlat,outlon,r1,error, /geo  
   cnv_aacgm, 86.39, 175.35, height, outlat,outlon,r1,error   ;Gillam
-  ;if keyword_set(south) then cnv_aacgm, -64.114, 135.760, height, outlat,outlon,r1,error,/geo  
   mlats=latstart+findgen(n2)/float(n2-1)*(latend-latstart)
   ;  Calculate longitude values
   for i=0,nmlons-1 do begin
@@ -385,7 +382,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   outlon=make_array(n_elements(pwdboundlonlat[*,0]))
   outlat=make_array(n_elements(pwdboundlonlat[*,0]))
   sphere_to_cart, rp, pwdboundlonlat[*,1], pwdboundlonlat[*,0], vec=pwd_oval_sm
-
   sphere_to_cart, rp, ewdboundlonlat[*,1], ewdboundlonlat[*,0], vec=ewd_oval_sm
 
   ; determine orbital period

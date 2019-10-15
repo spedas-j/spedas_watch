@@ -3,11 +3,8 @@
 ;  elf_ui_load_data
 ;
 ;PURPOSE:
-;  This routine provides examples for building load data panel widgets and 
-;  handles the widget events it produces. This is a template only and creates 
-;  basic widgets that are common to most missions. 
-;  Each mission is different. Some widgets may need to be added to fully specify
-;  the data set to be loaded or some may not be needed. 
+;  This routine builds a load data panel of widgets for and 
+;  handles the widget events produces. 
 ;
 ;HISTORY:
 ;$LastChangedBy: jimm $

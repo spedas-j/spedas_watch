@@ -103,10 +103,6 @@ pro elf_ui_load_data_load_pro,$
                   trange=timeRange, varformat=varformat
   endcase
   
-;  if coordinate NE 'GEI' then begin
-;     cotrans, 
-;  endif
-  
   ; determine which tplot variables to delete and which ones are the new temporary 
   ; variables
   spd_ui_cleanup_tplot, tn_before, create_time_before=cn_before, del_vars=to_delete,$

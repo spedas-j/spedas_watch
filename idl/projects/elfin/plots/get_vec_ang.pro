@@ -1,18 +1,21 @@
 ;+
 ;FUNCTION 
+;  get_vec_angle
 ;
-;PURPOSE: determines angle between two vectors
+;PURPOSE: 
+;  determines angle between two vectors
 ;
 ;INPUT:
-;vec1, vec2 : either 2d or 3d vectors, arrays possible, 
-;             one array, one vector also possible
-;             vec[0,*]-x component
-;             vec[1,*]-y component
-;             vec[2,*]-z component
-;OUTPUT:;             
-;ang:         angle between vec1,vec2 
-;mag1,mag2:   Optional output of magnitude of vectors
-;dot_product: scalar product between the two vectors (Optional)
+;  vec1, vec2: either 2d or 3d vectors, arrays possible, 
+;              one array, one vector also possible
+;              vec[0,*]-x component
+;              vec[1,*]-y component
+;              vec[2,*]-z component
+;             
+;OUTPUT:             
+;  ang:        angle between vec1,vec2 
+; mag1,mag2:   Optional output of magnitude of vectors
+; dot_product: scalar product between the two vectors (Optional)
 ;
 ;sfrey v1.0
 ;05-19-08 sfrey added dot_product

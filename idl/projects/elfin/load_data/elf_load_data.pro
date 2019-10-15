@@ -320,9 +320,17 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
     ; time clip the data
     dt_timeclip = 0.0
+    error = 0
     if (n_elements(tr) eq 2) and (tplotnames[0] ne '') and ~keyword_set(no_time_clip) then begin
       tc0 = systime(/sec)
       time_clip, tplotnames, tr[0], tr[1], replace=1, error=error
+      if error EQ 1 then begin
+        dprint, dlevel=1, 'The time requested for '+tplotnames+' is out of range'
+        dprint, dlevel=1, 'No data was loaded for '+tplotnames
+        del_data, tplotnames
+        tplotnames=''
+        return 
+      endif
       dt_timeclip = systime(/sec)-tc0
     endif
 

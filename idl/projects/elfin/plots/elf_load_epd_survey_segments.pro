@@ -3,10 +3,11 @@
 ;         elf_load_epd_survey_segments
 ;
 ; PURPOSE:
-;         Loads the EPD fast segment intervals into a bar that can be plotted
+;         Loads the EPD survey segment intervals into a bar that can be plotted
 ;
 ; KEYWORDS:
-;         tplotname:    name of tplot variable (should be ela_epdef or elb_ela_epdif)
+;         tplotname:    name of tplot variable (should be ela_epdes or elb_ela_epdis)
+;         nodownload:   set this flag to force routine to load local data only (no download)
 ;
 ;$LastChangedBy: egrimes $
 ;$LastChangedDate: 2017-08-08 09:33:48 -0700 (Tue, 08 Aug 2017) $
@@ -16,6 +17,7 @@
 
 pro elf_load_epd_survey_segments, tplotname=tplotname
 
+  ; Get epd survey mode data and create an array of times for the bar display
   get_data, tplotname, data=epd
   if size(epd, /type) NE 8 then begin
     dprint, 'No data loaded for '+tplotname
@@ -26,6 +28,7 @@ pro elf_load_epd_survey_segments, tplotname=tplotname
     endfor
   endelse
 
+  ; no survey mode data found so nothing to load into tplot
   if undefined(epd_survey_bar_x) then return
 
   store_data, 'epd_survey_bar', data={x:epd_survey_bar_x, y:epd_survey_bar_y}

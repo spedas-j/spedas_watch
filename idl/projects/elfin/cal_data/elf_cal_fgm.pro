@@ -5,16 +5,18 @@
 ; PURPOSE:
 ;         Calibrate ELFIN FGM data
 ;
-; KEYWORDS:
+; INPUT:
 ;         tvars:       tplot variable names to be calibrated
+; 
+; KEYWORDS:
 ;         level:       processing level 
+;         error:       1 indicates an error occurred, 0 indicates success
 ;         
 ; EXAMPLES:
 ;         
 ;         elf> elf_cal_fgm, tvars, level='l1' 
 ;
 ; NOTES:
-;
 ;
 ; HISTORY:
 ;         - egrimes, fixed bug in calibration calculations reported by Andrei, 14 March 2019
@@ -45,14 +47,14 @@ pro elf_cal_fgm, tvars, level=level, error=error
   ax3_off=470.
   ax3_scl=103.4  
 
+  ; get fgm data and calibrate it
   if level EQ 'l1' then begin
      for i=0,n_elements(tvars)-1 do begin
          get_data, tvars[i], data=d, dlimits=dl, limits=l
          if is_struct(d) then begin
             bx_nt = d.y[*,0]/ax1_scl - ax1_off
             by_nt = d.y[*,1]/ax2_scl - ax2_off
-            bz_nt = d.y[*,2]/ax3_scl - ax3_off
-            
+            bz_nt = d.y[*,2]/ax3_scl - ax3_off            
             b_nt = [[bx_nt], [by_nt], [bz_nt]]
             dl.ysubtitle='[nT]'
             cal_data = {x:d.x, y:b_nt}    

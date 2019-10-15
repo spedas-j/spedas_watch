@@ -1,121 +1,56 @@
+;+
+;PROCEDURE:
+;  find_orbits
+;
+;PURPOSE:
+;  Procedure returns indices of perigees and apogees. Apsides are determined as
+;  the local minima and maxima based on x,y,z orbit coordinates only. Orbit sets
+;  are split into single orbits by node crossings. If nodes are close to or at local
+;  minima then cutoffs are shifted to meet local minima and maxima conditions.
+;  For orbits sets, arcs that are ascending or decsending only determination of
+;  first and last apsides is based on average orbit length and can be off by orbit
+;  variation. For a partial orbit this method works only if apside is well
+;  insight the arc. This indicated by message 'Orbit is not complete, apogee might
+;  not be true'.
+;  
+;INPUT
+;  x
+;  y   Components preferrably in GEI
+;  z
+;
+;KEYWORDS:
+;  info: if set some details are printed
+;  tolerance: Flag to pick orbit variation, period perturbations make orbit size
+;             varying from one orbit to another, and
+;             different time resolutions might call for different tolerances
+;             (orbit length/[3.,10.]) <[100,8]
+;             tolerance=3  picks smaller value (low resolution)
+;             tolerance>3 picks higher value  (high resolution)
+;             This has some heritage
+;  halt:      flag to stop
+;  test:      selects three test cases (=1,=2,=3)
+;  nostop:    flags to not stop if different orbits sizes cause
+;             stop if max(abs(diff2),ibad) gt round(median(abs(dstart-astart))/10.)
+;             should not be set for maneuver calculation but is helpful when
+;             all statevectors from archive are put into one structure and then
+;             processed for visualization such as in plot_elements, helps to keep
+;             automation as orbits go into final size
+;OUTPUT:
+;  ind_pg  ; index of perigee passes
+;  ind_ap  ; index of apogee passes
+;  ind_asnode: index of ascending node
+;  orbitnumber: orbit count starts at 1, increments at ascending node
+;  norbits:   numbers of orbits
+;  ag,pg :    flag to indicate which one is first
+;
+;AUTHOR:
+;  S. Frey, UCB, SSL
+;-
 pro find_orbits,x,y,z,ind_pg,ind_ag,info=info,ind_asnode=ind_asnode,$
              ind_dsnode=ind_dsnode,orbitnumber=orbitnumber,$
              tolerance=tolerance,norbits=norbits,ag=ag,pg=pg,$
              test=test,halt=halt,nostop=nostop,re=re
 
-
-;Purpose:
-;Procedure returns indices of perigees and apogees. Apsides are determined as 
-;the local minima and maxima based on x,y,z orbit coordinates only. Orbit sets 
-;are split into single orbits by node crossings. If nodes are close to or at local 
-;minima then cutoffs are shifted to meet local minima and maxima conditions.
-;For orbits sets, arcs that are ascending or decsending only determination of 
-;first and last apsides is based on average orbit length and can be off by orbit
-;variation. For a partial orbit this method works only if apside is well 
-;insight the arc. This indicated by message 'Orbit is not complete, apogee might
-; not be true'.
-;INPUT
-; x
-; y   Components preferrably in GEI
-; z
-;info if set some details are printed
-;tolerance: Flag to pick orbit variation, period perturbations make orbit size 
-;           varying from one orbit to another, and 
-;            different time resolutions might call for different tolerances
-;             (orbit length/[3.,10.]) <[100,8]
-;           tolerance=3 picks smaller value (low resolution) 
-;           tolerance>3 picks higher value  (high resolution)
-;           This has some heritage
-;halt       flag to stop
-;test       selects three test cases (=1,=2,=3)
-;nostop     flags to not stop if different orbits sizes cause 
-;           stop if max(abs(diff2),ibad) gt round(median(abs(dstart-astart))/10.)
-;           should not be set for maneuver calculation but is helpful when
-;           all statevectors from archive are put into one structure and then 
-;           processed for visualization such as in plot_elements, helps to keep
-;           automation as orbits go into final size
-;OUTPUT
-; ind_pg  ; index of perigee passes
-; ind_ap  ; index of apogee passes
-; ind_asnode: index of ascending node
-;orbitnumber: orbit count starts at 1, increments at ascending node 
-;norbits:   numbers of orbits
-;pg,pg :    flag to indicate which one is first            
-;last MOD: 08-08-2003 with tolerance in n_elements per orbit =3
-;          19-08-2003 for 1 orbit two more cases added (case statement)
-;                     and 1pixel tolerance allowed
-;          10-01-2003 editing touch-ups
-;          10-03-2003 typo corrected in if loop to set first/last PG -1 
-;          10-17-2003 pgorb and agorb derived from from start /end of interval 
-; as of 10-10-03 : It is possible that an apside is dissmissed at [0] or[nn-1]
-;                  this has to be checked in calling routine by ma. 
-;       10_17-03 : tolerance is an issue with higher resolution--> make sure
-;                  keyword tolerance is set accordingly
-;       10-25-03   npg(nag)  gt 2
-;v1.0 S.Frey 12-30-03
-;            02-24-04 tolerance is set to be 100 fixed
-;                     switch for idz if near perigee
-;                     stops if still perigee/apogee(s) missing
-;          03-08-2004 porper handling of idz close to perigee/apogee added
-;          04-29-2004 Return of indices of Nodes and orbit numbers
-;                     added
-;          07-15-2004 ag,pg_tolerances with outlier (but only by factor of two)
-;                     remove apogee from inside the array
-;          07-20-2004 now  by factor of 3
-;          07-30-2004 there are always two to tango
-;                     sft loop updated for apogee 
-;          08-03-04   Using median-mean as criteria to determine tolerances and true min,max
-;          09-23-04   Another check that ind_pg,ind_ag alternate added when 
-;                     ddalles fails. Orbit=2 improved.
-;          09-28-04   orbit=0 added 
-;          10-01-04   return for (nas +nds) eq 1 added
-;          04-05-05   checking case with ind_ag[0]=\=0 and ind_pg[0]=\=0
-;                     and found to be correct since ma[0] gt 180 and lt 200
-;          04-13-05   ind_pg/ind_ag initialized with  at least  one element
-;          09-14-05   n_elements(rr) < 10
-;          09-23-05   keywords norbits,ag,pg added in response to adding
-;                     finite burn trajectories; should be used in plotting 
-;                     routines only
-;          10-18-05   ind_asnode=-1  ind_dsnode =-1 for all 0 orbit returns    
-;          11-22-05   using where_array to check for alternating indeces in alles 
-;          01-25-06   for orbits=0 do same as for orbits=1:
-;                     taking min and max of data
-;	   04-28-06   shifting idz when close to apside improved
-;                     more corrections for norbits>2 at the end
-;                     some TBD 
-;          05-03-06   tolerance0 now from dstart-astart
-;                     mins and maxs check first  
-;          10-25-06   Action added for Stop at  diff2 but stop still kept
-;          11-09-06   added some checks for [nag,npg] <2
-;          11-17-06   last pg,ag removed when diff> tolerance
-;          11-20-06   tolerance is  min(tolerance0) 
-;                     cross checking use of ind_pg,npg, ind_ag,nag
-;                     orbits gt 1 checking first,last with pgorb,agorb 
-;          11-29-06   removed condition ind*[0] eq 0 in check whether to remove first/last one
-;                     last check whether to remove first/last one limited ne 0 or ne last
-;          12-06-06   abs(med-men) ne tolerance or nwhile gt whilelim
-;                     instead of abs(med-men) gt tolerance for both ap,pg
-;          12-08-06   when checking last /first need to consider possibility of two close points 
-;                     of which one is correct
-;                     cnt3,cnt4 ge 4
-;          12-11-06   orbits Le 1 improved, using dorb
-;          12-14-06   dorb,aorb initialized with last instead of 0
-;          12-15-06   Action at final check of bad, works if one set is okay
-;          12-30-06   missings
-;          12-31-06   while loops to adjust tolerance removed, was obsolete and had a flaw
-;          08-24-07   interactive option in case  different orbit sizes   
-;                     lead to stop             
-;          09-22-07   keyword nostop added, using in orb gt 2 and  different orbit sizes 
-;          10-03-07   using nostop in dalles check
-;                     in case nostop=1 no printining of ind's
-;          11-05-07   check for  cn1 ne 0 , cn2 ne 0 added
-;                     one stop with TBD action removed was redundant
-;          17-04-08   more check for 'x-device when plotting to avoid
-;                     disrupting PS-plots
-;          10-21-08   keyword re added
-;          05-19-20   always initialize ind_asnode,ind_dsnode
-;          05-28-10   adjusted orbitnumber for nnode le 1 
-;3 TBDs left!!!  check with a Gman run
 tolerance0=[100 ,8]    ;05-27-04
 tol_def=tolerance0
 if not keyword_set(test) then test=0 else test=test

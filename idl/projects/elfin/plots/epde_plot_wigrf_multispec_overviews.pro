@@ -1,14 +1,28 @@
+;+
 ;
+;PROCEDURE:
+;  epde_plot_wigrf_multispec_overviews
+;  
+;PURPOSE:
 ; Loads EPDE, performs pitch angle determination and plotting of energy and pitch angle spectra
 ; Including precipitating and trapped spectra separately. EPDI can be treated similarly, but not done yet
 ; Regularize keyword performs rebinning of data on regular sector centers starting at zero (rel.to the time
 ; of dBzdt 0 crossing which corresponds to Pitch Angle = 90 deg and Spin Phase angle = 0 deg.).
 ; If the data has already been collected at regular sectors there is no need to perform this.
 ; 
+;KEYWORDS:
+; trange - time range of interest [starttime, endtime] with the format
+;          ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;          ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']          
+; probe - 'a' or 'b'
+; no_download - set this flag to not download data from the server and use local files only
+; 
+;TO DO:
 ; elb can be done similarly but the code has not been generalized to either a or b yet. But this is straightforward.
 ;
-pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download=no_download
-  
+;-
+pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download=no_download
+
   ; initialize parameters
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
@@ -23,13 +37,23 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
   if undefined(probe) then probe = 'a'
   if ~undefined(no_download) then no_download=1 else no_download=0
 
-  ; set up plot options 
-  tplot_options, 'xmargin', [15,11]
+  ; set up plot options
+  tplot_options, 'xmargin', [16,11]
   tplot_options, 'ymargin', [4,4]
   timeduration=time_double(trange[1])-time_double(trange[0])
   timespan,tr[0],timeduration,/seconds
   tr=timerange()
-  
+
+  ; remove any existing pef tplot vars
+  del_data, 'el'+probe+'_pef_nflux'
+  elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux', no_download=no_download ; DEFAULT UNITS ARE NFLUX THIS ONE IS CPS
+  get_data, 'el'+probe+'_pef_nflux', data=d
+  if size(d, /type) NE 8 then begin
+    dprint, dlevel=0, 'No data was downloaded for el' + probe + '_pef_nflux.'
+    dprint, dlevel=0, 'No plots were producted.
+    return
+  endif
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Get position data
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -38,7 +62,7 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
   cotrans,'el'+probe+'_pos_gei','el'+probe+'_pos_gse',/GEI2GSE
   cotrans,'el'+probe+'_pos_gse','el'+probe+'_pos_gsm',/GSE2GSM
   cotrans,'el'+probe+'_pos_gsm','el'+probe+'_pos_sm',/GSM2SM ; in SM
-  
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Get Pseudo_ae data
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -54,10 +78,10 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... fgm status bar
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;elf_load_fgm_fast_segments, probe=probe, type='fgf'
+  ;elf_load_fgm_fast_segments, probe=probe
   ;get_data, 'fgf_bar', data=fgf_bar_x
   ; ... fgf status bar
-  ;elf_load_fgm_survey_segments, probe=probe, type='fgs'
+  ;elf_load_fgm_survey_segments, probe=probe
   ;get_data, 'fgs_bar', data=fgs_bar_x
 
   ;if isa(fgs_bar_x) && isa(fgf_bar_x) then store_data, 'fgm_bar', data=['fgs_bar','fgf_bar']
@@ -93,29 +117,29 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
   endfor
   ; append info for 24 hour plot
   append_array, min_st, 0
-  append_array, min_en, 86400
+  append_array, min_en, 86399.
   append_array, plot_lbl, ' 00:00 to 24:00'
   append_array, file_lbl, '_24hr'
- 
+
   nplots = n_elements(min_st)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; MAIN LOOP for PLOTs
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   for i=0,nplots-1 do begin
-     
+
     this_tr=[dat_gei.x[min_st[i]], dat_gei.x[min_en[i]]]
     tdur=this_tr[1]-this_tr[0]
     timespan, this_tr[0], tdur, /sec
-    elf_load_state, probes=probe, no_download=no_download 
+    elf_load_state, probes=probe, no_download=no_download
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Load state and calculate IGRF
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     threeones=[1,1,1]
     cotrans,'el'+probe+'_pos_gei','el'+probe+'_pos_gse',/GEI2GSE
-    cotrans,'el'+probe+'_pos_gse','el'+probe+'_pos_gsm',/GSE2GSM  
-    tt89,'el'+probe+'_pos_gsm',/igrf_only,newname='el'+probe+'_bt89_gsm',period=1.    
+    cotrans,'el'+probe+'_pos_gse','el'+probe+'_pos_gsm',/GSE2GSM
+    tt89,'el'+probe+'_pos_gsm',/igrf_only,newname='el'+probe+'_bt89_gsm',period=1.
     cotrans,'el'+probe+'_pos_gsm','el'+probe+'_pos_sm',/GSM2SM ; in SM
     get_data, 'el'+probe+'_pos_sm', data=state_pos_sm
     ; calculate IGRF in nT
@@ -138,7 +162,7 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
     options,'el'+probe+'_bt89_sm_NED','labels',['N','E','D']
     options,'el'+probe+'_bt89_sm_NED','databar',0.
     options,'el'+probe+'_bt89_sm_NED','ysubtitle','North, East, Down'
-    
+
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Get MLT amd LAT
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -151,18 +175,18 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
     options,'el'+probe+'_L',ytitle='L'
     options,'el'+probe+'_LAT',ytitle='LAT'
     alt = median(sqrt(elfin_pos.y[*,0]^2 + elfin_pos.y[*,1]^2 + elfin_pos.y[*,2]^2))-6371.
-       
+
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; get EPD data
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux', no_download=no_download ; DEFAULT UNITS ARE NFLUX THIS ONE IS CPS
-    
+   
     ; ... EPD fast bar
     elf_load_epd_fast_segments, tplotname='el'+probe+'_pef_nflux', no_download=no_download
     get_data, 'epdef_fast_bar', data=epdef_fast_bar_x
     ;elf_load_epd_survey_segments, tplotname='el'+probe+'_pes_nflux'
     ;get_data, 'epdes_survey_bar', data=epdes_survey_bar_x
-    
+
     if isa(epdef_fast_bar_x) && isa(epdes_fast_bar_x) then store_data, 'epd_bar', data=['epdef_fast_bar','epdes_survey_bar']
     if ~isa(epdef_fast_bar_x) && isa(epdes_survey_bar_x) then store_data, 'epd_bar', data=['epdef_survey_bar']
     if isa(epdef_fast_bar_x) && ~isa(epdes_survey_bar_x) then store_data, 'epd_bar', data=['epdef_fast_bar']
@@ -170,70 +194,76 @@ pro EPDE_plot_wIGRF_multispec_overviews, trange=trange, probe=probe, no_download
     options, 'epd_bar',ticklen=0
     options, 'epd_bar', 'ystyle',4
     options, 'epd_bar', 'xstyle',4
-    
+
     phase_delay = elf_find_phase_delay(trange=tr, probe=probe, instrument='epde', no_download=no_download)
     if size(phase_delay, /type) NE 8 then elf_getspec,/regularize, no_download=no_download $
-      else elf_getspec, /regularize, dSect2add=phase_delay.dsect2add, dSpinPh2add=phase_delay.dphang2add, no_download=no_download
+    else elf_getspec, /regularize, dSect2add=phase_delay.dsect2add, dSpinPh2add=phase_delay.dphang2add, no_download=no_download
 
-    ; handle scaling of y axis 
-    idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
-    if ncnt GT 0 then ae_max=max(pseudo_ae.y[idx])
-    if ncnt LE 0 then continue
-    if ae_max LT 150. then begin
-      options, 'pseudo_ae', yrange=[0,150] 
-      options, 'pseudo_ae', ystyle=1
-    endif else begin
-      options, 'pseudo_ae', yrange=[0,ae_max]
-      options, 'pseudo_ae', ystyle=1
-    endelse 
+    ; handle scaling of y axis
+    if size(pseudo_ae, /type) EQ 8 then begin
+      idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
+      if ncnt GT 0 then ae_max=max(pseudo_ae.y[idx])
+      if ncnt LE 0 then continue
+      if ae_max LT 150. then begin
+        options, 'pseudo_ae', yrange=[0,150]
+        options, 'pseudo_ae', ystyle=1
+      endif else begin
+        options, 'pseudo_ae', yrange=[0,ae_max]
+        options, 'pseudo_ae', ystyle=1
+      endelse
+    endif
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; PLOT
     window, xsize=750, ysize=1000
-    tplot_options, version=6   ;6
+    tplot_options, version=7   ;6
     tplot_options, 'ygap',0
+    tplot_options, 'charsize',.9
     options, 'el'+probe+'_pef_en_spec2plot_omni', charsize=.9
     options, 'el'+probe+'_pef_en_spec2plot_anti', charsize=.9
     options, 'el'+probe+'_pef_en_spec2plot_perp', charsize=.9
     options, 'el'+probe+'_pef_en_spec2plot_para', charsize=.9
     options, 'el'+probe+'_bt89_sm_NED', charsize=.9
-    
+
     tplot,['pseudo_ae', $
-           'epd_fast_bar', $
-           'sunlight_bar', $
-           'el'+probe+'_pef_en_spec2plot_omni', $
-           'el'+probe+'_pef_en_spec2plot_anti', $ 
-           'el'+probe+'_pef_en_spec2plot_perp', $ 
-           'el'+probe+'_pef_en_spec2plot_para', $
-           'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $ 
-           'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $ 
-           'el'+probe+'_bt89_sm_NED'], $
-           var_label='el'+probe+'_'+['LAT','MLT']
-    
+      'epd_fast_bar', $
+      'sunlight_bar', $
+      'el'+probe+'_pef_en_spec2plot_omni', $
+      'el'+probe+'_pef_en_spec2plot_anti', $
+      'el'+probe+'_pef_en_spec2plot_perp', $
+      'el'+probe+'_pef_en_spec2plot_para', $
+      'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
+      'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+      'el'+probe+'_bt89_sm_NED'], $
+      var_label='el'+probe+'_'+['LAT','MLT']
+
     tr=timerange()
     fd=file_dailynames(trange=tr[0], /unique, times=times)
     tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+plot_lbl[i]
     title='ELFIN-'+strupcase(probe)+' EPDE, alt='+strmid(strtrim(alt,1),0,3)+'km, '+tstring
-    xyouts, .25, .975, title, /normal, charsize=1.2 
+    xyouts, .25, .975, title, /normal, charsize=1.2
     tplot_apply_databar
 
     ; add time of creation
     xyouts,  .775, .005, 'Created: '+systime(),/normal,color=10, charsize=.75
-    
+
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Create PNG file
     tr=timerange()
     fd=file_dailynames(trange=tr[0], /unique, times=times)
     png_path = !elf.local_data_dir+'overplots/'+strmid(fd,0,4)+'/'+strmid(fd,4,2)+'/'+strmid(fd,6,2)+'/'
     file_mkdir, png_path
-    png_file = png_path+'el'+probe+'_l2_overview_'+fd+file_lbl[i]  
+    png_file = png_path+'el'+probe+'_l2_overview_'+fd+file_lbl[i]
     dprint, 'Making png file '+png_file+'.png'
 
     makepng, png_file
+
+    del_data, 'el'+probe+'_pef_nflux'
+    del_data, 'el'+probe+'_pes_nflux'
     
     ; close any luns opened by calc
     for j=100,128 do free_lun, j
-    
+
   endfor
-   
+
 end
