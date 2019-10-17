@@ -1,5 +1,5 @@
 function elf_find_phase_delay, trange=trange, no_download=no_download, probe=probe, $
-    instrument=instrument
+    instrument=instrument 
 
   ; Initialize parameters if needed
   defsysv,'!elf',exists=exists
@@ -17,15 +17,18 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
   phase_delays=elf_get_phase_delays(no_download=nodownload, probe=probe, $
      instrument=instrument)
     
-  dt = phase_delays.starttimes - trange[0]
-  mindt=min(dt, minidx)
-  if mindt LT 10.*60. then begin
-     dsect2add=phase_delays.sect2add[minidx]
-     dphang2add=phase_delays.phang2add[minidx]
+  ;dt = phase_delays.starttimes - trange[0]
+  ;mindt=min(dt, minidx)
+  idx = where(phase_delays.starttimes GE trange[0] AND phase_delays.starttimes LE trange[1], ncnt)
+  ;if mindt LT 10.*60. then begin
+  if ncnt GT 1 then idx=idx[0]
+  if ncnt GT 0 then begin
+     dsect2add=phase_delays.sect2add[idx]
+     dphang2add=phase_delays.phang2add[idx]
      medianflag=0
   endif else begin 
-     dsect2add=phase_delays.LASTESTMEDIANSECTR[minidx]
-     dphang2add=phase_delays.latestmedianphang[minidx]
+     dsect2add=phase_delays.LASTESTMEDIANSECTR[idx]
+     dphang2add=phase_delays.latestmedianphang[idx]
      medianflag=1  
   endelse
 

@@ -16,12 +16,14 @@
 ;          ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']          
 ; probe - 'a' or 'b'
 ; no_download - set this flag to not download data from the server and use local files only
+; sci_zone - if set this flag will plot epd overview plots by science zone (rather than by day)
 ; 
 ;TO DO:
 ; elb can be done similarly but the code has not been generalized to either a or b yet. But this is straightforward.
 ;
 ;-
-pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download=no_download
+pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download=no_download, $
+  sci_zone=sci_zone
 
   ; initialize parameters
   defsysv,'!elf',exists=exists
@@ -47,8 +49,8 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   ; remove any existing pef tplot vars
   del_data, 'el'+probe+'_pef_nflux'
   elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux', no_download=no_download ; DEFAULT UNITS ARE NFLUX THIS ONE IS CPS
-  get_data, 'el'+probe+'_pef_nflux', data=d
-  if size(d, /type) NE 8 then begin
+  get_data, 'el'+probe+'_pef_nflux', data=pef_nflux
+  if size(pef_nflux, /type) NE 8 then begin
     dprint, dlevel=0, 'No data was downloaded for el' + probe + '_pef_nflux.'
     dprint, dlevel=0, 'No plots were producted.
     return
@@ -96,31 +98,56 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Prep FOR ORBITS
   ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ; setup for orbits
-  ; 1 24 hour plot, 4 6 hr plots, 12 2 hr plots
-  hr_arr = indgen(25)   ;[0, 6*indgen(4), 2*indgen(12)]
-  hr_ststr = string(hr_arr, format='(i2.2)')
-  ; Strings for labels, filenames
-  ; Use smaller array if they are not the same
-  for m=0,23 do begin
-    this_s = tr[0] + m*3600.
-    this_e = this_s + 90.*60. + 1
-    idx = where(dat_gei.x GE this_s AND dat_gei.x LT this_e, ncnt)
-    if ncnt GT 10 then begin
-      append_array, min_st, idx[0]
-      append_array, min_en, idx[n_elements(idx)-1]
-      this_lbl = ' ' + hr_ststr[m] + ':00 to ' + hr_ststr[m+1] + ':30'
-      append_array, plot_lbl, this_lbl
-      this_file = '_'+hr_ststr[m]
-      append_array, file_lbl, this_file
-    endif
-  endfor
-  ; append info for 24 hour plot
-  append_array, min_st, 0
-  append_array, min_en, 86399.
-  append_array, plot_lbl, ' 00:00 to 24:00'
-  append_array, file_lbl, '_24hr'
-
+  if ~keyword_set(sci_zone) then begin
+    ; setup for orbits by the hour
+    ; 1 plot at start of each hour (for 1.5 hours) and 1 24 hour plot
+    hr_arr = indgen(25)   ;[0, 6*indgen(4), 2*indgen(12)]
+    hr_ststr = string(hr_arr, format='(i2.2)')
+    ; Strings for labels, filenames
+    ; Use smaller array if they are not the same
+    for m=0,23 do begin
+      this_s = tr[0] + m*3600.
+      this_e = this_s + 90.*60. + 1
+      idx = where(dat_gei.x GE this_s AND dat_gei.x LT this_e, ncnt)
+      if ncnt GT 10 then begin
+        append_array, min_st, idx[0]
+        append_array, min_en, idx[n_elements(idx)-1]
+        this_lbl = ' ' + hr_ststr[m] + ':00 to ' + hr_ststr[m+1] + ':30'
+        append_array, plot_lbl, this_lbl
+        this_file = '_'+hr_ststr[m]
+        append_array, file_lbl, this_file
+      endif
+    endfor
+    ; append info for 24 hour plot
+    append_array, min_st, 0
+    append_array, min_en, 86399.
+    append_array, plot_lbl, ' 00:00 to 24:00'
+    append_array, file_lbl, '_24hr'
+  endif else begin
+    ; set up for plots by science zone
+    tdiff = pef_nflux.x[1:n_elements(pef_nflux.x)-1] - pef_nflux.x[0:n_elements(pef_nflux.x)-2]
+    idx = where(tdiff GT 40., ncnt)   ; note: 40 seconds is an arbitary time 
+    for sz=0,ncnt-1 do begin
+      if sz EQ 0 then begin
+        this_s = pef_nflux.x[0] 
+        sidx = 0
+        this_e = pef_nflux.x[idx[sz]]
+        eidx = idx[sz]
+      endif else begin
+        this_s = pef_nflux.x[idx[sz-1]+1]
+        sidx = idx[sz-1]+1
+        this_e = pef_nflux.x[idx[sz]]
+        eidx = idx[sz]
+      endelse
+      append_array, starttimes, this_s
+      append_array, endtimes, this_e
+      append_array, min_st, sidx
+      append_array, min_en, eidx 
+      append_array, plot_lbl, ' Science Zone ' + strtrim(string(sz),1) 
+      append_array, file_lbl, '_Science_Zone_' + strtrim(string(sz),1)            
+    endfor
+  endelse 
+  
   nplots = n_elements(min_st)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -128,7 +155,8 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   for i=0,nplots-1 do begin
 
-    this_tr=[dat_gei.x[min_st[i]], dat_gei.x[min_en[i]]]
+    if ~keyword_set(sci_zone) then this_tr=[dat_gei.x[min_st[i]], dat_gei.x[min_en[i]]] else $
+       this_tr=[pef_nflux.x[min_st[i]], pef_nflux.x[min_en[i]]]
     tdur=this_tr[1]-this_tr[0]
     timespan, this_tr[0], tdur, /sec
     elf_load_state, probes=probe, no_download=no_download
@@ -195,10 +223,15 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     options, 'epd_bar', 'ystyle',4
     options, 'epd_bar', 'xstyle',4
 
-    phase_delay = elf_find_phase_delay(trange=tr, probe=probe, instrument='epde', no_download=no_download)
-    if size(phase_delay, /type) NE 8 then elf_getspec,/regularize, no_download=no_download $
-    else elf_getspec, /regularize, dSect2add=phase_delay.dsect2add, dSpinPh2add=phase_delay.dphang2add, no_download=no_download
-
+    phase_delay = elf_find_phase_delay(trange=this_tr, probe=probe, instrument='epde', no_download=no_download)
+    if size(phase_delay, /type) EQ 8 && phase_delay.medianflag EQ 1 then begin
+      elf_getspec,/regularize, no_download=no_download
+      phase_msg = 'No phase delay availabe. Defaulting to median value.'
+    endif else begin
+      elf_getspec, /regularize, dSect2add=phase_delay.dsect2add, dSpinPh2add=phase_delay.dphang2add, no_download=no_download
+      phase_msg = ''
+    endelse
+    
     ; handle scaling of y axis
     if size(pseudo_ae, /type) EQ 8 then begin
       idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
@@ -213,6 +246,18 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
       endelse
     endif
 
+    ; Figure out which science zone
+    if keyword_set(sci_zone) then begin
+      median_lat = median(lat0)
+      dlat = lat0[1:n_elements(lat0)-1] - lat0[0:n_elements(lat0)-2]
+      if median_lat GT 0 then begin
+        if median(dlat) GT 0 then plot_lbl[i] = plot_lbl[i] + ', North Ascending' else $
+          plot_lbl[i] = plot_lbl[i] + ', North Descending' 
+      endif else begin
+        if median(dlat) GT 0 then plot_lbl[i] = plot_lbl[i] + ', South Ascending' else $
+          plot_lbl[i] = plot_lbl[i] + ', South Descending'      
+      endelse
+    endif
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; PLOT
     window, xsize=750, ysize=1000
@@ -241,11 +286,14 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     fd=file_dailynames(trange=tr[0], /unique, times=times)
     tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+plot_lbl[i]
     title='ELFIN-'+strupcase(probe)+' EPDE, alt='+strmid(strtrim(alt,1),0,3)+'km, '+tstring
-    xyouts, .25, .975, title, /normal, charsize=1.2
+    if ~keyword_set(sci_zone) then xloc=.25 else xloc=.175
+    xyouts, xloc, .975, title, /normal, charsize=1.2
     tplot_apply_databar
 
     ; add time of creation
     xyouts,  .775, .005, 'Created: '+systime(),/normal,color=10, charsize=.75
+    ; add phase delay message
+    xyouts, .01, .005, phase_msg, /normal, color=10, charsize=.75
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Create PNG file

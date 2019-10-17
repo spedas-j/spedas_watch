@@ -23,7 +23,7 @@ pro elf_load_epd_survey_segments, tplotname=tplotname
     dprint, 'No data loaded for '+tplotname
   endif else begin
     for i=0, n_elements(epd.x)-2 do begin
-      append_array, epd_survey_bar_x, [epd.x[i],epd.x[i],epd.x[i+1],epd.x[i+1]]
+      append_array, epd_survey_bar_x, [epd.x[i],epd.x[i],epd.x[i]+1.,epd.x[i]+1.]
       append_array, epd_survey_bar_y, [!values.f_nan, 0.,0., !values.f_nan]
     endfor
   endelse

@@ -27,7 +27,7 @@ pro elf_load_fgm_survey_segments, probe=probe, tplotname=tplotname
   endif else begin
     get_data, 'el'+probe+'_fgs', data=fgs
     for i=0, n_elements(fgs.x)-2 do begin
-      append_array, fgs_bar_x, [fgs.x[i],fgs.x[i],fgs.x[i+1],fgs.x[i+1]]
+      append_array, fgs_bar_x, [fgs.x[i],fgs.x[i],fgs.x[i]+1.,fgs.x[i]+1.]
       append_array, fgs_bar_y, [!values.f_nan, 0.,0., !values.f_nan]
     endfor
   endelse

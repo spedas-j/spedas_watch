@@ -186,7 +186,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['LABLAXIS']    = 'Density'
       att['UNITS']    = 'cm^-3'
       att['FILLVAL']    = fnan
-      att['VALIDMIN']    = 0.
+      att['VALIDMIN']    = .1
       att['VALIDMAX']    = 10000.
       att['VAR_TYPE']    = 'data'
       att['DICT_KEY']    = ''
@@ -204,7 +204,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VALIDMAX']    = 10000.
       att['VAR_TYPE']    = 'data'
       att['DICT_KEY']    = ''
-      att['SCALETYP']    = 'log'
+      att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
       att['VAR_NOTES'] = 'In instrument frame'
     end
@@ -224,7 +224,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VAR_NOTES'] = 'In instrument frame'
     end
     'TEMP': begin
-      att['CATDESC']    = '1/3 of Trace of Temperature Tensor'
+      att['CATDESC']    = 'Average of Trace of Temperature Tensor'
       att['FIELDNAM']    = 'Partial Moment Temperature'
       att['DEPEND_0']    = EPOCHname
       att['LABLAXIS']    = 'Temperature'

@@ -11,8 +11,10 @@
   ;  Dur: If set, number of days to process, default is 1
   ;  probe: 'a' or 'b'
   ;  no_download: If set no files will be downloaded
+  ;  sci_zone: If set this flag will create overplots by science zone rather than by hour
   ;-
-pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_download
+pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_download, $
+    sci_zone=sci_zone
 
   compile_opt idl2
 
@@ -36,7 +38,8 @@ pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_dow
   for j = 0,dur-1 do begin
     start_time = time_double(date)+j*60.*60.*24.
     end_time = start_time + 86400.    
-    epde_plot_wigrf_multispec_overviews, trange=[start_time, end_time], probe=probe, no_download=no_download
+    epde_plot_wigrf_multispec_overviews, trange=[start_time, end_time], probe=probe, $
+      no_download=no_download, sci_zone=sci_zone
   endfor 
   
 end

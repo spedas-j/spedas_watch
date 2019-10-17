@@ -27,7 +27,7 @@ pro elf_load_fgm_fast_segments, tplotname=tplotname, probe=probe
   endif else begin
     get_data, 'el'+probe+'_fgf', data=fgf
     for i=0, n_elements(fgf.x)-2 do begin
-      append_array, fgf_bar_x, [fgf.x[i],fgf.x[i],fgf.x[i+1],fgf.x[i+1]]
+      append_array, fgf_bar_x, [fgf.x[i],fgf.x[i],fgf.x[i]+1.,fgf.x[i]+1.]
       append_array, fgf_bar_y, [!values.f_nan, 0.,0., !values.f_nan]
     endfor
   endelse
