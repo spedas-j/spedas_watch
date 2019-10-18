@@ -63,7 +63,7 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
 
     var = varnames[i]
 
-    if tnames(var) EQ var then begin
+    if tnames(var) EQ var and var NE 'psp_fld_l2_quality_flags' then begin
 
       split = strsplit(var,'_',/extract)
 

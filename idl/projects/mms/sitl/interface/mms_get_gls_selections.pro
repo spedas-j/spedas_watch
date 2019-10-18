@@ -57,9 +57,10 @@ endif else begin
     first_slash = strpos(filenames[i], '/', /reverse_search)
     cut_filenames[i] = strmid(filenames[i], first_slash+1, strlen(filenames[i]))
     
+    
     ; Cut off gls name
     
-    cut_gls[i] = strmid(cut_filenames, strlen(gls_name)+1, strlen(cut_filenames[i]))
+    cut_gls[i] = strmid(cut_filenames[i], strlen(gls_name)+1, strlen(cut_filenames[i]))
     
     file_type[i] = gls_name
     file_year[i] = strmid(cut_gls[i], 0, 4)

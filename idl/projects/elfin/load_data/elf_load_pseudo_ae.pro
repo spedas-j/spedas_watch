@@ -19,11 +19,11 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, probe=probe
   remote_ae_dir=!elf.REMOTE_DATA_DIR+'/pseudo_ae'
   local_ae_dir=!elf.LOCAL_DATA_DIR+'/pseudo_ae'
   daily_name = file_dailynames(trange=tr, /unique, times=times)
-  fname = daily_name + '_PseudoAE.csv'
+  fname = daily_name + '_ProxyAE.csv'
   if strlowcase(!version.os_family) eq 'windows' then local_ae_dir = strjoin(strsplit(local_ae_dir, '/', /extract), path_sep())
 
-  remote_filename=remote_ae_dir+'/' + daily_name + '_PseudoAE.csv'
-  local_filename=local_ae_dir+'/'+ daily_name + '_PseudoAE.csv'
+  remote_filename=remote_ae_dir+'/' + daily_name + '_ProxyAE.csv'
+  local_filename=local_ae_dir+'/'+ daily_name + '_ProxyAE.csv'
   paths = ''
 
   if keyword_set(no_download) then no_download=1
@@ -59,7 +59,7 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, probe=probe
      pseudo_ae = read_csv(local_filename)
      t0=time_double(strmid(time_string(tr[0]),0,10))
      pseudo_ae_x = (pseudo_ae.field1 * 60.) + t0 
-     pseudo_ae_y = [pseudo_ae.field4]
+     pseudo_ae_y = double([pseudo_ae.field4])
      dl = {ytitle:'proxy_ae', labels:['proxy_AE'], colors:[2]}
      store_data, 'pseudo_ae', data={x:pseudo_ae_x, y:pseudo_ae_y}, dlimits=dl
   endelse
