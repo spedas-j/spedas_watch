@@ -1,8 +1,8 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-08-27 13:46:42 -0700 (Tue, 27 Aug 2019) $
-; $LastChangedRevision: 27680 $
+; $LastChangedDate: 2019-10-18 14:46:09 -0700 (Fri, 18 Oct 2019) $
+; $LastChangedRevision: 27896 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 ;
@@ -12,34 +12,51 @@
 ;rate: uses 'rates' instead of counts (recommended)
 ;snap: shows a snapshot of particle distributions
 ;alfven: calculates the Alfven speed from FIELDS QTN
+;energybin: plots data in energy bin number instead of actual energies
+;plots: creates tplot variables for diagnostic purposes
+;e12: encounters 1 and 2
 
 pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=alltypes,maxcalc=maxcalc,nmaxcalc=nmaxcalc,rate=rate,accum=accum,snap=snap,$
-  spectra=spectra,mode=mode,mass_explode=mass_explode,plots=plots,merge=merge,alfven=alfven,total=total
+  spectra=spectra,mode=mode,mass_explode=mass_explode,plots=plots,merge=merge,alfven=alfven,total=total,energybin=energybin,e12=e12,status_bits=status_bits
 
-  if ~keyword_set(types) then types=['sf00','sf01','sf10','sf11','sf20','sf21','sf22','sf23']
+  if ~keyword_set(types) then types=['tof','sf00','sf01','sf10','sf11','sf20','sf21','sf22','sf23']
   if keyword_set(alltypes) then begin
-    types=[]
+    types=['tof']
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1','2'] do foreach type3,['0','1','2','3'] do types=[types,type0+type1+type2+type3]
   endif
   if ~keyword_set(level) then level='L1'
   if keyword_set(plots) then begin
     maxcalc=1
-    nmaxcalc=1
+    ;nmaxcalc=1
     rate=1
     accum=1
     spectra=1
     mode=1
+    status_bits=1
+    ;merge=1
     total=1
   endif
 
   if level eq 'L1' then begin
     dir='spi/'+level+'/YYYY/MM/spi_TYP/'
-    fileformat=dir+'spp_swp_spi_TYP_'+level+'*_YYYYMMDD_v??.cdf'
+    fileformat=dir+'psp_swp_spi_TYP_'+level+'*_YYYYMMDD_v??.cdf'
     fileprefix='psp/data/sci/sweap/'
-    datdimen0=[8,32,8];sf0x: DxExA: deflection(theta),energy,anode(phi)
-    datdimen1=[8,32]  ;sf1x: DxE: deflection,energy
-    datdimen2=[32,16] ;sf2x: ExM: energy,mass
     tr=timerange(trange)
+
+    if keyword_set(energybin) then begin
+      yrange=[32,0]
+      ylog=0
+      ytickunits=''
+      en=findgen(32)
+    endif else begin
+      yrange=[100,20e3]
+      ylog=1
+      ytickunits='scientific'
+      en=exp(9.825-findgen(32)/6.25) ;energy bins for encounter 2
+      ve=velocity(en,/proton) ;speeds corresponding to energy bins
+    endelse
+    
+    if ~keyword_set(e12) then anoderange=[-1,16] else anoderange=[-1,8]
 
     axis_style=2
     min=0
@@ -76,6 +93,11 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         endif else vardata=(spp_data_product_hash('spi_'+type)).data
 
         if ~keyword_set(vardata) then continue
+        
+        if type eq 'tof' then begin
+          if keyword_set(spectra) then store_data,prefix+'TOF',vardata.time,transpose(vardata.tof),dlim={zlog:1,spec:1,ystyle:3,ztitle:'Counts'}
+          continue
+        endif
 
         data=vardata.data
         times=vardata.time
@@ -94,11 +116,12 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         if keyword_set(mode) then begin
           mode2=vardata.mode2
           tmode=mode2 and 0xf
-          emode=(mode2 and 0xf0)/16
-          pmode=(mode2 and 0xf00)/16^2
-          mmode=(mode2 and 0xf000)/16^3
+          emode=(mode2 and 'f0'x)/16
+          pmode=(mode2 and 'f00'x)/16^2
+          mmode=(mode2 and 'f000'x)/16^3
           store_data,prefix+'mode',times,[[tmode],[emode],[pmode],[mmode]],dlim={ystyle:3,colors:'rbgk',labels:['t','e','p','m'],labflag:-1}
         endif
+        if keyword_set(status_bits) then store_data,prefix+'status_bits',times,vardata.status_bits,dlim={ystyle:3}
         if 0 and type.charat(2) eq '0' and type.charat(3) eq '0' then begin
           nt/=2
           data=2*rebin(data,[dim[0],nt]) ;summing over neiboring bins to go from 16 accum periods to 32, similar to other products
@@ -115,10 +138,11 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         ;prefix=prefix+countrate+'_'
 
         mbin=where(type.charat(3) eq ['0','1','2','3'])
-        case type.charat(2) of
-          '0':datdimen=datdimen0
-          '1':datdimen=datdimen1
-          '2':datdimen=datdimen2
+        pbin=where(type.charat(2) eq ['0','1','2'])
+        case dim[0] of
+          2048:datdimen=[8,32,8];sf0x: DxExA: deflection(theta),energy,anode(phi)
+          256 :datdimen=[8,32]  ;sf1x: DxE: deflection,energy (only encounters 1 and 2)
+          512 :datdimen=[32,16] ;sf2x: ExM: energy,mass
         endcase
         if type.charat(1) eq 't' then begin
           min+=1
@@ -127,28 +151,28 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         if keyword_set(rate) then data/=transpose(rebin([totaccum],[nt,dim[0]]))
         data=reform(reform(data,[datdimen,nt],/overwrite),/overwrite)
 
-        case type.charat(2) of
-          '0':begin
+        case dim[0] of
+          2048:begin
             if keyword_set(snap) then begin
               data_theta=total(data,1)
               data_energy=total(data,2)
               data_phi=total(data,3,/nan)
-              p=image(transpose(alog10(data_theta)),-.5+findgen(8),.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
-                title='',xtitle='Anode #',ytitle='Energy bin',xrange=[-1,8],yrange=[33,0],/current,layout=[5,2,6-5*mbin])
+              p=image(transpose(alog10(data_theta)),8.*pbin[0]-.5+findgen(8),-.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
+                title='',xtitle='Anode #',ytitle='Energy bin',xrange=anoderange,yrange=[32,-1],/current,layout=[5,2,6-5*mbin])
+              p=text(/relative,target=p,0,-.01-pbin/2.7,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
+              p=image(alog10(data_phi),-.5+findgen(8),-.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
+                title='',xtitle='Deflection bin',ytitle='Energy bin',xrange=[-1,8],yrange=[32,-1],/current,layout=[5,2,pbin+7-5*mbin])
               p=text(/relative,target=p,0,-.01,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
-              p=image(alog10(data_phi),.5+findgen(8),.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
-                title='',xtitle='Deflection bin',ytitle='Energy bin',xrange=[0,9],yrange=[33,0],/current,layout=[5,2,7-5*mbin])
-              p=text(/relative,target=p,0,-.01,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
-              p=image(transpose(alog10(data_energy)),.5+findgen(8),-.5+findgen(8),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
-                ytitle='Deflection bin',xtitle='Anode #',yrange=[-1,8],xrange=[0,8],/current,layout=[5,6,9-5*mbin])
-              p=text(/relative,target=p,1.1,0,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
+              p=image(transpose(alog10(data_energy)),8.*pbin[0]-.5+findgen(8),-.5+findgen(8),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
+                ytitle='Deflection bin',xtitle='Anode #',yrange=[-1,8],xrange=anoderange,/current,layout=[5,6,9-5*mbin])
+              p=text(/relative,target=p,1.1,-1*(~keyword_set(e12))+1.4*pbin,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
             endif
             if keyword_set(spectra) then begin
               data_vs_theta=total(total(data,2),2,/nan)
               data_vs_energy=total(total(data,1),2,/nan)
               data_vs_phi=total(total(data,1),1)
               store_data,prefix+'deflection',times,transpose(data_vs_theta),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
-              store_data,prefix+'energy',times,transpose(data_vs_energy),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+              store_data,prefix+'energy',times,transpose(data_vs_energy),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
               store_data,prefix+'anode',times,transpose(data_vs_phi),dlim={zlog:1,spec:1,yrange:[7,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
               if mbin eq 0 then begin
                 data00_phi=total(data,3,/nan)
@@ -157,18 +181,18 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
               endif
             endif
           end
-          '1':begin
+          256:begin
             data[*,2*lindgen(16),*]=reverse(data[*,2*lindgen(16),*],1) ;sf1x has the "snake pattern" deflection
             if keyword_set(snap) then begin
-              p=image(alog10(data),.5+findgen(8),.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
-                title='',xtitle='Deflection bin',ytitle='Energy bin',xrange=[0,9],yrange=[33,0],/current,layout=[5,2,8-5*mbin])
+              p=image(alog10(data),-.5+findgen(8),-.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
+                title='',xtitle='Deflection bin',ytitle='Energy bin',xrange=[-1,8],yrange=[32,-1],/current,layout=[5,2,8-5*mbin])
               p=text(/relative,target=p,0,-.01,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
             endif
             if keyword_set(spectra) then begin
               data_vs_theta=total(data,2)
               data_vs_energy=total(data,1)
               store_data,prefix+'deflection',times,transpose(data_vs_theta),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
-              store_data,prefix+'energy',times,transpose(data_vs_energy),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+              store_data,prefix+'energy',times,transpose(data_vs_energy),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
               if keyword_set(merge) and mbin eq 0 then begin
                 indmerge=replicate(0l,nt00)
                 it10=0l
@@ -195,9 +219,9 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 store_data,prefix+'sf00merge_deflection',times[0:-2],transpose(data_vs_theta_nophi0),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
                 store_data,prefix+'sf00anode0_deflection',times[0:-2],transpose(data_vs_theta_phi0),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
                 ;store_data,prefix+'-sf00anode0_deflection',times[0:-2],-transpose(data_vs_theta_phi0),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
-                store_data,prefix+'sf00merge_energy',times[0:-2],transpose(data_vs_energy_nophi0),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
-                store_data,prefix+'sf00anode0_energy',times[0:-2],transpose(data_vs_energy_phi0),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
-                ;store_data,prefix+'-sf00anode0_energy',times[0:-2],-transpose(data_vs_energy_phi0),dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                store_data,prefix+'sf00merge_energy',times[0:-2],transpose(data_vs_energy_nophi0),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                store_data,prefix+'sf00anode0_energy',times[0:-2],transpose(data_vs_energy_phi0),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                ;store_data,prefix+'-sf00anode0_energy',times[0:-2],-transpose(data_vs_energy_phi0),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
                 ;store_data,prefix+'sf00anode0',times[0:-2],transpose(reform(data00phi0,[256,nt-1])),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
                 ;store_data,prefix+'-sf00anode0',times[0:-2],-transpose(reform(data00phi0,[256,nt-1])),dlim={zlog:1,spec:1,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
                 store_data,prefix+'sf00merge_total',times[0:-2],datatot_nophi0,dlim={ylog:1,ystyle:2,labels:countrate,labflag:1}
@@ -210,18 +234,13 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
               endif
             endif
           end
-          '2':begin
+          512:begin
             if keyword_set(snap) then begin
-              p=image(alog10(data),.5+findgen(32),.5+findgen(16),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
-                xtitle='Energy bin',ytitle='Mass bin',xrange=[33,0],yrange=[0,17],/current,layout=[2,6,12-2*mbin])
+              p=image(alog10(data),-.5+findgen(32),-.5+findgen(16),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
+                xtitle='Energy bin',ytitle='Mass bin',xrange=[32,-1],yrange=[-1,16],/current,layout=[2,6,12-2*mbin])
               p=text(/relative,target=p,-.1,0,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
             endif
             if keyword_set(spectra) then begin
-              yrange=[32,0]
-              yrange=[100,20000]
-              ylog=1
-              en=exp(9.825-findgen(32)/6.25) ;energy bins for encounter 2
-              ve=velocity(en,/proton) ;speeds corresponding to energy bins
               data[0,*,*]=0. ;highest energy bin contains noise
               data_vs_energy=total(data,2)
               data_vs_mass=total(data,1)
@@ -232,7 +251,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 times20=times
                 datatot20=total(data_vs_energy20,1) ;total rate (0th moment)
                 den20=total(data_vs_energy20/rebin(ve,[32,nt]),1) ;proportional to density
-                den10=corrfac*total((data_vs_energy_phi0+data_vs_energy_nophi0)/rebin(ve,[32,nt]),1) ;proportional to density
+                if keyword_set(data00merge) then den10=corrfac*total((data_vs_energy_phi0+data_vs_energy_nophi0)/rebin(ve,[32,nt]),1) ;proportional to density
                 datatoten0=total(data_vs_energy20*rebin(en,[32,nt]),1)/datatot20 ;mean energy (1st moment)
                 datatotte0=sqrt(total(data_vs_energy20*(rebin(en,[32,nt]))^2,1)/datatot20-datatoten0^2) ;temperature
                 speed0=velocity(datatoten0,/proton)
@@ -241,7 +260,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 store_data,prefix+'proton_energy_ovl',data=prefix+'energy'+['','_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^(min+1),10.^max]}
               endif
               if keyword_set(merge) and mbin eq 1 then begin
-                if total(times20 eq times) ne nt then message,'Different time cadence b/w sf20 and sf21, consider only loading data from 19-3-31 to 19-4-11'
+                if total(times20 eq times) ne nt then message,'Different time cadence b/w sf20 and sf21, consider only loading data from 19-3-31 to 19-4-11 for encounter 2 or from 19-8-22 to 19-9-14 for encounter 3'
                 data_vs_energy1=total(data[*,1:2,*],2) ;alpha mass bin peak
                 data_vs_energy2=data_vs_energy1-.005*data_vs_energy20
                 data_vs_energy3=data_vs_energy2*(data_vs_energy2 ge 0.)
@@ -258,7 +277,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 store_data,prefix+'alpha_energy_ovl',data=prefix+'alpha-proton_energy'+['','_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^min,10.^(max-2)]}
                 store_data,prefix+'total_0.1scaled',times,.1*[[datatot20],[datatot1]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:-1,constant:10.^(findgen(10)-5)}
                 store_data,prefix+'density_(cm-3)',times,50.*[[den20],[den21]],dlim={ylog:1,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:-1,constant:10.^(findgen(10)-5)}
-                store_data,prefix+'corrdensity_(cm-3)',times[0:-2],50.*den10,dlim={ylog:1,ystyle:3,colors:'g',constant:10.^(findgen(10)-5)}
+                if keyword_set(den10) then store_data,prefix+'corrdensity_(cm-3)',times[0:-2],50.*den10,dlim={ylog:1,ystyle:3,colors:'g',constant:10.^(findgen(10)-5)}
                 store_data,prefix+'energy_mean_(eV)',times,[[datatoten0],[datatoten1]],dlim={ylog:ylog,yrange:yrange,ystyle:3,colors:'br',labels:['proton','alpha'],labflag:1}
                 store_data,prefix+'bulk_speed_(km/s)',times,[[speed1],[speed0]],dlim={ystyle:3,colors:'rb',labels:['alpha','proton'],labflag:-1,constant:findgen(10)*100.}
                 store_data,prefix+'thermal_speed_(km/s)',times,[[vther1],[vther0]],dlim={ystyle:3,colors:'rb',labels:['alpha','proton'],labflag:-1,constant:findgen(10)*100.}
@@ -273,7 +292,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
               if keyword_set(mass_explode) then begin
                 for mmbin=0,15 do begin
                   data_vs_energy1=total(data[*,mmbin,*],2) ;alpha mass bin peak
-                  store_data,prefix+strtrim(mmbin,2)+'_energy',times,transpose(data_vs_energy1),en,dlim={zlog:1,spec:1,yrange:[32,0],ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+                  store_data,prefix+strtrim(mmbin,2)+'_energy',times,transpose(data_vs_energy1),en,dlim={zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
                 endfor
               endif
             endif
@@ -315,6 +334,10 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
           store_data,'psp_swp_spi_alfven_speed_(km/s)_ovl',data='psp_swp_spi_'+['sf21_L1_speed_difference_(km/s)','alfven_speed_(km/s)'],dlim={colors:'br',labels:['a-p diff','alfven'],labflag:1}
         endif
       endif
+      options,'psp_swp_spi_*energy',ytickunits=ytickunits,ztickunits='scientific'
+      options,'psp_swp_spi_*deflection',ztickunits='scientific'
+      options,'psp_swp_spi_*anode',ztickunits='scientific'
+      options,'psp_swp_spi_*mass',ztickunits='scientific'
       if keyword_set(snap) then p=colorbar(title='Log10 '+countrate,/orientation,position=[.95,.7,.98,.95]) else return
     endwhile
   endif

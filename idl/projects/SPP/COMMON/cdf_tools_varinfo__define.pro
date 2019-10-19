@@ -90,7 +90,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['CATDESC']    = 'Energy'
       att['FIELDNAM']    = 'Counts in '
       att['DEPEND_0']    = EPOCHname
-      ;      att['DEPEND_1']    = 'ENERGY'
       att['LABLAXIS']    = 'Energy'
       att['UNITS']    = 'eV'
       att['FILLVAL']    = fnan
@@ -105,7 +104,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['CATDESC']    = 'THETA'
       att['FIELDNAM']    = 'Elevation Angle in instrument coordinates'
       att['DEPEND_0']    = EPOCHname
-      ;      att['DEPEND_1']    = 'ENERGY'
       att['LABLAXIS']    = 'Elevation Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
@@ -120,7 +118,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['CATDESC']    = 'PHI'
       att['FIELDNAM']    = 'Azimuth Angle in instrument coordinates'
       att['DEPEND_0']    = EPOCHname
-      ;      att['DEPEND_1']    = 'ENERGY'
       att['LABLAXIS']    = 'Azimuth Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
@@ -219,7 +216,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VALIDMAX']    = 10000.
       att['VAR_TYPE']    = 'data'
       att['DICT_KEY']    = ''
-      att['SCALETYP']    = 'log'
+      att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
       att['VAR_NOTES'] = 'In instrument frame'
     end
@@ -234,14 +231,13 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VALIDMAX']    = 10000.
       att['VAR_TYPE']    = 'data'
       att['DICT_KEY']    = ''
-      att['SCALETYP']    = 'log'
+      att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
     end
     'ENERGY_VALS': begin
       att['CATDESC']    = 'Energy'
       att['FIELDNAM']    = 'Energy'
       att['DEPEND_0']    = EPOCHname
-      ;      att['DEPEND_1']    = 'ENERGY'
       att['LABLAXIS']    = 'Energy'
       att['UNITS']    = 'eV'
       att['FILLVAL']    = fnan
@@ -256,7 +252,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['CATDESC']    = 'THETA'
       att['FIELDNAM']    = 'Elevation Angle in instrument coordinates'
       att['DEPEND_0']    = EPOCHname
-      ;      att['DEPEND_1']    = 'ENERGY'
       att['LABLAXIS']    = 'Elevation Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
@@ -271,7 +266,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['CATDESC']    = 'PHI'
       att['FIELDNAM']    = 'Azimuth Angle in instrument coordinates'
       att['DEPEND_0']    = EPOCHname
-      ;      att['DEPEND_1']    = 'ENERGY'
       att['LABLAXIS']    = 'Azimuth Angle'
       att['UNITS']    = 'Degrees'
       att['FILLVAL']    = fnan
@@ -281,6 +275,21 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
+    end
+    'TOF': begin
+      att['CATDESC']    = 'TOF'
+      att['FIELDNAM']    = 'Time of Flight'
+      att['DEPEND_0']    = EPOCHname
+      att['LABLAXIS']    = vname
+      att['UNITS']    = ''
+      att['FILLVAL']    = fnan
+      att['VALIDMIN']    = 0
+      att['VALIDMAX']    = 1e6
+      att['VAR_TYPE']    = 'data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'log'
+      att['MONOTON']    = ''
+      att['DISPLAY_TYPE'] = 'spectrogram'
     end
     else:  begin    ; assumed to be support
       att['CATDESC']    = 'Not known'

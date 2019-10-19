@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-10-17 11:02:22 -0700 (Thu, 17 Oct 2019) $
-; $LastChangedRevision: 27882 $
+; $LastChangedDate: 2019-10-17 23:57:28 -0700 (Thu, 17 Oct 2019) $
+; $LastChangedRevision: 27889 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -20,6 +20,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,type=type,  
   output_prefix = 'psp/data/sci/sweap/'
   ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
   ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
+  linkname = output_prefix + '.hidden/.htaccess'
   if ~ isa(ssr_format,/string) then ssr_format = 'YYYY/DOY/*_?_E?'
   idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
   ql_dir = output_prefix+'swem/ql/'
@@ -53,12 +54,22 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,restore=restore,type=type,  
 
 
   if keyword_set(make_cdf) then begin ;make cdf files
-    spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-    spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-    spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-    spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-    spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
-    spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+    
+    if make_cdf eq 1 then begin
+      spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+    endif else begin
+      spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+      spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem/L1/YYYY/MM/$NAME$/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf',cdf_linkname= linkname
+    endelse
   endif
 
   for day=daynum[0],daynum[1] do begin ;loop over days

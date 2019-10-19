@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-09-06 12:48:21 -0700 (Fri, 06 Sep 2019) $
-; $LastChangedRevision: 27731 $
+; $LastChangedDate: 2019-10-18 11:09:42 -0700 (Fri, 18 Oct 2019) $
+; $LastChangedRevision: 27894 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-09-06 12:48:21 -0700 (Fri, 06 Sep 2019) $
-; $LastChangedRevision: 27731 $
+; $LastChangedDate: 2019-10-18 11:09:42 -0700 (Fri, 18 Oct 2019) $
+; $LastChangedRevision: 27894 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-09-06 12:48:21 -0700 (Fri, 06 Sep 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 27731 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-10-18 11:09:42 -0700 (Fri, 18 Oct 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 27894 $'
 
   return,sw_hash
 end
@@ -155,7 +155,7 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
 ;    
 ;  endif 
   if ~isa(pathname,/string) then  pathname = 'temp.cdf'
-  file_mkdir2,file_dirname(pathname)
+  file_mkdir2,file_dirname(pathname),add_link=self.linkname,/add_parent_link,verbose=self.verbose
   self.fileid = cdf_create(pathname,/clobber)
  ; dprint,'Making CDF file: '+pathname,dlevel=self.dlevel,verbose=verbose
 
@@ -708,6 +708,7 @@ void = {cdf_tools, $
   inherits generic_object, $    ; superclass
   filename: '',  $
   filenames: obj_new(), $
+  linkname: '',  $
   fileid:  0uL,  $
   inq_ptr:  ptr_new() ,  $          ; pointer to inquire structure 
   G_attributes: obj_new(),  $     ; ordered hash

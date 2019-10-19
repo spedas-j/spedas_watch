@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-09-06 12:49:46 -0700 (Fri, 06 Sep 2019) $
-; $LastChangedRevision: 27733 $
+; $LastChangedDate: 2019-10-17 18:48:27 -0700 (Thu, 17 Oct 2019) $
+; $LastChangedRevision: 27887 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 
@@ -91,7 +91,7 @@ pro spp_swp_spc_load,  trange=trange,type = type,files=files,no_load=no_load,sav
    files = spp_file_retrieve(pathname,trange=trange,/last_version,/daily_names,verbose=2)
    prefix = 'psp_swp_spc_'+type+'_'
    
-   
+   if  keyword_set(no_load) then return
    cdf2tplot,files,prefix = prefix,verbose=2,/all,load_labels=load_labels,tplotnames=tplotnames
      
    

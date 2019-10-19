@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_span_prod
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-06-12 01:49:23 -0700 (Wed, 12 Jun 2019) $
-; $LastChangedRevision: 27332 $
+; $LastChangedDate: 2019-10-17 23:58:15 -0700 (Thu, 17 Oct 2019) $
+; $LastChangedRevision: 27890 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
@@ -178,7 +178,7 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
 
 
   compression = (log_flag and '80'x) ne 0
-  if compression eq 0 then dprint,'Log Compression is NOT on!',dlevel=1
+  if compression eq 0 then dprint,'Log Compression is NOT on!',dlevel=3
   
   bps =  ([4,1])[ compression ]
  
