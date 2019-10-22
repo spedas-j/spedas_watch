@@ -18,6 +18,7 @@
 function cdf_tools_varinfo::variable_attributes, vname,value
   dlevel =3
   fnan = !values.f_nan
+  dnan = !values.d_nan
   dprint,dlevel=dlevel,'Creating variable attributes for: ',vname
   att = orderedhash()
   if ~isa(vname,/string) then return,att
@@ -27,34 +28,40 @@ function cdf_tools_varinfo::variable_attributes, vname,value
   att['FIELDNAM']    = vname
   att['LABLAXIS']    = vname
   att['DEPEND_0'] = EPOCHname
-  att['DISPLAY_TYPE'] = ''
+  att['DISPLAY_TYPE'] = 'time_series'
   att['MONOTON']    = ''
+  att['FORMAT']   = 'E10.2'
+  att['UNITS']   = 'N/A'
+
   case strupcase(vname) of
     'EPOCH': begin
       att['CATDESC']    = 'Time at middle of sample'
       att['FIELDNAM']    = 'Time in TT2000 format'
       att['LABLAXIS']    = EPOCHname
       att['UNITS']    = 'ns'
-      att['FILLVAL']    = -1
+;      att['FILLVAL']    = -1LL
+      att['FILLVAL']    = -9223372036854775808      
       att['VALIDMIN']    = -315575942816000000
       att['VALIDMAX']    = 946728068183000000
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = 'time>Epoch'
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = 'INCREASE'
+      att['FORMAT']   = 'F25.1'
     end
     'TIME': begin
       att['CATDESC']    = 'Time at middle of sample'
       att['FIELDNAM']    = 'Time in UTC format'
       att['LABLAXIS']    = 'Unix Time'
       att['UNITS']    = 'sec'
-      att['FILLVAL']    = fnan
+      att['FILLVAL']    = dnan
       att['VALIDMIN']    = time_double('2010')
       att['VALIDMAX']    = time_double('2030')
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = 'time>UTC'
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = 'INCREASE'
+      att['FORMAT']   = 'F25.1'
     end
     'COUNTS': begin
       att['CATDESC']    = 'Counts in Energy/angle bin'
@@ -69,6 +76,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
+      att['FORMAT']   = 'F10.0'
     end
     'EFLUX': begin
       att['CATDESC']    = 'Differential Energy Flux vs Energy/angle bin'
@@ -85,6 +93,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
       att['DISPLAY_TYPE'] = 'spectrogram'
+      att['FORMAT']   = 'E12.2'
     end
     'ENERGY': begin
       att['CATDESC']    = 'Energy'
@@ -99,6 +108,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
+      att['FORMAT']   = 'E12.2'
     end
     'THETA': begin
       att['CATDESC']    = 'THETA'
@@ -113,6 +123,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
+      att['FORMAT']   = 'F7.1'
     end
     'PHI': begin
       att['CATDESC']    = 'PHI'
@@ -127,6 +138,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
+      att['FORMAT']   = 'F8.1'
     end
     'EFLUX_VS_ENERGY': begin
       att['CATDESC']    = 'Differential Energy Flux vs Energy'
@@ -143,6 +155,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
       att['DISPLAY_TYPE'] = 'spectrogram'
+      att['FORMAT']   = 'E12.2'
     end
     'EFLUX_VS_THETA': begin
       att['CATDESC']    = 'Differential Energy Flux vs Theta'
@@ -159,6 +172,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
       att['DISPLAY_TYPE'] = 'spectrogram'
+      att['FORMAT']   = 'E12.2'
     end
     'EFLUX_VS_PHI': begin
       att['CATDESC']    = 'Differential Energy Flux vs Phi'
@@ -175,6 +189,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
       att['DISPLAY_TYPE'] = 'spectrogram'
+      att['FORMAT']   = 'E12.2'
     end
     'DENS': begin
       att['CATDESC']    = 'Particle Density'
@@ -189,6 +204,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''      
+      att['FORMAT']   = 'F8.2'
     end
     'VEL': begin
       att['CATDESC']    = 'Particle Velocity'
@@ -204,6 +220,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
       att['VAR_NOTES'] = 'In instrument frame'
+      att['FORMAT']   = 'F8.2'
     end
     'T_TENSOR': begin
       att['CATDESC']    = 'Temperature Tensor in instrument frame'
@@ -219,6 +236,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
       att['VAR_NOTES'] = 'In instrument frame'
+      att['FORMAT']   = 'F8.2'
     end
     'TEMP': begin
       att['CATDESC']    = 'Average of Trace of Temperature Tensor'
@@ -233,6 +251,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
+      att['FORMAT']   = 'F8.2'
     end
     'ENERGY_VALS': begin
       att['CATDESC']    = 'Energy'
@@ -241,12 +260,13 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['LABLAXIS']    = 'Energy'
       att['UNITS']    = 'eV'
       att['FILLVAL']    = fnan
-      att['VALIDMIN']    = 1
+      att['VALIDMIN']    = 1.
       att['VALIDMAX']    = 1e5
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
+      att['FORMAT']   = 'F8.2'
     end
     'THETA_VALS': begin
       att['CATDESC']    = 'THETA'
@@ -261,6 +281,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
+      att['FORMAT']   = 'F8.2'
     end
     'PHI_VALS': begin
       att['CATDESC']    = 'PHI'
@@ -275,21 +296,23 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'linear'
       att['MONOTON']    = ''
+      att['FORMAT']   = 'F8.2'
     end
     'TOF': begin
       att['CATDESC']    = 'TOF'
       att['FIELDNAM']    = 'Time of Flight'
       att['DEPEND_0']    = EPOCHname
       att['LABLAXIS']    = vname
-      att['UNITS']    = ''
+      att['UNITS']    = 'Counts'
       att['FILLVAL']    = fnan
-      att['VALIDMIN']    = 0
+      att['VALIDMIN']    = 0.
       att['VALIDMAX']    = 1e6
       att['VAR_TYPE']    = 'data'
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
       att['DISPLAY_TYPE'] = 'spectrogram'
+      att['FORMAT']   = 'F8.2'
     end
     else:  begin    ; assumed to be support
       att['CATDESC']    = 'Not known'

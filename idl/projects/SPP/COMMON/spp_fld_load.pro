@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-10-12 09:27:05 -0700 (Sat, 12 Oct 2019) $
-; $LastChangedRevision: 27842 $
+; $LastChangedBy: pulupa $
+; $LastChangedDate: 2019-10-21 16:55:08 -0700 (Mon, 21 Oct 2019) $
+; $LastChangedRevision: 27912 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -186,6 +186,36 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
           options,'psp_fld_l2_mag_SC','max_points',10000
           options,'psp_fld_l2_mag_SC','psym_lim',300
         endif
+
+      endif
+
+      if tnames('psp_fld_l2_quality_flags') NE '' then begin
+
+        options, 'psp_fld_l2_quality_flags', 'tplot_routine', 'bitplot'
+
+        options, 'psp_fld_l2_quality_flags', 'numbits', 8
+        options, 'psp_fld_l2_quality_flags', 'yticks', 9 ; numbits + 1
+
+        options, 'psp_fld_l2_quality_flags', 'psyms', [2]
+
+
+        qf_labels = $
+          ['BIAS_SWP','THRUSTER','SCM_CAL',$
+          'MAG_ROLL','MAG_CAL','SPC_EMODE','SLS_CAL']
+
+        options, 'psp_fld_l2_quality_flags', 'labels', $
+          qf_labels
+
+
+
+        options, 'psp_fld_l2_quality_flags', 'colors', $
+          [0,1,2,3,4,5,6,7]
+
+        options, 'psp_fld_l2_quality_flags', 'yticklen', 1
+        options, 'psp_fld_l2_quality_flags', 'ygridstyle', 1
+
+        options, 'psp_fld_l2_quality_flags', 'yminor', 1
+
 
       endif
 
