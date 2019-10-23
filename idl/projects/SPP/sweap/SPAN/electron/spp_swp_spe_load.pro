@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-09-06 12:49:23 -0700 (Fri, 06 Sep 2019) $
-; $LastChangedRevision: 27732 $
+; $LastChangedDate: 2019-10-22 14:45:29 -0700 (Tue, 22 Oct 2019) $
+; $LastChangedRevision: 27915 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -15,13 +15,23 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   fileprefix = 'psp/data/sci/sweap/'
   
   loc = orderedhash()
-  loc['sf1'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
-  loc['st1'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
-  loc['sf0'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
-  loc['st0'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
-  loc['af1'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
-  loc['af0'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
-  loc['hkp'] = 'SP?/L1/YYYY/MM/SP?_hkp/psp_swp_SP?_hkp_L1_YYYYMMDD_v??.cdf'
+  if 0 then begin
+    loc['sf1'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
+    loc['st1'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
+    loc['sf0'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
+    loc['st0'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
+    loc['af1'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
+    loc['af0'] = 'SP?/L2/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
+    loc['hkp'] = 'SP?/L1/YYYY/MM/SP?_hkp/psp_swp_SP?_hkp_L1_YYYYMMDD_v??.cdf'    
+  endif else begin
+    loc['sf1'] = 'SP?/L2/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
+    loc['st1'] = 'SP?/L2/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
+    loc['sf0'] = 'SP?/L2/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
+    loc['st0'] = 'SP?/L2/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
+    loc['af1'] = 'SP?/L2/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L2_32E_YYYYMMDD_v??.cdf'
+    loc['af0'] = 'SP?/L2/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L2_16Ax8Dx32E_YYYYMMDD_v??.cdf'
+    loc['hkp'] = 'SP?/L1/SP?_TYP/YYYY/MM/psp_swp_SP?_hkp_L1_YYYYMMDD_v??.cdf'
+  endelse
 
   
   ;test='http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spa/L1/2018/09/spa_hkp/spp_swp_spa_hkp_L1_20180924_v00.cdf
@@ -41,12 +51,21 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   if keyword_set(allvars) then vars['hkp'] = vars['hkp'] + ' *CNT*' + ' *PEAK*' + ' *CMD*'
   
   if keyword_set(level) && level eq 'L1' then begin
-    loc['sf1'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
-    loc['st1'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
-    loc['sf0'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
-    loc['st0'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
-    loc['af1'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
-    loc['af0'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+    if 0 then begin
+      loc['sf1'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['st1'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['sf0'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['st0'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['af1'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['af0'] = 'SP?/L1/YYYY/MM/SP?_TYP/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'      
+    endif else begin
+      loc['sf1'] = 'SP?/L1/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['st1'] = 'SP?/L1/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['sf0'] = 'SP?/L1/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['st0'] = 'SP?/L1/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['af1'] = 'SP?/L1/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+      loc['af0'] = 'SP?/L1/SP?_TYP/YYYY/MM/psp_swp_SP?_TYP_L1_YYYYMMDD_v??.cdf'
+    endelse
   endif
 
   

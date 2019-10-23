@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupa $
-; $LastChangedDate: 2019-10-21 16:55:08 -0700 (Mon, 21 Oct 2019) $
-; $LastChangedRevision: 27912 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2019-10-21 22:43:49 -0700 (Mon, 21 Oct 2019) $
+; $LastChangedRevision: 27913 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -206,6 +206,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         options, 'psp_fld_l2_quality_flags', 'labels', $
           qf_labels
 
+        options, 'psp_fld_l2_quality_flags', 'ytitle', $
+          'Quality Flags'
 
 
         options, 'psp_fld_l2_quality_flags', 'colors', $
