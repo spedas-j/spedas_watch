@@ -20,11 +20,11 @@
 ;
 ; :Author: Tomo Hori, ISEE (tomo.hori at nagoya-u.jp)
 ;
-;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-;   $LastChangedRevision: 26838 $
+;   $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+;   $LastChangedRevision: 27922 $
 ;
 ;-
-pro sgi2dsi, name_in, name_out, DSI2SGI=DSI2SGI, ignore_dlimits=ignore_dlimits 
+pro sgi2dsi, name_in, name_out, DSI2SGI=DSI2SGI, ignore_dlimits=ignore_dlimits, noload=noload 
   
   ;Check the arguments and keywords
   if n_elements(name_in) eq 0 then begin
@@ -37,6 +37,8 @@ pro sgi2dsi, name_in, name_out, DSI2SGI=DSI2SGI, ignore_dlimits=ignore_dlimits
     message, 'Missing required argument name_out'
   endif
 
+  reload = undefined( noload )
+
   get_data, name_in, data=d, dl=dl_in, lim=lim_in
   time = d.x
   dat = d.y
@@ -45,7 +47,7 @@ pro sgi2dsi, name_in, name_out, DSI2SGI=DSI2SGI, ignore_dlimits=ignore_dlimits
   erg_interpolate_att, name_in, $ 
     spinperiod=spinperiod, spinphase=spinphase, $
     sgiz_j2000=sgiz, sgix_j2000=sgix, sgiy_j2000=sgiy, $
-    sgaz_j2000=sgaz, sgax_j2000=sgax, sgay_j2000=sgay 
+    sgaz_j2000=sgaz, sgax_j2000=sgax, sgay_j2000=sgay, noload=noload 
   
   ;Get the angle from SGI-X to SSI-X
   ;sgix2ssix_angle = erg_get_sgi2ssi_angle( $

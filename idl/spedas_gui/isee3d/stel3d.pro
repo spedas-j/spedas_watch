@@ -9,10 +9,10 @@
 ;  Please refer to ISEE_3D and associated cribs
 ;
 ;
-;$LastChangedBy: aaflores $
-;$LastChangedDate: 2016-05-24 13:03:37 -0700 (Tue, 24 May 2016) $
-;$LastChangedRevision: 21184 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/stel_3d/stel_3d_pro_20150811/pro/stel3d.pro $
+;$LastChangedBy: nikos $
+;$LastChangedDate: 2019-10-23 15:29:51 -0700 (Wed, 23 Oct 2019) $
+;$LastChangedRevision: 27925 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/isee3d/stel3d.pro $
 ;-
 
 pro stel3d, $

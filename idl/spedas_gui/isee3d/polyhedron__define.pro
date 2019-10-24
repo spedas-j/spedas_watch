@@ -1,4 +1,4 @@
-;$Id: polyhedron__define.pro 19798 2016-01-23 00:10:28Z jwl $
+;$Id: polyhedron__define.pro 27925 2019-10-23 22:29:51Z nikos $
 ;+
 ; Implement this method in a concrete subclass.
 ;

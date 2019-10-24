@@ -18,11 +18,11 @@
 ;
 ; :Author: Tomo Hori, ISEE (tomo.hori at nagoya-u.jp)
 ;
-;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-;   $LastChangedRevision: 26838 $
+;   $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+;   $LastChangedRevision: 27922 $
 ;
 ;-
-pro sga2sgi, name_in, name_out, SGI2SGA=SGI2SGA, ignore_dlimits=ignore_dlimits 
+pro sga2sgi, name_in, name_out, SGI2SGA=SGI2SGA, ignore_dlimits=ignore_dlimits, noload=noload 
   
   ;Check the arguments and keywords 
   if n_elements(name_in) eq 0 then begin
@@ -34,6 +34,8 @@ pro sga2sgi, name_in, name_out, SGI2SGA=SGI2SGA, ignore_dlimits=ignore_dlimits
   if n_elements(name_out) eq 0 then begin
     message, 'Missing required argument name_out'
   endif
+
+  reload = undefined( noload )
   
   get_data, name_in, data=d, dl=dl_in, lim=lim_in 
   time = d.x 
@@ -42,7 +44,7 @@ pro sga2sgi, name_in, name_out, SGI2SGA=SGI2SGA, ignore_dlimits=ignore_dlimits
   ;Get the SGA and SGI axes by interpolating the attitude data 
   erg_interpolate_att, name_in, $
     sgiz_j2000=sgiz, sgax_j2000=sgax, sgaz_j2000=sgaz, $
-    sgay_j2000=sgay, sgix_j2000=sgix, sgiy_j2000=sgiy  
+    sgay_j2000=sgay, sgix_j2000=sgix, sgiy_j2000=sgiy, noload=noload  
   sgix = sgix.y & sgiy = sgiy.y & sgiz = sgiz.y
   sgax = sgax.y & sgay = sgay.y & sgaz = sgaz.y 
   

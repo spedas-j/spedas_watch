@@ -38,8 +38,8 @@
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+; $LastChangedRevision: 27922 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/mep/erg_load_mepi_nml.pro $
 ;-
 pro erg_load_mepi_nml, $
@@ -65,9 +65,11 @@ pro erg_load_mepi_nml, $
   ;;Arguments and keywords
   if ~keyword_set(debug) then debug = 0  ;; Turn off the debug mode unless keyword debug is set
   if ~keyword_set(level) then level = 'l2'
-  if ~keyword_set(datatype) then datatype = '3dflux'
+  if ~keyword_set(datatype) then datatype = 'omniflux'
   if ~keyword_set(downloadonly) then downloadonly = 0
   if ~keyword_set(no_download) then no_download = 0
+  level = strlowcase(level)
+  if level eq 'l3' then datatype = '3dflux'
 
   
   ;; ; ; ; USER NAME ; ; ; ; 
@@ -132,17 +134,20 @@ pro erg_load_mepi_nml, $
 
   ;;Options for F?DO tplot variables
   if strcmp( datatype[0], 'omniflux' ) then begin
-    vns_fido = [ 'FPDO', 'FHE2DO', 'FHEDO', 'FOPPDO', 'FODO', 'FO2PDO' ] 
+    vns_fido = [ 'FPDO', 'FHE2DO', 'FHEDO', 'FOPPDO', 'FODO', 'FO2PDO', $
+               'FPDO_tof', 'FHE2DO_tof', 'FHEDO_tof', 'FOPPDO_tof', 'FODO_tof', 'FO2PDO_tof' ] 
     for i=0, n_elements(vns_fido)-1 do begin
       vn_fido = prefix+vns_fido[i]
       if tnames(vn_fido) eq '' then continue
 
+      smode = ( strpos( vn_fido, 'tof' ) gt 0 ? 'TOF' : 'NML' )
+      
       options, vn_fido, $
                spec=1, ysubtitle='[keV/q]', ztickformat='pwr10tick', extend_y_edges=1, $
                datagap=17., zticklen=-0.4
       get_data, vn_fido, dl=dl
       options, vn_fido, $
-               ztitle='['+dl.cdf.vatt.units+']', ytitle='ERG!CMEP-i/NML!C'+dl.cdf.vatt.fieldnam+'!CEnergy'
+               ztitle='['+dl.cdf.vatt.units+']', ytitle='ERG!CMEP-i/'+smode+'!C'+dl.cdf.vatt.fieldnam+'!CEnergy'
       ylim, vn_fido, 4., 190., 1
       zlim, vn_fido, 0, 0, 1
     endfor

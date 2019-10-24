@@ -22,18 +22,20 @@
 ;
 ; :Author: Tomo Hori, ISEE (tomo.hori at nagoya-u.jp)
 ;
-;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-;   $LastChangedRevision: 26838 $
+;   $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+;   $LastChangedRevision: 27922 $
 ;
 ;-
 pro erg_interpolate_att, erg_xxx_in, $
   spinperiod=spinperiod, spinphase=spinphase, $
   sgiz_j2000=sgiz_j2000, sgax_j2000=sgax_j2000, sgaz_j2000=sgaz_j2000, $
-  sgay_j2000=sgay_j2000, sgix_j2000=sgix_j2000, sgiy_j2000=sgiy_j2000 
+  sgay_j2000=sgay_j2000, sgix_j2000=sgix_j2000, sgiy_j2000=sgiy_j2000, $
+  noload=noload
   
   npar = n_params() 
   if npar ne 1 then return 
   if undefined( erg_xxx_in ) then return 
+  reload = undefined( noload )  ;; if reload = 1, all necessary data are loaded. 
   get_data, erg_xxx_in, time 
   
   ;Prepare some constants
@@ -41,30 +43,30 @@ pro erg_interpolate_att, erg_xxx_in, $
   
   ;Load the attitude data 
   if tnames('erg_att_sprate') eq 'erg_att_sprate' then begin
-    tdegap,'erg_att_sprate',/overwrite
+    if reload then tdegap,'erg_att_sprate',/overwrite
     get_data, 'erg_att_sprate', data= sprate 
     if min(sprate.x) gt min(time)+8. or max(sprate.x) lt max(time)-8. then begin
       get_timespan, tr 
       timespan, minmax(time)+[-60.D, 60.D] 
-      erg_load_att 
+      if reload then erg_load_att 
       timespan, tr
     endif
   endif else begin
     get_timespan, tr
     timespan, minmax(time)+[-60.D, 60.D] 
-    erg_load_att
+    if reload then erg_load_att
     timespan, tr 
   endelse
   
   ;Interpolate spin period 
-  tdegap,'erg_att_sprate',/overwrite
+  if reload then tdegap,'erg_att_sprate',/overwrite
   get_data, 'erg_att_sprate', data=sprate 
   sper = 1.D/ ( sprate.y / 60.D ) 
   sperInterp = interpol( sper, sprate.x, time ) 
   spinperiod = { x:time, y:sperInterp } 
   
   ;Interpolate spin phase
-  tdegap,'erg_att_spphase',/overwrite
+  if reload then tdegap,'erg_att_spphase',/overwrite
   get_data, 'erg_att_spphase', data=sphase 
   nnidx = nn( sphase.x, time ) 
   ph_nn = sphase.y[nnidx] ; [deg] 
@@ -76,8 +78,8 @@ pro erg_interpolate_att, erg_xxx_in, $
   
   
   ;Interporate SGI-Z axis vector 
-  tdegap,'erg_att_izras',/overwrite
-  tdegap,'erg_att_izdec',/overwrite
+  if reload then tdegap,'erg_att_izras',/overwrite
+  if reload then tdegap,'erg_att_izdec',/overwrite
   get_data, 'erg_att_izras', data=ras 
   get_data, 'erg_att_izdec', data=dec
   time0 = ras.x  
@@ -92,8 +94,8 @@ pro erg_interpolate_att, erg_xxx_in, $
   
   
   ;Interporate SGA-X axis vector
-  tdegap,'erg_att_gxras',/overwrite
-  tdegap,'erg_att_gxdec',/overwrite
+  if reload then tdegap,'erg_att_gxras',/overwrite
+  if reload then tdegap,'erg_att_gxdec',/overwrite
   get_data, 'erg_att_gxras', data=ras
   get_data, 'erg_att_gxdec', data=dec
   time0 = ras.x
@@ -107,8 +109,8 @@ pro erg_interpolate_att, erg_xxx_in, $
   sgax_j2000 = { x:time, y:[ [ex_intrp], [ey_intrp], [ez_intrp] ] }
   
   ;Interporate SGA-Z axis vector
-  tdegap,'erg_att_gzras',/overwrite
-  tdegap,'erg_att_gzdec',/overwrite
+  if reload then tdegap,'erg_att_gzras',/overwrite
+  if reload then tdegap,'erg_att_gzdec',/overwrite
   get_data, 'erg_att_gzras', data=ras
   get_data, 'erg_att_gzdec', data=dec
   time0 = ras.x

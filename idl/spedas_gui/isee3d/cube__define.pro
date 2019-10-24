@@ -1,4 +1,4 @@
-;$Id: cube__define.pro 19798 2016-01-23 00:10:28Z jwl $
+;$Id: cube__define.pro 27925 2019-10-23 22:29:51Z nikos $
 ;+
 ; Definition of geometry of a cube.
 ;

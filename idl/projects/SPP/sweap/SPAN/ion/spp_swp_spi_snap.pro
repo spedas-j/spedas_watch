@@ -1,8 +1,8 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-10-18 14:46:09 -0700 (Fri, 18 Oct 2019) $
-; $LastChangedRevision: 27896 $
+; $LastChangedDate: 2019-10-22 18:17:28 -0700 (Tue, 22 Oct 2019) $
+; $LastChangedRevision: 27919 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 ;
@@ -38,7 +38,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
   endif
 
   if level eq 'L1' then begin
-    dir='spi/'+level+'/YYYY/MM/spi_TYP/'
+    dir='spi/'+level+'/spi_TYP/YYYY/MM/'
     fileformat=dir+'psp_swp_spi_TYP_'+level+'*_YYYYMMDD_v??.cdf'
     fileprefix='psp/data/sci/sweap/'
     tr=timerange(trange)
@@ -85,7 +85,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         prefix='psp_swp_spi_'+type+'_'+level+'_' ;tplot_prefix
         if keyword_set(load) then begin
           filetype=str_sub(fileformat,'TYP',type)
-          files=spp_file_retrieve(filetype,trange=tr,/daily_names,/valid_only,prefix=fileprefix,verbose=verbose)
+          files=spp_file_retrieve(filetype,trange=tr,/daily_names,/valid_only,/last_version,prefix=fileprefix,verbose=verbose)
           vardata = !null
           novardata = !null
           loadcdfstr,filenames=files,vardata,novardata

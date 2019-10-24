@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-10-18 14:47:00 -0700 (Fri, 18 Oct 2019) $
-; $LastChangedRevision: 27897 $
+; $LastChangedDate: 2019-10-22 18:17:28 -0700 (Tue, 22 Oct 2019) $
+; $LastChangedRevision: 27919 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -41,7 +41,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
     filetype=str_sub(fileformat,'TYP',type)
 
     ;; Find file locations
-    files=spp_file_retrieve(filetype,trange=tr,/daily_names,/valid_only,prefix=fileprefix,verbose=verbose)
+    files=spp_file_retrieve(filetype,trange=tr,/daily_names,/valid_only,/last_version,prefix=fileprefix,verbose=verbose)
 
     if keyword_set(save) then begin
       vardata = !null
@@ -89,7 +89,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
         endif
       endif
 
-      store_data,prefix+'EFLUX_VS_ENERGY_OVL',data = vname_nrg,dlimit={yrange:[100.,10000.],ylog:1,zlog:1}
+      store_data,prefix+'EFLUX_VS_ENERGY_OVL',data = vname_nrg,dlimit={yrange:[100.,20000.],ylog:1,zlog:1}
       store_data,prefix+'EFLUX_VS_THETA_OVL',data =vname_th ,dlimit={yrange:[-60,60],ylog:0,zlog:1}
       store_data,prefix+'EFLUX_VS_PHI_OVL',data = vname_phi,dlimit={yrange:[90.,190.],ylog:0,zlog:1}
     endif

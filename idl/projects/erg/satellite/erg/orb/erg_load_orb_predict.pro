@@ -32,9 +32,10 @@
 ;   Kuni Keika, Department of Earth and Planetary Science,
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+; $LastChangedRevision: 27922 $
 ;-
+
 pro erg_load_orb_predict, $
   level=level, $
   datatype=datatype, $

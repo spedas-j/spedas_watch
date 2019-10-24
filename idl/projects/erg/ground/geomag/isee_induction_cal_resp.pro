@@ -16,7 +16,7 @@
 ;           the default is 'all', i.e., load all available stations.
 ;           This can be an array of strings, e.g., ['msr', 'sta']
 ;           or a single string delimited by spaces, e.g., 'msr sta'.
-;           Sites: ath mgd ptk msr sta gak kap zgn
+;           Sites: ath mgd ptk msr sta gak kap zgn hus(after 2018-09-06)
 ;
 ; nbox = number of FFT points
 ; nshift = number of shift points for FFT, nshift should be equal or lower than nbox
@@ -31,8 +31,8 @@
 ;HISTORY:
 ;   2018-03-22: Initial release by Satoshi Kurita (ISEE, Nagoya U., kurita@isee.nagoya-u.ac.jp)
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+; $LastChangedRevision: 27922 $
 ;
 ;-
 

@@ -35,8 +35,8 @@
 ;        2016-02-21 : Initial release by Yoshi Miyoshi(ERG-Science Center, ISEE, Nagoya Univ.)
 ;        2017-07-07 : Modified by Satoshi Kurita (ISEE, Nagoya Univ., kurita at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+; $LastChangedRevision: 27922 $
 ;
 ;-
 
@@ -45,7 +45,7 @@ pro erg_load_isee_vlf, site=site, $
         trange=trange, timeclip=timeclip,cal_gain=cal_gain
 
 ;*** site codes ***
-site_code_all = strsplit('ath kap gak ist mam', /extract)
+site_code_all = strsplit('ath gak hus ist kap mam nai', /extract)
 if(not keyword_set(site)) then site='all'
 site_code = ssl_check_valid_name(site, site_code_all, /ignore_case, /include_all)
 if site_code[0] eq '' then return

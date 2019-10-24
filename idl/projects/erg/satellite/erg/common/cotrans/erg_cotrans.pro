@@ -40,8 +40,8 @@
 ;
 ; :Author: Tomo Hori, ISEE (tomo.hori at nagoya-u.jp)
 ;
-;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-;   $LastChangedRevision: 26838 $
+;   $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+;   $LastChangedRevision: 27922 $
 ;
 ;-
 ;
@@ -59,7 +59,7 @@ pro erg_replace_coord_suffix, in_name, out_coord, out_name
 
 end
 
-pro erg_coord_trans, in_name, out_name, in_coord=in_coord, out_coord=out_coord
+pro erg_coord_trans, in_name, out_name, in_coord=in_coord, out_coord=out_coord, noload=noload
 
   ;the same coord is given: Do nothing or just copy the input variable with another name
   if in_coord eq out_coord then begin
@@ -73,19 +73,19 @@ pro erg_coord_trans, in_name, out_name, in_coord=in_coord, out_coord=out_coord
 
       case (out_coord) of
         'sgi': begin
-          sga2sgi, in_name, out_name
+          sga2sgi, in_name, out_name, noload=noload
         end
         'dsi':begin ;sga --> sgi --> dsi
           erg_replace_coord_suffix, in_name, 'sgi', name_sgi
-          sga2sgi, in_name, name_sgi
-          sgi2dsi, name_sgi, out_name
+          sga2sgi, in_name, name_sgi, noload=noload
+          sgi2dsi, name_sgi, out_name, noload=noload
         end
         'j2000':begin ;sga --> sgi --> dsi --> j2000
           erg_replace_coord_suffix, in_name, 'sgi', name_sgi
-          sga2sgi, in_name, name_sgi
+          sga2sgi, in_name, name_sgi, noload=noload
           erg_replace_coord_suffix, name_sgi, 'dsi', name_dsi
-          sgi2dsi, name_sgi, name_dsi
-          dsi2j2000, name_dsi, out_name
+          sgi2dsi, name_sgi, name_dsi, noload=noload
+          dsi2j2000, name_dsi, out_name, noload=noload
         end
       endcase
 
@@ -96,15 +96,15 @@ pro erg_coord_trans, in_name, out_name, in_coord=in_coord, out_coord=out_coord
 
       case (out_coord) of
         'sga': begin ;sgi --> sga
-          sga2sgi, in_name, out_name, /sgi2sga
+          sga2sgi, in_name, out_name, /sgi2sga, noload=noload
         end
         'dsi':begin ;sgi --> dsi
-          sgi2dsi, in_name, out_name
+          sgi2dsi, in_name, out_name, noload=noload
         end
         'j2000':begin ;sgi --> dsi --> j2000
           erg_replace_coord_suffix, in_name, 'dsi', name_dsi
-          sgi2dsi, in_name, name_dsi
-          dsi2j2000, name_dsi, out_name
+          sgi2dsi, in_name, name_dsi, noload=noload
+          dsi2j2000, name_dsi, out_name, noload=noload
         end
       endcase
 
@@ -116,14 +116,14 @@ pro erg_coord_trans, in_name, out_name, in_coord=in_coord, out_coord=out_coord
       case (out_coord) of
         'sga': begin ;dsi --> sgi --> sga
           erg_replace_coord_suffix, in_name, 'sgi', name_sgi
-          sgi2dsi, in_name, name_sgi, /dsi2sgi
-          sga2sgi, name_sgi, out_name, /sgi2sga
+          sgi2dsi, in_name, name_sgi, /dsi2sgi, noload=noload
+          sga2sgi, name_sgi, out_name, /sgi2sga, noload=noload
         end
         'sgi':begin ;dsi --> sgi
-          sgi2dsi, in_name, out_name, /dsi2sgi
+          sgi2dsi, in_name, out_name, /dsi2sgi, noload=noload
         end
         'j2000':begin ;dsi --> j2000i
-          dsi2j2000, in_name, out_name
+          dsi2j2000, in_name, out_name, noload=noload
         end
       endcase
 
@@ -135,18 +135,18 @@ pro erg_coord_trans, in_name, out_name, in_coord=in_coord, out_coord=out_coord
       case (out_coord) of
         'sga': begin ;j2000 --> dsi --> sgi --> sga
           erg_replace_coord_suffix, in_name, 'dsi', name_dsi
-          dsi2j2000, in_name, name_dsi, /j20002dsi
+          dsi2j2000, in_name, name_dsi, /j20002dsi, noload=noload
           erg_replace_coord_suffix, name_dsi, 'sgi', name_sgi
-          sgi2dsi, name_dsi, name_sgi, /dsi2sgi
-          sga2sgi, name_sgi, out_name, /sgi2sga
+          sgi2dsi, name_dsi, name_sgi, /dsi2sgi, noload=noload
+          sga2sgi, name_sgi, out_name, /sgi2sga, noload=noload
         end
         'sgi':begin ;j2000 --> dsi --> sgi
           erg_replace_coord_suffix, in_name, 'dsi', name_dsi
-          dsi2j2000, in_name, name_dsi, /j20002dsi
-          sgi2dsi, name_dsi, out_name, /dsi2sgi
+          dsi2j2000, in_name, name_dsi, /j20002dsi, noload=noload
+          sgi2dsi, name_dsi, out_name, /dsi2sgi, noload=noload
         end
         'dsi':begin ;dsi --> j2000i
-          dsi2j2000, in_name, out_name, /j20002dsi
+          dsi2j2000, in_name, out_name, /j20002dsi, noload=noload
         end
       endcase
 
@@ -165,7 +165,8 @@ pro erg_cotrans, $
   out_name, $ ;tplot variable name(s) in which the result(s) is stored
   in_coord=in_coord, $;coord. system of the input. If not given, the code sees coord_sys attribute
   out_coord=out_coord, $ ;coord. system of the result
-  out_suffix=out_suffix ;(optional, not implemented yet) 
+  out_suffix=out_suffix, $ ;(optional, not implemented yet) 
+  noload=noload  ;No data file is newly loaded if set
 
   ;Definition of the suffixes for coordinate system name
   valid_suffixes = strsplit( 'sga sgi dsi j2000', /ext )
@@ -208,7 +209,7 @@ pro erg_cotrans, $
       if out_suf eq '' then message, 'Both out_name and out_coord are given!'
       erg_replace_coord_suffix, in_name, out_suf, out_name 
     endelse
-    erg_coord_trans, in_name, out_name, in_coord=in_suf, out_coord=out_suf
+    erg_coord_trans, in_name, out_name, in_coord=in_suf, out_coord=out_suf, noload=noload
 
     return
   endif
@@ -226,7 +227,7 @@ pro erg_cotrans, $
         if in_suf eq '' then message, 'Cannot get a valid coord. suffix of input variable.'
       endif
       
-      erg_cotrans, inname, in_coord=in_suf, out_coord=out_suf 
+      erg_cotrans, inname, in_coord=in_suf, out_coord=out_suf, noload=noload 
       
     endfor
     

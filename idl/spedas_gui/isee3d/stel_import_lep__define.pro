@@ -65,7 +65,14 @@ function stel_import_lep::checkTimeFormat, strtime
 
   ;default parse has trouble with no "/" between date & time
   ;assumes input array has uniform format
-  if stregex(strtime[0],'[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}',/bool) then begin
+  ;
+  expr_normal_ymd = '[0-9]{4}-[0-9]{2}-[0-9]{2}/[0-9]{2}:[0-9]{2}:[0-9]{2}' ;; YYYY-MM-DD/hh:mm:ss
+  expr_msec_ymd = '[0-9]{4}-[0-9]{2}-[0-9]{2}/[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]*' ;; e.g., YYYY-MM-DD/hh:mm:ss.fff
+  
+  if stregex(strtime[0], expr_normal_ymd, /bool) or stregex(strtime[0], expr_msec_ymd, /bool) then begin
+    ;; Do nothing
+    return, strtime
+  endif else if stregex(strtime[0],'[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}',/bool) then begin
     temp = time_string( time_struct(strtime, tformat='YYYYMMDD hh:mm:ss'), /msec)
     ;time_struct mutates scalar to single-element array
     if n_elements(temp) eq 1 then return, temp[0] else return, temp
@@ -175,7 +182,6 @@ function stel_import_lep::read_hash, input, trange=trange
   ;get sorted list of times
   times = (input.keys()).toarray()
   times = times[sort(times)]
-
   ;apply time range  
   if undefined(trange) then begin
 
@@ -302,7 +308,9 @@ function stel_import_lep::getVector, cTime, VEL=vel
    cTime = self.checkTimeFormat(cTime)
    dTrange = time_double(self.getTrange())
    dtime = time_double(cTime)
-   if dtime lt dTrange[0] or dtime gt dTrange[1] then begin
+   if dtime lt dTrange[0]-0.01 or dtime gt dTrange[1]+0.01 then begin
+    dprint, 'dtime: '+time_string(dtime, tfor='YYYY-MM-DD/hh:mm:ss.ffff')
+    dprint, 'dTrange: ', time_string(dTrange, tfor='YYYY-MM-DD/hh:mm:ss.ffff')
     message, 'specified time is out of range '
     return, !null
    endif

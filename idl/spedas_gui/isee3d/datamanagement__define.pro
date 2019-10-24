@@ -523,9 +523,9 @@ function DataManagement::getVolumeData, ORIGINAL=original ;, XRANGE=xrange, YRAN
     ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
     ; ROTATION TO MAG COORDINATE (by Kunihiro Keika) 
     ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; ; 
-    print, '== VOLUME ==' 
-    print, 'B Vector' 
-    print, mag_vec
+    dprint, '== VOLUME ==' 
+    dprint, 'B Vector', mag_vec
+    dprint, 'V Vector', vel_vec
 ;    print, 'V Vector' 
 ;    print, vel_vec 
     mag_vec_unit = mag_vec/sqrt(mag_vec[0]^2.+mag_vec[1]^2.+mag_vec[2]^2.)

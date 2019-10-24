@@ -34,23 +34,26 @@
 ;   datafpath: If set a full file path of CDF file(s), then the
 ;              program loads data from the designated CDF file(s), ignoring any
 ;              other options specifying local/remote data paths.
+;   no_sort_enebin: Set to generate FEDU and FEDO tplot variable without sorting energy bins. 
 ;   split_ch: Set to generate a FEDU tplot variable for each Channel.
 ;
 ;
 ; :Examples:
 ;  IDL> timespan,'2017-03-24'
-;  IDL> erg_load_lepe,uname=uname,pass=pass   ;;3D flux data
-;  IDL> erg_load_lepe,uname=uname,pass=pass,/split_ch   ;;3D flux data for each Channel
-;  IDL> erg_load_lepe,uname=uname,pass=pass,datatype='omniflux'  ;;omniflux data
+;  IDL> erg_load_lepe  ;;omniflux data
+;  IDL> erg_load_lepe,datatype='3dflux'   ;;3D flux data
+;  IDL> erg_load_lepe,datatype='3dflux',/split_ch   ;;3D flux data for each Channel
 ;
-; :revised by Tzu-Fang Chang (E-mail: jocelyn at isee.nagoya-u.ac.jp)
-; $LastChangedDate: 2018-05-02 10:00:00
 ;
 ; :Authors:
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
+;   Tzu-Fang Chang, ERG Science Center (E-mail: jocelyn at isee.nagoya-u.ac.jp)
+;   Chae-Woo Jun, ERG Science Center (E-mail: chae-woo at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+; $LastChangedRevision: 27922 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/lepe/erg_load_lepe.pro $
 ;-
 pro erg_load_lepe, $
    debug=debug, $
@@ -78,13 +81,7 @@ pro erg_load_lepe, $
   if ~keyword_set(datatype) then datatype = 'omniflux'
   if ~keyword_set(downloadonly) then downloadonly = 0
   if ~keyword_set(no_download) then no_download = 0
-  if undefined(no_sort_enebin) then sort_enebin = 1 else sort_enebin = 0
-  
-  
-  ;; ; ; ; USER NAME ; ; ; ;
-  if keyword_set(datafpath) or keyword_set(no_download) then begin
-    uname = ' ' & passwd = ' '  ;;padding with a blank
-  endif
+
 
   ;;Local and remote data file paths
   if ~keyword_set(localdir) then begin
@@ -100,8 +97,9 @@ pro erg_load_lepe, $
   if debug then print, 'remotedir = '+localdir
 
   ;;Relative file path
-  cdffn_prefix = 'erg_lepe_'+level+'_'+datatype+'_'
-  relfpathfmt = 'YYYY/MM/' + cdffn_prefix+'YYYYMMDD_v*.cdf'
+  ;cdffn_prefix = 'erg_lepe_'+level+'_'+datatype+'_' ;
+  cdffn_prefix = 'erg_lepe_l2_'+datatype+'_' ; for l2new
+  relfpathfmt = 'YYYY/MM/' + cdffn_prefix+'YYYYMMDD_v**_**.cdf'
 
   ;;Expand the wildcards for the designated time range
   relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
@@ -129,59 +127,43 @@ pro erg_load_lepe, $
   cdf2tplot, file=datfiles, prefix=prefix, get_support_data=get_support_data, $
              varformat=varformat, verbose=verbose
 
-
   ;;Options for tplot variables
   vns = ''
   if total(strcmp( datatype, '3dflux' )) then $
-     append_array, vns, prefix+['FEDU', 'FEEDU', 'Count_Raw']  ;;common to flux/count arrays
+    append_array, vns, prefix+['FEDU','Count_rate','BG_count']  ;;common to flux/count arrays
   if total(strcmp( datatype, 'omniflux')) then $
-     append_array, vns, prefix+'FEDO'  ;;Omni flux array
+    append_array, vns, prefix+'FEDO'  ;;Omni flux array
   options, vns, spec=1, ysubtitle='[eV]', ztickformat='pwr10tick', extend_y_edges=1, $
-           datagap=17., zticklen=-0.4
-
-  ;;Filter vns with varformat to avoid manipulating pre-existing
-  ;;tplot variables in the part below
-  if keyword_set(varformat) then vns = strfilter( vns, prefix+strsplit(/ext, varformat) )
+    datagap=17., zticklen=-0.4
   
-  ;;sorted flux and count arrays for plotting the spectrum
+      ;;sorted flux and count arrays for plotting the spectrum
   for i=0, n_elements(vns)-1 do begin
     if tnames(vns[i]) eq '' then continue
     get_data, vns[i], data=data, dl=dl, lim=lim
 
     if vns[i] eq prefix+'FEDO' then begin
-      ene = total(data.v, 2)/2
-
-      if sort_enebin then begin
-        if debug then begin
-          dprint, 'Sorting in energy bin '+vns[i]
-        endif
-        for n=0, n_elements(data.x)-1 do begin
-          sort_idx = sort(ene[n, *])
-          data.y[n, *] = data.y[n, sort_idx]
-          ene[n, *] = ene[n, sort_idx]
+      ene = total(data.v,2)/2
+      if ~keyword_set(no_sort_enebin) then begin
+        for n = 0, n_elements(data.x)-1 do begin
+          sort_idx=sort(ene[n,*])
+          data.y[n,*]=data.y[n,sort_idx]
+          ene[n,*]=ene[n,sort_idx]
         endfor
       endif
-      
       store_data, vns[i], data={x:data.x, y:data.y, v:ene }, dl=dl, lim=lim
-      options, vns[i], ztitle='[/s-cm!U2!N-sr-eV]', ytitle='ERG!CLEP-e!CFEDO!CEnergy'
-
+      options, vns[i], ztitle='[/s-cm!U2!N-sr-eV]',ytitle='ERG!CLEP-e!CFEDO!CEnergy'
     endif else begin
 
-      ene = total(data.v1, 2)/2
-
-      if sort_enebin then begin
-        if debug then begin
-          dprint, 'Sorting in energy bin '+vns[i]
-        endif
-        for n=0, n_elements(data.x)-1 do begin
-          sort_idx = sort(ene[n, *])
-          data.y[n, *, *, *] = data.y[n, sort_idx, *, *]
-          ene[n, *] = ene[n, sort_idx]
+      ene = total(data.v1,2)/2
+      if ~keyword_set(no_sort_enebin) then begin
+        for n = 0, n_elements(data.x)-1 do begin
+          sort_idx=sort(ene[n,*])
+          data.y[n,*]=data.y[n,sort_idx]
+          ene[n,*]=ene[n,sort_idx]
         endfor
       endif
-      
       store_data, vns[i], data={x:data.x, y:data.y, v:ene, v2:data.v2, $
-                                v3:indgen(16) }, dl=dl, lim=lim
+        v3:indgen(16) }, dl=dl, lim=lim
       options, vns[i], ztitle='['+dl.cdf.vatt.units+']'
       options, vns[i], ytitle='ERG!CLEP-e!C'+dl.cdf.vatt.fieldnam+'!CEnergy'
     endelse
@@ -189,9 +171,12 @@ pro erg_load_lepe, $
     ylim, vns[i], 1e+1, 3e+4, 1
     zlim, vns[i], 0, 0, 1
   endfor
+  
+  ;; Exit here unless the 3dflux variables are loaded.
+  if total(strcmp( vns, prefix+'FEDU' )) eq 0 then return
 
   ;;Generate separate tplot variables for Channels
-  if keyword_set(split_ch) and total(strcmp( vns, prefix+'FEDU' )) gt 0 then begin
+  if keyword_set(split_ch) then begin
     get_data, prefix+'FEDU', data=d, dl=dl, lim=lim
     for i=0, n_elements(d.y[0, 0, *, 0])-1 do begin
       if i lt 5 then vn = prefix+'FEDU_ch'+string(i+1, '(i02)')
@@ -205,26 +190,6 @@ pro erg_load_lepe, $
       if i eq 6 then options, vn, ytitle='ERG!CLEP-e!CFEDU_ChB!CEnergy'
     endfor
   endif
-
-  
-  ;;--- print PI info and rules of the road
-  gatt = dl.cdf.gatt
-
-  print_str_maxlet, ' '
-  print, '**********************************************************************'
-  print, gatt.PROJECT
-  print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 70
-  print, ''
-  print, 'Information about ERG LEP-e'
-  print, ''
-  print, 'PI: ', gatt.PI_NAME
-  print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
-  print, ''
-  for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
-  print, ''
-  print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
-  print, '**********************************************************************'
-  print, ''
 
   return
 end

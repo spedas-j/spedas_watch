@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-10-21 22:43:49 -0700 (Mon, 21 Oct 2019) $
-; $LastChangedRevision: 27913 $
+; $LastChangedBy: pulupa $
+; $LastChangedDate: 2019-10-23 15:40:22 -0700 (Wed, 23 Oct 2019) $
+; $LastChangedRevision: 27927 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -160,6 +160,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
       if strmatch(type,'mag_*') then begin
 
         if tnames('psp_fld_l2_mag_RTN_4_Sa_per_Cyc') NE '' then begin
+          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc', 'ytitle', 'MAG RTN'
           options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc',colors='bgr' ,/default
           options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc',labels=['R','T','N'] ,/default
           options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc','max_points',10000
@@ -167,6 +168,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         endif
 
         if tnames('psp_fld_l2_mag_SC_4_Sa_per_Cyc') NE '' then begin
+          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc', 'ytitle', 'MAG SC'
           options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc',colors='bgr' ,/default
           options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc',labels=['X','Y','Z'] ,/default
           options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc','max_points',10000
@@ -174,6 +176,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         endif
 
         if tnames('psp_fld_l2_mag_RTN') NE '' then begin
+          options,'psp_fld_l2_mag_RTN', 'ytitle', 'MAG RTN'
           options,'psp_fld_l2_mag_RTN',colors='bgr' ,/default
           options,'psp_fld_l2_mag_RTN',labels=['R','T','N'] ,/default
           options,'psp_fld_l2_mag_RTN','max_points',10000
@@ -181,6 +184,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         endif
 
         if tnames('psp_fld_l2_mag_SC') NE '' then begin
+          options,'psp_fld_l2_mag_SC', 'ytitle', 'MAG SC'
           options,'psp_fld_l2_mag_SC',colors='bgr' ,/default
           options,'psp_fld_l2_mag_SC',labels=['X','Y','Z'] ,/default
           options,'psp_fld_l2_mag_SC','max_points',10000
@@ -211,7 +215,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
 
         options, 'psp_fld_l2_quality_flags', 'colors', $
-          [0,1,2,3,4,5,6,7]
+          [0,1,2,4,6]
 
         options, 'psp_fld_l2_quality_flags', 'yticklen', 1
         options, 'psp_fld_l2_quality_flags', 'ygridstyle', 1

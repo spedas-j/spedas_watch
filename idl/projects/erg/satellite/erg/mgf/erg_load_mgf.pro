@@ -15,17 +15,18 @@
 ;   /no_download, use only files which are online locally. (Identical to no_server keyword.)
 ;   trange = (Optional) Time range of interest  (2 element array).
 ;   /timeclip, if set, then data are clipped to the time range set by timespan
-;   uname: user ID to be passed to the remote server for
+;   uname = user ID to be passed to the remote server for
 ;          authentication.
-;   passwd: password to be passed to the remote server for
+;   passwd = password to be passed to the remote server for
 ;           authentication.
-;   localdir: Set a local directory path to save data files in the
+;   localdir = Set a local directory path to save data files in the
 ;             designated directory.
-;   remotedir: Set a remote directory in the URL form where the
+;   remotedir = Set a remote directory in the URL form where the
 ;              program will look for data files to download.
-;   datafpath: If set a full file path of CDF file(s), then the
+;   datafpath = If set a full file path of CDF file(s), then the
 ;              program loads data from the designated CDF file(s), ignoring any
 ;              other options specifying local/remote data paths.
+;   data_version = Set data version to load (set dataversion='v01.01' for loading the v01.01 files)
 ;
 ; EXAMPLE:
 ;   erg_load_mgf, datatype='8sec', trange=['2017-03-01/00:00:00','2017-03-02/00:00:00']
@@ -42,15 +43,15 @@
 ; Modified by: MT, June 28, 2018
 ;                 change the directroy structure of 8sec data from IYYYY to IYYYY/IMM
 ;
-;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-;   $LastChangedRevision: 26838 $
+;   $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+;   $LastChangedRevision: 27922 $
 ;-
 
 pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_data, $
   downloadonly=downloadonly, no_server=no_server, no_download=no_download, $
   trange=trange, timeclip=timeclip, uname=uname, passwd=passwd, localdir=localdir, $
   remotedir=remotedir, $
-  datafpath=datafpath, $
+  datafpath=datafpath,data_version=data_version, $
   _extra=_extra
 
 
@@ -91,13 +92,16 @@ pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_d
   ;--- Set parameters for the data file class
 
   ;;Local and remote data file paths
-  if ~keyword_set(localdir) then begin
-    source.local_data_dir = !erg.local_data_dir
-  endif else source.local_data_dir=localdir
-  if ~keyword_set(remotedir) then begin
-    source.remote_data_dir=!erg.remote_data_dir
-  endif else  source.remote_data_dir=remotedir
-
+  if ~keyword_set(localdir) then $
+    source.local_data_dir = !erg.local_data_dir + 'satellite/erg/mgf/l2/' $
+  else source.local_data_dir=localdir
+  if ~keyword_set(remotedir) then $
+    source.remote_data_dir=!erg.remote_data_dir  + 'satellite/erg/mgf/l2/' $
+  else source.remote_data_dir=remotedir
+ 
+  if ~keyword_set(data_version) then $
+     data_version='v??.??' 
+ 
 
 
 
@@ -106,7 +110,6 @@ pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_d
   if keyword_set(downloadonly) then source.downloadonly=1
   if keyword_set(no_server)    then source.no_server=1
   if keyword_set(no_download)  then source.no_download=1
-  ;localdir = root_data_dir() + 'satellite/erg/mgf/'
 
   ;--- Generate the file paths by expanding wilecards of date/time
   ;    (e.g., YYYY, YYYYMMDD) for the time interval set by "timespan"
@@ -115,17 +118,15 @@ pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_d
     '8sec': begin
       relpathnames1=file_dailynames(file_format='YYYY/MM', trange=trange)
       relpathnames2=file_dailynames(file_format='YYYYMMDD', trange=trange)
-      relpathnames='satellite/erg/mgf/l2/8sec/'+relpathnames1 $
-        +'/erg_mgf_l2_8sec_'+relpathnames2+'_v??.??.cdf'
+      relpathnames='8sec/'+relpathnames1 $
+        +'/erg_mgf_l2_8sec_'+relpathnames2+'_'+data_version+'.cdf'
 
-      if ~keyword_set(no_download) then $
-        remotedir = !erg.remote_data_dir
     end
     else:   begin
       relpathnames1=file_dailynames(file_format='YYYY/MM', /hour_res, trange=trange)
       relpathnames2=file_dailynames(file_format='YYYYMMDDhh', /hour_res, trange=trange)
-      relpathnames='satellite/erg/mgf/l2/'+datatype+'/'+relpathnames1 $
-        +'/erg_mgf_l2_'+datatype+'_'+coord+'_'+relpathnames2+'_v??.??.cdf'
+      relpathnames=datatype+'/'+relpathnames1 $
+        +'/erg_mgf_l2_'+datatype+'_'+coord+'_'+relpathnames2+'_'+data_version+'.cdf'
 
     end
   endcase

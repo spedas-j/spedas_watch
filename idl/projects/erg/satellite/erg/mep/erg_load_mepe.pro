@@ -38,8 +38,8 @@
 ; :Authors:
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+; $LastChangedRevision: 27922 $
 ;-
 pro erg_load_mepe, $
    debug=debug, $
@@ -67,7 +67,8 @@ pro erg_load_mepe, $
   if ~keyword_set(datatype) then datatype = 'omniflux'
   if ~keyword_set(downloadonly) then downloadonly = 0
   if ~keyword_set(no_download) then no_download = 0
-
+  level = strlowcase(level)
+  if level eq 'l3' then datatype = '3dflux'
 
   ;;Local and remote data file paths
   if ~keyword_set(localdir) then begin

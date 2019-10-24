@@ -18,12 +18,12 @@
 ;
 ; :Author: Tomo Hori, ISEE (tomo.hori at nagoya-u.jp)
 ;
-;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-;   $LastChangedRevision: 26838 $
+;   $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
+;   $LastChangedRevision: 27922 $
 ;
 ;-
 pro dsi2j2000, name_in, name_out, J20002DSI=J20002DSI, $
-  no_orb=no_orb, ignore_dlimits=ignore_dlimits
+  no_orb=no_orb, ignore_dlimits=ignore_dlimits, noload=noload
 
   ;Check the arguments and keywords
   if n_elements(name_in) eq 0 then begin
@@ -35,6 +35,9 @@ pro dsi2j2000, name_in, name_out, J20002DSI=J20002DSI, $
   if n_elements(name_out) eq 0 then begin
     message, 'Missing required argument name_out'
   endif
+  
+  reload = undefined( noload ) 
+
 
   get_data, name_in, data=d, dl=dl_in, lim=lim_in
   time = d.x
@@ -42,7 +45,7 @@ pro dsi2j2000, name_in, name_out, J20002DSI=J20002DSI, $
 
   ;Get the SGI axis by interpolating the attitude data
   erg_interpolate_att, name_in, $
-    sgiz_j2000=dsiz_j2000  ;DSI-Z axis is identical to SGI-Z axis by definition
+    sgiz_j2000=dsiz_j2000, noload=noload  ;DSI-Z axis is identical to SGI-Z axis by definition
 
   ; Sun direction in J2000
   sundir = dblarr( n_elements(time), 3 )
@@ -50,20 +53,22 @@ pro dsi2j2000, name_in, name_out, J20002DSI=J20002DSI, $
     sundir[ *, 0 ] = 1.D & sundir[ *, 1 ] = 0.D & sundir[ *, 2 ] = 0.D  ; (1, 0, 0) in GSE
     store_data, 'sundir_gse', data={ x:time, y:sundir } 
   endif else begin ;Calculate the sun directions from the instantaneous satellite locations 
-    get_timespan, tr_org 
-    timespan, tr_org + [ -60., 60 ] 
-    erg_load_orb 
-    tinterpol, 'erg_orb_l2_pos_gse', time 
-    get_data, 'erg_orb_l2_pos_gse_interp', t, scpos  
-    sunpos = transpose( [ 1.496D+8, 0.D, 0.D ] ) ## replicate( 1.D, n_elements(scpos[*,0]) ) 
-    sundir = sunpos - scpos 
-    store_data, 'sundir_gse', data={ x:time, y:sundir } 
-    tnormalize, 'sundir_gse', newname='sundir_gse' 
-    timespan, tr_org 
+    if reload then begin
+      get_timespan, tr_org 
+      timespan, tr_org + [ -60., 60 ] 
+      erg_load_orb 
+      tinterpol, 'erg_orb_l2_pos_gse', time 
+      get_data, 'erg_orb_l2_pos_gse_interp', t, scpos  
+      sunpos = transpose( [ 1.496D+8, 0.D, 0.D ] ) ## replicate( 1.D, n_elements(scpos[*,0]) ) 
+      sundir = sunpos - scpos 
+      store_data, 'sundir_gse', data={ x:time, y:sundir } 
+      tnormalize, 'sundir_gse', newname='sundir_gse' 
+      timespan, tr_org 
+    endif
   endelse
   
-  cotrans, 'sundir_gse', 'sundir_gei', /gse2gei
-  cotrans, 'sundir_gei', 'sundir_j2000', /gei2j2000
+  if reload then cotrans, 'sundir_gse', 'sundir_gei', /gse2gei
+  if reload then cotrans, 'sundir_gei', 'sundir_j2000', /gei2j2000
   ;store_data, delete='sundir_'+['gse','gei']
   
   ; Derive DSI-X and DSI-Y axis vectors in J2000. 
