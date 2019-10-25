@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupa $
-; $LastChangedDate: 2019-10-23 15:40:22 -0700 (Wed, 23 Oct 2019) $
-; $LastChangedRevision: 27927 $
+; $LastChangedDate: 2019-10-24 14:34:53 -0700 (Thu, 24 Oct 2019) $
+; $LastChangedRevision: 27929 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -205,7 +205,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
         qf_labels = $
           ['BIAS_SWP','THRUSTER','SCM_CAL',$
-          'MAG_ROLL','MAG_CAL','SPC_EMODE','SLS_CAL']
+          'MAG_ROLL','MAG_CAL','SPC_EMODE','SLS_CAL','OFF_UMBRA']
 
         options, 'psp_fld_l2_quality_flags', 'labels', $
           qf_labels
@@ -215,7 +215,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
 
         options, 'psp_fld_l2_quality_flags', 'colors', $
-          [0,1,2,4,6]
+          [0,1,2,6]
 
         options, 'psp_fld_l2_quality_flags', 'yticklen', 1
         options, 'psp_fld_l2_quality_flags', 'ygridstyle', 1

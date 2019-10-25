@@ -19,9 +19,9 @@
 ;
 ;       storeTPLOT:         Create tplot varibles
 ;                                                                                                         
-; $LastChangedBy: xussui $  
-; $LastChangedDate: 2018-09-18 17:27:06 -0700 (Tue, 18 Sep 2018) $  
-; $LastChangedRevision: 25831 $ 
+; $LastChangedBy: tweber $  
+; $LastChangedDate: 2019-10-24 09:07:47 -0700 (Thu, 24 Oct 2019) $  
+; $LastChangedRevision: 27928 $ 
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_lc_restore.pro $     
 ; 
 ;CREATED BY:    Tristan Weber
@@ -42,7 +42,6 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
 
     if keyword_set(orbit) then begin
       orbMin = min(orbit, max=orbMax)
-      
       trange = mvn_orbit_num(orbnum=[orbMin-0.5,orbMax+0.5])
     endif else begin
       if ~keyword_set(trange) then begin
@@ -55,7 +54,8 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
       endif
     endelse
     
-    file = mvn_pfp_file_retrieve(rootPath+rootFilename,trange=trange,/daily_names)
+    tmin = min(time_double(trange),max=tmax)
+    file = mvn_pfp_file_retrieve(rootPath+rootFilename,trange=[tmin, tmax],/daily_names)
     nfiles = n_elements(file)
     
     pos=strpos(file,'_v');find position for version number
@@ -101,7 +101,7 @@ pro mvn_swe_pad_lc_restore, trange = trange, orbit = orbit, loadonly=loadonly, r
     endfor
     
     ;Trim Data
-    inTimeRange = where(padTopoCombined[*].time ge time_double(trange[0]) and padTopoCombined[*].time le time_double(trange[1]), numInRange)
+    inTimeRange = where(padTopoCombined[*].time ge tmin and padTopoCombined[*].time le tmax, numInRange)
     if numInRange eq 0 then begin
       print, 'No Data in Time Range!'
       return
