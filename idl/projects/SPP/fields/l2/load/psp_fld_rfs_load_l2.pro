@@ -173,6 +173,17 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
           options, var, 'ztitle', '[V2/Hz]'
         endif
 
+        if strpos(var, '_hires_') GT 0 then begin
+          if strpos(var, '_hires_averages_') GT 0 then type = 'HR AV'
+          if strpos(var, '_hires_peaks_') GT 0 then type = 'HR PK'
+          src = split[-1]
+          if set_colors then options, var, 'color_table', 129
+          options, var, 'zlog', 1
+          options, var, 'ylog', 0
+          options, var, 'auto_downsample', 1
+          options, var, 'ztitle', '[V2/Hz]'
+        endif
+
         if strpos(var, '_coher_') GT 0 then begin
           type = 'COH'
           src = split[-2] + '-'  + split[-1]
@@ -207,7 +218,7 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
         options, var, 'yrange', minmax(d.v)
         options, var, 'datagap', 180d
         options, var, 'ystyle', 1
-        options, var, 'ylog', 1
+        if strpos(var, '_hires_') EQ 0 then options, var, 'ylog', 1
         options, var, 'no_interp', 1
         options, var, 'panel_size', 2
 

@@ -920,6 +920,9 @@ if time gt time_double('2019-02-13/00:00') then begin					; checked 20190220, SZ
 	e0=2.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; no ram horizontal, att=1,2 assume wind~0
 endif
 
+if time gt time_double('2019-09-18/00:00') then begin					; checked 20190926, SZA=38, s/c pot ~ -2-3V 
+	e0=2.5 & 	scale1 = 0.7 & 	efoldoffset = 4.0	& offset1= 0.0		; ram horizontal 1st orbit, att=3 
+endif
 
 ; Problem - the offsets for different attenuator states may need sc_pot dependence. For 2018-12-18, the att 1->2 needs to be larger for pot=-.7V
 

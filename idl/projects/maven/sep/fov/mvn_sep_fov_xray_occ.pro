@@ -14,7 +14,7 @@ pro mvn_sep_fov_xray_occ
   for iocc=0,nocc-1 do begin
     time=oct[iocc]
     if time lt tminmax[0] or time gt tminmax[1] then begin
-      mvn_sep_fov,/load,/arc,trange=time,/tplot,occalt=70.
+      mvn_sep_fov,/load,/arc,trange=time,/tplot,occalt=[50,70.]
       sep1=*(sep1_svy.x)
       tminmax=minmax(sep1.time)
     endif else continue

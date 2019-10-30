@@ -19,8 +19,9 @@ end
 ;cr: colors corresponding to pos
 ;sym: symbol used to plot pos
 ;overplot: if set, does not erase the previous mvn_sep_fov plot
+;atmo: plots atmosphere shine
 
-pro mvn_sep_fov_plot,tms,edge=edge,fraction=fraction,pos=pos,cr=cr,sym=sym,overplot=overplot
+pro mvn_sep_fov_plot,tms,edge=edge,fraction=fraction,pos=pos,cr=cr,sym=sym,overplot=overplot,atmo=atmo
 
   @mvn_sep_fov_common.pro
   @mvn_pui_commonblock.pro ;common mvn_pui_common
@@ -63,32 +64,27 @@ pro mvn_sep_fov_plot,tms,edge=edge,fraction=fraction,pos=pos,cr=cr,sym=sym,overp
     att= mvn_sep_fov[tms].att
   endif else return
 
-  logfrac=1
-  if keyword_set(logfrac) then begin
-    cossza=alog10(fraction.cossza)
-    atmosh=alog10(fraction.atmosh)
-    tanalt=alog10(fraction.tanalt)
-    cosszamin=-2
-    cosszamax=0
-    tanaltmin=0
-    tanaltmax=3
-  endif
+  cossza=alog10(fraction.cossza)
+  atmosh=alog10(fraction.atmosh)
+  cosszamin=-2
+  cosszamax=0
   tanalt=fraction.tanalt
   tanaltmin=0
   tanaltmax=100
   p=image(tanalt,fraction.phid,fraction.thed-90.,rgb=colortable(62,/reverse),/o,min=tanaltmin,max=tanaltmax,transparency=10) ;Tangent Altitude
   p=image(cossza,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Mars Surface
-  ;  p=image(atmosh,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Atmo Shine
+  if keyword_set(atmo) then p=image(atmosh,fraction.phid,fraction.thed-90.,rgb=colortable(64,/reverse),/o,min=cosszamin,max=cosszamax,transparency=10) ;Atmo Shine
   p=colorbar(rgb=colortable(62,/reverse),range=[tanaltmin,tanaltmax],title='Tangent Altitude (km)',position=[0.7,.125,.95,.145],transparency=10)
   p=colorbar(rgb=colortable(64,/reverse),range=[cosszamin,cosszamax],title='Log10[cos(SZA)]',position=[0.7,.05,.95,.07],transparency=10)
 
   tags=strlowcase(tag_names(pos))
-  tags=[tags,strtrim(fix(mvn_sep_fov0.occalt),2)+' km','Sunward','Mars Surface']
+  tags=[tags,strtrim(fix(mvn_sep_fov0.occalt[1]),2)+' km','Marsward','Sunward','Mars Surface']
   colors=['orange','deep_sky_blue','r','g','m','c','b','k','b','r']
-  syms=['o','o','o','o','o','*','*','x','.','.']
+  syms=['o','o','o','o','o','*','*','x','.','.','.','.']
   npos=n_tags(pos)
   for ipos=-2,npos-1 do begin
-    if ipos eq -3 then pdf=edge.occedge ;Mars occultation altitude
+    if ipos eq -4 then pdf=edge.occedge ;Mars occultation altitude
+    if ipos eq -3 then pdf=edge.maredge ;Mars-ward hemisphere
     if ipos eq -2 then pdf=edge.sunedge ;Sun-ward hemisphere
     if ipos eq -1 then pdf=edge.suredge ;Mars edge
     if ipos ge 0  then pdf=pos.(ipos) ;planets and x-ray sources

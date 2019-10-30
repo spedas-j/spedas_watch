@@ -10,6 +10,6 @@ pro spp_fld_dfb_dc_bpf_load_l1, file, prefix = prefix, varformat = varformat
 
   endif
 
-  spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat
+  spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat, ac_dc = 'dc'
 
 end

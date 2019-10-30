@@ -1,4 +1,5 @@
-pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat
+pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat, $
+  ac_dc = ac_dc
 
   if n_elements(file) LT 1 then begin
     print, 'Must provide a CDF file to load"
@@ -7,7 +8,11 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat
 
   bpf_ind = strmid(prefix, strlen(prefix)-2, 1)
 
-  if strpos(prefix, 'ac_bpf') NE -1 then is_ac = 1 else is_ac = 0
+  if n_elements(ac_dc) EQ 0 then begin
+    if strpos(prefix, 'ac_bpf') NE -1 then is_ac = 1 else is_ac = 0
+  endif else begin
+    if ac_dc EQ 'ac' then is_ac = 1 else is_ac = 0 
+  endelse
   if is_ac then ac_dc_str = 'AC' else ac_dc_str = 'DC'
 
   cdf2tplot, /get_support_data, file, prefix = prefix, varnames = varnames, varformat = varformat
@@ -112,7 +117,7 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat
       if bpf_name_i EQ 'avg_converted' then ytitle_i = 'avg'
 
       if bpf_name_i EQ 'peak_converted' or bpf_name_i EQ 'avg_converted' then begin
-        
+
         if tnames(prefix + 'src_sel_string') NE '' then begin
 
           get_data, prefix + 'src_sel_string', data = src_sel_dat
@@ -124,7 +129,7 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat
           endif
 
         endif
-        
+
       endif
 
       options, prefix + bpf_name_i, 'ytitle', ac_dc_str+ ' BPF' + $

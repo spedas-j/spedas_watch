@@ -8,13 +8,14 @@
 ;trange: specify trange
 ;arc: loads sep archive (burst) data
 ;restore: restore the 5min averaged (lowres) results in the common block
-;occalt: tangent altitude at which occultation happens
+;occalt: lower and upper bound of tangent altitude within which occultation happens
 ;times: manually input times. e.g., useful for future predict calculations where no sep data is available
 ;calc: calls mvn_sep_fov_calc to calculate a bunch of parameters
 ;snap: calls mvn_sep_fov_snap to create plots of fov at a specific time
+;nospice: skips slow spice calculations
 ;
 pro mvn_sep_fov,lowres=lowres,tplot=tplot,load=load,spice=spice,trange=trange,arc=arc,restore=restore,occalt=occalt,$
-  times=times,calc=calc,snap=snap
+  times=times,calc=calc,snap=snap,objects=objects,nospice=nospice
 
   @mvn_sep_fov_common.pro
   @mvn_sep_handler_commonblock.pro
@@ -46,8 +47,8 @@ pro mvn_sep_fov,lowres=lowres,tplot=tplot,load=load,spice=spice,trange=trange,ar
     toframe='maven_sep1'
   endif else toframe='MSO' ;useful for predictions of future times where sep frame spice data is not available
 
-  if ~keyword_set(occalt) then occalt=110.
-  objects=['sun','earth','mars','phobos','deimos']
+  if ~keyword_set(occalt) then occalt=[50.,110.]
+  if ~keyword_set(objects) then objects=['sun','earth','mars','phobos','deimos']
   mvn_sep_fov0={                                 $
     rmars:3390.d                                ,$ ;km (not accurate)
     detlab:['A-O','A-T','A-F','B-O','B-T','B-F'],$ ;single detector label
@@ -58,8 +59,8 @@ pro mvn_sep_fov,lowres=lowres,tplot=tplot,load=load,spice=spice,trange=trange,ar
     objects:objects                             ,$
     toframe:toframe}
 
-  if keyword_set(calc) then mvn_sep_fov_calc,times
-  if keyword_set(snap) then mvn_sep_fov_snap
-  if keyword_set(tplot) then mvn_sep_fov_tplot,/tplot,/store,/nofrac
+  if keyword_set(calc) then mvn_sep_fov_calc,times,nospice=nospice
+  if keyword_set(snap) then mvn_sep_fov_snap,/sep,/mars,vector=2
+  if keyword_set(tplot) then mvn_sep_fov_tplot,/store
 
 end

@@ -4,7 +4,7 @@
 ;m: mars position (km) [3,nt]
 ;v: vector direction (unit vector) [3,nv]
 ;s: surface intercept point (km) [3,nv,nt]
-pro mvn_sep_fov_mars_incidence,r,m,v,s
+function mvn_sep_fov_mars_incidence,r,m,v
 
   sizem=size(m,/dim)
   sizev=size(v,/dim)
@@ -40,6 +40,8 @@ pro mvn_sep_fov_mars_incidence,r,m,v,s
     z=x*v2nt/v0nt ;[1,nv,nt]
     s=[x,y,z] ;[3,nv,nt]
   endif else s=!values.f_nan
+
+  return,s
 
   if 0 then begin ;older method, only works for nt=nv=1
     if v[0] eq 0. then v[0]=1e-10 ;to circumvent div by 0. (kluge)
