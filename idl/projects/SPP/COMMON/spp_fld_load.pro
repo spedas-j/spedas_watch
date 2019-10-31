@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-10-29 16:59:19 -0700 (Tue, 29 Oct 2019) $
-; $LastChangedRevision: 27946 $
+; $LastChangedBy: pulupa $
+; $LastChangedDate: 2019-10-30 17:36:35 -0700 (Wed, 30 Oct 2019) $
+; $LastChangedRevision: 27951 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -72,8 +72,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
       pathformat = !null
       files = !null
 
-      if (tnames('psp_fld_l2_dfb_?c_bpf_' + spec_type))[0] NE '' then begin
-        options, 'psp_fld_l2_dfb_?c_bpf_' + spec_type, $
+      if (tnames('psp_fld_l2_dfb_?c_bpf_' + spec_type + '_avg'))[0] NE '' then begin
+        options, 'psp_fld_l2_dfb_?c_bpf_' + spec_type + ['_avg','_peak'], $
           'no_interp', 1
       end
       ;stop
@@ -275,12 +275,12 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
           options,'psp_fld_l2_dfb_wf_V?dc','psym_lim',300
         endif
 
-        if tnames('psp_fld_dfb_wf_scm_hg_sc_l2') NE '' or $
-          tnames('psp_fld_dfb_wf_scm_lg_sc_l2') NE '' then begin
-          options,'psp_fld_dfb_wf_scm_?g_s*_l2', 'ytitle', 'DFB WF SCM HG'
-          options,'psp_fld_dfb_wf_scm_?g_s*_l2', colors = 'bgr', /default
-          options,'psp_fld_dfb_wf_scm_?g_s*_l2','max_points',10000
-          options,'psp_fld_dfb_wf_scm_?g_s*_l2','psym_lim',300
+        if tnames('psp_fld_l2_dfb_wf_scm_hg_sc') NE '' or $
+          tnames('psp_fld_l2_dfb_wf_scm_lg_sc') NE '' then begin
+          options,'psp_fld_l2_dfb_wf_scm_hg_s*', 'ytitle', 'DFB WF SCM'
+          options,'psp_fld_l2_dfb_wf_scm_?g_s*', colors = 'bgr', /default
+          options,'psp_fld_l2_dfb_wf_scm_?g_s*','max_points',10000
+          options,'psp_fld_l2_dfb_wf_scm_?g_s*','psym_lim',300
         endif
 
 
