@@ -16,23 +16,46 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
   
   phase_delays=elf_get_phase_delays(no_download=nodownload, probe=probe, $
      instrument=instrument)
-    
-  ;dt = phase_delays.starttimes - trange[0]
-  ;mindt=min(dt, minidx)
-  idx = where(phase_delays.starttimes GE trange[0] AND phase_delays.starttimes LE trange[1], ncnt)
-  ;if mindt LT 10.*60. then begin
-  if ncnt GT 1 then idx=idx[0]
-  if ncnt GT 0 then begin
+  npd = n_elements(phase_delays)
+  if size(phase_delays, /type) NE 8 then begin
+    dprint, dlevel = 0, 'Unable to retrieve phase delays.' 
+    return, -1
+  endif
+
+  idx = where((trange[0] GE phase_delays.starttimes-60. and $
+              trange[0] LE phase_delays.endtimes-60.) OR $
+              (trange[1] GE phase_delays.starttimes-60. and $
+              trange[1] LE phase_delays.endtimes-60.), cnt)
+  if cnt GT 1 then idx=idx[0]
+  if cnt GT 0 then begin
      dsect2add=phase_delays.sect2add[idx]
      dphang2add=phase_delays.phang2add[idx]
-     medianflag=0
-  endif else begin 
-     dsect2add=phase_delays.LASTESTMEDIANSECTR[idx]
-     dphang2add=phase_delays.latestmedianphang[idx]
-     medianflag=1  
+     minpa=phase_delays.minpa[idx]
+     medianflag=0          
+  endif else begin
+    tdiff=phase_delays.starttimes - trange[0]
+    mintime=min(abs(tdiff),minidx)
+    if abs(mintime) GT 86400.*7. then begin
+      dsect2add=1
+      dphang2add=01.0
+      minpa=-1.0
+      medianflag=2
+    endif else begin
+      if is_numeric(phase_delays.LASTESTMEDIANSECTR[minidx]) then begin
+        dsect2add=phase_delays.LASTESTMEDIANSECTR[minidx]
+        dphang2add=phase_delays.latestmedianphang[minidx]
+        minpa=phase_delays.minpa[minidx]
+        medianflag=1
+      endif else begin
+        dsect2add=1
+        dphang2add=01.0
+        minpa=phase_delays.minpa[minidx]
+        medianflag=2        
+      endelse
+    endelse
   endelse
 
-  phase_delay={dsect2add:dsect2add, dphang2add:dphang2add, medianflag:medianflag}
+  phase_delay={dsect2add:dsect2add, dphang2add:dphang2add, minpa:minpa, medianflag:medianflag}
 
   return, phase_delay 
   

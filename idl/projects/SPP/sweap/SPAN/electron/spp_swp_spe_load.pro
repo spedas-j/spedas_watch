@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-10-22 14:45:29 -0700 (Tue, 22 Oct 2019) $
-; $LastChangedRevision: 27915 $
+; $LastChangedDate: 2019-10-31 11:56:40 -0700 (Thu, 31 Oct 2019) $
+; $LastChangedRevision: 27957 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -75,7 +75,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       fileformat = str_sub(loc[type],'SP?', spx)              ; instrument string substitution
       fileformat = str_sub(fileformat,'TYP',type)                 ; packet type substitution
       dprint,fileformat,/phelp                                   
-      files = spp_file_retrieve(fileformat,trange=tr,/daily_names,/valid_only,prefix=fileprefix,verbose=verbose)
+      files = spp_file_retrieve(fileformat,trange=tr,/last,/daily_names,/valid_only,prefix=fileprefix,verbose=verbose)
       if keyword_set(save) then begin
         vardata = !null
         novardata = !null

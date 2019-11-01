@@ -4,10 +4,10 @@
 ;+
 ;  cdf_tools_varinfo
 ;  This basic object is the entry point for reading and writing cdf files
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2018-12-04 09:52:17 -0800 (Tue, 04 Dec 2018) $
-; $LastChangedRevision: 26225 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu:36867/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2019-10-31 18:00:59 -0700 (Thu, 31 Oct 2019) $
+; $LastChangedRevision: 27958 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools_varinfo__define.pro $
 ;
 ; Written by Davin Larson October 2018
 ;-
@@ -56,7 +56,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['UNITS']    = 'sec'
       att['FILLVAL']    = dnan
       att['VALIDMIN']    = time_double('2010')
-      att['VALIDMAX']    = time_double('2030')
+      att['VALIDMAX']    = time_double('2100')
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = 'time>UTC'
       att['SCALETYP']    = 'linear'
@@ -72,7 +72,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['FILLVAL']    = fnan
       att['VALIDMIN']    = 0
       att['VALIDMAX']    = 1e6
-      att['VAR_TYPE']    = 'data'
+      att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'log'
       att['MONOTON']    = ''
@@ -97,7 +97,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
     end
     'ENERGY': begin
       att['CATDESC']    = 'Energy'
-      att['FIELDNAM']    = 'Counts in '
+      att['FIELDNAM']    = 'Energy'
       att['DEPEND_0']    = EPOCHname
       att['LABLAXIS']    = 'Energy'
       att['UNITS']    = 'eV'
@@ -313,6 +313,21 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['MONOTON']    = ''
       att['DISPLAY_TYPE'] = 'spectrogram'
       att['FORMAT']   = 'F8.2'
+    end
+    'QUALITY_FLAG': begin
+      att['CATDESC']    = 'QUALITY FLAG'
+      att['FIELDNAM']    = 'Quality Flag'
+      att['DEPEND_0']    = EPOCHname
+      att['LABLAXIS']    = vname
+      att['UNITS']    = ''
+      att['FILLVAL']    = -1
+      att['VALIDMIN']    = 0
+      att['VALIDMAX']    = 256
+      att['VAR_TYPE']    = 'support_data'
+      att['DICT_KEY']    = ''
+      att['SCALETYP']    = 'linear'
+      att['MONOTON']    = ''
+      att['FORMAT']   = 'I10'
     end
     else:  begin    ; assumed to be support
       att['CATDESC']    = 'Not known'

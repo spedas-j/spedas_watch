@@ -49,21 +49,17 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
     if undefined(paths) or paths EQ '' then $
       dprint, devel=1, 'Unable to download ' + local_filename
   endif
-
   ; check that there is a local file
   if file_test(local_filename) NE 1 then begin
     dprint, dlevel=1, 'Unable to find local file ' + local_filename
     return, -1
-  endif else begin
-    
-
+  endif else begin  
     ; open file and read first 7 lines (these are just headers)
     openr, lun, local_filename, /get_lun
     le_string=''      
     ; read header
     readf, lun, le_string
-    dtypes=strsplit(le_string, ',', /extract)
-    
+    dtypes=strsplit(le_string, ',', /extract) 
     while (eof(lun) NE 1) do begin  
       readf, lun, le_string
       data=strsplit(le_string, ',', /extract)
@@ -74,11 +70,16 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
       append_array, dphang2add, float(data[4])
       append_array, sectrconfig, float(data[5])
       append_array, phangconfig, float(data[6])
-      append_array, latestmediansectr, fix(data[7])
-      append_array, latestmedianphang, float(data[8])
-      append_array, badflag, fix(data[9])
+      if data[7] EQ ' NaN' then thislms=!values.f_nan else thislms=fix(data[7])
+      append_array, latestmediansectr, thislms
+      if data[8] EQ ' NaN' then thislmpa=!values.f_nan else thislmpa=float(data[8])
+      append_array, latestmedianphang, thislmpa
+      append_array, chisq, float(data[9])
+      append_array, attunc, float(data[10])
+      append_array, badflag, fix(data[11])
+      append_array, HQflag, fix(data[12])
+      append_array, minpa, float(data[13])
     endwhile
-
   endelse  
   
   phase_delay = { $
@@ -91,7 +92,11 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
     phangconfig:phangconfig, $
     lastestmediansectr:latestmediansectr, $
     latestmedianphang:latestmedianphang, $
-    badflag:badflag }
+    chisq:chisq, $
+    attunc:attunc, $
+    badflag:badflag, $
+    HQflag:HQflag, $
+    minpa:minpa }
     
   return, phase_delay
   

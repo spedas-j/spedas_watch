@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-08-19 11:52:34 -0700 (Mon, 19 Aug 2019) $
-; $LastChangedRevision: 27616 $
+; $LastChangedDate: 2019-10-31 09:43:16 -0700 (Thu, 31 Oct 2019) $
+; $LastChangedRevision: 27956 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -111,9 +111,39 @@ function mms_python_validation_ut::test_feeps_default
   return, 1
 end
 
-function mms_python_validation_ut::test_dsp_default
-  mms_load_dsp
+function mms_python_validation_ut::test_dsp_psd
+  mms_load_dsp, probe=1, data_rate='fast', datatype=['epsd', 'bpsd'], level='l2'
   spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.dsp', output
+  
+  get_data, 'mms1_dsp_epsd_omni', data=d
+  assert, self.compare(d.v, self.str_to_arr(output[-1])), 'Problem with DSP'
+  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-1])), 'Problem with DSP'
+  assert, self.compare(d.y[9000, *], self.str_to_arr(output[-2])), 'Problem with DSP'
+  assert, self.compare(d.y[8000, *], self.str_to_arr(output[-3])), 'Problem with DSP'
+  assert, self.compare(d.y[7000, *], self.str_to_arr(output[-4])), 'Problem with DSP'
+  assert, self.compare(d.y[6000, *], self.str_to_arr(output[-5])), 'Problem with DSP'
+  assert, self.compare(d.y[5000, *], self.str_to_arr(output[-6])), 'Problem with DSP'
+  assert, self.compare(d.y[4000, *], self.str_to_arr(output[-7])), 'Problem with DSP'
+  assert, self.compare(d.y[3000, *], self.str_to_arr(output[-8])), 'Problem with DSP'
+  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-9])), 'Problem with DSP'
+  assert, self.compare(d.y[1000, *], self.str_to_arr(output[-10])), 'Problem with DSP'
+  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-11])), 'Problem with DSP'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-12])), 'Problem with DSP'
+  
+  
+  get_data, 'mms1_dsp_bpsd_omni_fast_l2', data=d
+  assert, self.compare(d.v, self.str_to_arr(output[-13])), 'Problem with DSP'
+  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-14])), 'Problem with DSP'
+  assert, self.compare(d.y[9000, *], self.str_to_arr(output[-15])), 'Problem with DSP'
+  assert, self.compare(d.y[8000, *], self.str_to_arr(output[-16])), 'Problem with DSP'
+  assert, self.compare(d.y[7000, *], self.str_to_arr(output[-17])), 'Problem with DSP'
+  assert, self.compare(d.y[6000, *], self.str_to_arr(output[-18])), 'Problem with DSP'
+  assert, self.compare(d.y[5000, *], self.str_to_arr(output[-19])), 'Problem with DSP'
+  assert, self.compare(d.y[4000, *], self.str_to_arr(output[-20])), 'Problem with DSP'
+  assert, self.compare(d.y[3000, *], self.str_to_arr(output[-21])), 'Problem with DSP'
+  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-22])), 'Problem with DSP'
+  assert, self.compare(d.y[1000, *], self.str_to_arr(output[-23])), 'Problem with DSP'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-24])), 'Problem with DSP'
 
   return, 1
 end
@@ -236,6 +266,17 @@ end
 function mms_python_validation_ut::str_to_arr, str
   return, strsplit(strmid(str[-1], 1, strlen(str[-1])-2), ', ', /extract)
 end
+
+; the following are for debugging/developing the tests
+;function compare, idl_result, py_result
+;  notused = where(abs(idl_result-py_result) ge 1e-6, bad_count)
+;  return, bad_count eq 0 ? 1 : 0
+;end
+;
+;; converts an array stored in a string to an actual array
+;function str_to_arr, str
+;  return, strsplit(strmid(str[-1], 1, strlen(str[-1])-2), ', ', /extract)
+;end
 
 pro mms_python_validation_ut::setup
   del_data, '*'

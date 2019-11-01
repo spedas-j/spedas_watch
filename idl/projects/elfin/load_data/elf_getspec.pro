@@ -145,10 +145,11 @@ nsectors=n_elements(elx_pxf.x)
 nspinsectors=n_elements(reform(elx_pxf.y[0,*]))
 if dSectr2add gt 0 then begin
   xra=make_array(nsectors-dSectr2add,/index,/long)
-  elx_pxf.y[xra+dSectr2add,*]=elx_pxf.y[xra,*]
+  elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]
   elx_pxf.y[0:dSectr2add-1,*]=!VALUES.F_NaN
   store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
 endif
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; extrapolate on the left and right to [0,...nspinsectors-1], degap the data
 tres,'elx_pxf_sectnum',dt_sectnum
