@@ -48,6 +48,11 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   timespan,tr[0],timeduration,/seconds
   tr=timerange()
 
+  ; close and free any logical units opened by calc
+  close, /all
+  luns=lindgen(124)+5
+  for j=0,n_elements(luns)-1 do free_lun, luns[j]
+
   ; remove any existing pef tplot vars
   ;del_data, '*'
   elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux', no_download=no_download ; DEFAULT UNITS ARE NFLUX THIS ONE IS CPS
@@ -55,7 +60,7 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   if size(pef_nflux, /type) NE 8 then begin
     dprint, dlevel=0, 'No data was downloaded for el' + probe + '_pef_nflux.'
     dprint, dlevel=0, 'No plots were producted.
-    ;return
+;    return
   endif
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -120,49 +125,52 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     append_array, file_lbl, '_24hr'
   endif else begin
     ; set up for plots by science zone
-    tdiff = pef_nflux.x[1:n_elements(pef_nflux.x)-1] - pef_nflux.x[0:n_elements(pef_nflux.x)-2]
-    idx = where(tdiff GT 60., ncnt)   ; note: 40 seconds is an arbitary time 
-    if ncnt EQ 0 then begin
-      ; if ncnt is zero then there is only one science zone for this time frame
-      starttimes=[pef_nflux.x[0]]
-      min_st=[0]
-      endtimes=pef_nflux.x[n_elements(pef_nflux.x)-1]
-      min_en=[n_elements(pef_nflux.x)-1]
-      ts=time_struct(starttimes[0])
-      te=time_struct(endtimes[0])
-      if ts.hour LT 10 then shr='0'+strtrim(string(ts.hour),1) else shr=strtrim(string(ts.hour),1)      
-      if te.hour LT 10 then ehr='0'+strtrim(string(te.hour),1) else ehr=strtrim(string(te.hour),1)
-      plot_lbl = [' '+shr+':00 to '+ehr+':30']
-      file_lbl = ['_'+shr]      
-    endif else begin
-      for sz=0,ncnt-1 do begin
-        if sz EQ 0 then begin
-          this_s = pef_nflux.x[0] 
-          sidx = 0
-          this_e = pef_nflux.x[idx[sz]]
-          eidx = idx[sz]
-        endif else begin
-          this_s = pef_nflux.x[idx[sz-1]+1]
-          sidx = idx[sz-1]+1
-          this_e = pef_nflux.x[idx[sz]]
-          eidx = idx[sz]
-        endelse
-        append_array, starttimes, this_s
-        append_array, endtimes, this_e
-        append_array, min_st, sidx
-        append_array, min_en, eidx 
-        ts=time_struct(this_s)
-        te=time_struct(this_e)
-        if ts.hour LT 10 then shr='0'+strtrim(string(ts.hour),1) else shr=strtrim(string(ts.hour),1)
+    if (size(pef_nflux, /type)) EQ 8 then begin 
+      tdiff = pef_nflux.x[1:n_elements(pef_nflux.x)-1] - pef_nflux.x[0:n_elements(pef_nflux.x)-2]
+      idx = where(tdiff GT 60., ncnt)   ; note: 40 seconds is an arbitary time 
+      if ncnt EQ 0 then begin
+        ; if ncnt is zero then there is only one science zone for this time frame
+        starttimes=[pef_nflux.x[0]]
+        min_st=[0]
+        endtimes=pef_nflux.x[n_elements(pef_nflux.x)-1]
+        min_en=[n_elements(pef_nflux.x)-1]
+        ts=time_struct(starttimes[0])
+        te=time_struct(endtimes[0])
+        if ts.hour LT 10 then shr='0'+strtrim(string(ts.hour),1) else shr=strtrim(string(ts.hour),1)      
         if te.hour LT 10 then ehr='0'+strtrim(string(te.hour),1) else ehr=strtrim(string(te.hour),1)
-        ;plot_lbl = [' '+shr+':00 to '+ehr+':30']
-        ;file_lbl = ['_'+shr]
-        ;append_array, plot_lbl, ' Science Zone ' + strtrim(string(sz),1) 
-        ;append_array, file_lbl, '_sci_zone_' + strtrim(string(sz),1)
-        append_array, plot_lbl, ' '+shr+':00 to '+ehr+':30'
-        append_array, file_lbl, '_'+shr
+        plot_lbl = [' '+shr+':00 to '+ehr+':30']
+        file_lbl = ['_'+shr]      
+      endif else begin
+        for sz=0,ncnt-1 do begin
+          if sz EQ 0 then begin
+            this_s = pef_nflux.x[0] 
+            sidx = 0
+            this_e = pef_nflux.x[idx[sz]]
+            eidx = idx[sz]
+          endif else begin
+            this_s = pef_nflux.x[idx[sz-1]+1]
+            sidx = idx[sz-1]+1
+            this_e = pef_nflux.x[idx[sz]]
+            eidx = idx[sz]
+          endelse
+          append_array, starttimes, this_s
+          append_array, endtimes, this_e
+          append_array, min_st, sidx
+          append_array, min_en, eidx 
+          ts=time_struct(this_s)
+          te=time_struct(this_e)
+          if ts.hour LT 10 then shr='0'+strtrim(string(ts.hour),1) else shr=strtrim(string(ts.hour),1)
+          if te.hour LT 10 then ehr='0'+strtrim(string(te.hour),1) else ehr=strtrim(string(te.hour),1)
+          ;plot_lbl = [' '+shr+':00 to '+ehr+':30']
+          ;file_lbl = ['_'+shr]
+          ;append_array, plot_lbl, ' Science Zone ' + strtrim(string(sz),1) 
+          ;append_array, file_lbl, '_sci_zone_' + strtrim(string(sz),1)
+          append_array, plot_lbl, ' '+shr+':00 to '+ehr+':30'
+          append_array, file_lbl, '_'+shr
+;        endif
       endfor
     endelse
+    endif
   endelse 
   
   nplots = n_elements(min_st)
@@ -257,13 +265,13 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
       2: phase_msg = 'No phase delay available. Using dSect2add=1 and dPhAng2add=1.0.'
     endcase
 
-    if keyword_set(sci_zone) then begin    
-      if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then $     
-       elf_getspec, /regularize, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
-    endif else begin
-       elf_getspec, /regularize
-    endelse
-    
+;    if keyword_set(sci_zone) then begin    
+     if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then $     
+        elf_getspec, /regularize, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
+;    endif else begin
+;       elf_getspec, /regularize
+;    endelse
+   
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Get Pseudo_ae data
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -275,12 +283,12 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     if size(pseudo_ae, /type) EQ 8 then begin
       idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
       if ncnt GT 0 then ae_max=minmax(pseudo_ae.y[idx])
-      if ncnt LE 0 then continue
-      if ae_max[1] LT 150. then begin
+      if ncnt EQ 0 then ae_max=[0,140.]
+      if ae_max[1] LT 145. then begin
         options, 'pseudo_ae', yrange=[0,150]
         options, 'pseudo_ae', ystyle=1
       endif else begin
-        options, 'pseudo_ae', yrange=[0,ae_max[1]]
+        options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
         options, 'pseudo_ae', ystyle=1
       endelse
     endif
@@ -301,7 +309,7 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
           file_lbl[i] = file_lbl[i] + '_sdes'
       endelse
     endif
-    
+   
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; PLOT
     window, xsize=750, ysize=1000
@@ -361,8 +369,10 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     ;del_data, 'el'+probe+'_pef_nflux'
     ;del_data, 'el'+probe+'_pes_nflux'
    
-    ; close any luns opened by calc
-    for j=100,128 do free_lun, j
+    ; close and free any logical units opened by calc
+    close, /all
+    luns=lindgen(124)+5
+    for j=0,n_elements(luns)-1 do free_lun, luns[j]
 
   endfor
 

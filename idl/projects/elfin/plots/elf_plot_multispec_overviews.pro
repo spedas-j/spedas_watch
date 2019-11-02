@@ -36,8 +36,8 @@ pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_dow
 
   ; create plots for each day
   for j = 0,dur-1 do begin
-    start_time = time_double(date)+j*60.*60.*24.
-    end_time = start_time + 86400.    
+    start_time = time_double(date) + j*60.*60.*24.
+    end_time = start_time + 86400.
     epde_plot_wigrf_multispec_overviews, trange=[start_time, end_time], probe=probe, $
       no_download=no_download, sci_zone=sci_zone
   endfor 

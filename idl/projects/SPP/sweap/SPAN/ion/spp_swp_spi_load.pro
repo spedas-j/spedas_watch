@@ -1,8 +1,6 @@
-;+
-;
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-10-22 18:17:28 -0700 (Tue, 22 Oct 2019) $
-; $LastChangedRevision: 27919 $
+; $LastChangedDate: 2019-11-01 14:59:44 -0700 (Fri, 01 Nov 2019) $
+; $LastChangedRevision: 27964 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -54,13 +52,12 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
     if keyword_set(no_load) then continue
 
     ;; Load TPLOT Formats
-    if keyword_set(varformat) then varformat2=varformat else if vars.haskey(type) then varformat2=vars[type]
+    if keyword_set(varformat) then varformat2=varformat else if vars.haskey(type) then varformat2=vars[type] else varformat2=[]
 
     prefix='psp_swp_spi_'+type+'_'+level+'_'
     if keyword_set(tname_prefix) then prefix=tname_prefix+prefix
     ;; Convert to TPLOT
     cdf2tplot,files,prefix=prefix,varformat=varformat2,verbose=verbose
-    varformat2=[]
 
     if keyword_set(overlay) && strmatch(type,'[sa]f??') then begin
       xyz_to_polar,prefix+'VEL'
