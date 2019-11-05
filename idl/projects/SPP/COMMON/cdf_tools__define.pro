@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-10-18 11:09:42 -0700 (Fri, 18 Oct 2019) $
-; $LastChangedRevision: 27894 $
+; $LastChangedDate: 2019-11-04 15:28:39 -0800 (Mon, 04 Nov 2019) $
+; $LastChangedRevision: 27972 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-10-18 11:09:42 -0700 (Fri, 18 Oct 2019) $
-; $LastChangedRevision: 27894 $
+; $LastChangedDate: 2019-11-04 15:28:39 -0800 (Mon, 04 Nov 2019) $
+; $LastChangedRevision: 27972 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-10-18 11:09:42 -0700 (Fri, 18 Oct 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 27894 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-11-04 15:28:39 -0800 (Mon, 04 Nov 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 27972 $'
 
   return,sw_hash
 end
@@ -163,7 +163,9 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
   foreach attvalue,global_attributes,name do begin
     dummy = cdf_attcreate(self.fileid,name,/global_scope)
     for gentnum=0,n_elements(attvalue)-1 do begin
-      if keyword_set(attvalue[gentnum]) then    cdf_attput,self.fileid,name,gentnum,attvalue[gentnum]
+      if n_elements(attvalue[gentnum]) ne 0 then  begin
+        cdf_attput,self.fileid,name,gentnum,attvalue[gentnum]
+      endif
     endfor
   endforeach
   
@@ -382,6 +384,7 @@ pro cdf_tools::filter_variables, index
       endcase
       var.numrec = n_elements(index)
       self.vars[vname] = var
+      dprint,vname,var.numrec,dlevel=3 ;,var.data.size
     endif
   endforeach
 end
