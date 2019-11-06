@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupa $
-; $LastChangedDate: 2019-10-30 17:36:35 -0700 (Wed, 30 Oct 2019) $
-; $LastChangedRevision: 27951 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2019-11-04 23:28:01 -0800 (Mon, 04 Nov 2019) $
+; $LastChangedRevision: 27977 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -56,7 +56,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   if type EQ 'dfb_dc_bpf' or type EQ 'dfb_ac_bpf' then begin
 
-    spec_types = ['dv12','dv34',$
+    spec_types = ['dV12','dV34',$
       'SCMulfhg','SCMvlfhg','SCMwlfhg', $
       'SCMulflg','SCMvlflg','SCMwlflg', $
       'SCMmf', 'V5']

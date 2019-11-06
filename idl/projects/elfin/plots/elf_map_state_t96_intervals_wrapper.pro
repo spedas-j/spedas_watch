@@ -21,7 +21,7 @@
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/thmsoc/trunk/idl/thmsoc/asi/map_themis_state_t96_wrapper.pro $
 ;-
 pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
-   north_only=north_only
+   north_only=north_only, pred=pred
 
   compile_opt idl2
 
@@ -45,18 +45,18 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
   for j = 0,dur-1 do begin
     in_date = time_double(date)+j*60.*60.*24.
     if keyword_set(north_only) then begin
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/pred
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/pred
     endif
     if keyword_set(south_only) then begin
-     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
-     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
+     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/pred
+     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/pred
     endif
     if ~keyword_set(north_only) AND ~keyword_set(south_only) then begin
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/pred
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/pred
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/pred
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/pred
     endif    
   endfor
 

@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-11-01 14:59:44 -0700 (Fri, 01 Nov 2019) $
-; $LastChangedRevision: 27964 $
+; $LastChangedDate: 2019-11-04 19:41:19 -0800 (Mon, 04 Nov 2019) $
+; $LastChangedRevision: 27976 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -13,19 +13,19 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   level=strupcase(level)
   if ~keyword_set(spxs) then spxs = ['spa','spb']
   if ~keyword_set(types) then types = ['sf1', 'sf0']  ;,'st1','st0']   ; add archive when available
-  if keyword_set(alltypes) then types = ['sf1', 'sf0', 'af1', 'af0', 'hkp']
+  if keyword_set(alltypes) then types = 'all'
+  if types[0] eq 'all' then begin
+    types=['hkp','fhkp']
+    foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1'] do types=[types,type0+type1+type2]
+  endif
 
   dir='SP?/'+level+'/SP?_TYP/YYYY/MM/'
   fileformat=dir+'psp_swp_SP?_TYP_'+level+'*_YYYYMMDD_v??.cdf'
   if not keyword_set(fileprefix) then fileprefix='psp/data/sci/sweap/'
 
   vars = orderedhash()
-  vars['hkp'] = '*TEMP* *_BITS *_FLAG* *CMD*'
-  if keyword_set(allvars) then begin
-    vars['sf1'] = '*'
-    vars['sf0'] = '*'
-    vars['hkp'] = vars['hkp'] + ' *CNT*' + ' *PEAK*' + ' *CMD*'
-  endif
+  vars['hkp'] = '*TEMP* *_BITS *_FLAG* *CMD* *PEAK* *CNT*'
+  if keyword_set(allvars) then varformat='*'
 
   tr = timerange(trange)
   foreach spx, spxs do begin

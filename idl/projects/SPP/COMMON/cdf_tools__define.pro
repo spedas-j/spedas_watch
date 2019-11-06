@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-11-04 15:28:39 -0800 (Mon, 04 Nov 2019) $
-; $LastChangedRevision: 27972 $
+; $LastChangedDate: 2019-11-05 10:26:06 -0800 (Tue, 05 Nov 2019) $
+; $LastChangedRevision: 27983 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-11-04 15:28:39 -0800 (Mon, 04 Nov 2019) $
-; $LastChangedRevision: 27972 $
+; $LastChangedDate: 2019-11-05 10:26:06 -0800 (Tue, 05 Nov 2019) $
+; $LastChangedRevision: 27983 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-11-04 15:28:39 -0800 (Mon, 04 Nov 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 27972 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-11-05 10:26:06 -0800 (Tue, 05 Nov 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 27983 $'
 
   return,sw_hash
 end
@@ -315,7 +315,7 @@ pro cdf_tools::var_att_create,var
         dummy = cdf_attcreate(fileid,attname,/variable_scope)
         dprint,verbose=verbose,dlevel=dlevel,'Created new Attribute: ',attname, ' for: ',varname
       endif
-      if keyword_set(value) then begin
+      if isa(value) then begin
         cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE        
       endif
     endforeach
@@ -326,7 +326,14 @@ end
 
 ;  return an array of structures
 function cdf_tools::get_var_struct,  names, struct0=struct0,add_time = add_time
-if not keyword_set(names) then names = self.varnames()
+if not keyword_set(names) then begin
+  names = self.varnames()
+  vary = bytarr(n_elements(names))
+  foreach nam,names,i do begin
+    vary[i] = self.vars[nam].recvary
+  endforeach
+  names = names[where(vary,/null)]
+endif
 ;if isa(struct0,'STRUCT') then strct0 = !null
 if keyword_set(add_time) then str_element,/add,strct0,'TIME',!values.d_nan
 numrec = 0
@@ -440,7 +447,7 @@ function cdf_tools::varnames,namematch,data=data
   vnames = self.vars.keys()
   l=list()
   depend = list()
-  if keyword_set(data) then begin
+  if isa(data) then begin
     foreach v,self.vars,k do begin      
       if v.attributes.haskey('VAR_TYPE') && v.attributes['VAR_TYPE'] eq 'data' then begin
         l.add ,k  ; v.attributes['VAR_TYPE'].name

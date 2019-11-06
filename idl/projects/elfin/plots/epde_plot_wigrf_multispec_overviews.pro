@@ -49,12 +49,12 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   tr=timerange()
 
   ; close and free any logical units opened by calc
-  close, /all
+  ;close, /all
   luns=lindgen(124)+5
   for j=0,n_elements(luns)-1 do free_lun, luns[j]
 
   ; remove any existing pef tplot vars
-  ;del_data, '*'
+  del_data, '*_pef_nflux'
   elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux', no_download=no_download ; DEFAULT UNITS ARE NFLUX THIS ONE IS CPS
   get_data, 'el'+probe+'_pef_nflux', data=pef_nflux
   if size(pef_nflux, /type) NE 8 then begin
@@ -267,7 +267,7 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
 
 ;    if keyword_set(sci_zone) then begin    
      if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then $     
-        elf_getspec, /regularize, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
+        elf_getspec, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
 ;    endif else begin
 ;       elf_getspec, /regularize
 ;    endelse
@@ -359,18 +359,17 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     ; Create PNG file
     tr=timerange()
     fd=file_dailynames(trange=tr[0], /unique, times=times)
-    png_path = !elf.local_data_dir+'overplots/el'+probe+'/'+strmid(fd,0,4)+'/'+strmid(fd,4,2)+'/'+strmid(fd,6,2)+'/'
+    png_path = !elf.local_data_dir+'el'+probe+'/overplots/'+strmid(fd,0,4)+'/'+strmid(fd,4,2)+'/'+strmid(fd,6,2)+'/'
     file_mkdir, png_path
     png_file = png_path+'el'+probe+'_l2_overview_'+fd+file_lbl[i]
     dprint, 'Making png file '+png_file+'.png'
-
     makepng, png_file
 
     ;del_data, 'el'+probe+'_pef_nflux'
     ;del_data, 'el'+probe+'_pes_nflux'
    
     ; close and free any logical units opened by calc
-    close, /all
+    ;close, /all
     luns=lindgen(124)+5
     for j=0,n_elements(luns)-1 do free_lun, luns[j]
 

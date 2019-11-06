@@ -57,7 +57,7 @@
 
 pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=noview,$
   move=move, model=model, dir_move=dir_move, insert_stop=insert_stop, hires=hires, $
-  no_trace=no_trace, tstep=tstep, clean=clean, quick_trace=quick_trace
+  no_trace=no_trace, tstep=tstep, clean=clean, quick_trace=quick_trace, pred=pred
 
   ; ACN
   pro_start_time=SYSTIME(/SECONDS)
@@ -439,14 +439,15 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; MAP PLOT
     ; -------------------------------------
     ; set up map
+    if keyword_set(pred) then pred_str='Predicted ' else pred_str=''
     if keyword_set(south) then begin
-      title='Southern footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
+      title=pred_str+'Southern footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
       this_rot=180. + mid_hr*15.
       map_set,-90.,-90.,this_rot,/orthographic,/conti,limit=[-10.,-180.,-90.,180.],$
         title=title,position=[0.005,0.005,600./800.*0.96,0.96]
       map_grid,latdel=-10.,londel=30.
     endif else begin
-      title='Northern footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
+      title=pred_str+'Northern footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
       this_rot=180. - mid_hr*15.
       map_set,90.,-90.,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
         title=title,position=[0.005,0.005,600./800.*0.96,0.96], xmargin=[15,3],$

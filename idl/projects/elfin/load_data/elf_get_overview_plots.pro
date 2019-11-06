@@ -41,7 +41,6 @@ pro elf_get_overview_plots, trange=trange, probe=probe, local_data_dir=local_dat
   ; create overview plot file name
   sc='el'+probe
   daily_names = file_dailynames(trange=tr, /unique, times=times)
-;  fnames = sc+'_l2_overview_'+daily_names+'_*.png'
   yyyy=strmid(daily_names,0,4)
   mm=strmid(daily_names,4,2)
   dd=strmid(daily_names,6,2)
@@ -49,7 +48,6 @@ pro elf_get_overview_plots, trange=trange, probe=probe, local_data_dir=local_dat
   if keyword_set(local_data_dir) then local_png_dir=local_data_dir+'/'+sc+'/overplots/'+yyyy+'/'+mm+'/'+dd+'/' $
     else local_png_dir=!elf.LOCAL_DATA_DIR+sc+'/overplots/'+yyyy+'/'+mm+'/'+dd+'/'
 
-;  local_png_dir=!elf.LOCAL_DATA_DIR+sc+'/overplots/'+yyyy+'/'+mm+'/'+dd+'/'
   if strlowcase(!version.os_family) eq 'windows' then local_png_dir = strjoin(strsplit(local_png_dir, '/', /extract), path_sep())
 
   ; Download files by the hour

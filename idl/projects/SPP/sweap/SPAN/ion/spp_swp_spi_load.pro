@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-11-01 14:59:44 -0700 (Fri, 01 Nov 2019) $
-; $LastChangedRevision: 27964 $
+; $LastChangedDate: 2019-11-04 19:40:49 -0800 (Mon, 04 Nov 2019) $
+; $LastChangedRevision: 27975 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -39,6 +39,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
     filetype=str_sub(fileformat,'TYP',type)
 
     ;; Find file locations
+    dprint,filetype,/phelp
     files=spp_file_retrieve(filetype,trange=tr,/daily_names,/valid_only,/last_version,prefix=fileprefix,verbose=verbose)
 
     if keyword_set(save) then begin
