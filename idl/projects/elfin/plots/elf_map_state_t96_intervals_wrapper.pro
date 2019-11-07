@@ -21,7 +21,7 @@
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/thmsoc/trunk/idl/thmsoc/asi/map_themis_state_t96_wrapper.pro $
 ;-
 pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
-   north_only=north_only, pred=pred
+   north_only=north_only, pred=pred, insert_stop=insert_stop
 
   compile_opt idl2
 
@@ -57,7 +57,7 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
       elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/pred
       elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/pred
       elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/pred
-    endif    
+    endif
   endfor
 
 end

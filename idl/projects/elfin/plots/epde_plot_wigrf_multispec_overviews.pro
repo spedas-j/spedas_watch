@@ -77,7 +77,8 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   elf_load_sun_shadow_bar, tplotname='el'+probe+'_pos_sm', no_download=no_download
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  if ~keyword_set(sci_zone) then xloc=.25 else xloc=.175
+   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... fgm status bar
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;elf_load_fgm_fast_segments, probe=probe
@@ -180,11 +181,15 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   for i=0,nplots-1 do begin
 
-    if ~keyword_set(sci_zone) then this_tr=[dat_gei.x[min_st[i]], dat_gei.x[min_en[i]]] else $
-       this_tr=[pef_nflux.x[min_st[i]], pef_nflux.x[min_en[i]]]
+    if ~keyword_set(sci_zone) then begin
+      if min_en[i] GT n_elements(dat_gei.x)-1 then continue 
+      this_tr=[dat_gei.x[min_st[i]], dat_gei.x[min_en[i]]] 
+    endif else begin
+      this_tr=[pef_nflux.x[min_st[i]], pef_nflux.x[min_en[i]]]
+    endelse
     tdur=this_tr[1]-this_tr[0]
     timespan, this_tr[0], tdur, /sec
-    elf_load_state, probes=probe, no_download=no_download
+    ;elf_load_state, probes=probe, no_download=no_download
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Load state and calculate IGRF
@@ -250,28 +255,20 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     options, 'epd_bar', 'xstyle',4
 
     phase_delay = elf_find_phase_delay(trange=this_tr, probe=probe, instrument='epde', no_download=no_download)
-    if size(phase_delay, /type) NE 8 then begin
-       dsect2add=1
-       dphang2add=1.0
-       medianflag=2
-    endif else begin
-       dsect2add=fix(phase_delay.dsect2add[0])
-       dphang2add=float(phase_delay.dphang2add[0])
-       medianflag=fix(phase_delay.medianflag)       
-    endelse            
+    dsect2add=fix(phase_delay.dsect2add[0])
+    dphang2add=float(phase_delay.dphang2add[0])
+    medianflag=fix(phase_delay.medianflag)       
+                
     case medianflag of 
       0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
       1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
       2: phase_msg = 'No phase delay available. Using dSect2add=1 and dPhAng2add=1.0.'
     endcase
 
-;    if keyword_set(sci_zone) then begin    
-     if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then $     
+    if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) and medianflag NE 2 then $     
         elf_getspec, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
-;    endif else begin
-;       elf_getspec, /regularize
-;    endelse
-   
+    if medianflag EQ 2 and keyword_set(sci_zone) then continue 
+    
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Get Pseudo_ae data
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -323,7 +320,6 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     options, 'el'+probe+'_pef_en_spec2plot_para', charsize=.9
     options, 'el'+probe+'_bt89_sm_NED', charsize=.9
 
-;    if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then begin
       tplot,['pseudo_ae', $
         'epd_fast_bar', $
         'sunlight_bar', $
@@ -335,18 +331,13 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
         'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
         'el'+probe+'_bt89_sm_NED'], $
         var_label='el'+probe+'_'+['LAT','MLT']
-;    endif else begin
-;      tplot,['pseudo_ae', $
-;        'sunlight_bar', $
-;        'el'+probe+'_bt89_sm_NED'], $
-;        var_label='el'+probe+'_'+['LAT','MLT']      
-;    endelse
 
     tr=timerange()
     fd=file_dailynames(trange=tr[0], /unique, times=times)
     tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+plot_lbl[i]
-    title='ELFIN-'+strupcase(probe)+' EPDE, alt='+strmid(strtrim(alt,1),0,3)+'km, '+tstring
-    if ~keyword_set(sci_zone) then xloc=.25 else xloc=.175
+    title='PREDICTED ELFIN-'+strupcase(probe)+' EPDE, alt='+strmid(strtrim(alt,1),0,3)+'km, '+tstring
+    ;if ~keyword_set(sci_zone) then xloc=.25 else xloc=.175
+    if ~keyword_set(sci_zone) then xloc=.175 else xloc=.1
     xyouts, xloc, .975, title, /normal, charsize=1.2
     tplot_apply_databar
 
@@ -364,7 +355,7 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     png_file = png_path+'el'+probe+'_l2_overview_'+fd+file_lbl[i]
     dprint, 'Making png file '+png_file+'.png'
     makepng, png_file
-
+stop
     ;del_data, 'el'+probe+'_pef_nflux'
     ;del_data, 'el'+probe+'_pes_nflux'
    

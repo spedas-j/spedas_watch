@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-11-04 23:28:01 -0800 (Mon, 04 Nov 2019) $
-; $LastChangedRevision: 27977 $
+; $LastChangedDate: 2019-11-06 12:00:49 -0800 (Wed, 06 Nov 2019) $
+; $LastChangedRevision: 27988 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -31,6 +31,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
       'SCMulflg','SCMvlflg','SCMwlflg', $
       'SCMmf', 'V5']
 
+    all_files = []
+
     foreach spec_type, spec_types do begin
 
       spp_fld_load, trange=trange, type = type + '_' + spec_type, files=files, $
@@ -38,6 +40,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         tname_prefix=tname_prefix, pathformat=pathformat,$
         no_load=no_load,varformat=varformat, $
         level = level, get_support = get_support, downsample = downsample
+
+      all_files = [all_files, files]
 
       pathformat = !null
       files = !null
@@ -50,6 +54,9 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
     end
 
+    if max(strlen(all_files)) GT 0 then $
+      files = all_files[where(strlen(all_files) GT 0)] else files = !null
+
     return
 
   endif
@@ -61,6 +68,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
       'SCMulflg','SCMvlflg','SCMwlflg', $
       'SCMmf', 'V5']
 
+    all_files = []
+
     foreach spec_type, spec_types do begin
 
       spp_fld_load, trange=trange, type = type + '_' + spec_type, files=files, $
@@ -68,6 +77,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         tname_prefix=tname_prefix, pathformat=pathformat,$
         no_load=no_load,varformat=varformat, $
         level = level, get_support = get_support, downsample = downsample
+
+      all_files = [all_files, files]
 
       pathformat = !null
       files = !null
@@ -79,6 +90,9 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
       ;stop
 
     end
+
+    if max(strlen(all_files)) GT 0 then $
+      files = all_files[where(strlen(all_files) GT 0)] else files = !null
 
     return
 
