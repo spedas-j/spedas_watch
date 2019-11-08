@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-11-06 12:00:49 -0800 (Wed, 06 Nov 2019) $
-; $LastChangedRevision: 27988 $
+; $LastChangedBy: pulupa $
+; $LastChangedDate: 2019-11-07 16:55:33 -0800 (Thu, 07 Nov 2019) $
+; $LastChangedRevision: 27991 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -14,7 +14,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   tname_prefix=tname_prefix, pathformat=pathformat,$
   no_load=no_load,varformat=varformat, $
   no_server = no_server, $
-  level = level, get_support = get_support, downsample = downsample
+  level = level, get_support = get_support, downsample = downsample, $
+  no_staging = no_staging
 
   if not keyword_set(type) then begin
     dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr
@@ -29,6 +30,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     spec_types = ['dV12hg','dV34hg','dV12lg','dV34lg',$
       'SCMulfhg','SCMvlfhg','SCMwlfhg', $
       'SCMulflg','SCMvlflg','SCMwlflg', $
+      'SCMdlfhg','SCMelfhg','SCMflfhg', $
+      'SCMdlflg','SCMelflg','SCMflflg', $
       'SCMmf', 'V5']
 
     all_files = []
@@ -107,6 +110,10 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     if level EQ 2 then fileprefix = 'psp/data/sci/fields/staging/l2/' else $
       fileprefix = 'psp/data/sci/fields/staging/l1/'
   endif
+
+  if n_elements(no_staging) GT 0 then $
+    fileprefix = str_sub(fileprefix, '/staging/', '/')
+
 
   if not keyword_set(pathformat) then begin
     if level EQ 2 then begin
