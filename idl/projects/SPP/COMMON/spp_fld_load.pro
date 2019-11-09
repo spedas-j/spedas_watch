@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupa $
-; $LastChangedDate: 2019-11-07 16:55:33 -0800 (Thu, 07 Nov 2019) $
-; $LastChangedRevision: 27991 $
+; $LastChangedDate: 2019-11-08 17:19:49 -0800 (Fri, 08 Nov 2019) $
+; $LastChangedRevision: 27998 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -69,7 +69,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     spec_types = ['dV12','dV34',$
       'SCMulfhg','SCMvlfhg','SCMwlfhg', $
       'SCMulflg','SCMvlflg','SCMwlflg', $
-      'SCMmf', 'V5']
+      'SCMumfhg', 'V5']
 
     all_files = []
 
