@@ -525,8 +525,10 @@ elx_pxf_pa_spec_pas=transpose(reform(elx_pxf_pa.y[istart2reform:ifinis2reform],(
 if keyword_set(get3Dspec) then store_data,mystring+'pa_spec',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec, v:elx_pxf_pa_spec_pas}
 ;
 ; if regularize keyword is present then repeat for regularized sectors (though they should be identical)
+
 if keyword_set(regularize) then begin
   get_data,'elx_pxf_pa_reg',data=elx_pxf_pa_reg
+;  if n_elements(elx_pxf_pa_reg) LE ifinis2reform then ifinis2reform=n_elements(elx_pxf_pa_reg)-1    
   elx_pxf_pa_reg_spec=make_array(nhalfspinsavailable,(nspinsectors/2),numchannels,/double)
   elx_pxf_pa_reg_spec_full=make_array(nhalfspinsavailable,(nspinsectors/2),Max_numchannels,/double) ; has ALL ENERGIES = Max_numchannels
   for jthchan=0,numchannels-1 do elx_pxf_pa_reg_spec[*,*,jthchan]=transpose(reform(elx_pxf_val_reg.y[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))

@@ -56,18 +56,22 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
   endif else begin  
     ; open file and read first 7 lines (these are just headers)
     openr, lun, local_filename, /get_lun
-    le_string=''      
+    le_string=''    
+    count=0  
     ; read header
     readf, lun, le_string
     dtypes=strsplit(le_string, ',', /extract) 
     while (eof(lun) NE 1) do begin  
       readf, lun, le_string
+      if le_string eq '' then continue
       data=strsplit(le_string, ',', /extract)
       append_array, starttimes, time_double(data[0])
       append_array, endtimes, time_double(data[1])
-      append_array, tspin, float(data[2])
-      append_array, dsect2add, fix(data[3])
-      append_array, dphang2add, float(data[4])
+      append_array, tspin, data[2]
+      if data[3] EQ ' NaN' then thisdsect=!values.f_nan else thisdsect=fix(data[3])
+      append_array, dsect2add, thisdsect
+      if data[4] EQ ' NaN' then thisdph=!values.f_nan else thisdph=float(data[4])
+      append_array, dphang2add, thisdph
       append_array, sectrconfig, float(data[5])
       append_array, phangconfig, float(data[6])
       if data[7] EQ ' NaN' then thislms=!values.f_nan else thislms=fix(data[7])
@@ -79,6 +83,7 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
       append_array, badflag, fix(data[11])
       append_array, HQflag, fix(data[12])
       append_array, minpa, float(data[13])
+      count=count+1
     endwhile
   endelse  
   

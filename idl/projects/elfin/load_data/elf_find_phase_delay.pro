@@ -1,5 +1,5 @@
 function elf_find_phase_delay, trange=trange, no_download=no_download, probe=probe, $
-    instrument=instrument 
+    instrument=instrument, hourly=hourly 
 
   ; Initialize parameters if needed
   defsysv,'!elf',exists=exists
@@ -22,35 +22,40 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
     return, -1
   endif
 
-;  idx = where((trange[0] GE phase_delays.starttimes-60. and $
-;              trange[0] LE phase_delays.endtimes+60.) OR $
-;              (trange[1] GE phase_delays.starttimes-60. and $
-;              trange[1] LE phase_delays.endtimes+60.), cnt)
    tdiff= abs(phase_delays.starttimes - tr[0])
    mdt = min(tdiff,midx)
+
    if mdt LE 60 then begin
-     dsect2add=phase_delays.sect2add[midx]
-     dphang2add=phase_delays.phang2add[midx]
-     minpa=phase_delays.minpa[midx]
-     medianflag=0          
-   endif
-   if mdt GT 60. and mdt LT 86400.*7 then begin
-     if is_numeric(phase_delays.LASTESTMEDIANSECTR[midx]) then begin
+     if ~keyword_set(hourly) then begin
+       dsect2add=phase_delays.sect2add[midx]
+       dphang2add=phase_delays.phang2add[midx]
+       minpa=phase_delays.minpa[midx]
+       medianflag=0 
+     endif else begin
        dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
        dphang2add=phase_delays.latestmedianphang[midx]
        minpa=phase_delays.minpa[midx]
-       medianflag=1
+       medianflag=1      
+     endelse
+   endif else begin
+     if mdt GT 60. and mdt LT 86400.*7 then begin
+       if is_numeric(phase_delays.LASTESTMEDIANSECTR[midx]) then begin
+         dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
+         dphang2add=phase_delays.latestmedianphang[midx]
+         minpa=phase_delays.minpa[midx]
+         medianflag=1
+       endif else begin
+         dsect2add=1
+         dphang2add=1.0
+         minpa=phase_delays.minpa[midx]
+         medianflag=2
+       endelse  
      endif else begin
        dsect2add=1
        dphang2add=1.0
        minpa=phase_delays.minpa[midx]
-       medianflag=2
-     endelse  
-   endif else begin
-     dsect2add=1
-     dphang2add=1.0
-     minpa=phase_delays.minpa[midx]
-     medianflag=2    
+       medianflag=2    
+     endelse
    endelse
 
 ;  if cnt GT 1 then idx=idx[0]
