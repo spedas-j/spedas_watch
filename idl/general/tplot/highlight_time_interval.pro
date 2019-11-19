@@ -31,8 +31,8 @@
 ;NOTES:
 ; The same intervals are applied to each of the input tplot variables
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2019-11-08 12:13:20 -0800 (Fri, 08 Nov 2019) $
-; $LastChangedRevision: 27995 $
+; $LastChangedDate: 2019-11-15 11:20:05 -0800 (Fri, 15 Nov 2019) $
+; $LastChangedRevision: 28023 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/highlight_time_interval.pro $
 ;-
 Pro highlight_time_interval, tplot_var, time_interval = time_interval, $
@@ -64,21 +64,19 @@ Pro highlight_time_interval, tplot_var, time_interval = time_interval, $
      If(keyword_set(n_intervals)) Then nintv = n_intervals $
      Else nintv = 1
      tintv = dblarr(2, nintv)
-     For j = 0, nintv-1 Do Begin
-        ctime, tintvj, npoints = 2, $
-               prompt = "Use cursor to select a begin time and an end time", $
-               hours = hours, minutes = minutes, seconds = seconds, days = days
-        If(n_elements(tintvj) Eq 2) Then tintv[*, j] = tintvj
-     Endfor
+     ctime, tintvj, npoints = 2*nintv, $
+               prompt = "Use cursor to select start and end times, for all intervals"     
+
+     tintv = reform(tintvj, 2, nintv)
   Endelse
 
 ;Ok, now call options to get all of the time intervals
   If(keyword_set(color)) Then col = get_colors(color) Else col = 0
   opt = {time:tintv, color:col}
-  If(keyword_set(line_fill)) Then str_element, opt, 'line_fill', line_fill
-  If(keyword_set(orientation)) Then str_element, opt, 'orientation', orientation
-  If(keyword_set(linestyle)) Then str_element, opt, 'linestyle', linestyle
-  If(keyword_set(thick)) Then str_element, opt, 'thick', thick
+  If(keyword_set(line_fill)) Then str_element, opt, 'line_fill', line_fill, /add
+  If(keyword_set(orientation)) Then str_element, opt, 'orientation', orientation, /add
+  If(keyword_set(linestyle)) Then str_element, opt, 'linestyle', linestyle, /add
+  If(keyword_set(thick)) Then str_element, opt, 'thick', thick, /add
   options, tvar, 'fill_time_intv', opt
 
   If(keyword_set(refresh)) Then tplot
