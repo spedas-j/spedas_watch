@@ -64,7 +64,7 @@ PRO elf_cal_epd, tplotname=tplotname, type=type, no_download=no_download
     'nflux': begin
       for i = 0, num_samples-1 do begin
         sec_num = i mod 16
-        if (sec_num eq 0) then dt = d.x[i+1]-d.x[i]
+        if (sec_num eq 0) then dt = d.x[i]-d.x[i-1]
         for j = 0, 15 do begin
           if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
           d.y[i,j] *= cal_ch_factors[j]*overint_factors[sec_num]*1./dt*1./dE
@@ -75,7 +75,7 @@ PRO elf_cal_epd, tplotname=tplotname, type=type, no_download=no_download
     'eflux': begin
       for i = 0, num_samples-1 do begin
         sec_num = i mod 16
-        if (sec_num eq 0) then dt = d.x[i+1]-d.x[i]
+        if (sec_num eq 0) then dt = d.x[i]-d.x[i-1]
         for j = 0, 15 do begin
           if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
           d.y[i,j] *= ebins_logmean[j]*cal_ch_factors[j]*overint_factors[sec_num]*1./dt*1./dE

@@ -27,7 +27,6 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, probe=probe
   paths = ''
 
   if keyword_set(no_download) then no_download=1
-  no_download = 0
   
   if no_download eq 0 then begin
     ; NOTE: directory is temporarily password protected. this will be
@@ -63,5 +62,5 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, probe=probe
      dl = {ytitle:'proxy_ae', labels:['proxy_AE'], colors:[2]}
      store_data, 'pseudo_ae', data={x:pseudo_ae_x, y:pseudo_ae_y}, dlimits=dl
   endelse
-  
+
 end

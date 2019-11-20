@@ -24,70 +24,56 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
 
    tdiff= abs(phase_delays.starttimes - tr[0])
    mdt = min(tdiff,midx)
-
-   if mdt LE 60 then begin
-     if ~keyword_set(hourly) then begin
-       dsect2add=phase_delays.sect2add[midx]
-       dphang2add=phase_delays.phang2add[midx]
-       minpa=phase_delays.minpa[midx]
-       medianflag=0 
+ 
+   if mdt LE 120. then begin
+     if ~keyword_set(hourly) then begin 
+       if phase_delays.badflag[midx] ne 1 then begin
+         dsect2add=phase_delays.sect2add[midx]
+         dphang2add=phase_delays.phang2add[midx]
+         minpa=phase_delays.minpa[midx]
+         badflag=phase_delays.badflag[midx]
+         medianflag=0 
+       endif else begin
+         dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
+         dphang2add=phase_delays.latestmedianphang[midx]
+         minpa=phase_delays.minpa[midx]
+         badflag=phase_delays.badflag[midx]
+         medianflag=1                 
+       endelse
      endif else begin
        dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
        dphang2add=phase_delays.latestmedianphang[midx]
        minpa=phase_delays.minpa[midx]
+       badflag=phase_delays.badflag[midx]
        medianflag=1      
      endelse
+     
    endif else begin
-     if mdt GT 60. and mdt LT 86400.*7 then begin
+     if mdt GT 120. and mdt LT 86400.*7 then begin
        if is_numeric(phase_delays.LASTESTMEDIANSECTR[midx]) then begin
          dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
          dphang2add=phase_delays.latestmedianphang[midx]
          minpa=phase_delays.minpa[midx]
+         badflag=phase_delays.badflag[midx]
          medianflag=1
        endif else begin
          dsect2add=1
          dphang2add=1.0
          minpa=phase_delays.minpa[midx]
+         badflag=phase_delays.badflag[midx]
          medianflag=2
        endelse  
      endif else begin
        dsect2add=1
        dphang2add=1.0
        minpa=phase_delays.minpa[midx]
+       badflag=0
        medianflag=2    
      endelse
    endelse
 
-;  if cnt GT 1 then idx=idx[0]
-;  if cnt GT 0 then begin
-;     dsect2add=phase_delays.sect2add[idx]
-;     dphang2add=phase_delays.phang2add[idx]
-;     minpa=phase_delays.minpa[idx]
-;     medianflag=0          
-;  endif else begin
-;    tdiff=phase_delays.starttimes - trange[0]
-;    mintime=min(abs(tdiff),minidx)
-;    if abs(mintime) GT 86400.*7. then begin
-;      dsect2add=1
-;      dphang2add=01.0
-;      minpa=-1.0
- ;     medianflag=2
-;    endif else begin
-;      if is_numeric(phase_delays.LASTESTMEDIANSECTR[minidx]) then begin
-;        dsect2add=phase_delays.LASTESTMEDIANSECTR[minidx]
-;        dphang2add=phase_delays.latestmedianphang[minidx]
-;        minpa=phase_delays.minpa[minidx]
-;        medianflag=1
-;      endif else begin
-;        dsect2add=1
-;        dphang2add=01.0
-;        minpa=phase_delays.minpa[minidx]
-;        medianflag=2        
-;      endelse
-;    endelse
-;  endelse
-
-  phase_delay={dsect2add:dsect2add, dphang2add:dphang2add, minpa:minpa, medianflag:medianflag}
+  phase_delay={dsect2add:dsect2add, dphang2add:dphang2add, minpa:minpa, $
+    badflag:badflag, medianflag:medianflag}
 
   return, phase_delay 
   

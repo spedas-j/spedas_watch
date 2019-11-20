@@ -652,7 +652,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*2,'Time Att Soln: '+solnb_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
-
+    
     if hires then xann=670 else xann=410
     if hires then yann=750 else yann=463
     if hires then begin
@@ -901,7 +901,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
    endif
 
     if keyword_set(insert_stop) then stop
-    
+   
   endfor ; end of plotting loop
   
   pro_end_time=SYSTIME(/SECONDS)
