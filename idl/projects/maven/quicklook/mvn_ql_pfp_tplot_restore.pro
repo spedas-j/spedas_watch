@@ -10,8 +10,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2019-11-19 15:26:43 -0800 (Tue, 19 Nov 2019) $
-; $LastChangedRevision: 28042 $
+; $LastChangedDate: 2019-11-20 11:03:40 -0800 (Wed, 20 Nov 2019) $
+; $LastChangedRevision: 28046 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_ql_pfp_tplot_restore.pro $
 ;
 ;-
@@ -29,8 +29,11 @@ PRO mvn_ql_pfp_tplot_restore, trange, verbose=verbose, no_download=no_download, 
 
   w = WHERE(files NE '', nw)
   IF nw GT 0 THEN BEGIN
+     info = FILE_INFO(files[w])
+     mtime = info.mtime
+     text = files[w] + '  not modified since  ' + time_string(mtime, tformat='DOW, DD MTH YYYY hh:mm:ss GMT')
      tplot_restore, filename=files[w], /append
-     dprint, dlevel=2, verbose=verbose, 'Restoring file: ', files[w]
+     dprint, dlevel=2, verbose=verbose, 'Restoring file: ', text
   ENDIF 
 
   maven_orbit_tplot, /current, /load, timecrop=[-2.d0, 2.d0]*oneday + trange ; +/- 2 day is buffer.

@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-11-05 10:26:06 -0800 (Tue, 05 Nov 2019) $
-; $LastChangedRevision: 27983 $
+; $LastChangedDate: 2019-11-20 07:17:20 -0800 (Wed, 20 Nov 2019) $
+; $LastChangedRevision: 28044 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-11-05 10:26:06 -0800 (Tue, 05 Nov 2019) $
-; $LastChangedRevision: 27983 $
+; $LastChangedDate: 2019-11-20 07:17:20 -0800 (Wed, 20 Nov 2019) $
+; $LastChangedRevision: 28044 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-11-05 10:26:06 -0800 (Tue, 05 Nov 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 27983 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-11-20 07:17:20 -0800 (Wed, 20 Nov 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 28044 $'
 
   return,sw_hash
 end
@@ -258,7 +258,10 @@ pro cdf_tools::var_att_create,var
   if isa(data,'DYNAMICARRAY') then begin
     data=  data.array 
     if size(/n_dimen,data) eq 2 then data = transpose(data)
-    if size(/n_dimen,data) gt 2 then message,'Not ready'
+    if size(/n_dimen,data) eq 3 then  begin
+      data = transpose(data,[2,1,0])
+    endif
+    if size(/n_dimen,data) ge 4 then message,'Not ready'
   endif
 
   dim = var.d
@@ -316,6 +319,7 @@ pro cdf_tools::var_att_create,var
         dprint,verbose=verbose,dlevel=dlevel,'Created new Attribute: ',attname, ' for: ',varname
       endif
       if isa(value) then begin
+        if isa(/string,value) and ~keyword_set(value) then value = ' '
         cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE        
       endif
     endforeach
@@ -643,6 +647,62 @@ function cdf_tools::get_variable_structure,varns
   endforeach
 return,vars
 end
+
+
+pro cdf_tools::load_variables_from_structure,datavary,names=vnames
+
+;  if ~keyword_set(global_att) then begin
+;    global_att = orderedhash()
+;    global_att['Project'] = 'PSP>Parker Solar Probe'
+;  endif
+;  cdf.g_attributes += global_att
+
+  fnan = !values.f_nan
+
+
+;  vho = cdf_tools_varinfo('Epoch',epoch[0],/recvary,all_values=epoch,datatype = 'CDF_TIME_TT2000',/set_default_atts)
+;  cdf.add_variable, vho
+
+  if keyword_set(datavary) then begin
+    ;    if ~keyword_set(vnames) then $
+    vnames = tag_names(datavary)   ; if vnames is passed in then there is a bug
+    datavary0 = datavary[0]   ; use first element as the template.
+
+    dlevel=5
+    for vn=0,n_elements(vnames)-1 do begin
+      vname = vnames[vn]
+      val = datavary0.(vn)
+      vals = datavary.(vn)
+      if isa(val,'pointer') then begin                ; special case for pointers
+        if vname eq 'PDATA' then vname='DATA'  ; typically counts
+        datasize = lonarr(n_elements(vals))
+        for i=0,n_elements(vals)-1 do   if ptr_valid(vals[i]) then datasize[i] = n_elements( *vals[i] )
+        maxsize = max(datasize,index)        ; determines maximum size of container
+        if maxsize eq 0 then continue
+        val = *vals[index]
+        ndv = n_elements(datavary)
+        ptrs = vals
+        vals = replicate(fill_nan(val[0]),[ndv,maxsize])
+        for i= 0,ndv-1 do  begin
+          v = *ptrs[i]
+          vals[i,0:n_elements(v)-1] = v
+        endfor
+      endif else begin
+        if n_elements(vals) gt 1 then  begin
+          vals = reform(transpose(vals))
+        endif
+      endelse
+      vho = cdf_tools_varinfo(vname, val, all_values=vals, /recvary,/set_default_atts)
+      self.add_variable, vho
+    endfor
+
+  endif
+
+
+
+
+end
+
 
 
 
