@@ -11,9 +11,9 @@
 ;CREATED BY:      Takuya Hara on 2019-11-13.
 ;
 ;LAST MODIFICATION:
-; $LastChangedBy: hara $
-; $LastChangedDate: 2019-11-19 15:24:39 -0800 (Tue, 19 Nov 2019) $
-; $LastChangedRevision: 28041 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2019-11-22 10:49:01 -0800 (Fri, 22 Nov 2019) $
+; $LastChangedRevision: 28057 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_ql_pfp_tplot_save.pro $
 ;
 ;-
@@ -56,6 +56,7 @@ PRO mvn_ql_pfp_tplot_save, sdate, edate, verbose=verbose
      IF nw GT 0 THEN BEGIN
         tplot_save, tname[w], filename=path + fname
         SPAWN, 'chgrp maven ' + path + fname + '.tplot'
+        file_chmod, path + fname + '.tplot', '664'o
      ENDIF 
      undefine, w, nw, tname
   ENDFOR 
