@@ -11,9 +11,9 @@
 ;CREATED BY:      Takuya Hara on 2019-11-13.
 ;
 ;LAST MODIFICATION:
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2019-11-22 10:49:01 -0800 (Fri, 22 Nov 2019) $
-; $LastChangedRevision: 28057 $
+; $LastChangedBy: muser $
+; $LastChangedDate: 2019-11-25 14:39:37 -0800 (Mon, 25 Nov 2019) $
+; $LastChangedRevision: 28066 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_ql_pfp_tplot_save.pro $
 ;
 ;-
@@ -51,14 +51,15 @@ PRO mvn_ql_pfp_tplot_save, sdate, edate, verbose=verbose
         IF tag_exist(alim, 'dummy', /quiet) THEN append_array, dummy, 1 ELSE append_array, dummy, 0
         undefine, alim
      ENDFOR 
-     
+
      w = WHERE((pfp EQ 1) AND (dummy EQ 0), nw)
      IF nw GT 0 THEN BEGIN
+        file_delete, path + fname + '.tplot',/allow_nonexistent ;otherwise unable to change permissions
         tplot_save, tname[w], filename=path + fname
         SPAWN, 'chgrp maven ' + path + fname + '.tplot'
         file_chmod, path + fname + '.tplot', '664'o
      ENDIF 
-     undefine, w, nw, tname
+     undefine, w, nw, tname, dummy
   ENDFOR 
   RETURN
 END
