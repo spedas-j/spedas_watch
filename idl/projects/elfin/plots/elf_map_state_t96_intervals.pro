@@ -289,18 +289,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   get_data, 'elb_spin_orbnorm_angle', data=normb
   get_data, 'elb_spin_sun_angle', data=sunb
   get_data, 'elb_att_solution_date', data=solnb
-  if size(norma, /type) EQ 8 then norma_str=strmid(strtrim(string(norma.y[0]),1),0,5) $
-    else norma_str = 'No att data'
-  if size(suna, /type) EQ 8 then suna_str=strmid(strtrim(string(suna.y[0]),1),0,5) $
-    else suna_str = 'No att data'
-  if size(solna, /type) EQ 8 && solna.y[0] GT launch_date then solna_str=time_string(solna.y[0]) $
-    else solna_str = 'No att data'   
-  if size(normb, /type) EQ 8 then normb_str=strmid(strtrim(string(normb.y[0]),1),0,5) $
-    else normb_str = 'No att data'
-  if size(sunb, /type) EQ 8 then sunb_str=strmid(strtrim(string(sunb.y[0]),1),0,5) $
-    else sunb_str = 'No att data'
-  if size(solnb, /type) EQ 8 && solnb.y[0] GT launch_date then solnb_str=time_string(solnb.y[0]) $
-    else solnb_str = 'No att data'
 
   ;reset time frame since attitude data might be several days old
   timespan,tstart,88200.,/day
@@ -494,13 +482,22 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_b_alt = median(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
     this_b_alt_str = strtrim(string(this_b_alt),1)
 
+
+;    if size(normb, /type) EQ 8 then normb_str=strmid(strtrim(string(normb.y[0]),1),0,5) $
+;    else normb_str = 'No att data'
+;    if size(sunb, /type) EQ 8 then sunb_str=strmid(strtrim(string(sunb.y[0]),1),0,5) $
+;    else sunb_str = 'No att data'
+;    if size(solnb, /type) EQ 8 && solnb.y[0] GT launch_date then solnb_str=time_string(solnb.y[0]) $
+;    else solnb_str = 'No att data'
+
     plots, this_lon2, this_lat2, psym=2, symsize=.05, color=254    ; thick=3
     plots, this_lon, this_lat, psym=2, symsize=.05, color=253   ; thick=3
       
     ; check if there were any science collected this time frame
     ; and oplot sci collection times
-    undefine, ta0
-    undefine, ta1
+    undefine, tb0
+    undefine, tb1
+    spin_strb='Spin period not available.'
     if ~undefined(sci_timesb) then begin
       sci_idxb=where(sci_timesb GE this_time2[0] AND sci_timesb LT this_time2[nptsb-1], ncnt)
       if ncnt GT 5 then begin
@@ -513,12 +510,24 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
             plots, this_lon2[tidx], this_lat2[tidx], psym=2, symsize=.25, color=254   ; thick=3
           endif
         endfor
+        ; find spin period
+        get_data, 'elb_pef_spinper', data=spinb
+        if size(spinb, /type) EQ 8 then begin
+          spin_idxb=where(spinb.x GE this_time2[0] AND spinb.x LT this_time2[nptsb-1], ncnt)
+          if ncnt GT 5 then begin
+            med_spinb=median(spinb.y[spin_idxb])
+            spin_varb=stddev(spinb.y[spin_idxb])*100.
+            spin_strb='Median Spin Period, s: '+strmid(strtrim(string(med_spinb), 1),0,4) + $
+              ', % of Median: '+strmid(strtrim(string(spin_varb), 1),0,4)
+          endif
+        endif  
       endif
     endif
 
     ; Repeat for A
     undefine, ta0
     undefine, ta1
+    spin_stra='Spin period not available.'
     if ~undefined(sci_timesa) then begin
       sci_idxa=where(sci_timesa GE this_time[0] AND sci_timesa LT this_time[nptsa-1], ncnt)
       if ncnt GT 5 then begin
@@ -531,6 +540,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
             plots, this_lon[tidx], this_lat[tidx], psym=2, symsize=.25, color=253   ; thick=3
           endif
         endfor
+        ; find spin period
+        get_data, 'ela_pef_spinper', data=spina
+        if size(spina, /type) EQ 8 then begin
+          spin_idxa=where(spina.x GE this_time2[0] AND spina.x LT this_time2[nptsa-1], ncnt)
+          if ncnt GT 5 then begin
+            med_spina=median(spina.y[spin_idxa])
+            spin_vara=stddev(spina.y[spin_idxa])*100.
+            spin_stra='Median Spin Period, s: '+strmid(strtrim(string(med_spina), 1),0,4) + $
+              ', % of Median: '+strmid(strtrim(string(spin_vara), 1),0,4)
+          endif 
+        endif
       endif
     endif
     
@@ -634,6 +654,34 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots,pwdboundlonlat[*,0],pwdboundlonlat[*,1],color=155, thick=1.05
       plots,ewdboundlonlat[*,0],ewdboundlonlat[*,1],color=155, thick=1.05        
     endelse
+ 
+    ; create attitude strings
+    ; elfin a
+    idx=where(norma.x GE this_time[0] and norma.x LT this_time[n_elements(this_time)-1], ncnt)
+    if size(norma, /type) EQ 8 && ncnt GT 2 then $
+      norma_str=strmid(strtrim(string(median(norma.y[idx])),1),0,5) $
+    else norma_str = 'No att data'
+    idx=where(suna.x GE this_time[0] and suna.x LT this_time[n_elements(this_time)-1], ncnt)
+    if size(suna, /type) EQ 8 && ncnt GT 2 then $
+      suna_str=strmid(strtrim(string(median(suna.y[idx])),1),0,5) $
+    else suna_str = 'No att data'
+    idx=where(solna.x GE this_time[0] and solna.x LT this_time[n_elements(this_time)-1], ncnt)
+    if size(solna, /type) EQ 8 && ncnt GT 2 && solna.y[0] GT launch_date then $
+      solna_str=time_string(solna.y[0]) $
+      else solna_str = 'No att data'
+    ; repeat for B
+    idx=where(normb.x GE this_time2[0] and normb.x LT this_time2[n_elements(this_time2)-1], ncnt)
+    if size(normb, /type) EQ 8 && ncnt GT 2 then $
+      normb_str=strmid(strtrim(string(median(normb.y[idx])),1),0,5) $
+    else normb_str = 'No att data'
+    idx=where(sunb.x GE this_time2[0] and sunb.x LT this_time2[n_elements(this_time2)-1], ncnt)
+    if size(sunb, /type) EQ 8 && ncnt GT 2 then $
+      sunb_str=strmid(strtrim(string(median(sunb.y[idx])),1),0,5) $
+    else sunb_str = 'No att data'
+    idx=where(solnb.x GE this_time2[0] and solnb.x LT this_time2[n_elements(this_time2)-1], ncnt)
+    if size(solnb, /type) EQ 8 && ncnt GT 2 && solnb.y[0] GT launch_date then $
+      solnb_str=time_string(solnb.y[0]) $
+    else solnb_str = 'No att data'
 
     if hires then charsize=.75 else charsize=.65
     ; annotate
@@ -643,14 +691,16 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xyouts,xann,yann+12.5*6,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*5,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*4,'Time Att Soln: '+solna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,spin_stra,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
 
     yann=0.02
-    xyouts,xann,yann+12.5*6,'ELFIN (B)',/device,charsize=.75,color=254
-    xyouts,xann,yann+12.5*5.,'Period, min: '+b_period_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,'Time Att Soln: '+solnb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*7,'ELFIN (B)',/device,charsize=.75,color=254
+    xyouts,xann,yann+12.5*6.,'Period, min: '+b_period_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*5,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,'Time Att Soln: '+solnb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,spin_strb,/device,charsize=charsize
     xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
     
     if hires then xann=670 else xann=410
