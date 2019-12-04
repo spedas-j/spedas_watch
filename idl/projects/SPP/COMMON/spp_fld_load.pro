@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupa $
-; $LastChangedDate: 2019-11-08 17:19:49 -0800 (Fri, 08 Nov 2019) $
-; $LastChangedRevision: 27998 $
+; $LastChangedDate: 2019-12-03 17:19:05 -0800 (Tue, 03 Dec 2019) $
+; $LastChangedRevision: 28072 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -25,9 +25,11 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   endif
 
 
-  if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' then begin
+  if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
+    type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin
 
-    spec_types = ['dV12hg','dV34hg','dV12lg','dV34lg',$
+    if level EQ 1 then spec_types = ['1','2','3','4'] else $
+      spec_types = ['dV12hg','dV34hg','dV12lg','dV34lg',$
       'SCMulfhg','SCMvlfhg','SCMwlfhg', $
       'SCMulflg','SCMvlflg','SCMwlflg', $
       'SCMdlfhg','SCMelfhg','SCMflfhg', $
@@ -151,6 +153,11 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     endelse
   endif
 
+  ; The DFB spectra and bandpass files are organized in folders which allow
+  ; more than one type of file in the folder--for example, in the first encounter
+  ; the DC spectra folder for 2018/11 contains dV12hg, SCMdlfhg, SCMdlfhg,
+  ; and SCMelfhg files.  The below string substitution makes sure the load
+  ; routine is addressing this correctly.
 
   if (strmid(type, 0, 11) EQ 'dfb_dc_spec') or (strmid(type, 0, 11) EQ 'dfb_ac_spec') and level EQ 2 then begin
 
