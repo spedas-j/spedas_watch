@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupa $
-; $LastChangedDate: 2019-12-03 17:19:05 -0800 (Tue, 03 Dec 2019) $
-; $LastChangedRevision: 28072 $
+; $LastChangedDate: 2019-12-04 16:43:23 -0800 (Wed, 04 Dec 2019) $
+; $LastChangedRevision: 28089 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -24,17 +24,30 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     dprint,'Default is: ', type
   endif
 
+  if not keyword_set(level) then level = 2
 
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
     type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin
 
-    if level EQ 1 then spec_types = ['1','2','3','4'] else $
-      spec_types = ['dV12hg','dV34hg','dV12lg','dV34lg',$
-      'SCMulfhg','SCMvlfhg','SCMwlfhg', $
-      'SCMulflg','SCMvlflg','SCMwlflg', $
-      'SCMdlfhg','SCMelfhg','SCMflfhg', $
-      'SCMdlflg','SCMelflg','SCMflflg', $
-      'SCMmf', 'V5']
+    if level EQ 1 then begin
+      spec_types = ['1','2','3','4']
+    endif else begin
+
+      if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' then begin
+        spec_types = ['dV12hg','dV34hg','dV12lg','dV34lg',$
+          'SCMulfhg','SCMvlfhg','SCMwlfhg', $
+          'SCMulflg','SCMvlflg','SCMwlflg', $
+          'SCMdlfhg','SCMelfhg','SCMflfhg', $
+          'SCMdlflg','SCMelflg','SCMflflg', $
+          'SCMmf', 'V5']
+      endif else begin
+        spec_types = ['SCMdlfhg_SCMelfhg','SCMdlfhg_SCMflfhg','SCMelfhg_SCMflfhg']
+
+      endelse
+
+
+    endelse
+
 
     all_files = []
 
@@ -51,8 +64,10 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
       pathformat = !null
       files = !null
 
-      if (tnames('psp_fld_l2_dfb_?c_spec_' + spec_type))[0] NE '' then begin
-        options, 'psp_fld_l2_dfb_?c_spec_' + spec_type, $
+      if (tnames('psp_fld_l2_dfb_?c_*spec*_' + spec_type))[0] NE '' then begin
+        options, 'psp_fld_l2_dfb_?c_xspec_power*', $
+          'no_interp', 1
+        options, 'psp_fld_l2_dfb_?c_*spec*_' + spec_type, $
           'no_interp', 1
       end
       ;stop
@@ -102,9 +117,6 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     return
 
   endif
-
-
-  if not keyword_set(level) then level = 2
 
   daily_names = 1
 
@@ -164,6 +176,14 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     pathformat = 'DIR' + pathformat
 
     pathformat = str_sub(pathformat, 'DIRTYPE', strmid(type, 0, 11))
+
+  endif
+
+  if (strmid(type, 0, 12) EQ 'dfb_dc_xspec') or (strmid(type, 0, 12) EQ 'dfb_ac_xspec') and level EQ 2 then begin
+
+    pathformat = 'DIR' + pathformat
+
+    pathformat = str_sub(pathformat, 'DIRTYPE', strmid(type, 0, 12))
 
   endif
 
@@ -275,23 +295,23 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         endif
 
       endif
-      
+
       if strmatch(type, 'dfb_wf_*') then begin
-        
+
         if tnames('psp_fld_l2_dfb_wf_dVdc_sensor') NE '' then begin
           options,'psp_fld_l2_dfb_wf_dVdc_sensor', 'ytitle', 'DFB WF dV_DC'
           options,'psp_fld_l2_dfb_wf_dVdc_sensor',colors='br' ,/default
           options,'psp_fld_l2_dfb_wf_dVdc_sensor','max_points',10000
           options,'psp_fld_l2_dfb_wf_dVdc_sensor','psym_lim',300
         endif
-       
+
         if tnames('psp_fld_l2_dfb_wf_dVdc_sc') NE '' then begin
           options,'psp_fld_l2_dfb_wf_dVdc_sc', 'ytitle', 'DFB WF dV_DC'
           options,'psp_fld_l2_dfb_wf_dVdc_sc',colors='br' ,/default
           options,'psp_fld_l2_dfb_wf_dVdc_sc','max_points',10000
           options,'psp_fld_l2_dfb_wf_dVdc_sc','psym_lim',300
         endif
-        
+
         if tnames('psp_fld_l2_dfb_wf_V1dc') NE '' then begin
           options,'psp_fld_l2_dfb_wf_V1dc', 'ytitle', 'DFB WF V1_DC'
           options,'psp_fld_l2_dfb_wf_V2dc', 'ytitle', 'DFB WF V2_DC'
@@ -312,7 +332,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         endif
 
 
-        
+
       endif
 
       if tnames('psp_fld_l2_quality_flags') NE '' then begin

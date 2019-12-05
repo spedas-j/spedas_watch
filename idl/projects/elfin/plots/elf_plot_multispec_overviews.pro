@@ -30,6 +30,7 @@ pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_dow
     ;form time truncated datetime string
     date = num_to_str_pad(ts.year,4) + '-' + num_to_str_pad(ts.month,2) + '-' + num_to_str_pad(ts.date,2)
   endif
+  if undefined(quick_run) then quick_run=1 else quick_run=quick_run
 
   dprint,"Processing start time " + time_string(systime(/seconds)) + ' UT'
   dprint,"Generating ELFIN EPDE overview plots for " + date + " with duration " + strtrim(dur,2) + " days."
@@ -40,8 +41,6 @@ pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_dow
     end_time = start_time + 86400.
     epde_plot_overviews, trange=[start_time, end_time], probe=probe, $
       no_download=no_download, sci_zone=sci_zone, quick_run=quick_run
-    ;epde_plot_wigrf_multispec_overviews, trange=[start_time, end_time], probe=probe, $
-    ;  no_download=no_download, sci_zone=sci_zone
   endfor 
   
 end

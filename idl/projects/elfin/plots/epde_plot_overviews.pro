@@ -1,29 +1,29 @@
 ;+
 ;
 ;PROCEDURE:
-;  epde_plot_wigrf_multispec_overviews
-;  
+;  epde_plot_overviews
+;
 ;PURPOSE:
 ; Loads EPDE, performs pitch angle determination and plotting of energy and pitch angle spectra
 ; Including precipitating and trapped spectra separately. EPDI can be treated similarly, but not done yet
 ; Regularize keyword performs rebinning of data on regular sector centers starting at zero (rel.to the time
 ; of dBzdt 0 crossing which corresponds to Pitch Angle = 90 deg and Spin Phase angle = 0 deg.).
 ; If the data has already been collected at regular sectors there is no need to perform this.
-; 
+;
 ;KEYWORDS:
 ; trange - time range of interest [starttime, endtime] with the format
 ;          ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
-;          ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']          
+;          ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
 ; probe - 'a' or 'b'
 ; no_download - set this flag to not download data from the server and use local files only
 ; sci_zone - if set this flag will plot epd overview plots by science zone (rather than by day)
-; 
+;
 ;TO DO:
 ; elb can be done similarly but the code has not been generalized to either a or b yet. But this is straightforward.
 ;
 ;-
-pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download=no_download, $
-  sci_zone=sci_zone
+pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
+  sci_zone=sci_zone, quick_run=quick_run
 
   ; initialize parameters
   defsysv,'!elf',exists=exists
@@ -38,10 +38,11 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   else tr = timerange()
   if undefined(probe) then probe = 'a'
   if ~undefined(no_download) then no_download=1 else no_download=0
-
+  t0=systime(/sec)
+  
   ; set up plot options
   tplot_options, 'xmargin', [16,11]
-  tplot_options, 'ymargin', [4,4]
+  tplot_options, 'ymargin', [5,4]
 
   timeduration=time_double(trange[1])-time_double(trange[0])
   timespan,tr[0],timeduration,/seconds
@@ -59,7 +60,6 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   if size(pef_nflux, /type) NE 8 then begin
     dprint, dlevel=0, 'No data was downloaded for el' + probe + '_pef_nflux.'
     dprint, dlevel=0, 'No plots were producted.
-    ;    return
   endif
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -70,6 +70,46 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   cotrans,'el'+probe+'_pos_gei','el'+probe+'_pos_gse',/GEI2GSE
   cotrans,'el'+probe+'_pos_gse','el'+probe+'_pos_gsm',/GSE2GSM
   cotrans,'el'+probe+'_pos_gsm','el'+probe+'_pos_sm',/GSM2SM ; in SM
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ; Calculate IGRF
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  threeones=[1,1,1]
+  ; quick_run -> do only every 60th point (i.e. per minute)
+  if keyword_set(quick_run) then begin
+    get_data, 'el'+probe+'_pos_gsm', data=datgsm, dlimits=dl, limits=l
+    store_data, 'el'+probe+'_pos_gsm_mins', data={x: datgsm.x[0:*:60], y: datgsm.y[0:*:60,*]}, dlimits=dl, limits=l
+    tt89,'el'+probe+'_pos_gsm_mins',/igrf_only,newname='el'+probe+'_bt89_gsm_mins',period=1.
+    ; interpolate the minute-by-minute data back to the full array
+    get_data,'el'+probe+'_bt89_gsm_mins',data=gsm_mins
+    store_data,'el'+probe+'_bt89_gsm',data={x: datgsm.x, y: interp(gsm_mins.y[*,*], gsm_mins.x, datgsm.x)}
+    ; clean up the temporary data
+    del_data, '*_mins'
+  endif else begin
+    tt89,'el'+probe+'_pos_gsm',/igrf_only,newname='el'+probe+'_bt89_gsm',period=1.
+  endelse
+
+  get_data, 'el'+probe+'_pos_sm', data=state_pos_sm
+  ; calculate IGRF in nT
+  cotrans,'el'+probe+'_bt89_gsm','el'+probe+'_bt89_sm',/GSM2SM ; Bfield in SM coords as well
+  ;calc,' "bt89_SMdown" = -(total("bt89_sm"*"pos_sm",2)#threeones)/sqrt(total("pos_sm"^2,2)) '
+  xyz_to_polar,'el'+probe+'_pos_sm',/co_latitude
+  get_data,'el'+probe+'_pos_sm_th',data=pos_sm_th,dlim=myposdlim,lim=myposlim
+  get_data,'el'+probe+'_pos_sm_phi',data=pos_sm_phi
+  csth=cos(!PI*pos_sm_th.y/180.)
+  csph=cos(!PI*pos_sm_phi.y/180.)
+  snth=sin(!PI*pos_sm_th.y/180.)
+  snph=sin(!PI*pos_sm_phi.y/180.)
+  rot2rthph=[[[snth*csph],[csth*csph],[-snph]],[[snth*snph],[csth*snph],[csph]],[[csth],[-snth],[0.*csth]]]
+  store_data,'rot2rthph',data={x:pos_sm_th.x,y:rot2rthph},dlim=myposdlim,lim=myposlim
+  tvector_rotate,'rot2rthph','el'+probe+'_bt89_sm',newname='el'+probe+'_bt89_sm_sph'
+  rotSMSPH2NED=[[[snth*0.],[snth*0.],[snth*0.-1.]],[[snth*0.-1.],[snth*0.],[snth*0.]],[[snth*0.],[snth*0.+1.],[snth*0.]]]
+  store_data,'rotSMSPH2NED',data={x:pos_sm_th.x,y:rotSMSPH2NED},dlim=myposdlim,lim=myposlim
+  tvector_rotate,'rotSMSPH2NED','el'+probe+'_bt89_sm_sph',newname='el'+probe+'_bt89_sm_NED' ; North (-Spherical_theta), East (Spherical_phi), Down (-Spherical_r)
+  options,'el'+probe+'_bt89_sm_NED','ytitle','IGRF [nT]'
+  options,'el'+probe+'_bt89_sm_NED','labels',['N','E','D']
+  options,'el'+probe+'_bt89_sm_NED','databar',0.
+  options,'el'+probe+'_bt89_sm_NED','ysubtitle','North, East, Down'
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Get MLT amd LAT
@@ -160,15 +200,15 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
   ; set up for plots by science zone
   if (size(pef_nflux, /type)) EQ 8 then begin
     tdiff = pef_nflux.x[1:n_elements(pef_nflux.x)-1] - pef_nflux.x[0:n_elements(pef_nflux.x)-2]
-    idx = where(tdiff GT 40., ncnt)   ; note: 40 seconds is an arbitary time
+    idx = where(tdiff GT 90., ncnt)   ; note: 90 seconds is an arbitary time
     if ncnt EQ 0 then begin
       ; if ncnt is zero then there is only one science zone for this time frame
       sz_starttimes=[pef_nflux.x[0]]
       sz_min_st=[0]
       sz_endtimes=pef_nflux.x[n_elements(pef_nflux.x)-1]
       sz_min_en=[n_elements(pef_nflux.x)-1]
-      ts=time_struct(starttimes[0])
-      te=time_struct(endtimes[0])
+      ts=time_struct(sz_starttimes[0])
+      te=time_struct(sz_endtimes[0])
       if ts.hour LT 10 then shr='0'+strtrim(string(ts.hour),1) else shr=strtrim(string(ts.hour),1)
       if te.hour LT 10 then ehr='0'+strtrim(string(te.hour),1) else ehr=strtrim(string(te.hour),1)
     endif else begin
@@ -184,7 +224,9 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
           this_e = pef_nflux.x[idx[sz]]
           eidx = idx[sz]
         endelse
-        if (this_e-this_s) lt 20. then continue
+
+        if (this_e-this_s) lt 60. then continue
+        ;if (this_s GT time_double('2019-09-28/06:20') and this_s LT time_double('2019-09-28/06:30')) then continue 
         append_array, sz_starttimes, this_s
         append_array, sz_endtimes, this_e
         append_array, sz_min_st, sidx
@@ -196,60 +238,34 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
         endfor
       endelse
     endif
-
+  sz_num=['_sz0','_sz1','_sz2','_sz3','_sz4']
   nplots = n_elements(min_st)
-  
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; MAIN LOOP for PLOTs
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  for i=22,nplots-1 do begin
+  for i=0,24 do begin  ;nplots-1 do begin
 
     ; set hourly start and stop times
     if min_en[i] GT n_elements(dat_gei.x)-1 then continue
     this_tr=[dat_gei.x[min_st[i]], dat_gei.x[min_en[i]]]
     tdur=this_tr[1]-this_tr[0]
     timespan, this_tr[0], tdur, /sec
-
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-    ; Load state and calculate IGRF
-    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     elf_load_state, probes=probe, no_download=no_download
-    threeones=[1,1,1]
-    cotrans,'el'+probe+'_pos_gei','el'+probe+'_pos_gse',/GEI2GSE
-    cotrans,'el'+probe+'_pos_gse','el'+probe+'_pos_gsm',/GSE2GSM
-    tt89,'el'+probe+'_pos_gsm',/igrf_only,newname='el'+probe+'_bt89_gsm',period=1.
-    cotrans,'el'+probe+'_pos_gsm','el'+probe+'_pos_sm',/GSM2SM ; in SM
-    get_data, 'el'+probe+'_pos_sm', data=state_pos_sm
-    ; calculate IGRF in nT
-    cotrans,'el'+probe+'_bt89_gsm','el'+probe+'_bt89_sm',/GSM2SM ; Bfield in SM coords as well
-    ;calc,' "bt89_SMdown" = -(total("bt89_sm"*"pos_sm",2)#threeones)/sqrt(total("pos_sm"^2,2)) '
-    xyz_to_polar,'el'+probe+'_pos_sm',/co_latitude
-    get_data,'el'+probe+'_pos_sm_th',data=pos_sm_th,dlim=myposdlim,lim=myposlim
-    get_data,'el'+probe+'_pos_sm_phi',data=pos_sm_phi
-    csth=cos(!PI*pos_sm_th.y/180.)
-    csph=cos(!PI*pos_sm_phi.y/180.)
-    snth=sin(!PI*pos_sm_th.y/180.)
-    snph=sin(!PI*pos_sm_phi.y/180.)
-    rot2rthph=[[[snth*csph],[csth*csph],[-snph]],[[snth*snph],[csth*snph],[csph]],[[csth],[-snth],[0.*csth]]]
-    store_data,'rot2rthph',data={x:pos_sm_th.x,y:rot2rthph},dlim=myposdlim,lim=myposlim
-    tvector_rotate,'rot2rthph','el'+probe+'_bt89_sm',newname='el'+probe+'_bt89_sm_sph'
-    rotSMSPH2NED=[[[snth*0.],[snth*0.],[snth*0.-1.]],[[snth*0.-1.],[snth*0.],[snth*0.]],[[snth*0.],[snth*0.+1.],[snth*0.]]]
-    store_data,'rotSMSPH2NED',data={x:pos_sm_th.x,y:rotSMSPH2NED},dlim=myposdlim,lim=myposlim
-    tvector_rotate,'rotSMSPH2NED','el'+probe+'_bt89_sm_sph',newname='el'+probe+'_bt89_sm_NED' ; North (-Spherical_theta), East (Spherical_phi), Down (-Spherical_r)
-    options,'el'+probe+'_bt89_sm_NED','ytitle','IGRF [nT]'
-    options,'el'+probe+'_bt89_sm_NED','labels',['N','E','D']
-    options,'el'+probe+'_bt89_sm_NED','databar',0.
-    options,'el'+probe+'_bt89_sm_NED','ysubtitle','North, East, Down'
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; SCI ZONES
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;; 
     ; find all the science zones that are in this hourly range
-    sz_idx = where((sz_endtimes GE this_tr[0] AND sz_endtimes LE this_tr[1]) $
-      OR (sz_starttimes GE this_tr[0] AND sz_starttimes LE this_tr[1]),ncnt)    
-
+    if undefined(sz_endtimes) then begin
+      ncnt=0
+    endif else begin 
+      sz_idx = where((sz_endtimes GE this_tr[0] AND sz_endtimes LE this_tr[1]) $
+        OR (sz_starttimes GE this_tr[0] AND sz_starttimes LE this_tr[1]),ncnt)    
+    endelse
     if ncnt GT 0 then begin
       ; loop for each zone
+
       for j=0,ncnt-1 do begin
         if file_lbl[i] EQ '_24hr' then break     
         ; set time for this zone
@@ -266,20 +282,26 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
         dsect2add=fix(phase_delay.dsect2add[0])
         dphang2add=float(phase_delay.dphang2add[0])
         medianflag=fix(phase_delay.medianflag)
-        append_array,mdsect,dsect2add
-        append_array,mdphang,dphang2add    
+        badflag=fix(phase_delay.badflag)
         case medianflag of
           0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
           1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
           2: phase_msg = 'No phase delay available. Data is not regularized.'
         endcase
-    
+
+        spin_str=''
         if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
           if medianflag NE 2 then begin
-            elf_getspec, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
+               elf_getspec_v2, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
           endif else begin
-            elf_getspec, probe=probe
+               elf_getspec_v2, probe=probe
           endelse
+          ; find spin period
+          get_data, 'el'+probe+'_pef_spinper', data=spin
+          med_spin=median(spin.y)
+          spin_var=stddev(spin.y)*100.
+          spin_str='Median Spin Period, s: '+strmid(strtrim(string(med_spin), 1),0,4) + ', ' +$
+            strmid(strtrim(string(spin_var), 1),0,4)+'% of Median'
         endif
     
         ; handle scaling of y axis
@@ -304,18 +326,18 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
           median_lat=median(sz_lat)
           dlat = sz_lat[1:n_elements(sz_lat)-1] - sz_lat[0:n_elements(sz_lat)-2]
           if median_lat GT 0 then begin
-            if median(dlat) GT 0 then sz_plot_lbl = ', North Ascending Zone' else $
-              sz_plot_lbl = ', North Descending Zone'
-            if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + '_nasc' else $
-              sz_file_lbl = file_lbl[i] + '_ndes'
+            if median(dlat) GT 0 then sz_plot_lbl = ', North Ascending' else $
+              sz_plot_lbl = ', North Descending'
+            if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + sz_num[j] else $
+              sz_file_lbl = file_lbl[i] + sz_num[j]
           endif else begin
-            if median(dlat) GT 0 then sz_plot_lbl = ', South Ascending Zone' else $
-              sz_plot_lbl = ', South Descending Zone'
-            if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + '_sasc' else $
-              sz_file_lbl = file_lbl[i] + '_sdes'
+            if median(dlat) GT 0 then sz_plot_lbl = ', South Ascending' else $
+              sz_plot_lbl = ', South Descending'
+            if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + sz_num[j] else $
+              sz_file_lbl = file_lbl[i] + sz_num[j]
           endelse
         endif
-    
+
         ;;;;;;;;;;;;;;;;;;;;;;
         ; PLOT
         window, xsize=750, ysize=1000
@@ -340,15 +362,17 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
         fd=file_dailynames(trange=tr[0], /unique, times=times)
         tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+sz_plot_lbl
         title='PRELIMINARY ELFIN-'+strupcase(probe)+' EPDE, alt='+strmid(strtrim(alt,1),0,3)+'km, '+tstring
-        xyouts, .135, .975, title, /normal, charsize=1.2
+        xyouts, .175, .975, title, /normal, charsize=1.2
         tplot_apply_databar
     
         ; add time of creation
         xyouts,  .775, .005, 'Created: '+systime(),/normal,color=10, charsize=.75
         ; add phase delay message
-        if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then $
+        if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
+          xyouts, .01, .015, spin_str, /normal, color=10, charsize=.75
           xyouts, .01, .005, phase_msg, /normal, color=10, charsize=.75
-    
+        endif
+   
         ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
         ; Create PNG file
         tr=timerange()
@@ -358,7 +382,12 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
         png_file = png_path+'el'+probe+'_l2_overview_'+fd+sz_file_lbl
         dprint, 'Making png file '+png_file+'.png'
         makepng, png_file
-        
+        dprint, dlevel=2, 'Sci Zone plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
+
+;*************************;
+;  ADD TPLOT APPEND HERE
+;*************************;
+       
       endfor   ; end of science zones
     endif ; end of sci zone
    
@@ -374,17 +403,22 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     del_data, 'el'+probe+'_pef_nflux'
     elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux',no_download=no_download ; DEFAULT UNITS ARE NFLUX THIS ONE IS CPS
     if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then begin
-      if ~undefined(mdsect) && ~undefined(mdphang) then begin
-        dsect2add=median(mdsect)
-        dphang2add=median(mdphang)
-        elf_getspec, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
-        phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
+      ; get sector and phase delay for this zone
+      if file_lbl[i] EQ '_24hr' then begin
+        elf_getspec_v2, probe=probe
       endif else begin
-        elf_getspec, probe=probe
-        phase_msg = 'No phase delay available. Data is not regularized.'      
+        phase_delay = elf_find_phase_delay(trange=this_tr, probe=probe, /hourly,instrument='epde', no_download=no_download)
+        dsect2add=fix(phase_delay.dsect2add[0])
+        dphang2add=float(phase_delay.dphang2add[0])
+        medianflag=fix(phase_delay.medianflag)
+        if medianflag NE 2 then begin
+          elf_getspec_v2, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
+        endif else begin
+          elf_getspec_v2, probe=probe
+        endelse
       endelse
     endif
-
+                    
     ; handle scaling of y axis
     if size(pseudo_ae, /type) EQ 8 then begin
       idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
@@ -428,9 +462,6 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
 
     ; add time of creation
     xyouts,  .775, .005, 'Created: '+systime(),/normal,color=10, charsize=.75
-    ; add phase delay message
-    if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then $
-      xyouts, .01, .005, phase_msg, /normal, color=10, charsize=.75
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Create PNG file
@@ -445,7 +476,9 @@ pro epde_plot_wigrf_multispec_overviews, trange=trange, probe=probe, no_download
     ;close, /all
     luns=lindgen(124)+5
     for j=0,n_elements(luns)-1 do free_lun, luns[j]
+    dprint, dlevel=2, 'Hourly plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
 
   endfor     ; end of hourly loop
+  dprint, dlevel=2, 'Total time: '+strtrim(systime(/sec)-t0,2)+' sec'
 
 end
