@@ -42,7 +42,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   
   ; set up plot options
   tplot_options, 'xmargin', [16,11]
-  tplot_options, 'ymargin', [5,4]
+  tplot_options, 'ymargin', [7,4]
 
   timeduration=time_double(trange[1])-time_double(trange[0])
   timespan,tr[0],timeduration,/seconds
@@ -79,6 +79,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   if keyword_set(quick_run) then begin
     get_data, 'el'+probe+'_pos_gsm', data=datgsm, dlimits=dl, limits=l
     store_data, 'el'+probe+'_pos_gsm_mins', data={x: datgsm.x[0:*:60], y: datgsm.y[0:*:60,*]}, dlimits=dl, limits=l
+    ; Calculate IGRF
     tt89,'el'+probe+'_pos_gsm_mins',/igrf_only,newname='el'+probe+'_bt89_gsm_mins',period=1.
     ; interpolate the minute-by-minute data back to the full array
     get_data,'el'+probe+'_bt89_gsm_mins',data=gsm_mins
@@ -120,7 +121,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   store_data,'el'+probe+'_L',data={x:elfin_pos.x,y:L0}
   store_data,'el'+probe+'_LAT',data={x:elfin_pos.x,y:lat0*180./!pi}
   options,'el'+probe+'_MLT',ytitle='MLT'
-  options,'el'+probe+'_L',ytitle='L'
+  options,'el'+probe+'_L',ytitle='L-shell'
   options,'el'+probe+'_LAT',ytitle='LAT'
   alt = median(sqrt(elfin_pos.y[*,0]^2 + elfin_pos.y[*,1]^2 + elfin_pos.y[*,2]^2))-6371.
 
@@ -263,8 +264,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       sz_idx = where((sz_endtimes GE this_tr[0] AND sz_endtimes LE this_tr[1]) $
         OR (sz_starttimes GE this_tr[0] AND sz_starttimes LE this_tr[1]),ncnt)    
     endelse
+
     if ncnt GT 0 then begin
       ; loop for each zone
+      ; set up plot options
+      tplot_options, 'xmargin', [16,11]
+      tplot_options, 'ymargin', [5,4]
 
       for j=0,ncnt-1 do begin
         if file_lbl[i] EQ '_24hr' then break     
@@ -356,7 +361,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
           'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
           'el'+probe+'_bt89_sm_NED'], $
-          var_label='el'+probe+'_'+['LAT','MLT']
+          var_label='el'+probe+'_'+['LAT','MLT','L']
     
         tr=timerange()
         fd=file_dailynames(trange=tr[0], /unique, times=times)
@@ -451,7 +456,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
       'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
       'el'+probe+'_bt89_sm_NED'], $
-      var_label='el'+probe+'_'+['LAT','MLT']
+      var_label='el'+probe+'_'+['LAT','MLT','L']
 
     tr=timerange()
     fd=file_dailynames(trange=tr[0], /unique, times=times)
