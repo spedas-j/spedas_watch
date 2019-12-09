@@ -37,9 +37,9 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
     options, prefix + 'radial_distance_rs', 'ysubtitle', '[Rs]'
 
   endif
-  
+
   if frame EQ 'spp_vso' then begin
-    
+
     store_data, prefix + 'position_rv', $
       data = {x:pos_dat.x, y:pos_dat.y/rv}
 
@@ -53,7 +53,7 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
     options, prefix + 'position_rv', 'ysubtitle', '[Rv]'
     options, prefix + 'radial_distance', 'ysubtitle', '[km]'
     options, prefix + 'radial_distance_rv', 'ysubtitle', '[Rv]'
-    
+
   endif
 
   if frame EQ 'spp_mso' then begin
@@ -123,13 +123,13 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
           options, name, 'colors', 'rgb'
 
           options, name, 'labels', labels
-          
+
           if strpos(name, 'vector') NE -1 then begin
-            
+
             options, name, 'labels', 'SC' + strupcase(strmid(name_no_prefix, 3, 1)) + '-' + labels
-            
+
           endif
-          
+
         endif
       endif
 
@@ -144,7 +144,57 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
   endif
 
+  ; Calculate tangential velocity
 
+  if frame EQ 'eclipj2000' or frame EQ 'spp_hg' then begin
 
+    n_points = n_elements(pos_dat.x)
+
+    v_uv0 = vel_dat.y
+
+    r_uv0 = pos_dat.y
+
+    ; two approaches here for defining the n unit vector.  First approach
+    ; is to simply let the n vector be in the ecliptic (for eclipj2000) or
+    ; the solar rotation axis (spp_hg).  This ignores motion out of this plane
+    ; in the calculation (usually a decent approximation for PSP)
+
+    n_uv0 = [[dblarr(n_points)], [dblarr(n_points)], [dblarr(n_points) + 1d]]
+
+    ; we could also define the n vector as being the cross of the r vector
+    ; and the v vector - so, essentially using a vector normal to the orbital
+    ; plane of PSP.  This works well except when we use a co-rotating frame -
+    ; when we transition to super-rotational velocities in such a frame the
+    ; 'orbital plane' becomes ill defined.
+
+    ;    n_uv0 = [[r_uv0[*,1] * v_uv0[*,2] - r_uv0[*,2] * v_uv0[*,1]], $
+    ;      [r_uv0[*,2] * v_uv0[*,0] - r_uv0[*,0] * v_uv0[*,2]], $
+    ;      [r_uv0[*,0] * v_uv0[*,1] - r_uv0[*,1] * v_uv0[*,0]]]
+    ;
+    ;    n_uv0_negative = where(n_uv0[*,2] LT 0, n_uv0_negative_count)
+    ;
+    ;    if n_uv0_negative_count GT 0 then $
+    ;      n_uv0[n_uv0_negative,*] *= -1
+
+    t_uv0 = -[[r_uv0[*,1] * n_uv0[*,2] - r_uv0[*,2] * n_uv0[*,1]], $
+      [r_uv0[*,2] * n_uv0[*,0] - r_uv0[*,0] * n_uv0[*,2]], $
+      [r_uv0[*,0] * n_uv0[*,1] - r_uv0[*,1] * n_uv0[*,0]]]
+
+    r_mag = sqrt(total(r_uv0^2, 2))
+    t_mag = sqrt(total(t_uv0^2, 2))
+    n_mag = sqrt(total(n_uv0^2, 2))
+
+    r_uv = r_uv0 / [[r_mag],[r_mag],[r_mag]]
+    t_uv = t_uv0 / [[t_mag],[t_mag],[t_mag]]
+    n_uv = n_uv0 / [[n_mag],[n_mag],[n_mag]]
+
+    store_data, prefix + 'tangential_velocity', $
+      data = {x:pos_dat.x, y:total(v_uv0 * t_uv,2)}
+
+    options, prefix + 'tangential_velocity', 'ysubtitle', '[km/s]'
+
+  endif
+
+  ;stop
 
 end
