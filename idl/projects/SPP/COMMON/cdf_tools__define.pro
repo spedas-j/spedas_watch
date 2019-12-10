@@ -6,8 +6,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-11-20 07:17:20 -0800 (Wed, 20 Nov 2019) $
-; $LastChangedRevision: 28044 $
+; $LastChangedDate: 2019-12-09 03:51:53 -0800 (Mon, 09 Dec 2019) $
+; $LastChangedRevision: 28099 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ; 
 ; Written by Davin Larson October 2018
@@ -39,8 +39,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-11-20 07:17:20 -0800 (Wed, 20 Nov 2019) $
-; $LastChangedRevision: 28044 $
+; $LastChangedDate: 2019-12-09 03:51:53 -0800 (Mon, 09 Dec 2019) $
+; $LastChangedRevision: 28099 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +61,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-11-20 07:17:20 -0800 (Wed, 20 Nov 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 28044 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-12-09 03:51:53 -0800 (Mon, 09 Dec 2019) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 28099 $'
 
   return,sw_hash
 end
@@ -330,6 +330,7 @@ end
 
 ;  return an array of structures
 function cdf_tools::get_var_struct,  names, struct0=struct0,add_time = add_time
+if self.nvars eq 0 then return, !null
 if not keyword_set(names) then begin
   names = self.varnames()
   vary = bytarr(n_elements(names))

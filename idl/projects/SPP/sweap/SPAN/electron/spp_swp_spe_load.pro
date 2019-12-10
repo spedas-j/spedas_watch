@@ -1,15 +1,27 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2019-11-04 19:41:19 -0800 (Mon, 04 Nov 2019) $
-; $LastChangedRevision: 27976 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2019-12-09 17:10:48 -0800 (Mon, 09 Dec 2019) $
+; $LastChangedRevision: 28101 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
 
 
 pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose,$
-  alltypes=alltypes,allvars=allvars,hkp=hkp,save=save,level=level,fileprefix=fileprefix
+  alltypes=alltypes,allvars=allvars,hkp=hkp,save=save,level=level,fileprefix=fileprefix,no_update=no_update,no_server=no_server
 
-  if ~keyword_set(level) then level='L2'
+  if ~keyword_set(level) then level='L3'
+  vars = orderedhash()
+  if not keyword_set(fileprefix) then fileprefix='psp/data/sci/sweap/'
+  if not keyword_set(esteps) then esteps = [4,8,12]
+  if level eq 'L3' then begin
+    fileformat='spe/L3/SP?_TYP_pad/YYYY/MM/psp_swp_SP?_TYP_L3_pad_YYYYMMDD_v??.cdf'
+    ;http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spe/L3/spb_sf0_pad/2018/11/psp_swp_spb_sf0_L3_pad_20181107_v00.cdf
+    types = 'sf0'
+    spxs= ['spe','spa','spb']
+    vars['pad'] = '*'
+    varformat = 'EFLUX*'
+    ext = '_pad'
+  endif
   level=strupcase(level)
   if ~keyword_set(spxs) then spxs = ['spa','spb']
   if ~keyword_set(types) then types = ['sf1', 'sf0']  ;,'st1','st0']   ; add archive when available
@@ -18,32 +30,72 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
     types=['hkp','fhkp']
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1'] do types=[types,type0+type1+type2]
   endif
+  ext = ''
 
   dir='SP?/'+level+'/SP?_TYP/YYYY/MM/'
-  fileformat=dir+'psp_swp_SP?_TYP_'+level+'*_YYYYMMDD_v??.cdf'
-  if not keyword_set(fileprefix) then fileprefix='psp/data/sci/sweap/'
+  if not keyword_set(fileformat) then fileformat=dir+'psp_swp_SP?_TYP_'+level+'*_YYYYMMDD_v??.cdf'
 
-  vars = orderedhash()
   vars['hkp'] = '*TEMP* *_BITS *_FLAG* *CMD* *PEAK* *CNT*'
   if keyword_set(allvars) then varformat='*'
 
+
+
   tr = timerange(trange)
-  foreach spx, spxs do begin
-    foreach type,types do begin
+  foreach type,types do begin
+    foreach spx, spxs do begin
       filespx = str_sub(fileformat,'SP?', spx)              ; instrument string substitution
       filetype = str_sub(filespx,'TYP',type)                 ; packet type substitution
       dprint,filetype,/phelp
-      files = spp_file_retrieve(filetype,trange=tr,/last_version,/daily_names,/valid_only,prefix=fileprefix,verbose=verbose)
+      files = spp_file_retrieve(filetype,trange=tr,/last_version,/daily_names,/valid_only,prefix=fileprefix,verbose=verbose,no_update=no_update,no_server=no_server)
       if keyword_set(save) then begin
         vardata = !null
         novardata = !null
         loadcdfstr,filenames=files,vardata,novardata
-        dummy = spp_data_product_hash(spx+'_'+type,vardata)
+        dummy = spp_data_product_hash(spx+'_'+type+ext,vardata)
       endif
       if keyword_set(no_load) then continue
-      prefix = 'psp_swp_'+spx+'_'+type+'_'+level+'_'
+      prefix = 'psp_swp_'+spx+'_'+type+'_'+level+ext+'_'
       if keyword_set(varformat) then vfm = varformat else if vars.haskey(type) then vfm=vars[type] else vfm=[]
-      cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose
+      if level eq 'L3' then begin
+        varformat = '*'
+        if 1 then begin
+          cdf = cdf_tools(files)
+          time = cdf.vars['TIME'].data.array
+          eflux = cdf.vars['EFLUX_VS_PA_E'].data.array
+          energy = cdf.vars['ENERGY'].data.array
+          pitchangle = cdf.vars['PITCHANGLE'].data.array
+          foreach e,esteps do begin
+            enum = strtrim(e,2)
+            eval = median(energy[*,e])
+            ytitle =  'PAD!c'+ strtrim(round(eval),2)+' eV'
+            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux[*,*,e],pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle}
+          endforeach
+          mag_sc = cdf.vars['MAGF_SC'].data.array
+          store_data,prefix+'MAGF_SC',time,mag_sc
+          xyz_to_polar ,prefix+'MAGF_SC'
+          if spx eq 'spe' then begin
+            store_data,prefix+'SPX_VS_PA_E',time,cdf.vars['SPX_VS_PA_E'].data.array,pitchangle, dlim={yrange:[0,180],spec:1,ystyle:1}
+          endif
+          
+;          cdf.make_tplot_var,'EFLUX*'
+          dprint
+        endif else begin
+          get_support_data=1
+          if not keyword_set(varformat) then var_type = 'data'
+          if keyword_set(get_support_data) then var_type = ['data','support_data']
+          cdfi = cdf_load_vars(files,varformat=varformat,var_type=var_type,/spdf_depend, $
+            varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, all=all)
+
+          dprint,dlevel=4,verbose=verbose,'Starting load into tplot'
+          ;  Insert into tplot format
+          cdf_info_to_tplot,cdfi,varnames2,all=all,prefix=prefix,midfix=midfix,midpos=midpos,suffix=suffix,newname=newname, $  ;bpif keyword_set(all) eq 0
+            verbose=verbose,  tplotnames=tplotnames,load_labels=load_labels          
+        endelse
+        
+      endif else begin
+        cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose        
+      endelse
+
 
       if 0 and (type eq 'sf0' or type eq 'af0') then begin ;; will need to change this in the future if sf0 isn't 3d spectra.
         ;; make a line here to get data from tplot

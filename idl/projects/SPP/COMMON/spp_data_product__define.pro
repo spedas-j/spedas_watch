@@ -39,7 +39,7 @@ pro spp_data_product::make_tplot_var,tagnames
 end
 
 
-function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,valname=valname,verbose=verbose
+function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,valname=valname,verbose=verbose,extrapolate=extrapolate
   if ~ptr_valid(self.data_ptr) then begin
     dprint,'No data loaded for: ',self.name
     return,!null
@@ -48,12 +48,16 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
   ns = n_elements(*self.data_ptr)
   
   if isa(trange) then begin
-    index = interp(lindgen(ns),(*self.data_ptr).time,trange)    
+    index = interp(lindgen(ns),(*self.data_ptr).time,trange)  
     index_range = minmax(round(index))
     index = [index_range[0]: index_range[1]]
   endif
 
   if isa(index,/integer) then begin
+    if index lt 0 || index ge ns then begin
+      dprint,"out of range"
+      if keyword_set(extrapolate) then index = 0 > index < (ns-1)      
+    endif
     dats = (*self.data_ptr)[index]
     wbad = where(index lt 0,/null,nbad)
     if nbad gt 0 then begin
