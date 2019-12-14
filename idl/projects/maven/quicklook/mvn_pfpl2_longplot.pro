@@ -25,9 +25,9 @@
 ; multipngplot = if set, then make multiple plots for each orbit
 ;HISTORY:
 ; Hacked from mvn_pfpl2_overplot, 2019-12-10, jmm, jimm@ssl.berkeley.edu
-; $LastChangedBy: muser $
-; $LastChangedDate: 2019-12-10 16:10:20 -0800 (Tue, 10 Dec 2019) $
-; $LastChangedRevision: 28107 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2019-12-13 13:33:17 -0800 (Fri, 13 Dec 2019) $
+; $LastChangedRevision: 28110 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_pfpl2_longplot.pro $
 ;-
 Pro mvn_pfpl2_longplot, date = date, ndays = ndays, $
@@ -71,16 +71,23 @@ Pro mvn_pfpl2_longplot, date = date, ndays = ndays, $
   Endfor
 ;At this point, you presumably have all of the data thay you need to
 ;plot
-  timespan, days[nnday-1], nnday
+  timespan, days[nnday-1], nnday ;to be sure that date0 is processed
   mvn_ql_pfp_tplot, /restore, /tplot, /png
+
 ;Plots are in the current directory, move it out if needed
   If(keyword_set(directory)) Then Begin
      If(~is_string(file_search(directory))) Then $
         file_mkdir2, directory, mode = '0775'o
-     filename = 'mvn_ql_pfp_tplot_' + $ ;need extra day for end time
-                time_string(days[nnday-1], tformat='yyMMDD_') + $
-                time_string(days[0]+one_day, tformat='yyMMDD')+'.png'
-     file_move, filename, directory, /overwrite
+     tdays = timerange()
+     filename = 'mvn_ql_pfp_tplot_' + $
+                time_string(tdays[0], tformat='yyMMDD_') + $
+                time_string(tdays[1], tformat='yyMMDD')+'.png'
+; the filename is from the start of the data in the plot, to the end
+; of the last day. Here keep the date of the last data processed in
+; the filename, and keep to a consistent namimg convention
+     new_filename = 'mvn_pfp_l2_long_' + $
+                    time_string(days[0], tformat='YYYYMMDD_hhmmss')+'.png'
+     file_move, filename, directory+new_filename, /overwrite
   Endif
 
   Return
