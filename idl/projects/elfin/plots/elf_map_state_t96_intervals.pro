@@ -497,7 +497,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; and oplot sci collection times
     undefine, tb0
     undefine, tb1
-    spin_strb='Spin period not available.'
+    spin_strb=''
     if ~undefined(sci_timesb) then begin
       sci_idxb=where(sci_timesb GE this_time2[0] AND sci_timesb LT this_time2[nptsb-1], ncnt)
       if ncnt GT 5 then begin
@@ -527,7 +527,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; Repeat for A
     undefine, ta0
     undefine, ta1
-    spin_stra='Spin period not available.'
+    spin_stra=''
     if ~undefined(sci_timesa) then begin
       sci_idxa=where(sci_timesa GE this_time[0] AND sci_timesa LT this_time[nptsa-1], ncnt)
       if ncnt GT 5 then begin
@@ -686,47 +686,65 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     if hires then charsize=.75 else charsize=.65
     ; annotate
     xann=9.6
-    xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
-    xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*6,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*5,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,'Time Att Soln: '+solna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,spin_stra,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
+    if spin_stra EQ '' then begin
+      xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
+      xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*6,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*5,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*4,'Time Att Soln: '+solna_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*3,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
+    endif else begin
+      xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
+      xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*6,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*5,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*4,'Time Att Soln: '+solna_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*3,spin_stra,/device,charsize=charsize
+      xyouts,xann,yann+12.5*2,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
+    endelse
 
     yann=0.02
-    xyouts,xann,yann+12.5*7,'ELFIN (B)',/device,charsize=.75,color=254
-    xyouts,xann,yann+12.5*6.,'Period, min: '+b_period_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*5,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,'Time Att Soln: '+solnb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,spin_strb,/device,charsize=charsize
-    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
-    
+    if spin_strb EQ '' then begin
+      xyouts,xann,yann+12.5*6,'ELFIN (B)',/device,charsize=.75,color=254
+      xyouts,xann,yann+12.5*5.,'Period, min: '+b_period_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*4,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*2,'Time Att Soln: '+solnb_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize      
+    endif else begin
+      xyouts,xann,yann+12.5*7,'ELFIN (B)',/device,charsize=.75,color=254
+      xyouts,xann,yann+12.5*6.,'Period, min: '+b_period_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*5,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*4,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*3,'Time Att Soln: '+solnb_str,/device,charsize=charsize
+      xyouts,xann,yann+12.5*2,spin_strb,/device,charsize=charsize
+      xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
+    endelse
+        
     if hires then xann=670 else xann=410
     if hires then yann=750 else yann=463
     if hires then begin
       yann=750
       xann=670
       xyouts, xann-5,yann+12.5*8,'Earth/Oval View Center Time (triangle)',/device,color=255,charsize=charsize
-      xyouts, xann+18,yann+12.5*7,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
-      xyouts, xann+25,yann+12.5*6,'Mag Lat/Lon - Red dotted lines',/device,color=251,charsize=charsize
-      xyouts, xann+55,yann+12.5*5,'Auroral Oval - Green lines',/device,color=155,charsize=charsize
-      xyouts, xann+75,yann+12.5*4,'Tick Marks every 5min',/device,color=255,charsize=charsize
-      xyouts, xann+75,yann+12.5*3,'Start Time - Diamond',/device,color=255,charsize=charsize
-      xyouts, xann+85,yann+12.5*2,'End Time - Asterisk',/device,color=255,charsize=charsize
-      xyouts, xann+105,yann+12.5*1,'Thick - Science',/device,color=255,charsize=charsize
+      xyouts, xann+10,yann+12.5*7,'Thick - Science (FGM and/or EPD)',/device,color=255,charsize=charsize
+      xyouts, xann+18,yann+12.5*6,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
+      xyouts, xann+25,yann+12.5*5,'Mag Lat/Lon - Red dotted lines',/device,color=251,charsize=charsize
+      xyouts, xann+55,yann+12.5*4,'Auroral Oval - Green lines',/device,color=155,charsize=charsize
+      xyouts, xann+75,yann+12.5*3,'Tick Marks every 5min',/device,color=255,charsize=charsize
+      xyouts, xann+85,yann+12.5*2,'Start Time-Diamond',/device,color=255,charsize=charsize
+      xyouts, xann+95,yann+12.5*1,'End Time-Asterisk',/device,color=255,charsize=charsize
     endif else begin
       yann=463
       xann=410
       xyouts, xann-5,yann+12.5*8,'Earth/Oval View Center Time (triangle)',/device,color=255,charsize=charsize
-      xyouts, xann+15,yann+12.5*7,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
-      xyouts, xann+21,yann+12.5*6,'Mag Lat/Lon - Red dotted lines',/device,color=251,charsize=charsize
-      xyouts, xann+47,yann+12.5*5,'Auroral Oval - Green lines',/device,color=155,charsize=charsize
-      xyouts, xann+66,yann+12.5*4,'Tick Marks every 5min',/device,color=255,charsize=charsize
-      xyouts, xann+66,yann+12.5*3,'Start Time - Diamond',/device,color=255,charsize=charsize
-      xyouts, xann+75,yann+12.5*2,'End Time - Asterisk',/device,color=255,charsize=charsize
-      xyouts, xann+93,yann+12.5*1,'Thick - Science',/device,color=255,charsize=charsize      
+      xyouts, xann+10,yann+12.5*7,'Thick - Science (FGM and/or EPD)',/device,color=255,charsize=charsize
+      xyouts, xann+15,yann+12.5*6,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
+      xyouts, xann+21,yann+12.5*5,'Mag Lat/Lon - Red dotted lines',/device,color=251,charsize=charsize
+      xyouts, xann+47,yann+12.5*4,'Auroral Oval - Green lines',/device,color=155,charsize=charsize
+      xyouts, xann+66,yann+12.5*3,'Tick Marks every 5min',/device,color=255,charsize=charsize
+      xyouts, xann+77,yann+12.5*2,'Start Time-Diamond',/device,color=255,charsize=charsize
+      xyouts, xann+85,yann+12.5*1,'End Time-Asterisk',/device,color=255,charsize=charsize
     endelse
     
     yann=0.02    
@@ -949,7 +967,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       print,'Output in ',gif_name+'.gif'
 
    endif
-
+;stop
     if keyword_set(insert_stop) then stop
    
   endfor ; end of plotting loop
