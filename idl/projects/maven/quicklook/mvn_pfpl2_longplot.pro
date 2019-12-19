@@ -25,9 +25,9 @@
 ; multipngplot = if set, then make multiple plots for each orbit
 ;HISTORY:
 ; Hacked from mvn_pfpl2_overplot, 2019-12-10, jmm, jimm@ssl.berkeley.edu
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2019-12-13 13:33:17 -0800 (Fri, 13 Dec 2019) $
-; $LastChangedRevision: 28110 $
+; $LastChangedBy: muser $
+; $LastChangedDate: 2019-12-18 13:09:39 -0800 (Wed, 18 Dec 2019) $
+; $LastChangedRevision: 28124 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_pfpl2_longplot.pro $
 ;-
 Pro mvn_pfpl2_longplot, date = date, ndays = ndays, $
@@ -72,13 +72,16 @@ Pro mvn_pfpl2_longplot, date = date, ndays = ndays, $
 ;At this point, you presumably have all of the data thay you need to
 ;plot
   timespan, days[nnday-1], nnday ;to be sure that date0 is processed
+  tdays = timerange()
+;set the title
+  title = 'MAVEN PFP L2: '+strjoin(time_string(tdays, precision=-3), ' to ')
+  tplot_options, 'title', title
   mvn_ql_pfp_tplot, /restore, /tplot, /png
 
 ;Plots are in the current directory, move it out if needed
   If(keyword_set(directory)) Then Begin
      If(~is_string(file_search(directory))) Then $
         file_mkdir2, directory, mode = '0775'o
-     tdays = timerange()
      filename = 'mvn_ql_pfp_tplot_' + $
                 time_string(tdays[0], tformat='yyMMDD_') + $
                 time_string(tdays[1], tformat='yyMMDD')+'.png'
