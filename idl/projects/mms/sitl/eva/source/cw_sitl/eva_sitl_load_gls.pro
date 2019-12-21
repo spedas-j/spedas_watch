@@ -92,6 +92,7 @@ PRO eva_sitl_load_gls, trange=trange, algo=algo
         options,tp,'unix_FOMStr_org',unix_FOMStr
         options,tp,'psym',0
         options,tp,'constant',[50,100,150,200]
+        options,tp,'yrange',[0,200]
       endif
     endif
   endfor
