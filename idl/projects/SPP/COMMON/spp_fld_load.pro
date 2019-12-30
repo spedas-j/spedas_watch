@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupa $
-; $LastChangedDate: 2019-12-04 16:43:23 -0800 (Wed, 04 Dec 2019) $
-; $LastChangedRevision: 28089 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2019-12-29 15:17:47 -0800 (Sun, 29 Dec 2019) $
+; $LastChangedRevision: 28141 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -138,6 +138,11 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         daily_names = 0
       endif
       if type EQ 'mag_RTN' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endif
+      if type EQ 'mag_VSO' then begin
         pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'
         resolution = 3600l * 6l ; hours
         daily_names = 0
@@ -284,6 +289,13 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
           ;options,'psp_fld_l2_mag_RTN',labels=['R','T','N'] ,/default
           options,'psp_fld_l2_mag_RTN','max_points',10000
           options,'psp_fld_l2_mag_RTN','psym_lim',300
+        endif
+
+        if tnames('psp_fld_l2_mag_VSO') NE '' then begin
+          options,'psp_fld_l2_mag_VSO', 'ytitle', 'MAG VSO'
+          options,'psp_fld_l2_mag_VSO',colors='bgr' ,/default
+          options,'psp_fld_l2_mag_VSO','max_points',10000
+          options,'psp_fld_l2_mag_VSO','psym_lim',300
         endif
 
         if tnames('psp_fld_l2_mag_SC') NE '' then begin
