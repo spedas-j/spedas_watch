@@ -9,4 +9,9 @@ pro spp_fld_rfs_burst_load_l1, file, prefix = prefix, varformat = varformat
 
   cdf2tplot, /get_support_data, file, prefix = prefix, varformat = varformat
 
+  options, 'spp_fld_rfs_burst_spec?_??', 'spec', 1
+  options, 'spp_fld_rfs_burst_spec?_??', 'no_interp', 1
+  
+  tplot, 'spp_fld_rfs_burst_spec?_??'
+
 end
