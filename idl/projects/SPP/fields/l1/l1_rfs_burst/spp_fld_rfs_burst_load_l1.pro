@@ -11,7 +11,46 @@ pro spp_fld_rfs_burst_load_l1, file, prefix = prefix, varformat = varformat
 
   options, 'spp_fld_rfs_burst_spec?_??', 'spec', 1
   options, 'spp_fld_rfs_burst_spec?_??', 'no_interp', 1
-  
-  tplot, 'spp_fld_rfs_burst_spec?_??'
+
+  get_data, 'spp_fld_rfs_burst_spec0_re', data = spec0_re
+  get_data, 'spp_fld_rfs_burst_spec0_im', data = spec0_im
+  get_data, 'spp_fld_rfs_burst_spec1_re', data = spec1_re
+  get_data, 'spp_fld_rfs_burst_spec1_im', data = spec1_im
+
+  t = spec0_re.x
+
+  store_data, 'spp_fld_rfs_burst_spec0_auto', $
+    data = {x:t, y:sqrt(spec0_re.y^2. + spec0_im.y^2.)}
+
+  store_data, 'spp_fld_rfs_burst_spec1_auto', $
+    data = {x:t, y:sqrt(spec1_re.y^2. + spec1_im.y^2.)}
+
+  xspec = complex(spec0_re.y, spec0_im.y) * complex(spec1_re.y, -spec1_im.y)
+
+  store_data, 'spp_fld_rfs_burst_xspec_re', $
+    data = {x:t, y:real_part(xspec)}
+
+  store_data, 'spp_fld_rfs_burst_xspec_im', $
+    data = {x:t, y:imaginary(xspec)}
+
+  store_data, 'spp_fld_rfs_burst_xspec_phase', $
+    data = {x:t, y:atan(imaginary(xspec),real_part(xspec)) * 180d/!pi}
+
+  options, 'spp_fld_rfs_burst_xspec*', 'spec', 1
+  options, 'spp_fld_rfs_burst_xspec*', 'no_interp', 1
+
+  options, 'spp_fld_rfs_burst_xspec_phase', 'zrange', [-180.,180.]
+  options, 'spp_fld_rfs_burst_xspec_phase', 'zstyle', 1
+  options, 'spp_fld_rfs_burst_xspec_phase', 'panel_size', 2
+
+  options, 'spp_fld_rfs_burst_spec?_auto', 'spec', 1
+
+  options, 'spp_fld_rfs_burst_spec?_auto', 'no_interp', 1
+  options, 'spp_fld_rfs_burst_spec?_auto', 'zlog', 1
+
+  options, 'spp_fld_rfs_burst_spec?_auto', 'panel_size', 2
+
+  ;tplot, 'spp_fld_rfs_burst_spec*'
+  ;stop
 
 end

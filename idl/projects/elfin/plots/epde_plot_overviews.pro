@@ -135,9 +135,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... shadow/sunlight bar 0 (shadow) or 1 (sunlight)
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  elf_load_sun_shadow_bar, tplotname='el'+probe+'_pos_sm', no_download=no_download
+  ;elf_load_sun_shadow_bar, tplotname='el'+probe+'_pos_sm', no_download=no_download
+  elf_load_sun_shadow_bar, tplotname='el'+probe+'_pos_gse', no_download=no_download
 
   ; ... EPD fast bar
+  del_data, 'epdef_fast_bar'
+  del_data, 'epd_bar'
   elf_load_epd_fast_segments, tplotname='el'+probe+'_pef_nflux', no_download=no_download
   get_data, 'epdef_fast_bar', data=epdef_fast_bar_x
   ;elf_load_epd_survey_segments, tplotname='el'+probe+'_pes_nflux'
@@ -239,7 +242,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         endfor
       endelse
     endif
-  sz_num=['_sz0','_sz1','_sz2','_sz3','_sz4']
+;  sz_num=['_sz0','_sz1','_sz2','_sz3','_sz4']
   nplots = n_elements(min_st)
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -265,7 +268,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         OR (sz_starttimes GE this_tr[0] AND sz_starttimes LE this_tr[1]),ncnt)    
     endelse
 
-    if ncnt GT 0 then begin
+    if ncnt GE 1 then begin
       ; loop for each zone
       ; set up plot options
       tplot_options, 'xmargin', [16,11]
@@ -333,13 +336,13 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           if median_lat GT 0 then begin
             if median(dlat) GT 0 then sz_plot_lbl = ', North Ascending' else $
               sz_plot_lbl = ', North Descending'
-            if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + sz_num[j] else $
-              sz_file_lbl = file_lbl[i] + sz_num[j]
+            if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + '_nasc' else $
+              sz_file_lbl = file_lbl[i] + '_ndesc'
           endif else begin
             if median(dlat) GT 0 then sz_plot_lbl = ', South Ascending' else $
               sz_plot_lbl = ', South Descending'
-            if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + sz_num[j] else $
-              sz_file_lbl = file_lbl[i] + sz_num[j]
+            if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + '_sasc' else $
+              sz_file_lbl = file_lbl[i] + '_sdes'
           endelse
         endif
 

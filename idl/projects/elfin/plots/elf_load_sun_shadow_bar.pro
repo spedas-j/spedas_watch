@@ -25,14 +25,16 @@ pro elf_load_sun_shadow_bar, tplotname=tplotname, no_download=no_download
     return 
   endif
   
-  ; Retrieve spacecraft position data (in SM coords) and calculate whether
-  ; the spacecraft is in sun or shadow
+  ; Retrieve spacecraft position data (in GSE coords) and calculate whether
+  ; the spacecraft is in sun or shadow   Note: previously used SM)
   get_data, tplotname, data=elfin_pos
   shadflag = intarr(n_elements(elfin_pos.x))
   yre=elfin_pos.y[*,1]/6378.
   zre=elfin_pos.y[*,2]/6378.
   yz_re=yre^2 + zre^2
-  shad_idx = where(elfin_pos.y[*,0] LT 0.0 AND yz_re LT 1.0, n_shadow)
+  shad_idx = where(elfin_pos.y[*,0] LT 0.0 AND yz_re LE 1.0, n_shadow)
+  ;yz_re=sqrt(yre^2 + zre^2)
+  ;shad_idx = where(yz_re LT 1.0, n_shadow)
   shadflag[shad_idx] = 1
   ; create start and stop times based on sun and shadow intervals
   find_interval, shad_idx, sidx, eidx
