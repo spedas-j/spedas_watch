@@ -12,8 +12,7 @@
 ; It also assumes the user has the ability to run T89 routine (.dlm, .dll have been included in their distribution)!!!
 ;
 pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
-    type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
-    probe=probe
+    type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec,probe=userELAORB
 ;
 ;
 ; INPUTS
@@ -78,14 +77,14 @@ if keyword_set(userLCpartol) then LCfatol=userLCpartol else $
   LCfatol=FOVo2 ; in field aligned, fa, direction (para or anti)
 if keyword_set(userLCpertol) then LCfptol=userLCpartol else $
   LCfptol=-FOVo2 ; in field perp, fp, direction
-if keyword_set(no_download) then no_download=1 else no_download=0
-if ~keyword_set(probe) then probe='a' else probe=probe
+if keyword_set(userELAORB) then mysc=userELAORB else $
+  mysc='a' ; spacecraft to use, default = 'a' (ELFIN-A)
+;
 ;
 ; THESE "ELA" and "PEF" STRINGS IN THE FEW LINES BELOW CAN BE CAST INTO USER-SPECIFIED SC (A/B) AND PRODUCT (PEF/PIF) IN THE FUTURE
 ;
 ; ensure attitude is at same resolution as position
 ;
-mysc=probe
 eori='e'
 mystring='el'+mysc+'_p'+eori+'f_'
 ;
@@ -147,11 +146,10 @@ nsectors=n_elements(elx_pxf.x)
 nspinsectors=n_elements(reform(elx_pxf.y[0,*]))
 if dSectr2add gt 0 then begin
   xra=make_array(nsectors-dSectr2add,/index,/long)
-  elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]
+  elx_pxf.y[xra+dSectr2add,*]=elx_pxf.y[xra,*]
   elx_pxf.y[0:dSectr2add-1,*]=!VALUES.F_NaN
   store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
 endif
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ; extrapolate on the left and right to [0,...nspinsectors-1], degap the data
 tres,'elx_pxf_sectnum',dt_sectnum
@@ -248,21 +246,7 @@ options,'ddts','databar',{yval:[0.], color:[6], linestyle:2}
 threeones=[1,1,1]
 cotrans,'elx_pos_gei','elx_pos_gse',/GEI2GSE
 cotrans,'elx_pos_gse','elx_pos_gsm',/GSE2GSM
-
-get_data, 'elx_pos_gsm', data=datgsm, dlimits=dl, limits=l
-gsm_dur=(datgsm.x[n_elements(datgsm.x)-1]-datgsm.x[0])/60.
-if gsm_dur GT 100. then begin
-  store_data, 'elx_pos_gsm_mins', data={x: datgsm.x[0:*:60], y: datgsm.y[0:*:60,*]}, dlimits=dl, limits=l
-  tt89,'elx_pos_gsm_mins',/igrf_only,newname='elx_bt89_gsm_mins',period=1.
-  ; interpolate the minute-by-minute data back to the full array
-  get_data,'elx_bt89_gsm_mins',data=gsm_mins
-  store_data,'elx_bt89_gsm',data={x: datgsm.x, y: interp(gsm_mins.y[*,*], gsm_mins.x, datgsm.x)}
-  ; clean up the temporary data
-  del_data, '*_mins'
-endif else begin
-  tt89,'elx_pos_gsm',/igrf_only,newname='elx_bt89_gsm',period=1.
-endelse
-
+tt89,'elx_pos_gsm',/igrf_only,newname='elx_bt89_gsm',period=1.
 cotrans,'elx_pos_gsm','elx_pos_sm',/GSM2SM ; <-- use SM geophysical coordinates plus Despun Spacecraft coord's with Lvec (DSL)
 cotrans,'elx_bt89_gsm','elx_bt89_sm',/GSM2SM ; Bfield in same coords as well
 cotrans,'elx_att_gei','elx_att_gse',/GEI2GSE
@@ -280,7 +264,8 @@ tinterpol_mxn,'elx_att_sm','elx_pxf' ; interpolate attitude
 calc,' "elx_att_sm_interp" = "elx_att_sm_interp" / (total("elx_att_sm_interp"^2,2)#threeones) ' ; now for sure normalized!
 get_data,'elx_att_sm_interp',data=elx_att_sm_interp,dlim=myattdlim,lim=myattlim
 ;
-tcrossp, "elx_bt89_sm_interp", 'elx_att_sm_interp',newname="elx_bt89_sm_interp_0xdir" ; not normalized to one yet!
+;stop
+tcrossp, "elx_bt89_sm_interp", "elx_att_sm_interp",newname="elx_bt89_sm_interp_0xdir" ; not normalized to one yet!
 calc,' "elx_bt89_sm_interp_0xdir" = "elx_bt89_sm_interp_0xdir"  / (sqrt(total("elx_bt89_sm_interp_0xdir"^2,2))#threeones) ' ; now also normalized!
 tcrossp,"elx_att_sm_interp","elx_bt89_sm_interp_0xdir",newname="elx_bt89_sm_interp_bspinplanedir" ; already normalized!
 ; Now you have DSL system vectors in SM coordinates. Can form transformation matrix from DSL to SM. It's columns are the DSL unit vectors in SM.
@@ -301,7 +286,7 @@ store_data,'unitXvec2rot',data={x:elx_pxf.x,y:unitXvec2rot},dlim=myattdlim,lim=m
 store_data,'rotaboutdslz',data={x:elx_pxf.x,y:rotaboutdslz},dlim=myattdlim,lim=myattlim ; pretend all coords are SM in dlim to force tvector_rotate to accept
 store_data,'rotDSL2SM',data={x:elx_pxf.x,y:rotDSL2SM},dlim=myattdlim,lim=myattlim ; pretend all coords are SM in dlim to force tvector_rotate to accept
 ;
-tvector_rotate,'rotaboutdslz','unitXvec2rot',newname='sectordir_dsl'; says SM but OK
+tvector_rotate,'rotaboutdslz','unitXvec2rot',newname='sectordir_dsl' ; says SM but OK
 tvector_rotate,'rotDSL2SM','sectordir_dsl',newname='sectordir_sm' ;
 calc,' "elx_pxf_sm_interp_partdir"= - "sectordir_sm" '
 ;
@@ -435,7 +420,7 @@ if keyword_set(regularize) then begin
   store_data,'regrotaboutdslz',data={x:elx_pxf_val_reg.x,y:regrotaboutdslz},dlim=myattdlim,lim=myattlim ; pretend all coords are SM in dlim to force tvector_rotate to accept
   store_data,'regunitXvec2rot',data={x:elx_pxf_val_reg.x,y:unitXvec2rot},dlim=myattdlim,lim=myattlim ; unitXvec2rot is just a unit vector along X (along detector in spinning coord sys)
   tvector_rotate,'regrotaboutdslz','regunitXvec2rot',newname='regsectordir_dsl' ; matrix rotation times are same as unit vector X times here 
-  tvector_rotate,'rotDSL2SM','regsectordir_dsl',newname='regsectordir_sm',/vector_skip_nonmonotonic ; matrix times differ from vector but OK, because Bfield, att in DSL ~ same (dont change in SM 1/2 sector)
+  tvector_rotate,'rotDSL2SM','regsectordir_dsl',newname='regsectordir_sm' ; matrix times differ from vector but OK, because Bfield, att in DSL ~ same (dont change in SM 1/2 sector)
   calc,' "elx_pxf_sm_interp_reg_partdir"= - "regsectordir_sm" '
   ; again, below we did not recompute the "elx_bt89_sm_interp" at the reg.sector times because in SM the Bfield does not change much along track in a fraction of a sector ~137msec, ~1km distance
   calc,' "elx_pxf_pa_reg" = arccos(total("elx_pxf_sm_interp_reg_partdir" * "elx_bt89_sm_interp",2) / sqrt(total("elx_bt89_sm_interp"^2,2))) *180./pival '
@@ -539,10 +524,8 @@ elx_pxf_pa_spec_pas=transpose(reform(elx_pxf_pa.y[istart2reform:ifinis2reform],(
 if keyword_set(get3Dspec) then store_data,mystring+'pa_spec',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec, v:elx_pxf_pa_spec_pas}
 ;
 ; if regularize keyword is present then repeat for regularized sectors (though they should be identical)
-
 if keyword_set(regularize) then begin
   get_data,'elx_pxf_pa_reg',data=elx_pxf_pa_reg
-  if n_elements(elx_pxf_pa_reg.x) LE ifinis2reform then ifinis2reform=n_elements(elx_pxf_pa_reg.x)-1    
   elx_pxf_pa_reg_spec=make_array(nhalfspinsavailable,(nspinsectors/2),numchannels,/double)
   elx_pxf_pa_reg_spec_full=make_array(nhalfspinsavailable,(nspinsectors/2),Max_numchannels,/double) ; has ALL ENERGIES = Max_numchannels
   for jthchan=0,numchannels-1 do elx_pxf_pa_reg_spec[*,*,jthchan]=transpose(reform(elx_pxf_val_reg.y[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
@@ -602,74 +585,24 @@ options,'el?_p?f_pa*spec2plot*','databar',90.
 ;
 ; Now get loss cone
 tinterpol_mxn,'elx_pos_gsm',elx_pxf_pa_spec_times
-get_data, 'elx_pos_gsm_interp', data=datgsm_interp, dlimits=dl, limits=l
-gsm_dur=(datgsm_interp.x[n_elements(datgsm_interp.x)-1]-datgsm_interp.x[0])/60.
-if gsm_dur GT 100. then begin
-  store_data, 'elx_pos_gsm_mins_interp', data={x: datgsm_interp.x[0:*:60], y: datgsm_interp.y[0:*:60,*]}, dlimits=dl, limits=l
-  tt89,'elx_pos_gsm_mins_interp',/igrf_only,newname='elx_bt89_gsm_mins_interp',period=1.
-  ; interpolate the minute-by-minute data back to the full array
-  get_data,'elx_bt89_gsm_mins_interp',data=gsm_mins_interp
-  store_data,'elx_bt89_gsm_interp',data={x: datgsm_interp.x, y: interp(gsm_mins_interp.y[*,*], gsm_mins_interp.x, datgsm_interp.x)}
-  ; clean up the temporary data
-  del_data, '*_mins'
-endif else begin
-  tt89,'elx_pos_gsm_interp',/igrf_only,newname='elx_bt89_gsm_interp',period=1.
-endelse
-
+tt89,'elx_pos_gsm_interp',/igrf_only,newname='elx_bt89_gsm_interp',period=1.
 calc,' "radial_pos_gsm_vector"="elx_pos_gsm_interp"/ (sqrt(total("elx_pos_gsm_interp"^2,2))#threeones) '
 calc,' "radial_B_gsm_vector"=total("elx_bt89_gsm_interp"*"radial_pos_gsm_vector",2) '
 get_data,"radial_B_gsm_vector",data=radial_B_gsm_vector
 i2south=where(radial_B_gsm_vector.y gt 0,j2south)
 idir=radial_B_gsm_vector.y*0.+1 ; when Br<0 the direction is 2north and loss cone is 0-90 deg. If Br>0 then idir=-1. and loss cone is 90-180.
-
-get_data, 'elx_pos_gsm_interp', data=datgsm_interp, dlimits=dl, limits=l
-gsm_dur=(datgsm_interp.x[n_elements(datgsm_interp.x)-1]-datgsm_interp.x[0])/60.
-if gsm_dur GT 100. then begin
-  store_data, 'elx_pos_gsm_mins_interp', data={x: datgsm_interp.x[0:*:60], y: datgsm_interp.y[0:*:60,*]}, dlimits=dl, limits=l
-  ttrace2iono,'elx_pos_gsm_mins_interp',newname='elx_ifoot_gsm_mins',/km ; to north by default can be changed if needed
-  ; interpolate the minute-by-minute data back to the full array
-  get_data,'elx_ifoot_gsm_mins',data=gsm_mins_interp
-  store_data,'elx_ifoot_gsm_interp',data={x: datgsm_interp.x, y: interp(gsm_mins_interp.y[*,*], gsm_mins_interp.x, datgsm_interp.x)}
-  ; clean up the temporary data
-  del_data, '*_mins'
-endif else begin
-  ttrace2iono,'elx_pos_gsm_interp',newname='elx_ifoot_gsm',/km ; to north by default can be changed if needed
-endelse
-
+ttrace2iono,'elx_pos_gsm_interp',newname='elx_ifoot_gsm',/km ; to north by default can be changed if needed
 get_data,'elx_pos_gsm_interp',data=elx_pos_gsm_interp
 if j2south gt 0 then begin
   idir[i2south]=-1.
   store_data,'elx_pos_gsm_interp_2ionosouth',data={x:elx_pos_gsm_interp.x[i2south],y:elx_pos_gsm_interp.y[i2south,*]}
-  gsm_dur=(elx_pos_gsm_interp.x[n_elements(elx_pos_gsm_interp.x)-1]-elx_pos_gsm_interp.x[0])/60.
-  if gsm_dur GT 100. then begin
-    get_data, 'elx_pos_gsm_interp_2ionosouth', data=elx_pos_gsm_interp_2ionosouth, dlimits=dl, limits=l
-    store_data, 'elx_pos_gsm_interp_2ionosouth_mins', data={x: elx_pos_gsm_interp_2ionosouth.x[0:*:60], y: elx_pos_gsm_interp_2ionosouth.y[0:*:60,*]}, dlimits=dl, limits=l
-    ttrace2iono,'elx_pos_gsm_interp_2ionosouth_mins',newname='elx_ifoot_gsm_2ionosouth_mins',/km,/SOUTH
-    get_data,'elx_ifoot_gsm_2ionosouth_mins',data=ifoot_mins_interp
-    store_data,'elx_ifoot_gsm_2ionosouth',data={x: elx_pos_gsm_interp.x, y: interp(ifoot_mins_interp.y[*,*], ifoot_mins_interp.x, elx_pos_gsm_interp.x)}
-    ; clean up the temporary data
-    del_data, '*_mins'
-  endif else begin
-    ttrace2iono,'elx_pos_gsm_interp_2ionosouth',newname='elx_ifoot_gsm_2ionosouth',/km,/SOUTH    
-  endelse
+  ttrace2iono,'elx_pos_gsm_interp_2ionosouth',newname='elx_ifoot_gsm_2ionosouth',/km,/SOUTH
   get_data,'elx_ifoot_gsm_2ionosouth',data=elx_ifoot_gsm_2ionosouth,dlim=myifoot_dlim,lim=myifoot_lim
   get_data,'elx_ifoot_gsm',data=elx_ifoot_gsm,dlim=myifoot_dlim,lim=myifoot_lim
   elx_ifoot_gsm.y[i2south,*]=elx_ifoot_gsm_2ionosouth.y[i2south,*]
   store_data,'elx_ifoot_gsm',data={x:elx_ifoot_gsm.x,y:elx_ifoot_gsm.y},dlim=myifoot_dlim,lim=myifoot_lim
 endif
-
-get_data,'elx_ifoot_gsm',data=elx_ifoot_gsm, dlimits=dl, limits=l
-gsm_dur=(elx_ifoot_gsm.x[n_elements(elx_ifoot_gsm.x)-1]-elx_ifoot_gsm.x[0])/60.
-if gsm_dur GT 100. then begin
-  store_data, 'elx_ifoot_gsm_mins', data={x: elx_ifoot_gsm.x[0:*:60], y: elx_ifoot_gsm.y[0:*:60,*]}, dlimits=dl, limits=l
-  tt89,'elx_ifoot_gsm_mins',/igrf_only,newname='elx_ifoot_bt89_gsm_interp_mins',period=1.
-  get_data,'elx_ifoot_bt89_gsm_interp_mins',data=ifoot_bt89_gsm_interp_mins, dlimits=dl, limits=l
-  store_data,'elx_ifoot_bt89_gsm_interp',data={x: elx_ifoot_gsm.x, y: interp(ifoot_bt89_gsm_interp_mins.y[*,*], ifoot_bt89_gsm_interp_mins.x, elx_ifoot_gsm.x)}
-  ; clean up the temporary data
-  del_data, '*_mins'
-endif else begin
-  tt89,'elx_ifoot_gsm',/igrf_only,newname='elx_ifoot_bt89_gsm_interp',period=1.  
-endelse
+tt89,'elx_ifoot_gsm',/igrf_only,newname='elx_ifoot_bt89_gsm_interp',period=1.
 tvectot,'elx_bt89_gsm_interp',tot='elx_igrf_Btot'
 calc,' "onearray" = "elx_igrf_Btot"/"elx_igrf_Btot" ' ; contains the value of 1.
 tvectot,'elx_ifoot_bt89_gsm_interp',tot='elx_ifoot_igrf_Btot'
@@ -685,7 +618,6 @@ ylim,'*losscone*',0,180.
 options,'*losscone*','databar',90.
 options, '*losscone*', 'spec',0 
 options,'*losscone*','tplot_routine','mplot'
-
 ;
 for jthchan=0,numchannels-1 do begin
   str2exec="store_data,'"+mystring+"pa_spec2plot_ch"+strtrim(string(jthchan),2)+"LC',data='"+mystring+"pa_spec2plot_ch"+$
@@ -810,6 +742,7 @@ mincps=1/(average(elx_pxf_spinper.y)/nspinsectors) ; in case you need it in the 
 zlim,'el?_p?f_en*spec*',1,1,1
 ylim,'el?_p?f_en*spec*',55.,6800.,1
 ;
+;stop
 ;
 ;
 end

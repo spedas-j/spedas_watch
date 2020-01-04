@@ -300,9 +300,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         spin_str=''
         if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
           if medianflag NE 2 then begin
-               elf_getspec_v2, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
+               elf_getspec, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add
           endif else begin
-               elf_getspec_v2, probe=probe
+               elf_getspec, probe=probe
           endelse
           ; find spin period
           get_data, 'el'+probe+'_pef_spinper', data=spin
@@ -413,16 +413,16 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then begin
       ; get sector and phase delay for this zone
       if file_lbl[i] EQ '_24hr' then begin
-        elf_getspec_v2, probe=probe
+        elf_getspec, probe=probe
       endif else begin
         phase_delay = elf_find_phase_delay(trange=this_tr, probe=probe, /hourly,instrument='epde', no_download=no_download)
         dsect2add=fix(phase_delay.dsect2add[0])
         dphang2add=float(phase_delay.dphang2add[0])
         medianflag=fix(phase_delay.medianflag)
         if medianflag NE 2 then begin
-          elf_getspec_v2, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
+          elf_getspec, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add
         endif else begin
-          elf_getspec_v2, probe=probe
+          elf_getspec, probe=probe
         endelse
       endelse
     endif

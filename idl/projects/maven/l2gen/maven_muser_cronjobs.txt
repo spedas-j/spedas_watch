@@ -1,10 +1,12 @@
+1) UPDATEING IDL PATH:
+
 The muser SPEDAS working copy is under the directory
 /home/muser/export_socware/idl_socware/. To update, cd into that
 directory and run svn update, the password is the same as for muser
 login.
 
 
-The following PFP L2/QL cronjobs are run by the muser user on mojo, deimos:
+2) The following PFP L2/QL cronjobs are run by the muser user on mojo, deimos:
 
 MOJO JOBS:
 
@@ -43,7 +45,7 @@ The shell scripts are in the IDL path,
 and quicklook directories.
 
 
-Job descriptions:
+3) JOB DESCRIPTIONS:
 
 # once per day, manage L2 access
 17 11 * * * /bin/csh /home/muser/export_socware/idl_socware/projects/maven/l2gen/private/mvn_manage_l2access.sh >/dev/null 2>&1
@@ -65,6 +67,8 @@ process will wait for any L2 to L2 processes to finish before
 starting. Process log files are found in the directory
 /disks/mojo/home/maven/stalog, caled run_sta_l2gen.txtYYYYMMDDhhmmss
 
+The STA L0 to L2 process also creates LPW tplot files in the
+directories under /disks/data/maven/data/sci/lpw/tplot_l0
 
 # run STA L2 reprocess from L2 files, should increment and only run once per day,
  7 4,7,10,13,16,19,22 * * * /bin/csh /home/muser/export_socware/idl_socware/projects/maven/l2gen/muser_sta_l2reprocess.sh >/dev/null 2>&1
@@ -125,7 +129,35 @@ the most recent L0 files processed can be found in the file:
 /disks/data/maven/data/sci/swe/l2/most_recent_l0_processed.txt.
 
 
-REPROCESSING DATA:
+4) IF JOBS CRASH OR HANG OR NEED RESTARTING:
+
+FOR STATIC L0 -> L2
+
+Delete the file /disks/mojo/home/maven/muser/STAL2lock.txt 
+
+and the process will repeat for files created after the time listed in 
+
+/disks/data/maven/data/sci/sta/l2/most_recent_l0_processed.txt
+
+
+FOR STATIC L2 -> L2
+
+Delete the file /disks/mojo/home/maven/muser/STAL2Rlock.txt
+
+And the process will run dates after the time listed in 
+
+/disks/data/maven/data/sci/sta/l2/most_recent_l2_processed.txt
+
+FOR SWEA L0 -> L2
+
+Delete (on deimos) /mydisks/home/maven/muser/SWEL2lock.txt
+
+and the process will repeat for files created after the time listed in 
+
+/disks/data/maven/data/sci/swe/l2/most_recent_l0_processed.txt
+
+
+5) REPROCESSING DATA:
 
 For some reprocessing jobs, the most_recent_l0_processed.txt file can
 be edited and the automated process will pick up all L0 files created
