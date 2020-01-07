@@ -6,12 +6,12 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-06-28 13:54:33 -0700 (Fri, 28 Jun 2019) $
-; $LastChangedRevision: 27390 $
+; $LastChangedDate: 2020-01-06 14:38:00 -0800 (Mon, 06 Jan 2020) $
+; $LastChangedRevision: 28164 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spice/spp_swp_spice.pro $
 ;-
 
-pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,$
+pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,predict=predict,$
   quaternion=quaternion,no_download=no_download,res=res,load=load,position=position,angle_error=angle_error,att_frame=att_frame,ref_frame=ref_frame
   
   common spp_spice_kernels_com, last_load_time,last_trange
@@ -29,7 +29,7 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
   endif
 
   if keyword_set(load) || keyword_set(load_anyway) then begin
-    kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download)
+    kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download,predict=predict)
     last_load_time=systime(1)
     last_trange=trange
   endif
@@ -38,8 +38,11 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
 
   if keyword_set(position) then begin
     spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=1e6,name=n1,trange=trange,/force_objects ;million km
+    spice_position_to_tplot,'SPP','Venus',frame=ref_frame,res=res,scale=1e3,name=n2,trange=trange,/force_objects ; 1000 km
     xyz_to_polar,n1,/ph_0_360
-    options,'SPP_POS_(SUN-J2000)_mag',ysubtitle='(Mkm)',ystyle=3
+    xyz_to_polar,n2,/ph_0_360
+    options,'SPP_POS_(SUN-J2000)_mag',ysubtitle='(Million km)',ystyle=3
+    options,'SPP_POS_(Venus-J2000)_mag',ysubtitle='(1000 km)',ystyle=3
   endif
   if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
 

@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_span_prod
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-10-17 23:58:15 -0700 (Thu, 17 Oct 2019) $
-; $LastChangedRevision: 27890 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-01-06 15:02:41 -0800 (Mon, 06 Jan 2020) $
+; $LastChangedRevision: 28166 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 
@@ -101,20 +101,20 @@ PRO spp_swp_span_prod__define ,productstr, ccsds
 ;  detnum = (ishft(apid,-4) and 'F'x) < 8
 ;  detectors = ['?','?','?','?','SWEM','SPC','SPA','SPB','SPI']
 ;  detname = detectors[detnum]
-
+  product_bits=0b
   if (apid and 'E0'x) eq '60'x then begin   ;  span - electron packets
-    product_bits = ishft( ((apid and 'ff'xb) - '60'xb ) and '6'xb , 3)
+    product_bits or= ishft( ((apid and 'ff'xb) - '60'xb ) and '6'xb , 3)
     product_bits or= ishft( (apid and '10'xb) , 2)    ; set detector num (spa or spb)
     product_bits or= ishft( (apid and '1'xb)  , 2)    ; set product number 
   endif
 
   if (apid and '80'x) ne 0  then begin   ;  span - ion packets
     tmp = (apid and 'ff'xb) -'80'xb 
-    product_bits =  ishft(  tmp / 12b, 4 ) 
+    product_bits or=  ishft(  tmp / 12b, 4 ) 
     product_bits or=  tmp mod 12b
     product_bits or=  '80'xb
   endif
-
+  
   ion       =  (product_bits and '80'xb  ) ne 0
   det       =  (product_bits and '40'xb  ) ne 0
   survey    =  (product_bits and '20'xb ) ne 0 

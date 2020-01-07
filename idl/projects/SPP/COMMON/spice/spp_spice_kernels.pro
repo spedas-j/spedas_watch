@@ -18,13 +18,13 @@
 ;"LOAD" routines should assume that SPICE kernels are already loaded.
 ;
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-08-04 21:45:58 -0700 (Sun, 04 Aug 2019) $
-; $LastChangedRevision: 27537 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-01-06 14:55:53 -0800 (Mon, 06 Jan 2020) $
+; $LastChangedRevision: 28165 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
-  ,reconstruct=reconstruct,no_update=no_update,no_server=no_server,no_download=no_download,last_version=last_version
+  ,reconstruct=reconstruct,no_update=no_update,no_server=no_server,no_download=no_download,last_version=last_version,predict=predict
 
   if spice_test() eq 0 then return,''
   retrievetime = systime(1)
@@ -60,8 +60,8 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
       end
       ;Spacecraft position (BSP)
       'SPK':begin
-        append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/2018/*')
-        append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/2019/*')
+        append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/YYYY/*.bsp',/valid_only,/daily)
+        if keyword_set(predict) then append_array,kernels,spp_file_retrieve(pathname+'ephemeris_predict/YYYY/*.bsp',/valid_only,/daily)
       end
       ; Spacecraft Attitude (BC)
       'CK': append_array,kernels,spp_file_retrieve(pathname+'attitude_history/YYYY/spp_YYYY_DOY_??.ah.bc',trange=trange,last=last,/valid_only,/daily)

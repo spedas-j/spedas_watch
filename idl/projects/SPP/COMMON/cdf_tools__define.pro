@@ -5,16 +5,16 @@
 ;+
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-12-09 03:51:53 -0800 (Mon, 09 Dec 2019) $
-; $LastChangedRevision: 28099 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-01-06 15:07:08 -0800 (Mon, 06 Jan 2020) $
+; $LastChangedRevision: 28168 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
-; 
+;
 ; Written by Davin Larson October 2018
 ;-
- 
- 
- 
+
+
+
 
 ;
 ;PRO cdf_tools::Cleanup
@@ -31,16 +31,16 @@
 
 
 
- 
- ;+
+
+;+
 ;NAME: SW_VERSION
-;Function: 
+;Function:
 ;PURPOSE:
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-12-09 03:51:53 -0800 (Mon, 09 Dec 2019) $
-; $LastChangedRevision: 28099 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-01-06 15:07:08 -0800 (Mon, 06 Jan 2020) $
+; $LastChangedRevision: 28168 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -50,26 +50,26 @@ function cdf_tools::sw_version
   tb = scope_traceback(/structure)
   this_file = tb[n_elements(tb)-1].filename
   this_file_date = (file_info(this_file)).mtime
-  login_info = get_login_info() 
+  login_info = get_login_info()
 
   sw_hash = orderedhash()
-  
+
   sw_hash['sw_version'] =  'v00'
   sw_hash['sw_time_stamp_file'] = this_file
   sw_hash['sw_time_stamp'] = time_string(this_file_date)
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
-  sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2019-12-09 03:51:53 -0800 (Mon, 09 Dec 2019) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 28099 $'
+  sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-01-06 15:07:08 -0800 (Mon, 06 Jan 2020) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 28168 $'
 
-  return,sw_hash
+    return,sw_hash
 end
- 
+
 ;function cdf_tools::default_global_attributes
 ;  global_att=orderedhash()
-; 
+;
 ;  global_att['Project'] = 'PSP>Parker Solar Probe'
 ;  global_att['Source_name'] = 'PSP>Parker Solar Probe'
 ;  global_att['Acknowledgement'] = !NULL
@@ -89,7 +89,7 @@ end
 ;  global_att['PI_affiliation'] = 'U. Michigan'
 ;  global_att['IPI_name'] = 'D. Larson (davin@ssl.berkeley.edu)
 ;  global_att['IPI_affiliation'] = 'U.C. Berkeley Space Sciences Laboratory'
-;  global_att['InstrumentLead_name'] = '  ' 
+;  global_att['InstrumentLead_name'] = '  '
 ;  global_att['InstrumentLead_affiliation'] = 'U.C. Berkeley Space Sciences Laboratory'
 ;  global_att['Instrument_type'] = 'Electrostatic Analyzer Particle Detector'
 ;  global_att['Mission_group'] = 'PSP'
@@ -136,45 +136,46 @@ end
 ;     for i=0,ntags-1 do begin
 ;       val = array.(i)
 ;       cdf_var_att_create,self.fileid,varnames[i],val,attributes=atts
-;     endfor    
-;   endif 
+;     endfor
+;   endif
 ;end
 
 
 pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
-;  if not keyword_set(self.cdf_pathname) then return
+  ;  if not keyword_set(self.cdf_pathname) then return
   dprint,'starting: '+pathname,dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
 
   global_attributes = self.g_attributes
-;  if keyword_set(trange) then begin
-;    if not keyword_set(trange) then trange=timerange()
-;    pathname =  spp_file_retrieve(self.cdf_pathname ,trange=trange,/create_dir,/daily_names)
-;    global_attributes['Logical_file_id'] = str_sub(pathname,'$NAME$',self.name)
-;
-;    pathname = global_attributes['Logical_file_id']
-;    
-;  endif 
+  ;  if keyword_set(trange) then begin
+  ;    if not keyword_set(trange) then trange=timerange()
+  ;    pathname =  spp_file_retrieve(self.cdf_pathname ,trange=trange,/create_dir,/daily_names)
+  ;    global_attributes['Logical_file_id'] = str_sub(pathname,'$NAME$',self.name)
+  ;
+  ;    pathname = global_attributes['Logical_file_id']
+  ;
+  ;  endif
   if ~isa(pathname,/string) then  pathname = 'temp.cdf'
   file_mkdir2,file_dirname(pathname),add_link=self.linkname,/add_parent_link,verbose=self.verbose
   self.fileid = cdf_create(pathname,/clobber)
- ; dprint,'Making CDF file: '+pathname,dlevel=self.dlevel,verbose=verbose
+  ; dprint,'Making CDF file: '+pathname,dlevel=self.dlevel,verbose=verbose
 
-  global_attributes = self.g_attributes  
+  global_attributes = self.g_attributes
   foreach attvalue,global_attributes,name do begin
     dummy = cdf_attcreate(self.fileid,name,/global_scope)
     for gentnum=0,n_elements(attvalue)-1 do begin
-      if n_elements(attvalue[gentnum]) ne 0 then  begin
+      if isa(attvalue[gentnum]) then begin
+        if isa(/string,attvalue[gentnum]) and ~keyword_set(attvalue[gentnum]) then continue ;ignore null strings
         cdf_attput,self.fileid,name,gentnum,attvalue[gentnum]
       endif
     endfor
   endforeach
-  
+
   vars = self.vars
   foreach v,vars,k do begin
     self.var_att_create,v
   endforeach
   ;self.create_data_vars,fileid,vattributes=var_atts
-   
+
   cdf_close,self.fileid
   self.fileid = 0
   dprint,'Created: '+pathname,dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
@@ -188,9 +189,9 @@ end
 ;  return,strct
 ;END
 
- 
- 
- 
+
+
+
 ;PRO cdf_tools::GetProperty,data=data, array=array, npkts=npkts, apid=apid, name=name,  typename=typename, $
 ;   nsamples=nsamples,nbytes=nbytes,strct=strct,ccsds_last=ccsds_last,tname=tname,dlevel=dlevel,ttags=ttags,last_data=last_data, $
 ;   window=window
@@ -211,9 +212,9 @@ end
 ;IF (ARG_PRESENT(dlevel)) THEN dlevel = self.dlevel
 ;if (arg_present(strct) ) then strct = self.struct()
 ;END
- 
-  
- 
+
+
+
 ;PRO cdf_tools::SetProperty,apid=apid, _extra=ex
 ;COMPILE_OPT IDL2
 ;; If user passed in a property, then set it.
@@ -235,7 +236,7 @@ end
 
 
 pro cdf_tools::help,vname
-   print_struct, self.var_info_structures()
+  print_struct, self.var_info_structures()
 
 end
 
@@ -253,10 +254,10 @@ pro cdf_tools::var_att_create,var
   varname = var.name
   data = var.data
   ZVARIABLE =  1  ; force it to be a zvar
-;  ,name=varname,data=data,attributes=attributes,rec_novary=rec_novary,datatype=datatype
+  ;  ,name=varname,data=data,attributes=attributes,rec_novary=rec_novary,datatype=datatype
   rec_novary = ~var.recvary
   if isa(data,'DYNAMICARRAY') then begin
-    data=  data.array 
+    data=  data.array
     if size(/n_dimen,data) eq 2 then data = transpose(data)
     if size(/n_dimen,data) eq 3 then  begin
       data = transpose(data,[2,1,0])
@@ -288,7 +289,7 @@ pro cdf_tools::var_att_create,var
   endcase
   opts = struct(cdf_type,ZVARIABLE=ZVARIABLE,rec_novary=rec_novary,numelem=numelem)
 
-  
+
   dprint,dlevel=self.dlevel+2,phelp=2,varname,dim,opts,data
   if ~keyword_set(rec_novary)  then  begin
     if ndim ge 1 then begin
@@ -298,29 +299,29 @@ pro cdf_tools::var_att_create,var
     endelse
   endif else begin
     if ndim ge 1 then begin
-      varid = cdf_varcreate(fileid, varname,dim gt 1,dimension=dim,_extra=opts)      
+      varid = cdf_varcreate(fileid, varname,dim gt 1,dimension=dim,_extra=opts)
     endif else begin
-      varid = cdf_varcreate(fileid, varname,_extra=opts)      
+      varid = cdf_varcreate(fileid, varname,_extra=opts)
     endelse
   endelse
 
   if isa(data) then begin
-    cdf_varput,fileid,varname,data 
+    cdf_varput,fileid,varname,data
   endif else begin
-   dprint,dlevel=self.dlevel,'Warning! No data written for '+varname
+    dprint,dlevel=self.dlevel,'Warning! No data written for '+varname
   endelse
 
 
   if isa(var.attributes,'ORDEREDHASH')  then begin
     foreach value,var.attributes,attname do begin
-      if not keyword_set(attname) then continue      ; ignore null strings
+      if not keyword_set(attname) then continue ;ignore null strings
       if ~cdf_attexists(fileid,attname) then begin
         dummy = cdf_attcreate(fileid,attname,/variable_scope)
         dprint,verbose=verbose,dlevel=dlevel,'Created new Attribute: ',attname, ' for: ',varname
       endif
       if isa(value) then begin
-        if isa(/string,value) and ~keyword_set(value) then value = ' '
-        cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE        
+        if isa(/string,value) and ~keyword_set(value) then continue ;ignore null strings
+        cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE
       endif
     endforeach
   endif else dprint,dlevel=1,'Warning! No attributes for '+varname
@@ -330,66 +331,66 @@ end
 
 ;  return an array of structures
 function cdf_tools::get_var_struct,  names, struct0=struct0,add_time = add_time
-if self.nvars eq 0 then return, !null
-if not keyword_set(names) then begin
-  names = self.varnames()
-  vary = bytarr(n_elements(names))
-  foreach nam,names,i do begin
-    vary[i] = self.vars[nam].recvary
-  endforeach
-  names = names[where(vary,/null)]
-endif
-;if isa(struct0,'STRUCT') then strct0 = !null
-if keyword_set(add_time) then str_element,/add,strct0,'TIME',!values.d_nan
-numrec = 0
-for i=0,n_elements(names)-1 do begin   ;    define first record structure;
-  vi = self.vars[names[i]]
-;  val = vi.data.array
-  if vi.ndimen ge 1 then begin
-    dim = vi.d
-    dim = dim[where(dim ne 0)]
-    val = make_array(type=vi.type,/nozero,  dimension=dim)  
-  endif else begin
-    val = make_array(type=vi.type,1,/nozero)
-    val = val[0]
-  endelse
-  str_element,/add,strct0, names[i],val
-  if numrec ne 0 then begin
-    if numrec ne vi.numrec then dprint,'Warning! wrong number of records: ', names[i]
+  if self.nvars eq 0 then return, !null
+  if not keyword_set(names) then begin
+    names = self.varnames()
+    vary = bytarr(n_elements(names))
+    foreach nam,names,i do begin
+      vary[i] = self.vars[nam].recvary
+    endforeach
+    names = names[where(vary,/null)]
   endif
-  numrec = numrec > vi.numrec    ; get largest record size
-endfor
+  ;if isa(struct0,'STRUCT') then strct0 = !null
+  if keyword_set(add_time) then str_element,/add,strct0,'TIME',!values.d_nan
+  numrec = 0
+  for i=0,n_elements(names)-1 do begin   ;    define first record structure;
+    vi = self.vars[names[i]]
+    ;  val = vi.data.array
+    if vi.ndimen ge 1 then begin
+      dim = vi.d
+      dim = dim[where(dim ne 0)]
+      val = make_array(type=vi.type,/nozero,  dimension=dim)
+    endif else begin
+      val = make_array(type=vi.type,1,/nozero)
+      val = val[0]
+    endelse
+    str_element,/add,strct0, names[i],val
+    if numrec ne 0 then begin
+      if numrec ne vi.numrec then dprint,'Warning! wrong number of records: ', names[i]
+    endif
+    numrec = numrec > vi.numrec    ; get largest record size
+  endfor
 
-;if numrec eq 1 then stop
-strct_n = replicate(strct0,numrec)
-for i=0,n_elements(names)-1 do begin
-  vi = self.vars[names[i]]
-  vals = vi.data.array
-;  dprint,size(/n_dimen,vals),names[i]
-  if size(/n_dimen,vals) ge 2 then begin   ; need a correction if ndimen >= 3
-    vals = transpose(vals)
-  endif  else if numrec eq 1 then vals = vals[0]
-  str_element,/add,strct_n,names[i], vals 
-endfor
-  
-if keyword_set(add_time) then begin
-  time = time_ephemeris(strct_n.epoch / 1d9 ,/et2ut)
-  strct_n.time = time
-endif
+  ;if numrec eq 1 then stop
+  strct_n = replicate(strct0,numrec)
+  for i=0,n_elements(names)-1 do begin
+    vi = self.vars[names[i]]
+    vals = vi.data.array
+    ;  dprint,size(/n_dimen,vals),names[i]
+    if size(/n_dimen,vals) ge 2 then begin   ; need a correction if ndimen >= 3
+      vals = transpose(vals)
+    endif  else if numrec eq 1 then vals = vals[0]
+    str_element,/add,strct_n,names[i], vals
+  endfor
 
-return,strct_n
+  if keyword_set(add_time) then begin
+    time = time_ephemeris(strct_n.epoch / 1d9 ,/et2ut)
+    strct_n.time = time
+  endif
+
+  return,strct_n
 end
 
 
 
 
 pro cdf_tools::filter_variables, index
-;  vnames = self.vars.keys()
+  ;  vnames = self.vars.keys()
   foreach var,self.vars,vname do begin
     if var.recvary then begin
       array = var.data.array
-      case var.ndimen of  
-        0:  var.data.array = array[index] 
+      case var.ndimen of
+        0:  var.data.array = array[index]
         1:  var.data.array = array[index,*]
         2:  var.data.array = array[index,*,*]
         3:  var.data.array = array[index,*,*,*]
@@ -431,7 +432,7 @@ function cdf_tools::datavary_struct,varnames=varnames
         1: dat0= reform(dat[0,*])
         2: dat0= reform(dat[0,*,*])
         3: dat0= reform(dat[0,*,*,*])
-      endcase      
+      endcase
     endelse
     strct0 = create_struct(strct0,k,dat0)
   endforeach
@@ -453,7 +454,7 @@ function cdf_tools::varnames,namematch,data=data
   l=list()
   depend = list()
   if isa(data) then begin
-    foreach v,self.vars,k do begin      
+    foreach v,self.vars,k do begin
       if v.attributes.haskey('VAR_TYPE') && v.attributes['VAR_TYPE'] eq 'data' then begin
         l.add ,k  ; v.attributes['VAR_TYPE'].name
         if v.attributes.haskey('DEPEND_0') then depend.add, v.attributes['DEPEND_0']
@@ -465,7 +466,7 @@ function cdf_tools::varnames,namematch,data=data
     depend = depend[ uniq( depend.toarray() ) ]
     l.add, depend
     return, l.toarray()
-    
+
   endif
   return,vnames.toarray()
 
@@ -525,7 +526,7 @@ pro cdf_tools::read,filenames
       q = !quiet
       nv = inq.nvars+inq.nzvars
       vinfo = self.vars   ;      vinfo = orderedhash()
-      
+
       self.filename = file
       *self.inq_ptr = inq
       self.filenames.add,file
@@ -533,7 +534,7 @@ pro cdf_tools::read,filenames
       self.g_attributes = cdf_var_atts2(self.fileid)   ; global attributes
       num_recs =0
       t0=systime(1)
-      
+
       ; should make a check here to insure the same file type is loaded
 
       varinfo_format= {cdf_tools_varinfo}
@@ -557,12 +558,12 @@ pro cdf_tools::read,filenames
           vinfo_i.type = self.cdf_var_type(vi.datatype)
           vinfo_i.numelem = vi.numelem
           recvar = vi.recvar eq 'VARY'
-          vinfo_i.recvary = recvar            
+          vinfo_i.recvary = recvar
 
           if recvar then begin
-;            !quiet = 1
+            ;            !quiet = 1
             cdf_control,self.fileid,var=v,get_var_info=info,zvar = zvar
-;            !quiet = q
+            ;            !quiet = q
             ;if vb ge 7 then print,ptrace(),vi.name
             nrecs = info.maxrec+1
           endif else nrecs = 0
@@ -582,13 +583,13 @@ pro cdf_tools::read,filenames
           ;dprint,dlevel=3,phelp=3,vi,dimen,dimc
           t2 = systime(1)
           dprint,dlevel=4,verbose=verbose,v,systime(1)-t2,' '+vi.name
-          
+
           if 1 ||  keyword_set(ret_attr) then begin                                                      ; Get attributes first
             attr = cdf_var_atts2(self.fileid, v,zvar=zvar, convert_int1_to_int2=convert_int1_to_int2)   ; Fast Version
             vinfo_i.attributes = attr
             vinfo_i.numattr = n_elements(attr)
           endif
-          
+
           if keyword_set(ret_data) then begin    ; Get data
             if  nrecs ge 1 then begin
               cdf_varget,self.fileid,vinfo_i.name,value ,rec_count=nrecs    ,string= vinfo_i.numelem gt 1
@@ -622,7 +623,7 @@ pro cdf_tools::read,filenames
 
     dprint,dlevel=3,verbose=verbose,'Time=',systime(1)-tstart
     return
-    
+
   endelse
 end
 
@@ -635,34 +636,34 @@ function cdf_tools::var_info_structures   ; not ready yet
     strct[i++] = v
   endforeach
   return,strct
-  
+
 end
 
 function cdf_tools::get_variable_structure,varns
   namelist = self.vars.keys()
   vars=!null
   foreach v,varns do begin
-     if isa(/string,v) then vstruct = self.vars[varns]
-     if isa(/number,v) then vstruct = self.vars[namelist[v]]   
-  vars = [vars,vstruct]
+    if isa(/string,v) then vstruct = self.vars[varns]
+    if isa(/number,v) then vstruct = self.vars[namelist[v]]
+    vars = [vars,vstruct]
   endforeach
-return,vars
+  return,vars
 end
 
 
 pro cdf_tools::load_variables_from_structure,datavary,names=vnames
 
-;  if ~keyword_set(global_att) then begin
-;    global_att = orderedhash()
-;    global_att['Project'] = 'PSP>Parker Solar Probe'
-;  endif
-;  cdf.g_attributes += global_att
+  ;  if ~keyword_set(global_att) then begin
+  ;    global_att = orderedhash()
+  ;    global_att['Project'] = 'PSP>Parker Solar Probe'
+  ;  endif
+  ;  cdf.g_attributes += global_att
 
   fnan = !values.f_nan
 
 
-;  vho = cdf_tools_varinfo('Epoch',epoch[0],/recvary,all_values=epoch,datatype = 'CDF_TIME_TT2000',/set_default_atts)
-;  cdf.add_variable, vho
+  ;  vho = cdf_tools_varinfo('Epoch',epoch[0],/recvary,all_values=epoch,datatype = 'CDF_TIME_TT2000',/set_default_atts)
+  ;  cdf.add_variable, vho
 
   if keyword_set(datavary) then begin
     ;    if ~keyword_set(vnames) then $
@@ -709,41 +710,41 @@ end
 
 pro cdf_tools::make_tplot_var,varnames,prefix=prefix
 
-   default_epoch = 'epoch'
-   if ~keyword_set(prefix) then prefix = ''
-   foreach vname,varnames do begin
-      
-      if self.vars.haskey(vname) then begin
-        var_str = self.vars[vname]
-        depend_0 = default_epoch
-        str_element,var_str.attributes,'DEPEND_0',depend_0
-        time_str = self.vars[depend_0]
-        time = time_ephemeris(time_str.data.array / 1d9,/et2ut)
-        store_data,prefix+vname,time,var_str.data.array
-      endif else begin
-        dprint , var ,' not found'
-      endelse
-     
-    
-   endforeach
+  default_epoch = 'epoch'
+  if ~keyword_set(prefix) then prefix = ''
+  foreach vname,varnames do begin
+
+    if self.vars.haskey(vname) then begin
+      var_str = self.vars[vname]
+      depend_0 = default_epoch
+      str_element,var_str.attributes,'DEPEND_0',depend_0
+      time_str = self.vars[depend_0]
+      time = time_ephemeris(time_str.data.array / 1d9,/et2ut)
+      store_data,prefix+vname,time,var_str.data.array
+    endif else begin
+      dprint , var ,' not found'
+    endelse
+
+
+  endforeach
 
 
 end
 
 
 
- 
- 
+
+
 PRO cdf_tools::GetProperty, filename=filename, vars=vars, G_attributes=G_attributes,files=files ;, nvars=nvars
-COMPILE_OPT IDL2
-IF (ARG_PRESENT(filename)) THEN filename = self.filename
-IF (ARG_PRESENT(files)) THEN files = self.filenames
-IF (ARG_PRESENT(nvars)) THEN nvars = n_elements(self.vars)
-IF (ARG_PRESENT(G_attributes)) THEN G_attributes = self.G_attributes
-IF (ARG_PRESENT(vars)) THEN vars = self.vars
+  COMPILE_OPT IDL2
+  IF (ARG_PRESENT(filename)) THEN filename = self.filename
+  IF (ARG_PRESENT(files)) THEN files = self.filenames
+  IF (ARG_PRESENT(nvars)) THEN nvars = n_elements(self.vars)
+  IF (ARG_PRESENT(G_attributes)) THEN G_attributes = self.G_attributes
+  IF (ARG_PRESENT(vars)) THEN vars = self.vars
 END
- 
- 
+
+
 
 
 FUNCTION cdf_tools::Init,filenames,_EXTRA=ex
@@ -760,10 +761,10 @@ FUNCTION cdf_tools::Init,filenames,_EXTRA=ex
     ;  self.cdf_pathname = prefix + 'sweap/spx/
   endif
   ; self.data = dynamicarray(name=name)
-;  self.dlevel = 3
-;  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
-  IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex    
-  self.read,filenames   
+  ;  self.dlevel = 3
+  ;  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
+  IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
+  self.read,filenames
   RETURN, 1
 END
 
@@ -775,19 +776,19 @@ END
 
 
 PRO cdf_tools__define
-void = {cdf_tools, $
-  inherits generic_object, $    ; superclass
-  filename: '',  $
-  filenames: obj_new(), $
-  linkname: '',  $
-  fileid:  0uL,  $
-  inq_ptr:  ptr_new() ,  $          ; pointer to inquire structure 
-  G_attributes: obj_new(),  $     ; ordered hash
-;  nv:  0     , $
-  nvars: 0, $
-  vars:  obj_new() $
-}  
- 
+  void = {cdf_tools, $
+    inherits generic_object, $    ; superclass
+    filename: '',  $
+    filenames: obj_new(), $
+    linkname: '',  $
+    fileid:  0uL,  $
+    inq_ptr:  ptr_new() ,  $          ; pointer to inquire structure
+    G_attributes: obj_new(),  $     ; ordered hash
+    ;  nv:  0     , $
+    nvars: 0, $
+    vars:  obj_new() $
+  }
+
 END
 
 
