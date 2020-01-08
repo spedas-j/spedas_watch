@@ -19,12 +19,12 @@
 ;
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-01-06 14:55:53 -0800 (Mon, 06 Jan 2020) $
-; $LastChangedRevision: 28165 $
+; $LastChangedDate: 2020-01-07 15:11:48 -0800 (Tue, 07 Jan 2020) $
+; $LastChangedRevision: 28174 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
-  ,reconstruct=reconstruct,no_update=no_update,no_server=no_server,no_download=no_download,last_version=last_version,predict=predict
+  ,reconstruct=reconstruct,no_update=no_update,no_server=no_server,no_download=no_download,last_version=last_version,predict=predict,attitude=attitude
 
   if spice_test() eq 0 then return,''
   retrievetime = systime(1)
@@ -60,11 +60,12 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
       end
       ;Spacecraft position (BSP)
       'SPK':begin
-        append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/YYYY/*.bsp',/valid_only,/daily)
-        if keyword_set(predict) then append_array,kernels,spp_file_retrieve(pathname+'ephemeris_predict/YYYY/*.bsp',/valid_only,/daily)
+        if keyword_set(predict) then begin
+          append_array,kernels,spp_file_retrieve(pathname+'ephemeris_predict/????/*.bsp')
+        endif else append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/????/*.bsp')
       end
       ; Spacecraft Attitude (BC)
-      'CK': append_array,kernels,spp_file_retrieve(pathname+'attitude_history/YYYY/spp_YYYY_DOY_??.ah.bc',trange=trange,last=last,/valid_only,/daily)
+      'CK': if keyword_set(attitude) then append_array,kernels,spp_file_retrieve(pathname+'attitude_history/YYYY/spp_YYYY_DOY_??.ah.bc',trange=trange,last=last,/valid_only,/daily)
       ; Instrument Kernels (TI)
       'IK':
     endcase

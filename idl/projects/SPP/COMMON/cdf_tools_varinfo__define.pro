@@ -1,19 +1,13 @@
-
-
-
 ;+
 ;  cdf_tools_varinfo
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-10-31 18:00:59 -0700 (Thu, 31 Oct 2019) $
-; $LastChangedRevision: 27958 $
+; $LastChangedDate: 2020-01-07 14:01:00 -0800 (Tue, 07 Jan 2020) $
+; $LastChangedRevision: 28173 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools_varinfo__define.pro $
 ;
 ; Written by Davin Larson October 2018
 ;-
-
-
-
 
 function cdf_tools_varinfo::variable_attributes, vname,value
   dlevel =3
@@ -39,7 +33,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['FIELDNAM']    = 'Time in TT2000 format'
       att['LABLAXIS']    = EPOCHname
       att['UNITS']    = 'ns'
-;      att['FILLVAL']    = -1LL
+      ;att['FILLVAL']    = -1LL
       att['FILLVAL']    = -9223372036854775808      
       att['VALIDMIN']    = -315575942816000000
       att['VALIDMAX']    = 946728068183000000
@@ -326,8 +320,15 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VAR_TYPE']    = 'support_data'
       att['DICT_KEY']    = ''
       att['SCALETYP']    = 'linear'
-      att['MONOTON']    = ''
       att['FORMAT']   = 'I10'
+    end
+    'ROTMAT_SC_INST': begin
+      att['CATDESC']    = 'ROTATION MATRIX'
+      att['FIELDNAM']    = 'Rotation Matrix from Spacecraft to Instrument Coordinates'
+      att['DEPEND_0']    = ''
+      att['LABLAXIS']    = ''
+      att['VAR_TYPE']    = 'metadata'
+      att['FORMAT']   = 'F8.2'
     end
     else:  begin    ; assumed to be support
       att['CATDESC']    = 'Not known'
@@ -352,10 +353,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
 end
 
 
-
-
-
-
 PRO cdf_tools_varinfo::GetProperty, data=data, name=name, attributes=attributes, numrec=numrec,strct=strct
   COMPILE_OPT IDL2
   IF (ARG_PRESENT(name)) THEN name = self.name
@@ -364,9 +361,6 @@ PRO cdf_tools_varinfo::GetProperty, data=data, name=name, attributes=attributes,
   IF (ARG_PRESENT(data)) THEN data = self.data
   IF (ARG_PRESENT(strct)) THEN struct_assign,strct,self
 END
-
-
-
 
 
 FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_array=str_arr,set_default_atts=set_default_atts,attr_name=attr_name,_EXTRA=ex
@@ -378,10 +372,8 @@ FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_arra
     all_values = transpose(dat_values)
     str_element,str_arr[0],name,value
   endif
-  if isa(name,/string) && keyword_set(set_default_atts) then begin
-    self.name  =name
-    self.attributes = self.variable_attributes(name,value)
-  endif
+  if isa(name,/string) then self.name=name
+  if keyword_set(set_default_atts) then self.attributes = self.variable_attributes(name,value)
   self.data = dynamicarray(all_values,name=self.name)
   self.is_zvar = 1
   self.type = size(/type,value)
@@ -411,7 +403,3 @@ PRO cdf_tools_varinfo__define
     attributes:obj_new()   $
   }
 end
-
-
-
-

@@ -6,9 +6,9 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-01-06 14:38:00 -0800 (Mon, 06 Jan 2020) $
-; $LastChangedRevision: 28164 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spice/spp_swp_spice.pro $
+; $LastChangedDate: 2020-01-07 15:11:48 -0800 (Tue, 07 Jan 2020) $
+; $LastChangedRevision: 28174 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
 pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,predict=predict,$
@@ -29,7 +29,7 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
   endif
 
   if keyword_set(load) || keyword_set(load_anyway) then begin
-    kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download,predict=predict)
+    kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download,predict=predict,attitude=quaternion)
     last_load_time=systime(1)
     last_trange=trange
   endif
