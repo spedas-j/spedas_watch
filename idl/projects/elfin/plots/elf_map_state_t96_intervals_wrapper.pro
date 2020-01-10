@@ -10,10 +10,14 @@
 ;  Date: date for plot creation, if not set, assumes current date and duration counts backwards(ie last N days from today)
 ;
 ;KEYWORDS:
-;  Dur: If set, number of days to process, default is 1
-;  South_only: If set, does tracing to southern hemisphere only
-;  North_only: If set, does tracing to northern hemisphere only
-;            The default value is to plot both north and south
+;  dur:        If set, number of days to process, default is 1
+;  south_only: If set, does tracing to southern hemisphere only
+;  north_only: If set, does tracing to northern hemisphere only
+;              The default value is to plot both north and south
+;  pred:       Set this flag to use predicted data and title to predicted
+;  sm:         Set this flag to create plots in sm coordinates (default is geo)
+;  bfirst:     Set this flag to plot b on top of a (default is a on top of b)
+;  do_all:     Set this flag to create all plots (north, south, geo, sm, a on b, and b on a)      
 ;            
 ; $LastChangedBy: pcruce $
 ; $LastChangedDate: 2012-07-31 14:50:02 -0700 (Tue, 31 Jul 2012) $
@@ -21,7 +25,7 @@
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/thmsoc/trunk/idl/thmsoc/asi/map_themis_state_t96_wrapper.pro $
 ;-
 pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
-   north_only=north_only, pred=pred, insert_stop=insert_stop
+   north_only=north_only, pred=pred, insert_stop=insert_stop, sm=sm, bfirst=bfirst, do_all=do_all
 
   compile_opt idl2
 
@@ -54,10 +58,39 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
     endif
     if ~keyword_set(north_only) AND ~keyword_set(south_only) then begin
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
+      if keyword_set(do_all) then begin
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm,/bfirst
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm,/bfirst
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm,/bfirst
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm,/bfirst        
+      endif else begin
+        if ~keyword_set(sm) then begin
+          elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
+          elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
+          elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
+          elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
+        endif else begin
+          if ~keyword_set(bfirst) then begin
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm
+          endif else begin
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm,/bfirst
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm,/bfirst
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm,/bfirst
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm,/bfirst          
+          endelse
+        endelse
+      endelse
     endif
   endfor
 

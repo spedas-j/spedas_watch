@@ -154,7 +154,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   options, 'epd_bar', 'ystyle',4
   options, 'epd_bar', 'xstyle',4
 
-  ;if ~keyword_set(sci_zone) then xloc=.25 else xloc=.175
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... fgm status bar
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -204,7 +203,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ; set up for plots by science zone
   if (size(pef_nflux, /type)) EQ 8 then begin
     tdiff = pef_nflux.x[1:n_elements(pef_nflux.x)-1] - pef_nflux.x[0:n_elements(pef_nflux.x)-2]
-    idx = where(tdiff GT 90., ncnt)   ; note: 90 seconds is an arbitary time
+    idx = where(tdiff GT 60., ncnt)   ; note: 60 seconds is an arbitary time
     if ncnt EQ 0 then begin
       ; if ncnt is zero then there is only one science zone for this time frame
       sz_starttimes=[pef_nflux.x[0]]
@@ -228,23 +227,31 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           this_e = pef_nflux.x[idx[sz]]
           eidx = idx[sz]
         endelse
-
-        if (this_e-this_s) lt 60. then continue
+        if (this_e-this_s) lt 30. then continue
         ;if (this_s GT time_double('2019-09-28/06:20') and this_s LT time_double('2019-09-28/06:30')) then continue 
         append_array, sz_starttimes, this_s
         append_array, sz_endtimes, this_e
         append_array, sz_min_st, sidx
         append_array, sz_min_en, eidx
-        ts=time_struct(this_s)
-        te=time_struct(this_e)
-        if ts.hour LT 10 then shr='0'+strtrim(string(ts.hour),1) else shr=strtrim(string(ts.hour),1)
-        if te.hour LT 10 then ehr='0'+strtrim(string(te.hour),1) else ehr=strtrim(string(te.hour),1)
-        endfor
-      endelse
-    endif
-;  sz_num=['_sz0','_sz1','_sz2','_sz3','_sz4']
+      endfor
+      ; check for final science zone (not picked up by tdiff)
+      if ~undefined(this_e) then begin
+        idx=where(pef_nflux.x GT  this_e[n_elements(this_e)-1], ncnt)
+        if ncnt GT 30 then begin
+          this_s=pef_nflux.x[idx[0]]
+          sidx=idx[0]
+          this_e=pef_nflux.x[idx[ncnt-1]]
+          eidx=idx[ncnt-1]
+          append_array, sz_starttimes, this_s
+          append_array, sz_endtimes, this_e
+          append_array, sz_min_st, sidx
+          append_array, sz_min_en, eidx
+        endif
+      endif 
+    endelse
+  endif
+  
   nplots = n_elements(min_st)
-
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; MAIN LOOP for PLOTs
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -285,6 +292,22 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         del_data, 'el'+probe+'_pef_nflux'
         elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux',no_download=no_download ; DEFAULT UNITS ARE NFLUX THIS ONE IS CPS
 
+        ; ... EPD fast bar
+        ;del_data, 'epdef_fast_bar'
+        ;del_data, 'epd_bar'
+        ;elf_load_epd_fast_segments, tplotname='el'+probe+'_pef_nflux', no_download=no_download
+        ;get_data, 'epdef_fast_bar', data=epdef_fast_bar_x
+        ;elf_load_epd_survey_segments, tplotname='el'+probe+'_pes_nflux'
+        ;get_data, 'epdes_survey_bar', data=epdes_survey_bar_x
+
+        ;if isa(epdef_fast_bar_x) && isa(epdes_fast_bar_x) then store_data, 'epd_bar', data=['epdef_fast_bar','epdes_survey_bar']
+        ;if ~isa(epdef_fast_bar_x) && isa(epdes_survey_bar_x) then store_data, 'epd_bar', data=['epdef_survey_bar']
+        ;if isa(epdef_fast_bar_x) && ~isa(epdes_survey_bar_x) then store_data, 'epd_bar', data=['epdef_fast_bar']
+        ;options, 'epd_bar', panel_size=0.1
+        ;options, 'epd_bar',ticklen=0
+        ;options, 'epd_bar', 'ystyle',4
+        ;options, 'epd_bar', 'xstyle',4
+
         ; get sector and phase delay for this zone
         phase_delay = elf_find_phase_delay(trange=sz_tr, probe=probe, instrument='epde', no_download=no_download)
         dsect2add=fix(phase_delay.dsect2add[0])
@@ -301,6 +324,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
           if medianflag NE 2 then begin
                elf_getspec, /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add
+               if ~spd_data_exists('el'+probe+'pef_en_spec2plot_para',sz_tr[0],sz_tr[1]) then begin
+                 elf_getspec, probe=probe
+               endif
           endif else begin
                elf_getspec, probe=probe
           endelse
@@ -337,7 +363,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
             if median(dlat) GT 0 then sz_plot_lbl = ', North Ascending' else $
               sz_plot_lbl = ', North Descending'
             if median(dlat) GT 0 then sz_file_lbl = file_lbl[i] + '_nasc' else $
-              sz_file_lbl = file_lbl[i] + '_ndesc'
+              sz_file_lbl = file_lbl[i] + '_ndes'
           endif else begin
             if median(dlat) GT 0 then sz_plot_lbl = ', South Ascending' else $
               sz_plot_lbl = ', South Descending'
@@ -410,7 +436,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     del_data, 'el'+probe+'_pef_nflux'
     elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux',no_download=no_download ; DEFAULT UNITS ARE NFLUX THIS ONE IS CPS
-    if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then begin
+    if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then begin 
       ; get sector and phase delay for this zone
       if file_lbl[i] EQ '_24hr' then begin
         elf_getspec, probe=probe

@@ -246,7 +246,21 @@ options,'ddts','databar',{yval:[0.], color:[6], linestyle:2}
 threeones=[1,1,1]
 cotrans,'elx_pos_gei','elx_pos_gse',/GEI2GSE
 cotrans,'elx_pos_gse','elx_pos_gsm',/GSE2GSM
-tt89,'elx_pos_gsm',/igrf_only,newname='elx_bt89_gsm',period=1.
+
+get_data, 'elx_pos_gsm', data=datgsm, dlimits=dl, limits=l
+gsm_dur=(datgsm.x[n_elements(datgsm.x)-1]-datgsm.x[0])/60.
+if gsm_dur GT 100. then begin
+  store_data, 'elx_pos_gsm_mins', data={x: datgsm.x[0:*:60], y: datgsm.y[0:*:60,*]}, dlimits=dl, limits=l
+  tt89,'elx_pos_gsm_mins',/igrf_only,newname='elx_bt89_gsm_mins',period=1.
+  ; interpolate the minute-by-minute data back to the full array
+  get_data,'elx_bt89_gsm_mins',data=gsm_mins
+  store_data,'elx_bt89_gsm',data={x: datgsm.x, y: interp(gsm_mins.y[*,*], gsm_mins.x, datgsm.x)}
+  ; clean up the temporary data
+  del_data, '*_mins'
+endif else begin
+  tt89,'elx_pos_gsm',/igrf_only,newname='elx_bt89_gsm',period=1.
+endelse
+;tt89,'elx_pos_gsm',/igrf_only,newname='elx_bt89_gsm',period=1.
 cotrans,'elx_pos_gsm','elx_pos_sm',/GSM2SM ; <-- use SM geophysical coordinates plus Despun Spacecraft coord's with Lvec (DSL)
 cotrans,'elx_bt89_gsm','elx_bt89_sm',/GSM2SM ; Bfield in same coords as well
 cotrans,'elx_att_gei','elx_att_gse',/GEI2GSE
