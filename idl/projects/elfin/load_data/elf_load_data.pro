@@ -41,7 +41,8 @@
 ;         no_time_sort:    set this flag to not order by time and remove duplicates
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
 ;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
-;         pred: set this flag for 'predicted' state data. default state data is 'definitive'.  
+;         pred: set this flag for 'predicted' state data. default state data is 'definitive'. 
+;         public_data: set this flag to retrieve data from the public area (default is private dir) 
 ;;          
 ;EXAMPLE:
 ;   elf_load_data,probe='a'
@@ -58,7 +59,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   tplotnames = tplotnames, varformat = varformat, no_color_setup = no_color_setup, $
   suffix = suffix, no_time_clip = no_time_clip, no_update = no_update, no_download=no_download, $
   cdf_filenames = cdf_filenames, cdf_version = cdf_version, cdf_records = cdf_records, $
-  available = available, tt2000 = tt2000 
+  available = available, tt2000 = tt2000, public_data=public_data 
 
   ;temporary variables to track elapsed times
   t0 = systime(/sec)
@@ -69,7 +70,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init, remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, no_color_setup = no_color_setup
-  
+ 
   if undefined(source) then source = !elf
 
   if undefined(probes) then probes = ['a'] else probes = strlowcase(probes) ; default to ELFIN A
@@ -206,7 +207,8 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               idx = where(datatype EQ 'fgf', ncnt)
               if ncnt GT 0 then append_array, ftypes, 'fgf'
             end
-            'state': ftypes='state'
+            'state': if pred then ftypes='state_pred' else ftypes='state_defn'
+            ;'state': ftypes='state'
             'mrma': ftypes='mrma'
             'mrmi': ftypes='mrmi'
             'eng': ftypes='eng'
@@ -226,6 +228,11 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           endif
 
           remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + state_subdir
+          if keyword_set(public_data) then begin
+            slen=strlen(remote_data_dir)
+            this_remote=strmid(remote_data_dir,0,slen-6)
+            remote_path = this_remote + strlowcase(probe) + '/' + level + '/' + instrument + '/' + state_subdir
+          endif
           local_path = filepath('', ROOT_DIR=!elf.local_data_dir, $
             SUBDIRECTORY=[probe, level, instrument]) + state_subdir
 
@@ -271,7 +278,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               endif      
 
           endfor
-         
+        
           if ~undefined(files) then begin
             spd_cdf2tplot, files, tplotnames = loaded_tnames, varformat=varformat, $
               suffix = suffix, get_support_data = get_support_data, /load_labels, $

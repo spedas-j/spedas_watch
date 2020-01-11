@@ -1180,206 +1180,216 @@ if time_double(time) gt time_double('2018-05-29/00:00') and kk3_anode then kk3 =
 
 if time_double(time) gt time_double('2018-05-31/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 3 ngims, checked 20180606
 
-if time_double(time) gt time_double('2018-05-31/00:00') and kk3_anode then kk3 = [3.3,2.8,3.3,2.7]		;**sta o2+ ok, 3 ngims, checked 20190506, gf_update=1.6
-if time_double(time) gt time_double('2018-05-31/00:00') and kk3_anode then kk3 = [2.8,2.3,2.8,2.2]		;**sta o2+ ok, 5 ngims, checked 20190514, gf_update=1.4
-; note - the above 2018-05-31 lpw interference with 1 sec sweeps may be overestimating STA density
 
-if time_double(time) gt time_double('2018-06-01/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 5 ngims, checked 20180608, 
 
-if time_double(time) gt time_double('2018-06-04/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 5 ngims, checked 20180608, 
 
-if time_double(time) gt time_double('2018-06-22/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 3 ngims, checked 20180702,   
 
-if time_double(time) gt time_double('2018-07-01/00:00') and kk3_anode then kk3 = [2.8,2.3,2.8,2.2]		;**sta o2+ ok, 4 ngims, checked 20191025, lpw calib
 
-if time_double(time) gt time_double('2018-07-17/00:00') and kk3_anode then kk3 = [1.8,1.1,1.8,1.0]		; sta o2+ ok, 3 ngims, checked 20180702,   
-if time_double(time) gt time_double('2018-07-17/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 3 ngims, checked 20180702, att=0-2 
 
-if time_double(time) gt time_double('2018-07-21/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 4 ngims, checked 20180810,  att=0-2, one pass at att=3  
 
-if time_double(time) gt time_double('2018-07-27/00:00') and kk3_anode then kk3 = [2.3,1.6,2.3,1.5]		; poor at att=3, 4 ngims, checked 20180810,    
-if time_double(time) gt time_double('2018-07-27/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 4 ngims, checked 20180810,  att=0-2, one pass at att=3  
+;***************************************************************************************************
+; All calibrations below this line are final calibrations.
 
-if time_double(time) gt time_double('2018-07-31/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 3 ngims, checked 20180806, att=0-2 
+	; note that ngi/sta cross-calibration not valid for scpot<-2V due to incorrect ngims sensitivity variation with scpot
 
-if time_double(time) gt time_double('2018-08-02/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta o2+ ok, 5 ngims, checked 20180815, att=0-2 
+if time_double(time) gt time_double('2018-05-01/00:00') and kk3_anode then kk3 = [3.4,2.9,3.4,2.8]		;tbd checked 2020
 
-; mechanical attenuator not required for some periapsis passes increasing atomic oxygen exposure
+if time_double(time) gt time_double('2018-05-03/00:00') and kk3_anode then kk3 = [3.4,2.9,3.4,2.8]		;tbd checked 2020
+if time_double(time) gt time_double('2018-05-03/00:00') and kk3_anode then kk3 = [3.2,2.7,3.1,2.5]		;tbd checked 2020
 
-if time_double(time) gt time_double('2018-08-05/00:00') and kk3_anode then kk3 = [2.5,1.1,2.5,1.0]		; sta too low, checked 20180813, att=0-2 
-if time_double(time) gt time_double('2018-08-05/00:00') and kk3_anode then kk3 = [2.5,1.3,2.7,1.2]		; sta o2+ ok, 6 ngims, checked 20180813, att=0-3 
 
-if time_double(time) gt time_double('2018-08-08/00:00') and kk3_anode then kk3 = [2.3,1.1,2.3,1.0]		; sta too low, checked 20180813, att=0-2 
-if time_double(time) gt time_double('2018-08-08/00:00') and kk3_anode then kk3 = [2.7,1.5,2.7,1.4]		; sta o2+ ok, 6 ngims, checked 20180813, att=0-3 
+if time_double(time) gt time_double('2018-05-31/00:00') and kk3_anode then kk3 = [2.9,2.3,2.8,2.2]		;**sta o2+ ok, lpw calib, checked 20200105, att=1-3
 
-if time_double(time) gt time_double('2018-08-10/00:00') and kk3_anode then kk3 = [2.7,1.5,2.7,1.4]		; sta o2+ ok, 5 ngims, checked 20180813, att=0-2 
+if time_double(time) gt time_double('2018-06-02/00:00') and kk3_anode then kk3 = [2.9,2.3,2.8,2.2]		;**sta o2+ ok, assume same as 5-31, checked 20200105, att=1-3
 
-if time_double(time) gt time_double('2018-08-12/00:00') and kk3_anode then kk3 = [2.8,1.8,2.8,1.7]		; sta o2+ ok, 5 ngims, checked 20180820, att=0-2 
+if time_double(time) gt time_double('2018-06-12/00:00') and kk3_anode then kk3 = [2.9,2.3,2.8,2.2]		;**sta o2+ ok, assume same as 5-31, checked 20200105
 
-if time_double(time) gt time_double('2018-08-14/00:00') and kk3_anode then kk3 = [2.8,1.8,2.8,1.7]		; sta o2+ ok, 5 ngims, checked 20180821, att=0-2 
+if time_double(time) gt time_double('2018-06-21/00:00') and kk3_anode then kk3 = [2.9,2.3,2.8,2.2]		;**sta o2+ ok, assume same as 5-31, checked 20200105
 
-if time_double(time) gt time_double('2018-08-31/00:00') and kk3_anode then kk3 = [2.8,1.8,2.8,1.7]		; sta o2+ ok, 5 ngims, checked 20180912, att=0-2 
+if time_double(time) gt time_double('2018-06-29/00:00') and kk3_anode then kk3 = [2.9,2.3,2.8,2.2]		;**sta o2+ ok, assume same as 5-31, checked 20200105
 
-if time_double(time) gt time_double('2018-09-01/00:00') and kk3_anode then kk3 = [2.8,1.8,2.8,1.7]		; sta o2+ ok, 5 ngims, checked 20180920, att=0-2 
-if time_double(time) gt time_double('2018-09-01/00:00') and kk3_anode then kk3 = [2.9,1.9,2.9,1.8]		; sta o2+ ok, 5 ngims, checked 20180920, att=0-2 
+if time_double(time) gt time_double('2018-07-01/00:00') and kk3_anode then kk3 = [3.1,2.2,3.0,2.1]		;**sta o2+ ok, lpw calib, checked 20200105, att=0-3
 
-if time_double(time) gt time_double('2018-09-04/00:00') and kk3_anode then kk3 = [2.9,1.9,2.9,1.8]		; sta o2+ ok, 1 ngims, checked 20180918, att=0-2 
+if time_double(time) gt time_double('2018-07-04/00:00') and kk3_anode then kk3 = [3.1,2.1,3.0,1.9]		;tbd checked 2020
 
-if time_double(time) gt time_double('2018-09-06/00:00') and kk3_anode then kk3 = [2.8,1.8,2.8,1.7]		; , 5 ngims, checked 20180912, att=0-2 
-if time_double(time) gt time_double('2018-09-06/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ ok, 5 ngims, checked 20180912, att=0-2 
+if time_double(time) gt time_double('2018-07-08/00:00') and kk3_anode then kk3 = [3.1,2.1,3.0,1.8]		;**sta o2+ inconsistent used 1657UT, checked 20200105, att=1-3,
 
-if time_double(time) gt time_double('2018-09-08/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ ok, 5 ngims, checked 20180918, att=0-2 
-if time_double(time) gt time_double('2018-09-08/00:00') and kk3_anode then kk3 = [3.1,2.1,3.1,2.0]		; sta o2+ ok, 5 ngims, checked 20180918, att=0-3 
+if time_double(time) gt time_double('2018-07-15/00:00') and kk3_anode then kk3 = [3.1,2.1,3.0,1.8]		;**sta o2+ ok, checked 20200104, att=1-2
 
-if time_double(time) gt time_double('2018-09-12/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ ok, 1 ngims, checked 20180918, att=0-2 
+;if time_double(time) gt time_double('2018-07-22/00:00') and kk3_anode then kk3 = [3.1,2.1,3.0,1.8]		; tbd, probably not needed
+;if time_double(time) gt time_double('2018-07-24/00:00') and kk3_anode then kk3 = [3.1,2.1,3.0,1.8]		; tbd, probably not needed
 
+if time_double(time) gt time_double('2018-07-28/00:00') and kk3_anode then kk3 = [3.1,2.1,3.0,1.8]		;**sta o2+ ok, checked 20200104, att=1-2
 
-if time_double(time) gt time_double('2018-09-19/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ ok, 1 ngims, checked 20181003, att=0-2 
+;if time_double(time) gt time_double('2018-08-02/00:00') and kk3_anode then kk3 = [3.2,2.2,3.1,1.9]		;tbd checked 2020
+;if time_double(time) gt time_double('2018-08-06/00:00') and kk3_anode then kk3 = [3.2,2.2,3.1,1.9]		;tbd checked 2020
 
-if time_double(time) gt time_double('2018-09-22/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ ok, 1 ngims, checked 20181006, att=0-2 
+if time_double(time) gt time_double('2018-08-11/00:00') and kk3_anode then kk3 = [3.3,2.3,3.2,2.0]		;**sta o2+ ok, checked 20200103, att=1-2
 
-if time_double(time) gt time_double('2018-09-27/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ ok, 1 ngims, checked 20181105, att=0-2 
+if time_double(time) gt time_double('2018-08-19/00:00') and kk3_anode then kk3 = [3.3,2.3,3.2,2.0]		;**sta o2+ ok, checked 20200103, att=1-2
 
-if time_double(time) gt time_double('2018-09-29/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ poorly determined, 5 ngims, checked 20181005, att=0-2 
+;if time_double(time) gt time_double('2018-08-22/00:00') and kk3_anode then kk3 = [3.3,2.3,3.2,2.0]		; tbd, probably not needed
 
-if time_double(time) gt time_double('2018-10-06/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ poorly determined, 5 ngims, checked 20181015, att=0-2 
+if time_double(time) gt time_double('2018-08-24/00:00') and kk3_anode then kk3 = [3.2,2.2,3.1,2.0]		;**sta o2+ ok, checked 20200104, att=1-2
 
-if time_double(time) gt time_double('2018-10-09/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ ok, 3 ngims, checked 20181021, att=0-3 
+;if time_double(time) gt time_double('2018-08-30/00:00') and kk3_anode then kk3 = [3.3,2.3,3.2,2.1]		;tbd checked 2020
 
-if time_double(time) gt time_double('2018-10-16/00:00') and kk3_anode then kk3 = [3.0,2.0,3.0,1.9]		; sta o2+ ok, 4 ngims, checked 20181024, att=0-3 
-if time_double(time) gt time_double('2018-10-16/00:00') and kk3_anode then kk3 = [3.0,2.6,3.0,2.5]		; sta o2+ ok, 4 ngims, checked 20181024, att=0-3 
+if time_double(time) gt time_double('2018-09-03/00:00') and kk3_anode then kk3 = [3.5,2.5,3.4,2.2]		;**sta o2+ ok, checked 20200103, att=0-2
 
-if time_double(time) gt time_double('2018-10-18/00:00') and kk3_anode then kk3 = [3.0,2.6,3.0,2.5]		; sta o2+ ngi/sta high at 0V and low at -2V, 6 ngims, checked 20181104, att=0-3 
-if time_double(time) gt time_double('2018-10-18/00:00') and kk3_anode then kk3 = [3.0,2.6,3.0,1.9]		; sta o2+ ngi/sta high at 0V and low at -2V, 6 ngims, checked 20181104, att=0-3 
+if time_double(time) gt time_double('2018-09-15/00:00') and kk3_anode then kk3 = [3.5,2.6,3.4,2.3]		;**sta o2+ ok, checked 20200103, att=1-2
 
-if time_double(time) gt time_double('2018-10-19/00:00') and kk3_anode then kk3 = [3.0,2.6,3.0,2.5]		; sta o2+ ok, 4 ngims, checked 20181025, att=0-3 
-if time_double(time) gt time_double('2018-10-19/00:00') and kk3_anode then kk3 = [3.0,2.2,3.0,2.1]		; sta o2+ not well determined, 4 ngims, checked 20181025, att=0-3, ngi/sta ratio in att=2 varies with s/c pot
+if time_double(time) gt time_double('2018-09-23/00:00') and kk3_anode then kk3 = [3.5,2.8,3.4,2.5]		;**sta o2+ ok, checked 20200103, att=1-2
 
+if time_double(time) gt time_double('2018-10-04/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.7]		;**sta o2+ ok, checked 20200102, att=2-3
 
-if time_double(time) gt time_double('2018-11-02/00:00') and kk3_anode then kk3 = [2.0,1.5,2.0,1.4]		; tbd sta o2+ ok, 5 ngims, ngi/sta ratio in att=2 varies with s/c pot
+;if time_double(time) gt time_double('2018-10-10/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.7]		; tbd, probably not needed
 
+if time_double(time) gt time_double('2018-10-20/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.7]		;**sta o2+ ok, checked 20200103, att=2
 
-if time_double(time) gt time_double('2018-11-07/00:00') and kk3_anode then kk3 = [3.0,2.2,3.0,2.1]		; sta o2+ too high, 5 ngims, checked 201811114, att=0-3, sza=98
-if time_double(time) gt time_double('2018-11-07/00:00') and kk3_anode then kk3 = [2.0,1.1,2.0,1.0]		; sta o2+ too low at 0V, 5 ngims, ngi/sta ratio in att=2 varies with s/c pot
-if time_double(time) gt time_double('2018-11-07/00:00') and kk3_anode then kk3 = [2.0,1.5,2.0,1.4]		; sta o2+ ok, 5 ngims, ngi/sta ratio in att=2 varies with s/c pot
+if time_double(time) gt time_double('2018-10-26/00:00') and kk3_anode then kk3 = [3.4,2.9,3.3,2.6]		;**sta o2+ ok, checked 20200103, att=2-3
 
-if time_double(time) gt time_double('2018-11-07/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.6]		; sta o2+ ok, 5 ngims, recalculated 20190430 
+if time_double(time) gt time_double('2018-10-29/00:00') and kk3_anode then kk3 = [3.3,2.8,3.2,2.5]		;**sta o2+ ok, checked 20200102, att=2-3
 
-if time_double(time) gt time_double('2018-11-13/00:00') and kk3_anode then kk3 = [3.0,2.3,3.0,2.2]		; sta o2+ ok, 5 ngims, checked tbd
-if time_double(time) gt time_double('2018-11-13/00:00') and kk3_anode then kk3 = [2.4,1.9,2.4,1.8]		; sta o2+ ok, 5 ngims, checked tbd
+if time_double(time) gt time_double('2018-11-14/00:00') and kk3_anode then kk3 = [3.3,2.8,3.2,2.5]		;**sta o2+ ok, checked 20200102
 
-if time_double(time) gt time_double('2018-11-17/00:00') and kk3_anode then kk3 = [3.0,2.3,3.0,2.2]		; sta o2+ ok, 4 ngims, checked 20181129, ngi/sta ratio in att=2 varies with s/c pot
+if time_double(time) gt time_double('2018-11-23/00:00') and kk3_anode then kk3 = [3.5,2.9,3.4,2.6]		;**sta o2+ ok, checked 20200103, att=1-2
 
-if time_double(time) gt time_double('2018-11-20/00:00') and kk3_anode then kk3 = [2.0,1.5,2.0,1.4]		; 
-if time_double(time) gt time_double('2018-11-20/00:00') and kk3_anode then kk3 = [2.8,2.1,2.8,2.0]		; 
-if time_double(time) gt time_double('2018-11-20/00:00') and kk3_anode then kk3 = [3.0,2.3,3.0,2.2]		; sta o2+ ok, 4 ngims, checked 20181128, some avariation with scpot 
+if time_double(time) gt time_double('2018-11-27/00:00') and kk3_anode then kk3 = [3.8,3.1,3.7,2.7]		;**sta o2+ ok, checked 20200103
 
+;if time_double(time) gt time_double('2018-11-29/00:00') and kk3_anode then kk3 = [3.8,3.1,3.7,2.7]		; tbd, probably not needed
 
-if time_double(time) gt time_double('2018-12-18/00:00') and kk3_anode then kk3 = [2.8,2.1,2.8,2.0]		; checked 20190102
+	; periapsis shifts to nightside 2018-11-25
 
-if time_double(time) gt time_double('2019-01-02/00:00') and kk3_anode then kk3 = [3.2,2.1,3.0,2.0]		; checked 20190116
+;if time_double(time) gt time_double('2018-12-02/00:00') and kk3_anode then kk3 = [3.7,3.0,3.6,2.6]		; tbd, probably not needed
 
-; mech attentuator does not always close at periapsis increasing atomic oxygen exposure in January and raising kk3
- 
-if time_double(time) gt time_double('2019-01-19/00:00') and kk3_anode then kk3 = [3.2,2.1,3.0,2.0]		; checked 20190204
-if time_double(time) gt time_double('2019-01-19/00:00') and kk3_anode then kk3 = [3.4,2.5,3.3,2.4]		; sta o2+ not well determined, checked 20190204
+if time_double(time) gt time_double('2018-12-07/00:00') and kk3_anode then kk3 = [3.7,3.0,3.6,2.6]		;**sta o2+ ok, checked 20200102
 
-if time_double(time) gt time_double('2019-01-25/00:00') and kk3_anode then kk3 = [3.4,2.5,3.3,2.4]		; sta o2+ not well determined, checked 20190204
-if time_double(time) gt time_double('2019-01-25/00:00') and kk3_anode then kk3 = [3.2,2.3,3.1,2.2]		; sta o2+ not well determined, checked 20190204
+;if time_double(time) gt time_double('2018-12-24/00:00') and kk3_anode then kk3 = [3.7,3.0,3.6,2.6]		; tbd, probably not needed
 
-if time_double(time) gt time_double('2019-02-05/00:00') and kk3_anode then kk3 = [3.2,2.3,3.1,2.2]		; sta o2+ not well determined, checked 20190218
+;if time_double(time) gt time_double('2018-12-30/00:00') and kk3_anode then kk3 = [3.8,3.1,3.7,2.7]		; tbd, probably not needed
 
-if time_double(time) gt time_double('2019-02-10/00:00') and kk3_anode then kk3 = [3.2,2.3,3.1,2.2]		; sta o2+ ok determined, checked 20190218
+	; below are final calibrations for 2019	
 
-if time_double(time) gt time_double('2019-02-12/00:00') and kk3_anode then kk3 = [3.2,2.3,3.1,2.2]		; guess - can't cross calibrate - assume changes happen in the first few days of aerobraking
-if time_double(time) gt time_double('2019-02-13/00:00') and kk3_anode then kk3 = [3.3,2.3,3.2,2.2]		; guess - can't cross calibrate - assume changes happen in the first few days of aerobraking
-if time_double(time) gt time_double('2019-02-14/00:00') and kk3_anode then kk3 = [3.4,2.3,3.3,2.2]		; guess - can't cross calibrate - assume changes happen in the first few days of aerobraking
-if time_double(time) gt time_double('2019-02-15/00:00') and kk3_anode then kk3 = [3.5,2.3,3.4,2.2]		; guess - can't cross calibrate - assume changes happen in the first few days of aerobraking
+	; mech attentuator does not always close at periapsis increasing atomic oxygen exposure in January and raising kk3
 
+if time_double(time) gt time_double('2019-01-02/00:00') and kk3_anode then kk3 = [3.8,3.1,3.7,2.7]		; tbd, probably not needed
 
-if time_double(time) gt time_double('2019-02-23/00:00') and kk3_anode then kk3 = [3.5,2.3,3.4,2.2]		; checked tbd, 
+if time_double(time) gt time_double('2019-01-12/00:00') and kk3_anode then kk3 = [3.8,3.1,3.7,2.7]		;**sta o2+ ok, checked 20191230
 
-if time_double(time) gt time_double('2019-02-24/00:00') and kk3_anode then kk3 = [3.5,2.3,3.4,2.2]		; checked 20190228, ngims background high at periapsis due to high neutral density in sensor
+if time_double(time) gt time_double('2019-01-18/00:00') and kk3_anode then kk3 = [3.7,3.0,3.6,2.6]		;**sta o2+ ok, checked 20191230
 
-;if time_double(time) gt time_double('2019-02-25/00:00') and kk3_anode then kk3 = [3.2,2.3,3.1,2.2]		; checked 20190226
-if time_double(time) gt time_double('2019-02-25/00:00') and kk3_anode then kk3 = [3.4,2.5,3.3,2.4]		; checked 20190226
-if time_double(time) gt time_double('2019-02-25/00:00') and kk3_anode then kk3 = [3.5,2.6,3.4,2.5]		; checked 20190226
-if time_double(time) gt time_double('2019-02-25/00:00') and kk3_anode then kk3 = [3.5,2.3,3.4,2.2]		; checked 20190226, ngims background high at periapsis due to high neutral density in sensor
+if time_double(time) gt time_double('2019-01-29/00:00') and kk3_anode then kk3 = [3.7,2.9,3.6,2.6]		;**sta o2+ ok, checked 20200101 for att=1-2
 
-if time_double(time) gt time_double('2019-02-26/00:00') and kk3_anode then kk3 = [3.5,2.3,3.4,2.2]		; checked 20190303, poorly determined
+if time_double(time) gt time_double('2019-01-31/00:00') and kk3_anode then kk3 = [3.9,3.0,3.8,2.7]		;**sta o2+ ok, checked 20200101 for att=1-2
 
-if time_double(time) gt time_double('2019-03-03/00:00') and kk3_anode then kk3 = [3.5,2.3,3.4,2.2]		; checked 20190304, ok determined for att=2
+if time_double(time) gt time_double('2019-02-02/00:00') and kk3_anode then kk3 = [3.7,2.9,3.6,2.6]		; tbd, guess 
 
-if time_double(time) gt time_double('2019-03-18/00:00') and kk3_anode then kk3 = [3.2,2.3,3.1,2.2]		; checked 20190325, ok determined for att=1-3
-;if time_double(time) gt time_double('2019-03-18/00:00') and kk3_anode then kk3 = [2.9,2.0,2.8,1.9]		; checked 20190325, ok determined for att=1-3
-if time_double(time) gt time_double('2019-03-18/00:00') and kk3_anode then kk3 = [2.9,2.3,2.8,2.2]		; checked 20190325, ok determined for att=1-3
-if time_double(time) gt time_double('2019-03-18/00:00') and kk3_anode then kk3 = [2.9,2.5,2.8,2.2]		; checked 20190325, ok determined for att=1-3
+if time_double(time) gt time_double('2019-02-04/00:00') and kk3_anode then kk3 = [3.5,2.7,3.4,2.4]		; sta o2+ ok, checked 20191230
 
-if time_double(time) gt time_double('2019-03-27/00:00') and kk3_anode then kk3 = [2.9,2.5,2.8,2.2]		; checked 20190329, ok determined for att=1-3
+if time_double(time) gt time_double('2019-02-11/00:00') and kk3_anode then kk3 = [3.5,2.7,3.4,2.4]		; tbd, guess
 
-if time_double(time) gt time_double('2019-03-30/00:00') and kk3_anode then kk3 = [2.9,2.5,2.8,2.2]		; checked 20190329, ok determined for att=1-3
-if time_double(time) gt time_double('2019-03-30/00:00') and kk3_anode then kk3 = [2.8,2.4,2.7,2.1]		; checked 20190329, ok determined for att=1-3
+	; 20190211 aerobraking begins - long deep dip - high background in NGIMS at periapsis can distort density
+	; 20190211 ngims detuned - ngims densities wrong till 20190223, orb 8597
 
-if time_double(time) gt time_double('2019-03-31/00:00') and kk3_anode then kk3 = [3.3,3.0,3.3,2.7]		; checked 20190329, ok determined for att=1-3, lpw waves good with gf_scale=1.6
-;if time_double(time) gt time_double('2019-03-31/00:00') and kk3_anode then kk3 = [3.1,2.8,3.1,2.5]		; checked 20190329, ok determined for att=1-3, lpw waves good with gf_scale=1.4
-if time_double(time) gt time_double('2019-03-31/00:00') and kk3_anode then kk3 = [3.1,2.8,3.1,2.5]		;**sta o2+ ok, checked 20190516, gf_update=1.4, for att=1-3
-if time_double(time) gt time_double('2019-03-31/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		;**sta o2+ ok, checked 20190516, gf_update=1.4, for att=1-3
+if time_double(time) gt time_double('2019-02-12/00:00') and kk3_anode then kk3 = [3.6,2.8,3.5,2.5]		; guess, assume the change over 3 days
+if time_double(time) gt time_double('2019-02-13/00:00') and kk3_anode then kk3 = [3.7,2.9,3.6,2.6]		; guess, 
+if time_double(time) gt time_double('2019-02-14/00:00') and kk3_anode then kk3 = [3.8,3.0,3.7,2.7]		; guess, 
 
-if time_double(time) gt time_double('2019-04-03/00:00') and kk3_anode then kk3 = [3.3,3.0,3.3,2.7]		; checked 20190417, based on STATIC only fly-Z to fly-Y scpot change
+	; 20190223 ngims detuned ends orb 8596
 
-;if time_double(time) gt time_double('2019-04-04/00:00') and kk3_anode then kk3 = [2.8,2.4,2.7,2.1]		; checked 20190412, based on STATIC only fly-Z to fly-Y scpot change for att=1-3
+if time_double(time) gt time_double('2019-02-23/00:00') and kk3_anode then kk3 = [3.8,3.0,3.7,2.7]		;**sta o2+ ok, checked 20200101 for att=1-2
 
-;if time_double(time) gt time_double('2019-04-05/00:00') and kk3_anode then kk3 = [2.8,2.4,2.7,2.1]		; checked 20190329, ok determined for att=1-3
-;if time_double(time) gt time_double('2019-04-05/00:00') and kk3_anode then kk3 = [2.6,2.2,2.5,1.9]		; checked 20190329, ok determined for att=1-3
-;if time_double(time) gt time_double('2019-04-05/00:00') and kk3_anode then kk3 = [3.3,3.0,3.3,2.7]		; checked 20190412, based on STATIC only fly-Z to fly-Y scpot change for att=1-3
-if time_double(time) gt time_double('2019-04-05/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		; checked 20190412, based on STATIC only fly-Z to fly-Y scpot change for att=1-3
+if time_double(time) gt time_double('2019-02-25/00:00') and kk3_anode then kk3 = [3.9,3.0,3.8,2.7]		;**sta o2+ ok, checked 20200101 for att=1-2
 
-;if time_double(time) gt time_double('2019-04-06/00:00') and kk3_anode then kk3 = [3.1,2.8,3.1,2.5]		;** checked 20190414, att=1-3
+if time_double(time) gt time_double('2019-02-28/00:00') and kk3_anode then kk3 = [3.9,3.0,3.8,2.7]		;**sta o2+ ok, checked 20200101 for att=1-2
 
-if time_double(time) gt time_double('2019-04-18/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		; checked 20190412, based on STATIC only fly-Z to fly-Y scpot change for att=1-3
-if time_double(time) gt time_double('2019-04-18/00:00') and kk3_anode then kk3 = [2.8,2.5,2.8,2.2]		;**sta o2+ ok, checked 20190515, gf_update=1.4, for att=1-3
-if time_double(time) gt time_double('2019-04-18/00:00') and kk3_anode then kk3 = [2.6,2.3,2.6,2.0]		;**sta o2+ ok, checked 20190515, gf_update=1.4, for att=1-3
+if time_double(time) gt time_double('2019-03-03/00:00') and kk3_anode then kk3 = [3.8,3.0,3.7,2.7]		;**sta o2+ ok, checked 20191230 for att=2
 
-if time_double(time) gt time_double('2019-05-01/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		; checked 20190412, based on STATIC only fly-Z to fly-Y scpot change for att=1-3
-if time_double(time) gt time_double('2019-05-01/00:00') and kk3_anode then kk3 = [2.3,2.0,2.3,1.7]		;**sta o2+ ok, checked 20190515, gf_update=1.6, for att=1-3
-if time_double(time) gt time_double('2019-05-01/00:00') and kk3_anode then kk3 = [2.8,2.5,2.8,2.2]		;**sta o2+ ok, checked 20190515, gf_update=1.4, for att=1-3, modulated density, use lower fp values
+	; 20190316 periapsis shifts to dayside 
 
-if time_double(time) gt time_double('2019-05-03/00:00') and kk3_anode then kk3 = [2.8,2.5,2.8,2.2]		;**sta o2+ ok, ratio varies with orbit, checked 20190606, gf_update=1.4, for att=1-3, modulated density, use lower fp values
+if time_double(time) gt time_double('2019-03-16/00:00') and kk3_anode then kk3 = [3.6,3.1,3.5,2.6]		;**sta o2+ ok, checked 20191231, for att=1-3, 
 
-if time_double(time) gt time_double('2019-05-11/00:00') and kk3_anode then kk3 = [2.8,2.5,2.8,2.2]		;**sta o2+ ok, checked 20190605, gf_update=1.4, for att=1-3, modulated density, use lower fp values
-if time_double(time) gt time_double('2019-05-11/00:00') and kk3_anode then kk3 = [2.9,2.3,2.8,2.1]		;**sta o2+ ok, checked 20190605, gf_update=1.4, for att=1-3, modulated density, use lower fp values
+if time_double(time) gt time_double('2019-03-28/00:00') and kk3_anode then kk3 = [3.4,3.0,3.3,2.6]		;**sta o2+ ok, checked 20191231, for att=0-3, 
 
+	; 20190329 aerobraking slow walkout - high background in NGIMS at periapsis can distort density 
 
-if time_double(time) gt time_double('2019-05-15/00:00') and kk3_anode then kk3 = [2.8,2.5,2.8,2.2]		; checked 20190522, for att=1-3 
-if time_double(time) gt time_double('2019-05-15/00:00') and kk3_anode then kk3 = [3.2,2.7,3.1,2.2]		;**sta o2+ ok, checked 20190522, gf_update=1.4, for att=1-3, no lpw
+if time_double(time) gt time_double('2019-03-30/00:00') and kk3_anode then kk3 = [3.3,2.9,3.2,2.6]		;**sta o2+ ok, checked 20191231, for att=0-3, 
+if time_double(time) gt time_double('2019-03-31/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		;**sta o2+ ok, checked 20191228, for att=1-3, lpw calib
 
+	; 20190401 aerobraking ends walkout 
 
-if time_double(time) gt time_double('2019-05-15/00:00') and kk3_anode then kk3 = [3.2,2.7,3.1,2.2]		;**sta o2+ ok, checked 20190522, gf_update=1.4, for att=1-3, no lpw
+if time_double(time) gt time_double('2019-04-05/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		;**sta o2+ ok, checked 20191230, for att=1-3, flyZ->flyY
 
-if time_double(time) gt time_double('2019-05-18/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.5]		;**sta o2+ ok, checked 20190605, gf_update=1.4, for att=1-3, no lpw
+if time_double(time) gt time_double('2019-04-18/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		;**sta o2+ ok, checked 20191230, for att=1-3, lpw calib
 
-if time_double(time) gt time_double('2019-05-21/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.7]		;**sta o2+ ok, checked 20190607, gf_update=1.4, for att=1-3, no lpw
+if time_double(time) gt time_double('2019-05-01/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		;**sta o2+ ok, checked 20191227, for att=3, lpw calib
 
-if time_double(time) gt time_double('2019-05-25/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.7]		;tbd, only use ngims where all masses measured, checked 20190605, gf_update=1.4, for att=1-3, no lpw
+;if time_double(time) gt time_double('2019-05-03/00:00') and kk3_anode then kk3 = [2.8,2.5,2.8,2.2]		;tbd **sta o2+ ok, ratio varies with orbit, checked 20190606, gf_update=1.4, for att=1-3, modulated density, use lower fp values
 
-; periapsis shifts to nightside 2019-05-15
+;if time_double(time) gt time_double('2019-05-04/00:00') and kk3_anode then kk3 = [3.0,2.7,3.0,2.4]		;tbd **sta o2+ ok, checked 201912??, for att=3, 
 
+if time_double(time) gt time_double('2019-05-11/00:00') and kk3_anode then kk3 = [3.0,2.4,3.0,2.3]		;**sta o2+ ok, checked 20191126, 
 
-; periapsis shifts to dayside 2019-08-03
+if time_double(time) gt time_double('2019-05-15/00:00') and kk3_anode then kk3 = [3.3,2.5,3.2,2.4]		;ok agreement but some oddities, checked 20191226, lpw calib but density too low
 
+;if time_double(time) gt time_double('2019-05-18/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.5]		;tbd, **sta o2+ ok, checked 20190605, for att=1-3
 
-if time_double(time) gt time_double('2019-08-10/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.7]		;too large, lpw waves only,att=3
-if time_double(time) gt time_double('2019-08-10/00:00') and kk3_anode then kk3 = [3.3,2.8,3.2,2.5]		;**sta o2+ ok, checked 20190816, lpw waves
-if time_double(time) gt time_double('2019-08-10/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.7]		; matches STA data with alternating potentials
-;if time_double(time) gt time_double('2019-08-10/00:00') and kk3_anode then kk3 = [3.7,3.2,3.6,2.9]		; matches STA data with alternating potentials
+	; 20190520 periapsis shifts to nightside 
 
-if time_double(time) gt time_double('2019-08-17/00:00') and kk3_anode then kk3 = [3.3,2.8,3.2,2.5]		;**sta o2+ ok, checked 20190816, lpw waves
+;if time_double(time) gt time_double('2019-05-21/00:00') and kk3_anode then kk3 = [3.5,3.0,3.4,2.7]		;tbd, **sta o2+ ok, checked 20190607, gf_update=1.4, for att=1-3, no lpw
 
-if time_double(time) gt time_double('2019-09-16/00:00') and kk3_anode then kk3 = [3.3,2.8,3.2,2.5]		;sta o2+ ok, checked 20190919, ngims
+if time_double(time) gt time_double('2019-05-25/00:00') and kk3_anode then kk3 = [3.6,2.6,3.5,2.3]		;**sta o2+ ok agreement,checked 20191209
 
-if time_double(time) gt time_double('2019-09-18/00:00') and kk3_anode then kk3 = [3.0,2.5,2.9,2.2]		;**sta o2+ ok, checked 20190923, lpw waves
+;if time_double(time) gt time_double('2019-06-06/00:00') and kk3_anode then kk3 = [3.8,2.6,3.7,2.5]		;tbd, 
+;if time_double(time) gt time_double('2019-06-09/00:00') and kk3_anode then kk3 = [3.8,2.6,3.7,2.5]		;tbd, 
+;if time_double(time) gt time_double('2019-06-12/00:00') and kk3_anode then kk3 = [3.8,2.6,3.7,2.5]		;tbd, 
 
-; periapsis shifts back to dayside
+if time_double(time) gt time_double('2019-06-17/00:00') and kk3_anode then kk3 = [3.7,2.6,3.6,2.5]		;ok agreement,checked 20191209, att=1-3 
+
+;if time_double(time) gt time_double('2019-06-20/00:00') and kk3_anode then kk3 = [3.8,2.6,3.7,2.5]		;tbd, 
+;if time_double(time) gt time_double('2019-06-29/00:00') and kk3_anode then kk3 = [3.8,2.6,3.7,2.5]		;tbd, 
+
+if time_double(time) gt time_double('2019-07-05/00:00') and kk3_anode then kk3 = [3.8,2.6,3.7,2.5]		;**sta o2+ ok, checked 20191203, att=2, 
+
+;if time_double(time) gt time_double('2019-07-08/00:00') and kk3_anode then kk3 = [3.8,2.9,3.7,2.8]		;kk3 poorly determined, att=1-3
+
+;if time_double(time) gt time_double('2019-07-16/00:00') and kk3_anode then kk3 = [3.8,3.1,3.7,3.0]		;kk3 poorly determined
+
+;if time_double(time) gt time_double('2019-07-21/00:00') and kk3_anode then kk3 = [3.8,3.1,3.7,3.0]		;tbd
+
+if time_double(time) gt time_double('2019-07-30/00:00') and kk3_anode then kk3 = [3.8,3.5,3.7,3.0]		;**sta o2+ ok, checked 20191127, att=2, 
+
+if time_double(time) gt time_double('2019-08-02/00:00') and kk3_anode then kk3 = [3.5,3.2,3.4,2.8]		;**sta o2+ ok - not that well determined, checked 20191227, att=1-2, 20V lpw sweeps
+
+	; 20190803 periapsis shifts to dayside 
+
+if time_double(time) gt time_double('2019-08-06/00:00') and kk3_anode then kk3 = [3.3,3.0,3.2,2.8]		; **sta o2+ not that well determined, checked 20191228
+
+;if time_double(time) gt time_double('2019-08-11/00:00') and kk3_anode then kk3 = [3.3,2.8,3.2,2.5]		; tbd
+
+if time_double(time) gt time_double('2019-08-14/00:00') and kk3_anode then kk3 = [3.3,2.8,3.2,2.5]		;**sta o2+ ok, checked 20191125, lpw waves, ngi/sta varies +/-20%
+if time_double(time) gt time_double('2019-08-17/00:00') and kk3_anode then kk3 = [3.3,2.8,3.2,2.5]		;**sta o2+ ok, checked 20191115, lpw waves
+
+	; no periapsis data from 20190824 to 20190913 due to conjunction and maven safing
+
+if time_double(time) gt time_double('2019-09-14/00:00') and kk3_anode then kk3 = [3.0,2.5,2.9,2.2]		;assume same as 20190918
+if time_double(time) gt time_double('2019-09-18/00:00') and kk3_anode then kk3 = [3.0,2.5,2.9,2.2]		;**sta o2+ ok, checked 20190919, lpw waves, ngims high for some periapses
+if time_double(time) gt time_double('2019-09-19/00:00') and kk3_anode then kk3 = [3.0,2.5,2.9,2.2]		;**sta o2+ ok, checked 20191125, lpw waves, ngims high for some periapses 
+if time_double(time) gt time_double('2019-09-30/00:00') and kk3_anode then kk3 = [3.0,2.5,2.9,2.2]		;**sta o2+ ok, checked 20191115, 20% ratio variations across orbits
+
+	; STATIC put in protect mode to prevent saturtion due to fly(+Z) s/c attitude which causes charging to -20V
+	; no periapsis data from 20191002 to 20191126 due to power requirements and fly+Z orientation causing s/c charging
+	; periapsis shifts to nighside 2019-11-06 to 2020-01-01?
+
+if time_double(time) gt time_double('2019-11-26/00:00') and kk3_anode then kk3 = [2.6,2.1,2.5,1.8]		;**sta o2+ ok, checked 20191203, 
+
+if time_double(time) gt time_double('2019-12-08/00:00') and kk3_anode then kk3 = [2.8,2.1,2.7,1.8]		;**sta o2+ ok, checked 20191213,att=2-3
+
+if time_double(time) gt time_double('2019-12-18/00:00') and kk3_anode then kk3 = [2.8,2.2,2.7,1.8]		; **sta o2+ ok, checked 20200102,
+
+
+
+	; 20191229 periapsis shifts back to dayside 
 
 
 tt=timerange()

@@ -50,7 +50,8 @@
 ;                       useful if you accidently save an incorrect password, or if your SDC password has changed
 ;         tt2000: flag for preserving TT2000 timestamps found in CDF files (note that many routines in
 ;                       SPEDAS (e.g., tplot.pro) do not currently support these timestamps)
-;         pred: set this flag to retrieve predicted data. default is definitive.  
+;         pred: set this flag to retrieve predicted data. default is definitive.
+;         public_data:  set this flag to retrieve state data from the public area (default is private dir)  
 ;                          
 ; EXAMPLES:
 ;         to load/plot the S/C position data for probe a on 2/20/2016:
@@ -68,7 +69,7 @@
 ;-
 
 pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
-  level = level, data_rate = data_rate, pred = pred, $
+  level = level, data_rate = data_rate, pred = pred, public_data=public_data, $
   local_data_dir = local_data_dir, source = source, no_download=no_download, $
   get_support_data = get_support_data, no_time_sort=no_time_sort, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
@@ -123,7 +124,8 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
       tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
       no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
       cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
-      versions = versions, tt2000=tt2000, no_time_sort=no_time_sort, no_download=no_download
+      versions = versions, tt2000=tt2000, no_time_sort=no_time_sort, no_download=no_download, $
+      public_data=public_data
   endif
   
   ; check that data was loaded, if not and the keyword_set pred was not set then 
@@ -136,7 +138,8 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
       tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
       no_update = no_update, suffix = suffix, varformat = varformat, cdf_filenames = cdf_filenames, $
       cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
-      versions = versions, tt2000=tt2000, no_time_sort=no_time_sort, no_download=no_download
+      versions = versions, tt2000=tt2000, no_time_sort=no_time_sort, no_download=no_download, $
+      public_data=public_data
   endif
 
   ; no reason to continue if no data were loaded
