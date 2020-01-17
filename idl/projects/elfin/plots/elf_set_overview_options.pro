@@ -20,6 +20,7 @@ pro elf_set_overview_options, probe=probe
    options, 'el'+probe+'_pef_en_spec2plot_para',zstyle=1
    
    options, 'el'+probe+'_bt89_sm_NED', charsize=.8
+   options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]
    zlim, 'el'+probe+'_pef_en_spec2plot_omni', 10., 5.e6
    zlim, 'el'+probe+'_pef_en_spec2plot_anti', 10., 5.e6
    zlim, 'el'+probe+'_pef_en_spec2plot_perp', 10., 5.e6

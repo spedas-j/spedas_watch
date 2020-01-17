@@ -77,6 +77,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   ;     /spacecraft/level/instrument/
   ;  -assume file names are of the form:
   ;     spacecraft_level_instrument_YYYYMMDD_version.cdf
+
   dir_pattern = strjoin(dir_inputs, s) + s   ; + '('+s+dir_datatype+')?' +s+ '[0-9]{4}' +s+ '[0-9]{2}' + s
   if instrument eq 'state' then begin
      if keyword_set(pred) then dir_pattern = dir_pattern + 'pred' + s $
@@ -115,7 +116,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   ;get file start times
   time_strings = file_strings[1,*]
   times = time_double(time_strings, tformat=tformat)
-  time_idx = where( times ge trange[0] and times lt trange[1], n_times)
+  time_idx = where( times ge trange[0] and times le trange[1], n_times)
 
   if n_times eq 0 then begin
     ; suppress redundant error message

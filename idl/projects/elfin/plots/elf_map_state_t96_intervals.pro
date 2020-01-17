@@ -432,7 +432,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     midx=min_st[k] + (min_en[k] - min_st[k])/2.
     mid_time_struc=time_struct(ela_state_pos_sm.x[midx])
     mid_hr=mid_time_struc.hour + mid_time_struc.min/60.
-    if keyword_set(sm) then mid_hr=0 else mid_hr=mid_time_struc.hour + mid_time_struc.min/60.
+    ;if keyword_set(sm) then mid_hr=0 else mid_hr=mid_time_struc.hour + mid_time_struc.min/60.
     
     ; -------------------------------------
     ; MAP PLOT
@@ -1110,13 +1110,13 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
       if keyword_set(south) then plot_name = 'southtrack' else plot_name = 'northtrack'
       if keyword_set(sm) then begin
-        coord_name='sm' 
+        coord_name='_sm_' 
         if keyword_set(bfirst) then pname='elb' else pname='ela
       endif else begin
-        coord_name='geo'
+        coord_name='_'
         pname='elf'
       endelse     
-      gif_name=dir_products+'/'+pname+'_l2_'+plot_name+'_'+coord_name+'_'+filedate+file_lbl[k] 
+      gif_name=dir_products+'/'+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k] 
 
       if hires then gif_name=gif_name+'_hires'
       write_gif,gif_name+'.gif',image,r,g,b
