@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2019-12-29 15:17:47 -0800 (Sun, 29 Dec 2019) $
-; $LastChangedRevision: 28141 $
+; $LastChangedBy: pulupa $
+; $LastChangedDate: 2020-01-21 16:47:55 -0800 (Tue, 21 Jan 2020) $
+; $LastChangedRevision: 28208 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -81,6 +81,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   endif
 
+  ; Get all of the available bandpass files on a given day
+
   if type EQ 'dfb_dc_bpf' or type EQ 'dfb_ac_bpf' then begin
 
     spec_types = ['dV12','dV34',$
@@ -107,7 +109,6 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         options, 'psp_fld_l2_dfb_?c_bpf_' + spec_type + ['_avg','_peak'], $
           'no_interp', 1
       end
-      ;stop
 
     end
 
@@ -197,6 +198,14 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     pathformat = 'DIR' + pathformat
 
     pathformat = str_sub(pathformat, 'DIRTYPE', strmid(type, 0, 10))
+
+  endif
+
+  if (strmid(type, 0, 11) EQ 'dfb_dc_spec') or (strmid(type, 0, 11) EQ 'dfb_ac_spec') and level EQ 2 then begin
+
+    pathformat = 'DIR' + pathformat
+
+    pathformat = str_sub(pathformat, 'DIRTYPE', strmid(type, 0, 11))
 
   endif
 
