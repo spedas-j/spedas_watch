@@ -456,44 +456,61 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endelse
 
     ; display latitude/longitude
-    if keyword_set(south) then begin
-      for i=0,nmlats-1 do oplot,v_lon[i,*],-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-      for i=0,nmlons-1 do begin
-        idx=where(u_lon[i,*] NE 0)
-        oplot,u_lon[i,idx],-u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
-      endfor
+    if keyword_set(sm) then begin
+      ;;;;;;;;;;;; NOTE - sm not yet implemented  ;;;;;;;;;;;;;;
+      ;;;;;;;;;;;; need to change from mag to sm  ;;;;;;;;;;;;;;
+      if keyword_set(south) then begin
+        for i=0,nmlats-1 do oplot,v_lon[i,*],-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+        for i=0,nmlons-1 do begin
+          idx=where(u_lon[i,*] NE 0)
+          oplot,u_lon[i,idx],-u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+        endfor
+      endif else begin
+        for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+        for i=0,nmlons-1 do begin
+          idx=where(u_lon[i,*] NE 0)
+          oplot,u_lon[i,idx],u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+        endfor
+      endelse
     endif else begin
-      for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-      for i=0,nmlons-1 do begin
-        idx=where(u_lon[i,*] NE 0)
-        oplot,u_lon[i,idx],u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
-      endfor
+      if keyword_set(south) then begin
+        for i=0,nmlats-1 do oplot,v_lon[i,*],-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+        for i=0,nmlons-1 do begin
+          idx=where(u_lon[i,*] NE 0)
+          oplot,u_lon[i,idx],-u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+        endfor
+      endif else begin
+        for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=contour_thick,linestyle=1
+        for i=0,nmlons-1 do begin
+          idx=where(u_lon[i,*] NE 0)
+          oplot,u_lon[i,idx],u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
+        endfor
+      endelse
     endelse
 
     ; Set up data for ELFIN A for this time span
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsa=n_elements(this_time)
     if ~keyword_set(sm) then this_lon=lon[min_st[k]:min_en[k]] else $
-      this_lon=lon[min_st[k]:min_en[k]]-mid_hr*15.
+      this_lon=lon[min_st[k]:min_en[k]]-mid_hr*15.-180.
     this_lat=lat[min_st[k]:min_en[k]]
     this_ax=ela_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_ay=ela_state_pos_sm.y[min_st[k]:min_en[k],1]
     this_az=ela_state_pos_sm.y[min_st[k]:min_en[k],2]
     this_dposa=dposa.y[min_st[k]:min_en[k],2]
-    this_a_alt = median(sqrt(this_ax^2 + this_ay^2 + this_az^2))-6371.
+    this_a_alt = mean(sqrt(this_ax^2 + this_ay^2 + this_az^2))-6371.
     this_a_alt_str = strtrim(string(this_a_alt),1)
-
     ; repeat for ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsb=n_elements(this_time2)
     if ~keyword_set(sm) then this_lon2=lon2[min_st[k]:min_en[k]] else $
-        this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15.
+        this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15.-180.
     this_lat2=lat2[min_st[k]:min_en[k]]
     this_bx=elb_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_by=elb_state_pos_sm.y[min_st[k]:min_en[k],1]
     this_bz=elb_state_pos_sm.y[min_st[k]:min_en[k],2]
     this_dposb=dposb.y[min_st[k]:min_en[k],2]
-    this_b_alt = median(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
+    this_b_alt = mean(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
     this_b_alt_str = strtrim(string(this_b_alt),1)
 
     if ~keyword_set(bfirst) then begin

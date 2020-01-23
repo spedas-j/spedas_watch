@@ -181,9 +181,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;if ~isa(epdef_fast_bar_x) && isa(epdes_survey_bar_x) then store_data, 'epd_bar', data=['epdef_survey_bar']
   ;if isa(epdef_fast_bar_x) && ~isa(epdes_survey_bar_x) then store_data, 'epd_bar', data=['epdef_fast_bar']
   options, 'epd_fast_bar', panel_size=0.1
-  options, 'epd_bar',ticklen=0
-  options, 'epd_bar', 'ystyle',4
-  options, 'epd_bar', 'xstyle',4
+  options, 'epd_fast_bar',ticklen=0
+  options, 'epd_fast_bar', 'ystyle',4
+  options, 'epd_fast_bar', 'xstyle',4
   options, 'epd_fast_bar', 'color',252
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -506,7 +506,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   
   timeduration=time_double(trange[1])-time_double(trange[0])
   timespan,trange[0],timeduration,/seconds
-  
+  get_data, 'antilossconedeg', data=d, dlimits=dl, limits=l 
+  store_data, 'antilossconedeg', data={x:d.x[0:*:60], y:d.y[0:*:60]}
+
   ; handle scaling of y axis
   get_data,'pseudo_ae',data=pseudo_ae
   if size(pseudo_ae, /type) EQ 8 then begin
@@ -568,7 +570,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     options,'el?_p?f_en_spec2plot_perp','ztitle','#/(scm!U2!NstrMeV)'
     options,'el?_p?f_en_spec2plot_para','ztitle',''
     options,'el?_p?f_en_spec2plot_para','ztitle','#/(scm!U2!NstrMeV)'
-   
+    options, 'antilossconedeg', 'linestyle', 2
+    ;options, 'antilossconedeg', linestyle=2
+    
     if tdur Lt 194. then version=6 else version=7
     ;if i eq 23 then version=6
     tplot_options, version=version   ;6
