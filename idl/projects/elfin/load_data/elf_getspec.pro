@@ -67,9 +67,9 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; note that dPhAng2add more than +/- 11 does not work. You have to add sectors rather than increase dPhAng2add
   ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  if ~undefined(userdSectr2add) then dSectr2add=userdSectr2add else $
+  if ~undefined(userdSectr2add) and finite(userdSectr2add) then dSectr2add=userdSectr2add else $
     dSectr2add=1       ; Here specify default # of sectors to add
-  if ~undefined(userdPhAng2add) then dPhAng2add=userdPhAng2add else $
+  if ~undefined(userdPhAng2add) and finite(userdPhAng2add) then dPhAng2add=userdPhAng2add else $
     dPhAng2add=01.0    ; Here specify default # of degrees to add in addition to the sectors
   if keyword_set(usertype) then mytype=usertype else $
     mytype='nflux'     ; Here specify default data type to act on

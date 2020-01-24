@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-12-09 17:10:48 -0800 (Mon, 09 Dec 2019) $
-; $LastChangedRevision: 28101 $
+; $LastChangedDate: 2020-01-23 12:02:44 -0800 (Thu, 23 Jan 2020) $
+; $LastChangedRevision: 28214 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -17,10 +17,11 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
     fileformat='spe/L3/SP?_TYP_pad/YYYY/MM/psp_swp_SP?_TYP_L3_pad_YYYYMMDD_v??.cdf'
     ;http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spe/L3/spb_sf0_pad/2018/11/psp_swp_spb_sf0_L3_pad_20181107_v00.cdf
     types = 'sf0'
-    spxs= ['spe','spa','spb']
+    if not keyword_set(spxs) then spxs= ['spe','spa','spb']
     vars['pad'] = '*'
-    varformat = 'EFLUX*'
-    ext = '_pad'
+    normpad =1
+;    varformat = 'EFLUX*'
+;    ext = '_pad'
   endif
   level=strupcase(level)
   if ~keyword_set(spxs) then spxs = ['spa','spb']
@@ -32,7 +33,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   endif
   ext = ''
 
-  dir='SP?/'+level+'/SP?_TYP/YYYY/MM/'
+  dir='spe/'+level+'/SP?_TYP/YYYY/MM/'
   if not keyword_set(fileformat) then fileformat=dir+'psp_swp_SP?_TYP_'+level+'*_YYYYMMDD_v??.cdf'
 
   vars['hkp'] = '*TEMP* *_BITS *_FLAG* *CMD* *PEAK* *CNT*'
@@ -64,11 +65,21 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
           eflux = cdf.vars['EFLUX_VS_PA_E'].data.array
           energy = cdf.vars['ENERGY'].data.array
           pitchangle = cdf.vars['PITCHANGLE'].data.array
+          ebins = bytarr(32)
+          ebins[esteps] = 1
+          avg_eflux = average(/nan,eflux,2)
+          store_data,prefix+'AVG_EFLUX_VS_E',time,avg_eflux,energy,dlim = {ylog:1,bins:ebins,yrange:[1e4,1e10]}
           foreach e,esteps do begin
             enum = strtrim(e,2)
             eval = median(energy[*,e])
             ytitle =  'PAD!c'+ strtrim(round(eval),2)+' eV'
-            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux[*,*,e],pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle}
+            eflux_e = eflux[*,*,e]
+            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle}
+            if keyword_set(normpad) then begin
+              npa = 12
+              nflux_e = eflux_e / (avg_eflux[*,e] # replicate(1,npa) )
+              store_data,prefix+'NFLUX_VS_PA_E'+enum,time,nflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:'normalized!c'+ytitle,zrange:[.1,10]}
+            endif
           endforeach
           mag_sc = cdf.vars['MAGF_SC'].data.array
           store_data,prefix+'MAGF_SC',time,mag_sc
@@ -76,9 +87,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
           if spx eq 'spe' then begin
             store_data,prefix+'SPX_VS_PA_E',time,cdf.vars['SPX_VS_PA_E'].data.array,pitchangle, dlim={yrange:[0,180],spec:1,ystyle:1}
           endif
-          
-;          cdf.make_tplot_var,'EFLUX*'
-          dprint
+          dprint,dlevel=3
         endif else begin
           get_support_data=1
           if not keyword_set(varformat) then var_type = 'data'
