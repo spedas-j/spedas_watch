@@ -149,6 +149,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Get Pseudo_ae data
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  del_data, 'pseudo_ae'
   elf_load_pseudo_ae, probe=probe, no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae
   options, 'pseudo_ae', ysubtitle='[nT]', colors=251
@@ -295,16 +296,20 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       
       ; get sector and phase delay for this zone
       phase_delay = elf_find_phase_delay(trange=sz_tr, probe=probe, instrument='epde', no_download=no_download)
-      dsect2add=fix(phase_delay.dsect2add[0])
+      if finite(phase_delay.dsect2add[0]) then dsect2add=fix(phase_delay.dsect2add[0]) $
+         else dsect2add=phase_delay.dsect2add[0]
+      ;dsect2add=fix(phase_delay.dsect2add[0])
       dphang2add=float(phase_delay.dphang2add[0])
       medianflag=fix(phase_delay.medianflag)
+      if ~finite(phase_delay.dsect2add[0]) then medianflag=2
+      if ~finite(phase_delay.dphang2add[0]) then medianflag=2
       badflag=fix(phase_delay.badflag)
       case medianflag of
         0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
         1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
         2: phase_msg = 'No phase delay available. Data is not regularized.'
       endcase
-
+    
       spin_str=''
       if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
         completed_szs=[completed_szs,sz_tr[0]] ;append science zone start time to list
@@ -470,7 +475,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   store_data, 'el'+probe+'_pef_en_spec2plot_para_all', data=para_str, dlimits=dl, limits=l
   
   ; Overwrite losscone/antilosscone tplot variable with full day from elf_getspec
-  this_tr=[dat_gei.x[min_st[24]], dat_gei.x[min_en[24]]]
+  if nplots eq 25 then this_tr=[dat_gei.x[min_st[24]], dat_gei.x[min_en[24]]] $
+     else this_tr=trange
   tdur=this_tr[1]-this_tr[0]
   timespan, this_tr[0], tdur, /sec
   elf_load_state, probes=probe, /no_download
@@ -520,7 +526,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   endif
   
   ; Do hourly plots and 24hr plot
-  for i=0,24 do begin ; plots full day on hr=24
+;  for i=0,24 do begin ; plots full day on hr=24
+  for i=0,nplots-1 do begin ; plots full day on hr=24
     ; Set hourly start and stop times
     if min_en[i] GT n_elements(dat_gei.x)-1 then continue
     this_tr=[dat_gei.x[min_st[i]], dat_gei.x[min_en[i]]]

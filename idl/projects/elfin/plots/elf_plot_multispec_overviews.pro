@@ -41,6 +41,8 @@ pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_dow
     end_time = start_time + 86400.
     epde_plot_overviews, trange=[start_time, end_time], probe=probe, $
       no_download=no_download, sci_zone=sci_zone, quick_run=quick_run
+    ; remove temporary science zone tplot vars
+    del_data, 'el'+probe+'_*sz*'
   endfor 
   
 end
