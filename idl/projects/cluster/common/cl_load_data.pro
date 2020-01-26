@@ -17,8 +17,8 @@
 ; NOTES:
 ; 
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-12-23 16:57:38 -0800 (Mon, 23 Dec 2019) $
-;$LastChangedRevision: 28136 $
+;$LastChangedDate: 2020-01-24 19:29:06 -0800 (Fri, 24 Jan 2020) $
+;$LastChangedRevision: 28240 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/common/cl_load_data.pro $
 ;-
 
@@ -58,8 +58,13 @@ pro cl_load_data, probes = probes, datatype = datatype, instrument = instrument,
         prb = probes[probe_idx]
         case strlowcase(instrument) of
             'fgm': begin
-                pathformat[path_count] = 'c' + prb + '/' +  datatype + '/'+instrument+'/YYYY/c' + prb + $
+                if datatype eq 'spin' then begin
+                  pathformat[path_count] = 'c' + prb + '/cp/YYYY/c' + prb + $
+                    '_cp_'+instrument+'_spin_'+time_format+'_v??.cdf'
+                endif else begin
+                  pathformat[path_count] = 'c' + prb + '/' +  datatype + '/'+instrument+'/YYYY/c' + prb + $
                     '_' +datatype+'_'+instrument+'_'+time_format+'_v??.cdf'
+                endelse
                 path_count += 1
               end
              'aspoc': begin
