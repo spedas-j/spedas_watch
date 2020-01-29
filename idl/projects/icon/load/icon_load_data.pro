@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-10-08 16:28:32 -0700 (Tue, 08 Oct 2019) $
-;$LastChangedRevision: 27841 $
+;$LastChangedDate: 2020-01-28 17:58:46 -0800 (Tue, 28 Jan 2020) $
+;$LastChangedRevision: 28246 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -19,6 +19,16 @@
 function icon_mighti_filenames, relpathnames,remote_path, trange, fversion=fversion, frevision=frevision
   ; Find the MIGHTI file names scanning the directory
   ;http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/Simulated-Data/LEVEL.1/MIGHTI-A/2010/143/ICON_L1_MIGHTI-A_Science_2010-05-23_000027_v01r000.NC
+  
+  ; TODO:Data can be downloaded only locally for now
+  localdirsim = '/disks/data/icon/Repository/Archive/Simulated-Data/'
+  result = FILE_TEST(localdirsim, /directory, /read) 
+  if not result then begin
+    print, "For now, ICON data can only be downloaded inside SSL."
+    return, 0 
+  endif
+  
+  
   files = []
 
   t = time_string(trange)

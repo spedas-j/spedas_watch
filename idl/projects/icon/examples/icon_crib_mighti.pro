@@ -14,14 +14,22 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-10-08 16:28:32 -0700 (Tue, 08 Oct 2019) $
-;$LastChangedRevision: 27841 $
+;$LastChangedDate: 2020-01-28 17:58:46 -0800 (Tue, 28 Jan 2020) $
+;$LastChangedRevision: 28246 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/examples/icon_crib_mighti.pro $
 ;
 ;-------------------------------------------------------------------
 
 pro icon_crib_mighti, step=step, img_path=img_path
 
+  ; TODO:Data can be downloaded only locally for now
+  localdirsim = '/disks/data/icon/Repository/Archive/Simulated-Data/'
+  result = FILE_TEST(localdirsim, /directory, /read)
+  if not result then begin
+    print, "For now, ICON data can only be downloaded inside SSL."
+    return
+  endif
+  
   ; Specify a time range
   timeRange = ['2010-05-21/22:58:00', '2010-05-22/01:02:00']
   ; Specify a directory for images

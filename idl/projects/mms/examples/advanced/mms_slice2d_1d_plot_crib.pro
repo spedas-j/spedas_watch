@@ -3,8 +3,8 @@
 ;  Crib sheet demonstrating how to create 1D plots of 2D distribution slices created by spd_slice2d
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-08-01 10:24:18 -0700 (Wed, 01 Aug 2018) $
-;$LastChangedRevision: 25536 $
+;$LastChangedDate: 2020-01-28 18:03:30 -0800 (Tue, 28 Jan 2020) $
+;$LastChangedRevision: 28248 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_slice2d_1d_plot_crib.pro $
 ;-
 
@@ -103,6 +103,17 @@ slice = spd_slice2d(dist, time=time, /subtract_bulk, vel_data='mms'+probe+'_d'+s
 
 window, 0, xsize=500, ysize=500
 spd_slice1d_plot, slice, 'x', 0.0, title='Vx at Vy=0 (bulk V frame)', xrange=[-400, 400]
+
+stop
+
+;======================================================================
+; Create a 1D plot of the integral over a certain angle section using mms_slice1d_plot_fpi
+;======================================================================
+
+slice = spd_slice2d(dist, /two, time=time, rotation='perp', vel_data='mms'+probe+'_d'+species+'s_bulkv_gse_'+data_rate, mag_data='mms'+probe+'_fgm_b_gse_srvy_l2_bvec') ;3D interpolation
+
+spd_slice2d_plot, slice
+mms_slice1d_plot_fpi, slice, species='i', alpha=[0,0], width=[30,30], xrange=[-2500, 2500], yrange=[1e-26, 1d-19], export=export_dir
 
 stop
 end
