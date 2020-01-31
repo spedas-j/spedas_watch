@@ -331,27 +331,37 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
     if (n_elements(tr) eq 2) and (tplotnames[0] ne '') and ~keyword_set(no_time_clip) then begin
       tc0 = systime(/sec)
       if instrument EQ 'state' && pred then begin
-        dprint, dlevel=1,'Unable to time clip predicted state data.'
-      endif else begin
-        time_clip, tplotnames, tr[0], tr[1], replace=1, error=error
+        idx=where(strpos(tplotnames, 'att') GE 0 OR strpos(tplotnames, 'spin') GE 0, ncnt)
+        if ncnt GT 0 then del_data, tplotnames[idx]
+        idx=where(strpos(tplotnames, 'vel') GE 0 OR strpos(tplotnames, 'pos') GE 0, ncnt)
+        if ncnt GT 0 then tplotnames=tplotnames[idx]
+        dprint, dlevel=1,'Attitude or spin tplot variables are not valid for predicted state data.'
+      endif 
+      for tc=0,n_elements(tplotnames)-1 do begin
+        time_clip, tplotnames[tc], tr[0], tr[1], replace=1, error=error
         if error EQ 1 then begin
-          dprint, dlevel=1, 'The time requested for '+tplotnames+' is out of range'
-          dprint, dlevel=1, 'No data was loaded for '+tplotnames
-          del_data, tplotnames
-          tplotnames=''
-          return 
-        endif
-      endelse
+          dprint, dlevel=1, 'The time requested for '+tplotnames[tc]+' is out of range'
+          dprint, dlevel=1, 'No data was loaded for '+tplotnames[tc]
+          del_data, tplotnames[tc]
+          ;tplotnames=''
+          ;return 
+        endif else begin
+          append_array, tclip_tplotnames, tplotnames[tc]
+        endelse
+      endfor
       dt_timeclip = systime(/sec)-tc0
     endif
-
+    if ~undefined(tclip_tplotnames) then tplotnames=tclip_tplotnames
+    
     ; sort times and remove duplicates
-    if ~keyword_set(no_time_sort) then begin
+    if ~keyword_set(no_time_sort) && ~undefined(tplotnames) then begin
       for t=0,n_elements(tplotnames)-1 do begin
         tplot_sort, tplotnames[t]
         get_data, tplotnames[t], data=d, dlimits=dl, limits=l
-        idx=uniq(d.x,sort(d.x))
-        store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*]}, dlimits=dl, limits=l
+        if size(d, /type) EQ 8 then begin
+          idx=uniq(d.x,sort(d.x))
+          store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*]}, dlimits=dl, limits=l
+        endif
       endfor
     endif
     

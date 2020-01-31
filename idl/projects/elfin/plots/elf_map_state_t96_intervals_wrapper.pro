@@ -59,18 +59,20 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
     endif
     if ~keyword_set(north_only) AND ~keyword_set(south_only) then begin
       if keyword_set(do_all) then begin
+        ; handle north first
         elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
         elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
+        ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/sm
+        ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/sm,/hires
+        ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/sm,/bfirst
+        ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/sm,/bfirst,/hires
+        ; now south
         elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
         elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
-        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm
-        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm
-        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm
-        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm
-        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm,/bfirst
-        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm,/bfirst
-        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm,/bfirst
-        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm,/bfirst        
+        ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm
+        ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/hires
+        ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/bfirst
+        ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/bfirst,/hires        
       endif else begin
         if ~keyword_set(sm) then begin
           elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace

@@ -145,12 +145,23 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ;
   nsectors=n_elements(elx_pxf.x)
   nspinsectors=n_elements(reform(elx_pxf.y[0,*]))
-  if dSectr2add gt 0 then begin
+  if dSectr2add ne 0 then begin
     xra=make_array(nsectors-dSectr2add,/index,/long)
-    elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]
-    elx_pxf.y[0:dSectr2add-1,*]=!VALUES.F_NaN
+    if dSectr2add gt 0 then begin ; shift forward
+      elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]
+      elx_pxf.y[0:dSectr2add-1,*]=!VALUES.F_NaN
+    endif else begin ; shift backward
+      elx_pxf.y[xra,*]=elx_pxf.y[abs(dSectr2add):nsectors-1,*]
+      elx_pxf.y[dSectr2add:nsectors-1,*]=!VALUES.F_NaN
+    endelse
     store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
-  endif
+  endif  
+  ;if dSectr2add gt 0 then begin
+  ;  xra=make_array(nsectors-dSectr2add,/index,/long)
+  ;  elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]
+  ;  elx_pxf.y[0:dSectr2add-1,*]=!VALUES.F_NaN
+  ;  store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
+  ;endif
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; extrapolate on the left and right to [0,...nspinsectors-1], degap the data

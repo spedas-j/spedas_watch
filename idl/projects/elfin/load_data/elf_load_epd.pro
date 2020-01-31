@@ -159,8 +159,10 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
 
     if strpos(tplotnames[i], 'spinper') NE -1 then begin
        get_data, tplotnames[i], data=d, dlimits=dl, limits=l
-       d.y=d.y/80.
-       store_data, tplotnames[i], data=d, dlimits=dl, limits=l
+       if size(d, /type) EQ 8 then begin
+        d.y=d.y/80.
+        store_data, tplotnames[i], data=d, dlimits=dl, limits=l
+       endif
        continue
     endif
 
@@ -179,13 +181,15 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     ; calibrate data
     elf_cal_epd, tplotname=tplotnames[i], type=type, no_download=no_download
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
-    dl.ysubtitle=unit
-    if undefined(d.v) then d.v=findgen(16)
-    store_data, tplotnames[i], data={x:d.x, y:d.y, v:d.v}, dlimits=dl, limits=l
-    options, tplotnames[i], ylog=1
-    if keyword_set(no_spec) then options, tplotnames[i], spec=0 else options, tplotnames[i], spec=1 
-    options, tplotnames[i], labflag=1
-
+    if size(d, /type) EQ 8 then begin
+      dl.ysubtitle=unit
+      if undefined(d.v) then d.v=findgen(16)
+      store_data, tplotnames[i], data={x:d.x, y:d.y, v:d.v}, dlimits=dl, limits=l
+      options, tplotnames[i], ylog=1
+      if keyword_set(no_spec) then options, tplotnames[i], spec=0 else options, tplotnames[i], spec=1 
+      options, tplotnames[i], labflag=1
+    endif
+    
   endfor
       
 END

@@ -136,7 +136,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; need to reset timespan (attitude solution could be days old)
     timespan,tstart,88200.,/sec
     tr=timerange()
-    elf_load_state,probe=probes[sc];,/no_update,/no_download
+    
+    if ~keyword_set(pred) then elf_load_state,probe=probes[sc] else elf_load_state,probe=probes[sc], /pred  ;, no_download=no_download
     get_data,'el'+probes[sc]+'_pos_gei',data=dats, dlimits=dl, limits=l  ; position in GEI
 
     ; Coordinate transform from gei to sm
@@ -263,8 +264,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   endfor  ; end of sc loop
 
   ; retrieve fgm and epd data if available
-  elf_load_epd, type='raw';,/no_update,/no_download
-  elf_load_fgm;,/no_update,/no_download
+  if ~keyword_set(pred) then elf_load_epd, type='raw';,/no_update,/no_download
+  if ~keyword_set(pred) then elf_load_fgm;,/no_update,/no_download
   ; get all the science data collected and append times
   get_data, 'ela_pef', data=pefa
   if size(pefa, /type) EQ 8 then append_array, sci_timea, pefa.x
@@ -727,31 +728,43 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
     ; create attitude strings
     ; elfin a
-    idx=where(norma.x GE this_time[0] and norma.x LT this_time[n_elements(this_time)-1], ncnt)
-    if size(norma, /type) EQ 8 && ncnt GT 2 then $
-      norma_str=strmid(strtrim(string(median(norma.y[idx])),1),0,5) $
-    else norma_str = 'No att data'
-    idx=where(suna.x GE this_time[0] and suna.x LT this_time[n_elements(this_time)-1], ncnt)
-    if size(suna, /type) EQ 8 && ncnt GT 2 then $
-      suna_str=strmid(strtrim(string(median(suna.y[idx])),1),0,5) $
-    else suna_str = 'No att data'
-    idx=where(solna.x GE this_time[0] and solna.x LT this_time[n_elements(this_time)-1], ncnt)
-    if size(solna, /type) EQ 8 && ncnt GT 2 && solna.y[0] GT launch_date then $
-      solna_str=time_string(solna.y[0]) $
-    else solna_str = 'No att data'
+    if size(norma,/type) EQ 8 then begin
+      idx=where(norma.x GE this_time[0] and norma.x LT this_time[n_elements(this_time)-1], ncnt)
+      if size(norma, /type) EQ 8 && ncnt GT 2 then $
+        norma_str=strmid(strtrim(string(median(norma.y[idx])),1),0,5) $
+      else norma_str = 'No att data'
+      idx=where(suna.x GE this_time[0] and suna.x LT this_time[n_elements(this_time)-1], ncnt)
+      if size(suna, /type) EQ 8 && ncnt GT 2 then $
+        suna_str=strmid(strtrim(string(median(suna.y[idx])),1),0,5) $
+      else suna_str = 'No att data'
+      idx=where(solna.x GE this_time[0] and solna.x LT this_time[n_elements(this_time)-1], ncnt)
+      if size(solna, /type) EQ 8 && ncnt GT 2 && solna.y[0] GT launch_date then $
+        solna_str=time_string(solna.y[0]) $
+      else solna_str = 'No att data'
+    endif else begin
+      norma_str = 'No att data'
+      suna_str = 'No att data'
+      solna_str = 'No att data'
+    endelse
     ; repeat for B
-    idx=where(normb.x GE this_time2[0] and normb.x LT this_time2[n_elements(this_time2)-1], ncnt)
-    if size(normb, /type) EQ 8 && ncnt GT 2 then $
-      normb_str=strmid(strtrim(string(median(normb.y[idx])),1),0,5) $
-    else normb_str = 'No att data'
-    idx=where(sunb.x GE this_time2[0] and sunb.x LT this_time2[n_elements(this_time2)-1], ncnt)
-    if size(sunb, /type) EQ 8 && ncnt GT 2 then $
-      sunb_str=strmid(strtrim(string(median(sunb.y[idx])),1),0,5) $
-    else sunb_str = 'No att data'
-    idx=where(solnb.x GE this_time2[0] and solnb.x LT this_time2[n_elements(this_time2)-1], ncnt)
-    if size(solnb, /type) EQ 8 && ncnt GT 2 && solnb.y[0] GT launch_date then $
-      solnb_str=time_string(solnb.y[0]) $
-    else solnb_str = 'No att data'
+    if size(normb,/type) EQ 8 then begin
+      idx=where(normb.x GE this_time2[0] and normb.x LT this_time2[n_elements(this_time2)-1], ncnt)
+      if size(normb, /type) EQ 8 && ncnt GT 2 then $
+        normb_str=strmid(strtrim(string(median(normb.y[idx])),1),0,5) $
+      else normb_str = 'No att data'
+      idx=where(sunb.x GE this_time2[0] and sunb.x LT this_time2[n_elements(this_time2)-1], ncnt)
+      if size(sunb, /type) EQ 8 && ncnt GT 2 then $
+        sunb_str=strmid(strtrim(string(median(sunb.y[idx])),1),0,5) $
+      else sunb_str = 'No att data'
+      idx=where(solnb.x GE this_time2[0] and solnb.x LT this_time2[n_elements(this_time2)-1], ncnt)
+      if size(solnb, /type) EQ 8 && ncnt GT 2 && solnb.y[0] GT launch_date then $
+        solnb_str=time_string(solnb.y[0]) $
+      else solnb_str = 'No att data'
+    endif else begin
+      normb_str = 'No att data'
+      sunb_str = 'No att data'
+      solnb_str = 'No att data'
+    endelse
 
     if hires then charsize=.75 else charsize=.65
     ; annotate

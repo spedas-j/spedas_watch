@@ -118,6 +118,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   if undefined(data_rate) then data_rate = ''
  
   if ~keyword_set(pred) then begin
+    dprint, dlevel = 1, 'Downloading definitive state data. '
     elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
       data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
       datatype = datatype, get_support_data = get_support_data, pred = pred, $
@@ -126,13 +127,9 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
       cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
       versions = versions, tt2000=tt2000, no_time_sort=no_time_sort, no_download=no_download, $
       public_data=public_data
-  endif
-  
-  ; check that data was loaded, if not and the keyword_set pred was not set then 
-  ; try predicted data  
-  if keyword_set(pred) || undefined(tplotnames) || tplotnames[0] eq '' then begin
-     dprint, dlevel = 1, 'Downloading predicted state data. '
-     elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
+  endif else begin
+    dprint, dlevel = 1, 'Downloading predicted state data. '
+    elf_load_data, trange = trange, probes = probes, level = level, instrument = 'state', $
       data_rate = data_rate, local_data_dir = local_data_dir, source = source, $
       datatype = datatype, get_support_data = get_support_data, pred = 1, $
       tplotnames = tplotnames, no_color_setup = no_color_setup, no_time_clip = no_time_clip, $
@@ -140,11 +137,12 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
       cdf_version = cdf_version, cdf_records = cdf_records, spdf = spdf, available = available, $
       versions = versions, tt2000=tt2000, no_time_sort=no_time_sort, no_download=no_download, $
       public_data=public_data
-  endif
+  endelse
 
   ; no reason to continue if no data were loaded
   if undefined(tplotnames) || tplotnames[0] EQ '' then begin
-    dprint, dlevel = 1, 'No data was loaded.'
+    if ~keyword_set(pred) then dprint, dlevel = 1, 'No definitive data was loaded.' 
+    if keyword_set(pred) then  dprint, dlevel = 1, 'No predicted data was loaded.'
     return
   endif
   

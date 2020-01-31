@@ -481,6 +481,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   timespan, this_tr[0], tdur, /sec
   elf_load_state, probes=probe, /no_download
   elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux', /no_download
+  if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then $
   elf_getspec, probe=probe, /only_loss_cone ;this should overwrite 'lossconedeg' and 'antilossconedeg' with full day
 
   for jthchan=0,3 do begin ;reg
@@ -513,7 +514,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   timeduration=time_double(trange[1])-time_double(trange[0])
   timespan,trange[0],timeduration,/seconds
   get_data, 'antilossconedeg', data=d, dlimits=dl, limits=l 
-  store_data, 'antilossconedeg', data={x:d.x[0:*:60], y:d.y[0:*:60]}
+  if size(d, /type) EQ 8 then store_data, 'antilossconedeg', data={x:d.x[0:*:60], y:d.y[0:*:60]}
 
   ; handle scaling of y axis
   get_data,'pseudo_ae',data=pseudo_ae
@@ -535,10 +536,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     timespan, this_tr[0], tdur, /sec
     elf_load_state, probes=probe, /no_download
     
-    pseudo_ae_sub=pseudo_ae.y(where(pseudo_ae.x ge time_double(this_tr[0]) and pseudo_ae.x le time_double(this_tr[1])))
-    ae_max=minmax(pseudo_ae_sub)
-    if ae_max[1] LT 145. then options, 'pseudo_ae', yrange=[0,150] $
-      else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
+    if size(pseudo_ae,/type) eq 8 then begin
+      pseudo_ae_sub=pseudo_ae.y(where(pseudo_ae.x ge time_double(this_tr[0]) and pseudo_ae.x le time_double(this_tr[1])))
+      ae_max=minmax(pseudo_ae_sub)
+      if ae_max[1] LT 145. then options, 'pseudo_ae', yrange=[0,150] $
+        else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
+    endif
     
     ; Below chunk of code to fix y-labels might be messing up 24hr loss cone? If not, likely caused by interpolation in elf_getspec_v2
     ; 
