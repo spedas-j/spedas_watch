@@ -132,6 +132,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   options,'el'+probe+'_bt89_sm_NED','labels',['N','E','D']
   options,'el'+probe+'_bt89_sm_NED','databar',0.
   options,'el'+probe+'_bt89_sm_NED','ysubtitle','North, East, Down'
+  options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Get MLT amd LAT
@@ -152,6 +153,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   del_data, 'pseudo_ae'
   elf_load_pseudo_ae, probe=probe, no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae
+  if size(pseudo_ae, /type) NE 8 then elf_load_pseudo_ae, probe=probe, trange=['2019-12-05','2019-12-06'], no_download=no_download
   options, 'pseudo_ae', ysubtitle='[nT]', colors=251
     
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

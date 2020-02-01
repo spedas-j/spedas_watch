@@ -107,12 +107,14 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
 
   ; check for valid datatypes for level 1 NOTE: we only have l1 data so far
   ; NOTE: Might need to add pis, and pes
-  if undefined(datatype) then datatype=['pef', 'pif'] else datatype = strlowcase(datatype)
-  if datatype[0] EQ '*' then datatype=['pef', 'pif']
+  if undefined(datatype) then datatype=['pef', 'pif','pes', 'pis'] else datatype = strlowcase(datatype)
+  if datatype[0] EQ '*' then datatype=['pef', 'pif','pes', 'pis']
   if n_elements(datatype) EQ 1 then datatype=strsplit(datatype, ' ', /extract)
   idx = where(datatype EQ 'pif', icnt)
   idx = where(datatype EQ 'pef', ecnt)
-  if icnt EQ 0 && ecnt EQ 0 then begin
+  idx = where(datatype EQ 'pis', sicnt)
+  idx = where(datatype EQ 'pes', secnt)
+  if icnt EQ 0 && ecnt EQ 0 && sicnt EQ 0 && secnt EQ 0 then begin
     dprint, dlevel = 1, 'Invalid data type name. Valid types are pef, pif. Please select again.'
     return
   endif

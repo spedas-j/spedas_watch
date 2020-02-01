@@ -79,7 +79,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   if ~keyword_set(quick) then quick=1
   if keyword_set(hires) then hires=1 else hires=0
   if keyword_set(sm) then ft_coord='sm' else ft_coord='geo'
-  
+  if keyword_set(pred) then pred=1 else pred=0
+   
   elf_init
   aacgmidl
   loadct,39

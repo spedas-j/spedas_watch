@@ -17,13 +17,13 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-01-30 14:41:18 -0800 (Thu, 30 Jan 2020) $
-; $LastChangedRevision: 28260 $
+; $LastChangedDate: 2020-01-31 12:41:53 -0800 (Fri, 31 Jan 2020) $
+; $LastChangedRevision: 28262 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_fpi_curlometer_crib.pro $
 ;-
 
 trange = ['2017-01-31/10:27:34', '2017-01-31/10:27:56']
-probe = '4' ; must be a string
+probe = '1' ; must be a string
 
 mms_load_fpi, probe=probe, datatype=['des-moms', 'dis-moms'], /center, trange=trange, data_rate='brst', /time_clip
 mms_load_fgm, probes=[1, 2, 3, 4], trange=trange, data_rate='brst', /time_clip, /get_fgm_ephem
@@ -96,8 +96,6 @@ options, 'j_data', labflag=-1
 ylim, 'div/curl', 1e-2, 1e1, 1
 
 ; create the figure
-window, 1, xsize=650, ysize=1250
-
 time_stamp, /off
 
 tplot, ['mms'+probe+'_dis_energyspectr_omni_brst', $
@@ -108,7 +106,7 @@ tplot, ['mms'+probe+'_dis_energyspectr_omni_brst', $
         'des_vel', $
         'fpi_density', $
         'des_temp', $
-        'dis_temp'], window=1
+        'dis_temp']
         
 stop
 end
