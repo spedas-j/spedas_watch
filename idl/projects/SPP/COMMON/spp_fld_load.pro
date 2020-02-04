@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupa $
-; $LastChangedDate: 2020-01-29 15:38:03 -0800 (Wed, 29 Jan 2020) $
-; $LastChangedRevision: 28251 $
+; $LastChangedDate: 2020-02-03 16:59:25 -0800 (Mon, 03 Feb 2020) $
+; $LastChangedRevision: 28272 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -39,7 +39,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
           'SCMulflg','SCMvlflg','SCMwlflg', $
           'SCMdlfhg','SCMelfhg','SCMflfhg', $
           'SCMdlflg','SCMelflg','SCMflflg', $
-          'SCMmf', 'V5']
+          'SCMmf', 'V5hg']
       endif else begin
         spec_types = ['SCMdlfhg_SCMelfhg','SCMdlfhg_SCMflfhg','SCMelfhg_SCMflfhg']
 
@@ -85,10 +85,10 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   if type EQ 'dfb_dc_bpf' or type EQ 'dfb_ac_bpf' then begin
 
-    spec_types = ['dV12','dV34',$
+    spec_types = ['dV12hg','dV34hg',$
       'SCMulfhg','SCMvlfhg','SCMwlfhg', $
       'SCMulflg','SCMvlflg','SCMwlflg', $
-      'SCMumfhg', 'V5']
+      'SCMumfhg', 'V5hg']
 
     all_files = []
 
@@ -186,14 +186,6 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   ; the DC spectra folder for 2018/11 contains dV12hg, SCMdlfhg, SCMdlfhg,
   ; and SCMelfhg files.  The below string substitution makes sure the load
   ; routine is addressing this correctly.
-
-  if (strmid(type, 0, 11) EQ 'dfb_dc_spec') or (strmid(type, 0, 11) EQ 'dfb_ac_spec') and level EQ 2 then begin
-
-    pathformat = 'DIR' + pathformat
-
-    pathformat = str_sub(pathformat, 'DIRTYPE', strmid(type, 0, 11))
-
-  endif
 
   if (strmid(type, 0, 12) EQ 'dfb_dc_xspec') or (strmid(type, 0, 12) EQ 'dfb_ac_xspec') and level EQ 2 then begin
 

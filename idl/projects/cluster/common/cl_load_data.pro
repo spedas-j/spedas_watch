@@ -17,8 +17,8 @@
 ; NOTES:
 ; 
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-01-24 19:29:06 -0800 (Fri, 24 Jan 2020) $
-;$LastChangedRevision: 28240 $
+;$LastChangedDate: 2020-02-03 13:18:39 -0800 (Mon, 03 Feb 2020) $
+;$LastChangedRevision: 28268 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/common/cl_load_data.pro $
 ;-
 
@@ -58,7 +58,8 @@ pro cl_load_data, probes = probes, datatype = datatype, instrument = instrument,
         prb = probes[probe_idx]
         case strlowcase(instrument) of
             'fgm': begin
-                if datatype eq 'spin' then begin
+                ; note: datatype=='cp' has _spin_ in the file names
+                if datatype eq 'cp' then begin
                   pathformat[path_count] = 'c' + prb + '/cp/YYYY/c' + prb + $
                     '_cp_'+instrument+'_spin_'+time_format+'_v??.cdf'
                 endif else begin

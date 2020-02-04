@@ -6,9 +6,9 @@
 ;
 ;     new_defl - Set to use calibrated deflector values.
 ;
-; $LastChangedBy: rlivi2 $
-; $LastChangedDate: 2019-09-30 22:57:56 -0700 (Mon, 30 Sep 2019) $
-; $LastChangedRevision: 27807 $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2020-02-03 14:37:14 -0800 (Mon, 03 Feb 2020) $
+; $LastChangedRevision: 28269 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spanx_sweep_tables.pro $
 ;
 ;-
@@ -50,11 +50,11 @@ function spp_swp_spanx_sweep_tables,erange,deflrange,plot=plot,emode=emode,senso
                           maxspen=maxspen,version=version,plot=plot,hvgain=hvgain,spgain=spgain,fixgain=fixgain,new_defl=new_defl
 
    ;; Full Index
-   spp_swp_sweepv_new_fslut_v2,sweepv,defv1,defv2,spv,fsindex,version=version,nen=nen/4,plot=plot,spfac=spfac,new_defl=new_defl
+   spp_swp_sweepv_new_fslut_v2,sweepv,defv1,defv2,spv,fsindex,version=version,nen=nen/4,e0=emin,emax=emax,plot=plot,spfac=spfac,new_defl=new_defl
 
    ;; Targeted Index
    FOR i=0, 255 DO BEGIN
-      spp_swp_sweepv_new_tslut_v2,version=version,sweepv,defv1,defv2,spv,fsindex_tmp,tsindex,plot=plot,nen=nen,edpeak=i,spfac=spfac,new_defl=new_defl
+      spp_swp_sweepv_new_tslut_v2,version=version,sweepv,defv1,defv2,spv,fsindex_tmp,tsindex,plot=plot,nen=nen,e0=e0,emax=emax,edpeak=i,spfac=spfac,new_defl=new_defl
       IF i EQ 0 THEN index = tsindex ELSE index = [index,tsindex]      
    ENDFOR
    tsindex = index
