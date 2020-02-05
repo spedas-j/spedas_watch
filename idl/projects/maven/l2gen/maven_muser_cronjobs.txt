@@ -2,7 +2,7 @@
 
 The muser SPEDAS working copy is under the directory
 /home/muser/export_socware/idl_socware/. To update, cd into that
-directory and run svn update, the password is the same as for muser
+directory and run svn update, the SVN passphrase is the same as for muser
 login.
 
 
@@ -166,6 +166,9 @@ run the appropriate program, e.g. mvn_sta_l2gen, date = '2???-??-??'
 for the appropriate date. Other reprocess scripts exist for more
 complicated reprocesses.
 
+NEVER 'touch' Level 0 files, unless absolutely necessary, since this will 
+trigger reprocessing of those files for all instruments.
+ 
 EXAMPLES:
 
 The best way to reprocess a small amount of data is to use the program that
