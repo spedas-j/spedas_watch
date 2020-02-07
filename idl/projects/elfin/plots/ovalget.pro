@@ -16,9 +16,10 @@
 ;-
 pro ovalget,qindx,pwdboundlonlat,ewdboundlonlat
 
-  ovaldir='C:\Users\clrussell\Desktop\spedas\projects\elfin\plots\
+  ovaldir=routine_dir()+'ovals\'   ;'C:\Users\clrussell\Desktop\spedas\projects\elfin\plots\
   ovalpfile='ov_q'+strtrim(long(qindx),1)+'_p.dat' ; p for poleward ; fixed to not bomb for q=6
   ovalefile='ov_q'+strtrim(long(qindx),1)+'_e.dat' ; e for equatorward ; fixed to not bomb for q=6
+
   pblatlon=read_ascii_cmdline(ovaldir+ovalpfile)
   ;pblatlon.field2[*]=(pblatlon.field2[*]+180.) mod 360 ; mlt -> smlon
   eblatlon=read_ascii_cmdline(ovaldir+'\'+ovalefile)

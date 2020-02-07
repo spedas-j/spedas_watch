@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupa $
-; $LastChangedDate: 2020-02-03 16:59:25 -0800 (Mon, 03 Feb 2020) $
-; $LastChangedRevision: 28272 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-02-06 09:39:02 -0800 (Thu, 06 Feb 2020) $
+; $LastChangedRevision: 28281 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -41,7 +41,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
           'SCMdlflg','SCMelflg','SCMflflg', $
           'SCMmf', 'V5hg']
       endif else begin
-        spec_types = ['SCMdlfhg_SCMelfhg','SCMdlfhg_SCMflfhg','SCMelfhg_SCMflfhg']
+        spec_types = ['SCMdlfhg_SCMelfhg','SCMdlfhg_SCMflfhg','SCMelfhg_SCMflfhg', $
+          'dV12hg_dV34hg']
 
       endelse
 

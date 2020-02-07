@@ -376,14 +376,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   endfor
   nplots = n_elements(min_st)
 
-  ; Get auroral zones and plot
-  ovalget,6,pwdboundlonlat,ewdboundlonlat
-  rp=make_array(n_elements(pwdboundlonlat[*,0]), /double)+100.
-  outlon=make_array(n_elements(pwdboundlonlat[*,0]))
-  outlat=make_array(n_elements(pwdboundlonlat[*,0]))
-  sphere_to_cart, rp, pwdboundlonlat[*,1], pwdboundlonlat[*,0], vec=pwd_oval_sm
-  sphere_to_cart, rp, ewdboundlonlat[*,1], ewdboundlonlat[*,0], vec=ewd_oval_sm
-
   ; determine orbital period
   ; Elfin A
   res=where(ela_state_pos_sm.y[*,1] GE 0, ncnt)
@@ -459,21 +451,19 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
     ; display latitude/longitude
     if keyword_set(sm) then begin
-      ;;;;;;;;;;;; NOTE - sm not yet implemented  ;;;;;;;;;;;;;;
-      ;;;;;;;;;;;; need to change from mag to sm  ;;;;;;;;;;;;;;
+      lonlats=elf_make_sm_grid(trange=ela_state_pos_sm.x[min_st[k]:min_en[k]])
+      nll=n_elements(lonlats[*,1])-1
+      diff=lonlats[1:nll,1]-lonlats[0:nll-1,1]
+      idx =where(diff GT 5,ncnt)
+      idx=[0,idx]
+      idx=[idx,nll-8]
       if keyword_set(south) then begin
-        for i=0,nmlats-1 do oplot,v_lon[i,*],-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-        for i=0,nmlons-1 do begin
-          idx=where(u_lon[i,*] NE 0)
-          oplot,u_lon[i,idx],-u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
-        endfor
+        for lx=0,n_elements(idx)-2 do $
+          plots, lonlats[idx[lx]+1:idx[lx+1],0]+mid_hr*15, -lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250 
       endif else begin
-        for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=contour_thick,linestyle=1
-        for i=0,nmlons-1 do begin
-          idx=where(u_lon[i,*] NE 0)
-          oplot,u_lon[i,idx],u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
-        endfor
-      endelse
+        for lx=0,n_elements(idx)-2 do $
+          plots, lonlats[idx[lx]+1:idx[lx+1],0]-mid_hr*15, lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250
+      endelse 
     endif else begin
       if keyword_set(south) then begin
         for i=0,nmlats-1 do oplot,v_lon[i,*],-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
@@ -489,6 +479,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         endfor
       endelse
     endelse
+    
 
     ; Set up data for ELFIN A for this time span
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
@@ -681,6 +672,16 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     b_period_str = strmid(strtrim(string(bt_ag[idx[0]]), 1),0,5)
 
     ; Plot auroral zones and plot
+    ; Get auroral zones and plot
+    ;kp_value=elf_load_kp(trange=this_time, /no_download)
+    if undefined(kp_value) || kp_value EQ -1 then kp_value=6
+    ovalget,kp_value,pwdboundlonlat,ewdboundlonlat
+    rp=make_array(n_elements(pwdboundlonlat[*,0]), /double)+100.
+    outlon=make_array(n_elements(pwdboundlonlat[*,0]))
+    outlat=make_array(n_elements(pwdboundlonlat[*,0]))
+    sphere_to_cart, rp, pwdboundlonlat[*,1], pwdboundlonlat[*,0], vec=pwd_oval_sm
+    sphere_to_cart, rp, ewdboundlonlat[*,1], ewdboundlonlat[*,0], vec=ewd_oval_sm
+
     midpt=n_elements(this_time)/2.
     t=make_array(n_elements(pwdboundlonlat[*,0]), /double)+this_time[midpt]
     store_data, 'oval_sm', data={x:t, y:pwd_oval_sm}
