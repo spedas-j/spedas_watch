@@ -449,9 +449,15 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       map_grid,latdel=10.,londel=30.
     endelse
 
+    ;----------------------------------
     ; display latitude/longitude
+    ;----------------------------------
+    ; SM COORDINATES
     if keyword_set(sm) then begin
-      lonlats=elf_make_sm_grid(trange=ela_state_pos_sm.x[min_st[k]:min_en[k]])
+      ;;; SM Coords
+      ; plot the latitude circles first
+      sm_grid=elf_make_sm_grid(trange=ela_state_pos_sm.x[min_st[k]:min_en[k]])
+      lonlats=sm_grid.lat_circles
       nll=n_elements(lonlats[*,1])-1
       diff=lonlats[1:nll,1]-lonlats[0:nll-1,1]
       idx =where(diff GT 5,ncnt)
@@ -459,12 +465,31 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       idx=[idx,nll-8]
       if keyword_set(south) then begin
         for lx=0,n_elements(idx)-2 do $
-          plots, lonlats[idx[lx]+1:idx[lx+1],0]+mid_hr*15, -lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250 
+          plots, lonlats[idx[lx]+1:idx[lx+1],0], -lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250 
       endif else begin
         for lx=0,n_elements(idx)-2 do $
-          plots, lonlats[idx[lx]+1:idx[lx+1],0]-mid_hr*15, lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250
+          plots, lonlats[idx[lx]+1:idx[lx+1],0]-180., lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250
       endelse 
+      ; plot longitude lines
+      for i=0,360,30 do begin
+        glons=fltarr(90)+i
+        glats=findgen(90)
+        rad=make_array(90)+1
+        sphere_to_cart, rad,glats,glons,x,y,z
+        midx=min_st[k] + (min_en[k] - min_st[k])/2.
+        tmid=ela_state_pos_sm.x[midx]
+        times=make_array(n_elements(glats),/double)+tmid
+        store_data, 'cart_latlons_geo', data={x:times, y:[[x],[y],[z]]}
+        cotrans, 'cart_latlons_geo', 'cart_latlons_gei', /geo2gei
+        cotrans, 'cart_latlons_gei', 'cart_latlons_gse', /gei2gse
+        cotrans, 'cart_latlons_gse', 'cart_latlons_gsm', /gse2gsm
+        cotrans, 'cart_latlons_gsm', 'cart_latlons_sm', /gsm2sm
+        get_data, 'cart_latlons_sm', data=d
+        cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rad, smlats, smlons
+        plots,smlons- mid_hr*15.,smlats,line=1,color=250
+      endfor      
     endif else begin
+      ;;; MAG Coords
       if keyword_set(south) then begin
         for i=0,nmlats-1 do oplot,v_lon[i,*],-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
         for i=0,nmlons-1 do begin
@@ -505,7 +530,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_dposb=dposb.y[min_st[k]:min_en[k],2]
     this_b_alt = mean(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
     this_b_alt_str = strtrim(string(this_b_alt),1)
-
+    ; Plot foot points
     if ~keyword_set(bfirst) then begin
       plots, this_lon2, this_lat2, psym=2, symsize=.05, color=254    ; thick=3
       plots, this_lon, this_lat, psym=2, symsize=.05, color=253   ; thick=3
@@ -514,8 +539,11 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots, this_lon2, this_lat2, psym=2, symsize=.05, color=254    ; thick=3
     endelse
     
-    ; check if there were any science collected this time frame
-    ; and oplot sci collection times
+    ;-----------------------------------------------------
+    ; SCIENCE COLLECTIONS - check if there were any science 
+    ; collections this time frame 
+    ;-----------------------------------------------------
+    ; Check B
     undefine, tb0
     undefine, tb1
     spin_strb=''
@@ -538,7 +566,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         endif
       endif
     endif
-
     ; Repeat for A
     undefine, ta0
     undefine, ta1
@@ -563,7 +590,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       endif
     endif
 
-    ; now plot science collection
+    ; ------------------------------
+    ; PLOT science collection
+    ;-------------------------------
     if ~keyword_set(bfirst) then begin
       for sci=0, n_elements(tb0)-1 do begin
         tidxb=where(this_time2 GE tb0[sci] and this_time2 LT tb1[sci], bcnt)
@@ -592,7 +621,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       endfor      
     endelse
 
+    ;-----------------------------------------
     ; Plot dataset start/stop position markers
+    ; ----------------------------------------
     ; elfinb
     if ~keyword_set(bfirst) then begin
       count=nptsb   ;n_elements(this_lon2)
@@ -632,6 +663,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots, this_lon2[count/2], this_lat2[count/2], psym=5, symsize=1.9, color=254
     endelse
     
+    ;---------------------
+    ; ADD Tick Marks
+    ;---------------------
     if keyword_set(tstep) then begin
       tstep=300.
       ; add tick marks for B
@@ -662,14 +696,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots, this_lon[istepsa], this_lat[istepsa], psym=1, symsize=1.35, color=254
       plots, this_lon2[istepsb], this_lat2[istepsb], psym=1, symsize=1.35, color=253     
     endelse
-
-    ; find total orbit time for this plot
-    idx = where(at_s GE this_time[0], ncnt)
-    if ncnt EQ 0 then idx=0
-    a_period_str = strmid(strtrim(string(at_ag[idx[0]]), 1),0,5)
-    idx = where(bt_s GE this_time2[0], ncnt)
-    if ncnt EQ 0 then idx=0
-    b_period_str = strmid(strtrim(string(bt_ag[idx[0]]), 1),0,5)
 
     ; Plot auroral zones and plot
     ; Get auroral zones and plot
@@ -727,6 +753,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots,pwdboundlonlat[*,0],pwdboundlonlat[*,1],color=155, thick=1.05
       plots,ewdboundlonlat[*,0],ewdboundlonlat[*,1],color=155, thick=1.05
     endelse
+
+    ;-----------------------------------------
+    ; Create Text for Annotations
+    ;-----------------------------------------
+    ; find total orbit time for this plot
+    idx = where(at_s GE this_time[0], ncnt)
+    if ncnt EQ 0 then idx=0
+    a_period_str = strmid(strtrim(string(at_ag[idx[0]]), 1),0,5)
+    idx = where(bt_s GE this_time2[0], ncnt)
+    if ncnt EQ 0 then idx=0
+    b_period_str = strmid(strtrim(string(bt_ag[idx[0]]), 1),0,5)
 
     ; create attitude strings
     ; elfin a
@@ -854,7 +891,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; add time of creation
     xyouts,  xann+20, yann+12.5, 'Created: '+systime(),/device,color=255, charsize=charsize
 
+    ;-----------------------
+    ; START OF ORBIT PLOTS
+    ;-----------------------
+    ;--------
     ; SM X-Z
+    ;--------
     plot,findgen(10),xrange=[-2,2],yrange=[-2,2],$
       xstyle=5,ystyle=5,/nodata,/noerase,xtickname=replicate(' ',30),ytickname=replicate(' ',30),$
       position=[600./800.,0.005+0.96*2./3.,0.985,0.96*3./3.],$
@@ -945,8 +987,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     plots,[600./800.*0.96,1.],[0.005+0.96*3./3.,0.005+0.96*3./3.]-0.007,/normal
     plots,[600./800.*0.96,1.],[0.005+0.96*2./3.,0.005+0.96*2./3.]-0.005,/normal
 
+    ;--------
     ; SM X-Y
-    plot,findgen(10),xrange=[-2,2],yrange=[-2,2],$
+    ;--------
+   plot,findgen(10),xrange=[-2,2],yrange=[-2,2],$
       xstyle=5,ystyle=5,/nodata,/noerase,xtickname=replicate(' ',30),ytickname=replicate(' ',30),$
       position=[600./800.,0.005+0.96*1./3.,0.985,0.96*2./3.]
     ; plot the earth
@@ -1033,7 +1077,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; plot lines to separate plots
     plots,[600./800.*0.96,1.],[0.005+0.96*1./3.,0.005+0.96*1./3.]-0.0025,/normal
 
+    ;--------
     ; SM Y-Z
+    ;--------
     plot,findgen(10),xrange=[-2,2],yrange=[-2,2],$
       xstyle=5,ystyle=5,/nodata,/noerase,xtickname=replicate(' ',30),ytickname=replicate(' ',30),$
       position=[600./800.,0.005+0.96*0./3.,0.985,0.96*1./3.]
@@ -1123,8 +1169,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; plot lines to separate plots
     plots,[600./800.*0.96,1.],[0.005+0.96*0./3.,0.005+0.96*0./3.],/normal
 
-    ; gif-output
-
+    ;--------------------------------
+    ; CREATE GIF
+    ;--------------------------------
     if keyword_set(gifout) then begin
 
       ; Create small plot

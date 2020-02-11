@@ -72,17 +72,16 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
       append_array, dsect2add, thisdsect
       if data[4] EQ ' NaN' then thisdph=!values.f_nan else thisdph=float(data[4])
       append_array, dphang2add, thisdph
-      append_array, sectrconfig, float(data[5])
-      append_array, phangconfig, float(data[6])
-      if data[7] EQ ' NaN' then thislms=!values.f_nan else thislms=fix(data[7])
+      append_array, ticksconfig, float(data[5])
+      if data[6] EQ ' NaN' then thislms=!values.f_nan else thislms=fix(data[6])
       append_array, latestmediansectr, thislms
-      if data[8] EQ ' NaN' then thislmpa=!values.f_nan else thislmpa=float(data[8])
+      if data[7] EQ ' NaN' then thislmpa=!values.f_nan else thislmpa=float(data[7])
       append_array, latestmedianphang, thislmpa
-      append_array, chisq, float(data[9])
-      append_array, attunc, float(data[10])
-      append_array, badflag, fix(data[11])
-      append_array, HQflag, fix(data[12])
-      append_array, minpa, float(data[13])
+      append_array, chisq, float(data[8])
+      append_array, attunc, float(data[9])
+      append_array, badflag, fix(data[10])
+      append_array, HQflag, fix(data[11])
+      append_array, minpa, float(data[12])
       count=count+1
     endwhile
   endelse  
@@ -93,8 +92,7 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
     tspin:tspin, $
     sect2add:dsect2add, $
     phang2add:dphang2add, $
-    sectrconfig:sectrconfig, $
-    phangconfig:phangconfig, $
+    ticksconfig:ticksconfig, $
     lastestmediansectr:latestmediansectr, $
     latestmedianphang:latestmedianphang, $
     chisq:chisq, $
