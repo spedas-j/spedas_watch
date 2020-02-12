@@ -700,7 +700,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; Plot auroral zones and plot
     ; Get auroral zones and plot
     ;kp_value=elf_load_kp(trange=this_time, /no_download)
-    if undefined(kp_value) || kp_value EQ -1 then kp_value=6
+    if undefined(kp_value) || kp_value EQ -1 then kp_value=2
     ovalget,kp_value,pwdboundlonlat,ewdboundlonlat
     rp=make_array(n_elements(pwdboundlonlat[*,0]), /double)+100.
     outlon=make_array(n_elements(pwdboundlonlat[*,0]))

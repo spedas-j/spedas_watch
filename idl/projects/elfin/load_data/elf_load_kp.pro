@@ -88,6 +88,11 @@ function elf_load_kp, no_download=no_download, trange=trange, day=day
     if ncnt GT 1 then kp_value=round(kp_values.field3[idx])
   endelse
    
+  ; check range if not between 0 and 8 then default to 2
+  if kp_value LT 0 or kp_value GT 8 then begin
+     kp_value=2
+     dprint, devel=1, 'Kp value was out of range. Defaulting to 2."     
+  endif
   return, kp_value
 
 end
