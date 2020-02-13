@@ -14,18 +14,22 @@
 ; EXAMPLE:
 ;     >> tplot, 'kyoto_dst'
 ;     >> tplot_fill_color, 'kyoto_dst', spd_get_color('blue')
+;     
+; WARNING:
+;     if you see strange results with a variable containing NaNs, run 'tdegap' 
+;     on the variable prior to creating the figure to remove the NaNs
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-08-23 16:03:58 -0700 (Fri, 23 Aug 2019) $
-;$LastChangedRevision: 27643 $
+;$LastChangedDate: 2020-02-12 12:40:17 -0800 (Wed, 12 Feb 2020) $
+;$LastChangedRevision: 28296 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot_fill_color.pro $
 ;-
 
-pro tplot_fill_color, vars, colors, pos=pos, _extra=_extra
+pro tplot_fill_color, vars, colors, pos=pos;, _extra=_extra
   @tplot_com.pro
   tvinfo = tplot_vars
   
-  if keyword_set(pos) then pos = pos else tplot, get_plot_position=pos, _extra=_extra
+  if keyword_set(pos) then pos = pos else tplot, get_plot_position=pos;, _extra=_extra
   
   if undefined(colors) then color = 6
   if undefined(vars) || n_elements(tnames(vars)) eq 0 then begin
