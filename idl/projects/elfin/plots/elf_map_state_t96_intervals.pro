@@ -437,13 +437,16 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     if keyword_set(south) then begin
       title=pred_str+'Southern '+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
       this_rot=180. + mid_hr*15.
-      map_set,-90.,-90.,this_rot,/orthographic,/conti,limit=[-10.,-180.,-90.,180.],$
+      if keyword_set(sm) then latpole=-80.5 else latpole=-90.
+      map_set,latpole,-90.,this_rot,/orthographic,/conti,limit=[-10.,-180.,-90.,180.],$
         title=title,position=[0.005,0.005,600./800.*0.96,0.96], charsize=.9
       map_grid,latdel=-10.,londel=30.
     endif else begin
       title=pred_str+'Northern '+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
       this_rot=180. - mid_hr*15.
-      map_set,90.,-90.,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
+      ;map_set,86.5,-90.,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
+      if keyword_set(sm) then latpole=80.5 else latpole=90. 
+      map_set,latpole,-90.,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
         title=title,position=[0.005,0.005,600./800.*0.96,0.96], xmargin=[15,3],$
         ymargin=[15,3], charsize=.9
       map_grid,latdel=10.,londel=30.
@@ -468,7 +471,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
           plots, lonlats[idx[lx]+1:idx[lx+1],0], -lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250 
       endif else begin
         for lx=0,n_elements(idx)-2 do $
-          plots, lonlats[idx[lx]+1:idx[lx+1],0]-180., lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250
+          plots, lonlats[idx[lx]+1:idx[lx+1],0]-mid_hr*15., lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250
       endelse 
       ; plot longitude lines
       for i=0,360,30 do begin
@@ -486,7 +489,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         cotrans, 'cart_latlons_gsm', 'cart_latlons_sm', /gsm2sm
         get_data, 'cart_latlons_sm', data=d
         cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rad, smlats, smlons
-        plots,smlons- mid_hr*15.,smlats,line=1,color=250
+        plots,smlons-mid_hr*15.,smlats,line=1,color=250
       endfor      
     endif else begin
       ;;; MAG Coords
@@ -697,8 +700,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots, this_lon2[istepsb], this_lat2[istepsb], psym=1, symsize=1.35, color=253     
     endelse
 
-    ; Plot auroral zones and plot
-    ; Get auroral zones and plot
+    ;--------------------------------
+    ; AURORAL ZONES - Get and Plot
+    ; -------------------------------
     ;kp_value=elf_load_kp(trange=this_time, /no_download)
     if undefined(kp_value) || kp_value EQ -1 then kp_value=2
     ovalget,kp_value,pwdboundlonlat,ewdboundlonlat
@@ -720,7 +724,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     pwdboundlonlat[*,0]=phi
     pwdboundlonlat[*,1]=theta
-    ;    if keyword_set(south) then pwdboundlonlat[*,1]=-theta ;else pwdboundlonlat[*,1]=theta
 
     t=make_array(n_elements(ewdboundlonlat[*,0]), /double)+this_time[midpt]
     store_data, 'oval_sm', data={x:t, y:ewd_oval_sm}
@@ -733,7 +736,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     ewdboundlonlat[*,0]=phi
     ewdboundlonlat[*,1]=theta
-    ;    if keyword_set(south) then ewdboundlonlat[*,1]=-theta ;else pwdboundlonlat[*,1]=theta
 
     for lidx=0,n_elements(pwdboundlonlat[*,0])-1 do begin
       cnv_aacgm, pwdboundlonlat[lidx,1],pwdboundlonlat[lidx,0],100.,plat,plon,r1,error,/geo
@@ -843,6 +845,11 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
     endelse
 
+    if keyword_set(sm) then latlon_text='SM Lat/Lon - Red dotted lines' $
+       else latlon_text='Mag Lat/Lon - Red dotted lines'
+    oval_text='Auroral Oval-Green, kp='+strtrim(kp_value,1)
+    if keyword_set(sm) then oxadd=51.5 else oxadd=47
+    if keyword_set(sm) then lxadd=26 else lxadd=21
     if hires then xann=670 else xann=410
     if hires then yann=750 else yann=463
     if hires then begin
@@ -851,8 +858,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       xyouts, xann-5,yann+12.5*8,'Earth/Oval View Center Time (triangle)',/device,color=255,charsize=charsize
       xyouts, xann+10,yann+12.5*7,'Thick - Science (FGM and/or EPD)',/device,color=255,charsize=charsize
       xyouts, xann+18,yann+12.5*6,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
-      xyouts, xann+25,yann+12.5*5,'Mag Lat/Lon - Red dotted lines',/device,color=251,charsize=charsize
-      xyouts, xann+55,yann+12.5*4,'Auroral Oval - Green lines',/device,color=155,charsize=charsize
+      xyouts, xann+25,yann+12.5*5, latlon_text,/device,color=251,charsize=charsize
+      xyouts, xann+55,yann+12.5*4, oval_text,/device,color=155,charsize=charsize
       xyouts, xann+75,yann+12.5*3,'Tick Marks every 5min',/device,color=255,charsize=charsize
       xyouts, xann+85,yann+12.5*2,'Start Time-Diamond',/device,color=255,charsize=charsize
       xyouts, xann+95,yann+12.5*1,'End Time-Asterisk',/device,color=255,charsize=charsize
@@ -862,10 +869,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       xyouts, xann-5,yann+12.5*8,'Earth/Oval View Center Time (triangle)',/device,color=255,charsize=charsize
       xyouts, xann+10,yann+12.5*7,'Thick - Science (FGM and/or EPD)',/device,color=255,charsize=charsize
       xyouts, xann+15,yann+12.5*6,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
-      xyouts, xann+21,yann+12.5*5,'Mag Lat/Lon - Red dotted lines',/device,color=251,charsize=charsize
-      xyouts, xann+47,yann+12.5*4,'Auroral Oval - Green lines',/device,color=155,charsize=charsize
+      xyouts, xann+lxadd,yann+12.5*5, latlon_text,/device,color=251,charsize=charsize
+      xyouts, xann+oxadd,yann+12.5*4, oval_text,/device,color=155,charsize=charsize
       xyouts, xann+66,yann+12.5*3,'Tick Marks every 5min',/device,color=255,charsize=charsize
-      xyouts, xann+77,yann+12.5*2,'Start Time-Diamond',/device,color=255,charsize=charsize
+      xyouts, xann+76,yann+12.5*2,'Start Time-Diamond',/device,color=255,charsize=charsize
       xyouts, xann+85,yann+12.5*1,'End Time-Asterisk',/device,color=255,charsize=charsize
     endelse
 
