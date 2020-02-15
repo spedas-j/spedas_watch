@@ -445,8 +445,15 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       title=pred_str+'Northern '+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
       this_rot=180. - mid_hr*15.
       ;map_set,86.5,-90.,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
-      if keyword_set(sm) then latpole=80.5 else latpole=90. 
-      map_set,latpole,-90.,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
+      if keyword_set(sm) then begin
+         latpole=80.5 
+         lonpole=-88.75
+      endif else begin
+         latpole=90.
+         lonpole=90.
+      endelse
+
+      map_set,latpole,-88.75,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
         title=title,position=[0.005,0.005,600./800.*0.96,0.96], xmargin=[15,3],$
         ymargin=[15,3], charsize=.9
       map_grid,latdel=10.,londel=30.
@@ -459,7 +466,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     if keyword_set(sm) then begin
       ;;; SM Coords
       ; plot the latitude circles first
-      sm_grid=elf_make_sm_grid(trange=ela_state_pos_sm.x[min_st[k]:min_en[k]])
+;      sm_grid=elf_make_sm_grid(trange=ela_state_pos_sm.x[min_st[k]:min_en[k]])
+      sm_grid=elf_make_sm_grid(trange=time_double(['2019-09-27/23:59:59','2019-09-28/00:00:01']))
       lonlats=sm_grid.lat_circles
       nll=n_elements(lonlats[*,1])-1
       diff=lonlats[1:nll,1]-lonlats[0:nll-1,1]
@@ -480,7 +488,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         rad=make_array(90)+1
         sphere_to_cart, rad,glats,glons,x,y,z
         midx=min_st[k] + (min_en[k] - min_st[k])/2.
-        tmid=ela_state_pos_sm.x[midx]
+;        tmid=ela_state_pos_sm.x[midx]
+        tmid=time_double('2019-09-28/00:00:00')
         times=make_array(n_elements(glats),/double)+tmid
         store_data, 'cart_latlons_geo', data={x:times, y:[[x],[y],[z]]}
         cotrans, 'cart_latlons_geo', 'cart_latlons_gei', /geo2gei
@@ -885,13 +894,13 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       tsyg_mod eq 't01': xyouts,xann+20,yann+12.5*2,'Tsyganenko-2001',/device,charsize=charsize,color=255
     endcase
 
-    xyouts, .01, .475, '00:00', charsize=1.15, /normal
-    xyouts, .663, .475, '12:00', charsize=1.15, /normal
+    xyouts, .01, .485, '00:00', charsize=1.15, /normal
+    xyouts, .663, .489, '12:00', charsize=1.15, /normal
     if keyword_set(south) then begin
       xyouts, .335, .935, '06:00', charsize=1.15, /normal
       xyouts, .335, .0185, '18:00', charsize=1.15, /normal
     endif else begin
-      xyouts, .335, .935, '18:00', charsize=1.15, /normal
+      xyouts, .33, .935, '18:00', charsize=1.15, /normal
       xyouts, .335, .0185, '06:00', charsize=1.15, /normal
     endelse
 

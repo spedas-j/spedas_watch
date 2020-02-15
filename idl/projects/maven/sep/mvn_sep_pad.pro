@@ -23,51 +23,51 @@ function mvn_sep_pad, mag_tplot, pa_resolution = pa_resolution, $
 
 ; first get the ion flux data
 ; get ion flux data
-  get_data,  'MVN_SEP1f_ion_flux', data = ion_1F
-  get_data,  'MVN_SEP2f_ion_flux', data = ion_2F
-  get_data,  'MVN_SEP1r_ion_flux', data = ion_1R
-  get_data,  'MVN_SEP2r_ion_flux', data = ion_2R
+  get_data,  'mvn_L2_sep1f_ion_flux', data = ion_1F
+  get_data,  'mvn_L2_sep2f_ion_flux', data = ion_2F
+  get_data,  'mvn_L2_sep1r_ion_flux', data = ion_1R
+  get_data,  'mvn_L2_sep2r_ion_flux', data = ion_2R
   
   ion_energy = mean_dims (ion_1f.v, 1)
   n_ion_energy = n_elements (ion_energy)
   
 ; make tplot variables for ion energy flux
-  store_data,'MVN_SEP1f_ion_eflux', data = {x: ion_1f.x, y: ion_1f.y*ion_1f.v, v:ion_energy}
-  store_data,'MVN_SEP1r_ion_eflux', data = {x: ion_1r.x, y: ion_1r.y*ion_1r.v, v:ion_energy}
-  store_data,'MVN_SEP2f_ion_eflux', data = {x: ion_2f.x, y: ion_2f.y*ion_2f.v, v:ion_energy}
-  store_data,'MVN_SEP2r_ion_eflux', data = {x: ion_2r.x, y: ion_2r.y*ion_2r.v, v:ion_energy}
-  get_data,  'MVN_SEP1f_ion_eflux', data = ion_1F
-  get_data,  'MVN_SEP2f_ion_eflux', data = ion_2F
-  get_data,  'MVN_SEP1r_ion_eflux', data = ion_1R
-  get_data,  'MVN_SEP2r_ion_eflux', data = ion_2R
+  store_data,'mvn_L2_sep1f_ion_eflux', data = {x: ion_1f.x, y: ion_1f.y*ion_1f.v, v:ion_energy}
+  store_data,'mvn_L2_sep1r_ion_eflux', data = {x: ion_1r.x, y: ion_1r.y*ion_1r.v, v:ion_energy}
+  store_data,'mvn_L2_sep2f_ion_eflux', data = {x: ion_2f.x, y: ion_2f.y*ion_2f.v, v:ion_energy}
+  store_data,'mvn_L2_sep2r_ion_eflux', data = {x: ion_2r.x, y: ion_2r.y*ion_2r.v, v:ion_energy}
+  get_data,  'mvn_L2_sep1f_ion_eflux', data = ion_1F
+  get_data,  'mvn_L2_sep2f_ion_eflux', data = ion_2F
+  get_data,  'mvn_L2_sep1r_ion_eflux', data = ion_1R
+  get_data,  'mvn_L2_sep2r_ion_eflux', data = ion_2R
 
 
   
 ; get electron flux data
-  get_data,  'MVN_SEP1f_elec_flux', data = electron_1F
-  get_data,  'MVN_SEP2f_elec_flux', data = electron_2F
-  get_data,  'MVN_SEP1r_elec_flux', data = electron_1R
-  get_data,  'MVN_SEP2r_elec_flux', data = electron_2R
+  get_data,  'mvn_L2_sep1f_elec_flux', data = electron_1F
+  get_data,  'mvn_L2_sep2f_elec_flux', data = electron_2F
+  get_data,  'mvn_L2_sep1r_elec_flux', data = electron_1R
+  get_data,  'mvn_L2_sep2r_elec_flux', data = electron_2R
 
 ; make tplot variables for electron energy flux
   electron_energy = mean_dims (electron_1f.v, 1)
-  store_data,'MVN_SEP1f_electron_eflux', $
+  store_data,'mvn_L2_sep1f_electron_eflux', $
              data = {x: electron_1f.x, y: electron_1f.y*electron_1f.v, v:electron_energy}
-  store_data,'MVN_SEP1r_electron_eflux', $
+  store_data,'mvn_L2_sep1r_electron_eflux', $
              data = {x: electron_1r.x, y: electron_1r.y*electron_1r.v, v:electron_energy}
-  store_data,'MVN_SEP2f_electron_eflux', $
+  store_data,'mvn_L2_sep2f_electron_eflux', $
              data = {x: electron_2f.x, y: electron_2f.y*electron_2f.v, v:electron_energy}
-  store_data,'MVN_SEP2r_electron_eflux', $
+  store_data,'mvn_L2_sep2r_electron_eflux', $
              data = {x: electron_2r.x, y: electron_2r.y*electron_2r.v, v:electron_energy}
 
-  get_data,  'MVN_SEP1f_electron_eflux', data = electron_1F
-  get_data,  'MVN_SEP2f_electron_eflux', data = electron_2F
-  get_data,  'MVN_SEP1r_electron_eflux', data = electron_1R
-  get_data,  'MVN_SEP2r_electron_eflux', data = electron_2R
+  get_data,  'mvn_L2_sep1f_electron_eflux', data = electron_1F
+  get_data,  'mvn_L2_sep2f_electron_eflux', data = electron_2F
+  get_data,  'mvn_L2_sep1r_electron_eflux', data = electron_1R
+  get_data,  'mvn_L2_sep2r_electron_eflux', data = electron_2R
   
   n_electron_energy =n_elements (electron_energy)
 
-;; now interpolate SEP 2 ions and electrons to SEP 1 cadence
+;; now interpolate sep 2 ions and electrons to sep 1 cadence
   nt1 = n_elements(ion_1F.x)
   nt2 = n_elements(ion_2F.x)
   
@@ -105,7 +105,7 @@ function mvn_sep_pad, mag_tplot, pa_resolution = pa_resolution, $
 ; now get the magnetometer data
   get_data,mag_tplot, data = mag
 
-; we need all the quantities (fov, mag) interpolated to the SEP data cadence
+; we need all the quantities (fov, mag) interpolated to the sep data cadence
   
   bx = interpol(mag.y[*,0], mag.x, ion_1F.x,/nan)
   by = interpol(mag.y[*,1], mag.x, ion_1F.x,/nan)
@@ -153,7 +153,7 @@ function mvn_sep_pad, mag_tplot, pa_resolution = pa_resolution, $
      npa = 180.0/dpa
      pa_array = array(dpa*0.5, 180.0 - dpa*0.5, npa)
      pa_edges = array(0.0, 180.0,npa+1)
-; assume we're going to interpolate everything to SEP1
+; assume we're going to interpolate everything to sep1
      ion_efluxpa = fltarr(nt1,n_ion_energy, npa)*sqrt(-5.5)
      ion_norm_efluxpa = ion_efluxpa
 
@@ -162,7 +162,7 @@ function mvn_sep_pad, mag_tplot, pa_resolution = pa_resolution, $
      electron_norm_efluxpa = electron_efluxpa
      
 ; calculate an array of zeros and ones representing whether a given
-; pitch angle bin center is encompassed by one of the four SEP FOVs
+; pitch angle bin center is encompassed by one of the four sep FOVs
      fov_indices = intarr(4,npa,nt1)
      count = 0L
      for J = 0, nt1-1 do begin &$
@@ -245,114 +245,114 @@ function mvn_sep_pad, mag_tplot, pa_resolution = pa_resolution, $
 ; make some tplot variables
     if keyword_set (tplot_electron) then begin
        electron_index = value_locate (electron_energy, 30.0)
-       store_data,  'SEP_electron_normalized_pad_30keV',data = $
+       store_data,  'sep_electron_normalized_pad_30keV',data = $
                     {x:ion_1f.x,y:reform (electron_norm_efluxpa[*,electron_index,*]),$
                      v:pa_array}, /append
        electron_index = value_locate (electron_energy, 100.0)
-       store_data,  'SEP_electron_normalized_pad_100keV',data = $
+       store_data,  'sep_electron_normalized_pad_100keV',data = $
                     {x:ion_1f.x,y:reform (electron_norm_efluxpa[*,electron_index,*]),$
                      v:pa_array}, /append
        electron_index = value_locate (electron_energy, 50.0)
-       store_data,  'SEP_electron_normalized_pad_50keV',data = $
+       store_data,  'sep_electron_normalized_pad_50keV',data = $
                     {x:ion_1f.x,y:reform (electron_norm_efluxpa[*,electron_index,*]),$
                      v:pa_array}, /append
-       options,'SEP_electron_normalized_pad*','spec', 1
-       ylim,'SEP_electron_normalized_pad*',0, 180.0
-       zlim,'SEP_electron_normalized_pad*',0, 2.0
-       options,'SEP_electron_normalized_pad*','ystyle', 1
-       options,'SEP_electron_normalized_pad*','yticks', 6
-       options,'SEP_electron_normalized_pad*','yminor', 3
+       options,'sep_electron_normalized_pad*','spec', 1
+       ylim,'sep_electron_normalized_pad*',0, 180.0
+       zlim,'sep_electron_normalized_pad*',0, 2.0
+       options,'sep_electron_normalized_pad*','ystyle', 1
+       options,'sep_electron_normalized_pad*','yticks', 6
+       options,'sep_electron_normalized_pad*','yminor', 3
        
-       options,'SEP_electron_normalized_pad_30keV','ytitle', 'Electron pitch angle !c 30 keV'
-       options,'SEP_electron_normalized_pad_50keV','ytitle', 'Electron pitch angle !c 50 keV'
-       options,'SEP_electron_normalized_pad_100keV','ytitle', 'Electron pitch angle !c 100 keV'
+       options,'sep_electron_normalized_pad_30keV','ytitle', 'Electron pitch angle !c 30 keV'
+       options,'sep_electron_normalized_pad_50keV','ytitle', 'Electron pitch angle !c 50 keV'
+       options,'sep_electron_normalized_pad_100keV','ytitle', 'Electron pitch angle !c 100 keV'
        
-       options,'SEP_electron_normalized_pad*','ztitle', 'Normalized energy flux'
+       options,'sep_electron_normalized_pad*','ztitle', 'Normalized energy flux'
        
-       options, 'SEP_electron_normalized_pad*','no_interp',1
+       options, 'sep_electron_normalized_pad*','no_interp',1
 
-       store_data,  'SEP_electron_pad_30keV',data = $
+       store_data,  'sep_electron_pad_30keV',data = $
                     {x:ion_1f.x,y:reform (electron_efluxpa[*,electron_index,*]),$
                      v:pa_array}, /append
        electron_index = value_locate (electron_energy, 100.0)
-       store_data,  'SEP_electron_pad_100keV',data = $
+       store_data,  'sep_electron_pad_100keV',data = $
                     {x:ion_1f.x,y:reform (electron_efluxpa[*,electron_index,*]),$
                      v:pa_array}, /append
        electron_index = value_locate (electron_energy, 50.0)
-       store_data,  'SEP_electron_pad_50keV',data = $
+       store_data,  'sep_electron_pad_50keV',data = $
                     {x:ion_1f.x,y:reform (electron_efluxpa[*,electron_index,*]),$
                      v:pa_array}, /append
-       options,'SEP_electron_pad*','spec', 1
-       ylim,'SEP_electron_pad*',0, 180.0
-       zlim,'SEP_electron_pad*',0, 2.0
-       options,'SEP_electron_pad*','ystyle', 1
-       options,'SEP_electron_pad*','yticks', 6
-       options,'SEP_electron_pad*','yminor', 3
+       options,'sep_electron_pad*','spec', 1
+       ylim,'sep_electron_pad*',0, 180.0
+       zlim,'sep_electron_pad*',0, 2.0
+       options,'sep_electron_pad*','ystyle', 1
+       options,'sep_electron_pad*','yticks', 6
+       options,'sep_electron_pad*','yminor', 3
        
-       options,'SEP_electron_pad_30keV','ytitle', 'Electron pitch angle !c 30 keV'
-       options,'SEP_electron_pad_50keV','ytitle', 'Electron pitch angle !c 50 keV'
-       options,'SEP_electron_pad_100keV','ytitle', 'Electron pitch angle !c 100 keV'
+       options,'sep_electron_pad_30keV','ytitle', 'Electron pitch angle !c 30 keV'
+       options,'sep_electron_pad_50keV','ytitle', 'Electron pitch angle !c 50 keV'
+       options,'sep_electron_pad_100keV','ytitle', 'Electron pitch angle !c 100 keV'
        
-       options,'SEP_electron_pad*','ztitle', 'Energy flux keV/cm!e2!n/s/sr/keV'
+       options,'sep_electron_pad*','ztitle', 'Energy flux keV/cm!e2!n/s/sr/keV'
        
-       options, 'SEP_electron_pad*','no_interp',1
+       options, 'sep_electron_pad*','no_interp',1
 
     endif
     if keyword_set (tplot_ion) then begin
        ion_index = value_locate (ion_energy, 30.0)
-       store_data,  'SEP_ion_normalized_pad_30keV',data = $
+       store_data,  'sep_ion_normalized_pad_30keV',data = $
                     {x:ion_1f.x,y:reform (ion_norm_efluxpa[*,ion_index,*]),v:pa_array}, /append
        ion_index = value_locate (ion_energy, 100.0)
-       store_data,  'SEP_ion_normalized_pad_100keV',data = $
+       store_data,  'sep_ion_normalized_pad_100keV',data = $
                     {x:ion_1f.x,y:reform (ion_norm_efluxpa[*,ion_index,*]),v:pa_array}, /append
        ion_index = value_locate (ion_energy, 500.0)
-       store_data,  'SEP_ion_normalized_pad_500keV',data = $
+       store_data,  'sep_ion_normalized_pad_500keV',data = $
                     {x:ion_1f.x,y:reform (ion_norm_efluxpa[*,ion_index,*]),v:pa_array}, /append
        ion_index = value_locate (ion_energy, 3000.0)
-       store_data,  'SEP_ion_normalized_pad_3MeV',data = $
+       store_data,  'sep_ion_normalized_pad_3MeV',data = $
                     {x:ion_1f.x,y:reform (ion_norm_efluxpa[*,ion_index,*]),v:pa_array}, /append
-       options,'SEP_ion_normalized_pad*','spec', 1
-       ylim,'SEP_ion_normalized_pad*',0, 180.0
-       zlim,'SEP_ion_normalized_pad*',0, 2.0
-       options,'SEP_ion_normalized_pad*','ystyle', 1
-       options,'SEP_ion_normalized_pad*','yticks', 6
-       options,'SEP_ion_normalized_pad*','yminor', 3
+       options,'sep_ion_normalized_pad*','spec', 1
+       ylim,'sep_ion_normalized_pad*',0, 180.0
+       zlim,'sep_ion_normalized_pad*',0, 2.0
+       options,'sep_ion_normalized_pad*','ystyle', 1
+       options,'sep_ion_normalized_pad*','yticks', 6
+       options,'sep_ion_normalized_pad*','yminor', 3
        
-       options,'SEP_ion_normalized_pad_30keV','ytitle', 'Ion pitch angle !c 30 keV'
-       options,'SEP_ion_normalized_pad_100keV','ytitle', 'Ion pitch angle !c 100 keV'
-       options,'SEP_ion_normalized_pad_500keV','ytitle', 'Ion pitch angle !c 500 keV'
-       options,'SEP_ion_normalized_pad_3MeV','ytitle', 'Ion pitch angle !c 3 MeV'
+       options,'sep_ion_normalized_pad_30keV','ytitle', 'Ion pitch angle !c 30 keV'
+       options,'sep_ion_normalized_pad_100keV','ytitle', 'Ion pitch angle !c 100 keV'
+       options,'sep_ion_normalized_pad_500keV','ytitle', 'Ion pitch angle !c 500 keV'
+       options,'sep_ion_normalized_pad_3MeV','ytitle', 'Ion pitch angle !c 3 MeV'
        
-       options,'SEP_ion_normalized_pad*','ztitle', 'normalized flux'
+       options,'sep_ion_normalized_pad*','ztitle', 'normalized flux'
        
-       options, 'SEP_ion_normalized_pad*','no_interp',1
+       options, 'sep_ion_normalized_pad*','no_interp',1
 
-       store_data,  'SEP_ion_pad_30keV',data = $
+       store_data,  'sep_ion_pad_30keV',data = $
                     {x:ion_1f.x,y:reform (ion_efluxpa[*,ion_index,*]),v:pa_array}, /append
        ion_index = value_locate (ion_energy, 100.0)
-       store_data,  'SEP_ion_pad_100keV',data = $
+       store_data,  'sep_ion_pad_100keV',data = $
                     {x:ion_1f.x,y:reform (ion_efluxpa[*,ion_index,*]),v:pa_array}, /append
        ion_index = value_locate (ion_energy, 500.0)
-       store_data,  'SEP_ion_pad_500keV',data = $
+       store_data,  'sep_ion_pad_500keV',data = $
                     {x:ion_1f.x,y:reform (ion_efluxpa[*,ion_index,*]),v:pa_array}, /append
        ion_index = value_locate (ion_energy, 3000.0)
-       store_data,  'SEP_ion_pad_3MeV',data = $
+       store_data,  'sep_ion_pad_3MeV',data = $
                     {x:ion_1f.x,y:reform (ion_efluxpa[*,ion_index,*]),v:pa_array}, /append
-       options,'SEP_ion_pad*','spec', 1
-       ylim,'SEP_ion_pad*',0, 180.0
-       zlim,'SEP_ion_pad*',0, 2.0
-       options,'SEP_ion_pad*','ystyle', 1
-       options,'SEP_ion_pad*','yticks', 6
-       options,'SEP_ion_pad*','yminor', 3
+       options,'sep_ion_pad*','spec', 1
+       ylim,'sep_ion_pad*',0, 180.0
+       zlim,'sep_ion_pad*',0, 2.0
+       options,'sep_ion_pad*','ystyle', 1
+       options,'sep_ion_pad*','yticks', 6
+       options,'sep_ion_pad*','yminor', 3
        
-       options,'SEP_ion_pad_30keV','ytitle', 'Ion pitch angle !c 30 keV'
-       options,'SEP_ion_pad_100keV','ytitle', 'Ion pitch angle !c 100 keV'
-       options,'SEP_ion_pad_500keV','ytitle', 'Ion pitch angle !c 500 keV'
-       options,'SEP_ion_pad_3MeV','ytitle', 'Ion pitch angle !c 3 MeV'
+       options,'sep_ion_pad_30keV','ytitle', 'Ion pitch angle !c 30 keV'
+       options,'sep_ion_pad_100keV','ytitle', 'Ion pitch angle !c 100 keV'
+       options,'sep_ion_pad_500keV','ytitle', 'Ion pitch angle !c 500 keV'
+       options,'sep_ion_pad_3MeV','ytitle', 'Ion pitch angle !c 3 MeV'
        
-       options,'SEP_ion_pad*','ztitle', 'Energy flux keV/cm!e2!n/s/sr/keV'
+       options,'sep_ion_pad*','ztitle', 'Energy flux keV/cm!e2!n/s/sr/keV'
        
-       options, 'SEP_ion_pad*','no_interp',1
+       options, 'sep_ion_pad*','no_interp',1
 
     endif
   ;options,'mvn_B_1sec_MAVEN_MSO', 'colors', [2,4, 6]
@@ -362,5 +362,5 @@ function mvn_sep_pad, mag_tplot, pa_resolution = pa_resolution, $
   ;options,'mvn_B_1sec_MAVEN_MSO','ytitle','B_mso'
   return, result
 end
-  ;tplot,['SEP_ion_normalized_pad*keV','SEP_electron_normalized_pad*keV','mvn_B_1sec_MAVEN_MSO','Altitude']
+  ;tplot,['sep_ion_normalized_pad*keV','sep_electron_normalized_pad*keV','mvn_B_1sec_MAVEN_MSO','Altitude']
   

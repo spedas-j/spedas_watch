@@ -39,78 +39,78 @@ pro mvn_sep_make_pad_files, time_range, out_path = out_path, version = version,$
   options, 'Altitude','ytitle', 'Alt, km'
 
 ; local time
-  get_data, 'MVN_SLT', data = slt
-
+  get_data, 'mvn_slt', data = slt
+ 
 ; get ion flux data
-  get_data,  'MVN_SEP1f_ion_flux', data = ion_1F
-  get_data,  'MVN_SEP2f_ion_flux', data = ion_2F
-  get_data,  'MVN_SEP1r_ion_flux', data = ion_1R
+  get_data,  'mvn_L2_sep1f_ion_flux', data = ion_1F
+  get_data,  'mvn_L2_sep2f_ion_flux', data = ion_2F
+  get_data,  'mvn_L2_sep1r_ion_flux', data = ion_1R
 
-  get_data,  'MVN_SEP2r_ion_flux', data = ion_2R
+  get_data,  'mvn_L2_sep2r_ion_flux', data = ion_2R
   
   ion_energies = mean_dims (ion_1f.v, 1)
   nen = n_elements (ion_energies)
   
 ; make tplot variables for ion energy flux
-  store_data,'MVN_SEP1f_ion_eflux', data = {x: ion_1f.x, y: ion_1f.y*ion_1f.v, v:ion_energies}
-  store_data,'MVN_SEP1r_ion_eflux', data = {x: ion_1r.x, y: ion_1r.y*ion_1r.v, v:ion_energies}
-  store_data,'MVN_SEP2f_ion_eflux', data = {x: ion_2f.x, y: ion_2f.y*ion_2f.v, v:ion_energies}
-  store_data,'MVN_SEP2r_ion_eflux', data = {x: ion_2r.x, y: ion_2r.y*ion_2r.v, v:ion_energies}
-  get_data,  'MVN_SEP1f_ion_eflux', data = ion_1F
-  get_data,  'MVN_SEP2f_ion_eflux', data = ion_2F
-  get_data,  'MVN_SEP1r_ion_eflux', data = ion_1R
-  get_data,  'MVN_SEP2r_ion_eflux', data = ion_2R
+  store_data,'mvn_L2_sep1f_ion_eflux', data = {x: ion_1f.x, y: ion_1f.y*ion_1f.v, v:ion_energies}
+  store_data,'mvn_L2_sep1r_ion_eflux', data = {x: ion_1r.x, y: ion_1r.y*ion_1r.v, v:ion_energies}
+  store_data,'mvn_L2_sep2f_ion_eflux', data = {x: ion_2f.x, y: ion_2f.y*ion_2f.v, v:ion_energies}
+  store_data,'mvn_L2_sep2r_ion_eflux', data = {x: ion_2r.x, y: ion_2r.y*ion_2r.v, v:ion_energies}
+  get_data,  'mvn_L2_sep1f_ion_eflux', data = ion_1F
+  get_data,  'mvn_L2_sep2f_ion_eflux', data = ion_2F
+  get_data,  'mvn_L2_sep1r_ion_eflux', data = ion_1R
+  get_data,  'mvn_L2_sep2r_ion_eflux', data = ion_2R
 
   
 ; get electron flux data
-  get_data,  'MVN_SEP1f_elec_flux', data = electron_1F
-  get_data,  'MVN_SEP2f_elec_flux', data = electron_2F
-  get_data,  'MVN_SEP1r_elec_flux', data = electron_1R
-  get_data,  'MVN_SEP2r_elec_flux', data = electron_2R
+  get_data,  'mvn_L2_sep1f_elec_flux', data = electron_1F
+  get_data,  'mvn_L2_sep2f_elec_flux', data = electron_2F
+  get_data,  'mvn_L2_sep1r_elec_flux', data = electron_1R
+  get_data,  'mvn_L2_sep2r_elec_flux', data = electron_2R
 
 ; make tplot variables for electron energy flux
   electron_energies = reform (electron_1f.v [0,*])
-  store_data,'MVN_SEP1f_electron_eflux', $
+  store_data,'mvn_L2_sep1f_electron_eflux', $
              data = {x: electron_1f.x, y: electron_1f.y*electron_1f.v, v:electron_energies}
-  store_data,'MVN_SEP1r_electron_eflux', $
+  store_data,'mvn_L2_sep1r_electron_eflux', $
              data = {x: electron_1r.x, y: electron_1r.y*electron_1r.v, v:electron_energies}
-  store_data,'MVN_SEP2f_electron_eflux', $
+  store_data,'mvn_L2_sep2f_electron_eflux', $
              data = {x: electron_2f.x, y: electron_2f.y*electron_2f.v, v:electron_energies}
-  store_data,'MVN_SEP2r_electron_eflux', $
+  store_data,'mvn_L2_sep2r_electron_eflux', $
              data = {x: electron_2r.x, y: electron_2r.y*electron_2r.v, v:electron_energies}
 
 ; set the plots to spectrum with logarithmic Y and Z (color) axes
-  options,'MVN_SEP*eflux', 'spec', 1
-  options,'MVN_SEP*eflux', 'ylog', 1
-  options,'MVN_SEP*eflux', 'zlog', 1
+  options,'mvn_L2_sep*eflux', 'spec', 1
+  options,'mvn_L2_sep*eflux', 'ylog', 1
+  options,'mvn_L2_sep*eflux', 'zlog', 1
 
 ; make y-axis titles
-  options,'MVN_SEP1f_ion_eflux','ytitle', '1F ions, !C keV'
-  options,'MVN_SEP2f_ion_eflux','ytitle', '2F ions, !C keV'
-  options,'MVN_SEP1r_ion_eflux','ytitle', '1R ions, !C keV'
-  options,'MVN_SEP2r_ion_eflux','ytitle', '2R ions, !C keV'
-  options,'MVN_SEP1f_electron_eflux','ytitle', '1F elec,!C keV'
-  options,'MVN_SEP2f_electron_eflux','ytitle', '2F elec,!C keV'
-  options,'MVN_SEP1r_electron_eflux','ytitle', '1R elec,!C keV'
-  options,'MVN_SEP2r_electron_eflux','ytitle', '2R elec,!C keV'
+  options,'mvn_L2_sep1f_ion_eflux','ytitle', '1F ions, !C keV'
+  options,'mvn_L2_sep2f_ion_eflux','ytitle', '2F ions, !C keV'
+  options,'mvn_L2_sep1r_ion_eflux','ytitle', '1R ions, !C keV'
+  options,'mvn_L2_sep2r_ion_eflux','ytitle', '2R ions, !C keV'
+  options,'mvn_L2_sep1f_electron_eflux','ytitle', '1F elec,!C keV'
+  options,'mvn_L2_sep2f_electron_eflux','ytitle', '2F elec,!C keV'
+  options,'mvn_L2_sep1r_electron_eflux','ytitle', '1R elec,!C keV'
+  options,'mvn_L2_sep2r_electron_eflux','ytitle', '2R elec,!C keV'
 
 ; z-axis title & limits
-  options,'MVN_SEP*eflux', 'ztitle', 'Diff Eflux, !c keV/cm2/s/sr/keV'
-  zlim, 'MVN_SEP*_eflux', 1e1,2e5, 1
-  ylim, 'MVN_SEP*ion_eflux', 7,1e4, 1
-  ylim, 'MVN_SEP*electron_eflux', 7,4e2, 1
+  options,'mvn_L2_sep*eflux', 'ztitle', 'Diff Eflux, !c keV/cm2/s/sr/keV'
+  zlim, 'mvn_L2_sep*_eflux', 1e1,2e5, 1
+  ylim, 'mvn_L2_sep*ion_eflux', 7,1e4, 1
+  ylim, 'mvn_L2_sep*electron_eflux', 7,4e2, 1
 
 ; make a tplot variable for both attenuators
-  store_data, 'Attenuator', data = ['MVN_SEP1attenuator_state', 'MVN_SEP2attenuator_state']
+  store_data, 'Attenuator', data = ['mvn_sep1attenuator_state', 'mvn_sep2attenuator_state']
   options, 'Attenuator', 'colors',[70, 221]
   ylim, 'Attenuator', 0.5, 2.5
 
 ; exclude all data were the attenuator is closed
-  get_data,'MVN_SEP1attenuator_state', data = att1
-  get_data,'MVN_SEP2attenuator_state', data = att2
+  get_data,'mvn_sep1attenuator_state', data = att1
+  get_data,'mvn_sep2attenuator_state', data = att2
 
 ; get the field of view information, for the time cadence
-  get_data, 'sep-1f_fov_mso', data = FOV_1F
+  get_data, 'sep_1f_fov_mso', data = FOV_1F
 
 ; Calculate  the pitch angle of every field of view and store a tplot
 ; variablex
@@ -122,6 +122,7 @@ pro mvn_sep_make_pad_files, time_range, out_path = out_path, version = version,$
   if not keyword_set (out_directory) then out_directory = $
         '/disks/data/maven/data/sci/sep/l2_pad/'
   
+
 
   version_string = numbered_filestring(version, digits = 2)
   revision_string = numbered_filestring(revision, digits = 2)
