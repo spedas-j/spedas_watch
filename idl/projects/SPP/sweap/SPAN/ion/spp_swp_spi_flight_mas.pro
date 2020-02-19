@@ -6,8 +6,8 @@
 ;
 ; SVN Properties
 ; --------------
-; $LastChangedRevision: 26790 $
-; $LastChangedDate: 2019-03-13 23:31:09 -0700 (Wed, 13 Mar 2019) $
+; $LastChangedRevision: 28317 $
+; $LastChangedDate: 2020-02-18 15:50:42 -0800 (Tue, 18 Feb 2020) $
 ; $LastChangedBy: rlivi2 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_mas.pro $
 ;
@@ -150,19 +150,28 @@ PRO spp_swp_spi_flight_mas_1, tbl, dac, sci, tof, elo
    ;; Account for energy loss
    enrg_amu_corr = enrg_amu*(mass_eloss/100.)
 
-   ;; Account for TOF correction
+   ;; Account for electron travel time correction (~1ns)
    mass_tof_corr = sqrt(0.5*mass_amu*sci.atokg*$
                         tof.tof_flight_path^2/$
                         sci.evtoj/$
                         (enrg_amu_corr))/1e-9 - $
                    tof.tof_e_corr*1e9
+
+   ;; Empty variable with same dimensions as elo
    mass_table_1 = fix((elo) * 0)
 
+   ;; Temporary variables
    p0 = intarr(128)
    p1 = intarr(128)
    p2 = intarr(128)
+
+   ;; For each energy bin:
+   ;;    1. Find the mean tof time between the different masses.
+   ;;    2. Fill
+   ;;       
    FOR i=0, 127 DO BEGIN
 
+      ;; 1. Find Interval 
       m0 = mean(mass_tof_corr[i,0:1])
       m1 = mean(mass_tof_corr[i,1:2])
       m2 = mean(mass_tof_corr[i,2:3])
@@ -186,13 +195,32 @@ PRO spp_swp_spi_flight_mas_1, tbl, dac, sci, tof, elo
 
    ENDFOR
 
-   ;;(*spi_param.mass_table_1) = mass_table_1
+   ;; Mass Table
+   mt1 = mass_table_1
+   
+   ;; 64 Mass Summation histogram
+   mt1_sum = fltarr(128,64)
+   FOR ii=0, 127 DO mt1_sum[ii,*] = $
+    histogram(reform(mt1[*,ii]),$
+              binsize=1,loc=loc)
+
+   ;; TOF boundaries
+   mt1_tof = fltarr(128,64)
+   FOR ii=0, 127 DO BEGIN
+      ind1 = 0
+      FOR jj=0, 63 DO BEGIN
+         ind2 = ind1+mt1_sum[ii,jj]
+         mt1_tof[ii,jj] = $
+          mean(tof.tof512_avgs[ind1:ind2-1])
+         ind1 = ind2
+      ENDFOR 
+   ENDFOR
 
    ;; Structure
-   tbl = {mt1:mass_table_1};;,$
-          ;;mt1_sum:mt1_sum,$
-          ;;mt1_tof:mt1_tof,$
-          ;;mt1_mpq:mt1_tof}
+   tbl = {mt1:mass_table_1,$
+          mt1_sum:mt1_sum,$
+          mt1_tof:mt1_tof,$
+          mt1_mpq:mt1_tof}
 
 END
 
@@ -348,7 +376,7 @@ PRO spp_swp_spi_flight_mas, tbl, dac, sci, tof, elo
 
    tbl = mt1
 
-   spp_swp_spi_checksum, mas=reform(transpose(mt1.mt1),512*128.)
+   ;;spp_swp_spi_checksum, mas=reform(transpose(mt1.mt1),512*128.)
    
    ;; WRITING TO FILE
    IF keyword_set(write_file) THEN BEGIN

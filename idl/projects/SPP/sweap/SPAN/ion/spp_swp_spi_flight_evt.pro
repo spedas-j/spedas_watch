@@ -6,8 +6,8 @@
 ;
 ; SVN Properties
 ; --------------
-; $LastChangedRevision: 26426 $
-; $LastChangedDate: 2019-01-06 22:04:57 -0800 (Sun, 06 Jan 2019) $
+; $LastChangedRevision: 28311 $
+; $LastChangedDate: 2020-02-18 15:48:22 -0800 (Tue, 18 Feb 2020) $
 ; $LastChangedBy: rlivi2 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_evt.pro $
 ;
@@ -187,7 +187,7 @@ PRO spp_swp_spi_flight_evt, table
    ;;------------------------------------------------------------------   
    ;; Turned back on 05:55
    ;; Quick Rotation scan to get beam back to anode 0
-   rot_scan_xx = ['2017-03-22/06:00:00', '2017-03-22/06:15:00']
+   tt_rot_scan_xx = ['2017-03-22/06:00:00', '2017-03-22/06:15:00']
 
    ;;------------------------------------------------------------------   
    ;; Sweep YAW with constant deflector
@@ -213,10 +213,17 @@ PRO spp_swp_spi_flight_evt, table
    
    ;;------------------------------------------------------------------   
    ;; Energy Scan (k-Factor and Mass Table)
-   trange = ['2017-03-23/06:30:10', '2017-03-23/09:17:50']
+   tt_e_scan_kfac_masstbl = ['2017-03-23/06:30:10', '2017-03-23/09:17:50']
 
    ;;------------------------------------------------------------------
    ;; K Factor Sweep
+   ;;
+   ;; INFO
+   ;;   -
+   ;; CONFIG
+   ;;   - Disregard MRAM pointers for this test
+   ;;   - Energies -> 5 - 20,000 eV
+   ;;   - Oddly spaced Full/Targeted LUTs
    tt_ksweep_1 = ['2017-03-23/06:30:00', '2017-03-23/09:30:00']
    
    ;;------------------------------------------------------------------   
@@ -257,7 +264,25 @@ PRO spp_swp_spi_flight_evt, table
    tt_mass_scan_m11 = ['2017-03-24/20:04:50','2017-03-24/20:12:35']
    tt_mass_scan_m12 = ['2017-03-24/20:15:15','2017-03-24/20:21:10']
    tt_mass_scan_m13 = ['2017-03-24/20:25:10','2017-03-24/20:39:25']     
-   
+
+   str_mass_scan_1 = [{name:'full', tt_mass_scan:tt_mass_scan_nitrogen}, $
+                      {name:'N+',   tt_mass_scan:tt_mass_scan_nitrogen}, $
+                      {name:'N2+',  tt_mass_scan:tt_mass_scan_nitrogen}]
+   str_mass_scan_2 = [{name:'full', tt_mass_scan:tt_mass_scan_gas_mix},  $
+                      {name:'H+',   tt_mass_scan:tt_mass_scan_h},   $
+                      {name:'H2+',  tt_mass_scan:tt_mass_scan_h2},  $
+                      {name:'He+',  tt_mass_scan:tt_mass_scan_he},  $
+                      {name:'m4',   tt_mass_scan:tt_mass_scan_m4},  $
+                      {name:'m5',   tt_mass_scan:tt_mass_scan_m5},  $
+                      {name:'m6',   tt_mass_scan:tt_mass_scan_m6},  $
+                      {name:'m7',   tt_mass_scan:tt_mass_scan_m7},  $
+                      {name:'m8',   tt_mass_scan:tt_mass_scan_m8},  $
+                      {name:'m9',   tt_mass_scan:tt_mass_scan_m9},  $
+                      {name:'m10',  tt_mass_scan:tt_mass_scan_m10}, $
+                      {name:'m11',  tt_mass_scan:tt_mass_scan_m11}, $
+                      {name:'m12',  tt_mass_scan:tt_mass_scan_m12}, $
+                      {name:'m13',  tt_mass_scan:tt_mass_scan_m13}]
+
    ;;------------------------------------------------------------------   
    ;; Colutron
    ;;
@@ -269,17 +294,25 @@ PRO spp_swp_spi_flight_evt, table
    ;;     + Gun V = 1000 [eV]
    ;;     + Filament I = 16.5 [A]
    ;;     + ExB - 50 [V] and varying current for magnet
-   tt_acc_scan = ['2017-03-24/22:00:00', '2017-03-25/01:00:00']
+   tt_acc_scan_init = ['2017-03-24/22:00:00', '2017-03-25/01:00:00']
 
    tt_acc_scan_co2_1 = ['2017-03-24/22:22:29', '2017-03-24/22:41:19']
    tt_acc_scan_co2_2 = ['2017-03-24/23:32:10', '2017-03-24/23:47:19'] 
 
    tt_acc_scan_h_1 = ['2017-03-25/00:09:20', '2017-03-25/00:25:50']
    tt_acc_scan_h_2 = ['2017-03-25/00:25:50', '2017-03-25/00:45:40']
+
+   tt_acc_scan = { $
+                 tt_acc_scan_init:tt_acc_scan_init,$
+                 tt_acc_scan_co2_1:tt_acc_scan_co2_1,$
+                 tt_acc_scan_co2_2:tt_acc_scan_co2_2,$
+                 tt_acc_scan_h_1:tt_acc_scan_h_1,$
+                 tt_acc_scan_h_2:tt_acc_scan_h_2}
+                 
    
    ;;------------------------------------------------------------------
    ;; Long term anode 11 with 2kV beam
-   trange = ['2017-03-26/01:58:30', '2017-03-26/02:11:20']
+   tt_long_term_2kV = ['2017-03-26/01:58:30', '2017-03-26/02:11:20']
 
    ;;------------------------------------------------------------------
    ;; Energy Scan using Davin's tables
@@ -310,6 +343,33 @@ PRO spp_swp_spi_flight_evt, table
    tt_e_scan_d_an02 = ['2017-03-26/10:13:20', '2017-03-26/10:20:20']
    tt_e_scan_d_an01 = ['2017-03-26/10:20:20', '2017-03-26/10:27:10']
    tt_e_scan_d_an00 = ['2017-03-26/10:27:34', '2017-03-26/10:34:50']
+
+   str_e_scan_davin_1 = [{name:'full', tt_mass_scan:tt_e_scan_full1},  $
+                         {name:'d1',  tt_mass_scan:tt_e_scan_d1},  $
+                         {name:'d2',  tt_mass_scan:tt_e_scan_d2},  $
+                         {name:'d3',  tt_mass_scan:tt_e_scan_d3},  $
+                         {name:'d4',  tt_mass_scan:tt_e_scan_d4}]
+
+
+   str_e_scan_davin_2 = [{name:'full', tt_mass_scan:tt_e_scan_full2},  $
+                         {name:'anode_00', tt_e_scan:tt_e_scan_d_an00}, $
+                         {name:'anode_01', tt_e_scan:tt_e_scan_d_an01}, $
+                         {name:'anode_02', tt_e_scan:tt_e_scan_d_an02}, $
+                         {name:'anode_03', tt_e_scan:tt_e_scan_d_an03}, $
+                         {name:'anode_04', tt_e_scan:tt_e_scan_d_an04}, $
+                         {name:'anode_05', tt_e_scan:tt_e_scan_d_an05}, $
+                         {name:'anode_06', tt_e_scan:tt_e_scan_d_an06}, $
+                         {name:'anode_07', tt_e_scan:tt_e_scan_d_an07}, $
+                         {name:'anode_08', tt_e_scan:tt_e_scan_d_an08}, $
+                         {name:'anode_09', tt_e_scan:tt_e_scan_d_an09}, $
+                         {name:'anode_10', tt_e_scan:tt_e_scan_d_an10}, $
+                         {name:'anode_11', tt_e_scan:tt_e_scan_d_an11}, $
+                         {name:'anode_12', tt_e_scan:tt_e_scan_d_an12}, $
+                         {name:'anode_13', tt_e_scan:tt_e_scan_d_an13}, $
+                         {name:'anode_14', tt_e_scan:tt_e_scan_d_an14}, $
+                         {name:'anode_15', tt_e_scan:tt_e_scan_d_an15}]
+   
+   
    
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    ;;;                      SPAN-Ai Flight CPT                      ;;;
@@ -353,7 +413,6 @@ PRO spp_swp_spi_flight_evt, table
    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
    trange = ['2018-08-11']
 
-
    
 
    str_mass_scan_1 = [{name:'full', tt_mass_scan:tt_mass_scan_nitrogen}, $
@@ -374,33 +433,6 @@ PRO spp_swp_spi_flight_evt, table
                       {name:'m12',  tt_mass_scan:tt_mass_scan_m12}, $
                       {name:'m13',  tt_mass_scan:tt_mass_scan_m13}]
 
-   str_e_scan_davin_1 = [{name:'full', tt_mass_scan:tt_e_scan_full1},  $
-                         {name:'d1',  tt_mass_scan:tt_e_scan_d1},  $
-                         {name:'d2',  tt_mass_scan:tt_e_scan_d2},  $
-                         {name:'d3',  tt_mass_scan:tt_e_scan_d3},  $
-                         {name:'d4',  tt_mass_scan:tt_e_scan_d4}]
-
-
-   str_e_scan_davin_2 = [{name:'full', tt_mass_scan:tt_e_scan_full2},  $
-                         {name:'anode_00', tt_e_scan:tt_e_scan_d_an00}, $
-                         {name:'anode_01', tt_e_scan:tt_e_scan_d_an01}, $
-                         {name:'anode_02', tt_e_scan:tt_e_scan_d_an02}, $
-                         {name:'anode_03', tt_e_scan:tt_e_scan_d_an03}, $
-                         {name:'anode_04', tt_e_scan:tt_e_scan_d_an04}, $
-                         {name:'anode_05', tt_e_scan:tt_e_scan_d_an05}, $
-                         {name:'anode_06', tt_e_scan:tt_e_scan_d_an06}, $
-                         {name:'anode_07', tt_e_scan:tt_e_scan_d_an07}, $
-                         {name:'anode_08', tt_e_scan:tt_e_scan_d_an08}, $
-                         {name:'anode_09', tt_e_scan:tt_e_scan_d_an09}, $
-                         {name:'anode_10', tt_e_scan:tt_e_scan_d_an10}, $
-                         {name:'anode_11', tt_e_scan:tt_e_scan_d_an11}, $
-                         {name:'anode_12', tt_e_scan:tt_e_scan_d_an12}, $
-                         {name:'anode_13', tt_e_scan:tt_e_scan_d_an13}, $
-                         {name:'anode_14', tt_e_scan:tt_e_scan_d_an14}, $
-                         {name:'anode_15', tt_e_scan:tt_e_scan_d_an15}]
-   
-
-
 
 
    
@@ -410,7 +442,7 @@ PRO spp_swp_spi_flight_evt, table
    ;;              / /   /   | / / / / | / / ____/ / / /             ;;
    ;;             / /   / /| |/ / / /  |/ / /   / /_/ /              ;;
    ;;            / /___/ ___ / /_/ / /|  / /___/ __  /               ;;
-   ;;           /_____/_/  |_\____/_/ |_/\____/_/ /_/                ;;                           
+   ;;           /_____/_/  |_\____/_/ |_/\____/_/ /_/                ;;
    ;;                                                                ;;
    ;;                                                                ;;
    ;;                  Kennedy Space Center                          ;;
@@ -490,12 +522,6 @@ PRO spp_swp_spi_flight_evt, table
    full = ['2018-09-05/22:36:40','2018-09-08/09:30:00']
    
 
-
-
-
-
-
-   
    table = {$
 
            ;; CALIBRATION EVENTS

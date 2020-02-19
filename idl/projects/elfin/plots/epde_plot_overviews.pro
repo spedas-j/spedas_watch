@@ -153,9 +153,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   del_data, 'pseudo_ae'
   elf_load_pseudo_ae, probe=probe, no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae
-  if size(pseudo_ae, /type) NE 8 then elf_load_pseudo_ae, probe=probe, trange=['2019-12-05','2019-12-06'], no_download=no_download
+  if size(pseudo_ae,/type) NE 8 then elf_load_pseudo_ae, probe=probe, trange=['2019-12-05','2019-12-06']   
   options, 'pseudo_ae', ysubtitle='[nT]', colors=251
-    
+  options, 'pseudo_ae', yrange=[0,150]     
+  
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... shadow/sunlight bar 0 (shadow) or 1 (sunlight)
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -340,7 +341,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
         if ae_max[1] LT 145. then options, 'pseudo_ae', yrange=[0,150] $
           else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
-      endif
+      endif else begin
+        options, 'pseudo_ae', yrange=[0,150]
+      endelse
       
       ; Figure out which hourly label to assign    
       ; Figure out which science zone
@@ -371,6 +374,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tplot_options, 'ygap',0
       tplot_options, 'charsize',.9
       elf_set_overview_options, probe=probe            
+      options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]   ; force color scheme
       tplot,['pseudo_ae', $
         'epd_fast_bar', $
         'sunlight_bar', $

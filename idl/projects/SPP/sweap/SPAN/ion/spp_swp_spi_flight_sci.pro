@@ -6,8 +6,8 @@
 ;
 ; SVN Properties
 ; --------------
-; $LastChangedRevision: 26432 $
-; $LastChangedDate: 2019-01-06 22:09:06 -0800 (Sun, 06 Jan 2019) $
+; $LastChangedRevision: 28315 $
+; $LastChangedDate: 2020-02-18 15:49:56 -0800 (Tue, 18 Feb 2020) $
 ; $LastChangedBy: rlivi2 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_sci.pro $
 ;
@@ -42,6 +42,9 @@ PRO spp_swp_spi_flight_sci, dac, tbl
             hv_dac*dac.hemi_fitt[1])
    ;; Total Particle Energy [eV]
    ev = hv * 16.7 + 15000.
+   ;; Time intervals of steps
+   tim_ustep = nys / 4D / 256D
+   
    ;; Structure
    tbl = {clock:clock,$
           nys:nys,$
@@ -55,6 +58,7 @@ PRO spp_swp_spi_flight_sci, dac, tbl
           cc:cc,$
           evtoj:evtoj,$
           kk:kk,$
+          tim_ustep:tim_ustep,$
           atokg:atokg}
 
 END

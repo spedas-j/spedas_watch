@@ -8,8 +8,8 @@
 ;
 ; SVN Properties
 ; --------------
-; $LastChangedRevision: 26789 $
-; $LastChangedDate: 2019-03-13 23:29:46 -0700 (Wed, 13 Mar 2019) $
+; $LastChangedRevision: 28314 $
+; $LastChangedDate: 2020-02-18 15:49:41 -0800 (Tue, 18 Feb 2020) $
 ; $LastChangedBy: rlivi2 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_geo.pro $
 ;
@@ -30,12 +30,13 @@ PRO spp_swp_spi_flight_geo, geo
 
    ;; MCP Efficiencies
    ;; e- on MCP at 70%
-   geo_mcp = geo_grd * 0.7
+   geo_e_mcp = geo_grd * 0.7
 
    ;; From 360 to 247.5 degrees
-   geo_fov = geo_mcp * (247.5/360.)
+   ;;geo_fov = geo_mcp * (247.5/360.)
 
+   
    ;; Final result
-   geo = geo_fov
+   geo = 0.000304
    
 END 

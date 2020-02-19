@@ -11,8 +11,8 @@
 ; SVN Properties
 ; --------------
 ; $LastChangedBy: rlivi2 $
-; $LastChangedDate: 2019-03-13 21:05:20 -0700 (Wed, 13 Mar 2019) $
-; $LastChangedRevision: 26788 $
+; $LastChangedDate: 2020-02-18 15:49:13 -0800 (Tue, 18 Feb 2020) $
+; $LastChangedRevision: 28313 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_mem.pro $
 ;-
 
@@ -140,6 +140,27 @@ PRO spp_swp_spi_flight_mem, tbl
          mode8_allut_mram_addr: '10F100'x,$
          mode8_edlut_mram_addr: '10F180'x,$
          mode8_pmbins_mram_addr:'10F200'x,$
+
+         ;; Description: MODE 9
+         mode9_psum_mram_addr:  '123800'x,$
+         mode9_mrlut_mram_addr: '123880'x,$
+         mode9_allut_mram_addr: '123900'x,$
+         mode9_edlut_mram_addr: '123980'x,$
+         mode9_pmbins_mram_addr:'123A00'x,$
+
+         ;; Description: MODE 10
+         mode10_psum_mram_addr:  '124000'x,$
+         mode10_mrlut_mram_addr: '124080'x,$
+         mode10_allut_mram_addr: '124100'x,$
+         mode10_edlut_mram_addr: '124180'x,$
+         mode10_pmbins_mram_addr:'124200'x,$
+
+         ;; Description: MODE X (Flight Calibration)
+         ;;modex_psum_mram_addr:  '324000'x,$
+         ;;modex_mrlut_mram_addr: '324080'x,$
+         ;;modex_allut_mram_addr: '324100'x,$
+         ;;modex_edlut_mram_addr: '324180'x,$
+         ;;modex_pmbins_mram_addr:'324200'x,$
          
          ;; Description: Evenly Space FSLUT
          es_fslut_mram_addr:'7C000'x,$
@@ -176,6 +197,16 @@ PRO spp_swp_spi_flight_mem, tbl
          ;; Description: Science Table 6    
          sci_6a_mram_addr:'FE800'x,$
          sci_6b_mram_addr:'106800'x,$
+
+         ;; Description: Science Table 7
+         sci_7a_mram_addr:'10F800'x,$
+         sci_7b_mram_addr:'117800'x,$
+
+         ;; Science Sweep Table 1 (Flight Clibration)
+         ;;sci_1x_mram_addr:'39C800'x,$
+
+         ;; Science Sweep Table 2 (Flight Clibration)
+         ;;sci_2x_mram_addr:'3A4800'x,$
 
          ;; Product Sum Full MRAM Addresses
          ;;'sng_psum_mram_addr':

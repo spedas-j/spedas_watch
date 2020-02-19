@@ -6,8 +6,8 @@
 ;
 ; SVN Properties
 ; --------------
-; $LastChangedRevision: 26428 $
-; $LastChangedDate: 2019-01-06 22:06:21 -0800 (Sun, 06 Jan 2019) $
+; $LastChangedRevision: 28312 $
+; $LastChangedDate: 2020-02-18 15:48:49 -0800 (Tue, 18 Feb 2020) $
 ; $LastChangedBy: rlivi2 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_flight_def.pro $
 ;
@@ -22,12 +22,12 @@ PRO spp_swp_spi_flight_def, def
    eres4 =    -0.00016336900d
    eres5 =     0.00000319759d
 
-   ires0 =    -6.6967358589
-   ires1 =  1118.9683837891
-   ires2 =     0.5826185942
-   ires3 =    -0.0928234607
-   ires4 =     0.0000374681
-   ires5 =     0.0000016514
+   ires0 =    -6.6967358589d
+   ires1 =  1118.9683837891d
+   ires2 =     0.5826185942d
+   ires3 =    -0.0928234607d
+   ires4 =     0.0000374681d
+   ires5 =     0.0000016514d
 
    ires = [ires0,ires1,ires2,ires3,ires4,ires5]
    eres = [eres0,eres1,eres2,eres3,eres4,eres5]
@@ -100,6 +100,7 @@ PRO spp_swp_spi_flight_def, def
       xyouts, 50, -3.8e4, iress[5], color=250, align=alll
 
       pclose
+
    ENDIF
 
 END
