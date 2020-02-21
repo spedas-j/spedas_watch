@@ -6,12 +6,12 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-01-07 15:11:48 -0800 (Tue, 07 Jan 2020) $
-; $LastChangedRevision: 28174 $
+; $LastChangedDate: 2020-02-20 12:06:14 -0800 (Thu, 20 Feb 2020) $
+; $LastChangedRevision: 28321 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
-pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,predict=predict,$
+pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,predict=predict,scale=scale,$
   quaternion=quaternion,no_download=no_download,res=res,load=load,position=position,angle_error=angle_error,att_frame=att_frame,ref_frame=ref_frame
   
   common spp_spice_kernels_com, last_load_time,last_trange
@@ -37,12 +37,25 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
   if keyword_set(download_only) then return
 
   if keyword_set(position) then begin
-    spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=1e6,name=n1,trange=trange,/force_objects ;million km
-    spice_position_to_tplot,'SPP','Venus',frame=ref_frame,res=res,scale=1e3,name=n2,trange=trange,/force_objects ; 1000 km
+    if ~keyword_set(scale) then scale='r'
+    if scale eq 'km' then begin
+      scale1=1e6
+      scale2=1e3
+      ysub1='(Million km)'
+      ysub2='(1000 km)'
+    endif
+    if scale eq 'r' then begin
+      scale1=695700
+      scale2=6051.8
+      ysub1='(Rsun)'
+      ysub2='(Rvenus)'
+    endif
+    spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=scale1,name=n1,trange=trange,/force_objects ;million km
+    spice_position_to_tplot,'SPP','Venus',frame=ref_frame,res=res,scale=scale2,name=n2,trange=trange,/force_objects ; 1000 km
     xyz_to_polar,n1,/ph_0_360
     xyz_to_polar,n2,/ph_0_360
-    options,'SPP_POS_(SUN-J2000)_mag',ysubtitle='(Million km)',ystyle=3
-    options,'SPP_POS_(Venus-J2000)_mag',ysubtitle='(1000 km)',ystyle=3
+    options,'SPP_POS_(SUN-J2000)_mag',ysubtitle=ysub1,ystyle=3
+    options,'SPP_POS_(Venus-J2000)_mag',ysubtitle=ysub2,ystyle=3
   endif
   if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
 
