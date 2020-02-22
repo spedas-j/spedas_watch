@@ -30,8 +30,8 @@ function elf_load_kp, no_download=no_download, trange=trange, day=day
   if ~undefined(trange) && n_elements(trange) eq 2 then tr = timerange(trange) else tr = timerange()
 
   ; create file name
-  ts=time_string(tr[0])
-  kp_filename='kp_'+strmid(ts,0,4)+'_'+strmid(ts,5,2)+'.csv'
+;  ts=time_string(tr[0])
+  kp_filename='elfin_kp.csv'
   remote_kp_dir=!elf.REMOTE_DATA_DIR+'/kp'
   local_kp_dir=!elf.LOCAL_DATA_DIR+'/kp'
   if strlowcase(!version.os_family) eq 'windows' then local_kp_dir = strjoin(strsplit(local_kp_dir, '/', /extract), path_sep())
@@ -76,12 +76,16 @@ function elf_load_kp, no_download=no_download, trange=trange, day=day
   td=time_double(kp_values.field1)
 
   if ~keyword_set(day) then begin
-    ; find mid point of this timerange 
-    ts=td[0]
-    te=td[n_elements(td)-1]
-    tmid=td[(n_elements(td)-1)/2]
-    tmin=min(abs(td - tmid),midx)
-    kp_value=round(kp_values.field3[midx])
+    ; find closest point to midpoint of this timerange 
+    tmid=tr[0]+(tr[1]-tr[0])/2.
+    tdiff=abs(td-tmid)
+    tclose=min(tdiff,tcidx)
+;    ts=td[0]
+;    te=td[n_elements(td)-1]
+;    tmid=td[(n_elements(td)-1)/2]
+;    tmin=min(abs(td - tmid),midx)
+    kp_value=round(kp_values.field3[tcidx])
+    kp_time=td[tcidx]
     ; check range if not between 0 and 8 then default to 2
     if kp_value LT 0 or kp_value GT 8 then begin
       kp_value=2
@@ -90,9 +94,14 @@ function elf_load_kp, no_download=no_download, trange=trange, day=day
   endif else begin
     ; return all points for this day
     idx = where(td GE tr[0] AND td LE tr[1], ncnt)
-    if ncnt GT 1 then kp_value=round(kp_values.field3[idx])
+    if ncnt GT 1 then begin
+      kp_value=round(kp_values.field3[idx])
+      kp_time=td[idx]
+    endif
   endelse
    
-  return, kp_value
+  if ~undefined(kp_time) && ~undefined(kp_value) then kp={x:kp_time, y:kp_value} else kp=-1
+  
+  return, kp
 
 end

@@ -26,7 +26,7 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, probe=probe
   local_filename=local_ae_dir+'/'+ daily_name + '_ProxyAE.csv'
   paths = ''
 
-  if keyword_set(no_download) then no_download=1
+  if keyword_set(no_download) then no_download=1 else no_download=0
   
   if no_download eq 0 then begin
     ; NOTE: directory is temporarily password protected. this will be
@@ -46,19 +46,26 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, probe=probe
       local_file=local_filename, $   ;local_path=local_cal_dir, $
       url_username=user, url_password=pw, ssl_verify_peer=1, $
       ssl_verify_host=1)
-    if undefined(paths) or paths EQ '' then $
+    if undefined(paths) or paths[0] EQ '' then $
        dprint, devel=1, 'Unable to download ' + local_filename
   endif
  
   ; check that there is a local file
-  if file_test(local_filename) NE 1 then begin
+  if file_test(local_filename[0]) NE 1 then begin
      dprint, dlevel=1, 'Unable to find local file ' + local_filename
      return
   endif else begin
-     pseudo_ae = read_csv(local_filename)
-     t0=time_double(strmid(time_string(tr[0]),0,10))
-     pseudo_ae_x = (pseudo_ae.field1 * 60.) + t0 
-     pseudo_ae_y = double([pseudo_ae.field4])
+     for i=0,n_elements(local_filename)-1 do begin
+       if file_test(local_filename[i]) EQ 0 then continue
+       pseudo_ae = read_csv(local_filename[i])
+       t0=time_double(strmid(time_string(tr[0]),0,10))
+       append_array, pseudo_ae_x, (pseudo_ae.field1 * 60.) + t0
+       append_array, pseudo_ae_y, double([pseudo_ae.field4])
+       ;pseudo_ae_x = (pseudo_ae.field1 * 60.) + t0 
+       ;pseudo_ae_y = double([pseudo_ae.field4])
+  ;     dl = {ytitle:'proxy_ae', labels:['proxy_AE'], colors:[2]}
+  ;     store_data, 'pseudo_ae', data={x:pseudo_ae_x, y:pseudo_ae_y}, dlimits=dl
+     endfor
      dl = {ytitle:'proxy_ae', labels:['proxy_AE'], colors:[2]}
      store_data, 'pseudo_ae', data={x:pseudo_ae_x, y:pseudo_ae_y}, dlimits=dl
   endelse

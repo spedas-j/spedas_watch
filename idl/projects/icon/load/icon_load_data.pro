@@ -10,8 +10,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2020-01-28 17:58:46 -0800 (Tue, 28 Jan 2020) $
-;$LastChangedRevision: 28246 $
+;$LastChangedDate: 2020-02-21 13:53:53 -0800 (Fri, 21 Feb 2020) $
+;$LastChangedRevision: 28326 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/load/icon_load_data.pro $
 ;
 ;-------------------------------------------------------------------
@@ -82,6 +82,15 @@ function icon_mighti_filenames, relpathnames,remote_path, trange, fversion=fvers
   return, files
 end
 
+function icon_download_expand, url
+  ; This function is similar to spd_download_expand, but also works for local files on windows
+  ; relpathnames = 'LEVEL.1/EUV/2020/011/Data/ICON_L1_EUV_Flux_2020-01-11_*_v??r???.NC'
+  ; remote_path='Z:\\icon\\Repository\\Archive\\Simulated-Data\\'
+  result = FILE_SEARCH(url)
+  return, result
+
+end
+
 function icon_euv_filenames, relpathnames,remote_path, trange, fversion=fversion, frevision=frevision
   ; Find the EUV file names scanning the directory
   ;http://themis.ssl.berkeley.edu/data/icon/Repository/Archive/LEVEL.1/EUV/2010/143/Data/ICON_L1_EUV_Flux_2010-05-23_235959_v01r000.NC
@@ -89,12 +98,12 @@ function icon_euv_filenames, relpathnames,remote_path, trange, fversion=fversion
 
   t = time_string(trange)
   td = time_double(t)
-  remote_path=!icon.remote_data_dir
 
   all_url = []
   for i=0, n_elements(relpathnames)-1 do begin
     url = remote_path + relpathnames[i]
     spd_download_expand, url
+    ;url = icon_download_expand(url)
     all_url = [all_url, url]
   endfor
   url = all_url[sort(all_url)]
@@ -119,7 +128,7 @@ function icon_euv_filenames, relpathnames,remote_path, trange, fversion=fversion
   r_str = strmid('000' + strtrim(string(r_max), 2), 2, 3,/reverse_offset)
 
   for j=0, n_elements(url)-1 do begin
-    file0 = STRSPLIT(url[j], !icon.remote_data_dir,/EXTRACT,/regex)
+    file0 = STRSPLIT(url[j], remote_path,/EXTRACT,/regex)
     pre0 = STRSPLIT(file0[0],'ICON_L1_EUV_Flux_',/EXTRACT,/regex)
     s0= STRSPLIT(file0[0],'.*ICON_L1_EUV_Flux_',/EXTRACT,/REGEX)
     t0 =  STRSPLIT(s0[0],'_v.*NC',/EXTRACT,/REGEX)
@@ -262,17 +271,17 @@ pro icon_load_data, trange = trange, instrument = instrument, datal1type = datal
       relpathnames = icon_mighti_filenames(relpathnames, !icon.remote_data_dir, trange, fversion=fversion, frevision=frevision)
     endif 
 
-    files = spd_download(remote_file=relpathnames, remote_path=!icon.remote_data_dir, $
-      local_path = !icon.local_data_dir, last_version=1)
+    remote_dir = !icon.remote_data_dir
+    if !version.release ge 8.4 then BEGIN
+      remote_dir = remote_dir.replace('\\', '\')
+    endif
+    
+    files = spd_download(remote_file=relpathnames, remote_path=remote_dir, local_path = !icon.local_data_dir, last_version=1)
+      
 
     if keyword_set(downloadonly) then continue
 
-    result = file_test(files[0], /read)
-    if result then begin
-      netcdf_struct = icon_netcdf_load_vars(files)
-      cdf_struct = icon_struct_to_cdfstruct(netcdf_struct)
-      cdf_info_to_tplot, cdf_struct, verbose = verbose, prefix=prefix, suffix=suffix
-    endif
+    icon_netcdf2tplot, files
 
   endfor
 

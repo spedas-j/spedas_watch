@@ -151,7 +151,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ; Get Pseudo_ae data
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   del_data, 'pseudo_ae'
-  elf_load_pseudo_ae, probe=probe, no_download=no_download
+  tr=timerange()
+  elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.],probe=probe, no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae
   if size(pseudo_ae,/type) NE 8 then elf_load_pseudo_ae, probe=probe, trange=['2019-12-05','2019-12-06']   
   options, 'pseudo_ae', ysubtitle='[nT]', colors=251
@@ -548,6 +549,17 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       if ae_max[1] LT 145. then options, 'pseudo_ae', yrange=[0,150] $
         else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
     endif
+
+    if tdur GT 86000. or i EQ 24 then begin
+      tr=timerange()
+      tr[1]=tr[1]+5400.
+      kp=elf_load_kp(trange=[tr],/day)
+      store_data, 'kp', data=kp
+      options, 'kp', colors=251
+      options, 'kp', psym=10
+      options, 'kp', yrange=[-1,9]
+      options, 'kp', ystyle=1
+    endif
     
     ; Below chunk of code to fix y-labels might be messing up 24hr loss cone? If not, likely caused by interpolation in elf_getspec_v2
     ; 
@@ -594,18 +606,32 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     tplot_options, version=version   ;6
     tplot_options, 'ygap',0
     tplot_options, 'charsize',.9
-    tplot,['pseudo_ae', $
-      'epd_fast_bar', $
-      'sunlight_bar', $
-      'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear
-      'el'+probe+'_pef_en_spec2plot_anti', $
-      'el'+probe+'_pef_en_spec2plot_perp', $
-      'el'+probe+'_pef_en_spec2plot_para', $
-      'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
-      'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
-      'el'+probe+'_bt89_sm_NED'], $
-      var_label='el'+probe+'_'+['LAT','MLT','L']
-      
+    if tdur LT 86000. or i LT 24 then begin
+      tplot,['pseudo_ae', $
+        'epd_fast_bar', $
+        'sunlight_bar', $
+        'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear
+        'el'+probe+'_pef_en_spec2plot_anti', $
+        'el'+probe+'_pef_en_spec2plot_perp', $
+        'el'+probe+'_pef_en_spec2plot_para', $
+        'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
+        'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+        'el'+probe+'_bt89_sm_NED'], $
+        var_label='el'+probe+'_'+['LAT','MLT','L']
+    endif else begin
+      tplot,['pseudo_ae', $
+        'kp', $
+        'epd_fast_bar', $
+        'sunlight_bar', $
+        'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear
+        'el'+probe+'_pef_en_spec2plot_anti', $
+        'el'+probe+'_pef_en_spec2plot_perp', $
+        'el'+probe+'_pef_en_spec2plot_para', $
+        'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
+        'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+        'el'+probe+'_bt89_sm_NED'], $
+        var_label='el'+probe+'_'+['LAT','MLT','L']      
+    endelse
       ; Save plots
       tr=timerange()
       fd=file_dailynames(trange=tr[0], /unique, times=times)

@@ -16,8 +16,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-05-10 10:41:33 -0700 (Thu, 10 May 2018) $
-;$LastChangedRevision: 25192 $
+;$LastChangedDate: 2020-02-21 13:58:54 -0800 (Fri, 21 Feb 2020) $
+;$LastChangedRevision: 28328 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/icon/common/icon_struct_to_cdfstruct.pro $
 ;
 ;-------------------------------------------------------------------
@@ -57,14 +57,14 @@ function icon_struct_to_cdfstruct, netCDFi
     pi_name = netCDFi.g_attributes.pi_name
     pi_afflilation = netCDFi.g_attributes.pi_affiliation
     title = netCDFi.g_attributes.title
-    instrument_type = netCDFi.g_attributes.instrument_type
+ ;   instrument_type = netCDFi.g_attributes.instrument_type
     mission_group = netCDFi.g_attributes.mission_group
     l_source_description = netCDFi.g_attributes.logical_source_description
     time_resolution = netCDFi.g_attributes.time_resolution
     rules = netCDFi.g_attributes.rules_of_use
     gen_by = netCDFi.g_attributes.generated_by
     acknow = netCDFi.g_attributes.acknowledgement
-    link_title = netCDFi.g_attributes.link_title
+ ;   link_title = netCDFi.g_attributes.link_title
     http = netCDFi.g_attributes.http_link
 
     g_attributes = create_struct('PROJECT', 'ICON')
