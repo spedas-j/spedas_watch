@@ -1,4 +1,4 @@
-pro elf_load_pseudo_ae, no_download=no_download, trange=trange, probe=probe
+pro elf_load_pseudo_ae, no_download=no_download, trange=trange
 
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
@@ -58,16 +58,19 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, probe=probe
      for i=0,n_elements(local_filename)-1 do begin
        if file_test(local_filename[i]) EQ 0 then continue
        pseudo_ae = read_csv(local_filename[i])
-       t0=time_double(strmid(time_string(tr[0]),0,10))
+       t0=time_double(strmid(time_string(tr[0]+i*86400.),0,10))
        append_array, pseudo_ae_x, (pseudo_ae.field1 * 60.) + t0
        append_array, pseudo_ae_y, double([pseudo_ae.field4])
        ;pseudo_ae_x = (pseudo_ae.field1 * 60.) + t0 
        ;pseudo_ae_y = double([pseudo_ae.field4])
   ;     dl = {ytitle:'proxy_ae', labels:['proxy_AE'], colors:[2]}
   ;     store_data, 'pseudo_ae', data={x:pseudo_ae_x, y:pseudo_ae_y}, dlimits=dl
+
      endfor
      dl = {ytitle:'proxy_ae', labels:['proxy_AE'], colors:[2]}
      store_data, 'pseudo_ae', data={x:pseudo_ae_x, y:pseudo_ae_y}, dlimits=dl
+     time_clip, 'pseudo_ae', tr[0], tr[1], replace=1, error=error
+
   endelse
 
 end

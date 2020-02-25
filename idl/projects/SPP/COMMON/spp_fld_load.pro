@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-02-06 09:39:02 -0800 (Thu, 06 Feb 2020) $
-; $LastChangedRevision: 28281 $
+; $LastChangedBy: pulupa $
+; $LastChangedDate: 2020-02-24 16:56:16 -0800 (Mon, 24 Feb 2020) $
+; $LastChangedRevision: 28339 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -14,6 +14,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   tname_prefix=tname_prefix, pathformat=pathformat,$
   no_load=no_load,varformat=varformat, $
   no_server = no_server, $
+  longterm_ephem = longterm_ephem, $
   level = level, get_support = get_support, downsample = downsample, $
   no_staging = no_staging
 
@@ -25,6 +26,10 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   endif
 
   if not keyword_set(level) then level = 2
+
+  ; TODO: remove this line once we have Level 2 ephemeris files
+
+  if strpos(type, 'ephem') EQ 0 then level = 1
 
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
     type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin
@@ -221,6 +226,20 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   if level EQ 1.5 then pathformat = str_sub(pathformat,'/l1/', '/l1b/' )
   if level EQ 1.5 then pathformat = str_sub(pathformat,'_l1_', '_l1b_' )
+
+  ; Special case for loading longterm ephemeris files
+
+  if n_elements(longterm_ephem) GT 0 then begin
+
+    pathformat = str_sub(pathformat, 'YYYY/MM/', 'full_mis\sion/')
+    
+    pathformat = str_sub(pathformat, 'YYYYMMDD', $
+      '20180812_090000_20250831_090000')
+
+    ;stop
+
+  endif
+
 
   files = spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,$
     /last_version,daily_names=daily_names,/valid_only,$

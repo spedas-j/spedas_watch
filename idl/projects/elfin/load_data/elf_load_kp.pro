@@ -80,10 +80,6 @@ function elf_load_kp, no_download=no_download, trange=trange, day=day
     tmid=tr[0]+(tr[1]-tr[0])/2.
     tdiff=abs(td-tmid)
     tclose=min(tdiff,tcidx)
-;    ts=td[0]
-;    te=td[n_elements(td)-1]
-;    tmid=td[(n_elements(td)-1)/2]
-;    tmin=min(abs(td - tmid),midx)
     kp_value=round(kp_values.field3[tcidx])
     kp_time=td[tcidx]
     ; check range if not between 0 and 8 then default to 2

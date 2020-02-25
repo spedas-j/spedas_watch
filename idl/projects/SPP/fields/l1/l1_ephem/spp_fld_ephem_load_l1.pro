@@ -92,12 +92,16 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
   endif
 
-  options, prefix + '*vector*', 'ysubtitle', ''
+  if (tnames('*vector*'))[0] NE '' then begin
 
-  options, prefix + '*vector*', 'yrange', [-1.0,1.0]
-  options, prefix + '*vector*', 'ystyle', 1
-  options, prefix + '*vector*', 'yticklen', 1
-  options, prefix + '*vector*', 'ygridstyle', 1
+    options, prefix + '*vector*', 'ysubtitle', ''
+
+    options, prefix + '*vector*', 'yrange', [-1.0,1.0]
+    options, prefix + '*vector*', 'ystyle', 1
+    options, prefix + '*vector*', 'yticklen', 1
+    options, prefix + '*vector*', 'ygridstyle', 1
+
+  endif
 
   ephem_names = tnames(prefix + '*')
 
@@ -136,8 +140,13 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
       options, name, 'ynozero', 1
 
       options, name, 'ytitle', 'PSP!C' + strupcase(frame) + '!C' + name_no_prefix
-      options, name, 'psym_lim', 100
-      options, name, 'datagap', 600d
+
+      if n_elements(d.x) GT 1 then begin
+        options, name, 'psym_lim', 100
+        ; don't set data gap for the full orbit plots
+        if d.x[-1] - d.x[0] LT 1200d then options, name, 'datagap', 600d
+      endif
+
       options, name, 'symsize', 0.75
 
     endforeach

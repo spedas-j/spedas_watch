@@ -152,7 +152,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   del_data, 'pseudo_ae'
   tr=timerange()
-  elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.],probe=probe, no_download=no_download
+  elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae
   if size(pseudo_ae,/type) NE 8 then elf_load_pseudo_ae, probe=probe, trange=['2019-12-05','2019-12-06']   
   options, 'pseudo_ae', ysubtitle='[nT]', colors=251
@@ -632,6 +632,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         'el'+probe+'_bt89_sm_NED'], $
         var_label='el'+probe+'_'+['LAT','MLT','L']      
     endelse
+    
       ; Save plots
       tr=timerange()
       fd=file_dailynames(trange=tr[0], /unique, times=times)
