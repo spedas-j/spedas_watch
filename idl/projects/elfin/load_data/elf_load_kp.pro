@@ -17,14 +17,13 @@
 ;         day:          set this flag to return an array of values for the day
 ;
 ;-
-function elf_load_kp, no_download=no_download, trange=trange, day=day
+pro elf_load_kp, no_download=no_download, trange=trange, day=day
 
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
 
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
      dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
-     return, -1
   endif
 
   if ~undefined(trange) && n_elements(trange) eq 2 then tr = timerange(trange) else tr = timerange()
@@ -68,7 +67,7 @@ function elf_load_kp, no_download=no_download, trange=trange, day=day
     ; check that there is a local file
     if file_test(local_filename) NE 1 then begin
       dprint, dlevel=1, 'Unable to find local file ' + local_filename
-      return, -1
+      return
     endif 
   endif
 
@@ -89,15 +88,23 @@ function elf_load_kp, no_download=no_download, trange=trange, day=day
     endif
   endif else begin
     ; return all points for this day
-    idx = where(td GE tr[0] AND td LE tr[1], ncnt)
+    idx = where(td GE tr[0]-10800. AND td LE tr[1]+10800., ncnt)
     if ncnt GT 1 then begin
       kp_value=round(kp_values.field3[idx])
       kp_time=td[idx]
     endif
   endelse
    
-  if ~undefined(kp_time) && ~undefined(kp_value) then kp={x:kp_time, y:kp_value} else kp=-1
-  
-  return, kp
+  if ~undefined(kp_time) && ~undefined(kp_value) then begin
+    dt=2700.    ; kp values are every 3 hours dt/2 is 45 min
+    kp={x:kp_time-dt, y:kp_value} 
+    store_data, 'kp', data=kp
+    options, 'kp', colors=251
+    options, 'kp', psym=10
+    options, 'kp', yrange=[-1,9]
+    options, 'kp', ystyle=1
+  endif else begin
+     dprint, dlevel=1, 'No KP data was loaded!'
+  endelse 
 
 end

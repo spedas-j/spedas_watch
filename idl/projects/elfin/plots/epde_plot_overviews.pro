@@ -153,10 +153,18 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   del_data, 'pseudo_ae'
   tr=timerange()
   elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
-  get_data, 'pseudo_ae', data=pseudo_ae
-  if size(pseudo_ae,/type) NE 8 then elf_load_pseudo_ae, probe=probe, trange=['2019-12-05','2019-12-06']   
-  options, 'pseudo_ae', ysubtitle='[nT]', colors=251
-  options, 'pseudo_ae', yrange=[0,150]     
+  get_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
+  if size(pseudo_ae,/type) NE 8 then begin
+    elf_load_pseudo_ae, trange=['2019-12-05','2019-12-06']
+    get_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
+  endif
+  if ~undefined(pseudo_ae) then begin
+    pseudo_ae.y = median(pseudo_ae.y, 10.)
+    store_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
+    if size(pseudo_ae,/type) NE 8 then elf_load_pseudo_ae, probe=probe, trange=['2019-12-05','2019-12-06']   
+    options, 'pseudo_ae', ysubtitle='[nT]', colors=251
+    options, 'pseudo_ae', yrange=[0,150]     
+  endif
   
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... shadow/sunlight bar 0 (shadow) or 1 (sunlight)
@@ -234,7 +242,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   endfor
   ; append info for 24 hour plot
   append_array, min_st, 0
-  append_array, min_en, 86399.
+  append_array, min_en, n_elements(dat_gei.x)-1
   append_array, plot_lbl, ' 00:00 to 24:00'
   append_array, file_lbl, '_24hr'
   st_hr = dat_gei.x[min_st]
@@ -368,13 +376,14 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           endelse
       endif
 
+
       ;;;;;;;;;;;;;;;;;;;;;;
       ; PLOT
       if tdur Lt 194. then version=6 else version=7
       tplot_options, version=version   ;6
       tplot_options, 'ygap',0
       tplot_options, 'charsize',.9
-      elf_set_overview_options, probe=probe            
+      elf_set_overview_options, probe=probe, trange=[sz_tr[0],sz_tr[1]]            
       options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]   ; force color scheme
       tplot,['pseudo_ae', $
         'epd_fast_bar', $
@@ -550,16 +559,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
     endif
 
-    if tdur GT 86000. or i EQ 24 then begin
-      tr=timerange()
-      tr[1]=tr[1]+5400.
-      kp=elf_load_kp(trange=[tr],/day)
-      store_data, 'kp', data=kp
-      options, 'kp', colors=251
-      options, 'kp', psym=10
-      options, 'kp', yrange=[-1,9]
-      options, 'kp', ystyle=1
-    endif
+;    if tdur GT 10802. or i EQ 24 then begin   ; at least need to orbits for 24 hour plots
+;      tr=timerange()
+;      tr[1]=tr[1]+5400.
+;      elf_load_kp, trange=[tr],/day
+;      elf_load_dst,trange=tr
+;    endif
     
     ; Below chunk of code to fix y-labels might be messing up 24hr loss cone? If not, likely caused by interpolation in elf_getspec_v2
     ; 
@@ -605,8 +610,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     ;if i eq 23 then version=6
     tplot_options, version=version   ;6
     tplot_options, 'ygap',0
-    tplot_options, 'charsize',.9
-    if tdur LT 86000. or i LT 24 then begin
+    tplot_options, 'charsize',.9   
+
+    if tdur LT 16200. or i LT 24 then begin
       tplot,['pseudo_ae', $
         'epd_fast_bar', $
         'sunlight_bar', $
@@ -620,7 +626,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         var_label='el'+probe+'_'+['LAT','MLT','L']
     endif else begin
       tplot,['pseudo_ae', $
-        'kp', $
+;        'kp', $
+;        'dst',$
         'epd_fast_bar', $
         'sunlight_bar', $
         'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear

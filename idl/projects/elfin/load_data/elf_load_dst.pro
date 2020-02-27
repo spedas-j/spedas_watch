@@ -15,14 +15,13 @@
 ;         no_download:  set this flag to search for the file on your local disk
 ;
 ;-
-function elf_load_dst, no_download=no_download, trange=trange
+pro elf_load_dst, no_download=no_download, trange=trange
 
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
 
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
-    return, -1
   endif
 
   if ~undefined(trange) && n_elements(trange) eq 2 then tr = timerange(trange) else tr = timerange()
@@ -53,8 +52,8 @@ function elf_load_dst, no_download=no_download, trange=trange
       read,user,prompt='User Name: '
       read,pw,prompt='Password: '
     endif
-    if file_test(local_kp_dir,/dir) eq 0 then file_mkdir2, local_kp_dir
-    dprint, dlevel=1, 'Downloading ' + remote_filename + ' to ' + local_kp_dir
+    if file_test(local_dst_dir,/dir) eq 0 then file_mkdir2, local_dst_dir
+    dprint, dlevel=1, 'Downloading ' + remote_filename + ' to ' + local_dst_dir
     paths = spd_download(remote_file=remote_filename, local_file=local_filename, $
       url_username=user, url_password=pw, ssl_verify_peer=1, ssl_verify_host=1)
     if undefined(paths) or paths EQ '' then $
@@ -66,21 +65,26 @@ function elf_load_dst, no_download=no_download, trange=trange
     ; check that there is a local file
     if file_test(local_filename) NE 1 then begin
       dprint, dlevel=1, 'Unable to find local file ' + local_filename
-      return, -1
+      return
     endif
   endif
 
   dst_fields = read_csv(local_filename)
   td=time_double(dst_fields.field1)
-  idx=where(td GE tr[0] AND td LE tr[1], ncnt)
+  idx=where(td GE tr[0]-3601. AND td LE tr[1]+3601., ncnt)
   if ncnt LT 1 then begin
      dprint, dlevel=1, 'No dst data was found for the time range: '+time_string(tr[0])+ ' to '+time_string(tr[1])
-     return, -1
+     return
   endif
-  
+
   dst_times=time_double(dst_fields.field1[idx])
   dst_values=dst_fields.field3[idx]
-  
-  return, dst_values
+  dt = 1800.
+  dst={x:dst_times-1800., y:dst_values}
+  store_data, 'dst', data=dst
+  options, 'dst', colors=251
+  options, 'dst', psym=10
+;  options, 'dst', yrange=[-1,9]
+;  options, 'dst', ystyle=1
 
 end
