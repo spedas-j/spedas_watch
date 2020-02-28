@@ -253,8 +253,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                 if undefined(paths) or paths EQ '' then $
                    dprint, devel=1, 'Unable to download ' + fnames[file_idx] else $
                    append_array, files, local_path+fnames[file_idx]
-              endif 
-              
+              endif              
               ; if remote file not found or no_download set then look for local copy
               if paths EQ '' OR no_download NE 0 then begin                
                 ; get all files from the beginning of the first day
@@ -262,7 +261,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                   data_rate=data_rate, datatype=datatype, level=level, $
                   trange=time_double([day_string, end_string]), cdf_version=cdf_version, $
                   min_version=min_version, latest_version=latest_version, pred=pred)
-
                 if is_string(local_files) then begin
                   ; prepare the file list as a list of structs, (required input to mms_files_in_interval)
                   local_file_info = replicate({filename: '', timetag: ''}, n_elements(local_files))

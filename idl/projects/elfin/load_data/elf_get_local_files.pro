@@ -87,8 +87,13 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
      else file_inputs = [probe, level, instrument]
   if instrument EQ 'fgm' && level EQ 'l1' then file_inputs = [probe, level, datatype]
 
-  file_pattern = strjoin( file_inputs, f) + f + '([0-9]{8})' 
-
+  if instrument eq 'state' then begin
+     if keyword_set(pred) then state_type = 'pred' else state_type = 'defn'
+     file_pattern = strjoin( file_inputs, f) + f + state_type + f + '([0-9]{8})'
+  endif else begin
+     file_pattern = strjoin( file_inputs, f) + f + '([0-9]{8})'
+  endelse
+       
   ;escape backslash in case of Windows
   search_pattern = escape_string(dir_pattern  + file_pattern, list='\')
   ;get list of all .cdf files in local directory

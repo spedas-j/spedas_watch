@@ -197,7 +197,7 @@
 ;       
 ;Interpolation Methods:
 ;
-;   3D Interpolation (default):
+;   3D Interpolation:
 ;     The entire 3-dimensional distribution is linearly interpolated onto a
 ;     regular 3d grid and a slice is extracted from the volume.
 ;
@@ -205,7 +205,7 @@
 ;     Datapoints within the specified theta or z-axis range are projected onto
 ;     the slice plane and linearly interpolated onto a regular 2D grid.
 ;
-;   Geometric:
+;   Geometric (default):
 ;     Each point on the plot is given the value of the bin it intersects.
 ;     This allows bin boundaries to be drawn at high resolutions.
 ; 
@@ -218,16 +218,20 @@
 ; Notes:
 ;         This routine always centers the distribution/moments data
 ;         
+;         Default interpolation changed to geometric (from 3D), egrimes, 27Feb2020
+;           (requested by the FPI team at last year's GEM)
+;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-04-29 17:42:15 -0700 (Mon, 29 Apr 2019) $
-;$LastChangedRevision: 27143 $
+;$LastChangedDate: 2020-02-27 14:33:12 -0800 (Thu, 27 Feb 2020) $
+;$LastChangedRevision: 28355 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
 pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, species=species, instrument=instrument, $
                       trange=trange, subtract_bulk=subtract_bulk, spdf=spdf, rotation=rotation, output=output, $
                       units=units, subtract_error=subtract_error, plotbulk=plotbulk, plotsun=plotsun, fgm_data_rate=fgm_data_rate, $
-                      correct_photoelectrons=correct_photoelectrons, _extra=_extra
+                      correct_photoelectrons=correct_photoelectrons, geometric=geometric, two_d_interp=two_d_interp, $
+                      three_d_interp=three_d_interp, _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -252,8 +256,9 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
       return
     endif
     
-    if undefined(fgm_data_rate) then fgm_data_rate = data_rate eq 'brst' ? 'brst' : 'srvy'
+    if undefined(two_d_interp) && undefined(three_d_interp) then geometric = 1b
     
+    if undefined(fgm_data_rate) then fgm_data_rate = data_rate eq 'brst' ? 'brst' : 'srvy'
     if undefined(probe) then probe = '1' else probe = strcompress(string(probe), /rem)
     if undefined(rotation) then rotation = 'xy'
     
@@ -266,6 +271,7 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
        spd_cotrans, 'mms'+probe+'_mec_r_sun_de421_eci', 'mms'+probe+'_mec_r_sun_de421_gse', out_coord='gse'
        sname = 'mms'+probe+'_mec_r_sun_de421_gse'
     endif
+    
     
     bname = 'mms'+probe+'_fgm_b_gse_'+fgm_data_rate+'_l2_bvec'
     if load_support && ~spd_data_exists(bname, trange[0], trange[1]) then mms_load_fgm, trange=trange, probe=probe, spdf=spdf, data_rate=fgm_data_rate, /time_clip, varformat='*_fgm_b_gse_*
@@ -299,8 +305,8 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
 
     if ~undefined(time) then undefine, trange
     
-    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, sun_data=sname, subtract_bulk=subtract_bulk, _extra=_extra) $ 
-      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, sun_data=sname, subtract_bulk=subtract_bulk, _extra=_extra)
+    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, sun_data=sname, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, _extra=_extra) $ 
+      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, sun_data=sname, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, _extra=_extra)
     
     spd_slice2d_plot, slice, plotbulk=plotbulk, sundir=plotsun, _extra=_extra
     output=slice
