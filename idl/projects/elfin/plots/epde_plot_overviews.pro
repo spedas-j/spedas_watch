@@ -152,7 +152,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   del_data, 'pseudo_ae'
   tr=timerange()
-  elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
+  elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], /smooth, no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
   if size(pseudo_ae,/type) NE 8 then begin
     elf_load_pseudo_ae, trange=['2019-12-05','2019-12-06']
@@ -161,19 +161,23 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   if ~undefined(pseudo_ae) then begin
     pseudo_ae.y = median(pseudo_ae.y, 10.)
     store_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
-    if size(pseudo_ae,/type) NE 8 then elf_load_pseudo_ae, probe=probe, trange=['2019-12-05','2019-12-06']   
+    if size(pseudo_ae,/type) NE 8 then begin
+      dprint, level=1, 'No data available for proxy_ae'
+    endif
     options, 'pseudo_ae', ysubtitle='[nT]', colors=251
     options, 'pseudo_ae', yrange=[0,150]     
-  endif
+  endif else begin
+    options, 'pseudo_ae', ztitle=''    
+  endelse
   
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... shadow/sunlight bar 0 (shadow) or 1 (sunlight)
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   elf_load_sun_shadow_bar, tplotname='el'+probe+'_pos_gse', no_download=no_download
   options,'shadow_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.1,0.1],ytitle='',$
-    ticklen=0,panel_size=0.1, charsize=2.
+    ticklen=0,panel_size=0.1, charsize=2., ztitle=''
   options,'sun_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.1,0.1],ytitle='',$
-    ticklen=0,panel_size=0.1,colors=253, charsize=2.
+    ticklen=0,panel_size=0.1,colors=253, charsize=2., ztitle=''
     
   ; create one bar for both sun and shadow
   store_data, 'sunlight_bar', data=['sun_bar','shadow_bar']
@@ -181,6 +185,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   options, 'sunlight_bar',ticklen=0
   options, 'sunlight_bar', 'ystyle',4
   options, 'sunlight_bar', 'xstyle',4
+  options, 'sunlight_bar', 'ztitle',''
   options, 'sunlight_bar', yrange=[-0.1,0.1]
 
   ; ... EPD fast bar
@@ -198,6 +203,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   options, 'epd_fast_bar', 'ystyle',4
   options, 'epd_fast_bar', 'xstyle',4
   options, 'epd_fast_bar', 'color',252
+  options, 'epd_fast_bar', 'ztitle',''
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; ... fgm status bar
@@ -383,7 +389,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tplot_options, version=version   ;6
       tplot_options, 'ygap',0
       tplot_options, 'charsize',.9
-      elf_set_overview_options, probe=probe, trange=[sz_tr[0],sz_tr[1]]            
+      tr=timerange()
+      elf_set_overview_options, probe=probe, trange=tr            
       options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]   ; force color scheme
       tplot,['pseudo_ae', $
         'epd_fast_bar', $
@@ -559,12 +566,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
     endif
 
-;    if tdur GT 10802. or i EQ 24 then begin   ; at least need to orbits for 24 hour plots
-;      tr=timerange()
-;      tr[1]=tr[1]+5400.
-;      elf_load_kp, trange=[tr],/day
-;      elf_load_dst,trange=tr
-;    endif
+    if tdur GT 10802. or i EQ 24 then begin   ; at least need to orbits for 24 hour plots
+      tr=timerange()
+      tr[1]=tr[1]+5400.
+      elf_load_kp, trange=[tr],/day
+      elf_load_dst,trange=tr
+    endif
     
     ; Below chunk of code to fix y-labels might be messing up 24hr loss cone? If not, likely caused by interpolation in elf_getspec_v2
     ; 
@@ -611,7 +618,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     tplot_options, version=version   ;6
     tplot_options, 'ygap',0
     tplot_options, 'charsize',.9   
-
     if tdur LT 16200. or i LT 24 then begin
       tplot,['pseudo_ae', $
         'epd_fast_bar', $
@@ -625,9 +631,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         'el'+probe+'_bt89_sm_NED'], $
         var_label='el'+probe+'_'+['LAT','MLT','L']
     endif else begin
+
       tplot,['pseudo_ae', $
-;        'kp', $
-;        'dst',$
+        'kp', $
+        'dst',$
         'epd_fast_bar', $
         'sunlight_bar', $
         'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear

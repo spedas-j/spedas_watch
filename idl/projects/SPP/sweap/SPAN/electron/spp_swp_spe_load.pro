@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-01-23 12:02:44 -0800 (Thu, 23 Jan 2020) $
-; $LastChangedRevision: 28214 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-03-02 10:07:24 -0800 (Mon, 02 Mar 2020) $
+; $LastChangedRevision: 28359 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -59,7 +59,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       if keyword_set(varformat) then vfm = varformat else if vars.haskey(type) then vfm=vars[type] else vfm=[]
       if level eq 'L3' then begin
         varformat = '*'
-        if 1 then begin
+        if 1 && keyword_set(files) then begin
           cdf = cdf_tools(files)
           time = cdf.vars['TIME'].data.array
           eflux = cdf.vars['EFLUX_VS_PA_E'].data.array
@@ -106,7 +106,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       endelse
 
 
-      if 0 and (type eq 'sf0' or type eq 'af0') then begin ;; will need to change this in the future if sf0 isn't 3d spectra.
+      if level eq 'L2' and (type eq 'sf0' or type eq 'af0') then begin ;; will need to change this in the future if sf0 isn't 3d spectra.
         ;; make a line here to get data from tplot
         ;; Hard code bins for now, retain option to keep flexible later
         nrg_bins = 32
@@ -115,10 +115,10 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         prod_str = '_SFN_'
         prod_type = str_sub(prod_str,'SFN',type)
         ; order of the below should be anode, deflector, energy bin
-        get_data, 'psp_swp_' + spx + prod_type + 'EFLUX' , data = span_eflux
-        get_data, 'psp_swp_' + spx + prod_type + 'ENERGY', data = span_energy
-        get_data, 'psp_swp_' + spx + prod_type + 'PHI', data = span_phi
-        get_data, 'psp_swp_' + spx + prod_type + 'THETA', data = span_theta
+        get_data, 'psp_swp_' + spx + prod_type + level + '_EFLUX' , data = span_eflux
+        get_data, 'psp_swp_' + spx + prod_type + level + '_ENERGY', data = span_energy
+        get_data, 'psp_swp_' + spx + prod_type + level + '_PHI', data = span_phi
+        get_data, 'psp_swp_' + spx + prod_type + level + '_THETA', data = span_theta
         ;;----------------------------------------------------------
         ;; Make an Nrg Sypec
         nTimePoints = size(span_eflux.v)
@@ -126,35 +126,29 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         xpandEbins = reform(span_eflux.v, nTimePoints[1], (def_bins * anode_bins), nrg_bins)
         flatEbins = reform(xpandEbins[*,0,*])
         totalEflux_nrg = total(total(xpandEflux_nrg, 2) , 2)
-        sum_nrg_spec = {x: span_eflux.x, $
-          y: totalEflux_nrg, $
-          v: flatEbins }
+        sum_nrg_spec = {x: span_eflux.x,y: totalEflux_nrg,v: flatEbins }
         store_data, 'psp_swp_' + spx + prod_type + 'ENERGY_SPEC_ql', data = sum_nrg_spec
         ;;----------------------------------------------------------
         ;; Make an Anode Apec
-        xpandEflux_anode = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
-        xpandPhi = reform(span_phi.y, nTimePoints[1], anode_bins, (def_Bins*nrg_bins))
-        flatAnodeBins = xpandphi[*,*,0]
-        totalEflux_anode = total(total(xpandEflux_anode, 3),3)
-        sum_anode_spec = {x: span_eflux.x, $
-          y: totalEflux_anode, $
-          v: flatAnodeBins }
-        store_data, 'psp_swp_' + spx + prod_type + 'ANODE_SPEC_ql', data = sum_anode_spec
+        ;xpandEflux_anode = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
+;        xpandPhi = reform(span_phi.y, nTimePoints[1], anode_bins, (def_Bins*nrg_bins))
+;        flatAnodeBins = xpandphi[*,*,0]
+        ;totalEflux_anode = total(total(xpandEflux_anode, 3),3)
+        ;sum_anode_spec = {x: span_eflux.x,y: totalEflux_anode,v: flatAnodeBins }
+        ;store_data, 'psp_swp_' + spx + prod_type + 'ANODE_SPEC_ql', data = sum_anode_spec
         ;;----------------------------------------------------------
         ;; Gen Def Spec
-        xpandEflux_def = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
-        xpandTheta = reform(span_theta.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
-        flatDefBins = reform(xpandTheta[*,0,*,0])
-        totalEflux_def = total(total(xpandEflux_def, 2),3)
-        sum_def_spec = {x: span_eflux.x, $
-          y: totalEflux_def, $
-          v: flatDefBins }
-        store_data, 'psp_swp_' + spx + prod_type + 'DEF_SPEC_ql', data = sum_def_spec
+        ;xpandEflux_def = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
+        ;xpandTheta = reform(span_theta.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
+        ;flatDefBins = reform(xpandTheta[*,0,*,0])
+        ;totalEflux_def = total(total(xpandEflux_def, 2),3)
+        ;sum_def_spec = {x: span_eflux.x,y: totalEflux_def,v: flatDefBins }
+        ;store_data, 'psp_swp_' + spx + prod_type + 'DEF_SPEC_ql', data = sum_def_spec
 
         ;; some lines here to put these back in tplot - done for NRG spec
         ;; be done?
         ylim,prefix+'EFLUX',1.,10000.,1,/default
-        ylim,'*ENERGY*_ql',1,1,1,/default
+        ylim,'*ENERGY*_ql',1,1e4,1,/default
         ylim,'*ANODE*_ql',0,0,0,/default
         ylim,'*DEF*_ql',0,0,0,/default
         Zlim,prefix+'*EFLUX',100.,2000.,1,/default

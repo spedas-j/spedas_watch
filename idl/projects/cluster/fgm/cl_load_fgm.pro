@@ -36,7 +36,7 @@ pro cl_load_fgm, probes = probes, datatype = datatype, trange = trange, source =
                   
     if undefined(probes) then probes = ['1'] ; default to Cluster 1
     if undefined(datatype) then datatype = 'up'
-    if datatype eq 'spin' then varformat='*'
+    if datatype eq 'cp' then varformat='*'
 
     cl_load_data,probes = probes, datatype = datatype, trange = trange, source = source, $
                  remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, $
