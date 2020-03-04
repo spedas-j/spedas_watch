@@ -156,11 +156,11 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   get_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
   if size(pseudo_ae,/type) NE 8 then begin
     elf_load_pseudo_ae, trange=['2019-12-05','2019-12-06']
-    get_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
+    get_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
   endif
   if ~undefined(pseudo_ae) then begin
     pseudo_ae.y = median(pseudo_ae.y, 10.)
-    store_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
+    store_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
     if size(pseudo_ae,/type) NE 8 then begin
       dprint, level=1, 'No data available for proxy_ae'
     endif
@@ -418,6 +418,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         xyouts, .0085, .012, spin_str, /normal, charsize=.75
         xyouts, .0085, .001, phase_msg, /normal, charsize=.75
       endif
+
+      ; save for later
+      get_data, 'el'+probe+'_pef_en_spec2plot_omni', data=omni_d, dlimits=omni_dl, limits=omni_l   
+      get_data, 'el'+probe+'_pef_en_spec2plot_anti', data=anti_d, dlimits=anti_dl, limits=anti_l
+      get_data, 'el'+probe+'_pef_en_spec2plot_perp', data=perp_d, dlimits=perp_dl, limits=perp_l
+      get_data, 'el'+probe+'_pef_en_spec2plot_para', data=para_d, dlimits=para_dl, limits=para_l
   
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ; Create GIF file
@@ -492,10 +498,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     pa_ch3_reg_str+=' el'+probe+'_pef_pa_reg_spec2plot_ch3_sz'+strtrim(string(n),2)
   endfor
   
-  store_data, 'el'+probe+'_pef_en_spec2plot_omni_all', data=omni_str, dlimits=dl, limits=l
-  store_data, 'el'+probe+'_pef_en_spec2plot_anti_all', data=anti_str, dlimits=dl, limits=l
-  store_data, 'el'+probe+'_pef_en_spec2plot_perp_all', data=perp_str, dlimits=dl, limits=l
-  store_data, 'el'+probe+'_pef_en_spec2plot_para_all', data=para_str, dlimits=dl, limits=l
+  store_data, 'el'+probe+'_pef_en_spec2plot_omni_all', data=omni_str, dlimits=omni_dl, limits=omni_l
+  store_data, 'el'+probe+'_pef_en_spec2plot_anti_all', data=anti_str, dlimits=anti_dl, limits=anti_l
+  store_data, 'el'+probe+'_pef_en_spec2plot_perp_all', data=perp_str, dlimits=perp_dl, limits=perp_l
+  store_data, 'el'+probe+'_pef_en_spec2plot_para_all', data=para_str, dlimits=para_dl, limits=para_l
   
   ; Overwrite losscone/antilosscone tplot variable with full day from elf_getspec
   if nplots eq 25 then this_tr=[dat_gei.x[min_st[24]], dat_gei.x[min_en[24]]] $
@@ -589,6 +595,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     options, 'el'+probe+'_pef_en_spec2plot_anti', 'ysubtitle', '[keV]'
     options, 'el'+probe+'_pef_en_spec2plot_perp', 'ysubtitle', '[keV]'
     options, 'el'+probe+'_pef_en_spec2plot_para', 'ysubtitle', '[keV]'
+;    options, 'el'+probe+'_pef_en_spec2plot_omni', 'ytitle', '[keV]'
+;    options, 'el'+probe+'_pef_en_spec2plot_anti', 'ytitle', '[keV]'
+;    options, 'el'+probe+'_pef_en_spec2plot_perp', 'ytitle', '[keV]'
+;    options, 'el'+probe+'_pef_en_spec2plot_para', 'ytitle', '[keV]'
     options, 'el'+probe+'_pef_pa_reg_spec2plot_ch0LC', 'ysubtitle', '[deg]'
     options, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC', 'ysubtitle', '[deg]'
     options, 'el'+probe+'_pef_pa_spec2plot_ch2LC', 'ysubtitle', '[deg]'
@@ -600,6 +610,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     zlim,'el?_p?f_pa*spec2plot_ch2LC*',1e2,1e6
     zlim,'el?_p?f_pa*spec2plot_ch3LC*',10,1e4
     zlim,'el?_p?f_en_spec2plot*',1e1,1e6
+    options,'el?_p?f_pa*spec2plot_ch0LC*','ztitle',''
+    options,'el?_p?f_pa*spec2plot_ch0LC*','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_pa*spec2plot_ch1LC*','ztitle',''
+    options,'el?_p?f_pa*spec2plot_ch1LC*','ztitle','#/(scm!U2!NstrMeV)'
     options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle',''
     options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle','#/(scm!U2!NstrMeV)'
     options,'el?_p?f_en_spec2plot_omni','ztitle',''
@@ -633,8 +647,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     endif else begin
 
       tplot,['pseudo_ae', $
-        'kp', $
-        'dst',$
+;        'kp', $
+;        'dst',$
         'epd_fast_bar', $
         'sunlight_bar', $
         'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear

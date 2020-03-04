@@ -1,7 +1,6 @@
 pro elf_set_overview_options, probe=probe, trange=trange
 
    if ~keyword_set(probe) then probe='a' else probe=probe
-
    options, 'el'+probe+'_pef_en_spec2plot_omni', charsize=.9
    options, 'el'+probe+'_pef_en_spec2plot_omni', 'ztitle','#/(scm!U2!NstrMeV)' 
    options, 'el'+probe+'_pef_en_spec2plot_omni', 'ysubtitle','[keV]'
