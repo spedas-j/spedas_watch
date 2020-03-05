@@ -85,6 +85,7 @@ pro elf_load_kp, no_download=no_download, trange=trange, day=day
     if kp_value LT 0 or kp_value GT 8 then begin
       kp_value=2
       dprint, devel=1, 'Kp value was out of range. Defaulting to 2."
+      options, 'kp', labels=['']
     endif
   endif else begin
     ; return all points for this day
@@ -101,10 +102,12 @@ pro elf_load_kp, no_download=no_download, trange=trange, day=day
     store_data, 'kp', data=kp
     options, 'kp', colors=251
     options, 'kp', psym=10
-    options, 'kp', yrange=[-1,9]
+    options, 'kp', labels=['kp']
+    options, 'kp', yrange=[0,4]
     options, 'kp', ystyle=1
   endif else begin
      dprint, dlevel=1, 'No KP data was loaded!'
+     options, 'kp', labels=['']
   endelse 
 
 end

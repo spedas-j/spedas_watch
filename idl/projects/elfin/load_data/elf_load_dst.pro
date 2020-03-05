@@ -74,6 +74,7 @@ pro elf_load_dst, no_download=no_download, trange=trange
   idx=where(td GE tr[0]-3601. AND td LE tr[1]+3601., ncnt)
   if ncnt LT 1 then begin
      dprint, dlevel=1, 'No dst data was found for the time range: '+time_string(tr[0])+ ' to '+time_string(tr[1])
+     options, 'dst', labels=['']
      return
   endif
 
@@ -84,7 +85,12 @@ pro elf_load_dst, no_download=no_download, trange=trange
   store_data, 'dst', data=dst
   options, 'dst', colors=251
   options, 'dst', psym=10
-;  options, 'dst', yrange=[-1,9]
-;  options, 'dst', ystyle=1
+  mindst=min(dst_values)
+  maxdst=max(dst_values)
+  difdst=abs(maxdst-mindst)*.1
+  yrange=[mindst-difdst, maxdst+difdst]
+  if (maxdst LT 0.) AND (mindst GT -50.) then dstrange=[-50,0] else dstrange=yrange
+  options, 'dst', yrange=dstrange 
+  options, 'dst', labels=['dst']
 
 end

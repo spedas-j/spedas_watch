@@ -595,10 +595,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     options, 'el'+probe+'_pef_en_spec2plot_anti', 'ysubtitle', '[keV]'
     options, 'el'+probe+'_pef_en_spec2plot_perp', 'ysubtitle', '[keV]'
     options, 'el'+probe+'_pef_en_spec2plot_para', 'ysubtitle', '[keV]'
-;    options, 'el'+probe+'_pef_en_spec2plot_omni', 'ytitle', '[keV]'
-;    options, 'el'+probe+'_pef_en_spec2plot_anti', 'ytitle', '[keV]'
-;    options, 'el'+probe+'_pef_en_spec2plot_perp', 'ytitle', '[keV]'
-;    options, 'el'+probe+'_pef_en_spec2plot_para', 'ytitle', '[keV]'
     options, 'el'+probe+'_pef_pa_reg_spec2plot_ch0LC', 'ysubtitle', '[deg]'
     options, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC', 'ysubtitle', '[deg]'
     options, 'el'+probe+'_pef_pa_spec2plot_ch2LC', 'ysubtitle', '[deg]'
@@ -625,14 +621,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     options,'el?_p?f_en_spec2plot_para','ztitle',''
     options,'el?_p?f_en_spec2plot_para','ztitle','#/(scm!U2!NstrMeV)'
     options, 'antilossconedeg', 'linestyle', 2
-    ;options, 'antilossconedeg', linestyle=2
     
     if tdur Lt 194. then version=6 else version=7
-    ;if i eq 23 then version=6
     tplot_options, version=version   ;6
     tplot_options, 'ygap',0
     tplot_options, 'charsize',.9   
-    if tdur LT 16200. or i LT 24 then begin
+    if tdur LT 10802. then begin
       tplot,['pseudo_ae', $
         'epd_fast_bar', $
         'sunlight_bar', $
@@ -647,8 +641,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     endif else begin
 
       tplot,['pseudo_ae', $
-;        'kp', $
-;        'dst',$
+        'kp', $
+        'dst',$
         'epd_fast_bar', $
         'sunlight_bar', $
         'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear
