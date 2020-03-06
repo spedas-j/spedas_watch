@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-01-06 16:23:26 -0800 (Mon, 06 Jan 2020) $
-; $LastChangedRevision: 28170 $
+; $LastChangedDate: 2020-03-05 13:11:02 -0800 (Thu, 05 Mar 2020) $
+; $LastChangedRevision: 28376 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -18,7 +18,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
   trange = res* double(daynum) ; round to days
 
   output_prefix = 'psp/data/sci/sweap/'
-  ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
+;  ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
   ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
   linkname = output_prefix + '.hidden/.htaccess'
   if ~ isa(ssr_format,/string) then ssr_format = 'YYYY/DOY/*_?_E?'

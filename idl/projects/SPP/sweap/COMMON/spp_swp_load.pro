@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-01-06 14:35:09 -0800 (Mon, 06 Jan 2020) $
-; $LastChangedRevision: 28163 $
+; $LastChangedDate: 2020-03-05 13:11:02 -0800 (Thu, 05 Mar 2020) $
+; $LastChangedRevision: 28376 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save
@@ -42,7 +42,9 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
   foreach spx, spxs do begin
     foreach type,types do begin
       dir=spx+'/'+level+'/'+spx+'_'+type+'/YYYY/MM/'
+;      dir=spx+'/'+level+'/'+type+'/YYYY/MM/'
       fileformat=dir+'psp_swp_'+spx+'_'+type+'_'+level+'*_YYYYMMDD_v??.cdf'
+;      fileformat=dir+'psp_swp_'+type+'_'+level+'*_YYYYMMDD_v??.cdf'
       dprint,fileformat,/phelp
       files=spp_file_retrieve(fileformat,trange=tr,/daily_names,/valid_only,/last_version,prefix=fileprefix,verbose=verbose)
 

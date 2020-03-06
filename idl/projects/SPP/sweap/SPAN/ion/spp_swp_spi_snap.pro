@@ -1,8 +1,8 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-10-22 18:17:28 -0700 (Tue, 22 Oct 2019) $
-; $LastChangedRevision: 27919 $
+; $LastChangedDate: 2020-03-05 13:11:02 -0800 (Thu, 05 Mar 2020) $
+; $LastChangedRevision: 28376 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 ;
@@ -114,11 +114,18 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
           store_data,prefix+'maxbins',times,nmax,dlim={ylog:1,ystyle:3}
         endif
         if keyword_set(mode) then begin
+          ;Mode2: bbbb bbbb bbbb bbbb
+          ;       MMPP PPEE EEEE TTTT
           mode2=vardata.mode2
           tmode=mode2 and 0xf
-          emode=(mode2 and 'f0'x)/16
-          pmode=(mode2 and 'f00'x)/16^2
+          tmode=mode2 and 'f'x
+          emode=(mode2 and 'f0'x)/16 ;wrong
+          emode=ishft(mode2,-4) and '3f'x
+          pmode=(mode2 and 'f00'x)/16^2 ;wrong
+          pmode=ishft(mode2,-10) and 'f'x
           mmode=(mode2 and 'f000'x)/16^3
+          mmode=ishft(mode2,-12) and '3'x
+
           store_data,prefix+'mode',times,[[tmode],[emode],[pmode],[mmode]],dlim={ystyle:3,colors:'rbgk',labels:['t','e','p','m'],labflag:-1}
         endif
         if keyword_set(status_bits) then store_data,prefix+'status_bits',times,vardata.status_bits,dlim={ystyle:3}
@@ -334,10 +341,10 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
           store_data,'psp_swp_spi_alfven_speed_(km/s)_ovl',data='psp_swp_spi_'+['sf21_L1_speed_difference_(km/s)','alfven_speed_(km/s)'],dlim={colors:'br',labels:['a-p diff','alfven'],labflag:1}
         endif
       endif
-      options,'psp_swp_spi_*energy',ytickunits=ytickunits,ztickunits='scientific'
-      options,'psp_swp_spi_*deflection',ztickunits='scientific'
-      options,'psp_swp_spi_*anode',ztickunits='scientific'
-      options,'psp_swp_spi_*mass',ztickunits='scientific'
+      options,/default,'psp_swp_spi_*energy',ytickunits=ytickunits,ztickunits='scientific'
+      options,/default,'psp_swp_spi_*deflection',ztickunits='scientific'
+      options,/default,'psp_swp_spi_*anode',ztickunits='scientific'
+      options,/default,'psp_swp_spi_*mass',ztickunits='scientific'
       if keyword_set(snap) then p=colorbar(title='Log10 '+countrate,/orientation,position=[.95,.7,.98,.95]) else return
     endwhile
   endif

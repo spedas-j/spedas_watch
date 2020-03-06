@@ -392,18 +392,31 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tr=timerange()
       elf_set_overview_options, probe=probe, trange=tr            
       options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]   ; force color scheme
-      tplot,['pseudo_ae', $
-        'epd_fast_bar', $
-        'sunlight_bar', $
-        'el'+probe+'_pef_en_spec2plot_omni', $
-        'el'+probe+'_pef_en_spec2plot_anti', $
-        'el'+probe+'_pef_en_spec2plot_perp', $
-        'el'+probe+'_pef_en_spec2plot_para', $
-        'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
-        'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
-        'el'+probe+'_bt89_sm_NED'], $
-        var_label='el'+probe+'_'+['LAT','MLT','L']
-  
+      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',sz_tr[0],sz_tr[1]) then begin       
+        tplot,['pseudo_ae', $
+          'epd_fast_bar', $
+          'sunlight_bar', $
+          'el'+probe+'_pef_en_spec2plot_omni', $
+          'el'+probe+'_pef_en_spec2plot_anti', $
+          'el'+probe+'_pef_en_spec2plot_perp', $
+          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_pa_spec2plot_ch[0,1]LC', $
+          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_bt89_sm_NED'], $
+          var_label='el'+probe+'_'+['LAT','MLT','L']
+      endif else begin
+        tplot,['pseudo_ae', $
+          'epd_fast_bar', $
+          'sunlight_bar', $
+          'el'+probe+'_pef_en_spec2plot_omni', $
+          'el'+probe+'_pef_en_spec2plot_anti', $
+          'el'+probe+'_pef_en_spec2plot_perp', $
+          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
+          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_bt89_sm_NED'], $
+          var_label='el'+probe+'_'+['LAT','MLT','L']        
+      endelse
       tr=timerange()
       fd=file_dailynames(trange=tr[0], /unique, times=times)
       tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+sz_plot_lbl
@@ -627,32 +640,61 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     tplot_options, 'ygap',0
     tplot_options, 'charsize',.9   
     if tdur LT 10802. then begin
-      tplot,['pseudo_ae', $
-        'epd_fast_bar', $
-        'sunlight_bar', $
-        'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear
-        'el'+probe+'_pef_en_spec2plot_anti', $
-        'el'+probe+'_pef_en_spec2plot_perp', $
-        'el'+probe+'_pef_en_spec2plot_para', $
-        'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
-        'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
-        'el'+probe+'_bt89_sm_NED'], $
-        var_label='el'+probe+'_'+['LAT','MLT','L']
+      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
+        tplot,['pseudo_ae', $
+          'epd_fast_bar', $
+          'sunlight_bar', $
+          'el'+probe+'_pef_en_spec2plot_omni', $
+          'el'+probe+'_pef_en_spec2plot_anti', $
+          'el'+probe+'_pef_en_spec2plot_perp', $
+          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_pa_spec2plot_ch[0,1]LC', $
+          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_bt89_sm_NED'], $
+          var_label='el'+probe+'_'+['LAT','MLT','L']
+      endif else begin
+        tplot,['pseudo_ae', $
+          'epd_fast_bar', $
+          'sunlight_bar', $
+          'el'+probe+'_pef_en_spec2plot_omni', $
+          'el'+probe+'_pef_en_spec2plot_anti', $
+          'el'+probe+'_pef_en_spec2plot_perp', $
+          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
+          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_bt89_sm_NED'], $
+          var_label='el'+probe+'_'+['LAT','MLT','L']
+      endelse
     endif else begin
-
-      tplot,['pseudo_ae', $
-        'kp', $
-        'dst',$
-        'epd_fast_bar', $
-        'sunlight_bar', $
-        'el'+probe+'_pef_en_spec2plot_omni', $ ; fixed labels so that units are included and 'all' doesn't appear
-        'el'+probe+'_pef_en_spec2plot_anti', $
-        'el'+probe+'_pef_en_spec2plot_perp', $
-        'el'+probe+'_pef_en_spec2plot_para', $
-        'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
-        'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
-        'el'+probe+'_bt89_sm_NED'], $
-        var_label='el'+probe+'_'+['LAT','MLT','L']      
+      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
+        tplot,['pseudo_ae', $
+          'kp', $
+          'dst',$
+          'epd_fast_bar', $
+          'sunlight_bar', $
+          'el'+probe+'_pef_en_spec2plot_omni', $
+          'el'+probe+'_pef_en_spec2plot_anti', $
+          'el'+probe+'_pef_en_spec2plot_perp', $
+          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_pa_spec2plot_ch[0,1]LC', $
+          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_bt89_sm_NED'], $
+          var_label='el'+probe+'_'+['LAT','MLT','L']
+      endif else begin
+        tplot,['pseudo_ae', $
+          'kp', $
+          'dst',$
+          'epd_fast_bar', $
+          'sunlight_bar', $
+          'el'+probe+'_pef_en_spec2plot_omni', $
+          'el'+probe+'_pef_en_spec2plot_anti', $
+          'el'+probe+'_pef_en_spec2plot_perp', $
+          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
+          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_bt89_sm_NED'], $
+          var_label='el'+probe+'_'+['LAT','MLT','L']
+      endelse
     endelse
     
       ; Save plots
