@@ -19,8 +19,8 @@
 ;
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-01-07 15:11:48 -0800 (Tue, 07 Jan 2020) $
-; $LastChangedRevision: 28174 $
+; $LastChangedDate: 2020-03-05 19:22:53 -0800 (Thu, 05 Mar 2020) $
+; $LastChangedRevision: 28384 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -38,7 +38,7 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
   if keyword_set(all) or not keyword_set(names) then names=['STD','SCK','FRM','IK','SPK','CK']
   if keyword_set(no_download) or keyword_set(no_server) then source.no_server = 1
   if ~keyword_set(source) then source = naif
-  if ~keyword_set(trange) then trange = timerange()
+  trange = timerange(trange)
 
   kernels=''
   pathname='psp/data/sci/MOC/SPP/data_products/'

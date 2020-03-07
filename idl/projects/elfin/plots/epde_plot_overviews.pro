@@ -159,6 +159,13 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     get_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
   endif
   if ~undefined(pseudo_ae) then begin
+    idx = where(pseudo_ae.y LT 2000., ncnt)
+    if ncnt GT 0 then begin
+      pseudo_ae.x=pseudo_ae.x[idx]
+      pseudo_ae.y=pseudo_ae.y[idx]
+      pseudo_ae={x:pseudo_ae.x[idx],y:pseudo_ae.y[idx]}
+      store_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
+    endif
     pseudo_ae.y = median(pseudo_ae.y, 10.)
     store_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
     if size(pseudo_ae,/type) NE 8 then begin
@@ -561,6 +568,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ; handle scaling of y axis
   get_data,'pseudo_ae',data=pseudo_ae
   if size(pseudo_ae, /type) EQ 8 then begin
+;    idx = where(pseudo_ae.y LT 2000., ncnt)
+;    if ncnt GT 0 then begin
+;      pseudo_ae.x=pseudo_ae.x[idx]
+;      pseudo_ae.y=pseudo_ae.y[idx]
+;      pseudo_ae={x:pseudo_ae.x[idx],y:pseudo_ae.y[idx]}
+;    endif
     idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
     if ncnt GT 0 then ae_max=minmax(pseudo_ae.y)
     if ncnt EQ 0 then ae_max=[0,140.]
