@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupa $
-; $LastChangedDate: 2020-02-24 16:56:16 -0800 (Mon, 24 Feb 2020) $
-; $LastChangedRevision: 28339 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-03-09 10:11:36 -0700 (Mon, 09 Mar 2020) $
+; $LastChangedRevision: 28389 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -24,12 +24,17 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     type = 'mag_RTN'
     dprint,'Default is: ', type
   endif
+  
 
   if not keyword_set(level) then level = 2
 
   ; TODO: remove this line once we have Level 2 ephemeris files
 
-  if strpos(type, 'ephem') EQ 0 then level = 1
+  l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_burst']
+
+  dummy = where(l1_types EQ type, l1_type_flag)
+  
+  if (strpos(type, 'ephem') EQ 0) or (l1_type_flag NE 0) then level = 1
 
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
     type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin

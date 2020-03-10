@@ -50,6 +50,16 @@ pro spp_fld_rfs_burst_load_l1, file, prefix = prefix, varformat = varformat
 
   options, 'spp_fld_rfs_burst_spec?_auto', 'panel_size', 2
 
+  options, 'spp_fld_rfs_burst_spec0_auto', 'ytitle', 'RFS Burst!CCh0 Auto'
+  options, 'spp_fld_rfs_burst_spec1_auto', 'ytitle', 'RFS Burst!CCh1 Auto'
+
+  options, 'spp_fld_rfs_burst_xspec_phase', 'ytitle', 'RFS Burst!CCross Phase'
+
+
+  if file_basename(getenv('IDL_CT_FILE')) EQ 'spp_fld_colors.tbl' then set_colors = 1 else set_colors = 0
+
+  if set_colors then options, 'spp_fld_rfs_burst_xspec_phase', 'color_table', 78
+
   ;tplot, 'spp_fld_rfs_burst_spec*'
   ;stop
 

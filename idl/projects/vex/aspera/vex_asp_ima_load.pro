@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-19 19:38:38 -0700 (Thu, 19 Apr 2018) $
-; $LastChangedRevision: 25082 $
+; $LastChangedDate: 2020-03-09 15:30:32 -0700 (Mon, 09 Mar 2020) $
+; $LastChangedRevision: 28394 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_ima_load.pro $
 ;
 ;-
@@ -396,6 +396,8 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
   ylim, 'vex_asp_ima_espec', 10., 30.e3, 1, /def
   zlim, 'vex_asp_ima_espec', 1., 1.e4, 1, /def
   options, 'vex_asp_ima_espec', ztitle='Counts [#]', /def
+
+  store_data, 'vex_asp_ima_polar', data={x: time, y: polar}, dlim={psym: 10, ytitle: 'VEX/ASPERA-4 (IMA)', ysubtitle: 'Polar'}
 
   dprint, dlevel=2, verbose=verbose, 'Ellapsed time: ' + time_string(SYSTIME(/sec)-t0, tformat='mm:ss.fff')
   RETURN
