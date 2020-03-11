@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2020-03-09 15:30:32 -0700 (Mon, 09 Mar 2020) $
-; $LastChangedRevision: 28394 $
+; $LastChangedDate: 2020-03-10 14:54:49 -0700 (Tue, 10 Mar 2020) $
+; $LastChangedRevision: 28395 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_ima_load.pro $
 ;
 ;-
@@ -265,11 +265,11 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
      FREE_LUN, unit
 
      data = STRSPLIT(data, ' ', /extract)
-     ndat = N_ELEMENTS(data)
+     IF SIZE(data, /type) EQ 11 THEN ndat = N_ELEMENTS(data) ELSE ndat = 1
      fname.add, file[i]
      cnts = list()
      FOR j=0, ndat-1 DO BEGIN
-        onescan = data[j]
+        IF SIZE(data, /type) EQ 11 THEN onescan = data[j] ELSE onescan = data
         IF N_ELEMENTS(onescan[31:*]) EQ PRODUCT(nbins) THEN BEGIN
            t1scan = time_double(onescan[0], tformat='YYYY-MM-DDThh:mm:ss.fff')
            append_array, pac, REPLICATE(FLOAT(onescan[16]), nbins[-1])
