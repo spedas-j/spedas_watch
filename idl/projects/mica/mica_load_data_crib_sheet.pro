@@ -80,6 +80,17 @@ help, d
 print, time_string(minmax(d.x))
 stop
 
+;;    ===================================
+;; 8) Request Multiple sites
+;;    ===================================
+mica_load_induction, ['NAL','PG3','PG4'], trange=['2019-01-31','2019-02-02']
+tplot, ['spectra_y_1Hz_NAL','spectra_y_1Hz_PG3','spectra_y_1Hz_PG4']
+; To verify time includes 2 days
+get_data, 'spectra_y_1Hz_NAL', data=d
+help, d
+print, time_string(minmax(d.x))
+stop
+
 ; remove tplot variables created so far
 del_data, '*NAL*'
 

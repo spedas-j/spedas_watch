@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-05 13:11:02 -0800 (Thu, 05 Mar 2020) $
-; $LastChangedRevision: 28376 $
+; $LastChangedDate: 2020-03-11 14:03:37 -0700 (Wed, 11 Mar 2020) $
+; $LastChangedRevision: 28404 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -12,14 +12,15 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
 
   if keyword_set(all) then trange_full = [time_double('2018-10-3'),systime(1)] else trange_full = timerange(trange_full)
 
+  t0=systime(1)
   res = 86400L
   daynum = round(timerange(trange_full)/res)
   nd = daynum[1]-daynum[0]
   trange = res* double(daynum) ; round to days
 
   output_prefix = 'psp/data/sci/sweap/'
-;  ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
-  ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
+  ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
+;  ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
   linkname = output_prefix + '.hidden/.htaccess'
   if ~ isa(ssr_format,/string) then ssr_format = 'YYYY/DOY/*_?_E?'
   idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
@@ -52,7 +53,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
     if keyword_set(make_sav) then begin
       for i=0,n_elements(ssr_files)-1 do begin
         spp_ssr_file_read,ssr_files[i]
-        idlsav_format=output_prefix+'sav/'+(ssr_files[i]).substring(-24)+'.sav'
+        idlsav_format=output_prefix+'sav/'+(ssr_files[i]).substring(-24)+'.sav' ;substring is preferred here. strsub may fail b/c ssr_prefix can change!
         savfile=spp_file_retrieve(idlsav_format,/create_dir)
         spp_apdat_info,file_save=savfile,/compress
       endfor
@@ -96,5 +97,6 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
       makepng,pngfile
     endfor
   endif
+  dprint,'Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()
 
 end

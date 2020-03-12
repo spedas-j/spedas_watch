@@ -1,21 +1,13 @@
-
-
-
-
 ;+
+; Written by Davin Larson October 2018
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-01-07 12:05:14 -0800 (Tue, 07 Jan 2020) $
-; $LastChangedRevision: 28172 $
+; $LastChangedDate: 2020-03-11 14:03:59 -0700 (Wed, 11 Mar 2020) $
+; $LastChangedRevision: 28405 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
-; Written by Davin Larson October 2018
 ;-
-
-
-
-
 ;
 ;PRO cdf_tools::Cleanup
 ;  COMPILE_OPT IDL2
@@ -24,12 +16,9 @@
 ;END
 
 
-
 ;PRO cdf_tools::help
 ;  help,/obj,self
 ;END
-
-
 
 
 ;+
@@ -39,8 +28,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-01-07 12:05:14 -0800 (Tue, 07 Jan 2020) $
-; $LastChangedRevision: 28172 $
+; $LastChangedDate: 2020-03-11 14:03:59 -0700 (Wed, 11 Mar 2020) $
+; $LastChangedRevision: 28405 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -61,8 +50,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-01-07 12:05:14 -0800 (Tue, 07 Jan 2020) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 28172 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-03-11 14:03:59 -0700 (Wed, 11 Mar 2020) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 28405 $'
 
     return,sw_hash
 end
@@ -124,10 +113,6 @@ end
 ;end
 
 
-
-
-
-
 ;pro cdf_tools::create_data_vars, var, vattributes=atts, varstr
 ;   array = self.data.array    ; this should be an array of structures
 ;   if isa(array) then begin
@@ -182,14 +167,11 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
 end
 
 
-
 ;function cdf_tools::struct    ; not needed, use self.getattr()
 ;  strct = create_struct(name=typename(self))
 ;  struct_assign , self, strct
 ;  return,strct
 ;END
-
-
 
 
 ;PRO cdf_tools::GetProperty,data=data, array=array, npkts=npkts, apid=apid, name=name,  typename=typename, $
@@ -382,8 +364,6 @@ function cdf_tools::get_var_struct,  names, struct0=struct0,add_time = add_time
 end
 
 
-
-
 pro cdf_tools::filter_variables, index
   ;  vnames = self.vars.keys()
   foreach var,self.vars,vname do begin
@@ -448,7 +428,6 @@ function cdf_tools::datavary_struct,varnames=varnames
 end
 
 
-
 function cdf_tools::varnames,namematch,data=data
   vnames = self.vars.keys()
   l=list()
@@ -480,8 +459,6 @@ end
 ;  type = array_union(string,stypes)
 ;  return,(vtypes[type])[0]
 ;end
-
-
 
 
 pro cdf_tools::read,filenames
@@ -700,12 +677,7 @@ pro cdf_tools::load_variables_from_structure,datavary,names=vnames
 
   endif
 
-
-
-
 end
-
-
 
 
 pro cdf_tools::make_tplot_var,varnames,prefix=prefix
@@ -728,11 +700,7 @@ pro cdf_tools::make_tplot_var,varnames,prefix=prefix
 
   endforeach
 
-
 end
-
-
-
 
 
 PRO cdf_tools::GetProperty, filename=filename, vars=vars, G_attributes=G_attributes,files=files ;, nvars=nvars
@@ -743,8 +711,6 @@ PRO cdf_tools::GetProperty, filename=filename, vars=vars, G_attributes=G_attribu
   IF (ARG_PRESENT(G_attributes)) THEN G_attributes = self.G_attributes
   IF (ARG_PRESENT(vars)) THEN vars = self.vars
 END
-
-
 
 
 FUNCTION cdf_tools::Init,filenames,_EXTRA=ex
@@ -769,12 +735,6 @@ FUNCTION cdf_tools::Init,filenames,_EXTRA=ex
 END
 
 
-
-
-
-
-
-
 PRO cdf_tools__define
   void = {cdf_tools, $
     inherits generic_object, $    ; superclass
@@ -790,6 +750,3 @@ PRO cdf_tools__define
   }
 
 END
-
-
-

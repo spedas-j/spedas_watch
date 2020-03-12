@@ -152,20 +152,14 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   del_data, 'pseudo_ae'
   tr=timerange()
+  elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
   elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], /smooth, no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
   if size(pseudo_ae,/type) NE 8 then begin
     elf_load_pseudo_ae, trange=['2019-12-05','2019-12-06']
     get_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
-  endif
+  endif 
   if ~undefined(pseudo_ae) then begin
-    idx = where(pseudo_ae.y LT 2000., ncnt)
-    if ncnt GT 0 then begin
-      pseudo_ae.x=pseudo_ae.x[idx]
-      pseudo_ae.y=pseudo_ae.y[idx]
-      pseudo_ae={x:pseudo_ae.x[idx],y:pseudo_ae.y[idx]}
-      store_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
-    endif
     pseudo_ae.y = median(pseudo_ae.y, 10.)
     store_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
     if size(pseudo_ae,/type) NE 8 then begin

@@ -1,12 +1,12 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-02 10:07:24 -0800 (Mon, 02 Mar 2020) $
-; $LastChangedRevision: 28359 $
+; $LastChangedDate: 2020-03-11 14:03:37 -0700 (Wed, 11 Mar 2020) $
+; $LastChangedRevision: 28404 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
 
 
-pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose,$
+pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose,esteps=esteps,$
   alltypes=alltypes,allvars=allvars,hkp=hkp,save=save,level=level,fileprefix=fileprefix,no_update=no_update,no_server=no_server
 
   if ~keyword_set(level) then level='L3'
@@ -82,7 +82,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
             endif
           endforeach
           mag_sc = cdf.vars['MAGF_SC'].data.array
-          store_data,prefix+'MAGF_SC',time,mag_sc
+          store_data,prefix+'MAGF_SC',time,mag_sc,dlim={colors:'bgr',labels:['Bx','By','Bz'],labflag:-1,ysubtitle:'[nT]'}
           xyz_to_polar ,prefix+'MAGF_SC'
           if spx eq 'spe' then begin
             store_data,prefix+'SPX_VS_PA_E',time,cdf.vars['SPX_VS_PA_E'].data.array,pitchangle, dlim={yrange:[0,180],spec:1,ystyle:1}

@@ -65,7 +65,9 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, smooth=smooth, n
        append_array, pseudo_ae_y, double([pseudo_ae.field4])
      endfor
      dl = {ytitle:'proxy_ae', labels:['proxy_AE'], colors:[2]}
-     store_data, 'pseudo_ae', data={x:pseudo_ae_x, y:pseudo_ae_y}, dlimits=dl
+     idx=where(pseudo_ae_y LT 2000., ncnt)
+     if ncnt GT 2 then store_data, 'pseudo_ae', data={x:pseudo_ae_x[idx], y:pseudo_ae_y[idx]}, dlimits=dl $
+        else store_data, 'pseudo_ae', data={x:pseudo_ae_x, y:pseudo_ae_y}, dlimits=dl
      time_clip, 'pseudo_ae', tr[0], tr[1], replace=1, error=error
      if keyword_set(smooth) then begin
         tsmooth2, 'pseudo_ae', nsmooth, newname='pseudo_ae_sm'
@@ -74,7 +76,6 @@ pro elf_load_pseudo_ae, no_download=no_download, trange=trange, smooth=smooth, n
         idx = where(d.y LT 50000., ncnt)
         if ncnt GT 5 then store_data, 'pseudo_ae', data={x:d.x[idx], y:d.y[idx]}, dlimits=dl, limits=l
      endif
-
   endelse
 
 end

@@ -27,8 +27,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-04 13:53:36 -0700 (Wed, 04 Apr 2018) $
-; $LastChangedRevision: 24996 $
+; $LastChangedDate: 2020-03-11 17:15:03 -0700 (Wed, 11 Mar 2020) $
+; $LastChangedRevision: 28406 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/mag/vex_mag_load.pro $
 ;
 ;-
@@ -96,11 +96,12 @@ PRO vex_mag_list, trange, verbose=verbose, l4=l4, file=file, time=modify_time
   RETURN
 END
 
-PRO vex_mag_load, trange, verbose=verbose, pos=pos, result=result, l4=l4, double=double, remove_nan=remove_nan, no_server=no_server
+PRO vex_mag_load, trange, verbose=verbose, pos=pos, result=result, l4=l4, double=double, remove_nan=remove_nan, no_server=no_server, no_download=no_download
   rv = 6052. ; Venus radius
   IF SIZE(pos, /type) EQ 0 THEN pflg = 0 ELSE pflg = FIX(pos)
   IF KEYWORD_SET(remove_nan) THEN rflg = 1 ELSE rflg = 0
   IF KEYWORD_SET(no_server) THEN nflg = 0 ELSE nflg = 1
+  IF KEYWORD_SET(no_download) THEN nflg = 0 ELSE nflg = 1
 
   IF SIZE(l4, /type) EQ 0 THEN BEGIN
      lvl = 'l3'
@@ -112,11 +113,10 @@ PRO vex_mag_load, trange, verbose=verbose, pos=pos, result=result, l4=l4, double
      dt = 4.d0
   ENDELSE 
 
-  ;trange = get_mex_trange(svar, evar, /vex)
   IF SIZE(trange, /type) EQ 0 THEN get_timespan, trange
   path = 'vex/mag/' + lvl + '/YYYY/MM/'
   fname = 'MAG_YYYYMMDD_*.TAB'
-  files = FILE_SEARCH(time_intervals(trange=trange, /daily_res, tformat=root_data_dir() + path + fname), count=nfile)
+  files = file_retrieve(path + fname, local_data_dir=root_data_dir(), /no_server, trange=trange, /daily_res, /valid_only, /last)
 
   IF (nflg) THEN BEGIN
      vex_mag_list, trange, verbose=verbose, l4=l4, file=rfile, time=rtime 
@@ -143,7 +143,12 @@ PRO vex_mag_load, trange, verbose=verbose, pos=pos, result=result, l4=l4, double
      ENDFOR
   ENDIF ELSE file = files
 
-  nfile = N_ELEMENTS(file)
+  w = WHERE(file NE '', nfile)
+  IF nfile EQ 0 THEN BEGIN
+     dprint, dlevel=2, verbose=verbose, 'No file found.'
+     RETURN
+  ENDIF ELSE file = file[w]
+
   result = list()
   FOR i=0, nfile-1 DO BEGIN
      OPENR, unit, file[i], /get_lun
