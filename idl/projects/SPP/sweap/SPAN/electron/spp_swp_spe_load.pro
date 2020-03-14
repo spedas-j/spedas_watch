@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-11 14:03:37 -0700 (Wed, 11 Mar 2020) $
-; $LastChangedRevision: 28404 $
+; $LastChangedBy: phyllisw2 $
+; $LastChangedDate: 2020-03-13 11:03:44 -0700 (Fri, 13 Mar 2020) $
+; $LastChangedRevision: 28411 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -34,6 +34,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   ext = ''
 
   dir='spe/'+level+'/SP?_TYP/YYYY/MM/'
+  if types eq 'hkp' then dir = 'SP?/'+level+'/SP?_TYP/YYYY/MM/'
   if not keyword_set(fileformat) then fileformat=dir+'psp_swp_SP?_TYP_'+level+'*_YYYYMMDD_v??.cdf'
 
   vars['hkp'] = '*TEMP* *_BITS *_FLAG* *CMD* *PEAK* *CNT*'
