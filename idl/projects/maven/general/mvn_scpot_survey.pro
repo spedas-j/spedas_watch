@@ -11,16 +11,18 @@
 ;
 ;KEYWORDS:
 ;      DOPLOT:         Create tplot variables.
+;
+;      APOAPSIS:       Create a database for apoapsis instead.
 ;       
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-04-06 16:07:33 -0700 (Fri, 06 Apr 2018) $
-; $LastChangedRevision: 25020 $
+; $LastChangedDate: 2020-03-17 11:18:56 -0700 (Tue, 17 Mar 2020) $
+; $LastChangedRevision: 28419 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_scpot_survey.pro $
 ;
 ;CREATED BY:    David L. Mitchell  2017-04-02
 ;FILE: mvn_scpot_survey
 ;-
-pro mvn_scpot_survey, result=result, doplot=doplot
+pro mvn_scpot_survey, result=result, apoapsis=apoapsis, doplot=doplot
 
   t0 = time_double('2014-11-15')
   t1 = time_double('2018-03-01')
@@ -28,8 +30,13 @@ pro mvn_scpot_survey, result=result, doplot=doplot
   ndays = ((t1 - t0)/oneday) + 1L
 
   odat = mvn_orbit_num()
-  indx = where((odat.peri_time gt t0) and (odat.peri_time lt t1), npts)
-  time = odat[indx].peri_time
+  if keyword_set(apoapsis) then begin
+    indx = where((odat.apo_time gt t0) and (odat.apo_time lt t1), npts)
+    time = odat[indx].apo_time
+  endif else begin
+    indx = where((odat.peri_time gt t0) and (odat.peri_time lt t1), npts)
+    time = odat[indx].peri_time
+  endelse
   onum = odat[indx].num
   alt = odat[indx].sc_alt
   phi = replicate(!values.f_nan, npts)
@@ -38,6 +45,7 @@ pro mvn_scpot_survey, result=result, doplot=doplot
   saz = phi
   sel = phi
   sza = phi
+  env = replicate(-1, npts)
   dt = 60D
 
   trange = [t0, (t0 + oneday)]
@@ -53,6 +61,11 @@ pro mvn_scpot_survey, result=result, doplot=doplot
       get_data, 'Sun_PL_Phi', data=sun_az
       get_data, 'Sun_PL_The', data=sun_el
       get_data, 'sza', data=sc_sza
+
+      get_data,'wind',data=wind
+      get_data,'sheath',data=sheath
+      get_data,'pileup',data=pileup
+      get_data,'wake',data=wake
     endif
     mvn_scpot_restore, trange, result=pot, success=ok
     if (ok) then begin
@@ -61,14 +74,20 @@ pro mvn_scpot_survey, result=result, doplot=doplot
         t = time[pndx[j]]
         jndx = where((pot.time gt (t-dt)) and (pot.time lt (t+dt)), npts)
         if (npts gt 0) then phi[pndx[j]] = average(pot[jndx].potential, /nan)
-        k = nn(ram_az.x, time[pndx[j]])
+        k = nn2(ram_az.x, time[pndx[j]])
         raz[pndx[j]] = ram_az.y[k]
         rel[pndx[j]] = ram_el.y[k]
-        k = nn(sun_az.x, time[pndx[j]])
+        k = nn2(sun_az.x, time[pndx[j]])
         saz[pndx[j]] = sun_az.y[k]
         sel[pndx[j]] = sun_el.y[k]
-        k = nn(sc_sza.x, time[pndx[j]])
+        k = nn2(sc_sza.x, time[pndx[j]])
         sza[pndx[j]] = sc_sza.y[k]
+
+        k = nn2(wind.x, time[pndx[j]])
+        if (finite(wind.y[k]))   then env[pndx[j]] = 1
+        if (finite(sheath.y[k])) then env[pndx[j]] = 2
+        if (finite(pileup.y[k])) then env[pndx[j]] = 3
+        if (finite(wake.y[k]))   then env[pndx[j]] = 4
       endfor
     endif
     trange += oneday
@@ -82,7 +101,8 @@ pro mvn_scpot_survey, result=result, doplot=doplot
             sun_az:saz    , $  ; Sun azimuth at periapsis (deg)
             sun_el:sel    , $  ; Sun elevation at periapsis (deg)
             alt:alt       , $  ; areodetic altitude at periapsis (km)
-            sza:sza          } ; solar zenith angle at periapsis (deg)
+            sza:sza       , $  ; solar zenith angle at periapsis (deg)
+            env:env          } ; plasma environment (1-4)
 
   if keyword_set(doplot) then begin
     tpclear

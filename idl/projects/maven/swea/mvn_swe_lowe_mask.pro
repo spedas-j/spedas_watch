@@ -13,8 +13,8 @@
 ;      {x:[time], y:[time]}.
 ;
 ;  First anomalous spectrum: 2018-12-08/05:27:44
-;  Last anomalous spectrum: 2019-05-01/20:58:58
-;  Total number of anomalous spectra: 48042
+;  Last anomalous spectrum: 2019-11-30/23:55:42
+;  Total number of anomalous spectra: 54530
 ;
 ;USAGE:
 ;  mvn_swe_lowe_mask, data
@@ -27,16 +27,19 @@
 ;KEYWORDS:
 ;         BADVAL:     Value to mask anomalous data with.  Default = NaN.
 ;
+;         STATUS:     Return the current coverage and return.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-08-27 16:35:34 -0700 (Tue, 27 Aug 2019) $
-; $LastChangedRevision: 27685 $
+; $LastChangedDate: 2020-03-17 11:25:17 -0700 (Tue, 17 Mar 2020) $
+; $LastChangedRevision: 28425 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_lowe_mask.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;FILE: mvn_swe_lowe_mask.pro
 ;-
-pro mvn_swe_lowe_mask, data, badval=badval
+pro mvn_swe_lowe_mask, data, badval=badval, status=status
 
+  @mvn_swe_com
   common swe_lowe_com, anom
 
   if not keyword_set(badval) then badval = !values.f_nan
@@ -53,6 +56,25 @@ pro mvn_swe_lowe_mask, data, badval=badval
     endif else restore, file[fndx[0]]
   endif
 
+; Database coverage
+
+  if keyword_set(status) then begin
+    tsp = time_string(minmax(anom.x))
+    print,"Anomaly database coverage: ",tsp[0]," to ",tsp[1]
+    return
+  endif
+
+; Input is undefined - look for data in common block
+
+  if (size(data,/type) eq 0) then begin
+    if (size(mvn_swe_engy,/type) ne 8) then begin
+      print, '% MVN_SWE_LOWE_MASK: Input data not defined.'
+      return
+    endif
+    data = mvn_swe_engy
+    dflg = 1
+  endif else dflg = 0
+
 ; Input is a SWEA data structure
 
   str_element, data, 'time', success=ok
@@ -65,6 +87,7 @@ pro mvn_swe_lowe_mask, data, badval=badval
       endx = where(energy lt 28., count)
       if (count gt 0L) then data[tndx].data[endx,*] = badval
     endif
+    if (dflg) then mvn_swe_engy = data
     return
   endif
 

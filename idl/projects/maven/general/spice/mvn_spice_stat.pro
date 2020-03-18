@@ -2,7 +2,13 @@
 ;PROCEDURE:   mvn_spice_stat
 ;PURPOSE:
 ;  Reports the status of SPICE.  This is mainly a wrapper for spice_kernel_info(),
-;  providing a concise summary of the key information.
+;  providing a concise summary of the key information.  The naming convention for 
+;  C kernels (ck) includes a type string:
+;
+;    red  = reconstructed, daily
+;    rec  = reconstructed, variable length
+;    rel  = reconstructed, long
+;    pred = predicted
 ;
 ;USAGE:
 ;  mvn_spice_stat
@@ -36,8 +42,8 @@
 ;    SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-06-02 16:15:35 -0700 (Sun, 02 Jun 2019) $
-; $LastChangedRevision: 27311 $
+; $LastChangedDate: 2020-03-17 11:18:00 -0700 (Tue, 17 Mar 2020) $
+; $LastChangedRevision: 28417 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
@@ -152,7 +158,7 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
     endfor
   endif else begin
     if (blab) then print,"    No S/C SPK coverage!"
-    y[*] = 0
+    if (dobar) then y[*] = 0
   endelse
 
   indx = where(info.obj_name eq 'MAVEN_SC_BUS', nfiles)
@@ -208,7 +214,7 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
     endfor
   endif else begin
     if (blab) then print,"    No S/C CK coverage!"
-    y[*] = 1
+    if (dobar) then y[*] = 1
   endelse
 
   indx = where(info.obj_name eq 'MAVEN_APP_IG', nfiles)
@@ -265,7 +271,7 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
     endfor
   endif else begin
     if (blab) then print,"    No APP CK coverage!"
-    y[*] = 1
+    if (dobar) then y[*] = 1
   endelse
 
   if (blab) then print,''

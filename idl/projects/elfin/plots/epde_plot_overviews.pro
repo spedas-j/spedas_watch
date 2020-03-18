@@ -152,7 +152,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   del_data, 'pseudo_ae'
   tr=timerange()
-  elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
+  ;elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
   elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], /smooth, no_download=no_download
   get_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
   if size(pseudo_ae,/type) NE 8 then begin

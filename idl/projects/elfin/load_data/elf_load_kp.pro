@@ -103,7 +103,13 @@ pro elf_load_kp, no_download=no_download, trange=trange, day=day
     options, 'kp', colors=251
     options, 'kp', psym=10
     options, 'kp', labels=['kp']
-    options, 'kp', yrange=[0,4]
+    max_kp=max(kp_value)
+    if max_kp GT 4.3 then begin
+      max_kp_range=max_kp + (max_kp*.1)
+      options, 'kp', yrange=[-0.5,max_kp_range] 
+    endif else begin 
+      options, 'kp', yrange=[-0.5,4.5]
+    endelse
     options, 'kp', ystyle=1
   endif else begin
      dprint, dlevel=1, 'No KP data was loaded!'
