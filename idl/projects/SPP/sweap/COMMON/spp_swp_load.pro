@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-05 13:11:02 -0800 (Thu, 05 Mar 2020) $
-; $LastChangedRevision: 28376 $
+; $LastChangedDate: 2020-03-18 21:04:46 -0700 (Wed, 18 Mar 2020) $
+; $LastChangedRevision: 28441 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save
@@ -35,6 +35,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1','2'] do foreach type3,['0','1','2','3','a'] do types=[types,type0+type1+type2+type3]
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1'] do types=[types,type0+type1+type2]
   endif
+  if types[0] eq 'all_hkp' then types=['hkp','fhkp','ana_hkp','dig_hkp','crit_hkp']
 
   if not keyword_set(fileprefix) then fileprefix='psp/data/sci/sweap/'
 
@@ -61,6 +62,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
       ;; Convert to TPLOT
       prefix='psp_swp_'+spx+'_'+type+'_'+level+'_'
       cdf2tplot,files,prefix=prefix,varformat=varformat,verbose=verbose
+      spp_swp_qf,prefix=prefix
     endforeach
   endforeach
 

@@ -1,10 +1,10 @@
 ;+
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
-; $LastChangedBy: -mac $
-; $LastChangedDate: 2019-01-29 16:17:12 -0800 (Tue, 29 Jan 2019) $
-; $LastChangedRevision:  $
-; $URL: svn+ssh://thmsvn@pro $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-03-18 21:04:46 -0700 (Wed, 18 Mar 2020) $
+; $LastChangedRevision: 28441 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
 
@@ -55,7 +55,7 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
 
   if isa(index,/integer) then begin
     if index lt 0 || index ge ns then begin
-      dprint,"out of range"
+      dprint,"out of range: index=",strtrim(index,2),", ns=",strtrim(ns,2)
       if keyword_set(extrapolate) then index = 0 > index < (ns-1)      
     endif
     dats = (*self.data_ptr)[index]
@@ -63,6 +63,7 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
     if nbad gt 0 then begin
       fill = fill_nan(dats[wbad])
       dats[wbad] = fill
+      ;dats[wbad] = !null ;davin wants to use !nulls in a later revision
     endif
     if keyword_set(valname) then begin
       retval =!null

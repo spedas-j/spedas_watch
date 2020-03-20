@@ -30,13 +30,19 @@ FUNCTION eva_sitluplink_updateState, state, str_time, uplink
   ;---------------
   ; Display in "SITL" tab
   ;---------------
-  strUplink = (state.Uplink eq 1) ? 'Yes' : 'No'
+  strUplink = (state.Uplink eq 1L) ? 'Yes' : 'No'
+  strButton = (state.Uplink eq 1L) ? 'UPLINK' : 'DRAFT'
   id_sitl = widget_info(state.parent, find_by_uname='eva_sitl')
   sitl_stash = WIDGET_INFO(id_sitl, /CHILD)
   WIDGET_CONTROL, sitl_stash, GET_UVALUE=sitl_state, /NO_COPY
   widget_control, sitl_state.lblEvalStartTime, SET_VALUE='Next SITL Window Start Time: '+str_time
-  widget_control, sitl_state.lblUplink, SET_VALUE='Uplink - '+strUplink
+  ;widget_control, sitl_state.lblUplink, SET_VALUE='Uplink - '+strUplink
+  widget_control, sitl_state.btnSubmit, SET_VALUE='   '+strButton+'   '
+;  str_element,/add,'sitl_state','UPLINK',state.Uplink
+;  print,'uplink',uplink,'state.uplink',state.uplink,'sitl_state.uplink',sitl_state.uplink
+;stop
   WIDGET_CONTROL, sitl_stash, SET_UVALUE=sitl_state, /NO_COPY
+
   
   return, state
 END
@@ -120,7 +126,7 @@ FUNCTION eva_sitluplink_event, ev
       ;timebar,state.EvalStartTimeDouble, linestyle = 2, thick = 2,/transient
     end
     state.btnReset: begin
-      state = eva_sitluplink_updateState(state, 'N/A', 0)
+      state = eva_sitluplink_updateState(state, 'N/A', 0L)
       widget_control,state.bgUplink,SET_VALUE=0
       tplot
       update=1
@@ -130,7 +136,7 @@ FUNCTION eva_sitluplink_event, ev
       if (gvl eq 1) and (state.EvalStartTime eq 'N/A') then begin
         result = dialog_message("Please set start time first.",/center)
         gvl = 0
-        widget_control,state.bgUplink,SET_VALUE=0
+        widget_control,state.bgUplink,SET_VALUE=0L
         update=0
       endif
       state = eva_sitluplink_updateState(state, state.EvalStartTime, gvl)
@@ -152,7 +158,7 @@ FUNCTION eva_sitluplink_event, ev
       r = eva_sitluplink_validateFOM(s)
       if(r gt 0) then begin
         state = eva_sitluplink_updateState(state, 'N/A', 0)
-        widget_control,state.bgUplink,SET_VALUE=0
+        widget_control,state.bgUplink,SET_VALUE=0L
         tplot
         str_element,/delete,s,'EVALSTARTTIME'
         options,'mms_stlm_fomstr','unix_FOMStr_mod',s ; update structure
@@ -183,7 +189,7 @@ FUNCTION eva_sitluplink, parent, $
     EvalStartTime: 'N/A',$
     EvalStopTime: 'N/A',$
     EvalStartTimeDouble: 0.d0,$
-    Uplink: 0}
+    Uplink: 0L}
 
   ; ----- CONFIG (READ) -----
   cfg = mms_config_read()         ; Read config file and

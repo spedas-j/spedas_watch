@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-05 13:11:02 -0800 (Thu, 05 Mar 2020) $
-; $LastChangedRevision: 28376 $
+; $LastChangedDate: 2020-03-18 21:04:46 -0700 (Wed, 18 Mar 2020) $
+; $LastChangedRevision: 28441 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -59,6 +59,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
     if keyword_set(tname_prefix) then prefix=tname_prefix+prefix
     ;; Convert to TPLOT
     cdf2tplot,files,prefix=prefix,varformat=varformat2,verbose=verbose
+    spp_swp_qf,prefix=prefix
 
     if keyword_set(overlay) && strmatch(type,'[sa]f??') then begin
       xyz_to_polar,prefix+'VEL'
