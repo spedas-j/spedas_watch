@@ -2,8 +2,8 @@
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-18 21:04:46 -0700 (Wed, 18 Mar 2020) $
-; $LastChangedRevision: 28441 $
+; $LastChangedDate: 2020-03-20 01:12:15 -0700 (Fri, 20 Mar 2020) $
+; $LastChangedRevision: 28444 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -70,7 +70,7 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
       str_element,dats,valname,retval
       return, retval
     endif
-    dprint,dlevel=3,verbose=verbose,self.name+' '+string(index[0])+' '+time_string(dats[0].time)
+    if keyword_set(dats) then dprint,dlevel=3,verbose=verbose,self.name+' '+string(index[0])+' '+time_string(dats[0].time)
     return,dats
   endif
 

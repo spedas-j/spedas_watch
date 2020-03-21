@@ -20,6 +20,7 @@
 ;                       Default value = 0 
 ;         no_time_clip: don't clip the data to the requested time range; note that if you do use
 ;                       this keyword you may load a longer time range than requested.
+;         no_color_setup: don't setup the SPEDAS color tables (i.e., don't call spd_graphics_config)
 ;                       
 ; EXAMPLE:
 ;   mica_load_induction, 'NAL', trange=['2019-01-03','2019-01-04']
@@ -32,7 +33,8 @@ pro mica_load_induction, $
    trange = trange, $
    suffix = suffix, $
    no_download = no_download, $
-   no_time_clip = no_time_clip
+   no_time_clip = no_time_clip, $
+   no_color_setup=no_color_setup
 
   valid_sites=['NAL', 'LYR', 'LOR', 'ISR', 'SDY', 'IQA', 'SNK', 'MCM', 'SPA', 'JBS', $
                'NEV', 'HAL', 'PG2', 'PG3', 'PG4', 'PG5']
@@ -42,6 +44,9 @@ pro mica_load_induction, $
     print, valid_sites
     return
   endif
+  
+  ; need to setup the SPEDAS color tables, in case they haven't been called yet
+  if ~keyword_set(no_color_setup) then spd_graphics_config
    
   ;*** keyword set ***  
   if(not keyword_set(no_download)) then no_download=0 else no_download=1
