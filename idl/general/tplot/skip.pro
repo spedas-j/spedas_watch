@@ -36,17 +36,17 @@
 ;       LAST:     Go to end of loaded time range and plot the requested
 ;                 interval from there.
 ;
-;       PERI:     If the shift units are orbits and keyword FIRST or LAST is
-;                 set, then go to first or last periapsis and plot the
-;                 requested interval from there.
+;       PERI:     If keyword FIRST or LAST is set, then go to first or last 
+;                 periapsis and plot the requested interval from there.
+;                 Shift units are assumed to be orbits.
 ;
-;       APO:      If the shift units are orbits and keyword FIRST or LAST is
-;                 set, then go to first or last apoapsis and plot the
-;                 requested interval from there.
+;       APO:      If keyword FIRST or LAST is set, then go to first or last 
+;                 apoapsis and plot the requested interval from there.
+;                 Shift units are assumed to be orbits.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-08-27 18:18:46 -0700 (Tue, 27 Aug 2019) $
-; $LastChangedRevision: 27687 $
+; $LastChangedDate: 2020-03-21 14:50:22 -0700 (Sat, 21 Mar 2020) $
+; $LastChangedRevision: 28449 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/skip.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -87,6 +87,8 @@ pro skip, n, orb=orb, day=day, sec=sec, minute=minute, hour=hour, page=page, $
     ok = 1
   endif
   if ((not ok) and (size(mode,/type) ne 2)) then mode = 5
+
+  if keyword_set(peri) or keyword_set(apo) then mode = 6
 
 ; Get orbit data if needed
 

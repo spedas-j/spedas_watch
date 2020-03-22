@@ -35,15 +35,17 @@
 ;               so you must filter the output of this routine before using
 ;               it to index an array.
 ;
+;   VALID:      Remove all occurrences of -1 from array before returning.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-05 12:36:06 -0700 (Wed, 05 Sep 2018) $
-; $LastChangedRevision: 25734 $
+; $LastChangedDate: 2020-03-21 14:49:10 -0700 (Sat, 21 Mar 2020) $
+; $LastChangedRevision: 28448 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/nn2.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2018-08-23
 ;FILE:  nn2.pro
 ;-
-function nn2, time1, time2, maxdt=maxdt
+function nn2, time1, time2, maxdt=maxdt, valid=valid
 
   t1 = time_double(time1)
   n = n_elements(t1)
@@ -53,6 +55,11 @@ function nn2, time1, time2, maxdt=maxdt
   if (size(maxdt,/type) gt 0) then begin
     j = where(abs(t2 - t1[i]) gt min(abs(double(maxdt))), count)
     if (count gt 0L) then i[j] = -1L
+  endif
+
+  if keyword_set(valid) then begin
+    j = where(i ge 0L, count)
+    if (count gt 0L) then i = i[j] else i = -1L
   endif
 
   return, i
