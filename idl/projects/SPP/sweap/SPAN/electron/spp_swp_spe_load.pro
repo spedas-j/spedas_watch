@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-18 21:04:46 -0700 (Wed, 18 Mar 2020) $
-; $LastChangedRevision: 28441 $
+; $LastChangedDate: 2020-03-23 13:10:07 -0700 (Mon, 23 Mar 2020) $
+; $LastChangedRevision: 28454 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -71,16 +71,16 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
           ebins = bytarr(32)
           ebins[esteps] = 1
           avg_eflux = average(/nan,eflux_vs_pa_e,2)
-          store_data,prefix+'AVG_EFLUX_VS_E',time,eflux_vs_energy,energy,dlim = {ylog:1,bins:ebins,yrange:[1e4,1e10]}
-          store_data,prefix+'EFLUX_VS_ENERGY',time,eflux_vs_energy,energy,dlim = {spec:1,ylog:1,zlog:1}
+          store_data,prefix+'AVG_EFLUX_VS_E',time,eflux_vs_energy,energy,dlim={ylog:1,bins:ebins,yrange:[1e4,1e10]}
+          store_data,prefix+'EFLUX_VS_ENERGY',time,eflux_vs_energy,energy,dlim={spec:1,ylog:1,zlog:1,yrange:[1,1e4],ztitle:'[eV/cm2-s-ster-eV]',ysubtitle:'[eV]',ytickunits:'scientific'}
           store_data,prefix+'QUALITY_FLAG',time,qf
           spp_swp_qf,prefix=prefix
           foreach e,esteps do begin
             enum = strtrim(e,2)
             eval = median(energy[*,e])
-            ytitle =  'PAD!c'+ strtrim(round(eval),2)+' eV'
+            ytitle = 'psp!cswp!c'+spx+'!c'+type+'!c'+level+'!cElectron!cPAD!c'+ strtrim(round(eval),2)+' eV'
             eflux_e = eflux_vs_pa_e[*,*,e]
-            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle}
+            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle,ysubtitle:'[Degrees]'}
             if spx eq 'spe' then begin
               SPX_VS_PA_E=cdf.vars['SPX_VS_PA_E'].data.array
               SPX_VS_PA = SPX_VS_PA_E[*,*,e]
@@ -89,7 +89,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
             if keyword_set(normpad) then begin
               npa = 12
               nflux_e = eflux_e / (avg_eflux[*,e] # replicate(1,npa) )
-              store_data,prefix+'NFLUX_VS_PA_E'+enum,time,nflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:'normalized!c'+ytitle,zrange:[.1,10]}
+              store_data,prefix+'NFLUX_VS_PA_E'+enum,time,nflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle+'!cNormalized',zrange:[.1,10],ztitle:'Normalized',ysubtitle:'[Degrees]'}
             endif
           endforeach
           mag_sc = cdf.vars['MAGF_SC'].data.array

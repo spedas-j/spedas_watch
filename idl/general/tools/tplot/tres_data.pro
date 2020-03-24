@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-02-20 12:02:05 -0800 (Thu, 20 Feb 2020) $
-; $LastChangedRevision: 28320 $
+; $LastChangedDate: 2020-03-23 13:06:00 -0700 (Mon, 23 Mar 2020) $
+; $LastChangedRevision: 28453 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/tplot/tres_data.pro $
 
 pro tres_data,varnames,nan=nan,freq=freq
@@ -26,7 +26,7 @@ pro tres_data,varnames,nan=nan,freq=freq
     endif
 
     tdiff = d.x - shift(d.x,1)
-    tdiff[0] = tdiff[1]
+    if n_elements(tdiff) gt 1 then tdiff[0] = tdiff[1]
     units='(s)'
 
     if keyword_set(freq) then begin

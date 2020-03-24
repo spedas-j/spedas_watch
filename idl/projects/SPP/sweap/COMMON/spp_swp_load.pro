@@ -1,10 +1,11 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-18 21:04:46 -0700 (Wed, 18 Mar 2020) $
-; $LastChangedRevision: 28441 $
+; $LastChangedDate: 2020-03-23 13:10:07 -0700 (Mon, 23 Mar 2020) $
+; $LastChangedRevision: 28454 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save
 
+  t0 = systime(1)
   if keyword_set(all) then begin
     spe=1
     spi=1
@@ -43,9 +44,11 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
   foreach spx, spxs do begin
     foreach type,types do begin
       dir=spx+'/'+level+'/'+spx+'_'+type+'/YYYY/MM/'
-;      dir=spx+'/'+level+'/'+type+'/YYYY/MM/'
       fileformat=dir+'psp_swp_'+spx+'_'+type+'_'+level+'*_YYYYMMDD_v??.cdf'
-;      fileformat=dir+'psp_swp_'+type+'_'+level+'*_YYYYMMDD_v??.cdf'
+      if type.substring(0,2) eq 'wrp' then begin ;wrapper file names don't include swem_*
+        dir=spx+'/'+level+'/'+type+'/YYYY/MM/'
+        fileformat=dir+'psp_swp_'+type+'_'+level+'*_YYYYMMDD_v??.cdf'
+      endif
       dprint,fileformat,/phelp
       files=spp_file_retrieve(fileformat,trange=tr,/daily_names,/valid_only,/last_version,prefix=fileprefix,verbose=verbose)
 
@@ -66,4 +69,5 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
     endforeach
   endforeach
 
+  dprint,'Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()
 end
