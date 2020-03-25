@@ -2,7 +2,7 @@ PRO sppeva_sitl_merge
   compile_opt idl2
 
   var = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr')
-  found = file_test(var+'.most-recent.csv')
+  found = file_test(var+'.most-recent.'+!SPPEVA.COM.USER_NAME+'.csv')
   if found then begin
     msg = 'Would you like your most recent selections'
     msg = [msg,"to be merged with the selections you're about to import?"]
@@ -19,7 +19,7 @@ PRO sppeva_sitl_merge
   endif
   
   if strmatch(answer,'Yes') then begin
-    files = [files, var+'.most-recent.csv']
+    files = [files, var+'.most-recent.'+!SPPEVA.COM.USER_NAME+'.csv']
   endif
   
   sppeva_sitl_csv2tplot_multi, files, status=status, suffix=suffix

@@ -102,13 +102,15 @@ PRO sppeva
   ;------------------
   ; System Variable
   ;------------------
-  user = {id:'Tohban', fullname:'Solar Probe', $
-    email:'(Go to Preference to set your email address)', team:'FIELDS'}
+  user_name = (get_login_info()).USER_NAME
+  user = {id:user_name, fullname:user_name, $
+    email:'N/A', team:'N/A'}
   fild = {sppfldsoc_id:'',sppfldsoc_pw:'',FLD_LOCAL_DATA_DIR:'./'}
   gene = {fom_max_value:25, basepos:0, split_size_in_sec:600, ROOT_DATA_DIR:''}
   dash = {widget:0}
   stack = {fld_i:0L, fld_list:list({Nsegs:0L}), swp_i:0L, swp_list:list({Nsegs:0L})}
   com   = {mode:'FLD', strTR:['',''], parameterset:'01_WIND_basic.txt', commDay:'5',$
+    user_name:user_name, $
     fieldPTR:'spp_fld_f1_100bps_DCB_ARCWRPTR',$
     sweapPTR:'psp_swp_swem_dig_hkp_SW_SSRWRADDR'}
   def_struct = {user:user, gene:gene, fild:fild, dash:dash, com:com, stack:stack}

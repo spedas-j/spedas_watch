@@ -6,12 +6,13 @@ PRO sppeva_sitl_save, tpv, filename=filename, auto=auto
   ;--------------
   ; Filename
   ;--------------
+  u = '.'+!SPPEVA.COM.USER_NAME+'.csv'
   if keyword_set(auto) then begin
-    fname  = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.most-recent.csv')
-    fname1 = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.1step-before.csv')
-    fname2 = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.2steps-before.csv')
-    fname3 = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.3steps-before.csv')
-    fname4 = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.4steps-before.csv')
+    fname  = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.most-recent'+u)
+    fname1 = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.1step-before'+u)
+    fname2 = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.2steps-before'+u)
+    fname3 = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.3steps-before'+u)
+    fname4 = strlowcase('spp_'+!SPPEVA.COM.MODE+'_fomstr.4steps-before'+u)
     found=file_test(fname3) & if found then file_copy, fname3, fname4,/overwrite
     found=file_test(fname2) & if found then file_copy, fname2, fname3,/overwrite
     found=file_test(fname1) & if found then file_copy, fname1, fname2,/overwrite
