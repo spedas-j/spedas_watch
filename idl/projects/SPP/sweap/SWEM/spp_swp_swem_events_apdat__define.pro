@@ -578,6 +578,19 @@ event_string= [ $
 'EVT_USER_13 23C' , $
 'EVT_USER_14 23D' , $
 'EVT_USER_15 23E' , $ 
+'EVT_USER_01 23F' , $ ; Davin I assumed that these are placeholders - so I extended to 0x24a.
+'EVT_USER_02 240' , $
+'EVT_USER_03 241' , $
+'EVT_USER_04 242' , $
+'EVT_USER_05 243' , $
+'EVT_USER_06 244' , $
+'EVT_USER_07 245' , $
+'EVT_USER_08 246' , $
+'EVT_USER_09 247' , $
+'EVT_USER_10 248' , $
+'EVT_SURVEY_COMPRESS_RESERVE_ERROR_ASPACE' , $ ; 0x249
+'EVT_SURVEY_COMPRESS_RESERVE_ERROR_BSPACE' , $ ; 0x24a
+'EVT_USER_11 24b' , $
   '????  Unknown ??????'  ]
 return, event_string
 end

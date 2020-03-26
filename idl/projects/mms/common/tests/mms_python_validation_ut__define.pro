@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-10-31 09:43:16 -0700 (Thu, 31 Oct 2019) $
-; $LastChangedRevision: 27956 $
+; $LastChangedDate: 2020-03-25 14:21:28 -0700 (Wed, 25 Mar 2020) $
+; $LastChangedRevision: 28465 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -117,32 +117,31 @@ function mms_python_validation_ut::test_dsp_psd
   
   get_data, 'mms1_dsp_epsd_omni', data=d
   assert, self.compare(d.v, self.str_to_arr(output[-1])), 'Problem with DSP'
-  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-1])), 'Problem with DSP'
-  assert, self.compare(d.y[9000, *], self.str_to_arr(output[-2])), 'Problem with DSP'
-  assert, self.compare(d.y[8000, *], self.str_to_arr(output[-3])), 'Problem with DSP'
-  assert, self.compare(d.y[7000, *], self.str_to_arr(output[-4])), 'Problem with DSP'
-  assert, self.compare(d.y[6000, *], self.str_to_arr(output[-5])), 'Problem with DSP'
-  assert, self.compare(d.y[5000, *], self.str_to_arr(output[-6])), 'Problem with DSP'
-  assert, self.compare(d.y[4000, *], self.str_to_arr(output[-7])), 'Problem with DSP'
-  assert, self.compare(d.y[3000, *], self.str_to_arr(output[-8])), 'Problem with DSP'
-  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-9])), 'Problem with DSP'
-  assert, self.compare(d.y[1000, *], self.str_to_arr(output[-10])), 'Problem with DSP'
-  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-11])), 'Problem with DSP'
-  assert, self.compare(d.x[0:9], self.str_to_arr(output[-12])), 'Problem with DSP'
+  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-2])), 'Problem with DSP (1)'
+  assert, self.compare(d.y[9000, *], self.str_to_arr(output[-3])), 'Problem with DSP (2)'
+  assert, self.compare(d.y[8000, *], self.str_to_arr(output[-4])), 'Problem with DSP (3)'
+  assert, self.compare(d.y[7000, *], self.str_to_arr(output[-5])), 'Problem with DSP (4)'
+  assert, self.compare(d.y[6000, *], self.str_to_arr(output[-6])), 'Problem with DSP (5)'
+  assert, self.compare(d.y[5000, *], self.str_to_arr(output[-7])), 'Problem with DSP (6)'
+  assert, self.compare(d.y[4000, *], self.str_to_arr(output[-8])), 'Problem with DSP (7)'
+  assert, self.compare(d.y[3000, *], self.str_to_arr(output[-9])), 'Problem with DSP (8)'
+  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-10])), 'Problem with DSP (9)'
+  assert, self.compare(d.y[1000, *], self.str_to_arr(output[-11])), 'Problem with DSP (10)'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-12])), 'Problem with DSP (11)'
   
   
   get_data, 'mms1_dsp_bpsd_omni_fast_l2', data=d
-  assert, self.compare(d.v, self.str_to_arr(output[-13])), 'Problem with DSP'
-  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-14])), 'Problem with DSP'
-  assert, self.compare(d.y[9000, *], self.str_to_arr(output[-15])), 'Problem with DSP'
-  assert, self.compare(d.y[8000, *], self.str_to_arr(output[-16])), 'Problem with DSP'
-  assert, self.compare(d.y[7000, *], self.str_to_arr(output[-17])), 'Problem with DSP'
-  assert, self.compare(d.y[6000, *], self.str_to_arr(output[-18])), 'Problem with DSP'
-  assert, self.compare(d.y[5000, *], self.str_to_arr(output[-19])), 'Problem with DSP'
-  assert, self.compare(d.y[4000, *], self.str_to_arr(output[-20])), 'Problem with DSP'
-  assert, self.compare(d.y[3000, *], self.str_to_arr(output[-21])), 'Problem with DSP'
-  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-22])), 'Problem with DSP'
-  assert, self.compare(d.y[1000, *], self.str_to_arr(output[-23])), 'Problem with DSP'
+  assert, self.compare(d.v, self.str_to_arr(output[-13])), 'Problem with DSP (12)'
+  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-14])), 'Problem with DSP (13)'
+  assert, self.compare(d.y[9000, *], self.str_to_arr(output[-15])), 'Problem with DSP (14)'
+  assert, self.compare(d.y[8000, *], self.str_to_arr(output[-16])), 'Problem with DSP (15)'
+  assert, self.compare(d.y[7000, *], self.str_to_arr(output[-17])), 'Problem with DSP (16)'
+  assert, self.compare(d.y[6000, *], self.str_to_arr(output[-18])), 'Problem with DSP (17)'
+  assert, self.compare(d.y[5000, *], self.str_to_arr(output[-19])), 'Problem with DSP (18)'
+  assert, self.compare(d.y[4000, *], self.str_to_arr(output[-20])), 'Problem with DSP (19)'
+  assert, self.compare(d.y[3000, *], self.str_to_arr(output[-21])), 'Problem with DSP (20)'
+  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-22])), 'Problem with DSP (21)'
+  assert, self.compare(d.y[1000, *], self.str_to_arr(output[-23])), 'Problem with DSP (22)'
   assert, self.compare(d.x[0:9], self.str_to_arr(output[-24])), 'Problem with DSP'
 
   return, 1
