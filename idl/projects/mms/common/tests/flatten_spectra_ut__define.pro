@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'flatten_spectra_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-07-16 13:53:18 -0700 (Tue, 16 Jul 2019) $
-; $LastChangedRevision: 27465 $
+; $LastChangedDate: 2020-03-26 10:56:19 -0700 (Thu, 26 Mar 2020) $
+; $LastChangedRevision: 28468 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/flatten_spectra_ut__define.pro $
 ;-
 
@@ -168,22 +168,6 @@ function flatten_spectra_ut::test_no_conversion
 end
 
 pro flatten_spectra_ut::setup
-;  del_data, '*'
-;  trange=['2017-09-10/09:30:20', '2017-09-10/09:34:20']
-;  probe=3
-;
-;  mms_load_fpi, trange=trange, datatype='dis-moms', probe=probe
-;  mms_load_eis, trange=trange, probe=probe, datatype=['extof', 'phxtof']
-;  mms_load_hpca, trange=trange, probe=probe, datatype='ion'
-;  mms_hpca_calc_anodes, fov=[0, 360]
-;  mms_hpca_spin_sum, /avg, probe=probe
-end
-
-function flatten_spectra_ut::init, _extra=e
-  if (~self->MGutTestCase::init(_extra=e)) then return, 0
-  ; the following adds code coverage % to the output
-  self->addTestingRoutine, ['flatten_spectra', 'flatten_spectra_multi']
-  
   del_data, '*'
   trange=['2017-09-10/09:30:20', '2017-09-10/09:34:20']
   probe=3
@@ -193,6 +177,22 @@ function flatten_spectra_ut::init, _extra=e
   mms_load_hpca, trange=trange, probe=probe, datatype='ion'
   mms_hpca_calc_anodes, fov=[0, 360]
   mms_hpca_spin_sum, /avg, probe=probe
+end
+
+function flatten_spectra_ut::init, _extra=e
+  if (~self->MGutTestCase::init(_extra=e)) then return, 0
+  ; the following adds code coverage % to the output
+  self->addTestingRoutine, ['flatten_spectra', 'flatten_spectra_multi']
+  
+;  del_data, '*'
+;  trange=['2017-09-10/09:30:20', '2017-09-10/09:34:20']
+;  probe=3
+;
+;  mms_load_fpi, trange=trange, datatype='dis-moms', probe=probe
+;  mms_load_eis, trange=trange, probe=probe, datatype=['extof', 'phxtof']
+;  mms_load_hpca, trange=trange, probe=probe, datatype='ion'
+;  mms_hpca_calc_anodes, fov=[0, 360]
+;  mms_hpca_spin_sum, /avg, probe=probe
   return, 1
 end
 

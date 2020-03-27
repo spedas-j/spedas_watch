@@ -1,50 +1,72 @@
-PRO eva_sitluplink_updateFOM, state
+; Update the EVALSTARTTIME tag in FOMstr
+PRO eva_sitluplink_update_evalstarttime, str_evalstarttime
   compile_opt idl2
 
-  if state.Evalstarttime eq 'N/A' then return
-  
   tn=tnames('mms_stlm_fomstr',ct)
   if(ct eq 1) then begin
     get_data,'mms_stlm_fomstr',data=D,dl=dl,lim=lim
     s = lim.UNIX_FOMSTR_MOD
-    str_element,/add, s, 'uplinkflag', state.Uplink
-    str_element,/add, s, 'evalstarttime', time_double(state.Evalstarttime)
+    if(str_evalstarttime eq 'N/A') then begin
+      str_element,/delete,s,'evalstarttime'
+    endif else begin
+      str_element,/add, s, 'evalstarttime', time_double(str_evalstarttime)
+    endelse
+    options,'mms_stlm_fomstr','unix_FOMStr_mod',s ; update structure
   endif
-  options,'mms_stlm_fomstr','unix_FOMStr_mod',s ; update structure
 END
 
-FUNCTION eva_sitluplink_updateState, state, str_time, uplink
+; Update the UPLINGFLAG tag in FOMstr
+PRO eva_sitluplink_update_uplinkflag, uplinkflag
+  compile_opt idl2
+
+  tn=tnames('mms_stlm_fomstr',ct)
+  if(ct eq 1) then begin
+    get_data,'mms_stlm_fomstr',data=D,dl=dl,lim=lim
+    s = lim.UNIX_FOMSTR_MOD
+    str_element,/add, s, 'uplinkflag', uplinkflag
+    options,'mms_stlm_fomstr','unix_FOMStr_mod',s ; update structure
+  endif
+END
+
+; Update the diplay in the SITL tab and also validate
+PRO eva_sitluplink_display_and_validate, state
   compile_opt idl2
   
-  ;---------------
-  ; State
-  ;---------------
-  ;time = (str_time eq 'N/A') ? 0.d0 : time_double(str_time)
+  tn=tnames('mms_stlm_fomstr',ct)
+  if(ct eq 1) then begin
+    get_data,'mms_stlm_fomstr',data=D,dl=dl,lim=lim
+  endif else message,'mms_stlm_fomstr not found.'
 
-  str_element,/add,state,'EvalStartTime',str_time; put tstring into state structure
-  ;str_element,/add,state,'EvalStartTimeDouble',time
-  widget_control, state.fldEvalStartTime, SET_VALUE=str_time; update GUI field
- 
-  str_element,/add,state,'Uplink',uplink
-  
-  ;---------------
-  ; Display in "SITL" tab
-  ;---------------
-  strUplink = (state.Uplink eq 1L) ? 'Yes' : 'No'
-  strButton = (state.Uplink eq 1L) ? 'UPLINK' : 'DRAFT'
+  tn = tag_names(lim.UNIX_FOMSTR_MOD)
+  idx = where(strlowcase(tn) eq 'evalstarttime', ct)
+  str_time = (ct eq 1) ? time_string(lim.UNIX_FOMSTR_MOD.EVALSTARTTIME) : 'N/A'
+  idx = where(strlowcase(tn) eq 'uplinkflag', ct)
+  strButton = 'DRAFT'
+  if (ct gt 0)  && (lim.UNIX_FOMSTR_MOD.UPLINKFLAG eq 1) then begin
+    strButton = 'UPLINK'
+  endif
+
   id_sitl = widget_info(state.parent, find_by_uname='eva_sitl')
   sitl_stash = WIDGET_INFO(id_sitl, /CHILD)
   WIDGET_CONTROL, sitl_stash, GET_UVALUE=sitl_state, /NO_COPY
   widget_control, sitl_state.lblEvalStartTime, SET_VALUE='Next SITL Window Start Time: '+str_time
-  ;widget_control, sitl_state.lblUplink, SET_VALUE='Uplink - '+strUplink
   widget_control, sitl_state.btnSubmit, SET_VALUE='   '+strButton+'   '
-;  str_element,/add,'sitl_state','UPLINK',state.Uplink
-;  print,'uplink',uplink,'state.uplink',state.uplink,'sitl_state.uplink',sitl_state.uplink
-;stop
   WIDGET_CONTROL, sitl_stash, SET_UVALUE=sitl_state, /NO_COPY
 
+  ;--------------------
+  ; Validation by Rick
+  ;--------------------
+  if(strButton eq 'UPLINK') then begin
+    r = eva_sitluplink_validateFOM(lim.UNIX_FOMSTR_MOD)
+    if(r gt 0) then begin
+      eva_sitluplink_update_evalstarttime, 'N/A'
+      eva_sitluplink_update_uplinkflag, 0
+      widget_control,state.bgUplink,SET_VALUE=0L
+      tplot
+    endif
+  endif
   
-  return, state
+  return
 END
 
 PRO eva_sitluplink_set_value, id, value ;In this case, value = activate
@@ -96,24 +118,56 @@ FUNCTION eva_sitluplink_event, ev
   case ev.id of
     state.fldEvalStartTime: begin
       widget_control, ev.id, GET_VALUE=new_time;get new time
-      str_element,/add,state,'EvalStartTime',new_time
-      update=1
+      if(strlen(new_time) ge 13) then begin
+        eva_sitluplink_update_evalstarttime, new_time[0]
+        update=1
+      endif
     end
     state.calEvalStartTime: begin
+      ;------------------
+      ; Initialize time
+      ;------------------
+      tn = tnames()
+      idx=where(tn eq 'mms_soca_fomstr',ct)
+      if(ct eq 1) then begin
+        get_data,'mms_soca_fomstr',dl=dl,lim=lim
+        s = lim.UNIX_FOMSTR_ORG
+        tgn = tag_names(s)
+        stime = s.TIMESTAMPS[0]
+        etime = s.TIMESTAMPS[s.NUMCYCLES-1]
+        gtime = stime + 0.66666d0*(etime-stime)
+      endif else begin
+        gtime = 0.d0
+      endelse
+
+      ;------------------
+      ; Calendar
+      ;------------------
       otime = obj_new('spd_ui_time')
-      otime->SetProperty,tstring=state.EvalStartTime
+      otime->SetProperty,tstring=time_string(gtime)
       spd_ui_calendar,'EVA Calendar',otime,ev.top
       otime->GetProperty,tstring=tstring         ; get tstring
-      state = eva_sitluplink_updateState(state, tstring, state.Uplink)
+      eva_sitluplink_update_evalstarttime, tstring
       obj_destroy, otime
+      
+      ;------------------
+      ; Timebar
+      ;------------------
       timebar,time_double(tstring), linestyle = 2, thick = 2;,/transient
+      widget_control, state.fldEvalStartTime, SET_VALUE=tstring
       update=1
     end
     state.btnEvalStartTime: begin
       ctime,time,y,z,npoints=1
       timebar,time, linestyle = 2, thick = 2;,/transient
-      state = eva_sitluplink_updateState(state, time_string(time), state.Uplink)
-      update=1
+      if(time gt 0) then begin
+        tstring = time_string(time)
+        eva_sitluplink_update_evalstarttime, tstring
+        widget_control, state.fldEvalStartTime, SET_VALUE=tstring
+        update=1
+      endif else begin
+        print, 'SITL window start-time not selected.'
+      endelse
     end
     state.btnDraw: begin
       widget_control, state.fldEvalStartTime, GET_VALUE=time; update GUI field
@@ -121,50 +175,44 @@ FUNCTION eva_sitluplink_event, ev
     end
     state.btnErase: begin
       tplot
-      ;widget_control, state.fldEvalStartTime, GET_VALUE=time; update GUI field
-      ;timebar,state.EvalStartTimeDouble, linestyle = 2, thick = 2,/transient
       ;timebar,state.EvalStartTimeDouble, linestyle = 2, thick = 2,/transient
     end
     state.btnReset: begin
-      state = eva_sitluplink_updateState(state, 'N/A', 0L)
+      eva_sitluplink_update_evalstarttime, 'N/A'
+      eva_sitluplink_update_uplinkflag, 0
       widget_control,state.bgUplink,SET_VALUE=0
+      widget_control,state.fldEvalStartTime, SET_VALUE='N/A'
       tplot
       update=1
     end
     state.bgUplink: begin
       widget_control,state.bgUplink,GET_VALUE=gvl
-      if (gvl eq 1) and (state.EvalStartTime eq 'N/A') then begin
-        result = dialog_message("Please set start time first.",/center)
-        gvl = 0
-        widget_control,state.bgUplink,SET_VALUE=0L
-        update=0
+      if(ev.SELECT eq 1) then begin
+        if (gvl eq 1)  then begin ; ..................... Yes (Check for evalstarttime)
+          tn=tnames('mms_stlm_fomstr',ct)
+          if(ct eq 1) then begin
+            get_data,'mms_stlm_fomstr',data=D,dl=dl,lim=lim
+            tn = tag_names(lim.UNIX_FOMSTR_MOD)
+            idx = where(strlowcase(tn) eq 'evalstarttime', ct)
+            if(ct eq 0) then begin; ...........................EVAL-STARTTIME not found
+              result = dialog_message("Please set start time first.",/center)
+              widget_control,state.bgUplink,SET_VALUE=0L
+              update=0
+            endif else begin;.................... EVAL-STARTTIME found
+              eva_sitluplink_update_uplinkflag, gvl ; update FOM
+              update=1
+            endelse
+          endif else message,'mms_stlm_fomstr not found.'
+        endif else begin; if gvl eq 0
+          eva_sitluplink_update_uplinkflag, gvl
+          update=1
+        endelse
       endif
-      state = eva_sitluplink_updateState(state, state.EvalStartTime, gvl)
-      if ev.SELECT eq 0 then update = 1
       end
     else:
   endcase
 
-  if update then begin
-    eva_sitluplink_updateFOM, state
-    
-    ;--------------------
-    ; Validation by Rick
-    ;--------------------
-    tn=tnames('mms_stlm_fomstr',ct)
-    if(ct gt 0)then begin
-      get_data,'mms_stlm_fomstr',data=D,dl=dl,lim=lim
-      s = lim.UNIX_FOMSTR_MOD
-      r = eva_sitluplink_validateFOM(s)
-      if(r gt 0) then begin
-        state = eva_sitluplink_updateState(state, 'N/A', 0)
-        widget_control,state.bgUplink,SET_VALUE=0L
-        tplot
-        str_element,/delete,s,'EVALSTARTTIME'
-        options,'mms_stlm_fomstr','unix_FOMStr_mod',s ; update structure
-      endif
-    endif
-  endif
+  if update then eva_sitluplink_display_and_validate, state
 
 
   WIDGET_CONTROL, stash, SET_UVALUE=state, /NO_COPY
@@ -188,8 +236,7 @@ FUNCTION eva_sitluplink, parent, $
     parent:parent,$
     EvalStartTime: 'N/A',$
     EvalStopTime: 'N/A',$
-    EvalStartTimeDouble: 0.d0,$
-    Uplink: 0L}
+    EvalStartTimeDouble: 0.d0}
 
   ; ----- CONFIG (READ) -----
   cfg = mms_config_read()         ; Read config file and
@@ -197,21 +244,21 @@ FUNCTION eva_sitluplink, parent, $
   str_element,/add,state,'pref',pref
 
   ; ----- SETTINGS ------
-  ;//////////////////////////////
-  valUplinkflag = !VALUES.F_NAN
-  valEvalstarttime = 'N/A'
-  ;//////////////////////////////
-  tn = tnames()
-  idx=where(tn eq 'mms_soca_fomstr',ct)
-  if(ct eq 1) then begin
-    get_data,'mms_soca_fomstr',dl=dl,lim=lim
-    s = lim.UNIX_FOMSTR_ORG
-    tgn = tag_names(s)
-    idxA=where(strlowcase(tgn) eq 'uplinkflag',ctA)
-    idxB=where(strlowcase(tgn) eq 'evalstarttime',ctB)
-    valUplinkflag = (ctA eq 1) ? s.UPLINKFLAG : valUplinkflag
-    valEvalstarttime  = (ctB eq 1) ? s.EVALSTARTTIME : valEvalstarttime
-  endif
+;  ;//////////////////////////////
+;  valUplinkflag = !VALUES.F_NAN
+;  valEvalstarttime = 'N/A'
+;  ;//////////////////////////////
+;  tn = tnames()
+;  idx=where(tn eq 'mms_soca_fomstr',ct)
+;  if(ct eq 1) then begin
+;    get_data,'mms_soca_fomstr',dl=dl,lim=lim
+;    s = lim.UNIX_FOMSTR_ORG
+;    tgn = tag_names(s)
+;    idxA=where(strlowcase(tgn) eq 'uplinkflag',ctA)
+;    idxB=where(strlowcase(tgn) eq 'evalstarttime',ctB)
+;    valUplinkflag = (ctA eq 1) ? s.UPLINKFLAG : valUplinkflag
+;    valEvalstarttime  = (ctB eq 1) ? s.EVALSTARTTIME : valEvalstarttime
+;  endif
 
 
   ; ----- WIDGET LAYOUT -----
@@ -237,8 +284,8 @@ FUNCTION eva_sitluplink, parent, $
     
     str_element,/add,state,'lblABS',widget_label(subbase,VALUE='Settings in ABS:')
     bsABS = widget_base(subbase, /COLUMN, SPACE=0, YPAD=0,/frame,xsize=xsize*0.94)
-      str_element,/add,state,'lblABS_tstart',widget_label(bsABS,VALUE='EVAL START TIME: '+strtrim(string(valUplinkflag),2),/align_left)
-      str_element,/add,state,'lblABS_uplink',widget_label(bsABS,VALUE='UPLINK FLAG: '+valEvalstarttime,/align_left)
+      str_element,/add,state,'lblABS_tstart',widget_label(bsABS,VALUE='EVAL START TIME: N/A',/align_left)
+      str_element,/add,state,'lblABS_uplink',widget_label(bsABS,VALUE='UPLINK FLAG: N/A',/align_left)
 
     str_element,/add,state,'lblDummy2',widget_label(subbase,VALUE=' ')
     

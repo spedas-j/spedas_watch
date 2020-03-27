@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-03-25 14:21:28 -0700 (Wed, 25 Mar 2020) $
-; $LastChangedRevision: 28465 $
+; $LastChangedDate: 2020-03-25 19:03:05 -0700 (Wed, 25 Mar 2020) $
+; $LastChangedRevision: 28466 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -95,10 +95,10 @@ function mms_python_validation_ut::test_fpi_default
   assert, self.compare(d.y[5000, *], self.str_to_arr(output[-5])), 'Problem with FPI'
   assert, self.compare(d.y[4000, *], self.str_to_arr(output[-6])), 'Problem with FPI'
   assert, self.compare(d.y[3000, *], self.str_to_arr(output[-7])), 'Problem with FPI'
-  assert, self.compare(d.y[3000, *], self.str_to_arr(output[-8])), 'Problem with FPI'
+  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-8])), 'Problem with FPI'
   assert, self.compare(d.y[1000, *], self.str_to_arr(output[-9])), 'Problem with FPI'
   assert, self.compare(d.y[0, *], self.str_to_arr(output[-10])), 'Problem with FPI'
-  assert, self.compare(d.x[0:9], self.str_to_arr(output[-12])), 'Problem with FPI'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-11])), 'Problem with FPI'
 
   return, 1
 end
