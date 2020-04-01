@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-03-25 19:03:05 -0700 (Wed, 25 Mar 2020) $
-; $LastChangedRevision: 28466 $
+; $LastChangedDate: 2020-03-31 16:01:16 -0700 (Tue, 31 Mar 2020) $
+; $LastChangedRevision: 28473 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -105,8 +105,17 @@ end
 
 function mms_python_validation_ut::test_feeps_default
   mms_load_feeps
-;  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.feeps', output
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.feeps', output
 
+  get_data, 'mms1_epd_feeps_srvy_l2_electron_intensity_omni', data=d
+  assert, self.compare(d.y[20000, *], self.str_to_arr(output[-1])), 'Problem with FEEPS'
+  assert, self.compare(d.y[15000, *], self.str_to_arr(output[-2])), 'Problem with FEEPS'
+  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-3])), 'Problem with FEEPS'
+  assert, self.compare(d.y[5000, *], self.str_to_arr(output[-4])), 'Problem with FEEPS'
+  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-5])), 'Problem with FEEPS'
+  assert, self.compare(d.y[2, *], self.str_to_arr(output[-6])), 'Problem with FEEPS'
+  assert, self.compare(d.v, self.str_to_arr(output[-7])), 'Problem with FEEPS'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-8])), 'Problem with FEEPS'
 
   return, 1
 end
@@ -257,7 +266,7 @@ function mms_python_validation_ut::test_eis_default
 end
 
 function mms_python_validation_ut::compare, idl_result, py_result
-  notused = where(abs(idl_result-py_result) ge 1e-6, bad_count)
+  notused = where(abs(idl_result-py_result) ge 1e-5, bad_count)
   return, bad_count eq 0 ? 1 : 0
 end
 
@@ -268,7 +277,7 @@ end
 
 ; the following are for debugging/developing the tests
 ;function compare, idl_result, py_result
-;  notused = where(abs(idl_result-py_result) ge 1e-6, bad_count)
+;  notused = where(abs(idl_result-py_result) ge 1e-5, bad_count)
 ;  return, bad_count eq 0 ? 1 : 0
 ;end
 ;
