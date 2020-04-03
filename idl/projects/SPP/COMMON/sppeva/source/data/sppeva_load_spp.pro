@@ -66,12 +66,37 @@ FUNCTION sppeva_load_spp, param, perror
   ;----------------------
   pcode=1
   ip=where(perror eq pcode,cp)
-  if(strmatch(param,'*_rfs_hfr_auto_*') and (cp eq 0))then begin
+  if(strmatch(param,'spp_fld_rfs_hfr_auto_*') and (cp eq 0))then begin
     sppeva_get_fld,'rfs_hfr_auto'
   endif  
-  if(strmatch(param,'*_rfs_lfr_auto_*') and (cp eq 0))then begin
+  if(strmatch(param,'spp_fld_rfs_lfr_auto_*') and (cp eq 0))then begin
     sppeva_get_fld,'rfs_lfr_auto'
   endif
+
+  ;----------------------
+  ; FIELDS RFS Level 2
+  ;----------------------
+  pcode=1
+  ip=where(perror eq pcode,cp)
+  if(strmatch(param,'psp_fld_l2_rfs_hfr_*') and (cp eq 0))then begin
+    spp_fld_load,type='rfs_hfr'
+  endif
+  if(strmatch(param,'psp_fld_l2_rfs_lfr_*') and (cp eq 0))then begin
+    spp_fld_load,type='rfs_lfr'
+  endif
+
+  ;----------------------
+  ; FIELDS MAG Level 2
+  ;----------------------
+  pcode=1
+  ip=where(perror eq pcode,cp)
+  if(strmatch(param,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc') and (cp eq 0))then begin
+    spp_fld_load,type='mag_RTN_4_Sa_per_Cyc'
+  endif
+  if(strmatch(param,'psp_fld_l2_mag_SC_4_Sa_per_Cyc') and (cp eq 0))then begin
+    spp_fld_load,type='mag_SC_4_Sa_per_Cyc'
+  endif
+
 
   ;----------------------
   ; SWEAP POINTER ADDRESS

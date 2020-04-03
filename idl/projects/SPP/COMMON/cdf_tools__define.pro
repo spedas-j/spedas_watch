@@ -3,8 +3,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-11 14:03:59 -0700 (Wed, 11 Mar 2020) $
-; $LastChangedRevision: 28405 $
+; $LastChangedDate: 2020-04-01 23:32:47 -0700 (Wed, 01 Apr 2020) $
+; $LastChangedRevision: 28475 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
 ;-
@@ -28,8 +28,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-11 14:03:59 -0700 (Wed, 11 Mar 2020) $
-; $LastChangedRevision: 28405 $
+; $LastChangedDate: 2020-04-01 23:32:47 -0700 (Wed, 01 Apr 2020) $
+; $LastChangedRevision: 28475 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -50,8 +50,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-03-11 14:03:59 -0700 (Wed, 11 Mar 2020) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 28405 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-04-01 23:32:47 -0700 (Wed, 01 Apr 2020) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 28475 $'
 
     return,sw_hash
 end
@@ -241,7 +241,8 @@ pro cdf_tools::var_att_create,var
   if isa(data,'DYNAMICARRAY') then begin
     data=  data.array
     if size(/n_dimen,data) eq 2 then data = transpose(data)
-    if size(/n_dimen,data) eq 3 then  begin
+    if size(/n_dimen,data) eq 3 then begin
+      ;stop
       data = transpose(data,[2,1,0])
     endif
     if size(/n_dimen,data) ge 4 then message,'Not ready'
@@ -303,7 +304,7 @@ pro cdf_tools::var_att_create,var
       endif
       if isa(value) then begin
         if isa(/string,value) and ~keyword_set(value) then continue ;ignore null strings
-        cdf_attput,fileid,attname,varname,value  ;,ZVARIABLE=ZVARIABLE
+        cdf_attput,fileid,attname,varname,value,CDF_TIME_TT2000=(varname eq 'Epoch' && typename(value) eq 'LONG64')  ;,ZVARIABLE=ZVARIABLE
       endif
     endforeach
   endif else dprint,dlevel=1,'Warning! No attributes for '+varname

@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson October 2018
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-18 21:04:46 -0700 (Wed, 18 Mar 2020) $
-; $LastChangedRevision: 28441 $
+; $LastChangedDate: 2020-04-01 23:39:01 -0700 (Wed, 01 Apr 2020) $
+; $LastChangedRevision: 28476 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools_varinfo__define.pro $
 ;-
 
@@ -18,12 +18,12 @@ function cdf_tools_varinfo::variable_attributes, vname,value
   att['CATDESC']     = vname          ;required for all variables: (catalog description) is an approximately 80-character string which is a textual description of the variable and includes a description of what the variable depends on. This information needs to be complete enough that users can select variables of interest based only on this value. 
   att['FIELDNAM']    = vname          ;required for all variables: holds a character string (up to 30 characters) which describes the variable. It can be used to label a plot either above or below the axis, or can be used as a data listing heading. Therefore, consideration should be given to the use of upper and lower case letters where the appearance of the output plot or data listing heading will be affected.
   att['LABLAXIS']    = vname          ;required if not using LABL_PTR_1: should be a short character string (approximately 10 characters, but preferably 6 characters - more only if absolutely required for clarity) which can be used to label a y-axis for a plot or to provide a heading for a data listing.
-  att['UNITS']       = ''             ;required if not using UNIT_PTR (optional for time variables): is a character string (no more than 20 characters, but preferably 6 characters) representing the units of the variable,e.g., nT for magnetic field. If the standard abbreviation used is short then the units value can be added to a data listing heading or plot label. Use a blank character, rather than "None" or "unitless", for variables that have no units (e.g., a ratio or a direction cosine). For CDF_TIME_TT2000: SI measurement unit: s, ms(milliseconds for EPOCH variables), ns(nanoseconds for CDF_TIME_TT2000), ps(picoseconds for EPOCH16).
+  att['UNITS']       = ' '            ;required if not using UNIT_PTR (optional for time variables): is a character string (no more than 20 characters, but preferably 6 characters) representing the units of the variable,e.g., nT for magnetic field. If the standard abbreviation used is short then the units value can be added to a data listing heading or plot label. Use a blank character, rather than "None" or "unitless", for variables that have no units (e.g., a ratio or a direction cosine). For CDF_TIME_TT2000: SI measurement unit: s, ms(milliseconds for EPOCH variables), ns(nanoseconds for CDF_TIME_TT2000), ps(picoseconds for EPOCH16).
   att['VAR_TYPE']    = 'support_data' ;required for all variables:  identifies a variable as either (data): integer or real numbers that are plottable (support_data): integer or real "attached" variables (metadata): labels or character variables (ignore_data): placeholders.
   att['DISPLAY_TYPE']= 'time_series'  ;required for data variables: tells automated software what type of plot to make and what associated variables in the CDF are required in order to do so. Some valid values are listed below: time_series spectrogram stack_plot image no_plot.
   att['DEPEND_0']    = EPOCHname      ;required for time-varying variables: explicitly ties a data variable to the time variable on which it depends. All variables which change with time must have a DEPEND_0 attribute defined. The value of DEPEND_0 is 'Epoch', the time ordering parameter for ISTP/IACG. Different time resolution data can be supported in a single CDF data set by defining the variables Epoch, Epoch_1, Epoch_2, etc. each representing a different time resolution. These are "attached" appropriately to the variables in the CDF data set via the attribute DEPEND_0. The value of the attribute must be a variable in the same CDF data set.
   att['DEPEND_1']    = ''             ;required for dimensional variables as shown in table above. (1D time series data variables do not need a DEPEND_1 defined.) ties a dimensional data variable to a support_data variable on which the i-th dimension of the data variable depends. The number of DEPEND attributes must match the dimensionality of the variable, i.e., a one-dimensional variable must have a DEPEND_1, a two-dimensional variable must have a DEPEND_1 and a DEPEND_2 attribute, etc. The value of the attribute must be a variable in the same CDF data set.
-  att['FORMAT']      = 'F10.2'        ;required if not using FORM_PTR: is the output format used when extracting data values out to a file or screen (using CDFlist). The magnitude and the number of significant figures needed should be carefully considered. A good check is to consider it with respect to the values of VALIDMIN and VALIDMAX attributes. The output should be in Fortran format.
+  att['FORMAT']      = 'E12.4'        ;required if not using FORM_PTR: is the output format used when extracting data values out to a file or screen (using CDFlist). The magnitude and the number of significant figures needed should be carefully considered. A good check is to consider it with respect to the values of VALIDMIN and VALIDMAX attributes. The output should be in Fortran format.
   att['FILLVAL']     = fnan           ;required for time varying variables: is the number inserted in the CDF in place of data values that are known to be bad or missing. Fill data are always non-valid data. The ISTP standard fill values are listed below. Fill values are automatically supplied in the ISTP CDHF ICSS environment (ICSS_KP_FILL_VALUES.INC) for key parameters produced at the CDHF. The FILLVAL data type must match the data type of the variable.
   att['VALIDMIN']    = -1e30          ;required for time varying data and support_data: hold values which are, respectively, the minimum and maximum values for a particular variable that are expected over the lifetime of the mission. The values must match the data type of the variable.
   att['VALIDMAX']    = 1e30           ;ditto.
@@ -37,7 +37,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['FIELDNAM']    = 'Time in TT2000 format'
       att['LABLAXIS']    = EPOCHname
       att['UNITS']       = 'ns'
-      att['FORMAT']      = 'F25.1'
+      att['FORMAT']      = 'F24.1'
       ;att['FILLVAL']    = -1LL
       att['FILLVAL']     = -9223372036854775808
       att['VALIDMIN']    = -315575942816000000
@@ -50,7 +50,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['FIELDNAM']    = 'Time in UTC format'
       att['LABLAXIS']    = 'Unix Time'
       att['UNITS']       = 's'
-      att['FORMAT']      = 'F25.7'
+      att['FORMAT']      = 'F24.7'
       att['FILLVAL']     = dnan
       att['VALIDMIN']    = time_double('2010')
       att['VALIDMAX']    = time_double('2100')
@@ -120,7 +120,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['FIELDNAM']    = 'Counts'
       att['LABLAXIS']    = 'Counts'
       att['UNITS']       = 'Counts'
-      att['VALIDMIN']    = 0
+      att['VALIDMIN']    = 0.
       att['VALIDMAX']    = 1e6
       att['SCALETYP']    = 'log'
     end
@@ -132,7 +132,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VAR_TYPE']    = 'data'
       att['DISPLAY_TYPE']= 'spectrogram'
       att['DEPEND_1']    = 'ENERGY'
-      att['FORMAT']      = 'E12.2'
       att['VALIDMIN']    = 0.001
       att['VALIDMAX']    = 1e12
       att['SCALETYP']    = 'log'
@@ -145,7 +144,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VAR_TYPE']    = 'data'
       att['DISPLAY_TYPE']= 'spectrogram'
       att['DEPEND_1']    = 'ENERGY_VALS'
-      att['FORMAT']      = 'E12.2'
       att['VALIDMIN']    = 0.001
       att['VALIDMAX']    = 1e12
       att['SCALETYP']    = 'log'
@@ -158,7 +156,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VAR_TYPE']    = 'data'
       att['DISPLAY_TYPE']= 'spectrogram'
       att['DEPEND_1']    = 'THETA_VALS'
-      att['FORMAT']      = 'E12.2'
       att['VALIDMIN']    = 0.001
       att['VALIDMAX']    = 1e12
       att['SCALETYP']    = 'log'
@@ -171,7 +168,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VAR_TYPE']    = 'data'
       att['DISPLAY_TYPE']= 'spectrogram'
       att['DEPEND_1']    = 'PHI_VALS'
-      att['FORMAT']      = 'E12.2'
       att['VALIDMIN']    = 0.001
       att['VALIDMAX']    = 1e12
       att['SCALETYP']    = 'log'
@@ -183,9 +179,8 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['UNITS']       = 'eV/cm2-s-ster-eV'
       att['VAR_TYPE']    = 'data'
       att['DISPLAY_TYPE']= 'spectrogram'
-      att['DEPEND_1']    = 'PITCHANGLE'
-      att['DEPEND_2']    = 'ENERGY_VALS'
-      att['FORMAT']      = 'E12.2'
+      att['DEPEND_1']    = 'ENERGY_VALS'
+      att['DEPEND_2']    = 'PITCHANGLE'
       att['VALIDMIN']    = 0.001
       att['VALIDMAX']    = 1e12
       att['SCALETYP']    = 'log'
@@ -265,23 +260,26 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['CATDESC']     = 'Quality Flag'
       att['FIELDNAM']    = 'Quality Flag'
       att['LABLAXIS']    = 'Quality Flag'
-      att['UNITS']       = ''
       att['VAR_TYPE']    = 'data'
       att['FORMAT']      = 'I10'
-      att['FILLVAL']     = -1
-      att['VALIDMIN']    = 0
-      att['VALIDMAX']    = 255
+      att['FILLVAL']     = -1b
+      att['VALIDMIN']    = 0b
+      att['VALIDMAX']    = 255b
     end
     'ROTMAT_SC_INST': begin
       att['CATDESC']     = 'Rotation Matrix from Spacecraft to Instrument Coordinates'
       att['FIELDNAM']    = 'Rotation Matrix'
       att['LABLAXIS']    = ''
-      att['UNITS']       = ''
       att['VAR_TYPE']    = 'metadata'
       att['DEPEND_0']    = ''
     end
     else:  begin    ; assumed to be support
       att['VAR_TYPE']    = 'ignore_data'
+      att['FORMAT']      = 'I20'
+      att['FILLVAL']     = ''
+      att['VALIDMIN']    = ''
+      att['VALIDMAX']    = ''
+
       dprint,dlevel=dlevel, 'variable ' +vname+ ' not recognized'
     end
 

@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-23 13:10:07 -0700 (Mon, 23 Mar 2020) $
-; $LastChangedRevision: 28454 $
+; $LastChangedDate: 2020-04-01 23:43:46 -0700 (Wed, 01 Apr 2020) $
+; $LastChangedRevision: 28477 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save
@@ -30,6 +30,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
   if ~keyword_set(types) then types='all'
   if ~keyword_set(spxs) then spxs=['spa','spb','spi','swem']
   if ~keyword_set(varformat) then varformat='*'
+  if varformat eq ' ' then varformat=[]
 
   if types[0] eq 'all' then begin
     types=['hkp','fhkp','tof','rates','events','ana_hkp','dig_hkp','crit_hkp']
@@ -43,7 +44,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
   tr=timerange(trange)
   foreach spx, spxs do begin
     foreach type,types do begin
-      dir=spx+'/'+level+'/'+spx+'_'+type+'/YYYY/MM/'
+      dir=spx+'/'+level+'/'+spx+'_'+type+'*/YYYY/MM/'
       fileformat=dir+'psp_swp_'+spx+'_'+type+'_'+level+'*_YYYYMMDD_v??.cdf'
       if type.substring(0,2) eq 'wrp' then begin ;wrapper file names don't include swem_*
         dir=spx+'/'+level+'/'+type+'/YYYY/MM/'
