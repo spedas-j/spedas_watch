@@ -17,8 +17,8 @@
 ; NOTES:
 ; 
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-02-03 13:18:39 -0800 (Mon, 03 Feb 2020) $
-;$LastChangedRevision: 28268 $
+;$LastChangedDate: 2020-04-03 10:10:31 -0700 (Fri, 03 Apr 2020) $
+;$LastChangedRevision: 28487 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/common/cl_load_data.pro $
 ;-
 
@@ -40,13 +40,14 @@ pro cl_load_data, probes = probes, datatype = datatype, instrument = instrument,
     ; make sure important strings are lower case
     instrument = strlowcase(instrument)
     
-    if not keyword_set(remote_data_dir) then remote_data_dir = 'https://spdf.sci.gsfc.nasa.gov/pub/data/cluster/'
-
     if (keyword_set(trange) && n_elements(trange) eq 2) $
       then tr = timerange(trange) $
       else tr = timerange()
       
     cl_init, remote_data_dir = remote_data_dir, local_data_dir = local_data_dir
+    
+    if not keyword_set(remote_data_dir) then remote_data_dir = 'https://spdf.sci.gsfc.nasa.gov/pub/data/cluster/'
+    if not keyword_set(local_data_dir) then local_data_dir = !cluster.local_data_dir
     
     pathformat = strarr(n_elements(probes)*n_elements(datatype))
     path_count = 0 

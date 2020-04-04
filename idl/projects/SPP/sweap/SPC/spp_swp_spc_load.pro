@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-10-17 18:48:27 -0700 (Thu, 17 Oct 2019) $
-; $LastChangedRevision: 27887 $
+; $LastChangedDate: 2020-04-03 17:10:37 -0700 (Fri, 03 Apr 2020) $
+; $LastChangedRevision: 28491 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 
@@ -61,7 +61,7 @@ pro      spp_swp_spc_load_extra,prefix=prefix,nul_bad=nul_bad,extras=extras,name
     store_data,'Vthermal',data= reform(name_array[3,*])
     store_data,'Temperature',data=reform(name_array[4,*])
     
-    options,'Density',yrange=[.1,1000],ylog=1,/ystyle
+    options,'Density',yrange=[1,2000],ylog=1,/ystyle
     options,'Velocity_theta',yrange=[-50,50.],constant=0.,/ystyle
     options,'Velocity_phi',yrange=[150.,200.],constant=180.,/ystyle
     options,'Velocity_mag',yrange=[150.,1000.],/ylog,/ystyle
@@ -73,8 +73,8 @@ end
 
 
 
-pro spp_swp_spc_load,  trange=trange,type = type,files=files,no_load=no_load,save=save,load_labels=load_labels  $
-  ,nul_bad=nul_bad,ltype=ltype,rapidshare=rapidshare,extras=extras
+pro spp_swp_spc_load,  trange=trange,type=type,files=files,no_load=no_load,save=save,load_labels=load_labels  $
+  ,nul_bad=nul_bad,mask=mask,prefix=prefix,ltype=ltype,rapidshare=rapidshare,extras=extras,version=version,correct_time=correct_time
 
 
    if keyword_set(rapidshare) then begin
@@ -88,44 +88,85 @@ pro spp_swp_spc_load,  trange=trange,type = type,files=files,no_load=no_load,sav
 
    pathname = 'psp/data/sci/sweap/spc/'+Ltype+'/YYYY/MM/spp_swp_spc_'+type+'_YYYYMMDD_v??.cdf'
    
+   if keyword_set(version) then pathname = str_sub(pathname,'_v??','_'+version)
+   
    files = spp_file_retrieve(pathname,trange=trange,/last_version,/daily_names,verbose=2)
-   prefix = 'psp_swp_spc_'+type+'_'
+   if ~isa(prefix,/string) then  prefix = 'psp_swp_spc_'+type+'_'
    
    if  keyword_set(no_load) then return
    cdf2tplot,files,prefix = prefix,verbose=2,/all,load_labels=load_labels,tplotnames=tplotnames
+   
+   
+   if keyword_set(correct_time) then begin
+     ;     time_error = 2.28   ;  encounter 2 - crude estimate to account for timing error
+     ;     time_error = -1.   ;  encounter 3 - crude estimate to account for timing error between FIELDS and SPC
+     dprint,'Warning! making time correction!  Remove this code when corrected'
+     dates  = time_double( ['2010-1-1','2018-8-1','2018-10-1','2018-11-30','2019-3-1','2019-5-1','2019-8-1','2019-12-1'])
+     tshift= [  0.      ,    0.     ,     0.   ,    0       ,   -2.28   ,   -2.28   ,   1.    ,   1.            ]
+     pointers = []
+     for i = 0,n_elements(tplotnames)-1 do begin
+       get_data,tplotnames[i],ptr=p
+       pointers=[pointers,p.x]
+     endfor
+     pointers = pointers[uniq(pointers,sort(pointers))]
+ ;    printdat,pointers
+     dt = []
+     for i=0,n_elements(pointers)-1 do begin
+       p =pointers[i]
+       delta_time = interp(tshift,dates,*p,/no_extrapolate)
+       dt = minmax([dt,delta_time])
+       *p += delta_time
+     endfor
+     dprint,'delta times: ',dt
+   endif
      
    
-;   if keyword_set(save) then begin
-;    loadcdfstr,filenames=files,vardata,novardata,/time
-;    dummy = spp_data_product_hash('SPC_'+type,vardata)
-;   endif
+   if keyword_set(save) then begin
+     loadcdfstr,filenames=files,vardata,novardata,/time
+     dummy = spp_data_product_hash('SPC_'+type,vardata)
+     dummy.dict['novardata'] = novardata
+   endif
    
-   if type eq 'l2i' then begin
-     ylim,prefix+'*charge_flux_density',100.,6000.,1,/default
-     ylim,prefix+'*_current',100.,6000.,1, /default
-     Zlim,prefix+'*charge_flux_density',1.,100.,1, /default
-     zlim,prefix+'*_current',1.,100.,1    ,/default
-   endif
-   if type eq 'l3i' then begin
-     if keyword_set(nul_bad) then begin
-       get_data,prefix+'DQF',time,DQF
-       w = where(DQF[*,0] ne 0,/null)
-       for i= 0,n_elements(tplotnames)-1 do begin
-         if tplotnames[i] eq prefix+'DQF' then continue
-         get_data,tplotnames[i],ptr = ptr
-         v = ptr.y
-         ( *v )[w,*]  = !values.f_nan   ; Fill bad data with NANs
-       endfor
-       w = where(0)
-       extras = 1
-       
-     endif
-    
-     ylim,prefix+'vp_moment_SC',-500,200,0    ,/default
-     options,prefix+'vp_*_SC',colors='bgr'     ,/default
-     options,prefix+'vp_*_RTN',colors='bgr'  ,/default
-     options,prefix+'DQF',spec=1,zrange=[-3,2],yrange=[-1,18],/ystyle
-     if keyword_set(extras) then      spp_swp_spc_load_extra,prefix=prefix,nul_bad=nul_bad,extras=extras
-   endif
+  if type eq 'l2i' then begin
+    ylim,prefix+'*charge_flux_density',100.,6000.,1,/default
+    ylim,prefix+'*_current',100.,6000.,1, /default
+    Zlim,prefix+'*charge_flux_density',1.,100.,1, /default
+    zlim,prefix+'*_current',1.,100.,1    ,/default
+  endif
+   
+  if type eq 'l3i' then begin
+    get_data,prefix+'DQF',ptr=ptr
+    DQF = *ptr.y
+    nt  = n_elements(*ptr.x)
+    DQF_vals = indgen(32)
+    vptr = 0
+    str_element,ptr,'v',vptr
+    if  keyword_set(vptr) && ~array_equal(*vptr,DQF_vals) then begin
+      dprint,'Fixing DQF values'
+      *ptr.v = DQF_vals
+    endif
+    DQF_bits = total(/preserve,(replicate(1,nt) # (2UL ^ DQF_vals)) * (DQF gt 0),2)
+    store_data,prefix+'DQF_bits',data={x:ptr.x,Y:dqf_bits}, dlimit={tplot_routine:'bitplot',yrange:[-1,18]}
+    if ~isa(mask,/integer) then mask = 1UL
+    if keyword_set(nul_bad) then begin
+      w = where((DQF_bits and mask) ne 0,/null)
+      for i= 0,n_elements(tplotnames)-1 do begin
+        get_data,tplotnames[i],ptr = ptr
+        if tplotnames[i] eq prefix+'DQF' then begin
+          continue
+        endif
+        v = ptr.y
+        ( *v )[w,*]  = !values.f_nan   ; Fill bad data with NANs
+        if nul_bad eq 2 and isa(w) then (*v )[w+1,*] = !values.f_nan  ; nul out one point to the right as well
+      endfor
+      ;       extras = 1
+    endif
+
+    ylim,prefix+'vp_moment_SC',-800,200,0    ,/default
+    options,prefix+'vp_*_SC',colors='bgr'     ,/default
+    options,prefix+'vp_*_RTN',colors='bgr'  ,/default
+    options,prefix+'DQF',spec=1,zrange=[-3,2],yrange=[-1,18],/ystyle
+    if keyword_set(extras) then      spp_swp_spc_load_extra,prefix=prefix,nul_bad=nul_bad,extras=extras
+  endif
 end
 

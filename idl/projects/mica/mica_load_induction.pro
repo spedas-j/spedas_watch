@@ -58,6 +58,10 @@ pro mica_load_induction, $
 
   ;--- Set parameters for the data file class 
   source.local_data_dir  = root_data_dir() + 'mirl/'
+  
+  if getenv('SPEDAS_DATA_DIR') ne '' then $
+    !source.LOCAL_DATA_DIR = spd_addslash(getenv('SPEDAS_DATA_DIR'))+'mirl/'
+    
   source.remote_data_dir = 'http://mirl.unh.edu/ULF/cdf/'
 
   ; check time range and set if needed

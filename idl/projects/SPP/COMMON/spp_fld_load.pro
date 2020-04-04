@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-03-09 10:11:36 -0700 (Mon, 09 Mar 2020) $
-; $LastChangedRevision: 28389 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-03 17:12:19 -0700 (Fri, 03 Apr 2020) $
+; $LastChangedRevision: 28493 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -19,9 +19,9 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   no_staging = no_staging
 
   if not keyword_set(type) then begin
-    dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr
+    dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr mag_SC_4_Sa_per_Cyc'
     dprint,'See the directories at: "http://sprg.ssl.berkeley.edu/data/psp/data/sci/fields/staging/l2/" for other valid entries'
-    type = 'mag_RTN'
+    type = 'mag_SC'
     dprint,'Default is: ', type
   endif
   
@@ -148,6 +148,12 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'
         resolution = 3600l * 6l ; hours
         daily_names = 0
+      endif
+      if type EQ 'dfb_dbm_dvac' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+        re_order = 1
       endif
       if type EQ 'mag_RTN' then begin
         pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'

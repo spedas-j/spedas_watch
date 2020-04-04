@@ -29,8 +29,8 @@
 ; 2019-12-23, egrimes, created based on mms_init
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-12-23 16:57:38 -0800 (Mon, 23 Dec 2019) $
-; $LastChangedRevision: 28136 $
+; $LastChangedDate: 2020-04-03 09:58:23 -0700 (Fri, 03 Apr 2020) $
+; $LastChangedRevision: 28486 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/common/cl_config.pro $
 ;
 ;-
@@ -73,7 +73,9 @@ PRO cl_config, no_color_setup=no_color_setup, colortable=colortable
   if getenv('ROOT_DATA_DIR') ne '' then $
     !cluster.LOCAL_DATA_DIR = spd_addslash(getenv('ROOT_DATA_DIR'))+'cluster/'
 
-  ; Settings of environment variables can override mms_config
+  if getenv('SPEDAS_DATA_DIR') ne '' then $
+    !cluster.LOCAL_DATA_DIR = spd_addslash(getenv('SPEDAS_DATA_DIR'))+'cluster/'
+   
   if getenv('CLUSTER_DATA_DIR') ne '' then $
     !cluster.local_data_dir = getenv('CLUSTER_DATA_DIR')
   !cluster.local_data_dir = spd_addslash(!cluster.local_data_dir)

@@ -14,9 +14,9 @@
 ;
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2017
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2018-03-12 09:55:28 -0700 (Mon, 12 Mar 2018) $
-; $LastChangedRevision: 24869 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2020-04-03 09:58:23 -0700 (Fri, 03 Apr 2020) $
+; $LastChangedRevision: 28486 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/config/dsc_init.pro $
 ;-
 
@@ -53,6 +53,10 @@ if ~keyword_set(exists) || keyword_set(reset) then begin
 
 		!dsc.remote_data_dir = 'https://spdf.sci.gsfc.nasa.gov/pub/data/'
 		!dsc.local_data_dir = root_data_dir() + 'dsc/'
+		
+		if getenv('SPEDAS_DATA_DIR') ne '' then $
+		  !dsc.LOCAL_DATA_DIR = spd_addslash(getenv('SPEDAS_DATA_DIR'))+'dsc/'
+		  
 		!dsc.save_plots_dir = !dsc.local_data_dir + 'plots/'
 		!dsc.no_download = file_test(!dsc.local_data_dir + '.dsc_master',/regular)
 		!dsc.verbose = 2

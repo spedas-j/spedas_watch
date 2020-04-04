@@ -1,9 +1,9 @@
 ;+
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-20 01:12:15 -0700 (Fri, 20 Mar 2020) $
-; $LastChangedRevision: 28444 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-03 17:10:37 -0700 (Fri, 03 Apr 2020) $
+; $LastChangedRevision: 28491 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -17,6 +17,7 @@ FUNCTION spp_data_product::Init,_EXTRA=ex,data=data
 ;  self.data = dynamicarray(name=self.name)
   self.dict = dictionary()
   if keyword_set(data) then self.data_ptr = ptr_new(data)
+  self.created = systime(1)
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   RETURN, 1
@@ -25,27 +26,72 @@ END
 
 pro spp_data_product::savedat,data
   if ~ptr_valid(self.data_ptr) then self.data_ptr = ptr_new(data) else *self.data_ptr = data
+  if isa(data,'struct') then begin
+    str_element,/add,*self.data_ptr,'index',lindgen(n_elements(*self.data_ptr) )
+  endif
 end
 
-pro spp_data_product::make_tplot_var,tagnames
+
+pro spp_data_product::savefile,filename=filename
+   if ~keyword_set(filename) then filename = self.name+'.sav'
+   data = *self.data_ptr
+   save,file=filename,/verbose,data
+   dprint,'Saved data in file: '+filename,dlevel=1
+end
+
+
+pro spp_data_product::make_tplot_var,tagnames,prefix=prefix
   if ptr_valid(self.data_ptr) then begin
     if ~keyword_set(tagnames) then begin
       print, 'Here are your options:'
       print,(tag_names(*self.data_ptr))
       return
     endif
-    store_data,self.name+'_',data= *self.data_ptr,tagnames=strupcase(tagnames)
+    if ~isa(prefix,/string) then prefix = self.name+'_'
+    store_data,prefix,data= *self.data_ptr,tagnames=strupcase(tagnames)
   endif
 end
 
 
-function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,valname=valname,verbose=verbose,extrapolate=extrapolate
+pro spp_data_product::add_var,var,varname=varname
+;  obj = spp_data_product_hash(vname)
+  ptr = self.data_ptr
+  if isa(var,/string) then begin   ; var is assumed to be a tplot variable name
+    if ~keyword_set(varname) then  varname=var
+    dprint,dlevel=2,'Interpolating tplot variable: '+var+' into data structure: '+self.name+'  ('+varname+')'
+    dat0 = (*ptr)[0]
+    t = (*ptr).time
+    vardat = data_cut(var,t)    ; interpolate values of tplot variable
+    if ~keyword_set(vardat) then begin
+      dprint,'No data available for: ',var
+    endif
+    ndim = size(/n_dimen,vardat)
+    shftdim = shift(indgen(ndim),-1)
+    vardat = transpose(vardat,shftdim)
+    str_element,/add,*ptr,varname,vardat
+    self.dict[varname] = var
+  endif else begin
+    dim = dimen(var)
+    rdim = reverse(dim)
+    if rdim[0] eq n_elements(*ptr) then begin
+      str_element,/add,*ptr,varname,var
+    endif else dprint,'size error'
+  endelse
+  
+
+end
+
+
+function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,valname=valname,verbose=verbose,extrapolate=extrapolate,cursor=cursor
   if ~ptr_valid(self.data_ptr) then begin
     dprint,'No data loaded for: ',self.name
     return,!null
   endif
  ; verbose = 3
   ns = n_elements(*self.data_ptr)
+  if keyword_set(cursor) then begin
+    ctime,trange,npoints=1,/silent
+  endif
   
   if isa(trange) then begin
     index = interp(lindgen(ns),(*self.data_ptr).time,trange)  
@@ -55,8 +101,8 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
 
   if isa(index,/integer) then begin
     if index lt 0 || index ge ns then begin
-      dprint,"out of range: index=",strtrim(index,2),", ns=",strtrim(ns,2)
-      if keyword_set(extrapolate) then index = 0 > index < (ns-1)      
+      dprint,"out of range: index="+strtrim(index,2)+", ns="+strtrim(ns,2)+' for '+self.name
+      if keyword_set(extrapolate) then index = 0 > index < (ns-1)    else return, !null   
     endif
     dats = (*self.data_ptr)[index]
     wbad = where(index lt 0,/null,nbad)
@@ -110,14 +156,10 @@ PRO spp_data_product__define
   void = {spp_data_product, $
     inherits generic_object, $    ; superclas
     name: '',  $
-;    tname: '',  $
-;    ttags: '',  $
+    created: 0d, $
     dict: obj_new() , $
-;    data_obj: obj_new(), $
-    data_ptr: ptr_new(), $
-;    cdf_pathname:'', $
-;    cdf_tagnames:'', $
-    user_ptr: ptr_new() $
+    data_ptr: ptr_new() $
+    ;user_ptr: ptr_new() $
   }
 END
 

@@ -42,8 +42,8 @@
 ;    SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-03-17 11:18:00 -0700 (Tue, 17 Mar 2020) $
-; $LastChangedRevision: 28417 $
+; $LastChangedDate: 2020-04-03 17:42:04 -0700 (Fri, 03 Apr 2020) $
+; $LastChangedRevision: 28495 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
@@ -102,7 +102,7 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
   indx = where((info.interval lt 1) or (abs(dt) gt 1D), count)
   if (count gt 0) then info = info[indx]  ; discard intervals of zero length
 
-  if (blab) then print,"  SPICE coverage:"
+  if (blab) then print,"  MAVEN SPICE coverage:"
   fmt1 = '(4x,a3,2x,a3,2x,a19,2x,a19,$)'
   fmt2 = '(8x,4a,"  ",2a)'
   indx = where(info.obj_name eq 'MAVEN', nfiles)

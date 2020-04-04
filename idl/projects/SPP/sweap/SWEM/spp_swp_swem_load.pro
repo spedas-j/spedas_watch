@@ -6,7 +6,7 @@
 ;this is a test routine for now.
 ;
 
-pro spp_swp_swem_load,type=type,trange=trange,save=save
+pro spp_swp_swem_load,type=type,trange=trange,save=save,varformat=varformat
 
 
 ;example = 'http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/swem/L1/2018/11/swem_dig_hkp/spp_swp_swem_dig_hkp_L1_20181106_v00.cdf'
@@ -16,16 +16,20 @@ pro spp_swp_swem_load,type=type,trange=trange,save=save
 if ~keyword_set(type) then type = 'swem_dig_hkp'
  ; type = 'swem_ana_hkp'
   
-  pathname = 'psp/data/sci/sweap/swem/L1/YYYY/MM/'+type+'/psp_swp_'+type+'_L1_YYYYMMDD_v??.cdf'
+;  pathname = 'psp/data/sci/sweap/swem/L1/YYYY/MM/'+type+'/psp_swp_'+type+'_L1_YYYYMMDD_v??.cdf'
+  pathname = 'psp/data/sci/sweap/swem/L1/'+type+'/YYYY/MM/psp_swp_'+type+'_L1_YYYYMMDD_v??.cdf'
 
   if not keyword_set(files) then files = spp_file_retrieve(pathname,trange=trange,/last_version,/daily_names,verbose=2)
   prefix = 'psp_swp_'+type+'_'
   
-  case type of
-    'swem_dig_hkp': varformat = 'SW_SSRWRADDR *OSCPUUSAGE *CMDCOUNTER'
-    'swem_ana_hkp': varformat = '*TEMP'
-    else:
-  endcase
+  if not keyword_set(varformat) then begin
+    case type of
+      'swem_dig_hkp': varformat = 'SW_SSRWRADDR *OSCPUUSAGE *CMDCOUNTER'
+      'swem_ana_hkp': varformat = '*TEMP'
+      else:
+    endcase
+    
+  endif
   
   if keyword_set(save) then begin
     vardata = !null
