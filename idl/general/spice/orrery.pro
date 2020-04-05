@@ -83,12 +83,17 @@
 ;                  keyword is ignored (set to zero).  Pluto's orbit
 ;                  is incomplete over the 1900-2100 ephemeris range.
 ;
+;       XYRANGE:   Plot range in X and Y (AU).  Overrides default.
+;                  If set, then all planets within the plot window
+;                  are shown, and the Archmedian spiral (if set)
+;                  extends out to the orbit of Saturn.
+;
 ;       TPLOT:     Create Earth-Mars geometry tplot variables 
 ;                  spanning 1900-2100.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-04-03 17:43:07 -0700 (Fri, 03 Apr 2020) $
-; $LastChangedRevision: 28496 $
+; $LastChangedDate: 2020-04-04 11:57:43 -0700 (Sat, 04 Apr 2020) $
+; $LastChangedRevision: 28502 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -96,19 +101,18 @@
 pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, $
                   eph=eph, phase=phase, spiral=spiral, Vsw=Vsw, movie=movie, $
                   stereo=stereo, keepwin=keepwin, tplot=tplot, reload=reload, $
-                  outer=outer
+                  outer=outer, xyrange=range
 
 common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, $
                   pluto, sta, stb
 
   oneday = 86400D
-  au = 1.49597870691d13  ; Astronomical Unit (cm)
-  c = 2.99792458d10      ; Speed of light (cm/s)
-  conv = (au/1d5)/oneday ; AU/day --> km/s
+  au = 1.495978707d13  ; Astronomical Unit (cm)
+  c = 2.99792458d10    ; Speed of light (cm/s)
   wnum = !d.window
   pcol = [4, 204, 3, 6, 204, 4, 5, 3, 2] ; planet colors: M, V, E, M, J, S, U, N, P
   psze = [3,   4, 4, 3,   6, 5, 4, 4, 3] ; planet symbol sizes
-  pday = [89, 226, 367, 688, 4334, 10757, 30689, 60192, 90562]  ; planet orbits (in days)
+  pday = [89, 226, 367, 688, 4334, 10757, 30689, 60192, 90562]  ; days per orbit
   tspan = time_double(['1900-01-05','2100-01-01'])  ; range covered by mar097.bsp
 
   reset = 1
@@ -116,7 +120,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
 
 ; Archmedian spiral parameters
 
-  if not keyword_set(Vsw) then Vsw = 400.
+  if (size(Vsw,/type) eq 0) then Vsw = 400.
   omega = 2.7e-6
   Vsw = (Vsw*1d5)/au
   spts = 2000
@@ -128,13 +132,18 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
 
   oflg = keyword_set(outer)
   if (oflg) then begin
-    ipmax = 8
     xyrange = [-40,50]
+    ipmax = 8
     spiral = 0  ; don't show Archmedian spiral on this scale
   endif else begin
-    ipmax = 3
     xyrange = [-2,2]
+    ipmax = 3
   endelse
+  if (n_elements(range) gt 1) then begin
+    xyrange = minmax(range)
+    ipmax = 8
+    oflg = 1
+  endif
 
   if (size(label,/type) eq 0) then label = 1
   if (oflg) then dolab = label < 1 else dolab = label < 2
@@ -166,66 +175,68 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
     t = [tmin]
   endelse
 
-; Check for standard SPICE kernels; load them if necessary
-
-  mk = spice_test('*', verbose=-1)
-  indx = where(mk ne '', count)
-  if (count eq 0) then begin
-    dprint,' ', getdebug=bug, dlevel=4
-    dprint,' ', setdebug=0, dlevel=4
-    std_kernels = spice_standard_kernels(/mars,verbose=-1)
-    spice_kernel_load, std_kernels
-    dprint,' ', setdebug=bug, dlevel=4
-    mk = spice_test('*', verbose=-1)
-  endif
-
-  success = 0B
-
-  ok = max(stregex(mk,'naif[0-9]{4}.tls',/subexpr,/fold_case)) gt (-1)
-  if (not ok) then print,"No leap seconds kernel: naif????.tls"
-  success += ok
-
-  ok = max(stregex(mk,'pck[0-9]{5}.tpc',/subexpr,/fold_case)) gt (-1)
-  if (not ok) then print,"No planet geometry kernel: pck?????.tpc"
-  success += ok
-
-  ok = max(stregex(mk,'de[0-9]{3}.bsp',/subexpr,/fold_case)) gt (-1)
-  if (not ok) then print,"No planet orbit kernel: de???.bsp"
-  success += ok
-
-  ok = max(stregex(mk,'mar[0-9]{3}.bsp',/subexpr,/fold_case)) gt (-1)
-  if (not ok) then print,"No Mars/Phobos/Deimos kernel: mar???.bsp"
-  success += ok
-
-  if (success lt 4B) then return
-
-; Now add the STEREO spk, if missing
-
-  path = root_data_dir() + 'misc/spice/naif/STEREO/kernels/spk/'
-  fname = path + 'STEREO-A_merged.bsp'
-  indx = where(mk eq fname, count)
-  if (count eq 0) then begin
-    cspice_furnsh, fname
-    mk = spice_test('*', verbose=-1)
-    indx = where(mk eq fname, count)
-    if (count eq 0) then print,"Could not load STEREO A ephemeris."
-  endif
-
-  path = root_data_dir() + 'misc/spice/naif/STEREO/kernels/spk/'
-  fname = path + 'STEREO-B_merged.bsp'
-  indx = where(mk eq fname, count)
-  if (count eq 0) then begin
-    cspice_furnsh, fname
-    mk = spice_test('*', verbose=-1)
-    indx = where(mk eq fname, count)
-    if (count eq 0) then print,"Could not load STEREO B ephemeris."
-  endif
-
-  mvn_spice_stat, info=sinfo, /silent
-
 ; Load ephemerides into the common block
 
   if (keyword_set(reload) or (data_type(mars) ne 8)) then begin
+
+; Check for standard SPICE kernels; load them if necessary
+
+    mk = spice_test('*', verbose=-1)
+    indx = where(mk ne '', count)
+    if (count eq 0) then begin
+      print,'Initializing SPICE ... ', format='(a,$)'
+      dprint,' ', getdebug=bug, dlevel=4
+      dprint,' ', setdebug=0, dlevel=4
+      std_kernels = spice_standard_kernels(/mars,verbose=-1)
+      spice_kernel_load, std_kernels
+      dprint,' ', setdebug=bug, dlevel=4
+      mk = spice_test('*', verbose=-1)
+      print,'done'
+    endif
+
+    success = 0B
+
+    ok = max(stregex(mk,'naif[0-9]{4}.tls',/subexpr,/fold_case)) gt (-1)
+    if (not ok) then print,"No leap seconds kernel: naif????.tls"
+    success += ok
+
+    ok = max(stregex(mk,'pck[0-9]{5}.tpc',/subexpr,/fold_case)) gt (-1)
+    if (not ok) then print,"No planet geometry kernel: pck?????.tpc"
+    success += ok
+
+    ok = max(stregex(mk,'de[0-9]{3}.bsp',/subexpr,/fold_case)) gt (-1)
+    if (not ok) then print,"No planet orbit kernel: de???.bsp"
+    success += ok
+
+    ok = max(stregex(mk,'mar[0-9]{3}.bsp',/subexpr,/fold_case)) gt (-1)
+    if (not ok) then print,"No Mars/Phobos/Deimos kernel: mar???.bsp"
+    success += ok
+
+    if (success lt 4B) then return
+
+; Now add the STEREO spk, if missing
+
+    path = root_data_dir() + 'misc/spice/naif/STEREO/kernels/spk/'
+    fname = path + 'STEREO-A_merged.bsp'
+    indx = where(mk eq fname, count)
+    if (count eq 0) then begin
+      cspice_furnsh, fname
+      mk = spice_test('*', verbose=-1)
+      indx = where(mk eq fname, count)
+      if (count eq 0) then print,"Could not load STEREO A ephemeris."
+    endif
+
+    path = root_data_dir() + 'misc/spice/naif/STEREO/kernels/spk/'
+    fname = path + 'STEREO-B_merged.bsp'
+    indx = where(mk eq fname, count)
+    if (count eq 0) then begin
+      cspice_furnsh, fname
+      mk = spice_test('*', verbose=-1)
+      indx = where(mk eq fname, count)
+      if (count eq 0) then print,"Could not load STEREO B ephemeris."
+    endif
+
+    mvn_spice_stat, info=sinfo, /silent
 
     print,'Initializing ephemeris ... ', format='(a,$)'
 
@@ -791,7 +802,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
         ys -= dys
 
         pmsg = strupcase(mgs_phase(t))
-        xyouts, xs, ys, pmsg, /norm, charsize=1.8*zscl
+        xyouts, xs, ys, pmsg, /norm, charsize=1.5*zscl
 
       endif
 
@@ -1045,13 +1056,13 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
       tmsg = strmid(time_string(tmax),0,10)
       xyouts, xs, ys, tmsg, /norm, charsize=1.5*zscl
       ys -= dys
-      xyouts, xs, ys, pmsg, /norm, charsize=1.8*zscl
+      xyouts, xs, ys, pmsg, /norm, charsize=1.5*zscl
     endif else begin
       tmsg = time_string(tavg)
       xyouts, xs, ys, tmsg, /norm, charsize=1.5*zscl
       ys -= dys
       pmsg = strupcase(mgs_phase(tavg))
-      xyouts, xs, ys, pmsg, /norm, charsize=1.8*zscl
+      xyouts, xs, ys, pmsg, /norm, charsize=1.5*zscl
     endelse
   endif
 
