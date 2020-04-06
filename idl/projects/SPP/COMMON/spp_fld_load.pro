@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-03 17:12:19 -0700 (Fri, 03 Apr 2020) $
-; $LastChangedRevision: 28493 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-04-05 15:46:23 -0700 (Sun, 05 Apr 2020) $
+; $LastChangedRevision: 28503 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -30,7 +30,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   ; TODO: remove this line once we have Level 2 ephemeris files
 
-  l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_burst']
+  l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_burst', $
+    'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps']
 
   dummy = where(l1_types EQ type, l1_type_flag)
   

@@ -1,13 +1,13 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-03 17:10:37 -0700 (Fri, 03 Apr 2020) $
-; $LastChangedRevision: 28491 $
+; $LastChangedDate: 2020-04-05 17:46:51 -0700 (Sun, 05 Apr 2020) $
+; $LastChangedRevision: 28507 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
 ;-
 
 pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname_prefix=tname_prefix,save=save,$
-  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay
+  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay,spcname=spcname
 
   if ~keyword_set(level) then level='L3'
   level=strupcase(level)
@@ -61,7 +61,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
     cdf2tplot,files,prefix=prefix,varformat=varformat2,verbose=verbose
     spp_swp_qf,prefix=prefix
 
-    if keyword_set(overlay) && strmatch(type,'[sa]f??') then begin
+    if keyword_set(overlay) then begin   ; && strmatch(type,'[sa]f??')
       xyz_to_polar,prefix+'VEL'
       get_data,prefix+'VEL_mag',time,vel_mag
       store_data,prefix+'NRG0',time,velocity(vel_mag,/proton,/inverse)
@@ -69,9 +69,8 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
       vname_th  = prefix+['EFLUX_VS_THETA','VEL_th']
       vname_phi = prefix+['EFLUX_VS_PHI','VEL_phi']
 
-      spcname = 'psp_swp_spc_l3i_vp_moment_SC'
-      ;spcname = 'psp_swp_spc_l3i_vp_fit_SC'
       if keyword_set(spcname) then begin   ; add SPC data
+        if ~isa(spcname,/string) then spcname = 'psp_swp_spc_l3i_vp_moment_SC'
         dat = data_cut(spcname,time)       ; interpolate onto span timescale
         if keyword_set(dat) then begin
           store_data,prefix+'SPCVEL',time,dat

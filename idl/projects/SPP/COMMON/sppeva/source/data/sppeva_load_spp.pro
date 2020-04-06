@@ -97,6 +97,18 @@ FUNCTION sppeva_load_spp, param, perror
     spp_fld_load,type='mag_SC_4_Sa_per_Cyc'
   endif
 
+  ;----------------------
+  ; FIELDS DFB Spectra
+  ;----------------------
+  pcode=1
+  ip=where(perror eq pcode,cp)
+  if(strmatch(param,'psp_fld_l2_dfb_ac_spec_*') and (cp eq 0))then begin
+    spp_fld_load,type='dfb_ac_spec'
+  endif
+  if(strmatch(param,'psp_fld_l2_dfb_dc_spec_*') and (cp eq 0))then begin
+    spp_fld_load,type='dfb_dc_spec'
+  endif
+
 
   ;----------------------
   ; SWEAP POINTER ADDRESS
