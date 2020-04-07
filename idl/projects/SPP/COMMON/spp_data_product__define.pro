@@ -2,8 +2,8 @@
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-05 17:41:28 -0700 (Sun, 05 Apr 2020) $
-; $LastChangedRevision: 28506 $
+; $LastChangedDate: 2020-04-06 01:08:33 -0700 (Mon, 06 Apr 2020) $
+; $LastChangedRevision: 28510 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -17,17 +17,18 @@ FUNCTION spp_data_product::Init,_EXTRA=ex,data=data
 ;  self.data = dynamicarray(name=self.name)
   self.dict = dictionary()
   if keyword_set(data) then self.data_ptr = ptr_new(data)
-  self.created = systime(1)
+  self.created = time_string(systime(1))
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   RETURN, 1
 END
 
 
-pro spp_data_product::savedat,data
+pro spp_data_product::savedat,data,add_index=add_index,no_copy=no_copy
   if ~ptr_valid(self.data_ptr) then self.data_ptr = ptr_new(data) else *self.data_ptr = data
-  if isa(data,'struct') then begin
-    str_element,/add,*self.data_ptr,'index',lindgen(n_elements(*self.data_ptr) )
+  if keyword_set(add_index) && isa(data,'struct') then begin
+    str_element,*self.data_ptr,'index',index
+    if ~isa(index) then   str_element,/add,*self.data_ptr,'index',lindgen(n_elements(*self.data_ptr) )
   endif
 end
 
@@ -156,7 +157,7 @@ PRO spp_data_product__define
   void = {spp_data_product, $
     inherits generic_object, $    ; superclas
     name: '',  $
-    created: 0d, $
+    created: '', $
     dict: obj_new() , $
     data_ptr: ptr_new() $
     ;user_ptr: ptr_new() $

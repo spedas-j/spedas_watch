@@ -66,17 +66,17 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
       ; We want the TMlib time here because we want to compare collection
       ; times (MET) with command times, which are in MET (i.e. not corrected
       ; to UTC).
-      ; 
+      ;
 
-      dummy = psp_fld_met_to_utc(long(burst_collect_met), $
-        lonarr(n_elements(burst_collect_met)), $
-        tmlib_t = tmlib_collect_t)
+      tmlib_collect_t = time_double('2010-01-01') + burst_collect_met + $
+        lonarr(n_elements(burst_collect_met)) / 65536d
 
       store_data, b + '_COLLECT_TIME', $
         dat = {x:tmlib_collect_t, $
         y:dblarr(n_elements(burst_collect_met)) + 0.5d}
 
-      options, b + '_COLLECT_TIME', 'ytitle', strmid(b,strlen(prefix)) + '!CCOLLECT'
+      options, b + '_COLLECT_TIME', 'ytitle', $
+        strmid(b,strlen(prefix)) + '!CCOLLECT'
       options, b + '_COLLECT_TIME', 'psym', 1
       options, b + '_COLLECT_TIME', 'symsize', 0.5
       options, b + '_COLLECT_TIME', 'colors', burst_colors[i]

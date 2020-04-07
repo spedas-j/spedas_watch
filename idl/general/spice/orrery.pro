@@ -63,10 +63,6 @@
 ;
 ;       RELOAD:    Reload the ephemerides.
 ;
-;       PHASE:     Plot the orbital positions spanning a given
-;                  MGS mission phase.  Input time is ignored.
-;                  Still works, but nobody cares anymore.
-;
 ;       SPIRAL:    Plot the Archmedian spiral of the solar wind
 ;                  magnetic field.  (Only works for inner planets.)
 ;
@@ -92,16 +88,16 @@
 ;                  spanning 1900-2100.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-04-04 11:57:43 -0700 (Sat, 04 Apr 2020) $
-; $LastChangedRevision: 28502 $
+; $LastChangedDate: 2020-04-06 12:34:15 -0700 (Mon, 06 Apr 2020) $
+; $LastChangedRevision: 28513 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
 ;-
 pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, $
-                  eph=eph, phase=phase, spiral=spiral, Vsw=Vsw, movie=movie, $
-                  stereo=stereo, keepwin=keepwin, tplot=tplot, reload=reload, $
-                  outer=outer, xyrange=range
+                  eph=eph, spiral=spiral, Vsw=Vsw, movie=movie, stereo=stereo, $
+                  keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
+                  xyrange=range
 
 common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune, $
                   pluto, sta, stb
@@ -152,13 +148,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
 
   if keyword_set(reset) then Owin = -1
 
-; Get the reference time
-
-  if (data_type(phase) eq 7) then begin
-    time = mgs_phase(phase,/inv)
-    if (time[0] eq 0D) then return
-    pmsg = strupcase(phase)
-  endif else phase = ''
+; Get the time
 
   if (data_type(time) eq 0) then time = systime(/sec,/utc)
 
@@ -174,6 +164,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
     tref = [tmin, tmin, tmin]
     t = [tmin]
   endelse
+  npts = n_elements(t)
 
 ; Load ephemerides into the common block
 
@@ -485,17 +476,17 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
     print,'done'
   endif
 
-  eph = { mercury : mercury , $
-          venus   : venus   , $
-          earth   : earth   , $
-          mars    : mars    , $
-          jupiter : jupiter , $
-          saturn  : saturn  , $
-          uranus  : uranus  , $
-          neptune : neptune , $
-          pluto   : pluto   , $
-          sta     : sta     , $
-          stb     : stb        }
+  eph = { mercury  : mercury , $
+          venus    : venus   , $
+          earth    : earth   , $
+          mars     : mars    , $
+          jupiter  : jupiter , $
+          saturn   : saturn  , $
+          uranus   : uranus  , $
+          neptune  : neptune , $
+          pluto    : pluto   , $
+          stereo_A : sta     , $
+          stereo_B : stb        }
 
   if ((tmin lt min(earth.time)) or (tmax gt max(earth.time))) then begin
     print, "Time is out of ephemeris range."
@@ -801,9 +792,6 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
         xyouts, xs, ys, tmsg, /norm, charsize=1.5*zscl
         ys -= dys
 
-        pmsg = strupcase(mgs_phase(t))
-        xyouts, xs, ys, pmsg, /norm, charsize=1.5*zscl
-
       endif
 
       wset,Twin
@@ -954,8 +942,9 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
   for i=0,ipmax do oplot, [xp[i,*]], [yp[i,*]], color=pcol[i], thick=2
 
   oplot, [0.], [0.], psym=8, symsize=5*zscl, color=5
-  npts = n_elements(t)
-  j = [0L, (npts-1L)/2L, (npts-1L)]
+
+  count = n_elements(j)
+  j = [0L, (count/2L), (count-1L)]
   for i=0,ipmax do oplot, [xp[i,j]], [yp[i,j]], psym=8, symsize=psze[i]*zscl, color=pcol[i]
 
   if (sflg) then begin
@@ -1049,20 +1038,17 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
     xs = 0.14  ; upper left
     ys = 0.92
 
-    if (phase ne '') then begin
+    if (npts gt 0) then begin
       tmsg = strmid(time_string(tmin),0,10)
       xyouts, xs, ys, tmsg, /norm, charsize=1.5*zscl
       ys -= dys
       tmsg = strmid(time_string(tmax),0,10)
       xyouts, xs, ys, tmsg, /norm, charsize=1.5*zscl
       ys -= dys
-      xyouts, xs, ys, pmsg, /norm, charsize=1.5*zscl
     endif else begin
       tmsg = time_string(tavg)
       xyouts, xs, ys, tmsg, /norm, charsize=1.5*zscl
       ys -= dys
-      pmsg = strupcase(mgs_phase(tavg))
-      xyouts, xs, ys, pmsg, /norm, charsize=1.5*zscl
     endelse
   endif
 

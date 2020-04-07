@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-05 17:46:51 -0700 (Sun, 05 Apr 2020) $
-; $LastChangedRevision: 28507 $
+; $LastChangedDate: 2020-04-05 22:29:42 -0700 (Sun, 05 Apr 2020) $
+; $LastChangedRevision: 28508 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -64,7 +64,9 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
     if keyword_set(overlay) then begin   ; && strmatch(type,'[sa]f??')
       xyz_to_polar,prefix+'VEL'
       get_data,prefix+'VEL_mag',time,vel_mag
-      store_data,prefix+'NRG0',time,velocity(vel_mag,/proton,/inverse)
+      mass = 1836*511000. / (299792.^2)  ; mass/q of proton
+      if strmatch(type,'??0[1a]') then mass= mass*2
+      store_data,prefix+'NRG0',time,velocity(vel_mag,mass,/inverse)
       vname_nrg = prefix+['EFLUX_VS_ENERGY','NRG0']
       vname_th  = prefix+['EFLUX_VS_THETA','VEL_th']
       vname_phi = prefix+['EFLUX_VS_PHI','VEL_phi']
@@ -87,9 +89,9 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
         endif
       endif
 
-      store_data,prefix+'EFLUX_VS_ENERGY_OVL',data = vname_nrg,dlimit={yrange:[100.,20000.],ylog:1,zlog:1}
-      store_data,prefix+'EFLUX_VS_THETA_OVL',data =vname_th ,dlimit={yrange:[-60,60],ylog:0,zlog:1}
-      store_data,prefix+'EFLUX_VS_PHI_OVL',data = vname_phi,dlimit={yrange:[90.,190.],ylog:0,zlog:1}
+      store_data,prefix+'EFLUX_VS_ENERGY_OVL',data = vname_nrg,dlimit={yrange:[100.,20000.],ylog:1,zlog:1,ystyle:3}
+      store_data,prefix+'EFLUX_VS_THETA_OVL',data =vname_th ,dlimit={yrange:[-60,60],ylog:0,zlog:1,ystyle:3}
+      store_data,prefix+'EFLUX_VS_PHI_OVL',data = vname_phi,dlimit={yrange:[90.,190.],ylog:0,zlog:1,ystyle:3}
     endif
 
   endforeach

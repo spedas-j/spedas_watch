@@ -1,10 +1,10 @@
 ;+
 ;  spp_data_product_hash
 ;  This basic object is the entry point for defining and obtaining all data for all data products
-; $LastChangedBy:  $
-; $LastChangedDate: 2019-01-29 16:17:12 -0800 (Tue, 29 Jan 2019) $
-; $LastChangedRevision:  $
-; $URL: svn+ssh://thmsvn@pro $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-06 01:11:48 -0700 (Mon, 06 Apr 2020) $
+; $LastChangedRevision: 28511 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product_hash.pro $
 ;-
 ;COMPILE_OPT IDL2
 
@@ -14,30 +14,38 @@ FUNCTION spp_data_product_hash,name,data,help=help,delete=delete
   common spp_data_product_com, alldat
   if ~ keyword_set(alldat) then begin
     dprint,'Initializing Storage space'
-    alldat = orderedhash()
+    alldat = dictionary()
   endif
   if keyword_set(help) then begin
     print,alldat.keys()
   endif
-  if isa(name,/string) then begin
-    if ~ alldat.haskey(name) then begin
+  if n_params() eq 2 then begin
+    if  ~alldat.haskey(name) then begin
       dp = spp_data_product(name=name)
       alldat[name] = dp
-    endif else begin
-      dp = alldat[name]
-      if keyword_set(delete) then begin
-        alldat.remove,name
-        obj_destroy,dp
-        return,!null
-      endif
-    endelse
+    endif else dp= alldat[name]
     if isa(data) then begin
       dp.savedat, data
     endif
-    return,dp
+    return,dp    
   endif
-  return,!null
-END
+  
+  if n_params() eq 1 then begin
+    if ~alldat.haskey(name) then begin
+      dprint,'Nothing saved with the name: '+name
+      return, !null
+    endif
+    dp = alldat[name]
+    if keyword_set(delete) then begin
+      alldat.remove,name
+      obj_destroy,dp
+      return,!null
+    endif
+    return,dp
+  endif  
+  return, !null
+end
+  
 
 
 
