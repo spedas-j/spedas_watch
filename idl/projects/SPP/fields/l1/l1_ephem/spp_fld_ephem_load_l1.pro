@@ -36,6 +36,11 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
     options, prefix + 'radial_velocity', 'ysubtitle', '[km/s]'
     options, prefix + 'radial_distance_rs', 'ysubtitle', '[Rs]'
 
+    store_data, prefix + 'radial_distance_label', $
+      data = {x:pos_dat.x, y:total(pos_dat.y,2)/rs}
+
+    options, prefix + 'radial_distance_label', 'ytitle', 'Rad. Dist. [Rs]'
+
   endif
 
   if frame EQ 'spp_vso' then begin
@@ -107,7 +112,8 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
   if ephem_names[0] NE '' then begin
 
-    if (frame EQ 'spp_rtn' or frame EQ 'spp_hertn') then labels = ['R', 'T', 'N'] else labels = ['X', 'Y', 'Z']
+    if (frame EQ 'spp_rtn' or frame EQ 'spp_hertn') then $
+      labels = ['R', 'T', 'N'] else labels = ['X', 'Y', 'Z']
 
     foreach name, ephem_names do begin
 
@@ -130,7 +136,8 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
           if strpos(name, 'vector') NE -1 then begin
 
-            options, name, 'labels', 'SC' + strupcase(strmid(name_no_prefix, 3, 1)) + '-' + labels
+            options, name, 'labels', 'SC' + $
+              strupcase(strmid(name_no_prefix, 3, 1)) + '-' + labels
 
           endif
 
@@ -139,7 +146,12 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
       options, name, 'ynozero', 1
 
-      options, name, 'ytitle', 'PSP!C' + strupcase(frame) + '!C' + name_no_prefix
+      if strpos(name, '_label') LT 0 then begin
+
+        options, name, 'ytitle', $
+          'PSP!C' + strupcase(frame) + '!C' + name_no_prefix
+
+      end
 
       if n_elements(d.x) GT 1 then begin
         options, name, 'psym_lim', 100

@@ -31,7 +31,8 @@
 ;       + 2018-08-03, I. Cohen          : removed "fix" from 2018-08-02; changed energy ranges to correctly
 ;                                         handle burst data
 ;       + 2018-10-19, I. Cohen          : fixed issue in matching phxtof/extof timing when there are more extof events
-;                                         
+;       + 2020-04-07, S. Bingham        : fixed issue in mismatching phxtof/extof timing & E channel stitching
+                        
 ;-
 pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
   ;
@@ -72,26 +73,76 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
       get_data,extof_vars[aa],data=proton_extof
       get_data,phxtof_vars[aa],data=proton_phxtof
       data_size = [n_elements(proton_phxtof.x),n_elements(proton_extof.x)]
+      
       if (data_size[0] eq data_size[1]) then begin
-        time_data = proton_phxtof.x
-        phxtof_spec_data = proton_phxtof.y
-        extof_spec_data = proton_extof.y
+        
+        bad_inds = WHERE(proton_phxtof.x - proton_extof.x NE 0, bad_count) ; identify mismatching timesteps
+        IF bad_count GT 0 THEN BEGIN ; If mismatching timesteps, find like timesteps
+          flag = 0
+          FOR tt = 0, N_ELEMENTS(proton_extof.x)-1 DO BEGIN
+            dt_dummy = MIN(ABS(proton_extof.x[tt]-proton_phxtof.x),t_ind)
+            IF dt_dummy EQ 0 then begin
+              IF flag EQ 0 THEN e_inds = tt ELSE e_inds = [e_inds,tt]
+              IF flag EQ 0 THEN ph_inds = tt ELSE ph_inds = [ph_inds,t_ind]
+              flag = 1
+            ENDIF
+          ENDFOR
+          time_data = proton_extof.x[e_inds]
+          phxtof_spec_data = proton_phxtof.y[ph_inds,*]
+          extof_spec_data = proton_extof.y[e_inds,*]
+        ENDIF ELSE BEGIN
+          time_data = proton_phxtof.x
+          phxtof_spec_data = proton_phxtof.y
+          extof_spec_data = proton_extof.y
+        ENDELSE 
       endif else if (data_size[0] gt data_size[1]) then begin
-        time_data = proton_extof.x
-        phxtof_spec_data = proton_phxtof.y[0:n_elements(proton_extof.x)-1,*]
-        extof_spec_data = proton_extof.y
+      bad_inds = WHERE(proton_phxtof.x[0:n_elements(proton_extof.x)-1] - proton_extof.x NE 0, bad_count) ; identify mismatching timesteps
+        IF bad_count GT 0 THEN BEGIN ; If mismatching timesteps, find like timesteps
+          flag = 0
+          FOR tt = 0, N_ELEMENTS(proton_extof.x)-1 DO BEGIN
+            dt_dummy = MIN(ABS(proton_extof.x[tt]-proton_phxtof.x),t_ind)
+            IF dt_dummy EQ 0 then begin
+              IF flag EQ 0 THEN e_inds = tt ELSE e_inds = [e_inds,tt]
+              IF flag EQ 0 THEN ph_inds = tt ELSE ph_inds = [ph_inds,t_ind]
+              flag = 1
+            ENDIF
+          ENDFOR
+          time_data = proton_extof.x[e_inds]
+          phxtof_spec_data = proton_phxtof.y[ph_inds,*]
+          extof_spec_data = proton_extof.y[e_inds,*]
+        ENDIF ELSE BEGIN
+          time_data = proton_extof.x
+          phxtof_spec_data = proton_phxtof.y[0:n_elements(proton_extof.x)-1,*]
+          extof_spec_data = proton_extof.y
+        ENDELSE
       endif else if (data_size[0] lt data_size[1]) then begin
-        time_data = proton_phxtof.x
-        phxtof_spec_data = proton_phxtof.y
-        extof_spec_data = proton_extof.y[0:n_elements(proton_phxtof.x)-1,*]
+        bad_inds = WHERE(proton_phxtof.x - proton_extof.x[0:n_elements(proton_phxtof.x)-1] NE 0, bad_count) ; identify mismatching timesteps
+        IF bad_count GT 0 THEN BEGIN ; If mismatching timesteps, find like timesteps
+          flag = 0
+          FOR tt = 0, N_ELEMENTS(proton_phxtof.x)-1 DO BEGIN
+            dt_dummy = MIN(ABS(proton_phxtof.x[tt]-proton_extof.x),t_ind)
+            IF dt_dummy EQ 0 then begin
+              IF flag EQ 0 THEN ph_inds = tt ELSE ph_inds = [ph_inds,tt]
+              IF flag EQ 0 THEN e_inds = tt ELSE e_inds = [e_inds,t_ind]
+              flag = 1
+            ENDIF
+          ENDFOR
+          time_data = proton_phxtof.x[ph_inds]
+          phxtof_spec_data = proton_phxtof.y[ph_inds,*]
+          extof_spec_data = proton_extof.y[e_inds,*]
+        ENDIF ELSE BEGIN
+          time_data = proton_phxtof.x
+          phxtof_spec_data = proton_phxtof.y
+          extof_spec_data = proton_extof.y[0:n_elements(proton_phxtof.x)-1,*]
+        ENDELSE
       endif
 ;      if (total(where(phxtof_spec_data eq 0)) ge 0) then phxtof_spec_data[where(phxtof_spec_data eq 0)] = !Values.d_NAN
 ;      if (total(where(extof_spec_data eq 0) ge 0)) then extof_spec_data[where(extof_spec_data eq 0)] = !Values.d_NAN
-      ;
-      target_phxtof_energies = where((proton_phxtof.v lt 52), n_target_phxtof_energies)
-      target_phxtof_crossover_energies = where(proton_phxtof.v gt 52, n_target_phxtof_crossover_energies)
-      target_extof_crossover_energies = where(proton_extof.v lt 82, n_target_extof_crossover_energies)
-      target_extof_energies = where(proton_extof.v gt 82, n_target_extof_energies)
+      ; Find xPH E below xE E, cross-over E below highest xPH E, and xE E above second highest xPH E
+      target_phxtof_energies = where((proton_phxtof.v lt proton_extof.v[0]), n_target_phxtof_energies)
+      target_phxtof_crossover_energies = where(proton_phxtof.v gt proton_extof.v[0] AND proton_phxtof.v lt proton_phxtof.v[-1] , n_target_phxtof_crossover_energies)
+      target_extof_crossover_energies = where(proton_extof.v lt proton_phxtof.v[N_ELEMENTS(proton_phxtof.v)-2], n_target_extof_crossover_energies)
+      target_extof_energies = where(proton_extof.v gt proton_phxtof.v[N_ELEMENTS(proton_phxtof.v)-2], n_target_extof_energies)
       n_energies = n_target_phxtof_energies +  n_target_phxtof_crossover_energies + n_target_extof_energies
       combined_energy_low = dblarr(n_energies)
       combined_energy_hi = dblarr(n_energies)
@@ -110,10 +161,11 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
         combined_energy_hi[n_target_phxtof_energies+ii] = max([[proton_phxtof.v[n_target_phxtof_energies+ii] + phxtof_energy_plus.y[n_target_phxtof_energies+ii]],[proton_extof.v[ii] + extof_energy_plus.y[ii]]],/NAN)
         combined_energy[n_target_phxtof_energies+ii] = sqrt(combined_energy_low[n_target_phxtof_energies+ii]*combined_energy_hi[n_target_phxtof_energies+ii])
       endfor
-      combined_array[*,n_elements(proton_phxtof.v):-1] = extof_spec_data[*,target_extof_energies]
-      combined_energy[n_elements(proton_phxtof.v):-1] = proton_extof.v[target_extof_energies]
-      combined_energy_low[n_elements(proton_phxtof.v):-1] = proton_extof.v[target_extof_energies] - extof_energy_minus.y[target_extof_energies]
-      combined_energy_hi[n_elements(proton_phxtof.v):-1] = proton_extof.v[target_extof_energies] + extof_energy_plus.y[target_extof_energies]
+    ;  stop
+      combined_array[*,n_elements(proton_phxtof.v)-1:-1] = extof_spec_data[*,target_extof_energies]
+      combined_energy[n_elements(proton_phxtof.v)-1:-1] = proton_extof.v[target_extof_energies]
+      combined_energy_low[n_elements(proton_phxtof.v)-1:-1] = proton_extof.v[target_extof_energies] - extof_energy_minus.y[target_extof_energies]
+      combined_energy_hi[n_elements(proton_phxtof.v)-1:-1] = proton_extof.v[target_extof_energies] + extof_energy_plus.y[target_extof_energies]
       ;
       combined_array[where(finite(combined_array) eq 0)] = 0d
       store_data,eis_prefix+'combined_proton_P'+p_num[0]+'_'+data_units+'_t'+strtrim(string(aa),2)+suffix,data={x:time_data,y:combined_array,v:combined_energy}

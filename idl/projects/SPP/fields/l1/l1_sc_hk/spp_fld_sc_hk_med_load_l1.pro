@@ -66,5 +66,58 @@ pro spp_fld_sc_hk_med_load_l1, file, prefix = prefix, varformat = varformat
 
   options, prefix + 'F_MAG_SRV_HTR_CURR', 'ytitle', 'MAG_SRV!CHTR_CURR'
 
+  ; If this routine was called in the standard SPEDAS method of setting
+  ; a timespan and using spp_fld_load, then create a variable 'on indicator'
+  ; showing FIELDS1 and FIELDS2 status during the specified timespan.
+
+  @tplot_com.pro
+  str_element,tplot_vars,'options.trange_full',trange_full
+  if n_elements(trange_full) EQ 2 then begin
+
+    get_timespan, ts
+
+    t = double(time_intervals(trange=ts, /minute))
+
+    f1 = data_cut('spp_fld_sc_hk_med_F1_CURR', t)
+
+    f2 = data_cut('spp_fld_sc_hk_med_F2_CURR', t)
+
+    f1_scaled = (f1 GT 0.2) * (f1 / f1) ; last bit is just so NaN -> NaN
+
+    f2_scaled = (f2 GT 0.2) * (f2 / f2)
+
+    store_data, prefix + 'fields_on_indicator', $
+      data = {x:t, y:[[f1_scaled], [f2_scaled]]}
+
+    options, prefix + 'fields_on_indicator', 'spec', 1
+    options, prefix + 'fields_on_indicator', 'no_interp', 2
+    options, prefix + 'fields_on_indicator', 'color_table', 4
+    options, prefix + 'fields_on_indicator', 'reverse_color_table', 1
+
+    options, prefix + 'fields_on_indicator', 'no_color_scale', 1
+    options, prefix + 'fields_on_indicator', 'yrange', [0,1]
+    options, prefix + 'fields_on_indicator', 'zrange', [0.,1.]
+    options, prefix + 'fields_on_indicator', 'yticks', 1
+    options, prefix + 'fields_on_indicator', 'yminor', 1
+    options, prefix + 'fields_on_indicator', 'panel_size', 0.25
+    options, prefix + 'fields_on_indicator', 'top', 255 - 112
+    options, prefix + 'fields_on_indicator', 'bottom', 255 - 144
+
+    options, prefix + 'fields_on_indicator', 'ytitle', 'FLD!CON'
+
+    y_vals = ['1 ', ' 2']
+
+    n_y = n_elements(y_vals)
+
+    yticks = n_elements(y_vals)+1
+    ytickname = [' ', y_vals, ' ']
+    yticknamelen = fltarr(n_elements(ytickname))
+    ytickv = [0., (0.5+findgen(n_y))/n_y, 1.]
+
+    options, prefix + 'fields_on_indicator', 'yticks', yticks
+    options, prefix + 'fields_on_indicator', 'ytickname', ytickname
+    options, prefix + 'fields_on_indicator', 'ytickv', ytickv
+
+  endif
 
 end

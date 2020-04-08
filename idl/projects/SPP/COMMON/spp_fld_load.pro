@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-04-05 15:46:23 -0700 (Sun, 05 Apr 2020) $
-; $LastChangedRevision: 28503 $
+; $LastChangedDate: 2020-04-07 16:36:23 -0700 (Tue, 07 Apr 2020) $
+; $LastChangedRevision: 28521 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -36,6 +36,10 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   dummy = where(l1_types EQ type, l1_type_flag)
   
   if (strpos(type, 'ephem') EQ 0) or (l1_type_flag NE 0) then level = 1
+
+  if (strpos(type, 'sc_hk_') EQ 0) or (strpos(type, 'sc_fsw_') EQ 0) then $
+    level = 1
+
 
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
     type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin
