@@ -23,6 +23,9 @@ pro spp_swp_wrapper_apdat::handler2, buffer, wrap_ccsds=wrap_ccsds,source_dict=s
 ;    dprint,dlevel = self.dlevel+3, 'compressed packet ',wrapper_header[10] 
     buffer = spp_swp_swem_part_decompress_data(buffer,decomp_size =  decomp_size, /stuff_size )
     wrap_ccsds.content_decomp_size = decomp_size
+    if decomp_size gt 4096+20 then begin
+      dprint,'Bad decompressed packet'
+    endif
     dprint,dlevel = self.dlevel+3,decomp_size     
   endif
   if debug(self.dlevel+5) then begin

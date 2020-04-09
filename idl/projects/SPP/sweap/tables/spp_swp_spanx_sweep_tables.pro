@@ -7,8 +7,8 @@
 ;     new_defl - Set to use calibrated deflector values.
 ;
 ; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2020-02-03 14:37:14 -0800 (Mon, 03 Feb 2020) $
-; $LastChangedRevision: 28269 $
+; $LastChangedDate: 2020-04-08 09:50:14 -0700 (Wed, 08 Apr 2020) $
+; $LastChangedRevision: 28528 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spanx_sweep_tables.pro $
 ;
 ;-
@@ -54,7 +54,7 @@ function spp_swp_spanx_sweep_tables,erange,deflrange,plot=plot,emode=emode,senso
 
    ;; Targeted Index
    FOR i=0, 255 DO BEGIN
-      spp_swp_sweepv_new_tslut_v2,version=version,sweepv,defv1,defv2,spv,fsindex_tmp,tsindex,plot=plot,nen=nen,e0=e0,emax=emax,edpeak=i,spfac=spfac,new_defl=new_defl
+      spp_swp_sweepv_new_tslut_v2,version=version,sweepv,defv1,defv2,spv,fsindex_tmp,tsindex,plot=plot,nen=nen,e0=emin,emax=emax,edpeak=i,spfac=spfac,new_defl=new_defl
       IF i EQ 0 THEN index = tsindex ELSE index = [index,tsindex]      
    ENDFOR
    tsindex = index

@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-04-07 16:36:23 -0700 (Tue, 07 Apr 2020) $
-; $LastChangedRevision: 28521 $
+; $LastChangedDate: 2020-04-08 18:12:06 -0700 (Wed, 08 Apr 2020) $
+; $LastChangedRevision: 28535 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -40,6 +40,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   if (strpos(type, 'sc_hk_') EQ 0) or (strpos(type, 'sc_fsw_') EQ 0) then $
     level = 1
 
+  if strpos(type, 'dfb_wf_vdc') EQ 0 and type NE 'dfb_wf_vdc' then level = 1.5
 
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
     type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin

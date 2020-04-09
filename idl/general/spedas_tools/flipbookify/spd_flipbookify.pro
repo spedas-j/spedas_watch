@@ -87,8 +87,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-01-28 13:47:37 -0800 (Mon, 28 Jan 2019) $
-; $LastChangedRevision: 26503 $
+; $LastChangedDate: 2020-04-07 19:02:05 -0700 (Tue, 07 Apr 2020) $
+; $LastChangedRevision: 28524 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/flipbookify/spd_flipbookify.pro $
 ;-
 
@@ -133,6 +133,8 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
   endif
 
   times = spd_times_from_top_panel()
+  
+  if times[0] eq -1 then return ; no tplot window found
   
   if undefined(trange) then trange = time_double(minmax(times)) else begin
     ; the user specified a trange, so we need to limit the slices to that trange
