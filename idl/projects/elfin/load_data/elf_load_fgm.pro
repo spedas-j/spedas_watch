@@ -83,7 +83,7 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   if undefined(probes) then probes = ['a', 'b'] else probes=strlowcase(probes)
   if probes EQ ['*'] then probes = ['a', 'b']
   if n_elements(probes) GT 2 then begin
-    dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
+    dprint, dlevel = 1, 'There are 2 ELFIN probes - a and b. Please select again.'
     return
   endif
   ; check for valid probe names

@@ -84,7 +84,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if undefined(probes) then probes = ['a', 'b'] 
   if probes EQ ['*'] then probes = ['a', 'b']
   if n_elements(probes) GT 2 then begin
-    dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
+    dprint, dlevel = 1, 'There are 2 ELFIN probes - a and b. Please select again.'
     return
   endif
 
@@ -122,7 +122,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   ;if undefined(datatype) AND level eq 'l2' then datatype = ['pef_eflux'] $
   ;  else datatype = strlowcase(datatype)
   if undefined(data_rate) then data_rate = ['fast'] else data_rate=strlowcase(data_rate)
-  if data_rate EQ  '*' then data_rate = ['fast']  ;, 'srvy'] NO SURVEY DATA YET
+  if data_rate EQ '*' then data_rate = ['fast']  ;, 'srvy'] NO SURVEY DATA YET
 
   if undefined(type) then type='eflux' else type=type
   if type EQ 'cal' || type EQ 'calibrated' then type='eflux'

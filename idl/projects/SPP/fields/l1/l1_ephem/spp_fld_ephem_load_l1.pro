@@ -130,7 +130,7 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
       if ndims EQ 2 then begin
         if dims[1] EQ 3 then begin
-          options, name, 'colors', 'rgb'
+          options, name, 'colors', 'bgr'
 
           options, name, 'labels', labels
 

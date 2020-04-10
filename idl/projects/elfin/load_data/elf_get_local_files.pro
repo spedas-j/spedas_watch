@@ -80,20 +80,37 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
 
   dir_pattern = strjoin(dir_inputs, s) + s   ; + '('+s+dir_datatype+')?' +s+ '[0-9]{4}' +s+ '[0-9]{2}' + s
   if instrument eq 'state' then begin
-     if keyword_set(pred) then dir_pattern = dir_pattern + 'pred' + s $
+     if keyword_set(pred) then dir_pattern = dir_pattern + 'pred/' + s $
         else dir_pattern = dir_pattern + 'defn' + s
   endif
+  if instrument eq 'epd' then begin
+    if datatype EQ 'pes' OR datatype EQ 'pis' then dir_pattern = dir_pattern + 'survey' + s $
+       else dir_pattern = dir_pattern + 'fast' + s
+  endif
+  if instrument eq 'fgm' then begin
+    if datatype EQ 'fgs' then dir_pattern = dir_pattern + 'survey' + s $
+    else dir_pattern = dir_pattern + 'fast' + s
+  endif
+
   if instrument EQ 'epd' && level EQ 'l1' then file_inputs = [probe, level, instrument+strmid(datatype, 1, 2)] $
      else file_inputs = [probe, level, instrument]
   if instrument EQ 'fgm' && level EQ 'l1' then file_inputs = [probe, level, datatype]
 
   if instrument eq 'state' then begin
-     if keyword_set(pred) then state_type = 'pred' else state_type = 'defn'
-     file_pattern = strjoin( file_inputs, f) + f + state_type + f + '([0-9]{8})'
+    if keyword_set(pred) then state_type = 'pred' else state_type = 'defn'
+    file_pattern = strjoin( file_inputs, f) + f + state_type + f + '([0-9]{8})'
   endif else begin
      file_pattern = strjoin( file_inputs, f) + f + '([0-9]{8})'
   endelse
-       
+;  if instrument eq 'epd' then begin
+;    if datatype EQ 'pes' OR datatype EQ 'pis' then epd_type = 'survey' else epd_type = 'fast'
+;    file_pattern = strjoin( file_inputs, f) + f + epd_type + f + '([0-9]{8})'
+;  endif
+;  if instrument eq 'fgm' then begin
+;    if datatype EQ 'fgs' then fgm_type = 'survey' else fgm_type = 'fast'
+;    file_pattern = strjoin( file_inputs, f) + f + fgm_type + f + '([0-9]{8})'
+;  endif
+  
   ;escape backslash in case of Windows
   search_pattern = escape_string(dir_pattern  + file_pattern, list='\')
   ;get list of all .cdf files in local directory

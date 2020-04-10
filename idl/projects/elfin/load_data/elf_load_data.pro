@@ -222,22 +222,30 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
           ; set up the path names
           ;if instrument EQ state then handle predicted vs definitive data directories
-          state_subdir = ''
+          subdir = ''
           if instrument EQ 'state' then begin
-            if pred then state_subdir='pred/' else state_subdir='defn/'           
+            if pred then subdir='pred/' else subdir='defn/'           
           endif
-
-          remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + state_subdir
+          if instrument EQ 'epd' then begin
+             if datatype EQ 'pes' OR datatype EQ 'pis' $
+               then subdir = 'survey/' else subdir = 'fast/'
+          endif
+          if instrument EQ 'fgm' then begin
+            if datatype EQ 'fgs' then subdir = 'survey/' else subdir = 'fast/'
+          endif
+          remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
           if keyword_set(public_data) then begin
             slen=strlen(remote_data_dir)
             this_remote=strmid(remote_data_dir,0,slen-6)
-            remote_path = this_remote + strlowcase(probe) + '/' + level + '/' + instrument + '/' + state_subdir
+            remote_path = this_remote + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
           endif
           local_path = filepath('', ROOT_DIR=!elf.local_data_dir, $
-            SUBDIRECTORY=[probe, level, instrument]) + state_subdir
+            SUBDIRECTORY=[probe, level, instrument]) + subdir 
 
           if strlowcase(!version.os_family) eq 'windows' then local_path = strjoin(strsplit(local_path, '/', /extract), path_sep())
           if instrument EQ 'state' then local_path = spd_addslash(local_path)
+          if instrument EQ 'epd' then local_path = spd_addslash(local_path)
+          if instrument EQ 'fgm' then local_path = spd_addslash(local_path)
 
           for file_idx = 0, n_elements(fnames)-1 do begin 
 
@@ -246,6 +254,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               if no_download eq 0 then begin
                 if file_test(local_path,/dir) eq 0 then file_mkdir2, local_path
                 dprint, dlevel=1, 'Downloading ' + fnames[file_idx] + ' to ' + local_path                    
+
                 paths = spd_download(remote_file=fnames[file_idx], remote_path=remote_path, $
                                      local_file=fnames[file_idx], local_path=local_path, $
                                      url_username=user, url_password=pw, ssl_verify_peer=1, $
@@ -254,6 +263,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                    dprint, devel=1, 'Unable to download ' + fnames[file_idx] else $
                    append_array, files, local_path+fnames[file_idx]
               endif              
+
               ; if remote file not found or no_download set then look for local copy
               if paths EQ '' OR no_download NE 0 then begin                
                 ; get all files from the beginning of the first day
