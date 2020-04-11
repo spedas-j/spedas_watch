@@ -6,10 +6,10 @@
 ; CREATED BY: Mitsuo Oka   Sep 2018
 ;
 ;
-; $LastChangedBy: moka $
-; $LastChangedDate: 2015-07-16 11:34:01 -0700 (Thu, 16 Jul 2015) $
-; $LastChangedRevision: 18152 $
-; $URL: svn+ssh://ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/sitl/eva/eva.pro $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-09 22:07:09 -0700 (Thu, 09 Apr 2020) $
+; $LastChangedRevision: 28539 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sppeva/source/selection/sppeva_sitl.pro $
 ;-
 ;
 ; For a given time range 'trange', create "segSelect"

@@ -1,7 +1,7 @@
 ;
 ;  $LastChangedBy: pulupalap $
-;  $LastChangedDate: 2019-07-10 10:58:32 -0700 (Wed, 10 Jul 2019) $
-;  $LastChangedRevision: 27428 $
+;  $LastChangedDate: 2020-04-10 12:31:50 -0700 (Fri, 10 Apr 2020) $
+;  $LastChangedRevision: 28546 $
 ;  $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/l1/l1_dfb_hk/spp_fld_dfb_hk_load_l1.pro $
 ;
 
@@ -10,6 +10,28 @@ pro spp_fld_dfb_hk_load_l1, file, prefix = prefix, varformat = varformat
   if not keyword_set(prefix) then prefix = 'spp_fld_dfb_hk_'
 
   cdf2tplot, /get_support_data, file, prefix = prefix, varformat = varformat
+
+  options, prefix + 'edc_gain', 'yrange', [-0.25, 1.25]
+  options, prefix + 'edc_gain', 'yticks', 1
+  options, prefix + 'edc_gain', 'ytickv', [0,1]
+  options, prefix + 'edc_gain', 'yminor', 1
+  options, prefix + 'edc_gain', 'ytickname', ['Lo','Hi']
+  options, prefix + 'edc_gain', 'ystyle', 1
+  options, prefix + 'edc_gain', 'colors', [6]
+  options, prefix + 'edc_gain', 'psym_lim', 100
+  options, prefix + 'edc_gain', 'symsize', 0.5
+  options, prefix + 'edc_gain', 'panel_size', 0.35
+  options, prefix + 'edc_gain', 'ytitle', 'DFB EDC Gain'
+  options, prefix + 'edc_gain', 'ysubtitle', ''
+  options, prefix + 'edc_gain', 'datagap', 120
+
+  options, prefix + 'orbital_mode', 'colors', [6]
+  options, prefix + 'orbital_mode', 'psym_lim', 100
+  options, prefix + 'orbital_mode', 'symsize', 0.5
+  options, prefix + 'orbital_mode', 'panel_size', 0.35
+  options, prefix + 'orbital_mode', 'ytitle', 'DFB Mode'
+  options, prefix + 'orbital_mode', 'ysubtitle', ''
+  options, prefix + 'orbital_mode', 'datagap', 120
 
 
 end

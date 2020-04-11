@@ -1,5 +1,6 @@
 ;Load eclipse times for RBSP for current timerange.
 ;Uses the final eclipse files saved locally.
+;(originally from EMFISIS at https://emfisis.physics.uiowa.edu/events/rbsp-a/eclipse/).
 ;Returns a structure with the start and stop times.
 ;Returns NaN values if there are no eclipses within timerange.
 
@@ -25,6 +26,8 @@ function rbsp_load_eclipse_times,sc
     t1[i] = strmid(tmp,31,19) & $
     i++
   endwhile
+
+  close,lun & free_lun,lun
 
   goo = where(t0 eq '')
   t0 = t0[0:goo[0]-1]

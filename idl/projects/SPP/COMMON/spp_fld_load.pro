@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-04-08 18:12:06 -0700 (Wed, 08 Apr 2020) $
-; $LastChangedRevision: 28535 $
+; $LastChangedDate: 2020-04-10 12:32:18 -0700 (Fri, 10 Apr 2020) $
+; $LastChangedRevision: 28547 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -24,23 +24,29 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
     type = 'mag_SC'
     dprint,'Default is: ', type
   endif
-  
+
 
   if not keyword_set(level) then level = 2
 
   ; TODO: remove this line once we have Level 2 ephemeris files
 
   l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_burst', $
-    'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps']
+    'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps', 'dfb_hk']
 
   dummy = where(l1_types EQ type, l1_type_flag)
-  
+
   if (strpos(type, 'ephem') EQ 0) or (l1_type_flag NE 0) then level = 1
 
   if (strpos(type, 'sc_hk_') EQ 0) or (strpos(type, 'sc_fsw_') EQ 0) then $
     level = 1
 
+  ; L1b files are level = 1.5
+
   if strpos(type, 'dfb_wf_vdc') EQ 0 and type NE 'dfb_wf_vdc' then level = 1.5
+
+  ; L1 WF files have level = 1
+
+  if strpos(type, 'dfb_wf') EQ 0 and strlen(type) EQ 8 then level = 1
 
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
     type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin
@@ -249,7 +255,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   if n_elements(longterm_ephem) GT 0 then begin
 
     pathformat = str_sub(pathformat, 'YYYY/MM/', 'full_mis\sion/')
-    
+
     pathformat = str_sub(pathformat, 'YYYYMMDD', $
       '20180812_090000_20250831_090000')
 

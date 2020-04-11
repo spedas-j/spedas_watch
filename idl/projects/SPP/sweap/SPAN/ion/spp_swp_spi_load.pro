@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-05 22:29:42 -0700 (Sun, 05 Apr 2020) $
-; $LastChangedRevision: 28508 $
+; $LastChangedDate: 2020-04-10 15:18:30 -0700 (Fri, 10 Apr 2020) $
+; $LastChangedRevision: 28548 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -46,7 +46,8 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
       vardata = !null
       novardata = !null
       loadcdfstr,filenames=files,vardata,novardata
-      dummy=spp_data_product_hash('spi_'+type+'_'+level,vardata)
+      source=spp_data_product_hash('spi_'+type+'_'+level,vardata)
+      printdat,source
     endif
 
     ;; Do not load the files

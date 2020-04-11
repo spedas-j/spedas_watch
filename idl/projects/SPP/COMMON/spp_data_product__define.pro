@@ -2,21 +2,26 @@
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-06 01:08:33 -0700 (Mon, 06 Apr 2020) $
-; $LastChangedRevision: 28510 $
+; $LastChangedDate: 2020-04-10 17:22:54 -0700 (Fri, 10 Apr 2020) $
+; $LastChangedRevision: 28552 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
 
 
-FUNCTION spp_data_product::Init,_EXTRA=ex,data=data
+FUNCTION spp_data_product::Init,_EXTRA=ex,data=data,filename=filename,name=name
   COMPILE_OPT IDL2
   ; Call our superclass Initialization method.
   void = self->generic_object::Init()
 ;  printdat,ex
 ;  self.data = dynamicarray(name=self.name)
   self.dict = dictionary()
+  if keyword_set(filename) then begin
+    restore,file=filename,/verbose
+  endif
   if keyword_set(data) then self.data_ptr = ptr_new(data)
+  if keyword_set(name) then self.name = name
+  if keyword_set(dict) then self.dict = dict
   self.created = time_string(systime(1))
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
@@ -36,7 +41,9 @@ end
 pro spp_data_product::savefile,filename=filename
    if ~keyword_set(filename) then filename = self.name+'.sav'
    data = *self.data_ptr
-   save,file=filename,/verbose,data
+   name = self.name
+   dict = self.dict
+   save,file=filename,/verbose,data,name,dict
    dprint,'Saved data in file: '+filename,dlevel=1
 end
 
@@ -134,7 +141,6 @@ end
 
 
 PRO spp_data_product::GetProperty,  ptr=ptr, name=name , data=data,dict=dict
-  ; This method can be called either as a static or instance.
   COMPILE_OPT IDL2
 ;  dprint,'hello',dlevel=3
   IF (ARG_PRESENT(ptr)) THEN ptr = self.data_ptr

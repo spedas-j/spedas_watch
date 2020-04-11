@@ -6,8 +6,8 @@
 ;; EXAMPLE:
 ;;
 ;; $LastChangedBy: davin-mac $
-;; $LastChangedDate: 2019-03-25 13:41:53 -0700 (Mon, 25 Mar 2019) $
-;; $LastChangedRevision: 26895 $
+;; $LastChangedDate: 2020-04-10 17:21:57 -0700 (Fri, 10 Apr 2020) $
+;; $LastChangedRevision: 28551 $
 ;; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_param.pro $
 
 
@@ -18,7 +18,7 @@ FUNCTION spp_swp_spi_param, detname = detname,$
                             mmode = mmode,$
                             reset = reset
 
-
+   message,'Obsolete code'
    
    ;; ##############################
    ;; ###   Load Common Blocks   ###

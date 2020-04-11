@@ -6,10 +6,10 @@
 ; INPUT:
 ;   parameterSet: The filename of the parameterSet. e.g.,"01_wi_basic"
 ;   
-; $LastChangedBy: moka $
-; $LastChangedDate: 2015-07-16 11:34:01 -0700 (Thu, 16 Jul 2015) $
-; $LastChangedRevision: 18152 $
-; $URL: svn+ssh://ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/sitl/eva/eva.pro $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-09 22:07:09 -0700 (Thu, 09 Apr 2020) $
+; $LastChangedRevision: 28539 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sppeva/source/data/sppeva_load.pro $
 ;-
 PRO sppeva_load, parameterSet = parameterSet, no_gui=no_gui, force=force, $
   paramlist=paramlist, get_paramlist=get_paramlist

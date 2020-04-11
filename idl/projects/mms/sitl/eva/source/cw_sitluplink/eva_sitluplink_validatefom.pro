@@ -1,13 +1,5 @@
 FUNCTION eva_sitluplink_validateFOM, unix_fomstr
   compile_opt idl2
-
-  tgn = tag_names(unix_fomstr)
-  idx = where(tgn eq 'EVALSTARTTIME',ct)
-  if (ct eq 0) then begin
-    return, 0
-  endif else begin
-   ; if (unix_fomstr.EVALSTARTTIME eq 'N/A') then return, 0
-  endelse
   
   ;---------------------
   ; Validation by Rick

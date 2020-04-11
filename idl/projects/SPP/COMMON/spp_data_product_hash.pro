@@ -2,8 +2,8 @@
 ;  spp_data_product_hash
 ;  This basic object is the entry point for defining and obtaining all data for all data products
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-06 01:11:48 -0700 (Mon, 06 Apr 2020) $
-; $LastChangedRevision: 28511 $
+; $LastChangedDate: 2020-04-10 15:18:30 -0700 (Fri, 10 Apr 2020) $
+; $LastChangedRevision: 28548 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product_hash.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -25,7 +25,7 @@ FUNCTION spp_data_product_hash,name,data,help=help,delete=delete
       alldat[name] = dp
     endif else dp= alldat[name]
     if isa(data) then begin
-      dp.savedat, data
+      dp.savedat, data, /add_index
     endif
     return,dp    
   endif

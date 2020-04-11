@@ -12,7 +12,7 @@
 ;
 ;  By default, this routine shows the inner planets (Mercury
 ;  to Mars).  Use keyword OUTER to show all the planets plus
-;  Pluto.  In this case, the inner planets will be smooshed
+;  Pluto.  In this case, the inner planets will be crowded
 ;  together in the center.  When viewing the inner planets,
 ;  the Archmedian spiral of the solar wind magnetic field can 
 ;  be overlaid (keyword SPIRAL).  Keyword VSW sets the solar 
@@ -25,9 +25,9 @@
 ;
 ;    Earth-Sun-Mars angle (amount of solar rotation E -> M)
 ;    Sun-Mars-Earth angle (elongation of Earth from Mars)
-;    Earth-Mars distance
-;    One-way light time
-;    Subsolar latitude on Mars
+;    Sun-Earth-Mars angle (elongation of Mars from Earth)
+;    One-way light time (Mars to Earth, min)
+;    Subsolar latitude on Mars (deg)
 ;
 ;  Optionally returns (keyword EPH) the orbital positions of 
 ;  the planets plus Pluto for the entire ephemeris time period.
@@ -64,7 +64,7 @@
 ;       RELOAD:    Reload the ephemerides.
 ;
 ;       SPIRAL:    Plot the Archmedian spiral of the solar wind
-;                  magnetic field.  (Only works for inner planets.)
+;                  magnetic field.
 ;
 ;       VSW:       Solar wind velocity for calculating the spiral.
 ;                  Default = 400 km/s.
@@ -80,6 +80,9 @@
 ;                  is incomplete over the 1900-2100 ephemeris range.
 ;
 ;       XYRANGE:   Plot range in X and Y (AU).  Overrides default.
+;                  If one value is supplied, plot range is -XYRANGE
+;                  to +XYRANGE.  If two or more values are supplied,
+;                  then plot range is min(XYRANGE) to max(XYRANGE).
 ;                  If set, then all planets within the plot window
 ;                  are shown, and the Archmedian spiral (if set)
 ;                  extends out to the orbit of Saturn.
@@ -88,8 +91,8 @@
 ;                  spanning 1900-2100.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-04-06 12:34:15 -0700 (Mon, 06 Apr 2020) $
-; $LastChangedRevision: 28513 $
+; $LastChangedDate: 2020-04-10 10:44:12 -0700 (Fri, 10 Apr 2020) $
+; $LastChangedRevision: 28543 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -117,10 +120,10 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
 ; Archmedian spiral parameters
 
   if (size(Vsw,/type) eq 0) then Vsw = 400.
-  omega = 2.7e-6
+  omega = 2.7e-6  ; solar rotation frequency at 30 deg latitude
   Vsw = (Vsw*1d5)/au
   spts = 2000
-  smax = 10.
+  smax = 12.      ; maximum radial distance for spiral (AU)
 
   sflg = keyword_set(stereo)
   mflg = keyword_set(movie)
@@ -135,11 +138,20 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
     xyrange = [-2,2]
     ipmax = 3
   endelse
-  if (n_elements(range) gt 1) then begin
-    xyrange = minmax(range)
-    ipmax = 8
-    oflg = 1
-  endif
+
+  case n_elements(range) of
+     0   : ; do nothing
+     1   : begin
+             xyrange = [-range, range]
+             ipmax = 8
+             oflg = 1
+           end
+    else : begin
+             xyrange = minmax(range)
+             ipmax = 8
+             oflg = 1
+           end
+  endcase
 
   if (size(label,/type) eq 0) then label = 1
   if (oflg) then dolab = label < 1 else dolab = label < 2
@@ -150,7 +162,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
 
 ; Get the time
 
-  if (data_type(time) eq 0) then time = systime(/sec,/utc)
+  if (size(time,/type) eq 0) then time = systime(/sec,/utc)
 
   tmin = min(time_double(time), max=tmax)
   ndays = long((tmax - tmin)/oneday)
@@ -525,19 +537,24 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
     if (count gt 0) then dphi[indx] += 360.
     indx = where(dphi gt 360., count)
     if (count gt 0) then dphi[indx] -= 360.
-    
-    elong = acos((rm*rm + ds*ds - re*re)/(2.*rm*ds))*!radeg
 
     store_data,'ESM',data={x:mars.time, y:dphi}
     ylim,'ESM',0,360,0
     options,'ESM','ytitle','ESM (deg)'
     options,'ESM','yticks',4
     options,'ESM','yminor',3
+
+    elong = acos((rm*rm + ds*ds - re*re)/(2.*rm*ds))*!radeg
     store_data,'SME',data={x:mars.time, y:elong}
     options,'SME','ytitle','SME (deg)'
+
+    elong = acos((re*re + ds*ds - rm*rm)/(2.*re*ds))*!radeg
+    store_data,'SEM',data={x:mars.time, y:elong}
+    options,'SEM','ytitle','SEM (deg)'
+
     store_data,'Lss',data={x:mars.time, y:mars.latss}
     options,'Lss','ytitle','Lss (deg)'
-    
+
   endif
 
 ; Make the plot
@@ -726,14 +743,16 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
           ds = [(xp[3] - xp[2]), (yp[3] - yp[2]), (zp[3] - zp[2])]
           ds = sqrt(total(ds*ds))
     
-          mse = acos((rp[3]*rp[3] + ds*ds - rp[2]*rp[2])/(2.*rp[3]*ds))*!radeg
+          sme = acos((rp[3]*rp[3] + ds*ds - rp[2]*rp[2])/(2.*rp[3]*ds))*!radeg
 
-          msg = string(round(mse), format = '("SME = ",i," deg")')
+          msg = string(round(sme), format = '("SME = ",i," deg")')
           msg = strcompress(msg)
           xyouts,  xs, ys,  msg, /norm, charsize=1.5*zscl
           ys -= dys
+    
+          sem = acos((rp[2]*rp[2] + ds*ds - rp[3]*rp[3])/(2.*rp[2]*ds))*!radeg
 
-          msg = string(ds, format='("E-M = ",f8.2," AU")')
+          msg = string(round(sem), format='("SEM = ",i," deg")')
           msg = strcompress(msg)
           xyouts,  xs, ys,  msg, /norm, charsize=1.5*zscl
           ys -= dys
@@ -943,7 +962,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
 
   oplot, [0.], [0.], psym=8, symsize=5*zscl, color=5
 
-  count = n_elements(j)
+  count = n_elements(xp[2,*])
   j = [0L, (count/2L), (count-1L)]
   for i=0,ipmax do oplot, [xp[i,j]], [yp[i,j]], psym=8, symsize=psze[i]*zscl, color=pcol[i]
 
@@ -976,14 +995,16 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
       ds = [(xp[3,j[1]] - xp[2,j[1]]), (yp[3,j[1]] - yp[2,j[1]]), (yp[3,j[1]] - yp[2,j[1]])]
       ds = sqrt(total(ds*ds))
     
-      mse = acos((rp[3,j[1]]^2. + ds^2. - rp[2,j[1]]^2.)/(2.*rp[3,j[1]]*ds))*!radeg
+      sme = acos((rp[3,j[1]]^2. + ds^2. - rp[2,j[1]]^2.)/(2.*rp[3,j[1]]*ds))*!radeg
 
-      msg = string(round(mse), format = '("SME = ",i," deg")')
+      msg = string(round(sme), format = '("SME = ",i," deg")')
       msg = strcompress(msg)
       xyouts,  xs, ys, msg, /norm, charsize=1.5*zscl
       ys -= dys
+    
+      sem = acos((rp[2,j[1]]^2. + ds^2. - rp[3,j[1]]^2.)/(2.*rp[2,j[1]]*ds))*!radeg
 
-      msg = string(ds, format='("E-M = ",f8.2," AU")')
+      msg = string(ds, format='("SEM = ",i," deg")')
       msg = strcompress(msg)
       xyouts,  xs, ys, msg, /norm, charsize=1.5*zscl
       ys -= dys
@@ -1038,7 +1059,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
     xs = 0.14  ; upper left
     ys = 0.92
 
-    if (npts gt 0) then begin
+    if (npts gt 1) then begin
       tmsg = strmid(time_string(tmin),0,10)
       xyouts, xs, ys, tmsg, /norm, charsize=1.5*zscl
       ys -= dys
