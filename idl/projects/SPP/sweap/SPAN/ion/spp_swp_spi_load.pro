@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-10 15:18:30 -0700 (Fri, 10 Apr 2020) $
-; $LastChangedRevision: 28548 $
+; $LastChangedDate: 2020-04-10 23:29:27 -0700 (Fri, 10 Apr 2020) $
+; $LastChangedRevision: 28554 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -11,7 +11,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
 
   if ~keyword_set(level) then level='L3'
   level=strupcase(level)
-  if ~keyword_set(types) then types=['sf00','sf01','sf0a']
+  if ~keyword_set(types) then types=['sf00']  ;,'sf01','sf0a']
 
   if types[0] eq 'all' then begin
     types=['hkp','fhkp','tof','rates','events']
@@ -77,8 +77,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
         dat = data_cut(spcname,time)       ; interpolate onto span timescale
         if keyword_set(dat) then begin
           store_data,prefix+'SPCVEL',time,dat
-          param=spp_swp_spi_param2(detname='spi')
-          rotmat = param.cal.rotmat_sc_inst
+          rotmat = [[0.0,      0.,       1.],[  -0.93969262,  0.34202014,  0.],[ -0.34202014 , -0.93969262, 0.]]
           newname = rotate_data(prefix+'SPCVEL',rotmat,name='SPI' )   ;,repname='_SC')
           xyz_to_polar,newname,/ph_0_360
           get_data,newname+'_mag',time,vel_mag
@@ -106,9 +105,11 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
   endif
 
   if keyword_set(overlay) then begin
-    options,'psp_swp_spc_l3i_np_fit',colors='b'
-    options,'psp_swp_spc_l3i_np_moment',colors='c'
+;    options,'psp_swp_spc_l3i_np_fit',colors='b'
+;    options,'psp_swp_spc_l3i_np_moment',colors='c'
     store_data,'psp_swp_density',data = 'psp_swp_spc_l3i_np_moment psp_swp_spc_l3i_np_fit psp_swp_spi_??0[01]_L3_DENS',dlimit={yrange:[10,600],ylog:1}
   endif
 
 end
+
+

@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson October 2018
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-04-01 23:39:01 -0700 (Wed, 01 Apr 2020) $
-; $LastChangedRevision: 28476 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-11 14:15:16 -0700 (Sat, 11 Apr 2020) $
+; $LastChangedRevision: 28558 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools_varinfo__define.pro $
 ;-
 
@@ -305,7 +305,12 @@ FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_arra
   void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
   if keyword_set(str_arr) then begin
     str_element,str_arr,name,dat_values
-    all_values = transpose(dat_values)
+    if n_elements(str_arr) gt 1 then begin
+      all_values = transpose(dat_values)
+    endif else begin
+      dprint,'Weird bug.  single value?'
+      all_values = dat_values   ;  Not sure if this is really a fix????
+    endelse
     str_element,str_arr[0],name,value
   endif
   if isa(name,/string) then self.name=name

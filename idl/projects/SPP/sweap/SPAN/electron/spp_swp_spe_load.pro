@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-23 13:10:07 -0700 (Mon, 23 Mar 2020) $
-; $LastChangedRevision: 28454 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-10 23:30:26 -0700 (Fri, 10 Apr 2020) $
+; $LastChangedRevision: 28555 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -17,7 +17,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
     fileformat='spe/L3/SP?_TYP_pad/YYYY/MM/psp_swp_SP?_TYP_L3_pad_YYYYMMDD_v??.cdf'
     ;http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spe/L3/spb_sf0_pad/2018/11/psp_swp_spb_sf0_L3_pad_20181107_v00.cdf
     types = 'sf0'
-    if not keyword_set(spxs) then spxs= ['spe','spa','spb']
+    if not keyword_set(spxs) then spxs= ['spe']
     vars['pad'] = '*'
     normpad =1
 ;    varformat = 'EFLUX*'

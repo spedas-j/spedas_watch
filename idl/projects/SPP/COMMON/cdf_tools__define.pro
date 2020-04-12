@@ -2,9 +2,9 @@
 ; Written by Davin Larson October 2018
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-04-01 23:32:47 -0700 (Wed, 01 Apr 2020) $
-; $LastChangedRevision: 28475 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-11 09:36:59 -0700 (Sat, 11 Apr 2020) $
+; $LastChangedRevision: 28557 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
 ;-
@@ -27,9 +27,9 @@
 ;PURPOSE:
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-04-01 23:32:47 -0700 (Wed, 01 Apr 2020) $
-; $LastChangedRevision: 28475 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-11 09:36:59 -0700 (Sat, 11 Apr 2020) $
+; $LastChangedRevision: 28557 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -49,9 +49,9 @@ function cdf_tools::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
-  sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-04-01 23:32:47 -0700 (Wed, 01 Apr 2020) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 28475 $'
+  sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-04-11 09:36:59 -0700 (Sat, 11 Apr 2020) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 28557 $'
 
     return,sw_hash
 end
@@ -128,7 +128,7 @@ end
 
 pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
   ;  if not keyword_set(self.cdf_pathname) then return
-  dprint,'starting: '+pathname,dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
+  dprint,'starting: '+pathname,dlevel=self.dlevel+1,verbose = isa(verbose) ? verbose : self.verbose
 
   global_attributes = self.g_attributes
   ;  if keyword_set(trange) then begin
