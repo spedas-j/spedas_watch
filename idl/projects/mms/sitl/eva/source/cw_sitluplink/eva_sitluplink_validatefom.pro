@@ -1,6 +1,21 @@
 FUNCTION eva_sitluplink_validateFOM, unix_fomstr
   compile_opt idl2
   
+  tgn = tag_names(unix_fomstr)
+  idxA=where(strlowcase(tgn) eq 'uplinkflag',ctA)
+  idxB=where(strlowcase(tgn) eq 'evalstarttime',ctB)
+  if(ctA eq 0)then begin; If no uplinkflag 
+    return, 0           ; then return with no error
+  endif else begin
+    if (unix_fomstr.UPLINKFLAG) then begin; If UPLINK=1
+      if (ctB eq 0) then begin           ; but no EVALSTARTIME, then error
+        message,'Something is wrong.'
+      endif
+    endif else begin; If UPLINK=0
+      return, 0; then return with no error (because no need to validate)
+    endelse
+  endelse
+  
   ;---------------------
   ; Validation by Rick
   ;---------------------

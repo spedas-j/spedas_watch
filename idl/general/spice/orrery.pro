@@ -14,7 +14,7 @@
 ;  to Mars).  Use keyword OUTER to show all the planets plus
 ;  Pluto.  In this case, the inner planets will be crowded
 ;  together in the center.  When viewing the inner planets,
-;  the Archmedian spiral of the solar wind magnetic field can 
+;  the Archimedean spiral of the solar wind magnetic field can 
 ;  be overlaid (keyword SPIRAL).  Keyword VSW sets the solar 
 ;  wind velocity for calculating the spiral.
 ;
@@ -63,11 +63,18 @@
 ;
 ;       RELOAD:    Reload the ephemerides.
 ;
-;       SPIRAL:    Plot the Archmedian spiral of the solar wind
-;                  magnetic field.
+;       SPIRAL:    Plot the Parker (Archimedean) spiral of the
+;                  solar wind magnetic field.
 ;
 ;       VSW:       Solar wind velocity for calculating the spiral.
-;                  Default = 400 km/s.
+;                  Default = 400 km/s.  (Usually within range from
+;                  250 to 750 km/s.)
+;
+;       SROT:      Solar siderial rotation period in days for 
+;                  calculating the spiral.  Default = 25.38 days,
+;                  which gives the typically observed Parker spiral
+;                  angle at Earth (47 deg) for a solar wind velocity
+;                  of 400 km/s.
 ;
 ;       MOVIE:     Click on an existing tplot window and/or drag the 
 ;                  cursor for a movie effect.
@@ -84,21 +91,21 @@
 ;                  to +XYRANGE.  If two or more values are supplied,
 ;                  then plot range is min(XYRANGE) to max(XYRANGE).
 ;                  If set, then all planets within the plot window
-;                  are shown, and the Archmedian spiral (if set)
+;                  are shown, and the Archimedean spiral (if set)
 ;                  extends out to the orbit of Saturn.
 ;
 ;       TPLOT:     Create Earth-Mars geometry tplot variables 
 ;                  spanning 1900-2100.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-04-10 10:44:12 -0700 (Fri, 10 Apr 2020) $
-; $LastChangedRevision: 28543 $
+; $LastChangedDate: 2020-04-12 12:37:28 -0700 (Sun, 12 Apr 2020) $
+; $LastChangedRevision: 28561 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
 ;-
-pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, $
-                  eph=eph, spiral=spiral, Vsw=Vsw, movie=movie, stereo=stereo, $
+pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph, $
+                  spiral=spiral, Vsw=Vsw, srot=srot, movie=movie, stereo=stereo, $
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
                   xyrange=range
 
@@ -117,13 +124,16 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
   reset = 1
   eph = 0
 
-; Archmedian spiral parameters
+; Archimedean spiral parameters
 
-  if (size(Vsw,/type) eq 0) then Vsw = 400.
-  omega = 2.7e-6  ; solar rotation frequency at 30 deg latitude
-  Vsw = (Vsw*1d5)/au
+  if (size(Vsw,/type) eq 0) then Vsw = 400.     ; km/s
+  if (size(srot,/type) eq 0) then srot = 25.38  ; days
+  omega = (2d*!dpi)/(srot*oneday)               ; radians/sec
+  Vsw = (Vsw*1d5)/au                            ; AU/sec
   spts = 2000
   smax = 12.      ; maximum radial distance for spiral (AU)
+
+; Process keywords
 
   sflg = keyword_set(stereo)
   mflg = keyword_set(movie)
@@ -133,7 +143,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
   if (oflg) then begin
     xyrange = [-40,50]
     ipmax = 8
-    spiral = 0  ; don't show Archmedian spiral on this scale
+    spiral = 0  ; don't show Archimedean spiral on this scale
   endif else begin
     xyrange = [-2,2]
     ipmax = 3
@@ -588,7 +598,8 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
     ctime2,trange,npoints=1,/silent,button=button
 
     if (data_type(trange) eq 2) then begin
-      wset,Twin
+      wdelete, Owin  ; window never used
+      wset, Twin
       return
     endif
     t = trange[0]
@@ -686,6 +697,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
           dx = xs[k+1] - xs[k-1]
           dy = ys[k+1] - ys[k-1]
           alpha = abs((atan(dy,dx) - atan(ys[k],xs[k])))*!radeg
+          if (alpha gt 180.) then alpha = 360. - alpha
         endif else alpha = -1.
 
         for i=0,11 do begin
@@ -935,6 +947,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
       dx = xs[k+1] - xs[k-1]
       dy = ys[k+1] - ys[k-1]
       alpha = abs((atan(dy,dx) - atan(ys[k],xs[k])))*!radeg
+      if (alpha gt 180.) then alpha = 360. - alpha
     endif else alpha = -1.
 
     for i=0,11 do begin
@@ -992,7 +1005,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
       xyouts,  xs, ys, msg, /norm, charsize=1.5*zscl
       ys -= dys
 
-      ds = [(xp[3,j[1]] - xp[2,j[1]]), (yp[3,j[1]] - yp[2,j[1]]), (yp[3,j[1]] - yp[2,j[1]])]
+      ds = [(xp[3,j[1]] - xp[2,j[1]]), (yp[3,j[1]] - yp[2,j[1]]), (zp[3,j[1]] - zp[2,j[1]])]
       ds = sqrt(total(ds*ds))
     
       sme = acos((rp[3,j[1]]^2. + ds^2. - rp[2,j[1]]^2.)/(2.*rp[3,j[1]]*ds))*!radeg
@@ -1001,10 +1014,10 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
       msg = strcompress(msg)
       xyouts,  xs, ys, msg, /norm, charsize=1.5*zscl
       ys -= dys
-    
+
       sem = acos((rp[2,j[1]]^2. + ds^2. - rp[3,j[1]]^2.)/(2.*rp[2,j[1]]*ds))*!radeg
 
-      msg = string(ds, format='("SEM = ",i," deg")')
+      msg = string(sem, format='("SEM = ",i," deg")')
       msg = strcompress(msg)
       xyouts,  xs, ys, msg, /norm, charsize=1.5*zscl
       ys -= dys
@@ -1078,8 +1091,8 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
   if ((not zflg) and (not kflg)) then begin
     msg = 'Button 1: Keep window.   Button 3: Delete window.'
     xs = 0.54
-    ys = 0.98
-    xyouts, xs, ys, msg, color=6, /norm, align=0.5, charsize=1.2*zscl
+    ys = 0.975
+    xyouts, xs, ys, msg, color=6, /norm, align=0.5, charsize=1.5*zscl
     tvcrs,0.5,0.5,/norm
     cursor,x,y,/down
     while (!mouse.button eq 2) do begin
@@ -1087,7 +1100,7 @@ common planetorb, mercury, venus, earth, mars, jupiter, saturn, uranus, neptune,
       cursor,x,y,/down
     endwhile
     if (!mouse.button eq 1) then begin
-      xyouts, xs, ys, msg, color=!p.background, /norm, align=0.5, charsize=1.2*zscl
+      xyouts, xs, ys, msg, color=!p.background, /norm, align=0.5, charsize=1.5*zscl
     endif else begin
       wdelete, Owin
       Owin = -1
