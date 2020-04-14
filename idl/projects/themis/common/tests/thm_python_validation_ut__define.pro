@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'thm_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-02-27 23:52:58 -0800 (Thu, 27 Feb 2020) $
-; $LastChangedRevision: 28356 $
+; $LastChangedDate: 2020-04-13 12:16:00 -0700 (Mon, 13 Apr 2020) $
+; $LastChangedRevision: 28565 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/tests/thm_python_validation_ut__define.pro $
 ;-
 
@@ -38,6 +38,7 @@ function thm_python_validation_ut::test_dsl2gse
     assert, self.compare(d.y[5000, *], self.str_to_arr(output[-3])), 'Problem with THEMIS dsl2gse'
     assert, self.compare(d.y[1000, *], self.str_to_arr(output[-4])), 'Problem with THEMIS dsl2gse'
     assert, self.compare(d.x[0:9], self.str_to_arr(output[-5])), 'Problem with THEMIS dsl2gse'
+  return, 1
 end
 
 function thm_python_validation_ut::compare, idl_result, py_result

@@ -82,9 +82,9 @@ pro spp_fld_sc_hk_med_load_l1, file, prefix = prefix, varformat = varformat
 
     f2 = data_cut('spp_fld_sc_hk_med_F2_CURR', t)
 
-    f1_scaled = (f1 GT 0.2) * (f1 / f1) ; last bit is just so NaN -> NaN
+    f1_scaled = (f1 GT 0.3) * (f1 / f1) ; last bit is just so NaN -> NaN
 
-    f2_scaled = (f2 GT 0.2) * (f2 / f2)
+    f2_scaled = (f2 GT 0.1) * (f2 / f2)
 
     store_data, prefix + 'fields_on_indicator', $
       data = {x:t, y:[[f1_scaled], [f2_scaled]]}

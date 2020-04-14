@@ -1,17 +1,17 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-10 23:30:26 -0700 (Fri, 10 Apr 2020) $
-; $LastChangedRevision: 28555 $
+; $LastChangedDate: 2020-04-13 15:37:05 -0700 (Mon, 13 Apr 2020) $
+; $LastChangedRevision: 28572 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
 
 
 pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose,esteps=esteps,$
-  alltypes=alltypes,allvars=allvars,hkp=hkp,save=save,level=level,fileprefix=fileprefix,no_update=no_update,no_server=no_server
+  alltypes=alltypes,allvars=allvars,hkp=hkp,save=save,level=level,file_prefix=file_prefix,no_update=no_update,no_server=no_server
 
   if ~keyword_set(level) then level='L3'
   vars = orderedhash()
-  if not keyword_set(fileprefix) then fileprefix='psp/data/sci/sweap/'
+  if not keyword_set(file_prefix) then file_prefix='psp/data/sci/sweap/'
   if not keyword_set(esteps) then esteps = [4,8,12]
   if level eq 'L3' then begin
     fileformat='spe/L3/SP?_TYP_pad/YYYY/MM/psp_swp_SP?_TYP_L3_pad_YYYYMMDD_v??.cdf'
@@ -48,7 +48,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       filespx = str_sub(fileformat,'SP?', spx)              ; instrument string substitution
       filetype = str_sub(filespx,'TYP',type)                 ; packet type substitution
       dprint,filetype,/phelp
-      files = spp_file_retrieve(filetype,trange=tr,/last_version,/daily_names,/valid_only,prefix=fileprefix,verbose=verbose,no_update=no_update,no_server=no_server)
+      files = spp_file_retrieve(filetype,trange=tr,/last_version,/daily_names,/valid_only,prefix=file_prefix,verbose=verbose,no_update=no_update,no_server=no_server)
       if keyword_set(save) then begin
         vardata = !null
         novardata = !null

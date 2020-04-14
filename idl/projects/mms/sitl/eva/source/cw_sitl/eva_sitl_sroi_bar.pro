@@ -46,15 +46,13 @@ PRO eva_sitl_sroi_bar,trange=trange,sc_id=sc_id,colors=colors
   ; TPLOT VARIABLE
   ;-------------------
   if undefined(colors) then colors = [1,3]; pink(1) and blue(3) for even and odd orbits, respectively.
-  if undefined(include_labels) then begin
-    panel_size= 0.01 
-    labels = ''
-  endif else begin
-    panel_size=0.09
-    labels=['Status']
-  endelse
-
+  
+  ;////////////////////////
+  panel_size=0.1
+  labels = ['even','odd']
+  ;////////////////////////
+  
   store_data,'mms_sroi',data={x:bar_x, y:bar_y, v:[0,1]}
-  options,'mms_sroi',thick=5,xstyle=4,ystyle=4,yrange=[-0.001,0.001],ytitle='',$
-    ticklen=0,panel_size=panel_size,colors=colors, labels=labels, charsize=2.
+  options,'mms_sroi',thick=5,xstyle=4,ystyle=4,yrange=[-0.01,0.01],ytitle='',$
+    ticklen=0,panel_size=panel_size,colors=colors, charsize=2.;,labels=labels, labflag=-1
 END

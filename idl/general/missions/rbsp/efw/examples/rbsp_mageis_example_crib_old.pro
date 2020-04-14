@@ -1,4 +1,6 @@
 ;+
+; Deprecated, 2020-04-13, jmm
+; 
 ; NAME: rbsp_mageis_example_crib.pro
 ; SYNTAX:
 ; PURPOSE: Crib sheet showing how to load MagEIS data
@@ -7,10 +9,10 @@
 ; KEYWORDS:
 ; HISTORY: Created by Aaron Breneman
 ; VERSION:
-;   $LastChangedBy: aaronbreneman $
-;   $LastChangedDate: 2018-12-21 10:22:06 -0800 (Fri, 21 Dec 2018) $
-;   $LastChangedRevision: 26385 $
-;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/examples/rbsp_mageis_example_crib.pro $
+;   $LastChangedBy: jimm $
+;   $LastChangedDate: 2020-04-13 13:07:54 -0700 (Mon, 13 Apr 2020) $
+;   $LastChangedRevision: 28567 $
+;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/examples/rbsp_mageis_example_crib_old.pro $
 ;-
 
 

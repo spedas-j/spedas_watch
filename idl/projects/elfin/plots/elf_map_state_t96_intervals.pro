@@ -294,17 +294,36 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   elf_mlt_l_lat,'ela_pos_sm',MLT0=MLTA,L0=LA,LAT0=latA ;;subroutine to calculate mlt,l,mlat under dipole configuration
   elf_mlt_l_lat,'elb_pos_sm',MLT0=MLTB,L0=LB,LAT0=latB ;;subroutine to calculate mlt,l,mlat under dipole configuration
 
+  ; Convert att from gei to gse
+  cotrans, 'ela_att_gei', 'ela_att_gse', /gei2gse
+  cotrans, 'elb_att_gei', 'elb_att_gse', /gei2gse
+  
   ; get attitude info for plot text
   get_data, 'ela_spin_orbnorm_angle', data=norma
   get_data, 'ela_spin_sun_angle', data=suna
   get_data, 'ela_att_solution_date', data=solna
+  get_data, 'ela_att_gei',data=attgeia
+  get_data, 'ela_att_gse',data=attgsea
   get_data, 'elb_spin_orbnorm_angle', data=normb
   get_data, 'elb_spin_sun_angle', data=sunb
   get_data, 'elb_att_solution_date', data=solnb
+  get_data, 'elb_att_gei',data=attgeib
+  get_data, 'elb_att_gse',data=attgseb
 
   ;reset time frame since attitude data might be several days old
   timespan,tstart,88200.,/day
   tr=timerange()
+
+  ; Calculate Magnetic north
+  tdate=ela_state_pos_sm.x[0]
+  sphere_to_cart, 1., 90., 0.,x1, y1, z1
+  store_data, 'cart_latlons_geo', data={x:tdate, y:[[x1],[y1],[z1]]}
+  cotrans, 'cart_latlons_geo', 'cart_latlons_gei', /geo2gei
+  cotrans, 'cart_latlons_gei', 'cart_latlons_gse', /gei2gse
+  cotrans, 'cart_latlons_gse', 'cart_latlons_gsm', /gse2gsm
+  cotrans, 'cart_latlons_gsm', 'cart_latlons_sm', /gsm2sm
+  get_data, 'cart_latlons_sm', data=np
+  cart_to_sphere, np.y[0], np.y[1], np.y[2], nprd, latpole, lonpole
 
   ;mlat contours
   latstep=10   ; 5.
@@ -338,7 +357,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   u_lat=fltarr(nmlons,n2)
   u_lon=fltarr(nmlons,n2)
   ;cnv_aacgm, 56.35, 265.34, height, outlat,outlon,r1,error, /geo
-  cnv_aacgm, 86.39, 175.35, height, outlat,outlon,r1,error   ;Gillam
+  cnv_aacgm, 86.39, 175.35, height, outlat,outlon,r1,error  ;Gillam
   mlats=latstart+findgen(n2)/float(n2-1)*(latend-latstart)
   ;  Calculate longitude values
   for i=0,nmlons-1 do begin
@@ -397,6 +416,26 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   badidx = where(bt_ag LT 80.,ncnt)
   if ncnt GT 0 then bt_ag[badidx]=med_ag
 
+  ; get SM grids 
+  if keyword_set(sm) then begin
+    ; get grids (lat circles and lon lines)
+    tdate=ela_state_pos_sm.x[0];+45.*60./2.
+    sm_grid=elf_make_sm_grid(tdate=tdate)
+    lonlats=sm_grid.lat_circles
+    nll=n_elements(lonlats[*,1])-1
+    diffll=lonlats[1:nll,1]-lonlats[0:nll-1,1]
+    llidx =where(diffll GT 5,ncnt)
+    llidx=[0,llidx]
+    llidx=[llidx,nll-8]
+    latpole=sm_grid.npole[0]
+    lonpole=sm_grid.npole[1]
+;    latpole=80.7
+;    lonpole=-72.7
+  endif else begin
+    latpole=90.
+    lonpole=-90.
+  endelse
+
   ; for gif-output
   date=strmid(tstart,0,10)
   timespan, tstart
@@ -426,7 +465,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     midx=min_st[k] + (min_en[k] - min_st[k])/2.
     mid_time_struc=time_struct(ela_state_pos_sm.x[midx])
     mid_hr=mid_time_struc.hour + mid_time_struc.min/60.
-    ;if keyword_set(sm) then mid_hr=0 else mid_hr=mid_time_struc.hour + mid_time_struc.min/60.
     
     ; -------------------------------------
     ; MAP PLOT
@@ -445,15 +483,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       title=pred_str+'Northern '+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
       this_rot=180. - mid_hr*15.
       ;map_set,86.5,-90.,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
-      if keyword_set(sm) then begin
-         latpole=80.5 
-         lonpole=-88.75
-      endif else begin
-         latpole=90.
-         lonpole=90.
-      endelse
-
-      map_set,latpole,-88.75,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
+      map_set,latpole,lonpole,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
         title=title,position=[0.005,0.005,600./800.*0.96,0.96], xmargin=[15,3],$
         ymargin=[15,3], charsize=.9
       map_grid,latdel=10.,londel=30.
@@ -461,47 +491,41 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
     ;----------------------------------
     ; display latitude/longitude
-    ;----------------------------------
+    ;------------------------
     ; SM COORDINATES
-    if keyword_set(sm) then begin
-      ;;; SM Coords
-      ; plot the latitude circles first
-;      sm_grid=elf_make_sm_grid(trange=ela_state_pos_sm.x[min_st[k]:min_en[k]])
-      sm_grid=elf_make_sm_grid(trange=time_double(['2019-09-27/23:59:59','2019-09-28/00:00:01']))
+    ;------------------------
+    if keyword_set(sm) then begin 
+      ; NOTE: sm_grids don't work using mid pt and not rotating 
+      ;       sm_grids don't work using mid pt and rotating    
+      ;sm_grid=elf_make_sm_grid(tdate=ela_state_pos_sm.x[midx])
       lonlats=sm_grid.lat_circles
       nll=n_elements(lonlats[*,1])-1
-      diff=lonlats[1:nll,1]-lonlats[0:nll-1,1]
-      idx =where(diff GT 5,ncnt)
-      idx=[0,idx]
-      idx=[idx,nll-8]
+      diffll=lonlats[1:nll,1]-lonlats[0:nll-1,1]
+      llidx =where(diffll GT 5,ncnt)
+      llidx=[0,llidx]
+      llidx=[llidx,nll-8]
       if keyword_set(south) then begin
-        for lx=0,n_elements(idx)-2 do $
-          plots, lonlats[idx[lx]+1:idx[lx+1],0], -lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250 
+        for lx=0,n_elements(llidx)-2 do $
+          plots, lonlats[llidx[lx]+1:llidx[lx+1],0], -lonlats[llidx[lx]+1:llidx[lx+1],1], linestyle=1, color=250 
       endif else begin
-        for lx=0,n_elements(idx)-2 do $
-          plots, lonlats[idx[lx]+1:idx[lx+1],0]-mid_hr*15., lonlats[idx[lx]+1:idx[lx+1],1], linestyle=1, color=250
+        for lx=0,n_elements(llidx)-2 do $
+          plots, lonlats[llidx[lx]+1:llidx[lx+1],0], lonlats[llidx[lx]+1:llidx[lx+1],1], linestyle=1, color=250
       endelse 
       ; plot longitude lines
-      for i=0,360,30 do begin
-        glons=fltarr(90)+i
-        glats=findgen(90)
-        rad=make_array(90)+1
-        sphere_to_cart, rad,glats,glons,x,y,z
-        midx=min_st[k] + (min_en[k] - min_st[k])/2.
-;        tmid=ela_state_pos_sm.x[midx]
-        tmid=time_double('2019-09-28/00:00:00')
-        times=make_array(n_elements(glats),/double)+tmid
-        store_data, 'cart_latlons_geo', data={x:times, y:[[x],[y],[z]]}
-        cotrans, 'cart_latlons_geo', 'cart_latlons_gei', /geo2gei
-        cotrans, 'cart_latlons_gei', 'cart_latlons_gse', /gei2gse
-        cotrans, 'cart_latlons_gse', 'cart_latlons_gsm', /gse2gsm
-        cotrans, 'cart_latlons_gsm', 'cart_latlons_sm', /gsm2sm
-        get_data, 'cart_latlons_sm', data=d
-        cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rad, smlats, smlons
-        plots,smlons-mid_hr*15.,smlats,line=1,color=250
-      endfor      
+        lonlats=sm_grid.lon_lines
+;        idx0=[0,79]
+        idx0=[0,89]
+;        rot_long=-1
+        if (k mod 2) EQ 0 then rot_long=1 else rot_long=15
+        for i=0,11 do begin
+          llidx=idx0+80.*i
+          llidx=idx0+90.*i
+          plots, lonlats[llidx,0]-rot_long,lonlats[llidx,1],linestyle=1, color=250
+        endfor
     endif else begin
-      ;;; MAG Coords
+    ;----------------------
+    ;;; MAG Coords
+    ;----------------------
       if keyword_set(south) then begin
         for i=0,nmlats-1 do oplot,v_lon[i,*],-v_lat[i,*],color=250,thick=contour_thick,linestyle=1
         for i=0,nmlons-1 do begin
@@ -515,8 +539,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
           oplot,u_lon[i,idx],u_lat[i,idx],color=250,thick=contour_thick,linestyle=1
         endfor
       endelse
-    endelse
-    
+    endelse   
 
     ; Set up data for ELFIN A for this time span
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
@@ -530,6 +553,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_dposa=dposa.y[min_st[k]:min_en[k],2]
     this_a_alt = mean(sqrt(this_ax^2 + this_ay^2 + this_az^2))-6371.
     this_a_alt_str = strtrim(string(this_a_alt),1)
+    min_a_att_gei=min(abs(ela_state_pos_sm.x[midx]-attgeia.x),agei_idx)
+    this_a_att_gei = attgeia.y[agei_idx,*]
+    this_a_att_gse = attgsea.y[agei_idx,*]
     ; repeat for ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsb=n_elements(this_time2)
@@ -542,6 +568,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_dposb=dposb.y[min_st[k]:min_en[k],2]
     this_b_alt = mean(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
     this_b_alt_str = strtrim(string(this_b_alt),1)
+    min_b_att_gei=min(abs(elb_state_pos_sm.x[midx]-attgeib.x),bgei_idx)
+    this_b_att_gei = attgeib.y[bgei_idx,*]
+    this_b_att_gse = attgseb.y[bgei_idx,*]
+
     ; Plot foot points
     if ~keyword_set(bfirst) then begin
       plots, this_lon2, this_lat2, psym=2, symsize=.05, color=254    ; thick=3
@@ -558,49 +588,49 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; Check B
     undefine, tb0
     undefine, tb1
-    spin_strb=''
-    if ~undefined(sci_timesb) then begin
-      sci_idxb=where(sci_timesb GE this_time2[0] AND sci_timesb LT this_time2[nptsb-1], ncnt)
-      if ncnt GT 5 then begin
-        find_interval, sci_idxb, sb_idx, eb_idx
-        tb0 = sci_timesb[sb_idx]
-        tb1 = sci_timesb[eb_idx]
-        ; find spin period
-        get_data, 'elb_pef_spinper', data=spinb
-        if size(spinb, /type) EQ 8 then begin
-          spin_idxb=where(spinb.x GE this_time2[0] AND spinb.x LT this_time2[nptsb-1], ncnt)
-          if ncnt GT 5 then begin
-            med_spinb=median(spinb.y[spin_idxb])
-            spin_varb=stddev(spinb.y[spin_idxb])*100.
-            spin_strb='Median Spin Period, s: '+strmid(strtrim(string(med_spinb), 1),0,4) + $
-              ', % of Median: '+strmid(strtrim(string(spin_varb), 1),0,4)
-          endif
-        endif
-      endif
-    endif
+;    spin_strb=''
+;    if ~undefined(sci_timesb) then begin
+;      sci_idxb=where(sci_timesb GE this_time2[0] AND sci_timesb LT this_time2[nptsb-1], ncnt)
+;      if ncnt GT 5 then begin
+;        find_interval, sci_idxb, sb_idx, eb_idx
+;        tb0 = sci_timesb[sb_idx]
+;        tb1 = sci_timesb[eb_idx]
+;        ; find spin period
+;        get_data, 'elb_pef_spinper', data=spinb
+;        if size(spinb, /type) EQ 8 then begin
+;          spin_idxb=where(spinb.x GE this_time2[0] AND spinb.x LT this_time2[nptsb-1], ncnt)
+;          if ncnt GT 5 then begin
+;            med_spinb=median(spinb.y[spin_idxb])
+;            spin_varb=stddev(spinb.y[spin_idxb])*100.
+;            spin_strb='Median Spin Period, s: '+strmid(strtrim(string(med_spinb), 1),0,4) + $
+;              ', % of Median: '+strmid(strtrim(string(spin_varb), 1),0,4)
+;          endif
+;        endif
+;      endif
+;    endif
     ; Repeat for A
     undefine, ta0
     undefine, ta1
-    spin_stra=''
-    if ~undefined(sci_timesa) then begin
-      sci_idxa=where(sci_timesa GE this_time[0] AND sci_timesa LT this_time[nptsa-1], ncnt)
-      if ncnt GT 5 then begin
-        find_interval, sci_idxa, sa_idx, ea_idx
-        ta0 = sci_timesa[sa_idx]
-        ta1 = sci_timesa[ea_idx]
-        ; find spin period
-        get_data, 'ela_pef_spinper', data=spina
-        if size(spina, /type) EQ 8 then begin
-          spin_idxa=where(spina.x GE this_time2[0] AND spina.x LT this_time2[nptsa-1], ncnt)
-          if ncnt GT 5 then begin
-            med_spina=median(spina.y[spin_idxa])
-            spin_vara=stddev(spina.y[spin_idxa])*100.
-            spin_stra='Median Spin Period, s: '+strmid(strtrim(string(med_spina), 1),0,4) + $
-              ', % of Median: '+strmid(strtrim(string(spin_vara), 1),0,4)
-          endif
-        endif
-      endif
-    endif
+;    spin_stra=''
+;    if ~undefined(sci_timesa) then begin
+;      sci_idxa=where(sci_timesa GE this_time[0] AND sci_timesa LT this_time[nptsa-1], ncnt)
+;      if ncnt GT 5 then begin
+;        find_interval, sci_idxa, sa_idx, ea_idx
+;        ta0 = sci_timesa[sa_idx]
+;        ta1 = sci_timesa[ea_idx]
+;        ; find spin period
+;        get_data, 'ela_pef_spinper', data=spina
+;        if size(spina, /type) EQ 8 then begin
+;          spin_idxa=where(spina.x GE this_time2[0] AND spina.x LT this_time2[nptsa-1], ncnt)
+;          if ncnt GT 5 then begin
+;            med_spina=median(spina.y[spin_idxa])
+;            spin_vara=stddev(spina.y[spin_idxa])*100.
+;            spin_stra='Median Spin Period, s: '+strmid(strtrim(string(med_spina), 1),0,4) + $
+;              ', % of Median: '+strmid(strtrim(string(spin_vara), 1),0,4)
+;          endif
+;        endif
+;      endif
+;    endif
 
     ; ------------------------------
     ; PLOT science collection
@@ -776,6 +806,21 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     if ncnt EQ 0 then idx=0
     b_period_str = strmid(strtrim(string(bt_ag[idx[0]]), 1),0,5)
 
+    ; get spin period and add to total orbit time
+    ; elfin a
+    a_rpm=elf_load_att(probe='a', tdate=ela_state_pos_sm.x[min_st[k]])
+    a_sp=60./a_rpm
+    a_spinper = strmid(strtrim(string(a_sp),1),0,4)
+    a_rpm_str = strmid(strtrim(string(a_rpm),1),0,5)
+    a_orb_spin_str='Torb='+a_period_str+'min; Tspin='+a_spinper+'s ['+a_rpm_str+'RPM]'
+    ; elfin b
+    ; ******get spin period routines******
+    b_rpm=elf_load_att(probe='b', tdate=ela_state_pos_sm.x[min_st[k]])
+    b_sp=60./b_rpm
+    b_spinper = strmid(strtrim(string(b_sp),1),0,4)
+    b_rpm_str = strmid(strtrim(string(b_rpm),1),0,5)
+    b_orb_spin_str='Torb='+b_period_str+'min; Tspin='+b_spinper+'s ['+b_rpm_str+'RPM]'
+ 
     ; create attitude strings
     ; elfin a
     if size(norma,/type) EQ 8 then begin
@@ -788,9 +833,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         suna_str=strmid(strtrim(string(median(suna.y[idx])),1),0,5) $
       else suna_str = 'No att data'
       idx=where(solna.x GE this_time[0] and solna.x LT this_time[n_elements(this_time)-1], ncnt)
-      if size(solna, /type) EQ 8 && ncnt GT 2 && solna.y[0] GT launch_date then $
-        solna_str=time_string(solna.y[0]) $
-      else solna_str = 'No att data'
+      if size(solna, /type) EQ 8 && ncnt GT 2 && solna.y[0] GT launch_date then begin
+        solna_string=time_string(solna.y[0])
+        solna_str=strmid(solna_string,0,4)+'-'+strmid(solna_string,5,2)+'-'+strmid(solna_string,8,2)+'/'+strmid(solna_string,11,2)
+      endif else begin
+         solna_str = 'No att data'
+      endelse
     endif else begin
       norma_str = 'No att data'
       suna_str = 'No att data'
@@ -807,52 +855,79 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         sunb_str=strmid(strtrim(string(median(sunb.y[idx])),1),0,5) $
       else sunb_str = 'No att data'
       idx=where(solnb.x GE this_time2[0] and solnb.x LT this_time2[n_elements(this_time2)-1], ncnt)
-      if size(solnb, /type) EQ 8 && ncnt GT 2 && solnb.y[0] GT launch_date then $
-        solnb_str=time_string(solnb.y[0]) $
-      else solnb_str = 'No att data'
+      if size(solnb, /type) EQ 8 && ncnt GT 2 && solnb.y[0] GT launch_date then begin
+        solnb_string=time_string(solnb.y[0])
+        solnb_str=strmid(solnb_string,0,4)+'-'+strmid(solnb_string,5,2)+'-'+strmid(solnb_string,8,2)+'/'+strmid(solnb_string,11,2)
+      endif else begin
+        solnb_str = 'No att data'
+      endelse
     endif else begin
       normb_str = 'No att data'
       sunb_str = 'No att data'
       solnb_str = 'No att data'
     endelse
 
+    ; Create attitude vector strings
+    ; ELFIN A
+    if ~undefined(this_a_att_gei) then begin
+      if this_a_att_gei[0] GE 0. then offset=5 else offset=6
+      a_att_gei_x_str = strmid(strtrim(string(this_a_att_gei[0]),1),0,offset)
+      if this_a_att_gei[1] GE 0. then offset=5 else offset=6
+      a_att_gei_y_str = strmid(strtrim(string(this_a_att_gei[1]),1),0,offset)
+      if this_a_att_gei[2] GE 0. then offset=5 else offset=6
+      a_att_gei_z_str = strmid(strtrim(string(this_a_att_gei[2]),1),0,offset)
+      a_att_gei_str = 'S: ['+a_att_gei_x_str+','+a_att_gei_y_str+','+a_att_gei_z_str+'] GEI'
+    endif
+    if ~undefined(this_a_att_gse) then begin
+      if this_a_att_gse[0] GE 0. then offset=5 else offset=6
+      a_att_gse_x_str = strmid(strtrim(string(this_a_att_gse[0]),1),0,offset)
+      if this_a_att_gse[1] GE 0. then offset=5 else offset=6
+      a_att_gse_y_str = strmid(strtrim(string(this_a_att_gse[1]),1),0,offset)
+      if this_a_att_gse[2] GE 0. then offset=5 else offset=6
+      a_att_gse_z_str = strmid(strtrim(string(this_a_att_gse[2]),1),0,offset)
+      a_att_gse_str = 'S: ['+a_att_gse_x_str+','+a_att_gse_y_str+','+a_att_gse_z_str+'] GSE'
+    endif
+    ; repeat for ELFIN B
+    if ~undefined(this_b_att_gei) then begin
+      if this_b_att_gei[0] GE 0. then offset=5 else offset=6
+      b_att_gei_x_str = strmid(strtrim(string(this_b_att_gei[0]),1),0,offset)
+      if this_b_att_gei[1] GE 0. then offset=5 else offset=6
+      b_att_gei_y_str = strmid(strtrim(string(this_b_att_gei[1]),1),0,offset)
+      if this_b_att_gei[2] GE 0. then offset=5 else offset=6
+      b_att_gei_z_str = strmid(strtrim(string(this_b_att_gei[2]),1),0,offset)
+      b_att_gei_str = 'S: ['+b_att_gei_x_str+','+b_att_gei_y_str+','+b_att_gei_z_str+'] GEI'
+    endif
+    if ~undefined(this_b_att_gse) then begin
+      if this_b_att_gse[0] GE 0. then offset=5 else offset=6
+      b_att_gse_x_str = strmid(strtrim(string(this_b_att_gse[0]),1),0,offset)
+      if this_b_att_gse[1] GE 0. then offset=5 else offset=6
+      b_att_gse_y_str = strmid(strtrim(string(this_b_att_gse[1]),1),0,offset)
+      if this_b_att_gse[2] GE 0. then offset=5 else offset=6
+      b_att_gse_z_str = strmid(strtrim(string(this_b_att_gse[2]),1),0,offset)
+      b_att_gse_str = 'S: ['+b_att_gse_x_str+','+b_att_gse_y_str+','+a_att_gse_z_str+'] GSE'
+    endif
+
     if hires then charsize=.75 else charsize=.65
     ; annotate
     xann=9.6
-    if spin_stra EQ '' then begin
-      xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
-      xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*6,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*5,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*4,'Time Att Soln: '+solna_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*3,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
-    endif else begin
-      xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
-      xyouts,xann,yann+12.5*7,'Period, min: '+a_period_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*6,'Spin Angle w/Sun, deg: '+suna_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*5,'Spin Angle w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*4,'Time Att Soln: '+solna_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*3,spin_stra,/device,charsize=charsize
-      xyouts,xann,yann+12.5*2,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
-    endelse
-
+    xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
+    xyouts,xann,yann+12.5*7,a_orb_spin_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*6,a_att_gei_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*5,a_att_gse_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,'S w/Sun, deg: '+suna_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,'S w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,'Att.Solution@'+solna_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize      
+    
     yann=0.02
-    if spin_strb EQ '' then begin
-      xyouts,xann,yann+12.5*6,'ELFIN (B)',/device,charsize=.75,color=254
-      xyouts,xann,yann+12.5*5.,'Period, min: '+b_period_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*4,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*3,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*2,'Time Att Soln: '+solnb_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
-    endif else begin
-      xyouts,xann,yann+12.5*7,'ELFIN (B)',/device,charsize=.75,color=254
-      xyouts,xann,yann+12.5*6.,'Period, min: '+b_period_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*5,'Spin Angle w/Sun, deg: '+sunb_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*4,'Spin Angle w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*3,'Time Att Soln: '+solnb_str,/device,charsize=charsize
-      xyouts,xann,yann+12.5*2,spin_strb,/device,charsize=charsize
-      xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
-    endelse
+    xyouts,xann,yann+12.5*8,'ELFIN (B)',/device,charsize=.75,color=254
+    xyouts,xann,yann+12.5*7,b_orb_spin_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*6,b_att_gei_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*5,b_att_gse_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,'S w/Sun, deg: '+sunb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,'S w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,'Att.Solution@: '+solnb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
 
     if keyword_set(sm) then latlon_text='SM Lat/Lon - Red dotted lines' $
        else latlon_text='Mag Lat/Lon - Red dotted lines'
@@ -894,7 +969,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       tsyg_mod eq 't01': xyouts,xann+20,yann+12.5*2,'Tsyganenko-2001',/device,charsize=charsize,color=255
     endcase
 
-    xyouts, .01, .485, '00:00', charsize=1.15, /normal
+    xyouts, .01, .489, '00:00', charsize=1.15, /normal
     xyouts, .663, .489, '12:00', charsize=1.15, /normal
     if keyword_set(south) then begin
       xyouts, .335, .935, '06:00', charsize=1.15, /normal

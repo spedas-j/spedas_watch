@@ -6,15 +6,15 @@
 ;
 ;     new_defl - Set to use calibrated deflector values.
 ;
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2020-04-08 09:50:14 -0700 (Wed, 08 Apr 2020) $
-; $LastChangedRevision: 28528 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-04-13 00:26:29 -0700 (Mon, 13 Apr 2020) $
+; $LastChangedRevision: 28563 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spanx_sweep_tables.pro $
 ;
 ;-
 
 function spp_swp_spanx_sweep_tables,erange,deflrange,plot=plot,emode=emode,sensor=sensor,k=k,rmax=rmax,vmax=vmax,nen=nen,spfac=spfac,$
-                                    maxspen=maxspen,hvgain=hvgain,spgain=spgain,fixgain=fixgain,new_defl=new_defl
+                                    maxspen=maxspen,hvgain=hvgain,spgain=spgain,fixgain=fixgain,new_defl=new_defl,spe=spe
     
    if n_elements(erange) eq 2 then valid=1b else begin
       valid = 0b
@@ -47,7 +47,7 @@ function spp_swp_spanx_sweep_tables,erange,deflrange,plot=plot,emode=emode,senso
 
    ;; DACS
    spp_swp_sweepv_dacv_v2,sweepv_dac,defv1_dac,defv2_dac,spv_dac,k=k,rmax=rmax,vmax=vmax,nen=nen,e0=emin,emax=emax,spfac=spfac,$
-                          maxspen=maxspen,version=version,plot=plot,hvgain=hvgain,spgain=spgain,fixgain=fixgain,new_defl=new_defl
+                          maxspen=maxspen,version=version,plot=plot,hvgain=hvgain,spgain=spgain,fixgain=fixgain,new_defl=new_defl,spe=spe
 
    ;; Full Index
    spp_swp_sweepv_new_fslut_v2,sweepv,defv1,defv2,spv,fsindex,version=version,nen=nen/4,e0=emin,emax=emax,plot=plot,spfac=spfac,new_defl=new_defl
@@ -79,7 +79,7 @@ function spp_swp_spanx_sweep_tables,erange,deflrange,plot=plot,emode=emode,senso
 
    ;; Collect all information
    table = {emode:emode,sensor:sensor,hem_dac:sweepv_dac,def1_dac:defv1_dac,def2_dac:defv2_dac,spl_dac:spv_dac,fsindex:reform(fsindex,4,256),tsindex:reform(tsindex,256,256),$
-            fullsweeps:orderedhash(),timesort: timesort,deflsort:defsort,sweep_params:sweep_params,valid:valid}
+            timesort: timesort,deflsort:defsort,sweep_params:sweep_params,valid:valid}
 
    return,table
 
