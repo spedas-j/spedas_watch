@@ -2,14 +2,14 @@
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-10 17:22:54 -0700 (Fri, 10 Apr 2020) $
-; $LastChangedRevision: 28552 $
+; $LastChangedDate: 2020-04-15 17:18:26 -0700 (Wed, 15 Apr 2020) $
+; $LastChangedRevision: 28586 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
 
 
-FUNCTION spp_data_product::Init,_EXTRA=ex,data=data,filename=filename,name=name
+FUNCTION spp_data_product::Init,_EXTRA=ex,data,filename=filename,name=name
   COMPILE_OPT IDL2
   ; Call our superclass Initialization method.
   void = self->generic_object::Init()
@@ -108,7 +108,8 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
   endif
 
   if isa(index,/integer) then begin
-    if index lt 0 || index ge ns then begin
+    irange = minmax(index)
+    if irange[0] lt 0 || irange[1] ge ns then begin
       dprint,"out of range: index="+strtrim(index,2)+", ns="+strtrim(ns,2)+' for '+self.name
       if keyword_set(extrapolate) then index = 0 > index < (ns-1)    else return, !null   
     endif

@@ -1,7 +1,7 @@
 ; Download ground-loop selections files.
 ; This is just like ABS selections, except that the GLS files can also be
 ; categorized with an algorithm type. The default algorithm type is
-; "mp-unh". Algorithm name must not contain '_'.
+; "mp-dl-unh". Algorithm name must not contain '_'.
 ; If no start_time, end_time, or filename is specified, only the latest file
 ; with given algorithm type is downloaded.
 function get_mms_gls_selections, start_time=start_time, end_time=end_time,  $

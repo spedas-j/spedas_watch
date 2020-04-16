@@ -1,14 +1,14 @@
 ;+
 ;PURPOSE:
-; Temporary program to load FAST EFI SFA files created from Level0
+; Temporary program to load FAST MAG SFA files created from Level0
 ; data via SDT.
 ;CALLING SEQUENCE:
-; temp_fa_load_sfa_efi, filename
+; temp_fa_load_sfa_mag, filename
 ;INPUT:
 ; filename = file to input, full path please
 ;OUTPUT:
 ; tplot variables:
-; fa_SfaAve_V1-V2_Data  - this is the data variable, THIS IS THE ONLY
+; fa_SfaAve_Mag3AC_Data  - this is the data variable, THIS IS THE ONLY
 ;                         T-PLOTTABLE variable
 ; fa_Sdt_Cdf_MDim_Sizes_by_Record - data size of the frequency variable
 ; fa_MinMaxVals_Dim_1_SubDim_1_1 - min and max values of the frequency
@@ -38,8 +38,8 @@
 ;$LastChangedBy: jimm $
 ;$LastChangedDate: 2020-04-15 15:51:41 -0700 (Wed, 15 Apr 2020) $
 ;$LastChangedRevision: 28585 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/fast/fa_fields/temp_fa_load_sfa_efi.pro $
-Pro temp_fa_load_sfa_efi, filename, _extra=_extra, $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/fast/fa_fields/temp_fa_load_sfa_mag.pro $
+Pro temp_fa_load_sfa_mag, filename, _extra=_extra, $
                           frequency_binning = frequency_binning
 
 ;for plotting purposes
@@ -97,7 +97,7 @@ Pro temp_fa_load_sfa_efi, filename, _extra=_extra, $
      store_data, binvar, data = {x:d.x, y:dynew, v:vmidnew}
      options, binvar, 'spec', 1
      options, binvar, 'zlog', 1
-     options, binvar, 'zsubtitle', '<V/m>^2/Hz'
+     options, binvar, 'zsubtitle', 'nT^2/Hz'
      options, binvar, 'ytitle', 'fa_SfaAve_'+datatype
      options, binvar, 'ysubtitle', 'Khz'
   Endif
@@ -121,7 +121,7 @@ Pro temp_fa_load_sfa_efi, filename, _extra=_extra, $
 ;plot options
   options, 'fa_'+data_var, 'spec', 1
   options, 'fa_'+data_var, 'zlog', 1
-  options, 'fa_'+data_var, 'zsubtitle', '<V/m>^2/Hz'
+  options, 'fa_'+data_var, 'zsubtitle', 'nT^2/Hz'
   options, 'fa_'+data_var, 'ytitle', 'fa_SfaAve_'+datatype
   options, 'fa_'+data_var, 'ysubtitle', 'Khz'
   Return

@@ -591,6 +591,12 @@ event_string= [ $
 'EVT_SURVEY_COMPRESS_RESERVE_ERROR_ASPACE' , $ ; 0x249
 'EVT_SURVEY_COMPRESS_RESERVE_ERROR_BSPACE' , $ ; 0x24a
 'EVT_USER_11 24b' , $
+'EVT_USER_11 24c' , $
+'EVT_USER_11 24d' , $
+'EVT_USER_11 24e' , $
+'EVT_USER_11 24f' , $
+'EVT_USER_11 25a' , $
+'EVT_USER_11 25b' , $
   '????  Unknown ??????'  ]
 return, event_string
 end
