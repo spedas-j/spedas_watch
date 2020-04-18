@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-04-01 23:43:46 -0700 (Wed, 01 Apr 2020) $
-; $LastChangedRevision: 28477 $
+; $LastChangedDate: 2020-04-16 20:52:34 -0700 (Thu, 16 Apr 2020) $
+; $LastChangedRevision: 28588 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save
@@ -37,6 +37,20 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1','2'] do foreach type3,['0','1','2','3','a'] do types=[types,type0+type1+type2+type3]
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1'] do types=[types,type0+type1+type2]
   endif
+  if (types[0]).strlen() eq 1 then begin
+    type0=types[0]
+    types=[]
+    foreach type1,['f','t'] do foreach type2,['0','1','2'] do foreach type3,['0','1','2','3','a'] do types=[types,type1+type2+type3]
+    foreach type1,['f','t'] do foreach type2,['0','1'] do types=[types,type1+type2]
+    types=type0+types
+  endif
+  if (types[0]).strlen() eq 2 then begin
+    type0=types[0]
+    types=[]
+    foreach type2,['0','1','2'] do foreach type3,['0','1','2','3','a'] do types=[types,type2+type3]
+    foreach type2,['0','1'] do types=[types,type2]
+    types=type0+types
+  endif
   if types[0] eq 'all_hkp' then types=['hkp','fhkp','ana_hkp','dig_hkp','crit_hkp']
 
   if not keyword_set(fileprefix) then fileprefix='psp/data/sci/sweap/'
@@ -57,7 +71,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
         vardata = !null
         novardata = !null
         loadcdfstr,filenames=files,vardata,novardata
-        dummy=spp_data_product_hash(spx+'_'+type,vardata)
+        dummy=spp_data_product_hash(spx+'_'+type+'_'+level,vardata)
       endif
 
       ;; Do not load the files

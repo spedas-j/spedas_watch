@@ -1,8 +1,8 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-05 13:11:02 -0800 (Thu, 05 Mar 2020) $
-; $LastChangedRevision: 28376 $
+; $LastChangedDate: 2020-04-16 20:52:34 -0700 (Thu, 16 Apr 2020) $
+; $LastChangedRevision: 28588 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 ;
@@ -17,7 +17,7 @@
 ;e12: encounters 1 and 2
 
 pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=alltypes,maxcalc=maxcalc,nmaxcalc=nmaxcalc,rate=rate,accum=accum,snap=snap,$
-  spectra=spectra,mode=mode,mass_explode=mass_explode,plots=plots,merge=merge,alfven=alfven,total=total,energybin=energybin,e12=e12,status_bits=status_bits
+  spectra=spectra,mode=mode,mass_explode=mass_explode,pixel_explode=pixel_explode,pixel_image=pixel_image,plots=plots,merge=merge,alfven=alfven,total=total,energybin=energybin,e12=e12,status_bits=status_bits
 
   if ~keyword_set(types) then types=['tof','sf00','sf01','sf10','sf11','sf20','sf21','sf22','sf23']
   if keyword_set(alltypes) then begin
@@ -89,8 +89,8 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
           vardata = !null
           novardata = !null
           loadcdfstr,filenames=files,vardata,novardata
-          obj=spp_data_product_hash('spi_'+type,vardata)
-        endif else vardata=(spp_data_product_hash('spi_'+type)).data
+          obj=spp_data_product_hash('spi_'+type+'_'+level,vardata)
+        endif else vardata=(spp_data_product_hash('spi_'+type+'_'+level)).data
 
         if ~keyword_set(vardata) then continue
         
@@ -131,7 +131,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         if keyword_set(status_bits) then store_data,prefix+'status_bits',times,vardata.status_bits,dlim={ystyle:3}
         if 0 and type.charat(2) eq '0' and type.charat(3) eq '0' then begin
           nt/=2
-          data=2*rebin(data,[dim[0],nt]) ;summing over neiboring bins to go from 16 accum periods to 32, similar to other products
+          data=2*rebin(data,[dim[0],nt]) ;summing over neighboring bins to go from 16 accum periods to 32, similar to other products
           times=rebin(times,nt)
         endif
         if keyword_set(snap) then begin
@@ -187,6 +187,8 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 nt00=nt
               endif
             endif
+            if keyword_set(pixel_explode) then for itheta=0,7 do for iphi=0,7 do store_data,prefix+'energy_A'+strtrim(iphi,2)+'D'+strtrim(itheta,2),times,transpose(reform(data[itheta,*,iphi,*])),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
+            if keyword_set(pixel_image) then for itheta=0,7 do for iphi=0,7 do p=image(alog10(transpose(reform(data[itheta,*,iphi,pixel_image]))),layout=[8,8,1+iphi+itheta*8],/current,margin=.01,rgb_table=33,aspect=0,min=0,max=1,axis_style=2,/order,xmajor=0,ymajor=0,xminor=0,yminor=0)
           end
           256:begin
             data[*,2*lindgen(16),*]=reverse(data[*,2*lindgen(16),*],1) ;sf1x has the "snake pattern" deflection
@@ -212,7 +214,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 endfor
                 indmerge2=where(indmerge ne 0,ntmerge)
                 if keyword_set(rate) then rebincoeff=1. else rebincoeff=2.
-                data00merge=rebincoeff*rebin(data00_phi[*,*,indmerge2],[datdimen,ntmerge/2]) ;summing over neiboring bins to go from 16 accum periods to 32, similar to other products
+                data00merge=rebincoeff*rebin(data00_phi[*,*,indmerge2],[datdimen,ntmerge/2]) ;summing over neighboring bins to go from 16 accum periods to 32, similar to other products
                 data00phi0=data-data00merge
                 data_vs_theta_nophi0=total(data00merge,2)
                 data_vs_energy_nophi0=total(data00merge,1)
@@ -294,15 +296,10 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
                 store_data,prefix+'speed_ratio',times,speed1/speed0,dlim={ystyle:3,constant:1}
                 store_data,prefix+'alpha2proton_flux_ratio',times,datatot1/datatot20,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
                 store_data,prefix+'alpha2proton_density_ratio',times,den21/den20,dlim={ylog:1,ystyle:3,constant:10.^(findgen(10)-5)}
-                store_data,prefix+'energy_ovl',data=prefix+['alpha_energy','energy_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^min,10.^(max-2)]}
-              endif
-              if keyword_set(mass_explode) then begin
-                for mmbin=0,15 do begin
-                  data_vs_energy1=total(data[*,mmbin,*],2) ;alpha mass bin peak
-                  store_data,prefix+strtrim(mmbin,2)+'_energy',times,transpose(data_vs_energy1),en,dlim={zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
-                endfor
+                store_data,prefix+'_mbin12_energy_ovl',data=prefix+['alpha_energy','energy_mean_(eV)'],dlim={ylog:ylog,yrange:yrange,ystyle:3,zrange:[10.^min,10.^(max-2)]}
               endif
             endif
+            if keyword_set(mass_explode) then for mmbin=0,15 do store_data,prefix+'_energy_mass'+strtrim(mmbin,2),times,transpose(total(data[*,mmbin,*],2)),en,dlim={zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
           end
         endcase
         if keyword_set(spectra) and keyword_set(total) then begin
@@ -319,7 +316,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         store_data,'psp_swp_spi_sfx1_L1_total_ovl',data='psp_swp_spi_sf?1_L1_total',dlim={yrange:[10.^(min+2),10.^(max-1)],colors:'bgr'}
       endif
       if keyword_set(alfven) then begin
-        get_data,'psp_swp_spi_sf01_L3_MAGF',data=mag
+        get_data,'psp_swp_spi_sf01_L3_MAGF_SC',data=mag
         get_data,'psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_fp',data=fp
         if ~keyword_set(mag) then spp_swp_load,/spi,type='sf01'
         if ~keyword_set(fp) then spp_swp_load,/fld,type='rfs_lfr
@@ -329,8 +326,8 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         store_data,'psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_nfp_(cm-3)',fp.x,nfp,dlim={ylog:1,ystyle:3,labels:'QTN',labflag:1}
         store_data,'psp_swp_spi_nfp_den_(cm-3)_ovl',data='psp_swp_spi_sf21_L1_density_(cm-3) psp_swp_spi_sf21_L1_corrdensity_(cm-3) psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2_nfp_(cm-3)',dlim={yrange:[1,1000]}
 
-        xyz_to_polar,'psp_swp_spi_sf01_L3_MAGF'
-        get_data,'psp_swp_spi_sf01_L3_MAGF_mag',data=mag
+        xyz_to_polar,'psp_swp_spi_sf01_L3_MAGF_SC'
+        get_data,'psp_swp_spi_sf01_L3_MAGF_SC_mag',data=mag
         if keyword_set(mag) then begin
           mp_kg = 1.6726231e-27 ;proton mass
           mu0 = 1.2566370614e-6
@@ -355,7 +352,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
       spp_swp_spi_load,/save,types=types,level=level,/no_load
     endif
 
-    obj=spp_data_product_hash('spi_'+types)
+    obj=spp_data_product_hash('spi_'+types+'_'+level)
     dat=obj.data
 
     if ~tag_exist(dat,'EFLUX') then message,'EFLUX not loaded'
