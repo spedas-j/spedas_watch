@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-03 17:10:37 -0700 (Fri, 03 Apr 2020) $
-; $LastChangedRevision: 28491 $
+; $LastChangedDate: 2020-04-20 11:58:18 -0700 (Mon, 20 Apr 2020) $
+; $LastChangedRevision: 28592 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 
@@ -86,7 +86,7 @@ pro spp_swp_spc_load,  trange=trange,type=type,files=files,no_load=no_load,save=
   
    if not keyword_set(ltype) then ltype = 'L'+strmid(type,1,1)
 
-   pathname = 'psp/data/sci/sweap/spc/'+Ltype+'/YYYY/MM/spp_swp_spc_'+type+'_YYYYMMDD_v??.cdf'
+   pathname = 'psp/data/sci/sweap/spc/'+Ltype+'/YYYY/MM/psp_swp_spc_'+type+'_YYYYMMDD_v??.cdf'
    
    if keyword_set(version) then pathname = str_sub(pathname,'_v??','_'+version)
    
@@ -122,7 +122,7 @@ pro spp_swp_spc_load,  trange=trange,type=type,files=files,no_load=no_load,save=
      
    
    if keyword_set(save) then begin
-     loadcdfstr,filenames=files,vardata,novardata,/time
+     loadcdfstr,filenames=files,vardata,novardata  ;,/time
      dummy = spp_data_product_hash('SPC_'+type,vardata)
      dummy.dict['novardata'] = novardata
    endif
