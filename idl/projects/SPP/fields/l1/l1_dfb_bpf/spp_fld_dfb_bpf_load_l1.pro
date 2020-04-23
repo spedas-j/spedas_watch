@@ -27,7 +27,7 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat, $
   endcase
 
   options, prefix + ['enable','rslt_sel','src_sel','cad_sel'], 'colors', colors
-  options, prefix + ['enable','rslt_sel','src_sel','cad_sel'], 'psym', bpf_number + 3
+  options, prefix + ['enable','rslt_sel','src_sel','cad_sel'], 'psym_lim', 200 ; bpf_number + 3
   options, prefix + ['enable','rslt_sel','src_sel','cad_sel'], 'panel_size', 0.75
   options, prefix + ['enable','rslt_sel','src_sel','cad_sel'], 'ysubtitle', ''
 
@@ -35,21 +35,46 @@ pro spp_fld_dfb_bpf_load_l1, file, prefix = prefix, varformat = varformat, $
 
   get_data, prefix + 'cad_sel', data = dat_cad_sel
 
+  ; Define available cadences of the DFB bandpass filter data for
+  ; AC and DC bandpass filters
+
+  if is_ac then begin
+    cad_max = 9
+    cad_1 = 7
+  endif else begin
+    cad_max = 13
+    cad_1 = 4
+  endelse
+  
+  nys = 2d^17 / 150d3  ; FIELDS "New York Second" / Cycle
+  
+  cad_all = nys * 2d^(indgen(cad_max + 1) - cad_1)
+
   if n_elements(uniq(dat_cad_sel.y)) EQ 1 then begin
 
     options, prefix + 'cad_sel', 'yrange', dat_cad_sel.y[0] + [-1.0,1.0]
     options, prefix + 'cad_sel', 'yticks', 2
-    options, prefix + 'cad_sel', 'ytickv', dat_cad_sel.y[0] + [-1.0,0.0,1.0]
+    options, prefix + 'cad_sel', 'ytickv', $
+      dat_cad_sel.y[0] + [-1,0,1]
+    options, prefix + 'cad_sel', 'ytickname', $
+      strcompress(string(cad_all[dat_cad_sel.y[0] + [-1,0,1]], format = '(F10.3)'))
     options, prefix + 'cad_sel', 'yminor', 1
     options, prefix + 'cad_sel', 'ystyle', 1
     options, prefix + 'cad_sel', 'panel_size', 0.5
 
   endif else begin
 
-    options, prefix + 'cad_sel', 'yrange', [-0.5,15.5]
+    options, prefix + 'cad_sel', 'yrange', [-0.5,cad_max + 0.5]
+    options, prefix + 'cad_sel', 'yticks', cad_max
+    options, prefix + 'cad_sel', 'ytickv', indgen(cad_max + 1)
+    options, prefix + 'cad_sel', 'ytickname', $
+      strcompress(string(cad_all, format = '(F10.3)'))
     options, prefix + 'cad_sel', 'ystyle', 1
+    options, prefix + 'cad_sel', 'panel_size', 2
 
   endelse
+
+  options, prefix + 'cad_sel', 'ysubtitle', '[s/samp]'
 
   options, prefix + 'peak', 'spec', 1
   options, prefix + 'peak', 'no_interp', 1

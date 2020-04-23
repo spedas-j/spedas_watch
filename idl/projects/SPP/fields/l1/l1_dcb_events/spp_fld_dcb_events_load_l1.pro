@@ -58,9 +58,10 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
       options, b + '_TIME_COLLECT_TO_WRITE', 'ytitle', strmid(b,strlen(prefix)) + '!CCOLLECT!CTO WRITE'
       options, b + '_TIME_COLLECT_TO_WRITE', 'ysubtitle', '[Seconds]'
       options, b + '_TIME_COLLECT_TO_WRITE', 'psym', 1
-      options, b + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.5
+      options, b + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.65
       options, b + '_TIME_COLLECT_TO_WRITE', 'colors', burst_colors[i]
       options, b + '_TIME_COLLECT_TO_WRITE', 'ylog', 1
+      options, b + '_TIME_COLLECT_TO_WRITE', 'panel_size', 2
 
       ;
       ; We want the TMlib time here because we want to compare collection
@@ -78,9 +79,12 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
       options, b + '_COLLECT_TIME', 'ytitle', $
         strmid(b,strlen(prefix)) + '!CCOLLECT'
       options, b + '_COLLECT_TIME', 'psym', 1
-      options, b + '_COLLECT_TIME', 'symsize', 0.5
+      options, b + '_COLLECT_TIME', 'symsize', 0.65
       options, b + '_COLLECT_TIME', 'colors', burst_colors[i]
       options, b + '_COLLECT_TIME', 'yrange', [0,1]
+      options, b + '_COLLECT_TIME', 'yticks', 1
+      options, b + '_COLLECT_TIME', 'yminor', 1
+      options, b + '_COLLECT_TIME', 'ytickname', [' ', ' ']
 
     endif
 
