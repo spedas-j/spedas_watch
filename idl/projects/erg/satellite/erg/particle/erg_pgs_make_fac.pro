@@ -23,8 +23,8 @@
 ;History:
 ;  ver.0.0: The 1st experimental release 
 ;  
-;$LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-;$LastChangedRevision: 27922 $
+;$LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+;$LastChangedRevision: 28604 $
 ;-
 
 ;so we don't have one long routine of doom, all transforms should be separate helper functions
@@ -221,6 +221,31 @@ pro erg_pgs_mphism,mag_temp,pos_temp,x_basis,y_basis,z_basis
 end
 
 
+pro erg_pgs_xdsi,mag_temp,pos_temp,x_basis,y_basis,z_basis
+
+  compile_opt idl2,hidden
+
+
+  get_data,mag_temp,data=d
+
+  ;xaxis of this system is X of the gse system. Z is mag field
+  x_axis = transpose(rebin([1D,0D,0D],3,n_elements(d.x)))
+  
+  ;create orthonormal basis set
+  tnormalize,mag_temp,out=z_basis
+  tcrossp,z_basis,x_axis,out=y_basis
+  tnormalize,y_basis,out=y_basis
+  tcrossp,y_basis,z_basis,out=x_basis
+  
+  ;create orthonormal basis set
+  ;  z_basis = mag/norm(mag)
+  ;  y_basis = crossp(z_basis, DSI-X)
+  ;  x_basis = crossp(z_basis,pos_basis)
+  ;  x_basis = x_basis/norm(x_basis)
+  
+end
+
+
 pro erg_pgs_make_fac, $
    times, $                      ;the time grid of the particle data
    mag_tvar_in, $                ;tplot variable containing the mag data in DSI
@@ -231,7 +256,7 @@ pro erg_pgs_make_fac, $
   
   compile_opt idl2, hidden
   
-  valid_types = ['mphigeo', 'phigeo', 'xgse', 'phism', 'mphism']
+  valid_types = ['mphigeo', 'phigeo', 'xgse', 'phism', 'mphism', 'xdsi']
   
   if ~undefined(fac_type) && ~in_set(fac_type, valid_types) then begin
     ;;ensure the user knows that the requested FAC variant is not being used 
@@ -329,6 +354,14 @@ pro erg_pgs_make_fac, $
     ;;--------------------------------------------------------------------
     
     erg_pgs_mphism,mag_temp,pos_temp,x_basis,y_basis,z_basis
+    
+  endif else if fac_type eq 'xdsi' then begin
+    
+    ;;--------------------------------------------------------------------
+    ;;xdsi
+    ;;--------------------------------------------------------------------
+    
+    erg_pgs_xdsi,mag_temp,pos_temp,x_basis,y_basis,z_basis
     
   endif 
   

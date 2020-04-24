@@ -31,10 +31,10 @@
 ; Tomo Hori, ERG Science Center ( E-mail: tomo.hori _at_ nagoya-u.jp )
 ;
 ; Written by: T. Hori
-;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-;   $LastChangedRevision: 26838 $
+;   $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+;   $LastChangedRevision: 28604 $
 ;-
-pro erg_load_hep, files=files, datatype=datatype, varformat=varformat, $
+pro erg_load_hep, files=files, level=level, datatype=datatype, varformat=varformat, $
                   trange=trange, splitazim=splitazim, $
                   datadir=datadir, div_dene=div_dene, lineplot=lineplot, $
                   azch_for_spinph=azch_for_spinph, $
@@ -54,6 +54,7 @@ pro erg_load_hep, files=files, datatype=datatype, varformat=varformat, $
   if undefined( azch_for_spinph ) then azch_for_spinph = -1 
   if azch_for_spinph lt 0 or azch_for_spinph gt 14 then azch_for_spinph = -1 
   if undefined(no_download) then no_download = 0
+  if undefined(level) then level = 'l2'
   if undefined(datatype) then datatype = 'omniflux'
   datatype = strlowcase(datatype[0]) ;; currently datatype should be a single string
   
@@ -62,13 +63,13 @@ pro erg_load_hep, files=files, datatype=datatype, varformat=varformat, $
   
   if ~keyword_set(files) then begin
     
-    datfformat = 'YYYY/MM/erg_hep_l2_'+datatype+'_YYYYMMDD_v??_??.cdf'
+    datfformat = 'YYYY/MM/erg_hep_'+level+'_'+datatype+'_YYYYMMDD_v??_??.cdf'
     relfnames = file_dailynames( file_format=datfformat, /unique, times=times)
    
    if undefined(datadir) then begin
-    localdir = !erg.local_data_dir + 'satellite/erg/hep/l2/'+datatype+'/'
+    localdir = !erg.local_data_dir + 'satellite/erg/hep/'+level+'/'+datatype+'/'
     remotedir = 'https://' $
-      + 'ergsc.isee.nagoya-u.ac.jp/data/ergsc/satellite/erg/hep/l2/'+datatype+'/'
+      + 'ergsc.isee.nagoya-u.ac.jp/data/ergsc/satellite/erg/hep/'+level+'/'+datatype+'/'
     authentication = 2 ;meaning Digest only
     ;;no_download = 0 & no_update = 0
    endif else begin
@@ -93,14 +94,14 @@ pro erg_load_hep, files=files, datatype=datatype, varformat=varformat, $
   ;Check if data files given exist
   idx = where( file_test(files), n ) 
   if n eq 0 then begin
-    print, 'Cannot find Lv2 CDF files!'
+    print, 'Cannot find data CDF files!'
     return 
   endif
   files = files[idx] 
   
   
   ;Load the data and convert to tplot variables
-  prefix = 'erg_hep_l2_'
+  prefix = 'erg_hep_'+level+'_'
   fedtype = 'FEDU'
   if strcmp(datatype, 'omniflux') then fedtype = 'FEDO'
   
@@ -297,9 +298,14 @@ pro erg_load_hep, files=files, datatype=datatype, varformat=varformat, $
     print, 'PI: ', gatt.PI_NAME
     print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
     print, ''
-    for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
+    print, '- The rules of the road (RoR) common to the ERG project: '
+    print, '      https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+    print, '- RoR for HEP data: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Hep'
+    if (level eq 'l3') then begin
+      print, '- RoR for MGF data: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Mgf'
+    endif
     print, ''
-    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+    print, 'Contact: erg_hep_info at isee.nagoya-u.ac.jp'
     print, '**********************************************************************'
     print, ''
 

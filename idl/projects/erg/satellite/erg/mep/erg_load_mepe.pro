@@ -38,8 +38,8 @@
 ; :Authors:
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
-; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-; $LastChangedRevision: 27922 $
+; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+; $LastChangedRevision: 28604 $
 ;-
 pro erg_load_mepe, $
    debug=debug, $
@@ -180,9 +180,14 @@ pro erg_load_mepe, $
     print, 'PI: ', gatt.PI_NAME
     print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
     print, ''
-    for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
+    print, '- The rules of the road (RoR) common to the ERG project: '
+    print, '      https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+    print, '- RoR for MEP-e data: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Mepe'
+    if (level eq 'l3') then begin
+      print, '- RoR for MGF data: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Mgf'
+    endif
     print, ''
-    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+    print, 'Contact: erg_mep_info at isee.nagoya-u.ac.jp'
     print, '**********************************************************************'
     print, ''
 

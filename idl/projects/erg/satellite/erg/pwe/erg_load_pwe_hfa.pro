@@ -8,7 +8,7 @@
 ;   mode: 'l'/'low'=low, 'm'/'monit'/'monitor'=monitor, 'h'/'high'=high mode.
 ;         'a'/'all'=low & monitor & high modes.
 ;         If nothing, low & monitor modes are loaded and combined.
-;   get_suuport_data: Set to load support data in CDF data files.
+;   get_support_data: Set to load support data in CDF data files.
 ;   trange: Set a time range to load data explicitly for the specified
 ;           time range.
 ;   downloadonly: If set, data files are downloaded and the program
@@ -20,6 +20,8 @@
 ;          authentication.
 ;   passwd: password to be passed to the remote server for
 ;           authentication.
+;   ror: If set a string, rules of the road (RoR) for data products
+;        are displayed at your terminal.
 ;
 ; :Examples:
 ;   IDL> timespan, '2017-04-01'
@@ -29,8 +31,8 @@
 ;   Masafumi Shoji ERG Science Center (E-mail: masafumi.shoji at
 ;   nagoya-u.jp)
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+; $LastChangedRevision: 28604 $
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_hfa.pro $
 ;-
 
@@ -44,7 +46,8 @@ pro erg_load_pwe_hfa, $
   verbose=verbose, $
   uname=uname, $
   passwd=passwd, $
-  _extra=_extra
+  ror=ror, $
+   _extra=_extra
 
   erg_init
   
@@ -97,8 +100,8 @@ pro erg_load_pwe_hfa, $
       remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/spec/'+imd[j]+'/'
       localdir = !erg.local_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/spec/'+imd[j]+'/'
     endif else begin
-      relfpathfmt = 'YYYY/MM/erg_pwe_hfa_' + lvl + '_YYYYMMDD_v??_??.cdf'
-      prefix = 'erg_pwe_hfa_'+lvl+'_'
+      relfpathfmt = 'YYYY/MM/erg_pwe_hfa_' + lvl + '_1min_YYYYMMDD_v??_??.cdf'
+      prefix = 'erg_pwe_hfa_'+lvl+'_1min_'
       remotedir = !erg.remote_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/'
       localdir = !erg.local_data_dir+'satellite/erg/pwe/hfa/'+lvl+'/'
     endelse
@@ -113,17 +116,17 @@ pro erg_load_pwe_hfa, $
     if(total(filestest) ge 1) then begin
       datfiles=files[where(filestest eq 1)]
     endif else return
-
-    if ~downloadonly then $
-      cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
-                 verbose = verbose
-
-  endfor
-
+    
+    if downloadonly then return    
+    cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
+               verbose = verbose
+    
+ endfor
+  
   prefix = 'erg_pwe_hfa_'+lvl+'_'
   if strcmp(lvl,'l2') then begin
     com=['eu','ev','bgamma','esum', 'er', 'el', 'e_mix', 'e_ar', 'eu_ev', 'eu_bg', 'ev_bg']
-
+    
 ;    if ~keyword_set(mode) then begin
 ;      for i=0, n_elements(com)-1 do begin
 ;        store_data, prefix+'spectra_'+com[i], data=[prefix+'low_'+'spectra_'+com[i], prefix+'monit_'+'spectra_'+com[i]]
@@ -159,7 +162,11 @@ pro erg_load_pwe_hfa, $
     options, prefix+'*spectra_*',      'datagap', 70.
 
   endif else begin
-    options, tnames(prefix+['Fuhr','ne_mgf']), 'datagap', 60.
+     options, tnames(prefix+['Fuhr','ne_mgf']), 'datagap', 60.
+     options, tnames(prefix+'Fuhr'), 'ytitle', 'UHR frequency'
+     options, tnames(prefix+'ne_mgf'), 'ysubtitle', 'eletctorn density'
+     options, tnames(prefix+'Fuhr'), 'ysubtitle', '[MHz]'
+     options, tnames(prefix+'ne_mgf'), 'ysubtitle', '[/cc]'
   endelse
   
   gatt=cdf_var_atts(datfiles[0])
@@ -173,10 +180,19 @@ pro erg_load_pwe_hfa, $
   print, 'PI: ', gatt.PI_NAME
   print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 75
   print, ''
-  print, 'Rules of the Road for ERG PWE HFA Data Use:'
-  for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 75
-  print, ''
-  print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+  
+  if keyword_set(ror) then begin
+    print, 'Rules of the Road for ERG PWE HFA Data Use:'
+    for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 75
+    print, ''
+    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+  endif else begin
+    print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+    print, 'RoR of PWE/HFA: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Pwe/Hfa'
+    print, 'To show the RoR, set "ror" keyword'
+    print, 'Contact: erg_pwe_info at isee.nagoya-u.ac.jp'
+  endelse
+  
   print, '**************************************************************************'
      
 END

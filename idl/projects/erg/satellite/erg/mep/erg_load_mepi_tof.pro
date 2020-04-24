@@ -12,8 +12,8 @@
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-; $LastChangedRevision: 27922 $
+; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+; $LastChangedRevision: 28604 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/mep/erg_load_mepi_tof.pro $
 ;-
 pro erg_load_mepi_tof, $
@@ -107,8 +107,8 @@ pro erg_load_mepi_tof, $
     vns = prefix + [ vns_fidu, vns_cnt ]  ;;common to flux/count arrays
     vns = tnames(vns) & if vns[0] eq '' then return
     
-    options, vns, spec=1, ysubtitle='[keV/q]', ztickformat='pwr10tick', extend_y_edges=1, $
-             datagap=32., zticklen=-0.4
+    options, vns, spec=1, ysubtitle='[keV/q]', ztickunits='scientific', extend_y_edges=1, $
+             datagap=33., zticklen=-0.4
     for i=0, n_elements(vns)-1 do begin
       if tnames(vns[i]) eq '' then continue
       get_data, vns[i], data=0, dl=dl, lim=lim
@@ -154,8 +154,8 @@ pro erg_load_mepi_tof, $
     vns = prefix + [ vns_fidu, vns_cnt ]  ;;common to flux/count arrays
     vns = tnames(vns) & if vns[0] eq '' then return
     
-    options, vns, spec=1, ztickformat='pwr10tick', extend_y_edges=1, $
-             datagap=32., zticklen=-0.4
+    options, vns, spec=1, ztickunits='scientific', extend_y_edges=1, $
+             datagap=33., zticklen=-0.4
     for i=0, n_elements(vns)-1 do begin
       if tnames(vns[i]) eq '' then continue
       get_data, vns[i], data=d, dl=dl, lim=lim
@@ -207,7 +207,31 @@ pro erg_load_mepi_tof, $
 
   endif
 
+  ;; Display the data policy statements on the user's screen
+  vn = (tnames(vns))[0]
+  if vn ne '' then begin
+    get_data, vn, dl=dl
+    gatt = dl.cdf.gatt
+    
+    print_str_maxlet, ' '
+    print, '**********************************************************************'
+    print, ''
+    print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 70
+    print, 'PI: ', gatt.PI_NAME
+    print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
+    print, ''
+    print, '- The rules of the road (RoR) common to the ERG project: '
+    print, '      https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+    print, '- RoR for MEP-i data: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Mepi'
+    if (level eq 'l3') then begin
+      print, '- RoR for MGF data: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Mgf'
+    endif
+    print, ''
+    print, 'Contact: erg_mep_info at isee.nagoya-u.ac.jp'
+    print, '**********************************************************************'
+    print, ''
 
+  endif
   
   
   return

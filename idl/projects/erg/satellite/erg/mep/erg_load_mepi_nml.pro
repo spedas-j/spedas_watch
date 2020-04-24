@@ -38,8 +38,8 @@
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-; $LastChangedRevision: 27922 $
+; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+; $LastChangedRevision: 28604 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/mep/erg_load_mepi_nml.pro $
 ;-
 pro erg_load_mepi_nml, $
@@ -73,6 +73,7 @@ pro erg_load_mepi_nml, $
 
   
   ;; ; ; ; USER NAME ; ; ; ; 
+  if undefined(uname) and undefined(passwd) then begin & uname = ' ' & passwd = ' ' & endif
   if keyword_set(datafpath) or keyword_set(no_download) then begin
     uname = ' ' & passwd = ' '  ;;padding with a blank
   endif 
@@ -144,7 +145,7 @@ pro erg_load_mepi_nml, $
       
       options, vn_fido, $
                spec=1, ysubtitle='[keV/q]', ztickformat='pwr10tick', extend_y_edges=1, $
-               datagap=17., zticklen=-0.4
+               datagap=33., zticklen=-0.4
       get_data, vn_fido, dl=dl
       options, vn_fido, $
                ztitle='['+dl.cdf.vatt.units+']', ytitle='ERG!CMEP-i/'+smode+'!C'+dl.cdf.vatt.fieldnam+'!CEnergy'
@@ -152,7 +153,7 @@ pro erg_load_mepi_nml, $
       zlim, vn_fido, 0, 0, 1
     endfor
     
-    return ;; finishes here if omniflux is set. 
+    goto, to_show_ror ;; finishes after shoing the RoR 
   endif
   
   
@@ -165,7 +166,7 @@ pro erg_load_mepi_nml, $
   vns = tnames(vns) & if vns[0] eq '' then return
   
   options, vns, spec=1, ysubtitle='[keV/q]', ztickformat='pwr10tick', extend_y_edges=1, $
-           datagap=17., zticklen=-0.4
+           datagap=33., zticklen=-0.4
   for i=0, n_elements(vns)-1 do begin
     if tnames(vns[i]) eq '' then continue
     get_data, vns[i], data=data, dl=dl, lim=lim
@@ -216,10 +217,12 @@ pro erg_load_mepi_nml, $
     
   endif
 
-  
+
+  to_show_ror: 
   ;;--- print PI info and rules of the road
   if strcmp(datatype, '3dflux') then vn = prefix+'F*DU' $
   else vn = prefix+'F*DO'
+  dprint, ' '+vn
   vn = (tnames(vn))[0]
   if vn ne '' then begin
     get_data, vn, dl=dl
@@ -232,9 +235,14 @@ pro erg_load_mepi_nml, $
     print, 'PI: ', gatt.PI_NAME
     print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
     print, ''
-    for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
+    print, '- The rules of the road (RoR) common to the ERG project: '
+    print, '      https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+    print, '- RoR for MEP-i data: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Mepi'
+    if (level eq 'l3') then begin
+      print, '- RoR for MGF data: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Mgf'
+    endif
     print, ''
-    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+    print, 'Contact: erg_mep_info at isee.nagoya-u.ac.jp'
     print, '**********************************************************************'
     print, ''
   endif

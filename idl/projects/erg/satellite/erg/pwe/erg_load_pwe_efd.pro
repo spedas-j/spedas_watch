@@ -23,6 +23,8 @@
 ;   passwd: password to be passed to the remote server for
 ;           authentication.
 ;   band_width: return the band width of the variable "spectra".
+;   ror: If set a string, rules of the road (RoR) for data products 
+;        are displayed at your terminal.
 ;
 ; :Examples:
 ;   ERG> timespan, '2017-04-01'
@@ -34,8 +36,8 @@
 ;   Masafumi Shoji, ERG Science Center (E-mail: masafumi.shoji at
 ;   nagoya-u.jp)
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+; $LastChangedRevision: 28604 $
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_efd.pro $
 ;-
 
@@ -50,6 +52,7 @@ pro erg_load_pwe_efd, $
    uname=uname, $
    passwd=passwd, $
    band_width=band_width, $
+   ror=ror, $
    _extra=_extra  
   
   erg_init
@@ -220,10 +223,19 @@ foreach elem, component do begin
   print, 'PI: ', gatt.PI_NAME
   print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 80
   print, ''
-  print, 'Rules of the Road for ERG PWE EFD Data Use:'
-  for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 80
-  print, ''
-  print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+  
+  if keyword_set(ror) then begin
+    print, 'Rules of the Road for ERG PWE EFD Data Use:'
+    for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 80
+    print, ''
+    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+  endif else begin
+    print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+    print, 'RoR of PWE/EFD: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Pwe/Efd'
+    print, 'To show the RoR, set "ror" keyword'
+    print, 'Contact: erg_pwe_info at isee.nagoya-u.ac.jp'
+  endelse
+
   print, '**********************************************************************'
 
 END

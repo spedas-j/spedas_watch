@@ -38,8 +38,8 @@
 ; :Authors:
 ;   Yoshi Miyoshi, ERG Science Center (E-mail: miyoshi at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+; $LastChangedRevision: 28604 $
 ;-
 pro erg_load_lepi_nml, $
    debug=debug, $
@@ -162,12 +162,15 @@ pro erg_load_lepi_nml, $
      print, 'Information about ERG LEPi'
      print, ''
      print, 'PI: ', gatt.PI_NAME
-     print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
      print, ''
      print, ''
-     for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
+     print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+     print, 'RoR of ERG/LEPi: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Lepi#Rules_of_the_Road'
+;  for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
      print, ''
-     print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+     print, 'Contact: erg_lepi_info at isee.nagoya-u.ac.jp'
+;  print, ''
+;  print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
      print, '**********************************************************************'
      
      return ;; finishes here if omniflux is set. 
@@ -247,9 +250,13 @@ pro erg_load_lepi_nml, $
   print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
   print, ''
   print, ''
-  for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
+  print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+  print, 'RoR of ERG/LEPi: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Lepi#Rules_of_the_Road'
+;  for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
   print, ''
-  print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+  print, 'Contact: erg_lepi_info at isee.nagoya-u.ac.jp'
+;  print, ''
+;  print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
   print, '**********************************************************************'
   
   

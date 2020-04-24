@@ -43,8 +43,8 @@
 ; Modified by: MT, June 28, 2018
 ;                 change the directroy structure of 8sec data from IYYYY to IYYYY/IMM
 ;
-;   $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-;   $LastChangedRevision: 27922 $
+;   $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
+;   $LastChangedRevision: 28604 $
 ;-
 
 pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_data, $
@@ -98,10 +98,10 @@ pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_d
   if ~keyword_set(remotedir) then $
     source.remote_data_dir=!erg.remote_data_dir  + 'satellite/erg/mgf/l2/' $
   else source.remote_data_dir=remotedir
- 
+
   if ~keyword_set(data_version) then $
-     data_version='v??.??' 
- 
+     data_version='v??.??'
+
 
 
 
@@ -187,20 +187,18 @@ pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_d
     gatt=cdf_var_atts(files[0])
 
     print_str_maxlet, ' '
-    print, '**********************************************************************'
-    print, gatt.PROJECT
-    print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 70
+    print, '**************************************************************************'
+    print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 75
     print, ''
     print, 'Information about ERG MGF'
     print, ''
     print, 'PI: ', gatt.PI_NAME
-    print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
+    print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 75
     print, ''
-    for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
-    print, ''
-    print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
-    print, '**********************************************************************'
-    print, ''
+    print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+    print, 'RoR of MGF L2: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Mgf'
+    print, 'Contact: erg_mgf_info at isee.nagoya-u.ac.jp'
+    print, '**************************************************************************'
 
   endif
 
