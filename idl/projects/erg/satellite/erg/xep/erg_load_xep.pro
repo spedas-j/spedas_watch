@@ -35,14 +35,16 @@
 ; :History:
 ; 2016/02/01: first protetype
 ; 2018/08/01: modified to load omni-directional XEP L2 data
-; 2019/01/22: modified to load spin-phase XEP L2 data 
+; 2019/01/22: modified to load spin-phase XEP L2 data
+; 2020/04/21: modified to display RoR
 ;
 ; :Author:
 ;   Y. Miyashita, ERG Science Center, ISEE, Nagoya Univ. (erg-sc-core at isee.nagoya-u.ac.jp)
 ;   M. Teramoto, ERG Science Center, ISEE, Nagoya Univ.
+;   S. Imajo, ERG Science Center, ISEE, Nagoya Univ.
 ;
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2020-04-23 19:49:13 -0700 (Thu, 23 Apr 2020) $
+; $LastChangedRevision: 28605 $
 ;-
 pro erg_load_xep, $
   debug=debug, $
@@ -142,7 +144,7 @@ pro erg_load_xep, $
     ;; Skip the following part unless 2-D flux data are loaded.
     if strcmp(datatype, '2dflux')  then begin
       get_data, prefix+'FEDU_'+suf, data=fedu, dl=dl, lim=lim
-     get_data, prefix+'rawcnt_'+suf, data=rwcnt, dl=dl_rwcnt, lim=lim_rwcnt 
+     get_data, prefix+'rawcnt_'+suf, data=rwcnt, dl=dl_rwcnt, lim=lim_rwcnt
      new_v=fltarr(n_elements(fedu.v(*,0)))
       for ik=0, n_elements(fedu.v(*,0))-1 do $
         new_v[ik]=sqrt(fedu.v(ik,0)*fedu.v(ik,1))
@@ -167,9 +169,9 @@ pro erg_load_xep, $
   ;--- print PI info and rules of the road
   gatt=dl.cdf.gatt
 
+
   print_str_maxlet, ' '
-  print, '**********************************************************************'
-  print, gatt.PROJECT
+  print, '**************************************************************************'
   print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 70
   print, ''
   print, 'Information about ERG XEP'
@@ -177,12 +179,11 @@ pro erg_load_xep, $
   print, 'PI: ', gatt.PI_NAME
   print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 70
   print, ''
-  for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 70
-  print, ''
-  print_str_maxlet, gatt.LINK_TEXT+' '+ gatt.HTTP_LINK[0]+' '+gatt.HTTP_LINK[1],70
-  print, '**********************************************************************'
+  print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+  print, 'RoR of XEP: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Xep'
+  print, 'Contact: erg_xep_info at isee.nagoya-u.ac.jp'
+  print, '**************************************************************************'
   print, ''
 
   return
 end
-
