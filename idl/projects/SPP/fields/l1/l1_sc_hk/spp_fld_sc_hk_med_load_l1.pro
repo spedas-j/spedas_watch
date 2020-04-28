@@ -94,9 +94,11 @@ pro spp_fld_sc_hk_med_load_l1, file, prefix = prefix, varformat = varformat
     options, prefix + 'fields_on_indicator', 'color_table', 4
     options, prefix + 'fields_on_indicator', 'reverse_color_table', 1
 
-    options, prefix + 'fields_on_indicator', 'no_color_scale', 1
+    ;options, prefix + 'fields_on_indicator', 'no_color_scale', 1
     options, prefix + 'fields_on_indicator', 'yrange', [0,1]
     options, prefix + 'fields_on_indicator', 'zrange', [0.,1.]
+    options, prefix + 'fields_on_indicator', 'yticklen', 1
+    options, prefix + 'fields_on_indicator', 'ygridstyle', 1
     options, prefix + 'fields_on_indicator', 'yticks', 1
     options, prefix + 'fields_on_indicator', 'yminor', 1
     options, prefix + 'fields_on_indicator', 'panel_size', 0.25
@@ -104,6 +106,23 @@ pro spp_fld_sc_hk_med_load_l1, file, prefix = prefix, varformat = varformat
     options, prefix + 'fields_on_indicator', 'bottom', 255 - 144
 
     options, prefix + 'fields_on_indicator', 'ytitle', 'FLD!CON'
+
+    if file_basename(getenv('IDL_CT_FILE')) EQ 'spp_fld_colors.tbl' then $
+      set_colors = 1 else set_colors = 0
+
+    if set_colors then begin
+
+      options, prefix + 'fields_on_indicator', 'no_color_scale', 0
+      options, prefix + 'fields_on_indicator', 'color_table', 131
+      options, prefix + 'fields_on_indicator', 'top'
+      options, prefix + 'fields_on_indicator', 'bottom'
+
+      options, prefix + 'fields_on_indicator', 'zticks', 1
+      options, prefix + 'fields_on_indicator', 'ztickv', [0.25, 0.75]
+      options, prefix + 'fields_on_indicator', 'ztickname', ['OFF','ON']
+
+
+    endif
 
     y_vals = ['1 ', ' 2']
 
