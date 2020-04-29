@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-10 23:29:27 -0700 (Fri, 10 Apr 2020) $
-; $LastChangedRevision: 28554 $
+; $LastChangedDate: 2020-04-28 10:58:57 -0700 (Tue, 28 Apr 2020) $
+; $LastChangedRevision: 28616 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -81,7 +81,13 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
           newname = rotate_data(prefix+'SPCVEL',rotmat,name='SPI' )   ;,repname='_SC')
           xyz_to_polar,newname,/ph_0_360
           get_data,newname+'_mag',time,vel_mag
-          store_data,newname+'_nrg',time,velocity(vel_mag,/proton,/inverse)
+          mass = .0104
+          charge = 1
+          if type eq 'sf0a' then begin
+            mass =mass*4
+            charge=charge * 2
+          endif
+          store_data,newname+'_nrg',time,velocity(vel_mag,mass/charge,/inverse)
           options,newname+'_*',colors='b'
           vname_nrg = [vname_nrg,newname+'_nrg']
           vname_th = [vname_th,newname+'_th']
@@ -93,6 +99,25 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
       store_data,prefix+'EFLUX_VS_THETA_OVL',data =vname_th ,dlimit={yrange:[-60,60],ylog:0,zlog:1,ystyle:3}
       store_data,prefix+'EFLUX_VS_PHI_OVL',data = vname_phi,dlimit={yrange:[90.,190.],ylog:0,zlog:1,ystyle:3}
     endif
+    
+    if type eq 'tof' then begin
+      name = prefix+'TOF'
+      get_data,name,data=d
+      if keyword_set(d) then begin
+        tbin = replicate(1,512)
+        tbin[256:*] = 2
+        tbin[384:*] = 4
+        ttbin = total(/preserve,/cum,tbin)
+        d.y = d.y / (replicate(1, n_elements(d.x)) # tbin)
+        str_element,/add,d,'v',ttbin/5.   ; approx calibration.
+        store_data,name+'_cor',data=d,dlim={spec:1,panel_size:3.,zlog:1,yrange:[6,220],ylog:1,ystyle:3}
+        mm = average(d.y[*,44:56],2)
+        store_data,name+'_TOTAL',data={x:d.x, y:mm}
+        d.y = d.y / (mm # replicate(1.,512) )
+        store_data,name+'_NORM',data=d,dlim={spec:1,panel_size:3.,zrange:[1e-4,1]*2,zlog:1,yrange:[6,220],ylog:1,ystyle:3}        
+      endif
+    endif
+
 
   endforeach
   options,'psp_swp_spi_sf??_L3_VEL',colors='bgr',labels=['Vx','Vy','Vz'],labflag=-1
