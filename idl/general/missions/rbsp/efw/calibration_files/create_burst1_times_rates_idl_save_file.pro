@@ -4,10 +4,11 @@
 ;Burst 1 list for each sc comes from create_rbsp_burst_times_rates_list.pro
 ;To get data from this list use rbsp_get_burst_times_rates_list.pro
 
+
 pro create_burst1_times_rates_idl_save_file,sc
 
   path = '/Users/aaronbreneman/Desktop/code/Aaron/RBSP/TDAS_trunk_svn/general/missions/rbsp/efw/calibration_files/'
-  fn = 'burst1_times_rates_RBSP'+sc+'.txt
+  fn = 'burst1_times_rates_RBSP'+sc+'.txt'
 
   openr,lun,path+fn,/get_lun
   jnk = ''
@@ -37,11 +38,9 @@ pro create_burst1_times_rates_idl_save_file,sc
   duration = duration[1:n-1]
   sr = sr[1:n-1]
 
-  vals = {t0:d0,t1:d1,duration:duration,samplerate:sr}
+;  vals = {t0:d0,t1:d1,duration:duration,samplerate:sr}
+;  for i=0,50 do print,vals.t0[i],vals.t1[i],vals.duration[i],vals.samplerate[i]
 
+  save,d0,d1,duration,sr,filename=path+'burst1_times_rates_RBSP'+sc+'.sav'
 
-  for i=0,50 do print,vals.t0[i],vals.t1[i],vals.duration[i],vals.samplerate[i]
-
-
-stop
 end

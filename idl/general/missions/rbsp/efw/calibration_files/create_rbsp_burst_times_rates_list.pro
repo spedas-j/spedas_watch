@@ -1,18 +1,18 @@
 ;Creates a .txt file that has all the EFW burst 1 start/stop times
 ;and data rates.
-
-
+;NOTE: this really only needs to be run once to create the .txt files.
+;After this code has been run, to read in this list and create an IDL save file
+;use create_burst1_times_rates_idl_save_file.pro
+;
+;
 ;Block rate vs data rate chart
 ;Note that after 2013-10-14 EB1 was dropped from B1 collection
 ;so that the usual 12 channels (6xVb, 3xEb, 3xMSCb) become
 ;9 channels (data rates reduced by factor 9/12)
-
-;For 16K burst rate:
+;Samples/block conversion:
 ;Pre  2013-10-14 rate is 4096 Samples/block
 ;Post 2014-10-14 rate is 5461 Samples/block
 
-;After this code has been run, to read in this list and create an IDL save file
-;use create_burst1_times_rates_idl_save_file.pro
 
 
 
@@ -89,10 +89,11 @@ pro create_rbsp_burst_times_rates_list,probe,date
       ;Save values to a file
 
         tmp = median(sample_rate_fin[goo])
-
+print,tmp
         avgrate[i] = median(sample_rate_fin[goo])
         ;snap to discrete values if possible
-        if tmp lt 800 then avgrate[i] = 512
+        if tmp lt 400 then stop    ;avgrate[i] = 512
+        if ((tmp ge 512-100) and (tmp le 512+200)) then avgrate[i] = 512.
         if ((tmp ge 1024-200) and (tmp le 1024+200)) then avgrate[i] = 1024.
         if ((tmp ge 2048-400) and (tmp le 2048+400)) then avgrate[i] = 2048.
         if ((tmp ge 4096-800) and (tmp le 4096+800)) then avgrate[i] = 4096.
@@ -115,51 +116,14 @@ pro create_rbsp_burst_times_rates_list,probe,date
 
         openw,lun,fn,/get_lun,/append
         printf,lun,s1+' - '+s2+'  '+s3+'  '+s4
-  ;      printf,lun,time_string(b1t[i,0])+' - '+time_string(b1t[i,1])+ '  '+burst_duration+'  '+ avgrate_str; + ' Samples/sec'
+;  ;      printf,lun,time_string(b1t[i,0])+' - '+time_string(b1t[i,1])+ '  '+burst_duration+'  '+ avgrate_str; + ' Samples/sec'
         close,lun & free_lun,lun
 
       endif
     endfor
-
-
-;    store_data,'block_rateB1',d.x,block_rate
-;    store_data,'sample_rateB1',d.x,sample_rate
-;    store_data,'sample_rate_finB1',d.x,sample_rate_fin
-;    ylim,'block_rateB1',-6,6
-;    ylim,'sample_rateB1',100,20000,1
-;    ylim,'sample_rate_finB1',100,20000,1
-;
-;    options,['sample_rate_finB1','sample_rateB1'],'psym',-2
-
-;    tplot,['sample_rate_finB1','sample_rateB1','block_rateB1','rbspa_efw_hsk_idpu_fast_B1_RECPTR','rbspa_efw_hsk_idpu_fast_B1_RECPTR_smoothed']
-;
-;    ylim,['rbspa_efw_hsk_idpu_fast_B1_PLAYPTR','rbspa_efw_hsk_idpu_fast_B1_RECPTR'],2.4d5,2.6d5
-;    tplot,['rbspa_efw_hsk_idpu_fast_B1_PLAYPTR','rbspa_efw_hsk_idpu_fast_B1_RECPTR']
-;stop
-
-
+    stop
   endif
 
 
   store_data,tnames(),/del
 end
-
-
-;    sample_rate = dblarr(n_elements(block_rate))
-
-
-    ;Determine if sampling is 16K or not.
-;    sample_rate_rough = block_rate*samples_block
-;    sample_rate_rough = block_rate*5461d
-
-
-;    ;For 16K samples the conversion to sample rate changes after 2013-10-14
-;    boo = where(sample_rate_rough gt 12000.)
-;    if boo[0] ne -1 then begin
-;      if tdiff ge 0 then sample_rate[boo] = block_rate[boo]*5461d else $
-;                         sample_rate[boo] = block_rate[boo]*samples_block
-;    endif
-
-;    ;For anything less than 16K sample rate use the standard samples_block value
-;    boo = where(sample_rate_rough le 12000.)
-;    if boo[0] ne -1 then sample_rate[boo] = block_rate[boo]*samples_block

@@ -7,7 +7,10 @@
 
 function rbsp_load_eclipse_times,sc
 
+
+  tmpp = findpath('rbsp_load_eclipse_times.pro',/exact,path)
   fn = 'rbsp-'+sc+'_eclipse_times.txt'
+
 
   tr = timerange()
 
@@ -15,7 +18,7 @@ function rbsp_load_eclipse_times,sc
   t1 = strarr(10000)
 
 
-  openr,lun,'/Users/aaronbreneman/Desktop/code/Aaron/RBSP/TDAS_trunk_svn/general/missions/rbsp/efw/calibration_files/'+fn,/get_lun
+  openr,lun,path+'/calibration_files/'+fn,/get_lun
   tmp = '' & readf,lun,tmp
 
 
