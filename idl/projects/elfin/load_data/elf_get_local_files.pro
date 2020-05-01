@@ -84,8 +84,15 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
         else dir_pattern = dir_pattern + 'defn' + s
   endif
   if instrument eq 'epd' then begin
-    if datatype EQ 'pes' OR datatype EQ 'pis' then dir_pattern = dir_pattern + 'survey' + s $
-       else dir_pattern = dir_pattern + 'fast' + s
+    Case datatype of
+      'pes': subdir='survey/electron/'
+      'pis': subdir='survey/ion/'
+      'pef': subdir='fast/electron/'
+      'pif': subdir='fast/ion/'
+    Endcase
+    dir_pattern = dir_pattern + subdir + s
+;    if datatype EQ 'pes' OR datatype EQ 'pis' then dir_pattern = dir_pattern + 'survey' + s $
+;       else dir_pattern = dir_pattern + 'fast' + s
   endif
   if instrument eq 'fgm' then begin
     if datatype EQ 'fgs' then dir_pattern = dir_pattern + 'survey' + s $

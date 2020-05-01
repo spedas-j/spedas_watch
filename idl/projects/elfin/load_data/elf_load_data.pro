@@ -208,7 +208,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               if ncnt GT 0 then append_array, ftypes, 'fgf'
             end
             'state': if pred then ftypes='state_pred' else ftypes='state_defn'
-            ;'state': ftypes='state'
             'mrma': ftypes='mrma'
             'mrmi': ftypes='mrmi'
             'eng': ftypes='eng'
@@ -227,8 +226,12 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
             if pred then subdir='pred/' else subdir='defn/'           
           endif
           if instrument EQ 'epd' then begin
-             if datatype EQ 'pes' OR datatype EQ 'pis' $
-               then subdir = 'survey/' else subdir = 'fast/'
+             Case datatype of 
+               'pes': subdir='survey/electron/'
+               'pis': subdir='survey/ion/'
+               'pef': subdir='fast/electron/'
+               'pif': subdir='fast/ion/'
+             Endcase
           endif
           if instrument EQ 'fgm' then begin
             if datatype EQ 'fgs' then subdir = 'survey/' else subdir = 'fast/'
@@ -246,7 +249,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'state' then local_path = spd_addslash(local_path)
           if instrument EQ 'epd' then local_path = spd_addslash(local_path)
           if instrument EQ 'fgm' then local_path = spd_addslash(local_path)
-
+          
           for file_idx = 0, n_elements(fnames)-1 do begin 
 
               paths = '' 

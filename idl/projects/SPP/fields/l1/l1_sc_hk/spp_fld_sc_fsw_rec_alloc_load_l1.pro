@@ -71,7 +71,7 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
   options, prefix + 'instrument_used', 'ytitle', 'Inst DCP!CUsed'
   options, prefix + 'instrument_used', 'ysubtitle', 'Gbits'
 
-  deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit'
+  deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', nsmooth = 6
 
   get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_ddt', dat = d_ddt
 
@@ -81,6 +81,36 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
       dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
 
   endif
+
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'ylog', 1
+  
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'yrange', [0.1,1000.]
+  
+  
+;  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', data = d_gbit
+;  
+;  if size(/type, d_gbit) EQ 8 then begin
+;    
+;    res = 1200d
+;    
+;    int_times = time_intervals(trange = minmax(d_gbit.x), res = res)    
+;    
+;    int_gbit = data_cut('spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', int_times)
+;    
+;    dt = 1d
+;    
+;    order = 1
+;    ; Don't forget to normalize the coefficients.
+;    savgolFilter = SAVGOL(16, 16, order, 2)*(FACTORIAL(order)/ $
+;      (dt^order))
+;      
+;    int_gbit2 = CONVOL(int_gbit, savgolFilter, /EDGE_TRUNCATE)
+;    
+;    plot, int_gbit2 * 1d6 / res, /ylog, yrange = [0.1,1000.], psym = 6
+;    
+;    stop
+;    
+;  endif
 
   options, '*fsw_rec_alloc*', 'xticklen', 1
   options, '*fsw_rec_alloc*', 'yticklen', 1
