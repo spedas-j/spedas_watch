@@ -2,9 +2,9 @@
 ;
 ;  Author: Davin Larson December 2018
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-28 15:55:34 -0700 (Tue, 28 Apr 2020) $
-; $LastChangedRevision: 28617 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-05-01 16:41:00 -0700 (Fri, 01 May 2020) $
+; $LastChangedRevision: 28661 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -45,6 +45,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   if strpos(type, 'dfb_wf_vdc') EQ 0 and type NE 'dfb_wf_vdc' then level = 1.5
   if strpos(type, 'dfb_wf_edc') EQ 0 and type NE 'dfb_wf_edc' then level = 1.5
   if strpos(type, 'dfb_wf_b') EQ 0 then level = 1.5
+
+  if strpos(type, 'dfb_dbm_b') EQ 0 then level = 1.5
 
   ; L1 WF files have level = 1
 
