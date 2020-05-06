@@ -1,8 +1,8 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-04-16 20:52:34 -0700 (Thu, 16 Apr 2020) $
-; $LastChangedRevision: 28588 $
+; $LastChangedDate: 2020-05-05 15:09:33 -0700 (Tue, 05 May 2020) $
+; $LastChangedRevision: 28670 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 ;
@@ -19,7 +19,7 @@
 pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=alltypes,maxcalc=maxcalc,nmaxcalc=nmaxcalc,rate=rate,accum=accum,snap=snap,$
   spectra=spectra,mode=mode,mass_explode=mass_explode,pixel_explode=pixel_explode,pixel_image=pixel_image,plots=plots,merge=merge,alfven=alfven,total=total,energybin=energybin,e12=e12,status_bits=status_bits
 
-  if ~keyword_set(types) then types=['tof','sf00','sf01','sf10','sf11','sf20','sf21','sf22','sf23']
+  if ~keyword_set(types) then types=['tof','sf00','sf01','sf10','sf11','sf12','sf20','sf21','sf22','sf23']
   if keyword_set(alltypes) then begin
     types=['tof']
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1','2'] do foreach type3,['0','1','2','3'] do types=[types,type0+type1+type2+type3]
@@ -55,7 +55,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
       en=exp(9.825-findgen(32)/6.25) ;energy bins for encounter 2
       ve=velocity(en,/proton) ;speeds corresponding to energy bins
     endelse
-    
+
     if ~keyword_set(e12) then anoderange=[-1,16] else anoderange=[-1,8]
 
     axis_style=2
@@ -90,10 +90,14 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
           novardata = !null
           loadcdfstr,filenames=files,vardata,novardata
           obj=spp_data_product_hash('spi_'+type+'_'+level,vardata)
-        endif else vardata=(spp_data_product_hash('spi_'+type+'_'+level)).data
+        endif else begin
+          vardata=!null
+          obj=spp_data_product_hash('spi_'+type+'_'+level)
+          if keyword_set(obj) then vardata=obj.data
+        endelse
 
         if ~keyword_set(vardata) then continue
-        
+
         if type eq 'tof' then begin
           if keyword_set(spectra) then store_data,prefix+'TOF',vardata.time,transpose(vardata.tof),dlim={zlog:1,spec:1,ystyle:3,ztitle:'Counts'}
           continue
@@ -144,8 +148,8 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         endif
         ;prefix=prefix+countrate+'_'
 
-        mbin=where(type.charat(3) eq ['0','1','2','3'])
         pbin=where(type.charat(2) eq ['0','1','2'])
+        mbin=where(type.charat(3) eq ['0','1','2','3'])
         case dim[0] of
           2048:datdimen=[8,32,8];sf0x: DxExA: deflection(theta),energy,anode(phi)
           256 :datdimen=[8,32]  ;sf1x: DxE: deflection,energy (only encounters 1 and 2)
@@ -160,18 +164,18 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
 
         case dim[0] of
           2048:begin
-            if keyword_set(snap) then begin
+            if keyword_set(snap) and ~(pbin eq 1 and mbin eq 0) then begin
               data_theta=total(data,1)
               data_energy=total(data,2)
               data_phi=total(data,3,/nan)
               p=image(transpose(alog10(data_theta)),8.*pbin[0]-.5+findgen(8),-.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
-                title='',xtitle='Anode #',ytitle='Energy bin',xrange=anoderange,yrange=[32,-1],/current,layout=[5,2,6-5*mbin])
+                title='',xtitle='Anode #',ytitle='Energy bin',xrange=anoderange,yrange=[32,-1],/current,layout=[5,2,6-5*(mbin-pbin)])
               p=text(/relative,target=p,0,-.01-pbin/2.7,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
               p=image(alog10(data_phi),-.5+findgen(8),-.5+findgen(32),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
-                title='',xtitle='Deflection bin',ytitle='Energy bin',xrange=[-1,8],yrange=[32,-1],/current,layout=[5,2,pbin+7-5*mbin])
+                title='',xtitle='Deflection bin',ytitle='Energy bin',xrange=[-1,8],yrange=[32,-1],/current,layout=[5,2,pbin+7-5*(mbin-pbin)])
               p=text(/relative,target=p,0,-.01,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
               p=image(transpose(alog10(data_energy)),8.*pbin[0]-.5+findgen(8),-.5+findgen(8),rgb=colortable(33),min=min,max=max,axis_style=axis_style,$
-                ytitle='Deflection bin',xtitle='Anode #',yrange=[-1,8],xrange=anoderange,/current,layout=[5,6,9-5*mbin])
+                ytitle='Deflection bin',xtitle='Anode #',yrange=[-1,8],xrange=anoderange,/current,layout=[5,6,9-5*(mbin-pbin)])
               p=text(/relative,target=p,1.1,-1*(~keyword_set(e12))+1.4*pbin,[type,time_string(times,tformat='YYYY-MM-DD'),time_string(times,tformat='hh:mm:ss.fff'),'accum='+strtrim(totaccum,2),'dt='+strtrim(dt,2)+'s'])
             endif
             if keyword_set(spectra) then begin

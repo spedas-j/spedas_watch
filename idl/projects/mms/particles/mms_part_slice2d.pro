@@ -85,6 +85,12 @@
 ;         DETERM_TOLERANCE:  tolerance of the determinant of the custom rotation matrix
 ;           (maximum acceptable difference from determ(C)=1 where C is the
 ;           user's custom rotation matrix); default is 1e-6
+;           
+;         SUBTRACT_BULK: subtract the bulk velocity prior to doing the calculations
+;         PERP_SUBTRACT_BULK: subtract the perpendicular bulk velocity in field-aligned coordinates
+;                 i.e., finds the perp velocity by rotating into the 'bv' system, then sets the X component 
+;                 of velocity to zero, and inverse, then subtracts this velocity instead of the full bulk
+;                 velocity
 ;
 ;Orientation Keywords:
 ;         ROTATION: Aligns the data relative to the magnetic field and/or bulk velocity.
@@ -222,8 +228,8 @@
 ;           (requested by the FPI team at last year's GEM)
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-02-27 14:33:12 -0800 (Thu, 27 Feb 2020) $
-;$LastChangedRevision: 28355 $
+;$LastChangedDate: 2020-05-05 13:43:39 -0700 (Tue, 05 May 2020) $
+;$LastChangedRevision: 28669 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
@@ -231,7 +237,7 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
                       trange=trange, subtract_bulk=subtract_bulk, spdf=spdf, rotation=rotation, output=output, $
                       units=units, subtract_error=subtract_error, plotbulk=plotbulk, plotsun=plotsun, fgm_data_rate=fgm_data_rate, $
                       correct_photoelectrons=correct_photoelectrons, geometric=geometric, two_d_interp=two_d_interp, $
-                      three_d_interp=three_d_interp, _extra=_extra
+                      three_d_interp=three_d_interp, perp_subtract_bulk=perp_subtract_bulk, _extra=_extra
 
     start_time = systime(/seconds)
   
@@ -263,7 +269,7 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     if undefined(rotation) then rotation = 'xy'
     
     if ~in_set(rotation, ['xy', 'yz', 'xz']) then load_support = 1b else load_support = 0b
-    if keyword_set(subtract_bulk) then load_support = 1b ; need support data for bulk velocity subtraction as well
+    if keyword_set(subtract_bulk) || keyword_set(perp_subtract_bulk) then load_support = 1b ; need support data for bulk velocity subtraction as well
     if keyword_set(plotbulk) then load_support = 1b 
     if keyword_set(plotsun) then begin
        if ~spd_data_exists('mms'+probe+'_mec_r_sun_de421_gse', trange[0], trange[1]) then mms_load_mec, trange=trange, probe=probe, spdf=spdf, /time_clip
@@ -304,9 +310,9 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     endif else dist_out = dist
 
     if ~undefined(time) then undefine, trange
-    
-    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, sun_data=sname, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, _extra=_extra) $ 
-      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, sun_data=sname, subtract_bulk=subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, _extra=_extra)
+
+    if load_support then slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, mag_data=bname, vel_data=vname, sun_data=sname, subtract_bulk=subtract_bulk, perp_subtract_bulk=perp_subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, _extra=_extra) $ 
+      else slice = spd_slice2d(dist_out, time=time, trange=trange, rotation=rotation, sun_data=sname, subtract_bulk=subtract_bulk, perp_subtract_bulk=perp_subtract_bulk, geometric=geometric, two_d_interp=two_d_interp, three_d_interp=three_d_interp, _extra=_extra)
     
     spd_slice2d_plot, slice, plotbulk=plotbulk, sundir=plotsun, _extra=_extra
     output=slice
