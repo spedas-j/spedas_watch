@@ -151,7 +151,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]
       elx_pxf.y[0:dSectr2add-1,*]=!VALUES.F_NaN
     endif else begin ; shift backward
-      elx_pxf.y[xra,*]=elx_pxf.y[abs(dSectr2add):nsectors-1,*]
+      elx_pxf.y[xra,*]=elx_pxf.y[xra+abs(dSectr2add),*]
       elx_pxf.y[dSectr2add:nsectors-1,*]=!VALUES.F_NaN
     endelse
     store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
