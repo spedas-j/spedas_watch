@@ -74,8 +74,8 @@
 ;History:
 ;  ver.0.0: The 1st experimental release 
 ;  
-;$LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-;$LastChangedRevision: 27922 $
+;$LastChangedDate: 2020-05-07 14:05:13 -0700 (Thu, 07 May 2020) $
+;$LastChangedRevision: 28675 $
 ;-
 pro erg_mep_part_products, $
    in_tvarname, $
@@ -174,7 +174,7 @@ pro erg_mep_part_products, $
       dprint, 'ERROR: Gyro restrictions must have range no larger than 360 deg'
       return
     endif
-    gyro = spd_pgs_map_azimuth(phi_in)
+    gyro = spd_pgs_map_azimuth(gyro_in)
     if gyro[0] eq gyro[1] then gyro = [0., 360.]
   endelse
 

@@ -59,8 +59,8 @@
 ;   Chae-Woo Jun, ERG Science Center (E-mail: chae-woo at isee.nagoya-u.ac.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
-; $LastChangedRevision: 28604 $
+; $LastChangedDate: 2020-05-07 14:05:13 -0700 (Thu, 07 May 2020) $
+; $LastChangedRevision: 28675 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/lepe/erg_load_lepe.pro $
 ;-
 pro erg_load_lepe, $
@@ -346,7 +346,7 @@ pro erg_load_lepe, $
   
   ROR:
   ;--- print PI info and rules of the road
-  gatt=cdf_var_atts(datfiles)
+  gatt=cdf_var_atts(datfiles[0])
 
   print_str_maxlet, ' '
   print, '**************************************************************************'
