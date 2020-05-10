@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-05-06 21:50:58 -0700 (Wed, 06 May 2020) $
-; $LastChangedRevision: 28673 $
+; $LastChangedDate: 2020-05-08 22:52:05 -0700 (Fri, 08 May 2020) $
+; $LastChangedRevision: 28678 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -20,7 +20,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   if not keyword_set(type) then begin
     dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr mag_SC_4_Sa_per_Cyc'
-    dprint,'See the directories at: "http://sprg.ssl.berkeley.edu/data/psp/data/sci/fields/staging/l2/" for other valid entries'
+    dprint,'See the directories at: "http://research.ssl.berkeley.edu/data/psp/data/sci/fields/staging/l2/" for other valid entries'
     type = 'mag_SC_4_Sa_per_Cyc'
     dprint,'Default is: ', type
   endif
@@ -51,6 +51,11 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   ; L1 WF files have level = 1
 
   if strpos(type, 'dfb_wf') EQ 0 and strlen(type) EQ 8 then level = 1
+
+  ; SCaM data is Level 3
+
+  if type EQ 'merged_scam_wf' then level = 3
+
 
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
     type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin
@@ -149,16 +154,24 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   daily_names = 1
 
   if not keyword_set(fileprefix) then begin
-    if level EQ 2 then fileprefix = 'psp/data/sci/fields/staging/l2/' else $
-      fileprefix = 'psp/data/sci/fields/staging/l1/'
+    case level of
+      3: fileprefix = 'psp/data/sci/fields/staging/l3/'
+      2: fileprefix = 'psp/data/sci/fields/staging/l2/'
+      else: fileprefix = 'psp/data/sci/fields/staging/l1/'
+    endcase
   endif
+  ;    if level EQ 2 then fileprefix = 'psp/data/sci/fields/staging/l2/' else $
+  ;      fileprefix = 'psp/data/sci/fields/staging/l1/'
+  ;  endif
 
   if n_elements(no_staging) GT 0 then $
     fileprefix = str_sub(fileprefix, '/staging/', '/')
 
 
   if not keyword_set(pathformat) then begin
-    if level EQ 2 then begin
+    if level EQ 3 then begin
+      pathformat =  'TYPE/YYYY/MM/psp_fld_l3_TYPE_YYYYMMDDhh_v??.cdf'
+    endif else if level EQ 2 then begin
       pathformat =  'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDD_v??.cdf'
       if type EQ 'mag_SC' then begin
         pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'
@@ -401,9 +414,17 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
           options,'psp_fld_l2_dfb_wf_scm_?g_s*','psym_lim',300
         endif
 
-
-
       endif
+
+      if strmatch(type, 'merged_scam_wf') then begin
+
+        options,'psp_fld_l3_merged_scam_wf_SC', 'ytitle', 'SCaM SC'
+        options,'psp_fld_l3_merged_scam_wf_SC', 'ysubtitle', '[nT]'
+        options,'psp_fld_l3_merged_scam_wf_*',colors='bgr' ,/default
+        options,'psp_fld_l3_merged_scam_wf_SC', 'max_points', 10000
+        options,'psp_fld_l3_merged_scam_wf_SC', 'psym_lim', 300
+
+      end
 
       if tnames('psp_fld_l2_quality_flags') NE '' then begin
 
