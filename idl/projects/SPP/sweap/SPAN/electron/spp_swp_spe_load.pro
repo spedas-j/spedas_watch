@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-13 15:37:05 -0700 (Mon, 13 Apr 2020) $
-; $LastChangedRevision: 28572 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-05-11 10:07:49 -0700 (Mon, 11 May 2020) $
+; $LastChangedRevision: 28680 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -10,13 +10,13 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
   alltypes=alltypes,allvars=allvars,hkp=hkp,save=save,level=level,file_prefix=file_prefix,no_update=no_update,no_server=no_server
 
   if ~keyword_set(level) then level='L3'
+  if ~keyword_set(types) then types='sf0'
   vars = orderedhash()
   if not keyword_set(file_prefix) then file_prefix='psp/data/sci/sweap/'
   if not keyword_set(esteps) then esteps = [4,8,12]
   if level eq 'L3' then begin
     fileformat='spe/L3/SP?_TYP_pad/YYYY/MM/psp_swp_SP?_TYP_L3_pad_YYYYMMDD_v??.cdf'
     ;http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spe/L3/spb_sf0_pad/2018/11/psp_swp_spb_sf0_L3_pad_20181107_v00.cdf
-    types = 'sf0'
     if not keyword_set(spxs) then spxs= ['spe']
     vars['pad'] = '*'
     normpad =1
@@ -80,11 +80,11 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
             eval = median(energy[*,e])
             ytitle = 'psp!cswp!c'+spx+'!c'+type+'!c'+level+'!cElectron!cPAD!c'+ strtrim(round(eval),2)+' eV'
             eflux_e = eflux_vs_pa_e[*,*,e]
-            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle,ysubtitle:'[Degrees]'}
+            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle,ysubtitle:'[Degrees]',ztitle:'[eV/cm2-s-ster-eV]'}
             if spx eq 'spe' then begin
               SPX_VS_PA_E=cdf.vars['SPX_VS_PA_E'].data.array
               SPX_VS_PA = SPX_VS_PA_E[*,*,e]
-              store_data,prefix+'SPX_VS_PA_E'+enum,time,SPX_VS_PA,pitchangle, dlim={yrange:[0,180],spec:1,ystyle:1}
+              store_data,prefix+'SPX_VS_PA_E'+enum,time,SPX_VS_PA,pitchangle, dlim={yrange:[0,180],spec:1,ystyle:1,ztitle:'SPA=1 SPB=2'}
             endif
             if keyword_set(normpad) then begin
               npa = 12
