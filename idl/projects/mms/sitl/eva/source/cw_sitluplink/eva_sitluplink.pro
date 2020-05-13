@@ -203,8 +203,10 @@ FUNCTION eva_sitluplink_event, ev
               update=1
             endelse
           endif else message,'mms_stlm_fomstr not found.'
+          widget_control, state.mainbase, BASE_SET_TITLE=' DISABLE UPLINK '
         endif else begin; if gvl eq 0
           eva_sitluplink_update_uplinkflag, gvl
+          widget_control, state.mainbase, BASE_SET_TITLE=' ENABLE UPLINK '
           update=1
         endelse
       endif

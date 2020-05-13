@@ -42,7 +42,7 @@ pro das2dlm_load_cassini_mag_mag, trange=trange
   dt = time_double('2000-01-01')-time_double('1970-01-01')
   x = x/1d6 + dt
   
-  tvarname = 'cassini_mag' + ds.name
+  tvarname = 'cassini_mag_' + ds.name
   store_data, tvarname, data={x:x, y:y}
   ; TODO: add options
   ; TODO: add check on null

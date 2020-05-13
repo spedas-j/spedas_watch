@@ -15,7 +15,8 @@ PRO eva_sitl_sroi_bar,trange=trange,sc_id=sc_id,colors=colors
   sROIs = mms_get_srois(trange = str_trange, sc_id=sc_id)
   nan = !VALUES.F_NAN
   nan4 = [!VALUES.F_NAN,!VALUES.F_NAN,!VALUES.F_NAN,!VALUES.F_NAN]
-
+  if n_tags(sROIs) lt 3 then return
+    
   ;-------------------
   ; FIRST POINT
   ;-------------------
