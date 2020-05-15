@@ -32,7 +32,12 @@ FUNCTION eva_sitluplink_log, tai_FOMstr_mod, check=check, title=title
     return, 'uplink-log: abort'
   endif
 
-  eva_uplink_log = [eva_uplink_log, this_str]
-  save, eva_uplink_log, file=fname
-  return, 'uplink-log: saved'
+  if keyword_set(check) then begin
+    return, 'uplink-log: checked'
+  endif else begin
+    eva_uplink_log = [eva_uplink_log, this_str]
+    save, eva_uplink_log, file=fname
+    return, 'uplink-log: new metadataeval time saved'
+  endelse
+  
 END
