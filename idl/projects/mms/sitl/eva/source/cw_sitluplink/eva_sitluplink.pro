@@ -40,23 +40,43 @@ PRO eva_sitluplink_display_and_validate, state
   tn = tag_names(lim.UNIX_FOMSTR_MOD)
   idx = where(strlowcase(tn) eq 'evalstarttime', ct)
   str_time = (ct eq 1) ? time_string(lim.UNIX_FOMSTR_MOD.EVALSTARTTIME) : 'N/A'
-  idx = where(strlowcase(tn) eq 'uplinkflag', ct)
-  strButton = 'DRAFT'
-  if (ct gt 0)  && (lim.UNIX_FOMSTR_MOD.UPLINKFLAG eq 1) then begin
-    strButton = 'UPLINK'
-  endif
+  uplinkflag = lim.UNIX_FOMSTR_MOD.UPLINKFLAG
+  if uplinkflag then begin
+    btnDraft = 0
+    btnUplink = 1
+  endif else begin
+    btnDraft = 1
+    btnUplink = 0
+  endelse
+  
+;  idx = where(strlowcase(tn) eq 'uplinkflag', ct)
+;  strButton = 'DRAFT'
+;  if (ct gt 0)  && (lim.UNIX_FOMSTR_MOD.UPLINKFLAG eq 1) then begin
+;    strButton = 'UPLINK'
+;  endif
 
-  id_sitl = widget_info(state.parent, find_by_uname='eva_sitl')
-  sitl_stash = WIDGET_INFO(id_sitl, /CHILD)
-  WIDGET_CONTROL, sitl_stash, GET_UVALUE=sitl_state, /NO_COPY
-  widget_control, sitl_state.lblEvalStartTime, SET_VALUE='Next SITL Window Start Time: '+str_time
-  widget_control, sitl_state.btnSubmit, SET_VALUE='   '+strButton+'   '
-  WIDGET_CONTROL, sitl_stash, SET_UVALUE=sitl_state, /NO_COPY
+;  id_sitl = widget_info(state.parent, find_by_uname='eva_sitl')
+;  sitl_stash = WIDGET_INFO(id_sitl, /CHILD)
+;  WIDGET_CONTROL, sitl_stash, GET_UVALUE=sitl_state, /NO_COPY
+;  widget_control, sitl_state.lblEvalStartTime, SET_VALUE='Next SITL Window Start Time: '+str_time
+;  widget_control, sitl_state.btnSubmit, SET_VALUE='   '+strButton+'   '
+;  WIDGET_CONTROL, sitl_stash, SET_UVALUE=sitl_state, /NO_COPY
 
+  id_submit = widget_info(state.parent2, find_by_uname='eva_sitlsubmit')
+  submit_stash = WIDGET_INFO(id_submit, /CHILD)
+  widget_control, submit_stash, GET_UVALUE=submit_state, /NO_COPY;******* GET
+  widget_control, submit_state.btnDraft,SENSITIVE=btnDraft
+  widget_control, submit_state.btnUplink,SENSITIVE=btnUplink
+  widget_control, submit_stash, SET_UVALUE=submit_state, /NO_COPY;******* SET
+
+  widget_control, state.lblw1, SENSITIVE=btnUplink
+  widget_control, state.lblw2, SENSITIVE=btnUplink
+  widget_control, state.lblw3, SENSITIVE=btnUplink
+  
   ;--------------------
   ; Validation by Rick
   ;--------------------
-  if(strButton eq 'UPLINK') then begin
+  if(uplinkflag) then begin
     r = eva_sitluplink_validateFOM(lim.UNIX_FOMSTR_MOD)
     if(r gt 0) then begin
       eva_sitluplink_update_evalstarttime, 'N/A'
@@ -203,10 +223,10 @@ FUNCTION eva_sitluplink_event, ev
               update=1
             endelse
           endif else message,'mms_stlm_fomstr not found.'
-          widget_control, state.mainbase, BASE_SET_TITLE=' DISABLE UPLINK '
+          ;widget_control, state.mainbase, BASE_SET_TITLE=' DISABLE UPLINK '
         endif else begin; if gvl eq 0
           eva_sitluplink_update_uplinkflag, gvl
-          widget_control, state.mainbase, BASE_SET_TITLE=' ENABLE UPLINK '
+          ;widget_control, state.mainbase, BASE_SET_TITLE=' ENABLE UPLINK '
           update=1
         endelse
       endif
@@ -223,7 +243,7 @@ END
 
 ;-----------------------------------------------------------------------------
 
-FUNCTION eva_sitluplink, parent, $
+FUNCTION eva_sitluplink, parent, parent2, $
   UVALUE = uval, UNAME = uname, TAB_MODE = tab_mode, TITLE=title,XSIZE = xsize, YSIZE = ysize
   compile_opt idl2
 
@@ -231,11 +251,12 @@ FUNCTION eva_sitluplink, parent, $
 
   IF NOT (KEYWORD_SET(uval))  THEN uval = 0
   IF NOT (KEYWORD_SET(uname))  THEN uname = 'eva_sitluplink'
-  if not (keyword_set(title)) then title='   UPLINK   '
+  if not (keyword_set(title)) then title=' ENABLE UPLINK '
 
   ; ----- STATE -----
   state = {$
     parent:parent,$
+    parent2:parent2,$
     EvalStartTime: 'N/A',$
     EvalStopTime: 'N/A',$
     EvalStartTimeDouble: 0.d0}
@@ -282,18 +303,19 @@ FUNCTION eva_sitluplink, parent, $
   subbase = widget_base(mainbase,/column,sensitive=0)
   str_element,/add,state,'subbase',subbase
   
-    str_element,/add,state,'lblDummy1',widget_label(subbase,VALUE=' ')
+;    str_element,/add,state,'lblDummy1',widget_label(subbase,VALUE=' ')
     
-    str_element,/add,state,'lblABS',widget_label(subbase,VALUE='Settings in ABS:')
+    str_element,/add,state,'lblABS',widget_label(subbase,VALUE='Original Settings in ABS:')
     bsABS = widget_base(subbase, /COLUMN, SPACE=0, YPAD=0,/frame,xsize=xsize*0.94)
       str_element,/add,state,'lblABS_tstart',widget_label(bsABS,VALUE='EVAL START TIME: N/A',/align_left)
       str_element,/add,state,'lblABS_uplink',widget_label(bsABS,VALUE='UPLINK FLAG: N/A',/align_left)
 
     str_element,/add,state,'lblDummy2',widget_label(subbase,VALUE=' ')
     
-    str_element,/add,state,'lblFOM',widget_label(subbase,VALUE='Settings to be submitted:')
+    str_element,/add,state,'lblFOM',widget_label(subbase,VALUE='Set Window Close Time')
+    str_element,/add,state,'lblFOM2',widget_label(subbase,VALUE='(= Next Window Start Time)')
     bsFOM = widget_base(subbase, /COLUMN, SPACE=0, YPAD=0,/frame,xsize=xsize*0.94,/align_center)
-      lblEvalStartTime = widget_label(bsFOM,VALUE='Next SITL Window Start Time',/align_left)
+      lblEvalStartTime = widget_label(bsFOM,VALUE='  ',/align_left)
       bsEvalStartTime = widget_base(bsFOM,/row, SPACE=0, YPAD=0)
         str_element,/add,state,'fldEvalStartTime',cw_field(bsEvalStartTime,VALUE=valEvalstarttime,TITLE='',/ALL_EVENTS,XSIZE=24)
         str_element,/add,state,'calEvalStartTime',widget_button(bsEvalStartTime,VALUE=cal)
@@ -304,12 +326,15 @@ FUNCTION eva_sitluplink, parent, $
         str_element,/add,state,'btnErase',widget_button(bsReset,VALUE=' Refresh ');,xsize=150)
         lblReset2 = widget_label(bsReset,VALUE='     ')
         str_element,/add,state,'btnReset',widget_button(bsReset,VALUE=' Reset ');,xsize=150)
-      lblUplink = widget_label(bsFOM,VALUE='Uplink',/align_left)
-      bsUplink = widget_base(bsFOM,/row, SPACE=0, YPAD=0)
-        lblUplinkDummy = widget_label(bsUplink,VALUE='   ',/align_left)
-        str_element,/add,state,'bgUplink',cw_bgroup(bsUplink,['No','Yes'],$
-          EXCLUSIVE=1,SET_VALUE=0,COLUMN=2)
-  
+    
+    bsUplink = widget_base(subbase,/row, SPACE=0, YPAD=0)
+      lblUplink = widget_label(bsUplink,VALUE='Uplink',/align_left)
+      lblUplinkDummy = widget_label(bsUplink,VALUE=': ',/align_left)
+      str_element,/add,state,'bgUplink',cw_bgroup(bsUplink,['Disabled','Enabled'],$
+        EXCLUSIVE=1,SET_VALUE=0,COLUMN=2)
+    str_element,/add,state,'lblw1',widget_label(subbase,VALUE='Click the UPLINK button to finalize',sensitive=0)
+    str_element,/add,state,'lblw2',widget_label(subbase,VALUE='submission and close the SITL window.',sensitive=0)
+    str_element,/add,state,'lblw3',widget_label(subbase,VALUE='You cannot undo this action.',sensitive=0)
 
   ; Save out the initial state structure into the first childs UVALUE.
   WIDGET_CONTROL, WIDGET_INFO(mainbase, /CHILD), SET_UVALUE=state, /NO_COPY

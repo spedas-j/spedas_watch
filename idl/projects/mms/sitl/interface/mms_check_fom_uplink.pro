@@ -13,14 +13,25 @@ endfor
 
 ; Finally, we check to make sure there are no selections after the designated close
 real_stops = tai_fomstr.cyclestart + tai_fomstr.stop
+real_starts = tai_fomstr.cyclestart + tai_fomstr.start
 oob_loc = where(real_stops ge tai_fomstr.evalstarttime, count_oob)
+roi_before_loc = where(sroi_stops_tai lt tai_fomstr.evalstarttime, count_before)
 
 if count_oob gt 0 then begin
   oob_warning_times = strarr(count_oob)
-  convert_time_stamp, tai_fomstr.cyclestart, tai_fomstr.start(oob_loc), oob_warning_times
+  convert_time_stamp, tai_fomstr.cyclestart, tai_fomstr.start[oob_loc], oob_warning_times
 endif else begin
   oob_warning_times = ''
 endelse
+
+empty_roi = 0
+if count_before gt 0 then begin
+  for i = 0, count_before-1 do begin
+    loc_select = where(real_starts ge sroi_starts_tai[roi_before_loc[i]] $
+      and real_starts le sroi_stops_tai[roi_before_loc[i]], count_select)
+    if count_select ge 0 then empty_roi += 1
+  endfor
+endif
 
 
 ;-----------------------------------------------------------------------------
@@ -28,7 +39,8 @@ endelse
 ;-----------------------------------------------------------------------------
  
 error_flags = [roi_check ge 0, $
-               count_oob gt 0]
+               count_oob gt 0, $
+               empty_roi gt 0]
                
 error_indices = ptrarr(n_elements(error_flags), /allocate_heap)
 error_times = ptrarr(n_elements(error_flags), /allocate_heap)
@@ -38,11 +50,14 @@ oob_times = tai_fomstr.start[oob_loc]
 
 (*error_indices[0]) = !values.f_nan
 (*error_indices[1]) = oob_times
+(*error_indices[2]) = !values.f_nan
 
 (*error_times[0]) = 'Window-wide error, no times'
 (*error_times[1]) = oob_warning_times
+(*error_times[2]) = 'Window-wide error, no times'
 
-error_msg = ['Error, close time may not be within a sub-ROI', $
-             'Error, selections at the following time stamps are after the close time, which is not allowed: ']
+error_msg = ['ERROR, close time may not be within a sub-ROI', $
+             'ERROR, selections at the following time stamps are after the close time, which is not allowed: ', $
+             'WARNING, close time includes a SROI with no selections']
 
 end
