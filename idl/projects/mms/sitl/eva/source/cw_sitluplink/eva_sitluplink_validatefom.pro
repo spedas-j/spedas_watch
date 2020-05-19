@@ -35,13 +35,16 @@ FUNCTION eva_sitluplink_validateFOM, unix_fomstr
   for i = 0, count_error-1 do begin
     print, error_msg[loc_error[i]]
     errmsg = [errmsg,error_msg[loc_error[i]]]
+    print, *error_times[loc_error[i]]
   endfor
-  if error_flags[1] eq 1 then begin
-    print, *error_times[1]
-  endif
   print, '------------'
   if count_error gt 0 then result = dialog_message(errmsg,/center)
 
+  ;***** WARNING SHOULD NOT BE COUNTED AS AN ERROR ***********
+  if error_flags[2] eq 1 then begin
+    count_error -= 1
+  endif
+  
   ptr_free, error_indices
   ptr_free, error_times
   

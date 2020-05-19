@@ -334,7 +334,7 @@ FUNCTION eva_sitluplink, parent, parent2, $
         EXCLUSIVE=1,SET_VALUE=0,COLUMN=2)
     str_element,/add,state,'lblw1',widget_label(subbase,VALUE='Click the UPLINK button to finalize',sensitive=0)
     str_element,/add,state,'lblw2',widget_label(subbase,VALUE='submission and close the SITL window.',sensitive=0)
-    str_element,/add,state,'lblw3',widget_label(subbase,VALUE='You cannot undo this action.',sensitive=0)
+    str_element,/add,state,'lblw3',widget_label(subbase,VALUE='YOU CANNOT UNDO THIS ACTION.',sensitive=0)
 
   ; Save out the initial state structure into the first childs UVALUE.
   WIDGET_CONTROL, WIDGET_INFO(mainbase, /CHILD), SET_UVALUE=state, /NO_COPY

@@ -1,9 +1,27 @@
-;interpolates over short gaps in wave burst data
-Pro temp_scw_degap, probe, max_degap_dt = max_degap_dt, _extra = _extra
+;+
+;NAME:
+; thm_scw_degap
+;PURPOSE:
+; Helper function for thm_cal_scm, this interpolates over short gaps
+; in wave burst data, this is the default for L1 SCM data input
+; as of 2020-05-18. Previously temp_scw_degap.pro
+;INPUT:
+; probe = ['a','b','c','d','e']
+;KEYWORDS:
+; max_degap_dt = maximum size for degap, the default is 0.20 seconds
+;HISTORY:
+; Originally temp_scw_degap, from 2014, renamed 2020-05-18
+;$LastChangedBy: jimm $                                                          
+;$LastChangedDate: 2020-05-18 12:57:52 -0700 (Mon, 18 May 2020) $               
+;$LastChangedRevision: 28710 $                                                  
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/fields/thm_scw_degap.pro $
+;-
+Pro thm_scw_degap, probe, max_degap_dt = max_degap_dt, suffix = suffix, _extra = _extra
 
 ;Need hed and dq data
-  vh = 'th'+probe+'_scw_hed'
-  vardq = 'th'+probe+'_scw_dq'
+  If(is_string(suffix)) Then sfx = suffix[0] Else sfx = ''
+  vh = 'th'+probe+'_scw_hed' ;no suffix on header variable
+  vardq = 'th'+probe+'_scw_dq'+sfx
   get_data, vh, data = a
   If(~is_struct(a)) Then Return
   TMrate = 2.^(reform(a.y[*, 14]/16b)+1)
@@ -13,7 +31,7 @@ Pro temp_scw_degap, probe, max_degap_dt = max_degap_dt, _extra = _extra
   xdq = dq.x & ydq = dq.y & vdq = dq.v
 ;hmmm
   dt0 = 1.0/8192.0
-  var = 'th'+probe+'_scw'
+  var = 'th'+probe+'_scw'+sfx
   get_data, var,  data = d
   dt = d.x[1:*]-d.x
   If(keyword_set(max_degap_dt)) Then dt00 = max_degap_dt Else dt00 = 0.20
@@ -65,5 +83,6 @@ Pro temp_scw_degap, probe, max_degap_dt = max_degap_dt, _extra = _extra
   ydq = ydq[ssx, *]
   store_data, var, data = {x:x, y:y, v:v}
   store_data, vardq, data = {x:xdq, y:ydq, v:vdq}
+
   Return
 End

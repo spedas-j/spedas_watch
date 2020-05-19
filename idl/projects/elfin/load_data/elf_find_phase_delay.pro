@@ -25,7 +25,8 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
    tdiff= abs(phase_delays.starttimes - tr[0])
    mdt = min(tdiff,midx)
  
-   if mdt LE 120. then begin
+   ; if within 
+   if mdt LE 600. then begin
      if ~keyword_set(hourly) then begin 
        if phase_delays.badflag[midx] ne 1 then begin
          dsect2add=phase_delays.sect2add[midx]

@@ -12,8 +12,8 @@
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-; $LastChangedRevision: 26838 $
+; $LastChangedDate: 2020-05-18 10:34:14 -0700 (Mon, 18 May 2020) $
+; $LastChangedRevision: 28705 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/orb/remove_duplicated_tframe.pro $
 ;-
 pro remove_duplicated_tframe, tvars
@@ -26,6 +26,7 @@ pro remove_duplicated_tframe, tvars
     tvar = tvars[i]
 
     get_data, tvar, time, data, dl=dl, lim=lim
+    if(time[0] eq 0) then continue
     n = n_elements(time)
     dt = [ time[1:(n-1)], time[n-1]+1 ] - time[0:(n-1)]
     idx = where( abs(dt) gt 0d, n1 )
