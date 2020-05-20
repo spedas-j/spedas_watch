@@ -41,18 +41,28 @@ PRO sitl_report_latest_json, info, dir, ABS=ABS
 ;    endelse
 ;  endif else begin
 
-  ; check if the same WINDOW exists in the list
-  idx = where(strpos(jarr,info.str_win) ge 0, ct, complement=c_idx, ncomplement=nc)
-  ; json_serialize (replace if the same WINDOW existed)
-  if (ct gt 0) then begin; if the same WINDOW existed...
-    if(~keyword_set(ABS))then begin
-      jothers = jarr[c_idx]; remove entries with the same WINDOW
-      jarr = ['[', json_serialize(strct)+',',jothers[1:nc-1]]; remove j=0 because it is '['
-    endif
+  if(~keyword_set(ABS))then begin
+    ; check if the same WINDOW exists in the list
+    idx = where(strpos(jarr,info.str_win) ge 0, ct, complement=c_idx, ncomplement=nc)
+    ; json_serialize (replace if the same WINDOW existed)
+    if (ct gt 0) then begin; if the same WINDOW existed...
+;        jarr[idx[0]] = json_serialize(strct)+','; replace with the new one
+        jothers = jarr[c_idx]; remove entries with the same WINDOW
+        jarr = ['[', json_serialize(strct)+',',jothers[1:nc-1]]; bring it to the top
+    endif else begin
+      jarr = ['[', json_serialize(strct)+',',jarr[1:jmax-1]]
+    endelse
   endif else begin
-    jarr = ['[', json_serialize(strct)+',',jarr[1:jmax-1]]
+    ; check if the same WINDOW exists in the list
+    idx = where(strpos(jarr,info.str_win) ge 0, ct, complement=c_idx, ncomplement=nc)
+    ; json_serialize (replace if the same WINDOW existed)
+    if (ct gt 0) then begin; if the same WINDOW existed...
+      jothers = jarr[c_idx]; remove entries with the same WINDOW
+      jarr = ['[', json_serialize(strct)+',',jothers[1:nc-1]]; bring it to the top
+    endif else begin
+      jarr = ['[', json_serialize(strct)+',',jarr[1:jmax-1]]; remove j=0 because it is '['
+    endelse
   endelse
-
   
   ; output
   print,'$$$$ output start $$$$$$$$$$$$$$$$$$$$$$'
