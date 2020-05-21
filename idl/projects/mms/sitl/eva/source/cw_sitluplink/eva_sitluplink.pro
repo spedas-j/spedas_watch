@@ -76,15 +76,15 @@ PRO eva_sitluplink_display_and_validate, state
   ;--------------------
   ; Validation by Rick
   ;--------------------
-  if(uplinkflag) then begin
-    r = eva_sitluplink_validateFOM(lim.UNIX_FOMSTR_MOD)
-    if(r gt 0) then begin
-      eva_sitluplink_update_evalstarttime, 'N/A'
-      eva_sitluplink_update_uplinkflag, 0
-      widget_control,state.bgUplink,SET_VALUE=0L
-      tplot
-    endif
-  endif
+;  if(uplinkflag) then begin
+;    r = eva_sitluplink_validateFOM(lim.UNIX_FOMSTR_MOD)
+;    if(r gt 0) then begin
+;      eva_sitluplink_update_evalstarttime, 'N/A'
+;      eva_sitluplink_update_uplinkflag, 0
+;      widget_control,state.bgUplink,SET_VALUE=0L
+;      tplot
+;    endif
+;  endif
   
   return
 END
