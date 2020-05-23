@@ -9,9 +9,9 @@
 ; KEYWORDS:
 ; HISTORY: Created by Aaron Breneman
 ; VERSION:
-;   $LastChangedBy: jimm $
-;   $LastChangedDate: 2020-04-13 13:07:54 -0700 (Mon, 13 Apr 2020) $
-;   $LastChangedRevision: 28567 $
+;   $LastChangedBy: nikos $
+;   $LastChangedDate: 2020-05-21 20:36:46 -0700 (Thu, 21 May 2020) $
+;   $LastChangedRevision: 28720 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/examples/rbsp_mageis_example_crib_old.pro $
 ;-
 

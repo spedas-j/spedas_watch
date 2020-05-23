@@ -102,9 +102,9 @@
 ;
 ;
 ;
-; $LastChangedBy: aaronbreneman $
-; $LastChangedDate: 2017-12-05 13:38:09 -0800 (Tue, 05 Dec 2017) $
-; $LastChangedRevision: 24398 $
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2020-05-21 20:36:46 -0700 (Thu, 21 May 2020) $
+; $LastChangedRevision: 28720 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/examples/twavpol_modified.pro $
 ;-
 pro twavpol_modified,tvarname,prefix = prefix, error=error, freqline = freqline, timeline = timeline,$

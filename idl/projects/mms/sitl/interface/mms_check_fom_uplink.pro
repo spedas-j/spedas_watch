@@ -12,8 +12,10 @@ for i = 0, n_elements(sroi_starts_tai)-1 do begin
 endfor
 
 ; Finally, we check to make sure there are no selections after the designated close
-real_stops = tai_fomstr.cyclestart + tai_fomstr.stop
-real_starts = tai_fomstr.cyclestart + tai_fomstr.start
+; real_stops = tai_fomstr.cyclestart + tai_fomstr.stop
+; real_starts = tai_fomstr.cyclestart + tai_fomstr.start
+real_stops = tai_fomstr.timestamps[tai_fomstr.stop] + 10.d0
+real_starts = tai_fomstr.timestamps[tai_fomstr.start]
 oob_loc = where(real_stops ge tai_fomstr.evalstarttime, count_oob)
 roi_before_loc = where(sroi_stops_tai lt tai_fomstr.evalstarttime, count_before)
 
@@ -28,7 +30,7 @@ empty_roi = 0
 if count_before gt 0 then begin
   for i = 0, count_before-1 do begin
     loc_select = where(real_starts ge sroi_starts_tai[roi_before_loc[i]] $
-      and real_starts le sroi_stops_tai[roi_before_loc[i]], count_select)
+      and real_stops le sroi_stops_tai[roi_before_loc[i]], count_select)
     if count_select eq 0 then empty_roi += 1
   endfor
 endif

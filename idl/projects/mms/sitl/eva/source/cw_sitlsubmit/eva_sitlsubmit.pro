@@ -125,6 +125,8 @@ FUNCTION eva_sitlsubmit_event, ev
           r = eva_sitl_validate(tai_BAKStr_mod, -1, vcase=1, header=header, /quiet, valstruct=state.val); Validate New Segs
           header = [r.msg,' ', vsp+' VALIDATION RESULT (MODIFIED SEGMENTS) '+vsp]
           r2 = eva_sitl_validate(tai_BAKStr_mod, tai_BAKStr_org, vcase=2, header=header, valstruct=state.val); Validate Modified Seg
+          
+          
         endelse; if ct eq 0
       endif else begin
         get_data,'mms_stlm_fomstr',data=Dmod, lim=lmod,dl=dlmod
@@ -133,7 +135,10 @@ FUNCTION eva_sitlsubmit_event, ev
         mms_convert_fom_unix2tai, lorg.unix_FOMStr_org, tai_FOMstr_org; Original FOM for reference
         header = eva_sitl_text_selection(lmod.unix_FOMstr_mod)
         vcase = 0;(state.USER_FLAG eq 4) ? 3 : 0
-        r = eva_sitl_validate(tai_FOMstr_mod, tai_FOMstr_org, vcase=vcase, header=header, valstruct=state.val)
+        r  = eva_sitl_validate(tai_FOMstr_mod, tai_FOMstr_org, vcase=vcase, header=header, valstruct=state.val)
+        if(lmod.UNIX_FOMSTR_MOD.UPLINKFLAG eq 1) then begin
+          r2 = eva_sitluplink_validateFOM(lmod.UNIX_FOMSTR_MOD)
+        endif
       endelse
     end
     state.btnDraft: eva_sitlsubmit_submit, state, ev
