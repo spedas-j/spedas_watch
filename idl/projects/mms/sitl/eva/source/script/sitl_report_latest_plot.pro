@@ -43,7 +43,7 @@ PRO sitl_report_latest_plot, info,paramset,dir
     tn=tnames('mms'+probes[p]+'_position_x',mmax)
     if (strlen(tn[0]) gt 0) and (mmax gt 0) then var_lab = [var_lab,tn[0]]
     var_lab = (n_elements(var_lab) gt 1) ? var_lab[1:*] : ''
-    tplot_options, 'title','MMS '+probes[p]+'   (updated at '+time_string(systime(/seconds,/utc))+')'
+    tplot_options, 'title','MMS '+probes[p]+'   (updated at '+time_string(systime(/seconds,/utc))+' UTC)'
     tplot,thislist, var_lab=var_lab
     if(info.evalstarttime gt 0)then begin
       timebar,mms_tai2unix(info.evalstarttime), linestyle = 2, thick = 2;,/transient
