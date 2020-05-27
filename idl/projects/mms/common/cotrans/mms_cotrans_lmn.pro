@@ -18,8 +18,8 @@
 ;         Also accepts all keywords available to solarwind_load
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-05-22 14:44:16 -0700 (Fri, 22 May 2020) $
-;$LastChangedRevision: 28725 $
+;$LastChangedDate: 2020-05-26 13:54:17 -0700 (Tue, 26 May 2020) $
+;$LastChangedRevision: 28736 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/cotrans/mms_cotrans_lmn.pro $
 ;-
 
@@ -68,7 +68,7 @@ pro mms_cotrans_lmn, name_in, name_out, gsm=gsm, gse=gse, probe=probe, data_rate
   ; now rotate GSM -> LMN
   gsm2lmn, txyz, bxyz, blmn, swdata
   
-  store_data, name_out, data={x: data_in.X, y: blmn}
+  store_data, name_out, data={x: data_in.X, y: blmn}, limit=l_in, dlimits=dl_in
   options, name_out, 'labels', ['L', 'M', 'N']
   options, name_out, 'colors', [2, 4, 6]
 

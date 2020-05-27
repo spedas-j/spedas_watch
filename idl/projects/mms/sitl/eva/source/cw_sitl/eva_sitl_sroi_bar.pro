@@ -1,6 +1,6 @@
 ; 'trange' and 'sc_id' are optional
 ;
-PRO eva_sitl_sroi_bar,trange=trange,sc_id=sc_id,colors=colors
+PRO eva_sitl_sroi_bar,trange=trange,sc_id=sc_id,colors=colors,suffix=suffix
   compile_opt idl2
 
   ;-----------------
@@ -53,7 +53,10 @@ PRO eva_sitl_sroi_bar,trange=trange,sc_id=sc_id,colors=colors
   labels = ['even','odd']
   ;////////////////////////
   
-  store_data,'mms_sroi',data={x:bar_x, y:bar_y, v:[0,1]}
-  options,'mms_sroi',thick=5,xstyle=4,ystyle=4,yrange=[-0.01,0.01],ytitle='',$
+  dname = 'mms_sroi'
+  if ~undefined(suffix) then dname += suffix
+  
+  store_data,dname,data={x:bar_x, y:bar_y, v:[0,1]}
+  options,dname,thick=5,xstyle=4,ystyle=4,yrange=[-0.01,0.01],ytitle='',$
     ticklen=0,panel_size=panel_size,colors=colors, charsize=2.;,labels=labels, labflag=-1
 END

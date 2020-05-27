@@ -44,7 +44,7 @@ FUNCTION eva_get_sitl_selections, trange=trange, n=n, filetimes=filetimes
   endif
   if ~undefined(trange) && n_elements(trange) eq 2 $
     then tr = timerange(trange) $
-  else tr = timerange()
+  else tr = [systime(/utc,/seconds)-3.d0*86400.d0, systime(/utc,/seconds)]
   
   ;---------------------------------
   ; Login
