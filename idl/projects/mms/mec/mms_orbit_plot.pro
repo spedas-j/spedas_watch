@@ -15,6 +15,7 @@
 ;       coord: coordinate system of the plot (default: gse)
 ;             other options include: 'eci', 'gsm', 'geo', 'sm', 'gse2000'
 ;       title: title of the plot; defaults to the time range of the orbit
+;       noearth: disable the image of Earth on the figure
 ;
 ; EXAMPLES:
 ;       IDL> mms_orbit_plot, probe=[1, 2, 3, 4], trange=['2015-12-15', '2015-12-16']
@@ -28,12 +29,12 @@
 ;       terminator line on Earth is probably going to be incorrect when plane is specified to be YZ
 ;       
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-09-12 10:29:05 -0700 (Thu, 12 Sep 2019) $
-; $LastChangedRevision: 27748 $
+; $LastChangedDate: 2020-05-27 17:05:37 -0700 (Wed, 27 May 2020) $
+; $LastChangedRevision: 28740 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/mec/mms_orbit_plot.pro $
 ;-
 
-pro mms_orbit_plot, trange=trange, probes=probes, data_rate=data_rate, xrange=xrange, yrange=yrange, plane=plane, coord=coord, title=title
+pro mms_orbit_plot, trange=trange, probes=probes, data_rate=data_rate, xrange=xrange, yrange=yrange, plane=plane, coord=coord, title=title, noearth=noearth
 
   if undefined(plane) then plane = 'xy' else plane = strlowcase(plane)
   if undefined(coord) then coord='gse' else coord=strlowcase(coord)
@@ -67,8 +68,10 @@ pro mms_orbit_plot, trange=trange, probes=probes, data_rate=data_rate, xrange=xr
     endif
   endfor
   
-  get_rt_path, mec_path
-  im = image(mec_path+'/earth_polar1.png', image_dimensions=[2,2], image_location=[-1,-1], overplot=1, title=title_string)
+  if ~keyword_set(noearth) then begin
+    get_rt_path, mec_path
+    im = image(mec_path+'/earth_polar1.png', image_dimensions=[2,2], image_location=[-1,-1], overplot=1, title=title_string)
+  endif
   
   xl = p1.position[0] + 0.05
   yl = p1.position[3] - 0.05
