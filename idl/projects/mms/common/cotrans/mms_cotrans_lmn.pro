@@ -11,15 +11,24 @@
 ;         gse: input vector is in GSE coordinates
 ;         probe: MMS probe #; not required if the input variable follows the standard MMS naming scheme, e.g., mms1_mec_r_gsm
 ;         data_rate: data rate of the MEC data
-;
+;         resol: desired time resolution of the solar wind data in seconds
+;             if not set, SW data are provided in original time resolution
+;         wind - use WIND observations for solar wind data (they are convolved to desired resolution and
+;             then time-shifted to the bow-shock nose using OMNI-2 methodology. The
+;             code checks if the SW speed irregularities are too large and warns
+;             user when more sophisticated processing may be needed.
+;         min5 - use 5 min HRO merged database for solar wind inputs (default is to use 1 min HRO merged data)
+;         h1 - use OMNI-2 1 hour SW database for solar wind inputs. No convolution employed and parameter
+;             resol is ignored
+;             
 ; NOTES:
 ;         Based on the THEMIS version, thm_cotrans_lmn
 ; 
 ;         Also accepts all keywords available to solarwind_load
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-05-26 13:54:17 -0700 (Tue, 26 May 2020) $
-;$LastChangedRevision: 28736 $
+;$LastChangedDate: 2020-05-28 13:57:39 -0700 (Thu, 28 May 2020) $
+;$LastChangedRevision: 28746 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/cotrans/mms_cotrans_lmn.pro $
 ;-
 

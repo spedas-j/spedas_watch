@@ -1,4 +1,4 @@
-PRO sitl_report_latest_plot, info,paramset,dir
+PRO sitl_report_latest_plot, info,paramset,dir, noblowup=noblowup
   compile_opt idl2
 
   yyyy  = info.yyyy
@@ -52,9 +52,11 @@ PRO sitl_report_latest_plot, info,paramset,dir
     finfo=file_info(dir_png+pname+'_mms'+probes[p]+'.png')
     pngsize[p] = finfo.SIZE
     tr = timerange() & dt = (tr[1]-tr[0])/3.d0 & tp = 60.d0
-    tlimit,-tp+tr[0]        ,tp+tr[0]+     dt & write_png, dir_png+pname+'_mms'+probes[p]+'_a.png',tvrd(/true)
-    tlimit,-tp+tr[0]+     dt,tp+tr[0]+2.d0*dt & write_png, dir_png+pname+'_mms'+probes[p]+'_b.png',tvrd(/true)
-    tlimit,-tp+tr[0]+2.d0*dt,tp+tr[0]+3.d0*dt & write_png, dir_png+pname+'_mms'+probes[p]+'_c.png',tvrd(/true)
+    if(~keyword_set(noblowup))then begin
+      tlimit,-tp+tr[0]        ,tp+tr[0]+     dt & write_png, dir_png+pname+'_mms'+probes[p]+'_a.png',tvrd(/true)
+      tlimit,-tp+tr[0]+     dt,tp+tr[0]+2.d0*dt & write_png, dir_png+pname+'_mms'+probes[p]+'_b.png',tvrd(/true)
+      tlimit,-tp+tr[0]+2.d0*dt,tp+tr[0]+3.d0*dt & write_png, dir_png+pname+'_mms'+probes[p]+'_c.png',tvrd(/true)
+    endif
   endfor
   result = max(pngsize,p,/nan)
   select = strtrim(string(probes[p]),2)

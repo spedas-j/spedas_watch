@@ -8,18 +8,27 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-05-22 14:49:22 -0700 (Fri, 22 May 2020) $
-;$LastChangedRevision: 28727 $
+;$LastChangedDate: 2020-05-28 14:02:15 -0700 (Thu, 28 May 2020) $
+;$LastChangedRevision: 28747 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_cotrans_lmn_crib.pro $
 ;-
 
-; load the FGM data to be transforme4d
+; load the FGM data to be transformed
 mms_load_fgm, trange=['2015-10-16/13:05:35', '2015-10-16/13:07:25'], data_rate='brst', probe=2
 
 ; transfrom the B-field in GSM coordinates to LMN coordinates
 mms_cotrans_lmn, 'mms2_fgm_b_gsm_brst_l2_bvec', 'mms2_fgm_b_lmn_brst_l2_bvec'
-
 tplot, 'mms2_fgm_b_lmn_brst_l2_bvec'
-
 stop
+
+; perform the transformation from GSE coordinates to LMN coordinates using WIND data instead of OMNI data
+mms_cotrans_lmn, 'mms2_fgm_b_gse_brst_l2_bvec', 'mms2_fgm_b_lmn_brst_l2_bvec_wind', /wind
+tplot, 'mms2_fgm_b_lmn_brst_l2_bvec_wind'
+stop
+
+; perform the transformation from GSE coordinates to LMN coordinates using 5-min HRO data instead of the 1-min HRO data
+mms_cotrans_lmn, 'mms2_fgm_b_gse_brst_l2_bvec', 'mms2_fgm_b_lmn_brst_l2_bvec', /min5
+tplot, 'mms2_fgm_b_lmn_brst_l2_bvec'
+stop
+
 end

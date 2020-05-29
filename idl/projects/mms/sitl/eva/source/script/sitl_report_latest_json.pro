@@ -43,7 +43,7 @@ PRO sitl_report_latest_json, info, dir, ABS=ABS
 
   if(~keyword_set(ABS))then begin
     ; check if the same WINDOW exists in the list
-    idx = where(strpos(jarr,info.str_win) ge 0, ct, complement=c_idx, ncomplement=nc)
+    idx = where(strpos(jarr,info.PNAME) ge 0, ct, complement=c_idx, ncomplement=nc)
     ; json_serialize (replace if the same WINDOW existed)
     if (ct gt 0) then begin; if the same WINDOW existed...
 ;        jarr[idx[0]] = json_serialize(strct)+','; replace with the new one
@@ -54,10 +54,17 @@ PRO sitl_report_latest_json, info, dir, ABS=ABS
     endelse
   endif else begin
     ; check if the same PNAME exists in the list
-    idx = where(strpos(jarr,info.PNAME) ge 0, ct)
+    idx = where(strpos(jarr,info.PNAME) ge 0, ct, complement=c_idx, ncomplement=nc)
     if (ct eq 0) then begin; if the same PNAME did not exist...
       jarr = ['[', json_serialize(strct)+',',jarr[1:jmax-1]]
-    endif; Do nothing if existed..
+    endif else begin
+      jdx = where(strpos(jarr,'"SITL":"ABS"') ge 0, jct, complement=c_jdx, ncomplement=jnc)
+      if(jct gt 0)then begin
+        jothers = jarr[c_jdx]; remove entries with SITL:ABS
+        jarr = ['[', json_serialize(strct)+',',jothers[1:jnc-1]]; bring it to the top
+      endif
+      ; Else, Do nothing 
+    endelse
     
 ;    idx = where(strpos(jarr,info.str_win) ge 0, ct, complement=c_idx, ncomplement=nc)
 ;    ; json_serialize (replace if the same WINDOW existed)
