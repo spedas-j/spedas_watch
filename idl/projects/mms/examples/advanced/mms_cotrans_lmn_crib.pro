@@ -8,8 +8,8 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-05-28 14:02:15 -0700 (Thu, 28 May 2020) $
-;$LastChangedRevision: 28747 $
+;$LastChangedDate: 2020-06-02 09:56:49 -0700 (Tue, 02 Jun 2020) $
+;$LastChangedRevision: 28760 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_cotrans_lmn_crib.pro $
 ;-
 
@@ -22,6 +22,7 @@ tplot, 'mms2_fgm_b_lmn_brst_l2_bvec'
 stop
 
 ; perform the transformation from GSE coordinates to LMN coordinates using WIND data instead of OMNI data
+; note: internally, this transforms the input vector to GSM coordinates prior to transforming to LMN coordinates
 mms_cotrans_lmn, 'mms2_fgm_b_gse_brst_l2_bvec', 'mms2_fgm_b_lmn_brst_l2_bvec_wind', /wind
 tplot, 'mms2_fgm_b_lmn_brst_l2_bvec_wind'
 stop

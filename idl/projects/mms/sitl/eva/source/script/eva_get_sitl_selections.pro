@@ -44,7 +44,7 @@ FUNCTION eva_get_sitl_selections, trange=trange, n=n, filetimes=filetimes
   endif
   if ~undefined(trange) && n_elements(trange) eq 2 $
     then tr = timerange(trange) $
-  else tr = [systime(/utc,/seconds)-3.d0*86400.d0, systime(/utc,/seconds)]
+  else tr = [systime(/utc,/seconds)-3.d0*86400.d0, systime(/utc,/seconds)+1.d0*86400.d0]
   
   ;---------------------------------
   ; Login
@@ -77,13 +77,16 @@ FUNCTION eva_get_sitl_selections, trange=trange, n=n, filetimes=filetimes
     status = get_mms_selections_file("sitl_selections", $
       start_time=start_time, end_time=end_time, local_dir=local_dir)
       
-    filenames = [filenames,file_search(local_dir+'*',count=imax)]; files in chronological order
+    this_filenames = file_search(local_dir+'*',count=imax)
     
-    date = strmid(filenames,63,10)
-    hh = strmid(filenames,74,2)
-    mm = strmid(filenames,77,2)
-    ss = strmid(filenames,80,2)
-    filetimes = [filetimes, date+'/'+hh+':'+mm+':'+ss]
+    date = strmid(this_filenames,63,10)
+    hh = strmid(this_filenames,74,2)
+    mm = strmid(this_filenames,77,2)
+    ss = strmid(this_filenames,80,2)
+    this_filetimes = date+'/'+hh+':'+mm+':'+ss
+    
+    filenames = [filenames, this_filenames]
+    filetimes = [filetimes, this_filetimes]
   endfor
   nmax = n_elements(filenames)
   filenames = filenames[1:nmax-1]
