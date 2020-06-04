@@ -78,11 +78,11 @@ FUNCTION eva_get_sitl_selections, trange=trange, n=n, filetimes=filetimes
       start_time=start_time, end_time=end_time, local_dir=local_dir)
       
     this_filenames = file_search(local_dir+'*',count=imax)
-    
-    date = strmid(this_filenames,63,10)
-    hh = strmid(this_filenames,74,2)
-    mm = strmid(this_filenames,77,2)
-    ss = strmid(this_filenames,80,2)
+    lp = strlen(local_dir)
+    date = strmid(this_filenames,lp+16,10)
+    hh = strmid(this_filenames,lp+27,2)
+    mm = strmid(this_filenames,lp+30,2)
+    ss = strmid(this_filenames,lp+33,2)
     this_filetimes = date+'/'+hh+':'+mm+':'+ss
     
     filenames = [filenames, this_filenames]

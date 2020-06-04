@@ -9,8 +9,6 @@ PRO eva_sitlsubmit_submit, state, ev
   sitl_stash = WIDGET_INFO(id_sitl, /CHILD)
   widget_control, sitl_stash, GET_UVALUE=sitl_state, /NO_COPY;******* GET
   
-  ;widget_control, sitl_stash, SET_UVALUE=sitl_state, /NO_COPY;******* SET
-  
   ;---------------------
   ; MAIN
   ;---------------------
@@ -52,6 +50,8 @@ PRO eva_sitlsubmit_submit, state, ev
       print,'EVA: Submission cancelled...'
     endelse
   endelse
+  
+  widget_control, sitl_stash, SET_UVALUE=sitl_state, /NO_COPY;******* SET
 END
 
 PRO eva_sitlsubmit_set_value, id, value ;In this case, value = activate
