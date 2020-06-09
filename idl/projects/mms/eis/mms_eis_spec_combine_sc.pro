@@ -24,25 +24,36 @@
 ;         + 2017-12-01, I. Cohen        : added call to mms_eis_spin_avg.pro
 ;         + 2018-01-04, I. Cohen        : removed bad "error" message
 ;         + 2018-02-19, I. Cohen        : added ability to handle multiple species; fixed how missing spacecraft data is handled
+;         + 2019-11-21, I. Cohen        : added ability to handle different data_units; changed new variable prefix to 'mmsx' instead of 'mms#-#'
+;         + 2020-03-30, I. Cohen        : removed probes keyword, added ability to automatically define probes based on loaded EIS data
+;         + 2020-06-08, I. Cohen        : fixed issue with counting MMSX data (i.e. thinking there were 5 probes)
 ;
 ;-
-pro mms_eis_spec_combine_sc, probes=probes, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
+pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
   ;
   compile_opt idl2
   if undefined(probes) then probes='1' else probes = strcompress(string(probes), /rem)
   if undefined(datatype) then datatype = 'extof'
   if undefined(data_units) then data_units = 'flux'
+  case data_units of
+    'flux': ztitle_string = 'Intensity!C[1/cm!U-2!N-sr-s-keV]'
+    'cps': ztitle_string = 'CountRate!C[counts/s]'
+    'counts': ztitle_string = 'Counts!C[counts]'
+  endcase
   if undefined(species) then species = 'proton'
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = 'srvy'
   if datatype eq 'electronenergy' then species = 'electron'
+  eis_sc_check = tnames('mms*eis*proton*flux*omni')
+  probes = strmid(eis_sc_check, 3, 1)
+  if (n_elements(probes) gt 4) then probes = probes[0:-2] 
   ;
-  if (data_rate eq 'brst') then allmms_prefix = 'mms'+probes[0]+'-'+probes[-1]+'_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mms'+probes[0]+'-'+probes[-1]+'_epd_eis_'+datatype+'_'
+  if (data_rate eq 'brst') then allmms_prefix = 'mmsx_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mmsx_epd_eis_'+datatype+'_'
   ;
   for ss=0,n_elements(species)-1 do begin
     ;
     ; DETERMINE SPACECRAFT WITH SMALLEST NUMBER OF TIME STEPS TO USE AS REFERENCE SPACECRAFT
-    if (data_rate eq 'brst') then omni_vars = tnames('mms?_epd_eis_brst_'+datatype+'_'+species[ss]+'_flux_omni') else if (data_rate eq 'srvy') then omni_vars = tnames('mms?_epd_eis_'+datatype+'_'+species[ss]+'_flux_omni')
+    if (data_rate eq 'brst') then omni_vars = tnames('mms?_epd_eis_brst_'+datatype+'_'+species[ss]+'_'+data_units+'_omni') else if (data_rate eq 'srvy') then omni_vars = tnames('mms?_epd_eis_'+datatype+'_'+species[ss]+'_'+data_units+'_omni')
     ;
     if (omni_vars[0] eq '') then begin
       print, 'No EIS '+datatype+' data loaded!'
@@ -80,9 +91,9 @@ pro mms_eis_spec_combine_sc, probes=probes, species = species, data_units = data
     ;
     ; store new tplot variable
     omni_spec[where(finite(omni_spec) eq 0)] = 0d
-    store_data, allmms_prefix+species[ss]+'_flux_omni', data={x:time_refprobe.x,y:omni_spec,v:energy_refprobe.v}
-    options, allmms_prefix+species[ss]+'_flux_omni', yrange = minmax(common_energy), ystyle=1, spec = 1, no_interp=1, ysubtitle='Energy [keV]',ztitle='Intensity!C[1/cm!U-2!N-sr-s-keV]',minzlog=.001
-    zlim, allmms_prefix+species[ss]+'_flux_omni', 0, 0, 1
+    store_data, allmms_prefix+species[ss]+'_'+data_units+'_omni', data={x:time_refprobe.x,y:omni_spec,v:energy_refprobe.v}
+    options, allmms_prefix+species[ss]+'_'+data_units+'_omni', yrange = minmax(common_energy), ystyle=1, spec = 1, no_interp=1, ysubtitle='Energy [keV]', ztitle=ztitle_string, minzlog=.001
+    zlim, allmms_prefix+species[ss]+'_'+data_units+'_omni', 0, 0, 1
     ;
     mms_eis_spin_avg, probe=probes, datatype=datatype, species='proton', data_units=data_units, data_rate=data_rate, suffix = suffix, /multisc
   endfor
