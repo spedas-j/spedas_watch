@@ -58,15 +58,15 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
          badflag=phase_delays.badflag[midx]
          medianflag=1
        endif else begin
-         dsect2add=1
-         dphang2add=1.0
+         dsect2add=0
+         dphang2add=0.0
          minpa=phase_delays.minpa[midx]
          badflag=phase_delays.badflag[midx]
          medianflag=2
        endelse  
      endif else begin
-       dsect2add=1
-       dphang2add=1.0
+       dsect2add=0
+       dphang2add=0.0
        minpa=phase_delays.minpa[midx]
        badflag=0
        medianflag=2    
