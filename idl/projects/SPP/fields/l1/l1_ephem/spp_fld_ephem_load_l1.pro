@@ -19,7 +19,7 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
   options, prefix + 'position_rs', 'ysubtitle', '[Rs]'
 
-  if frame EQ 'spp_rtn' or frame EQ 'spp_hertn' then begin
+  if frame EQ 'spp_rtn' or frame EQ 'spp_hertn' or frame EQ 'solo_rtn' then begin
 
     store_data, prefix + 'radial_distance', $
       data = {x:pos_dat.x, y:total(pos_dat.y,2)}
@@ -43,7 +43,7 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
   endif
 
-  if frame EQ 'spp_vso' then begin
+  if frame EQ 'spp_vso' or frame EQ 'solo_vso' then begin
 
     store_data, prefix + 'position_rv', $
       data = {x:pos_dat.x, y:pos_dat.y/rv}
@@ -167,7 +167,7 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
   ; Calculate tangential velocity
 
-  if frame EQ 'eclipj2000' or frame EQ 'spp_hg' then begin
+  if frame EQ 'eclipj2000' or frame EQ 'spp_hg' or frame EQ 'solo_hg' then begin
 
     n_points = n_elements(pos_dat.x)
 

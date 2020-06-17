@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-05-08 22:52:05 -0700 (Fri, 08 May 2020) $
-; $LastChangedRevision: 28678 $
+; $LastChangedDate: 2020-06-16 16:53:56 -0700 (Tue, 16 Jun 2020) $
+; $LastChangedRevision: 28780 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -275,6 +275,13 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
     pathformat = str_sub(pathformat, 'YYYYMMDD', $
       '20180812_090000_20250831_090000')
+
+    if pathformat.Contains('solo') then begin
+      
+      pathformat = str_sub(pathformat, '20180812_090000_20250831_090000', $
+        '20200210_050000_20301120_050000')
+        
+    endif
 
     ;stop
 

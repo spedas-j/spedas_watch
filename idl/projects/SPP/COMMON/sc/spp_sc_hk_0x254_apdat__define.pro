@@ -1,3 +1,9 @@
+;+
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-06-16 08:55:23 -0700 (Tue, 16 Jun 2020) $
+; $LastChangedRevision: 28779 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x254_apdat__define.pro $
+;-
 
 ;FSW_GC_HK_HK_TOTAL_VALID_QUAT,                                256,    4,    8;
 ;FSW_GC_HK_HK_ANGRATE_BODY_MAGNITUDE,                          257,    4,   32;
@@ -15,7 +21,6 @@
 ;FSW_GC_HK_HK_DUMP_TYPE,                                       277,    4,    8;
 ;FSW_GC_HK_HK_WHEEL_CTRL_MODE,                                 278,    4,    8;
 ;FSW_GC_HK_HK_SLEW_SEG,                                        279,    4,    8;
-
 
 
 function spp_SC_HK_0x254_struct,ccsds_data
@@ -40,15 +45,18 @@ str = {time:   !values.d_nan  ,$
   HK_WHLFREQ_all: (a0 + a1* spd_all)/!dpi/2 , $   ;
   HK_WHLFREQ_abs: abs(a0 + a1* spd_all)/!dpi/2 , $   ;
   
-  FSW_GC_HK_HK_CTRL_MODE:spp_swp_data_select(ccsds_data, 271*8 +7-4 ,  8),   $  ;                                     271,    4,    8;
-  FSW_GC_HK_HK_ANGRATE_BODY_MAGNITUDE:spp_swp_data_select(ccsds_data, 257*8 +7-4 ,  32), $ ;                         257,    4,   32;
-  FSW_GC_HK_HK_SYS_MOMENTUM_MAGNITUDE:spp_swp_data_select(ccsds_data, 261*8 +7-4 ,  16), $ ;                          261,    4,   16;
-
+  FSW_GC_HK_HK_CTRL_MODE:spp_swp_data_select(ccsds_data, 271*8 +7-4 ,  8),   $ ; 271,    4,    8;
+  FSW_GC_HK_HK_ANGRATE_BODY_MAGNITUDE:spp_swp_data_select(ccsds_data, 257*8 +7-4 ,  32), $ ; 257,    4,   32;
+  FSW_GC_HK_HK_SYS_MOMENTUM_MAGNITUDE:-5.0+0.00244140625*spp_swp_data_select(ccsds_data, 261*8 +7-4 ,  16), $ ; 261,    4,   16;
+  FSW_GC_HK_HK_DIST_BODY_TO_SUN_QUANTIZED:701240.0156*spp_swp_data_select(ccsds_data, 274*8 +7-4 ,  8), $ ; 274,    4,   8;
+  RIU_3A_CH15N_COUNTS:spp_swp_data_select(ccsds_data,696*8+7-0,10), $ ;CalChannel for SC_HK_0x256.SWEAP_SPAN_B_ELECT_BOX_TEMP and SC_HK_0x256.SWEAP_SPAN_B_TOP_ANALYZER_TEMP
+  RIU_3B_CH15N_COUNTS:spp_swp_data_select(ccsds_data,701*8+7-0,10), $ ;CalChannel for SC_HK_0x256.SWEAP_SPAN_A_POS_TOP_ANALYZER_TEMP
   gap:0B}
 return, str
 end
 
-
+;RIU_3A_CH15N_COUNTS,                                          696,    0,   10;
+;RIU_3B_CH15N_COUNTS,                                          701,    0,   10;
 
 function SPP_SC_HK_0x254_apdat::decom,ccsds, source_dict=source_dict   ;,ptp_header=ptp_header
 
@@ -62,9 +70,6 @@ return,str2
 end
 
 
-
-
-
 PRO spp_SC_HK_0x254_apdat__define
 
   void = {spp_SC_HK_0x254_apdat, $
@@ -74,16 +79,7 @@ PRO spp_SC_HK_0x254_apdat__define
 END
 
 
-
-
-
-
-
-
-
-
-
-;#
+;#old!!
 ;# SC_HK_0x254
 ;#
 ;SC_HK_0x254
