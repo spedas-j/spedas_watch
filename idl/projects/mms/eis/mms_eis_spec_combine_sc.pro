@@ -32,7 +32,6 @@
 pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
   ;
   compile_opt idl2
-  if undefined(probes) then probes='1' else probes = strcompress(string(probes), /rem)
   if undefined(datatype) then datatype = 'extof'
   if undefined(data_units) then data_units = 'flux'
   case data_units of
@@ -44,7 +43,7 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = 'srvy'
   if datatype eq 'electronenergy' then species = 'electron'
-  eis_sc_check = tnames('mms*eis*proton*flux*omni')
+  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_proton*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_proton*flux*omni')
   probes = strmid(eis_sc_check, 3, 1)
   if (n_elements(probes) gt 4) then probes = probes[0:-2] 
   ;

@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-20 11:58:18 -0700 (Mon, 20 Apr 2020) $
-; $LastChangedRevision: 28592 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-06-17 15:24:38 -0700 (Wed, 17 Jun 2020) $
+; $LastChangedRevision: 28785 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 
@@ -87,6 +87,8 @@ pro spp_swp_spc_load,  trange=trange,type=type,files=files,no_load=no_load,save=
    if not keyword_set(ltype) then ltype = 'L'+strmid(type,1,1)
 
    pathname = 'psp/data/sci/sweap/spc/'+Ltype+'/YYYY/MM/psp_swp_spc_'+type+'_YYYYMMDD_v??.cdf'
+   
+   if type EQ 'l2e' then pathname = str_sub(pathname,'psp_swp_spc_','spp_swp_spc_')
    
    if keyword_set(version) then pathname = str_sub(pathname,'_v??','_'+version)
    

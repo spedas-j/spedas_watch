@@ -29,14 +29,16 @@
 ;       + 2018-02-05, I. Cohen    : added suffix keyword
 ;       + 2018-02-19, I. Cohen    : added ability to handle multiple species 
 ;       + 2018-03-20, I. Cohen    : added combine_proton_data keyword
-;       + 2018-06-14, I. Cohen    : changed so that if 'combine_proton_data' is set, then only 'combined' data is handled        
+;       + 2018-06-14, I. Cohen    : changed so that if 'combine_proton_data' is set, then only 'combined' data is handled
+;       + 2019-11-21, I. Cohen    : changed new variable prefix to 'mmsx' instead of 'mms#-#'
+;       + 2020-06-16, I. Cohen    : removed probes keyword, added ability to automatically define probes based on loaded EIS data like mms_eis_spec_combine_sc.pro;
+;                                   change format of energy ranges in thissc_pad_vars definition
 ;
 ;-
-pro mms_eis_pad_combine_sc, probes = probes, trange = trange, species = species, level = level, data_rate = data_rate, $
+pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, data_rate = data_rate, $
                 energy = energy, data_units = data_units, datatype = datatype, suffix = suffix, combine_proton_data = combine_proton_data
   ;
   compile_opt idl2
-  if not KEYWORD_SET(probes) then if (time_double(trange[0]) gt time_double('2016-01-31')) then probes = ['2','3','4'] else probes = ['1','2','3','4']
   if not KEYWORD_SET(data_rate) then data_rate = 'srvy' else data_rate = strlowcase(data_rate)
   if not KEYWORD_SET(scopes) then scopes = ['0','1','2','3','4','5']
   if not KEYWORD_SET(level) then level = 'l2'
@@ -57,9 +59,12 @@ pro mms_eis_pad_combine_sc, probes = probes, trange = trange, species = species,
       'electron': datatype = 'electronenergy'
     endcase
   endif
+  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_proton*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_proton*flux*omni')
+  probes = strmid(eis_sc_check, 3, 1)
+  if (n_elements(probes) gt 4) then probes = probes[0:-2]
   ;
   ; Combine flux from all MMS spacecraft into omni-directional array
-  if (data_rate eq 'brst') then allmms_prefix = 'mms'+probes[0]+'-'+probes[-1]+'_epd_eis_brst_' else allmms_prefix = 'mms'+probes[0]+'-'+probes[-1]+'_epd_eis_'
+  if (data_rate eq 'brst') then allmms_prefix = 'mmsx_epd_eis_brst_' else allmms_prefix = 'mmsx_epd_eis_'
   ;
   for dd=0,n_elements(datatype)-1 do begin
     ;
@@ -102,8 +107,8 @@ pro mms_eis_pad_combine_sc, probes = probes, trange = trange, species = species,
     allmms_pad_avg = dblarr(n_elements(temp_refprobe.x),n_elements(temp_refprobe.v1))                                                                           ; time x bins
     ;
     for pp=0,n_elements(probes)-1 do begin                                                                                                                      ; loop through telescopes
-      if (data_rate eq 'brst') then thissc_pad_vars = tnames(['mms'+probes[pp]+'_epd_eis_brst_'+datatype[dd]+'_??keV_'+species+'_'+data_units+'_omni'+suffix+'_pad','mms'+probes[pp]+'_epd_eis_brst_'+datatype[dd]+'_???keV_'+species+'_'+data_units+'_omni'+suffix+'_pad']) $
-        else thissc_pad_vars = tnames(['mms'+probes[pp]+'_epd_eis_'+datatype[dd]+'_??keV_'+species+'_'+data_units+'_omni'+suffix+'_pad','mms'+probes[pp]+'_epd_eis_'+datatype[dd]+'_???keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'])
+      if (data_rate eq 'brst') then thissc_pad_vars = tnames(['mms'+probes[pp]+'_epd_eis_brst_'+datatype[dd]+'_*keV_'+species+'_'+data_units+'_omni'+suffix+'_pad']) $
+        else thissc_pad_vars = tnames(['mms'+probes[pp]+'_epd_eis_'+datatype[dd]+'_*keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'])
       ;
       for ee=0,n_elements(common_energy)-1 do begin
          get_data,thissc_pad_vars[ee],data=temp_data_pad
@@ -135,7 +140,8 @@ pro mms_eis_pad_combine_sc, probes = probes, trange = trange, species = species,
     if data_units eq 'flux' then zlim, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad', 5e2, 1e4, 1
     tdegap, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad', /overwrite
     ;
-    spd_smooth_time, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad', newname=allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad_smth', 20, /nan
+    spd_smooth_time, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad', $
+      newname=allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad_smth', 20, /nan
   endfor
   ;
 end
