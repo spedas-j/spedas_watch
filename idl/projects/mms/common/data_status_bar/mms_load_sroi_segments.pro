@@ -13,8 +13,8 @@
 ;         end_times:    returns an array of unix times (double) containing the end of each SRoI interval
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-06-15 11:56:47 -0700 (Mon, 15 Jun 2020) $
-;$LastChangedRevision: 28778 $
+;$LastChangedDate: 2020-06-19 11:30:13 -0700 (Fri, 19 Jun 2020) $
+;$LastChangedRevision: 28790 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/data_status_bar/mms_load_sroi_segments.pro $
 ;-
 
@@ -29,7 +29,7 @@ pro mms_load_sroi_segments, trange=trange, probe=probe, suffix=suffix, start_tim
 
   mms_init
   
-  results = get_mms_srois(start_time=time_string(tr[0]-2*86400.0, tformat='YYYY-MM-DD'), end_time=time_string(tr[1]+2*86400.0, tformat='YYYY-MM-DD'), sc_id='mms'+probe)
+  results = get_mms_srois(start_time=time_string(tr[0]-2*86400.0, tformat='YYYY-MM-DD'), end_time=time_string(tr[1]+2*86400.0, tformat='YYYY-MM-DD'), sc_id='mms'+probe, /public)
 
   if ~is_struct(results) then begin
     dprint, dlevel=0, 'Error, no Science Regions of Interest found'

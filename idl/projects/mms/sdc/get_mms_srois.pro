@@ -21,6 +21,7 @@
 ; end_time   : string, UTC datetime string
 ; sc_id      : string, 'mms1', etc. 
 ; orbit      : int, MMS orbit number at start_time_utc
+; public     : bool, if set, executes the latis query as a public user
 ; 
 ; The array is always sorted by start_time ascending.
 ; 
@@ -37,7 +38,7 @@
 ; SC_ID           STRING    'mms1'
 ; ORBIT           LONG              1084
 ;-
-function get_mms_srois, start_time=start_time, end_time=end_time, sc_id=sc_id
+function get_mms_srois, start_time=start_time, end_time=end_time, sc_id=sc_id, public=public
 
   ;LaTiS URL components
   dataset = 'mms_events_view'
@@ -68,7 +69,7 @@ function get_mms_srois, start_time=start_time, end_time=end_time, sc_id=sc_id
   
   ;Execute the query. Get the results back in an array of structures,
   ;  or an error code, or -1 if no results were found.
-  result = execute_latis_query(path, query, sroi_struct)
+  result = execute_latis_query(path, query, sroi_struct, public=public)
   
   if isa(result, /array) then begin
     ;Convert the datetime strings to convenient SPEDAS format

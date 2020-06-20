@@ -8,22 +8,26 @@
 ;    modeid : in, optional, type=integer
 ;       
 ; $LastChangedBy: rlivi2 $
-; $LastChangedDate: 2019-03-25 11:17:57 -0700 (Mon, 25 Mar 2019) $
-; $LastChangedRevision: 26889 $
+; $LastChangedDate: 2020-06-19 10:05:14 -0700 (Fri, 19 Jun 2020) $
+; $LastChangedRevision: 28788 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/tables/spp_swp_spi_tables.pro $
 ;-
 
-PRO spp_swp_spi_tables, table, modeid=modeid, verbose=verbose
+PRO spp_swp_spi_tables, table, emode=emode, modeid=modeid, verbose=verbose, ccenter=ccenter, ddel=ddel
 
    ;; Parse MODE ID
-   IF ~keyword_set(modeid) THEN BEGIN
+   IF ~keyword_set(modeid) AND ~keyword_set(emode) THEN BEGIN
       print, 'MODEID not defined. Using default 0x0015'
       modeid = '15'x
-   ENDIF 
+   ENDIF
 
-   energy_id = (ishft(modeid,-4) and 15)
-   tmode_id  = (ishft(modeid,-8) and 15)
-
+   IF keyword_set(emode) THEN BEGIN
+      energy_id = emode
+   ENDIF ELSE BEGIN 
+      energy_id = (ishft(modeid,-4) and 15)
+      tmode_id  = (ishft(modeid,-8) and 15)
+   ENDELSE
+   
    ;; SPAN-Ai Instrument Parameters
    k       = 16.7
    nen     = 128.
@@ -100,16 +104,55 @@ PRO spp_swp_spi_tables, table, modeid=modeid, verbose=verbose
          spfac_a = 0.10
          spfac_b = 0.25
       END
+      ;; Science Tables 0x07
+      '07'x: BEGIN
+         IF keyword_set(verbose) THEN $
+          print, 'Science Tables 0x07'
+         emin  = 125.
+         emax  = 20000.
+         spfac_a = 0.10
+         spfac_b = 0.25
+         new_defl = 1
+      END
+      ;; Science Tables 0x08
+      '08'x: BEGIN
+         IF keyword_set(verbose) THEN $
+          print, 'Science Tables 0x08'
+         emin  = 60.
+         emax  = 20000.
+         spfac_a = 0.25
+         spfac_b = 0.35
+         new_defl = 1
+      END
+      ;; Calibration provided by user
+      ELSE: BEGIN
+         IF ~keyword_set(ccenter) OR $
+          ~keyword_set(ddel) THEN stop
+         fact = ccenter * ddel
+         emin = ccenter - fact
+         emax = ccenter + fact
+         spfac_a = 0.10
+         spfac_b = 0.25
+      END
    ENDCASE
 
-
+   ;; Energy range
    erange = [emin,emax]
 
    ;; Get Tables
    table = spp_swp_spanx_sweep_tables($
            erange,$
-           spfac  = spfac_a,$
-           emode  = emode,$
-           _extra = spani_param)
+           spfac    = spfac_a,$
+           emode    = emode,$
+           _extra   = spani_param,$
+           new_defl = new_defl)
 
+   ;; Generate Full Index Energies and Deflections
+   
+   ;;stop
+   
+   ;; Generate Targeted Index Energies and Deflections
+   
+   ;;stop
+   
 END
