@@ -1,7 +1,7 @@
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-06-16 08:55:23 -0700 (Tue, 16 Jun 2020) $
-; $LastChangedRevision: 28779 $
+; $LastChangedDate: 2020-06-22 15:26:08 -0700 (Mon, 22 Jun 2020) $
+; $LastChangedRevision: 28794 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/spp_swp_qf.pro $
 ;-
 
@@ -11,13 +11,13 @@ pro spp_swp_qf,prefix=prefix
   qf_labels = ['Counter Overflow','Snapshot On','Alt. Energy Table','Spoiler Test','Attenuator Engaged']
   options,verbose=0,prefix+'QUALITY_FLAG',tplot_routine='bitplot',numbits=5,yticks=6,psyms=2,labels=qf_labels,colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
 
-  prefix='spp_sc_hkp_0x262_SWEAP_CRIT_SW_'
-  options,verbose=0,prefix+'58',tplot_routine='bitplot',numbits=8,yticks=9,psyms=2,labels=['SPC_PWR','SPANAI_PWR','SPANAE_PWR','SPANB_PWR','SPANA_HTR','SPANB_HTR','ACTR_PWR','OVERCURR_DETECT'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1,panel_size=2
-  options,verbose=0,prefix+'59',tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,labels=['LINK_B_ACTIVE','LINK_A_ACTIVE','FIELDS_CLOCK','FLASH_PLBK_IN_PROGRESS'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,verbose=0,prefix+'60',tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,labels=['WDOG_RESET_DETECTED','BOOT_MODE','FSW_CSCI','OP_OVERRUN'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,verbose=0,prefix+['SPANAI','SPANAE','SPANB'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,labels=['HV_ENABLED','ATT_OR_IN1_IN2','CVR_OR_EOT1_EOT2','HK_MON_TRIP'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,verbose=0,prefix+'SPC',tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,labels=['RAIL_DAC_GT_LIMIT','OR_ELEC_FA_CALON','HV_ENABLED','MODE'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,verbose=0,prefix+['LAST_FSW_EVENT','SPANAI_HV_MODE','SPANAE_HV_MODE','SPANB_HV_MODE'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=4,yticklen=1,ygridstyle=1,yminor=1
+  pre='spp_sc_hkp_0x262_SWEAP_CRIT_SW_'
+  options,verbose=0,pre+'58',tplot_routine='bitplot',numbits=8,yticks=9,psyms=2,labels=['SPC_PWR','SPANAI_PWR','SPANAE_PWR','SPANB_PWR','SPANA_HTR','SPANB_HTR','ACTR_PWR','OVERCURR_DETECT'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1,panel_size=2
+  options,verbose=0,pre+'59',tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,labels=['LINK_B_ACTIVE','LINK_A_ACTIVE','FIELDS_CLOCK','FLASH_PLBK_IN_PROGRESS'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,verbose=0,pre+'60',tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,labels=['WDOG_RESET_DETECTED','BOOT_MODE','FSW_CSCI','OP_OVERRUN'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,verbose=0,pre+['SPANAI','SPANAE','SPANB'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,labels=['HV_ENABLED','ATT_OR_IN1_IN2','CVR_OR_EOT1_EOT2','HK_MON_TRIP'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,verbose=0,pre+'SPC',tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,labels=['RAIL_DAC_GT_LIMIT','OR_ELEC_FA_CALON','HV_ENABLED','MODE'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,verbose=0,pre+['LAST_FSW_EVENT','SPANAI_HV_MODE','SPANAE_HV_MODE','SPANB_HV_MODE'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=4,yticklen=1,ygridstyle=1,yminor=1
 
 end
 
