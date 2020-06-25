@@ -32,6 +32,7 @@
 ;                                         handle burst data
 ;       + 2018-10-19, I. Cohen          : fixed issue in matching phxtof/extof timing when there are more extof events
 ;       + 2020-04-07, S. Bingham        : fixed issue in mismatching phxtof/extof timing & E channel stitching
+;       + 2020-06-23, E. Grimes         : updated call to mms_eis_omni to use the /spin keyword when calculating the spin-averages
                         
 ;-
 pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
@@ -179,7 +180,7 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
     mms_eis_spin_avg, probe=probes[pp], datatype='combined', species='proton', data_units = data_units, data_rate = data_rate, suffix = suffix
     ;
     mms_eis_omni, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix, data_units = data_units, data_rate = data_rate
-    mms_eis_omni, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix + '_spin', data_units = data_units, data_rate = data_rate
+    mms_eis_omni, /spin, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix, data_units = data_units, data_rate = data_rate
     ;
   endfor
   ;
