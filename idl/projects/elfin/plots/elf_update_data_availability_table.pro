@@ -25,7 +25,9 @@ pro elf_update_data_availability_table, tdate, probe=probe, instrument=instrumen
     print, 'You must provide a date. Example: 2020-01-01'
     return
   endif
-  timespan, tdate-30.*86400., 30d
+  ; note: for science processing reasons we go back and reprocess
+  ; the last 30 days. this should probably be added as a parameter
+  timespan, tdate, 1.d   ;-30.*86400., 30d
   trange=timerange()
 
   if undefined(instrument) then instrument='epd' else instrument=strlowcase(instrument)

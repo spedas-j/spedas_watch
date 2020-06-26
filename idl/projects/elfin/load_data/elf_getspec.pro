@@ -100,9 +100,9 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   copy_data,mystring+'sectnum','elx_pxf_sectnum'; COPY INTO GENERIC VARIABLE TO AVOID CLASHES
   copy_data,mystring+'spinper','elx_pxf_spinper'; COPY INTO GENERIC VARIABLE TO AVOID CLASHES
   get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
-  elx_pxf.v=[50.0000,      80.0000,      120.000,      160.000,      210.000, $
-    270.000,      345.000,      430.000,      630.000,      900.000, $
-    1300.00,      1800.00,      2500.00,      3350.00,      4150.00,      5800.00] ; these are the low energy bounds
+;  elx_pxf.v=[50.0000,      80.0000,      120.000,      160.000,      210.000, $
+;    270.000,      345.000,      430.000,      630.000,      900.000, $
+;    1300.00,      1800.00,      2500.00,      3350.00,      4150.00,      5800.00] ; these are the low energy bounds
   get_data,'elx_pxf_sectnum',data=elx_pxf_sectnum,dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; shift PEF times to the right by 1 sector, make 1st point a NaN, all times now represent mid-points!!!!
@@ -125,7 +125,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   if keyword_set(userenergies) then begin
     ; use user-specified energy ranges if provided
     MinE_values=userenergies[*,0]
-    MaxE_values=userenergies[*,0]
+    MaxE_values=userenergies[*,1]
     numchannels = n_elements(MinE_values)
     MinE_channels=make_array(numchannels,/long)
     MaxE_channels=make_array(numchannels,/long)

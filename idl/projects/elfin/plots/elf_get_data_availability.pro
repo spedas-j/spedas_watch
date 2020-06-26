@@ -22,16 +22,18 @@
 ;         data_struct=elf_get_data_availability('2020-03-20', probe='a', instrument='epd'
 ;
 ;-
-function elf_get_data_availability, tdate, instrument=instrument, probe=probe
+function elf_get_data_availability, tdate=tdate, instrument=instrument, probe=probe
 
   ; initialize parameters
   if undefined(tdate) then begin
      print, 'You must provide a date. Example: 2020-01-01'
      return, -1 
   endif
-  timespan, tdate-30.*86400., 30d
+  ;timespan, tdate-30.*86400., 30.d
+  timespan, tdate, 1.0d
   trange=timerange()
-  
+  ;current_time=systime() 
+   
   if undefined(instrument) then instrument='epd' else instrument=strlowcase(instrument)
   if instrument ne 'epd' and instrument ne 'fgm' and $
     instrument ne 'mrm' then begin
@@ -63,33 +65,35 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe
       get_data, sc+'_mrma', data=d
     end
   Endcase
-    
+stop    
   ; check for collections
   if ~undefined(d) && size(d,/type) EQ 8 then begin
     npts=n_elements(d.x)
     tdiff=d.x[1:npts-1] - d.x[0:npts-2]
     idx = where(tdiff GT 600., ncnt)   ; note: 600 seconds is an arbitary time
     append_array, idx, n_elements(d.x)-1 ;add on last element (end time of last sci zone) to pick up last sci zone
+stop
     if ncnt EQ 0 then begin
       ; if ncnt is zero then there is only one science zone for this time frame
       sz_starttimes=[d.x[0]]
-      sz_min_st=[0]
+;      sz_min_st=[0]
       sz_endtimes=d.x[n_elements(d.x)-1]
-      sz_min_en=[n_elements(d.x)-1]
+;      sz_min_en=[n_elements(d.x)-1]
       ts=time_struct(sz_starttimes[0])
       te=time_struct(sz_endtimes[0])
     endif else begin
+stop
       for sz=0,ncnt do begin ;changed from ncnt-1
         if sz EQ 0 then begin
           this_s = d.x[0]
-          sidx = 0
+;          sidx = 0
           this_e = d.x[idx[sz]]
-          eidx = idx[sz]
+;          eidx = idx[sz]
         endif else begin
           this_s = d.x[idx[sz-1]+1]
-          sidx = idx[sz-1]+1
+;          sidx = idx[sz-1]+1
           this_e = d.x[idx[sz]]
-          eidx = idx[sz]
+;          eidx = idx[sz]
         endelse
         if (this_e-this_s) lt 60. then continue
         append_array, sz_starttimes, this_s
@@ -101,7 +105,7 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe
     print, 'There is no data for '+instrument+' on '+tdate
     return, -1 
   endelse
-  
+stop  
   ; Find which size zone
   if instrument EQ 'epd' or instrument EQ 'fgm' then begin
 
@@ -116,12 +120,12 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe
        print, 'There is no state data '+ ' on '+tdate
        return, -1
     endif 
-    
+stop    
     ; get position data to determine whether s/c is ascending or descending
     get_data, sc+'_pos_sm', data=pos   
     ; get latitude of science collection (needed to determine zone)
     elf_mlt_l_lat,sc+'_pos_sm',MLT0=MLT0,L0=L0,lat0=lat0 ;;subroutine to calculate mlt,l,mlat under dipole configuration
-    
+stop    
     ; Determine which science zone data was collected for  
     for i=0,n_elements(sz_starttimes)-1 do begin
       this_start=sz_starttimes[i]
@@ -142,7 +146,7 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe
       append_array, sz_names, sz_name
     endfor     
     data_availability={starttimes:sz_starttimes, endtimes:sz_endtimes, zones:sz_names}
-
+stop
   ; Handle MRM data (only 1 collection every other day)      
   endif else begin
     mrm_start = d.x[0]
