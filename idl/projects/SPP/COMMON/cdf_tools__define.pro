@@ -3,8 +3,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-14 23:47:03 -0700 (Tue, 14 Apr 2020) $
-; $LastChangedRevision: 28581 $
+; $LastChangedDate: 2020-06-25 18:55:02 -0700 (Thu, 25 Jun 2020) $
+; $LastChangedRevision: 28813 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
 ;-
@@ -28,8 +28,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-14 23:47:03 -0700 (Tue, 14 Apr 2020) $
-; $LastChangedRevision: 28581 $
+; $LastChangedDate: 2020-06-25 18:55:02 -0700 (Thu, 25 Jun 2020) $
+; $LastChangedRevision: 28813 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -51,8 +51,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['cdf_svn_changedby'] = '$LastChangedBy: davin-mac $'
-    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-04-14 23:47:03 -0700 (Tue, 14 Apr 2020) $'
-    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 28581 $'
+    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-06-25 18:55:02 -0700 (Thu, 25 Jun 2020) $'
+    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 28813 $'
     sw_hash['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
 
     return,sw_hash
@@ -135,8 +135,8 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
   global_attributes = self.g_attributes
   
   global_attributes['cdf_svn_changedby'] = '$LastChangedBy: davin-mac $'
-  global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-04-14 23:47:03 -0700 (Tue, 14 Apr 2020) $'
-  global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 28581 $'
+  global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-06-25 18:55:02 -0700 (Thu, 25 Jun 2020) $'
+  global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 28813 $'
   global_attributes['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
   login_info = get_login_info()
   global_attributes['sw_runby'] = login_info.user_name
@@ -618,10 +618,49 @@ pro cdf_tools::read,filenames
 end
 
 
+pro cdf_tools::add_time,epochname
+  if ~isa(epochname) then epochname = 'Epoch'
+  if self.vars.haskey(epochname) then begin
+    ;printdat,self.vars[epochname]
+    epvar = self.vars[epochname]
+    tt_2000 = epvar.data.array
+    tt_2000_d = epvar.data.array / 1d9
+    if epvar.attributes.haskey('FILLVAL') then begin
+      fval =  epvar.attributes['FILLVAL']
+      w = where(tt_2000 eq fval,/null)
+      tt_2000_d[w] = !values.d_nan
+    endif
+    time = time_ephemeris(/et2ut,tt_2000 )
+    vt = cdf_tools_varinfo('TIME',time[0],all_values=time,/set_default_atts,/recvary)
+    self.add_variable,vt
+  endif else begin
+    dprint,epochname+ ' not found'
+  endelse
+
+end
+
+
+pro cdf_tools::fill_nan,names
+
+  foreach v,self.vars  do begin
+    if v.attributes.haskey('FILLVAL') && isa(*v.data.ptr,/float) then begin
+      dprint,dlevel=3,v.name
+      fval = v.attributes['FILLVAL']
+      w = where( *v.data.ptr eq fval,/null,nw)
+      (*v.data.ptr)[w] = !values.f_nan
+      if isa(w) then begin
+        v.attributes['FILLVAL'] = (*v.data.ptr)[w[0]] 
+      endif
+    endif
+  endforeach
+end
+
+
+
 function cdf_tools::var_info_structures   ; not ready yet
 
-  if self.nvars gt 0 then begin
-    strct = replicate( {cdf_tools_varinfo},self.nvars )
+  if self.vars.count gt 0 then begin
+    strct = replicate( {cdf_tools_varinfo},self.vars.count )
     i = 0
     foreach v,self.vars,vname do begin
       strct[i++] = v
