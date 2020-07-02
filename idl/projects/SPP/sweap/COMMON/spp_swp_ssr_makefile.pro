@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-11 14:03:37 -0700 (Wed, 11 Mar 2020) $
-; $LastChangedRevision: 28404 $
+; $LastChangedDate: 2020-07-01 08:47:47 -0700 (Wed, 01 Jul 2020) $
+; $LastChangedRevision: 28827 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -8,7 +8,7 @@
 
 pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
   make_cdf=make_cdf,make_ql=make_ql,make_sav=make_sav,load_sav=load_sav,verbose=verbose,reset=reset,sc_files=sc_files,    $
-  ssr_format=ssr_format, mtime_range=mtime_range,no_load=no_load,make_tplotvar=make_tplotvar
+  ssr_format=ssr_format, mtime_range=mtime_range,no_load=no_load,make_tplotvar=make_tplotvar,ssr_prefix=ssr_prefix
 
   if keyword_set(all) then trange_full = [time_double('2018-10-3'),systime(1)] else trange_full = timerange(trange_full)
 
@@ -17,20 +17,21 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
   daynum = round(timerange(trange_full)/res)
   nd = daynum[1]-daynum[0]
   trange = res* double(daynum) ; round to days
-
   output_prefix = 'psp/data/sci/sweap/'
-  ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
-;  ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
+  if ~keyword_set(ssr_prefix) then begin
+    ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
+    ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
+  endif
   linkname = output_prefix + '.hidden/.htaccess'
   if ~ isa(ssr_format,/string) then ssr_format = 'YYYY/DOY/*_?_E?'
   idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
   idlsav_format = output_prefix+'sav/YYYY/DOY/*_?_??.sav'
   ql_dir = output_prefix+'swem/ql/'
   if keyword_set(sc_files) then ssr_format = 'YYYY/DOY/*_?_FP'
-
   tr = timerange(trange_full)
-  if ~keyword_set(no_load) then begin
-    ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix)  ; load all data over many days (full orbit)
+
+  if ~keyword_set(no_load) && ~keyword_set(load_sav) then begin
+    ssr_files = spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix,verbose=verbose)
     if keyword_set(mtime_range) then begin
       fi = file_info(ssr_files)
       mtrge = time_double(mtime_range)
@@ -42,25 +43,29 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
       endif
       ssr_files = fi.name
     endif
+    if ~keyword_set(make_sav) then spp_ssr_file_read,ssr_files,/sort_flag,/finish,no_init = ~keyword_set(reset)
+  endif
 
-    if keyword_set(load_sav) then begin
-      sav_files=spp_file_retrieve(idlsav_format,trange=tr,/daily_names,/valid_only)
-      for i=0,n_elements(sav_files)-1 do spp_apdat_info,append_file=sav_files[i]
-      spp_apdat_info,/finish,/all,/sort_flag
-      return
-    endif
+  if keyword_set(make_sav) then begin
+    for i=0,n_elements(ssr_files)-1 do begin
+      ssr_file=ssr_files[i]
+      idlsav_format=output_prefix+'sav/'+(ssr_files[i]).substring(-24)+'.sav' ;substring is preferred here. strsub may fail b/c ssr_prefix can change!
+      sav_file=spp_file_retrieve(idlsav_format,/create_dir)
+      if (file_info(ssr_file)).mtime le (file_info(sav_file)).mtime then continue
+      spp_apdat_info,/reset
+      spp_swp_apdat_init,/reset
+      spp_ssr_file_read,ssr_file
+      spp_apdat_info,file_save=sav_file,/compress
+    endfor
+    ;save,file=sav_file+'.code',/routines,/verbose
+  endif
 
-    if keyword_set(make_sav) then begin
-      for i=0,n_elements(ssr_files)-1 do begin
-        spp_ssr_file_read,ssr_files[i]
-        idlsav_format=output_prefix+'sav/'+(ssr_files[i]).substring(-24)+'.sav' ;substring is preferred here. strsub may fail b/c ssr_prefix can change!
-        savfile=spp_file_retrieve(idlsav_format,/create_dir)
-        spp_apdat_info,file_save=savfile,/compress
-      endfor
-      ;save,file=sav_file+'.code',/routines,/verbose
-    endif else begin
-      spp_ssr_file_read,ssr_files,/sort_flag,/finish,no_init = ~keyword_set(reset)
-    endelse
+  if keyword_set(load_sav) then begin
+    sav_files=spp_file_retrieve(idlsav_format,trange=tr,/daily_names,/valid_only,verbose=verbose)
+    if ~keyword_set(sav_files) then dprint,'No .sav files found!'
+    foreach sav_file,sav_files do spp_apdat_info,file_restore=sav_file
+    del_data,'spp_*'
+    spp_apdat_info,/finish,/all,/sort_flag
   endif
 
   if keyword_set(make_tplotvar) then spp_swp_tplot,setlim=2
@@ -73,16 +78,13 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
     spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi'+cdf_suffix,cdf_linkname= linkname
     spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2'+cdf_suffix,cdf_linkname= linkname
     spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem'+cdf_suffix,cdf_linkname= linkname
-
     for day=daynum[0],daynum[1] do begin ;loop over days
       trdaily = double(day * res)
       trange = trdaily + [0,1]*res
       dprint,dlevel=2,verbose=verbose,'Time: '+strjoin("'"+time_string(trange)+"'",' to ')
-
       if keyword_set(type) then aps=spp_apdat(type) else aps = [spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*')]
       foreach a,aps do a.cdf_makefile,trange=trange
     endfor
-
   endif
 
   if keyword_set(make_ql) then begin

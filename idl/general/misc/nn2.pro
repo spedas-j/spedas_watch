@@ -23,7 +23,8 @@
 ;
 ;OUTPUTS:
 ;   i:          Indices of the nearest neighbors in time1 to the elements of
-;               time2.
+;               time2.  Note that i indexes time1 and has the same number of
+;               elements as time2.
 ;
 ;KEYWORDS:
 ;
@@ -37,15 +38,17 @@
 ;
 ;   VALID:      Remove all occurrences of -1 from array before returning.
 ;
+;   VINDEX:     Indicies of time2 with valid neighbors in time1.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-03-21 14:49:10 -0700 (Sat, 21 Mar 2020) $
-; $LastChangedRevision: 28448 $
+; $LastChangedDate: 2020-07-01 11:10:48 -0700 (Wed, 01 Jul 2020) $
+; $LastChangedRevision: 28828 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/nn2.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2018-08-23
 ;FILE:  nn2.pro
 ;-
-function nn2, time1, time2, maxdt=maxdt, valid=valid
+function nn2, time1, time2, maxdt=maxdt, valid=valid, vindex=vindex
 
   t1 = time_double(time1)
   n = n_elements(t1)
@@ -60,6 +63,7 @@ function nn2, time1, time2, maxdt=maxdt, valid=valid
   if keyword_set(valid) then begin
     j = where(i ge 0L, count)
     if (count gt 0L) then i = i[j] else i = -1L
+    vindex = j
   endif
 
   return, i

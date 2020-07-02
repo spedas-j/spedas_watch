@@ -67,14 +67,16 @@
 ;       SCALE:     Scale factor for adjusting the size of the
 ;                  plot window.  Default = 1.
 ;
-;       EPH:       Named variable to hold structure planetary
+;       EPH:       Named variable to hold structure of planetary
 ;                  orbital ephemeris data (1900-2100).
 ;
 ;       STEREO:    Plot the locations of the STEREO spacecraft,
-;                  when available.  (The ephemeris for Stereo-B
-;                  has an error near the beginning of the mission,
+;                  when available.  (The Stereo-B ephemeris has
+;                  an error near the beginning of the mission,
 ;                  associated with a maneuver to place it in the
-;                  "behind" orbit.)
+;                  "behind" orbit.  This routine deletes the bad
+;                  ephemeris values and interpolates across the 
+;                  gap.)
 ;
 ;       RELOAD:    Reload the ephemerides.
 ;
@@ -114,8 +116,8 @@
 ;                  spanning 1900-2100.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-04-14 09:46:40 -0700 (Tue, 14 Apr 2020) $
-; $LastChangedRevision: 28576 $
+; $LastChangedDate: 2020-07-01 14:59:38 -0700 (Wed, 01 Jul 2020) $
+; $LastChangedRevision: 28847 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -126,6 +128,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   xyrange=range, planet=pnum
 
   common planetorb, planet, sta, stb
+  @swe_snap_common
+
+  if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
 
   oneday = 86400D
   au = 1.495978707d13  ; Astronomical Unit (cm)
@@ -336,6 +341,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       planet[k].d2x  = spl_init(planet[k].time, planet[k].x, /double)
       planet[k].d2y  = spl_init(planet[k].time, planet[k].y, /double)
       planet[k].d2z  = spl_init(planet[k].time, planet[k].z, /double)
+      print, strmid(planet[k].name,0,1), format='(a1," ",$)'
     endfor
 
     for k=0,8 do begin
@@ -347,6 +353,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         planet[k].owlt = ds*(au/c)
       endif
     endfor
+    print,".",format='(a1,$)'
 
 ; --------- MARS SUBSOLAR LATITUDE ---------
 
@@ -359,13 +366,15 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endfor
     planet[3].latss = latss
     planet[3].d2l = spl_init(planet[3].time, planet[3].latss, /double)
+    print,".",format='(a1,$)'
 
 ; --------- STEREO AHEAD ---------
 
     i = where(sinfo.obj_name eq 'STEREO AHEAD', count)
     if (count gt 0L) then begin
       tsp = time_double(sinfo[i].trange)
-      ndays = floor((tsp[1] - tsp[0])/oneday)
+      tsp = minmax(tsp)
+      ndays = floor(2D*(tsp[1] - tsp[0])/oneday)
       dt = (tsp[1] - tsp[0])/double(ndays)
       tt = tsp[0] + dt*dindgen(ndays)
       et = time_ephemeris(tt)
@@ -396,45 +405,53 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       sta.owlt = ds*(au/c)
 
     endif else sta = {time : time_double('1800-01-01')}
+    print,".",format='(a1,$)'
 
 ; --------- STEREO BEHIND ---------
 
     i = where(sinfo.obj_name eq 'STEREO BEHIND', count)
     if (count gt 0L) then begin
       tsp = time_double(sinfo[i].trange)
-      ndays = floor((tsp[1] - tsp[0])/oneday)
+      ndays = floor(2D*(tsp[1] - tsp[0])/oneday)
       dt = (tsp[1] - tsp[0])/double(ndays)
       tt = tsp[0] + dt*dindgen(ndays)
       et = time_ephemeris(tt)
 
       cspice_spkpos, 'Stereo Behind', et, 'ECLIPJ2000', 'NONE', 'Sun', stb, ltime
       stb = transpose(stb)/(au/1.d5)
-      stb = { time : tt            , $
-              x    : stb[*,0]      , $
-              y    : stb[*,1]      , $
-              z    : stb[*,2]      , $
-              owlt : ltime         , $
-              frame : 'ECLIPJ2000'    }
+      j = where(stb[*,1] lt 1.3, count)  ; keep only good values
+      if (count gt 0L) then begin
+        tt = tt[j]
+        stb = stb[j,*]
+        ltime = ltime[j]
 
-      d2x = spl_init(stb.time, stb.x, /double)
-      d2y = spl_init(stb.time, stb.y, /double)
-      d2z = spl_init(stb.time, stb.z, /double)
-      str_element, stb, 'd2x', d2x, /add
-      str_element, stb, 'd2y', d2y, /add
-      str_element, stb, 'd2z', d2z, /add
+        stb = { time  : tt           , $
+                x     : stb[*,0]     , $
+                y     : stb[*,1]     , $
+                z     : stb[*,2]     , $
+                owlt  : ltime        , $
+                frame : 'ECLIPJ2000'    }
 
-      xe = spl_interp(planet[2].time, planet[2].x, planet[2].d2x, stb.time)
-      ye = spl_interp(planet[2].time, planet[2].y, planet[2].d2y, stb.time)
-      ze = spl_interp(planet[2].time, planet[2].z, planet[2].d2z, stb.time)
-      dx = stb.x - xe
-      dy = stb.y - ye
-      dz = stb.z - ze
-      ds = sqrt(dx*dx + dy*dy + dz*dz)
-      stb.owlt = ds*(au/c)
+        d2x = spl_init(stb.time, stb.x, /double)
+        d2y = spl_init(stb.time, stb.y, /double)
+        d2z = spl_init(stb.time, stb.z, /double)
+        str_element, stb, 'd2x', d2x, /add
+        str_element, stb, 'd2y', d2y, /add
+        str_element, stb, 'd2z', d2z, /add
+
+        xe = spl_interp(planet[2].time, planet[2].x, planet[2].d2x, stb.time)
+        ye = spl_interp(planet[2].time, planet[2].y, planet[2].d2y, stb.time)
+        ze = spl_interp(planet[2].time, planet[2].z, planet[2].d2z, stb.time)
+        dx = stb.x - xe
+        dy = stb.y - ye
+        dz = stb.z - ze
+        ds = sqrt(dx*dx + dy*dy + dz*dz)
+        stb.owlt = ds*(au/c)
+      endif else stb = {time : time_double('1800-01-01')}
 
     endif else stb = {time : time_double('1800-01-01')}
 
-    print,'done'
+    print,' done'
   endif
 
   eph = {planet:planet, stereo_A:sta, stereo_B:stb}
@@ -504,6 +521,25 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,'Lss','ytitle','Lss (deg)'
     endif
 
+    if (sflg) then begin
+      tname = 'OWLT-STA'
+      store_data,tname,data={x:sta.time, y:sta.owlt/60D}
+      options,tname,'ytitle','STEREO A!cOWLT (min)'
+      options,tname,'ynozero',1
+
+      tname = 'OWLT-STB'
+      store_data,tname,data={x:stb.time, y:stb.owlt/60D}
+      options,tname,'ytitle','STEREO B!cOWLT (min)'
+      options,tname,'ynozero',1
+
+      tname = 'STEREO'
+      store_data,tname,data=['OWLT-STA','OWLT-STB']
+      options,tname,'ytitle','STEREO!cOWLT (min)'
+      options,tname,'colors',[4,6]
+      options,tname,'labels',['A','B']
+      options,tname,'labflag',1
+    endif
+
   endif
 
 ; Make the plot
@@ -513,8 +549,6 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   if (mflg) then Twin = !d.window
 
   if not keyword_set(scale) then scale = 1.
-  xsize = round(792.*scale[0])
-  ysize = round(765.*scale[0])
 
   if keyword_set(nobox) then begin
     xsty = 4
@@ -529,7 +563,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   usersym,a*cos(phi),a*sin(phi),/fill
 
   if (mflg) then begin
-    window, /free, xsize=xsize, ysize=ysize
+    putwin, /free, key=Ropt, scale=scale
     Owin = !d.window
     zscl = 1.
 
@@ -552,8 +586,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       zp = xp
       rp = xp
 
-      i = nn2(planet[3].time, t, maxdt=oneday)
-      if (i ge 0L) then begin
+      inbounds = nn2(planet[3].time, t, maxdt=oneday) ge 0L
+      if (inbounds) then begin
         for k=0,ipmax do begin
           xp[k] = spl_interp(planet[k].time, planet[k].x, planet[k].d2x, t)
           yp[k] = spl_interp(planet[k].time, planet[k].y, planet[k].d2y, t)
@@ -618,7 +652,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         oplot, [xstb], [ystb], psym=1, symsize=2*zscl, color=5
       endif
 
-      if (dolab gt 0) then begin
+      if (inbounds and (dolab gt 0)) then begin
         xs = 0.77  ; upper right
         ys = 0.92
         dys = 0.03
@@ -729,7 +763,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
     endwhile
     
-    wdelete, Owin
+    if (not kflg) then wdelete, Owin
+    wset,Twin
 
     return
 
@@ -742,7 +777,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   i = nn2(planet[3].time, t, maxdt=oneday)
   j = where(i ge 0L, count)
-  if (count gt 0L) then begin
+  inbounds = count gt 0L
+  if (inbounds) then begin
     for k=0,ipmax do begin
       xp[k,j] = spl_interp(planet[k].time, planet[k].x, planet[k].d2x, t[j])
       yp[k,j] = spl_interp(planet[k].time, planet[k].y, planet[k].d2y, t[j])
@@ -754,6 +790,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   if (sflg) then begin
     xsta = replicate(!values.f_nan, n_elements(t))
     ysta = xsta
+    zsta = xsta
     i = nn2(sta.time, t, maxdt=oneday)
     j = where(i ge 0L, count)
     if (count gt 0L) then begin
@@ -764,6 +801,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   
     xstb = replicate(!values.f_nan, n_elements(t))
     ystb = xstb
+    zstb = xstb
     i = nn2(stb.time, t, maxdt=oneday)
     j = where(i ge 0L, count)
     if (count gt 0L) then begin
@@ -778,7 +816,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     zscl = 0.8
   endif else begin
     if (Owin eq -1) then begin
-      window, /free, xsize=xsize, ysize=ysize
+      putwin, /free, key=Ropt, scale=scale
       Owin = !d.window
     endif
     zscl = 1.
@@ -826,7 +864,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     oplot, [xstb], [ystb], psym=1, symsize=2*zscl, color=7
   endif
 
-  if (dolab gt 0) then begin
+  if (inbounds and (dolab gt 0)) then begin
     xs = 0.77  ; upper right
     ys = 0.92
     dys = 0.03

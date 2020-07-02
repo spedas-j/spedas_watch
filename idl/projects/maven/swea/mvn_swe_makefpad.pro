@@ -23,15 +23,18 @@
 ;
 ;       PANS:     Returns names of any tplot variables.
 ;
+;       PFILE:    Name of an IDL save file containing the hires PAD
+;                 data structures: swe_fpad, swe_fpad_arc.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-03-15 12:34:42 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26803 $
+; $LastChangedDate: 2020-07-01 11:22:53 -0700 (Wed, 01 Jul 2020) $
+; $LastChangedRevision: 28838 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makefpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
 ;FILE: mvn_swe_makespec.pro
 ;-
-pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans
+pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pfile
 
   @mvn_swe_com
 
@@ -40,19 +43,47 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans
 
   delta_t = 1.95D/2D
 
-  indx = where(a2.lut gt 6B, count)
-  if (count gt 0) then begin
-    print,"Survey data ... "
-    swe_fpad = mvn_swe_getpad(a2[indx].time + delta_t, units=units)
-    swe_fpad = swe_pad32hz_unpack(swe_fpad)
+; Try to restore hires data from a save file
+
+  ok = 0
+  if (size(pfile,/type) eq 7) then begin
+    finfo = file_info(pfile)
+    if (finfo.exists) then begin
+      print,"Restoring: ",file_basename(pfile)
+      swe_fpad = 0
+      swe_fpad_arc = 0
+      restore, pfile
+      if (size(swe_fpad,/type) eq 8) then ok = 1
+    endif else begin
+      print,"File not found: ",file_basename(pfile)
+    endelse
   endif
 
-  indx = where(a3.lut gt 6B, count)
-  if (count gt 0) then begin
-    print,"Burst data ... "
-    swe_fpad_arc = mvn_swe_getpad(a3[indx].time + delta_t, units=units, /burst)
-    swe_fpad_arc = swe_pad32hz_unpack(swe_fpad_arc)
+; If necessary, calculate hires data from L0
+
+  if (not ok) then begin
+    if (size(a2,/type) eq 8) then begin
+      indx = where(a2.lut gt 6B, count)
+      if (count gt 0) then begin
+        print,"Survey data ... "
+        swe_fpad = mvn_swe_getpad(a2[indx].time + delta_t, units=units)
+        swe_fpad = swe_pad32hz_unpack(swe_fpad)
+      endif
+      doa2 = 1
+    endif else doa2 = 0
+
+    if (size(a3,/type) eq 8) then begin
+      indx = where(a3.lut gt 6B, count)
+      if (count gt 0) then begin
+        print,"Burst data ... "
+        swe_fpad_arc = mvn_swe_getpad(a3[indx].time + delta_t, units=units, /burst)
+        swe_fpad_arc = swe_pad32hz_unpack(swe_fpad_arc)
+      endif
+      doa3 = 1
+   endif else doa3 = 0
   endif
+
+; Make tplot variables with merged lores and hires pad data
 
   if keyword_set(tplot) then begin
     e50 = 49.168077D
