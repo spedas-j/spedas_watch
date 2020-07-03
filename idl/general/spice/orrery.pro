@@ -115,9 +115,13 @@
 ;       TPLOT:     Create Earth-PLANET geometry tplot variables 
 ;                  spanning 1900-2100.
 ;
+;       VERBOSE:   Controls verbosity of file_retrieve.
+;                  Default = 0 (no output).  Try a value > 2 to see
+;                  more messages; > 4 for lots of messages.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 14:59:38 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28847 $
+; $LastChangedDate: 2020-07-02 09:01:37 -0700 (Thu, 02 Jul 2020) $
+; $LastChangedRevision: 28849 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -125,12 +129,13 @@
 pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph, $
                   spiral=spiral, Vsw=Vsw, srot=srot, movie=movie, stereo=stereo, $
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
-                  xyrange=range, planet=pnum
+                  xyrange=range, planet=pnum, verbose=verbose
 
   common planetorb, planet, sta, stb
   @swe_snap_common
 
   if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
+  if (size(verbose,/type) eq 0) then verbose = 0
 
   oneday = 86400D
   au = 1.495978707d13  ; Astronomical Unit (cm)
@@ -278,8 +283,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
 ; Now add the STEREO spk
 
-    path = root_data_dir() + 'misc/spice/naif/STEREO/kernels/spk/'
-    fname = path + 'STEREO-A_merged.bsp'
+    path = 'misc/spice/naif/STEREO/kernels/spk/'
+    ssrc = mvn_file_source(archive_ext='')  ; don't archive old files
+
+    pathname = path + 'STEREO-A_merged.bsp'
+    fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
     indx = where(mk eq fname, count)
     if (count eq 0) then begin
       cspice_furnsh, fname
@@ -288,8 +296,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       if (count eq 0) then print,"Could not load STEREO A ephemeris."
     endif
 
-    path = root_data_dir() + 'misc/spice/naif/STEREO/kernels/spk/'
-    fname = path + 'STEREO-B_merged.bsp'
+    pathname = path + 'STEREO-B_merged.bsp'
+    fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
     indx = where(mk eq fname, count)
     if (count eq 0) then begin
       cspice_furnsh, fname
@@ -518,7 +526,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
     if (pnum eq 3) then begin
       store_data,'Lss',data={x:planet[3].time, y:planet[3].latss}
-      options,'Lss','ytitle','Lss (deg)'
+      options,'Lss','ytitle','Mars!cLss (deg)'
     endif
 
     if (sflg) then begin
