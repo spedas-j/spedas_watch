@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-06-30 14:29:02 -0700 (Tue, 30 Jun 2020) $
-; $LastChangedRevision: 28826 $
+; $LastChangedDate: 2020-07-03 14:06:46 -0700 (Fri, 03 Jul 2020) $
+; $LastChangedRevision: 28852 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -427,40 +427,51 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
         options,'psp_fld_l3_merged_scam_wf_SC', 'ytitle', 'SCaM SC'
         options,'psp_fld_l3_merged_scam_wf_SC', 'ysubtitle', '[nT]'
-        options,'psp_fld_l3_merged_scam_wf_*',colors='bgr' ,/default
+        options,'psp_fld_l3_merged_scam_' + ['wf_*','scm_sample_rate','mag_offset_SC'],colors='bgr' ,/default
+        options,'psp_fld_l3_merged_scam_rxn_whl',colors='bgrk' ,/default
         options,'psp_fld_l3_merged_scam_wf_SC', 'max_points', 10000
         options,'psp_fld_l3_merged_scam_wf_SC', 'psym_lim', 300
 
+        options,'psp_fld_l3_merged_scam_mag_sample_rate', 'colors', 'r'
+        options,'psp_fld_l3_merged_scam_mag_range', 'colors', 'r'
+
+        options,'psp_fld_l3_merged_scam_scm_sample_rate', 'ytitle', 'SCaM!CSCM Rate'
+        options,'psp_fld_l3_merged_scam_mag_sample_rate', 'ytitle', 'SCaM!CMAG Rate'
+        options,'psp_fld_l3_merged_scam_rxn_whl', 'ytitle', 'SCaM!CRXN WHL'
+        options,'psp_fld_l3_merged_scam_mag_range', 'ytitle', 'SCaM!CMAG Range'
+        options,'psp_fld_l3_merged_scam_mag_offset_SC', 'ytitle', 'SCaM!CMAG Offset'
+
+
       end
 
-      if tnames('psp_fld_l2_quality_flags') NE '' then begin
+      if (tnames('psp_fld_l?_quality_flags'))[0] NE '' then begin
 
-        options, 'psp_fld_l2_quality_flags', 'tplot_routine', 'bitplot'
+        options, 'psp_fld_l?_quality_flags', 'tplot_routine', 'bitplot'
 
-        options, 'psp_fld_l2_quality_flags', 'numbits', 8
-        options, 'psp_fld_l2_quality_flags', 'yticks', 9 ; numbits + 1
+        options, 'psp_fld_l?_quality_flags', 'numbits', 8
+        options, 'psp_fld_l?_quality_flags', 'yticks', 9 ; numbits + 1
 
-        options, 'psp_fld_l2_quality_flags', 'psyms', [2]
+        options, 'psp_fld_l?_quality_flags', 'psyms', [2]
 
 
         qf_labels = $
           ['BIAS_SWP','THRUSTER','SCM_CAL',$
           'MAG_ROLL','MAG_CAL','SPC_EMODE','SLS_CAL','OFF_UMBRA']
 
-        options, 'psp_fld_l2_quality_flags', 'labels', $
+        options, 'psp_fld_l?_quality_flags', 'labels', $
           qf_labels
 
-        options, 'psp_fld_l2_quality_flags', 'ytitle', $
+        options, 'psp_fld_l?_quality_flags', 'ytitle', $
           'Quality Flags'
 
 
-        options, 'psp_fld_l2_quality_flags', 'colors', $
+        options, 'psp_fld_l?_quality_flags', 'colors', $
           [0,1,2,6]
 
-        options, 'psp_fld_l2_quality_flags', 'yticklen', 1
-        options, 'psp_fld_l2_quality_flags', 'ygridstyle', 1
+        options, 'psp_fld_l?_quality_flags', 'yticklen', 1
+        options, 'psp_fld_l?_quality_flags', 'ygridstyle', 1
 
-        options, 'psp_fld_l2_quality_flags', 'yminor', 1
+        options, 'psp_fld_l?_quality_flags', 'yminor', 1
 
 
       endif
