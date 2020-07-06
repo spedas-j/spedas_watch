@@ -77,6 +77,7 @@
 ;                  "behind" orbit.  This routine deletes the bad
 ;                  ephemeris values and interpolates across the 
 ;                  gap.)
+;                    Coverage: 2006-10-26 to 2020-10-26
 ;
 ;       SORB:      Plot the location of Solar Orbiter.  Includes a
 ;                  predict ephemeris.
@@ -88,7 +89,8 @@
 ;
 ;       SALL:      Plot all of the above spacecraft locations.
 ;
-;       RELOAD:    Reload the ephemerides.
+;       RELOAD:    Reload the ephemerides.  (Does not reinitialize
+;                  SPICE -- use cspice_kclear for that.)
 ;
 ;       SPIRAL:    Plot the Parker (Archimedean) spiral of the
 ;                  solar wind magnetic field.  Spiral is shown out
@@ -122,16 +124,19 @@
 ;                  are shown, and the Archimedean spiral (if set)
 ;                  extends out to the orbit of Saturn.
 ;
-;       TPLOT:     Create Earth-PLANET geometry tplot variables 
-;                  spanning 1900-2100.
+;       TPLOT:     Create Earth-PLANET geometry and spacecraft position
+;                  tplot variables.
 ;
 ;       VERBOSE:   Controls verbosity of file_retrieve.
 ;                  Default = 0 (no output).  Try a value > 2 to see
 ;                  more messages; > 4 for lots of messages.
 ;
+;       FULL:      Show everything: planets and spacecraft, Parker
+;                  spiral, and all labels.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-03 21:36:28 -0700 (Fri, 03 Jul 2020) $
-; $LastChangedRevision: 28853 $
+; $LastChangedDate: 2020-07-05 17:10:16 -0700 (Sun, 05 Jul 2020) $
+; $LastChangedRevision: 28854 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -140,7 +145,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   spiral=spiral, Vsw=Vsw, srot=srot, movie=movie, stereo=stereo, $
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
                   xyrange=range, planet=pnum, sorb=solorb, psp=sprobe, sall=sall, $
-                  verbose=verbose
+                  verbose=verbose, full=full
 
   common planetorb, planet, sta, stb, sorb, psp
   @swe_snap_common
@@ -150,6 +155,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   oneday = 86400D
   au = 1.495978707d13  ; Astronomical Unit (cm)
+  Rs = 6.957d10        ; Radius of Sun (cm)
   c = 2.99792458d10    ; Speed of light (cm/s)
   wnum = !d.window
 
@@ -221,6 +227,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   sflg = keyword_set(stereo)
   oflg = keyword_set(solorb)
   pflg = keyword_set(sprobe)
+  if keyword_set(full) then begin
+    sall = 1
+    label = 2
+    spiral = 1
+  endif
   if keyword_set(sall) then begin
     sflg = 1
     oflg = 1
@@ -377,6 +388,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
               x     : replicate(0D,ndays) , $
               y     : replicate(0D,ndays) , $
               z     : replicate(0D,ndays) , $
+              r     : replicate(0D,ndays) , $
               d2x   : replicate(0D,ndays) , $
               d2y   : replicate(0D,ndays) , $
               d2z   : replicate(0D,ndays) , $
@@ -396,6 +408,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       planet[k].x    = pos[*,0]
       planet[k].y    = pos[*,1]
       planet[k].z    = pos[*,2]
+      planet[k].r    = sqrt(total(pos[*,0:2]^2.,2))
       planet[k].d2x  = spl_init(planet[k].time, planet[k].x, /double)
       planet[k].d2y  = spl_init(planet[k].time, planet[k].y, /double)
       planet[k].d2z  = spl_init(planet[k].time, planet[k].z, /double)
@@ -686,8 +699,15 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       tname = 'R-SORB'
       r = sqrt(sorb.x^2. + sorb.y^2. + sorb.z^2.)
-      store_data,tname,data={x:sorb.time, y:r}
-      options,tname,'ytitle','Solar Orbiter!cRadius (AU)'
+      store_data,tname,data={x:sorb.time, y:r*(au/Rs)}
+      options,tname,'ytitle','Solar Orbiter!cRadius (R!dS!n)'
+      options,tname,'constant',[minmax(planet[0].r), mean(planet[1].r),1.]*(au/Rs)
+
+      tname = 'Lat-SORB'
+      lat = asin(sorb.z/r)*!radeg
+      store_data,tname,data={x:sorb.time, y:lat}
+      options,tname,'ytitle','Solar Orbiter!cLatitude (deg)'
+      options,tname,'constant',0
     endif
 
     if (pflg) then begin
@@ -698,8 +718,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       tname = 'R-PSP'
       r = sqrt(psp.x^2. + psp.y^2. + psp.z^2.)
-      store_data,tname,data={x:psp.time, y:r}
-      options,tname,'ytitle','Solar Probe!cRadius (AU)'
+      store_data,tname,data={x:psp.time, y:r*(au/Rs)}
+      options,tname,'ytitle','Solar Probe!cRadius (R!dS!n)'
+      options,tname,'constant',[minmax(planet[0].r), mean(planet[1].r), 1.]*(au/Rs)
     endif
 
   endif
