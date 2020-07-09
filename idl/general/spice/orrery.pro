@@ -135,8 +135,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-05 17:10:16 -0700 (Sun, 05 Jul 2020) $
-; $LastChangedRevision: 28854 $
+; $LastChangedDate: 2020-07-07 19:11:51 -0700 (Tue, 07 Jul 2020) $
+; $LastChangedRevision: 28859 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -856,14 +856,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         oplot, [xstb], [ystb], psym=ssym[1], symsize=ssze[1]*zscl, color=scol[1]
       endif
 
-      if (oflg and finite(xsorb)) then begin
+      if (oflg) then if (finite(xsorb)) then begin
         imin = (isorb - sday[2]) > 0L
         imax = (isorb + sday[2]) < (n_elements(sorb.time) - 1L)
         oplot, sorb.x[imin:imax], sorb.y[imin:imax], color=scol[2]  
         oplot, [xsorb], [ysorb], psym=ssym[2], symsize=ssze[2]*zscl, color=scol[2]
       endif
 
-      if (pflg and finite(xpsp)) then begin
+      if (pflg) then if (finite(xpsp)) then begin
         imin = (ipsp - sday[3]) > 0L
         imax = (ipsp + sday[3]) < (n_elements(psp.time) - 1L)
         oplot, psp.x[imin:imax], psp.y[imin:imax], color=scol[3]  
@@ -1030,7 +1030,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     ysorb = xsorb
     i = nn2(sorb.time, t, maxdt=oneday)
     j = where(i ge 0L, count)
-    if (count ge 0L) then begin
+    if (count gt 0L) then begin
       isorb = round(mean(i[j]))
       xsorb[j] = spl_interp(sorb.time, sorb.x, sorb.d2x, t[j])
       ysorb[j] = spl_interp(sorb.time, sorb.y, sorb.d2y, t[j])
@@ -1042,7 +1042,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     ypsp = xpsp
     i = nn2(psp.time, t, maxdt=oneday)
     j = where(i gt 0L, count)
-    if (count ge 0L) then begin
+    if (count gt 0L) then begin
       ipsp = round(mean(i[j]))
       xpsp[j] = spl_interp(psp.time, psp.x, psp.d2x, t[j])
       ypsp[j] = spl_interp(psp.time, psp.y, psp.d2y, t[j])
@@ -1100,22 +1100,22 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   for i=0,ipmax do oplot, [xp[i,j]], [yp[i,j]], psym=8, symsize=psze[i]*zscl, color=pcol[i]
 
   if (sflg) then begin
-    oplot, [xsta], [ysta], psym=ssym[0], symsize=2*zscl, color=scol[0]
-    oplot, [xstb], [ystb], psym=ssym[1], symsize=2*zscl, color=scol[1]
+    oplot, [xsta], [ysta], psym=ssym[0], symsize=ssze[0]*zscl, color=scol[0]
+    oplot, [xstb], [ystb], psym=ssym[1], symsize=ssze[1]*zscl, color=scol[1]
   endif
 
-  if (oflg and max(finite(xsorb))) then begin
+  if (oflg) then if (max(finite(xsorb))) then begin
     imin = (isorb - sday[2]) > 0L
     imax = (isorb + sday[2]) < (n_elements(sorb.time) - 1L)
     oplot, sorb.x[imin:imax], sorb.y[imin:imax], color=scol[2]  
-    oplot, [xsorb], [ysorb], psym=ssym[2], symsize=2*zscl, color=scol[2]
+    oplot, [xsorb], [ysorb], psym=ssym[2], symsize=ssze[2]*zscl, color=scol[2]
   endif
 
-  if (pflg and max(finite(xpsp))) then begin
+  if (pflg) then if (max(finite(xpsp))) then begin
     imin = (ipsp - sday[3]) > 0L
     imax = (ipsp + sday[3]) < (n_elements(psp.time) - 1L)
     oplot, psp.x[imin:imax], psp.y[imin:imax], color=scol[3]  
-    oplot, [xpsp], [ypsp], psym=ssym[3], symsize=2*zscl, color=scol[3]
+    oplot, [xpsp], [ypsp], psym=ssym[3], symsize=ssze[3]*zscl, color=scol[3]
   endif
 
   if (inbounds and (dolab gt 0)) then begin

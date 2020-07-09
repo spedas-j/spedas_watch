@@ -207,6 +207,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         ; convert to lat lon
         lon = !radeg * atan(ifoot.y[*,1],ifoot.y[*,0])
         lat = !radeg * atan(ifoot.y[*,2],sqrt(ifoot.y[*,0]^2+ifoot.y[*,1]^2))
+        dposa=dpos_geo
+        lona_all=lon
+        lata_all=lat
+
         ; clean up data that's out of scope
         if keyword_set(south) then begin
           junk=where(Br_sign_tmp.y le 0., count)
@@ -217,7 +221,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
           lat[junk]=!values.f_nan
           lon[junk]=!values.f_nan
         endif
-        dposa=dpos_geo
       end
 
       ; ELFIN B
@@ -225,6 +228,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         ; convert to lat lon
         lon2 = !radeg * atan(ifoot.y[*,1],ifoot.y[*,0])
         lat2 = !radeg * atan(ifoot.y[*,2],sqrt(ifoot.y[*,0]^2+ifoot.y[*,1]^2))
+        dposb=dpos_geo
+        lonb_all=lon2
+        latb_all=lat2
         ; clean up data that's out of scope
         if keyword_set(south) then begin
           junk=where(Br_sign_tmp.y le 0., count2)
@@ -235,7 +241,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
           lat2[junk]=!values.f_nan
           lon2[junk]=!values.f_nan
         endif
-        dposb=dpos_geo
       end
     Endcase
 
@@ -274,10 +279,19 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   get_data, 'elb_att_solution_date', data=solnb
   get_data, 'elb_att_gei',data=attgeib
   get_data, 'elb_att_gse',data=attgseb
+
   ;reset time (attitude data might be several days old)
   timespan,tstart,88200.,/day
   tr=timerange()
 
+  ; get spin angle
+  ;elf_calc_sci_zone_att,probe='a'
+  ;elf_calc_sci_zone_att,probe='b'
+  ; Find north zones
+  ;resa=elf_get_sci_zone_atts(probe='a', lat=lata_all)
+  ;resb=elf_get_sci_zone_atts(probe='b', lat=latb_all)
+    
+  ; Find south zones
   ; determine orbital period
   ; Elfin A
   res=where(ela_state_pos_sm.y[*,1] GE 0, ncnt)
@@ -480,8 +494,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_a_alt = mean(sqrt(this_ax^2 + this_ay^2 + this_az^2))-6371.
     this_a_alt_str = strtrim(string(this_a_alt),1)
     min_a_att_gei=min(abs(ela_state_pos_sm.x[midx]-attgeia.x),agei_idx)
+    min_a_att_gse=min(abs(ela_state_pos_sm.x[midx]-attgsea.x),agse_idx)
     this_a_att_gei = attgeia.y[agei_idx,*]
-    this_a_att_gse = attgsea.y[agei_idx,*]
+    this_a_att_gse = attgsea.y[agse_idx,*]
     ; repeat for ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsb=n_elements(this_time2)
@@ -495,10 +510,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_b_alt = mean(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
     this_b_alt_str = strtrim(string(this_b_alt),1)
     min_b_att_gei=min(abs(elb_state_pos_sm.x[midx]-attgeib.x),bgei_idx)
+    min_b_att_gse=min(abs(elb_state_pos_sm.x[midx]-attgseb.x),bgse_idx)
     this_b_att_gei = attgeib.y[bgei_idx,*]
-    this_b_att_gse = attgseb.y[bgei_idx,*]
+    this_b_att_gse = attgseb.y[bgse_idx,*]
 
-;    res=elf_calc_sci_zone_att(times=this_time, pos_gsm=ela_state_pos_gsm.y[min_st[k]:min_en[k],*], lat=this_lat)
     ; Plot foot points
     if ~keyword_set(bfirst) then begin
       plots, this_lon2, this_lat2, psym=2, symsize=.05, color=254    ; thick=3
@@ -662,8 +677,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots, this_lon2[istepsb], this_lat2[istepsb], psym=1, symsize=1.35, color=254
       plots, this_lon[istepsa], this_lat[istepsa], psym=1, symsize=1.35, color=253
     endif else begin
-      plots, this_lon[istepsa], this_lat[istepsa], psym=1, symsize=1.35, color=254
-      plots, this_lon2[istepsb], this_lat2[istepsb], psym=1, symsize=1.35, color=253
+      plots, this_lon[istepsa], this_lat[istepsa], psym=1, symsize=1.35, color=253
+      plots, this_lon2[istepsb], this_lat2[istepsb], psym=1, symsize=1.35, color=254
     endelse
 
     ;--------------------------------
