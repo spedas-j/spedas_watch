@@ -135,8 +135,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-07 19:11:51 -0700 (Tue, 07 Jul 2020) $
-; $LastChangedRevision: 28859 $
+; $LastChangedDate: 2020-07-09 09:12:34 -0700 (Thu, 09 Jul 2020) $
+; $LastChangedRevision: 28868 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -430,7 +430,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
     latss = dblarr(ndays)
     for i=0L,(ndays-1L) do begin
-      cspice_subslr, 'intercept/ellipsoid', 'Mars', et[i], 'IAU_MARS', 'NONE', 'Sun', $
+      cspice_subslr, 'Intercept: ellipsoid', 'Mars', et[i], 'IAU_MARS', 'NONE', 'Sun', $
                      subsun, trgepc, srfvec
       r = sqrt(total(subsun*subsun))
       latss[i] = asin(subsun[2]/r)*!radeg
