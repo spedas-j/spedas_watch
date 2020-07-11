@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-07-03 14:06:46 -0700 (Fri, 03 Jul 2020) $
-; $LastChangedRevision: 28852 $
+; $LastChangedDate: 2020-07-10 16:26:26 -0700 (Fri, 10 Jul 2020) $
+; $LastChangedRevision: 28877 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -30,7 +30,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   ; TODO: remove this line once we have Level 2 ephemeris files
 
-  l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_burst', 'dcb_analog_hk', $
+  l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_burst', 'rfs_hfr_cross', $
+    'dcb_analog_hk', $
     'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps', 'f2_100bps', 'dfb_hk']
 
   dummy = where(l1_types EQ type, l1_type_flag)
@@ -219,6 +220,16 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         resolution = 3600l * 6l ; hours
         daily_names = 0
       endif
+      if type EQ 'dfb_dbm_vdc' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endif
+      if type EQ 'dfb_dbm_dvdc' then begin
+        pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endif
       if type EQ 'dfb_dc_spec' then begin
         pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_*_YYYYMMDD_v??.cdf'
       endif
@@ -277,10 +288,10 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
       '20180812_090000_20250831_090000')
 
     if pathformat.Contains('solo') then begin
-      
+
       pathformat = str_sub(pathformat, '20180812_090000_20250831_090000', $
         '20200210_050000_20301120_050000')
-        
+
     endif
 
     ;stop

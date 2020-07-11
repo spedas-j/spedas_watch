@@ -84,6 +84,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     dprint, dlevel=0, 'No plots were producted.
   endif
 
+  elf_load_fgm, probes=probe, datatype='fgs'
+  
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Get position data
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -212,18 +214,22 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;elf_load_fgm_fast_segments, probe=probe
   ;get_data, 'fgf_bar', data=fgf_bar_x
   ; ... fgf status bar
-  ;elf_load_fgm_survey_segments, probe=probe
-  ;get_data, 'fgs_bar', data=fgs_bar_x
+  del_data, 'fgs_bar'
+  elf_load_fgm_survey_segments, tplotname='el'+probe+'_fgs'
+  get_data, 'fgs_bar', data=fgs_bar_x
 
   ;if isa(fgs_bar_x) && isa(fgf_bar_x) then store_data, 'fgm_bar', data=['fgs_bar','fgf_bar']
   ;if ~isa(fgs_bar_x) && isa(fgf_bar_x) then store_data, 'fgm_bar', data=['fgf_bar']
-  ;if isa(fgs_bar_x) && ~isa(fgf_bar_x) then store_data, 'fgm_bar', data=['fgs_bar']
+  ;if isa(fgs_bar_x) && ~isa(fgf_bar_x) then 
+  ;store_data, 'fgs_bar', data=['fgs_bar']
 
-  ;options, 'fgm_bar', panel_size=0.
-  ;options, 'fgm_bar',ticklen=0
-  ;options, 'fgm_bar', 'ystyle',4
-  ;options, 'fgm_bar', 'xstyle',4
-  
+  options, 'fgs_bar', panel_size=0.1
+  options, 'fgs_bar',ticklen=0
+  options, 'fgs_bar', 'ystyle',4
+  options, 'fgs_bar', 'xstyle',4
+  options, 'fgs_bar', 'color',80
+  options, 'fgs_bar', 'ztitle',''
+ stop
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Prep FOR ORBITS
   ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -323,9 +329,11 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       if ~finite(phase_delay.dsect2add[0]) then medianflag=2
       if ~finite(phase_delay.dphang2add[0]) then medianflag=2
       badflag=fix(phase_delay.badflag)
+      if dphang2add LT 0 then dphang_string=strmid(strtrim(string(dphang2add),1),0,5) else $
+         dphang_string=strmid(strtrim(string(dphang2add),1),0,4)
       case medianflag of
-        0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
-        1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' +strmid(strtrim(string(dphang2add),1),0,4)
+        0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string
+        1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string;strmid(strtrim(string(dphang2add),1),0,4)
         2: phase_msg = 'No phase delay available. Data is not regularized.'
       endcase
     
@@ -395,6 +403,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]   ; force color scheme
       if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',sz_tr[0],sz_tr[1]) then begin       
         tplot,['pseudo_ae', $
+          'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
           'el'+probe+'_pef_en_spec2plot_omni', $
@@ -407,6 +416,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endif else begin
         tplot,['pseudo_ae', $
+          'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
           'el'+probe+'_pef_en_spec2plot_omni', $
@@ -649,6 +659,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     if tdur LT 10802. then begin
       if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
         tplot,['pseudo_ae', $
+          'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
           'el'+probe+'_pef_en_spec2plot_omni', $
@@ -661,6 +672,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endif else begin
         tplot,['pseudo_ae', $
+          'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
           'el'+probe+'_pef_en_spec2plot_omni', $
@@ -677,6 +689,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         tplot,['pseudo_ae', $
           'kp', $
           'dst',$
+          'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
           'el'+probe+'_pef_en_spec2plot_omni', $
@@ -691,6 +704,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         tplot,['pseudo_ae', $
           'kp', $
           'dst',$
+          'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
           'el'+probe+'_pef_en_spec2plot_omni', $

@@ -10,8 +10,12 @@
 ; KEYWORDS:
 ;         pred: use this flag
 ;-
-function elf_load_science_times, pred=pred
+function elf_load_science_times, pred=pred, tdate=tdate, dur=dur
 
+  if keyword_set(dur) then dur = dur else dur=1
+  if keyword_set(tdate) then timespan, tdate, dur
+  tr=timerange()
+   
   ; load science data (only if not predicted orbit plots)
   if ~keyword_set(pred) then elf_load_epd, type='raw'
   if ~keyword_set(pred) then elf_load_fgm
