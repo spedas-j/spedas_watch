@@ -45,8 +45,8 @@
 ;                  If this keyword is set, the configuration is defined
 ;                  and stored in a common block, but no window is
 ;                  created.  If CONFIG = -1, putwin behaves exactly like
-;                  window, and all of the following keywords are silently
-;                  ignored.
+;                  window, and all of the following keywords, with the
+;                  exception of SCALE are silently ignored.
 ;
 ;       MONITOR:   Put window in this monitor:
 ;
@@ -70,7 +70,9 @@
 ;                    2 = bottom left
 ;                    3 = bottom right
 ;
-;       SCALE:     Scale factor for setting the window size.
+;       SCALE:     Scale factor for setting the window size.  Only
+;                  applies when XSIZE and/or YSIZE are set explicitly 
+;                  (via keyword) or implictly (via swe_snap_layout).
 ;                  Default = 1.
 ;
 ;       FULL:      If set, make a full-screen window in MONITOR.
@@ -86,8 +88,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 11:59:19 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28839 $
+; $LastChangedDate: 2020-07-12 16:40:46 -0700 (Sun, 12 Jul 2020) $
+; $LastChangedRevision: 28880 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -196,6 +198,10 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
 ; If no configuration is set, then just pass everything to window
 
   if (windex eq -1) then begin
+    if (size(scale,/type) gt 0) then begin
+      if (size(xsize,/type) gt 0) then xsize *= scale
+      if (size(ysize,/type) gt 0) then ysize *= scale
+    endif
     if (size(wnum,/type) gt 0) then window, wnum, xsize=xsize, ysize=ysize, _extra=extra $
                                else window, xsize=xsize, ysize=ysize, _extra=extra
     return
