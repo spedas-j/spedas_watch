@@ -229,7 +229,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   options, 'fgs_bar', 'xstyle',4
   options, 'fgs_bar', 'color',80
   options, 'fgs_bar', 'ztitle',''
- stop
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Prep FOR ORBITS
   ; ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

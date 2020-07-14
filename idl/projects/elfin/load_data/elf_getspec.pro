@@ -13,7 +13,7 @@
 ;
 pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
   type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
-  probe=probe,only_loss_cone=only_loss_cone
+  probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps
   ;
   ;
   ; INPUTS
@@ -32,6 +32,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ;     (default is half the field of view, +FOVo2=11deg, which is making the loss/antiloss cone smaller by this amount (cleaner))
   ; LCpertol2use (deg) is same but in the perp direction (restricting it to closer to 90deg). So negative val means opening it.
   ;     (default is to open the perp direction by FOVo2, not restricting it, so negative value)
+  ; nodegaps is a keyword that (if set) prevents the program from forcing two additional time points per gap filled with NaNs (in spectra and losscone angles)
+  ;     (default behavior is to place 2 NaNs in each gap for plotting purposes, for each ESSENTIAL tplot variable output, listed below).
   ;
   ; OUTPUTS
   ;
@@ -80,13 +82,14 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     LCfptol=-FOVo2 ; in field perp, fp, direction
   if keyword_set(no_download) then no_download=1 else no_download=0
   if ~keyword_set(probe) then probe='a' else probe=probe
+  if ~keyword_set(myspecies) then eori='e' else eori=myspecies
+
   ;
   ; THESE "ELA" and "PEF" STRINGS IN THE FEW LINES BELOW CAN BE CAST INTO USER-SPECIFIED SC (A/B) AND PRODUCT (PEF/PIF) IN THE FUTURE
   ;
   ; ensure attitude is at same resolution as position
   ;
   mysc=probe
-  eori='e'
   mystring='el'+mysc+'_p'+eori+'f_'
   ;
   pival=double(!PI)
@@ -100,9 +103,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   copy_data,mystring+'sectnum','elx_pxf_sectnum'; COPY INTO GENERIC VARIABLE TO AVOID CLASHES
   copy_data,mystring+'spinper','elx_pxf_spinper'; COPY INTO GENERIC VARIABLE TO AVOID CLASHES
   get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
-;  elx_pxf.v=[50.0000,      80.0000,      120.000,      160.000,      210.000, $
-;    270.000,      345.000,      430.000,      630.000,      900.000, $
-;    1300.00,      1800.00,      2500.00,      3350.00,      4150.00,      5800.00] ; these are the low energy bounds
   get_data,'elx_pxf_sectnum',data=elx_pxf_sectnum,dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; shift PEF times to the right by 1 sector, make 1st point a NaN, all times now represent mid-points!!!!
@@ -125,7 +125,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   if keyword_set(userenergies) then begin
     ; use user-specified energy ranges if provided
     MinE_values=userenergies[*,0]
-    MaxE_values=userenergies[*,1]
+    MaxE_values=userenergies[*,1] ; <-- corrected this
     numchannels = n_elements(MinE_values)
     MinE_channels=make_array(numchannels,/long)
     MaxE_channels=make_array(numchannels,/long)
@@ -144,7 +144,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   endelse
   ;
   nsectors=n_elements(elx_pxf.x)
-  nspinsectors=n_elements(reform(elx_pxf.y[0,*]))
+  nspinsectors=long(max(elx_pxf_sectnum.y)+1)
   if dSectr2add ne 0 then begin
     xra=make_array(nsectors-dSectr2add,/index,/long)
     if dSectr2add gt 0 then begin ; shift forward
@@ -156,64 +156,29 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     endelse
     store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
   endif  
-  ;if dSectr2add gt 0 then begin
-  ;  xra=make_array(nsectors-dSectr2add,/index,/long)
-  ;  elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]
-  ;  elx_pxf.y[0:dSectr2add-1,*]=!VALUES.F_NaN
-  ;  store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
-  ;endif
-
+  ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ; extrapolate on the left and right to [0,...nspinsectors-1], degap the data
+  ; extrapolate on the left and right to [0,...nspinsectors-1]
   tres,'elx_pxf_sectnum',dt_sectnum
   elx_pxf_sectnum_new=elx_pxf_sectnum.y
   elx_pxf_sectnum_new_times = elx_pxf_sectnum.x
   if elx_pxf_sectnum.y[0] gt 0 then begin
-    elx_pxf_sectnum_new = [0., elx_pxf_sectnum.y]
-    elx_pxf_sectnum_new_times = [elx_pxf_sectnum.x[0] - elx_pxf_sectnum.y[0]*dt_sectnum, elx_pxf_sectnum_new_times]
+    npadsleft=elx_pxf_sectnum.y[0]
+    rapadleft=make_array(npadsleft,/index,/int)
+    elx_pxf_sectnum_new = [rapadleft, elx_pxf_sectnum.y]
+    elx_pxf_sectnum_new_times = [elx_pxf_sectnum.x[0] - (elx_pxf_sectnum.y[0]-rapadleft)*dt_sectnum, elx_pxf_sectnum_new_times]
   endif
   if elx_pxf_sectnum.y[n_elements(elx_pxf_sectnum.y)-1] lt (nspinsectors-1) then begin
-    elx_pxf_sectnum_new = [elx_pxf_sectnum_new, float(nspinsectors-1)]
+    npadsright=(nspinsectors-1)-elx_pxf_sectnum.y[n_elements(elx_pxf_sectnum.y)-1]
+    rapadright=make_array(npadsright,/index,/int)
+    elx_pxf_sectnum_new = [elx_pxf_sectnum_new, elx_pxf_sectnum.y[n_elements(elx_pxf_sectnum.y)-1]+rapadright+1]
     elx_pxf_sectnum_new_times = $
-      [elx_pxf_sectnum_new_times , elx_pxf_sectnum_new_times[n_elements(elx_pxf_sectnum_new_times)-1] + (float(nspinsectors-1)-elx_pxf_sectnum.y[n_elements(elx_pxf_sectnum.y)-1])*dt_sectnum]
+      [elx_pxf_sectnum_new_times , elx_pxf_sectnum_new_times[n_elements(elx_pxf_sectnum.y)-1] + (rapadright+1)*dt_sectnum]
   endif
-  ;
   store_data,'elx_pxf_sectnum',data={x:elx_pxf_sectnum_new_times,y:elx_pxf_sectnum_new},dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
-  tdegap,'elx_pxf_sectnum',dt=dt_sectnum,/over
-  tdeflag,'elx_pxf_sectnum','linear',/over
   ;
-  get_data,'elx_pxf_sectnum',data=elx_pxf_sectnum ; now pad middle gaps!
-  ksectra=make_array(n_elements(elx_pxf_sectnum.x)-1,/index,/long)
-  dts=(elx_pxf_sectnum.x[ksectra+1]-elx_pxf_sectnum.x[ksectra])
-  dsectordt=(elx_pxf_sectnum.y[ksectra+1]-elx_pxf_sectnum.y[ksectra])/dts
-  ianygaps=where((dsectordt lt 0.75*median(dsectordt) and (dsectordt gt -0.5*float(-1)/dt_sectnum)),janygaps) ; slope below 0.75*nspinsectors/(nspinsectors*dt_sectnum) when a spin gap exists (gives <0.5), force it to median
-  if janygaps gt 0 then dsectordt[ianygaps]=median(dsectordt)
-  dsectordt=[dsectordt[0],dsectordt]
-  dts=[0,dts]
-  tol=0.25*median(dts)
-  mysectornumpadded=long(total(dsectordt*dts,/cumulative) + elx_pxf_sectnum.y[0]+tol) mod nspinsectors
-  mysectornewtimes=(total(dts,/cumulative) + elx_pxf_sectnum.x[0])
-  store_data,'elx_pxf_sectnum',data={x:mysectornewtimes,y:float(mysectornumpadded)},dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
-  ;
-  ; now pad the rest of the quantities
-  get_data,'elx_pxf_spinper',data=elx_pxf_spinper,dlim=myspinperdata_dlim,lim=myspinperdata_lim ; this preserved the original times
-  store_data,'elx_pxf_times',data={x:elx_pxf_spinper.x,y:elx_pxf_spinper.x-elx_pxf_spinper.x[0]} ; this is to track gaps
-  tinterpol_mxn,'elx_pxf_times','elx_pxf_sectnum',/nearest_neighbor,/NAN_EXTRAPOLATE,/over ; middle gaps are have constant values after interpolation, side pads are NaNs themselves
-  get_data,'elx_pxf_times',data=elx_pxf_times
-  xra=make_array(n_elements(elx_pxf_times.x)-1,/index,/long)
-  iany=where(elx_pxf_times.y[xra+1]-elx_pxf_times.y[xra] lt 1.e-6, jany) ; takes care of middle gaps
-  inans=where(FINITE(elx_pxf_times.y,/NaN),jnans) ; identifies side pads
-  ;
-  tinterpol_mxn,'elx_pxf','elx_pxf_sectnum',/over
-  get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
-  if jnans gt 0 then elx_pxf.y[inans,*]=!VALUES.F_NaN
-  if jany gt 0 then elx_pxf.y[iany,*]=!VALUES.F_NaN
-  store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
-  ;
-  tinterpol_mxn,'elx_pxf_spinper','elx_pxf_sectnum',/overwrite ; linearly interpolated, this you keep
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ;
-  ; Extrapolation and degapping completed!!! Now start viewing
+  tinterpol_mxn,'elx_pxf','elx_pxf_sectnum',/NAN_EXTRAPOLATE,/over
+  tinterpol_mxn,'elx_pxf_spinper','elx_pxf_sectnum',/REPEAT_EXTRAPOLATE,/overwrite ; linearly interpolated, this you keep
   ;
   get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
   get_data,'elx_pxf_spinper',data=elx_pxf_spinper,dlim=myspinperdata_dlim,lim=myspinperdata_lim
@@ -244,7 +209,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; TO DETERMINE IF THIS IS A CONSTANT TIME OR HOW TO rMODEL AS FUNCTION OF SPIN PERIOD. BY SHIFTING THE SPINPHASE OF THE
   ; SECTOR TO THE RIGHT YOU DECLARE THAT THE SECTOR CENTERS HAVE LARGER PHASES AND ARE ASYMMETRIC W/R/T THE ZERO CROSSING (AND 90DEG PA).
   ; OR EQUIVALENTLY THAT THE TIMES ARE INCORRECT BY THE SAME AMOUNT AND THE DATA WAS TAKEN LATER THAN DECLARED IN THEIR TIMES.
-  spinphase180=(dPhAng2add+float(elx_pxf_sectnum.x-elx_pxf_sectnum.x[lastzero]+0.5*elx_pxf_spinper.y/float(nspinsectors))*360./elx_pxf_spinper.y) mod 360.
+  spinphase180=((dPhAng2add+float(elx_pxf_sectnum.x-elx_pxf_sectnum.x[lastzero]+0.5*elx_pxf_spinper.y/float(nspinsectors))*360./elx_pxf_spinper.y)+360.) mod 360. ; <-- CORRECTED added 360 (negative values remained negative before)
+;  spinphase180=(dPhAng2add+float(elx_pxf_sectnum.x-elx_pxf_sectnum.x[lastzero]+0.5*elx_pxf_spinper.y/float(nspinsectors))*360./elx_pxf_spinper.y) mod 360.
   spinphase=spinphase180*!PI/180. ; in radians corresponds to the center of the sector
   store_data,'spinphase',data={x:elx_pxf_sectnum.x,y:spinphase} ; just to see...
   store_data,'spinphasedeg',data={x:elx_pxf_sectnum.x,y:spinphase*180./!PI} ; just to see...
@@ -273,7 +239,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   endif else begin
     tt89,'elx_pos_gsm',/igrf_only,newname='elx_bt89_gsm',period=1.
   endelse
-
+  ;
   cotrans,'elx_pos_gsm','elx_pos_sm',/GSM2SM ; <-- use SM geophysical coordinates plus Despun Spacecraft coord's with Lvec (DSL)
   cotrans,'elx_bt89_gsm','elx_bt89_sm',/GSM2SM ; Bfield in same coords as well
   cotrans,'elx_att_gei','elx_att_gse',/GEI2GSE
@@ -350,7 +316,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   store_data,'elx_pxf_val',data={x:elx_pxf.x,y:elx_pxf_val}
   store_data,'elx_pxf_val_full',data={x:elx_pxf.x,y:elx_pxf_val_full,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; contains all angles and energies
   ylim,'elx_pxf_val*',1,1,1
-  ;stop
   ;
   if keyword_set(regularize) then begin
     ; While the original data (flux, counts) in "elx_pxf" were kept intact, at their recorded times
@@ -445,8 +410,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     regrotaboutdslz=[[[cos(regspinphase)],[-sin(regspinphase)],[0*regspinphase]],[[sin(regspinphase)],[cos(regspinphase)],[0*regspinphase]],[[0.*regspinphase],[0.*regspinphase],[1.+0.*regspinphase]]]
     store_data,'regrotaboutdslz',data={x:elx_pxf_val_reg.x,y:regrotaboutdslz},dlim=myattdlim,lim=myattlim ; pretend all coords are SM in dlim to force tvector_rotate to accept
     store_data,'regunitXvec2rot',data={x:elx_pxf_val_reg.x,y:unitXvec2rot},dlim=myattdlim,lim=myattlim ; unitXvec2rot is just a unit vector along X (along detector in spinning coord sys)
-    tvector_rotate,'regrotaboutdslz','regunitXvec2rot',newname='regsectordir_dsl',/vector_skip_nonmonotonic ; matrix rotation times are same as unit vector X times here
-    tvector_rotate,'rotDSL2SM','regsectordir_dsl',newname='regsectordir_sm',/vector_skip_nonmonotonic ; matrix times differ from vector but OK, because Bfield, att in DSL ~ same (dont change in SM 1/2 sector)
+    tvector_rotate,'regrotaboutdslz','regunitXvec2rot',newname='regsectordir_dsl';,/vector_skip_nonmonotonic ; matrix rotation times are same as unit vector X times here; commended out as no chance of ever happening
+    tvector_rotate,'rotDSL2SM','regsectordir_dsl',newname='regsectordir_sm';,/vector_skip_nonmonotonic ; matrix times differ from vector but OK, because Bfield, att in DSL ~ same (dont change in SM 1/2 sector); commended out as no chance of ever happening
     calc,' "elx_pxf_sm_interp_reg_partdir"= - "regsectordir_sm" '
     ; again, below we did not recompute the "elx_bt89_sm_interp" at the reg.sector times because in SM the Bfield does not change much along track in a fraction of a sector ~137msec, ~1km distance
     calc,' "elx_pxf_pa_reg" = arccos(total("elx_pxf_sm_interp_reg_partdir" * "elx_bt89_sm_interp",2) / sqrt(total("elx_bt89_sm_interp"^2,2))) *180./pival '
@@ -539,7 +504,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   endif
   ;
   ; find the first starttime of a full PA range that contains any data (Ascnd or Descnd), add integer # of halfspins
-  istart2reform=min(istartAscnd,istartDscnd)
+  ; note: first and last PARTIAL sectors are lost (not plotted) and gaps show as single point in the middle!
+  istart2reform=min([istartAscnd,istartDscnd])
   nhalfspinsavailable=long((nsectors-(istart2reform+1))/(nspinsectors/2.))
   ifinis2reform=(nspinsectors/2)*nhalfspinsavailable+istart2reform-1 ; exact # of half-spins (full PA ranges)
   elx_pxf_pa_spec=make_array(nhalfspinsavailable,(nspinsectors/2),numchannels,/double)
@@ -555,13 +521,11 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
 
   if keyword_set(regularize) then begin
     get_data,'elx_pxf_pa_reg',data=elx_pxf_pa_reg
-    ;if n_elements(elx_pxf_pa_reg.x) LE ifinis2reform then ifinis2reform=n_elements(elx_pxf_pa_reg.x)-1
     elx_pxf_pa_reg_spec=make_array(nhalfspinsavailable,(nspinsectors/2),numchannels,/double)
     elx_pxf_pa_reg_spec_full=make_array(nhalfspinsavailable,(nspinsectors/2),Max_numchannels,/double) ; has ALL ENERGIES = Max_numchannels
     for jthchan=0,numchannels-1 do elx_pxf_pa_reg_spec[*,*,jthchan]=transpose(reform(elx_pxf_val_reg.y[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
     for jthchan=0,Max_numchannels-1 do elx_pxf_pa_reg_spec_full[*,*,jthchan]=transpose(reform(elx_pxf_val_reg_full.y[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
-    elx_pxf_pa_reg_spec_times=transpose(reform(elx_pxf_pa_reg.x[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
-    elx_pxf_pa_reg_spec_times=total(elx_pxf_pa_reg_spec_times[*,1:nspinsectors/2-1],2)/((nspinsectors/2.)-1.) ; these are not midpoints now unless you add one at the end or remove first (total=7)!!!
+    elx_pxf_pa_reg_spec_times=elx_pxf_pa_spec_times
     elx_pxf_pa_reg_spec_pas=transpose(reform(elx_pxf_pa_reg.y[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
     if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_spec',data={x:elx_pxf_pa_reg_spec_times, y:elx_pxf_pa_reg_spec, v:elx_pxf_pa_reg_spec_pas}
   endif
@@ -830,6 +794,15 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   zlim,'el?_p?f_en*spec*',1,1,1
   ylim,'el?_p?f_en*spec*',55.,6800.,1
   ;
-  ;
+  ; degap interior gaps with two NaNs per gap
+  if ~keyword_set(nonansingaps) then begin
+    tdegap,'el?_p?f_en*spec2plot_????',dt=Tspin/2.,margin=0.5*Tspin/2.,/twonanpergap,/over
+    tdegap,'el?_p?f_en*spec2plot_????ovr????',dt=Tspin/2.,margin=0.5*Tspin/2.,/twonanpergap,/over
+    tdegap,'el?_p?f_pa*spec*ch?',dt=Tspin/2.,margin=0.5*Tspin/2.,/twonanpergap,/over
+    tdegap,'el?_p?f*losscone',dt=Tspin/2.,margin=0.5*Tspin/2.,/twonanpergap,/over
+    tdeflag,mystring+'losscone','linear',/over
+    tdeflag,mystring+'antilosscone','linear',/over
+  endif
+  ;stop
   ;
 end
