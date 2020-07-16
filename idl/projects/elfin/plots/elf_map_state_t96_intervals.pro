@@ -284,14 +284,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   timespan,tstart,88200.,/day
   tr=timerange()
 
-  ; get spin angle
-  ;elf_calc_sci_zone_att,probe='a'
-  ;elf_calc_sci_zone_att,probe='b'
-  ; Find north zones
-  ;resa=elf_get_sci_zone_atts(probe='a', lat=lata_all)
-  ;resb=elf_get_sci_zone_atts(probe='b', lat=latb_all)
-    
-  ; Find south zones
   ; determine orbital period
   ; Elfin A
   res=where(ela_state_pos_sm.y[*,1] GE 0, ncnt)
@@ -356,14 +348,15 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   if keyword_set(sm) then begin
     ; get poles
     tdate=ela_state_pos_sm.x[0] ;+45.*60./2.
-    sm_grid=elf_make_sm_grid(tdate=tdate)
+    sm_grid=elf_make_sm_grid(tdate=tdate) 
     lonlats=sm_grid.lat_circles
     nll=n_elements(lonlats[*,1])-1
     diffll=lonlats[1:nll,1]-lonlats[0:nll-1,1]
     llidx =where(diffll GT 5,ncnt)
     llidx=[0,llidx]
     llidx=[llidx,nll-8]
-    latpole=sm_grid.pole[0]
+    if ~keyword_set(south) then latpole=sm_grid.pole[0] else latpole=-sm_grid.pole[0]
+    ;latpole=sm_grid.pole[0]
     lonpole=sm_grid.pole[1]
   endif else begin
     if ~keyword_set(south) then latpole=90. else latpole=-90
@@ -409,9 +402,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     if keyword_set(pred) then pred_str='Predicted ' else pred_str=''
     if keyword_set(south) then begin
       title=pred_str+'Southern '+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
-      this_rot=180. + mid_hr*15.
-      if keyword_set(sm) then latpole=-80.5 else latpole=-90.
-      map_set,latpole,-90.,this_rot,/orthographic,/conti,limit=[-10.,-180.,-90.,180.],$
+      this_rot=180.+mid_hr*15.
+      ;if keyword_set(sm) then latpole=-80.5 else latpole=-90.
+      ;map_set,latpole,-90.,this_rot,/orthographic,/conti,limit=[-10.,-180.,-90.,180.],$
+      map_set,latpole,lonpole,this_rot,/orthographic,/conti,limit=[-10.,-180.,-90.,180.],$
         title=title,position=[0.005,0.005,600./800.*0.96,0.96], charsize=.9
       map_grid,latdel=-10.,londel=30.
     endif else begin
@@ -446,18 +440,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       lonlats=sm_grid.lon_lines
       idx0=[0,89]
       if keyword_set(south) then begin
-        for i=0,8 do begin
-          llidx1=idx0+90.*i
-          plots, lonlats[llidx1,0],-lonlats[llidx1,1],linestyle=1, color=250
+        plot_lats=[0,latpole]
+        for i=0,11 do begin
+          offset=this_rot - lonpole - 90.
+          plot_lons=[(30.*i)-offset, lonpole]
+          plots, plot_lons, plot_lats, linestyle=1, color=250
         endfor
       endif else begin
          plot_lats=[0,latpole]
          for i=0,11 do begin
-           ;if i EQ 0 then offset=this_rot + lonpole - 90.
            offset=this_rot + lonpole - 90.
-           ;plot_lons=[(30.*i)-15.*k+offset, lonpole]
            plot_lons=[(30.*i)+offset, lonpole]
-           ;if i EQ 0 then color=100 else color=250
            plots, plot_lons, plot_lats, linestyle=1, color=250
          endfor         
       endelse
@@ -497,6 +490,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     min_a_att_gse=min(abs(ela_state_pos_sm.x[midx]-attgsea.x),agse_idx)
     this_a_att_gei = attgeia.y[agei_idx,*]
     this_a_att_gse = attgsea.y[agse_idx,*]
+    
     ; repeat for ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsb=n_elements(this_time2)
@@ -522,6 +516,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots, this_lon, this_lat, psym=2, symsize=.05, color=253   ; thick=3
       plots, this_lon2, this_lat2, psym=2, symsize=.05, color=254    ; thick=3
     endelse
+
 
     ;-----------------------------------------------------
     ; SCIENCE COLLECTIONS - check if there were any science
@@ -737,6 +732,14 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       plots,ewdboundlonlat[*,0],ewdboundlonlat[*,1],color=155, thick=1.05
     endelse
 
+    ; get spin angle
+    elf_calc_sci_zone_att,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
+      lat=lata[min_st[k]:min_en[k]]*!radeg
+    ela_spin_att_ang_str = elf_make_spin_att_string(probe='a')
+    elf_calc_sci_zone_att,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
+      lat=latb[min_st[k]:min_en[k]]*!radeg
+    elb_spin_att_ang_str = elf_make_spin_att_string(probe='b')
+
     ;-----------------------------------------
     ; Create Text for Annotations
     ;-----------------------------------------
@@ -848,7 +851,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       b_att_gse_z_str = strmid(strtrim(string(this_b_att_gse[2]),1),0,offset)
       b_att_gse_str = 'S: ['+b_att_gse_x_str+','+b_att_gse_y_str+','+a_att_gse_z_str+'] GSE'
     endif
-
+    
     if hires then charsize=.75 else charsize=.65
     ; annotate
     xann=9.6
@@ -858,16 +861,18 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xyouts,xann,yann+12.5*5,a_att_gse_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*4,'S w/Sun, deg: '+suna_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*3,'S w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,'Att.Solution@'+solna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,ela_spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*1,'Att.Solution@'+solna_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*0,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
 
     yann=0.02
-    xyouts,xann,yann+12.5*8,'ELFIN (B)',/device,charsize=.75,color=254
-    xyouts,xann,yann+12.5*7,b_orb_spin_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*6,b_att_gei_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*5,b_att_gse_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,'S w/Sun, deg: '+sunb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,'S w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*9,'ELFIN (B)',/device,charsize=.75,color=254
+    xyouts,xann,yann+12.5*8,b_orb_spin_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*7,b_att_gei_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*6,b_att_gse_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*5,'S w/Sun, deg: '+sunb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,'S w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,elb_spin_att_ang_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*2,'Att.Solution@: '+solnb_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
 
@@ -911,8 +916,27 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       tsyg_mod eq 't01': xyouts,xann+20,yann+12.5*2,'Tsyganenko-2001',/device,charsize=charsize,color=255
     endcase
 
-    xyouts, .01, .489, '00:00', charsize=1.15, /normal
-    xyouts, .663, .489, '12:00', charsize=1.15, /normal
+    ; North GEO Midnight and noon
+    if ~keyword_set(sm) and ~keyword_set(south) then begin
+      xyouts, .01, .489, '00:00', charsize=1.15, /normal
+      xyouts, .663, .489, '12:00', charsize=1.15, /normal
+    endif 
+    if keyword_set(sm) and ~keyword_set(south) then begin
+      xyouts, .01, .489, '00:00', charsize=1.15, /normal
+      xyouts, .663, .489, '12:00', charsize=1.15, /normal
+    endif 
+  
+    if ~keyword_set(sm) and keyword_set(south) then begin
+      xyouts, .01, .489, '00:00', charsize=1.15, /normal
+      xyouts, .663, .489, '12:00', charsize=1.15, /normal      
+    endif
+
+    if keyword_set(sm) and keyword_set(south) then begin
+      xyouts, .01, .463, '00:00', charsize=1.15, /normal
+      xyouts, .663, .463, '12:00', charsize=1.15, /normal
+    endif
+
+    ; 
     if keyword_set(south) then begin
       xyouts, .335, .935, '06:00', charsize=1.15, /normal
       xyouts, .335, .0185, '18:00', charsize=1.15, /normal
@@ -920,6 +944,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       xyouts, .33, .935, '18:00', charsize=1.15, /normal
       xyouts, .335, .0185, '06:00', charsize=1.15, /normal
     endelse
+
 
     ; add time of creation
     xyouts,  xann+20, yann+12.5, 'Created: '+systime(),/device,color=255, charsize=charsize

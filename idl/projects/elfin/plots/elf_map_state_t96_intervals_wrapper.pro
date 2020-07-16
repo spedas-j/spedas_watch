@@ -50,14 +50,14 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
   for j = 0,dur-1 do begin
     in_date = time_double(date)+j*60.*60.*24.
     if keyword_set(north_only) then begin
-      ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
-      ;elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm
-      elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm,/no_trace,/hires
+      ;elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace
+      ;elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm
+      elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm,/no_trace,/hires
     endif
     if keyword_set(south_only) then begin
-     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
-     elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
+     elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
+     elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
     endif
     if ~keyword_set(north_only) AND ~keyword_set(south_only) then begin
       if keyword_set(do_all) then begin
@@ -71,27 +71,27 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
         ; now south
         elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
         elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
-;        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm
-;        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/hires
-;        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/bfirst
-;        elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/bfirst,/hires        
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/hires
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/bfirst
+        elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/bfirst,/hires        
       endif else begin
         if ~keyword_set(sm) then begin
-          elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace
-          elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
-          elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
-          elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
+          elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace
+          elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires
+          elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace
+          elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires
         endif else begin
           if ~keyword_set(bfirst) then begin
-            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm
-            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm
-            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm
-            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm
           endif else begin
-            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm,/bfirst
-            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm,/bfirst
-            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm,/bfirst
-            elf_map_state_t96_intervals,time_string(in_date),/gif,/move,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm,/bfirst          
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/sm,/bfirst
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires,/sm,/bfirst
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/sm,/bfirst
+            elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/hires,/sm,/bfirst          
           endelse
         endelse
       endelse

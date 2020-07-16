@@ -19,7 +19,7 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
       name = sc_fsw_rec_alloc_names[i]
 
       options, name, 'ynozero', 1
-      options, name, 'horizontal_ytitle', 1
+      ;options, name, 'horizontal_ytitle', 1
       ;options, name, 'colors', [2]
       options, name, 'ytitle', name.Remove(0, prefix.Strlen()-1)
 
@@ -30,11 +30,16 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
 
       if strpos(name, 'alloc_alloc') NE -1 or $
         strpos(name, 'alloc_used') NE -1 and $
-        strpos(name, 'Gbit') EQ -1 then begin
+        strpos(name, 'Gbit') EQ -1 and $
+        strpos(name, 'kbps') EQ -1 then begin ; prevents kbps from being included if you run this twice
 
         get_data, name, dat = d
 
         store_data, name + '_Gbit', data = {x:d.x, y:d.y/clusters_per_gbit}
+
+        options, name + '_Gbit', 'psym_lim', 200
+        options, name + '_Gbit', 'symsize', 0.75
+        options, name + '_Gbit', 'datagap', 3600d
 
       end
 
@@ -42,6 +47,39 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
 
   endif
 
+  store_data, prefix + 'instrument_alloc', $
+    data = tnames('*alloc_alloc*' + instruments + '*Gbit')
+
+  options, prefix + 'instrument_alloc', 'ytitle', 'Inst DCP!CAllocations'
+  options, prefix + 'instrument_alloc', 'ysubtitle', 'Gbits'
+  options, prefix + 'instrument_alloc', 'datagap', 3600d
+
+  store_data, prefix + 'instrument_used', $
+    data = tnames('*alloc_used*' + instruments + '*Gbit')
+
+  options, prefix + 'instrument_used', 'ytitle', 'Inst DCP!CUsed'
+  options, prefix + 'instrument_used', 'ysubtitle', 'Gbits'
+  options, prefix + 'instrument_used', 'datagap', 3600d
+
+  deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', nsmooth = 6
+
+  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_ddt', dat = d_ddt
+
+  if size(/type, d_ddt) EQ 8 then begin
+
+    store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', $
+      dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
+
+  endif
+
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'ylog', 1
+  
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'yrange', [0.2,200.]
+
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'ystyle', 1
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'ytitle', 'FIELDS!Ckbps'
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'datagap', 3600d
+  
   for i = 0, n_elements(instruments) - 1 do begin
 
     inst = instruments[i]
@@ -58,34 +96,6 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
     endfor
 
   endfor
-
-  store_data, prefix + 'instrument_alloc', $
-    data = tnames('*alloc_alloc*' + instruments + '*Gbit')
-
-  options, prefix + 'instrument_alloc', 'ytitle', 'Inst DCP!CAllocations'
-  options, prefix + 'instrument_alloc', 'ysubtitle', 'Gbits'
-
-  store_data, prefix + 'instrument_used', $
-    data = tnames('*alloc_used*' + instruments + '*Gbit')
-
-  options, prefix + 'instrument_used', 'ytitle', 'Inst DCP!CUsed'
-  options, prefix + 'instrument_used', 'ysubtitle', 'Gbits'
-
-  deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', nsmooth = 6
-
-  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_ddt', dat = d_ddt
-
-  if size(/type, d_ddt) EQ 8 then begin
-
-    store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', $
-      dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
-
-  endif
-
-  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'ylog', 1
-  
-  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'yrange', [0.1,1000.]
-  
   
 ;  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', data = d_gbit
 ;  
