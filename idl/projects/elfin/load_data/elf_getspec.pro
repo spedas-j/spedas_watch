@@ -13,7 +13,7 @@
 ;
 pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
   type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
-  probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps
+  probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps,quadratic=myquadfit
   ;
   ;
   ; INPUTS
@@ -34,7 +34,14 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ;     (default is to open the perp direction by FOVo2, not restricting it, so negative value)
   ; nodegaps is a keyword that (if set) prevents the program from forcing two additional time points per gap filled with NaNs (in spectra and losscone angles)
   ;     (default behavior is to place 2 NaNs in each gap for plotting purposes, for each ESSENTIAL tplot variable output, listed below).
-  ;
+  ; quadratic is a keyword that applies to the regularized spectra: it changes the default behavior of interpolation in time
+  ;     from linear to quadratic. The linear interpolation results in fewer jumps at low counts but underestimates 90deg peaks 
+  ;     in flux (because the collections were made away from 90). The quadratic does a better job in fitting the 90deg peaks
+  ;     but is jumpy at low counts and results in both under and over-estimates there, causing undue pixellation (not too bad).
+  ;     So when there is a need to capture the full 90deg flux to better than 20% use quadratic but ignore the jumpiness at low
+  ;     counts in para/anti as well as higher energies
+  ; 
+  ; 
   ; OUTPUTS
   ;
   ; Note: numchannels is the number of pitch angle spectrograms one per user-defined energy "channel" to be produced
@@ -104,6 +111,12 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   copy_data,mystring+'spinper','elx_pxf_spinper'; COPY INTO GENERIC VARIABLE TO AVOID CLASHES
   get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
   get_data,'elx_pxf_sectnum',data=elx_pxf_sectnum,dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
+  nsectors=n_elements(elx_pxf.x)
+  nspinsectors=long(max(elx_pxf_sectnum.y)+1)
+  mypxforigarray=reform(elx_pxf.y,nsectors*nspinsectors)
+  ianynegpxfs=where(mypxforigarray lt 0.,janynegpxfs) ; eliminate negative values from raw data -- these should not be there!
+  if janynegpxfs gt 0 then mypxforigarray[ianynegpxfs]=0.
+  elx_pxf.y=reform(mypxforigarray,nsectors,nspinsectors)
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; shift PEF times to the right by 1 sector, make 1st point a NaN, all times now represent mid-points!!!!
   ; The reason is that the actual FGS cross-correlation shows that the DBZDT zero crossing is exactly
@@ -143,8 +156,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       MaxE_channels = MinE_channels+1
   endelse
   ;
-  nsectors=n_elements(elx_pxf.x)
-  nspinsectors=long(max(elx_pxf_sectnum.y)+1)
   if dSectr2add ne 0 then begin
     xra=make_array(nsectors-dSectr2add,/index,/long)
     if dSectr2add gt 0 then begin ; shift forward
@@ -177,7 +188,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   endif
   store_data,'elx_pxf_sectnum',data={x:elx_pxf_sectnum_new_times,y:elx_pxf_sectnum_new},dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
   ;
-  tinterpol_mxn,'elx_pxf','elx_pxf_sectnum',/NAN_EXTRAPOLATE,/over
+  tinterpol_mxn,'elx_pxf','elx_pxf_sectnum',/REPEAT_EXTRAPOLATE,/over
   tinterpol_mxn,'elx_pxf_spinper','elx_pxf_sectnum',/REPEAT_EXTRAPOLATE,/overwrite ; linearly interpolated, this you keep
   ;
   get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
@@ -316,6 +327,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   store_data,'elx_pxf_val',data={x:elx_pxf.x,y:elx_pxf_val}
   store_data,'elx_pxf_val_full',data={x:elx_pxf.x,y:elx_pxf_val_full,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; contains all angles and energies
   ylim,'elx_pxf_val*',1,1,1
+  ;stop
   ;
   if keyword_set(regularize) then begin
     ; While the original data (flux, counts) in "elx_pxf" were kept intact, at their recorded times
@@ -330,12 +342,14 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     ; also done here. For reference the original data are also output for plotting, retained
     ; in their standard arrays and variables (overhead is low).
     ;
-    ; First, perform quadratic interpolation on log(flux) or log(counts) at regular spinphase angles,
+    ; First, perform linear/quadratic interpolation on log(flux) or log(counts) at regular spinphase angles,
     ; CENTERED at 0. ... 90. ... 180. ... 270. ... etc, and create an interpolated angular spectrum
     ; which presumably has bins centered exactly at 90. deg, min and max deg pitch angles.
     ; In lieu of changing the collection times, or increasing the time resolution,
-    ; this is the best one can do with the data collected, as a quadratic fit should
-    ; be able to capture the peak flux at 90deg.
+    ; this is the best one can do with the data collected. A quadratic fit could capture the peak flux at 90deg
+    ; but under-estimates the flux near parallel/antiparallel direction and sometimes also over-estimates there too,
+    ; resulting in additional pixellation when counts are low. So default on linear fit, and can check with
+    ; quadratic with appropriate keyword if that's the preference.
     ;
     ; Create new array of times centered at 0, 22.5, 45., ... deg spinphase
     ; Multiply sectnum (0:nspinsectors-1) with 360./nspinsectors to create the regularized phases (regspinphase180, or "regspinphasedeg").
@@ -349,22 +363,22 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     ; then in regular flux or count space set back to zero those points that are below 1 count level
     ; The 1 count/sector level must be shown in the data in units the data is (also g-factor and efficiency)
     ;
-    valof1count=make_array(numchannels,/double)
-    for jthchan=0,numchannels-1 do begin
-      ionecountflux=where(elx_pxf_val[*,jthchan] gt 0,jonecountflux) ; No longer need for cps - to be replaced below.
-      if jonecountflux gt 0 then valof1count[jthchan]=min(elx_pxf_val(ionecountflux)) else valof1count[jthchan]=0.
-    endfor
-    if mytype eq 'cps' then valof1count[*]=1/(average(elx_pxf_spinper.y)/nspinsectors); For cps you know 1 count/sect regardless of energy! Done below!
-    valof0count=0.1*valof1count ; set zero counts or flux to this
-    value2check=0.2*valof1count ; check if below this after interpolation then set to zero
-    ; same but for Max_numchannels
-    valof1count_full=make_array(Max_numchannels,/double)
-    for jthchan=0,Max_numchannels-1 do begin
-      ionecountflux=where(elx_pxf_val_full[*,jthchan] gt 0,jonecountflux)
-      if jonecountflux gt 0 then valof1count_full[jthchan]=min(elx_pxf_val_full(ionecountflux)) else valof1count_full[jthchan]=0.
-    endfor
-    valof0count_full=0.1*valof1count_full ; set zero counts or flux to this
-    value2check_full=0.2*valof1count_full ; check if below this after interpolation then set to zero
+   ;valof1count=make_array(numchannels,/double)
+   ;for jthchan=0,numchannels-1 do begin
+   ;  ionecountflux=where(elx_pxf_val[*,jthchan] gt 0,jonecountflux) ; No longer need for cps - to be replaced below.
+   ;  if jonecountflux gt 0 then valof1count[jthchan]=min(elx_pxf_val(ionecountflux)) else valof1count[jthchan]=0.
+   ;endfor
+   ;if mytype eq 'cps' then valof1count[*]=1/(average(elx_pxf_spinper.y)/nspinsectors); For cps you know 1 count/sect regardless of energy! Done below!
+   ;valof0count=0.1*valof1count ; set zero counts or flux to this
+   ;value2check=0.2*valof1count ; check if below this after interpolation then set to zero
+   ;; same but for Max_numchannels
+   ;valof1count_full=make_array(Max_numchannels,/double)
+   ;for jthchan=0,Max_numchannels-1 do begin
+   ;  ionecountflux=where(elx_pxf_val_full[*,jthchan] gt 0,jonecountflux)
+   ;  if jonecountflux gt 0 then valof1count_full[jthchan]=min(elx_pxf_val_full(ionecountflux)) else valof1count_full[jthchan]=0.
+   ;endfor
+   ;valof0count_full=0.1*valof1count_full ; set zero counts or flux to this
+   ;value2check_full=0.2*valof1count_full ; check if below this after interpolation then set to zero
     ;----
     regspinphase180=elx_pxf_sectnum.y*22.5 ; in degrees
     regspinphase=regspinphase180*!PI/180.
@@ -372,31 +386,27 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     store_data,'regspinphasedeg',data={x:regtimes,y:regspinphase180}
     options,'regspinphasedeg',colors=['r'],linestyle=2 ; just to see...
     store_data,'spinphases',data='spinphasedeg regspinphasedeg' ; just to see...
-    ra2interpol=alog10(elx_pxf_val)
-    for jthchan=0,numchannels-1 do begin
-      iinfinity=where(FINITE(ra2interpol[*,jthchan],/INFINITY,sign=-1),jinfinity) ; this finds the zeros (alog10(0)=-infinity)
-      if jinfinity gt 0 then ra2interpol[iinfinity,jthchan]=alog10(valof0count[jthchan]); 0 count level ; !VALUES.F_NaN ; or other... set the value of zero flux to zero log or to NaN?
-    endfor
-    tinterpol_mxn,{x:elx_pxf.x,y:ra2interpol},regtimes,out=rainterpolated,/quadratic
+    ra2interpol=alog10(elx_pxf_val*10.+1.) ; shifts up by 1 (eliminates zeros) after multiply by 10. -- cps, nflux, eflux are all higher than 1 anyway.
+    if keyword_set(myquadfit) then $
+    tinterpol_mxn,{x:elx_pxf.x,y:ra2interpol},regtimes,out=rainterpolated,/quadratic $
+    else tinterpol_mxn,{x:elx_pxf.x,y:ra2interpol},regtimes,out=rainterpolated ; default is linear fit
     elx_pxf_val_reg = rainterpolated
-    for jthchan=0,numchannels-1 do begin
-      izerocounts=where(10^rainterpolated.y[*,jthchan] lt value2check[jthchan], jzerocounts)
-      elx_pxf_val_reg.y[*,jthchan]=10^(rainterpolated.y[*,jthchan])
-      if jzerocounts gt 0 then elx_pxf_val_reg.y[izerocounts,jthchan]=0.
-    endfor
+    elx_pxf_val_reg.y = (10^rainterpolated.y -1.)/10.
+    mypxfregarray=reform(elx_pxf_val_reg.y,nsectors*numchannels)
+    ianynegpxfs=where(mypxfregarray lt 0.,janynegpxfs) ; eliminate negative values from reg data -- these should not be there!
+    if janynegpxfs gt 0 then mypxfregarray[ianynegpxfs]=0.
+    elx_pxf_val_reg.y=reform(mypxfregarray,nsectors,numchannels)
     ; same but for Max_numchannels
-    ra2interpol_full=alog10(elx_pxf_val_full)
-    for jthchan=0,Max_numchannels-1 do begin
-      iinfinity=where(FINITE(ra2interpol_full[*,jthchan],/INFINITY,sign=-1),jinfinity) ; this finds the zeros (alog10(0)=-infinity)
-      if jinfinity gt 0 then ra2interpol_full[iinfinity,jthchan]=alog10(valof0count_full[jthchan]); 0 count level ; !VALUES.F_NaN ; or other... set the value of zero flux to zero log or to NaN?
-    endfor
-    tinterpol_mxn,{x:elx_pxf.x,y:ra2interpol_full},regtimes,out=rainterpolated_full,/quadratic
+    ra2interpol_full=alog10(elx_pxf_val_full*10.+1) ; A zero becomes =0; a 1 becomes ~1; a 10 becomes ~2 etc. Min cps ~5cps (one count per sector) so 1cps as good as ~0.
+    if keyword_set(myquadfit) then $
+    tinterpol_mxn,{x:elx_pxf.x,y:ra2interpol_full},regtimes,out=rainterpolated_full,/quadratic $
+    else tinterpol_mxn,{x:elx_pxf.x,y:ra2interpol_full},regtimes,out=rainterpolated_full ; default is linear fit
     elx_pxf_val_reg_full = rainterpolated_full
-    for jthchan=0,Max_numchannels-1 do begin
-      izerocounts=where(10^rainterpolated_full.y[*,jthchan] lt value2check_full[jthchan], jzerocounts)
-      elx_pxf_val_reg_full.y[*,jthchan]=10^(rainterpolated_full.y[*,jthchan])
-      if jzerocounts gt 0 then elx_pxf_val_reg_full.y[izerocounts,jthchan]=0.
-    endfor
+    elx_pxf_val_reg_full.y = (10^rainterpolated_full.y -1.)/10.
+    mypxfregarray_full=reform(elx_pxf_val_reg_full.y,nsectors*Max_numchannels)
+    ianynegpxfs_full=where(mypxfregarray_full lt 0.,janynegpxfs_full) ; eliminate negative values from reg data -- these should not be there!
+    if janynegpxfs_full gt 0 then mypxfregarray_full[ianynegpxfs_full]=0.
+    elx_pxf_val_reg_full.y=reform(mypxfregarray_full,nsectors,Max_numchannels)
     ;----
     store_data,'elx_pxf_val_reg',data={x:elx_pxf_val_reg.x,y:elx_pxf_val_reg.y} ; regtimes is identical to rainterpolated.x and elx_pxf_val_reg.x
     store_data,'elx_pxf_val_reg_full',data={x:elx_pxf_val_reg.x,y:elx_pxf_val_reg_full.y} ; regtimes is identical to rainterpolated.x and elx_pxf_val_reg.x
@@ -547,13 +557,14 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     xra=make_array(n_elements(elx_pxf_pa_reg_spec_times)-1,/index,/long)
     elx_pxf_pa_reg_spec2plot=make_array(n_elements(elx_pxf_pa_reg_spec_times),(nspinsectors/2)+1,numchannels,/double)
     elx_pxf_pa_reg_spec_pas2plot=make_array(n_elements(elx_pxf_pa_reg_spec_times),(nspinsectors/2)+1,/double)
-    for jthchan=0,numchannels-1 do elx_pxf_pa_reg_spec2plot[xra,*,jthchan]=transpose([transpose(elx_pxf_pa_reg_spec[xra,*,jthchan]),transpose(elx_pxf_pa_spec[xra+1,0,jthchan])])
-    elx_pxf_pa_reg_spec2plot[n_elements(elx_pxf_pa_reg_spec_times)-1,*]=transpose([transpose(elx_pxf_pa_reg_spec[n_elements(elx_pxf_pa_reg_spec_times)-1,*]),elx_pxf_pa_spec[0,0]*!VALUES.F_NaN])
+    for jthchan=0,numchannels-1 do elx_pxf_pa_reg_spec2plot[xra,*,jthchan]=transpose([transpose(elx_pxf_pa_reg_spec[xra,*,jthchan]),transpose(elx_pxf_pa_reg_spec[xra+1,0,jthchan])])
+    for jthchan=0,numchannels-1 do elx_pxf_pa_reg_spec2plot[n_elements(elx_pxf_pa_reg_spec_times)-1,*,jthchan]=transpose([transpose(elx_pxf_pa_reg_spec[n_elements(elx_pxf_pa_reg_spec_times)-1,*,jthchan]),elx_pxf_pa_spec[0,0,jthchan]*!VALUES.F_NaN])
     elx_pxf_pa_reg_spec_pas2plot[xra,*]=transpose([transpose(elx_pxf_pa_reg_spec_pas[xra,*]),transpose(elx_pxf_pa_reg_spec_pas[xra+1,0])])
     elx_pxf_pa_reg_spec_pas2plot[n_elements(elx_pxf_pa_reg_spec_times)-1,*]=transpose([transpose(elx_pxf_pa_reg_spec_pas[n_elements(elx_pxf_pa_reg_spec_times)-1,*]),elx_pxf_pa_reg_spec_pas[n_elements(elx_pxf_pa_reg_spec_times)-2,0]])
     if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_spec2plot',data={x:elx_pxf_pa_reg_spec_times, y:elx_pxf_pa_reg_spec2plot, v:elx_pxf_pa_reg_spec_pas2plot}
     elx_pxf_pa_reg_spec2plot_full=make_array(nhalfspinsavailable,(nspinsectors/2)+1,Max_numchannels,/double)
     for jthchan=0,Max_numchannels-1 do elx_pxf_pa_reg_spec2plot_full[xra,*,jthchan]=transpose([transpose(elx_pxf_pa_reg_spec_full[xra,*,jthchan]),transpose(elx_pxf_pa_reg_spec_full[xra+1,0,jthchan])])
+    for jthchan=0,Max_numchannels-1 do elx_pxf_pa_reg_spec2plot_full[n_elements(elx_pxf_pa_reg_spec_times)-1,*,jthchan]=transpose([transpose(elx_pxf_pa_reg_spec_full[n_elements(elx_pxf_pa_reg_spec_times)-1,*,jthchan]),elx_pxf_pa_reg_spec_full[0,0,jthchan]*!VALUES.F_NaN])
     if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_spec2plot_full',data={x:elx_pxf_pa_reg_spec_times, y:elx_pxf_pa_reg_spec2plot_full, v:elx_pxf_pa_reg_spec_pas2plot}
   endif
   ;
@@ -790,9 +801,13 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   endif
   ;
   options,'el?_p?f_en*spec*',spec=1
-  mincps=1/(average(elx_pxf_spinper.y)/nspinsectors) ; in case you need it in the future
-  zlim,'el?_p?f_en*spec*',1,1,1
+  zlim,'el?_p?f_en*spec*',10,1e7,1
   ylim,'el?_p?f_en*spec*',55.,6800.,1
+  zlim,'elx_pef_??_spec2plot_????ovr????',1,1,1
+  zlim,'elx_pef_pa_*spec2plot_ch0*',5.e3,1.e7,1
+  zlim,'elx_pef_pa_*spec2plot_ch1*',1.e3,5.e6,1
+  zlim,'elx_pef_pa_*spec2plot_ch2*',1.e2,5.e5,1
+  zlim,'elx_pef_pa_*spec2plot_ch3*',1.e1,5.e3,1
   ;
   ; degap interior gaps with two NaNs per gap
   if ~keyword_set(nonansingaps) then begin

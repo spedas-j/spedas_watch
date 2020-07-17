@@ -857,22 +857,22 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xann=9.6
     xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
     xyouts,xann,yann+12.5*7,a_orb_spin_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*6,a_att_gei_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*5,a_att_gse_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,'S w/Sun, deg: '+suna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,'S w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,ela_spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*6,ela_spin_att_ang_str,/device,charsize=charsize   
+    xyouts,xann,yann+12.5*5,a_att_gei_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,a_att_gse_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,'S w/Sun, deg: '+suna_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,'S w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*1,'Att.Solution@'+solna_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*0,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
 
     yann=0.02
     xyouts,xann,yann+12.5*9,'ELFIN (B)',/device,charsize=.75,color=254
     xyouts,xann,yann+12.5*8,b_orb_spin_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*7,b_att_gei_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*6,b_att_gse_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*5,'S w/Sun, deg: '+sunb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,'S w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,elb_spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*7,elb_spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*6,b_att_gei_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*5,b_att_gse_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,'S w/Sun, deg: '+sunb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,'S w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*2,'Att.Solution@: '+solnb_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
 

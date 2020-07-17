@@ -432,6 +432,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       fd=file_dailynames(trange=tr[0], /unique, times=times)
       tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+sz_plot_lbl
       title='PRELIMINARY ELFIN-'+strupcase(probe)+' EPDE, alt='+strmid(strtrim(alt,1),0,3)+'km, '+tstring
+
       xyouts, .175, .975, title, /normal, charsize=1.1
       tplot_apply_databar
   
@@ -558,11 +559,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
 
   ; this chunk might not be necessary since it's repeated later
   ylim,'el?_p?f_pa*spec2plot* *losscone* el?_p?f_pa*spec2plot_ch?LC*',0,180.
-  zlim,'el?_p?f_pa*spec2plot_ch0LC*',1e2,1e6
-  zlim,'el?_p?f_pa*spec2plot_ch1LC*',1e2,1e6
-  zlim,'el?_p?f_pa*spec2plot_ch2LC*',1e2,1e6
-  zlim,'el?_p?f_pa*spec2plot_ch3LC*',10,1e4
-  options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle','#/(scm!U2!NstrMeV)'
   
   timeduration=time_double(trange[1])-time_double(trange[0])
   timespan,trange[0],timeduration,/seconds
@@ -572,12 +568,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ; handle scaling of y axis
   get_data,'pseudo_ae',data=pseudo_ae
   if size(pseudo_ae, /type) EQ 8 then begin
-;    idx = where(pseudo_ae.y LT 2000., ncnt)
-;    if ncnt GT 0 then begin
-;      pseudo_ae.x=pseudo_ae.x[idx]
-;      pseudo_ae.y=pseudo_ae.y[idx]
-;      pseudo_ae={x:pseudo_ae.x[idx],y:pseudo_ae.y[idx]}
-;    endif
     idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
     if ncnt GT 0 then ae_max=minmax(pseudo_ae.y)
     if ncnt EQ 0 then ae_max=[0,140.]
@@ -631,11 +621,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     options, 'el'+probe+'_pef_pa_spec2plot_ch3LC', 'ysubtitle', '[deg]'
     
     ylim,'el?_p?f_pa*spec2plot* *losscone* el?_p?f_pa*spec2plot_ch?LC*',0,180.
-    zlim,'el?_p?f_pa*spec2plot_ch0LC*',1e2,1e6
-    zlim,'el?_p?f_pa*spec2plot_ch1LC*',1e2,1e6
-    zlim,'el?_p?f_pa*spec2plot_ch2LC*',1e2,1e6
-    zlim,'el?_p?f_pa*spec2plot_ch3LC*',10,1e4
-    zlim,'el?_p?f_en_spec2plot*',1e1,1e6
     options,'el?_p?f_pa*spec2plot_ch0LC*','ztitle',''
     options,'el?_p?f_pa*spec2plot_ch0LC*','ztitle','#/(scm!U2!NstrMeV)'
     options,'el?_p?f_pa*spec2plot_ch1LC*','ztitle',''
@@ -655,7 +640,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     if tdur Lt 194. then version=6 else version=7
     tplot_options, version=version   ;6
     tplot_options, 'ygap',0
-    tplot_options, 'charsize',.9   
+    tplot_options, 'charsize',.9 
+    elf_set_overview_options, probe=probe, trange=tr  
     if tdur LT 10802. then begin
       if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
         tplot,['pseudo_ae', $
