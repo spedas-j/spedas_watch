@@ -17,7 +17,7 @@
 ;                       is not yet available).
 ;         level:        indicates level of data processing. levels include 'l1' and 'l2'
 ;                       The default if no level is specified is 'l1' 
-;         type:         ['raw','cps', 'nflux', 'eflux'] (eflux not yet available) 
+;         type:         ['raw','cps', 'nflux', 'eflux']  (eflux not fully tested)
 ;         local_data_dir: local directory to store the CDF files; should be set if
 ;                       you're on *nix or OSX, the default currently assumes Windows (c:\data\elfin\)
 ;         source:       specifies a different system variable. By default the elf mission system
@@ -124,8 +124,8 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   if undefined(data_rate) then data_rate = ['fast'] else data_rate=strlowcase(data_rate)
   if data_rate EQ '*' then data_rate = ['fast']  ;, 'srvy'] NO SURVEY DATA YET
 
-  if undefined(type) then type='eflux' else type=type
-  if type EQ 'cal' || type EQ 'calibrated' then type='eflux'
+  if undefined(type) then type='nflux' else type=type
+  if type EQ 'cal' || type EQ 'calibrated' then type='nflux'
   if undefined(suffix) OR keyword_set(no_suffix) then suffix = ''
   
   Case type of

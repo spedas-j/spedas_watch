@@ -1,12 +1,12 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-07-01 08:47:47 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28827 $
+; $LastChangedDate: 2020-07-17 17:23:27 -0700 (Fri, 17 Jul 2020) $
+; $LastChangedRevision: 28907 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 
-pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
+pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,idlsav_format=idlsav_format, $
   make_cdf=make_cdf,make_ql=make_ql,make_sav=make_sav,load_sav=load_sav,verbose=verbose,reset=reset,sc_files=sc_files,    $
   ssr_format=ssr_format, mtime_range=mtime_range,no_load=no_load,make_tplotvar=make_tplotvar,ssr_prefix=ssr_prefix
 
@@ -20,12 +20,12 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
   output_prefix = 'psp/data/sci/sweap/'
   if ~keyword_set(ssr_prefix) then begin
     ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
-    ssr_prefix= 'psp/data/sci/sweap/raw/SSR/'
+    ssr_prefix='psp/data/sci/sweap/raw/SSR/'
   endif
   linkname = output_prefix + '.hidden/.htaccess'
   if ~ isa(ssr_format,/string) then ssr_format = 'YYYY/DOY/*_?_E?'
-  idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
-  idlsav_format = output_prefix+'sav/YYYY/DOY/*_?_??.sav'
+  ;idlsav_format = output_prefix+'sav/YYYY/MM/spp_swp_L1_YYYYMMDD_$ND$Days.sav'
+  if ~keyword_set(idlsav_format) then idlsav_format = 'psp/data/sci/sweap/sav/YYYY/DOY/*_?_??.sav'
   ql_dir = output_prefix+'swem/ql/'
   if keyword_set(sc_files) then ssr_format = 'YYYY/DOY/*_?_FP'
   tr = timerange(trange_full)
@@ -65,7 +65,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,  $
     if ~keyword_set(sav_files) then dprint,'No .sav files found!'
     foreach sav_file,sav_files do spp_apdat_info,file_restore=sav_file
     del_data,'spp_*'
-    spp_apdat_info,/finish,/all,/sort_flag
+    spp_apdat_info,finish=finish,/all,/sort_flag
   endif
 
   if keyword_set(make_tplotvar) then spp_swp_tplot,setlim=2
