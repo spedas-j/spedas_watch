@@ -85,12 +85,11 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   FOVo2=11.          ; Field of View divided by 2 (deg)
   if keyword_set(userLCpartol) then LCfatol=userLCpartol else $
     LCfatol=FOVo2 ; in field aligned, fa, direction (para or anti)
-  if keyword_set(userLCpertol) then LCfptol=userLCpartol else $
+  if keyword_set(userLCpertol) then LCfptol=userLCpertol else $ ; <-- changed this one
     LCfptol=-FOVo2 ; in field perp, fp, direction
   if keyword_set(no_download) then no_download=1 else no_download=0
   if ~keyword_set(probe) then probe='a' else probe=probe
   if ~keyword_set(myspecies) then eori='e' else eori=myspecies
-
   ;
   ; THESE "ELA" and "PEF" STRINGS IN THE FEW LINES BELOW CAN BE CAST INTO USER-SPECIFIED SC (A/B) AND PRODUCT (PEF/PIF) IN THE FUTURE
   ;
@@ -710,7 +709,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     (reform(elx_pxf_pa_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+2)) gt 180.-360./nspinsectors/2), jzeropas)
   if jzeropas gt 0 then elx_pxf_en_spec2plot_domega1d[izeropas]=(!PI/nspinsectors)*sin(!PI/nspinsectors) ; in degrees, that's pa = dpa = 22.5/2 = 11.25 for 16 sectors
   elx_pxf_en_spec2plot_domega=reform(elx_pxf_en_spec2plot_domega1d,nhalfspinsavailable,(nspinsectors/2)+2)
-  elx_pxf_en_spec2plot_allowable=make_array(nhalfspinsavailable,(nspinsectors/2)+2,/double,value=!VALUES.F_NaN) ; same for all energies
+  elx_pxf_en_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+2),/double,value=!VALUES.F_NaN) ; same for all energies
   elx_pxf_en_spec2plot_omni=make_array(nhalfspinsavailable,Max_numchannels,/double)
   elx_pxf_en_spec2plot_para=make_array(nhalfspinsavailable,Max_numchannels,/double)
   elx_pxf_en_spec2plot_anti=make_array(nhalfspinsavailable,Max_numchannels,/double)
@@ -722,30 +721,35 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   calc,' "paraedgedeg" = 180.*arcsin(sqrt("elx_igrf_Btot"/"elx_ifoot_igrf_Btot"))/pival '
   get_data,"paraedgedeg",data=paraedgedeg
   arrayofones=make_array((nspinsectors/2)+2,/double,value=1.)
+;  select parapas for energy spectra first
   iparapas=where((reform(elx_pxf_pa_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+2)) lt -LCfatol+reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+2))), jparapas)
   if jparapas gt 0 then begin
     elx_pxf_en_spec2plot_allowable[iparapas]=1.
-    elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
   endif
+  elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
   for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_para[*,jthchan]= $
     total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
     total(elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
   store_data,mystring+'en_spec2plot_para',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_spec2plot_para, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+; ... antipas for energy spectra now
+  elx_pxf_en_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+2),/double,value=!VALUES.F_NaN) ; same for all energies
   iantipas=where((reform(elx_pxf_pa_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+2)) gt 180.+LCfatol-reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+2))), jantipas)
   if jantipas gt 0 then begin
     elx_pxf_en_spec2plot_allowable[iantipas]=1.
-    elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
   endif
+  elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
   for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_anti[*,jthchan]= $
     total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
     total(elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
   store_data,mystring+'en_spec2plot_anti',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
-  iperppas=where((reform(elx_pxf_pa_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+2)) lt 180.-LCfatol-reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+2))) and $
-    (reform(elx_pxf_pa_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+2)) gt +LCfatol+reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+2))), jperppas)
+; ... perppas for energy spectra now
+  elx_pxf_en_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+2),/double,value=!VALUES.F_NaN) ; same for all energies
+  iperppas=where((reform(elx_pxf_pa_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+2)) lt 180.-LCfptol-reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+2))) and $
+    (reform(elx_pxf_pa_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+2)) gt +LCfptol+reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+2))), jperppas)
   if jperppas gt 0 then begin
     elx_pxf_en_spec2plot_allowable[iperppas]=1.
-    elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
   endif
+  elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
   for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_perp[*,jthchan]= $
     total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
     total(elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
@@ -760,7 +764,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       (reform(elx_pxf_pa_reg_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+1)) gt 180.-360./nspinsectors/2), jzeropas)
     if jzeropas gt 0 then elx_pxf_en_reg_spec2plot_domega1d[izeropas]=(!PI/nspinsectors)*sin(!PI/nspinsectors) ; in degrees, that's pa = dpa = 22.5/2 = 11.25 for 16 sectors
     elx_pxf_en_reg_spec2plot_domega=reform(elx_pxf_en_reg_spec2plot_domega1d,nhalfspinsavailable,(nspinsectors/2)+1)
-    elx_pxf_en_reg_spec2plot_allowable=make_array(nhalfspinsavailable,(nspinsectors/2)+1,/double,value=!VALUES.F_NaN) ; same for all energies
+    elx_pxf_en_reg_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+1),/double,value=!VALUES.F_NaN) ; same for all energies
     elx_pxf_en_reg_spec2plot_omni=make_array(nhalfspinsavailable,Max_numchannels,/double)
     elx_pxf_en_reg_spec2plot_para=make_array(nhalfspinsavailable,Max_numchannels,/double)
     elx_pxf_en_reg_spec2plot_anti=make_array(nhalfspinsavailable,Max_numchannels,/double)
@@ -770,38 +774,43 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       total(elx_pxf_en_spec2plot_domega[*,0:(nspinsectors/2)],2,/NaN) ; IGNORE SECTORS WITH NaNs
     store_data,mystring+'en_reg_spec2plot_omni',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_omni, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
     arrayofones=make_array((nspinsectors/2)+1,/double,value=1.)
+;  select parapas for energy spectra first
     iparapas=where((reform(elx_pxf_pa_reg_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+1)) lt -LCfatol+reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+1))), jparapas)
     if jparapas gt 0 then begin
       elx_pxf_en_reg_spec2plot_allowable[iparapas]=1.
-      elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
     endif
+    elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
     for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_para[*,jthchan]= $
       total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
-      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
     store_data,mystring+'en_reg_spec2plot_para',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_para, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+; ... antipas for energy spectra now
+    elx_pxf_en_reg_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+1),/double,value=!VALUES.F_NaN) ; reset array!
     iantipas=where((reform(elx_pxf_pa_reg_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+1)) gt 180.+LCfatol-reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+1))), jantipas)
     if jantipas gt 0 then begin
       elx_pxf_en_reg_spec2plot_allowable[iantipas]=1.
-      elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
     endif
+    elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
     for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_anti[*,jthchan]= $
       total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
-      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN) 
     store_data,mystring+'en_reg_spec2plot_anti',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
-    iperppas=where((reform(elx_pxf_pa_reg_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+1)) lt 180.-LCfatol-reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+1))) and $
-      (reform(elx_pxf_pa_reg_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+1)) gt +LCfatol+reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+1))), jperppas)
+; ... perppas for energy spectra now
+    elx_pxf_en_reg_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+1),/double,value=!VALUES.F_NaN) ; reset array!
+    iperppas=where((reform(elx_pxf_pa_reg_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+1)) lt 180.-LCfptol-reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+1))) and $
+      (reform(elx_pxf_pa_reg_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+1)) gt +LCfptol+reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+1))), jperppas)
     if jperppas gt 0 then begin
       elx_pxf_en_reg_spec2plot_allowable[iperppas]=1.
-      elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
     endif
+    elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
     for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_perp[*,jthchan]= $
       total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
-      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
     store_data,mystring+'en_reg_spec2plot_perp',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_perp, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
   endif
   ;
   options,'el?_p?f_en*spec*',spec=1
-  zlim,'el?_p?f_en*spec*',10,1e7,1
+  zlim,'el?_p?f_en*spec*',10,2e6,1
   ylim,'el?_p?f_en*spec*',55.,6800.,1
   zlim,'elx_pef_??_spec2plot_????ovr????',1,1,1
   zlim,'elx_pef_pa_*spec2plot_ch0*',5.e3,1.e7,1
@@ -818,6 +827,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     tdeflag,mystring+'losscone','linear',/over
     tdeflag,mystring+'antilosscone','linear',/over
   endif
-  ;stop
+;  stop
   ;
 end
