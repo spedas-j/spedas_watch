@@ -391,6 +391,14 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           endelse
       endif
 
+      get_data, 'el'+probe+'_pef_en_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
+      omni_origv=omni.v
+      get_data, 'el'+probe+'_pef_en_spec2plot_anti', data=anti, dlimits=anti_dl, limits=anti_l
+      anti_origv=anti.v
+      get_data, 'el'+probe+'_pef_en_spec2plot_perp', data=perp, dlimits=perp_dl, limits=perp_l
+      perp_origv=perp.v
+      get_data, 'el'+probe+'_pef_en_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
+      para_origv=para.v
 
       ;;;;;;;;;;;;;;;;;;;;;;
       ; PLOT
@@ -401,6 +409,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tr=timerange()
       elf_set_overview_options, probe=probe, trange=tr            
       options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]   ; force color scheme
+
       if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',sz_tr[0],sz_tr[1]) then begin       
         tplot,['pseudo_ae', $
           'fgs_bar', $
@@ -641,7 +650,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     tplot_options, version=version   ;6
     tplot_options, 'ygap',0
     tplot_options, 'charsize',.9 
-    elf_set_overview_options, probe=probe, trange=tr  
+    elf_set_overview_options, probe=probe, trange=tr,/no_switch
     if tdur LT 10802. then begin
       if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
         tplot,['pseudo_ae', $
@@ -734,7 +743,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       dprint, dlevel=2, 'Hourly plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
       
   endfor
-  
+
   dprint, dlevel=2, 'Total time: '+strtrim(systime(/sec)-t0,2)+' sec'
 
 end

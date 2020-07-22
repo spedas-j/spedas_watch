@@ -193,6 +193,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
   get_data,'elx_pxf_spinper',data=elx_pxf_spinper,dlim=myspinperdata_dlim,lim=myspinperdata_lim
   get_data,'elx_pxf_sectnum',data=elx_pxf_sectnum,dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
+
   ;
   nsectors=n_elements(elx_pxf.x)
   xra=make_array(nsectors-1,/index,/long)
