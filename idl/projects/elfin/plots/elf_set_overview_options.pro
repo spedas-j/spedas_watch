@@ -38,7 +38,7 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
    zlim, 'el'+probe+'_pef_en_spec2plot_perp', 1.e1, 2.e6
    zlim, 'el'+probe+'_pef_en_spec2plot_para', 1.e1, 2.e6
    zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch0LC', 2.e3, 2.e6
-   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC',1.e3, 5.e5
+   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC',1.e3, 2.e5
    zlim, 'el'+probe+'_pef_pa_spec2plot_ch2LC', 1.e2, 1.e5
    zlim, 'el'+probe+'_pef_pa_spec2plot_ch3LC', 1.e1, 2.e3
 
@@ -62,7 +62,7 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
 
    options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle','#/(scm!U2!NstrMeV)'
    options,'el?_p?f_pa*spec2plot_ch0LC*','zrange',[2e3,2e6]
-   options,'el?_p?f_pa*spec2plot_ch1LC*','zrange',[1e3,5e5]
+   options,'el?_p?f_pa*spec2plot_ch1LC*','zrange',[1e3,2e5]
    options,'el?_p?f_pa*spec2plot_ch2LC*','zrange',[1e2,1e5]
    options,'el?_p?f_pa*spec2plot_ch3LC*','zrange',[1e1,2e3]
    options,'el?_p?f_en_spec2plot*','zrange',[1e1,2e6]

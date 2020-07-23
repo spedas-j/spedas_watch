@@ -9,8 +9,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-07-09 15:39:57 -0700 (Tue, 09 Jul 2019) $
-; $LastChangedRevision: 27425 $
+; $LastChangedDate: 2020-07-22 11:40:10 -0700 (Wed, 22 Jul 2020) $
+; $LastChangedRevision: 28919 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/basic/mms_flatten_spectra_crib.pro $
 ;-
 
@@ -36,6 +36,14 @@ stop
 
 ; use the trange keyword to average over a time range
 flatten_spectra, /xlog, /ylog, trange=['2015-10-16/13:06:50', '2015-10-16/13:07']
+stop
+
+; change the variable names in the legend
+options, 'mms1_des_energyspectr_omni_brst', 'legend_name', 'MMS1 DES OMNI'
+options, 'mms1_des_energyspectr_par_brst', 'legend_name', 'MMS1 DES PARALLEL'
+options, 'mms1_des_energyspectr_anti_brst', 'legend_name', 'MMS1 DES ANTI-PARALLEL'
+options, 'mms1_des_energyspectr_perp_brst', 'legend_name', 'MMS1 DES PERP'
+flatten_spectra, /xlog, /ylog, /replot
 stop
 
 ; save the figure as a PNG file

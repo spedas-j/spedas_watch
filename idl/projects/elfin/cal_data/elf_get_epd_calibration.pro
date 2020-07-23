@@ -26,6 +26,8 @@
 ; NOTES:
 ;         This routine contains hard coded calibration values. To download the 
 ;         calibration file from the server use elf_read_epd_calfile. 
+;         
+;          **** TO DO: Need to make sure file is read and not hard-coded.
 ;
 ; HISTORY:
 ;
@@ -34,7 +36,7 @@
 ;$LastChangedRevision: 25588 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_cal_mrmi.pro $
 ;-
-function elf_get_epd_calibration, probe=probe, instrument=instrument
+function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=trange
 
   if ~keyword_set(probe) then probe='a'
   if ~keyword_set(instrument) then instrument='epde'
@@ -43,8 +45,11 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument
     return, -1
   endif
   
+  if ~keyword_set(trange) then trange=timerange()
+  
   if probe EQ 'a' then begin 
     if instrument EQ 'epde' then begin
+      ;  ***** TO DO: Change to read from file *******
       epde_gf = 0.15 ; 21deg x 21deg (in SA) by 1 cm^2
       epde_overaccumulation_factors = indgen(16)*0.+1.
       epde_overaccumulation_factors[15] = 1.15
@@ -72,11 +77,12 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument
         epd_ebin_lbls:epde_ebin_lbls }
     endif
     if instrument EQ 'epdi' then begin
+      ;  ***** TO DO: Change to read from file *******
       epdi_gf = 0.01 ; 21deg x 21deg (in SA) by 1 cm^2
       epdi_overaccumulation_factors = indgen(16)*0.+1.
       epdi_overaccumulation_factors[15] = 1./2
       epdi_thresh_factors = indgen(16)*0.+1.
-      epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
+      epdi_thresh_factors[0] = 1./5 ; change me to match the threshold curves
       epdi_thresh_factors[1] = 1.6
       epdi_thresh_factors[2] = 1.2
       epdi_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]
@@ -105,7 +111,9 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument
       epde_overaccumulation_factors = indgen(16)*0.+1.
       epde_overaccumulation_factors[15] = 1.15
       epde_thresh_factors = indgen(16)*0.+1.
-      epde_thresh_factors[0] = 1./2 ; change me to match the threshold curves
+      ;  ***** TO DO: Change to read from file *******
+      if trange LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./2 $
+         else epde_thresh_factors[0] = 1./4 ; change me to match the threshold curves
       epde_thresh_factors[1] = 1.6
       epde_thresh_factors[2] = 1.2
       epde_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]
@@ -130,7 +138,10 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument
       epdi_overaccumulation_factors = indgen(16)*0.+1.
       epdi_overaccumulation_factors[15] = 1./2
       epdi_thresh_factors = indgen(16)*0.+1.
-      epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
+      ;  ***** TO DO: Change to read from file *******
+      if trange LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./2 $
+         else epde_thresh_factors[0] = 1./4 ; change me to match the threshold curves
+      ;epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
       epdi_thresh_factors[1] = 1.6
       epdi_thresh_factors[2] = 1.2
       epdi_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]

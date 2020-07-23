@@ -72,14 +72,60 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
 
   endif
 
-  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'ylog', 1
-  
-  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'yrange', [0.2,200.]
+  ;  Testing out code to make smoother 'kbps' lines
+  ;
+  ;  if 1 then begin
+  ;
+  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', data = d_gbit, al = al
 
-  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'ystyle', 1
-  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'ytitle', 'FIELDS!Ckbps'
-  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps', 'datagap', 3600d
-  
+  gbit2 = dblarr(n_elements(d_gbit.x))
+
+  for i = 0, n_elements(d_gbit.x)-1 do begin
+        
+    diff = d_gbit.x - d_gbit.x[i]
+    
+    ; an hour time scale seems to be a reasonable compromise between getting
+    ; a smooth data rate plot in kbps, and catching transitions
+
+    ind_lo = where(diff LE 0d and diff GT -1800d, count_lo)
+    ind_hi = where(diff GE 0d and diff LT  1800d, count_hi)
+
+    if count_hi LT 3 or count_lo LT 3 then begin
+
+      gbit2[i] = d_gbit.y[i]
+
+    endif else begin
+
+      lf_par = linfit(d_gbit.x[[ind_lo,ind_hi]], d_gbit.y[[ind_lo,ind_hi]])
+
+      gbit2[i] = lf_par[0] + lf_par[1] * d_gbit.x[i]
+
+    endelse
+
+  endfor
+
+  store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', $
+    data = {x:d_gbit.x, y:gbit2}, lim = al
+
+  deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', nsmooth = 6
+
+  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth_ddt', dat = d_ddt
+
+  if size(/type, d_ddt) EQ 8 then begin
+
+    store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps_smooth', $
+      dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
+
+  endif
+
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps*', 'ylog', 1
+
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps*', 'yrange', [0.2,200.]
+
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps*', 'ystyle', 1
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps*', 'ytitle', 'FIELDS!Ckbps'
+  options, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps*', 'datagap', 3600d
+
   for i = 0, n_elements(instruments) - 1 do begin
 
     inst = instruments[i]
@@ -96,31 +142,31 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
     endfor
 
   endfor
-  
-;  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', data = d_gbit
-;  
-;  if size(/type, d_gbit) EQ 8 then begin
-;    
-;    res = 1200d
-;    
-;    int_times = time_intervals(trange = minmax(d_gbit.x), res = res)    
-;    
-;    int_gbit = data_cut('spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', int_times)
-;    
-;    dt = 1d
-;    
-;    order = 1
-;    ; Don't forget to normalize the coefficients.
-;    savgolFilter = SAVGOL(16, 16, order, 2)*(FACTORIAL(order)/ $
-;      (dt^order))
-;      
-;    int_gbit2 = CONVOL(int_gbit, savgolFilter, /EDGE_TRUNCATE)
-;    
-;    plot, int_gbit2 * 1d6 / res, /ylog, yrange = [0.1,1000.], psym = 6
-;    
-;    stop
-;    
-;  endif
+
+  ;  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', data = d_gbit
+  ;
+  ;  if size(/type, d_gbit) EQ 8 then begin
+  ;
+  ;    res = 1200d
+  ;
+  ;    int_times = time_intervals(trange = minmax(d_gbit.x), res = res)
+  ;
+  ;    int_gbit = data_cut('spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', int_times)
+  ;
+  ;    dt = 1d
+  ;
+  ;    order = 1
+  ;    ; Don't forget to normalize the coefficients.
+  ;    savgolFilter = SAVGOL(16, 16, order, 2)*(FACTORIAL(order)/ $
+  ;      (dt^order))
+  ;
+  ;    int_gbit2 = CONVOL(int_gbit, savgolFilter, /EDGE_TRUNCATE)
+  ;
+  ;    plot, int_gbit2 * 1d6 / res, /ylog, yrange = [0.1,1000.], psym = 6
+  ;
+  ;    stop
+  ;
+  ;  endif
 
   options, '*fsw_rec_alloc*', 'xticklen', 1
   options, '*fsw_rec_alloc*', 'yticklen', 1

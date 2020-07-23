@@ -13,6 +13,7 @@
 ;   tplotname: name of tplot variable containing epd data. tvars include ela_pef, ela_pif, 
 ;              ela_pes, ela_pis (and same for elb)
 ;   type: type of calibrated data cps, nflux, eflux
+;   probe:  name of probe 'a' or 'b'
 ;   nodownload: set this flag to force routine to use local files 
 ;   deadtime_corr: set this flag to correct for deadtime
 ;   
@@ -20,7 +21,7 @@
 ; Initially written by Colin Wilkins (colinwilkins@ucla.edu)
 ;-
 
-PRO elf_cal_epd, tplotname=tplotname, type=type, no_download=no_download, deadtime_corr=deadtime_corr
+PRO elf_cal_epd, tplotname=tplotname, type=type, probe=probe, no_download=no_download, deadtime_corr=deadtime_corr
 
   ; get epd data and double check that it exists
   get_data, tplotname, data=d, dlimits=dl, limits=l

@@ -73,8 +73,21 @@
 ;                  along the bottom of a monitor are clipped.  This
 ;                  procedure fixes that issue.
 ;
-;       CORNER:    DX and DY are measured from this corner of the
-;                  specified monitor.
+;       TBAR:      Title bar width in pixels.  Default = 22.
+;
+;                  This value is persistent for subsequent calls to 
+;                  putwin, so you only need to set it once.
+;
+;       NORM:      Measure DX and DY in normalized coordinates (0-1)
+;                  instead of pixels.
+;
+;       XCENTER:   Center the window in X.
+;
+;       YCENTER:   Center the window in Y.
+;
+;       CENTER:    Center the window in both X and Y.
+;
+;       CORNER:    DX and DY are measured from this corner:
 ;
 ;                    0 = top left (default)
 ;                    1 = top right
@@ -86,10 +99,11 @@
 ;                  (via keyword) or implictly (via swe_snap_layout).
 ;                  Default = 1.
 ;
-;                  If the combination of XSIZE, YSIZE, SCALE, DX and
+;       NOFIT:     If the combination of XSIZE, YSIZE, SCALE, DX and
 ;                  DY cause the window to extend beyond the monitor,
 ;                  first DX and DY, then XSIZE and YSIZE are reduced
-;                  until the window does fit.
+;                  until the window does fit.  Set NOFIT to disable
+;                  this behavior and create the window as requested.
 ;
 ;       FULL:      If set, make a full-screen window in MONITOR.
 ;                  (Ignore XSIZE, YSIZE, DX, DY, and CORNER.)
@@ -104,17 +118,18 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-18 14:50:15 -0700 (Sat, 18 Jul 2020) $
-; $LastChangedRevision: 28909 $
+; $LastChangedDate: 2020-07-22 18:00:30 -0700 (Wed, 22 Jul 2020) $
+; $LastChangedRevision: 28926 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
 ;-
 pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
                   config=config, xsize=xsize, ysize=ysize, scale=scale, $
-                  key=key, stat=stat, _extra=extra
+                  key=key, stat=stat, nofit=nofit, norm=norm, center=center, $
+                  xcenter=xcenter, ycenter=ycenter, tbar=tbar2, _extra=extra
 
-  common putwincom, windex, maxmon, mgeom
+  common putwincom, windex, maxmon, mgeom, tbar
 
 ; Silently act like window until CONFIG is set.
 
@@ -131,18 +146,32 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
     return
   endif
 
+; Window title bar width from keyword
+
+  if (size(tbar2,/type) gt 0) then tbar = fix(tbar2[0])
+
 ; Alternate method of setting PUTWIN keywords.  Except for XSIZE and YSIZE,
 ; all keywords for WINDOW must be passed separately in the usual way.
 
   if (size(key,/type) eq 8) then begin
     str_element, key, 'CONFIG', value, success=ok
     if (ok) then config = value
+    str_element, key, 'STAT', value, success=ok
+    if (ok) then stat = value
     str_element, key, 'MONITOR', value, success=ok
     if (ok) then monitor = value
     str_element, key, 'DX', value, success=ok
     if (ok) then dx = value
     str_element, key, 'DY', value, success=ok
     if (ok) then dy = value
+    str_element, key, 'NORM', value, success=ok
+    if (ok) then norm = value
+    str_element, key, 'CENTER', value, success=ok
+    if (ok) then center = value
+    str_element, key, 'XCENTER', value, success=ok
+    if (ok) then xcenter = value
+    str_element, key, 'YCENTER', value, success=ok
+    if (ok) then ycenter = value
     str_element, key, 'CORNER', value, success=ok
     if (ok) then corner = value
     str_element, key, 'SCALE', value, success=ok
@@ -153,7 +182,13 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
     if (ok) then xsize = value
     str_element, key, 'YSIZE', value, success=ok
     if (ok) then ysize = value
+    str_element, key, 'NOFIT', value, success=ok
+    if (ok) then nofit = value
+    str_element, key, 'TBAR', value, success=ok
+    if (ok) then tbar = value
   endif
+
+  if (size(tbar,/type) eq 0) then tbar = 22
 
 ; Define multiple monitor configuration
 
@@ -236,20 +271,17 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
       else : swe_snap_layout = 0
     endcase
 
-    print,"Monitor configuration: ",format='(a,$)'
+    print,"Monitor configuration: ",strtrim(string(windex),2)
     case windex of
-     -1 : print,'disabled -> putwin acts like window'
-      0 : print,'1440x878 only'
-      1 : print,'1440x878 (below), 5120x1440 (above)'
-      2 : print,'1440x878 (below), 2560x1440 (left, right)'
-      3 : print,'1440x878 (below), 2560x1440 (above)'
+       -1  : print,'  disabled -> putwin acts like window'
+      else : for i=maxmon,0,-1 do print, i, mgeom[2:3,i], format='(2x,i2," :",1x,i5," x ",i5)'
     endcase
     print,""
 
     return
   endif
 
-; If no configuration is set, then just pass everything to window
+; If no configuration is set, then just pass everything to WINDOW
 
   if (windex eq -1) then begin
     if (size(scale,/type) gt 0) then begin
@@ -271,18 +303,27 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
   if (n_elements(scale) eq 0) then scale = 1.
   xsize = fix(float(xsize)*scale)
   ysize = fix(float(ysize)*scale)
-  if (n_elements(dx) eq 0) then dx = 0 else dx = fix(dx[0])
-  if (n_elements(dy) eq 0) then dy = 0 else dy = fix(dy[0])
+  if (n_elements(dx) eq 0) then dx = 0
+  if (n_elements(dy) eq 0) then dy = 0
+  if keyword_set(norm) then begin
+    dx *= mgeom[2, monitor]
+    dy *= mgeom[3, monitor]
+  endif
+  if keyword_set(center) then begin
+    xcenter = 1
+    ycenter = 1
+  endif
+  if keyword_set(xcenter) then dx = (mgeom[2, monitor] - xsize)/2
+  if keyword_set(ycenter) then dy = (mgeom[3, monitor] - ysize)/2
+  dx = fix(dx[0])
+  dy = fix(dy[0])
   if (n_elements(corner) eq 0) then corner = 0 else corner = fix(corner[0])
   corner = abs(corner) mod 4
 
-  tbar = 22                         ; title bar width
   xoff = mgeom[0, monitor]          ; horizontal offset
   yoff = mgeom[1, monitor]          ; vertical offset
   xdim = mgeom[2, monitor]          ; horizontal dimension
   ydim = mgeom[3, monitor]          ; vertical dimension
-
-; Make sure window will fit
 
   if keyword_set(full) then begin
     xsize = xdim
@@ -292,15 +333,14 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
     corner = 0
   endif
 
-; First try to move the window
+; Make sure window will fit by moving, then shrinking if necessary
 
-  dx = dx < ((xdim - xsize) > 0)
-  dy = dy < ((ydim - tbar - ysize) > 0)
-
-; If that's not enough, shrink the window as well
-
-  xsize = xsize < (xdim - dx)
-  ysize = ysize < (ydim - tbar - dy)
+  if ~keyword_set(nofit) then begin
+    dx = dx < ((xdim - xsize) > 0)
+    dy = dy < ((ydim - tbar - ysize) > 0)
+    xsize = xsize < (xdim - dx)
+    ysize = ysize < (ydim - tbar - dy)
+  endif
 
 ; Place window relative to corner
 
