@@ -112,7 +112,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
       epde_overaccumulation_factors[15] = 1.15
       epde_thresh_factors = indgen(16)*0.+1.
       ;  ***** TO DO: Change to read from file *******
-      if trange LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./2 $
+      if trange[0] LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./2 $
          else epde_thresh_factors[0] = 1./4 ; change me to match the threshold curves
       epde_thresh_factors[1] = 1.6
       epde_thresh_factors[2] = 1.2
@@ -139,7 +139,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
       epdi_overaccumulation_factors[15] = 1./2
       epdi_thresh_factors = indgen(16)*0.+1.
       ;  ***** TO DO: Change to read from file *******
-      if trange LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./2 $
+      if trange[0] LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./2 $
          else epde_thresh_factors[0] = 1./4 ; change me to match the threshold curves
       ;epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
       epdi_thresh_factors[1] = 1.6
