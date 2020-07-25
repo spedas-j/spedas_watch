@@ -78,9 +78,9 @@ pro spp_fld_sc_hk_med_load_l1, file, prefix = prefix, varformat = varformat
 
     t = double(time_intervals(trange=ts, /minute))
 
-    f1 = data_cut('spp_fld_sc_hk_med_F1_CURR', t)
+    f1 = data_cut('spp_fld_sc_hk_med_F1_CURR', t, gap_dist = 300d, interp_gap = 1)
 
-    f2 = data_cut('spp_fld_sc_hk_med_F2_CURR', t)
+    f2 = data_cut('spp_fld_sc_hk_med_F2_CURR', t, gap_dist = 300d, interp_gap = 1)
 
     f1_scaled = (f1 GT 0.3) * (f1 / f1) ; last bit is just so NaN -> NaN
 

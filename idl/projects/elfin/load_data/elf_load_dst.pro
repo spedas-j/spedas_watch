@@ -81,7 +81,7 @@ pro elf_load_dst, no_download=no_download, trange=trange
   dst_times=time_double(dst_fields.field1[idx])
   dst_values=dst_fields.field3[idx]
   dt = 1800.
-  dst={x:dst_times-1800., y:dst_values}
+  dst={x:dst_times+1800., y:dst_values}
   store_data, 'dst', data=dst
   options, 'dst', colors=251
   options, 'dst', psym=10

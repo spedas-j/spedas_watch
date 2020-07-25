@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-07-10 16:26:26 -0700 (Fri, 10 Jul 2020) $
-; $LastChangedRevision: 28877 $
+; $LastChangedDate: 2020-07-24 15:34:30 -0700 (Fri, 24 Jul 2020) $
+; $LastChangedRevision: 28938 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -30,7 +30,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   ; TODO: remove this line once we have Level 2 ephemeris files
 
-  l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_burst', 'rfs_hfr_cross', $
+  l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_hfr_cross', $
     'dcb_analog_hk', $
     'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps', 'f2_100bps', 'dfb_hk']
 
@@ -172,6 +172,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   if not keyword_set(pathformat) then begin
     if level EQ 3 then begin
       pathformat =  'TYPE/YYYY/MM/psp_fld_l3_TYPE_YYYYMMDDhh_v??.cdf'
+      resolution = 3600l * 6l ; hours
+      daily_names = 0
     endif else if level EQ 2 then begin
       pathformat =  'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDD_v??.cdf'
       if type EQ 'mag_SC' then begin
