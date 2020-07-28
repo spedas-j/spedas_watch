@@ -12,7 +12,7 @@
 ;     'Enceladus_CoRotation': Enceladus centered Cassini location - Cartesian Co-Rotational
 ;     'Hyperion': Hyperion centered Cassini orbit parameters
 ;     'Iapetus': Iapetus centered Cassini orbit parameters
-;     'Jupiter' [CURRENTLY DOES NOT WORK]: Cassini Jupiter centered orbit parameters
+;     'Jupiter': Cassini Jupiter centered orbit parameters
 ;     'Mimas': Mimas centered Cassini orbit parameters
 ;     'Phoebe': Phoebe centered Cassini orbit parameters
 ;     'Rhea': Rhea centered Cassini orbit parameters
@@ -38,8 +38,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-07-11 02:06:11 -0700 (Sat, 11 Jul 2020) $
-; $Revision: 28879 $
+; $Date: 2020-07-27 13:04:34 -0700 (Mon, 27 Jul 2020) $
+; $Revision: 28941 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_ephemeris.pro $
 ;-
 
@@ -118,6 +118,8 @@ pro das2dlm_load_cassini_ephemeris, trange=trange, source=source, interval=inter
     options, /default, tvarname, 'ytitle', ytitle ; Title from the properties
   endfor
 
+  ; Cleaning up
+  res = das2c_free(query)
       
   ; TODO: add check on null
 end

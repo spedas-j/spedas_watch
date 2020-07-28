@@ -15,8 +15,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-07-10 22:45:53 -0700 (Fri, 10 Jul 2020) $
-; $Revision: 28878 $
+; $Date: 2020-07-27 13:04:34 -0700 (Mon, 27 Jul 2020) $
+; $Revision: 28941 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_vec.pro $
 ;-
 
@@ -121,6 +121,9 @@ pro das2dlm_load_cassini_mag_vec, trange=trange, source=source
     options, /default, tvarname, 'title', 'Magnetometer Vector' ; custom title
     ytitle = source + ', ' + DAS2.units
     options, /default, tvarname, 'ytitle', ytitle ; Title from the properties
+    
+    ; Cleaning up
+    res = das2c_free(query)
     
   ; TODO: add check on null
 
