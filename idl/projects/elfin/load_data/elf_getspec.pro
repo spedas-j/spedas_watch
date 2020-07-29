@@ -122,15 +122,15 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; in the middle between sector nspinsectors-1 and sector 0, meaning there is no need for any other time-shift rel.to.FGM
   ; CORRECT UNITS IN PLOT, AND ENERGY BINS
   ;
-  ; First redefine energies in structure to be middle of energy width. In the future this will be corrected in CDFs.
+  Emids=elx_pxf.v
   Emins=elx_pxf.v
-  Max_numchannels = n_elements(elx_pxf.v) ; this is 16
-  Emaxs=(Emins[1:Max_numchannels-1])
-  ; last channel is integral, add it anyway
-  dEoflast=(Emaxs[Max_numchannels-2]-Emins[Max_numchannels-2])
-  Emaxs=[Emaxs,Emins[Max_numchannels-1]+dEoflast] ; last channel's, max energy not representative, use same dE/E as previous
-  Emids=(Emaxs+Emins)/2.
-  elx_pxf.v=Emids
+  Emaxs=elx_pxf.v
+  Max_numchannels = n_elements(elx_pxf.v) ; this is 16 (nominally)
+  Emins[Max_numchannels-1]=5800. ; keV, fixed Emin of uppermost channel
+  for j=0,Max_numchannels-2 do Emins[Max_numchannels-2-j]= $
+      10^(2*alog10(Emids[Max_numchannels-2-j])-alog10(Emins[Max_numchannels-2-j+1]))
+  Emaxs[Max_numchannels-1]=Emids[Max_numchannels-1]+(Emids[Max_numchannels-1]-Emins[Max_numchannels-1])
+  for j=0,Max_numchannels-2 do Emaxs[j]=Emins[j+1]
   ;
   ; Next define the energies to plot pitch angle spectra for
   ;
@@ -164,8 +164,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf.y[xra,*]=elx_pxf.y[xra+abs(dSectr2add),*]
       elx_pxf.y[dSectr2add:nsectors-1,*]=!VALUES.F_NaN
     endelse
-    store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
-  endif  
+  endif
+  store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
   ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; extrapolate on the left and right to [0,...nspinsectors-1]
