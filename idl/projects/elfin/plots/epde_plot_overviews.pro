@@ -331,10 +331,14 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       badflag=fix(phase_delay.badflag)
       if dphang2add LT 0 then dphang_string=strmid(strtrim(string(dphang2add),1),0,5) else $
          dphang_string=strmid(strtrim(string(dphang2add),1),0,4)
+      if badflag NE 0 then badflag_str=', BadFlag set' else badflag_str=''
       case medianflag of
-        0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string
-        1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string;strmid(strtrim(string(dphang2add),1),0,4)
-        2: phase_msg = 'No phase delay available. Data is not regularized.'
+        0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + badflag_str
+        1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + badflag_str 
+        2: begin
+          if badflag NE 0 then phase_msg = 'No phase delay available. Data is not regularized. BadFlag set.' $
+            else phase_msg = 'No phase delay available. Data is not regularized.'
+        end
       endcase
     
       spin_str=''
