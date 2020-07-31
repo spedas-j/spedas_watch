@@ -1,7 +1,7 @@
 pro elf_plot_sci_zone_lat, probe=probe, tstart=tstart, dur=dur
 
   tstart=time_double('2020-06-01')
-  dur=38
+  dur=58
   probe='b'
   if undefined(probe) then probe='a' else probe=probe
   
@@ -10,7 +10,7 @@ pro elf_plot_sci_zone_lat, probe=probe, tstart=tstart, dur=dur
 ;    this_start=tstart + i*86400.
 ;    this_end=this_start + 86400.
 
-    timespan, tstart, 38., /days
+    timespan, tstart, 58., /days
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Get position data
@@ -68,89 +68,156 @@ pro elf_plot_sci_zone_lat, probe=probe, tstart=tstart, dur=dur
           this_e = pef_nflux.x[idx[sz]]
           eidx = idx[sz]
           mdiff=min(abs(mag_lat.x - this_s),midx)
-          this_mag=mag_lat.y[midx]
+          smag=mag_lat.y[midx]
+          mdiff=min(abs(mag_lat.x - this_e),midx)
+          emag=mag_lat.y[midx]
         endelse
         if (this_e-this_s) lt 60. then continue
         append_array, sz_starttimes, this_s
         append_array, sz_endtimes, this_e
         append_array, sz_min_st, sidx
         append_array, sz_min_en, eidx
-        append_array, mag_lats, this_mag
+        append_array, s_lats, smag
+        append_array, e_lats, emag
       endfor
     endelse
 
+  ; figure out mag lats for starts
   if probe eq 'a' then begin  
-    idx=where(mag_lats GT 0, ncnt)
+    idx=where(s_lats GT 0, ncnt)
     if ncnt GT 0 then begin
       na_starts=sz_starttimes[idx]
-      na_mags=mag_lats[idx]
+      na_smags=s_lats[idx]
     endif
-    idx=where(mag_lats LT 0, ncnt)
+    idx=where(s_lats LT 0, ncnt)
     if ncnt GT 0 then begin
       sa_starts=sz_starttimes[idx]
-      sa_mags=mag_lats[idx]
+      sa_smags=s_lats[idx]
     endif
   endif else begin
-    idx=where(mag_lats GT 0, ncnt)
+    idx=where(s_lats GT 0, ncnt)
     if ncnt GT 0 then begin
       nb_starts=sz_starttimes[idx]
-      nb_mags=mag_lats[idx]
+      nb_smags=s_lats[idx]
     endif
-    idx=where(mag_lats LT 0, ncnt)
+    idx=where(s_lats LT 0, ncnt)
     if ncnt GT 0 then begin
       sb_starts=sz_starttimes[idx]
-      sb_mags=mag_lats[idx]
+      sb_smags=s_lats[idx]
     endif    
   endelse
-  if probe EQ 'a' then save, file='test_mag'+probe+'.sav', na_starts, na_mags, sa_starts, sa_mags, tstart
-  if probe EQ 'b' then save, file='test_mag'+probe+'.sav', nb_starts, nb_mags, sb_starts, sb_mags, tstart
-    stop
+
+  if probe EQ 'a' then save, file='test_mag'+probe+'_starts.sav', na_starts, na_smags, sa_starts, sa_smags, tstart
+  if probe EQ 'b' then save, file='test_mag'+probe+'_starts.sav', nb_starts, nb_smags, sb_starts, sb_smags, tstart
+
+; REPEAT for ends figure out mag lats for ends
+if probe eq 'a' then begin
+  idx=where(e_lats GT 0, ncnt)
+  if ncnt GT 0 then begin
+    na_ends=sz_endtimes[idx]
+    na_emags=e_lats[idx]
+  endif
+  idx=where(e_lats LT 0, ncnt)
+  if ncnt GT 0 then begin
+    sa_ends=sz_endtimes[idx]
+    sa_emags=e_lats[idx]
+  endif
+endif else begin
+  idx=where(e_lats GT 0, ncnt)
+  if ncnt GT 0 then begin
+    nb_ends=sz_endtimes[idx]
+    nb_emags=e_lats[idx]
+  endif
+  idx=where(e_lats LT 0, ncnt)
+  if ncnt GT 0 then begin
+    sb_ends=sz_endtimes[idx]
+    sb_emags=e_lats[idx]
+  endif
+endelse
+
+if probe EQ 'a' then save, file='test_mag'+probe+'_ends.sav', na_ends, na_emags, sa_ends, sa_emags, tstart
+if probe EQ 'b' then save, file='test_mag'+probe+'_ends.sav', nb_ends, nb_emags, sb_ends, sb_emags, tstart
+
 
 del_data, '*'
 undefine, sz_starttimes
 undefine, sz_endtimes
 undefine, sz_min_st
 undefine, sz_min_en
-undefine, sz_mag_lats
-  
-restore, file='test_maga.sav'
+undefine, s_lats
+undefine, s_lats
+stop  
+restore, file='test_maga_starts.sav'
 t0=time_double('2020-06-01')
-days_na=(na_starts-t0)/86400.
-days_sa=(sa_starts-t0)/86400.
-mags_na=na_mags
-mags_sa=sa_mags
+sdays_na=(na_starts-t0)/86400.
+sdays_sa=(sa_starts-t0)/86400.
+smags_na=na_smags
+smags_sa=sa_smags
 
-restore, file='test_magb.sav'
+restore, file='test_magb_starts.sav'
 t0=time_double('2020-06-01')
-days_nb=(nb_starts-t0)/86400.
-days_sb=(sb_starts-t0)/86400.
-mags_nb=nb_mags
-mags_sb=sb_mags
+sdays_nb=(nb_starts-t0)/86400.
+sdays_sb=(sb_starts-t0)/86400.
+smags_nb=nb_smags
+smags_sb=sb_smags
+
+restore, file='test_maga_ends.sav'
+t0=time_double('2020-06-01')
+edays_na=(na_ends-t0)/86400.
+edays_sa=(sa_ends-t0)/86400.
+emags_na=na_emags
+emags_sa=sa_emags
+
+restore, file='test_magb_ends.sav'
+t0=time_double('2020-06-01')
+edays_nb=(nb_ends-t0)/86400.
+edays_sb=(sb_ends-t0)/86400.
+emags_nb=nb_emags
+emags_sb=sb_emags
 
 thm_init
-!p.multi=[0,0,2,0,0]
-window, xsize=750, ysize=950
-title='North Ascending Science Zone'
+!p.multi=[0,2,2,0,0]
+window, xsize=850, ysize=950
+
+title='ELFIN A North Science Zones'
 xtitle='Days since June 1, 2020'
-ytitle='Starting Magnetic Latitude, deg'
+ytitle='Starting/Ending Magnetic Latitude, deg'
+subtitle='Start - Blue Square, End = Red Diamond'
+;plot, sdays_na, smags_na, title=title, xtitle=xtitle, ytitle=ytitle, $
+;    yrange=[0,90], linestyle=1, subtitle=subtitle
+  plot, sdays_na, smags_na, title=title, xtitle=xtitle, ytitle=ytitle, $
+    yrange=[0,90], psym=6, subtitle=subtitle
+oplot, sdays_na, smags_na, color=80, psym=6
+;oplot, edays_na, emags_na, linestyle=1
+oplot, edays_na, emags_na, color=250, psym=4
 
-plot, days_na, na_mags, title=title, xtitle=xtitle, ytitle=ytitle, $
-  yrange=[0,75], linestyle=1
-oplot, days_na, na_mags, color=80, psym=6
-oplot, days_nb, nb_mags, linestyle=1
-oplot, days_nb, nb_mags, color=250, psym=4
-
-title='Souh Ascending Science Zone'
+title='ELFIN B North Science Zones'
 xtitle='Days since June 1, 2020'
-ytitle='Starting Magnetic Latitude, deg'
-subtitle='ELF A - Blue Square, ELF B = Red Diamond'
+ytitle='Starting/Ending Magnetic Latitude, deg'
+;plot, sdays_nb, smags_nb, title=title, xtitle=xtitle, ytitle=ytitle, $
+ ; yrange=[0,90], linestyle=1, subtitle=subtitle
+  plot, sdays_nb, smags_nb, title=title, xtitle=xtitle, ytitle=ytitle, $
+    yrange=[0,90], psym=6, subtitle=subtitle
+oplot, sdays_nb, smags_nb, color=80, psym=6
+;oplot, edays_nb, emags_nb, linestyle=1
+oplot, edays_nb, emags_nb, color=250, psym=4
 
-plot, days_sb, sb_mags, title=title, xtitle=xtitle, ytitle=ytitle, subtitle=subtitle, $
-  yrange=[-75,0], linestyle=1
-oplot, days_sa, sa_mags, linestyle=1
-oplot, days_sa, sa_mags, color=80, psym=6, symsize=1.25
-oplot, days_sb, sb_mags, color=250, psym=4
-makejpg, 'C:\Users\clrussell\Desktop\Starting Magnetic Latitudes in Science Zones'
- 
- 
+title='ELFIN A South Science Zones'
+subtitle='Start - Blue Square, End = Red Diamond'
+plot, sdays_sa, smags_sa, title=title, xtitle=xtitle, ytitle=ytitle, $
+  yrange=[0,-90], psym=6, subtitle=subtitle
+oplot, sdays_sa, smags_sa, color=80, psym=6
+;oplot, edays_sa, emags_sa, linestyle=1
+oplot, edays_sa, emags_sa, color=250, psym=4
+
+title='ELFIN B South Science Zones'
+plot, sdays_sb, smags_sb, title=title, xtitle=xtitle, ytitle=ytitle, $
+  yrange=[0,-90], psym=6, subtitle=subtitle
+oplot, sdays_sb, smags_sb, color=80, psym=6
+;oplot, edays_sb, emags_sb, linestyle=1
+oplot, edays_sb, emags_sb, color=250, psym=4
+
+makejpg, 'C:\Users\clrussell\Desktop\Starting and Ending Magnetic Latitudes in Science Zones '
+
+
 end

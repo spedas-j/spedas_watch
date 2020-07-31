@@ -1,8 +1,10 @@
 function elf_make_spin_att_string, probe=probe
 
    get_data, 'el'+probe+'_spin_att_ang', data=d
-   zone_string='b w/SP, deg: NA/ND/SD/SA: '
-
+   zone_string1='B/SP: ' 
+   zone_string2=' (NA/ND/SD/SA, deg) '
+   zone_string=''
+   
    ; Find NA, ND, SD, SA
    idx=where(d.z EQ 'NA', ncnt)
    if ncnt EQ 0 then begin
@@ -36,6 +38,8 @@ function elf_make_spin_att_string, probe=probe
      zone_string=zone_string+strtrim(string(fix(d.y[idx])),1)
    endelse
         
-   return, zone_string
+   full_zone_string=zone_string1+zone_string+zone_string2
+
+   return, full_zone_string
    
 end

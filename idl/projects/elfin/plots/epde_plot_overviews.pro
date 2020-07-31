@@ -403,6 +403,14 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       perp_origv=perp.v
       get_data, 'el'+probe+'_pef_en_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
       para_origv=para.v
+      get_data, 'el'+probe+'_pef_en_reg_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
+      omni_oregv=omni.v
+      get_data, 'el'+probe+'_pef_en_reg_spec2plot_anti', data=anti, dlimits=anti_dl, limits=anti_l
+      anti_oregv=anti.v
+      get_data, 'el'+probe+'_pef_en_reg_spec2plot_perp', data=perp, dlimits=perp_dl, limits=perp_l
+      perp_oregv=perp.v
+      get_data, 'el'+probe+'_pef_en_reg_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
+      para_oregv=para.v
 
       ;;;;;;;;;;;;;;;;;;;;;;
       ; PLOT
@@ -432,12 +440,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
-          'el'+probe+'_pef_en_spec2plot_omni', $
-          'el'+probe+'_pef_en_spec2plot_anti', $
-          'el'+probe+'_pef_en_spec2plot_perp', $
-          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_en_reg_spec2plot_omni', $
+          'el'+probe+'_pef_en_reg_spec2plot_anti', $
+          'el'+probe+'_pef_en_reg_spec2plot_perp', $
+          'el'+probe+'_pef_en_reg_spec2plot_para', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
-          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_pef_pa_reg_spec2plot_ch[2,3]LC', $
           'el'+probe+'_bt89_sm_NED'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']        
       endelse
@@ -458,7 +466,11 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       endif
 
       ; save for later
-      get_data, 'el'+probe+'_pef_en_spec2plot_omni', data=omni_d, dlimits=omni_dl, limits=omni_l   
+      get_data, 'el'+probe+'_pef_en_reg_spec2plot_omni', data=omni_reg_d, dlimits=omni_dl, limits=omni_l   
+      get_data, 'el'+probe+'_pef_en_reg_spec2plot_anti', data=anti_reg_d, dlimits=anti_dl, limits=anti_l
+      get_data, 'el'+probe+'_pef_en_reg_spec2plot_perp', data=perp_reg_d, dlimits=perp_dl, limits=perp_l
+      get_data, 'el'+probe+'_pef_en_reg_spec2plot_para', data=para_reg_d, dlimits=para_dl, limits=para_l
+      get_data, 'el'+probe+'_pef_en_spec2plot_omni', data=omni_d, dlimits=omni_dl, limits=omni_l
       get_data, 'el'+probe+'_pef_en_spec2plot_anti', data=anti_d, dlimits=anti_dl, limits=anti_l
       get_data, 'el'+probe+'_pef_en_spec2plot_perp', data=perp_d, dlimits=perp_dl, limits=perp_l
       get_data, 'el'+probe+'_pef_en_spec2plot_para', data=para_d, dlimits=para_dl, limits=para_l
@@ -497,14 +509,18 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       copy_data, 'el'+probe+'_pef_en_spec2plot_anti', 'el'+probe+'_pef_en_spec2plot_anti_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_en_spec2plot_perp', 'el'+probe+'_pef_en_spec2plot_perp_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_en_spec2plot_para', 'el'+probe+'_pef_en_spec2plot_para_sz'+strtrim(string(num),2)
-      copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch0', 'el'+probe+'_pef_pa_reg_spec2plot_ch0_sz'+strtrim(string(num),2)
-      copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch1', 'el'+probe+'_pef_pa_reg_spec2plot_ch1_sz'+strtrim(string(num),2)
-      copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch2', 'el'+probe+'_pef_pa_reg_spec2plot_ch2_sz'+strtrim(string(num),2)
-      copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch3', 'el'+probe+'_pef_pa_reg_spec2plot_ch3_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_pa_spec2plot_ch0', 'el'+probe+'_pef_pa_spec2plot_ch0_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_pa_spec2plot_ch1', 'el'+probe+'_pef_pa_spec2plot_ch1_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_pa_spec2plot_ch2', 'el'+probe+'_pef_pa_spec2plot_ch2_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_pa_spec2plot_ch3', 'el'+probe+'_pef_pa_spec2plot_ch3_sz'+strtrim(string(num),2)
+      copy_data, 'el'+probe+'_pef_en_reg_spec2plot_omni', 'el'+probe+'_pef_en_reg_spec2plot_omni_sz'+strtrim(string(num),2)
+      copy_data, 'el'+probe+'_pef_en_reg_spec2plot_anti', 'el'+probe+'_pef_en_reg_spec2plot_anti_sz'+strtrim(string(num),2)
+      copy_data, 'el'+probe+'_pef_en_reg_spec2plot_perp', 'el'+probe+'_pef_en_reg_spec2plot_perp_sz'+strtrim(string(num),2)
+      copy_data, 'el'+probe+'_pef_en_reg_spec2plot_para', 'el'+probe+'_pef_en_reg_spec2plot_para_sz'+strtrim(string(num),2)
+      copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch0', 'el'+probe+'_pef_pa_reg_spec2plot_ch0_sz'+strtrim(string(num),2)
+      copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch1', 'el'+probe+'_pef_pa_reg_spec2plot_ch1_sz'+strtrim(string(num),2)
+      copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch2', 'el'+probe+'_pef_pa_reg_spec2plot_ch2_sz'+strtrim(string(num),2)
+      copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch3', 'el'+probe+'_pef_pa_reg_spec2plot_ch3_sz'+strtrim(string(num),2)
 
     endfor
   
@@ -513,6 +529,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   anti_str=''
   perp_str=''
   para_str=''
+  omni_reg_str=''
+  anti_reg_str=''
+  perp_reg_str=''
+  para_reg_str=''
   pa_ch0_str=''
   pa_ch1_str=''
   pa_ch2_str=''
@@ -526,6 +546,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     anti_str+=' el'+probe+'_pef_en_spec2plot_anti_sz'+strtrim(string(n),2)
     perp_str+=' el'+probe+'_pef_en_spec2plot_perp_sz'+strtrim(string(n),2)
     para_str+=' el'+probe+'_pef_en_spec2plot_para_sz'+strtrim(string(n),2)
+    omni_reg_str+=' el'+probe+'_pef_en_reg_spec2plot_omni_sz'+strtrim(string(n),2)
+    anti_reg_str+=' el'+probe+'_pef_en_reg_spec2plot_anti_sz'+strtrim(string(n),2)
+    perp_reg_str+=' el'+probe+'_pef_en_reg_spec2plot_perp_sz'+strtrim(string(n),2)
+    para_reg_str+=' el'+probe+'_pef_en_reg_spec2plot_para_sz'+strtrim(string(n),2)
     pa_ch0_str+=' el'+probe+'_pef_pa_spec2plot_ch0_sz'+strtrim(string(n),2)
     pa_ch1_str+=' el'+probe+'_pef_pa_spec2plot_ch1_sz'+strtrim(string(n),2)
     pa_ch2_str+=' el'+probe+'_pef_pa_spec2plot_ch2_sz'+strtrim(string(n),2)
@@ -540,6 +564,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   store_data, 'el'+probe+'_pef_en_spec2plot_anti_all', data=anti_str, dlimits=anti_dl, limits=anti_l
   store_data, 'el'+probe+'_pef_en_spec2plot_perp_all', data=perp_str, dlimits=perp_dl, limits=perp_l
   store_data, 'el'+probe+'_pef_en_spec2plot_para_all', data=para_str, dlimits=para_dl, limits=para_l
+  store_data, 'el'+probe+'_pef_en_reg_spec2plot_omni_all', data=omni_reg_str, dlimits=omni_dl, limits=omni_l
+  store_data, 'el'+probe+'_pef_en_reg_spec2plot_anti_all', data=anti_reg_str, dlimits=anti_dl, limits=anti_l
+  store_data, 'el'+probe+'_pef_en_reg_spec2plot_perp_all', data=perp_reg_str, dlimits=perp_dl, limits=perp_l
+  store_data, 'el'+probe+'_pef_en_reg_spec2plot_para_all', data=para_reg_str, dlimits=para_dl, limits=para_l
   
   ; Overwrite losscone/antilosscone tplot variable with full day from elf_getspec
   if nplots eq 25 then this_tr=[dat_gei.x[min_st[24]], dat_gei.x[min_en[24]]] $
@@ -619,19 +647,33 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     copy_data,'el'+probe+'_pef_en_spec2plot_anti_all','el'+probe+'_pef_en_spec2plot_anti'
     copy_data,'el'+probe+'_pef_en_spec2plot_perp_all','el'+probe+'_pef_en_spec2plot_perp'
     copy_data,'el'+probe+'_pef_en_spec2plot_para_all','el'+probe+'_pef_en_spec2plot_para'
+    copy_data,'el'+probe+'_pef_en_reg_spec2plot_omni_all','el'+probe+'_pef_en_reg_spec2plot_omni'
+    copy_data,'el'+probe+'_pef_en_reg_spec2plot_anti_all','el'+probe+'_pef_en_reg_spec2plot_anti'
+    copy_data,'el'+probe+'_pef_en_reg_spec2plot_perp_all','el'+probe+'_pef_en_reg_spec2plot_perp'
+    copy_data,'el'+probe+'_pef_en_reg_spec2plot_para_all','el'+probe+'_pef_en_reg_spec2plot_para'
     copy_data,'el'+probe+'_pef_pa_reg_spec2plot_ch0LC_all','el'+probe+'_pef_pa_reg_spec2plot_ch0LC'
     copy_data,'el'+probe+'_pef_pa_reg_spec2plot_ch1LC_all','el'+probe+'_pef_pa_reg_spec2plot_ch1LC'
     copy_data,'el'+probe+'_pef_pa_spec2plot_ch2LC_all','el'+probe+'_pef_pa_spec2plot_ch2LC'
     copy_data,'el'+probe+'_pef_pa_spec2plot_ch3LC_all','el'+probe+'_pef_pa_spec2plot_ch3LC'
+    copy_data,'el'+probe+'_pef_pa_reg_spec2plot_ch2LC_all','el'+probe+'_pef_pa_reg_spec2plot_ch2LC'
+    copy_data,'el'+probe+'_pef_pa_reg_spec2plot_ch3LC_all','el'+probe+'_pef_pa_reg_spec2plot_ch3LC'
     
     options, 'el'+probe+'_pef_en_spec2plot_omni', 'ysubtitle', '[keV]'
     options, 'el'+probe+'_pef_en_spec2plot_anti', 'ysubtitle', '[keV]'
     options, 'el'+probe+'_pef_en_spec2plot_perp', 'ysubtitle', '[keV]'
     options, 'el'+probe+'_pef_en_spec2plot_para', 'ysubtitle', '[keV]'
-    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch0LC', 'ysubtitle', '[deg]'
-    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC', 'ysubtitle', '[deg]'
+    options, 'el'+probe+'_pef_pa_spec2plot_ch0LC', 'ysubtitle', '[deg]'
+    options, 'el'+probe+'_pef_pa_spec2plot_ch1LC', 'ysubtitle', '[deg]'
     options, 'el'+probe+'_pef_pa_spec2plot_ch2LC', 'ysubtitle', '[deg]'
     options, 'el'+probe+'_pef_pa_spec2plot_ch3LC', 'ysubtitle', '[deg]'
+    options, 'el'+probe+'_pef_en_reg_spec2plot_omni', 'ysubtitle', '[keV]'
+    options, 'el'+probe+'_pef_en_reg_spec2plot_anti', 'ysubtitle', '[keV]'
+    options, 'el'+probe+'_pef_en_reg_spec2plot_perp', 'ysubtitle', '[keV]'
+    options, 'el'+probe+'_pef_en_reg_spec2plot_para', 'ysubtitle', '[keV]'
+    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch0LC', 'ysubtitle', '[deg]'
+    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC', 'ysubtitle', '[deg]'
+    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch2LC', 'ysubtitle', '[deg]'
+    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch3LC', 'ysubtitle', '[deg]'
     
     ylim,'el?_p?f_pa*spec2plot* *losscone* el?_p?f_pa*spec2plot_ch?LC*',0,180.
     options,'el?_p?f_pa*spec2plot_ch0LC*','ztitle',''
@@ -640,14 +682,14 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     options,'el?_p?f_pa*spec2plot_ch1LC*','ztitle','#/(scm!U2!NstrMeV)'
     options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle',''
     options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle','#/(scm!U2!NstrMeV)'
-    options,'el?_p?f_en_spec2plot_omni','ztitle',''
-    options,'el?_p?f_en_spec2plot_omni','ztitle','#/(scm!U2!NstrMeV)'
-    options,'el?_p?f_en_spec2plot_anti','ztitle',''
-    options,'el?_p?f_en_spec2plot_anti','ztitle','#/(scm!U2!NstrMeV)'
-    options,'el?_p?f_en_spec2plot_perp','ztitle',''
-    options,'el?_p?f_en_spec2plot_perp','ztitle','#/(scm!U2!NstrMeV)'
-    options,'el?_p?f_en_spec2plot_para','ztitle',''
-    options,'el?_p?f_en_spec2plot_para','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_en*spec2plot_omni','ztitle',''
+    options,'el?_p?f_en*spec2plot_omni','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_en*spec2plot_anti','ztitle',''
+    options,'el?_p?f_en*spec2plot_anti','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_en*spec2plot_perp','ztitle',''
+    options,'el?_p?f_en*spec2plot_perp','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_en*spec2plot_para','ztitle',''
+    options,'el?_p?f_en*spec2plot_para','ztitle','#/(scm!U2!NstrMeV)'
     options, 'antilossconedeg', 'linestyle', 2
     
     if tdur Lt 194. then version=6 else version=7
@@ -674,12 +716,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
-          'el'+probe+'_pef_en_spec2plot_omni', $
-          'el'+probe+'_pef_en_spec2plot_anti', $
-          'el'+probe+'_pef_en_spec2plot_perp', $
-          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_en_reg_spec2plot_omni', $
+          'el'+probe+'_pef_en_reg_spec2plot_anti', $
+          'el'+probe+'_pef_en_reg_spec2plot_perp', $
+          'el'+probe+'_pef_en_reg_spec2plot_para', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
-          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_pef_pa_reg_spec2plot_ch[2,3]LC', $
           'el'+probe+'_bt89_sm_NED'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endelse
@@ -706,12 +748,12 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
-          'el'+probe+'_pef_en_spec2plot_omni', $
-          'el'+probe+'_pef_en_spec2plot_anti', $
-          'el'+probe+'_pef_en_spec2plot_perp', $
-          'el'+probe+'_pef_en_spec2plot_para', $
+          'el'+probe+'_pef_en_reg_spec2plot_omni', $
+          'el'+probe+'_pef_en_reg_spec2plot_anti', $
+          'el'+probe+'_pef_en_reg_spec2plot_perp', $
+          'el'+probe+'_pef_en_reg_spec2plot_para', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
-          'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+          'el'+probe+'_pef_pa_reg_spec2plot_ch[2,3]LC', $
           'el'+probe+'_bt89_sm_NED'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endelse
