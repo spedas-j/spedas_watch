@@ -135,8 +135,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-09 09:12:34 -0700 (Thu, 09 Jul 2020) $
-; $LastChangedRevision: 28868 $
+; $LastChangedDate: 2020-07-31 15:50:18 -0700 (Fri, 31 Jul 2020) $
+; $LastChangedRevision: 28965 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -672,7 +672,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,'Lss','ytitle','Mars!cLss (deg)'
     endif
 
-    if (sflg) then begin
+    if (1) then begin
       tname = 'OWLT-STA'
       store_data,tname,data={x:sta.time, y:sta.owlt/60D}
       options,tname,'ytitle','STEREO A!cOWLT (min)'
@@ -691,7 +691,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,tname,'labflag',1
     endif
 
-    if (oflg) then begin
+    if (1) then begin
       tname = 'OWLT-SORB'
       store_data,tname,data={x:sorb.time, y:sorb.owlt/60D}
       options,tname,'ytitle','Solar Orbiter!cOWLT (min)'
@@ -701,26 +701,30 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       r = sqrt(sorb.x^2. + sorb.y^2. + sorb.z^2.)
       store_data,tname,data={x:sorb.time, y:r*(au/Rs)}
       options,tname,'ytitle','Solar Orbiter!cRadius (R!dS!n)'
-      options,tname,'constant',[minmax(planet[0].r), mean(planet[1].r),1.]*(au/Rs)
+      options,tname,'constant',[minmax(planet[0].r), mean(planet[1].r), 1.]*(au/Rs)
+      options,tname,'colors',scol[2]
 
       tname = 'Lat-SORB'
       lat = asin(sorb.z/r)*!radeg
       store_data,tname,data={x:sorb.time, y:lat}
       options,tname,'ytitle','Solar Orbiter!cLatitude (deg)'
       options,tname,'constant',0
+      options,tname,'colors',scol[2]
     endif
 
-    if (pflg) then begin
+    if (1) then begin
       tname = 'OWLT-PSP'
       store_data,tname,data={x:psp.time, y:psp.owlt/60D}
       options,tname,'ytitle','Solar Probe!cOWLT (min)'
       options,tname,'ynozero',1
+      options,tname,'colors',scol[3]
 
       tname = 'R-PSP'
       r = sqrt(psp.x^2. + psp.y^2. + psp.z^2.)
       store_data,tname,data={x:psp.time, y:r*(au/Rs)}
       options,tname,'ytitle','Solar Probe!cRadius (R!dS!n)'
       options,tname,'constant',[minmax(planet[0].r), mean(planet[1].r), 1.]*(au/Rs)
+      options,tname,'colors',scol[3]
     endif
 
   endif

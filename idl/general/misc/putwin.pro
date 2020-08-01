@@ -14,7 +14,7 @@
 ;  may not know about or does not want to use its functionality.
 ;
 ;USAGE:
-;  putwin, wnum, [KEYWORD=value, ...]
+;  putwin [, wnum] [,KEYWORD=value, ...]
 ;
 ;INPUTS:
 ;       wnum:      Window number.  Can be an integer from 0 to 31.
@@ -25,17 +25,15 @@
 ;       Accepts all keywords for WINDOW.  In addition, the following
 ;       are defined:
 ;
-;       CONFIG:    Can take one of three forms: integer, integer array,
-;                  or string, corresponding to different methods of 
-;                  determining the monitor configuration.
+;       CONFIG:    Can take one of two forms: integer or integer array.
 ;
-;                  Integer (pre-defined configurations):
+;                  Integer (automatic configuration):
 ;
-;                    -1 = disabled: putwin acts like window (default)
-;                     0 = 1440x878 only
-;                     1 = 1440x878 (below), 5120x1440 (above)
-;                     2 = 1440x878 (below), 2560x1440 (left, right)
-;                     3 = 1440x878 (below), 2560x1440 (above)
+;                     0 = disabled: putwin acts like window (default)
+;                     1 = automatic
+;                     2 = automatic with double-wide (5K) external
+;                         merged into a single logical monitor
+;                         (only guaranteed to work for the author)
 ;
 ;                  Integer Array (user-defined configuration):
 ;
@@ -46,14 +44,16 @@
 ;
 ;                       cfg[0:3,i] = [x0, y0, xdim, ydim]
 ;
-;                  String (automatically defined configuration):
+;                  In either case, the configuration is defined and stored
+;                  in a common block, but no window is created.
 ;
-;                     If set to 'automatic' (minimum matching), get
-;                     the configuration using IDLsysMonitorInfo.
-;                     (Not thoroughly tested.)
+;       TBAR:      Title bar width in pixels.  Default = 22.
 ;
-;                  In any case, the configuration is defined and stored in
-;                  a common block, but no window is created.
+;                  Window positioning will not be precise unless this
+;                  is set properly.  IDL does not have access to this
+;                  piece of information, so you'll have to figure it
+;                  out.  This value is persistent for subsequent calls 
+;                  to putwin, so you only need to set it once.
 ;
 ;       STAT:      Output the current monitor configuration.
 ;
@@ -73,10 +73,12 @@
 ;                  along the bottom of a monitor are clipped.  This
 ;                  procedure fixes that issue.
 ;
-;       TBAR:      Title bar width in pixels.  Default = 22.
+;       CORNER:    DX and DY are measured from this corner:
 ;
-;                  This value is persistent for subsequent calls to 
-;                  putwin, so you only need to set it once.
+;                    0 = top left (default)
+;                    1 = top right
+;                    2 = bottom left
+;                    3 = bottom right
 ;
 ;       NORM:      Measure DX and DY in normalized coordinates (0-1)
 ;                  instead of pixels.
@@ -86,13 +88,6 @@
 ;       YCENTER:   Center the window in Y.
 ;
 ;       CENTER:    Center the window in both X and Y.
-;
-;       CORNER:    DX and DY are measured from this corner:
-;
-;                    0 = top left (default)
-;                    1 = top right
-;                    2 = bottom left
-;                    3 = bottom right
 ;
 ;       SCALE:     Scale factor for setting the window size.  Only
 ;                  applies when XSIZE and/or YSIZE are set explicitly 
@@ -105,8 +100,18 @@
 ;                  until the window does fit.  Set NOFIT to disable
 ;                  this behavior and create the window as requested.
 ;
+;       XFULL:     Make the window full-screen in X.
+;                  (Ignore, XSIZE and DX.)
+;
+;       YFULL:     Make the window full-screen in Y.
+;                  (Ignore, YSIZE and DY.)
+;
 ;       FULL:      If set, make a full-screen window in MONITOR.
-;                  (Ignore XSIZE, YSIZE, DX, DY, and CORNER.)
+;                  (Ignore XSIZE, YSIZE, DX, DY.)
+;
+;       ASPECT:    Aspect ratio: XSIZE/YSIZE.  If one dimension is
+;                  set with XSIZE, YSIZE, XFULL, or YFULL, this
+;                  keyword sets the other dimension.
 ;
 ;       KEY:       A structure containing any of the above keywords
 ;                  plus XSIZE and YSIZE:
@@ -118,8 +123,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-22 18:00:30 -0700 (Wed, 22 Jul 2020) $
-; $LastChangedRevision: 28926 $
+; $LastChangedDate: 2020-07-31 15:49:26 -0700 (Fri, 31 Jul 2020) $
+; $LastChangedRevision: 28964 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -127,7 +132,8 @@
 pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
                   config=config, xsize=xsize, ysize=ysize, scale=scale, $
                   key=key, stat=stat, nofit=nofit, norm=norm, center=center, $
-                  xcenter=xcenter, ycenter=ycenter, tbar=tbar2, _extra=extra
+                  xcenter=xcenter, ycenter=ycenter, tbar=tbar2, xfull=xfull, $
+                  yfull=yfull, aspect=aspect, _extra=extra
 
   common putwincom, windex, maxmon, mgeom, tbar
 
@@ -138,9 +144,10 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
 ; Output the current monitor configuration.
 
   if keyword_set(stat) then begin
-    if (windex ge 0) then begin
-      print,"Monitor configuration: ",strtrim(string(windex),2)
-      for i=maxmon,0,-1 do print, i, mgeom[2:3,i], format='(2x,i2," :",1x,i5," x ",i5)'
+    if (windex gt 0) then begin
+      print,"Monitor configuration:"
+      j = sort(mgeom[1,0:maxmon])
+      for i=maxmon,0,-1 do print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4)'
       print,""
     endif else print,"Monitor configuration undefined -> putwin acts like window"
     return
@@ -178,6 +185,12 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
     if (ok) then scale = value
     str_element, key, 'FULL', value, success=ok
     if (ok) then full = value
+    str_element, key, 'XFULL', value, success=ok
+    if (ok) then xfull = value
+    str_element, key, 'YFULL', value, success=ok
+    if (ok) then yfull = value
+    str_element, key, 'ASPECT', value, success=ok
+    if (ok) then aspect = value
     str_element, key, 'XSIZE', value, success=ok
     if (ok) then xsize = value
     str_element, key, 'YSIZE', value, success=ok
@@ -197,85 +210,52 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
   if ((sz[0] eq 2) and (sz[1] eq 4)) then begin
     mgeom = fix(config)
     maxmon = sz[2] - 1
-    windex = 4
+    windex = 4  ; user-defined
     swe_snap_layout, 0
-    print,"Monitor configuration: user defined"
-    for i=maxmon,0,-1 do print, i, mgeom[2:3,i], format='(2x,i2," :",1x,i5," x ",i5)'
+    print,"Monitor configuration:"
+    j = sort(mgeom[1,0:maxmon])
+    for i=maxmon,0,-1 do print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4)'
     print,""
     return
   endif
 
-  if (size(config,/type) eq 7) then begin
-    if strmatch('automatic', config[0]+'*', /fold) then begin
-      oInfo = obj_new('IDLsysMonitorInfo')
-        numMons = oInfo->GetNumberOfMonitors()
-        rects = oInfo->GetRectangles()
-        primaryIndex = oInfo->GetPrimaryMonitorIndex()
-      obj_destroy, oInfo
+  if (max(sz) gt 0) then begin
+    cfg = fix(config[0])
 
-      mgeom = rects
-      mgeom[1,*] = rects[3,primaryIndex] - rects[3,*] - rects[1,*]
-      maxmon = numMons - 1
-
-      windex = 5
+    if (cfg eq 0) then begin
       swe_snap_layout, 0
-      print,"Monitor configuration: automatically generated"
-      for i=maxmon,0,-1 do print, i, mgeom[2:3,i], format='(2x,i2," :",1x,i5," x ",i5)'
-      print,""
-    endif else print, "Monitor configuration not recognized: ", config[0]
-    return
-  endif
-
-  if (size(config,/type) gt 0) then begin
-    windex = fix(config[0])
-
-    if ((windex lt -1) or (windex gt 3)) then begin
-      print,"Configuration index must be one of:"
-      print,"  -1 = disabled -> putwin acts like window"
-      print,"   0 = 1440x878 only"
-      print,"   1 = 1440x878 (below), 5120x1440 (above)"
-      print,"   2 = 1440x878 (below), 2560x1440 (left, right)"
-      print,"   3 = 1440x878 (below), 2560x1440 (above)"
-      print,""
       windex = -1
+      print,"Monitor configuration undefined -> putwin acts like window"
       return
     endif
 
-    mgeom = intarr(4,3)  ; [x0, y0, xdim, ydim] for up to 3 monitors (so far)
+    oInfo = obj_new('IDLsysMonitorInfo')
+      numMons = oInfo->GetNumberOfMonitors()
+      rects = oInfo->GetRectangles()
+      primaryIndex = oInfo->GetPrimaryMonitorIndex()
+    obj_destroy, oInfo
 
-    case windex of
-       0   : begin
-               mgeom[*,0] = [   0,    0, 1440,  878]  ; laptop
-               maxmon = 0
-               swe_snap_layout, 0
-             end
-       1   : begin
-               mgeom[*,0] = [1847, -900, 1440,  878]  ; laptop
-               mgeom[*,1] = [   0,    0, 5120, 1440]  ; double-wide external above
-               maxmon = 1
-               swe_snap_layout, 1
-             end
-       2   : begin
-               mgeom[*,0] = [1847, -900, 1440,  878]  ; laptop
-               mgeom[*,1] = [   0,    0, 2560, 1440]  ; external left
-               mgeom[*,2] = [2560,    0, 2560, 1440]  ; external right
-               maxmon = 2
-               swe_snap_layout, 2
-             end
-       3   : begin
-               mgeom[*,0] = [1847, -900, 1440,  878]  ; laptop
-               mgeom[*,1] = [   0,    0, 2560, 1440]  ; external above
-               maxmon = 1
-               swe_snap_layout, 3
-             end
-      else : swe_snap_layout = 0
-    endcase
+    mgeom = rects
+    mgeom[1,*] = rects[3,primaryIndex] - rects[3,*] - rects[1,*]
+    maxmon = numMons - 1
 
-    print,"Monitor configuration: ",strtrim(string(windex),2)
-    case windex of
-       -1  : print,'  disabled -> putwin acts like window'
-      else : for i=maxmon,0,-1 do print, i, mgeom[2:3,i], format='(2x,i2," :",1x,i5," x ",i5)'
+    case maxmon of
+       0   : windex = 0                        ; laptop only
+       1   : windex = 3                        ; laptop with single external
+       2   : if (cfg gt 1) then begin          ; laptop with double-wide external
+               mgeom[0,1] = min(mgeom[0,1:2])
+               mgeom[2,1] += mgeom[2,2]
+               mgeom = mgeom[*,0:1]
+               maxmon -= 1
+               windex = 1
+             endif else windex = 2             ; laptop with two externals
+      else : windex = 5                        ; unknown configuration
     endcase
+    swe_snap_layout, windex
+
+    print,"Monitor configuration:"
+    j = sort(mgeom[1,0:maxmon])
+    for i=maxmon,0,-1 do print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4)'
     print,""
 
     return
@@ -298,11 +278,18 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
   if (n_elements(wnum) eq 0) then wnum = -1 else wnum = fix(wnum[0])
   if (n_elements(monitor) eq 0) then monitor = 1 else monitor = fix(monitor[0])
   monitor = (monitor > 0) < maxmon
-  if (n_elements(xsize) eq 0) then xsize = 800 else xsize = fix(xsize[0])
-  if (n_elements(ysize) eq 0) then ysize = 500 else ysize = fix(ysize[0])
+  if (size(aspect,/type) gt 0) then begin
+    if (n_elements(xsize) gt 0) then begin
+      ysize = float(xsize[0])/aspect
+    endif else begin
+      if (n_elements(ysize) gt 0) then xsize = float(ysize[0])*aspect
+    endelse
+  endif
+  if (n_elements(xsize) eq 0) then xsize = 800
+  if (n_elements(ysize) eq 0) then ysize = 500
   if (n_elements(scale) eq 0) then scale = 1.
-  xsize = fix(float(xsize)*scale)
-  ysize = fix(float(ysize)*scale)
+  xsize = fix(float(xsize[0])*scale)
+  ysize = fix(float(ysize[0])*scale)
   if (n_elements(dx) eq 0) then dx = 0
   if (n_elements(dy) eq 0) then dy = 0
   if keyword_set(norm) then begin
@@ -326,11 +313,21 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
   ydim = mgeom[3, monitor]          ; vertical dimension
 
   if keyword_set(full) then begin
+    xfull = 1
+    yfull = 1
+    undefine, aspect
+  endif
+
+  if keyword_set(xfull) then begin
     xsize = xdim
-    ysize = ydim
     dx = 0
+    if (size(aspect,/type) gt 0) then ysize = fix(float(xsize)/aspect)
+  endif
+
+  if keyword_set(yfull) then begin
+    ysize = ydim - tbar
     dy = 0
-    corner = 0
+    if (size(aspect,/type) gt 0) then xsize = fix(float(ysize)*aspect)
   endif
 
 ; Make sure window will fit by moving, then shrinking if necessary

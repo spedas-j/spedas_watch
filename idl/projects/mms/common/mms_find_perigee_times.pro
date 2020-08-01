@@ -3,7 +3,7 @@
 ;         mms_find_perigee_times
 ;
 ; PURPOSE:
-;         Function that returns the times of perigee closest to the input time (using the MEC data)
+;         Function that returns the times of perigee just before and after the input time (using the MEC data)
 ; 
 ; INPUT: 
 ;         time: time to find perigee
@@ -12,14 +12,14 @@
 ;         probe: spacecraft probe #
 ;         
 ; EXAMPLE:
-;         trange=mms_find_perigee_times('2017-03-21/00:00:00', probe='1')
+;         trange=mms_find_perigee_times('2015-09-02/00:00:00', probe='1')
 ;         
 ; NOTES:
 ;         Created by Naritoshi Kitamura
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-07-30 12:21:34 -0700 (Thu, 30 Jul 2020) $
-; $LastChangedRevision: 28955 $
+; $LastChangedDate: 2020-07-31 13:59:16 -0700 (Fri, 31 Jul 2020) $
+; $LastChangedRevision: 28961 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/mms_find_perigee_times.pro $
 ;-
 

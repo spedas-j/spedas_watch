@@ -252,9 +252,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ; COLLECT DATA FOR PLOTS
   ;--------------------------
   ; Get science collection times
-  ;sci_times=elf_load_science_times()
-  ;sci_timesa=sci_times.a
-  ;sci_timesb=sci_times.b  
+  sci_times=elf_load_science_times()
+  sci_timesa=sci_times.a
+  sci_timesb=sci_times.b  
 
   ; Get position and attitude 
   get_data,'ela_pos_sm',data=ela_state_pos_sm
@@ -281,7 +281,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   get_data, 'elb_att_gse',data=attgseb
 
   ;reset time (attitude data might be several days old)
-  timespan,tstart,88200.,/day
+  timespan,tstart,88200.,/sec
   tr=timerange()
 
   ; determine orbital period
