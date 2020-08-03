@@ -6,9 +6,9 @@
 ; CREATED BY: Mitsuo Oka   Sep 2018
 ;
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-09 22:07:09 -0700 (Thu, 09 Apr 2020) $
-; $LastChangedRevision: 28539 $
+; $LastChangedBy: moka $
+; $LastChangedDate: 2020-08-02 11:27:03 -0700 (Sun, 02 Aug 2020) $
+; $LastChangedRevision: 28969 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sppeva/source/data/sppeva_data.pro $
 ;-
 
@@ -52,12 +52,12 @@ FUNCTION sppeva_data_event, event
     message,/reset
     return, {ID:event.handler, TOP:event.top, HANDLER:0L }
   endif
-
   parent=event.handler
   stash = WIDGET_INFO(parent, /CHILD)
   WIDGET_CONTROL, stash, GET_UVALUE=wid, /NO_COPY
   
   tr_old = !SPPEVA.COM.STRTR
+
   
   case event.id of
     wid.fldStartTime: begin
@@ -73,7 +73,6 @@ FUNCTION sppeva_data_event, event
       ;str_element,/add,wid,'trangeChanged',1
     end
     wid.drpOrbit: begin
-      print, event.index
       stime = wid.orbHist.stime[event.index]
       etime = wid.orbHist.etime[event.index]
       !SPPEVA.COM.STRTR = [stime,etime]
@@ -99,6 +98,12 @@ FUNCTION sppeva_data_event, event
       !SPPEVA.COM.STRTR = [tr_old[0], tstring]
       widget_control, wid.fldEndTime, SET_VALUE=tstring
       obj_destroy, otime
+    end
+    wid.bgType: begin
+      !SPPEVA.COM.TYPETR = event.VALUE
+      orbHist = sppeva_load_events(ephem=event.VALUE)
+      widget_control, wid.drpOrbit, SET_VALUE = orbHist.ORBSET
+      str_element,/add,wid,'orbHist',orbHist
     end
     wid.drpSet: begin
       print,'EVA: ***** EVENT: drpSet *****'
@@ -180,22 +185,13 @@ FUNCTION sppeva_data, parent, $
   ; START & STOP TIMES
   ;--------------------
 
-  orbHist = sppeva_orbit_history()
-  mmax = n_elements(orbHist.STIME)
-  orbSet = strarr(mmax)
-  for m=0, mmax-1 do begin
-    sdate = strmid(orbHist.STIME[m],0,10)
-    edate = strmid(orbHist.ETIME[m],0,10)
-    if(m eq 0)then begin
-      pfx = 'Test     '
-    endif else begin
-      pfx = 'Orbit'+string(m,format='(I4)')
-    endelse
-    orbSet[m] = pfx+': '+sdate+' - '+edate
-  endfor
-  str_element,/add,wid,'lblOrbit',widget_label(base,VALUE='Pre-defined Time Range')
-  str_element,/add,wid,'drpOrbit',widget_droplist(base,VALUE=orbSet,TITLE='',SENSITIVE=1)
-  str_element,/add,wid,'orbHist',orbHist
+  ; orbHist = sppeva_orbit_history()
+  orbHist = sppeva_load_events()
+  bsTR = widget_base(base, /column, /frame)
+    str_element,/add,wid,'lblOrbit',widget_label(bsTR,VALUE='Pre-defined Time Range')
+    str_element,/add,wid,'bgType',CW_BGROUP(bsTR,['Encounter','Ephem'], /ROW, /EXCLUSIVE,SET_VALUE=!SPPEVA.COM.TYPETR)
+    str_element,/add,wid,'drpOrbit',widget_droplist(bsTR,VALUE=orbHist.orbSet,TITLE='',SENSITIVE=1)
+    str_element,/add,wid,'orbHist',orbHist
   
   ; calendar icon
   getresourcepath,rpath

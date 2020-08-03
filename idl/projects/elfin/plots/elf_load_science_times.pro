@@ -17,14 +17,14 @@ function elf_load_science_times, pred=pred, tdate=tdate, dur=dur
   tr=timerange()
    
   ; load science data (only if not predicted orbit plots)
-  if ~keyword_set(pred) then elf_load_epd, type='raw'
+  if ~keyword_set(pred) then elf_load_epd, type='nflux'
   if ~keyword_set(pred) then elf_load_fgm
 
   ; get all science data collected and append times
   ; ELFIN A
-  get_data, 'ela_pef', data=pefa
+  get_data, 'ela_pef_nflux', data=pefa
   if size(pefa, /type) EQ 8 then append_array, sci_timea, pefa.x
-  get_data, 'ela_pif', data=pifa
+  get_data, 'ela_pif_nflux', data=pifa
   if size(pifa, /type) EQ 8 then append_array, sci_timea, pifa.x
   get_data, 'ela_fgf', data=fgfa
   if size(fgfa, /type) EQ 8 then append_array, sci_timea, fgfa.x
@@ -34,9 +34,9 @@ function elf_load_science_times, pred=pred, tdate=tdate, dur=dur
     sci_timesa=sci_timea[UNIQ(sci_timea), SORT(sci_timea)]
 
   ; ELFIN B
-  get_data, 'elb_pef', data=pefb
+  get_data, 'elb_pef_nflux', data=pefb
   if size(pefb, /type) EQ 8 then append_array, sci_timeb, pefb.x
-  get_data, 'elb_pif', data=pifb
+  get_data, 'elb_pif_nflux', data=pifb
   if size(pifb, /type) EQ 8 then append_array, sci_timeb, pifb.x
   get_data, 'elb_fgf', data=fgfb
   if size(fgfb, /type) EQ 8 then append_array, sci_timeb, fgfb.x

@@ -6,9 +6,9 @@
 ; CREATED BY: Mitsuo Oka   Sep 2018
 ;
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-09 22:07:09 -0700 (Thu, 09 Apr 2020) $
-; $LastChangedRevision: 28539 $
+; $LastChangedBy: moka $
+; $LastChangedDate: 2020-08-02 15:57:07 -0700 (Sun, 02 Aug 2020) $
+; $LastChangedRevision: 28971 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sppeva/source/selection/sppeva_sitl.pro $
 ;-
 ;
@@ -194,6 +194,7 @@ PRO sppeva_sitl_seg_edit, t, state=state, var=var, delete=delete, split=split
   ;---------------------
   ; EDIT segSelect
   ;---------------------
+
   eva_sitl_FOMedit, state, segSelect, wgrid=wgrid, vvv=vvv, proj='spp', $
     fom_min_value = 0, fom_max_value=!SPPEVA.GENE.fom_max_value, basepos=!SPPEVA.GENE.BASEPOS
 END

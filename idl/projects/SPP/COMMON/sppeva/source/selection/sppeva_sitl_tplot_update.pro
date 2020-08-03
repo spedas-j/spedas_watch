@@ -42,7 +42,6 @@ PRO sppeva_sitl_tplot_update, segSelect, var
     for N=0, s.Nsegs-1 do begin
       ; Each pre-existing segment is compared to the User's new/modified segment
       rr = segment_overlap([s.START[N], s.STOP[N]],[segSelect.TS, segSelect.TE])
-      print,rr
       case abs(rr) of
         1: begin; partial overlap --> split
           newDISCUSSION = [newDISCUSSION, s.DISCUSSION[N]]

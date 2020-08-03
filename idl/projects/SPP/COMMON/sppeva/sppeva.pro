@@ -8,9 +8,9 @@
 ; CREATED BY: Mitsuo Oka   Sep 2018
 ;
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-09 22:07:09 -0700 (Thu, 09 Apr 2020) $
-; $LastChangedRevision: 28539 $
+; $LastChangedBy: moka $
+; $LastChangedDate: 2020-08-02 11:27:03 -0700 (Sun, 02 Aug 2020) $
+; $LastChangedRevision: 28969 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sppeva/sppeva.pro $
 ;-
 
@@ -110,7 +110,7 @@ PRO sppeva
   dash = {widget:0}
   stack = {fld_i:0L, fld_list:list({Nsegs:0L}), swp_i:0L, swp_list:list({Nsegs:0L})}
   com   = {mode:'FLD', strTR:['',''], parameterset:'01_WIND_basic.txt', commDay:'5',$
-    user_name:user_name, $
+    user_name:user_name, typeTR:0L, $
     fieldPTR:'spp_fld_f1_100bps_DCB_ARCWRPTR',$
     sweapPTR:'psp_swp_swem_dig_hkp_SW_SSRWRADDR'}
   def_struct = {user:user, gene:gene, fild:fild, dash:dash, com:com, stack:stack}

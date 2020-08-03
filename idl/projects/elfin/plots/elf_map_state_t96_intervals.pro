@@ -576,26 +576,26 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       for sci=0, n_elements(tb0)-1 do begin
         tidxb=where(this_time2 GE tb0[sci] and this_time2 LT tb1[sci], bcnt)
         if bcnt GT 5 then begin
-          plots, this_lon2[tidxb], this_lat2[tidxb], psym=2, symsize=.25, color=254   ; thick=3
+          plots, this_lon2[tidxb], this_lat2[tidxb], psym=2, symsize=.25, color=254, thick=3
         endif
       endfor
       for sci=0, n_elements(ta0)-1 do begin
         tidxa=where(this_time GE ta0[sci] and this_time LT ta1[sci], acnt)
         if acnt GT 5 then begin
-          plots, this_lon[tidxa], this_lat[tidxa], psym=2, symsize=.25, color=253   ; thick=3
+          plots, this_lon[tidxa], this_lat[tidxa], psym=2, symsize=.25, color=253, thick=3
         endif
       endfor
     endif else begin
       for sci=0, n_elements(ta0)-1 do begin
         tidxa=where(this_time GE ta0[sci] and this_time LT ta1[sci], acnt)
         if acnt GT 5 then begin
-          plots, this_lon[tidxa], this_lat[tidxa], psym=2, symsize=.25, color=253   ; thick=3
+          plots, this_lon[tidxa], this_lat[tidxa], psym=2, symsize=.25, color=253, thick=3
         endif
       endfor
       for sci=0, n_elements(tb0)-1 do begin
         tidxb=where(this_time2 GE tb0[sci] and this_time2 LT tb1[sci], bcnt)
         if bcnt GT 5 then begin
-          plots, this_lon2[tidxb], this_lat2[tidxb], psym=2, symsize=.25, color=254   ; thick=3
+          plots, this_lon2[tidxb], this_lat2[tidxb], psym=2, symsize=.25, color=254, thick=3
         endif
       endfor
     endelse
