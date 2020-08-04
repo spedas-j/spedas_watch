@@ -1,21 +1,29 @@
 ;Ali: February 2020
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-23 16:14:10 -0700 (Mon, 23 Mar 2020) $
-; $LastChangedRevision: 28457 $
+; $LastChangedDate: 2020-08-03 13:17:39 -0700 (Mon, 03 Aug 2020) $
+; $LastChangedRevision: 28974 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_wav_data.pro $
 ; $ID: $
 
-pro spp_wav_data,trange=trange,types=types,gentplot=gentplot,reduce=reduce,lowres=lowres,daily=daily,gendaily=gendaily
+;no keyword: loads daily 1min resolution files (recommended for longer than 1day timerange)
+;/hires  loads daily  1sec resolution files (loads faster than /hourly, since needs to load only 1 file per day)
+;/hourly loads hourly 1sec resolution files (24 files per day)
+;/hourly,/hires loads hourly full-resolution files (only recommended for short timespans, since file sizes can be huge!)
+;run by Ali:
+;/genhourly generates hourly full-resolution and 1sec files
+;/gendaily generates daily 1sec and 1min files from the hourly 1sec files
+
+pro spp_wav_data,trange=trange,types=types,genhourly=genhourly,gendaily=gendaily,hires=hires,hourly=hourly
 
   t1=systime(1)
-  if keyword_set(lowres) or keyword_set(gendaily) or keyword_set(daily) then lowresstr='_1sec' else lowresstr=''
   dir='/disks/data/psp/data/sci/'
-  path='psp/data/sci/sweap/.wav/$TYPE$/YYYY/MM/DD/psp_fld_l2_$TYPE$_YYYYMMDDhh'
+  path='psp/data/sci/sweap/.wav/$TYPE$/YYYY/MM/DD/psp_fld_l2_$TYPE$_YYYYMMDD'
   cdfpath='psp/data/sci/fields/staging/l2/$TYPE$/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMMDDhh_v??.cdf'
-  if keyword_set(daily) then begin
-    path=path.substring(0,-3)
-    if keyword_set(lowres) then path=path+'_1min'
-  endif
+  lowresstr='_1sec'
+  if keyword_set(hourly) or keyword_set(gendaily) then begin
+    path=path+'hh'
+    if keyword_set(hires) then lowresstr=''
+  endif else if ~keyword_set(hires) then path=path+'_1min'
   alltypes=['mag_SC','dfb_wf_dvdc','dfb_wf_scm']
   if ~keyword_set(types) then types=alltypes
   tpnames=orderedhash(alltypes,['mag_SC','dfb_wf_dVdc_sensor','dfb_wf_scm_hg_sensor'])
@@ -33,7 +41,7 @@ pro spp_wav_data,trange=trange,types=types,gentplot=gentplot,reduce=reduce,lowre
     tpname0='psp_fld_l2_'+tpnames[type]
     tpname=tpname0+'_1hr'+['_tres(Hz)','','_wv_pow','_wv_pol_par','_wv_pol_perp']
 
-    if keyword_set(gentplot) then begin
+    if keyword_set(genhourly) then begin
       ;fileall=file_search(dir+'fields/staging/l2/mag_SC/????/??/psp_fld_l2_mag_SC_??????????_v01.cdf')
       pathformat=str_sub(cdfpath,'$TYPE$',type)
       files=spp_file_retrieve(pathformat,trange=trange,/last_version,/valid_only,/hourly)
@@ -48,6 +56,7 @@ pro spp_wav_data,trange=trange,types=types,gentplot=gentplot,reduce=reduce,lowre
         for hr=0,5 do begin
           w=where(t ge t0+hr and t lt t0+hr+1,/null)
           if keyword_set(w) then begin
+            del_data,tpname
             store_data,tpname[1],time[w],b[w,dims[type],0],dlim=dlim
             tres_data,tpname[1],/freq
             options,/default,tpname[0],labels=type,colors=cotres[type]
@@ -59,7 +68,14 @@ pro spp_wav_data,trange=trange,types=types,gentplot=gentplot,reduce=reduce,lowre
             if (t0+hr) mod 24 lt 10 then zero='0' else zero=''
             ;tplotname=dir+'sweap/.wav/'+files[i].substring(40,-11)+zero+strtrim((t0+hr) mod 24,2) ;monthly directories
             tplotname=dir+'sweap/.wav/'+files[i].substring(43,57+subs[type])+files[i].substring(82+2*subs[type],-11)+files[i].substring(57+subs[type],-11)+zero+strtrim((t0+hr) mod 24,2) ;daily
-            tplot_save,tpname,filename=tplotname
+            tplot_save,tpname,filename=tplotname ;full hourly
+            foreach tpname1,tpname do begin
+              get_data,tpname1,ptr=ptr,dat=dat
+              if ~keyword_set(ptr) then continue ;necessary b/c for small field samples or for parallel polarization for dvdc and scm, there's no corresponding wavelet
+              *ptr.y=average_hist2(dat.y,dat.x,centertime=*ptr.x,binsize=1.,/nan)
+            endforeach
+            filename=str_sub(tplotname,type,type+'_1sec')
+            tplot_save,tpname,filename=filename ;1sec hourly
           endif
         endfor
       endfor
@@ -79,15 +95,15 @@ pro spp_wav_data,trange=trange,types=types,gentplot=gentplot,reduce=reduce,lowre
         if ~keyword_set(files) then continue
         tplot_restore,filenames=files,/verbose,/append,/sort
         filename=files[0].substring(0,-9)
-        tplot_save,tpname,filename=filename
+        tplot_save,tpname,filename=filename ;1sec daily
         foreach tpname1,tpname do begin
           get_data,tpname1,ptr=ptr,dat=dat
           if ~keyword_set(ptr) then continue ;necessary b/c for small field samples or for parallel polarization for dvdc and scm, there's no corresponding wavelet
           *ptr.y=average_hist2(dat.y,dat.x,centertime=*ptr.x,binsize=60.,/nan)
           if tag_exist(ptr,'v') && size(*ptr.v,/n_dim) eq 2 then *ptr.v=average_hist2(dat.v,dat.x,binsize=60.,/nan)
         endforeach
-        filename=files[0].substring(0,-9)+'_1min'
-        tplot_save,tpname,filename=filename
+        filename=filename+'_1min'
+        tplot_save,tpname,filename=filename ;1min daily
       endfor
       continue
     endif
@@ -95,21 +111,6 @@ pro spp_wav_data,trange=trange,types=types,gentplot=gentplot,reduce=reduce,lowre
     files=spp_file_retrieve(pathformat,trange=trange,/last_version,/valid_only,/hourly)
     if ~keyword_set(files) then begin
       dprint,'no tplot files found for the selected time range with format: '+pathformat
-      continue
-    endif
-
-    if keyword_set(reduce) then begin
-      for i=0,n_elements(files)-1 do begin
-        del_data,tpname
-        tplot_restore,filename=files[i]
-        foreach tpname1,tpname do begin
-          get_data,tpname1,ptr=ptr,dat=dat
-          if ~keyword_set(ptr) then continue ;necessary b/c for small field samples or for parallel polarization for dvdc and scm, there's no corresponding wavelet
-          *ptr.y=average_hist2(dat.y,dat.x,centertime=*ptr.x,binsize=1.,/nan)
-        endforeach
-        filename=str_sub(files[i],type,type+'_1sec')
-        tplot_save,tpname,filename=filename,/no_add_extension
-      endfor
       continue
     endif
 

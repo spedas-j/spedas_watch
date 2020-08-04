@@ -395,22 +395,22 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           endelse
       endif
 
-      get_data, 'el'+probe+'_pef_en_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
-      omni_origv=omni.v
-      get_data, 'el'+probe+'_pef_en_spec2plot_anti', data=anti, dlimits=anti_dl, limits=anti_l
-      anti_origv=anti.v
-      get_data, 'el'+probe+'_pef_en_spec2plot_perp', data=perp, dlimits=perp_dl, limits=perp_l
-      perp_origv=perp.v
-      get_data, 'el'+probe+'_pef_en_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
-      para_origv=para.v
-      get_data, 'el'+probe+'_pef_en_reg_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
-      omni_oregv=omni.v
-      get_data, 'el'+probe+'_pef_en_reg_spec2plot_anti', data=anti, dlimits=anti_dl, limits=anti_l
-      anti_oregv=anti.v
-      get_data, 'el'+probe+'_pef_en_reg_spec2plot_perp', data=perp, dlimits=perp_dl, limits=perp_l
-      perp_oregv=perp.v
-      get_data, 'el'+probe+'_pef_en_reg_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
-      para_oregv=para.v
+;      get_data, 'el'+probe+'_pef_en_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
+;      omni_origv=omni.v
+;      get_data, 'el'+probe+'_pef_en_spec2plot_anti', data=anti, dlimits=anti_dl, limits=anti_l
+;      anti_origv=anti.v
+;      get_data, 'el'+probe+'_pef_en_spec2plot_perp', data=perp, dlimits=perp_dl, limits=perp_l
+;      perp_origv=perp.v
+;      get_data, 'el'+probe+'_pef_en_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
+;      para_origv=para.v
+;      get_data, 'el'+probe+'_pef_en_reg_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
+;      omni_oregv=omni.v
+;      get_data, 'el'+probe+'_pef_en_reg_spec2plot_anti', data=anti, dlimits=anti_dl, limits=anti_l
+;      anti_oregv=anti.v
+;      get_data, 'el'+probe+'_pef_en_reg_spec2plot_perp', data=perp, dlimits=perp_dl, limits=perp_l
+ ;     perp_oregv=perp.v
+ ;     get_data, 'el'+probe+'_pef_en_reg_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
+ ;     para_oregv=para.v
 
       ;;;;;;;;;;;;;;;;;;;;;;
       ; PLOT

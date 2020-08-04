@@ -14,12 +14,18 @@
 ;  may not know about or does not want to use its functionality.
 ;
 ;USAGE:
-;  putwin [, wnum] [,KEYWORD=value, ...]
+;  putwin [, wnum [, monitor]] [,KEYWORD=value, ...]
 ;
 ;INPUTS:
 ;       wnum:      Window number.  Can be an integer from 0 to 31.
 ;                  Otherwise the next free widow number >= 32 is
 ;                  used.
+;
+;       monitor:   Monitor number.  Can also be set by keyword (see
+;                  below), but this method takes precedence.  Only the
+;                  second input will be interpreted as a monitor number.
+;                  If there's only one input, it's interpreted as the 
+;                  window number.
 ;
 ;KEYWORDS:
 ;       Accepts all keywords for WINDOW.  In addition, the following
@@ -123,13 +129,13 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-31 15:49:26 -0700 (Fri, 31 Jul 2020) $
-; $LastChangedRevision: 28964 $
+; $LastChangedDate: 2020-08-03 15:47:02 -0700 (Mon, 03 Aug 2020) $
+; $LastChangedRevision: 28976 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
 ;-
-pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
+pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
                   config=config, xsize=xsize, ysize=ysize, scale=scale, $
                   key=key, stat=stat, nofit=nofit, norm=norm, center=center, $
                   xcenter=xcenter, ycenter=ycenter, tbar=tbar2, xfull=xfull, $
@@ -202,6 +208,7 @@ pro putwin, wnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
   endif
 
   if (size(tbar,/type) eq 0) then tbar = 22
+  if (size(mnum,/type) gt 0) then monitor = fix(mnum[0])
 
 ; Define multiple monitor configuration
 
