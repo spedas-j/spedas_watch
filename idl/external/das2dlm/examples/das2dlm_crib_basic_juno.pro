@@ -14,8 +14,8 @@
 ;   Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-06-11 17:39:13 -0700 (Thu, 11 Jun 2020) $
-; $Revision: 28775 $
+; $Date: 2020-08-03 20:45:11 -0700 (Mon, 03 Aug 2020) $
+; $Revision: 28983 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/das2dlm/examples/das2dlm_crib_basic_juno.pro $
 ;-
 
@@ -33,6 +33,7 @@ help, query
 stop
 
 ; Inspect Datasets (0), ds = das2c_datasets(query) can be used instead
+; There are 4 data sets available (0-3).
 ds = das2c_datasets(query, 0)
 help, ds[0]
 
@@ -77,13 +78,13 @@ spec = transpose(spec, [1, 0])
 ;Convert time from us2000
 time = time / 1d6 + time_double('2000-01-01')-time_double('1970-01-01')
 
-store_data, 'juno_wav_survey', data={x:time, y:spec, v:freq}, $
+store_data, 'juno_wav_survey_0', data={x:time, y:spec, v:freq}, $ ; _0 - is "0" dataset out of 4 
   dlimits={spec:1, ylog:1, zlog:1, ytitle:props_freq[0].value, ztitle:props_spec[0].value}
 
 ; Plot the data
 spd_graphics_config
 tplot_options,title=props_spec[3].value ; summary
-tplot, 'juno_wav_survey'
+tplot, 'juno_wav_survey_0'
 
 
 ; Cleaning up

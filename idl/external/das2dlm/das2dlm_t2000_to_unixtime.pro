@@ -15,9 +15,9 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-07-10 22:45:53 -0700 (Fri, 10 Jul 2020) $
-; $Revision: 28878 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_t2000_to_unixtime.pro $
+; $Date: 2020-08-03 20:45:11 -0700 (Mon, 03 Aug 2020) $
+; $Revision: 28983 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/das2dlm/das2dlm_t2000_to_unixtime.pro $
 ;-
 
 function das2dlm_t2000_to_unixtime, time

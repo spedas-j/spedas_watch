@@ -37,11 +37,15 @@ pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat
   ; restore original resolution (1 second)
   store_data, 'el'+probe+'_colat_dsl', data={x:pos_gsm.x, y:interp(colat_dsl, dotprod.x, pos_gsm.x)}
   get_data, 'el'+probe+'_colat_dsl', data=colat
-
+  npts=n_elements(colat.x)
+  
   ; Find auroral crossings (lat is magnetic lat)
   idx = where(abs(lat) GE 50 and abs(lat) LE 75, ncnt)
   if ncnt GT 0 then begin
     find_interval, idx, ist, ien
+    nidx=n_elements(ien)-1
+    if ien[nidx] GE npts then ien[nidx]=ien[nidx]-1
+
     for i=0,n_elements(ist)-1 do begin
       ; determine whether ascending or descending
       this_time=colat.x[ist[i]:ien[i]]

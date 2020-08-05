@@ -15,8 +15,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-07-27 13:04:34 -0700 (Mon, 27 Jul 2020) $
-; $Revision: 28941 $
+; $Date: 2020-08-03 20:45:11 -0700 (Mon, 03 Aug 2020) $
+; $Revision: 28983 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_dc11.pro $
 ;-
 
@@ -47,7 +47,8 @@ pro das2dlm_load_cassini_mag_dc11, trange=trange
   ; Get time
   das2dlm_get_ds_var, ds, 'time', 'center', p=pt, v=vt, m=mt, d=dt
   
-  dt = das2dlm_us2000_to_unixtime(dt) ; convert time
+ ; Convert time
+  dt = das2dlm_time_to_unixtime(dt, vt.units)
   
   ; get Var
   pdims = das2c_pdims(ds)

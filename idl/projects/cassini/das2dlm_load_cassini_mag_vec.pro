@@ -15,8 +15,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-07-27 13:04:34 -0700 (Mon, 27 Jul 2020) $
-; $Revision: 28941 $
+; $Date: 2020-08-03 20:45:11 -0700 (Mon, 03 Aug 2020) $
+; $Revision: 28983 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_vec.pro $
 ;-
 
@@ -77,11 +77,8 @@ pro das2dlm_load_cassini_mag_vec, trange=trange, source=source
   das2dlm_get_ds_var, ds, z_name, 'center', p=pz, v=vz, m=mz, d=dz
   das2dlm_get_ds_var, ds, b_name, 'center', p=pb, v=vb, m=mb, d=db
     
-  case strlowcase(vt.units) of
-    'us2000': dt = das2dlm_us2000_to_unixtime(dt) ; convert time
-    't2000': dt = das2dlm_t2000_to_unixtime(dt) ; convert time
-  endcase
-      
+  ; Convert time
+  dt = das2dlm_time_to_unixtime(dt, vt.units)
      
   ; Metadata
   str_element, DAS2, 'url', requestUrl, /add

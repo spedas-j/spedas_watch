@@ -55,16 +55,23 @@
 ;
 ;       TBAR:      Title bar width in pixels.  Default = 22.
 ;
+;                  The standard WINDOW procedure does not account for
+;                  the window title bar width, so that widows placed
+;                  along the bottom of a monitor are clipped.  This
+;                  procedure fixes that issue.
+;
 ;                  Window positioning will not be precise unless this
 ;                  is set properly.  IDL does not have access to this
 ;                  piece of information, so you'll have to figure it
 ;                  out.  This value is persistent for subsequent calls 
 ;                  to putwin, so you only need to set it once.
 ;
-;       STAT:      Output the current monitor configuration.
+;       STAT:      Output the current monitor configuration and put a
+;                  small window in each monitor for 3 sec to identify
+;                  the monitor numbers.
 ;
 ;       MONITOR:   Put window in this monitor.
-;                  
+;
 ;                  See keyword CONFIG.  Default is 1 if there is at
 ;                  least one external monitor and 0 otherwise.
 ;
@@ -74,10 +81,12 @@
 ;       DY:        Vertical offset from CORNER (pixels).
 ;                  Replaces YPOS.  Default = 0.
 ;
-;                  The standard WINDOW procedure does not account for
-;                  the window title bar width, so that widows placed
-;                  along the bottom of a monitor are clipped.  This
-;                  procedure fixes that issue.
+;                  Note: XPOS and YPOS only work if CONFIG = 0.  They
+;                  refer to position on a rectangular "super monitor"
+;                  that encompasses all physical monitors.  This super
+;                  monitor will typically have regions that are out of
+;                  the bounds of the physical monitors, so windows can
+;                  be placed in regions that cannot be seen.
 ;
 ;       CORNER:    DX and DY are measured from this corner:
 ;
@@ -129,8 +138,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-03 15:47:02 -0700 (Mon, 03 Aug 2020) $
-; $LastChangedRevision: 28976 $
+; $LastChangedDate: 2020-08-04 09:12:41 -0700 (Tue, 04 Aug 2020) $
+; $LastChangedRevision: 28985 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -155,6 +164,16 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       j = sort(mgeom[1,0:maxmon])
       for i=maxmon,0,-1 do print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4)'
       print,""
+
+      j = -1
+      for i=0,maxmon do begin
+        putwin, 32, i, xsize=100, ysize=100, /center
+        xyouts,0.5,0.5,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
+        j = [j, !d.window]
+      endfor
+      j = j[1:*]
+      wait, 3
+      for i=0,maxmon do wdelete, j[i]
     endif else print,"Monitor configuration undefined -> putwin acts like window"
     return
   endif
@@ -219,10 +238,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     maxmon = sz[2] - 1
     windex = 4  ; user-defined
     swe_snap_layout, 0
-    print,"Monitor configuration:"
-    j = sort(mgeom[1,0:maxmon])
-    for i=maxmon,0,-1 do print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4)'
-    print,""
+    putwin, /stat
     return
   endif
 
@@ -259,12 +275,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       else : windex = 5                        ; unknown configuration
     endcase
     swe_snap_layout, windex
-
-    print,"Monitor configuration:"
-    j = sort(mgeom[1,0:maxmon])
-    for i=maxmon,0,-1 do print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4)'
-    print,""
-
+    putwin, /stat
     return
   endif
 

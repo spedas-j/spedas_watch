@@ -103,7 +103,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
         epd_ebin_lbls:epdi_ebin_lbls }
     endif
   endif
-  
+ 
   if probe EQ 'b' then begin
     if instrument EQ 'epde' then begin
       ; factors for ELF-B EPD-E *copied* from ELF-A as a temporary plotting solution; not actually valid!!
@@ -139,9 +139,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
       epdi_overaccumulation_factors[15] = 1./2
       epdi_thresh_factors = indgen(16)*0.+1.
       ;  ***** TO DO: Change to read from file *******
-      if trange[0] LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./4 $
-         else epde_thresh_factors[0] = 1. ; change me to match the threshold curves
-      ;epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
+      epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
       epdi_thresh_factors[1] = 1.6
       epdi_thresh_factors[2] = 1.2
       epdi_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]
