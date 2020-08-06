@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-07-24 15:34:30 -0700 (Fri, 24 Jul 2020) $
-; $LastChangedRevision: 28938 $
+; $LastChangedDate: 2020-08-05 13:30:19 -0700 (Wed, 05 Aug 2020) $
+; $LastChangedRevision: 28993 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -32,7 +32,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', 'rfs_hfr_cross', $
     'dcb_analog_hk', $
-    'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps', 'f2_100bps', 'dfb_hk']
+    'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps', 'dfb_hk']
 
   dummy = where(l1_types EQ type, l1_type_flag)
 

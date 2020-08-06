@@ -34,15 +34,15 @@
 ;HISTORY:
 ; 16-may-2014, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2018-04-23 12:44:04 -0700 (Mon, 23 Apr 2018) $
-; $LastChangedRevision: 25096 $
+; $LastChangedDate: 2020-08-05 09:44:57 -0700 (Wed, 05 Aug 2020) $
+; $LastChangedRevision: 28992 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_l2_load.pro $
 ;-
 Pro mvn_sta_l2_load, files = files, trange = trange, sta_apid = sta_apid, $
                      user_pass = user_pass, no_time_clip = no_time_clip, $
                      tplot_vars_create = tplot_vars_create, $
                      tvar_names = tvar_names, l2_version_in = l2_version_in, $
-                     _extra = _extra
+                     iv1_load = iv1_load, _extra = _extra
 
 ;Keep track of software versioning here
   If(keyword_set(l2_version_in)) Then sw_vsn = l2_version_in $
@@ -90,9 +90,12 @@ Pro mvn_sta_l2_load, files = files, trange = trange, sta_apid = sta_apid, $
 ;FIles for all days and app_ids
      filex = ''
      For j = 0, napp_id-1 Do For k = 0, ndays-1 Do Begin
-        yyyy = strmid(daystr[k], 0, 4) & mmmm = strmid(daystr[k], 4, 2)
 ;fixed daystr to daystr[k], 2015-01-13
-        filejk0 = 'maven/data/sci/sta/l2/'+yyyy+'/'+mmmm+'/mvn_sta_l2_'+app_id[j]+'*_'+daystr[k]+'_'+sw_vsn_str+'.cdf'
+        yyyy = strmid(daystr[k], 0, 4) & mmmm = strmid(daystr[k], 4, 2)
+        If(keyword_set(iv1_load)) Then Begin
+           filepath = 'maven/data/sci/sta/iv1/'+yyyy+'/'+mmmm+'/'
+        Endif Else filepath = 'maven/data/sci/sta/l2/'+yyyy+'/'+mmmm+'/'        
+        filejk0 = filepath+'mvn_sta_l2_'+app_id[j]+'*_'+daystr[k]+'_'+sw_vsn_str+'.cdf'
         filejk = mvn_pfp_file_retrieve(filejk0, user_pass = user_pass)
 ;Files with ? or * left were not found
         question_mark = strpos(filejk, '?')
