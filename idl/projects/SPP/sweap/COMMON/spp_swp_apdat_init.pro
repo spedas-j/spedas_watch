@@ -1,7 +1,7 @@
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-07-01 08:47:47 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28827 $
+; $LastChangedDate: 2020-08-05 20:40:04 -0700 (Wed, 05 Aug 2020) $
+; $LastChangedRevision: 28998 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_apdat_init.pro $
 ;-
 
@@ -33,25 +33,25 @@ pro spp_swp_apdat_init,reset=reset, save_flag = save_flag, $
    spp_apdat_info,'257'x,name='sc_hkp_0x257',apid_obj = 'spp_sc_hk_0x257_apdat', tname = 'spp_sc_hkp_0x257_', save_flag=save_flag,ttags='*',rt_flag=rt_flag
    spp_apdat_info,'262'x,name='sc_hkp_0x262',apid_obj = 'spp_sc_hk_0x262_apdat', tname = 'spp_sc_hkp_0x262_', save_flag=save_flag,ttags='*',rt_flag=rt_flag
    
-   spp_apdat_info,'340'x,name='swem_crit_hkp',             tname='spp_swem_crit_',  save_flag=save_flag,ttags=ttags,rt_flag=rt_flag 
-   spp_apdat_info,'341'x,name='swem_dig_hkp',  apid_obj='spp_swp_swem_dhkp_apdat',  tname='spp_swem_dhkp_',  save_flag=save_flag,ttags='*',  rt_flag=rt_flag 
-   spp_apdat_info,'342'x,name='swem_memdump', apid_obj='spp_swp_memdump_apdat',  tname='spp_swem_memdump_',   save_flag=save_flag,ttags='*',rt_flag=rt_flag
-   spp_apdat_info,'343'x,name='swem_ana_hkp',  apid_obj='spp_swp_swem_hkp_apdat',   tname='spp_swem_ahkp_',  save_flag=save_flag,ttags='*',  rt_flag=rt_flag 
-   spp_apdat_info,'344'x,name='swem_event_log',apid_obj='spp_swp_swem_events_apdat', tname='spp_event_log_',  save_flag=save_flag,ttags='*',rt_flag=rt_flag 
-   spp_apdat_info,'345'x,name='swem_cmd_echo',                                     tname='spp_cmd_echo_',   save_flag=save_flag,ttags=ttags,rt_flag=rt_flag
-   spp_apdat_info,'346'x,name='swem_timing',   apid_obj='spp_swp_swem_timing_apdat',tname='spp_swem_timing_',ttags='*',save_flag=save_flag,  rt_flag=rt_flag
-   spp_apdat_info,'347'x,name='swem_memdwell',                        tname='spp_swem_memdwell_',    ttags='*',save_flag=save_flag,  rt_flag=rt_flag 
+   spp_apdat_info,'340'x,name='swem_crit_hkp',                                      tname='spp_swem_crit_',    save_flag=save_flag,ttags='*',rt_flag=rt_flag 
+   spp_apdat_info,'341'x,name='swem_dig_hkp',  apid_obj='spp_swp_swem_dhkp_apdat',  tname='spp_swem_dhkp_',    save_flag=save_flag,ttags='*',rt_flag=rt_flag 
+   spp_apdat_info,'342'x,name='swem_memdump',  apid_obj='spp_swp_memdump_apdat',    tname='spp_swem_memdump_', save_flag=save_flag,ttags='*',rt_flag=rt_flag
+   spp_apdat_info,'343'x,name='swem_ana_hkp',  apid_obj='spp_swp_swem_hkp_apdat',   tname='spp_swem_ahkp_',    save_flag=save_flag,ttags='*',rt_flag=rt_flag 
+   spp_apdat_info,'344'x,name='swem_event_log',apid_obj='spp_swp_swem_events_apdat',tname='spp_event_log_',    save_flag=save_flag,ttags='*',rt_flag=rt_flag 
+   spp_apdat_info,'345'x,name='swem_cmd_echo',                                      tname='spp_cmd_echo_',     save_flag=save_flag,ttags='*',rt_flag=rt_flag
+   spp_apdat_info,'346'x,name='swem_timing',   apid_obj='spp_swp_swem_timing_apdat',tname='spp_swem_timing_',  save_flag=save_flag,ttags='*',rt_flag=rt_flag
+   spp_apdat_info,'347'x,name='swem_memdwell',                                      tname='spp_swem_memdwell_',save_flag=save_flag,ttags='*',rt_flag=rt_flag 
 
 
-   spp_apdat_info,'348'x,name='wrp_P2rt',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_348_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'349'x,name='wrp_P2',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_349_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'34A'x,name='wrp_P3rt',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34A_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'34b'x,name='wrp_P3',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34B_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'34c'x,name='wrp_P4rt',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34C_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'34d'x,name='wrp_P4',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34D_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'34e'x,name='wrp_P5',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34E_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'34f'x,name='wrp_P8',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34F_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'350'x,name='wrp_P8x',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_350_',   ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'348'x,name='wrp_P2rt',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_348_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'349'x,name='wrp_P2',  apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_349_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'34A'x,name='wrp_P3rt',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34A_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'34b'x,name='wrp_P3',  apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34B_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'34c'x,name='wrp_P4rt',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34C_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'34d'x,name='wrp_P4',  apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34D_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'34e'x,name='wrp_P5P7',apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34E_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'34f'x,name='wrp_P8',  apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_34F_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'350'x,name='wrp_P8x', apid_obj='spp_swp_wrapper_apdat',tname='spp_swp_350_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
 
 
    ;;################
@@ -60,7 +60,7 @@ pro spp_swp_apdat_init,reset=reset, save_flag = save_flag, $
    spp_apdat_info,'351'x,name='spc_all', apid_obj=!null,     tname='spp_spc_all_',ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag 
    spp_apdat_info,'352'x,name='spc_tim', apid_obj=!null,     tname='spp_spc_tim_',ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
    spp_apdat_info,'353'x,name='spc_sci', apid_obj=!null,     tname='spp_spc_sci_',ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag 
-   spp_apdat_info,'354'x,name='spc_rss', apid_obj=!null,      tname='spp_spc_rss_',ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'354'x,name='spc_rss', apid_obj=!null,     tname='spp_spc_rss_',ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
    spp_apdat_info,'35E'x,name='spc_cfg', apid_obj=!null,     tname='spp_spc_cfg_',ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag 
    spp_apdat_info,'35F'x,name='spc_hkp', apid_obj='spp_swp_spc_hkp_apdat', tname='spp_spc_hkp_',ttags='*',save_flag=save_flag,rt_flag=rt_flag 
 
@@ -70,13 +70,13 @@ pro spp_swp_apdat_init,reset=reset, save_flag = save_flag, $
    ;;##################
 
    ;; Housekeeping - Rates - Events - Manipulator - Memory Dump
-   spp_apdat_info,'3b8'x,name='spi_memdump',  apid_obj='spp_swp_memdump_apdat',       tname='spp_spi_memdump_', ttags='*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'3b9'x,name='spi_events',   routine='spp_swp_spani_event_decom',        tname='spp_spi_events_',   ttags='*',save_flag=save_flag,rt_flag=rt_flag
-   ;;spp_apdat_info,'3ba'x,name='spi_tof',      routine='spp_swp_spani_tof_decom',          tname='spp_spi_tof_',      ttags='*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'3ba'x,name='spi_tof',      apid_obj='spp_swp_spi_tof_apdat',          tname='spp_spi_tof_',      ttags='*',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'3bb'x,name='spi_rates',    apid_obj='spp_swp_spi_rates_apdat',         tname='spp_spi_rates_',    ttags='*CNTS',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'3be'x,name='spi_hkp',      apid_obj='spp_swp_spi_hkp_apdat'  ,         tname='spp_spi_hkp_',      ttags='*TEMPS *NYS *MON* *MRAM* DACS HV_MODE CMDS_REC *ACT_FLAG',save_flag=save_flag,rt_flag=rt_flag
-   spp_apdat_info,'3bf'x,name='spi_fhkp',     routine='spp_swp_spani_fast_hkp_decom',     tname='spp_spi_fhkp_',     ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'3b8'x,name='spi_memdump',apid_obj='spp_swp_memdump_apdat',      tname='spp_spi_memdump_',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'3b9'x,name='spi_events', routine='spp_swp_spani_event_decom',   tname='spp_spi_events_', ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   ;;spp_apdat_info,'3ba'x,name='spi_tof',      routine='spp_swp_spani_tof_decom', tname='spp_spi_tof_',    ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'3ba'x,name='spi_tof',    apid_obj='spp_swp_spi_tof_apdat',      tname='spp_spi_tof_',    ttags='*',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'3bb'x,name='spi_rates',  apid_obj='spp_swp_spi_rates_apdat',    tname='spp_spi_rates_',  ttags='*CNTS',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'3be'x,name='spi_hkp',    apid_obj='spp_swp_spi_hkp_apdat'  ,    tname='spp_spi_hkp_',    ttags='*TEMPS *NYS *MON* *MRAM* DACS HV_MODE CMDS_REC *ACT_FLAG',save_flag=save_flag,rt_flag=rt_flag
+   spp_apdat_info,'3bf'x,name='spi_fhkp',   routine='spp_swp_spani_fast_hkp_decom',tname='spp_spi_fhkp_',   ttags='*',save_flag=save_flag,rt_flag=rt_flag
 
    ;;decom_routine_i = 'spp_swp_spani_product_decom'
    ;;decom_routine_i = 'spp_swp_spani_product_decom2'

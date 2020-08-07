@@ -14,7 +14,7 @@
 ;                  to this root directory.;
 ;
 ;   !cluster.REMOTE_DATA_DIR  This is the URL of the server that can provide the data files.
-;                  (default is: "https://spdf.sci.gsfc.nasa.gov/pub/data/cluster/")
+;                  (default is: "https://spdf.gsfc.nasa.gov/pub/data/cluster/")
 ;                  if the software does not find a needed file in LOCAL_DATA_DIR,
 ;                  then it will attempt to download the data from the URL and REMOTE_DATA_DIR is defined,
 ;                  the software will attempt to download the file from REMOTE_DATA_DIR, place it in LOCAL_DATA_DIR
@@ -56,8 +56,8 @@
 ; 2019-12-23, egrimes, forked for Cluster
 ; 
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-12-23 16:57:38 -0800 (Mon, 23 Dec 2019) $
-; $LastChangedRevision: 28136 $
+; $LastChangedDate: 2020-08-06 11:40:23 -0700 (Thu, 06 Aug 2020) $
+; $LastChangedRevision: 29003 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/common/cl_init.pro $
 ;-
 

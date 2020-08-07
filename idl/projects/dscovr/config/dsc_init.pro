@@ -15,8 +15,8 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2017
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-04-03 09:58:23 -0700 (Fri, 03 Apr 2020) $
-; $LastChangedRevision: 28486 $
+; $LastChangedDate: 2020-08-06 11:38:38 -0700 (Thu, 06 Aug 2020) $
+; $LastChangedRevision: 29002 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/dscovr/config/dsc_init.pro $
 ;-
 
@@ -51,7 +51,7 @@ if ~keyword_set(exists) || keyword_set(reset) then begin
 			dprint, dlevel=2, rname+': No dsc config found.. creating default configuration'
 		endelse
 
-		!dsc.remote_data_dir = 'https://spdf.sci.gsfc.nasa.gov/pub/data/'
+		!dsc.remote_data_dir = 'https://spdf.gsfc.nasa.gov/pub/data/'
 		!dsc.local_data_dir = root_data_dir() + 'dsc/'
 		
 		if getenv('SPEDAS_DATA_DIR') ne '' then $

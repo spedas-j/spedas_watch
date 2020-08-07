@@ -29,8 +29,8 @@
 ; 2019-12-23, egrimes, created based on mms_init
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-04-03 09:58:23 -0700 (Fri, 03 Apr 2020) $
-; $LastChangedRevision: 28486 $
+; $LastChangedDate: 2020-08-06 11:40:23 -0700 (Thu, 06 Aug 2020) $
+; $LastChangedRevision: 29003 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/common/cl_config.pro $
 ;
 ;-
@@ -48,7 +48,7 @@ PRO cl_config, no_color_setup=no_color_setup, colortable=colortable
   ;Pick your favorite Cluster data server:  (Comment out the others)
   ;
   ;!cluster.remote_data_dir = 'http://xxx2'   ; use as backup web server
-  !cluster.remote_data_dir = 'https://spdf.sci.gsfc.nasa.gov/pub/data/cluster/'
+  !cluster.remote_data_dir = 'https://spdf.gsfc.nasa.gov/pub/data/cluster/'
 
   ;--------------------
   ; Local Config File

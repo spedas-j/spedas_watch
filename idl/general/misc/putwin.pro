@@ -50,6 +50,10 @@
 ;
 ;                       cfg[0:3,i] = [x0, y0, xdim, ydim]
 ;
+;                     If there is more than one monitor, then the primary 
+;                     monitor (usually the one with the tplot window) is 
+;                     assumed to be i = 1.
+;
 ;                  In either case, the configuration is defined and stored
 ;                  in a common block, but no window is created.
 ;
@@ -68,7 +72,8 @@
 ;
 ;       STAT:      Output the current monitor configuration and put a
 ;                  small window in each monitor for 3 sec to identify
-;                  the monitor numbers.
+;                  the monitor numbers.  This variable will also hold
+;                  the screen geometry matrix.
 ;
 ;       MONITOR:   Put window in this monitor.
 ;
@@ -138,8 +143,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-04 09:12:41 -0700 (Tue, 04 Aug 2020) $
-; $LastChangedRevision: 28985 $
+; $LastChangedDate: 2020-08-06 14:08:01 -0700 (Thu, 06 Aug 2020) $
+; $LastChangedRevision: 29009 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -150,7 +155,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                   xcenter=xcenter, ycenter=ycenter, tbar=tbar2, xfull=xfull, $
                   yfull=yfull, aspect=aspect, _extra=extra
 
-  common putwincom, windex, maxmon, mgeom, tbar
+  @putwin_common
 
 ; Silently act like window until CONFIG is set.
 
@@ -236,6 +241,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
   if ((sz[0] eq 2) and (sz[1] eq 4)) then begin
     mgeom = fix(config)
     maxmon = sz[2] - 1
+    primarymon = maxmon < 1
     windex = 4  ; user-defined
     swe_snap_layout, 0
     putwin, /stat
@@ -248,7 +254,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     if (cfg eq 0) then begin
       swe_snap_layout, 0
       windex = -1
-      print,"Monitor configuration undefined -> putwin acts like window"
+      putwin, /stat
       return
     endif
 
@@ -261,6 +267,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     mgeom = rects
     mgeom[1,*] = rects[3,primaryIndex] - rects[3,*] - rects[1,*]
     maxmon = numMons - 1
+    primarymon = primaryIndex
 
     case maxmon of
        0   : windex = 0                        ; laptop only

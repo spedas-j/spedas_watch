@@ -17,8 +17,8 @@
 ; NOTES:
 ; 
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-04-03 10:10:31 -0700 (Fri, 03 Apr 2020) $
-;$LastChangedRevision: 28487 $
+;$LastChangedDate: 2020-08-06 11:40:23 -0700 (Thu, 06 Aug 2020) $
+;$LastChangedRevision: 29003 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/common/cl_load_data.pro $
 ;-
 
@@ -46,7 +46,7 @@ pro cl_load_data, probes = probes, datatype = datatype, instrument = instrument,
       
     cl_init, remote_data_dir = remote_data_dir, local_data_dir = local_data_dir
     
-    if not keyword_set(remote_data_dir) then remote_data_dir = 'https://spdf.sci.gsfc.nasa.gov/pub/data/cluster/'
+    if not keyword_set(remote_data_dir) then remote_data_dir = 'https://spdf.gsfc.nasa.gov/pub/data/cluster/'
     if not keyword_set(local_data_dir) then local_data_dir = !cluster.local_data_dir
     
     pathformat = strarr(n_elements(probes)*n_elements(datatype))

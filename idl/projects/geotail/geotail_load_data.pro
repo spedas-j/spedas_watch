@@ -16,8 +16,8 @@
 ;        Problems? report them to egrimes@igpp.ucla.edu
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-05-13 13:16:03 -0700 (Sun, 13 May 2018) $
-;$LastChangedRevision: 25203 $
+;$LastChangedDate: 2020-08-06 11:37:46 -0700 (Thu, 06 Aug 2020) $
+;$LastChangedRevision: 29001 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/geotail/geotail_load_data.pro $
 ;-
 
@@ -29,7 +29,7 @@ pro geotail_load_data, trange=trange, datatype=datatype, no_color_setup=no_color
     then tr = timerange(trange) $
   else tr = timerange()
   
-  if not keyword_set(remote_data_dir) then remote_data_dir = 'https://spdf.sci.gsfc.nasa.gov/pub/data/geotail/'
+  if not keyword_set(remote_data_dir) then remote_data_dir = 'https://spdf.gsfc.nasa.gov/pub/data/geotail/'
     
   if not keyword_set(datatype) then datatype = ['lep', 'mgf', 'orbit']
   
