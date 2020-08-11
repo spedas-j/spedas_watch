@@ -20,8 +20,8 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-03-26 16:57:58 -0700 (Tue, 26 Mar 2019) $
-;$LastChangedRevision: 26912 $
+;$LastChangedDate: 2020-08-10 09:13:29 -0700 (Mon, 10 Aug 2020) $
+;$LastChangedRevision: 29011 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/time/TT2000/unix_to_tt2000.pro $
 ;-
 function spd_tt2000_leap_seconds, dates
@@ -45,6 +45,11 @@ function unix_to_tt2000, unix_times
 
   if ~keyword_set(exists) then begin
     cdf_leap_second_init
+  endif
+  
+  ; need to check that the input times are doubles (floats might lead to unexpected precision problems)
+  if size(unix_times[0], /type) ne 5 then begin
+    dprint, dlevel=1, 'Warning: the input values to unix_to_tt2000 should be double-precision'
   endif
   
   if !version.release ge 8.4 then begin

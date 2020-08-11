@@ -1,8 +1,8 @@
 ;Ali: June 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-07-01 08:47:47 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28827 $
+; $LastChangedDate: 2020-08-10 12:14:20 -0700 (Mon, 10 Aug 2020) $
+; $LastChangedRevision: 29012 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x081_apdat__define.pro $
 ;-
 
@@ -13,11 +13,17 @@ function spp_SC_HK_0x081_struct,ccsds_data
     met:!values.d_nan, $
     seqn: 0u, $
     pkt_size: 0u, $
+    PDU_SWEAP_SPC_SURV_HTR_BRKR_TRIP_STATE:spp_swp_data_select(ccsds_data,37*8+7-1,1), $
+    PDU_SWEAP_SPC_SURV_HTR_PWR_SET_STATE:spp_swp_data_select(ccsds_data,37*8+7-0,1), $
+    PDU_SWEAP_SPC_SURV_HTR_PWR_STATE:spp_swp_data_select(ccsds_data,37*8+7-1,2), $
     PDU_SWEAP_SPC_SURV_HTR_CURR:interp([-0.2815494183296126, 0.311373041137364, 2.122413461396678],[0.0, 101.5, 255.0],spp_swp_data_select(ccsds_data,40*8+7-7,8)), $
     gap:0B}
   return, str
 end
 
+;PDU_SWEAP_SPC_SURV_HTR_BRKR_TRIP_STATE,                        37,    1,    1;
+;PDU_SWEAP_SPC_SURV_HTR_PWR_SET_STATE,                          37,    0,    1;
+;PDU_SWEAP_SPC_SURV_HTR_PWR_STATE,                              37,    1,    2;
 ;PDU_SWEAP_SPC_SURV_HTR_CURR,                                   40,    7,    8;
 ;EU(Raw='SC_HK_0x081.PDU_SWEAP_SPC_SURV_HTR_CURR') := fCalCurve([0.0, 101.5, 255.0], [-0.2815494183296126, 0.311373041137364, 2.122413461396678], Raw)
 

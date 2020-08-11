@@ -1,29 +1,62 @@
 ;Ali: June 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-06-16 08:55:23 -0700 (Tue, 16 Jun 2020) $
-; $LastChangedRevision: 28779 $
+; $LastChangedDate: 2020-08-10 12:14:20 -0700 (Mon, 10 Aug 2020) $
+; $LastChangedRevision: 29012 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x1c5_apdat__define.pro $
 ;-
 
 function spp_SC_HK_0x1c5_struct,ccsds_data
   if n_elements(ccsds_data) eq 0 then ccsds_data = bytarr(67)
 
+  FSW_REC_ALLOC_ALLOC_EPILO=spp_swp_data_select(ccsds_data,12*8+7-7,32)
+  FSW_REC_ALLOC_ALLOC_EPIHI=spp_swp_data_select(ccsds_data,16*8+7-7,32)
+  FSW_REC_ALLOC_ALLOC_WISPR=spp_swp_data_select(ccsds_data,20*8+7-7,32)
+  FSW_REC_ALLOC_ALLOC_FIELDS=spp_swp_data_select(ccsds_data,24*8+7-7,32)
+  FSW_REC_ALLOC_ALLOC_SWEAP=spp_swp_data_select(ccsds_data,28*8+7-7,32)
+  FSW_REC_ALLOC_ALLOC_CDH_SSR_HK=spp_swp_data_select(ccsds_data,32*8+7-7,32)
+  FSW_REC_ALLOC_ALLOC_CDH_RAM_HK=spp_swp_data_select(ccsds_data,36*8+7-7,32)
+  FSW_REC_ALLOC_USED_EPILO= spp_swp_data_select(ccsds_data,76*8+7-7,32)
+  FSW_REC_ALLOC_USED_EPIHI= spp_swp_data_select(ccsds_data,80*8+7-7,32)
+  FSW_REC_ALLOC_USED_WISPR= spp_swp_data_select(ccsds_data,84*8+7-7,32)
+  FSW_REC_ALLOC_USED_FIELDS=spp_swp_data_select(ccsds_data,88*8+7-7,32)
+  FSW_REC_ALLOC_USED_SWEAP= spp_swp_data_select(ccsds_data,92*8+7-7,32)
+  FSW_REC_ALLOC_USED_CDH_SSR_HK=spp_swp_data_select(ccsds_data,96*8+7-7,32)
+  FSW_REC_ALLOC_USED_CDH_RAM_HK=spp_swp_data_select(ccsds_data,100*8+7-7,32)
+
+  FSW_REC_ALLOC_GBITS=256e-6*[FSW_REC_ALLOC_ALLOC_EPILO,FSW_REC_ALLOC_ALLOC_EPIHI,FSW_REC_ALLOC_ALLOC_WISPR,FSW_REC_ALLOC_ALLOC_FIELDS,FSW_REC_ALLOC_ALLOC_SWEAP,FSW_REC_ALLOC_ALLOC_CDH_SSR_HK,FSW_REC_ALLOC_ALLOC_CDH_RAM_HK,$
+    FSW_REC_ALLOC_USED_EPILO,FSW_REC_ALLOC_USED_EPIHI,FSW_REC_ALLOC_USED_WISPR,FSW_REC_ALLOC_USED_FIELDS,FSW_REC_ALLOC_USED_SWEAP,FSW_REC_ALLOC_USED_CDH_SSR_HK,FSW_REC_ALLOC_USED_CDH_RAM_HK]
+
   str = {time:!values.d_nan ,$
     met:!values.d_nan, $
     seqn: 0u, $
     pkt_size: 0u, $
-    FSW_REC_ALLOC_PERCENT_USED_EPILO:100./255*spp_swp_data_select(ccsds_data,76*8+7-7,8), $
-    FSW_REC_ALLOC_PERCENT_USED_EPIHI:100./255*spp_swp_data_select(ccsds_data,76*8+7-7,8), $
-    FSW_REC_ALLOC_PERCENT_USED_WISPR:100./255*spp_swp_data_select(ccsds_data,76*8+7-7,8), $
-    FSW_REC_ALLOC_PERCENT_USED_FIELDS:100./255*spp_swp_data_select(ccsds_data,76*8+7-7,8), $
-    FSW_REC_ALLOC_PERCENT_USED_SWEAP:100./255*spp_swp_data_select(ccsds_data,76*8+7-7,8), $
-    FSW_REC_ALLOC_PERCENT_USED_CDH_SSR_HK:100./255*spp_swp_data_select(ccsds_data,76*8+7-7,8), $
-    FSW_REC_ALLOC_PERCENT_USED_CDH_RAM_HK:100./255*spp_swp_data_select(ccsds_data,76*8+7-7,8), $
+    FSW_REC_ALLOC_PERCENT_USED_EPILO:     100./255*spp_swp_data_select(ccsds_data,140*8+7-7,8), $
+    FSW_REC_ALLOC_PERCENT_USED_EPIHI:     100./255*spp_swp_data_select(ccsds_data,141*8+7-7,8), $
+    FSW_REC_ALLOC_PERCENT_USED_WISPR:     100./255*spp_swp_data_select(ccsds_data,142*8+7-7,8), $
+    FSW_REC_ALLOC_PERCENT_USED_FIELDS:    100./255*spp_swp_data_select(ccsds_data,143*8+7-7,8), $
+    FSW_REC_ALLOC_PERCENT_USED_SWEAP:     100./255*spp_swp_data_select(ccsds_data,144*8+7-7,8), $
+    FSW_REC_ALLOC_PERCENT_USED_CDH_SSR_HK:100./255*spp_swp_data_select(ccsds_data,145*8+7-7,8), $
+    FSW_REC_ALLOC_PERCENT_USED_CDH_RAM_HK:100./255*spp_swp_data_select(ccsds_data,146*8+7-7,8), $
+    FSW_REC_ALLOC_GBITS:FSW_REC_ALLOC_GBITS, $
     gap:0B}
   return, str
 end
 
+;FSW_REC_ALLOC_ALLOC_EPILO,                                     12,    7,   32;
+;FSW_REC_ALLOC_ALLOC_EPIHI,                                     16,    7,   32;
+;FSW_REC_ALLOC_ALLOC_WISPR,                                     20,    7,   32;
+;FSW_REC_ALLOC_ALLOC_FIELDS,                                    24,    7,   32;
+;FSW_REC_ALLOC_ALLOC_SWEAP,                                     28,    7,   32;
+;FSW_REC_ALLOC_ALLOC_CDH_SSR_HK,                                32,    7,   32;
+;FSW_REC_ALLOC_ALLOC_CDH_RAM_HK,                                36,    7,   32;
+;FSW_REC_ALLOC_USED_EPILO,                                      76,    7,   32;
+;FSW_REC_ALLOC_USED_EPIHI,                                      80,    7,   32;
+;FSW_REC_ALLOC_USED_WISPR,                                      84,    7,   32;
+;FSW_REC_ALLOC_USED_FIELDS,                                     88,    7,   32;
+;FSW_REC_ALLOC_USED_SWEAP,                                      92,    7,   32;
+;FSW_REC_ALLOC_USED_CDH_SSR_HK,                                 96,    7,   32;
+;FSW_REC_ALLOC_USED_CDH_RAM_HK,                                100,    7,   32;
 ;FSW_REC_ALLOC_PERCENT_USED_EPILO,                             140,    7,    8;
 ;FSW_REC_ALLOC_PERCENT_USED_EPIHI,                             141,    7,    8;
 ;FSW_REC_ALLOC_PERCENT_USED_WISPR,                             142,    7,    8;
