@@ -40,6 +40,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
 
   if ~keyword_set(probe) then probe='a'
   if ~keyword_set(instrument) then instrument='epde'
+
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
     return, -1

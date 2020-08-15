@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-03-31 16:01:16 -0700 (Tue, 31 Mar 2020) $
-; $LastChangedRevision: 28473 $
+; $LastChangedDate: 2020-08-14 14:13:00 -0700 (Fri, 14 Aug 2020) $
+; $LastChangedRevision: 29026 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -103,7 +103,7 @@ function mms_python_validation_ut::test_fpi_default
   return, 1
 end
 
-function mms_python_validation_ut::test_feeps_default
+function mms_python_validation_ut::test_feeps_srvy_electron
   mms_load_feeps
   spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.feeps', output
 
@@ -120,6 +120,55 @@ function mms_python_validation_ut::test_feeps_default
   return, 1
 end
 
+function mms_python_validation_ut::test_feeps_srvy_ion
+  mms_load_feeps, datatype='ion'
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.feeps_srvy_ion', output
+  
+  get_data, 'mms1_epd_feeps_srvy_l2_ion_intensity_omni', data=d
+  assert, self.compare(d.y[15000, *], self.str_to_arr(output[-1])), 'Problem with FEEPS (srvy-ion)'
+  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-2])), 'Problem with FEEPS (srvy-ion)'
+  assert, self.compare(d.y[5000, *], self.str_to_arr(output[-3])), 'Problem with FEEPS (srvy-ion)'
+  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-4])), 'Problem with FEEPS (srvy-ion)'
+  assert, self.compare(d.y[2, *], self.str_to_arr(output[-5])), 'Problem with FEEPS (srvy-ion)'
+  assert, self.compare(d.v, self.str_to_arr(output[-6])), 'Problem with FEEPS (srvy-ion)'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-7])), 'Problem with FEEPS (srvy-ion)'
+  
+  return, 1
+end
+
+function mms_python_validation_ut::test_feeps_brst_ion
+  mms_load_feeps, datatype='ion', trange=['2015-10-16/13:06', '2015-10-16/13:07'], data_rate='brst'
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.feeps_brst_ion', output
+
+  get_data, 'mms1_epd_feeps_brst_l2_ion_intensity_omni', data=d
+  assert, self.compare(d.y[450, *], self.str_to_arr(output[-1])), 'Problem with FEEPS (brst-ion)'
+  assert, self.compare(d.y[400, *], self.str_to_arr(output[-2])), 'Problem with FEEPS (brst-ion)'
+  assert, self.compare(d.y[350, *], self.str_to_arr(output[-3])), 'Problem with FEEPS (brst-ion)'
+  assert, self.compare(d.y[300, *], self.str_to_arr(output[-4])), 'Problem with FEEPS (brst-ion)'
+  assert, self.compare(d.y[200, *], self.str_to_arr(output[-5])), 'Problem with FEEPS (brst-ion)'
+  assert, self.compare(d.y[2, *], self.str_to_arr(output[-6])), 'Problem with FEEPS (brst-ion)'
+  assert, self.compare(d.v, self.str_to_arr(output[-7])), 'Problem with FEEPS (brst-ion)'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-8])), 'Problem with FEEPS (brst-ion)'
+
+  return, 1
+end
+
+function mms_python_validation_ut::test_feeps_brst_electron
+  mms_load_feeps, trange=['2015-10-16/13:06', '2015-10-16/13:07'], data_rate='brst'
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.feeps_brst_electron', output
+  
+  get_data, 'mms1_epd_feeps_brst_l2_electron_intensity_omni', data=d
+  assert, self.compare(d.y[450, *], self.str_to_arr(output[-1])), 'Problem with FEEPS (brst-electron)'
+  assert, self.compare(d.y[400, *], self.str_to_arr(output[-2])), 'Problem with FEEPS (brst-electron)'
+  assert, self.compare(d.y[350, *], self.str_to_arr(output[-3])), 'Problem with FEEPS (brst-electron)'
+  assert, self.compare(d.y[300, *], self.str_to_arr(output[-4])), 'Problem with FEEPS (brst-electron)'
+  assert, self.compare(d.y[200, *], self.str_to_arr(output[-5])), 'Problem with FEEPS (brst-electron)'
+  assert, self.compare(d.y[2, *], self.str_to_arr(output[-6])), 'Problem with FEEPS (brst-electron)'
+  assert, self.compare(d.v, self.str_to_arr(output[-7])), 'Problem with FEEPS (brst-electron)'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-8])), 'Problem with FEEPS (brst-electron)'
+  
+  return, 1
+end
 function mms_python_validation_ut::test_dsp_psd
   mms_load_dsp, probe=1, data_rate='fast', datatype=['epsd', 'bpsd'], level='l2'
   spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.dsp', output
@@ -266,7 +315,7 @@ function mms_python_validation_ut::test_eis_default
 end
 
 function mms_python_validation_ut::compare, idl_result, py_result
-  notused = where(abs(idl_result-py_result) ge 1e-5, bad_count)
+  notused = where(abs(idl_result-py_result) ge 1e-4, bad_count)
   return, bad_count eq 0 ? 1 : 0
 end
 
@@ -277,7 +326,7 @@ end
 
 ; the following are for debugging/developing the tests
 ;function compare, idl_result, py_result
-;  notused = where(abs(idl_result-py_result) ge 1e-5, bad_count)
+;  notused = where(abs(idl_result-py_result) ge 1e-4, bad_count)
 ;  return, bad_count eq 0 ? 1 : 0
 ;end
 ;
@@ -291,7 +340,7 @@ pro mms_python_validation_ut::setup
   timespan, '2015-10-16', 1, /day
   self.py_exe_dir = '/Users/eric/anaconda3/bin/'
   ; the pyspedas package is installed in my ~/pyspedas folder
-  cd, 'pyspedas'
+  cd, '/Users/eric/pyspedas'
 end
 
 pro mms_python_validation_ut::teardown
