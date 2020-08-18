@@ -1,5 +1,5 @@
 ;+
-;NAME:    elf_init_orig
+;NAME:    elf_init
 ;
 ;PURPOSE:
 ;   Initializes system variables for elf. Currently the variable only contains information
