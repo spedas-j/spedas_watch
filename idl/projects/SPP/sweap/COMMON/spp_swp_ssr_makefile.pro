@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-07-17 17:23:27 -0700 (Fri, 17 Jul 2020) $
-; $LastChangedRevision: 28907 $
+; $LastChangedDate: 2020-08-18 08:28:05 -0700 (Tue, 18 Aug 2020) $
+; $LastChangedRevision: 29038 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -73,8 +73,8 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,idls
   if keyword_set(make_cdf) then begin ;make cdf files
     cdf_suffix='/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
     spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spa'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spb'+cdf_suffix,cdf_linkname= linkname
+    spp_apdat_info,'spa_*',cdf_pathname = output_prefix+'spe'+cdf_suffix,cdf_linkname= linkname
+    spp_apdat_info,'spb_*',cdf_pathname = output_prefix+'spe'+cdf_suffix,cdf_linkname= linkname
     spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi'+cdf_suffix,cdf_linkname= linkname
     spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2'+cdf_suffix,cdf_linkname= linkname
     spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem'+cdf_suffix,cdf_linkname= linkname

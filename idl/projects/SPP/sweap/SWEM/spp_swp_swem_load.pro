@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-08 13:12:28 -0700 (Wed, 08 Apr 2020) $
-; $LastChangedRevision: 28531 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-08-17 20:31:44 -0700 (Mon, 17 Aug 2020) $
+; $LastChangedRevision: 29036 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_swem_load.pro $
 ;
 ;this is a test routine for now.
@@ -20,7 +20,7 @@ if ~keyword_set(type) then type = 'swem_dig_hkp'
   pathname = 'psp/data/sci/sweap/swem/L1/'+type+'/YYYY/MM/psp_swp_'+type+'_L1_YYYYMMDD_v??.cdf'
 
   if not keyword_set(files) then files = spp_file_retrieve(pathname,trange=trange,/last_version,/daily_names,verbose=2)
-  prefix = 'psp_swp_'+type+'_'
+  prefix = 'psp_swp_'+type+'_L1_'
   
   if not keyword_set(varformat) then begin
     case type of

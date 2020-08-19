@@ -67,9 +67,9 @@
 ;            here ends up in the structure for the common blocks
 ;HISTORY:
 ; 2014-05-12, jmm, jimm@ssl.berkeley.edu
-; $LastChangedBy: muser $
-; $LastChangedDate: 2019-12-18 12:32:32 -0800 (Wed, 18 Dec 2019) $
-; $LastChangedRevision: 28122 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2020-08-18 09:53:10 -0700 (Tue, 18 Aug 2020) $
+; $LastChangedRevision: 29040 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_cmn_l2read.pro $
 ;-
 Function mvn_sta_cmn_l2read, filename, trange = trange, cdf_info = cdfi, _extra = _extra
@@ -146,7 +146,12 @@ Function mvn_sta_cmn_l2read, filename, trange = trange, cdf_info = cdfi, _extra 
   Endfor
 
 ;Done, cmn_dat is only defined if count > 0
-  If(count Gt 0) Then Return, cmn_dat Else Return, otp
+  If(count Gt 0) Then Begin
+;quick test for iv1 data
+;     printf, 1, 'FILE: '+filename ;remember to change this
+;     If(tag_exist(cmn_dat, 'eflux')) Then printf, 1, minmax(cmn_dat.eflux)
+     Return, cmn_dat 
+  Endif Else Return, otp
 
 End
 

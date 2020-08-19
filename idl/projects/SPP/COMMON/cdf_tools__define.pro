@@ -2,9 +2,9 @@
 ; Written by Davin Larson October 2018
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-06-25 18:55:02 -0700 (Thu, 25 Jun 2020) $
-; $LastChangedRevision: 28813 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-08-18 08:27:41 -0700 (Tue, 18 Aug 2020) $
+; $LastChangedRevision: 29037 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
 ;-
@@ -27,9 +27,9 @@
 ;PURPOSE:
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-06-25 18:55:02 -0700 (Thu, 25 Jun 2020) $
-; $LastChangedRevision: 28813 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-08-18 08:27:41 -0700 (Tue, 18 Aug 2020) $
+; $LastChangedRevision: 29037 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -50,9 +50,9 @@ function cdf_tools::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
-  sw_hash['cdf_svn_changedby'] = '$LastChangedBy: davin-mac $'
-    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-06-25 18:55:02 -0700 (Thu, 25 Jun 2020) $'
-    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 28813 $'
+  sw_hash['cdf_svn_changedby'] = '$LastChangedBy: ali $'
+    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-08-18 08:27:41 -0700 (Tue, 18 Aug 2020) $'
+    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 29037 $'
     sw_hash['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
 
     return,sw_hash
@@ -134,9 +134,9 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
 
   global_attributes = self.g_attributes
   
-  global_attributes['cdf_svn_changedby'] = '$LastChangedBy: davin-mac $'
-  global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-06-25 18:55:02 -0700 (Thu, 25 Jun 2020) $'
-  global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 28813 $'
+  global_attributes['cdf_svn_changedby'] = '$LastChangedBy: ali $'
+  global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-08-18 08:27:41 -0700 (Tue, 18 Aug 2020) $'
+  global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 29037 $'
   global_attributes['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
   login_info = get_login_info()
   global_attributes['sw_runby'] = login_info.user_name
@@ -153,7 +153,7 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
   ;  endif
   if ~isa(pathname,/string) then  pathname = 'temp.cdf'
   file_mkdir2,file_dirname(pathname),add_link=self.linkname,/add_parent_link,verbose=self.verbose
-  self.fileid = cdf_create(pathname,/clobber)
+  self.fileid = cdf_create(pathname,/clobber,/col_major)
   ; dprint,'Making CDF file: '+pathname,dlevel=self.dlevel,verbose=verbose
 
   global_attributes = self.g_attributes

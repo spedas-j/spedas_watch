@@ -12,6 +12,8 @@ Function temp_mvn_sta_eflux, cmn_dat
   nbins = cmn_dat.nbins
   ndef = cmn_dat.ndef
   nanode = cmn_dat.nanode
+  bkg = cmn_dat.bkg
+  dead = cmn_dat.dead
   If(apid Eq 'C0' Or apid Eq 'C2' Or apid Eq 'C4' Or apid Eq 'C6') Then Begin
      gf = reform(cmn_dat.gf[iswp,*,0]*((iatt eq 0)#replicate(1.,nenergy)) +$
                  cmn_dat.gf[iswp,*,1]*((iatt eq 1)#replicate(1.,nenergy)) +$
@@ -19,17 +21,36 @@ Function temp_mvn_sta_eflux, cmn_dat
                  cmn_dat.gf[iswp,*,3]*((iatt eq 3)#replicate(1.,nenergy)), npts*nenergy)#replicate(1.,nmass)
      gf = cmn_dat.geom_factor*reform(gf,npts,nenergy,nmass)
      eff = cmn_dat.eff[ieff,*,*]
-     dt = cmn_dat.integ_t#replicate(1.,nenergy*nmass)
-     eflux = (cmn_dat.data-cmn_dat.bkg)*cmn_dat.dead/(gf*eff*dt)
-  Endif Else If(apid Eq 'C8' Or apid Eq 'CA') Then Begin
+     dt = float(cmn_dat.integ_t#replicate(1.,nenergy*nmass))
+     eflux = (cmn_dat.data-bkg)*dead/(gf*eff*dt)
+  Endif Else If(apid Eq 'C8') Then Begin
+     gf = reform(cmn_dat.gf[iswp,*,*,0]*((iatt eq 0)#replicate(1.,nenergy*ndef)) +$
+                 cmn_dat.gf[iswp,*,*,1]*((iatt eq 1)#replicate(1.,nenergy*ndef)) +$
+                 cmn_dat.gf[iswp,*,*,2]*((iatt eq 2)#replicate(1.,nenergy*ndef)) +$
+                 cmn_dat.gf[iswp,*,*,3]*((iatt eq 3)#replicate(1.,nenergy*ndef)), npts,nenergy,ndef)
+     gf = cmn_dat.geom_factor*gf
+     eff = cmn_dat.eff[ieff,*,*]
+     dt = float(cmn_dat.integ_t#replicate(1.,nenergy*ndef))
+     eflux = (cmn_dat.data-bkg)*dead/(gf*eff*dt)
+  Endif Else If(apid Eq 'CA') Then Begin
      gf = reform(cmn_dat.gf[iswp,*,*,0]*((iatt eq 0)#replicate(1.,nenergy*nbins)) +$
                  cmn_dat.gf[iswp,*,*,1]*((iatt eq 1)#replicate(1.,nenergy*nbins)) +$
                  cmn_dat.gf[iswp,*,*,2]*((iatt eq 2)#replicate(1.,nenergy*nbins)) +$
-                 cmn_dat.gf[iswp,*,*,3]*((iatt eq 3)#replicate(1.,nenergy*nbins)), npts,nenergy,nbins)
-     gf = cmn_dat.geom_factor*gf
+                 cmn_dat.gf[iswp,*,*,3]*((iatt eq 3)#replicate(1.,nenergy*nbins)), npts*nenergy*nbins)
+     gf = cmn_dat.geom_factor*reform(gf,npts,nenergy,nbins)
      eff = cmn_dat.eff[ieff,*,*]
-     dt = cmn_dat.integ_t#replicate(1.,nenergy*nbins)
-     eflux = (cmn_dat.data-cmn_dat.bkg)*cmn_dat.dead/(gf*eff*dt)
+     dt = float(cmn_dat.integ_t#replicate(1.,nenergy*nbins))
+     eflux = (cmn_dat.data-bkg)*dead/(gf*eff*dt)
+  Endif Else If(apid Eq 'D4') Then Begin
+     gf = reform(cmn_dat.gf[iswp,*,*,0]*((iatt eq 0)#replicate(1.,nbins)) +$
+                 cmn_dat.gf[iswp,*,*,1]*((iatt eq 1)#replicate(1.,nbins)) +$
+                 cmn_dat.gf[iswp,*,*,2]*((iatt eq 2)#replicate(1.,nbins)) +$
+                 cmn_dat.gf[iswp,*,*,3]*((iatt eq 3)#replicate(1.,nbins)), npts*nbins)$
+          #replicate(1.,nmass)
+     gf = cmn_dat.geom_factor*reform(gf,npts,nenergy,nbins,nmass)
+     eff = cmn_dat.eff[ieff,*,*,*]
+     dt = float(cmn_dat.integ_t#replicate(1.,nenergy*nbins*nmass))
+     eflux = (cmn_dat.data-bkg)*dead/(gf*eff*dt)
   Endif Else Begin
      gf = reform(cmn_dat.gf[iswp,*,*,0]*((iatt eq 0)#replicate(1.,nenergy*nbins)) +$
                  cmn_dat.gf[iswp,*,*,1]*((iatt eq 1)#replicate(1.,nenergy*nbins)) +$
@@ -38,8 +59,8 @@ Function temp_mvn_sta_eflux, cmn_dat
           #replicate(1.,nmass)
      gf = cmn_dat.geom_factor*reform(gf,npts,nenergy,nbins,nmass)
      eff = cmn_dat.eff[ieff,*,*,*]
-     dt = cmn_dat.integ_t#replicate(1.,nenergy*nbins*nmass)
-     eflux = (cmn_dat.data-cmn_dat.bkg)*cmn_dat.dead/(gf*eff*dt)
+     dt = float(cmn_dat.integ_t#replicate(1.,nenergy*nbins*nmass))
+     eflux = (cmn_dat.data-bkg)*dead/(gf*eff*dt)
   Endelse
   Return, float(eflux)
 End
@@ -117,6 +138,10 @@ End
 ;             directory; the default is to populate the MAVEN STA
 ;             database. /disks/data/maven/pfp/sta/l2
 ; no_compression = if set, do not compress the CDF file
+; iv1_process = New for 2020-08-04, setting this keyword runs a
+;               special L2 process that creates 'iv1' files, using a
+;               new background calculation. Increments version
+;               number. Not implemented yet
 ;HISTORY:
 ; 28-apr-2014, jmm, jimm@ssl.berkeley.edu
 ; jun-2014, jmm added compression - no_compression
@@ -130,19 +155,20 @@ End
 ; 1-nov-2014, jmm, PDS compliance
 ; 6-nov-2014, jmm, Corrects clock drift 
 ; 22-dec-2014, jmm, added eprom_ver and header
-; $LastChangedBy: muser $
-; $LastChangedDate: 2019-11-02 17:17:47 -0700 (Sat, 02 Nov 2019) $
-; $LastChangedRevision: 27969 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2020-08-18 09:53:10 -0700 (Tue, 18 Aug 2020) $
+; $LastChangedRevision: 29040 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_cmn_l2gen.pro $
 ;-
 Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, $
-                       no_compression = no_compression, _extra = _extra
+                       no_compression = no_compression, iv1_process = iv1_process, _extra = _extra
 
 ;Need to keep track of spice kernels
   common mvn_spc_met_to_unixtime_com, cor_clkdrift, icy_installed, kernel_verified, time_verified, sclk, tls
 
 ;Keep track of software versioning here
   sw_vsn = mvn_sta_current_sw_version()
+;  If(keyword_set(iv1_process)) Then sw_vsn++
   sw_vsn_str = 'v'+string(sw_vsn, format='(i2.2)')
 
   If(~is_struct(cmn_dat)) Then Begin
@@ -186,7 +212,6 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
 
 ;Now variables and attributes
   cvars = strlowcase(tag_names(cmn_dat))
-
 ;Need to relabel if nbins Eq 1
   If(cmn_dat.nbins Eq 1) Then Begin
      nenbnm = 'NENERGY, NMASS'
@@ -314,7 +339,7 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
      is_tvar = 0b
      vj = rv_vt[0, j]
      Have_tag = where(cvars Eq vj, nhave_tag)
-     If(nhave_tag Gt 0) Then Begin
+     If(nhave_tag Gt 0 and Not (vj Eq 'eflux')) Then Begin
         dvar = cmn_dat.(have_tag)
      Endif Else Begin
 ;Case by case basis
@@ -779,7 +804,6 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
   otp_struct.g_attributes.data_type = 'l2_'+ext+'>Level 2 data, APID: '+cmn_dat.apid+', '+strjoin(ext1_arr, ', ')
 
   otp_struct.g_attributes.PDS_collection_id = ext
-
 ;save the file -- full database management
   Print, 'Saving: '+fullfile0
   mvn_sta_cmn_l2file_save, otp_struct, fullfile0, no_compression = no_compression, _extra = _extra

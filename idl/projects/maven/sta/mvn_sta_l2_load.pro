@@ -29,13 +29,15 @@
 ; l2_version_in = if set, input this version, the default is to use
 ;                 the current version, but that may not exist yet if 
 ;                 you are reprocessing
+; iv1_load = Loads data from intermediate (iv1) files with initial
+;            background estimates.
 ;OUTPUT:
 ; No variables, data are loaded into common blocks
 ;HISTORY:
 ; 16-may-2014, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-08-05 09:44:57 -0700 (Wed, 05 Aug 2020) $
-; $LastChangedRevision: 28992 $
+; $LastChangedDate: 2020-08-18 09:54:52 -0700 (Tue, 18 Aug 2020) $
+; $LastChangedRevision: 29041 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_l2_load.pro $
 ;-
 Pro mvn_sta_l2_load, files = files, trange = trange, sta_apid = sta_apid, $
@@ -47,6 +49,7 @@ Pro mvn_sta_l2_load, files = files, trange = trange, sta_apid = sta_apid, $
 ;Keep track of software versioning here
   If(keyword_set(l2_version_in)) Then sw_vsn = l2_version_in $
   Else sw_vsn = mvn_sta_current_sw_version()
+;  If(keyword_set(iv1_load)) Then sw_vsn++  ;increment version for iv1
   sw_vsn_str = 'v'+string(sw_vsn, format='(i2.2)')
 
 ;The first step is to set up filenames, if there are any

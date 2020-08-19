@@ -18,17 +18,21 @@
 ; skip_bins = for L2-L2 processing, skip_bins skips the
 ;             mvn_sta_sc_bins_load program which takes hours
 ;             for a full day's data
+; iv1_process = New for 2020-08-04, setting this keyword runs a
+;               special L2 process that creates 'iv1' files, using a
+;               new background calculation.
 ;HISTORY:
 ; 2014-05-14, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2019-11-12 15:38:14 -0800 (Tue, 12 Nov 2019) $
-; $LastChangedRevision: 28011 $
+; $LastChangedDate: 2020-08-18 09:53:10 -0700 (Tue, 18 Aug 2020) $
+; $LastChangedRevision: 29040 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_l2gen.pro $
 ;-
 Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
                    directory = directory, use_l2_files = use_L2_files, $
                    xxx = xxx, yyy = yyy, lpw_only = lpw_only, $
-                   skip_bins = skip_bins, nocatch = nocatch, _extra = _extra
+                   skip_bins = skip_bins, nocatch = nocatch, $
+                   iv1_process = iv1_process, _extra = _extra
 
 ;Run in Z buffer
   set_plot,'z'
@@ -42,7 +46,8 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
         help, /last_message, output = err_msg
         For ll = 0, n_elements(err_msg)-1 Do print, err_msg[ll]
 ;Open a file print out the error message, only once
-        If(einit Eq 0) Then Begin
+;but only if you're muser
+        If(einit Eq 0 && getenv('USER') Eq 'muser') Then Begin
            einit = 1
            openw, eunit, '/mydisks/home/maven/muser/sta_l2_err_msg.txt', /get_lun
            For ll = 0, n_elements(err_msg)-1 Do printf, eunit, err_msg[ll]
@@ -53,7 +58,7 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
 ;mail it to jimm@ssl.berkeley.edu
            cmd_rq = 'mailx -s "Problem with STA L2 process" jimm@ssl.berkeley.edu < /mydisks/home/maven/muser/sta_l2_err_msg.txt'
            spawn, cmd_rq
-        Endif
+        Endif Else init = 1
         case load_position of
            'init':begin
               print, 'Problem with initialization'
@@ -205,13 +210,22 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
         dir_out_d1 = dir_out0+'d1_sav/'
      Endelse
   Endif Else Begin
-     dir_out0 = '/disks/data/maven/data/sci/sta/l2/'
-     dir_out = dir_out0+yyyy+'/'+mmmm+'/'
-     dir_out_d1 = dir_out0+'d1_sav/'+yyyy+'/'+mmmm+'/'
+     If(keyword_set(iv1_process)) Then Begin ;jmm, 2020-08-04
+        dir_out0 = '/disks/data/maven/data/sci/sta/iv1/'
+        dir_out = dir_out0+yyyy+'/'+mmmm+'/'
+        mvn_l2gen_outdir, dir_out0, year = yyyy, month = mmmm
+        dir_dead0 = '/disks/data/maven/data/sci/sta/iv1/dead/'
+        dir_dead = dir_dead0+yyyy+'/'+mmmm+'/'
+        mvn_l2gen_outdir, dir_dead0, year = yyyy, month = mmmm
+     Endif Else Begin
+        dir_out0 = '/disks/data/maven/data/sci/sta/l2/'
+        dir_out = dir_out0+yyyy+'/'+mmmm+'/'
+        mvn_l2gen_outdir, dir_out0, year = yyyy, month = mmmm
+        dir_out_d1 = dir_out0+'d1_sav/'+yyyy+'/'+mmmm+'/'
+        mvn_l2gen_outdir, dir_out0+'d1_sav/', year = yyyy, month = mmmm
+     Endelse
   Endelse
   print, 'OUTPUT DIRECTORY: '+dir_out
-  If(~is_string(file_search(dir_out))) Then file_mkdir, dir_out
-  If(~is_string(file_search(dir_out_d1))) Then file_mkdir, dir_out_d1
 
 ;define the common blocks, and zero out, jmm, 2019-11-03
   common mvn_2a, mvn_2a_ind, mvn_2a_dat & mvn_2a_dat=0 & mvn_2a_ind=-1l ;this one is HKP data ;this one is HKP data
@@ -238,7 +252,29 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
   common mvn_db, mvn_db_ind, mvn_db_dat & mvn_db_dat=0 & mvn_db_ind=-1l
 
 ;load l0 data, or L2 data
-  If(keyword_set(use_l2_files)) Then Begin
+  If(keyword_set(iv1_process)) Then Begin
+;use no_time_clip to get all data, mvn_sta_l2_load will fill all of
+;the common blocks
+     mvn_sta_l2_load, /no_time_clip, _extra = _extra
+;Check for 2a data, if not present, return
+     If(~is_struct(mvn_2a_dat)) Then Begin
+        message, /info, 'No HKP data for: '+time_string(date)
+        Return
+     Endif
+;iv1 process
+     common mvn_sta_dead, dat_dead	
+     mvn_sta_dead_load, /make_common, /test
+     If(is_struct(dat_dead)) Then Begin
+        deadfile = dir_dead+'mvn_sta_dead_'+yyyy+mmmm+dddd+'.sav'
+        save, dat_dead, file = deadfile
+        ;permission
+        file_chmod, deadfile, '664'o
+        If(!version.os Eq 'linux') Then spawn, 'chgrp maven '+deadfile
+        message, /info, 'Saved: '+deadfile
+     Endif
+     mvn_sta_bkg_load                
+     mvn_sta_scpot_load
+  Endif Else If(keyword_set(use_l2_files)) Then Begin
 ;use no_time_clip to get all data, mvn_sta_l2_load will fill all of
 ;the common blocks
      mvn_sta_l2_load, /no_time_clip, _extra = _extra
@@ -246,6 +282,7 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
      If(~is_struct(mvn_2a_dat)) Then Begin
         mvn_sta_l0_load, files = filex ;filex is still defined.
      Endif Else mvn_sta_dead_load
+     mvn_sta_scpot_load
 ;Added dead_time_load, 2015-03-03, jmm, shouldn't need it
 ;Add mag load, ephemeris_load, 2015-03-15, jmm
      mvn_sta_mag_load
@@ -310,7 +347,6 @@ skip_ephemeris_l0:
      mvn_cd_dat.time[*] = tim_arr[0:ntimes-1]
      mvn_cd_dat.end_time[*] = tim_arr[1:*]
 
-
      mvn_cf_dat = mvn_ce_dat
      mvn_cf_dat.data_name= 'CF Energy-Angle-Mass'
      mvn_cf_dat.apid = 'CF'
@@ -336,83 +372,81 @@ skip_ephemeris_l0:
      ntimes = n_elements(tim_arr)-1
      mvn_d3_dat.time[*] = tim_arr[0:ntimes-1]
      mvn_d3_dat.end_time[*] = tim_arr[1:*]
-
   Endif
-
 ;Write the files
   load_position = '2A' & Print, load_position
-  mvn_sta_cmn_2a_l2gen, mvn_2a_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_2a_l2gen, mvn_2a_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_2a:
   load_position = 'C0' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_c0_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_c0_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_c0:
   load_position = 'C2' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_c2_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_c2_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_c2:
   load_position = 'C4' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_c4_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_c4_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_c4:
   load_position = 'C6' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_c6_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_c6_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_c6:
   load_position = 'C8' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_c8_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_c8_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_c8:
   load_position = 'CA' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_ca_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_ca_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_ca:
   load_position = 'CC' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_cc_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_cc_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_cc:
   load_position = 'CD' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_cd_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_cd_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_cd:
   load_position = 'CE' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_ce_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_ce_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_ce:
   load_position = 'CF' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_cf_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_cf_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_cf:
   load_position = 'D0' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_d0_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_d0_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_d0:
   load_position = 'D1' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_d1_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_d1_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
 ;special save of D1 data
-  If(is_struct(mvn_d1_dat)) Then Begin
-     save, mvn_d1_dat, file = dir_out_d1+'mvn_sta_d1_'+yyyy+mmmm+dddd+'.sav'
-     message, /info, 'Saved: '+dir_out_d1+'mvn_sta_d1_'+yyyy+mmmm+dddd+'.sav'
-  Endif
+;  If(~keyword_set(iv1_process) && is_struct(mvn_d1_dat)) Then Begin
+;     save, mvn_d1_dat, file = dir_out_d1+'mvn_sta_d1_'+yyyy+mmmm+dddd+'.sav'
+;     message, /info, 'Saved: '+dir_out_d1+'mvn_sta_d1_'+yyyy+mmmm+dddd+'.sav'
+;  Endif
   skip_d1:
   load_position = 'D2' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_d2_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_d2_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_d2:
   load_position = 'D3' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_d3_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_d3_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_d3:
   load_position = 'D4' & Print, load_position
-  mvn_sta_cmn_l2gen, mvn_d4_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_l2gen, mvn_d4_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_d4:
   load_position = 'D6' & Print, load_position
-  mvn_sta_cmn_d6_l2gen, mvn_d6_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_d6_l2gen, mvn_d6_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_d6:
   load_position = 'D7' & Print, load_position
-  mvn_sta_cmn_d7_l2gen, mvn_d7_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_d7_l2gen, mvn_d7_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_d7:
   load_position = 'D8' & Print, load_position
-  mvn_sta_cmn_d89a_l2gen, mvn_d8_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_d89a_l2gen, mvn_d8_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_d8:
   load_position = 'D9' & Print, load_position
-  mvn_sta_cmn_d89a_l2gen, mvn_d9_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_d89a_l2gen, mvn_d9_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_d9:
   load_position = 'DA' & Print, load_position
-  mvn_sta_cmn_d89a_l2gen, mvn_da_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_d89a_l2gen, mvn_da_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_da:
   load_position = 'DB' & Print, load_position
-  mvn_sta_cmn_db_l2gen, mvn_db_dat, directory = dir_out, _extra = _extra
+  mvn_sta_cmn_db_l2gen, mvn_db_dat, directory = dir_out, iv1_process = iv1_process, _extra = _extra
   skip_db:
   print, 'All App_ids finished'
-
+  help, /memory
 ;Manage htaccess here
 ;  mvn_manage_l2access, 'sta'
 
