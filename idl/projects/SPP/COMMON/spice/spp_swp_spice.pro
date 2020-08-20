@@ -6,8 +6,8 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-05 19:22:53 -0800 (Thu, 05 Mar 2020) $
-; $LastChangedRevision: 28384 $
+; $LastChangedDate: 2020-08-18 18:37:05 -0700 (Tue, 18 Aug 2020) $
+; $LastChangedRevision: 29046 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
@@ -18,7 +18,7 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
   if ~keyword_set(ref_frame) then ref_frame ='J2000'
   if ~keyword_set(att_frame) then att_frame ='SPP_RTN'
   
-  if ~keyword_set(res) then res=300d ;5min resolution
+  if ~keyword_set(res) then res=60d ;1min resolution
   if ~keyword_set(angle_error) then angle_error=3. ;error in degrees
   trange=timerange(trange) ;get default trange
   
@@ -52,8 +52,7 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
     endif
     spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=scale1,name=n1,trange=trange,/force_objects ;million km
     spice_position_to_tplot,'SPP','Venus',frame=ref_frame,res=res,scale=scale2,name=n2,trange=trange,/force_objects ; 1000 km
-    xyz_to_polar,n1,/ph_0_360
-    xyz_to_polar,n2,/ph_0_360
+    xyz_to_polar,[n1,n2],/ph_0_360
     options,'SPP_POS_(SUN-J2000)_mag',ysubtitle=ysub1,ystyle=3
     options,'SPP_POS_(Venus-J2000)_mag',ysubtitle=ysub2,ystyle=3
   endif

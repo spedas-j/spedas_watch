@@ -24,8 +24,8 @@
 ;HISTORY:
 ; 2014-05-14, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-08-18 09:53:10 -0700 (Tue, 18 Aug 2020) $
-; $LastChangedRevision: 29040 $
+; $LastChangedDate: 2020-08-19 09:44:17 -0700 (Wed, 19 Aug 2020) $
+; $LastChangedRevision: 29048 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_l2gen.pro $
 ;-
 Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
@@ -282,7 +282,6 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
      If(~is_struct(mvn_2a_dat)) Then Begin
         mvn_sta_l0_load, files = filex ;filex is still defined.
      Endif Else mvn_sta_dead_load
-     mvn_sta_scpot_load
 ;Added dead_time_load, 2015-03-03, jmm, shouldn't need it
 ;Add mag load, ephemeris_load, 2015-03-15, jmm
      mvn_sta_mag_load
