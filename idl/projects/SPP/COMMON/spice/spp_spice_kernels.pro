@@ -19,8 +19,8 @@
 ;
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-05 19:22:53 -0800 (Thu, 05 Mar 2020) $
-; $LastChangedRevision: 28384 $
+; $LastChangedDate: 2020-08-19 20:59:34 -0700 (Wed, 19 Aug 2020) $
+; $LastChangedRevision: 29050 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -55,8 +55,8 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
       'SCK':append_array,kernels,spp_file_retrieve(pathname+'operations_sclk_kernel/spp_sclk_????.tsc',last=last,/valid_only)
       ;Frame kernels (TF)
       'FRM':begin
-        append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_v100.tf',last=last,/valid_only)
-        append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_dyn_v20?.tf',last=last,/valid_only)
+        append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_v???.tf',/last_version,/valid_only)
+        append_array,kernels,spp_file_retrieve(pathname+'frame_kernel/spp_dyn_v???.tf',/last_version,/valid_only)
       end
       ;Spacecraft position (BSP)
       'SPK':begin

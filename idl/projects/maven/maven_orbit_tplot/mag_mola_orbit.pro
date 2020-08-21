@@ -39,16 +39,18 @@
 ;                      2 : EUV shadow boundary at s/c altitude.
 ;                      3 : EUV shadow at electron absorption altitude.
 ;
+;       SITES:      A 2 x N array of surface locations to plot.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 12:20:16 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28841 $
+; $LastChangedDate: 2020-08-20 11:54:23 -0700 (Thu, 20 Aug 2020) $
+; $LastChangedRevision: 29051 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mag_mola_orbit.pro $
 ;
 ;CREATED BY:	David L. Mitchell  04-02-03
 ;-
 pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
                     reset=reset, big=big, noerase=noerase, title=title, $
-                    terminator=ttime, shadow=shadow, alt=alt
+                    terminator=ttime, shadow=shadow, alt=alt, sites=sites
 
   common magmola_orb_com, img, ppos
   @swe_snap_common
@@ -66,6 +68,10 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
   if not keyword_set(noerase) then eflg = 1 else eflg = 0
   if keyword_set(ttime) then doterm = 1 else doterm = 0
   if keyword_set(shadow) then sflg = shadow else sflg = 0
+  sz = size(sites)
+  nsites = 0
+  if ((sz[0] eq 1) and (sz[1] ge 2)) then nsites = 1
+  if ((sz[0] eq 2) and (sz[1] eq 2)) then nsites = sz[2]
 
   if (psym gt 7) then psym = 8
   a = 0.8
@@ -112,6 +118,8 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
     oplot,tdat.tlon,tdat.tlat,color=1,psym=4,symsize=1
     oplot,[tdat.slon],[tdat.slat],color=5,psym=8,symsize=3
   endif
+
+  for i=0,(nsites-1) do oplot,[sites[0,i]],[sites[1,i]],psym=8,symsize=1.5,color=6
 
   oplot,[lon],[lat],psym=psym,color=color,linestyle=lstyle,thick=2,symsize=1.4
   if keyword_set(alt) then xyouts,[lon]+2,[lat]+2,string(round(alt),format='(i4)'),color=color,charsize=1.2

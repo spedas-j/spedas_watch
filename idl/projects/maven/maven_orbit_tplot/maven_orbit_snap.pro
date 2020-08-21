@@ -111,9 +111,12 @@
 ;
 ;       PSNAME:   Name of a postscript plot.  Works only for orbit plots.
 ;
+;       LANDERS:  Plot the locations of landers.  Can also be an 2 x N array
+;                 of surface locations (lon, lat) in the IAU_Mars frame.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-03 16:48:55 -0700 (Mon, 03 Aug 2020) $
-; $LastChangedRevision: 28978 $
+; $LastChangedDate: 2020-08-20 11:54:41 -0700 (Thu, 20 Aug 2020) $
+; $LastChangedRevision: 29052 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -122,7 +125,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     npole=npole, noerase=noerase, keep=keep, color=color, reset=reset, cyl=cyl, times=times, $
     nodot=nodot, terminator=terminator, thick=thick, Bdir=Bdir, scale=scale, scsym=scsym, $
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
-    alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz
+    alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers
 
   @maven_orbit_common
   @swe_snap_common
@@ -163,6 +166,25 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
 
   doalt = keyword_set(doalt)
   dolab = ~keyword_set(nolabel)
+
+  ok = 0
+  sites = 0
+  sz = size(landers)
+  if (((sz[0] eq 1) or (sz[0] eq 2)) and (sz[1] eq 2)) then begin
+    sites = landers
+    ok = 1
+  endif
+  if ((not ok) and keyword_set(landers)) then begin
+    sites = fltarr(2,8)
+    sites[*,0] = [311.778,  22.697]  ; Viking 1 Lander
+    sites[*,1] = [134.010,  48.269]  ; Viking 2 Lander
+    sites[*,2] = [326.450,  19.330]  ; Pathfinder Lander
+    sites[*,3] = [175.479, -14.572]  ; Spirit Rover
+    sites[*,4] = [354.473,  -1.946]  ; Opportunity Rover
+    sites[*,5] = [234.100,  68.150]  ; Phoenix Lander
+    sites[*,6] = [137.200,  -4.600]  ; Curiosity Rover (MSL)
+    sites[*,7] = [135.000,   4.500]  ; InSight Lander
+  endif
 
   if keyword_set(times) then begin
     times = time_double(times)
@@ -401,7 +423,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         bb0=bmso.y
         bt=bmso.x
         bdt=60 ;smooth over seconds
-        for i=0,2 do bb0[*,i]=smooth(bb0[*,i],bdt)
+        for i=0,2 do bb0[*,i]=smooth(bb0[*,i],bdt,/nan)
 
         bmag = sqrt(total(bb0*bb0,2,/nan))
         indx = where(bmag gt Bclip, count)
@@ -989,7 +1011,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (doterm gt 0) then ttime = trange[0] else ttime = 0
       if (doalt) then sc_alt = hgt[i] else sc_alt = 0
       mag_mola_orbit, lon[i], lat[i], big=mbig, noerase=noerase, title=title, color=j, $
-                      terminator=ttime, psym=scsym, shadow=(doterm - 1), alt=sc_alt
+                      terminator=ttime, psym=scsym, shadow=(doterm - 1), alt=sc_alt, $
+                      sites=sites
     endif
 
 ; Put up Mars North polar plot
