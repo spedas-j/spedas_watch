@@ -1,13 +1,13 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-28 16:55:59 -0700 (Tue, 28 Apr 2020) $
-; $LastChangedRevision: 28619 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-08-21 13:33:07 -0700 (Fri, 21 Aug 2020) $
+; $LastChangedRevision: 29065 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/isois/spp_isois_load.pro $
 ; Created by Davin Larson 2020-April 27
 ;
 ;-
 
 pro spp_isois_load,types=types,level=level,trange=trange,no_load=no_load,tname_prefix=tname_prefix,save=save,$
-  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay
+  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay,key=key
 
   if ~keyword_set(level) then level='L2'
   level=strupcase(level)
@@ -64,8 +64,12 @@ pro spp_isois_load,types=types,level=level,trange=trange,no_load=no_load,tname_p
     remote_dir = 'http://research.ssl.berkeley.edu/data/'
     local_data_dir = root_data_dir() + fileprefix
     dir=fileprefix+'data_private/ISOIS/level2/'
+
+    if n_elements(key) EQ 0 then key = 'SWEAP'
+    if key EQ 'FIELDS' then dir=fileprefix+'shared/rsync/l2/'
+
     fileformat=dir+'psp_isois_l2-sum\mary_YYYYMMDD_v1.*.0.cdf'
-    files = spp_file_retrieve( fileformat,/valid_only,/last_version,/daily_names)
+    files = spp_file_retrieve(key=key,fileformat,/valid_only,/last_version,/daily_names)
   endelse
   
   cdf2tplot,files

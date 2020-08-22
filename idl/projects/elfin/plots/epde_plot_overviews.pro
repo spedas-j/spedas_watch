@@ -23,7 +23,7 @@
 ;
 ;-
 pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
-  sci_zone=sci_zone, quick_run=quick_run
+  sci_zone=sci_zone, quick_run=quick_run, one_zone_only=one_zone_only
 
   ; initialize parameters
   num=0 ; keeps track of number of science zones in entire time range (a whole day) for appending purposes
@@ -58,11 +58,11 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   device,set_resolution=[775,1000]
   tvlct,r,g,b,/get
   ; color=253 will be yellow
-  r[253]=255 & g[253]=255  & b[253]=0
+;  r[253]=255 & g[253]=255  & b[253]=0
   ; color=252 will be red
-  r[252]=254 & g[252]=0 & b[252]=0
+;  r[252]=254 & g[252]=0 & b[252]=0
   ; color=251 will be blue
-  r[251]=0 & g[251]=0 & b[251]=254
+;  r[251]=0 & g[251]=0 & b[251]=254
  
   tvlct,r,g,b
   set_plot,'z'
@@ -134,7 +134,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   options,'el'+probe+'_bt89_sm_NED','labels',['N','E','D']
   options,'el'+probe+'_bt89_sm_NED','databar',0.
   options,'el'+probe+'_bt89_sm_NED','ysubtitle','North, East, Down'
-  options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]
+  options, 'el'+probe+'_bt89_sm_NED', colors=[80, 155, 254]
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Get MLT amd LAT
@@ -150,27 +150,27 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   alt = median(sqrt(elfin_pos.y[*,0]^2 + elfin_pos.y[*,1]^2 + elfin_pos.y[*,2]^2))-6371.
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  ; Get Pseudo_ae data
+  ; Get proxy_ae data
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-  del_data, 'pseudo_ae'
+  del_data, 'proxy_ae'
   tr=timerange()
-  ;elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
-  elf_load_pseudo_ae, trange=[tr[0],tr[1]+5400.], /smooth, no_download=no_download
-  get_data, 'pseudo_ae', data=pseudo_ae, dlimits=dl, limits=l
-  if size(pseudo_ae,/type) NE 8 then begin
-    elf_load_pseudo_ae, trange=['2019-12-05','2019-12-06']
-    get_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
+  ;elf_load_proxy_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
+  elf_load_proxy_ae, trange=[tr[0],tr[1]+5400.], /smooth, no_download=no_download
+  get_data, 'proxy_ae', data=proxy_ae, dlimits=dl, limits=l
+  if size(proxy_ae,/type) NE 8 then begin
+    elf_load_proxy_ae, trange=['2019-12-05','2019-12-06']
+    get_data, 'proxy_ae', data=proxy_ae, dlimits=ae_dl, limits=ae_l
   endif 
-  if ~undefined(pseudo_ae) then begin
-    pseudo_ae.y = median(pseudo_ae.y, 10.)
-    store_data, 'pseudo_ae', data=pseudo_ae, dlimits=ae_dl, limits=ae_l
-    if size(pseudo_ae,/type) NE 8 then begin
+  if ~undefined(proxy_ae) then begin
+    proxy_ae.y = median(proxy_ae.y, 10.)
+    store_data, 'proxy_ae', data=proxy_ae, dlimits=ae_dl, limits=ae_l
+    if size(proxy_ae,/type) NE 8 then begin
       dprint, level=1, 'No data available for proxy_ae'
     endif
-    options, 'pseudo_ae', ysubtitle='[nT]', colors=251
-    options, 'pseudo_ae', yrange=[0,150]     
+    options, 'proxy_ae', ysubtitle='[nT]'
+    options, 'proxy_ae', yrange=[0,150]     
   endif else begin
-    options, 'pseudo_ae', ztitle=''    
+    options, 'proxy_ae', ztitle=''    
   endelse
   
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -180,7 +180,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   options,'shadow_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.1,0.1],ytitle='',$
     ticklen=0,panel_size=0.1, charsize=2., ztitle=''
   options,'sun_bar',thick=5.5,xstyle=4,ystyle=4,yrange=[-0.1,0.1],ytitle='',$
-    ticklen=0,panel_size=0.1,colors=253, charsize=2., ztitle=''
+    ticklen=0,panel_size=0.1,colors=195, charsize=2., ztitle=''
     
   ; create one bar for both sun and shadow
   store_data, 'sunlight_bar', data=['sun_bar','shadow_bar']
@@ -205,7 +205,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   options, 'epd_fast_bar',ticklen=0
   options, 'epd_fast_bar', 'ystyle',4
   options, 'epd_fast_bar', 'xstyle',4
-  options, 'epd_fast_bar', 'color',252
+  options, 'epd_fast_bar', 'color',254
   options, 'epd_fast_bar', 'ztitle',''
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -361,16 +361,16 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       endif
       
       ; handle scaling of y axis
-      if size(pseudo_ae, /type) EQ 8 then begin
-        ae_idx = where(pseudo_ae.x GE sz_tr[0] and pseudo_ae.x LT sz_tr[1], ncnt)
-        if ncnt GT 0 then ae_max=minmax(pseudo_ae.y[ae_idx])
+      if size(proxy_ae, /type) EQ 8 then begin
+        ae_idx = where(proxy_ae.x GE sz_tr[0] and proxy_ae.x LT sz_tr[1], ncnt)
+        if ncnt GT 0 then ae_max=minmax(proxy_ae.y[ae_idx])
         if ncnt EQ 0 then ae_max=[0,140.]
-        if ae_max[1] LT 145. then options, 'pseudo_ae', yrange=[0,150] $
-          else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
-        if ae_max[1] LT 145. then options, 'pseudo_ae', yrange=[0,150] $
-          else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
+        if ae_max[1] LT 145. then options, 'proxy_ae', yrange=[0,150] $
+          else options, 'proxy_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
+        if ae_max[1] LT 145. then options, 'proxy_ae', yrange=[0,150] $
+          else options, 'proxy_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
       endif else begin
-        options, 'pseudo_ae', yrange=[0,150]
+        options, 'proxy_ae', yrange=[0,150]
       endelse
       
       ; Figure out which hourly label to assign    
@@ -395,23 +395,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           endelse
       endif
 
-;      get_data, 'el'+probe+'_pef_en_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
-;      omni_origv=omni.v
-;      get_data, 'el'+probe+'_pef_en_spec2plot_anti', data=anti, dlimits=anti_dl, limits=anti_l
-;      anti_origv=anti.v
-;      get_data, 'el'+probe+'_pef_en_spec2plot_perp', data=perp, dlimits=perp_dl, limits=perp_l
-;      perp_origv=perp.v
-;      get_data, 'el'+probe+'_pef_en_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
-;      para_origv=para.v
-;      get_data, 'el'+probe+'_pef_en_reg_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
-;      omni_oregv=omni.v
-;      get_data, 'el'+probe+'_pef_en_reg_spec2plot_anti', data=anti, dlimits=anti_dl, limits=anti_l
-;      anti_oregv=anti.v
-;      get_data, 'el'+probe+'_pef_en_reg_spec2plot_perp', data=perp, dlimits=perp_dl, limits=perp_l
- ;     perp_oregv=perp.v
- ;     get_data, 'el'+probe+'_pef_en_reg_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
- ;     para_oregv=para.v
-
       ;;;;;;;;;;;;;;;;;;;;;;
       ; PLOT
       if tdur Lt 194. then version=6 else version=7
@@ -419,11 +402,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tplot_options, 'ygap',0
       tplot_options, 'charsize',.9
       tr=timerange()
-      elf_set_overview_options, probe=probe, trange=tr            
-      options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]   ; force color scheme
+      elf_set_overview_options, probe=probe, trange=tr,/no_switch            
 
       if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',sz_tr[0],sz_tr[1]) then begin       
-        tplot,['pseudo_ae', $
+        tplot,['proxy_ae', $
           'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
@@ -436,7 +418,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_bt89_sm_NED'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endif else begin
-        tplot,['pseudo_ae', $
+        tplot,['proxy_ae', $
           'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
@@ -458,7 +440,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tplot_apply_databar
   
       ; add time of creation
-      xyouts,  .725, .005, 'Created: '+systime(),/normal,color=1, charsize=.75
+      xyouts, .76, .012, 'nflux: #/(cm^2 s str/MeV)',/normaL,color=1, charsize=.75
+      xyouts,  .76, .001, 'Created: '+systime(),/normal,color=1, charsize=.75
       ; add phase delay message
       if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
         xyouts, .0085, .012, spin_str, /normal, charsize=.75
@@ -521,7 +504,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch1', 'el'+probe+'_pef_pa_reg_spec2plot_ch1_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch2', 'el'+probe+'_pef_pa_reg_spec2plot_ch2_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch3', 'el'+probe+'_pef_pa_reg_spec2plot_ch3_sz'+strtrim(string(num),2)
-
+ 
     endfor
   
   ; Create concatenating (24-hour) tplot variables
@@ -607,13 +590,13 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   if size(d, /type) EQ 8 then store_data, 'antilossconedeg', data={x:d.x[0:*:60], y:d.y[0:*:60]}
 
   ; handle scaling of y axis
-  get_data,'pseudo_ae',data=pseudo_ae
-  if size(pseudo_ae, /type) EQ 8 then begin
-    idx = where(pseudo_ae.x GE this_tr[0] and pseudo_ae.x LT this_tr[1], ncnt)
-    if ncnt GT 0 then ae_max=minmax(pseudo_ae.y)
+  get_data,'proxy_ae',data=proxy_ae
+  if size(proxy_ae, /type) EQ 8 then begin
+    idx = where(proxy_ae.x GE this_tr[0] and proxy_ae.x LT this_tr[1], ncnt)
+    if ncnt GT 0 then ae_max=minmax(proxy_ae.y)
     if ncnt EQ 0 then ae_max=[0,140.]
-    if ae_max[1] LT 145. then options, 'pseudo_ae', yrange=[0,150] $
-          else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
+    if ae_max[1] LT 145. then options, 'proxy_ae', yrange=[0,150] $
+          else options, 'proxy_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
   endif
   
   ; Do hourly plots and 24hr plot
@@ -626,11 +609,11 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     timespan, this_tr[0], tdur, /sec
     elf_load_state, probes=probe, /no_download
     
-    if size(pseudo_ae,/type) eq 8 then begin
-      pseudo_ae_sub=pseudo_ae.y(where(pseudo_ae.x ge time_double(this_tr[0]) and pseudo_ae.x le time_double(this_tr[1])))
-      ae_max=minmax(pseudo_ae_sub)
-      if ae_max[1] LT 145. then options, 'pseudo_ae', yrange=[0,150] $
-        else options, 'pseudo_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
+    if size(proxy_ae,/type) eq 8 then begin
+      proxy_ae_sub=proxy_ae.y(where(proxy_ae.x ge time_double(this_tr[0]) and proxy_ae.x le time_double(this_tr[1])))
+      ae_max=minmax(proxy_ae_sub)
+      if ae_max[1] LT 145. then options, 'proxy_ae', yrange=[0,150] $
+        else options, 'proxy_ae', yrange=[0,ae_max[1]+ae_max[1]*.1]
     endif
 
     if tdur GT 10802. or i EQ 24 then begin   ; at least need to orbits for 24 hour plots
@@ -639,7 +622,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       elf_load_kp, trange=[tr],/day
       elf_load_dst,trange=tr
     endif
-    
+  
     ; Below chunk of code to fix y-labels might be messing up 24hr loss cone? If not, likely caused by interpolation in elf_getspec_v2
     ; 
     ; use copy_data instead
@@ -677,19 +660,19 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     
     ylim,'el?_p?f_pa*spec2plot* *losscone* el?_p?f_pa*spec2plot_ch?LC*',0,180.
     options,'el?_p?f_pa*spec2plot_ch0LC*','ztitle',''
-    options,'el?_p?f_pa*spec2plot_ch0LC*','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_pa*spec2plot_ch0LC*','ztitle','nflux'
     options,'el?_p?f_pa*spec2plot_ch1LC*','ztitle',''
-    options,'el?_p?f_pa*spec2plot_ch1LC*','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_pa*spec2plot_ch1LC*','ztitle','nflux'
     options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle',''
-    options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle','nflux'
     options,'el?_p?f_en*spec2plot_omni','ztitle',''
-    options,'el?_p?f_en*spec2plot_omni','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_en*spec2plot_omni','ztitle','nflux'
     options,'el?_p?f_en*spec2plot_anti','ztitle',''
-    options,'el?_p?f_en*spec2plot_anti','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_en*spec2plot_anti','ztitle','nflux'
     options,'el?_p?f_en*spec2plot_perp','ztitle',''
-    options,'el?_p?f_en*spec2plot_perp','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_en*spec2plot_perp','ztitle','nflux'
     options,'el?_p?f_en*spec2plot_para','ztitle',''
-    options,'el?_p?f_en*spec2plot_para','ztitle','#/(scm!U2!NstrMeV)'
+    options,'el?_p?f_en*spec2plot_para','ztitle','nflux'
     options, 'antilossconedeg', 'linestyle', 2
     
     if tdur Lt 194. then version=6 else version=7
@@ -697,9 +680,15 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     tplot_options, 'ygap',0
     tplot_options, 'charsize',.9 
     elf_set_overview_options, probe=probe, trange=tr,/no_switch
+    ;********
+    get_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch0', data=reg
+    if size(reg, /type) EQ 8 then reg_exists=1 else reg_exists=0
+    options,'el?_p?f_pa*spec2plot_ch*LC*','databar',90.
+
     if tdur LT 10802. then begin
-      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
-        tplot,['pseudo_ae', $
+       if ~reg_exists then begin
+;      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
+        tplot,['proxy_ae', $
           'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
@@ -711,8 +700,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
           'el'+probe+'_bt89_sm_NED'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
-      endif else begin
-        tplot,['pseudo_ae', $
+      endif else begin        
+         tplot,['proxy_ae', $
           'fgs_bar', $
           'epd_fast_bar', $
           'sunlight_bar', $
@@ -726,8 +715,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endelse
     endif else begin
-      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
-        tplot,['pseudo_ae', $
+      if ~reg_exists then begin
+      ;if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
+        tplot,['proxy_ae', $
           'kp', $
           'dst',$
           'fgs_bar', $
@@ -742,7 +732,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_bt89_sm_NED'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endif else begin
-        tplot,['pseudo_ae', $
+        tplot,['proxy_ae', $
           'kp', $
           'dst',$
           'fgs_bar', $
@@ -768,7 +758,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tplot_apply_databar
   
       ; add time of creation
-      xyouts,  .76, .005, 'Created: '+systime(),/normal,color=1, charsize=.75
+      xyouts, .76, .012, 'nflux: #/(cm^2 s str/MeV)',/normaL,color=1, charsize=.75
+      xyouts,  .76, .001, 'Created: '+systime(),/normal,color=1, charsize=.75
 
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
       ; Create GIF file

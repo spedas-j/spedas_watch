@@ -181,7 +181,7 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     endif
 
     ; calibrate data
-    elf_cal_epd, tplotname=tplotnames[i], type=type, no_download=no_download
+    elf_cal_epd, tplotname=tplotnames[i], trange=trange, type=type, no_download=no_download
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
     if size(d, /type) EQ 8 then begin
       dl.ysubtitle=unit

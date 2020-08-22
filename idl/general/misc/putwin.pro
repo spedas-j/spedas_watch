@@ -18,14 +18,18 @@
 ;
 ;INPUTS:
 ;       wnum:      Window number.  Can be an integer from 0 to 31.
-;                  Otherwise the next free widow number >= 32 is
-;                  used.
+;                  Default: next free widow number > 31.
 ;
 ;       monitor:   Monitor number.  Can also be set by keyword (see
 ;                  below), but this method takes precedence.  Only the
 ;                  second input will be interpreted as a monitor number.
 ;                  If there's only one input, it's interpreted as the 
 ;                  window number.
+;
+;                  If there is more than one monitor, IDL identifies a
+;                  "primary monitor", where graphics windows appear by
+;                  default.  This routine also defaults to the primary
+;                  monitor.
 ;
 ;KEYWORDS:
 ;       Accepts all keywords for WINDOW.  In addition, the following
@@ -50,9 +54,8 @@
 ;
 ;                       cfg[0:3,i] = [x0, y0, xdim, ydim]
 ;
-;                     If there is more than one monitor, then the primary 
-;                     monitor (usually the one with the tplot window) is 
-;                     assumed to be i = 1.
+;                  This routine automatically detects the primary
+;                  primary monitor for both forms of CONFIG.
 ;
 ;                  In either case, the configuration is defined and stored
 ;                  in a common block, but no window is created.
@@ -71,14 +74,13 @@
 ;                  to putwin, so you only need to set it once.
 ;
 ;       STAT:      Output the current monitor configuration and put a
-;                  small window in each monitor for 3 sec to identify
+;                  small window in each monitor for 2 sec to identify
 ;                  the monitor numbers.  This variable will also hold
 ;                  the screen geometry matrix.
 ;
 ;       MONITOR:   Put window in this monitor.
 ;
-;                  See keyword CONFIG.  Default is 1 if there is at
-;                  least one external monitor and 0 otherwise.
+;                  Default is the primary monitor (see CONFIG).
 ;
 ;       DX:        Horizontal offset from CORNER (pixels).
 ;                  Replaces XPOS.  Default = 0.
@@ -143,8 +145,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-06 14:08:01 -0700 (Thu, 06 Aug 2020) $
-; $LastChangedRevision: 29009 $
+; $LastChangedDate: 2020-08-21 16:34:45 -0700 (Fri, 21 Aug 2020) $
+; $LastChangedRevision: 29066 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -167,17 +169,22 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     if (windex gt 0) then begin
       print,"Monitor configuration:"
       j = sort(mgeom[1,0:maxmon])
-      for i=maxmon,0,-1 do print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4)'
+      for i=maxmon,0,-1 do begin
+        print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4,$)'
+        if (i eq primarymon) then print," (primary)" else print,""
+      endfor
       print,""
 
       j = -1
       for i=0,maxmon do begin
         putwin, 32, i, xsize=100, ysize=100, /center
-        xyouts,0.5,0.5,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
+        xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
+        if (i eq primarymon) then $
+          xyouts,0.5,0.1,"(primary)",/norm,align=0.5,charsize=1.5,charthick=1,color=6
         j = [j, !d.window]
       endfor
       j = j[1:*]
-      wait, 3
+      wait, 2
       for i=0,maxmon do wdelete, j[i]
     endif else print,"Monitor configuration undefined -> putwin acts like window"
     return
@@ -236,20 +243,27 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
 ; Define multiple monitor configuration
 
+  oInfo = obj_new('IDLsysMonitorInfo')
+    numMons = oInfo->GetNumberOfMonitors()
+    rects = oInfo->GetRectangles()
+    primon = oInfo->GetPrimaryMonitorIndex()
+  obj_destroy, oInfo
+
   sz = size(config)
 
   if ((sz[0] eq 2) and (sz[1] eq 4)) then begin
     mgeom = fix(config)
     maxmon = sz[2] - 1
-    primarymon = maxmon < 1
     windex = 4  ; user-defined
     swe_snap_layout, 0
+    primarymon = primon
     putwin, /stat
     return
   endif
 
   if (max(sz) gt 0) then begin
     cfg = fix(config[0])
+    primarymon = primon
 
     if (cfg eq 0) then begin
       swe_snap_layout, 0
@@ -258,16 +272,9 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       return
     endif
 
-    oInfo = obj_new('IDLsysMonitorInfo')
-      numMons = oInfo->GetNumberOfMonitors()
-      rects = oInfo->GetRectangles()
-      primaryIndex = oInfo->GetPrimaryMonitorIndex()
-    obj_destroy, oInfo
-
     mgeom = rects
-    mgeom[1,*] = rects[3,primaryIndex] - rects[3,*] - rects[1,*]
+    mgeom[1,*] = rects[3,primarymon] - rects[3,*] - rects[1,*]
     maxmon = numMons - 1
-    primarymon = primaryIndex
 
     case maxmon of
        0   : windex = 0                        ; laptop only
@@ -277,6 +284,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                mgeom[2,1] += mgeom[2,2]
                mgeom = mgeom[*,0:1]
                maxmon -= 1
+               primarymon = 1
                windex = 1
              endif else windex = 2             ; laptop with two externals
       else : windex = 5                        ; unknown configuration
@@ -301,7 +309,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 ; Window geometry
 
   if (n_elements(wnum) eq 0) then wnum = -1 else wnum = fix(wnum[0])
-  if (n_elements(monitor) eq 0) then monitor = 1 else monitor = fix(monitor[0])
+  if (n_elements(monitor) eq 0) then monitor = primarymon else monitor = fix(monitor[0])
   monitor = (monitor > 0) < maxmon
   if (size(aspect,/type) gt 0) then begin
     if (n_elements(xsize) gt 0) then begin

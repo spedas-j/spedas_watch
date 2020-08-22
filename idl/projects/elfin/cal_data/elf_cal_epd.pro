@@ -21,7 +21,7 @@
 ; Initially written by Colin Wilkins (colinwilkins@ucla.edu)
 ;-
 
-PRO elf_cal_epd, tplotname=tplotname, type=type, probe=probe, no_download=no_download, deadtime_corr=deadtime_corr
+PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_download=no_download, deadtime_corr=deadtime_corr
 
   ; get epd data and double check that it exists
   get_data, tplotname, data=d, dlimits=dl, limits=l
@@ -39,7 +39,14 @@ PRO elf_cal_epd, tplotname=tplotname, type=type, probe=probe, no_download=no_dow
   if undefined(type) then type = 'eflux'
 
   ;epd_cal = elf_read_epd_calfile(probe=probe, instrument=instrument, no_download=no_download)
-  trange=timerange()
+  if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
+    dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
+    return
+  endif
+  if ~undefined(trange) && n_elements(trange) eq 2 $
+    then tr = timerange(trange) $
+  else tr = timerange()
+
   epd_cal = elf_get_epd_calibration(probe=probe, instrument=instrument, trange=trange)
   if size(epd_cal, /type) NE 8 then begin
      dprint, dlevel = 1, 'EPD calibration data was not retrieved. Unable to calibrate the data.'
