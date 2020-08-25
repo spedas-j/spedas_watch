@@ -105,37 +105,52 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     store_data, 'el'+probe+'_pos_gsm_mins', data={x: datgsm.x[0:*:60], y: datgsm.y[0:*:60,*]}, dlimits=dl, limits=l
     tt89,'el'+probe+'_pos_gsm_mins',/igrf_only,newname='el'+probe+'_bt89_gsm_mins',period=1.
     ; interpolate the minute-by-minute data back to the full array
-    get_data,'el'+probe+'_bt89_gsm_mins',data=gsm_mins
-    store_data,'el'+probe+'_bt89_gsm',data={x: datgsm.x, y: interp(gsm_mins.y[*,*], gsm_mins.x, datgsm.x)}
+    get_data,'el'+probe+'_bt89_gsm_mins',data=gsm_mins, dlimits=dl, limits=l
+    store_data,'el'+probe+'_bt89_gsm',data={x: datgsm.x, y: interp(gsm_mins.y[*,*], gsm_mins.x, datgsm.x)},dlimits=dl, limits=l
     ; clean up the temporary data
     del_data, '*_mins'
   endif else begin
     tt89,'el'+probe+'_pos_gsm',/igrf_only,newname='el'+probe+'_bt89_gsm',period=1.
   endelse
 
-  get_data, 'el'+probe+'_pos_sm', data=state_pos_sm
+  get_data, 'el'+probe+'_pos_sm', data=state_pos_sm, dlimits=dl, limits=l
   ; calculate IGRF in nT
   cotrans,'el'+probe+'_bt89_gsm','el'+probe+'_bt89_sm',/GSM2SM ; Bfield in SM coords as well
   ;calc,' "bt89_SMdown" = -(total("bt89_sm"*"pos_sm",2)#threeones)/sqrt(total("pos_sm"^2,2)) '
   xyz_to_polar,'el'+probe+'_pos_sm',/co_latitude
-  get_data,'el'+probe+'_pos_sm_th',data=pos_sm_th,dlim=myposdlim,lim=myposlim
+  get_data,'el'+probe+'_pos_sm_th',data=pos_sm_th;,dlim=myposdlim,lim=myposlim
   get_data,'el'+probe+'_pos_sm_phi',data=pos_sm_phi
   csth=cos(!PI*pos_sm_th.y/180.)
   csph=cos(!PI*pos_sm_phi.y/180.)
   snth=sin(!PI*pos_sm_th.y/180.)
   snph=sin(!PI*pos_sm_phi.y/180.)
   rot2rthph=[[[snth*csph],[csth*csph],[-snph]],[[snth*snph],[csth*snph],[csph]],[[csth],[-snth],[0.*csth]]]
-  store_data,'rot2rthph',data={x:pos_sm_th.x,y:rot2rthph},dlim=myposdlim,lim=myposlim
+  store_data,'rot2rthph',data={x:pos_sm_th.x,y:rot2rthph},dlimits=dl, limits=l ;dlim=myposdlim,lim=myposlim
   tvector_rotate,'rot2rthph','el'+probe+'_bt89_sm',newname='el'+probe+'_bt89_sm_sph'
   rotSMSPH2NED=[[[snth*0.],[snth*0.],[snth*0.-1.]],[[snth*0.-1.],[snth*0.],[snth*0.]],[[snth*0.],[snth*0.+1.],[snth*0.]]]
-  store_data,'rotSMSPH2NED',data={x:pos_sm_th.x,y:rotSMSPH2NED},dlim=myposdlim,lim=myposlim
+  store_data,'rotSMSPH2NED',data={x:pos_sm_th.x,y:rotSMSPH2NED},dlimits=dl, limits=l;dlim=myposdlim,lim=myposlim
   tvector_rotate,'rotSMSPH2NED','el'+probe+'_bt89_sm_sph',newname='el'+probe+'_bt89_sm_NED' ; North (-Spherical_theta), East (Spherical_phi), Down (-Spherical_r)
-  options,'el'+probe+'_bt89_sm_NED','ytitle','IGRF [nT]'
+  tvectot,'el'+probe+'_bt89_sm_NED',newname='el'+probe+'_bt89_sm_NEDT'
+  get_data, 'el'+probe+'_bt89_sm_NEDT', data=d, dlimits=dl, limits=l
+  dl.labels=['N','E','D','T']
+  dl.colors=[60,155,254,1]
+  store_data, 'el'+probe+'_bt89_sm_NEDT', data=d, dlimits=dl, limits=l  
+  options,'el'+probe+'_bt89_sm_N*','ysubtitle','nT'
   options,'el'+probe+'_bt89_sm_NED','labels',['N','E','D']
-  options,'el'+probe+'_bt89_sm_NED','databar',0.
-  options,'el'+probe+'_bt89_sm_NED','ysubtitle','North, East, Down'
-  options, 'el'+probe+'_bt89_sm_NED', colors=[80, 155, 254]
+  options,'el'+probe+'_bt89_sm_NEDT','labels',['N','E','D','T']
+;  options,'el'+probe+'_bt89_sm_NEDT','colors',[2,4,6,0]
+  options,'el'+probe+'_bt89_sm_NEDT','colors',[60,155,254,1]
+  options,'el'+probe+'_bt89_sm_N*','databar',0.
 
+;  get_data, 'el'+probe+'_bt89_sm_NED', data=dNED, dlimits=dlNED, limits=lNED;
+;  options, 'el'+probe+'_bt89_sm_NED', colors=[65, 155, 254]
+;  options, 'el'+probe+'_bt89_sm_NED_total', 'labels','T'
+;  if probe EQ 'a' then begin
+;    store_data, 'ela_bt89_sm_NEDT', data='ela_bt89_sm_NED ela_bt89_sm_NED_total'    
+;  endif else begin
+;    store_data, 'elb_bt89_sm_NEDT', data='elb_bt89_sm_NED elb_bt89_sm_NED_total'    
+;  endelse
+;  
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; Get MLT amd LAT
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -415,7 +430,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_en_spec2plot_para', $
           'el'+probe+'_pef_pa_spec2plot_ch[0,1]LC', $
           'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
-          'el'+probe+'_bt89_sm_NED'], $
+          'el'+probe+'_bt89_sm_NEDT'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endif else begin
         tplot,['proxy_ae', $
@@ -428,7 +443,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_en_reg_spec2plot_para', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[2,3]LC', $
-          'el'+probe+'_bt89_sm_NED'], $
+          'el'+probe+'_bt89_sm_NEDT'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']        
       endelse
       tr=timerange()
@@ -482,7 +497,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         write_gif, gif_file+'.gif',image,r,g,b
         dprint, dlevel=2, 'Sci Zone plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
       endfor 
-      
+  
       ;*************************;
       ;  ADD TPLOT APPEND HERE
       ;*************************;
@@ -680,7 +695,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     tplot_options, 'ygap',0
     tplot_options, 'charsize',.9 
     elf_set_overview_options, probe=probe, trange=tr,/no_switch
-    ;********
     get_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch0', data=reg
     if size(reg, /type) EQ 8 then reg_exists=1 else reg_exists=0
     options,'el?_p?f_pa*spec2plot_ch*LC*','databar',90.
@@ -698,7 +712,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_en_spec2plot_para', $
           'el'+probe+'_pef_pa_spec2plot_ch[0,1]LC', $
           'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
-          'el'+probe+'_bt89_sm_NED'], $
+          'el'+probe+'_bt89_sm_NEDT'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endif else begin        
          tplot,['proxy_ae', $
@@ -711,7 +725,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_en_reg_spec2plot_para', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[2,3]LC', $
-          'el'+probe+'_bt89_sm_NED'], $
+          'el'+probe+'_bt89_sm_NEDT'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endelse
     endif else begin
@@ -729,7 +743,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_en_spec2plot_para', $
           'el'+probe+'_pef_pa_spec2plot_ch[0,1]LC', $
           'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
-          'el'+probe+'_bt89_sm_NED'], $
+          'el'+probe+'_bt89_sm_NEDT'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endif else begin
         tplot,['proxy_ae', $
@@ -744,7 +758,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_en_reg_spec2plot_para', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[0,1]LC', $
           'el'+probe+'_pef_pa_reg_spec2plot_ch[2,3]LC', $
-          'el'+probe+'_bt89_sm_NED'], $
+          'el'+probe+'_bt89_sm_NEDT'], $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endelse
     endelse

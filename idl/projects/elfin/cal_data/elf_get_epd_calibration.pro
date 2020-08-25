@@ -40,7 +40,6 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
 
   if ~keyword_set(probe) then probe='a'
   if ~keyword_set(instrument) then instrument='epde'
-
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
     return, -1
@@ -104,7 +103,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
         epd_ebin_lbls:epdi_ebin_lbls }
     endif
   endif
- 
+  
   if probe EQ 'b' then begin
     if instrument EQ 'epde' then begin
       ; factors for ELF-B EPD-E *copied* from ELF-A as a temporary plotting solution; not actually valid!!
@@ -117,6 +116,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
          else epde_thresh_factors[0] = 1. ; change me to match the threshold curves
       epde_thresh_factors[1] = 1.6
       epde_thresh_factors[2] = 1.2
+      if trange[0] GT time_double('2020-08-20/10:00') then epde_thresh_factors = epde_thresh_factors*10. ; added by Vassilis for after 2020-08-20/10 UT in-flight change of E5
       epde_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]
       epde_cal_ch_factors = 1./epde_gf*(epde_thresh_factors^(-1.))*(epde_ch_efficiencies^(-1.))
       epde_ebins = [50., 80., 120., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3350., 4150., 5800.] ; in keV based on Jiang Liu's Geant4 code 2019-3-5
@@ -140,7 +140,9 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
       epdi_overaccumulation_factors[15] = 1./2
       epdi_thresh_factors = indgen(16)*0.+1.
       ;  ***** TO DO: Change to read from file *******
-      epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
+      if trange[0] LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./4 $
+         else epde_thresh_factors[0] = 1. ; change me to match the threshold curves
+      ;epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
       epdi_thresh_factors[1] = 1.6
       epdi_thresh_factors[2] = 1.2
       epdi_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]

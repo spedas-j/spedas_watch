@@ -83,7 +83,7 @@ pro elf_load_dst, no_download=no_download, trange=trange
   dt = 1800.
   dst={x:dst_times+1800., y:dst_values}
   store_data, 'dst', data=dst
-  options, 'dst', colors=80
+  options, 'dst', colors=65
   options, 'dst', psym=10
   mindst=min(dst_values)
   maxdst=max(dst_values)

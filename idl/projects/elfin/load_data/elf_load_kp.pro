@@ -100,7 +100,7 @@ pro elf_load_kp, no_download=no_download, trange=trange, day=day
     dt=2700.    ; kp values are every 3 hours dt/2 is 45 min
     kp={x:kp_time-dt, y:kp_value} 
     store_data, 'kp', data=kp
-    options, 'kp', colors=80
+    options, 'kp', colors=65
     options, 'kp', psym=10
     options, 'kp', labels=['kp']
     max_kp=max(kp_value)
