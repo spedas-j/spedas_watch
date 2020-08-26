@@ -2,8 +2,8 @@
 ;  SPP_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-07-17 17:23:27 -0700 (Fri, 17 Jul 2020) $
-; $LastChangedRevision: 28907 $
+; $LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $
+; $LastChangedRevision: 29073 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -237,8 +237,8 @@ end
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-07-17 17:23:27 -0700 (Fri, 17 Jul 2020) $
-; $LastChangedRevision: 28907 $
+; $LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $
+; $LastChangedRevision: 29073 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 function spp_gen_apdat::sw_version
@@ -255,8 +255,8 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-07-17 17:23:27 -0700 (Fri, 17 Jul 2020) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 28907 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 29073 $'
 
     return,sw_hash
 end
@@ -273,7 +273,7 @@ function spp_gen_apdat::cdf_global_attributes
   global_att['Descriptor'] = 'INSTname>SWEAP generic Sensor Experiment'
   global_att['Data_type'] = '>Survey Calibrated Particle Flux'   ; needs correcting
   global_att['Data_version'] = 'v00'
-  global_att['TEXT'] = 'Reference Paper or URL'
+  global_att['TEXT'] = 'http://sprg.ssl.berkeley.edu/data/psp/pub/sci/sweap/description/'
   global_att['MODS'] = 'Revision 0'
   global_att['Logical_file_id'] =  self.name  ; 'mvn_sep_l2_s1-cal-svy-full_20180201_v04_r02.cdf'
   global_att['dirpath'] = './'
@@ -299,8 +299,8 @@ function spp_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: ali $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2020-07-17 17:23:27 -0700 (Fri, 17 Jul 2020) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 28907 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 29073 $'
 
   return,global_att
 end
@@ -360,13 +360,20 @@ function spp_gen_apdat::cdf_makeobj,  datavary, datanovary,  vnames=vnames, igno
         for i=0,n_elements(vals)-1 do   if ptr_valid(vals[i]) then datasize[i] = n_elements( *vals[i] )
         maxsize = max(datasize,index)        ; determines maximum size of container
         if maxsize eq 0 then continue
+        if maxsize gt 4096 then maxsize=4097 ;if this happens, then something is wrong with size
         val = *vals[index]
         ndv = n_elements(datavary)
         ptrs = vals
         vals = replicate(fill_nan(val[0]),[ndv,maxsize])
         for i= 0,ndv-1 do  begin
           v = *ptrs[i]
-          vals[i,0:n_elements(v)-1] = v
+          nv=n_elements(v)
+          if nv gt 4096 then begin
+            nv=4097 ;prevents cdf files to be huge due to wrong size
+            v=v[0:4096]
+            val=v
+          endif
+          vals[i,0:nv-1] = v
         endfor
       endif else begin
         if n_elements(vals) gt 1 then         vals = reform(transpose(vals))
@@ -387,7 +394,7 @@ function spp_gen_apdat::cdf_makeobj,  datavary, datanovary,  vnames=vnames, igno
 end
 
 
-PRO spp_gen_apdat::cdf_makefile,trange=trange,verbose=verbose
+pro spp_gen_apdat::cdf_makefile,trange=trange,verbose=verbose,filename=filename
 
   ;  printdat,time_string(trange)
   datarray = self.data.array
@@ -407,15 +414,41 @@ PRO spp_gen_apdat::cdf_makefile,trange=trange,verbose=verbose
   if keyword_set(datarray) then begin
     g_att = self.cdf_global_attributes()
     cdf = self.cdf_makeobj(datarray,global_att=g_att)  ;, datanovary,  varnames=varnames, ignore=ignore,_extra=ex
-    pathformat = self.cdf_pathname
-    filename = time_string(trange[0],tformat=pathformat)
-    filename = str_sub(filename,'$NAME$',self.name)
-    filename = root_data_dir() + filename
-    if keyword_set(self.cdf_linkname) then cdf.linkname = root_data_dir() +self.cdf_linkname
+    if ~isa(filename) then begin
+      cdf_format=self.cdf_pathname
+      filename=time_string(trange[0],tformat=cdf_format)
+      filename=root_data_dir()+str_sub(filename,'$NAME$',self.name)
+    endif
+    if keyword_set(self.cdf_linkname) then cdf.linkname=root_data_dir()+self.cdf_linkname
     ;    dprint,dlevel=self.dlevel,verbose=verbose,
     cdf.write,filename,verbose = verbose    ; isa(verbose) ? verbose : self.verbose
     obj_destroy,cdf
   endif
+end
+
+
+pro spp_gen_apdat::sav_makefile,sav_format=sav_format,verbose=verbose
+
+  datarray=self.data.array
+  if ~keyword_set(datarray) then return
+  tr=minmax(datarray.time)
+  days=long(tr/(24*60*60l))
+  ndays=days[1]-days[0]
+  if total(self.apid eq ['342'x,'3b8'x,'36d'x,'37d'x]) ne 0 then self.nomem ;loading from sav files repopulates the memdump ram
+  for i=0,ndays do begin
+    trange=24*60*60d*(days[0]+[0,1]+i)
+    w=where((datarray.time ge trange[0]) and (datarray.time lt trange[1]),/null,nw)
+    if nw eq 0 then continue
+    self.data.array=datarray[w]
+    self.data.size=nw
+    self.data.name=self.name ;in case spp_swp_apdat_init changes the object name after object was saved (e.g., wrp_P5P7)
+    filename=time_string(trange[0],tformat=sav_format)
+    filename=root_data_dir()+str_sub(filename,'$NAME$',self.name)
+    file_mkdir2,file_dirname(filename)
+    dprint,'Saving file: '+filename
+    save,file=filename,self,verbose=verbose,/compress
+    dprint,'Saved file:  '+filename
+  endfor
 end
 
 
@@ -466,7 +499,7 @@ END
 
 PRO spp_gen_apdat::GetProperty,data=data, array=array, npkts=npkts,lost_pkts=lost_pkts, apid=apid, name=name,  typename=typename, $
   nsamples=nsamples,nbytes=nbytes,strct=strct,ccsds_last=ccsds_last,tname=tname,dlevel=dlevel,ttags=ttags,last_data=last_data, $
-  window=window
+  window=window,cdf_pathname=cdf_pathname
   COMPILE_OPT IDL2
   IF (ARG_PRESENT(nbytes)) THEN nbytes = self.nbytes
   IF (ARG_PRESENT(name)) THEN name = self.name
@@ -481,6 +514,7 @@ PRO spp_gen_apdat::GetProperty,data=data, array=array, npkts=npkts,lost_pkts=los
   if (arg_present(window)) then window = self.window_obj
   IF (ARG_PRESENT(array)) THEN array = self.data.array
   IF (ARG_PRESENT(nsamples)) THEN nsamples = self.data.size
+  IF (ARG_PRESENT(cdf_pathname)) THEN cdf_pathname = self.cdf_pathname
   IF (ARG_PRESENT(typename)) THEN typename = typename(*self.data)
   IF (ARG_PRESENT(dlevel)) THEN dlevel = self.dlevel
   if (arg_present(strct) ) then strct = self.struct()

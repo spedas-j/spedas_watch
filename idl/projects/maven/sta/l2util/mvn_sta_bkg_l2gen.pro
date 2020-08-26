@@ -2,7 +2,8 @@
 ;NAME:
 ; mvn_sta_cmn_l2gen.pro
 ;PURPOSE:
-; turn a MAVEN STA common block into a L2 CDF.
+; turn a MAVEN STA common block into a L2 CDF, but only including the
+; background array.
 ;CALLING SEQUENCE:
 ; mvn_sta_cmn_l2gen, cmn_dat
 ;INPUT:
@@ -61,9 +62,11 @@
 ;   BKG             FLOAT     Array[21600, 32, 64]
 ;   DEAD            FLOAT     Array[21600, 32, 64]
 ;   DATA            DOUBLE    Array[21600, 32, 64]
-; All of this has to go into the CDF, also Epoch, tt200, MET time
+; All of this (not DEAD or DATA or EFLUX) 
+; has to go into the CDF, also Epoch, tt200, MET time
 ; variables; some of the names are changed to titles given in the SIS
 ; Data is changed from double to float prior to output
+; IV_LEVEL for background is added
 ;KEYWORDS:
 ; otp_struct = this is the structure that is passed into
 ;              cdf_save_vars to creat the file
@@ -74,26 +77,17 @@
 ; iv_level = New for 2020-08-24, setting this keyword runs a
 ;            special L2 process that creates 'iv'+iv_level files, using a
 ;            new background calculation. There will be multiple iv
-;            levels, and only the background values are saved in the file
+;            levels, and only the background values are saved in the
+;            file. THIS KEYWORD IS REQUIRED
 ;HISTORY:
-; 28-apr-2014, jmm, jimm@ssl.berkeley.edu
-; jun-2014, jmm added compression - no_compression
-; 10-jun-2014, jmm, added delete keyword,changed compression scheme
-; 11-jun-2014, changed filenaming no more R value
-; 18-jun-2014, added changes suggested by Bob McGuire, fixed epoch and
-; tt200 attribute types
-; 7-7-2014, jmm, deleted no_cdfconvert option, added md5sum
-; 22-jul-2014, jmm, added revisoining
-; 2-oct-2014, jmm, ISTP compliance
-; 1-nov-2014, jmm, PDS compliance
-; 6-nov-2014, jmm, Corrects clock drift 
-; 22-dec-2014, jmm, added eprom_ver and header
+; 24-aug-2020, jmm, jimm@ssl.berkeley.edu, hacked from
+; mvn_sta_cmn_l2gen.pro for cdf's with only the background calculation
 ; $LastChangedBy: jimm $
 ; $LastChangedDate: 2020-08-25 10:49:37 -0700 (Tue, 25 Aug 2020) $
 ; $LastChangedRevision: 29076 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_cmn_l2gen.pro $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_bkg_l2gen.pro $
 ;-
-Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, $
+Pro mvn_sta_bkg_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, $
                        no_compression = no_compression, iv_level = iv_level, _extra = _extra
 
 ;Need to keep track of spice kernels
@@ -112,16 +106,19 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
   If(keyword_set(iv_level)) Then Begin
      apid = strlowcase(cmn_dat.apid)
      If(in_set(apid, ['c0', 'c6', 'c8', 'ca', 'd0', 'd1']) Eq 0) Then Return
-     mvn_sta_bkg_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, $
-                        no_compression = no_compression, iv_level = iv_level, _extra = _extra
-     Return     
-  Endif
+  Endif Else Begin
+     dprint, 'IV_LEVEL keyword not set'
+     Return
+  Endelse
+
+  iv_str = strcompress(string(iv_level), /remove_all)
+  iv_lvl = 'iv'+iv_str
 
 ;First, global attributes
   global_att = {Acknowledgment:'None', $
                 Data_type:'CAL>Calibrated', $
                 Data_version:'0', $
-                Descriptor:'STATIC>Supra-Thermal Thermal Ion Composition Particle Distributions', $
+                Descriptor:'STATIC>Supra-Thermal Thermal Ion Composition Background Particle Distributions', $
                 Discipline:'Space Physics>Planetary Physics>Particles', $
                 File_naming_convention: 'mvn_descriptor_datatype_yyyyMMdd', $
                 Generated_by:'MAVEN SOC' , $
@@ -132,7 +129,7 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
                 LINK_TITLE:'MAVEN home page' , $
                 Logical_file_id:'mvn_sta_l2_c6_00000000_v00_r00.cdf' , $
                 Logical_source:'urn:nasa:pds:maven.static.c:data.c6_2e64m' , $
-                Logical_source_description:'MAVEN Supra-Thermal And Thermal Ion Composition Particle Distributions', $
+                Logical_source_description:'MAVEN Supra-Thermal And Thermal Ion Composition Background Particle Distributions', $
                 Mission_group:'MAVEN' , $
                 MODS:'Rev-1 2014-04-28' , $
                 PI_name:'J. P. McFadden', $
@@ -148,9 +145,9 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
                 Project:'MAVEN', $
                 Rules_of_use:'Open Data for Scientific Use' , $
                 Source_name:'MAVEN>Mars Atmosphere and Volatile Evolution Mission', $
-                TEXT:'STATIC>Supra-Thermal And Thermal Ion Composition Particle Distributions', $
+                TEXT:'STATIC>Supra-Thermal And Thermal Ion Composition Background Particle Distributions', $
                 Time_resolution:'4 sec', $
-                Title:'MAVEN STATIC Ion Spectra'}
+                Title:'MAVEN STATIC Background Ion Spectra'}
 
 ;Now variables and attributes
   cvars = strlowcase(tag_names(cmn_dat))
@@ -187,11 +184,8 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
             ['QUAT_MSO', 'FLOAT', 'Quaternion elements to rotate from STATIC coordinates (same as APP coordinates) to MSO coordinates (NUM_DISTS, 3)', 'Quaternion to MSO'], $
             ['BINS_SC', 'INTEGER', 'Integer array of 1s and 0s with dimension (NUM_DISTS, NBINS) with 0s used to identify angle bins that include spacecraft surfaces. If NBINS=1, then BINS_SC is used to identify those times, value=0, when the spacecraft is in STATICs FOV.', 'Bins flag'], $
             ['POS_SC_MSO', 'FLOAT', 'Spacecraft position in MSO coordinates with dimension (NUM_DISTS, 3)', 'SC position MSO'], $
-            ['BKG', 'FLOAT', 'Background counts array with dimensions (NUM_DISTS, '+nenbnm+')', 'Background counts'], $
-            ['DEAD', 'FLOAT', 'Dead time correction array with dimensions (NUM_DISTS, '+nenbnm+'), values 0.0 to 1.0, divide by this to correct.', 'Dead_time correction'], $
-            ['DATA', 'FLOAT', 'Counts array with dimensions (NUM_DISTS, '+nenbnm+')', 'Data counts'], $
-            ['EFLUX', 'FLOAT', 'Differential energy flux array with dimensions (NUM_DISTS, '+nenbnm+')', 'Energy flux'], $
-            ['QUALITY_FLAG', 'INTEGER', 'Quality flag (NUM_DISTS elements)', 'Quality flag']]
+            ['BKG', 'FLOAT', 'Background counts array with dimensions (NUM_DISTS, '+nenbnm+')', 'Background counts']]
+
 ;Use Lower case for variable names
   rv_vt[0, *] = strlowcase(rv_vt[0, *])
 
@@ -230,7 +224,8 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
            ['CHARGE', 'FLOAT', 'Proton charge (1)'], $
            ['DEAD_TIME_1', 'FLOAT', 'Dead time for processed events. Dead time corrections are generally not necessary. Corrections require use of STATIC APID DA rate packets.'], $
            ['DEAD_TIME_2', 'FLOAT', 'Dead time for rejected events. Dead time corrections are generally not necessary. Corrections require use of STATIC APID DA rate packets.'], $
-           ['DEAD_TIME_3', 'FLOAT', 'Dead time for stop-no-start events. Dead time corrections are generally not necessary. Corrections require use of STATIC APID DA rate packets.']]
+           ['DEAD_TIME_3', 'FLOAT', 'Dead time for stop-no-start events. Dead time corrections are generally not necessary. Corrections require use of STATIC APID DA rate packets.'], $
+           ['IV_LEVEL', 'INTEGER', 'IV_LEVEL is the level of background calculations.']]
 ;Use Lower case for variable names
   nv_vt[0, *] = strlowcase(nv_vt[0, *])
 
@@ -312,22 +307,17 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
            End
            'time_delta': dvar = cmn_dat.delta_t
            'time_integ': dvar = cmn_dat.integ_t
-           'eflux': Begin       ;eflux is calculated
-              mvn_sta_l2eflux, cmn_dat
-              dvar = cmn_dat.eflux
-           End
            Else: Begin
               message, /info, 'Variable '+vj+' Unaccounted for.'
            End
         Endcase
      Endelse
 ;change data to float from double
-     if(vj eq 'data') then dvar = float(dvar) 
+     if(vj eq 'bkg') then dvar = float(dvar) 
 
      cdf_type = idl2cdftype(dvar, format_out = fmt, fillval_out = fll, validmin_out = vmn, validmax_out = vmx)
 ;Change types for CDF time variables
      If(vj eq 'epoch') Then cdf_type = 'CDF_TIME_TT2000'
-
      dtype = size(dvar, /type)
 ;variable attributes here, but only the string attributes, the others
 ;depend on the data type
@@ -339,7 +329,6 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
              scaletyp:'NA', lablaxis:'NA',$
              labl_ptr_1:'NA',labl_ptr_2:'NA',labl_ptr_3:'NA', $
              form_ptr:'NA', monoton:'NA',var_notes:'None'}
-
 ;fix fill vals, valid mins and valid max's here
      str_element, vatt, 'fillval', fll, /add
      str_element, vatt, 'format', fmt, /add
@@ -373,7 +362,7 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
      vatt.catdesc = rv_vt[2, j]
 ;data is log scaled, everything else is linear, set data, support data
 ;display type here
-     IF(vj Eq 'data' Or vj Eq 'bkg' Or vj Eq 'eflux') Then Begin
+     If(vj Eq 'bkg') Then Begin
         vatt.scaletyp = 'log' 
         vatt.display_type = 'spectrogram'
         vatt.var_type = 'data'
@@ -382,17 +371,15 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
         vatt.display_type = 'time_series'
         vatt.var_type = 'support_data'
      Endelse
-
      vatt.fieldnam = rv_vt[3, j] ;shorter name
 ;Units
-     If(is_tvar) Then Begin ;Time variables
+     If(is_tvar) Then Begin     ;Time variables
         If(vj Eq 'epoch') Then vatt.units = 'nanosec' Else vatt.units = 'sec'
      Endif Else Begin
         If(strpos(vj, 'time') Ne -1) Then vatt.units = 'sec' $ ;time interval sizes
         Else If(vj Eq 'sc_pot') Then vatt.units = 'volts' $
         Else If(vj Eq 'magf') Then vatt.units = 'nT' $
-        Else If(vj Eq 'data' Or vj Eq 'bkg') Then vatt.units = 'Counts' $
-        Else If(vj Eq 'eflux') Then vatt.units = 'eV/(cm^2-s-sr-eV)' ;check this
+        Else If(vj Eq 'bkg') Then vatt.units = 'Counts'
      Endelse
 
 ;Depends and labels
@@ -413,7 +400,7 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
      Endif Else If(vj Eq 'quat_mso') Then Begin
         vatt.depend_1 = 'compno_4'
         vatt.labl_ptr_1 = 'quat_mso_labl'
-     Endif Else IF(vj Eq 'data' Or vj Eq 'bkg' Or vj Eq 'eflux' Or vj Eq 'dead') Then Begin
+     Endif Else IF(vj Eq 'bkg') Then Begin
        If(cmn_dat.nbins Eq 1) Then Begin
 ;For ISTP compliance, it looks as if the depend's are switched,
 ;probably because we transpose it all in the file
@@ -510,6 +497,9 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
            End
            'dead_time_3': Begin
               dvar = cmn_dat.dead3
+           End
+           'iv_level': Begin
+              dvar = fix(iv_level)
            End
            Else: Begin
               message, /info, 'Variable '+vj+' Unaccounted for.'
@@ -734,7 +724,7 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
 
   ext = strcompress(strlowcase(cmn_dat.apid), /remove_all)+'-'+estring+dstring+astring+mstring
 
-  file0 = 'mvn_sta_l2_'+ext+'_'+date+'_'+sw_vsn_str+'.cdf'
+  file0 = 'mvn_sta_l2_'+ext+'_'+date+'_'+iv_lvl+'.cdf'
   fullfile0 = dir+file0
 
 ;Fix ISTP compliance for data types here, 
@@ -744,12 +734,12 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
               strcompress(/remove_all, string(cmn_dat.nmass))+' Masses']
 
 
-  otp_struct.g_attributes.data_type = 'l2_'+ext+'>Level 2 data, APID: '+cmn_dat.apid+', '+strjoin(ext1_arr, ', ')
+  otp_struct.g_attributes.data_type = 'l2_'+ext+'> IV_LEVEL: '+iv_lvl+' BKG data, APID: '+cmn_dat.apid+', '+strjoin(ext1_arr, ', ')
 
   otp_struct.g_attributes.PDS_collection_id = ext
 ;save the file -- full database management
   Print, 'Saving: '+fullfile0
-  mvn_sta_cmn_l2file_save, otp_struct, fullfile0, no_compression = no_compression, _extra = _extra
+  mvn_sta_bkg_l2file_save, otp_struct, fullfile0, no_compression = no_compression, iv_level = iv_level, _extra = _extra
 
   Return
 End

@@ -6,8 +6,8 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-18 18:37:05 -0700 (Tue, 18 Aug 2020) $
-; $LastChangedRevision: 29046 $
+; $LastChangedDate: 2020-08-24 21:48:08 -0700 (Mon, 24 Aug 2020) $
+; $LastChangedRevision: 29072 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
@@ -53,8 +53,8 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
     spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=scale1,name=n1,trange=trange,/force_objects ;million km
     spice_position_to_tplot,'SPP','Venus',frame=ref_frame,res=res,scale=scale2,name=n2,trange=trange,/force_objects ; 1000 km
     xyz_to_polar,[n1,n2],/ph_0_360
-    options,'SPP_POS_(SUN-J2000)_mag',ysubtitle=ysub1,ystyle=3
-    options,'SPP_POS_(Venus-J2000)_mag',ysubtitle=ysub2,ystyle=3
+    options,'SPP_POS_(SUN-'+ref_frame+')_mag',ysubtitle=ysub1
+    options,'SPP_POS_(Venus-'+ref_frame+')_mag',ysubtitle=ysub2
   endif
   if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,trange=trange,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
 

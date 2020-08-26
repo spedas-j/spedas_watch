@@ -7,8 +7,8 @@
 ;can also show stats for swem_wrp L1 cdf files using keywords 'load' (used once to load cdf files) and 'cdf'
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-19 20:59:34 -0700 (Wed, 19 Aug 2020) $
-; $LastChangedRevision: 29050 $
+; $LastChangedDate: 2020-08-24 21:48:08 -0700 (Mon, 24 Aug 2020) $
+; $LastChangedRevision: 29072 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/spp_swp_wrp_stat.pro $
 ;-
 
@@ -116,7 +116,7 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid=apid,capid=capid0,noheader=noheader,
     av=tot/nw
     ad=tod/nw
     if keyword_set(capid0) then ap2=apid else ap2=ap
-    print,(spp_apdat(ap2)).name,ap2,ap2,nw,tot,tod,tod/tot,av,ad,stdev,stded,100.*stdev/av,100.*stded/ad,format='(a-20,i4,7(" "),"0x",Z3,3i12,7f12.3)'
+    print,(spp_apdat(ap2)).name,ap2,ap2,nw,tot,tod,tod/tot,av,ad,stdev,stded,100.*stdev/av,100.*stded/ad,format='(a-20,i4,7(" "),"0x",Z03,3i12,7f12.3)'
   endfor
 
 

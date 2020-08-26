@@ -1,4 +1,4 @@
-function elf_get_epd_calibration_log, no_download=no_download, trange=trange, probe=probe, instrument=instrument
+function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=instrument, no_download=no_download
 
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
@@ -67,7 +67,11 @@ function elf_get_epd_calibration_log, no_download=no_download, trange=trange, pr
       this_data=strsplit(le_string, ',', /extract)
       print, time_string(trange[0])
       print, this_data[0]
-      if time_double(trange[0]) LT time_double(this_data[0]) then break
+      print, '***'
+      if time_double(trange[0]) LT time_double(this_data[0]) then begin
+        this_data=prev_data
+        break
+      endif
       prev_data=this_data
     endwhile
 
@@ -76,16 +80,20 @@ function elf_get_epd_calibration_log, no_download=no_download, trange=trange, pr
        return, -1
     endif else begin
       if instrument eq 'epde' then begin
-        epd_cal_logs = {epd_thres_factors:this_data[18:23], $
+        epd_cal_logs = {cal_date:time_double(this_data[0]), $
+          probe:probe, $
+          epd_thres_factors:this_data[18:23], $
           epd_ch_efficiencies:this_data[92:106], $
           epd_ebins:this_data[58:73]}
       endif else begin   ; else instrument equals epdi
-        epd_cal_logs = {epd_thres_factors:this_data[24:25], $
+        epd_cal_logs = {cal_date:time_double(this_data[0]), $
+          probe:probe, $
+          epd_thres_factors:this_data[24:25], $
           epd_ch_efficiencies:this_data[107:123], $
           epd_ebins:this_data[74:89]}
       endelse      
     endelse
-    
+ 
   endelse
 
   if undefined(epd_cal_logs) then epd_cal_logs=-1
