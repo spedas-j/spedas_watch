@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-08-14 14:13:00 -0700 (Fri, 14 Aug 2020) $
-; $LastChangedRevision: 29026 $
+; $LastChangedDate: 2020-08-28 15:57:21 -0700 (Fri, 28 Aug 2020) $
+; $LastChangedRevision: 29090 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -99,6 +99,21 @@ function mms_python_validation_ut::test_fpi_default
   assert, self.compare(d.y[1000, *], self.str_to_arr(output[-9])), 'Problem with FPI'
   assert, self.compare(d.y[0, *], self.str_to_arr(output[-10])), 'Problem with FPI'
   assert, self.compare(d.x[0:9], self.str_to_arr(output[-11])), 'Problem with FPI'
+
+  return, 1
+end
+
+function mms_python_validation_ut::test_fpi_brst
+  mms_load_fpi, probe=1, datatype='des-moms', data_rate='brst', trange=['2015-10-16/13:06', '2015-10-16/13:07']
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.fpi_brst', output
+  
+  get_data, 'mms1_des_energyspectr_omni_brst', data=d
+  assert, self.compare(d.y[4000, *], self.str_to_arr(output[-6])), 'Problem with FPI (brst)'
+  assert, self.compare(d.y[3000, *], self.str_to_arr(output[-7])), 'Problem with FPI (brst)'
+  assert, self.compare(d.y[2000, *], self.str_to_arr(output[-8])), 'Problem with FPI (brst)'
+  assert, self.compare(d.y[1000, *], self.str_to_arr(output[-9])), 'Problem with FPI (brst)'
+  assert, self.compare(d.y[0, *], self.str_to_arr(output[-10])), 'Problem with FPI (brst)'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-11])), 'Problem with FPI (brst)'
 
   return, 1
 end
@@ -227,6 +242,23 @@ function mms_python_validation_ut::test_edp_default
   assert, self.compare(d.y[10000, *], self.str_to_arr(output[-15])), 'Problem with EDP'
   assert, self.compare(d.x[0:9], self.str_to_arr(output[-16])), 'Problem with EDP'
 
+  return, 1
+end
+
+function mms_python_validation_ut::test_edp_brst
+  mms_load_edp, probe=1, trange=['2015-10-16/13:06', '2015-10-16/13:07'], data_rate='brst'
+  
+  spawn, self.py_exe_dir+'python -m pyspedas.mms.tests.validation.edp_brst', output
+
+  get_data, 'mms1_edp_dce_gse_brst_l2', data=d
+  assert, self.compare(d.y[400000, *], self.str_to_arr(output[-10])), 'Problem with EDP (brst)'
+  assert, self.compare(d.y[300000, *], self.str_to_arr(output[-11])), 'Problem with EDP (brst)'
+  assert, self.compare(d.y[200000, *], self.str_to_arr(output[-12])), 'Problem with EDP (brst)'
+  assert, self.compare(d.y[100000, *], self.str_to_arr(output[-13])), 'Problem with EDP (brst)'
+  assert, self.compare(d.y[50000, *], self.str_to_arr(output[-14])), 'Problem with EDP (brst)'
+  assert, self.compare(d.y[10000, *], self.str_to_arr(output[-15])), 'Problem with EDP (brst)'
+  assert, self.compare(d.x[0:9], self.str_to_arr(output[-16])), 'Problem with EDP (brst)'
+  
   return, 1
 end
 

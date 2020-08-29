@@ -7,31 +7,49 @@
 ;can also show stats for swem_wrp L1 cdf files using keywords 'load' (used once to load cdf files) and 'cdf'
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-24 21:48:08 -0700 (Mon, 24 Aug 2020) $
-; $LastChangedRevision: 29072 $
+; $LastChangedDate: 2020-08-28 14:56:20 -0700 (Fri, 28 Aug 2020) $
+; $LastChangedRevision: 29089 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/spp_swp_wrp_stat.pro $
 ;-
 
-pro spp_swp_wrp_stat,load=load,cdf=cdf,apid=apid,capid=capid0,noheader=noheader,npackets=npackets,all=all,comp=comp,group=group,trange=trange
+pro spp_swp_wrp_stat,load=load,cdf=cdf,apid=apid,capid=capid0,noheader=noheader,npackets=npackets,totbytes=totbytes,all=all,comp=comp,group=group,trange=trange
 
   spp_swp_apdat_init
   apr=[0,'7ff'x] ;range of all apids: to check for possible bad packets
   if keyword_set(all) then apr=['340'x,'3c0'x] ;range of sweap apids
-  wapr=['348'x,'350'x] ;range of wrapper apids
-  npackets=replicate(0ul,apr[1]-apr[0]+1)
+  wapr=['348'x,'34f'x] ;range of wrapper apids
+  aprs=orderedhash('spc_all',['351'x,'35f'x],'spa_all',['360'x,'36f'x],'spb_all',['370'x,'37f'x],'spe_all',['360'x,'37f'x],'spi_all',['380'x,'3bf'x],$
+    'spa_archive',['360'x,'363'x],'spb_archive',['370'x,'373'x],'spi_archive',['380'x,'397'x],$
+    'spa_survey' ,['364'x,'36f'x],'spb_survey' ,['374'x,'37f'x],'spi_survey' ,['398'x,'3bf'x],'TOTAL',apr)
+  npackets=replicate(0ull,apr[1]-apr[0]+1)
+  totbytes=npackets
 
   if ~isa(apid) then begin
-    npackets2=replicate(0ul,[apr[1]-apr[0]+1,wapr[1]-wapr[0]+1])
+    npackets2=replicate(0ull,[apr[1]-apr[0]+1,wapr[1]-wapr[0]+1])
+    totbytes2=npackets2
     names=replicate('',wapr[1]-wapr[0]+1)
     for wapid=wapr[0],wapr[1] do begin
-      spp_swp_wrp_stat,load=load,cdf=cdf,apid=wapid,npackets=npackets,all=all,comp=comp,group=group,trange=trange
+      spp_swp_wrp_stat,load=load,cdf=cdf,apid=wapid,npackets=npackets,totbytes=totbytes,all=all,comp=comp,group=group,trange=trange
       npackets2[*,wapid-wapr[0]]=npackets
+      totbytes2[*,wapid-wapr[0]]=totbytes
       names[wapid-wapr[0]]=(spp_apdat(wapid)).name
     endfor
-    print,'Number of packets in each wrapper APID:',[wapr[0]:wapr[1]],format='(156("-"),/,a,Z9,8Z12)'
-    for ap=apr[0],apr[1] do begin
-      if (ap eq apr[0]) || (ap eq apr[1]) then print,'Name','APID dec','0xhex',names,format='(a4,a20,10a12)
-      if (ap ne apr[1]) && keyword_set(all) || (total(npackets2[ap-apr[0],*]) ne 0) then print,(spp_apdat(ap)).name,ap,ap,npackets2[ap-apr[0],*],format='(a-20,i4,7(" "),"0x",Z03,9(i12))
+    format='(a-20,i4,7(" "),"0x",Z03,9i12)
+    for itot=0,1 do begin
+      headertext=['Number of pkts','Total pkt size']+' in each wrapper APID:'
+      print,headertext[itot],[wapr[0]:wapr[1]],'all',format='(156("-"),/,a-36,8Z12,a12)'
+      print,'Name','APID dec','0xhex',names,'wrp_all',format='(a4,a20,10a12)
+      pkts=itot ? totbytes2:npackets2
+      for ap=apr[0],apr[1]-1 do begin
+        totpkts=total(pkts[ap-apr[0],*])
+        if keyword_set(all) || (totpkts ne 0) then print,(spp_apdat(ap)).name,ap,ap,pkts[ap-apr[0],*],totpkts,format=format
+      endfor
+      print,headertext[itot],[wapr[0]:wapr[1]],'all',format='(156("-"),/,a-36,8Z12,a12)'
+      print,'Name','APID dec','0xhex',names,'wrp_all',format='(a4,a20,10a12)
+      foreach apr0,aprs,apr1 do begin
+        totpkts=total(pkts[apr0[0]-apr[0]:apr0[1]-apr[0],*],1)
+        if keyword_set(all) || (total(totpkts) ne 0) then print,apr1,0,0,totpkts,total(totpkts),format=format
+      endforeach
     endfor
     return
   endif
@@ -66,7 +84,7 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid=apid,capid=capid0,noheader=noheader,
       ps=apdat.pkt_size
       td=apdat.content_time_diff
       ca=apdat.content_apid
-      ds=apdat.content_decomp_size 
+      ds=apdat.content_decomp_size
       cc=apdat.content_compressed
     endif
   endelse
@@ -106,7 +124,6 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid=apid,capid=capid0,noheader=noheader,
   for ap=apr[0],apr[1] do begin
     w=where(ca eq ap,nw)
     if nw eq 0 then continue
-    npackets[ap-apr[0]]=nw
     tot=total(ps[w])
     tod=total(ds[w])
     to2=total(ps[w]^2)
@@ -115,6 +132,8 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid=apid,capid=capid0,noheader=noheader,
     stded=sqrt(td2/nw-(tod/nw)^2)
     av=tot/nw
     ad=tod/nw
+    npackets[ap-apr[0]]=nw
+    totbytes[ap-apr[0]]=tot
     if keyword_set(capid0) then ap2=apid else ap2=ap
     print,(spp_apdat(ap2)).name,ap2,ap2,nw,tot,tod,tod/tot,av,ad,stdev,stded,100.*stdev/av,100.*stded/ad,format='(a-20,i4,7(" "),"0x",Z03,3i12,7f12.3)'
   endfor

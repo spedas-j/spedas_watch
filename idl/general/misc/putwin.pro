@@ -145,8 +145,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-21 16:34:45 -0700 (Fri, 21 Aug 2020) $
-; $LastChangedRevision: 29066 $
+; $LastChangedDate: 2020-08-28 10:32:32 -0700 (Fri, 28 Aug 2020) $
+; $LastChangedRevision: 29088 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -166,7 +166,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 ; Output the current monitor configuration.
 
   if keyword_set(stat) then begin
-    if (windex gt 0) then begin
+    if (windex ge 0) then begin
       print,"Monitor configuration:"
       j = sort(mgeom[1,0:maxmon])
       for i=maxmon,0,-1 do begin
@@ -186,6 +186,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       j = j[1:*]
       wait, 2
       for i=0,maxmon do wdelete, j[i]
+      stat = {config:mgeom, primarymon:primarymon, tbar:tbar}
     endif else print,"Monitor configuration undefined -> putwin acts like window"
     return
   endif
