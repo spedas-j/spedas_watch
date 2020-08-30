@@ -12,8 +12,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-06-01 17:27:59 -0700 (Mon, 01 Jun 2020) $
-; $Revision: 28753 $
+; $Date: 2020-08-28 20:48:35 -0700 (Fri, 28 Aug 2020) $
+; $Revision: 29093 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_mag.pro $
 ;-
 
@@ -41,54 +41,39 @@ pro das2dlm_load_cassini_mag_mag, trange=trange
   ; Get dataset
   ds = das2c_datasets(query, 0)
   
-  ; Get physical dimentions
-  px = das2c_pdims(ds, 'time')
-  py = das2c_pdims(ds, 'B_mag')
-  
-  vx = das2c_vars(px, 'center')
-  vy = das2c_vars(py, 'center')
-  
-  mx = das2c_props(px) ; properties (metadata)
-  my = das2c_props(py) ; properties (metadata)
-  
-  x = das2c_data(vx)
-  y = das2c_data(vy)
-  
-  dt = time_double('2000-01-01')-time_double('1970-01-01')
-  x = x/1d6 + dt
-  
+  ; Get variables
+  das2dlm_get_ds_var, ds, 'time', 'center', p=px, v=vx, m=mx, d=x
+  das2dlm_get_ds_var, ds, 'B_mag', 'center', p=py, v=vy, m=my, d=y
+
+  ; Exit on empty data
+  if undefined(x) then begin
+    dprint, dlevel = 0, 'Dataset has no data for the selected period.'
+    return
+  endif
+
+  ; Convert time
+  x = das2dlm_time_to_unixtime(x, vx.units)
+      
   tvarname = 'cassini_mag_' + ds.name
   store_data, tvarname, data={x:x, y:y}
   options, /default, tvarname, 'colors', 0
   
   ; Metadata
+  das2dlm_get_ds_meta, ds, meta=mds, title=das2name
+
   str_element, DAS2, 'url', requestUrl, /add
-  str_element, DAS2, 'name', ds.name, /add
+  str_element, DAS2, 'name', das2name, /add
+  str_element, DAS2, 'propds', mds, /add ; add data set property
 
-  str_element, DAS2, 'namex', px.pdim, /add
-  str_element, DAS2, 'namey', py.pdim, /add
-  
-  str_element, DAS2, 'usex', px.use, /add
-  str_element, DAS2, 'usey', py.use, /add
+  das2dlm_add_metadata, DAS2, p=px, v=vx, m=mx, add='t'
+  das2dlm_add_metadata, DAS2, p=py, v=vy, m=my, add='t'
     
-  str_element, DAS2, 'unitsx', vx.units, /add
-  str_element, DAS2, 'unitsy', vy.units, /add
-  
-  str_element, DAS2, 'propsx', mx, /add
-  str_element, DAS2, 'propsy', my, /add
-
-  
   options, /default, tvarname, 'DAS2', DAS2 ; Store metadata (this should not affect graphics)
-  
-  options, /default, tvarname, 'title', tvarname
+  options, /default, tvarname, 'title', DAS2.name
   
   ; Data Label
   ytitle = DAS2.namey + ', ' + DAS2.unitsy
   str_element, my[0], 'key', success=s
   if s eq 1 then str_element, my[0], 'value', ytitle    
   options, /default, tvarname, 'ytitle', ytitle ; Title from the properties
-    
-  ; TODO: add check on null
-  ; us2000 – Microseconds since midnight January 1st 2000, ignoring leap seconds
-
 end

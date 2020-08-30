@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-05-11 10:07:49 -0700 (Mon, 11 May 2020) $
-; $LastChangedRevision: 28680 $
+; $LastChangedDate: 2020-08-28 18:25:11 -0700 (Fri, 28 Aug 2020) $
+; $LastChangedRevision: 29091 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -74,7 +74,6 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
           store_data,prefix+'AVG_EFLUX_VS_E',time,eflux_vs_energy,energy,dlim={ylog:1,bins:ebins,yrange:[1e4,1e10]}
           store_data,prefix+'EFLUX_VS_ENERGY',time,eflux_vs_energy,energy,dlim={spec:1,ylog:1,zlog:1,yrange:[1,1e4],ztitle:'[eV/cm2-s-ster-eV]',ysubtitle:'[eV]',ytickunits:'scientific'}
           store_data,prefix+'QUALITY_FLAG',time,qf
-          spp_swp_qf,prefix=prefix
           foreach e,esteps do begin
             enum = strtrim(e,2)
             eval = median(energy[*,e])
@@ -112,6 +111,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
       endif else begin
         cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose        
       endelse
+      spp_swp_qf,prefix=prefix
 
 
       if level eq 'L2' and (type eq 'sf0' or type eq 'af0') then begin ;; will need to change this in the future if sf0 isn't 3d spectra.

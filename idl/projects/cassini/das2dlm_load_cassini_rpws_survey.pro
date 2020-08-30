@@ -21,8 +21,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-08-03 20:45:11 -0700 (Mon, 03 Aug 2020) $
-; $Revision: 28983 $
+; $Date: 2020-08-28 20:48:35 -0700 (Fri, 28 Aug 2020) $
+; $Revision: 29093 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_survey.pro $
 ;-
 
@@ -64,6 +64,12 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
   ; Get time
   das2dlm_get_ds_var, ds, 'time', 'center', p=pt, v=vt, m=mt, d=dt
   
+  ; Exit on empty data
+  if undefined(dt) then begin
+    dprint, dlevel = 0, 'Dataset has no data for the selected period.'
+    return
+  endif
+  
   ; Get frequency
   das2dlm_get_ds_var, ds, 'frequency', 'center', p=pf, v=vf, m=mf, d=df
   
@@ -102,8 +108,11 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
   ;options, /default, tvarname, 'colors', 0
     
   ; Metadata
+  das2dlm_get_ds_meta, ds[0], meta=mds, title=das2name
+    
   str_element, DAS2, 'url', requestUrl, /add
-  str_element, DAS2, 'name', ds[0].name, /add
+  str_element, DAS2, 'name', das2name, /add
+  str_element, DAS2, 'propds', mds, /add ; add data set property
 
   str_element, DAS2, 'namex', pt.pdim, /add
   str_element, DAS2, 'namey', pa.pdim, /add
