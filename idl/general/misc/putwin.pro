@@ -73,10 +73,14 @@
 ;                  out.  This value is persistent for subsequent calls 
 ;                  to putwin, so you only need to set it once.
 ;
-;       STAT:      Output the current monitor configuration and put a
-;                  small window in each monitor for 2 sec to identify
-;                  the monitor numbers.  This variable will also hold
-;                  the screen geometry matrix.
+;       STAT:      Output the current monitor configuration.  When 
+;                  this keyword is set, CONFIG will return the current 
+;                  monitor array, the primary monitor index, and the 
+;                  title bar width.
+;
+;       SHOW:      Same as STAT, except in addition a small window is
+;                  placed in each monitor for 2 sec to identify
+;                  the monitor numbers.
 ;
 ;       MONITOR:   Put window in this monitor.
 ;
@@ -145,8 +149,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-28 10:32:32 -0700 (Fri, 28 Aug 2020) $
-; $LastChangedRevision: 29088 $
+; $LastChangedDate: 2020-08-30 17:08:25 -0700 (Sun, 30 Aug 2020) $
+; $LastChangedRevision: 29094 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -155,7 +159,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                   config=config, xsize=xsize, ysize=ysize, scale=scale, $
                   key=key, stat=stat, nofit=nofit, norm=norm, center=center, $
                   xcenter=xcenter, ycenter=ycenter, tbar=tbar2, xfull=xfull, $
-                  yfull=yfull, aspect=aspect, _extra=extra
+                  yfull=yfull, aspect=aspect, show=show, _extra=extra
 
   @putwin_common
 
@@ -165,7 +169,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
 ; Output the current monitor configuration.
 
-  if keyword_set(stat) then begin
+  if (keyword_set(stat) or keyword_set(show)) then begin
     if (windex ge 0) then begin
       print,"Monitor configuration:"
       j = sort(mgeom[1,0:maxmon])
@@ -175,18 +179,21 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       endfor
       print,""
 
-      j = -1
-      for i=0,maxmon do begin
-        putwin, 32, i, xsize=100, ysize=100, /center
-        xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
-        if (i eq primarymon) then $
-          xyouts,0.5,0.1,"(primary)",/norm,align=0.5,charsize=1.5,charthick=1,color=6
-        j = [j, !d.window]
-      endfor
-      j = j[1:*]
-      wait, 2
-      for i=0,maxmon do wdelete, j[i]
-      stat = {config:mgeom, primarymon:primarymon, tbar:tbar}
+      if keyword_set(show) then begin
+        j = -1
+        for i=0,maxmon do begin
+          putwin, 32, i, xsize=100, ysize=100, /center
+          xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
+          if (i eq primarymon) then $
+            xyouts,0.5,0.1,"(primary)",/norm,align=0.5,charsize=1.5,charthick=1,color=6
+          j = [j, !d.window]
+        endfor
+        j = j[1:*]
+        wait, 2
+        for i=0,maxmon do wdelete, j[i]
+      endif
+
+      config = {config:mgeom, primarymon:primarymon, tbar:tbar}
     endif else print,"Monitor configuration undefined -> putwin acts like window"
     return
   endif
