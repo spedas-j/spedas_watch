@@ -123,7 +123,9 @@
 ;       NOFIT:     If the combination of XSIZE, YSIZE, SCALE, DX and
 ;                  DY cause the window to extend beyond the monitor,
 ;                  first DX and DY, then XSIZE and YSIZE are reduced
-;                  until the window does fit.  Set NOFIT to disable
+;                  until the window does fit.  If ASPECT is set, then
+;                  the window is further reduced, if necessary, to 
+;                  maintain the aspect ratio.  Set NOFIT to disable
 ;                  this behavior and create the window as requested.
 ;
 ;       XFULL:     Make the window full-screen in X.
@@ -133,7 +135,7 @@
 ;                  (Ignore, YSIZE and DY.)
 ;
 ;       FULL:      If set, make a full-screen window in MONITOR.
-;                  (Ignore XSIZE, YSIZE, DX, DY.)
+;                  (Ignore XSIZE, YSIZE, DX, DY, SCALE, ASPECT.)
 ;
 ;       ASPECT:    Aspect ratio: XSIZE/YSIZE.  If one dimension is
 ;                  set with XSIZE, YSIZE, XFULL, or YFULL, this
@@ -149,8 +151,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-30 17:08:25 -0700 (Sun, 30 Aug 2020) $
-; $LastChangedRevision: 29094 $
+; $LastChangedDate: 2020-08-31 11:36:38 -0700 (Mon, 31 Aug 2020) $
+; $LastChangedRevision: 29099 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -378,6 +380,11 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     dy = dy < ((ydim - tbar - ysize) > 0)
     xsize = xsize < (xdim - dx)
     ysize = ysize < (ydim - tbar - dy)
+    if (size(aspect,/type) gt 0) then begin
+      asp = float(xsize)/float(ysize)
+      if (asp gt aspect) then xsize = fix(float(ysize)*aspect) $
+                         else ysize = fix(float(xsize)/aspect)
+    endif
   endif
 
 ; Place window relative to corner

@@ -611,7 +611,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     min_a_att_gse=min(abs(ela_state_pos_sm.x[midx]-attgsea.x),agse_idx)
     this_a_att_gei = attgeia.y[agei_idx,*]
     this_a_att_gse = attgsea.y[agse_idx,*]
-    if ~undefined(epda_sci_zones) && epda_sci_zones.starts[0] NE -1 then begin
+    if ~undefined(epda_sci_zones) && size(epda_sci_zones, /type) EQ 8 then begin
       idx=where(epda_sci_zones.starts GE this_time[0] and epda_sci_zones.starts LT this_time[nptsa-1], azones)
       if azones GT 0 then begin
         this_a_sz_st=epda_sci_zones.starts[idx]

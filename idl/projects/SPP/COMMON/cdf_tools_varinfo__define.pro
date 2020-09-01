@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson October 2018
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-11 14:15:16 -0700 (Sat, 11 Apr 2020) $
-; $LastChangedRevision: 28558 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-08-30 23:52:01 -0700 (Sun, 30 Aug 2020) $
+; $LastChangedRevision: 29095 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools_varinfo__define.pro $
 ;-
 
@@ -179,8 +179,8 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['UNITS']       = 'eV/cm2-s-ster-eV'
       att['VAR_TYPE']    = 'data'
       att['DISPLAY_TYPE']= 'spectrogram'
-      att['DEPEND_1']    = 'ENERGY_VALS'
-      att['DEPEND_2']    = 'PITCHANGLE'
+      att['DEPEND_1']    = 'PITCHANGLE'
+      att['DEPEND_2']    = 'ENERGY_VALS'
       att['VALIDMIN']    = 0.001
       att['VALIDMAX']    = 1e12
       att['SCALETYP']    = 'log'
