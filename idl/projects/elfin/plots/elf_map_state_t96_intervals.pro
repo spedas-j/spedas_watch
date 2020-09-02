@@ -45,7 +45,7 @@
 pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=noview,$
   model=model, dir_move=dir_move, insert_stop=insert_stop, hires=hires, $
   no_trace=no_trace, tstep=tstep, clean=clean, quick_trace=quick_trace, pred=pred, $
-  sm=sm, bfirst=bfirst
+  sm=sm, bfirst=bfirst, one_hour_only=one_hour_only
 
   ; ACN
   pro_start_time=SYSTIME(/SECONDS)
@@ -1429,7 +1429,8 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endif
     
     if keyword_set(insert_stop) then stop
-
+    if keyword_set(one_hour_only) then break
+    
   endfor ; end of plotting loop
 
   pro_end_time=SYSTIME(/SECONDS)

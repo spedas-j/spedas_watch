@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-08-05 13:30:19 -0700 (Wed, 05 Aug 2020) $
-; $LastChangedRevision: 28993 $
+; $LastChangedDate: 2020-09-01 15:58:08 -0700 (Tue, 01 Sep 2020) $
+; $LastChangedRevision: 29106 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -181,7 +181,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         resolution = 3600l * 6l ; hours
         daily_names = 0
       endif
-      if type EQ 'dfb_dbm_dvac' then begin
+      if (type EQ 'dfb_dbm_dvac') or (type EQ 'dfb_dbm_vac') then begin
         pathformat = 'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDDhh_v??.cdf'
         resolution = 3600l * 6l ; hours
         daily_names = 0

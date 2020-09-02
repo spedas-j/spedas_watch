@@ -182,7 +182,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     options, 'proxy_ae', ysubtitle='[nT]'
     options, 'proxy_ae', yrange=[0,150]     
   endif else begin
-    dprint, level=1, 'No data available for proxy_ae'
+    print, 'No data available for proxy_ae'
     options, 'proxy_ae', ztitle=''    
   endelse
   
@@ -493,9 +493,9 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         gif_file = gif_path+'el'+probe+'_l2_overview_'+fd+file_lbl[nhrs]+sz_name
         dprint, 'Making gif file '+gif_file+'.gif'
         write_gif, gif_file+'.gif',image,r,g,b
-        dprint, dlevel=2, 'Sci Zone plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
+        print, 'Sci Zone plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
       endfor 
-  
+
       ;*************************;
       ;  ADD TPLOT APPEND HERE
       ;*************************;
@@ -518,6 +518,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch2', 'el'+probe+'_pef_pa_reg_spec2plot_ch2_sz'+strtrim(string(num),2)
       copy_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch3', 'el'+probe+'_pef_pa_reg_spec2plot_ch3_sz'+strtrim(string(num),2)
  
+      if keyword_set(one_zone_only) then break
+
     endfor
   
   ; Create concatenating (24-hour) tplot variables
@@ -789,8 +791,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
 
       luns=lindgen(124)+5
       for j=0,n_elements(luns)-1 do free_lun, luns[j]
-      dprint, dlevel=2, 'Hourly plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
-      
+      print, 'Hourly plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
+ 
+    if keyword_set(one_zone_only) then break
+       
   endfor
 
   dprint, dlevel=2, 'Total time: '+strtrim(systime(/sec)-t0,2)+' sec'

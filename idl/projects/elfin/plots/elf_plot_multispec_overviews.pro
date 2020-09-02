@@ -14,7 +14,7 @@
   ;  sci_zone: If set this flag will create overplots by science zone rather than by hour
   ;-
 pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_download, $
-    sci_zone=sci_zone,quick_run=quick_run
+    sci_zone=sci_zone,quick_run=quick_run, one_zone_only=one_zone_only
 
   compile_opt idl2
 
@@ -34,6 +34,11 @@ pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_dow
 
   dprint,"Processing start time " + time_string(systime(/seconds)) + ' UT'
   dprint,"Generating ELFIN EPDE overview plots for " + date + " with duration " + strtrim(dur,2) + " days."
+
+  start_time = time_double(date) 
+  end_time = start_time + 86400.
+  epde_plot_overviews, trange=[start_time, end_time], probe=probe, $
+    no_download=no_download, sci_zone=sci_zone, quick_run=quick_run,/one_zone_only
 
   ; create plots for each day
   for j = 0,dur-1 do begin

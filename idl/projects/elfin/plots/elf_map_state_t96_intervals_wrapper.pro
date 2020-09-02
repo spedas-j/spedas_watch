@@ -25,7 +25,8 @@
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/thmsoc/trunk/idl/thmsoc/asi/map_themis_state_t96_wrapper.pro $
 ;-
 pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
-   north_only=north_only, pred=pred, insert_stop=insert_stop, sm=sm, bfirst=bfirst, do_all=do_all
+   north_only=north_only, pred=pred, insert_stop=insert_stop, sm=sm, bfirst=bfirst, $
+   do_all=do_all
 
   compile_opt idl2
 
@@ -42,10 +43,14 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
   endif
   dir_products=!elf.local_data_dir + 'gtrackplots'
   if ~keyword_set(pred) then pred=0 else pred=1
- 
+
+  if undefined(date) then date=systime()
+    
   dprint,"Processing start time " + time_string(systime(/seconds)) + ' UT'
   dprint,"Generating ELFIN T96 Maps for date " + date + " with duration " + strtrim(dur,2) + " days."
 
+  in_date = time_double(date)
+  elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/one_hour_only
   ; create plots for each day
   for j = 0,dur-1 do begin
     in_date = time_double(date)+j*60.*60.*24.
