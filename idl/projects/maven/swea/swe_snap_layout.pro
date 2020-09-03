@@ -31,8 +31,8 @@
 ;       WORK2:         Equivalent to LAYOUT=1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-06 14:09:33 -0700 (Thu, 06 Aug 2020) $
-; $LastChangedRevision: 29010 $
+; $LastChangedDate: 2020-09-02 13:32:52 -0700 (Wed, 02 Sep 2020) $
+; $LastChangedRevision: 29109 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_snap_layout.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -100,7 +100,7 @@ pro swe_snap_layout, layout, home=home, work=work, work2=work2
              Sopt = {xsize:450, ysize:600, dx:820, dy:10, monitor:m, corner:0}   ; 3D SPEC
 
              Popt = {xsize:800, ysize:600, dx:10, dy:10, monitor:m, corner:0}    ; PAD
-             Nopt = {xsize:600, ysize:450, dx:10, dy:10, monitor:m, corner:2}    ; PAD Energy Cut
+             Nopt = {xsize:600, ysize:450, dx:10, dy:620, monitor:m, corner:0}   ; PAD Energy Cut
              Copt = {xsize:500, ysize:700, dx:10, dy:10, monitor:m, corner:2}    ; PAD 3D View
              Fopt = {xsize:400, ysize:600, dx:820, dy:10, monitor:m, corner:0}   ; PAD SPEC
 
@@ -145,7 +145,7 @@ pro swe_snap_layout, layout, home=home, work=work, work2=work2
              tplot_options,'charsize',1.5
            end
 
-    else : begin  ; Default.  No fixed window positions
+    else : begin  ; Default.  No fixed window positions, all placed in the primary monitor.
              snap_index = 0
 
              Dopt = {xsize:800, ysize:600}    ; 3D

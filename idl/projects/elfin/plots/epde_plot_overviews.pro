@@ -172,10 +172,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;elf_load_proxy_ae, trange=[tr[0],tr[1]+5400.], no_download=no_download
   elf_load_proxy_ae, trange=[tr[0],tr[1]+5400.], /smooth, no_download=no_download
   get_data, 'proxy_ae', data=proxy_ae, dlimits=dl, limits=l
-;  if size(proxy_ae,/type) NE 8 then begin
-;    elf_load_proxy_ae, trange=['2019-12-05','2019-12-06']
-;    get_data, 'proxy_ae', data=proxy_ae, dlimits=ae_dl, limits=ae_l
-;  endif 
+  if size(proxy_ae,/type) NE 8 then begin
+    elf_load_proxy_ae, trange=['2019-12-05','2019-12-06']
+    get_data, 'proxy_ae', data=proxy_ae, dlimits=ae_dl, limits=ae_l
+  endif 
   if ~undefined(proxy_ae) && size(proxy_ae, /type) EQ 8 then begin
     proxy_ae.y = median(proxy_ae.y, 10.)
     store_data, 'proxy_ae', data=proxy_ae, dlimits=ae_dl, limits=ae_l

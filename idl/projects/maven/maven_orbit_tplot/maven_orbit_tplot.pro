@@ -148,9 +148,13 @@
 ;
 ;       RESTORE:  Restore tplot variables and the common block from a save file.
 ;
+;       MISSION:  Restore save files that span from Mars orbit insertion to the 
+;                 present.  These files are updated periodically.  Together, the
+;                 save files are 8.7 GB in size.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-03 16:47:52 -0700 (Mon, 03 Aug 2020) $
-; $LastChangedRevision: 28977 $
+; $LastChangedDate: 2020-09-02 13:29:40 -0700 (Wed, 02 Sep 2020) $
+; $LastChangedRevision: 29108 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -161,7 +165,7 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
                        colors=colors, reset_trange=reset_trange, nocrop=nocrop, spk=spk, $
                        segments=segments, shadow=shadow, datum=dtm, noload=noload, $
                        pds=pds, verbose=verbose, clear=clear, success=success, $
-                       save=save, restore=restore
+                       save=save, restore=restore, mission=mission
 
   @maven_orbit_common
 
@@ -216,6 +220,8 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
   endif
 
 ; Restore from a save file
+
+  if keyword_set(mission) then restore = 'maven_moi_present'
 
   if (size(restore,/type) eq 7) then begin
     path = root_data_dir() + 'maven/anc/spice/sav/'

@@ -158,9 +158,9 @@
 ;
 ;        NOTE:         Insert a text label.  Keep it short.
 ;        
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 12:21:06 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28842 $
+; $LastChangedBy: xussui $
+; $LastChangedDate: 2020-09-02 14:42:13 -0700 (Wed, 02 Sep 2020) $
+; $LastChangedRevision: 29110 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -441,8 +441,8 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
       if wstat eq 0 then begin
         Fopt2 = Fopt
         Fopt2.xsize *= 2
-        Fopt2.dx += 1
-        Fopt2.dy += 1
+        ;Fopt2.dx += 1
+        ;Fopt2.dy += 1
         putwin, wnum, free=free, key=Fopt2, scale=wscale
       endif
       Iwin = !d.window
@@ -454,8 +454,8 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
       if wstat eq 0 then begin
         Fopt2 = Fopt
         Fopt2.xsize *= 2
-        Fopt2.dx += 1
-        Fopt2.dy += 1
+        ;Fopt2.dx += 1
+        ;Fopt2.dy += 1
         putwin, wnum, free=free, key=Fopt2, scale=wscale
       endif
       Vwin = !d.window
@@ -798,10 +798,10 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                                   fbdata=fbdata, sc_pot=spflg, archive=aflg, mbins=fovmask[*,boom]
 
             arpad = rpad.avg
-            if size(arpad, /n_dimension) eq 3 then arpad = average(arpad, 3)
+            if size(arpad, /n_dimension) eq 3 then arpad = average(arpad, 3,/nan)
 
             urpad = rpad.std
-            if size(urpad, /n_dimension) eq 3 then urpad = average(urpad, 3)
+            if size(urpad, /n_dimension) eq 3 then urpad = average(urpad, 3,/nan)
             rerr = urpad/arpad
             
             bad = where(rerr gt maxrerr, count)
@@ -839,7 +839,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
              if (dov) then begin
                 if (~psflg) then wset, vwin
-                ven = average(pad.energy, 2)
+                ven = average(pad.energy, 2,/nan)
                 ine = where(ven gt 0)
                 ven = ven[ine]
                 ;ven = pad.energy[*,0]
@@ -859,6 +859,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                 indx=where(finite(vphase) eq 0,cts)
                 vphase[indx] = !values.d_nan
                 mima = minmax(vphase)
+                mima[1] = -10
                 mima[0]=mima[1]-5;6
                 !p.multi=[0,2,2,0,1]
                 vpara=vtot#cos(vpa*!dtor)
