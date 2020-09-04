@@ -65,16 +65,15 @@ function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=ins
       readf, lun, le_string
       if le_string eq '' then continue
       this_data=strsplit(le_string, ',', /extract)
-      print, time_string(trange[0])
-      print, this_data[0]
-      print, '***'
-      if time_double(trange[0]) LT time_double(this_data[0]) then begin
+      if time_double(tr[0]) LT time_double(this_data[0]) then begin
         this_data=prev_data
         break
       endif
       prev_data=this_data
     endwhile
-
+    close, lun
+    free_lun, lun
+    
     if undefined(this_data) && undefined(prev_data) then begin
        dprint, 'No calibration data was found for: ' +trange[0] 
        return, -1
@@ -82,22 +81,22 @@ function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=ins
       if instrument eq 'epde' then begin
         epd_cal_logs = {cal_date:time_double(this_data[0]), $
           probe:probe, $
-          epd_thres_factors:this_data[18:23], $
-          epd_ch_efficiencies:this_data[92:106], $
-          epd_ebins:this_data[58:73]}
+          epd_thresh_factors:float(this_data[18:23]), $
+          epd_ch_efficiencies:float(this_data[92:107]), $
+          epd_ebins:float(this_data[58:73])}
       endif else begin   ; else instrument equals epdi
         epd_cal_logs = {cal_date:time_double(this_data[0]), $
           probe:probe, $
-          epd_thres_factors:this_data[24:25], $
-          epd_ch_efficiencies:this_data[107:123], $
-          epd_ebins:this_data[74:89]}
+          epd_thresh_factors:float(this_data[24:25]), $
+          epd_ch_efficiencies:float(this_data[108:123]), $
+          epd_ebins:float(this_data[74:89])}
       endelse      
     endelse
  
   endelse
 
   if undefined(epd_cal_logs) then epd_cal_logs=-1
-  
+
   return, epd_cal_logs
 
 end
