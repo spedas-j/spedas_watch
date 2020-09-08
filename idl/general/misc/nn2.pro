@@ -40,9 +40,11 @@
 ;
 ;   VINDEX:     Indicies of time2 with valid neighbors in time1.
 ;
+;                   time1[i] <--> time2[VINDEX]
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 11:10:48 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28828 $
+; $LastChangedDate: 2020-09-07 12:21:29 -0700 (Mon, 07 Sep 2020) $
+; $LastChangedRevision: 29120 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/nn2.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2018-08-23

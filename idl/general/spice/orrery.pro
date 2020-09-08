@@ -135,8 +135,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-31 15:50:18 -0700 (Fri, 31 Jul 2020) $
-; $LastChangedRevision: 28965 $
+; $LastChangedDate: 2020-09-07 12:22:24 -0700 (Mon, 07 Sep 2020) $
+; $LastChangedRevision: 29121 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -165,6 +165,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   psze = [ 3,  4,  4,  3,  6,  5,  4,  4,  3 ]  ; planet symbol sizes
   pday = [89, 226, 367, 688, 4334, 10757, 30689, 60192, 90562]  ; days per orbit
   tspan = time_double(['1900-01-05','2100-01-01'])  ; range covered by mar097.bsp
+  nplan = n_elements(pname)
 
   sname = ['STEREO AHEAD','STEREO BEHIND','SOLAR ORBITER','SOLAR PROBE PLUS']
   ssym = [ 1,   1,   5,   6 ]  ; spacecraft symbols
@@ -200,7 +201,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endcase
     if (not ok) then return
   endif
-  pnum = (fix(pnum - 1) > 0) < 8
+  pnum = (fix(pnum - 1) > 0) < (nplan - 1)
   if (pnum eq 2) then begin
     print,"Keyword PLANET cannot be 'Earth'.  Using Mars."
     pnum = 3
@@ -215,13 +216,13 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
      7   : xyrange = [-33,33]
     else : begin
              xyrange = [-40,50]
-             ipmax = 8
+             ipmax = nplan - 1
            end
   endcase
 
   if keyword_set(outer) then begin
     xyrange = [-40,50]
-    ipmax = 8
+    ipmax = nplan - 1
   endif
 
   sflg = keyword_set(stereo)
@@ -244,11 +245,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
      0   : ; do nothing
      1   : begin
              xyrange = [-abs(range), abs(range)]
-             ipmax = 8
+             ipmax = nplan - 1
            end
     else : begin
              xyrange = minmax(range)
-             ipmax = 8
+             ipmax = nplan - 1
            end
   endcase
 
@@ -397,11 +398,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
               d2l   : replicate(0D,ndays) , $
               frame : 'ECLIPJ2000'           }
 
-    planet = replicate(planet,n_elements(pname))
+    planet = replicate(planet,nplan)
     planet.name = pname
     obj_name = planet.name + ' BARYCENTER'
 
-    for k=0,8 do begin
+    for k=0,(nplan-1) do begin
       cspice_spkpos, obj_name[k], et, 'ECLIPJ2000', 'NONE', 'Sun', pos, ltime
       pos = transpose(pos)/(au/1.d5)
       planet[k].time = tt
@@ -415,7 +416,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       print, strmid(planet[k].name,0,1), format='(a1," ",$)'
     endfor
 
-    for k=0,8 do begin
+    for k=0,(nplan-1) do begin
       if (k ne 2) then begin
         dx = planet[k].x - planet[2].x
         dy = planet[k].y - planet[2].y

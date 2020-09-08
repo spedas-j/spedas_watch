@@ -14,7 +14,9 @@
 ;  may not know about or does not want to use its functionality.
 ;
 ;USAGE:
-;  putwin [, wnum [, monitor]] [,KEYWORD=value, ...]
+;  putwin [, wnum [, monitor]] [, KEYWORD=value, ...]  ; normal usage
+;
+;  putwin, CONFIG=value [, TBAR=value]  ; initialization
 ;
 ;INPUTS:
 ;       wnum:      Window number.  Can be an integer from 0 to 31.
@@ -29,7 +31,7 @@
 ;                  If there is more than one monitor, IDL identifies a
 ;                  "primary monitor", where graphics windows appear by
 ;                  default.  This routine also defaults to the primary
-;                  monitor.
+;                  monitor.  See keyword SHOW.
 ;
 ;KEYWORDS:
 ;       Accepts all keywords for WINDOW.  In addition, the following
@@ -80,7 +82,7 @@
 ;
 ;       SHOW:      Same as STAT, except in addition a small window is
 ;                  placed in each monitor for 2 sec to identify
-;                  the monitor numbers.
+;                  the monitor numbers, including which is primary.
 ;
 ;       MONITOR:   Put window in this monitor.
 ;
@@ -151,8 +153,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-31 11:36:38 -0700 (Mon, 31 Aug 2020) $
-; $LastChangedRevision: 29099 $
+; $LastChangedDate: 2020-09-07 12:19:59 -0700 (Mon, 07 Sep 2020) $
+; $LastChangedRevision: 29118 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -169,41 +171,6 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
   if (size(windex,/type) eq 0) then windex = -1
 
-; Output the current monitor configuration.
-
-  if (keyword_set(stat) or keyword_set(show)) then begin
-    if (windex ge 0) then begin
-      print,"Monitor configuration:"
-      j = sort(mgeom[1,0:maxmon])
-      for i=maxmon,0,-1 do begin
-        print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4,$)'
-        if (i eq primarymon) then print," (primary)" else print,""
-      endfor
-      print,""
-
-      if keyword_set(show) then begin
-        j = -1
-        for i=0,maxmon do begin
-          putwin, 32, i, xsize=100, ysize=100, /center
-          xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
-          if (i eq primarymon) then $
-            xyouts,0.5,0.1,"(primary)",/norm,align=0.5,charsize=1.5,charthick=1,color=6
-          j = [j, !d.window]
-        endfor
-        j = j[1:*]
-        wait, 2
-        for i=0,maxmon do wdelete, j[i]
-      endif
-
-      config = {config:mgeom, primarymon:primarymon, tbar:tbar}
-    endif else print,"Monitor configuration undefined -> putwin acts like window"
-    return
-  endif
-
-; Window title bar width from keyword
-
-  if (size(tbar2,/type) gt 0) then tbar = fix(tbar2[0])
-
 ; Alternate method of setting PUTWIN keywords.  Except for XSIZE and YSIZE,
 ; all keywords for WINDOW must be passed separately in the usual way.
 
@@ -212,6 +179,8 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     if (ok) then config = value
     str_element, key, 'STAT', value, success=ok
     if (ok) then stat = value
+    str_element, key, 'SHOW', value, success=ok
+    if (ok) then show = value
     str_element, key, 'MONITOR', value, success=ok
     if (ok) then monitor = value
     str_element, key, 'DX', value, success=ok
@@ -248,10 +217,43 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     if (ok) then tbar = value
   endif
 
-  if (size(tbar,/type) eq 0) then tbar = 22
-  if (size(mnum,/type) gt 0) then monitor = fix(mnum[0])
+; Output the current monitor configuration.
 
-; Define multiple monitor configuration
+  if (keyword_set(stat) or keyword_set(show)) then begin
+    if (windex ge 0) then begin
+      print,"Monitor configuration:"
+      j = sort(mgeom[1,0:maxmon])
+      for i=maxmon,0,-1 do begin
+        print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4,$)'
+        if (i eq primarymon) then print," (primary)" else print,""
+      endfor
+      print,""
+
+      if keyword_set(show) then begin
+        j = -1
+        for i=0,maxmon do begin
+          putwin, 32, i, xsize=100, ysize=100, /center
+          xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
+          if (i eq primarymon) then $
+            xyouts,0.5,0.1,"(primary)",/norm,align=0.5,charsize=1.5,charthick=1,color=6
+          j = [j, !d.window]
+        endfor
+        j = j[1:*]
+        wait, 2
+        for i=0,maxmon do wdelete, j[i]
+      endif
+
+      config = {config:mgeom, primarymon:primarymon, tbar:tbar}
+    endif else print,"Monitor configuration undefined -> putwin acts like window"
+    return
+  endif
+
+; Title bar width
+
+  if (size(tbar2,/type) gt 0) then tbar = fix(tbar2[0])
+  if (size(tbar,/type) eq 0) then tbar = 22
+
+; Monitor configuration
 
   oInfo = obj_new('IDLsysMonitorInfo')
     numMons = oInfo->GetNumberOfMonitors()
@@ -316,9 +318,10 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     return
   endif
 
-; Window geometry
+; Calculate window geometry and placement
 
   if (n_elements(wnum) eq 0) then wnum = -1 else wnum = fix(wnum[0])
+  if (size(mnum,/type) gt 0) then monitor = fix(mnum[0])
   if (n_elements(monitor) eq 0) then monitor = primarymon else monitor = fix(monitor[0])
   monitor = (monitor > 0) < maxmon
   if (size(aspect,/type) gt 0) then begin
@@ -328,8 +331,11 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       if (n_elements(ysize) gt 0) then xsize = float(ysize[0])*aspect
     endelse
   endif
-  if (n_elements(xsize) eq 0) then xsize = 800
-  if (n_elements(ysize) eq 0) then ysize = 500
+  if (n_elements(xsize) eq 0) then begin
+    xsize = mgeom[2, monitor]/2
+    if ((windex eq 1) and (monitor eq 1)) then xsize /= 2
+  endif
+  if (n_elements(ysize) eq 0) then ysize = mgeom[3, monitor]/2
   if (n_elements(scale) eq 0) then scale = 1.
   xsize = fix(float(xsize[0])*scale)
   ysize = fix(float(ysize[0])*scale)

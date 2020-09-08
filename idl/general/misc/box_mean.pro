@@ -26,8 +26,8 @@
 ;       RESULT:  Named variable to hold the result.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-08-27 09:42:15 -0700 (Tue, 27 Aug 2019) $
-; $LastChangedRevision: 27664 $
+; $LastChangedDate: 2020-09-07 12:20:50 -0700 (Mon, 07 Sep 2020) $
+; $LastChangedRevision: 29119 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/box_mean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -71,6 +71,7 @@ pro box_mean, var, width=width, outlier=outlier, result=dat
   ravg = rmed
   rrms = rmed
   rpts = lonarr(npts)
+  rbad = rpts
 
   for i=0L,(npts-1L) do begin
     imin = (i - width) > 0L
@@ -79,7 +80,9 @@ pro box_mean, var, width=width, outlier=outlier, result=dat
     mom = moment(y, maxmoment=2, mean=avg, sdev=rms, /nan)
     med = median(y)
     indx = where(abs(y - avg) gt (outlier*rms), count)
+    nbad = 0L
     while (count gt 0L) do begin
+      nbad += count
       y[indx] = !values.f_nan
       mom = moment(y, maxmoment=2, mean=avg, sdev=rms, /nan)
       med = median(y)
@@ -90,6 +93,7 @@ pro box_mean, var, width=width, outlier=outlier, result=dat
     ravg[i] = avg
     rrms[i] = rms
     rpts[i] = count
+    rbad[i] = nbad
   endfor
 
 ; Package the result
@@ -98,6 +102,7 @@ pro box_mean, var, width=width, outlier=outlier, result=dat
   str_element, dat, 'mean'   , ravg   , /add
   str_element, dat, 'stddev' , rrms   , /add
   str_element, dat, 'npts'   , rpts   , /add
+  str_element, dat, 'nbad'   , rbad   , /add
   str_element, dat, 'width'  , width  , /add
   str_element, dat, 'outlier', outlier, /add
 

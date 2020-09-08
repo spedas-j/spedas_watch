@@ -115,8 +115,8 @@
 ;                 of surface locations (lon, lat) in the IAU_Mars frame.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-20 11:54:41 -0700 (Thu, 20 Aug 2020) $
-; $LastChangedRevision: 29052 $
+; $LastChangedDate: 2020-09-07 12:16:47 -0700 (Mon, 07 Sep 2020) $
+; $LastChangedRevision: 29117 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -1050,6 +1050,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       zref = sza[iref]*!radeg
       href = hgt[iref]
       ndays = (tref - time[0])/86400D
+      dt = min(abs(torb - tref), jref, /nan)
+      dj = round(double(period[jref])*3600D/(time[1] - time[0]))
     endif
 
   endwhile
