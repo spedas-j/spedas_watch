@@ -153,8 +153,8 @@
 ;                 save files are 8.7 GB in size.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-02 13:29:40 -0700 (Wed, 02 Sep 2020) $
-; $LastChangedRevision: 29108 $
+; $LastChangedDate: 2020-09-08 15:49:17 -0700 (Tue, 08 Sep 2020) $
+; $LastChangedRevision: 29124 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -168,6 +168,9 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
                        save=save, restore=restore, mission=mission
 
   @maven_orbit_common
+
+  rootdir = 'maven/anc/spice/sav/'
+  ssrc = mvn_file_source(archive_ext='')  ; don't archive old files
 
 ; Clear the common block and return
 
@@ -209,7 +212,7 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 ; Create a save file
 
   if (size(save,/type) eq 7) then begin
-    path = root_data_dir() + 'maven/anc/spice/sav/'
+    path = root_data_dir() + rootdir
     fname = path + save + '.sav'
     save, time, state, ss, wind, sheath, pileup, wake, sza, torb, period, $
           lon, lat, hgt, datum, mex, rcols, orbnum, orbstat, file=fname
@@ -221,10 +224,15 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 
 ; Restore from a save file
 
-  if keyword_set(mission) then restore = 'maven_moi_present'
+  if keyword_set(mission) then begin
+    fname = 'maven_moi_present.*'
+    file = mvn_pfp_file_retrieve(rootdir+fname,last_version=0,source=ssrc,verbose=2)
+    nfiles = n_elements(file)
+    restore = 'maven_moi_present'
+  endif
 
   if (size(restore,/type) eq 7) then begin
-    path = root_data_dir() + 'maven/anc/spice/sav/'
+    path = root_data_dir() + rootdir
     fname = path + restore + '.sav'
     restore, file=fname
 
@@ -262,9 +270,6 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
              return
            end
   endcase
-
-  rootdir = 'maven/anc/spice/sav/'
-  ssrc = mvn_file_source(archive_ext='')  ; don't archive old files
 
   treset = 0  
   tplot_options, get=topt
