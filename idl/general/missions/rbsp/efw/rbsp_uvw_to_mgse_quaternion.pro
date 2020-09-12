@@ -21,7 +21,12 @@ pro rbsp_uvw_to_mgse_quaternion,tvar,sc,inverse=inv,newname=newname
 
     tr = timerange()
     get_data,tvar,data=d
+
+
     new_times = d.x
+
+
+
 
 
     ;Get the spinaxis direction for rotation to/from GSE/MGSE

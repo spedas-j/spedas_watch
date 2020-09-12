@@ -8,11 +8,14 @@
 ;         bp -> boom pair. Any combination of two booms. Defaults to '12'
 ; OUTPUT:
 ;
+;         flag_names -> returned array with the names of the flags. Useful for
+;                       adding suffixes to "split_vec"
+;
 ; HISTORY: Created by Aaron W Breneman, Jan 8, 2015
 ; VERSION:
 ;   $LastChangedBy: aaronbreneman $
-;   $LastChangedDate: 2020-07-08 08:38:03 -0700 (Wed, 08 Jul 2020) $
-;   $LastChangedRevision: 28863 $
+;   $LastChangedDate: 2020-09-11 13:31:02 -0700 (Fri, 11 Sep 2020) $
+;   $LastChangedRevision: 29133 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/cdf_file_production/rbsp_efw_get_flag_values.pro $
 ;-
 
@@ -20,7 +23,8 @@
 function rbsp_efw_get_flag_values,sc,times,$
   density_min=dmin,$
   boom_pair=bp,$
-  _extra=extra
+  _extra=extra,$
+  flag_names=flag_names
 
 
 
@@ -74,7 +78,6 @@ function rbsp_efw_get_flag_values,sc,times,$
 
 
   ;Interpolate data to times. This gives nearly the same result as downsampling to spinperiod
-
   if ~tdexists(rbx+'_efw_vsvy_DS',tr[0],tr[1]) then tinterpol_mxn,rbx+'_efw_vsvy',times,newname=rbx+'_efw_vsvy_DS',/spline
   get_data,rbx+'_efw_vsvy_DS',data=vsvy
 ;  if ~tdexists(rbx+'_efw_vsvy_DS_1',tr[0],tr[1]) then split_vec, rbx+'_efw_vsvy_DS', suffix='_'+['1','2','3','4','5','6']
@@ -109,7 +112,7 @@ function rbsp_efw_get_flag_values,sc,times,$
 
 
 ;For density we have a special requirement
-;.....Remove when (V1+V2)/2 > 0 (CHANGED FROM -1) AND
+;.....Remove when (V1+V2)/2 > 0 (for bp='12') (CHANGED FROM -1) AND
 ;.....Lshell > 4  (avoids hot plasma sheet)
 ;.....AND remove when (V1+V2)/2 < -20
 
@@ -188,29 +191,29 @@ function rbsp_efw_get_flag_values,sc,times,$
 ;FIND AND SET ALL FLAG VALUES
 ;----------------------------------------------------------------------------------------------------
 
-  ;;    names = ['global_flag',$
-  ;;             'eclipse',$
-  ;;             'maneuver',$
-  ;;             'efw_sweep',$
-  ;;             'efw_deploy',$
-  ;;             'v1_saturation',$
-  ;;             'v2_saturation',$
-  ;;             'v3_saturation',$
-  ;;             'v4_saturation',$
-  ;;             'v5_saturation',$
-  ;;             'v6_saturation',$
-  ;;             'Espb_magnitude',$
-  ;;             'Eparallel_magnitude',$
-  ;;             'magnetic_wake',$
-  ;;             'autobias',$
-  ;;             'charging',$
-  ;;             'charging_extreme',$
-  ;;             'density',$
-  ;;             'undefined',$
-  ;;             'undefined']
+names = ['global_flag',$
+         'eclipse',$
+         'maneuver',$
+         'efw_sweep',$
+         'efw_deploy',$
+         'v1_saturation',$
+         'v2_saturation',$
+         'v3_saturation',$
+         'v4_saturation',$
+         'v5_saturation',$
+         'v6_saturation',$
+         'Espb_magnitude',$
+         'Eparallel_magnitude',$
+         'magnetic_wake',$
+         'autobias',$
+         'charging',$
+         'charging_extreme',$
+         'density',$
+         'undefined',$
+         'undefined']
 
 
-
+  flag_names = names
 
   tmp = replicate(0,n_elements(times),6)
   flag_arr = replicate(0.,n_elements(times),20)
@@ -399,7 +402,7 @@ function rbsp_efw_get_flag_values,sc,times,$
 ;SET GLOBAL FLAG
 ;--------------------------------------------------
 ;Conditions for throwing global flag
-;..........any of the v1-v4 saturation flags are thrown
+;..........Vx or Vy, corresponding to boom pair used (e.g. V12), saturation flags are thrown
 ;..........the eclipse flag is thrown
 ;..........maneuver
 ;..........charging flag thrown (normal or extreme charging)
@@ -408,8 +411,16 @@ function rbsp_efw_get_flag_values,sc,times,$
 
   flag_arr[*,0] = 0
 
-  goo = where((flag_arr[*,5] eq 1) or (flag_arr[*,6] eq 1) or (flag_arr[*,7] eq 1) or (flag_arr[*,8] eq 1))
-  if goo[0] ne -1 then flag_arr[goo,0] = 1 ;v1-v4 saturation
+
+  ;v1-v4 saturation
+  if bp eq '12' then goo = where((flag_arr[*,5] eq 1) or (flag_arr[*,6] eq 1))
+  if bp eq '13' then goo = where((flag_arr[*,5] eq 1) or (flag_arr[*,7] eq 1))
+  if bp eq '14' then goo = where((flag_arr[*,5] eq 1) or (flag_arr[*,8] eq 1))
+  if bp eq '23' then goo = where((flag_arr[*,6] eq 1) or (flag_arr[*,7] eq 1))
+  if bp eq '24' then goo = where((flag_arr[*,6] eq 1) or (flag_arr[*,8] eq 1))
+  if bp eq '34' then goo = where((flag_arr[*,7] eq 1) or (flag_arr[*,8] eq 1))
+;  goo = where((flag_arr[*,5] eq 1) or (flag_arr[*,6] eq 1) or (flag_arr[*,7] eq 1) or (flag_arr[*,8] eq 1))
+  if goo[0] ne -1 then flag_arr[goo,0] = 1
 
   goo = where(flag_arr[*,1] eq 1) ;eclipse
   if goo[0] ne -1 then flag_arr[goo,0] = 1

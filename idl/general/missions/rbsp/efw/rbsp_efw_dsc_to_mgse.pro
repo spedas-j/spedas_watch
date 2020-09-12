@@ -40,8 +40,8 @@
 ;
 ; VERSION:
 ;   $LastChangedBy: aaronbreneman $
-;   $LastChangedDate: 2020-07-06 14:13:56 -0700 (Mon, 06 Jul 2020) $
-;   $LastChangedRevision: 28855 $
+;   $LastChangedDate: 2020-09-11 13:41:36 -0700 (Fri, 11 Sep 2020) $
+;   $LastChangedRevision: 29145 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/rbsp_efw_dsc_to_mgse.pro $
 ;
 ;-
@@ -49,10 +49,10 @@
 
 
 pro rbsp_efw_dsc_to_mgse,probe,tvar,tvar_wgse,suffix=suffix,$
-	uangle=uangle,debug=debug
+	uangle=uangle,debug=debug,_extra=extra
 
 
-	rbsp_efw_init
+	rbsp_efw_init,_extra=extra
 
 
 
@@ -106,25 +106,26 @@ pro rbsp_efw_dsc_to_mgse,probe,tvar,tvar_wgse,suffix=suffix,$
 
 
 	;Interpolate the spin axis pointing direction to times of input tplot variable
-	tinterpol_mxn,tvar_wgse,utimes
+	tinterpol_mxn,tvar_wgse,utimes,/quadratic
 	get_data,tvar_wgse+'_interp',tt,wsc_gse
 	wsc_gse = transpose(wsc_gse)
 	store_data,tvar_wgse+'_interp',/del
 
 
-
-	; Now calculate the MGSE directions
-	X_MGSE=dblarr(3,nutimes)
+	;----------------
+	;AWB note: only Y-MGSE component is needed. 
+	; Now calculate the MGSE unit vectors in terms of GSE
+;	X_MGSE=dblarr(3,nutimes)
 	Y_MGSE=dblarr(3,nutimes)
-	Z_MGSE=dblarr(3,nutimes)
+;	Z_MGSE=dblarr(3,nutimes)
 
 	for i=0L,nutimes-1L do $
-		Y_MGSE[0:2,i]=-crossp(wsc_GSE[0:2,i],[0,0,1.])/norm(crossp(wsc_GSE[0:2,i],[0,0,1.]))
-	for i=0L,nutimes-1L do $
-		Z_MGSE[0:2,i]=crossp(wsc_GSE[0:2,i],Y_MGSE[0:2,i])/norm(crossp(wsc_GSE[0:2,i],Y_MGSE[0:2,i]))
-	for i=0L,nutimes-1L do $
-		X_MGSE[0:2,i]=crossp(Y_MGSE[0:2,i],Z_MGSE[0:2,i])
-
+		Y_MGSE[0:2,i]=-1d*crossp(wsc_GSE[0:2,i],[0.,0.,1.])/norm(crossp(wsc_GSE[0:2,i],[0.,0.,1.]))
+;	for i=0L,nutimes-1L do $
+;		Z_MGSE[0:2,i]=crossp(wsc_GSE[0:2,i],Y_MGSE[0:2,i])/norm(crossp(wsc_GSE[0:2,i],Y_MGSE[0:2,i]))
+;	for i=0L,nutimes-1L do $
+;		X_MGSE[0:2,i]=crossp(Y_MGSE[0:2,i],Z_MGSE[0:2,i])
+	;----------------
 
 
 
@@ -149,6 +150,15 @@ pro rbsp_efw_dsc_to_mgse,probe,tvar,tvar_wgse,suffix=suffix,$
 		alpha_temp[i]=acos(Tsg[0,i]*Y_MGSE[0,i]+Tsg[1,i]*Y_MGSE[1,i]+Tsg[2,i]*Y_MGSE[2,i])
 	alpha_temp=alpha_temp/!dtor ; in degrees
 
+
+	;------------------------------------------
+	;AWB change added Sept, 2020.
+	;Note that alpha_temp can only be positive. However, when the spinaxis ZMGSE component is 
+	;negative then we need to make alpha_temp negative. 
+	;Not doing this results in a sign flip in EMGSE components. 
+	goo = where(wsc_gse[2,*] lt 0.)
+	if goo[0] ne -1 then alpha_temp[goo] *= -1 
+	;------------------------------------------
 
 
 

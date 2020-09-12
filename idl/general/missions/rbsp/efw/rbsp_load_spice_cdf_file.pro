@@ -74,7 +74,7 @@ pro rbsp_load_spice_cdf_file,sc,testing=testing
 
   ;Change location from RE to km
   get_data,'rbsp'+sc+'_r_gse',data=d
-  d.y *= 6370.
+  d.y *= 6378.
   store_data,'rbsp'+sc+'_r_gse',data=d
 
 

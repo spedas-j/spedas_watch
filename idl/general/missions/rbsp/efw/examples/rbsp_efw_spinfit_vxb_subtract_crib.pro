@@ -35,8 +35,8 @@
 ;         University of Minnesota
 ;         2013-04-16
 ;$LastChangedBy: aaronbreneman $
-;$LastChangedDate: 2020-09-09 16:22:16 -0700 (Wed, 09 Sep 2020) $
-;$LastChangedRevision: 29130 $
+;$LastChangedDate: 2020-09-11 13:33:59 -0700 (Fri, 11 Sep 2020) $
+;$LastChangedRevision: 29138 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/examples/rbsp_efw_spinfit_vxb_subtract_crib.pro $
 ;-
 
@@ -326,29 +326,29 @@ pro rbsp_efw_spinfit_vxb_subtract_crib,probe,$
 
 
 
-;Implement the time correction, if necessary
+  ;Implement the time correction, if necessary
 
-rbsp_efw_read_l1_time_tag_correction, probe=probe
+  rbsp_efw_read_l1_time_tag_correction, probe=probe
 
 
-    get_data, 'rbspa_l1_time_tag_correction', start_times, time_ranges, corrections
-    nsection = n_elements(corrections)
-   
-    foo_l1_efw_data = 'rbspa_efw_esvy'
-    get_data, foo_l1_efw_data, times, data
-    for ii=0, nsection-1 do begin
-        tmp = where(times ge time_ranges[ii,0] and times le time_ranges[ii,1], count)
-        if count eq 0 then continue
-        ; Have to find the closest time, otherwise the index can be 1 record off.
-        if min(times) ge time_ranges[ii,0] then i0 = 0 else begin
-            index = min(times-time_ranges[ii,0], /absolute, i0)
-        endelse
-        if max(times) le time_ranges[ii,1] then i1 = n_elements(times) else begin
-            index = min(times-time_ranges[ii,1], /absolute, i1)
-        endelse
-        times[i0:i1-1] += corrections[ii]
-    endfor
-    store_data, foo_l1_efw_data, times, data
+  get_data, 'rbsp'+probe+'_l1_time_tag_correction', start_times, time_ranges, corrections
+  nsection = n_elements(corrections)
+  
+  foo_l1_efw_data = 'rbsp'+probe+'_efw_esvy'
+  get_data, foo_l1_efw_data, times, data
+  for ii=0, nsection-1 do begin
+      tmp = where(times ge time_ranges[ii,0] and times le time_ranges[ii,1], count)
+      if count eq 0 then continue
+      ; Have to find the closest time, otherwise the index can be 1 record off.
+      if min(times) ge time_ranges[ii,0] then i0 = 0 else begin
+          index = min(times-time_ranges[ii,0], /absolute, i0)
+      endelse
+      if max(times) le time_ranges[ii,1] then i1 = n_elements(times) else begin
+          index = min(times-time_ranges[ii,1], /absolute, i1)
+      endelse
+      times[i0:i1-1] += corrections[ii]
+  endfor
+  store_data, foo_l1_efw_data, times, data
 
 
 ;split_vec,'rbspa_efw_esvy'
@@ -364,14 +364,24 @@ rbsp_efw_read_l1_time_tag_correction, probe=probe
 
 
 
-  ;get dlim structure for later
-  get_data,rbspx+'_efw_esvy',dlim=dlim,lim=lim
+
+
+  ;Get rid of non-monotonic times, which sometimes show up
+  get_data,rbspx+'_efw_esvy',data=d,dlim=dlim,lim=lim
+  index = uniq(d.x, sort(d.x))
+  newtimes = d.x[index]
+  newdata = d.y[index,*]
+  store_data,rbspx+'_efw_esvy',newtimes,newdata,dlim=dlim,lim=lim
+
+
 
 
   ;Construct Emodel = ecoro + evxb + efit
   add_data,rbspx+'_ecoro_mgse',rbspx+'_evxb_mgse',newname='tmpp'
   add_data,'tmpp',rbspx+'_efit_mgse',newname=rbspx+'_Emodel_mgse'
   tinterpol_mxn,rbspx+'_Emodel_mgse',rbspx+'_efw_esvy',/overwrite,/quadratic
+
+
 
 
 
@@ -432,12 +442,12 @@ rbsp_efw_read_l1_time_tag_correction, probe=probe
 
   ;-----------
   ;TESTING
-  split_vec,rbspx+'_efw_esvy_noresidual_spinfit_mgse'
-  split_vec,rbspx+'_de_mgse'
-  ylim,rbspx+'_efw_esvy_noresidual_spinfit_mgse_?',-4,4
-  ylim,rbspx+'_de_mgse_?',-4,4
-  tplot,[rbspx+'_efw_esvy_noresidual_spinfit_mgse_y',rbspx+'_de_mgse_y',$
-        rbspx+'_efw_esvy_noresidual_spinfit_mgse_z',rbspx+'_de_mgse_z']
+;  split_vec,rbspx+'_efw_esvy_noresidual_spinfit_mgse'
+;  split_vec,rbspx+'_de_mgse'
+;  ylim,rbspx+'_efw_esvy_noresidual_spinfit_mgse_?',-4,4
+;  ylim,rbspx+'_de_mgse_?',-4,4
+;  tplot,[rbspx+'_efw_esvy_noresidual_spinfit_mgse_y',rbspx+'_de_mgse_y',$
+;        rbspx+'_efw_esvy_noresidual_spinfit_mgse_z',rbspx+'_de_mgse_z']
   ;-----------
 
 
