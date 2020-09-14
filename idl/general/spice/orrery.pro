@@ -135,8 +135,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-07 12:22:24 -0700 (Mon, 07 Sep 2020) $
-; $LastChangedRevision: 29121 $
+; $LastChangedDate: 2020-09-13 17:09:37 -0700 (Sun, 13 Sep 2020) $
+; $LastChangedRevision: 29150 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -282,6 +282,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   if (keyword_set(reload) or (data_type(planet) ne 8)) then begin
 
+    ssrc = mvn_file_source(archive_ext='')  ; don't archive old files
+
 ; Check for standard SPICE kernels; load them if necessary
 
     mk = spice_test('*', verbose=-1)
@@ -296,6 +298,24 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       mk = spice_test('*', verbose=-1)
       print,'done'
     endif
+
+; Add the ID's for Solar Probe and Solar Orbiter
+
+    path = 'misc/spice/naif/generic_kernels/'
+    pathname = path + 'name_id_map.tf'
+    fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
+    indx = where(mk eq fname, count)
+    if (count eq 0) then begin
+      cspice_furnsh, fname
+      mk = spice_test('*', verbose=-1)
+      indx = where(mk eq fname, count)
+      if (count eq 0) then begin
+        print,"Could not load name-to-id kernel:"
+        print,"  " + root_data_dir() + pathname
+      endif
+    endif
+
+; Test that all kernels are loaded
 
     success = 0B
 
@@ -317,11 +337,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
     if (success lt 4B) then return
 
-; Now add the STEREO spk
+; STEREO
 
     path = 'misc/spice/naif/STEREO/kernels/spk/'
-    ssrc = mvn_file_source(archive_ext='')  ; don't archive old files
-
     pathname = path + 'STEREO-A_merged.bsp'
     fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
     indx = where(mk eq fname, count)
@@ -329,7 +347,10 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       cspice_furnsh, fname
       mk = spice_test('*', verbose=-1)
       indx = where(mk eq fname, count)
-      if (count eq 0) then print,"Could not load STEREO A ephemeris."
+      if (count eq 0) then begin
+        print,"Could not load STEREO A spk:"
+        print,"  " + root_data_dir() + pathname
+      endif
     endif
 
     pathname = path + 'STEREO-B_merged.bsp'
@@ -339,10 +360,13 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       cspice_furnsh, fname
       mk = spice_test('*', verbose=-1)
       indx = where(mk eq fname, count)
-      if (count eq 0) then print,"Could not load STEREO B ephemeris."
+      if (count eq 0) then begin
+        print,"Could not load STEREO B spk:"
+        print,"  " + root_data_dir() + pathname
+      endif
     endif
 
-; Now add Solar Orbiter spk
+; Solar Orbiter
 
     path = 'misc/spice/naif/Solar_Orbiter/kernels/spk/'
     pathname = path + 'solo_ANC_soc-orbit_20200210-20301120_L016_V2_00025_V01.bsp'
@@ -352,10 +376,13 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       cspice_furnsh, fname
       mk = spice_test('*', verbose=-1)
       indx = where(mk eq fname, count)
-      if (count eq 0) then print,"Could not load Solar Orbiter ephemeris."
+      if (count eq 0) then begin
+        print,"Could not load Solar Orbiter spk:"
+        print,"  " + root_data_dir() + pathname
+      endif
     endif
 
-; Now add Parker Solar Probe spk
+; Parker Solar Probe
 
     path = 'misc/spice/naif/PSP/kernels/spk/'
     pathname = path + 'spp_nom_20180812_20250831_v036_RO3.bsp'
@@ -365,7 +392,10 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       cspice_furnsh, fname
       mk = spice_test('*', verbose=-1)
       indx = where(mk eq fname, count)
-      if (count eq 0) then print,"Could not load Parker Solar Probe ephemeris."
+      if (count eq 0) then begin
+        print,"Could not load Parker Solar Probe spk:"
+        print,"  " + root_data_dir() + pathname
+      endif
     endif
 
     mvn_spice_stat, info=sinfo, /silent
@@ -442,6 +472,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
 ; Calculate ephemeris for each spacecraft
 
+    missing = { name  : ''                        , $
+                time  : time_double('1800-01-01') , $
+                x     : 0D                        , $
+                y     : 0D                        , $
+                z     : 0D                        , $
+                owlt  : 0D                        , $
+                frame : 'INVALID'                    }
+
 ; --------- STEREO AHEAD ---------
 
     i = where(sinfo.obj_name eq sname[0], count)
@@ -455,7 +493,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       cspice_spkpos, sname[0], et, 'ECLIPJ2000', 'NONE', 'Sun', sta, ltime
       sta = transpose(sta)/(au/1.d5)
-      sta = { time  : tt           , $
+      sta = { name  : sname[0]     , $
+              time  : tt           , $
               x     : sta[*,0]     , $
               y     : sta[*,1]     , $
               z     : sta[*,2]     , $
@@ -478,7 +517,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       ds = sqrt(dx*dx + dy*dy + dz*dz)
       sta.owlt = ds*(au/c)
 
-    endif else sta = {time : time_double('1800-01-01')}
+    endif else sta = missing
     print,".",format='(a1,$)'
 
 ; --------- STEREO BEHIND ---------
@@ -499,7 +538,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         stb = stb[j,*]
         ltime = ltime[j]
 
-        stb = { time  : tt           , $
+        stb = { name  : sname[1]     , $
+                time  : tt           , $
                 x     : stb[*,0]     , $
                 y     : stb[*,1]     , $
                 z     : stb[*,2]     , $
@@ -521,9 +561,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         dz = stb.z - ze
         ds = sqrt(dx*dx + dy*dy + dz*dz)
         stb.owlt = ds*(au/c)
-      endif else stb = {time : time_double('1800-01-01')}
+      endif else stb = missing
 
-    endif else stb = {time : time_double('1800-01-01')}
+    endif else stb = missing
 
 ; --------- Solar Orbiter ---------
 
@@ -538,7 +578,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       cspice_spkpos, sname[2], et, 'ECLIPJ2000', 'NONE', 'Sun', sorb, ltime
       sorb = transpose(sorb)/(au/1.d5)
-      sorb = { time  : tt           , $
+      sorb = { name  : sname[2]     , $
+               time  : tt           , $
                x     : sorb[*,0]    , $
                y     : sorb[*,1]    , $
                z     : sorb[*,2]    , $
@@ -561,7 +602,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       ds = sqrt(dx*dx + dy*dy + dz*dz)
       sorb.owlt = ds*(au/c)
 
-    endif else sorb = {time : time_double('1800-01-01')}
+    endif else sorb = missing
 
 ; --------- Parker Solar Probe ---------
 
@@ -576,12 +617,13 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       cspice_spkpos, sname[3], et, 'ECLIPJ2000', 'NONE', 'Sun', psp, ltime
       psp = transpose(psp)/(au/1.d5)
-      psp = { time   : tt          , $
-               x     : psp[*,0]    , $
-               y     : psp[*,1]    , $
-               z     : psp[*,2]    , $
-               owlt  : ltime       , $
-               frame : 'ECLIPJ2000'   }
+      psp = { name  : sname[3]    , $
+              time  : tt          , $
+              x     : psp[*,0]    , $
+              y     : psp[*,1]    , $
+              z     : psp[*,2]    , $
+              owlt  : ltime       , $
+              frame : 'ECLIPJ2000'   }
 
       d2x = spl_init(psp.time, psp.x, /double)
       d2y = spl_init(psp.time, psp.y, /double)
@@ -599,11 +641,27 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       ds = sqrt(dx*dx + dy*dy + dz*dz)
       psp.owlt = ds*(au/c)
 
-    endif else psp = {time : time_double('1800-01-01')}
+    endif else psp = missing
 
     print,".",format='(a1,$)'
 
     print,' done'
+  endif
+
+  if (sta.frame eq 'INVALID') then begin
+    print, 'Warning: Stereo-A ephemeris not loaded.'
+    sflg = 0
+  endif
+  if (stb.frame eq 'INVALID') then begin
+    print, 'Warning: Stereo-B ephemeris not loaded.'
+  endif
+  if (sorb.frame eq 'INVALID') then begin
+    print, 'Warning: Solar Orbiter ephemeris not loaded.'
+    oflg = 0
+  endif
+  if (psp.frame eq 'INVALID') then begin
+    print, 'Warning: Solar Probe ephemeris not loaded.'
+    pflg = 0
   endif
 
   eph = {planet:planet, stereo_A:sta, stereo_B:stb, solar_orb:sorb, psp:psp}
@@ -673,7 +731,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,'Lss','ytitle','Mars!cLss (deg)'
     endif
 
-    if (1) then begin
+    if (sta.frame ne 'INVALID') then begin
       tname = 'OWLT-STA'
       store_data,tname,data={x:sta.time, y:sta.owlt/60D}
       options,tname,'ytitle','STEREO A!cOWLT (min)'
@@ -692,7 +750,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,tname,'labflag',1
     endif
 
-    if (1) then begin
+    if (sorb.frame ne 'INVALID') then begin
       tname = 'OWLT-SORB'
       store_data,tname,data={x:sorb.time, y:sorb.owlt/60D}
       options,tname,'ytitle','Solar Orbiter!cOWLT (min)'
@@ -713,7 +771,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,tname,'colors',scol[2]
     endif
 
-    if (1) then begin
+    if (psp.frame ne 'INVALID') then begin
       tname = 'OWLT-PSP'
       store_data,tname,data={x:psp.time, y:psp.owlt/60D}
       options,tname,'ytitle','Solar Probe!cOWLT (min)'
