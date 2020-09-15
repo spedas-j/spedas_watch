@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-09-11 23:51:55 -0700 (Fri, 11 Sep 2020) $
-; $LastChangedRevision: 29148 $
+; $LastChangedDate: 2020-09-14 11:28:02 -0700 (Mon, 14 Sep 2020) $
+; $LastChangedRevision: 29153 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/crib/spp_fld_examples.pro $
 ;
 ;-
@@ -23,13 +23,41 @@ pro spp_fld_examples
   
   help, 'CDF', /dlm
   
+  ;
   ; You can download files manually and load them, but it's easier to use
-  ; the SPEDAS file_retrieve routine.  To do that, you'll need to set up 
+  ; the SPEDAS file_retrieve routine.  To do that, you'll need to set up
   ; and your user name and password.
-  
-  ; This is done via environment variables. The relevant variables are
-  ; PSP_STAGING_ID, for your username, and PSP_STAGING_PW, for your
-  ; password.
+  ;
+  ; Pre-release, password-protected data is restricted to members of the 
+  ; FIELDS team. In SPEDAS, this data is accessed via a routine,
+  ; 'spp_fld_load', which has nearly identical syntax to the public
+  ; 'psp_fld_load' routine. 
+  ; 
+  ; (In fact, 'psp_fld_load' is actually a wrapper routine for 'spp_fld_load'.
+  ; The only real difference is that 'psp_fld_load' points by default 
+  ; to the public data folder rather than the password-protected one.)
+  ;
+  ; Password access is controlled in SPEDAS by setting environment variables. 
+  ; The relevant variables are PSP_STAGING_ID, for your username, and 
+  ; PSP_STAGING_PW, for your password. Several methods can be used to set
+  ; these variables:
+  ;
+  ; In a shell startup file (bash or zsh shell), include the lines:
+  ;
+  ;   export PSP_STAGING_ID=your_username
+  ;   export PSP_STAGING_PW=your_password
+  ;
+  ; In a shell startup file (csh), include the lines:
+  ; 
+  ;   setenv PSP_STAGING_ID your_username
+  ;   setenv PSP_STAGING_PW your_password
+  ;
+  ; As an IDL command (in an IDL startup file, entered manually at the IDL
+  ; prompt, or included in a script as in the code below:
+  ;
+  ; setenv, 'PSP_STAGING_ID=your_username'
+  ; setenv, 'PSP_STAGING_PW=your_password'
+  ;
   
   if getenv('PSP_STAGING_PW') EQ '' then $
     setenv, 'PSP_STAGING_PW=your_password'
@@ -48,8 +76,6 @@ pro spp_fld_examples
 
   spp_fld_load, type = 'rfs_hfr'
   spp_fld_load, type = 'rfs_lfr'
-
-  stop
 
   tplot, ['psp_fld_l2_mag_RTN_4_Sa_per_Cyc', $
     'psp_fld_l2_rfs_hfr_auto_averages_ch0_V1V2', $

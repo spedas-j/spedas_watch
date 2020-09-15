@@ -135,7 +135,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   dl.labels=['N','E','D','T']
   dl.colors=[60,155,254,1]
   store_data, 'el'+probe+'_bt89_sm_NEDT', data=d, dlimits=dl, limits=l  
-  options,'el'+probe+'_bt89_sm_N*','ysubtitle','nT'
+  options,'el'+probe+'_bt89_sm_N*','ytitle', 'IGRF'
+  options,'el'+probe+'_bt89_sm_N*','ysubtitle','[nT]'
   options,'el'+probe+'_bt89_sm_NED','labels',['N','E','D']
   options,'el'+probe+'_bt89_sm_NEDT','labels',['N','E','D','T']
 ;  options,'el'+probe+'_bt89_sm_NEDT','colors',[2,4,6,0]
@@ -453,7 +454,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tplot_apply_databar
   
       ; add time of creation
-      xyouts, .76, .012, 'nflux: #/(cm^2 s str/MeV)',/normaL,color=1, charsize=.75
+      xyouts, .76, .012, 'nflux: #/(cm^2 s sr MeV)',/normaL,color=1, charsize=.75
       xyouts,  .76, .001, 'Created: '+systime(),/normal,color=1, charsize=.75
       ; add phase delay message
       if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
@@ -772,7 +773,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tplot_apply_databar
   
       ; add time of creation
-      xyouts, .76, .012, 'nflux: #/(cm^2 s str/MeV)',/normaL,color=1, charsize=.75
+      xyouts, .76, .012, 'nflux: #/(cm^2 s sr MeV)',/normaL,color=1, charsize=.75
       xyouts,  .76, .001, 'Created: '+systime(),/normal,color=1, charsize=.75
 
       ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

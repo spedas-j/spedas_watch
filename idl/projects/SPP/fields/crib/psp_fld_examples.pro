@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-09-11 23:51:55 -0700 (Fri, 11 Sep 2020) $
-; $LastChangedRevision: 29148 $
+; $LastChangedDate: 2020-09-14 11:28:02 -0700 (Mon, 14 Sep 2020) $
+; $LastChangedRevision: 29153 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/crib/psp_fld_examples.pro $
 ;
 ;-
@@ -34,14 +34,18 @@ pro psp_fld_examples
   
   psp_fld_load, type = 'mag_RTN_4_Sa_per_Cyc'
 
+  ; These commands load RFS HFR and LFR data
+
   psp_fld_load, type = 'rfs_hfr'
   psp_fld_load, type = 'rfs_lfr'
   
-  stop
-
+  ; Make a plot
+  
   tplot, ['psp_fld_l2_mag_RTN_4_Sa_per_Cyc', $
     'psp_fld_l2_rfs_hfr_auto_averages_ch0_V1V2', $
     'psp_fld_l2_rfs_lfr_auto_averages_ch0_V1V2', $
     'psp_fld_l2_quality_flags']
+
+  stop
 
 end
