@@ -135,8 +135,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-13 17:09:37 -0700 (Sun, 13 Sep 2020) $
-; $LastChangedRevision: 29150 $
+; $LastChangedDate: 2020-09-15 16:44:46 -0700 (Tue, 15 Sep 2020) $
+; $LastChangedRevision: 29157 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -260,6 +260,29 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   if keyword_set(reset) then Owin = -1
 
+; Check the version of ICY/SPICE
+
+  iflg = 1
+  help, 'icy', /dlm, output=lines
+  words = strsplit(strtrim(lines[1],2),' ,',/extract)
+  indx = strmatch(words, 'Version*', /fold)
+  i = where(indx gt 0, count)
+  if (count gt 0) then begin
+    icyver = strsplit(words[i+1],'.',/extract)
+    if ((fix(icyver[0]) lt 2) and (fix(icyver[1]) lt 8)) then begin
+      print,'Your version of ICY/SPICE (' + words[i+1] + ') is out of date.'
+      print,'Upgrade to 1.8.0 or later to show Solar Probe and Solar Orbiter locations.'
+      print,'Download from: https://naif.jpl.nasa.gov/naif/toolkit_IDL.html'
+      oflg = 0
+      pflg = 0
+      iflg = 0
+    endif
+  endif else begin
+    print,'This routine requires ICY/SPICE, but it is not installed.'
+    print,'Download from: https://naif.jpl.nasa.gov/naif/toolkit_IDL.html'
+    return
+  endelse
+
 ; Get the time
 
   if (size(time,/type) eq 0) then time = systime(/sec,/utc)
@@ -368,33 +391,35 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
 ; Solar Orbiter
 
-    path = 'misc/spice/naif/Solar_Orbiter/kernels/spk/'
-    pathname = path + 'solo_ANC_soc-orbit_20200210-20301120_L016_V2_00025_V01.bsp'
-    fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
-    indx = where(mk eq fname, count)
-    if (count eq 0) then begin
-      cspice_furnsh, fname
-      mk = spice_test('*', verbose=-1)
+    if (iflg) then begin
+      path = 'misc/spice/naif/Solar_Orbiter/kernels/spk/'
+      pathname = path + 'solo_ANC_soc-orbit_20200210-20301120_L016_V2_00025_V01.bsp'
+      fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
       indx = where(mk eq fname, count)
       if (count eq 0) then begin
-        print,"Could not load Solar Orbiter spk:"
-        print,"  " + root_data_dir() + pathname
+        cspice_furnsh, fname
+        mk = spice_test('*', verbose=-1)
+        indx = where(mk eq fname, count)
+        if (count eq 0) then begin
+          print,"Could not load Solar Orbiter spk:"
+          print,"  " + root_data_dir() + pathname
+        endif
       endif
-    endif
 
 ; Parker Solar Probe
 
-    path = 'misc/spice/naif/PSP/kernels/spk/'
-    pathname = path + 'spp_nom_20180812_20250831_v036_RO3.bsp'
-    fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
-    indx = where(mk eq fname, count)
-    if (count eq 0) then begin
-      cspice_furnsh, fname
-      mk = spice_test('*', verbose=-1)
+      path = 'misc/spice/naif/PSP/kernels/spk/'
+      pathname = path + 'spp_nom_20180812_20250831_v036_RO3.bsp'
+      fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
       indx = where(mk eq fname, count)
       if (count eq 0) then begin
-        print,"Could not load Parker Solar Probe spk:"
-        print,"  " + root_data_dir() + pathname
+        cspice_furnsh, fname
+        mk = spice_test('*', verbose=-1)
+        indx = where(mk eq fname, count)
+        if (count eq 0) then begin
+          print,"Could not load Parker Solar Probe spk:"
+          print,"  " + root_data_dir() + pathname
+        endif
       endif
     endif
 

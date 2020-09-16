@@ -10,10 +10,17 @@
 ; The routine assumes that the position, attitude and particle data type it needs
 ; from the appropriate spacecraft (e.g., ela_pef_nflux and 'ela_att_gei', 'ela_pos_gei') have been loaded already!!!!!
 ; It also assumes the user has the ability to run T89 routine (.dlm, .dll have been included in their distribution)!!!
+; 
+; Version 2020-09-13 also outputs sector limits on pitch-angle values (one per sector). These are
+; passed in tplot quantities elx_pxf_pa_spec_pa_vals and ela_pef_pa_fulspn_spec_pa_vals 
+; that hold Nx8x6 or NxMx6 values (N=number of times, M=number of sectors - twice as many for full spin than for halfspin - and 
+; 6 are the output values). The 6 values are fullmin, halfmin, center, halfmax, fullmax, spinphase, where spinphase 
+; is the sector spin phase from which you can obtain other useful things such as optimal pitch-angle (if B were on spin plane). 
 ;
 pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
   type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
-  probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps,quadratic=myquadfit
+  probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps,quadratic=myquadfit, $
+  fullspin=fullspin,starton=userstarton,timesortpas=timesortpas
   ;
   ;
   ; INPUTS
@@ -29,9 +36,9 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; dSpinPh2add is number of degrees (can be floating point) to add on top of sectors (+/- 11) for the same reason
   ; type is the type of data to process (cps, nflux...)
   ; LCpartol2use (deg) is losscone tolerance in the parallel (or antiparallel) direction (restricing it by this in para, anti spectra)
-  ;     (default is half the field of view, +FOVo2=11deg, which is making the loss/antiloss cone smaller by this amount (cleaner))
-  ; LCpertol2use (deg) is same but in the perp direction (restricting it to closer to 90deg). So negative val means opening it.
-  ;     (default is to open the perp direction by FOVo2, not restricting it, so negative value)
+  ;     (default is half the field of view plus sector width, +FOVo2=11deg, which is making the loss/antiloss cone smaller by this amount (cleaner))
+  ; LCpertol2use (deg) is same but in the perp direction (restricting it to closer to 90deg). So a negative value means opening it.
+  ;     (default is to open the perp direction by FOVo2, not restricting it, so default is a negative value; when user specifies positive value that increases perp view!)
   ; nodegaps is a keyword that (if set) prevents the program from forcing two additional time points per gap filled with NaNs (in spectra and losscone angles)
   ;     (default behavior is to place 2 NaNs in each gap for plotting purposes, for each ESSENTIAL tplot variable output, listed below).
   ; quadratic is a keyword that applies to the regularized spectra: it changes the default behavior of interpolation in time
@@ -61,13 +68,15 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; 'ela_pef_pa_spec2plot_full'    : same as 'ela_pef_pa_spec2plot' but for the full energy complement, so dim = nhalfspinsavailable x 2+nspinsectors/2 x Max_numchannels
   ; 'ela_pef_pa_reg_spec2plot_full': same as 'ela_pef_pa_reg_spec2plot' but for Max_numchannels, so dim = nhalfspinsavailable x 1+nspinsectors/2 x Max_numchannels
   ;
-  ; ESSENTIAL TPLOT VARIABLES THAT ARE BEIND PRODUCED AND CAN BE PLOTTED AS SPECTROGRAMS
+  ; ESSENTIAL TPLOT VARIABLES THAT ARE BEIND PRODUCED AND CAN BE PLOTTED AS SPECTROGRAMS OR LINE PLOTS
   ;
   ; 'ela_pef_lossconedeg'          : the losscone in the direction going down (0-90 or 90-180 depending on hemisphere)
   ; 'ela_pef_antilossconedeg'      : its supplementary (180-losscone)
   ; 'ela_pef_pa_spec2plot_ch?'     : numchannels pitch angle spectrograms for ? channel
   ; 'ela_pef_pa_reg_spec2plot_ch?' : numchannels regularized pitch angle spectrograms for ? channel
   ; 'ela_pef_pa_spec2plot_ch?LC' and 'ela_pef_pa_reg_spec2plot_ch?LC: same as above but pseudovariables, including losscone/antilosscone overplotted
+  ; 'ela_pef_pa_spec_pa_vals'      : pitch angles at full-width and half-width min/max and cntr of sector plus spin phase for reference (fmin,hmin,cntr,hmax,fmax,phi) supplements "v" quant's above
+  ; 'ela_pef_pa_fulspn_spec_pa_vals': same as above but for full spin spectra
   ;
   ; 'ela_pef_en_spec2plot_omni/para/perp/anti': energy spectra averaged over phase space within pitch angle range specified nhalfspinsavailable x Max_numchannels
   ; 'ela_pef_en_reg_spec2plot_omni/para/perp/anti': same as above but obtained from regularized versions of the pitch angle spectra
@@ -83,10 +92,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   if keyword_set(usertype) then mytype=usertype else $
     mytype='nflux'     ; Here specify default data type to act on
   FOVo2=11.          ; Field of View divided by 2 (deg)
-  if keyword_set(userLCpartol) then LCfatol=userLCpartol else $
-    LCfatol=FOVo2 ; in field aligned, fa, direction (para or anti)
-  if keyword_set(userLCpertol) then LCfptol=userLCpertol else $ ; <-- changed this one
-    LCfptol=-FOVo2 ; in field perp, fp, direction
   if keyword_set(no_download) then no_download=1 else no_download=0
   if ~keyword_set(probe) then probe='a' else probe=probe
   if ~keyword_set(myspecies) then eori='e' else eori=myspecies
@@ -97,6 +102,12 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ;
   mysc=probe
   mystring='el'+mysc+'_p'+eori+'f_'
+  case mytype of
+    'raw': one_count=1. ; approximate, independent of energy
+    'cps': one_count=5. ; approximate, independent of energy
+    'eflux': one_count=7.e3; by visual inspection of the data roughly const across energies
+    'nflux': one_count=1.e2 ; energy dependent, this corresponds to lowest energies
+  endcase
   ;
   pival=double(!PI)
   ;
@@ -217,11 +228,10 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ;       reveals an additional 0.2 sectors shift to the right (0.050 sec or 4.5deg) which would make the center spin phases not centered around 0 and 180. (not applied here).
   ; SO EXPERIMEMENT WITH THIS BY CHECKING THE REMAINING ASYMMETRY OF THE PITCH ANGLE DISTRIBUTION IN RESPONSE
   ; TO A SPIN PHASE SHIFT THAT REPRESENTS THE AFOREMENTIONED TIME SHIFT. TRY DIFFERENT dPhAng2add FOR DIFFERENT SPIN RATES
-  ; TO DETERMINE IF THIS IS A CONSTANT TIME OR HOW TO rMODEL AS FUNCTION OF SPIN PERIOD. BY SHIFTING THE SPINPHASE OF THE
+  ; TO DETERMINE IF THIS IS A CONSTANT TIME OR HOW TO MODEL AS FUNCTION OF SPIN PERIOD. BY SHIFTING THE SPINPHASE OF THE
   ; SECTOR TO THE RIGHT YOU DECLARE THAT THE SECTOR CENTERS HAVE LARGER PHASES AND ARE ASYMMETRIC W/R/T THE ZERO CROSSING (AND 90DEG PA).
   ; OR EQUIVALENTLY THAT THE TIMES ARE INCORRECT BY THE SAME AMOUNT AND THE DATA WAS TAKEN LATER THAN DECLARED IN THEIR TIMES.
   spinphase180=((dPhAng2add+float(elx_pxf_sectnum.x-elx_pxf_sectnum.x[lastzero]+0.5*elx_pxf_spinper.y/float(nspinsectors))*360./elx_pxf_spinper.y)+360.) mod 360. ; <-- CORRECTED added 360 (negative values remained negative before)
-;  spinphase180=(dPhAng2add+float(elx_pxf_sectnum.x-elx_pxf_sectnum.x[lastzero]+0.5*elx_pxf_spinper.y/float(nspinsectors))*360./elx_pxf_spinper.y) mod 360.
   spinphase=spinphase180*!PI/180. ; in radians corresponds to the center of the sector
   store_data,'spinphase',data={x:elx_pxf_sectnum.x,y:spinphase} ; just to see...
   store_data,'spinphasedeg',data={x:elx_pxf_sectnum.x,y:spinphase*180./!PI} ; just to see...
@@ -298,6 +308,48 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ylim,"spinphasedeg",-5.,365.,0.
   options,'elx_pxf_pa','databar',90.
   options,'spinphasedeg','databar',180.
+  ;
+  ; now also compute vertices of geometric and accumulation time opening angles.
+  ; In the elevation direction the opening angle is just the maximum geometric angle.
+  ; In the azimuthal direction the half-width is the sum of 1/2 geom and 1/2 accum angle.
+  ; Same procedure as above but no need to recompute rotation matrix. Create a mesh of
+  ; vertices and centers, 5x9 points, find min/max pa for each mesh at each time.
+  dphgeom=FOVo2*2. ; full geom. width in phi (in deg)
+  dthgeom=FOVo2*2. ; full geom. width in theta
+  dphsect=360./nspinsectors ; full accum. width (in phi): 22.5deg for 16sectors/spin
+  meshths=(90.-((make_array(5,/index,/float)-2.)/2.)*(dthgeom/2.))#make_array(9,/float,value=1.)*!PI/180. ; for each sector, 5 elevations x 9 repeats
+  meshphs=make_array(5,/float,value=1.)#(((make_array(9,/index,/float)-4.)/4.)*((dphgeom+dphsect)/2.))*!PI/180. ; for each sector 5 repeats x 9 azimuths
+  unitmesh2rot=reform([[reform(sin(meshths)*cos(meshphs),5*9)],[reform(sin(meshths)*sin(meshphs),5*9)],[reform(cos(meshths),5*9)]],5*9*3)
+  unitmesh2rot=transpose(reform(transpose(reform([1.+0.*spinphase]#unitmesh2rot,n_elements(spinphase),5*9,3)),3,n_elements(spinphase)*5*9))
+  ; 1/2 FOV to the left limit of sector and 1/2 to the right of limit were covered only infinitesimal time, whereas exact limits of sector 100% time;
+  ; Here mark 50% accumulation-time angle as half-max point, that is dictated by FOV. For infinitesimally narrow FOV full and half-max points identical.
+  if dphsect ge dphgeom then halfwidth=dphsect/2 else halfwidth=dphgeom/2. ; always the largest of the two determines 50% point (due to accum. time or acceptance angle).
+  ihalfmeshind=where(abs(reform(meshphs,5*9)*180./!PI) le 1.001*halfwidth,jhalfmeshind) ; 0.1% is for overcoming any numerical resolution error
+  icntrmeshind=where((abs(reform(meshphs,5*9)*180./!PI) le 1.e-5*(dphgeom+dphsect)) and (abs(reform(meshths*180./!PI-90.,5*9)) le  1.e-5*dthgeom),jcntrmeshind) ; this finds the center (zero) point of the mesh
+  ; to invert operation and get back angles do: my3Darray=reform(transpose(unitmesh2rot),3,5*9,n_elements(spinphase)) ; <--- this gives back (Ntimes,5*9,3) array!
+  meshtimes=reform(transpose(elx_pxf.x#make_array(5*9,/double,value=1.)),n_elements(spinphase)*5*9)
+  store_data,'unitmesh2rot',data={x:meshtimes,y:unitmesh2rot},dlim=myattdlim,lim=myattlim ; pretend all coords are SM in dlim to force tvector_rotate to accept
+  tinterpol_mxn,'rotaboutdslz','unitmesh2rot',newname='rotaboutdslz_4mesh'
+  tinterpol_mxn,'rotDSL2SM','unitmesh2rot',newname='rotDSL2SM_4mesh'
+  tvector_rotate,'rotaboutdslz_4mesh','unitmesh2rot',newname='meshdir_dsl'; says SM but OK
+  tvector_rotate,'rotDSL2SM_4mesh','meshdir_dsl',newname='meshdir_sm' ;
+  calc,' "elx_pxf_sm_mesh_dir"= - "meshdir_sm" '
+  ;
+  tinterpol_mxn,'elx_bt89_sm_interp','unitmesh2rot',newname='elx_bt89_sm_mesh_interp'
+  ;
+  calc,' "elx_pxf_mesh_pa" = arccos(total("elx_pxf_sm_mesh_dir" * "elx_bt89_sm_mesh_interp",2) / sqrt(total("elx_bt89_sm_mesh_interp"^2,2))) *180./pival '
+  get_data,'elx_pxf_mesh_pa',data=elx_pxf_mesh_pa
+  ;elx_pxf_mesh_pa_times=reform(elx_pxf_mesh_pa.x,5*9,n_elements(spinphase)) ; just to check this equals elx_pxf_pa.x, no need
+  elx_pxf_mesh_pa_times=elx_pxf.x
+  meshtimera=reform(elx_pxf_mesh_pa.y,5*9,n_elements(spinphase))
+  elx_pxf_mesh_pa_fmin=min(meshtimera,dim=1,max=elx_pxf_mesh_pa_fmax)
+  elx_pxf_mesh_pa_hmin=min(meshtimera[ihalfmeshind,*],dim=1,max=elx_pxf_mesh_pa_hmax)
+  elx_pxf_mesh_pa_cntr=reform(meshtimera[icntrmeshind,*],n_elements(spinphase))
+  elx_pxf_mesh_pa_vals=[[elx_pxf_mesh_pa_fmin],[elx_pxf_mesh_pa_hmin],[elx_pxf_mesh_pa_cntr],[elx_pxf_mesh_pa_hmax],[elx_pxf_mesh_pa_fmax],[spinphase180]]
+  store_data,'elx_pxf_mesh_pa_vals',data={x:elx_pxf_mesh_pa_times,y:elx_pxf_mesh_pa_vals} ; fmin,hmin,cntr,hmax,fmax in degrees at each sector time
+  ylim,"elx_pxf_mesh_pa*",0.,180.,0.
+  options,'elx_pxf_pa*','databar',90.
+  ;stop
   ;
   ; Now plot PA spectrum for a given energy or range of energies
   ; Since the datapoints and sectors are contiguous and divisible by nspinsectors (e.g. 16)
@@ -525,6 +577,9 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   elx_pxf_pa_spec_times=transpose(reform(elx_pxf_pa.x[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
   elx_pxf_pa_spec_times=total(elx_pxf_pa_spec_times,2)/(nspinsectors/2.) ; these are midpoints anyway, no need for the ones above
   elx_pxf_pa_spec_pas=transpose(reform(elx_pxf_pa.y[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
+  elx_pxf_pa_spec_pa_vals_temp=transpose(reform(elx_pxf_mesh_pa_vals[istart2reform:ifinis2reform,*],(nspinsectors/2),nhalfspinsavailable,6)) ; 6xNhalfspinsxNhalfsectors, 6=fmin,hmin,cntr,hmax,fmax,spinphases
+  elx_pxf_pa_spec_pa_vals = make_array(nhalfspinsavailable,(nspinsectors/2),6,/double)
+  for jvals=0,5 do elx_pxf_pa_spec_pa_vals[*,*,jvals]=elx_pxf_pa_spec_pa_vals_temp[jvals,*,*]
   if keyword_set(get3Dspec) then store_data,mystring+'pa_spec',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec, v:elx_pxf_pa_spec_pas}
   ;
   ; if regularize keyword is present then repeat for regularized sectors (though they should be identical)
@@ -540,10 +595,132 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_spec',data={x:elx_pxf_pa_reg_spec_times, y:elx_pxf_pa_reg_spec, v:elx_pxf_pa_reg_spec_pas}
   endif
   ;
-  ; ADD EXTRA ANGLE BINS FOR ALL elx_pxf_pa_spec, elx_pxf_pa_spec_full and elx_pxf_pa_reg_spec !!!
+  ; if fullspin keyword is present then ALSO create full spin distributions (twice the angles half the times)
+  ; Example: atest=make_array(5,2,3,/float,/index); btest=transpose(reform(transpose(atest[0:3,*,*]),3,4,2)); times have halfed; pas have doubled
+  if keyword_set(fullspin) then begin
+    ifirsthalfspin=0L
+    if keyword_set(userstarton) then begin ; here check if start half-spin is ascending or descending else leave as is (min sector)
+      case userstarton of
+        'ascend': if istart2reform ne istartAscnd then ifirsthalfspin=1L ; not 0
+        'descend': if istart2reform ne istartDscnd then ifirsthalfspin=1L ; not 0
+        else: ; 'Case must be "ascend" or "descend", ignoring... it is now first available'
+      endcase
+    endif
+    nfullspinsavailable=(nhalfspinsavailable-ifirsthalfspin)/2L
+    elx_pxf_pa_fulspn_spec=make_array(nfullspinsavailable,nspinsectors,numchannels,/double)
+    elx_pxf_pa_fulspn_spec_full=make_array(nfullspinsavailable,nspinsectors,Max_numchannels,/double) ; has ALL ENERGIES = Max_numchannels
+    elx_pxf_pa_fulspn_spec=transpose(reform(transpose(elx_pxf_pa_spec[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*,*]),numchannels,nspinsectors,nfullspinsavailable))
+    elx_pxf_pa_fulspn_spec_full=transpose(reform(transpose(elx_pxf_pa_spec_full[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*,*]),Max_numchannels,nspinsectors,nfullspinsavailable))
+    elx_pxf_pa_fulspn_spec_pa_vals = make_array(nfullspinsavailable,nspinsectors,6,/double)
+    ispins=make_array(nfullspinsavailable,/index,/long)
+    elx_pxf_pa_fulspn_spec_times=(elx_pxf_pa_spec_times[ifirsthalfspin+2*ispins]+elx_pxf_pa_spec_times[ifirsthalfspin+2*ispins+1])/2.
+    elx_pxf_pa_fulspn_spec_pas=transpose(reform(transpose(elx_pxf_pa_spec_pas[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*]),nspinsectors,nfullspinsavailable))
+    elx_pxf_pa_fulspn_spec_pa_vals=transpose(reform(transpose(elx_pxf_pa_spec_pa_vals[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*,*]),6,nspinsectors,nfullspinsavailable))
+    ;
+    ; By default, sort by pitch angle within each spin, else leave sorted by time.
+    ; Here first perform sorting anyway, then sort final arrays if you need to (below), 
+    ; or use only for regularization if you need to (further below), or neither if neither is needed
+    ; If timesortpas is set, and regularization is requested then sorting is still needed
+    if keyword_set(regularize) or ~keyword_set(timesortpas) then begin ; sort is needed only in this case
+      elx_pxf_pa_fulspn_spec_pas_temp=elx_pxf_pa_fulspn_spec_pas
+      elx_pxf_pa_fulspn_spec_temp=elx_pxf_pa_fulspn_spec
+      elx_pxf_pa_fulspn_spec_pa_vals_temp=elx_pxf_pa_fulspn_spec_pa_vals
+      elx_pxf_pa_fulspn_spec_full_temp=elx_pxf_pa_fulspn_spec_full
+      for jspin=0,nfullspinsavailable-1 do begin
+        ipasorted=sort(elx_pxf_pa_fulspn_spec_pas[jspin,*])
+        elx_pxf_pa_fulspn_spec_pas_temp[jspin,*]=elx_pxf_pa_fulspn_spec_pas[jspin,ipasorted]
+        elx_pxf_pa_fulspn_spec_temp[jspin,*,*]=elx_pxf_pa_fulspn_spec[jspin,ipasorted,*]
+        elx_pxf_pa_fulspn_spec_pa_vals_temp[jspin,*,*]=elx_pxf_pa_fulspn_spec_pa_vals[jspin,ipasorted,*]
+        elx_pxf_pa_fulspn_spec_full_temp[jspin,*,*]=elx_pxf_pa_fulspn_spec_full[jspin,ipasorted,*]
+      endfor
+      if ~keyword_set(timesortpas) then begin ; default is sorting pas (with or without regularization)
+        elx_pxf_pa_fulspn_spec_pas=elx_pxf_pa_fulspn_spec_pas_temp
+        elx_pxf_pa_fulspn_spec=elx_pxf_pa_fulspn_spec_temp
+        elx_pxf_pa_fulspn_spec_pa_vals=elx_pxf_pa_fulspn_spec_pa_vals_temp
+        elx_pxf_pa_fulspn_spec_full=elx_pxf_pa_fulspn_spec_full_temp
+      endif
+    ;
+      if keyword_set(regularize) then begin ; within full spin resolution products the regularization is applied in pitch angle, not in time
+        elx_pxf_pa_reg_fulspn_spec=make_array(nfullspinsavailable,nspinsectors+1,numchannels,/double)
+        elx_pxf_pa_reg_fulspn_spec_full=make_array(nfullspinsavailable,nspinsectors+1,Max_numchannels,/double) ; has ALL ENERGIES = Max_numchannels
+        elx_pxf_pa_reg_fulspn_spec_times=elx_pxf_pa_fulspn_spec_times
+        elx_pxf_pa_reg_fulspn_spec_pas=transpose(reform(transpose(elx_pxf_pa_reg_spec_pas[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*]),nspinsectors,nfullspinsavailable))
+        irevbin=[0,nspinsectors-indgen(nspinsectors-1)-1]
+        elx_pxf_pa_reg_fulspn_spec_pas=(elx_pxf_pa_reg_fulspn_spec_pas+elx_pxf_pa_reg_fulspn_spec_pas[*,irevbin])/2. ; nspinsectors/2+1 unique values from min to max possible
+        elx_pxf_pa_reg_fulspn_spec_pas=elx_pxf_pa_reg_fulspn_spec_pas[*,0:nspinsectors/2] ; redefined as [nfullspinsavailable x nspinsectors/2 +1] array
+        imidvals=indgen(nspinsectors/2)
+        elx_pxf_pa_reg_fulspn_spec_pasmivals=(elx_pxf_pa_reg_fulspn_spec_pas[*,imidvals+1]+elx_pxf_pa_reg_fulspn_spec_pas[*,imidvals])/2. ; got midvals
+        idouble=indgen(nspinsectors+1)/2
+        elx_pxf_pa_reg_fulspn_spec_pas=elx_pxf_pa_reg_fulspn_spec_pas[*,idouble] ; increased the elements to nspinsectors+1, and values to every other
+        elx_pxf_pa_reg_fulspn_spec_pas[*,imidvals*2+1]=elx_pxf_pa_reg_fulspn_spec_pasmivals[*,imidvals] ; these are the original spinphase angles plus midvals, to be used to fit at
+        ;
+        ; now fit log(flux) vs pa
+        ;
+        elx_pxf_pa_fulspn_spec2fit=reform(elx_pxf_pa_fulspn_spec_temp,nfullspinsavailable*nspinsectors*numchannels)
+        elx_pxf_pa_fulspn_spec_full2fit=reform(elx_pxf_pa_fulspn_spec_full_temp,nfullspinsavailable*nspinsectors*Max_numchannels)
+        elx_pxf_pa_fulspn_spec_err=1./sqrt(1.+elx_pxf_pa_fulspn_spec2fit/one_count) ; this is deltafoverf ~ (1/sqrt(Ncounts+1)) and d(lnf) not d(alog10f)
+        elx_pxf_pa_fulspn_spec_full_err=1./sqrt(1.+elx_pxf_pa_fulspn_spec_full2fit/one_count) ; this is deltafoverf ~ (1/sqrt(Ncounts+1)) and d(lnf) not d(alog10f)
+        izerovals=where(elx_pxf_pa_fulspn_spec2fit le 0.,jzerovals) ; first for energy averaged
+        if jzerovals gt 0 then elx_pxf_pa_fulspn_spec2fit[izerovals]=one_count/3./2. ; just to have something non-zero make it half a count (error remains equiv. to 0cnts df/f~1.)
+        izerovals=where(elx_pxf_pa_fulspn_spec_full2fit le 0.,jzerovals) ; next for full
+        if jzerovals gt 0 then elx_pxf_pa_fulspn_spec_full2fit[izerovals]=one_count/2. ; just to have something non-zero make it half a count (error remains equiv. to 0cnts df/f~1.)
+        elx_pxf_pa_fulspn_spec2fit=reform(alog10(elx_pxf_pa_fulspn_spec2fit),nfullspinsavailable,nspinsectors,numchannels)
+        elx_pxf_pa_fulspn_spec_err=reform(elx_pxf_pa_fulspn_spec_err,nfullspinsavailable,nspinsectors,numchannels) ; D(alog10f) = D(lnf)/ln(10)= ~D(lnf)/2.5= err/2.5 but error is relative so dont do it
+        elx_pxf_pa_fulspn_spec_full2fit=reform(alog10(elx_pxf_pa_fulspn_spec_full2fit),nfullspinsavailable,nspinsectors,Max_numchannels)
+        elx_pxf_pa_fulspn_spec_full_err=reform(elx_pxf_pa_fulspn_spec_full_err,nfullspinsavailable,nspinsectors,Max_numchannels) ; D(alog10f) = D(lnf)/ln(10)= ~D(lnf)/2.5= err/2.5 but error is relative so dont do it
+        ;
+        ; find indices for each pa (from the center of the time interval, nfullspinsavailable/2, should be good enough for all)
+        ipa2fitmins=make_array(nspinsectors+1,/long)
+        ipa2fitmaxs=make_array(nspinsectors+1,/long)
+        ipa2fitmins[0:2]=0
+        ipa2fitmaxs[0:2]=4
+        ipa2fitmins[nspinsectors-2:nspinsectors]=nspinsectors-5
+        ipa2fitmaxs[nspinsectors-2:nspinsectors]=nspinsectors-1
+        for jth2fit=3,nspinsectors-3 do begin
+          iany2fit=where(abs(elx_pxf_pa_reg_fulspn_spec_pas[nfullspinsavailable/2,jth2fit]-elx_pxf_pa_fulspn_spec_pas_temp[nfullspinsavailable/2,*]) le 22.5,jany2fit)
+          ipa2fitmins[jth2fit]=min(iany2fit)
+          ipa2fitmaxs[jth2fit]=max(iany2fit)
+        endfor
+        ; now perform fits
+        mypolyorder=2
+        for ithspin=0,nfullspinsavailable-1 do begin
+          for ithchan=0,numchannels-1 do begin
+            for ithsect=0,nspinsectors do begin
+             mycoeffs=poly_fit(elx_pxf_pa_fulspn_spec_pas_temp[ithspin,ipa2fitmins[ithsect]:ipa2fitmaxs[ithsect]], $
+                               elx_pxf_pa_fulspn_spec2fit[ithspin,ipa2fitmins[ithsect]:ipa2fitmaxs[ithsect],ithchan], mypolyorder, $
+                               measure_errors=elx_pxf_pa_fulspn_spec_err[ithspin,ipa2fitmins[ithsect]:ipa2fitmaxs[ithsect],ithchan],/double)
+             elx_pxf_pa_reg_fulspn_spec[ithspin,ithsect,ithchan]=10^poly(elx_pxf_pa_reg_fulspn_spec_pas[ithspin,ithsect],mycoeffs)
+            endfor
+          endfor
+        endfor
+        ; now for full
+        mypolyorder=2
+        for ithspin=0,nfullspinsavailable-1 do begin
+          for ithchan=0,Max_numchannels-1 do begin
+            for ithsect=0,nspinsectors do begin
+              mycoeffs=poly_fit(elx_pxf_pa_fulspn_spec_pas_temp[ithspin,ipa2fitmins[ithsect]:ipa2fitmaxs[ithsect]], $
+                elx_pxf_pa_fulspn_spec_full2fit[ithspin,ipa2fitmins[ithsect]:ipa2fitmaxs[ithsect],ithchan], mypolyorder, $
+                measure_errors=elx_pxf_pa_fulspn_spec_full_err[ithspin,ipa2fitmins[ithsect]:ipa2fitmaxs[ithsect],ithchan],/double)
+              elx_pxf_pa_reg_fulspn_spec_full[ithspin,ithsect,ithchan]=10^poly(elx_pxf_pa_reg_fulspn_spec_pas[ithspin,ithsect],mycoeffs)
+            endfor
+          endfor
+        endfor
+        ; no need for further processing of these, store'm
+        store_data,mystring+'pa_spec_pa_vals',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec_pa_vals} ; no extra angles for these (not intended for angle spectra, just line plots)
+        store_data,mystring+'pa_fulspn_spec_pa_vals',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_pa_fulspn_spec_pa_vals} ; no extra angle padding (only intended for line plots)
+        if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_fulspn_spec',data={x:elx_pxf_pa_reg_fulspn_spec_times, y:elx_pxf_pa_reg_fulspn_spec, v:elx_pxf_pa_reg_fulspn_spec_pas}
+        if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_fulspn_spec_full',data={x:elx_pxf_pa_reg_fulspn_spec_times, y:elx_pxf_pa_reg_fulspn_spec_full, v:elx_pxf_pa_reg_fulspn_spec_pas}
+      endif
+    endif
+    ;
+  endif
+  ;stop
+  ;
+  ; ADD EXTRA ANGLE BINS FOR ALL elx_pxf_pa_spec, elx_pxf_pa_spec_full and elx_pxf_pa_reg_spec, elx_pxf_pa_reg_spec_full !!!
+  ; ALSO ADD EXTRA ANGLE BINS FOR elx_pxf_pa_fulspn_spec, elx_pxf_pa_fulspn_spec_full but NO NEED FOR timesorted equiv's, or elx_pxf_pa_reg_fulspn_spec or elx_pxf_pa_reg_fulspn_spec_full !!!
   ; WHEN BIN CENTERS ARE NOT REGULARIZED, THEN SPEDAS CUTS OFF HALF OF THE BIN WHICH MAKES THEM APPEAR HALF-WIDTH. ADD ONE ON EACH SIDE (ADD 2 PER PITCH ANGLE DISTRIBUTION)
   ; WHEN BIN CENTERS ARE REGULARIZED (SPIN PHASES: [0,180]) THEN THE ASCENDING DISTRIBUTION IS MISSING THE 180 BIN, AND THE DESCENDING THE 0 BIN, SO ADD THEM (ADD 1 PER PITCH ANGLE DISTRIBUTION)
-  ;
+  ; 
   elx_pxf_pa_spec2plot=make_array(nhalfspinsavailable,(nspinsectors/2)+2,numchannels,/double)
   for jthchan=0,numchannels-1 do elx_pxf_pa_spec2plot[*,*,jthchan]=transpose([transpose(elx_pxf_pa_spec[*,0,jthchan]*!VALUES.F_NaN),transpose(elx_pxf_pa_spec[*,*,jthchan]),transpose(elx_pxf_pa_spec[*,(nspinsectors/2)-1,jthchan]*!VALUES.F_NaN)])
   deltapafirst=(elx_pxf_pa_spec_pas[*,1]-elx_pxf_pa_spec_pas[*,0])
@@ -553,6 +730,21 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   elx_pxf_pa_spec2plot_full=make_array(nhalfspinsavailable,(nspinsectors/2)+2,Max_numchannels,/double)
   for jthchan=0,Max_numchannels-1 do elx_pxf_pa_spec2plot_full[*,*,jthchan]=transpose([transpose(elx_pxf_pa_spec_full[*,0,jthchan]*!VALUES.F_NaN),transpose(elx_pxf_pa_spec_full[*,*,jthchan]),transpose(elx_pxf_pa_spec_full[*,(nspinsectors/2)-1,jthchan]*!VALUES.F_NaN)])
   if keyword_set(get3Dspec) then store_data,mystring+'pa_spec2plot_full',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec2plot_full, v:elx_pxf_pa_spec_pas2plot}
+  ;
+  if keyword_set(fullspin) then begin ; process and store fulspn arrays and tplot var's
+    if ~keyword_set(timesortpas) then begin ; if not timesorted then add side bins
+      elx_pxf_pa_fulspn_spec2plot=make_array(nfullspinsavailable,nspinsectors+2,numchannels,/double)
+      for jthchan=0,numchannels-1 do elx_pxf_pa_fulspn_spec2plot[*,*,jthchan]=transpose([transpose(elx_pxf_pa_fulspn_spec[*,0,jthchan]*!VALUES.F_NaN),transpose(elx_pxf_pa_fulspn_spec[*,*,jthchan]),transpose(elx_pxf_pa_fulspn_spec[*,nspinsectors-1,jthchan]*!VALUES.F_NaN)])
+      deltapafirst=(elx_pxf_pa_fulspn_spec_pas[*,1]-elx_pxf_pa_fulspn_spec_pas[*,0])
+      deltapalast=(elx_pxf_pa_fulspn_spec_pas[*,nspinsectors-1]-elx_pxf_pa_fulspn_spec_pas[*,nspinsectors-2])
+      elx_pxf_pa_fulspn_spec_pas2plot=transpose([transpose(elx_pxf_pa_fulspn_spec_pas[*,0]-deltapafirst),transpose(elx_pxf_pa_fulspn_spec_pas),transpose(elx_pxf_pa_fulspn_spec_pas[*,nspinsectors-1]+deltapalast)])
+      elx_pxf_pa_fulspn_spec2plot_full=make_array(nfullspinsavailable,nspinsectors+2,Max_numchannels,/double)
+      for jthchan=0,Max_numchannels-1 do elx_pxf_pa_fulspn_spec2plot_full[*,*,jthchan]=transpose([transpose(elx_pxf_pa_fulspn_spec_full[*,0,jthchan]*!VALUES.F_NaN),transpose(elx_pxf_pa_fulspn_spec_full[*,*,jthchan]),transpose(elx_pxf_pa_fulspn_spec_full[*,(nspinsectors/2)-1,jthchan]*!VALUES.F_NaN)])
+    endif
+    if keyword_set(get3Dspec) then store_data,mystring+'pa_fulspn_spec2plot',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_pa_fulspn_spec2plot, v:elx_pxf_pa_fulspn_spec_pas2plot}
+    if keyword_set(get3Dspec) then store_data,mystring+'pa_fulspn_spec2plot_full',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_pa_fulspn_spec2plot_full, v:elx_pxf_pa_fulspn_spec_pas2plot}
+  endif
+  ;
   if keyword_set(regularize) then begin
     xra=make_array(n_elements(elx_pxf_pa_reg_spec_times)-1,/index,/long)
     elx_pxf_pa_reg_spec2plot=make_array(n_elements(elx_pxf_pa_reg_spec_times),(nspinsectors/2)+1,numchannels,/double)
@@ -581,6 +773,20 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
         "',data={x:elx_pxf_pa_reg_spec_times, y:elx_pxf_pa_reg_spec2plot[*,*,"+strtrim(string(jthchan),2)+"], v:elx_pxf_pa_reg_spec_pas2plot}"
       dummy=execute(str2exec)
     endfor
+  endif
+  if keyword_set(fullspin) then begin
+    for jthchan=0,numchannels-1 do begin
+      str2exec="store_data,'"+mystring+"pa_fulspn_spec2plot_ch"+strtrim(string(jthchan),2)+ $
+        "',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_pa_fulspn_spec2plot[*,*,"+strtrim(string(jthchan),2)+"], v:elx_pxf_pa_fulspn_spec_pas2plot}"
+      dummy=execute(str2exec)
+    endfor
+    if keyword_set(regularize) then begin
+      for jthchan=0,numchannels-1 do begin
+        str2exec="store_data,'"+mystring+"pa_reg_fulspn_spec2plot_ch"+strtrim(string(jthchan),2)+ $
+          "',data={x:elx_pxf_pa_reg_fulspn_spec_times, y:elx_pxf_pa_reg_fulspn_spec[*,*,"+strtrim(string(jthchan),2)+"], v:elx_pxf_pa_reg_fulspn_spec_pas}"
+        dummy=execute(str2exec)
+      endfor
+    endif
   endif
   ;
   options,'el?_p?f_pa*spec2plot*',spec=1
@@ -680,7 +886,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   options,'*losscone*','databar',90.
   options, '*losscone*', 'spec',0
   options,'*losscone*','tplot_routine','mplot'
-
   ;
   for jthchan=0,numchannels-1 do begin
     str2exec="store_data,'"+mystring+"pa_spec2plot_ch"+strtrim(string(jthchan),2)+"LC',data='"+mystring+"pa_spec2plot_ch"+$
@@ -694,14 +899,31 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       dummy=execute(str2exec)
     endfor
   endif
+  if keyword_set(fullspin) then begin
+    for jthchan=0,numchannels-1 do begin
+      str2exec="store_data,'"+mystring+"pa_fulspn_spec2plot_ch"+strtrim(string(jthchan),2)+"LC',data='"+mystring+"pa_fulspn_spec2plot_ch"+$
+        strtrim(string(jthchan),2)+" "+mystring+"losscone "+mystring+"antilosscone'"
+      dummy=execute(str2exec)
+    endfor
+    if keyword_set(regularize) then begin
+      for jthchan=0,numchannels-1 do begin
+        str2exec="store_data,'"+mystring+"pa_reg_fulspn_spec2plot_ch"+strtrim(string(jthchan),2)+"LC',data='"+mystring+"pa_reg_fulspn_spec2plot_ch"+$
+          strtrim(string(jthchan),2)+" "+mystring+"losscone "+mystring+"antilosscone'"
+        dummy=execute(str2exec)
+      endfor
+    endif
+  endif
   ;
   ylim,'el?_p?f_pa*spec2plot* *losscone* el?_p?f_pa*spec2plot_ch?LC',0,180.
   ;
-  ;
   ; Now make energy spectra: Omni, Para, Perp, Anti
-  ; Para and Anti check when theta is less that losscone+tolerance, where LCfatol tolerance=FOVo2=11deg and LCfptol=-FOVo2 unless user-specified
+  ; Para and Anti: check when theta less that losscone+tolerance, where LCfatol tolerance=FOVo2+SectWidth/2 and LCfptol=FOVo2 unless user-specified
   ; Omni halfs tres (1/2 Tspin)  but includes one more sector along, and one more opposite the Bfield, such that all times have both para and anti sectors.
   ; In the following the deltagyro is not included in domega (same in the numerator and denominator integrals: Int(f*domega) and Int(domega) ), give 2*pi which cancels
+  SectWidtho2 = dphsect/2.
+  if keyword_set(userLCpartol) then LCfatol=userLCpartol else LCfatol=FOVo2+SectWidtho2
+  if keyword_set(userLCpertol) then LCfptol=userLCpertol else LCfptol=-FOVo2 ; in field perp, fp, direction -- default opens the fov in perp dir.
+  ;
   elx_pxf_en_spec2plot_domega=make_array(nhalfspinsavailable,(nspinsectors/2)+2,/double) ; same for all energies
   elx_pxf_en_spec2plot_domega[*,*]=(2.*!PI/nspinsectors)*sin(!PI*elx_pxf_pa_spec_pas2plot[*,*]/180.)
   elx_pxf_en_spec2plot_domega1d=reform(elx_pxf_en_spec2plot_domega,nhalfspinsavailable*((nspinsectors/2)+2))
@@ -810,21 +1032,151 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     store_data,mystring+'en_reg_spec2plot_perp',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_perp, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
   endif
   ;
+  ; repeat the above for fulspn case: make energy spectra: Omni, Para, Perp, Anti
+  ; Para and Anti: check when theta less that losscone+tolerance, where LCfatol tolerance=FOVo2+SectWidth/2 and LCfptol=-FOVo2 (open perp) unless user-specified
+  ; Omni fuspn need NOT include one more sector, since full spin has symmetric pitch angles now.
+  if keyword_set(fullspin) then begin ; process and store fulspn arrays and tplot var's
+    elx_pxf_en_fulspn_spec2plot_domega=make_array(nfullspinsavailable,nspinsectors+2,/double) ; same for all energies
+    elx_pxf_en_fulspn_spec2plot_domega[*,*]=(2.*!PI/nspinsectors)*sin(!PI*elx_pxf_pa_fulspn_spec_pas2plot[*,*]/180.)
+    elx_pxf_en_fulspn_spec2plot_domega1d=reform(elx_pxf_en_fulspn_spec2plot_domega,nfullspinsavailable*(nspinsectors+2))
+    i1d=make_array(nfullspinsavailable*(nspinsectors+2),/index,/long)
+    izeropas=where((reform(elx_pxf_pa_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+2)) lt 360./nspinsectors/2) or $
+      (reform(elx_pxf_pa_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+2)) gt 180.-360./nspinsectors/2), jzeropas)
+    if jzeropas gt 0 then elx_pxf_en_fulspn_spec2plot_domega1d[izeropas]=(!PI/nspinsectors)*sin(!PI/nspinsectors) ; in degrees, that's pa = dpa = 22.5/2 = 11.25 for 16 sectors
+    elx_pxf_en_fulspn_spec2plot_domega=reform(elx_pxf_en_fulspn_spec2plot_domega1d,nfullspinsavailable,nspinsectors+2)
+    elx_pxf_en_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+2),/double,value=!VALUES.F_NaN) ; same for all energies
+    elx_pxf_en_fulspn_spec2plot_omni=make_array(nfullspinsavailable,Max_numchannels,/double)
+    elx_pxf_en_fulspn_spec2plot_para=make_array(nfullspinsavailable,Max_numchannels,/double)
+    elx_pxf_en_fulspn_spec2plot_anti=make_array(nfullspinsavailable,Max_numchannels,/double)
+    elx_pxf_en_fulspn_spec2plot_perp=make_array(nfullspinsavailable,Max_numchannels,/double)
+    for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_omni[*,jthchan]= $
+      total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors],2,/NaN)/ $
+      total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    store_data,mystring+'en_fulspn_spec2plot_omni',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_fulspn_spec2plot_omni, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+    arrayofones=make_array(nspinsectors+2,/double,value=1.)
+    ;  select parapas for energy spectra first
+    paraedgedeg_fulspn=(paraedgedeg.y[ifirsthalfspin+2*ispins]+paraedgedeg.y[ifirsthalfspin+2*ispins+1])/2.
+    iparapas=where((reform(elx_pxf_pa_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+2)) lt -LCfatol+reform(paraedgedeg_fulspn#arrayofones,nfullspinsavailable*(nspinsectors+2))), jparapas)
+    if jparapas gt 0 then begin
+      elx_pxf_en_fulspn_spec2plot_allowable[iparapas]=1.
+    endif
+    elx_pxf_en_fulspn_spec2plot_allowable=reform(elx_pxf_en_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+2)
+    for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_para[*,jthchan]= $
+      total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+      total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    store_data,mystring+'en_fulspn_spec2plot_para',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_fulspn_spec2plot_para, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+    ; ... antipas for energy spectra now
+    elx_pxf_en_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+2),/double,value=!VALUES.F_NaN) ; same for all energies
+    iantipas=where((reform(elx_pxf_pa_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+2)) gt 180.+LCfatol-reform(paraedgedeg_fulspn#arrayofones,nfullspinsavailable*(nspinsectors+2))), jantipas)
+    if jantipas gt 0 then begin
+      elx_pxf_en_fulspn_spec2plot_allowable[iantipas]=1.
+    endif
+    elx_pxf_en_fulspn_spec2plot_allowable=reform(elx_pxf_en_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+2)
+    for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_anti[*,jthchan]= $
+      total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+      total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    store_data,mystring+'en_fulspn_spec2plot_anti',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_fulspn_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+    ; ... perppas for energy spectra now
+    elx_pxf_en_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+2),/double,value=!VALUES.F_NaN) ; same for all energies
+    iperppas=where((reform(elx_pxf_pa_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+2)) lt 180.-LCfptol-reform(paraedgedeg_fulspn#arrayofones,nfullspinsavailable*(nspinsectors+2))) and $
+      (reform(elx_pxf_pa_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+2)) gt +LCfptol+reform(paraedgedeg_fulspn#arrayofones,nfullspinsavailable*(nspinsectors+2))), jperppas)
+    if jperppas gt 0 then begin
+      elx_pxf_en_fulspn_spec2plot_allowable[iperppas]=1.
+    endif
+    elx_pxf_en_fulspn_spec2plot_allowable=reform(elx_pxf_en_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+2)
+    for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_perp[*,jthchan]= $
+      total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+      total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    store_data,mystring+'en_fulspn_spec2plot_perp',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_fulspn_spec2plot_perp, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+    ;
+    if keyword_set(regularize) then begin
+      elx_pxf_pa_reg_fulspn_spec_pas2plot=elx_pxf_pa_reg_fulspn_spec_pas
+      elx_pxf_en_reg_fulspn_spec2plot_domega=make_array(nfullspinsavailable,nspinsectors+1,/double) ; same for all energies
+      elx_pxf_en_reg_fulspn_spec2plot_domega[*,*]=(2.*!PI/nspinsectors)*sin(!PI*elx_pxf_pa_reg_fulspn_spec_pas2plot[*,*]/180.)
+      elx_pxf_en_reg_fulspn_spec2plot_domega1d=reform(elx_pxf_en_reg_fulspn_spec2plot_domega,nfullspinsavailable*(nspinsectors+1))
+      i1d=make_array(nfullspinsavailable*(nspinsectors+1),/index,/long)
+      izeropas=where((reform(elx_pxf_pa_reg_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+1)) lt 360./nspinsectors/2) or $
+        (reform(elx_pxf_pa_reg_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+1)) gt 180.-360./nspinsectors/2), jzeropas)
+      if jzeropas gt 0 then elx_pxf_en_reg_fulspn_spec2plot_domega1d[izeropas]=(!PI/nspinsectors)*sin(!PI/nspinsectors) ; in degrees, that's pa = dpa = 22.5/2 = 11.25 for 16 sectors
+      elx_pxf_en_reg_fulspn_spec2plot_domega=reform(elx_pxf_en_reg_fulspn_spec2plot_domega1d,nfullspinsavailable,nspinsectors+1)
+      elx_pxf_en_reg_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+1),/double,value=!VALUES.F_NaN) ; same for all energies
+      elx_pxf_en_reg_fulspn_spec2plot_omni=make_array(nfullspinsavailable,Max_numchannels,/double)
+      elx_pxf_en_reg_fulspn_spec2plot_para=make_array(nfullspinsavailable,Max_numchannels,/double)
+      elx_pxf_en_reg_fulspn_spec2plot_anti=make_array(nfullspinsavailable,Max_numchannels,/double)
+      elx_pxf_en_reg_fulspn_spec2plot_perp=make_array(nfullspinsavailable,Max_numchannels,/double)
+      for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_omni[*,jthchan]= $
+        total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_fulspn_spec2plot_domega[*,0:nspinsectors],2,/NaN) ; IGNORE SECTORS WITH NaNs
+      store_data,mystring+'en_reg_fulspn_spec2plot_omni',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_reg_fulspn_spec2plot_omni, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+      arrayofones=make_array(nspinsectors+1,/double,value=1.)
+      ;  select parapas for energy spectra first
+      iparapas=where((reform(elx_pxf_pa_reg_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+1)) lt -LCfatol+reform(paraedgedeg_fulspn#arrayofones,nfullspinsavailable*(nspinsectors+1))), jparapas)
+      if jparapas gt 0 then begin
+        elx_pxf_en_reg_fulspn_spec2plot_allowable[iparapas]=1.
+      endif
+      elx_pxf_en_reg_fulspn_spec2plot_allowable=reform(elx_pxf_en_reg_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+1)
+      for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_para[*,jthchan]= $
+        total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      store_data,mystring+'en_reg_fulspn_spec2plot_para',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_reg_fulspn_spec2plot_para, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+      ; ... antipas for energy spectra now
+      elx_pxf_en_reg_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+1),/double,value=!VALUES.F_NaN) ; reset array!
+      iantipas=where((reform(elx_pxf_pa_reg_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+1)) gt 180.+LCfatol-reform(paraedgedeg_fulspn#arrayofones,nfullspinsavailable*(nspinsectors+1))), jantipas)
+      if jantipas gt 0 then begin
+        elx_pxf_en_reg_fulspn_spec2plot_allowable[iantipas]=1.
+      endif
+      elx_pxf_en_reg_fulspn_spec2plot_allowable=reform(elx_pxf_en_reg_fulspn_spec2plot_allowable,nfullspinsavailable,(nspinsectors+1))
+      for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_anti[*,jthchan]= $
+        total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      store_data,mystring+'en_reg_fulspn_spec2plot_anti',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_reg_fulspn_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+      ; ... perppas for energy spectra now
+      elx_pxf_en_reg_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+1),/double,value=!VALUES.F_NaN) ; reset array!
+      iperppas=where((reform(elx_pxf_pa_reg_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+1)) lt 180.-LCfptol-reform(paraedgedeg_fulspn#arrayofones,nfullspinsavailable*(nspinsectors+1))) and $
+        (reform(elx_pxf_pa_reg_fulspn_spec_pas2plot,nfullspinsavailable*(nspinsectors+1)) gt +LCfptol+reform(paraedgedeg_fulspn#arrayofones,nfullspinsavailable*(nspinsectors+1))), jperppas)
+      if jperppas gt 0 then begin
+        elx_pxf_en_reg_fulspn_spec2plot_allowable[iperppas]=1.
+      endif
+      elx_pxf_en_reg_fulspn_spec2plot_allowable=reform(elx_pxf_en_reg_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+1)
+      for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_perp[*,jthchan]= $
+        total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      store_data,mystring+'en_reg_fulspn_spec2plot_perp',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_reg_fulspn_spec2plot_perp, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+    endif
+  endif
+  ;
   options,'el?_p?f_en*spec*',spec=1
-  zlim,'el?_p?f_en*spec*',10,2e6,1
   ylim,'el?_p?f_en*spec*',55.,6800.,1
-  zlim,'elx_pef_??_spec2plot_????ovr????',1,1,1
-  zlim,'elx_pef_pa_*spec2plot_ch0*',5.e3,1.e7,1
-  zlim,'elx_pef_pa_*spec2plot_ch1*',1.e3,5.e6,1
-  zlim,'elx_pef_pa_*spec2plot_ch2*',1.e2,5.e5,1
-  zlim,'elx_pef_pa_*spec2plot_ch3*',1.e1,5.e3,1
+  case mytype of
+    'cps': begin
+      zlim,'el?_p?f_en*spec*',0.1,2.e5,1
+      zlim,'el?_pef_pa_*spec2plot_ch0*',5.e1,5.e4,1
+      zlim,'el?_pef_pa_*spec2plot_ch1*',2.e1,5.e4,1
+      zlim,'el?_pef_pa_*spec2plot_ch2*',1.e1,5.e4,1
+      zlim,'el?_pef_pa_*spec2plot_ch3*',1.e-1,1.e4,1
+    end
+    'eflux': begin
+      zlim,'el?_p?f_en*spec*',1e4,1e9,1
+      zlim,'el?_pef_pa_*spec2plot_ch0*',5.e5,1.e9,1
+      zlim,'el?_pef_pa_*spec2plot_ch1*',5.e5,5.e8,1
+      zlim,'el?_pef_pa_*spec2plot_ch2*',5.e5,2.5e8,1
+      zlim,'el?_pef_pa_*spec2plot_ch3*',1.e5,1.e7,1
+    end
+    'nflux': begin
+      zlim,'el?_p?f_en*spec*',10,2e7,1
+      zlim,'el?_pef_pa_*spec2plot_ch0*',2.e3,5.e6,1
+      zlim,'el?_pef_pa_*spec2plot_ch1*',1.e3,3.e6,1
+      zlim,'el?_pef_pa_*spec2plot_ch2*',1.e2,1.e6,1
+      zlim,'el?_pef_pa_*spec2plot_ch3*',1.e1,5.e3,1
+    end
+  endcase
   ;
   ; degap interior gaps with two NaNs per gap
   if ~keyword_set(nonansingaps) then begin
-    tdegap,'el?_p?f_en*spec2plot_????',dt=Tspin/2.,margin=0.5*Tspin/2.,/twonanpergap,/over
-    tdegap,'el?_p?f_en*spec2plot_????ovr????',dt=Tspin/2.,margin=0.5*Tspin/2.,/twonanpergap,/over
-    tdegap,'el?_p?f_pa*spec*ch?',dt=Tspin/2.,margin=0.5*Tspin/2.,/twonanpergap,/over
-    tdegap,'el?_p?f*losscone',dt=Tspin/2.,margin=0.5*Tspin/2.,/twonanpergap,/over
+    if keyword_set(fullspin) then mydt=Tspin else mydt=Tspin/2.
+    tdegap,'el?_p?f_en*spec2plot_????',dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
+    tdegap,'el?_p?f_pa*spec*ch?',dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
+    tdegap,'el?_p?f*losscone',dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
     tdeflag,mystring+'losscone','linear',/over
     tdeflag,mystring+'antilosscone','linear',/over
   endif

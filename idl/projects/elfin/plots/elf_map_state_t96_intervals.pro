@@ -268,17 +268,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   elf_mlt_l_lat,'elb_pos_sm',MLT0=MLTB,L0=LB,LAT0=latB ;;subroutine to calculate mlt,l,mlat under dipole configuration
 
   ; Create attitude info for plot text
-  cotrans, 'ela_att_gei', 'ela_att_gse', /gei2gse
-  cotrans, 'elb_att_gei', 'elb_att_gse', /gei2gse
   get_data, 'ela_spin_orbnorm_angle', data=norma
   get_data, 'ela_spin_sun_angle', data=suna
   get_data, 'ela_att_solution_date', data=solna
   get_data, 'ela_att_gei',data=attgeia
+  if size(attgeia, /type) EQ 8 then cotrans, 'ela_att_gei', 'ela_att_gse', /gei2gse
   get_data, 'ela_att_gse',data=attgsea
   get_data, 'elb_spin_orbnorm_angle', data=normb
   get_data, 'elb_spin_sun_angle', data=sunb
   get_data, 'elb_att_solution_date', data=solnb
   get_data, 'elb_att_gei',data=attgeib
+  if size(attgeib, /type) EQ 8 then cotrans, 'elb_att_gei', 'elb_att_gse', /gei2gse
   get_data, 'elb_att_gse',data=attgseb
 
   ;reset time (attitude data might be several days old)
@@ -607,10 +607,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_dposa=dposa.y[min_st[k]:min_en[k],2]
     this_a_alt = mean(sqrt(this_ax^2 + this_ay^2 + this_az^2))-6371.
     this_a_alt_str = strtrim(string(this_a_alt),1)
-    min_a_att_gei=min(abs(ela_state_pos_sm.x[midx]-attgeia.x),agei_idx)
-    min_a_att_gse=min(abs(ela_state_pos_sm.x[midx]-attgsea.x),agse_idx)
-    this_a_att_gei = attgeia.y[agei_idx,*]
-    this_a_att_gse = attgsea.y[agse_idx,*]
+    if size(attgeia, /type) EQ 8 then begin
+      min_a_att_gei=min(abs(ela_state_pos_sm.x[midx]-attgeia.x),agei_idx)
+      min_a_att_gse=min(abs(ela_state_pos_sm.x[midx]-attgsea.x),agse_idx)
+      this_a_att_gei = attgeia.y[agei_idx,*]
+      this_a_att_gse = attgsea.y[agse_idx,*]
+    endif
     if ~undefined(epda_sci_zones) && size(epda_sci_zones, /type) EQ 8 then begin
       idx=where(epda_sci_zones.starts GE this_time[0] and epda_sci_zones.starts LT this_time[nptsa-1], azones)
       if azones GT 0 then begin
@@ -638,10 +640,12 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_dposb=dposb.y[min_st[k]:min_en[k],2]
     this_b_alt = mean(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
     this_b_alt_str = strtrim(string(this_b_alt),1)
-    min_b_att_gei=min(abs(elb_state_pos_sm.x[midx]-attgeib.x),bgei_idx)
-    min_b_att_gse=min(abs(elb_state_pos_sm.x[midx]-attgseb.x),bgse_idx)
-    this_b_att_gei = attgeib.y[bgei_idx,*]
-    this_b_att_gse = attgseb.y[bgse_idx,*]
+    if size(attgeib, /type) EQ 8 then begin
+      min_b_att_gei=min(abs(elb_state_pos_sm.x[midx]-attgeib.x),bgei_idx)
+      min_b_att_gse=min(abs(elb_state_pos_sm.x[midx]-attgseb.x),bgse_idx)
+      this_b_att_gei = attgeib.y[bgei_idx,*]
+      this_b_att_gse = attgseb.y[bgse_idx,*]
+    endif
 	;;;; Jiang Liu edit: to reduce errors for the ease of debugging
     ;if ~undefined(epdb_sci_zones) && epdb_sci_zones.starts[0] NE -1 then begin
     ;  idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
@@ -897,13 +901,21 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endelse
 
     ; get spin angle
-    elf_calc_sci_zone_att,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
-      lat=lata[min_st[k]:min_en[k]]*!radeg
-    ela_spin_att_ang_str = elf_make_spin_att_string(probe='a')
-    elf_calc_sci_zone_att,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
-      lat=latb[min_st[k]:min_en[k]]*!radeg
-    elb_spin_att_ang_str = elf_make_spin_att_string(probe='b')
-
+    if size(attgeia, /type) EQ 8 then begin 
+      elf_calc_sci_zone_att,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
+        lat=lata[min_st[k]:min_en[k]]*!radeg
+      ela_spin_att_ang_str = elf_make_spin_att_string(probe='a')
+    endif else begin
+      ela_spin_att_ang_str = 'B/SP: not available'
+    endelse
+    if size(attgeib, /type) EQ 8 then begin    
+      elf_calc_sci_zone_att,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
+        lat=latb[min_st[k]:min_en[k]]*!radeg
+      elb_spin_att_ang_str = elf_make_spin_att_string(probe='b')
+    endif else begin
+      elb_spin_att_ang_str = 'B/SP: not available'
+    endelse
+      
     ;-----------------------------------------
     ; Create Text for Annotations
     ;-----------------------------------------
@@ -986,7 +998,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       if this_a_att_gei[2] GE 0. then offset=5 else offset=6
       a_att_gei_z_str = strmid(strtrim(string(this_a_att_gei[2]),1),0,offset)
       a_att_gei_str = 'S: ['+a_att_gei_x_str+','+a_att_gei_y_str+','+a_att_gei_z_str+'] GEI'
-    endif
+    endif else begin
+      a_att_gei_str = 'S: not available'
+    endelse
     if ~undefined(this_a_att_gse) then begin
       if this_a_att_gse[0] GE 0. then offset=5 else offset=6
       a_att_gse_x_str = strmid(strtrim(string(this_a_att_gse[0]),1),0,offset)
@@ -995,7 +1009,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       if this_a_att_gse[2] GE 0. then offset=5 else offset=6
       a_att_gse_z_str = strmid(strtrim(string(this_a_att_gse[2]),1),0,offset)
       a_att_gse_str = 'S: ['+a_att_gse_x_str+','+a_att_gse_y_str+','+a_att_gse_z_str+'] GSE'
-    endif
+    endif else begin
+      a_att_gse_str = 'S: not available'
+    endelse
     ; repeat for ELFIN B
     if ~undefined(this_b_att_gei) then begin
       if this_b_att_gei[0] GE 0. then offset=5 else offset=6
@@ -1005,7 +1021,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       if this_b_att_gei[2] GE 0. then offset=5 else offset=6
       b_att_gei_z_str = strmid(strtrim(string(this_b_att_gei[2]),1),0,offset)
       b_att_gei_str = 'S: ['+b_att_gei_x_str+','+b_att_gei_y_str+','+b_att_gei_z_str+'] GEI'
-    endif
+    endif else begin
+      b_att_gei_str = 'S: not available'
+    endelse
     if ~undefined(this_b_att_gse) then begin
       if this_b_att_gse[0] GE 0. then offset=5 else offset=6
       b_att_gse_x_str = strmid(strtrim(string(this_b_att_gse[0]),1),0,offset)
@@ -1014,7 +1032,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       if this_b_att_gse[2] GE 0. then offset=5 else offset=6
       b_att_gse_z_str = strmid(strtrim(string(this_b_att_gse[2]),1),0,offset)
       b_att_gse_str = 'S: ['+b_att_gse_x_str+','+b_att_gse_y_str+','+a_att_gse_z_str+'] GSE'
-    endif
+    endif else begin
+      b_att_gse_str = 'S: not available'
+    endelse
     
     if hires then charsize=.75 else charsize=.65
     ; annotate
