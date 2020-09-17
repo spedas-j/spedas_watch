@@ -32,6 +32,12 @@
 ;  Optionally returns (keyword EPH) the orbital positions of 
 ;  the planets plus Pluto for the entire ephemeris time period.
 ;
+;  Note: This routine uses long-range predict kernels for Solar
+;  Probe and Solar Orbiter.  These kernels use a format that
+;  cannot be read by earlier versions of ICY/SPICE.  You may
+;  need to update ICY/SPICE to see the positions of these two
+;  spacecraft.  Version 1.8.0 is known to work.
+;
 ;USAGE:
 ;  orrery [, time] [,KEYWORD=value, ...]
 ;
@@ -135,8 +141,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-15 16:44:46 -0700 (Tue, 15 Sep 2020) $
-; $LastChangedRevision: 29157 $
+; $LastChangedDate: 2020-09-16 09:57:09 -0700 (Wed, 16 Sep 2020) $
+; $LastChangedRevision: 29159 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -264,12 +270,18 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   iflg = 1
   help, 'icy', /dlm, output=lines
+  nlines = n_elements(lines)
+  if (strmatch(lines[0], '*Unknown*') or (nlines lt 3)) then begin
+    print,'This routine requires ICY/SPICE.  Check your installation or'
+    print,'download from: https://naif.jpl.nasa.gov/naif/toolkit_IDL.html'
+    return
+  endif
   words = strsplit(strtrim(lines[1],2),' ,',/extract)
-  indx = strmatch(words, 'Version*', /fold)
+  indx = strmatch(words, 'Version:')
   i = where(indx gt 0, count)
   if (count gt 0) then begin
-    icyver = strsplit(words[i+1],'.',/extract)
-    if ((fix(icyver[0]) lt 2) and (fix(icyver[1]) lt 8)) then begin
+    icyver = fix(strsplit(words[i+1],'.',/extract))
+    if ((icyver[0] lt 2) and (icyver[1] lt 8)) then begin
       print,'Your version of ICY/SPICE (' + words[i+1] + ') is out of date.'
       print,'Upgrade to 1.8.0 or later to show Solar Probe and Solar Orbiter locations.'
       print,'Download from: https://naif.jpl.nasa.gov/naif/toolkit_IDL.html'
@@ -278,9 +290,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       iflg = 0
     endif
   endif else begin
-    print,'This routine requires ICY/SPICE, but it is not installed.'
-    print,'Download from: https://naif.jpl.nasa.gov/naif/toolkit_IDL.html'
-    return
+    print,'Cannot determine the version of ICY/SPICE:'
+	for i=0,(nlines-1) do print,lines[i]
+    print,'Good luck!'
   endelse
 
 ; Get the time

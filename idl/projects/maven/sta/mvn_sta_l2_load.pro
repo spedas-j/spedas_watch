@@ -39,8 +39,8 @@
 ;HISTORY:
 ; 16-may-2014, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-08-25 13:56:36 -0700 (Tue, 25 Aug 2020) $
-; $LastChangedRevision: 29082 $
+; $LastChangedDate: 2020-09-16 12:52:57 -0700 (Wed, 16 Sep 2020) $
+; $LastChangedRevision: 29161 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_l2_load.pro $
 ;-
 Pro mvn_sta_l2_load, files = files, trange = trange, sta_apid = sta_apid, $
@@ -112,14 +112,15 @@ Pro mvn_sta_l2_load, files = files, trange = trange, sta_apid = sta_apid, $
         yyyy = strmid(daystr[k], 0, 4) & mmmm = strmid(daystr[k], 4, 2)
         filepath = 'maven/data/sci/sta/l2/'+yyyy+'/'+mmmm+'/'        
         filejk0 = filepath+'mvn_sta_l2_'+app_id[j]+'*_'+daystr[k]+'_'+sw_vsn_str+'.cdf'
-        filejk = mvn_pfp_file_retrieve(filejk0, user_pass = user_pass)
+;        filejk = mvn_pfp_file_retrieve(filejk0, user_pass = user_pass)
+        filejk = mvn_pfp_spd_download(filejk0, user_pass = user_pass)
 ;Files with ? or * left were not found
         question_mark = strpos(filejk, '?')
         If(is_string(filejk) && question_mark[0] Eq -1) Then filex = [filex, filejk]
         If(keyword_set(iv_level)) Then Begin
            ivfilepath = 'maven/data/sci/sta/'+iv_lvl+'/'+yyyy+'/'+mmmm+'/'
            ivfilejk0 = ivfilepath+'mvn_sta_l2_'+app_id[j]+'*_'+daystr[k]+'_'+iv_lvl+'.cdf'
-           ivfilejk = mvn_pfp_file_retrieve(ivfilejk0, user_pass = user_pass)
+           ivfilejk = mvn_pfp_spd_download(ivfilejk0, user_pass = user_pass)
 ;Files with ? or * left were not found
            iquestion_mark = strpos(ivfilejk, '?')
            If(is_string(ivfilejk) && iquestion_mark[0] Eq -1) Then ivfilex = [ivfilex, ivfilejk]
@@ -132,6 +133,7 @@ Pro mvn_sta_l2_load, files = files, trange = trange, sta_apid = sta_apid, $
      If(keyword_set(iv_level)) Then Begin
         If(n_elements(ivfilex) Gt 1) Then ivfilex = ivfilex[1:*] Else Begin
            dprint, 'No BKG files found fitting input criteria'
+           Return
         Endelse
      Endif
   Endelse

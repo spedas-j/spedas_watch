@@ -33,12 +33,13 @@
 ;   YY,  MM, DD, hh, mm, ss, .f  since these can be retranslated to
 ;   the time
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2017-03-24 14:19:59 -0700 (Fri, 24 Mar 2017) $
-; $LastChangedRevision: 23030 $
+; $LastChangedDate: 2020-09-16 12:51:58 -0700 (Wed, 16 Sep 2020) $
+; $LastChangedRevision: 29160 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_pfp_spd_download.pro $
 ;-
 function mvn_pfp_spd_download,pathname,trange=trange,verbose=verbose, source=src,files=files, $
-   last_version=last_version,valid_only=valid_only,no_update=no_update,create_dir=create_dir,pos_start=pos_start, $
+   last_version=last_version,valid_only=valid_only,no_update=no_update,create_dir=create_dir,$
+   pos_start=pos_start, $
    remote_kp_cdf=remote_kp_cdf, $   
    insitu_kp_tab = insitu_kp_tab, $
    insitu_kp_cdf=insitu_kp_cdf, $
@@ -115,17 +116,22 @@ if ~keyword_set(RT) then begin
        If(n_elements(uniq(fdir)) Eq 1) Then same_dir = 1b $
        Else same_dir = 0b
     Endif Else same_dir = 1b
+    If(tag_exist(source, 'user_pass')) Then Begin
+       tmp_up = strsplit(string(idl_base64(source.user_pass)), ':',/extract)
+    Endif Else tmp_up = [0b, 0b]
     If(same_dir) Then Begin
        files = spd_download_plus(remote_file = source.remote_data_dir+pathnames, $
                                  local_path = source.local_data_dir+fdir[0], $
                                  last_version = last_version, no_update = no_update, valid_only = valid_only, $
-                                 no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
+                                 no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o, $
+                                 url_username = tmp_up[0], url_password = tmp_up[1])
     Endif Else Begin
        for j = 0, nfiles-1 do begin
           filesj = spd_download_plus(remote_file = source.remote_data_dir+pathnames[j], $
                                      local_path = source.local_data_dir+fdir[j], $
                                      last_version = last_version, no_update = no_update, valid_only = valid_only, $
-                                     no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
+                                     no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o, $
+                                     url_username = tmp_up[0], url_password = tmp_up[1])
           if is_string(filesj) then begin
              if fc eq 0 then files = filesj else files = [files, filesj]
              fc = fc+1

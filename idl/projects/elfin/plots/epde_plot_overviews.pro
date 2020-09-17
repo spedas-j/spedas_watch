@@ -40,6 +40,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   if undefined(probe) then probe = 'a'
   if ~undefined(no_download) then no_download=1 else no_download=0
   t0=systime(/sec)
+  if ~keyword_set(one_zone_only) then one_zone_only=0 else one_zone_only=1
 
   timeduration=time_double(trange[1])-time_double(trange[0])
   timespan,tr[0],timeduration,/seconds
@@ -540,6 +541,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   pa_ch1_reg_str=''
   pa_ch2_reg_str=''
   pa_ch3_reg_str=''
+  
   for n=1,num do begin ;append all science zone data
     omni_str+=' el'+probe+'_pef_en_spec2plot_omni_sz'+strtrim(string(n),2)
     anti_str+=' el'+probe+'_pef_en_spec2plot_anti_sz'+strtrim(string(n),2)
@@ -699,10 +701,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     get_data, 'el'+probe+'_pef_pa_reg_spec2plot_ch0', data=reg
     if size(reg, /type) EQ 8 then reg_exists=1 else reg_exists=0
     options,'el?_p?f_pa*spec2plot_ch*LC*','databar',90.
-
+    
     if tdur LT 10802. then begin
-       if ~reg_exists then begin
-;      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
+;       if ~reg_exists then begin
+      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
         tplot,['proxy_ae', $
           'fgs_bar', $
           'epd_fast_bar', $
@@ -730,8 +732,8 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           var_label='el'+probe+'_'+['LAT','MLT','L']
       endelse
     endif else begin
-      if ~reg_exists then begin
-      ;if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
+ ;     if ~reg_exists then begin
+      if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',this_tr[0],this_tr[1]) then begin
         tplot,['proxy_ae', $
           'kp', $
           'dst',$

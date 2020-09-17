@@ -5,7 +5,7 @@
 ; PURPOSE:
 ;         returns epd calibration parameters
 ;
-; OUTPUT: 
+; OUTPUT:
 ;         EPD calibration data structure
 ;         cal_params include: epd_gf
 ;                             epd_overaccumulation_factors
@@ -14,20 +14,18 @@
 ;                             epd_cal_ch_factors
 ;                             epd_ebins
 ;                             epd_ebins_logmean
-;                             epd_ebin_lbls 
+;                             epd_ebin_lbls
 ;
 ; KEYWORDS:
+;         trange:      start/stop time frame ['mmmm-yy-dd/hh:mm:ss','mmmm-yy-dd/hh:mm:ss']
 ;         probe:       elfin probe name, 'a' or 'b'
 ;         instrument:  epd instrument name, 'epde' or 'epdi'
 ;
 ; EXAMPLES:
-;         elf> cal_params = elf_get_epd_calibration(probe='a', instrument='epde')
+;         elf> cal_params = elf_get_epd_calibration(probe='a', instrument='epde', trange=tr)
 ;
 ; NOTES:
-;         This routine contains hard coded calibration values. To download the 
-;         calibration file from the server use elf_read_epd_calfile. 
-;         
-;          **** TO DO: Need to make sure file is read and not hard-coded.
+;         This routine contains some hard coded calibration values. 
 ;
 ; HISTORY:
 ;
@@ -44,29 +42,22 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
     return, -1
   endif
-  
   if ~keyword_set(trange) then trange=timerange()
-  
-  if probe EQ 'a' then begin 
-    if instrument EQ 'epde' then begin
-      ;  ***** TO DO: Change to read from file *******
-      epde_gf = 0.15 ; 21deg x 21deg (in SA) by 1 cm^2
-      epde_overaccumulation_factors = indgen(16)*0.+1.
-      epde_overaccumulation_factors[15] = 1.15
-      epde_thresh_factors = indgen(16)*0.+1.
-      epde_thresh_factors[0] = 1./5 ; change me to match the threshold curves
-      epde_thresh_factors[1] = 1.
-      epde_thresh_factors[2] = 1.2
-      epde_thresh_factors[3] = 1.
-      epde_thresh_factors[4] = 1.
-      epde_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]
+
+  if instrument EQ 'epde' then begin
+      ; get calibration values from log file
+      epd_cal_log=elf_read_epd_cal_data(probe=probe, instrument='epde', trange=trange)
+      epde_gf=epd_cal_log.gf
+      epde_overaccumulation_factors=epd_cal_log.overaccumulation_factors
+      epde_thresh_factors=epd_cal_log.thresh_factors      
+      epde_ch_efficiencies=epd_cal_log.ch_efficiencies
+      epde_ebins=epd_cal_log.ebins
       epde_cal_ch_factors = 1./epde_gf*(epde_thresh_factors^(-1.))*(epde_ch_efficiencies^(-1.))
-      epde_ebins = [50., 80., 120., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3350., 4150., 5800.] ; in keV based on Jiang Liu's Geant4 code 2019-3-5
       epde_ebins_logmean = epde_ebins
       for j=0,14 do epde_ebins_logmean[j]=10.^((alog10(epde_ebins[j])+alog10(epde_ebins[j+1]))/2)
       epde_ebins_logmean[15]=6500.
       epde_ebin_lbls = ['50-80', '80-120', '120-160', '160-210', '210-270', '270-345', '345-430', '430-630', $
-        '630-900', '900-1300', '1300-1800', '1800-2500', '2500-3350', '3350-4150', '4150-5800', '5800+'] 
+        '630-900', '900-1300', '1300-1800', '1800-2500', '2500-3350', '3350-4150', '4150-5800', '5800+']
       epd_calibration_data = { epd_gf:epde_gf, $
         epd_overaccumulation_factors:epde_overaccumulation_factors, $
         epd_thresh_factors:epde_thresh_factors, $
@@ -75,9 +66,10 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
         epd_ebins:epde_ebins, $
         epd_ebins_logmean:epde_ebins_logmean, $
         epd_ebin_lbls:epde_ebin_lbls }
-    endif
-    if instrument EQ 'epdi' then begin
-      ;  ***** TO DO: Change to read from file *******
+  endif
+
+  ;************* NEED cal file for epdi *******************
+  if instrument EQ 'epdi' then begin
       epdi_gf = 0.01 ; 21deg x 21deg (in SA) by 1 cm^2
       epdi_overaccumulation_factors = indgen(16)*0.+1.
       epdi_overaccumulation_factors[15] = 1./2
@@ -102,68 +94,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
         epd_ebins_logmean:epdi_ebins_logmean, $
         epd_ebin_lbls:epdi_ebin_lbls }
     endif
-  endif
-  
-  if probe EQ 'b' then begin
-    if instrument EQ 'epde' then begin
-      ; factors for ELF-B EPD-E *copied* from ELF-A as a temporary plotting solution; not actually valid!!
-      epde_gf = 0.02 ; 21deg x 21deg (in SA) by 1 cm^2
-      epde_overaccumulation_factors = indgen(16)*0.+1.
-      epde_overaccumulation_factors[15] = 1.15
-      epde_thresh_factors = indgen(16)*0.+1.
-      ;  ***** TO DO: Change to read from file *******
-      if trange[0] LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./4 $
-         else epde_thresh_factors[0] = 1. ; change me to match the threshold curves
-      epde_thresh_factors[1] = 1.6
-      epde_thresh_factors[2] = 1.2
-      if trange[0] GT time_double('2020-08-20/10:00') then epde_thresh_factors = epde_thresh_factors*10. ; added by Vassilis for after 2020-08-20/10 UT in-flight change of E5
-      epde_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]
-      epde_cal_ch_factors = 1./epde_gf*(epde_thresh_factors^(-1.))*(epde_ch_efficiencies^(-1.))
-      epde_ebins = [50., 80., 120., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3350., 4150., 5800.] ; in keV based on Jiang Liu's Geant4 code 2019-3-5
-      epde_ebins_logmean = epde_ebins
-      for j=0,14 do epde_ebins_logmean[j]=10.^((alog10(epde_ebins[j])+alog10(epde_ebins[j+1]))/2)
-      epde_ebins_logmean[15]=6500.
-      epde_ebin_lbls = ['50-80', '80-120', '120-160', '160-210', '210-270', '270-345', '345-430', '430-630', $
-        '630-900', '900-1300', '1300-1800', '1800-2500', '2500-3350', '3350-4150', '4150-5800', '5800+']
-      epd_calibration_data = { epd_gf:epde_gf, $
-        epd_overaccumulation_factors:epde_overaccumulation_factors, $
-        epd_thresh_factors:epde_thresh_factors, $
-        epd_ch_efficiencies:epde_ch_efficiencies, $
-        epd_cal_ch_factors:epde_cal_ch_factors, $
-        epd_ebins:epde_ebins, $
-        epd_ebins_logmean:epde_ebins_logmean, $
-        epd_ebin_lbls:epde_ebin_lbls }       
-    endif
-    if instrument EQ 'epdi' then begin
-      epdi_gf = 0.01 ; 21deg x 21deg (in SA) by 1 cm^2
-      epdi_overaccumulation_factors = indgen(16)*0.+1.
-      epdi_overaccumulation_factors[15] = 1./2
-      epdi_thresh_factors = indgen(16)*0.+1.
-      ;  ***** TO DO: Change to read from file *******
-      if trange[0] LT time_double('2020-05-30') then epde_thresh_factors[0] = 1./4 $
-         else epde_thresh_factors[0] = 1. ; change me to match the threshold curves
-      ;epdi_thresh_factors[0] = 1./2 ; change me to match the threshold curves
-      epdi_thresh_factors[1] = 1.6
-      epdi_thresh_factors[2] = 1.2
-      epdi_ch_efficiencies = [0.74, 0.8, 0.85, 0.86, 0.87, 0.87, 0.87, 0.87, 0.82, 0.8, 0.75, 0.6, 0.5, 0.45, 0.25, 0.05]
-      epdi_cal_ch_factors = 1./epdi_gf*(epdi_thresh_factors^(-1.))*(epdi_ch_efficiencies^(-1.))
-      epdi_ebins = [50., 80., 120., 160., 210., 270., 345., 430., 630., 900., 1300., 1800., 2500., 3350., 4150., 5800.] ; in keV based on Jiang Liu's Geant4 code 2019-3-5
-      epdi_ebins_logmean = epdi_ebins
-      for j=0,14 do epdi_ebins_logmean[j]=10.^((alog10(epdi_ebins[j])+alog10(epdi_ebins[j+1]))/2)
-      epdi_ebins_logmean[15]=6500.
-      epdi_ebin_lbls = ['50-80', '80-120', '120-160', '160-210', '210-270', '270-345', '345-430', '430-630', $
-        '630-900', '900-1300', '1300-1800', '1800-2500', '2500-3350', '3350-4150', '4150-5800', '5800+']
-      epd_calibration_data = { epd_gf:epdi_gf, $
-        epd_overaccumulation_factors:epdi_overaccumulation_factors, $
-        epd_thresh_factors:epdi_thresh_factors, $
-        epd_ch_efficiencies:epdi_ch_efficiencies, $
-        epd_cal_ch_factors:epdi_cal_ch_factors, $
-        epd_ebins:epdi_ebins, $
-        epd_ebins_logmean:epdi_ebins_logmean, $
-        epd_ebin_lbls:epdi_ebin_lbls }
-    endif
-  endif
 
   return, epd_calibration_data
-  
+
 end
