@@ -12,8 +12,8 @@
 ;       Yuki Harada on 2017-05-03
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-04-06 01:38:33 -0700 (Fri, 06 Apr 2018) $
-; $LastChangedRevision: 25009 $
+; $LastChangedDate: 2020-09-16 23:11:27 -0700 (Wed, 16 Sep 2020) $
+; $LastChangedRevision: 29164 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/marsis/mex_marsis_load.pro $
 ;-
 
@@ -44,7 +44,8 @@ str_element,s,/add,'valid_only',1
 if keyword_set(no_server) then no_server0 = no_server else no_server0 = 0
 str_element,s,/add,'no_server',no_server0
 if keyword_set(public) then begin
-   s.remote_data_dir = 'ftp://psa.esac.esa.int/pub/mirror/MARS-EXPRESS/MARSIS/'
+;   s.remote_data_dir = 'ftp://psa.esac.esa.int/pub/mirror/MARS-EXPRESS/MARSIS/'
+   s.remote_data_dir = 'https://space.physics.uiowa.edu/pds/'
    s.local_data_dir += 'marsis/'
 endif
 extract_tags,s,_ex
@@ -165,13 +166,22 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       else pf = 'volume/MEX-M-MARSIS-5-DDR-ELEDENS_BMAG-EXT'+string(exmission,f='(i0)')+'-'+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV'
       s.no_server = 1
    endif                             ;- uiowa
-   if keyword_set(public) then begin ;- psa
+   ;; if keyword_set(public) then begin ;- psa
+   ;;    if exmission eq 0 then $       ;- prime mission
+   ;;       pf = 'MEX-M-MARSIS-5-DDR-ELEDENS-BMAG-'+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV' $
+   ;;    else pf = 'MEX-M-MARSIS-5-DDR-ELEDENS-BMAG-EXT'+string(exmission,f='(i0)')+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV'
+   ;;    ftmp = file_retrieve(pf,_extra=s,no_server=1)
+   ;;    if total(strlen(ftmp)) eq 0 then $ ;- if no local files
+   ;;       fff = spd_download(remote_file=pf,ftp_connection_mode=0,_extra=s)
+   ;;    s.no_server = 1
+   ;; endif                        ;- public
+   if keyword_set(public) then begin ;- uiowa pub
       if exmission eq 0 then $       ;- prime mission
          pf = 'MEX-M-MARSIS-5-DDR-ELEDENS-BMAG-'+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV' $
       else pf = 'MEX-M-MARSIS-5-DDR-ELEDENS-BMAG-EXT'+string(exmission,f='(i0)')+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV'
       ftmp = file_retrieve(pf,_extra=s,no_server=1)
       if total(strlen(ftmp)) eq 0 then $ ;- if no local files
-         fff = spd_download(remote_file=pf,ftp_connection_mode=0,_extra=s)
+         fff = spd_download(remote_file=pf,_extra=s)
       s.no_server = 1
    endif                        ;- public
    f = file_retrieve(pf,_extra=s)
@@ -246,14 +256,24 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       pf = 'super/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.DAT'
       s.no_server = 1
    endif
-   if keyword_set(public) then begin                 ;- psa
+   ;; if keyword_set(public) then begin                 ;- psa
+   ;;    exmission = mex_marsis_ex_mission(orbnum,/rdr) ;- get ith extended mission
+   ;;    if exmission eq 0 then $  ;- prime mission
+   ;;       pf = 'MEX-M-MARSIS-3-RDR-AIS-'+VVVV+'/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.DAT' $
+   ;;    else pf = 'MEX-M-MARSIS-3-RDR-AIS-EXT'+string(exmission,f='(i0)')+'-'+VVVV+'/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.DAT'
+   ;;    ftmp = file_retrieve(pf,_extra=s,no_server=1)
+   ;;    if total(strlen(ftmp)) eq 0 then $ ;- if no local files
+   ;;       fff = spd_download(remote_file=pf,ftp_connection_mode=0,_extra=s)
+   ;;    s.no_server = 1
+   ;; endif                        ;- public
+   if keyword_set(public) then begin                 ;- uiowa pub
       exmission = mex_marsis_ex_mission(orbnum,/rdr) ;- get ith extended mission
       if exmission eq 0 then $  ;- prime mission
          pf = 'MEX-M-MARSIS-3-RDR-AIS-'+VVVV+'/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.DAT' $
       else pf = 'MEX-M-MARSIS-3-RDR-AIS-EXT'+string(exmission,f='(i0)')+'-'+VVVV+'/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.DAT'
       ftmp = file_retrieve(pf,_extra=s,no_server=1)
       if total(strlen(ftmp)) eq 0 then $ ;- if no local files
-         fff = spd_download(remote_file=pf,ftp_connection_mode=0,_extra=s)
+         fff = spd_download(remote_file=pf,_extra=s)
       s.no_server = 1
    endif                        ;- public
    f = file_retrieve(pf,_extra=s)
@@ -265,14 +285,24 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       lpf = 'super/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.LBL'
       s.no_server = 1
    endif
-   if keyword_set(public) then begin
+   ;; if keyword_set(public) then begin
+   ;;    exmission = mex_marsis_ex_mission(orbnum,/rdr) ;- get ith extended mission
+   ;;    if exmission eq 0 then $  ;- prime mission
+   ;;       lpf = 'MEX-M-MARSIS-3-RDR-AIS-'+VVVV+'/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.LBL' $
+   ;;    else lpf = 'MEX-M-MARSIS-3-RDR-AIS-EXT'+string(exmission,f='(i0)')+'-'+VVVV+'/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.LBL'
+   ;;    ftmp = file_retrieve(lpf,_extra=s,no_server=1)
+   ;;    if total(strlen(ftmp)) eq 0 then $ ;- if no local files
+   ;;       fff = spd_download(remote_file=lpf,ftp_connection_mode=0,_extra=s)
+   ;;    s.no_server = 1
+   ;; endif                        ;- public
+   if keyword_set(public) then begin ;- uiowa pub
       exmission = mex_marsis_ex_mission(orbnum,/rdr) ;- get ith extended mission
       if exmission eq 0 then $  ;- prime mission
          lpf = 'MEX-M-MARSIS-3-RDR-AIS-'+VVVV+'/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.LBL' $
       else lpf = 'MEX-M-MARSIS-3-RDR-AIS-EXT'+string(exmission,f='(i0)')+'-'+VVVV+'/DATA/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.LBL'
       ftmp = file_retrieve(lpf,_extra=s,no_server=1)
       if total(strlen(ftmp)) eq 0 then $ ;- if no local files
-         fff = spd_download(remote_file=lpf,ftp_connection_mode=0,_extra=s)
+         fff = spd_download(remote_file=lpf,_extra=s)
       s.no_server = 1
    endif                        ;- public
    lf = file_retrieve(lpf,_extra=s)

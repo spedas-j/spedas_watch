@@ -22,15 +22,15 @@
 ;         data_struct=elf_get_data_availability('2020-03-20', probe='a', instrument='epd'
 ;
 ;-
-function elf_get_data_availability, tdate=tdate, instrument=instrument, probe=probe
+function elf_get_data_availability, tdate, instrument=instrument, probe=probe
 
   ; initialize parameters
   if undefined(tdate) then begin
      print, 'You must provide a date. Example: 2020-01-01'
      return, -1 
   endif
-  ;timespan, tdate-30.*86400., 30.d
-  timespan, tdate, 1.0d
+  timespan, time_double(tdate)-31.*86400., 31d
+
   trange=timerange()
   ;current_time=systime() 
    
