@@ -12,11 +12,11 @@
 ;        tmp = where(times ge time_ranges[ii,0] and times le time_ranges[ii,1], count)
 ;        if count eq 0 then continue
 ;        ; Have to find the closest time, otherwise the index can be 1 record off.
-;        if min(times) ge correction_time_ranges[ii,0] then i0 = 0 else begin
-;            index = min(times-correction_time_ranges[ii,0], /absolute, i0)
+;        if min(times) ge time_ranges[ii,0] then i0 = 0 else begin
+;            index = min(times-time_ranges[ii,0], /absolute, i0)
 ;        endelse
-;        if max(times) le correction_time_ranges[ii,1] then i1 = n_elements(times) else begin
-;            index = min(times-correction_time_ranges[ii,1], /absolute, i1)
+;        if max(times) le time_ranges[ii,1] then i1 = n_elements(times) else begin
+;            index = min(times-time_ranges[ii,1], /absolute, i1)
 ;        endelse
 ;        times[i0:i1-1] += corrections[ii]
 ;    endfor
