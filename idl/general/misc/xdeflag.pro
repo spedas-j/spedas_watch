@@ -8,7 +8,9 @@
 ; method = set to "repeat", this will repeat the last good value.
 ;          set to "linear", then linear interpolation is used, but for
 ;          the edges, the closest value is used, there is no
-;          extrapolation
+;          extrapolation.
+;          set to "replace", this will replace the gap values with an
+;          input variable, input via the keyword, "fillval"
 ; t = time array, in any useable tplot format
 ; y = the input array, n_elements(t) by n
 ;OUTPUT:
@@ -20,16 +22,20 @@
 ; maxgap = the maximum number of rows that can be filled? the default
 ;           is n_elements(t)
 ; display_object = Object reference to be passed to dprint for output.
-;
+; fillval = a fill value for the "replace" option. If "replace" is
+;           set, and the fillval is not set then no replacement, with 
+;           a hard crash.
 ;HISTORY:
 ; 2-feb-2007, jmm, jimm.ssl.berkeley.edu from Vassilis' clip_deflag.pro
 ;
-;$LastChangedBy: pcruce $
-;$LastChangedDate: 2012-07-05 11:21:00 -0700 (Thu, 05 Jul 2012) $
-;$LastChangedRevision: 10684 $
+;$LastChangedBy: jimm $
+;$LastChangedDate: 2020-09-22 11:15:30 -0700 (Tue, 22 Sep 2020) $
+;$LastChangedRevision: 29177 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/xdeflag.pro $
 ;-
-Pro xdeflag, method0, t0, y, flag=flag, maxgap = maxgap, _extra=_extra, display_object=display_object
+Pro xdeflag, method0, t0, y, flag = flag, maxgap = maxgap, $
+             display_object = display_object, fillval = fillval, $
+             _extra = _extra
 
   compile_opt idl2
 
@@ -38,6 +44,11 @@ Pro xdeflag, method0, t0, y, flag=flag, maxgap = maxgap, _extra=_extra, display_
   endif
 
   method = strtrim(strlowcase(method0), 2)
+
+  if method Eq "replace" && n_elements(fillval) Eq 0 then begin ;check for fillval
+     message,'fillval keyword must be set, for method = "replace" '
+  endif
+
   If size(flag, /type) GT 1 Then big = flag Else big = 6.879e28
   big98 = 0.98*big
   t = time_double(t0)
@@ -155,6 +166,15 @@ Pro xdeflag, method0, t0, y, flag=flag, maxgap = maxgap, _extra=_extra, display_
                 (t[kindices]-tk0[kthgood[kthgap]])*kslope[kthgood[kthgap]]
             endfor
           endif
+        end
+        "replace":begin
+           kthgood = where(ksize le mxgp, ianygood)
+           if (ianygood gt 0) then begin
+              for kthgap = 0l, long(ianygood-1) do begin
+                 kindices = kbegin[kthgood[kthgap]]+lindgen(ksize[kthgood[kthgap]])
+                 y[kindices, j] = fillval
+              endfor
+           endif
         end
         else:Begin
           dprint, 'Invalid Method input, Set to ''repeat''', display_object=display_object

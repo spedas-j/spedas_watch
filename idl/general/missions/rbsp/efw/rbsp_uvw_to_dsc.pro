@@ -33,8 +33,8 @@
 ;
 ; VERSION:
 ;   $LastChangedBy: aaronbreneman $
-;   $LastChangedDate: 2019-08-14 14:21:10 -0700 (Wed, 14 Aug 2019) $
-;   $LastChangedRevision: 27603 $
+;   $LastChangedDate: 2020-09-21 18:16:09 -0700 (Mon, 21 Sep 2020) $
+;   $LastChangedRevision: 29174 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/rbsp_uvw_to_dsc.pro $
 ;
 ;-
@@ -49,7 +49,7 @@ pro rbsp_uvw_to_dsc,probe,tvar,suffix=suffix,$
 	rbsp_efw_init
 	
 	; delta is the angle between RBSP SCIENCE U and the SSH LOOK direction,
-	; 10 degrees for SSHA, and 10+180 for SSHB
+	; 10 degrees for SSHA, and 10+180 for SSHB (I BELIEVE THAT SSHA WAS USED OVER ENTIRE MISSION FOR BOTH SC)
 	
 	if ~keyword_set(sshb) then delta=10. else delta=190.
 

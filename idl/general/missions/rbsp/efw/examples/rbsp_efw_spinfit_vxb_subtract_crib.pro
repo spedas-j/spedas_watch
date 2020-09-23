@@ -35,8 +35,8 @@
 ;         University of Minnesota
 ;         2013-04-16
 ;$LastChangedBy: aaronbreneman $
-;$LastChangedDate: 2020-09-11 13:33:59 -0700 (Fri, 11 Sep 2020) $
-;$LastChangedRevision: 29138 $
+;$LastChangedDate: 2020-09-21 18:15:32 -0700 (Mon, 21 Sep 2020) $
+;$LastChangedRevision: 29172 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/examples/rbsp_efw_spinfit_vxb_subtract_crib.pro $
 ;-
 
@@ -153,9 +153,10 @@ pro rbsp_efw_spinfit_vxb_subtract_crib,probe,$
 
 
     ;Load Sheng's residual removal file
-    rbsp_load_perigee_correction_cdf_file,probe
+    ;rbsp_load_perigee_correction_cdf_file,probe
 
-
+    ;Load Sheng's emodel file
+    rbsp_load_emodel_cdf_file,probe
 
 
     ;Download EMFISIS data, if required
@@ -371,14 +372,17 @@ pro rbsp_efw_spinfit_vxb_subtract_crib,probe,$
   index = uniq(d.x, sort(d.x))
   newtimes = d.x[index]
   newdata = d.y[index,*]
+
+  ;dt = total(d.x - newtimes)
   store_data,rbspx+'_efw_esvy',newtimes,newdata,dlim=dlim,lim=lim
 
 
 
 
   ;Construct Emodel = ecoro + evxb + efit
-  add_data,rbspx+'_ecoro_mgse',rbspx+'_evxb_mgse',newname='tmpp'
-  add_data,'tmpp',rbspx+'_efit_mgse',newname=rbspx+'_Emodel_mgse'
+;  add_data,rbspx+'_ecoro_mgse',rbspx+'_evxb_mgse',newname='tmpp'
+;  add_data,'tmpp',rbspx+'_efit_mgse',newname=rbspx+'_Emodel_mgse'
+  copy_data,rbspx+'_emod_mgse',rbspx+'_Emodel_mgse'
   tinterpol_mxn,rbspx+'_Emodel_mgse',rbspx+'_efw_esvy',/overwrite,/quadratic
 
 
