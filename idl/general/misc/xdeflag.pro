@@ -22,15 +22,13 @@
 ; maxgap = the maximum number of rows that can be filled? the default
 ;           is n_elements(t)
 ; display_object = Object reference to be passed to dprint for output.
-; fillval = a fill value for the "replace" option. If "replace" is
-;           set, and the fillval is not set then no replacement, with 
-;           a hard crash.
+; fillval = a fill value for the "replace" option. The default is zero
 ;HISTORY:
 ; 2-feb-2007, jmm, jimm.ssl.berkeley.edu from Vassilis' clip_deflag.pro
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2020-09-22 11:15:30 -0700 (Tue, 22 Sep 2020) $
-;$LastChangedRevision: 29177 $
+;$LastChangedDate: 2020-09-23 15:50:05 -0700 (Wed, 23 Sep 2020) $
+;$LastChangedRevision: 29179 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/xdeflag.pro $
 ;-
 Pro xdeflag, method0, t0, y, flag = flag, maxgap = maxgap, $
@@ -46,7 +44,7 @@ Pro xdeflag, method0, t0, y, flag = flag, maxgap = maxgap, $
   method = strtrim(strlowcase(method0), 2)
 
   if method Eq "replace" && n_elements(fillval) Eq 0 then begin ;check for fillval
-     message,'fillval keyword must be set, for method = "replace" '
+     fillval = 0
   endif
 
   If size(flag, /type) GT 1 Then big = flag Else big = 6.879e28

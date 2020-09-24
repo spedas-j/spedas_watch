@@ -28,16 +28,14 @@
 ; overwrite = if set, write the new data back to the old tplot
 ;             variables, do not set this with newname
 ; display_object = Object reference to be passed to dprint for output.
-; fillval = a fill value for the "replace" option. If "replace" is
-;           set, and the fillval is not set then no replacement, with 
-;           a hard crash.
+; fillval = a fill value for the "replace" option. THe default is zero.
 ;
 ;HISTORY:
 ; 2-feb-2007, jmm, jimm.ssl.berkeley.edu
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2020-09-22 11:15:30 -0700 (Tue, 22 Sep 2020) $
-;$LastChangedRevision: 29177 $
+;$LastChangedDate: 2020-09-23 15:50:05 -0700 (Wed, 23 Sep 2020) $
+;$LastChangedRevision: 29179 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/tdeflag.pro $
 ;-
 
