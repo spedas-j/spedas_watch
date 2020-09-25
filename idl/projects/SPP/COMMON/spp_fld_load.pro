@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-09-01 15:58:08 -0700 (Tue, 01 Sep 2020) $
-; $LastChangedRevision: 29106 $
+; $LastChangedDate: 2020-09-24 00:39:59 -0700 (Thu, 24 Sep 2020) $
+; $LastChangedRevision: 29180 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -16,7 +16,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   no_server = no_server, $
   longterm_ephem = longterm_ephem, $
   level = level, get_support = get_support, downsample = downsample, $
-  no_staging = no_staging
+  no_staging = no_staging, version = version
 
   if not keyword_set(type) then begin
     dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr mag_SC_4_Sa_per_Cyc'
@@ -300,6 +300,11 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
 
   endif
 
+  if n_elements(version) EQ 1 then begin
+    
+    pathformat = str_sub(pathformat, 'v??', 'v' + string(version, format = '(I02)'))
+    
+  endif
 
   files = spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,$
     /last_version,daily_names=daily_names,/valid_only,$
