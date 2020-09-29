@@ -161,7 +161,7 @@ PRO spp_swp_spi_flight_get_prod_08Dx32Ex08A_v3, arr
             IF bitpar MOD 2 THEN idef = ideflector $
             ELSE idef = 7-ideflector
             IF ianode GE 8 && ianode LT 16 THEN $  
-             arr[ind] = idef+ienergy*'08'x+ianode*'08'x*'20'x $
+             arr[ind] = idef+ienergy*'08'x+(ianode-8)*'08'x*'20'x $
             ELSE arr[ind] = 'FFFF'x ;; Trash Bin
          ENDFOR
          bitpar = bitpar + 1
@@ -634,7 +634,7 @@ FUNCTION spp_swp_spi_flight_product_tables, pmode
          return, 0
       END
       ELSE:BEGIN
-         print, 'Error: Wrong product name.'
+         dprint, 'Error: Wrong product name.'
          return, 0
       END
       

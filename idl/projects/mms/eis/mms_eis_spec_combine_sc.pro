@@ -27,6 +27,8 @@
 ;         + 2019-11-21, I. Cohen        : added ability to handle different data_units; changed new variable prefix to 'mmsx' instead of 'mms#-#'
 ;         + 2020-03-30, I. Cohen        : removed probes keyword, added ability to automatically define probes based on loaded EIS data
 ;         + 2020-06-08, I. Cohen        : fixed issue with counting MMSX data (i.e. thinking there were 5 probes)
+;         + 2020-09-14, I. Cohen        : fixed issue with proton being hardcoded in eis_sc_check
+;         + 2020-09-28, I. Cohen        : fixed issue with proton being hardcoded in call for spin-averaging
 ;
 ;-
 pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
@@ -43,7 +45,7 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = 'srvy'
   if datatype eq 'electronenergy' then species = 'electron'
-  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_proton*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_proton*flux*omni')
+  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species+'*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_'+species+'*flux*omni')
   probes = strmid(eis_sc_check, 3, 1)
   if (n_elements(probes) gt 4) then probes = probes[0:-2] 
   ;
@@ -94,7 +96,7 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
     options, allmms_prefix+species[ss]+'_'+data_units+'_omni', yrange = minmax(common_energy), ystyle=1, spec = 1, no_interp=1, ysubtitle='Energy [keV]', ztitle=ztitle_string, minzlog=.001
     zlim, allmms_prefix+species[ss]+'_'+data_units+'_omni', 0, 0, 1
     ;
-    mms_eis_spin_avg, probe=probes, datatype=datatype, species='proton', data_units=data_units, data_rate=data_rate, suffix = suffix, /multisc
+    mms_eis_spin_avg, probe=probes, datatype=datatype, species=species[ss], data_units=data_units, data_rate=data_rate, suffix = suffix, /multisc
   endfor
   ;
 end
