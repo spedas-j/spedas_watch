@@ -29,6 +29,8 @@
 ;         + 2020-06-08, I. Cohen        : fixed issue with counting MMSX data (i.e. thinking there were 5 probes)
 ;         + 2020-09-14, I. Cohen        : fixed issue with proton being hardcoded in eis_sc_check
 ;         + 2020-09-28, I. Cohen        : fixed issue with proton being hardcoded in call for spin-averaging
+;         + 2020-09-29, I. Cohen        : changed "mmsx" prefix to mms#-# for consistency with other EIS procedures and 
+;                                         removed call to mms_eis_spin_avg.pro, instead create spin-averaged variables directly here
 ;
 ;-
 pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
@@ -47,9 +49,10 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
   if datatype eq 'electronenergy' then species = 'electron'
   if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species+'*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_'+species+'*flux*omni')
   probes = strmid(eis_sc_check, 3, 1)
-  if (n_elements(probes) gt 4) then probes = probes[0:-2] 
+  if (n_elements(probes) gt 4) then probes = probes[0:-2]
+  if (n_elements(probes) gt 1) then probe_string = probes[0]+'-'+probes[-1] else probe_string = probes
+  if (data_rate eq 'brst') then allmms_prefix = 'mms'+probe_string+'_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mms'+probe_string+'_epd_eis_'+datatype+'_'
   ;
-  if (data_rate eq 'brst') then allmms_prefix = 'mmsx_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mmsx_epd_eis_'+datatype+'_'
   ;
   for ss=0,n_elements(species)-1 do begin
     ;
@@ -69,6 +72,7 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
       energy_size[pp] = n_elements(thisprobe_flux.v)
     endfor
     ref_sc_time_size = min(time_size, reftime_sc_loc)
+     if (data_rate eq 'brst') then prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_' 
     get_data, omni_vars[reftime_sc_loc], data=time_refprobe
     ref_sc_energy_size = min(energy_size, refenergy_sc_loc)
     get_data, omni_vars[refenergy_sc_loc], data=energy_refprobe
@@ -96,7 +100,28 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
     options, allmms_prefix+species[ss]+'_'+data_units+'_omni', yrange = minmax(common_energy), ystyle=1, spec = 1, no_interp=1, ysubtitle='Energy [keV]', ztitle=ztitle_string, minzlog=.001
     zlim, allmms_prefix+species[ss]+'_'+data_units+'_omni', 0, 0, 1
     ;
-    mms_eis_spin_avg, probe=probes, datatype=datatype, species=species[ss], data_units=data_units, data_rate=data_rate, suffix = suffix, /multisc
+    ; NOW SPIN-AVERAGE THE DATA
+    ;
+    get_data, prefix + datatype + '_' +  'spin' + suffix, data=spin_nums
+    if ~is_struct(spin_nums) then begin
+      print, 'ERROR: COULD NOT FIND EIS SPIN VARIABLE -- NOW ENDING PROCEDURE'
+      return ; gracefully handle the case of no spin # variable found
+    endif
+    ;
+    ; find where the spins start
+    spin_starts = uniq(spin_nums.Y)
+    spin_sum_flux = dblarr(n_elements(spin_starts), n_elements(omni_spec[0, *]))
+    ;
+    current_start = 0
+    ; loop through the spins for this telescope
+    for spin_idx = 0, n_elements(spin_starts)-1 do begin
+      ; loop over energies
+      spin_sum_flux[spin_idx, *] = average(omni_spec[current_start:spin_starts[spin_idx], *], 1, /NAN)
+      current_start = spin_starts[spin_idx]+1
+    endfor
+    sp = '_spin'
+    store_data, allmms_prefix+species[ss]+'_'+data_units+'_omni'+sp, data={x: spin_nums.X[spin_starts], y: spin_sum_flux, v: energy_refprobe.V}, dlimits=flux_dl
+    options, allmms_prefix+species[ss]+'_'+data_units+'_omni'+sp, spec=1, minzlog = .01, ystyle=1
   endfor
   ;
 end
