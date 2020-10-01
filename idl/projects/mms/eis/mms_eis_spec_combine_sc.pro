@@ -31,6 +31,7 @@
 ;         + 2020-09-28, I. Cohen        : fixed issue with proton being hardcoded in call for spin-averaging
 ;         + 2020-09-29, I. Cohen        : changed "mmsx" prefix to mms#-# for consistency with other EIS procedures and 
 ;                                         removed call to mms_eis_spin_avg.pro, instead create spin-averaged variables directly here
+;         + 2020-09-30, I. Cohen        : removed duplicate "datatype" in name of tplot spin variable (line 105)                            
 ;
 ;-
 pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
@@ -72,7 +73,7 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
       energy_size[pp] = n_elements(thisprobe_flux.v)
     endfor
     ref_sc_time_size = min(time_size, reftime_sc_loc)
-     if (data_rate eq 'brst') then prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_' 
+    if (data_rate eq 'brst') then prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_' 
     get_data, omni_vars[reftime_sc_loc], data=time_refprobe
     ref_sc_energy_size = min(energy_size, refenergy_sc_loc)
     get_data, omni_vars[refenergy_sc_loc], data=energy_refprobe
@@ -102,7 +103,7 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
     ;
     ; NOW SPIN-AVERAGE THE DATA
     ;
-    get_data, prefix + datatype + '_' +  'spin' + suffix, data=spin_nums
+    get_data, prefix + 'spin' + suffix, data=spin_nums
     if ~is_struct(spin_nums) then begin
       print, 'ERROR: COULD NOT FIND EIS SPIN VARIABLE -- NOW ENDING PROCEDURE'
       return ; gracefully handle the case of no spin # variable found
