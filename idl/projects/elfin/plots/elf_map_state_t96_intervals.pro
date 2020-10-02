@@ -250,7 +250,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ; Get science collection times
   epda_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='a', instrument='epd')
   epdb_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='b', instrument='epd')
-
+  
 ;  sci_times=elf_load_science_times()
 ;  epd_sci_timesa=sci_times.epda
 ;  epd_sci_timesb=sci_times.epdb  
@@ -613,18 +613,20 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       this_a_att_gei = attgeia.y[agei_idx,*]
       this_a_att_gse = attgsea.y[agse_idx,*]
     endif
+    undefine, this_a_sz_st
+    undefine, this_a_sz_en
     if ~undefined(epda_sci_zones) && size(epda_sci_zones, /type) EQ 8 then begin
       idx=where(epda_sci_zones.starts GE this_time[0] and epda_sci_zones.starts LT this_time[nptsa-1], azones)
       if azones GT 0 then begin
         this_a_sz_st=epda_sci_zones.starts[idx]
         this_a_sz_en=epda_sci_zones.ends[idx]
         if epda_sci_zones.ends[azones-1] GT this_time[nptsa-1] then this_a_sz_en[azones-1]=this_time[nptsa-1]
-      endif else begin
-        undefine, this_a_sz_st
-        undefine, this_a_sz_en
-      endelse
+      endif ;else begin
+;        undefine, this_a_sz_st
+;        undefine, this_a_sz_en
+;      endelse
     endif
- 
+
     ; repeat for ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsb=n_elements(this_time2)
@@ -647,19 +649,21 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       this_b_att_gse = attgseb.y[bgse_idx,*]
     endif
 	;;;; Jiang Liu edit: to reduce errors for the ease of debugging
-    ;if ~undefined(epdb_sci_zones) && epdb_sci_zones.starts[0] NE -1 then begin
-    ;  idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
-    ;  if bzones GT 0 then begin
-    ;    this_b_sz_st=epdb_sci_zones.starts[idx]
-    ;    this_b_sz_en=epdb_sci_zones.ends[idx]
-    ;    if epdb_sci_zones.ends[bzones-1] GT this_time2[nptsb-1] then this_b_sz_en[bzones-1]=this_time2[nptsb-1]
-    ;  endif else begin
-    ;    undefine, this_b_sz_st
-    ;    undefine, this_b_sz_en
-    ;  endelse
-    ;endif
 	undefine, this_b_sz_st
 	undefine, this_b_sz_en
+  if ~undefined(epdb_sci_zones) && epdb_sci_zones.starts[0] NE -1 then begin
+     idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
+     if bzones GT 0 then begin
+       this_b_sz_st=epdb_sci_zones.starts[idx]
+       this_b_sz_en=epdb_sci_zones.ends[idx]
+       if epdb_sci_zones.ends[bzones-1] GT this_time2[nptsb-1] then this_b_sz_en[bzones-1]=this_time2[nptsb-1]
+     endif ;else begin
+       ;undefine, this_b_sz_st
+       ;undefine, this_b_sz_en
+     ;endelse
+  endif
+	;undefine, this_b_sz_st
+	;undefine, this_b_sz_en
 	;;;; end of Jiang Liu edit
     
     ; Plot foot points
@@ -714,7 +718,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
          endfor
       endif
       if ~undefined(this_a_sz_st) then begin
-        for sci=0, n_elements(azones)-1 do begin
+        for sci=0, azones-1 do begin
           tidxa=where(this_time GE this_a_sz_st[sci] and this_time LT this_a_sz_en[sci], acnt)
           if acnt GT 5 then begin
             plots, this_lon[tidxa], this_lat[tidxa], psym=2, symsize=.25, color=253, thick=3
@@ -723,7 +727,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       endif
     endif else begin
       if ~undefined(this_a_sz_st) then begin
-        for sci=0, n_elements(azones)-1 do begin
+        for sci=0, azones-1 do begin
           tidxa=where(this_time GE this_a_sz_st[sci] and this_time LT this_a_sz_en[sci], acnt)
           if acnt GT 5 then begin
             plots, this_lon[tidxa], this_lat[tidxa], psym=2, symsize=.25, color=253, thick=3
