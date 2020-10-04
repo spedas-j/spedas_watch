@@ -15,18 +15,19 @@
 ;    trange: Sets the time tange
 ;    source (optional): String that defines dataset (default: 'Survey')             
 ;    nset (optional): dataset number (default: 0)
-;    resolution (optional): string of the resolution, e.g. '43.2' (default, '')         
+;    resolution (optional): string of the resolution, e.g. '43.2' (default, '')
+;    param (optional): string of optional parameters         
 ;   
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-08-28 20:48:35 -0700 (Fri, 28 Aug 2020) $
-; $Revision: 29093 $
+; $Date: 2020-10-02 20:34:07 -0700 (Fri, 02 Oct 2020) $
+; $Revision: 29205 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_survey.pro $
 ;-
 
-pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, resolution=resolution
+pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, resolution=resolution, param=param
   
   das2dlm_cassini_init
   
@@ -45,6 +46,10 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
    if resolution ne '' $
     then resolution = '&resolution=' + resolution
        
+   if undefined(param) then param = ''
+      
+   if param ne '' then param = '&param=' + param
+   param.Replace(' ','+')
   
   time_format = 'YYYY-MM-DDThh:mm:ss'
   
@@ -53,7 +58,7 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
   time1 = 'start_time=' + time_string( tr[0] , tformat=time_format)
   time2 = 'end_time=' + time_string( tr[1] , tformat=time_format)
 
-  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + resolution
+  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + resolution + param
   print, requestUrl
 
   query = das2c_readhttp(requestUrl)
@@ -89,8 +94,7 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
   if name eq '' then begin
     dprint, dlevel = 0, 'Error: Valid variable name not found'
     return    
-  endif
-  
+  endif 
   
   das2dlm_get_ds_var, ds, name, 'center', p=pa, v=va, m=ma, d=da
   

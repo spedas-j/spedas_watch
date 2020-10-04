@@ -8,15 +8,12 @@
 ; Keywords:
 ;    trange: Sets the time tange
 ;    
-; NOTE:
-;    This is password protected data set. This function does not work with password protected datasets.
-;    
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-08-28 20:48:35 -0700 (Fri, 28 Aug 2020) $
-; $Revision: 29093 $
+; $Date: 2020-10-02 20:34:07 -0700 (Fri, 02 Oct 2020) $
+; $Revision: 29205 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_dc11.pro $
 ;-
 
