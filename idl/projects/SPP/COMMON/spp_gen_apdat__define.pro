@@ -2,8 +2,8 @@
 ;  SPP_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $
-; $LastChangedRevision: 29073 $
+; $LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $
+; $LastChangedRevision: 29220 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -237,8 +237,8 @@ end
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $
-; $LastChangedRevision: 29073 $
+; $LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $
+; $LastChangedRevision: 29220 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 function spp_gen_apdat::sw_version
@@ -255,8 +255,8 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 29073 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 29220 $'
 
     return,sw_hash
 end
@@ -267,28 +267,27 @@ function spp_gen_apdat::cdf_global_attributes
   global_att['Acknowledgement'] = !NULL
   global_att['Project'] = 'PSP>Parker Solar Probe'
   global_att['Source_name'] = 'PSP>Parker Solar Probe'
-  global_att['Acknowledgement'] = !NULL
   global_att['TITLE'] = 'PSP SPAN Electron and Ion Data'
   global_att['Discipline'] = 'Heliospheric Physics>Particles'
-  global_att['Descriptor'] = 'INSTname>SWEAP generic Sensor Experiment'
-  global_att['Data_type'] = '>Survey Calibrated Particle Flux'   ; needs correcting
+  global_att['Descriptor'] = 'SPAN>SWEAP Solar Wind Particle Analyzer'
+  global_att['Data_type'] = 'Particle Flux'
   global_att['Data_version'] = 'v00'
   global_att['TEXT'] = 'http://sprg.ssl.berkeley.edu/data/psp/pub/sci/sweap/description/'
   global_att['MODS'] = 'Revision 0'
-  global_att['Logical_file_id'] =  self.name  ; 'mvn_sep_l2_s1-cal-svy-full_20180201_v04_r02.cdf'
+  global_att['Logical_file_id'] =  self.name
   global_att['dirpath'] = './'
   global_att['Logical_source'] = self.name
-  global_att['Logical_source_description'] = 'DERIVED FROM: PSP SWEAP SPAN-Instruments'  ; SEP (Solar Energetic Particle) Instrument
+  global_att['Logical_source_description'] = 'DERIVED FROM: PSP SWEAP SPAN-Instruments'
   global_att['Sensor'] = ' '
   global_att['PI_name'] = 'J. Kasper'
   global_att['PI_affiliation'] = 'Univ. of Michigan'
   global_att['IPI_name'] = 'D. Larson (davin@ssl.berkeley.edu)'
   global_att['IPI_affiliation'] = 'U.C. Berkeley Space Sciences Laboratory'
   global_att['IPI_email'] = 'davin@ssl.berkeley.edu'
-  global_att['InstrumentLead_name'] = '  '
+  global_att['InstrumentLead_name'] = ' '
   global_att['InstrumentLead_email'] = ' @berkeley.edu'
   global_att['InstrumentLead_affiliation'] = 'U.C. Berkeley Space Sciences Laboratory'
-  global_att['Instrument_type'] = 'Electrostatic Analyzer Particle Detector'
+  global_att['Instrument_type'] = 'Electrostatic Analyzer, Particle Detector, Particles (space), Plasma and Solar Wind'
   global_att['Mission_group'] = 'PSP'
   global_att['Parents'] = ' '
 
@@ -299,8 +298,8 @@ function spp_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: ali $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 29073 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 29220 $'
 
   return,global_att
 end

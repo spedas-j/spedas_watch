@@ -6,8 +6,8 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-24 21:48:08 -0700 (Mon, 24 Aug 2020) $
-; $LastChangedRevision: 29072 $
+; $LastChangedDate: 2020-10-07 14:37:41 -0700 (Wed, 07 Oct 2020) $
+; $LastChangedRevision: 29217 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
@@ -56,6 +56,16 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
     options,'SPP_POS_(SUN-'+ref_frame+')_mag',ysubtitle=ysub1
     options,'SPP_POS_(Venus-'+ref_frame+')_mag',ysubtitle=ysub2
   endif
-  if keyword_set(quaternion) then spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,trange=trange,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
+  if keyword_set(quaternion) then begin
+    spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,trange=trange,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
+    get_data,'SPP_SPACECRAFT_QROT_SPP_RTN',dat=dat
+    store_data,'spp_swp_sc_x',dat.x,replicate(1.,n_elements(dat.x))#[1.,0.,0.],dlim={SPICE_FRAME:'SPP_SPACECRAFT',colors:'bgr',labels:['SC_X','SC_Y','SC_Z'],labflag:-1}
+    store_data,'spp_swp_sc_z',dat.x,replicate(1.,n_elements(dat.x))#[0.,0.,1.],dlim={SPICE_FRAME:'SPP_SPACECRAFT',colors:'bgr',labels:['SC_X','SC_Y','SC_Z'],labflag:-1}
+    spice_vector_rotate_tplot,'spp_swp_sc_x','SPP_RTN',check_obj=['SPP_SPACECRAFT','SPP','SPP_RTN'];,/force_objects
+    spice_vector_rotate_tplot,'spp_swp_sc_z','SPP_RTN',check_obj=['SPP_SPACECRAFT','SPP','SPP_RTN']
+    get_data,'spp_swp_sc_x_SPP_RTN',dat=datx
+    get_data,'spp_swp_sc_z_SPP_RTN',dat=datz
+    store_data,'spp_swp_sc_angle_(degrees)',dat.x,!radeg*[[atan(datx.y[*,2],datx.y[*,1])],[acos(-datz.y[*,0])]],dlim={colors:'br',labels:['SC_X_TN','SC_Z_SUN'],labflag:-1}
+  endif
 
 end

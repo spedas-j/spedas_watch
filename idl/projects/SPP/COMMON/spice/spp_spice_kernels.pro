@@ -19,8 +19,8 @@
 ;
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-19 20:59:34 -0700 (Wed, 19 Aug 2020) $
-; $LastChangedRevision: 29050 $
+; $LastChangedDate: 2020-10-07 14:36:30 -0700 (Wed, 07 Oct 2020) $
+; $LastChangedRevision: 29216 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -65,7 +65,12 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
         endif else append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/????/*.bsp')
       end
       ; Spacecraft Attitude (BC)
-      'CK': if keyword_set(attitude) then append_array,kernels,spp_file_retrieve(pathname+'attitude_history/YYYY/spp_YYYY_DOY_??.ah.bc',trange=trange,last=last,/valid_only,/daily)
+      'CK': if keyword_set(attitude) then begin
+        if keyword_set(predict) then begin
+          append_array,kernels,spp_file_retrieve(pathname+'attitude_short_term_predict/spp_*.asp.bc',/valid_only)
+        endif else append_array,kernels,spp_file_retrieve(pathname+'attitude_history/YYYY/spp_YYYY_DOY_??.ah.bc',trange=trange,last=last,/valid_only,/daily)
+      endif
+
       ; Instrument Kernels (TI)
       'IK':
     endcase

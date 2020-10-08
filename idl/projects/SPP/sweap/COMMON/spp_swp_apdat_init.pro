@@ -1,7 +1,7 @@
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-19 20:59:34 -0700 (Wed, 19 Aug 2020) $
-; $LastChangedRevision: 29050 $
+; $LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $
+; $LastChangedRevision: 29220 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_apdat_init.pro $
 ;-
 
@@ -32,7 +32,7 @@ pro spp_swp_apdat_init,reset=reset, save_flag = save_flag, $
   spp_apdat_info,'257'x,name='sc_hkp_0x257',apid_obj = 'spp_sc_hk_0x257_apdat', tname = 'spp_sc_hkp_0x257_', save_flag=save_flag,ttags='*',rt_flag=rt_flag
   spp_apdat_info,'262'x,name='sc_hkp_0x262',apid_obj = 'spp_sc_hk_0x262_apdat', tname = 'spp_sc_hkp_0x262_', save_flag=save_flag,ttags='*',rt_flag=rt_flag
 
-  spp_apdat_info,'340'x,name='swem_crit_hkp',                                      tname='spp_swem_crit_hkp',  save_flag=save_flag,ttags='*',rt_flag=rt_flag
+  spp_apdat_info,'340'x,name='swem_crit_hkp',                                      tname='spp_swem_crit_hkp_', save_flag=save_flag,ttags='*',rt_flag=rt_flag
   spp_apdat_info,'341'x,name='swem_dig_hkp',  apid_obj='spp_swp_swem_dhkp_apdat',  tname='spp_swem_dig_hkp_',  save_flag=save_flag,ttags='*',rt_flag=rt_flag
   spp_apdat_info,'342'x,name='swem_memdump',  apid_obj='spp_swp_memdump_apdat',    tname='spp_swem_memdump_',  save_flag=save_flag,ttags='*',rt_flag=rt_flag
   spp_apdat_info,'343'x,name='swem_ana_hkp',  apid_obj='spp_swp_swem_hkp_apdat',   tname='spp_swem_ana_hkp_',  save_flag=save_flag,ttags='*',rt_flag=rt_flag

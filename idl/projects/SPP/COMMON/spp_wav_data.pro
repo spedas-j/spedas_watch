@@ -1,25 +1,28 @@
 ;Ali: February 2020
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-03 13:17:39 -0700 (Mon, 03 Aug 2020) $
-; $LastChangedRevision: 28974 $
+; $LastChangedDate: 2020-10-07 14:42:22 -0700 (Wed, 07 Oct 2020) $
+; $LastChangedRevision: 29218 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_wav_data.pro $
 ; $ID: $
 
-;no keyword: loads daily 1min resolution files (recommended for longer than 1day timerange)
+;no keyword set: loads daily 1min resolution files (used for a few day timerange)
+;/month loads monthly 1min resolution files (used for really long timeranges)
 ;/hires  loads daily  1sec resolution files (loads faster than /hourly, since needs to load only 1 file per day)
 ;/hourly loads hourly 1sec resolution files (24 files per day)
 ;/hourly,/hires loads hourly full-resolution files (only recommended for short timespans, since file sizes can be huge!)
 ;run by Ali:
 ;/genhourly generates hourly full-resolution and 1sec files
 ;/gendaily generates daily 1sec and 1min files from the hourly 1sec files
+;/genmonthly generates monthly 1min files from the daily 1min files
 
-pro spp_wav_data,trange=trange,types=types,genhourly=genhourly,gendaily=gendaily,hires=hires,hourly=hourly
+pro spp_wav_data,trange=trange,types=types,hires=hires,hourly=hourly,monthly=monthly,genhourly=genhourly,gendaily=gendaily,genmonthly=genmonthly
 
   t1=systime(1)
   dir='/disks/data/psp/data/sci/'
   path='psp/data/sci/sweap/.wav/$TYPE$/YYYY/MM/DD/psp_fld_l2_$TYPE$_YYYYMMDD'
+  if keyword_set(monthly) then path='psp/data/sci/sweap/.wav/$TYPE$_1sec/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMM'
   cdfpath='psp/data/sci/fields/staging/l2/$TYPE$/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMMDDhh_v??.cdf'
-  lowresstr='_1sec'
+  if keyword_set(monthly) then lowresstr='' else lowresstr='_1sec'
   if keyword_set(hourly) or keyword_set(gendaily) then begin
     path=path+'hh'
     if keyword_set(hires) then lowresstr=''
@@ -86,7 +89,7 @@ pro spp_wav_data,trange=trange,types=types,genhourly=genhourly,gendaily=gendaily
 
     if keyword_set(gendaily) then begin
       trange=timerange(trange)
-      res=24l*3600l ;1day
+      res=24l*3600l ;1day seconds
       tres=fix(trange/res,type=14)
       for i=0,tres[1]-tres[0]-1 do begin
         del_data,tpname
@@ -105,6 +108,24 @@ pro spp_wav_data,trange=trange,types=types,genhourly=genhourly,gendaily=gendaily
         filename=filename+'_1min'
         tplot_save,tpname,filename=filename ;1min daily
       endfor
+      continue
+    endif
+
+    if keyword_set(genmonthly) then begin
+      trange=timerange(trange)
+      tmonth=time_double(time_string(trange,tformat='YYYY-MM'))
+      res=32.*24.*3600. ;just over 1month seconds
+      tmonth0=tmonth[0]
+      while tmonth0 le tmonth[1] do begin
+        del_data,tpname
+        tmonth1=time_double(time_string(tmonth0+res,tformat='YYYY-MM'))
+        files=spp_file_retrieve(pathformat,trange=[tmonth0,tmonth1],/last_version,/valid_only,/hourly)
+        tmonth0=tmonth1
+        if ~keyword_set(files) then continue
+        tplot_restore,filenames=files,/verbose,/append,/sort
+        filename=files[0].substring(0,-46-subs[type])+'psp_fld_l2_'+type+time_string(tmonth0-10.,tformat='_YYYYMM')+'_1min'
+        tplot_save,tpname,filename=filename ;1min monthly
+      endwhile
       continue
     endif
 
