@@ -32,9 +32,9 @@
 ;   Beware of file pathnames that include the character sequences:
 ;   YY,  MM, DD, hh, mm, ss, .f  since these can be retranslated to
 ;   the time
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-09-16 12:51:58 -0700 (Wed, 16 Sep 2020) $
-; $LastChangedRevision: 29160 $
+; $LastChangedBy: jimmpc1 $
+; $LastChangedDate: 2020-10-08 11:08:05 -0700 (Thu, 08 Oct 2020) $
+; $LastChangedRevision: 29228 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_pfp_spd_download.pro $
 ;-
 function mvn_pfp_spd_download,pathname,trange=trange,verbose=verbose, source=src,files=files, $
@@ -116,9 +116,16 @@ if ~keyword_set(RT) then begin
        If(n_elements(uniq(fdir)) Eq 1) Then same_dir = 1b $
        Else same_dir = 0b
     Endif Else same_dir = 1b
-    If(tag_exist(source, 'user_pass')) Then Begin
-       tmp_up = strsplit(string(idl_base64(source.user_pass)), ':',/extract)
-    Endif Else tmp_up = [0b, 0b]
+;replicate mvn_file_source code here, because default user_pass is idl_base64(byte(user_pass))
+    If(keyword_set(user_pass)) Then Begin
+       tmp_up = strsplit(user_pass, ':', /extract)
+    Endif Else If(is_string(getenv('MAVENPFP_USER_PASS'))) Then Begin
+       tmp_up = strsplit(getenv('MAVENPFP_USER_PASS'), ':', /extract)
+    Endif Else Begin
+       If(tag_exist(source, 'user_pass')) Then Begin
+          tmp_up = strsplit(string(idl_base64(source.user_pass)), ':',/extract)
+       Endif Else tmp_up = [0b, 0b]
+    Endelse
     If(same_dir) Then Begin
        files = spd_download_plus(remote_file = source.remote_data_dir+pathnames, $
                                  local_path = source.local_data_dir+fdir[0], $

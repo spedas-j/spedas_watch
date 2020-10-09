@@ -273,7 +273,7 @@ pro spp_fld_rfs_burst_load_l1, file, prefix = prefix, varformat = varformat
         options, src_name, 'datagap', 60
         options, src_name, 'panel_size', 2.
         options, src_name, 'ytitle', 'BURST ' + ch_str + '!C' + src_string
-        options, src_name, 'color_table', 39
+        ;options, src_name, 'color_table', 39
 
         options, src_name,  'ysubtitle', 'Freq [Hz]'
 

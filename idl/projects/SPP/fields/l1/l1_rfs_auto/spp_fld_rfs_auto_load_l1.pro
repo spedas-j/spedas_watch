@@ -373,7 +373,7 @@ pro spp_fld_rfs_auto_load_l1, file, prefix = prefix, color = color, varformat = 
             options, src_name, 'datagap', 60
             options, src_name, 'panel_size', 2.
             options, src_name, 'ytitle', ytitle2
-            options, src_name, 'color_table', 39
+            ;options, src_name, 'color_table', 39
 
             options, src_name,  'ysubtitle', 'Freq [Hz]'
 

@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-10-07 14:42:46 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29219 $
+; $LastChangedDate: 2020-10-08 10:46:33 -0700 (Thu, 08 Oct 2020) $
+; $LastChangedRevision: 29226 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -30,6 +30,22 @@ function mms_python_validation_ut::test_fgm_brst
   py_script = ["from pyspedas import mms_load_fgm", "mms_load_fgm(data_rate='brst', probe=4, trange=['2015-10-16/13:06', '2015-10-16/13:07'])"]
   vars = ['mms4_fgm_b_gse_brst_l2', 'mms4_fgm_b_gsm_brst_l2']
   return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_fgm_curlometer
+  mms_load_fgm, data_rate='brst', probe=[1, 2, 3, 4], trange=['2015-10-30/05:15:45', '2015-10-30/05:15:48'], /get_fgm_ephem, /time_clip
+  fields = 'mms'+['1', '2', '3', '4']+'_fgm_b_gse_brst_l2'
+  positions = 'mms'+['1', '2', '3', '4']+'_fgm_r_gse_brst_l2'
+
+  mms_curl, trange=['2015-10-30/05:15:45', '2015-10-30/05:15:48'], fields=fields, positions=positions
+  py_script = ["from pyspedas import mms_load_fgm", $
+               "from pyspedas.mms import curlometer", $
+               "mms_load_fgm(time_clip=True, data_rate='brst', probe=[1, 2, 3, 4], trange=['2015-10-30/05:15:45', '2015-10-30/05:15:48'])", $
+               "positions = ['mms1_fgm_r_gse_brst_l2', 'mms2_fgm_r_gse_brst_l2', 'mms3_fgm_r_gse_brst_l2', 'mms4_fgm_r_gse_brst_l2']", $
+               "fields = ['mms1_fgm_b_gse_brst_l2', 'mms2_fgm_b_gse_brst_l2', 'mms3_fgm_b_gse_brst_l2', 'mms4_fgm_b_gse_brst_l2']", $
+               "curlometer(fields=fields, positions=positions)"]
+  vars = ['baryb', 'curlB', 'divB', 'jtotal', 'jpar', 'jperp', 'alpha', 'alphaparallel']
+  return, spd_run_py_validation(py_script, vars, tol=1e-4)
 end
 
 function mms_python_validation_ut::test_edi_default
@@ -138,12 +154,35 @@ function mms_python_validation_ut::test_fpi_brst
   return, spd_run_py_validation(py_script, vars)
 end
 
-function mms_python_validation_ut::test_hpca_default
+function mms_python_validation_ut::test_hpca_ion
   mms_load_hpca, datatype='ion', probe=1, trange=['2016-10-16','2016-10-16/03:00']
   mms_hpca_calc_anodes, fov=[0, 360]
   mms_hpca_spin_sum, probe='1'
   py_script = ["from pyspedas import mms_load_hpca", "from pyspedas.mms.hpca.mms_hpca_calc_anodes import mms_hpca_calc_anodes", "from pyspedas.mms.hpca.mms_hpca_spin_sum import mms_hpca_spin_sum", "mms_load_hpca(datatype='ion', probe=1, trange=['2016-10-16','2016-10-16/03:00'])", "mms_hpca_calc_anodes(fov=[0, 360], probe='1')", "mms_hpca_spin_sum(probe='1')"]
   vars = ['mms1_hpca_hplus_flux_elev_0-360_spin', 'mms1_hpca_heplus_flux_elev_0-360_spin', 'mms1_hpca_heplusplus_flux_elev_0-360_spin', 'mms1_hpca_oplus_flux_elev_0-360_spin']
+  return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_hpca_brst_ion
+  mms_load_hpca, data_rate='brst', datatype='ion', probe=1, trange=['2015-10-16/13:05', '2015-10-16/13:10']
+  mms_hpca_calc_anodes, fov=[0, 360]
+  mms_hpca_spin_sum, probe='1'
+  py_script = ["from pyspedas import mms_load_hpca", "from pyspedas.mms.hpca.mms_hpca_calc_anodes import mms_hpca_calc_anodes", "from pyspedas.mms.hpca.mms_hpca_spin_sum import mms_hpca_spin_sum", "mms_load_hpca(data_rate='brst', datatype='ion', probe=1, trange=['2015-10-16/13:05', '2015-10-16/13:10'])", "mms_hpca_calc_anodes(fov=[0, 360], probe='1')", "mms_hpca_spin_sum(probe='1')"]
+  vars = ['mms1_hpca_hplus_flux_elev_0-360_spin', 'mms1_hpca_heplus_flux_elev_0-360_spin', 'mms1_hpca_heplusplus_flux_elev_0-360_spin', 'mms1_hpca_oplus_flux_elev_0-360_spin']
+  return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_hpca_moments
+  mms_load_hpca, datatype='moments', probe=1, trange=['2016-10-16','2016-10-16/03:00']
+  py_script = ["from pyspedas import mms_load_hpca", "mms_load_hpca(datatype='moments', probe=1, trange=['2016-10-16','2016-10-16/03:00'])"]
+  vars = ['mms1_hpca_hplus_number_density', 'mms1_hpca_hplus_ion_bulk_velocity', 'mms1_hpca_hplus_scalar_temperature', 'mms1_hpca_oplus_number_density', 'mms1_hpca_oplus_ion_bulk_velocity', 'mms1_hpca_oplus_scalar_temperature']
+  return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_hpca_brst_moments
+  mms_load_hpca, data_rate='brst', datatype='moments', probe=1, trange=['2015-10-16/13:05', '2015-10-16/13:10']
+  py_script = ["from pyspedas import mms_load_hpca", "mms_load_hpca(data_rate='brst', datatype='moments', probe=1, trange=['2015-10-16/13:05', '2015-10-16/13:10'])"]
+  vars = ['mms1_hpca_hplus_number_density', 'mms1_hpca_hplus_ion_bulk_velocity', 'mms1_hpca_hplus_scalar_temperature', 'mms1_hpca_oplus_number_density', 'mms1_hpca_oplus_ion_bulk_velocity', 'mms1_hpca_oplus_scalar_temperature']
   return, spd_run_py_validation(py_script, vars)
 end
 

@@ -1,8 +1,8 @@
 ;Ali: August 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-10 12:14:20 -0700 (Mon, 10 Aug 2020) $
-; $LastChangedRevision: 29012 $
+; $LastChangedDate: 2020-10-07 22:54:10 -0700 (Wed, 07 Oct 2020) $
+; $LastChangedRevision: 29223 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_tplot.pro $
 ;-
 
@@ -17,20 +17,21 @@ options,verbose=0,pre+'SPC',tplot_routine='bitplot',numbits=4,yticks=5,psyms=2,l
 options,verbose=0,pre+['LAST_FSW_EVENT','SPANAI_HV_MODE','SPANAE_HV_MODE','SPANB_HV_MODE'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=4,yticklen=1,ygridstyle=1,yminor=1
 
 options,'spp_sc_hkp_0x???_'+['MET','SEQN','PKT_SIZE'],panel_size=.5
+options,'spp_sc_hkp_0x081_*',labels='0x081',colors='r',psym=-2
+options,'spp_sc_hkp_0x1c5_*',labels='0x1c5',colors='g',psym=-1
+options,'spp_sc_hkp_0x1c5_FSW_REC_ALLOC_GBITS',labels=['EPILO','EPIHI','WISPR','FIELDS','SWEAP','CDH_SSR_HK','CDH_RAM_HK'],colors='bcgmrkybcgmrky',labflag=-1,panel_size=2,yrange=[0,100]
 options,'spp_sc_hkp_0x1df_FSW_SPP_SOLAR_DIST_RS',yticks=0,psym=-2 ;yticks=2 creates a much more pleasant looking plot, but sometimes fails (hsk_spp_2020064_01.ptp.gz): PLOT: Data range for axis has zero length.
-options,'spp_sc_hkp_0x1c5_FSW_REC_ALLOC_PERCENT_USED_*',labels='0x1c5',colors='g',psym=-1
-options,'spp_sc_hkp_0x1c5_FSW_REC_ALLOC_GBITS',labels=['EPILO','EPIHI','WISPR','FIELDS','SWEAP','CDH_SSR_HK','CDH_RAM_HK'],colors='bcgbrkybcgbrky',psym=-1,labflag=-1,panel_size=2,yrange=[0,100]
 options,'spp_sc_hkp_0x1df_FSW_SPP_*_SSR_ALLOC_STATUS',labels='0x1df',colors='b',psym=-2
-options,'spp_sc_hkp_0x257_FSW_SPP_*_SSR_ALLOC_STATUS',labels='0x257',colors='R',psym=-4
+options,'spp_sc_hkp_0x257_FSW_SPP_*_SSR_ALLOC_STATUS',labels='0x257',colors='r',psym=-4
 options,'spp_sc_hkp_0x254_HK_WHL*',labels=['WHL0','WHL1','WHL2','WHL3'],colors='kbgr',labflag=-1
 ;storing the below hybrid plots outside the ptp_files loop causes weird autoscale-in-time issues with tlimit!
 store_data,'spp_sc_hkp_FSW_SPP_SOLAR_DIST',data='spp_sc_hkp_0x1df_FSW_SPP_SOLAR_DIST spp_sc_hkp_0x254_FSW_GC_HK_HK_DIST_BODY_TO_SUN_QUANTIZED',dlim={colors:'br',labels:['0x1df','0x254'],labflag:-1}
 store_data,'spp_sc_hkp_FSW_SPP_SWEAP_SSR_ALLOC_STATUS',data='spp_sc_hkp_0x1df_FSW_SPP_SWEAP_SSR_ALLOC_STATUS spp_sc_hkp_0x257_FSW_SPP_SWEAP_SSR_ALLOC_STATUS spp_sc_hkp_0x1c5_FSW_REC_ALLOC_PERCENT_USED_SWEAP',dlim={labflag:-1,panel_size:2,yrange:[0,100]}
 store_data,'spp_sc_hkp_0x255_PDU_SWEAP_CURRENT',data='spp_sc_hkp_0x255_PDU_SWEAP_*CURR ',dlim={colors:'bgr',labels:['SWEAP_CURR','SPAN_AB_SURV_HTRS_CURR','SPC_SURV_HTR_CURR'],labflag:-1,panel_size:2}
 labels_a=['SPC_PRE_AMP_TEMP','SPAN_A_POS_PEDESTAL_TEMP','SPAN_A_POS_ELECT_BOX_TEMP','SPAN_A_POS_TOP_ANALYZER_TEMP']
-labels_b=['SPAN_B_TOP_ANALYZER_TEMP','SPAN_B_PEDESTAL_TEMP','SPAN_B_ELECT_BOX_TEMP','SWEM_TEMP']
-store_data,'spp_sc_hkp_0x256_SWEAP_SPAN_A_TEMP',data='spp_sc_hkp_0x256_SWEAP_'+labels_a,dlim={colors:'bgrm',labels:labels_a,labflag:-1,panel_size:2}
-store_data,'spp_sc_hkp_0x256_SWEAP_SPAN_B_TEMP',data='spp_sc_hkp_0x256_SWEAP_'+labels_b,dlim={colors:'bgrm',labels:labels_b,labflag:-1,panel_size:2}
+labels_b=['SWEM_TEMP',       'SPAN_B_PEDESTAL_TEMP',    'SPAN_B_ELECT_BOX_TEMP',    'SPAN_B_TOP_ANALYZER_TEMP']
+store_data,'spp_sc_hkp_0x256_SWEAP_SPAN_A_TEMP',data='spp_sc_hkp_0x256_SWEAP_'+labels_a,dlim={colors:'rbgm',labels:labels_a,labflag:-1,panel_size:2}
+store_data,'spp_sc_hkp_0x256_SWEAP_SPAN_B_TEMP',data='spp_sc_hkp_0x256_SWEAP_'+labels_b,dlim={colors:'rbgm',labels:labels_b,labflag:-1,panel_size:2}
 options,'*',ystyle=3
 
 end

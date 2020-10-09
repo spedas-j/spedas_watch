@@ -1,8 +1,8 @@
 ;Ali: June 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-10 12:14:20 -0700 (Mon, 10 Aug 2020) $
-; $LastChangedRevision: 29012 $
+; $LastChangedDate: 2020-10-07 22:54:10 -0700 (Wed, 07 Oct 2020) $
+; $LastChangedRevision: 29223 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x1c5_apdat__define.pro $
 ;-
 
@@ -39,6 +39,8 @@ function spp_SC_HK_0x1c5_struct,ccsds_data
     FSW_REC_ALLOC_PERCENT_USED_CDH_SSR_HK:100./255*spp_swp_data_select(ccsds_data,145*8+7-7,8), $
     FSW_REC_ALLOC_PERCENT_USED_CDH_RAM_HK:100./255*spp_swp_data_select(ccsds_data,146*8+7-7,8), $
     FSW_REC_ALLOC_GBITS:FSW_REC_ALLOC_GBITS, $
+    FSW_REC_ALLOC_ALLOC_SWEAP:256e-6*FSW_REC_ALLOC_ALLOC_SWEAP, $
+    FSW_REC_ALLOC_USED_SWEAP:256e-6*FSW_REC_ALLOC_USED_SWEAP, $
     gap:0B}
   return, str
 end

@@ -20,8 +20,8 @@
 ;     - This routine only checks a few data points throughout the variables
 ; 
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-10-07 12:28:18 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29212 $
+; $LastChangedDate: 2020-10-08 10:36:36 -0700 (Thu, 08 Oct 2020) $
+; $LastChangedRevision: 29224 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/python_validation/spd_run_py_validation.pro $
 ;-
 
@@ -40,18 +40,19 @@ end
 function spd_run_py_validation, py_script, vars, tolerance=tolerance, py_exe_dir=py_exe_dir, tmp_dir=tmp_dir, points_to_check=points_to_check
   if undefined(tolerance) then tolerance = 1e-6
   if undefined(points_to_check) then points_to_check = 10
-  if undefined(py_exe_dir) then py_exe_dir = '/Users/eric/anaconda3/bin/'
-  if undefined(tmp_dir) then tmp_dir = '/Users/eric/tmp'
+  if undefined(py_exe_dir) then py_exe_dir = ''
+  if undefined(tmp_dir) then tmp_dir = ''
   
   if ~is_array(py_script) then py_script = [py_script]
   if ~is_array(vars) then vars = [vars]
   
   passed = 1b
   
+  di = file_info(tmp_dir)
+  if tmp_dir ne '' && ~di.exists then file_mkdir2, tmp_dir
+  
   if tmp_dir ne '' then tmp_dir = spd_addslash(tmp_dir)
   if py_exe_dir ne '' then py_exe_dir = spd_addslash(py_exe_dir)
-  
-  file_mkdir2, tmp_dir
   
   var_table = hash()
   
