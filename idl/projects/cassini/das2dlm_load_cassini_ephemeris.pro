@@ -33,17 +33,18 @@
 ;    trange: Sets the time tange
 ;    source (optional): String that defines ephemeris dataset (default: 'Saturn') 
 ;    interval (optional): string of the interval in seconds between data points, e.g. '60' (default)
+;    parameter (optional): string of optional das2 parameters    
 ;    
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-08-28 20:48:35 -0700 (Fri, 28 Aug 2020) $
-; $Revision: 29093 $
+; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
+; $Revision: 29235 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_ephemeris.pro $
 ;-
 
-pro das2dlm_load_cassini_ephemeris, trange=trange, source=source, interval=interval
+pro das2dlm_load_cassini_ephemeris, trange=trange, source=source, interval=interval,  parameter=parameter
   
   das2dlm_cassini_init
   
@@ -56,6 +57,10 @@ pro das2dlm_load_cassini_ephemeris, trange=trange, source=source, interval=inter
     
   if undefined(interval) $
     then interval = '60'       
+    
+  if undefined(parameter) then parameter = ''
+  if parameter ne '' then parameter = '&params=' + parameter.Replace(' ','+')
+
   
   time_format = 'YYYY-MM-DDThh:mm:ss'
   
@@ -67,7 +72,7 @@ pro das2dlm_load_cassini_ephemeris, trange=trange, source=source, interval=inter
   time2 = 'end_time=' + time_string( tr[1] , tformat=time_format)
   qinterval = 'interval=' + interval
 
-  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + '&' + qinterval 
+  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + '&' + qinterval + parameter
   print, requestUrl
 
   query = das2c_readhttp(requestUrl)

@@ -16,18 +16,18 @@
 ;    source (optional): String that defines dataset (default: 'Survey')             
 ;    nset (optional): dataset number (default: 0)
 ;    resolution (optional): string of the resolution, e.g. '43.2' (default, '')
-;    param (optional): string of optional parameters         
+;    parameter (optional): string of optional das2 parameters         
 ;   
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-10-02 20:34:07 -0700 (Fri, 02 Oct 2020) $
-; $Revision: 29205 $
+; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
+; $Revision: 29235 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_survey.pro $
 ;-
 
-pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, resolution=resolution, param=param
+pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, resolution=resolution, parameter=parameter
   
   das2dlm_cassini_init
   
@@ -46,10 +46,8 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
    if resolution ne '' $
     then resolution = '&resolution=' + resolution
        
-   if undefined(param) then param = ''
-      
-   if param ne '' then param = '&param=' + param
-   param.Replace(' ','+')
+   if undefined(parameter) then parameter = ''      
+   if parameter ne '' then parameter = '&params=' + parameter.Replace(' ','+')
   
   time_format = 'YYYY-MM-DDThh:mm:ss'
   
@@ -58,7 +56,7 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
   time1 = 'start_time=' + time_string( tr[0] , tformat=time_format)
   time2 = 'end_time=' + time_string( tr[1] , tformat=time_format)
 
-  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + resolution + param
+  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + resolution + parameter
   print, requestUrl
 
   query = das2c_readhttp(requestUrl)

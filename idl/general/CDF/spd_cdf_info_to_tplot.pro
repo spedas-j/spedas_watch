@@ -13,8 +13,8 @@
 ;   https://spdf.gsfc.nasa.gov/istp_guide/variables.html#Epoch
 ;
 ; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2018-11-15 11:37:22 -0800 (Thu, 15 Nov 2018) $
-; $LastChangedRevision: 26128 $
+; $LastChangedDate: 2020-10-09 17:41:52 -0700 (Fri, 09 Oct 2020) $
+; $LastChangedRevision: 29236 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf_info_to_tplot.pro $
 ;-
 pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=non_record_varying, tt2000=tt2000,$
@@ -31,7 +31,7 @@ pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=
         load_labels=load_labels ;copy labels from labl_ptr_1 in attributes into dlimits
                                       ;resolve labels implemented as keyword to preserve backwards compatibility
 
-dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 26128 2018-11-15 19:37:22Z adrozdov $'
+dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 29236 2020-10-10 00:41:52Z adrozdov $'
 tplotnames=''
 vbs = keyword_set(verbose) ? verbose : 0
 
@@ -197,6 +197,13 @@ for i=0,nv-1 do begin
           if(keyword_set(var_2)) then var_1 = var_2 else var_1 = 0 ;bpif  v.name eq 'thb_sir_001'
           var_2 = 0
      endif
+     
+     ; Issue a warning if correponsded depend_n is emtpy
+     for dpn=0,size(/n_dimens,*v.dataptr)-1 do begin
+       depend_str = string(dpn, format="depend_%d")
+       eres = execute("res = " + depend_str + " eq ''")
+       if res then dprint,verbose=verbose,dlevel=6,'Warning: ' + depend_str + ' is empty'
+     endfor
 
      cdfstuff={filename:cdfi.filename,gatt:cdfi.g_attributes,vname:v.name,vatt:attr}
      units = struct_value(attr,'units',default='')

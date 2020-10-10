@@ -10,13 +10,14 @@
 ;    trange: Sets the time tange
 ;    source (optional): String that defines dataset: 'MidFreq', 'LoFreq' (default: 'LoFreq')             
 ;    resolution (optional): string of the resolution, e.g. '.21' (default, '')         
+;    parameter (optional): string of optional das2 parameters  
 ;   
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-08-28 20:48:35 -0700 (Fri, 28 Aug 2020) $
-; $Revision: 29093 $
+; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
+; $Revision: 29235 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_waveform.pro $
 ;-
 
@@ -47,6 +48,9 @@ pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution
        return
       end
     endcase
+    
+    if undefined(parameter) then parameter = ''
+    if parameter ne '' then parameter = '&params=' + parameter.Replace(' ','+')
      
    if undefined(resolution) $
      then resolution = ''
@@ -61,7 +65,7 @@ pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution
   time1 = 'start_time=' + time_string( tr[0] , tformat=time_format)
   time2 = 'end_time=' + time_string( tr[1] , tformat=time_format)
 
-  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + resolution
+  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + resolution + parameter
   print, requestUrl
 
   query = das2c_readhttp(requestUrl)

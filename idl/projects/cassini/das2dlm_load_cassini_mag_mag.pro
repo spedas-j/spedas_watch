@@ -7,23 +7,27 @@
 ;
 ; Keywords:
 ;    trange: Sets the time tange
+;    parameter (optional): string of optional das2 parameters 
 ;    
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-08-28 20:48:35 -0700 (Fri, 28 Aug 2020) $
-; $Revision: 29093 $
+; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
+; $Revision: 29235 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_mag.pro $
 ;-
 
-pro das2dlm_load_cassini_mag_mag, trange=trange
+pro das2dlm_load_cassini_mag_mag, trange=trange, parameter=parameter
   
   das2dlm_cassini_init
   
   if ~undefined(trange) && n_elements(trange) eq 2 $
    then tr = timerange(trange) $
    else tr = timerange()
+   
+   if undefined(parameter) then parameter = ''
+   if parameter ne '' then parameter = '&params=' + parameter.Replace(' ','+')
        
   
   time_format = 'YYYY-MM-DDThh:mm:ss'
@@ -33,7 +37,7 @@ pro das2dlm_load_cassini_mag_mag, trange=trange
   time1 = 'start_time=' + time_string( tr[0] , tformat=time_format)
   time2 = 'end_time=' + time_string( tr[1] , tformat=time_format)
 
-  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2
+  requestUrl = url + '&' + dataset + '&' + time1 + '&' + time2 + parameter
   print, requestUrl
 
   query = das2c_readhttp(requestUrl)

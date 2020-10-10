@@ -10,7 +10,7 @@
 ;    source (optional): String that defines dataset: 
 ;     'VectorSC' (default) - Magnetometer Data in Spacecraft Coordinates from http://mapsview.engin.umich.edu/;
 ;     'VectorKSO' - Magnetometer Vector values in Kronocentric Solar Orbital coordinates from PDS volume CO-E_SW_J_S-MAG-4-SUMM-1SECAVG-V1.0
-;    param (optional): If source = 'VectirKSO' additional parameters can be specified:
+;    coord (optional): If source = 'VectirKSO' additional parameters can be specified:
 ;     'J3' - Jovicentric Body-Fixed IAU_JUPITER
 ;     'Jmxyz' - Jovicentric Body-Fixed Magnetospheric Coordinates
 ;     'Krtp' - Output in Kronocentric body-fixed, J2000 spherical Coordinates
@@ -18,24 +18,25 @@
 ;     'Kso' - default Output vectors in Kronocentric Solar Orbital Coordinates
 ;     'Rtn' - Output in Radial-Tangential-Normal coordinates          
 ;    resolution (optional): string of the resolution, e.g. '43.2' (default, '')
+;    parameter (optional): string of optional das2 parameters  
 ;    
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-08-28 20:48:35 -0700 (Fri, 28 Aug 2020) $
-; $Revision: 29093 $
+; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
+; $Revision: 29235 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_vec.pro $
 ;-
 
-pro das2dlm_load_cassini_mag_vec, trange=trange, source=source, parameter=parameter, resolution=resolution
+pro das2dlm_load_cassini_mag_vec, trange=trange, source=source, parameter=parameter, coord=coord, resolution=resolution
   
   das2dlm_cassini_init
   
   if undefined(source) $
   then source = 'VectorSC'  
  
-  if undefined(parameter) then parameter = '' ; by default it is empty string
+  if undefined(coord) then coord = '' ; by default it is empty string
   case strlowcase(source) of
    'vectorsc': begin
        t_name = 'time'
@@ -53,7 +54,7 @@ pro das2dlm_load_cassini_mag_vec, trange=trange, source=source, parameter=parame
      b_name = 'magnitude'
      tplot_name = source    
          
-     case strupcase(parameter) of
+     case strupcase(coord) of
       'KRTP' : begin
         x_name = 'radial'
         y_name = 'southward'
@@ -67,15 +68,20 @@ pro das2dlm_load_cassini_mag_vec, trange=trange, source=source, parameter=parame
       else: begin
         end
      endcase
-     tplot_name += '_' + strupcase(parameter)
-     if parameter ne '' then parameter = '&params=' + strupcase(parameter)
-          
+     tplot_name += '_' + strupcase(coord)
     end
   else: begin
         dprint, dlevel = 0, 'Unknown source. Accepatable sources are: VectorSC or VectorKSC'
         return    
         end    
   endcase
+  
+  if undefined(parameter) then parameter = ''
+
+  if (coord ne '' and parameter ne '') then parameter = coord + ' ' + parameter $
+  else if coord ne '' then parameter = coord
+
+  if parameter ne '' then parameter = '&params=' + parameter.Replace(' ','+') 
       
   if undefined(resolution) $
    then resolution = ''

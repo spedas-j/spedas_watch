@@ -6,9 +6,9 @@
 ;
 ; Written by Davin Larson
 ;
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-04-06 14:11:58 -0700 (Mon, 06 Apr 2020) $
-; $LastChangedRevision: 28515 $
+; $LastChangedBy: adrozdov $
+; $LastChangedDate: 2020-10-09 17:41:52 -0700 (Fri, 09 Oct 2020) $
+; $LastChangedRevision: 29236 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/cdf_info_to_tplot.pro $
 ;-
 pro cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames,  $
@@ -21,7 +21,7 @@ pro cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames,  $
   smex_epoch=smex_epoch ;if set, variables called "epoch" are seconds from 1968-05-24, not CDF epoch
   ;resolve labels implemented as keyword to preserve backwards compatibility
 
-  dprint,verbose=verbose,dlevel=4,'$Id: cdf_info_to_tplot.pro 28515 2020-04-06 21:11:58Z jimm $'
+  dprint,verbose=verbose,dlevel=4,'$Id: cdf_info_to_tplot.pro 29236 2020-10-10 00:41:52Z adrozdov $'
     tplotnames=''
   vbs = keyword_set(verbose) ? verbose : 0
 
@@ -154,6 +154,14 @@ pro cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames,  $
         if(keyword_set(var_2)) then var_1 = var_2 else var_1 = 0 ;bpif  v.name eq 'thb_sir_001'
         var_2 = 0
       endif
+      
+      ; Issue a warning if correponsded depend_n is emtpy
+      for dpn=0,size(/n_dimens,*v.dataptr)-1 do begin
+        depend_str = string(dpn, format="depend_%d")
+        eres = execute("res = " + depend_str + " eq ''") 
+        if res then dprint,verbose=verbose,dlevel=6,'Warning: ' + depend_str + ' is empty'
+      endfor
+      
       cdfstuff={filename:cdfi.filename,gatt:cdfi.g_attributes,vname:v.name,vatt:keyword_set(attr)?attr:0}
       if keyword_set(var_1) && isa(*var_1.dataptr,/string) then var_1=0     ; check for weird string input
       if keyword_set(var_2) then data = {x:tvar.dataptr,y:v.dataptr,v1:var_1.dataptr, v2:var_2.dataptr} $

@@ -7,17 +7,18 @@
 ;
 ; Keywords:
 ;    trange: Sets the time tange
+;    parameter (optional): string of optional das2 parameters  
 ;    
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-10-02 20:34:07 -0700 (Fri, 02 Oct 2020) $
-; $Revision: 29205 $
+; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
+; $Revision: 29235 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_dc11.pro $
 ;-
 
-pro das2dlm_load_cassini_mag_dc11, trange=trange
+pro das2dlm_load_cassini_mag_dc11, trange=trange, parameter=parameter
   
   das2dlm_cassini_init
   
@@ -30,6 +31,8 @@ pro das2dlm_load_cassini_mag_dc11, trange=trange
    then tr = timerange(trange) $
    else tr = timerange()
        
+   if undefined(parameter) then parameter = ''
+   if parameter ne '' then parameter = '&params=' + parameter.Replace(' ','+')
   
   time_format = 'YYYY-MM-DDThh:mm:ss'
   
