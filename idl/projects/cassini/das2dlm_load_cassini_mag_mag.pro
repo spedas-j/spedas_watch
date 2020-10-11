@@ -13,8 +13,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
-; $Revision: 29235 $
+; $Date: 2020-10-09 18:17:32 -0700 (Fri, 09 Oct 2020) $
+; $Revision: 29238 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_mag.pro $
 ;-
 
@@ -70,7 +70,7 @@ pro das2dlm_load_cassini_mag_mag, trange=trange, parameter=parameter
   str_element, DAS2, 'propds', mds, /add ; add data set property
 
   das2dlm_add_metadata, DAS2, p=px, v=vx, m=mx, add='t'
-  das2dlm_add_metadata, DAS2, p=py, v=vy, m=my, add='t'
+  das2dlm_add_metadata, DAS2, p=py, v=vy, m=my, add='y'
     
   options, /default, tvarname, 'DAS2', DAS2 ; Store metadata (this should not affect graphics)
   options, /default, tvarname, 'title', DAS2.name

@@ -12,9 +12,9 @@
 ;   According to ISTP/IACG guidelines "Epoch" should be the first variable in each CDF data set.
 ;   https://spdf.gsfc.nasa.gov/istp_guide/variables.html#Epoch
 ;
-; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2020-10-09 17:41:52 -0700 (Fri, 09 Oct 2020) $
-; $LastChangedRevision: 29236 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2020-10-09 22:44:24 -0700 (Fri, 09 Oct 2020) $
+; $LastChangedRevision: 29239 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf_info_to_tplot.pro $
 ;-
 pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=non_record_varying, tt2000=tt2000,$
@@ -31,7 +31,7 @@ pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=
         load_labels=load_labels ;copy labels from labl_ptr_1 in attributes into dlimits
                                       ;resolve labels implemented as keyword to preserve backwards compatibility
 
-dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 29236 2020-10-10 00:41:52Z adrozdov $'
+dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 29239 2020-10-10 05:44:24Z egrimes $'
 tplotnames=''
 vbs = keyword_set(verbose) ? verbose : 0
 
@@ -199,11 +199,12 @@ for i=0,nv-1 do begin
      endif
      
      ; Issue a warning if correponsded depend_n is emtpy
-     for dpn=0,size(/n_dimens,*v.dataptr)-1 do begin
-       depend_str = string(dpn, format="depend_%d")
-       eres = execute("res = " + depend_str + " eq ''")
-       if res then dprint,verbose=verbose,dlevel=6,'Warning: ' + depend_str + ' is empty'
-     endfor
+     ; egrimes: the call to string() crashes for IDL 8.5.1; commented out 9 Oct 2020
+;     for dpn=0,size(/n_dimens,*v.dataptr)-1 do begin
+;       depend_str = string(dpn, format="depend_%d")
+;       eres = execute("res = " + depend_str + " eq ''")
+;       if res then dprint,verbose=verbose,dlevel=6,'Warning: ' + depend_str + ' is empty'
+;     endfor
 
      cdfstuff={filename:cdfi.filename,gatt:cdfi.g_attributes,vname:v.name,vatt:attr}
      units = struct_value(attr,'units',default='')

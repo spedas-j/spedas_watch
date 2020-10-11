@@ -22,8 +22,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
-; $Revision: 29235 $
+; $Date: 2020-10-09 18:17:32 -0700 (Fri, 09 Oct 2020) $
+; $Revision: 29238 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_survey.pro $
 ;-
 
@@ -143,5 +143,4 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
   
   ; Cleaning up
   res = das2c_free(query)  
-   ; TODO: add check on null
 end
