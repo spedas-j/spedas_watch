@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-09-24 00:39:59 -0700 (Thu, 24 Sep 2020) $
-; $LastChangedRevision: 29180 $
+; $LastChangedDate: 2020-10-11 23:39:01 -0700 (Sun, 11 Oct 2020) $
+; $LastChangedRevision: 29240 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -90,7 +90,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         fileprefix=fileprefix,$
         tname_prefix=tname_prefix, pathformat=pathformat,$
         no_load=no_load,varformat=varformat, $
-        level = level, get_support = get_support, downsample = downsample
+        level = level, get_support = get_support, downsample = downsample, $
+        no_staging = no_staging
 
       all_files = [all_files, files]
 
@@ -131,7 +132,8 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
         fileprefix=fileprefix,$
         tname_prefix=tname_prefix, pathformat=pathformat,$
         no_load=no_load,varformat=varformat, $
-        level = level, get_support = get_support, downsample = downsample
+        level = level, get_support = get_support, downsample = downsample, $
+        no_staging = no_staging
 
       all_files = [all_files, files]
 
