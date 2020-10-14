@@ -12,9 +12,9 @@
 ;   According to ISTP/IACG guidelines "Epoch" should be the first variable in each CDF data set.
 ;   https://spdf.gsfc.nasa.gov/istp_guide/variables.html#Epoch
 ;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-10-09 22:44:24 -0700 (Fri, 09 Oct 2020) $
-; $LastChangedRevision: 29239 $
+; $LastChangedBy: adrozdov $
+; $LastChangedDate: 2020-10-12 18:53:38 -0700 (Mon, 12 Oct 2020) $
+; $LastChangedRevision: 29241 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf_info_to_tplot.pro $
 ;-
 pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=non_record_varying, tt2000=tt2000,$
@@ -31,7 +31,7 @@ pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=
         load_labels=load_labels ;copy labels from labl_ptr_1 in attributes into dlimits
                                       ;resolve labels implemented as keyword to preserve backwards compatibility
 
-dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 29239 2020-10-10 05:44:24Z egrimes $'
+dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 29241 2020-10-13 01:53:38Z adrozdov $'
 tplotnames=''
 vbs = keyword_set(verbose) ? verbose : 0
 
@@ -198,13 +198,16 @@ for i=0,nv-1 do begin
           var_2 = 0
      endif
      
-     ; Issue a warning if correponsded depend_n is emtpy
-     ; egrimes: the call to string() crashes for IDL 8.5.1; commented out 9 Oct 2020
-;     for dpn=0,size(/n_dimens,*v.dataptr)-1 do begin
-;       depend_str = string(dpn, format="depend_%d")
-;       eres = execute("res = " + depend_str + " eq ''")
-;       if res then dprint,verbose=verbose,dlevel=6,'Warning: ' + depend_str + ' is empty'
-;     endfor
+      ; Issue a warning if correponsded depend_n is emtpy      
+      for dpn=0,size(/n_dimens,*v.dataptr)-1 do begin
+      case dpn of
+        0: if depend_0 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_0 is empty'        
+        1: if depend_1 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_1 is empty'
+        2: if depend_2 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_2 is empty'
+        3: if depend_3 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_3 is empty'
+        4: if depend_4 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_4 is empty'
+      endcase
+      endfor 
 
      cdfstuff={filename:cdfi.filename,gatt:cdfi.g_attributes,vname:v.name,vatt:attr}
      units = struct_value(attr,'units',default='')

@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-28 18:25:11 -0700 (Fri, 28 Aug 2020) $
-; $LastChangedRevision: 29091 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-10-13 15:31:40 -0700 (Tue, 13 Oct 2020) $
+; $LastChangedRevision: 29244 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -53,7 +53,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         vardata = !null
         novardata = !null
         loadcdfstr,filenames=files,vardata,novardata
-        dummy = spp_data_product_hash(spx+'_'+type+ext,vardata)
+        dummy = spp_data_product_hash(spx+'_'+type+'_'+level,vardata)
       endif
       if keyword_set(no_load) then continue
       prefix = 'psp_swp_'+spx+'_'+type+'_'+level+ext+'_'
@@ -107,6 +107,10 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
           cdf_info_to_tplot,cdfi,varnames2,all=all,prefix=prefix,midfix=midfix,midpos=midpos,suffix=suffix,newname=newname, $  ;bpif keyword_set(all) eq 0
             verbose=verbose,  tplotnames=tplotnames,load_labels=load_labels          
         endelse
+        
+        if spx eq 'spa' || spx eq 'spb' then begin
+          stop
+        endif
         
       endif else begin
         cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose        

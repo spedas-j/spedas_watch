@@ -3,8 +3,8 @@
 ;  Author: Davin Larson December 2018
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-10-11 23:39:01 -0700 (Sun, 11 Oct 2020) $
-; $LastChangedRevision: 29240 $
+; $LastChangedDate: 2020-10-13 16:01:56 -0700 (Tue, 13 Oct 2020) $
+; $LastChangedRevision: 29250 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -74,6 +74,7 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
           'SCMmf', 'V5hg']
       endif else begin
         spec_types = ['SCMdlfhg_SCMelfhg','SCMdlfhg_SCMflfhg','SCMelfhg_SCMflfhg', $
+          'SCMulfhg_SCMvlfhg','SCMulfhg_SCMwlfhg','SCMvlfhg_SCMwlfhg', $
           'dV12hg_dV34hg']
 
       endelse
@@ -303,9 +304,9 @@ pro spp_fld_load, trange=trange, type = type, files=files, $
   endif
 
   if n_elements(version) EQ 1 then begin
-    
+
     pathformat = str_sub(pathformat, 'v??', 'v' + string(version, format = '(I02)'))
-    
+
   endif
 
   files = spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,$

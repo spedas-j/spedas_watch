@@ -22,13 +22,11 @@
 ;                    slon  : sub-solar point longitude (deg)
 ;                    slat  : sub-solar point latitude (deg)
 ;
-;       TPLOT:     Make tplot variables.
-;
 ;       PANS:      Returns the names of any tplot variables created.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 11:16:48 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28830 $
+; $LastChangedDate: 2020-10-13 15:50:39 -0700 (Tue, 13 Oct 2020) $
+; $LastChangedRevision: 29248 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mvn_mars_localtime.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -66,19 +64,17 @@ pro mvn_mars_localtime, result=result
   lst = (lon - s_lon)*(12D/180D) - 12D  ; 0 = midnight, 12 = noon
   lst -= 24D*double(floor(lst/24D))     ; wrap to 0-24 range
 
-  if keyword_set(tplot) then begin
-    store_data,'lst',data={x:time, y:lst}
-    ylim,'lst',0,24,0
-    options,'lst','yticks',4
-    options,'lst','yminor',6
-    options,'lst','psym',3
-    options,'lst','ytitle','LST (hrs)'
+  store_data,'lst',data={x:time, y:lst}
+  ylim,'lst',0,24,0
+  options,'lst','yticks',4
+  options,'lst','yminor',6
+  options,'lst','psym',3
+  options,'lst','ytitle','LST (hrs)'
   
-    store_data,'Lss',data={x:time, y:s_lat}
-    options,'Lss','ytitle','Sub-solar!CLat (deg)'
+  store_data,'Lss',data={x:time, y:s_lat}
+  options,'Lss','ytitle','Sub-solar!CLat (deg)'
 
-    pans = ['lst', 'Lss']
-  endif
+  pans = ['lst', 'Lss']
   
   result = {time:time, lst:lst, slon:s_lon, slat:s_lat}
 

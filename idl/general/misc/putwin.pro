@@ -31,7 +31,7 @@
 ;                  If there is more than one monitor, IDL identifies a
 ;                  "primary monitor", where graphics windows appear by
 ;                  default.  This routine also defaults to the primary
-;                  monitor.  See keyword SHOW.
+;                  monitor.  See keywords SECONDARY and SHOW.
 ;
 ;KEYWORDS:
 ;       Accepts all keywords for WINDOW.  In addition, the following
@@ -42,7 +42,8 @@
 ;                  Integer (automatic configuration):
 ;
 ;                     0 = disabled: putwin acts like window (default)
-;                     1 = automatic
+;                     1 = automatic: get configuration by querying the
+;                                    operating system
 ;                     2 = automatic with double-wide (5K) external
 ;                         merged into a single logical monitor
 ;                         (only guaranteed to work for the author)
@@ -57,7 +58,7 @@
 ;                       cfg[0:3,i] = [x0, y0, xdim, ydim]
 ;
 ;                  This routine automatically detects the primary
-;                  primary monitor for both forms of CONFIG.
+;                  monitor for both forms of CONFIG.
 ;
 ;                  In either case, the configuration is defined and stored
 ;                  in a common block, but no window is created.
@@ -77,8 +78,7 @@
 ;
 ;       STAT:      Output the current monitor configuration.  When 
 ;                  this keyword is set, CONFIG will return the current 
-;                  monitor array, the primary monitor index, and the 
-;                  title bar width.
+;                  monitor array and the primary monitor index.
 ;
 ;       SHOW:      Same as STAT, except in addition a small window is
 ;                  placed in each monitor for 2 sec to identify
@@ -87,6 +87,9 @@
 ;       MONITOR:   Put window in this monitor.
 ;
 ;                  Default is the primary monitor (see CONFIG).
+;
+;       SECONDARY: Put window in highest numbered non-primary monitor
+;                  (usually the largest one).
 ;
 ;       DX:        Horizontal offset from CORNER (pixels).
 ;                  Replaces XPOS.  Default = 0.
@@ -153,8 +156,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-07 12:19:59 -0700 (Mon, 07 Sep 2020) $
-; $LastChangedRevision: 29118 $
+; $LastChangedDate: 2020-10-13 15:46:35 -0700 (Tue, 13 Oct 2020) $
+; $LastChangedRevision: 29246 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -163,7 +166,8 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                   config=config, xsize=xsize, ysize=ysize, scale=scale, $
                   key=key, stat=stat, nofit=nofit, norm=norm, center=center, $
                   xcenter=xcenter, ycenter=ycenter, tbar=tbar2, xfull=xfull, $
-                  yfull=yfull, aspect=aspect, show=show, _extra=extra
+                  yfull=yfull, aspect=aspect, show=show, secondary=secondary, $
+                  _extra=extra
 
   @putwin_common
 
@@ -183,6 +187,8 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     if (ok) then show = value
     str_element, key, 'MONITOR', value, success=ok
     if (ok) then monitor = value
+    str_element, key, 'SECONDARY', value, success=ok
+    if (ok) then secondary = value
     str_element, key, 'DX', value, success=ok
     if (ok) then dx = value
     str_element, key, 'DY', value, success=ok
@@ -232,7 +238,9 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       if keyword_set(show) then begin
         j = -1
         for i=0,maxmon do begin
-          putwin, 32, i, xsize=100, ysize=100, /center
+          xs = mgeom[2,i]/10.
+          ys = mgeom[3,i]/10.
+          putwin, 32, i, xsize=xs, ysize=ys, /center
           xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
           if (i eq primarymon) then $
             xyouts,0.5,0.1,"(primary)",/norm,align=0.5,charsize=1.5,charthick=1,color=6
@@ -322,7 +330,14 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
   if (n_elements(wnum) eq 0) then wnum = -1 else wnum = fix(wnum[0])
   if (size(mnum,/type) gt 0) then monitor = fix(mnum[0])
-  if (n_elements(monitor) eq 0) then monitor = primarymon else monitor = fix(monitor[0])
+  if (n_elements(monitor) eq 0) then begin
+    monitor = primarymon
+    if keyword_set(secondary) then begin
+      mons = indgen(maxmon+1)
+      i = where(mons ne primarymon, count)
+      if (count gt 0) then monitor = max(mons[i])
+    endif
+  endif else monitor = fix(monitor[0])
   monitor = (monitor > 0) < maxmon
   if (size(aspect,/type) gt 0) then begin
     if (n_elements(xsize) gt 0) then begin

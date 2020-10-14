@@ -153,8 +153,8 @@
 ;                 save files are 8.7 GB in size.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-08 15:49:17 -0700 (Tue, 08 Sep 2020) $
-; $LastChangedRevision: 29124 $
+; $LastChangedDate: 2020-10-13 15:50:39 -0700 (Tue, 13 Oct 2020) $
+; $LastChangedRevision: 29248 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -831,9 +831,18 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
     ptime = torb
     palt = torb
     plon = torb
+    plonx = torb
+    plony = torb
     plat = torb
     psza = torb
     sma = dblarr(norb-3L,3)
+
+    d2sza = spl_init(time, sza)
+    d2lat = spl_init(time, lat)
+    lonx = cos(lon*!dtor)
+    lony = sin(lon*!dtor)
+    d2lonx = spl_init(time, lonx)
+    d2lony = spl_init(time, lony)
 
     hwind = twind
     hsheath = tsheath
@@ -844,22 +853,27 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 
       p1 = min(alt[gndx[gap[i]:(gap[i+1L]-1L)]],j)
       j1 = gndx[j+gap[i]]
+      jndx = [-1L, 0L, 1L] + j1
+      parabola_vertex, time[jndx], alt[jndx], t1, p1
 
       p2 = min(alt[gndx[gap[i+1L]:(gap[i+2L]-1L)]],j)
       j2 = gndx[j+gap[i+1L]]
+      jndx = [-1L, 0L, 1L] + j2
+      parabola_vertex, time[jndx], alt[jndx], t2, p2
     
       dj = double(j2 - j1 + 1L)
 
       k = i - 1L
-    
-      torb[k] = time[(j1+j2)/2L]
-      period[k] = (time[j2] - time[j1])/3600D
 
-      ptime[k] = time[j1]
+      torb[k] = (t1 + t2)/2D
+      period[k] = (t2 - t1)/3600D
+
+      ptime[k] = t1
       palt[k] = p1         ; minimum altitude, not geometric periapsis
-      plon[k] = lon[j1]
-      plat[k] = lat[j1]
-      psza[k] = sza[j1]
+      plonx[k] = spl_interp(time, lonx, d2lonx, t1)
+      plony[k] = spl_interp(time, lony, d2lony, t1)
+      plat[k] = spl_interp(time, lat, d2lat, t1)
+      psza[k] = spl_interp(time, sza, d2sza, t1)
 
       indx = where(finite(wind[j1:j2,0]), count)
       twind[k] = double(count)/dj
@@ -889,6 +903,10 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
       sma[k,0:2] = ss[indx[0]+j1,0:2]/ss[indx[0]+j1,3]
 
     endfor
+
+    plon = atan(plony, plonx)*!radeg
+    indx = where(plon lt 0., count)
+    if (count gt 0L) then plon[indx] += 360.
   endif
 
   if keyword_set(swia) then begin
