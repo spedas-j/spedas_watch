@@ -43,10 +43,10 @@
 ;HISTORY:
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
-;$LastChangedBy: $
-;$LastChangedDate: $
-;$LastChangedRevision: $
-;$URL: $
+;$LastChangedBy: nikos $
+;$LastChangedDate: 2020-10-13 21:44:16 -0700 (Tue, 13 Oct 2020) $
+;$LastChangedRevision: 29251 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
 pro thm_gen_overplot_print, date = date, str_message=str_message, gui_plot=gui_plot, probes = probes
