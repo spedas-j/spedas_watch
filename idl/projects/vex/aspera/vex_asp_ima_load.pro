@@ -17,19 +17,20 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2020-03-10 14:54:49 -0700 (Tue, 10 Mar 2020) $
-; $LastChangedRevision: 28395 $
+; $LastChangedDate: 2020-10-14 18:26:16 -0700 (Wed, 14 Oct 2020) $
+; $LastChangedRevision: 29254 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_ima_load.pro $
 ;
 ;-
 PRO vex_asp_ima_list, trange, verbose=verbose, save=save, file=file, time=modify_time
+  oneday = 86400.d0
   ldir = root_data_dir() + 'vex/aspera/ima/tab/'
   file_mkdir2, ldir
 
   mtime = ['2005-11', '2007-10-03', '2009-06', '2010-09', '2013']
   mtime = time_double(mtime)
 
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1.d0, 1.d0]*oneday, /daily_res, tformat='YYYY-MM-DD'))
   phase = FIX(INTERP(FINDGEN(N_ELEMENTS(mtime)), mtime, time_double(date))) < (N_ELEMENTS(mtime)-1)
   phase = STRING(phase, '(I0)')
 
@@ -162,11 +163,12 @@ END
 
 PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=polar, pacc=pacc, $
                       save=save, file=remote_file, mtime=modify_time, status=status, no_server=no_server
+  oneday = 86400.d0
   nan = !values.f_nan
   status = 1
   IF KEYWORD_SET(no_server) THEN nflg = 0 ELSE nflg = 1
   
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday, /daily_res, tformat='YYYY-MM-DD'))
 
   ldir = root_data_dir() + 'vex/aspera/ima/tab/' 
   spath = ldir + time_string(date, tformat='YYYY/MM/')
@@ -184,43 +186,55 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
         (compare_struct(FILE_BASENAME(file[SORT(file)]), FILE_BASENAME(remote_file[SORT(remote_file)])) EQ 1) THEN $
            rflg = 0 ELSE rflg = 1 ELSE rflg = 0
   ENDELSE 
+
+;  IF (rflg) THEN BEGIN
+;     nfile = N_ELEMENTS(remote_file)
+;     FOR i=0, nfile-1 DO BEGIN
+;        IF SIZE(file, /type) EQ 0 THEN dflg = 1 $
+;        ELSE BEGIN
+;           w = WHERE(STRMATCH(FILE_BASENAME(file), FILE_BASENAME(remote_file[i])) EQ 1, nw)
+;           IF nw EQ 0 THEN dflg = 1 ELSE dflg = 0
+;        ENDELSE 
+;        IF (dflg) THEN BEGIN
+;           suffix = FILE_BASENAME(remote_file[i])
+;           suffix = STRSPLIT(suffix, '_', /extract)
+;           suffix = time_string(time_double(suffix[2], tformat='yyMMDDhhmmss'), tformat='YYYY/MM/')
+;           append_array, fname, spd_download(remote_file=remote_file[i], local_path=ldir+suffix, ftp_connection_mode=0)
+;           file_touch, fname[-1], modify_time[i] - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
+;        ENDIF ELSE append_array, fname, file[w]
+;     ENDFOR
+;  ENDIF ELSE fname = file
   
-  IF (rflg) THEN BEGIN
-     nfile = N_ELEMENTS(remote_file)
-     FOR i=0, nfile-1 DO BEGIN
-        IF SIZE(file, /type) EQ 0 THEN dflg = 1 $
-        ELSE BEGIN
-           w = WHERE(STRMATCH(FILE_BASENAME(file), FILE_BASENAME(remote_file[i])) EQ 1, nw)
-           IF nw EQ 0 THEN dflg = 1 ELSE dflg = 0
-        ENDELSE 
-        IF (dflg) THEN BEGIN
-           suffix = FILE_BASENAME(remote_file[i])
-           suffix = STRSPLIT(suffix, '_', /extract)
-           suffix = time_string(time_double(suffix[2], tformat='yyMMDDhhmmss'), tformat='YYYY/MM/')
-           append_array, fname, spd_download(remote_file=remote_file[i], local_path=ldir+suffix, ftp_connection_mode=0)
-           file_touch, fname[-1], modify_time[i] - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
-        ENDIF ELSE append_array, fname, file[w]
-     ENDFOR
-  ENDIF ELSE fname = file
-  
-  IF N_ELEMENTS(fname) EQ 0 THEN BEGIN
-     dprint, dlevel=2, verbose=verbose, 'No data found.'
-     status = 0
-     RETURN
-  ENDIF ELSE undefine, file
+;  IF N_ELEMENTS(fname) EQ 0 THEN BEGIN
+;     dprint, dlevel=2, verbose=verbose, 'No data found.'
+;     status = 0
+;     RETURN
+;  ENDIF ELSE undefine, file
+
+  IF (rflg) THEN fname = FILE_BASENAME(remote_file) ELSE fname = file
+  undefine, file
 
   w = WHERE(REFORM(((STRSPLIT(fname, '.', /extract)).toarray())[*, 1]) EQ 'TAB', nw, complement=v, ncomplement=nv)
   IF nw GT 0 THEN tfile = fname[w]
   IF nv GT 0 THEN lfile = fname[v]
   nfile = nw
-  
+
   IF nw NE nv THEN BEGIN
      dprint, dlevel=2, verbose=verbose, ''
      status = 0
      RETURN
-  ENDIF ELSE undefine, w, v, nw, fname
+  ENDIF; ELSE undefine, w, v, nw, fname
 
   FOR i=0, nv-1 DO BEGIN
+     IF (rflg) THEN BEGIN
+        suffix = (STRSPLIT(lfile[i], '_', /extract))[2]
+        suffix = time_string(time_double(suffix, tformat='yyMM'), tformat='YYYY/MM/')
+        IF FILE_TEST(ldir + suffix + lfile[i]) EQ 0 THEN BEGIN
+           lfile[i] = spd_download(remote_file=remote_file[v[i]], local_path=ldir+suffix, ftp_connection_mode=0)
+           file_touch, lfile[i], modify_time[v[i]] - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
+        ENDIF ELSE lfile[i] = ldir + suffix + lfile[i]
+     ENDIF 
+
      OPENR, unit, lfile[i], /get_lun
      data = STRARR(FILE_LINES(lfile[i]))
      READF, unit, data
@@ -232,9 +246,18 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
 
      idx = INTERP([0., 1.], trange, tdata)
      iv = WHERE(MAX(idx) LT 0. OR MIN(idx) GT 1., niv)
-     IF niv EQ 0 THEN append_array, file, tfile[i]
+     IF niv EQ 0 THEN BEGIN
+        IF (rflg) THEN BEGIN
+           IF FILE_TEST(ldir + suffix + tfile[i]) EQ 0 THEN BEGIN
+              tfile[i] = spd_download(remote_file=remote_file[w[i]], local_path=ldir+suffix, ftp_connection_mode=0)
+              file_touch, tfile[i], modify_time[w[i]] - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
+           ENDIF ELSE tfile[i] = ldir + suffix + tfile[i]
+        ENDIF 
+        append_array, file, tfile[i]
+     ENDIF 
      undefine, data, tdata, idx, iv, niv
   ENDFOR
+
   IF SIZE(file, /type) EQ 0 THEN BEGIN
      dprint, dlevel=2, verbose=verbose, 'No data found.'
      status = 0

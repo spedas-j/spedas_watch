@@ -17,19 +17,20 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2019-07-03 16:58:39 -0700 (Wed, 03 Jul 2019) $
-; $LastChangedRevision: 27407 $
+; $LastChangedDate: 2020-10-15 14:28:20 -0700 (Thu, 15 Oct 2020) $
+; $LastChangedRevision: 29257 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_load.pro $
 ;
 ;-
 PRO vex_asp_els_list, trange, verbose=verbose, save=save, file=file, time=modify_time
+  oneday = 86400.d0
   ldir = root_data_dir() + 'vex/aspera/els/tab/'
   file_mkdir2, ldir
 
   mtime = ['2005-11', '2007-10-03', '2009-06', '2010-09', '2013']
   mtime = time_double(mtime)
 
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday, /daily_res, tformat='YYYY-MM-DD'))
   phase = FIX(INTERP(FINDGEN(N_ELEMENTS(mtime)), mtime, time_double(date))) < (N_ELEMENTS(mtime)-1)
   phase = STRING(phase, '(I0)')
 
@@ -120,7 +121,7 @@ PRO vex_asp_els_save, time, counts, file=file, mode=mode, verbose=verbose
 END
 
 PRO vex_asp_els_com, time, counts, energy, mode=mode, verbose=verbose, $
-                     data=asp_els_dat, trange=trange, nenergy=nenergy
+                     data=asp_els_dat, trange=trange, nenergy=nenergy, nsweep=nsweep
 
   COMMON vex_asp_dat, vex_asp_ima, vex_asp_els
   units = 'counts'
@@ -129,7 +130,7 @@ PRO vex_asp_els_com, time, counts, energy, mode=mode, verbose=verbose, $
   etime = REFORM(time[*, 1])
   
   dformat = {units_name: units, time: 0.d0, end_time: 0.d0, energy: DBLARR(128, 16), $
-             nenergy: 0, data: FLTARR(128, 16), mode: 0} ;, gf: DBLARR(128, 16)}
+             nenergy: 0, data: FLTARR(128, 16), mode: 0, nsweep: 0} ;, gf: DBLARR(128, 16)}
 
   ndat = N_ELEMENTS(stime)
   asp_els_dat = REPLICATE(dformat, ndat)
@@ -141,7 +142,7 @@ PRO vex_asp_els_com, time, counts, energy, mode=mode, verbose=verbose, $
 
   asp_els_dat.nenergy = nenergy
   asp_els_dat.mode = mode
-
+  asp_els_dat.nsweep = nsweep
   IF SIZE(trange, /type) NE 0 THEN BEGIN
      mtime = MEAN(time, dim=2)
      w = WHERE(mtime GE trange[0] AND mtime LE trange[1], nw)
@@ -155,13 +156,14 @@ PRO vex_asp_els_com, time, counts, energy, mode=mode, verbose=verbose, $
   RETURN
 END
 
-PRO vex_asp_els_read, trange, verbose=verbose, time=stime, counts=counts, mode=mode, $
+PRO vex_asp_els_read, trange, verbose=verbose, time=stime, counts=counts, mode=mode, nsweep=nsweep, $
                       save=save, file=remote_file, mtime=modify_time, status=status, no_server=no_server
+  oneday = 86400.d0
   nan = !values.f_nan
   status = 1
   IF KEYWORD_SET(no_server) THEN nflg = 0 ELSE nflg = 1
   
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday, /daily_res, tformat='YYYY-MM-DD'))
 
   ldir = root_data_dir() + 'vex/aspera/els/tab/' 
   spath = ldir + time_string(date, tformat='YYYY/MM/')
@@ -224,6 +226,7 @@ PRO vex_asp_els_read, trange, verbose=verbose, time=stime, counts=counts, mode=m
   etime  = list()
   mode   = list()
   fname  = list()
+  nsweep = list()
   FOR i=0, nfile-1 DO BEGIN
      dprint, dlevel=2, verbose=verbose, 'Reading ' + file[i] + '.'
      
@@ -237,7 +240,7 @@ PRO vex_asp_els_read, trange, verbose=verbose, time=stime, counts=counts, mode=m
 
      stime.add, time_double(REFORM(data[*, 0]), tformat='YYYY-MM-DDThh:mm:ss.fff')
      ndat = N_ELEMENTS(data[*, 0])
-
+     nsweep.add, FIX(REFORM(data[*, 4]))
      counts.add, FLOAT(REFORM(data[*, 12:*], ndat, 16, 128))
      undefine, data
 
@@ -271,6 +274,10 @@ PRO vex_asp_els_read, trange, verbose=verbose, time=stime, counts=counts, mode=m
         time = stime[-1]
         time = REFORM(TRANSPOSE([ [time], [time+1.d0], [time+2.d0], [time+3.d0] ]), ndat*4)
         stime[-1] = TEMPORARY(time)
+
+        nsw = nsweep[-1]
+        nsw = REFORM(TRANSPOSE(REBIN(nsweep[-1], ndat, 4)), ndat*4)
+        nsweep[-1] = TEMPORARY(nsw)
 
         amode = REPLICATE(1, ndat*4)
      ENDIF 
@@ -331,7 +338,7 @@ PRO vex_asp_els_fill_nan, stime, counts, energy, mode=mode, nenergy=nenergy
   RETURN
 END
 
-PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server
+PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server, nsweep=isweep
   COMMON vex_asp_dat, vex_asp_ima, vex_asp_els
   undefine, vex_asp_els
   t0 = SYSTIME(/sec)
@@ -376,7 +383,7 @@ PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server
   ENDIF ELSE sflg = 1
 
   IF (sflg) THEN BEGIN
-     vex_asp_els_read, trange, time=stime, counts=counts, mode=mode, $
+     vex_asp_els_read, trange, time=stime, counts=counts, mode=mode, nsweep=nsweep, $
                        verbose=verbose, save=save, file=remote_file, mtime=mtime, status=status, no_server=no_server
      IF (status EQ 0) THEN RETURN
   ENDIF ELSE BEGIN
@@ -401,11 +408,11 @@ PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server
   counts = counts.toarray(dim=1)
   stime = stime.toarray(dim=1)
   mode = mode.toarray(dim=1)
- 
+  nsweep = nsweep.toarray(dim=1)
   energy = energy.toarray(dim=1)
   nenergy = nenergy.toarray(dim=1)
 
-  etime = 4.d0^(1 - mode) + stime
+  etime = nsweep * 4.d0^(1 - mode) + stime
 
   time = [ [stime], [etime] ]
   time = MEAN(time, dim=2)
@@ -414,18 +421,24 @@ PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server
      dprint, dlevel=2, verbose=verbose, 'No data found.'
      RETURN
   ENDIF ELSE BEGIN
-     vex_asp_els_com, [ [stime], [etime] ], counts, energy, mode=mode, nenergy=nenergy, data=els, trange=trange
+     vex_asp_els_com, [ [stime], [etime] ], counts, energy, mode=mode, nenergy=nenergy, data=els, trange=trange, nsweep=nsweep
      time = time[w]
      cnt = els.data
      ene = els.energy
+     nsw = els.nsweep
   ENDELSE 
-      
+  
   store_data, 'vex_asp_els_espec', data={x: time, y: TRANSPOSE(TOTAL(cnt, 2)), v: TRANSPOSE(MEAN(ene, dim=2))}, $
-              dlim={spec: 1, datagap: 30.d0, ysubtitle: 'Energy [eV]', ytitle: 'VEX/ASPERA-4 (ELS)'} ;, $
-                    ;ytickformat: 'exponent', ztickformat: 'exponent}
+              dlim={spec: 1, datagap: 60.d0, ysubtitle: 'Energy [eV]', ytitle: 'VEX/ASPERA-4 (ELS)', $
+                    ytickunits: 'scientific', ztickunits: 'scientific'}
+
   ylim, 'vex_asp_els_espec', 1., 20.e3, 1, /def
   zlim, 'vex_asp_els_espec', 1., 1.e3, 1, /def
   options, 'vex_asp_els_espec', ztitle='Counts [#]', /def
+
+  IF KEYWORD_SET(isweep) THEN $
+     store_data, 'vex_asp_els_nsweep', data={x: time, y: ALOG2(nsw)}, $
+                 dlim={ytitle: 'VEX/ASPERA-4 (ELS)', ysubtitle: '2^N', psym: 10, yrange: [-.5, 5.5], ystyle: 1, yminor: 1, panel_size: .5, datagap: 60.d0}
 
   dprint, dlevel=2, verbose=verbose, 'Ellapsed time: ' + time_string(SYSTIME(/sec)-t0, tformat='mm:ss.fff')
   RETURN

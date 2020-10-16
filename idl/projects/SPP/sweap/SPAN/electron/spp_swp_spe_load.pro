@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-10-13 15:31:40 -0700 (Tue, 13 Oct 2020) $
-; $LastChangedRevision: 29244 $
+; $LastChangedDate: 2020-10-15 10:49:27 -0700 (Thu, 15 Oct 2020) $
+; $LastChangedRevision: 29255 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
@@ -109,7 +109,7 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         endelse
         
         if spx eq 'spa' || spx eq 'spb' then begin
-          stop
+          dprint,spx,dlevel=3
         endif
         
       endif else begin

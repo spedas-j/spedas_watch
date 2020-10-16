@@ -35,8 +35,8 @@
 ;         University of Minnesota
 ;         2013-04-16
 ;$LastChangedBy: aaronbreneman $
-;$LastChangedDate: 2020-09-21 18:15:32 -0700 (Mon, 21 Sep 2020) $
-;$LastChangedRevision: 29172 $
+;$LastChangedDate: 2020-10-15 10:55:25 -0700 (Thu, 15 Oct 2020) $
+;$LastChangedRevision: 29256 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/rbsp/efw/examples/rbsp_efw_spinfit_vxb_subtract_crib.pro $
 ;-
 
@@ -336,7 +336,7 @@ pro rbsp_efw_spinfit_vxb_subtract_crib,probe,$
   nsection = n_elements(corrections)
   
   foo_l1_efw_data = 'rbsp'+probe+'_efw_esvy'
-  get_data, foo_l1_efw_data, times, data
+  get_data, foo_l1_efw_data, times, e_uvw
   for ii=0, nsection-1 do begin
       tmp = where(times ge time_ranges[ii,0] and times le time_ranges[ii,1], count)
       if count eq 0 then continue
@@ -349,7 +349,6 @@ pro rbsp_efw_spinfit_vxb_subtract_crib,probe,$
       endelse
       times[i0:i1-1] += corrections[ii]
   endfor
-  store_data, foo_l1_efw_data, times, data
 
 
 ;split_vec,'rbspa_efw_esvy'
@@ -357,6 +356,33 @@ pro rbsp_efw_spinfit_vxb_subtract_crib,probe,$
 ;tplot,['rbspa_efw_esvy_x','rbspa_efw_esvy_backup_x']
 ;tplot,['rbspa_efw_esvy_y','rbspa_efw_esvy_backup_y']
 ;stop
+
+
+
+  ;------------------------------------------------------
+  ;Remove DC offset (Sheng email 8/26/2020)
+
+    spin_period = 11d   ; the rough number works fine, no need to get the accurate number
+    tmpp = times - shift(times,1)
+    dt = median(tmpp)
+    width = spin_period/dt
+    for ii=0,1 do begin $
+        offset1 = smooth(e_uvw[*,ii], width, /nan, /edge_zero) & $
+        offset2 = smooth(offset1, width, /nan, /edge_zero) & $
+        e_uvw[*,ii] -= offset2
+    endfor
+
+  store_data, foo_l1_efw_data+'_tst', times, e_uvw
+stop
+  store_data, foo_l1_efw_data, times, e_uvw
+
+stop
+  ;------------------------------------------------------
+
+
+
+
+
 
 
   options,rbspx+'_efw_esvy','ysubtitle',''
@@ -444,6 +470,53 @@ pro rbsp_efw_spinfit_vxb_subtract_crib,probe,$
 
 
 
+;-----------------------------
+;Now subtract Sheng's "fit" value to remove the remaining residual 
+;Use dey[*,2] and dez[*,2]
+
+rbsp_load_efit_cdf_file,probe
+
+
+tinterpol_mxn,rbspx+'_dey',rbspx+'_efw_esvy_noresidual_spinfit_mgse',/overwrite,/quadratic
+tinterpol_mxn,rbspx+'_dez',rbspx+'_efw_esvy_noresidual_spinfit_mgse',/overwrite,/quadratic
+
+split_vec,rbspx+'_dey',suffix='_'+['old','fit','new']
+split_vec,rbspx+'_dez',suffix='_'+['old','fit','new']
+split_vec,rbspx+'_efw_esvy_noresidual_spinfit_mgse'
+
+tplot,rbspx+'_dey_'+['old','fit','new']
+
+tplot,[rbspx+'_dey_new',rbspx+'_efw_esvy_noresidual_spinfit_mgse_y']
+
+
+;Simply replace the residual field with Sheng's fit-subtracted version. 
+get_data,rbspx+'_efw_esvy_noresidual_spinfit_mgse_y',data=tmpy
+get_data,rbspx+'_dey_new',data=tmpynew
+goo = where(finite(tmpynew.y) ne 0.)
+if goo[0] ne -1 then tmpy.y[goo] = tmpynew.y[goo]
+store_data,'tst',data=tmpy
+
+ylim,['tst',rbspx+'_efw_esvy_noresidual_spinfit_mgse_y',rbspx+'_dey_new'],-4,4
+tplot,['tst',rbspx+'_efw_esvy_noresidual_spinfit_mgse_y',rbspx+'_dey_new']
+
+
+dif_data,rbspx+'_efw_esvy_noresidual_spinfit_mgse_y',rbspx+'_dey_fit',newname='fittsty'
+
+tplot,[rbspx+'_dey_new','fittsty']
+
+tplot,['rbspb_efw_esvy_noresidual_spinfit_mgse','rbspb_dey','rbspb_dez']
+
+
+tplot,['rbspb_efw_esvy_noresidual_spinfit_mgse_y','rbspb_dey']
+tplot,['rbspb_efw_esvy_noresidual_spinfit_mgse_z','rbspb_dez']
+
+
+stop
+
+
+
+;-----------------------------
+
   ;-----------
   ;TESTING
 ;  split_vec,rbspx+'_efw_esvy_noresidual_spinfit_mgse'
@@ -467,7 +540,6 @@ pro rbsp_efw_spinfit_vxb_subtract_crib,probe,$
 
   ;Interpolate the position data to spinfit cadence (it's at 1min by default)
   tinterpol_mxn,rbspx+'_state_vel_mgse',rbspx+'_efw_esvy_spinfit',newname=rbspx+'_state_vel_mgse',/spline
-
 
 
 
