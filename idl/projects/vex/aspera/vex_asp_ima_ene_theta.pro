@@ -13,12 +13,12 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-19 19:38:38 -0700 (Thu, 19 Apr 2018) $
-; $LastChangedRevision: 25082 $
+; $LastChangedDate: 2020-10-16 09:59:03 -0700 (Fri, 16 Oct 2020) $
+; $LastChangedRevision: 29259 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_ima_ene_theta.pro $
 ;
 ;-
-PRO vex_asp_ima_ene_theta, time, polar, energy=energy, theta=theta, verbose=verbose
+PRO vex_asp_ima_ene_theta, time, polar, energy=energy, theta=theta, verbose=verbose, eprom=eprom
 
   ndat    = N_ELEMENTS(time)
   nenergy = 96
@@ -26,7 +26,8 @@ PRO vex_asp_ima_ene_theta, time, polar, energy=energy, theta=theta, verbose=verb
   nmass   = 32
 
   ; See, Table 1 at Ref. pp318 
-  ene_table = [29999.9, 27629.1, 25444.8, 23431.6, 21581.6, 19871.5, 18301.3, 16855.5, $
+
+  etable_v1 = [29999.9, 27629.1, 25444.8, 23431.6, 21581.6, 19871.5, 18301.3, 16855.5, $
                15526.2, 14298.1, 13163.2, 12121.6, 11165.5, 10287.1,  9470.9,  8724.7, $
                 8032.9,  7395.5,  6812.5,  6276.1,  5778.7,  5320.0,  4900.3,  4511.6, $
                 4155.7,  3828.1,  3524.6,  3246.5,  2989.7,  2753.1,  2535.1,  2334.6, $
@@ -39,8 +40,32 @@ PRO vex_asp_ima_ene_theta, time, polar, energy=energy, theta=theta, verbose=verb
                   41.3,    38.0,    35.0,    32.2,    29.7,    27.4,    25.2,    23.2, $
                   21.4,    19.7,    18.1,    16.7,    15.4,    14.1,    13.0,    12.0  ]
 
-  
-  energy = REBIN(ene_table, nenergy, nbins, nmass, ndat, /sample)
+
+  ; See, https://irfpy.irf.se/projects/aspera/_modules/irfpy/vima/energy.html#get_default_table_v3
+
+  etable_v3 = [20003.6, 18309.0, 16762.2, 15347.5, 14049.3, 12860.0, 11771.8, 10776.8, $
+                9867.4,  9035.6,  8266.1,  7566.5,  6929.1,  6346.1,  5809.8,  5320.0, $
+                4869.2,  4457.2,  4079.5,  3734.5,  3418.9,  3130.1,  2865.4,  2623.4, $
+                2401.4,  2198.2,  2012.3,  1842.5,  1687.4,  1544.3,  1413.3,  1294.3, $
+                1184.7,  1084.4,   993.5,   909.2,   831.7,   762.1,   698.0,   639.1, $
+                 584.3,   534.8,   489.4,   447.9,   410.5,   375.7,   343.6,   315.6, $
+                 288.8,   263.4,   242.0,   220.6,   201.9,   185.9,   169.8,   155.1, $
+                 141.7,   129.7,   119.0,   109.6,   100.3,    90.9,    84.2,    76.7, $
+                  70.2,    64.3,    58.8,    53.8,    49.3,    45.1,    41.3,    37.8, $
+                  34.6,    31.7,    29.0,    26.6,    24.3,    22.3,    20.4,    18.7, $
+                  17.1,    15.6,    14.3,    13.1,    12.0,    10.0,     8.0,     6.0, $
+                   4.0,     2.0,     0.0,    -2.0,    -4.0,    -6.0,    -8.0,   -10.0  ]
+ 
+  IF NOT KEYWORD_SET(eprom) THEN BEGIN
+     etable = etable_v1
+     energy = REBIN(etable, nenergy, nbins, nmass, ndat, /sample)
+  ENDIF ELSE BEGIN
+     etable = [ [etable_v1], [etable_v3] ]
+     idx = INTARR(N_ELEMENTS(time))
+     w = WHERE(eprom GT 0, nw)
+     IF nw GT 0 THEN idx[w] = 1
+     energy = TRANSPOSE(REBIN(etable[*, idx], nenergy, ndat, nbins, nmass, /sample), [0, 2, 3, 1])
+  ENDELSE 
   energy = DOUBLE(TRANSPOSE(energy, [3, 0, 1, 2]))
 
   IF SIZE(polar, /type) EQ 0 THEN RETURN

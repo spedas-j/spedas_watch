@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2020-10-14 18:26:16 -0700 (Wed, 14 Oct 2020) $
-; $LastChangedRevision: 29254 $
+; $LastChangedDate: 2020-10-16 09:56:39 -0700 (Fri, 16 Oct 2020) $
+; $LastChangedRevision: 29258 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_ima_load.pro $
 ;
 ;-
@@ -121,7 +121,7 @@ PRO vex_asp_ima_save, time, counts, polar, pacc, file=file, verbose=verbose
   RETURN
 END
 
-PRO vex_asp_ima_com, time, counts, polar, pacc, verbose=verbose, $
+PRO vex_asp_ima_com, time, counts, polar, pacc, eprom, verbose=verbose, $
                      data=asp_ima_dat, trange=trange
 
   COMMON vex_asp_dat, vex_asp_ima, vex_asp_els
@@ -136,7 +136,7 @@ PRO vex_asp_ima_com, time, counts, polar, pacc, verbose=verbose, $
 
   dformat = {units_name: units, time: 0.d0, end_time: 0.d0, $
              energy: DBLARR(nenergy, nbins, nmass), $
-             data: FLTARR(nenergy, nbins, nmass), polar: 0, pacc: 0} ;, $
+             data: FLTARR(nenergy, nbins, nmass), polar: 0, pacc: 0, eprom: 0} ;, $
              ;theta: FLTARR(nenergy, nbins, nmass), bkg: FLTARR(nenergy, nbins, nmass)}
 
   ndat = N_ELEMENTS(stime)
@@ -146,10 +146,11 @@ PRO vex_asp_ima_com, time, counts, polar, pacc, verbose=verbose, $
   vex_asp_ima.end_time = etime
   vex_asp_ima.polar    = polar
   vex_asp_ima.pacc     = pacc
+  vex_asp_ima.eprom    = eprom
   vex_asp_ima.data     = TRANSPOSE(counts, [1, 2, 3, 0])
 
   time = MEAN(time, dim=2)
-  vex_asp_ima_ene_theta, time, verbose=verbose, energy=energy
+  vex_asp_ima_ene_theta, time, verbose=verbose, energy=energy, eprom=eprom
   vex_asp_ima.energy = TRANSPOSE(TEMPORARY(energy), [1, 2, 3, 0])
 
   IF SIZE(trange, /type) NE 0 THEN BEGIN
@@ -161,7 +162,7 @@ PRO vex_asp_ima_com, time, counts, polar, pacc, verbose=verbose, $
   RETURN
 END
 
-PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=polar, pacc=pacc, $
+PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=polar, pacc=pacc, eprom=eprom, $
                       save=save, file=remote_file, mtime=modify_time, status=status, no_server=no_server
   oneday = 86400.d0
   nan = !values.f_nan
@@ -269,6 +270,7 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
   polar  = list()
   pacc   = list()
   fname  = list()
+  eprom  = list()
   FOR i=0, N_ELEMENTS(file)-1 DO BEGIN
      mode = STRMID((STRSPLIT(FILE_BASENAME(file[i]), '_', /extract))[1], 1, 2)
      CASE mode OF               ; phi, mass, energy, polar(=time)
@@ -296,7 +298,7 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
         IF N_ELEMENTS(onescan[31:*]) EQ PRODUCT(nbins) THEN BEGIN
            t1scan = time_double(onescan[0], tformat='YYYY-MM-DDThh:mm:ss.fff')
            append_array, pac, REPLICATE(FLOAT(onescan[16]), nbins[-1])
-           
+           append_array, prm, REPLICATE(FIX(onescan[20]), nbins[-1])
            onescan = FLOAT(REFORM(onescan[31:*], nbins))
            onescan = TRANSPOSE(onescan, [3, 2, 0, 1]) ; polar(=time), energy, phi, mass
            cnts.add, TEMPORARY(onescan)
@@ -315,6 +317,7 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
      pacc.add,  TEMPORARY(pac)
      stime.add, TEMPORARY(time)
      polar.add, TEMPORARY(pol)
+     eprom.add, TEMPORARY(prm)
      undefine, data, cnts
   ENDFOR
 
@@ -370,7 +373,7 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
   ENDIF ELSE sflg = 1
 
   IF (sflg) THEN BEGIN
-     vex_asp_ima_read, trange, time=stime, counts=counts, polar=polar, pacc=pacc, $
+     vex_asp_ima_read, trange, time=stime, counts=counts, polar=polar, pacc=pacc, eprom=eprom, $
                        verbose=verbose, save=save, file=remote_file, mtime=mtime, status=status, no_server=no_server
      IF (status EQ 0) THEN RETURN
   ENDIF ELSE BEGIN
@@ -396,7 +399,7 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
   stime  = stime.toarray(dim=1)
   polar  = polar.toarray(dim=1)
   pacc   = pacc.toarray(dim=1)
-  
+  eprom  = eprom.toarray(dim=1)
   etime = stime + 12.d0
 
   time = [ [stime], [etime] ]
@@ -406,7 +409,7 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
      dprint, dlevel=2, verbose=verbose, 'No data found.'
      RETURN
   ENDIF ELSE BEGIN
-     vex_asp_ima_com, [ [stime], [etime] ], counts, polar, pacc, data=ima, trange=trange
+     vex_asp_ima_com, [ [stime], [etime] ], counts, polar, pacc, data=ima, trange=trange, eprom
      time = time[w]
   ENDELSE 
 
