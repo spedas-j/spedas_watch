@@ -115,8 +115,8 @@
 ;                 of surface locations (lon, lat) in the IAU_Mars frame.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-07 12:16:47 -0700 (Mon, 07 Sep 2020) $
-; $LastChangedRevision: 29117 $
+; $LastChangedDate: 2020-10-21 13:15:17 -0700 (Wed, 21 Oct 2020) $
+; $LastChangedRevision: 29267 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -175,7 +175,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     ok = 1
   endif
   if ((not ok) and keyword_set(landers)) then begin
-    sites = fltarr(2,8)
+    sites = fltarr(2,9)
     sites[*,0] = [311.778,  22.697]  ; Viking 1 Lander
     sites[*,1] = [134.010,  48.269]  ; Viking 2 Lander
     sites[*,2] = [326.450,  19.330]  ; Pathfinder Lander
@@ -184,6 +184,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     sites[*,5] = [234.100,  68.150]  ; Phoenix Lander
     sites[*,6] = [137.200,  -4.600]  ; Curiosity Rover (MSL)
     sites[*,7] = [135.000,   4.500]  ; InSight Lander
+    sites[*,8] = [ 77.500,  18.400]  ; Perserverence (Mars 2020)
   endif
 
   if keyword_set(times) then begin
