@@ -19,8 +19,8 @@
 ;   When the Kyoto AE is not available, it shows [Themis AE (black, 0), Real Time Kyoto AE (green, 4)]
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-10-14 14:42:28 -0700 (Wed, 14 Oct 2020) $
-; $LastChangedRevision: 29252 $
+; $LastChangedDate: 2020-10-22 14:22:21 -0700 (Thu, 22 Oct 2020) $
+; $LastChangedRevision: 29276 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/misc/spd_gen_overplot_ae_panel.pro $
 ;-
 
@@ -67,7 +67,7 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
   if ~is_struct(kyoto_ae_data) then begin
     ; In this case, use the Kyoto real time AE generated at UCLA
     get_data, 'thg_idx_uc_ae', data=kyoto_ae_data, dlimits=kyoto_ae_dlimits
-    kyoto_ae_label = 'Kyoto RT'
+    kyoto_ae_label = 'Kyoto!C proxy AE'
     kyoto_colors = [0, 4]
     kyoto_color_single = [4]
   endif
@@ -91,7 +91,7 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
         combined_ae[i,1] = !values.f_nan
       endelse
     endfor
-    str_element, thm_ae_dlimits, 'labels', ['THEMIS AE', kyoto_ae_label], /add
+    str_element, thm_ae_dlimits, 'labels', ['Themis AE', kyoto_ae_label], /add
     str_element, thm_ae_dlimits, 'colors', kyoto_colors, /add
     str_element, thm_ae_dlimits, 'ytitle', 'AE index', /add
     str_element, thm_ae_dlimits, 'ysubtitle', '[nT]', /add
@@ -101,7 +101,7 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
     ; only THEMIS AE available
     copy_data, 'thmAE', 'kyoto_thm_combined_ae'+suffix
     options, 'kyoto_thm_combined_ae'+suffix, 'ytitle', 'AE index'
-    options, 'kyoto_thm_combined_ae'+suffix, 'labels', 'THEMIS AE'
+    options, 'kyoto_thm_combined_ae'+suffix, 'labels', 'Themis AE'
     options, 'kyoto_thm_combined_ae'+suffix, 'labflag', 1
     options, 'kyoto_thm_combined_ae'+suffix, 'ysubtitle', '[nT]'
     options, 'kyoto_thm_combined_ae'+suffix, 'colors', 0

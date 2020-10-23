@@ -7,6 +7,7 @@
 ;
 ; KEYWORDS:
 ;         tvars:       tplot variable names to be calibrated
+;         level:       'l1' or 'l2', default is 'l1'
 ;
 ; EXAMPLES:
 ;
@@ -39,6 +40,7 @@ pro elf_cal_mrmi, tvars, level=level
   scale_param1 = 1.e5
   scale_param2 = 390.
 
+  ; calibrate mrm data (only level 1 is available at this time)
   if level EQ 'l1' then begin
     for i=0,n_elements(tvars)-1 do begin
       get_data, tvars[i], data=d, dlimits=dl, limits=l

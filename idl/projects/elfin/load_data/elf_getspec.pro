@@ -372,7 +372,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     total(Emaxs[MinE_channels[jthchan]:MaxE_channels[jthchan]]-Emins[MinE_channels[jthchan]:MaxE_channels[jthchan]]) ; MULTIPLIED BY ENERGY WIDTH AND THEN DIVIDED BY BROAD CHANNEL ENERGY
   if (mytype eq 'raw' or mytype eq 'cps' ) then $
     for jthchan=0,numchannels-1 do $
-    elx_pxf_val[*,jthchan]=total(elx_pxf.y[*,MinE_channels[jthchan]:MaxE_channels[jthchan]],2) ; JUST SUMMED
+    elx_pxf_val[*,jthchan]=total(elx_pxf.y[*,MinE_channels[jthchan]:MaxE_channels[jthchan]],2) ; JUST SUMMED OVER ENERGY
   elx_pxf_val_full = elx_pxf.y ; this array contains all angles and energies (in that order, same as val), to be used to compute energy spectra
   ;
   get_data,'elx_pxf_pa',data=elx_pxf_pa
@@ -382,56 +382,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ;stop
   ;
   if keyword_set(regularize) then begin
-    ; While the original data (flux, counts) in "elx_pxf" were kept intact, at their recorded times
-    ; which are the same as in "elx_pxf_sectnum", "elx_pxf_spinper" (also intact), the
-    ; angles in "spinphase", "spinphasedeg", and "elx_pxf_pa"
-    ; were changed to reflect the correct timing of the data collections. Generally
-    ; these angles do not fall at even distances from zero-crossings (centered or edged).
-    ;
-    ; The "regularize" keyword interpolates the flux to correspond to regular times, when the
-    ; sector centers were exactly at regular distances from the zero-crossings (centered).
-    ; Obviously the sector center phases are regular too, and require recalculation that is
-    ; also done here. For reference the original data are also output for plotting, retained
-    ; in their standard arrays and variables (overhead is low).
-    ;
-    ; First, perform linear/quadratic interpolation on log(flux) or log(counts) at regular spinphase angles,
-    ; CENTERED at 0. ... 90. ... 180. ... 270. ... etc, and create an interpolated angular spectrum
-    ; which presumably has bins centered exactly at 90. deg, min and max deg pitch angles.
-    ; In lieu of changing the collection times, or increasing the time resolution,
-    ; this is the best one can do with the data collected. A quadratic fit could capture the peak flux at 90deg
-    ; but under-estimates the flux near parallel/antiparallel direction and sometimes also over-estimates there too,
-    ; resulting in additional pixellation when counts are low. So default on linear fit, and can check with
-    ; quadratic with appropriate keyword if that's the preference.
-    ;
-    ; Create new array of times centered at 0, 22.5, 45., ... deg spinphase
-    ; Multiply sectnum (0:nspinsectors-1) with 360./nspinsectors to create the regularized phases (regspinphase180, or "regspinphasedeg").
-    ; Then create the times corresponding to those phases by differencing the
-    ; true spinphase (spinphase180) and the regularized phases (regspinphase180, or "regspinphasedeg") and cast it in
-    ; terms of a time difference as: (diff/360)*spinper, then subtract it from from the times to
-    ; get the new times where the flux value is needed. Then tinterpol_mxn to get the new flux at
-    ; those times as a quadratic interpolation.
-    ;
-    ; zero count strategy: set the zero flux or counts to 0.1 count level, then interpolate in log10 space,
-    ; then in regular flux or count space set back to zero those points that are below 1 count level
-    ; The 1 count/sector level must be shown in the data in units the data is (also g-factor and efficiency)
-    ;
-   ;valof1count=make_array(numchannels,/double)
-   ;for jthchan=0,numchannels-1 do begin
-   ;  ionecountflux=where(elx_pxf_val[*,jthchan] gt 0,jonecountflux) ; No longer need for cps - to be replaced below.
-   ;  if jonecountflux gt 0 then valof1count[jthchan]=min(elx_pxf_val(ionecountflux)) else valof1count[jthchan]=0.
-   ;endfor
-   ;if mytype eq 'cps' then valof1count[*]=1/(average(elx_pxf_spinper.y)/nspinsectors); For cps you know 1 count/sect regardless of energy! Done below!
-   ;valof0count=0.1*valof1count ; set zero counts or flux to this
-   ;value2check=0.2*valof1count ; check if below this after interpolation then set to zero
-   ;; same but for Max_numchannels
-   ;valof1count_full=make_array(Max_numchannels,/double)
-   ;for jthchan=0,Max_numchannels-1 do begin
-   ;  ionecountflux=where(elx_pxf_val_full[*,jthchan] gt 0,jonecountflux)
-   ;  if jonecountflux gt 0 then valof1count_full[jthchan]=min(elx_pxf_val_full(ionecountflux)) else valof1count_full[jthchan]=0.
-   ;endfor
-   ;valof0count_full=0.1*valof1count_full ; set zero counts or flux to this
-   ;value2check_full=0.2*valof1count_full ; check if below this after interpolation then set to zero
-    ;----
     regspinphase180=elx_pxf_sectnum.y*22.5 ; in degrees
     regspinphase=regspinphase180*!PI/180.
     regtimes=elx_pxf_sectnum.x-((spinphase180-regspinphase180)/360.)*elx_pxf_spinper.y
@@ -810,13 +760,13 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   endif else begin
     tt89,'elx_pos_gsm_interp',/igrf_only,newname='elx_bt89_gsm_interp',period=1.
   endelse
-
+  ;
   calc,' "radial_pos_gsm_vector"="elx_pos_gsm_interp"/ (sqrt(total("elx_pos_gsm_interp"^2,2))#threeones) '
   calc,' "radial_B_gsm_vector"=total("elx_bt89_gsm_interp"*"radial_pos_gsm_vector",2) '
   get_data,"radial_B_gsm_vector",data=radial_B_gsm_vector
   i2south=where(radial_B_gsm_vector.y gt 0,j2south)
   idir=radial_B_gsm_vector.y*0.+1 ; when Br<0 the direction is 2north and loss cone is 0-90 deg. If Br>0 then idir=-1. and loss cone is 90-180.
-
+  ;
   get_data, 'elx_pos_gsm_interp', data=datgsm_interp, dlimits=dl, limits=l
 ;  gsm_dur=(datgsm_interp.x[n_elements(datgsm_interp.x)-1]-datgsm_interp.x[0])/60.
 ;  if gsm_dur GT 100. then begin
@@ -832,7 +782,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   endif else begin
     ttrace2iono,'elx_pos_gsm_interp',newname='elx_ifoot_gsm',/km ; to north by default can be changed if needed
   endelse
-
+  ;
   get_data,'elx_pos_gsm_interp',data=elx_pos_gsm_interp
   if j2south gt 0 then begin
     idir[i2south]=-1.
@@ -855,7 +805,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     elx_ifoot_gsm.y[i2south,*]=elx_ifoot_gsm_2ionosouth.y[i2south,*]
     store_data,'elx_ifoot_gsm',data={x:elx_ifoot_gsm.x,y:elx_ifoot_gsm.y},dlim=myifoot_dlim,lim=myifoot_lim
   endif
-
+  ;
   get_data,'elx_ifoot_gsm',data=elx_ifoot_gsm, dlimits=dl, limits=l ;elx_ifoot_gsm is too short
 ;  gsm_dur=(elx_ifoot_gsm.x[n_elements(elx_ifoot_gsm.x)-1]-elx_ifoot_gsm.x[0])/60.
 ;  if gsm_dur GT 100. then begin
@@ -937,9 +887,15 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   elx_pxf_en_spec2plot_para=make_array(nhalfspinsavailable,Max_numchannels,/double)
   elx_pxf_en_spec2plot_anti=make_array(nhalfspinsavailable,Max_numchannels,/double)
   elx_pxf_en_spec2plot_perp=make_array(nhalfspinsavailable,Max_numchannels,/double)
-  for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_omni[*,jthchan]= $
-    total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)],2,/NaN)/ $
-    total(elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+  case mytype of
+    'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_omni[*,jthchan]= $ ; just total counts
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_omni[*,jthchan]= $ ; average cps between different directions
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan],2,/NaN)/(nspinsectors/2) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_omni[*,jthchan]= $ ; everything else gets scaled to domega
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)],2,/NaN)/ $
+      total(elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+  endcase
   store_data,mystring+'en_spec2plot_omni',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_spec2plot_omni, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
   calc,' "paraedgedeg" = 180.*arcsin(sqrt("elx_igrf_Btot"/"elx_ifoot_igrf_Btot"))/pival '
   get_data,"paraedgedeg",data=paraedgedeg
@@ -950,9 +906,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     elx_pxf_en_spec2plot_allowable[iparapas]=1.
   endif
   elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
-  for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_para[*,jthchan]= $
+  case mytype of
+    'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_para[*,jthchan]= $ ; just total counts here
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)
+    'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_para[*,jthchan]= $ ; just average counts over allowable look directions here
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
+      total(elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)
+  else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_para[*,jthchan]= $ ; flux scaled by solid angle here
     total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
     total(elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+  endcase
   store_data,mystring+'en_spec2plot_para',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_spec2plot_para, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
 ; ... antipas for energy spectra now
   elx_pxf_en_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+2),/double,value=!VALUES.F_NaN) ; same for all energies
@@ -961,10 +924,17 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     elx_pxf_en_spec2plot_allowable[iantipas]=1.
   endif
   elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
-  for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_anti[*,jthchan]= $
+  case mytype of
+    'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_anti[*,jthchan]= $  ; just total counts here
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)
+    'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_anti[*,jthchan]= $  ; just average counts over allowable look directions here
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
+      total(elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)
+  else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_anti[*,jthchan]= $ ; flux scaled by solid angle here
     total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
     total(elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
-  store_data,mystring+'en_spec2plot_anti',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
+  endcase
+    store_data,mystring+'en_spec2plot_anti',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
 ; ... perppas for energy spectra now
   elx_pxf_en_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+2),/double,value=!VALUES.F_NaN) ; same for all energies
   iperppas=where((reform(elx_pxf_pa_spec_pas2plot,nhalfspinsavailable*((nspinsectors/2)+2)) lt 180.-LCfptol-reform(paraedgedeg.y#arrayofones,nhalfspinsavailable*((nspinsectors/2)+2))) and $
@@ -973,9 +943,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     elx_pxf_en_spec2plot_allowable[iperppas]=1.
   endif
   elx_pxf_en_spec2plot_allowable=reform(elx_pxf_en_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+2)
-  for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_perp[*,jthchan]= $
+  case mytype of
+    'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_perp[*,jthchan]= $ ; just total counts here
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)
+    'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_perp[*,jthchan]= $ ; just average counts over allowable look directions here
+      total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
+      total(elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)
+  else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_spec2plot_perp[*,jthchan]= $  ; flux scaled by solid angle here
     total(elx_pxf_pa_spec2plot_full[*,1:(nspinsectors/2),jthchan]*elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN)/ $
     total(elx_pxf_en_spec2plot_domega[*,1:(nspinsectors/2)]*elx_pxf_en_spec2plot_allowable[*,1:(nspinsectors/2)],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+  endcase
   store_data,mystring+'en_spec2plot_perp',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_spec2plot_perp, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
   ;
   if keyword_set(regularize) then begin
@@ -992,9 +969,15 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     elx_pxf_en_reg_spec2plot_para=make_array(nhalfspinsavailable,Max_numchannels,/double)
     elx_pxf_en_reg_spec2plot_anti=make_array(nhalfspinsavailable,Max_numchannels,/double)
     elx_pxf_en_reg_spec2plot_perp=make_array(nhalfspinsavailable,Max_numchannels,/double)
-    for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_omni[*,jthchan]= $
+    case mytype of
+      'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_omni[*,jthchan]= $
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan],2,/NaN)
+      'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_omni[*,jthchan]= $
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan],2,/NaN)/((nspinsectors/2)+1)
+    else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_omni[*,jthchan]= $
       total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)],2,/NaN)/ $
       total(elx_pxf_en_spec2plot_domega[*,0:(nspinsectors/2)],2,/NaN) ; IGNORE SECTORS WITH NaNs
+    endcase
     store_data,mystring+'en_reg_spec2plot_omni',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_omni, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
     arrayofones=make_array((nspinsectors/2)+1,/double,value=1.)
 ;  select parapas for energy spectra first
@@ -1003,9 +986,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf_en_reg_spec2plot_allowable[iparapas]=1.
     endif
     elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
-    for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_para[*,jthchan]= $
-      total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
-      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+    case mytype of
+      'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_para[*,jthchan]= $ ; just total counts here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+      'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_para[*,jthchan]= $ ; just average counts over allowable look directions here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
+        total(elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+      else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_para[*,jthchan]= $ ; flux scaled by solid angle here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
+        total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+    endcase
     store_data,mystring+'en_reg_spec2plot_para',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_para, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
 ; ... antipas for energy spectra now
     elx_pxf_en_reg_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+1),/double,value=!VALUES.F_NaN) ; reset array!
@@ -1014,9 +1004,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf_en_reg_spec2plot_allowable[iantipas]=1.
     endif
     elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
-    for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_anti[*,jthchan]= $
-      total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
-      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN) 
+    case mytype of
+      'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_anti[*,jthchan]= $ ; just total counts here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+      'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_anti[*,jthchan]= $ ; just average counts over allowable look directions here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
+        total(elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN) 
+      else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_anti[*,jthchan]= $ ; flux scaled by solid angle here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
+        total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN) 
+    endcase
     store_data,mystring+'en_reg_spec2plot_anti',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
 ; ... perppas for energy spectra now
     elx_pxf_en_reg_spec2plot_allowable=make_array(nhalfspinsavailable*((nspinsectors/2)+1),/double,value=!VALUES.F_NaN) ; reset array!
@@ -1026,9 +1023,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf_en_reg_spec2plot_allowable[iperppas]=1.
     endif
     elx_pxf_en_reg_spec2plot_allowable=reform(elx_pxf_en_reg_spec2plot_allowable,nhalfspinsavailable,(nspinsectors/2)+1)
-    for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_perp[*,jthchan]= $
-      total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
-      total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+    case mytype of
+      'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_perp[*,jthchan]= $ ; just total counts here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+      'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_perp[*,jthchan]= $ ; just average counts over allowable look directions here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
+        total(elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+      else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_spec2plot_perp[*,jthchan]= $ ; flux scaled by solid angle here
+        total(elx_pxf_pa_reg_spec2plot_full[*,0:(nspinsectors/2),jthchan]*elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)/ $
+        total(elx_pxf_en_reg_spec2plot_domega[*,0:(nspinsectors/2)]*elx_pxf_en_reg_spec2plot_allowable[*,0:(nspinsectors/2)],2,/NaN)
+    endcase
     store_data,mystring+'en_reg_spec2plot_perp',data={x:elx_pxf_pa_spec_times, y:elx_pxf_en_reg_spec2plot_perp, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
   endif
   ;
@@ -1049,9 +1053,15 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     elx_pxf_en_fulspn_spec2plot_para=make_array(nfullspinsavailable,Max_numchannels,/double)
     elx_pxf_en_fulspn_spec2plot_anti=make_array(nfullspinsavailable,Max_numchannels,/double)
     elx_pxf_en_fulspn_spec2plot_perp=make_array(nfullspinsavailable,Max_numchannels,/double)
-    for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_omni[*,jthchan]= $
-      total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors],2,/NaN)/ $
-      total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    case mytype of
+      'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_omni[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan],2,/NaN)
+      'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_omni[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan],2,/NaN)/nspinsectors
+      else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_omni[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    endcase
     store_data,mystring+'en_fulspn_spec2plot_omni',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_fulspn_spec2plot_omni, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
     arrayofones=make_array(nspinsectors+2,/double,value=1.)
     ;  select parapas for energy spectra first
@@ -1061,9 +1071,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf_en_fulspn_spec2plot_allowable[iparapas]=1.
     endif
     elx_pxf_en_fulspn_spec2plot_allowable=reform(elx_pxf_en_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+2)
-    for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_para[*,jthchan]= $
-      total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
-      total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    case mytype of
+      'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_para[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)
+      'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_para[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)
+      else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_para[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)
+    endcase
     store_data,mystring+'en_fulspn_spec2plot_para',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_fulspn_spec2plot_para, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
     ; ... antipas for energy spectra now
     elx_pxf_en_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+2),/double,value=!VALUES.F_NaN) ; same for all energies
@@ -1072,9 +1089,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf_en_fulspn_spec2plot_allowable[iantipas]=1.
     endif
     elx_pxf_en_fulspn_spec2plot_allowable=reform(elx_pxf_en_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+2)
-    for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_anti[*,jthchan]= $
-      total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
-      total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    case mytype of
+      'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_anti[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)
+      'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_anti[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)
+      else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_anti[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)
+    endcase
     store_data,mystring+'en_fulspn_spec2plot_anti',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_fulspn_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
     ; ... perppas for energy spectra now
     elx_pxf_en_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+2),/double,value=!VALUES.F_NaN) ; same for all energies
@@ -1084,9 +1108,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf_en_fulspn_spec2plot_allowable[iperppas]=1.
     endif
     elx_pxf_en_fulspn_spec2plot_allowable=reform(elx_pxf_en_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+2)
-    for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_perp[*,jthchan]= $
-      total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
-      total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN) ; IGNORE FIRST AND LAST APPENDED SECTORS, WHICH ARE THERE ONLY FOR PLOTTING PURPOSES
+    case mytype of
+      'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_perp[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)
+      'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_perp[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)
+      else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_fulspn_spec2plot_perp[*,jthchan]= $
+        total(elx_pxf_pa_fulspn_spec2plot_full[*,1:nspinsectors,jthchan]*elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN)/ $
+        total(elx_pxf_en_fulspn_spec2plot_domega[*,1:nspinsectors]*elx_pxf_en_fulspn_spec2plot_allowable[*,1:nspinsectors],2,/NaN) 
+    endcase
     store_data,mystring+'en_fulspn_spec2plot_perp',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_fulspn_spec2plot_perp, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
     ;
     if keyword_set(regularize) then begin
@@ -1104,9 +1135,15 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       elx_pxf_en_reg_fulspn_spec2plot_para=make_array(nfullspinsavailable,Max_numchannels,/double)
       elx_pxf_en_reg_fulspn_spec2plot_anti=make_array(nfullspinsavailable,Max_numchannels,/double)
       elx_pxf_en_reg_fulspn_spec2plot_perp=make_array(nfullspinsavailable,Max_numchannels,/double)
-      for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_omni[*,jthchan]= $
-        total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors],2,/NaN)/ $
-        total(elx_pxf_en_fulspn_spec2plot_domega[*,0:nspinsectors],2,/NaN) ; IGNORE SECTORS WITH NaNs
+      case mytype of
+        'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_omni[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan],2,/NaN)
+        'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_omni[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan],2,/NaN)/(nspinsectors+1)
+        else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_omni[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors],2,/NaN)/ $
+          total(elx_pxf_en_fulspn_spec2plot_domega[*,0:nspinsectors],2,/NaN)
+      endcase
       store_data,mystring+'en_reg_fulspn_spec2plot_omni',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_reg_fulspn_spec2plot_omni, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
       arrayofones=make_array(nspinsectors+1,/double,value=1.)
       ;  select parapas for energy spectra first
@@ -1115,9 +1152,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
         elx_pxf_en_reg_fulspn_spec2plot_allowable[iparapas]=1.
       endif
       elx_pxf_en_reg_fulspn_spec2plot_allowable=reform(elx_pxf_en_reg_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+1)
-      for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_para[*,jthchan]= $
-        total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
-        total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      case mytype of
+        'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_para[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+        'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_para[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+          total(elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+        else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_para[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+          total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      endcase
       store_data,mystring+'en_reg_fulspn_spec2plot_para',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_reg_fulspn_spec2plot_para, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
       ; ... antipas for energy spectra now
       elx_pxf_en_reg_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+1),/double,value=!VALUES.F_NaN) ; reset array!
@@ -1126,9 +1170,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
         elx_pxf_en_reg_fulspn_spec2plot_allowable[iantipas]=1.
       endif
       elx_pxf_en_reg_fulspn_spec2plot_allowable=reform(elx_pxf_en_reg_fulspn_spec2plot_allowable,nfullspinsavailable,(nspinsectors+1))
-      for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_anti[*,jthchan]= $
-        total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
-        total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      case mytype of
+        'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_anti[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+        'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_anti[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+          total(elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+        else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_anti[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+          total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      endcase
       store_data,mystring+'en_reg_fulspn_spec2plot_anti',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_reg_fulspn_spec2plot_anti, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
       ; ... perppas for energy spectra now
       elx_pxf_en_reg_fulspn_spec2plot_allowable=make_array(nfullspinsavailable*(nspinsectors+1),/double,value=!VALUES.F_NaN) ; reset array!
@@ -1138,9 +1189,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
         elx_pxf_en_reg_fulspn_spec2plot_allowable[iperppas]=1.
       endif
       elx_pxf_en_reg_fulspn_spec2plot_allowable=reform(elx_pxf_en_reg_fulspn_spec2plot_allowable,nfullspinsavailable,nspinsectors+1)
-      for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_perp[*,jthchan]= $
-        total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
-        total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      case mytype of
+        'raw': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_perp[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+        'cps': for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_perp[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+          total(elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+        else: for jthchan=0,Max_numchannels-1 do elx_pxf_en_reg_fulspn_spec2plot_perp[*,jthchan]= $
+          total(elx_pxf_pa_reg_fulspn_spec_full[*,0:nspinsectors,jthchan]*elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)/ $
+          total(elx_pxf_en_reg_fulspn_spec2plot_domega[*,0:nspinsectors]*elx_pxf_en_reg_fulspn_spec2plot_allowable[*,0:nspinsectors],2,/NaN)
+      endcase
       store_data,mystring+'en_reg_fulspn_spec2plot_perp',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_en_reg_fulspn_spec2plot_perp, v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim
     endif
   endif
@@ -1148,12 +1206,22 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   options,'el?_p?f_en*spec*',spec=1
   ylim,'el?_p?f_en*spec*',55.,6800.,1
   case mytype of
+    'raw': begin
+      zlim,'el?_p?f_en*spec*',0.5,8.*4.e4,1
+      zlim,'el?_pef_pa_*spec2plot_ch0*',1.e1,1.e4,1
+      zlim,'el?_pef_pa_*spec2plot_ch1*',0.5e1,1.e4,1
+      zlim,'el?_pef_pa_*spec2plot_ch2*',0.2e1,1.e4,1
+      zlim,'el?_pef_pa_*spec2plot_ch3*',0.2e-1,0.2e4,1
+      myysubtitle='counts'
+      ylim,'el?_p?f_en*spec*',-0.5,15.5,0
+    end
     'cps': begin
       zlim,'el?_p?f_en*spec*',0.1,2.e5,1
       zlim,'el?_pef_pa_*spec2plot_ch0*',5.e1,5.e4,1
       zlim,'el?_pef_pa_*spec2plot_ch1*',2.e1,5.e4,1
       zlim,'el?_pef_pa_*spec2plot_ch2*',1.e1,5.e4,1
       zlim,'el?_pef_pa_*spec2plot_ch3*',1.e-1,1.e4,1
+      myysubtitle='counts/s'
     end
     'eflux': begin
       zlim,'el?_p?f_en*spec*',1e4,1e9,1
@@ -1161,6 +1229,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       zlim,'el?_pef_pa_*spec2plot_ch1*',5.e5,5.e8,1
       zlim,'el?_pef_pa_*spec2plot_ch2*',5.e5,2.5e8,1
       zlim,'el?_pef_pa_*spec2plot_ch3*',1.e5,1.e7,1
+      myysubtitle=mypxfdata_dlim.ysubtitle
     end
     'nflux': begin
       zlim,'el?_p?f_en*spec*',10,2e7,1
@@ -1168,10 +1237,12 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       zlim,'el?_pef_pa_*spec2plot_ch1*',1.e3,3.e6,1
       zlim,'el?_pef_pa_*spec2plot_ch2*',1.e2,1.e6,1
       zlim,'el?_pef_pa_*spec2plot_ch3*',1.e1,5.e3,1
+      myysubtitle=mypxfdata_dlim.ysubtitle
     end
   endcase
   ;
   ; degap interior gaps with two NaNs per gap
+  options,'el?_p?f_en*spec2plot_????','ysubtitle',myysubtitle
   if ~keyword_set(nonansingaps) then begin
     if keyword_set(fullspin) then mydt=Tspin else mydt=Tspin/2.
     tdegap,'el?_p?f_en*spec2plot_????',dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
@@ -1180,6 +1251,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
     tdeflag,mystring+'losscone','linear',/over
     tdeflag,mystring+'antilosscone','linear',/over
   endif
-;  stop
+  ;stop
   ;
 end

@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-10-08 10:46:33 -0700 (Thu, 08 Oct 2020) $
-; $LastChangedRevision: 29226 $
+; $LastChangedDate: 2020-10-22 15:05:35 -0700 (Thu, 22 Oct 2020) $
+; $LastChangedRevision: 29278 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -127,9 +127,9 @@ function mms_python_validation_ut::test_feeps_brst_electron
 end
 
 function mms_python_validation_ut::test_eis_default
-  mms_load_eis, datatype=['extof', 'phxtof'], probe=1, trange=['2015-10-16','2015-10-17']
-  py_script = ["from pyspedas import mms_load_eis", "mms_load_eis(datatype=['extof', 'phxtof'], probe=1, trange=['2015-10-16','2015-10-17'])"]
-  vars = ['mms1_epd_eis_extof_proton_flux_omni', 'mms1_epd_eis_phxtof_proton_flux_omni', 'mms1_epd_eis_extof_proton_flux_omni_spin', 'mms1_epd_eis_phxtof_proton_flux_omni_spin']
+  mms_load_eis, datatype=['extof', 'phxtof'], probe=4, trange=['2019-10-16','2019-10-17']
+  py_script = ["from pyspedas import mms_load_eis", "mms_load_eis(datatype=['extof', 'phxtof'], probe=4, trange=['2019-10-16','2019-10-17'])"]
+  vars = ['mms4_epd_eis_extof_proton_flux_omni', 'mms4_epd_eis_phxtof_proton_flux_omni', 'mms4_epd_eis_extof_proton_flux_omni_spin', 'mms4_epd_eis_phxtof_proton_flux_omni_spin']
   return, spd_run_py_validation(py_script, vars)
 end
 

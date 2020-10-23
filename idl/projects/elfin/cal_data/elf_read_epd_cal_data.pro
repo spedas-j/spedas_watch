@@ -1,5 +1,32 @@
+;+
+;PROCEDURE:
+;   elf_read_epd_cal_data
+;
+;PURPOSE:
+;   This routine retrieves and reads the epd calibration data files for ELFIN-A and ELFIN-B. 
+;   The calibration files contain information needed to calibrate epd data. This routine
+;   returns a structure with the following values
+;   epd_cal_logs = {date:date, $
+;     probe:probe, $
+;     gf:gf, $
+;     overaccumulation_factors:overaccumulation_factors, $
+;     thresh_factors:thresh_factors, $
+;     ch_efficiencies:ch_efficiencies, $
+;     ebins:ebins}
+;   The structure returned is based on the time stamp passed as a parameter.
+;
+;KEYWORDS:
+;   trange:    time range of interest [starttime, endtime] with the format
+;              ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;              ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
+;   instrument: 'epde' or 'epdi'
+;   probe:  name of probe 'a' or 'b'
+;   nodownload: set this flag to force routine to use local files
+;
+;-
 function elf_read_epd_cal_data, trange=trange, probe=probe, instrument=instrument, no_download=no_download
 
+  ; check that elfin has been initialized and that the parameters have been set
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
 
@@ -92,6 +119,7 @@ function elf_read_epd_cal_data, trange=trange, probe=probe, instrument=instrumen
     prev_ch_efficiencies=ch_efficiencies
     prev_ebins=ebins
 
+    ; now loop for the remainder of the data
     while (eof(lun) NE 1) do begin
       ; read
       readf, lun, le_string

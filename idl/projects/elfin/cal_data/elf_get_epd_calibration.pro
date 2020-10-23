@@ -25,7 +25,7 @@
 ;         elf> cal_params = elf_get_epd_calibration(probe='a', instrument='epde', trange=tr)
 ;
 ; NOTES:
-;         This routine contains some hard coded calibration values. 
+;     There are still a few hard coded variables. There is also no calibration data for epdi
 ;
 ; HISTORY:
 ;
@@ -36,6 +36,7 @@
 ;-
 function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=trange
 
+  ;check that parameters are set and initialized
   if ~keyword_set(probe) then probe='a'
   if ~keyword_set(instrument) then instrument='epde'
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin

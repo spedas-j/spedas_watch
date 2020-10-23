@@ -74,47 +74,52 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
 
   ;  Testing out code to make smoother 'kbps' lines
   ;
-  ;  if 1 then begin
+  ;  if the number of points is too large, then this takes too long
   ;
+  
   get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', data = d_gbit, al = al
 
-  gbit2 = dblarr(n_elements(d_gbit.x))
+  if n_elements(d_gbit.x) LT 50000l then begin
 
-  for i = 0, n_elements(d_gbit.x)-1 do begin
-        
-    diff = d_gbit.x - d_gbit.x[i]
-    
-    ; an hour time scale seems to be a reasonable compromise between getting
-    ; a smooth data rate plot in kbps, and catching transitions
+    gbit2 = dblarr(n_elements(d_gbit.x))
 
-    ind_lo = where(diff LE 0d and diff GT -1800d, count_lo)
-    ind_hi = where(diff GE 0d and diff LT  1800d, count_hi)
+    for i = 0, n_elements(d_gbit.x)-1 do begin
 
-    if count_hi LT 3 or count_lo LT 3 then begin
+      diff = d_gbit.x - d_gbit.x[i]
 
-      gbit2[i] = d_gbit.y[i]
+      ; an hour time scale seems to be a reasonable compromise between getting
+      ; a smooth data rate plot in kbps, and catching transitions
 
-    endif else begin
+      ind_lo = where(diff LE 0d and diff GT -1800d, count_lo)
+      ind_hi = where(diff GE 0d and diff LT  1800d, count_hi)
 
-      lf_par = linfit(d_gbit.x[[ind_lo,ind_hi]], d_gbit.y[[ind_lo,ind_hi]])
+      if count_hi LT 3 or count_lo LT 3 then begin
 
-      gbit2[i] = lf_par[0] + lf_par[1] * d_gbit.x[i]
+        gbit2[i] = d_gbit.y[i]
 
-    endelse
+      endif else begin
 
-  endfor
+        lf_par = linfit(d_gbit.x[[ind_lo,ind_hi]], d_gbit.y[[ind_lo,ind_hi]])
 
-  store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', $
-    data = {x:d_gbit.x, y:gbit2}, lim = al
+        gbit2[i] = lf_par[0] + lf_par[1] * d_gbit.x[i]
 
-  deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', nsmooth = 6
+      endelse
 
-  get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth_ddt', dat = d_ddt
+    endfor
 
-  if size(/type, d_ddt) EQ 8 then begin
+    store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', $
+      data = {x:d_gbit.x, y:gbit2}, lim = al
 
-    store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps_smooth', $
-      dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
+    deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', nsmooth = 6
+
+    get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth_ddt', dat = d_ddt
+
+    if size(/type, d_ddt) EQ 8 then begin
+
+      store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps_smooth', $
+        dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
+
+    endif
 
   endif
 

@@ -24,10 +24,10 @@
 ; EXAMPLES:
 ;         elf> cal_params = elf_get_epd_calibration(probe='a', instrument='epde')
 ;
-; NOTES:
-;         This routine will download the latest calibration file from the server.
-;         If no server is available or no_download is set the user can use the routine
-;         elf_get_epd_calibration
+; NOTES:  This routine is obsolete and has been replaced by elf_read_epd_cal_data. Originally this
+;         routine was written to read the initial calibration data. The calibration data has now been 
+;         split into 2 different files - one containing calibration data, the other containing operational
+;         data.
 ;
 ; HISTORY:
 ;

@@ -5,6 +5,7 @@
 ;PURPOSE:
 ;   Calibrate EPD raw data (counts/sector) into calibrated products.
 ;   Supported product types are:
+;   - 'raw': raw data from epd packets
 ;   - 'cps': counts per second [counts/s] in 16 ADC pulse-height channels
 ;   - 'nflux': differential-directional number flux [#/cm^2-s-str-MeV] in 16 energy channels
 ;   - 'eflux': differential-directional energy flux [MeV/cm^2-s-str-MeV] in 16 energy channels
@@ -12,6 +13,9 @@
 ;KEYWORDS:
 ;   tplotname: name of tplot variable containing epd data. tvars include ela_pef, ela_pif, 
 ;              ela_pes, ela_pis (and same for elb)
+;   trange:    time range of interest [starttime, endtime] with the format
+;              ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;              ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
 ;   type: type of calibrated data cps, nflux, eflux
 ;   probe:  name of probe 'a' or 'b'
 ;   nodownload: set this flag to force routine to use local files 
@@ -38,7 +42,7 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_
   if strpos(tplotname, 'pif') GE 0 then instrument='epdi'
   if undefined(type) then type = 'eflux'
 
-  ;epd_cal = elf_read_epd_calfile(probe=probe, instrument=instrument, no_download=no_download)
+  ; check that time range variable is correctly set
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
     return
@@ -47,6 +51,8 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_
     then tr = timerange(trange) $
   else tr = timerange()
 
+  ; based on a probe, instrument (epde or epdi), and time range retrieve the data needed to 
+  ; calibrate the epd instrument
   epd_cal = elf_get_epd_calibration(probe=probe, instrument=instrument, trange=trange)
   if size(epd_cal, /type) NE 8 then begin
      dprint, dlevel = 1, 'EPD calibration data was not retrieved. Unable to calibrate the data.'

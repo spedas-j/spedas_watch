@@ -1,7 +1,7 @@
 ;
 ;  $LastChangedBy: pulupalap $
-;  $LastChangedDate: 2020-04-22 17:55:51 -0700 (Wed, 22 Apr 2020) $
-;  $LastChangedRevision: 28601 $
+;  $LastChangedDate: 2020-10-22 17:05:28 -0700 (Thu, 22 Oct 2020) $
+;  $LastChangedRevision: 29280 $
 ;  $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/l1/l1_dfb_hk/spp_fld_dfb_hk_load_l1.pro $
 ;
 
@@ -22,7 +22,7 @@ pro spp_fld_dfb_hk_load_l1, file, prefix = prefix, varformat = varformat
   options, prefix + 'edc_gain', 'psym', 7
   options, prefix + 'edc_gain', 'symsize', 0.75
   options, prefix + 'edc_gain', 'panel_size', 0.35
-  options, prefix + 'edc_gain', 'ytitle', 'DFB EDC Gain'
+  options, prefix + 'edc_gain', 'ytitle', 'DFB!CEDC!CGain'
   options, prefix + 'edc_gain', 'ysubtitle', ''
   options, prefix + 'edc_gain', 'datagap', 120
 

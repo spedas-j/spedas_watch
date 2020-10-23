@@ -1,5 +1,29 @@
+;+
+;PROCEDURE:
+;   elf_get_epd_calibration_log
+;
+;PURPOSE:
+;   This routine reads the epd calibration logs for ELFIN-A and ELFIN-B. The calibration logs
+;   contain information from operations such as threshold and efficiency values. This routine 
+;   returns a structure with the following values
+;   epd_cal_logs = {cal_date:time_double(this_data[0]), $
+;                   probe:probe, $
+;                   epd_thresh_factors:float(this_data[24:25]), $
+;                   epd_ch_efficiencies:float(this_data[108:123]), $
+;                   epd_ebins:float(this_data[74:89])}
+;
+;KEYWORDS:
+;   trange:    time range of interest [starttime, endtime] with the format
+;              ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;              ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
+;   instrument: 'epde' or 'epdi'
+;   probe:  name of probe 'a' or 'b'
+;   nodownload: set this flag to force routine to use local files
+;
+;-
 function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=instrument, no_download=no_download
 
+  ; check that the elfin system variable exists. If not run the initialization routine
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
 
@@ -26,6 +50,7 @@ function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=ins
 
   if keyword_set(no_download) then no_download=1 else no_download=0
 
+  ; retrieve the calibration log file from the server
   if no_download eq 0 then begin
     ; NOTE: directory is temporarily password protected. this will be
     ;       removed when data is made public.
@@ -61,6 +86,7 @@ function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=ins
     ; read header
     readf, lun, le_string
     dtypes=strsplit(le_string, ',', /extract)
+    ; read the remainder of the file
     while (eof(lun) NE 1) do begin
       readf, lun, le_string
       if le_string eq '' then continue
@@ -74,6 +100,7 @@ function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=ins
     close, lun
     free_lun, lun
     
+    ; create the calibration log structure
     if undefined(this_data) && undefined(prev_data) then begin
        dprint, 'No calibration data was found for: ' +trange[0] 
        return, -1
