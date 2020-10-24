@@ -25,8 +25,8 @@
 ;       PANS:      Returns the names of any tplot variables created.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-10-13 15:50:39 -0700 (Tue, 13 Oct 2020) $
-; $LastChangedRevision: 29248 $
+; $LastChangedDate: 2020-10-23 14:18:06 -0700 (Fri, 23 Oct 2020) $
+; $LastChangedRevision: 29283 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mvn_mars_localtime.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -37,6 +37,7 @@ pro mvn_mars_localtime, result=result
 
   from_frame = 'MAVEN_MSO'
   to_frame = 'IAU_MARS'
+  chk_frame = mvn_frame_name('spacecraft')
 
   mk = spice_test('*', verbose=-1)
   ok = max(stregex(mk,'maven_v[0-9]{2}.tf',/subexpr,/fold_case)) gt (-1)
@@ -52,7 +53,7 @@ pro mvn_mars_localtime, result=result
 ; Sun is at MSO coordinates of [X, Y, Z] = [1, 0, 0]
 
   s_mso = [1D, 0D, 0D] # replicate(1D, n_elements(time))
-  s_geo = spice_vector_rotate(s_mso, time, from_frame, to_frame)
+  s_geo = spice_vector_rotate(s_mso, time, from_frame, to_frame, check=chk_frame)
   s_lon = reform(atan(s_geo[1,*], s_geo[0,*])*!radeg)
   s_lat = reform(asin(s_geo[2,*])*!radeg)
   

@@ -10,10 +10,10 @@
 ;
 ;   LEVEL:          Specifies the level of FIELDS files to be loaded.
 ;                   Level = 2 is the default value.
-;                   
+;
 ;                   Level 2 and Level 3 data products from PSP/FIELDS are
 ;                   public. This routine is also used by FIELDS SOC to load
-;                   the non-public Level 1 and Level 1b data files, which are 
+;                   the non-public Level 1 and Level 1b data files, which are
 ;                   used for production of the Level 2s.
 ;
 ;   NO_LOAD:        Don't load the CDF files (i.e., download only).
@@ -21,14 +21,14 @@
 ;   NO_SERVER:      Disable contact with remote server. Can be used to load
 ;                   files which are already downloaded on a local machine,
 ;                   avoiding check for more recent files on the server.
-;                   
+;
 ;   NO_STAGING:     Early in the PSP mission, some FIELDS CDF files were
-;                   stored in a '/staging/' directory on the server at 
+;                   stored in a '/staging/' directory on the server at
 ;                   UCB/SSL. Setting this option points the load routine
-;                   away from these directories, which were retired in 
+;                   away from these directories, which were retired in
 ;                   mid-2020.
-;                   
-;                   The wrapper routine PSP_FLD_LOAD sets NO_STAGING=1 by 
+;
+;                   The wrapper routine PSP_FLD_LOAD sets NO_STAGING=1 by
 ;                   default, and by the end of 2020 this will be the
 ;                   default option for SPP_FLD_LOAD as well.
 ;
@@ -58,7 +58,8 @@
 ;   Other keywords:
 ;
 ;   DOWNSAMPLE:     Used in FIELDS L1 -> L2 data processing of downsampled
-;                   MAG data. No effect on L2/L3 data.
+;                   MAG data. No effect on L2/L3 data, or other (non-MAG)
+;                   L1 data.
 ;
 ;   FILEPREFIX:     Manually set the subdirectory where this routine
 ;                   will search for FIELDS data files.
@@ -81,9 +82,9 @@
 ;                   variables created by this routine.
 ;
 ; EXAMPLE:
-;   
+;
 ;   IDL> timespan, '2019-04-03', 4
-;   IDL> spp_fld_load, type = 'mag_RTN_4_Sa_per_Cyc' 
+;   IDL> spp_fld_load, type = 'mag_RTN_4_Sa_per_Cyc'
 ;
 ;   For more examples, see SPP_FLD_EXAMPLES.
 ;
@@ -91,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-10-20 13:28:22 -0700 (Tue, 20 Oct 2020) $
-; $LastChangedRevision: 29264 $
+; $LastChangedDate: 2020-10-22 22:20:56 -0700 (Thu, 22 Oct 2020) $
+; $LastChangedRevision: 29281 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -117,13 +118,13 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   ; By default, set level = 2. Level 2 data are lowest level public data
   ; from PSP/FIELDS.
   ;
-  
+
   if not keyword_set(level) then level = 2
 
   ;
   ; Automatically set Level = 1 for some Level 1 data types.
   ;
-  
+
   l1_types = ['rfs_lfr_auto', 'rfs_hfr_auto', $
     'rfs_hfr_cross', 'rfs_lfr_hires', $
     'dfb_ac_bpf1', 'dfb_ac_bpf2', $
@@ -159,13 +160,13 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   ; If the type keyword is set to DFB AC or DC spectra or cross spectra,
   ; without specifying which particular data source, then SPP_FLD_LOAD
   ; will look for all possible types of spectra. Example:
-  ; 
+  ;
   ; timespan, '2020-01-20'
-  ; 
+  ;
   ; spp_fld_load, type = 'dfb_ac_spec_dV34hg  ; Load dV34hg spectra only
   ; spp_fld_load, type = 'dfb_ac_spec'        ; Load all available AC spectra
   ;
-  
+
   if type EQ 'dfb_dc_spec' or type EQ 'dfb_ac_spec' or $
     type EQ 'dfb_dc_xspec' or type EQ 'dfb_ac_xspec' then begin
 
@@ -223,9 +224,9 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   ; If the type keyword is set to DFB AC or DC bandpass filter data,
   ; without specifying which particular data source, then SPP_FLD_LOAD
   ; will look for all possible types of bandpass files. Example:
-  ; 
+  ;
   ; timespan, '2020-01-20'
-  ; 
+  ;
   ; spp_fld_load, type = 'dfb_ac_bpf_dV34hg  ; Load dV34hg spectra only
   ; spp_fld_load, type = 'dfb_ac_bpf'        ; Load all available AC spectra
   ;
@@ -270,9 +271,9 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   ;
   ; By default, FIELDS files use 1 file per day, with the day specified in the
   ; file name as YYYYMMDD.
-  ; 
+  ;
   ; Some large volume data types, specified below, use 4 files per day, with
-  ; the time specified in the file name as YYYYMMDDhh, where 
+  ; the time specified in the file name as YYYYMMDDhh, where
   ; hh = 00, 06, 12, or 18.
   ;
 
@@ -280,7 +281,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
   ;
   ; Specify subdirectory where FIELDS data files are stored.
-  ; 
+  ;
   ; See notes in header on the FILEPREFIX and NO_STAGING keywords.
   ;
 
@@ -295,7 +296,14 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   if n_elements(no_staging) GT 0 then $
     fileprefix = str_sub(fileprefix, '/staging/', '/')
 
-  ; TODO: consolidate all these options, reduce redundant lines
+  ;
+  ; Most FIELDS data products are 1 file / day.
+  ; Some larger volume data products are divided into four six-hour
+  ; segments per day, and need the "resolution" and "pathformat"
+  ; keywords altered.
+  ;
+  ; TODO: consolidate all these IF statements, reduce redundant lines
+  ;
 
   if not keyword_set(pathformat) then begin
     if level EQ 3 then begin
@@ -371,7 +379,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   ; and SCMelfhg files.  The below string substitution makes sure the load
   ; routine is addressing this correctly.
   ;
-  
+
   if (strmid(type, 0, 12) EQ 'dfb_dc_xspec') or (strmid(type, 0, 12) EQ 'dfb_ac_xspec') and level EQ 2 then begin
 
     pathformat = 'DIR' + pathformat
@@ -396,18 +404,33 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
   endif
 
+  ;
+  ; Add the prefix (URL to remote sever directory), and substitute TYPE
+  ; with the actual file type.
+  ;
+
   pathformat = str_sub(pathformat,'TYPE',type)
   pathformat = fileprefix+pathformat
 
+  ;
+  ; Some type names include 'ss' (e.g. 'rfs_hfr_cross'), which we have to
+  ; escape so the download routine does not interpret it as seconds in
+  ; a time format string.
+  ;
 
-  ; example location: http://sprg.ssl.berkeley.edu/data/psp/data/sci/fields/l2/mag_RTN/2019/04/psp_fld_l2_mag_RTN_20190401_v01.cdf
-  
-  pathformat = str_sub(pathformat,'ss', 's\s' )    ; replace ss with escape so that ss will not be converted to seconds
+  pathformat = str_sub(pathformat,'ss', 's\s' )
+
+  ;
+  ; Level 1.5 = Level 1b data products, stored in the "/l1b/" folder
+  ; on the server.
+  ;
 
   if level EQ 1.5 then pathformat = str_sub(pathformat,'/l1/', '/l1b/' )
   if level EQ 1.5 then pathformat = str_sub(pathformat,'_l1_', '_l1b_' )
 
+  ;
   ; Special case for loading longterm ephemeris files
+  ;
 
   if n_elements(longterm_ephem) GT 0 then begin
 
@@ -415,6 +438,10 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
     pathformat = str_sub(pathformat, 'YYYYMMDD', $
       '20180812_090000_20250831_090000')
+
+    ;
+    ; Solar Orbiter longterm ephemeris
+    ;
 
     if pathformat.Contains('solo') then begin
 
@@ -425,11 +452,21 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
   endif
 
+  ;
+  ; The routine can optionally download specific versions of the CDF files.
+  ; By default the latest version if loaded.
+  ;
+
   if n_elements(version) EQ 1 then begin
 
-    pathformat = str_sub(pathformat, 'v??', 'v' + string(version, format = '(I02)'))
+    pathformat = str_sub(pathformat, 'v??', $
+      'v' + string(version, format = '(I02)'))
 
   endif
+
+  ;
+  ; Retrieve files based on the path format.
+  ;
 
   files = spp_file_retrieve(key='FIELDS',pathformat,trange=trange,source=src,$
     /last_version,daily_names=daily_names,/valid_only,$
@@ -445,9 +482,23 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   if not keyword_set(no_load) then begin
     if level EQ 1 then begin
 
+      ;
+      ; Generic routine for loading L1s. This is a wrapper routine which
+      ; calls data-type specific routines in the SPP/FIELDS/l1 subdirectory
+      ; in SPEDAS.
+      ;
+
       spp_fld_load_l1, files, varformat = varformat, downsample = downsample
 
     endif else begin
+
+      ;
+      ; Level 2 and Level 3 files are loaded with the default SPEDAS
+      ; cdf2tplot routine. RFS has an instrument-specific routine--this is
+      ; because the large number of variables included in the RFS data files
+      ; make them slow to load without some pre-processing to avoid attempts
+      ; to load variables with zero records.
+      ;
 
       if strmatch(type,'rfs_?fr') then begin
 
@@ -458,17 +509,14 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
         if n_elements(varformat) GT 0 then begin
           cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/load_labels
         endif else begin
-          cdf2tplot,files,prefix=tname_prefix,/all, /load_labels
+          cdf2tplot,files,prefix=tname_prefix,/all,/load_labels
         endelse
 
       endelse
 
-      ;      if strmatch(type,'rfs_?fr') then begin
-      ;        dprint,'Modifying limits'
-      ;        zlim,'*psp_fld_l2_rfs_?fr_*_V?V?',1e-16,1e-14,1 , /default
-      ;        ylim,'*psp_fld_l2_rfs_hfr_*_V?V?',1.1e6,22e6,1   , /default
-      ;        ylim,'*psp_fld_l2_rfs_lfr_*_V?V?',1e4,2e6,1   , /default
-      ;      endif
+      ;
+      ; Set TPLOT plotting options for specific data types
+      ;
 
       if strmatch(type,'mag_*') then begin
 
@@ -584,15 +632,40 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
         options,'psp_fld_l3_merged_scam_mag_range', 'ytitle', 'SCaM!CMAG Range'
         options,'psp_fld_l3_merged_scam_mag_offset_SC', 'ytitle', 'SCaM!CMAG Offset'
 
-
       end
+
+      ;
+      ; Quality flags
+      ; 
+      ; From the CDF metadata:
+      ; 
+      ; FIELDS quality flags. This is a bitwise variable, meaning that
+      ; multiple flags can be set for a single time, by adding flag values.
+      ; Current flagged values are:
+      ;   1: FIELDS antenna bias sweep,
+      ;   2: PSP thruster firing,
+      ;   4: SCM Calibration,
+      ;   8: PSP rotations for MAG calibration (MAG rolls),
+      ;  16: FIELDS MAG calibration sequence,
+      ;  32: SWEAP SPC in electron mode,
+      ;  64: PSP Solar limb sensor (SLS) test.
+      ; 128: PSP spacecraft is off umbra pointing.
+      ; 
+      ; A value of zero corresponds to no set flags.
+      ; 
+      ; These plot options set up the BITPLOT routine to display the flags
+      ; individually, on separate lines in a single TPLOT panel. 
+      ; 
+      ; The flags loaded from a L2/L3 filesare at a default resolution of 1 
+      ; minute. The routine ??? will filter TPLOT variables based on these
+      ; quality flags.
+      ;
 
       if (tnames('psp_fld_l?_quality_flags'))[0] NE '' then begin
 
         options, 'psp_fld_l?_quality_flags', 'tplot_routine', 'bitplot'
-
         options, 'psp_fld_l?_quality_flags', 'numbits', 8
-        options, 'psp_fld_l?_quality_flags', 'yticks', 9 ; numbits + 1
+        options, 'psp_fld_l?_quality_flags', 'yticks', 9
 
         options, 'psp_fld_l?_quality_flags', 'psyms', [2]
 
@@ -606,13 +679,11 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
         options, 'psp_fld_l?_quality_flags', 'ytitle', $
           'Quality Flags'
 
-
         options, 'psp_fld_l?_quality_flags', 'colors', $
           [0,1,2,6]
 
         options, 'psp_fld_l?_quality_flags', 'yticklen', 1
         options, 'psp_fld_l?_quality_flags', 'ygridstyle', 1
-
         options, 'psp_fld_l?_quality_flags', 'yminor', 1
 
       endif
