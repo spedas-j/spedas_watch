@@ -417,8 +417,8 @@ pro spp_fld_dfb_spec_load_l1, file, prefix = prefix, varformat = varformat
 
         options, prefix + dfb_spec_name_i, 'ysubtitle', 'Freq [Hz]'
 
-        if is_ac then options, prefix + dfb_spec_name_i, 'datagap', 3600d else $
-          options, prefix + dfb_spec_name_i, 'datagap', 3600d
+        if is_ac then options, prefix + dfb_spec_name_i, 'datagap', 600d else $
+          options, prefix + dfb_spec_name_i, 'datagap', 600d
 
         if tnames(prefix + 'src_sel_string') NE '' then begin
 
@@ -457,7 +457,7 @@ pro spp_fld_dfb_spec_load_l1, file, prefix = prefix, varformat = varformat
       ; Set ytitle of TPLOT variable
 
       options, prefix + dfb_spec_name_i, 'ytitle', $
-        ac_dc_string + ' SP' + $
+        ac_dc_string + '!CSP' + $
         string(spec_ind) + '!C' + strupcase(dfb_spec_name_ytitle)
 
     endfor

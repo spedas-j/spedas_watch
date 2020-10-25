@@ -15,7 +15,7 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
       options, name, 'ynozero', 1
       ;options, name, 'horizontal_ytitle', 1
       options, name, 'colors', [6]
-      options, name, 'ytitle', 'DCB Event!C' + name.Remove(0, prefix.Strlen()-1)
+      options, name, 'ytitle', 'DCB Evnt!C' + name.Remove(0, prefix.Strlen()-1)
 
       options, name, 'ysubtitle', ''
 
@@ -39,6 +39,15 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
   burst_codes = [0x3A, 0x2B, 0x2A]
   burst_colors = [2,4,6]
 
+  options, 'spp_fld_dcb_events_EVNTCODE', 'yrange', [0, 256]
+  options, 'spp_fld_dcb_events_EVNTCODE', 'ystyle', 1
+
+  options, 'spp_fld_dcb_events_EVNTCODE', 'yticks', 4
+
+  options, 'spp_fld_dcb_events_EVNTCODE', 'yticklen', 1
+
+  options, 'spp_fld_dcb_events_EVNTCODE', 'ygridstyle', 1
+
   foreach b, burst_types, i do begin
 
     ind = where(d_code.y EQ burst_codes[i], count)
@@ -55,7 +64,8 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
       store_data, b + '_TIME_COLLECT_TO_WRITE', $
         dat = {x:d_code.x[ind], y:(burst_write_met - burst_collect_met)>1}
 
-      options, b + '_TIME_COLLECT_TO_WRITE', 'ytitle', strmid(b,strlen(prefix)) + '!CCOLLECT!CTO WRITE'
+      options, b + '_TIME_COLLECT_TO_WRITE', 'ytitle', $
+        repstr(strmid(b,strlen(prefix)),'_','!C') + '!CCOLLECT!CTO WRITE'
       options, b + '_TIME_COLLECT_TO_WRITE', 'ysubtitle', '[Seconds]'
       options, b + '_TIME_COLLECT_TO_WRITE', 'psym', 1
       options, b + '_TIME_COLLECT_TO_WRITE', 'symsize', 0.65
@@ -77,7 +87,7 @@ pro spp_fld_dcb_events_load_l1, file, prefix = prefix, varformat = varformat
         y:dblarr(n_elements(burst_collect_met)) + 0.5d}
 
       options, b + '_COLLECT_TIME', 'ytitle', $
-        strmid(b,strlen(prefix)) + '!CCOLLECT'
+        repstr(strmid(b,strlen(prefix)),'_','!C') + '!CCOLLECT'
       options, b + '_COLLECT_TIME', 'psym', 1
       options, b + '_COLLECT_TIME', 'symsize', 0.65
       options, b + '_COLLECT_TIME', 'colors', burst_colors[i]

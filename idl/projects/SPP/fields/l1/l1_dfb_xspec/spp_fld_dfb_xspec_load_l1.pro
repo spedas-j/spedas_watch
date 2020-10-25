@@ -51,6 +51,8 @@ pro spp_fld_dfb_xspec_load_l1, file, prefix = prefix, varformat = varformat
   options, prefix + ['enable','gain','bin'], 'ysubtitle', ''
   options, prefix + ['enable','gain','bin'], 'panel_size', 0.5
 
+  options, prefix + ['concat', 'src?', 'enable','gain','bin','navg'], 'datagap', 600d
+
   get_data, prefix + 'navg', data = dat_navg
 
   if size(/type, dat_navg) NE 8 then return
