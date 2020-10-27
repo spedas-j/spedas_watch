@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-10-22 22:20:56 -0700 (Thu, 22 Oct 2020) $
-; $LastChangedRevision: 29281 $
+; $LastChangedDate: 2020-10-25 21:27:12 -0700 (Sun, 25 Oct 2020) $
+; $LastChangedRevision: 29287 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -678,6 +678,8 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
         options, 'psp_fld_l?_quality_flags', 'ytitle', $
           'Quality Flags'
+
+        options, 'psp_fld_l?_quality_flags', 'ysubtitle', ' '
 
         options, 'psp_fld_l?_quality_flags', 'colors', $
           [0,1,2,6]

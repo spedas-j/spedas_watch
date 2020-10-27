@@ -1,5 +1,5 @@
 ;+
-;  Function elf_get_authorization
+;  Function: elf_get_authorization
 ;
 ;  This function returns a structure that contains the user_name and password
 ;  for accessing elfin data. 
@@ -8,6 +8,8 @@
 ;  Note this function is only necessary for ELFIN data that is not yet public.
 ;  This procedure will define the location of data files and the data server.
 ;  This procedure is intended to be called from within the "ELF_INIT" procedure.
+;  
+;  The authorization file is found !elf.local_data_dir  (~\data\elfin)
 ;
 ;  KEYWORDS
 ;     none

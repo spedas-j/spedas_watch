@@ -1,14 +1,18 @@
 ;+
 ;NAME:
 ; elf_set_verbose
+;
 ;PURPOSE:
 ; Sets verbose level in !elf.verbose and in tplot_options
+; 
 ;CALLING SEQUENCE:
 ; elf_set_verbose, vlevel
+; 
 ;INPUT:
 ; vlevel = a verbosity level, if not set then !elf.verbose is used
 ;          (this is how you would propagate the !elf.verbose value
 ;          into tplot options)
+;          
 ;HISTORY:
 ; 21-aug-2012, jmm, jimm@ssl.berkeley.edu
 ; 12-oct-2012, jmm, Added this comment to test SVN

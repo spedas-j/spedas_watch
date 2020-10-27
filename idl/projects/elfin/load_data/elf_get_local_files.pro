@@ -4,7 +4,7 @@
 ;
 ;Purpose:
 ;  Search for local ELFIN files in case a list cannot be retrieved from the
-;  remote server.  Returns a sorted list of file paths.
+;  remote server. Returns a sorted list of file paths.
 ;
 ;Calling Sequence:
 ;
@@ -18,6 +18,12 @@
 ;  level:  (string) Data processing level, e.g. 'l1'
 ;  trange:  (string/double) Two element time range, e.g. ['2015-06-22','2015-06-23']
 ;  datatype:  (string) Optional datatype specification, e.g. 'pos'
+;  cdf_version: not yet implemented
+;  latest_version: not yet implemented
+;  min_version: not yet implemented
+;  mirror: not yet implemented
+;  pred: set this keyword if you want predicted state data. the default for state data is 
+;        definitive
 ;
 ;Output:
 ;  return value:  Sorted string array of file paths, if successful; 0 otherwise

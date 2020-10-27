@@ -1,3 +1,36 @@
+;+
+; PROCEDURE:
+;         elf_get_phase_delay
+;
+; PURPOSE:
+;         This routine will download and retrieve the phase delay values for a given
+;         time range. All values in the file are returned in a structure of arrays.
+;         phase_delay = { $
+;            starttimes:starttimes, $
+;              endtimes:endtimes, $
+;              tspin:tspin, $
+;              sect2add:dsect2add, $
+;              phang2add:dphang2add, $
+;              ticksconfig:ticksconfig, $
+;              lastestmediansectr:latestmediansectr, $
+;              latestmedianphang:latestmedianphang, $
+;              chisq:chisq, $
+;              attunc:attunc, $
+;              badflag:badflag, $
+;              HQflag:HQflag, $
+;              minpa:minpa }
+;
+;
+; KEYWORDS:
+;         trange:       time range of interest [starttime, endtime] with the format
+;                       ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;                       ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
+;         probe:        'a' or 'b'
+;         no_download:  set this flag to search for the file on your local disk
+;         hourly:       set this flag to find the nearest science zone within an hour of the
+;                       trange
+;
+;-
 function elf_get_phase_delays, no_download=no_download, trange=trange, probe=probe, instrument=instrument
 
   defsysv,'!elf',exists=exists

@@ -10,7 +10,7 @@ Function elf_config_filedir, app_query = app_query, _extra = _extra
     return, app_user_dir('elf', $; AuthorDirname
       'elf Configuration Process', $; AuthorDesc
       'elf_config', $; AppDirname
-      'e;f configuration Directory', $; AppDesc
+      'elf configuration Directory', $; AppDesc
       readme_txt, $; AppReadmeText
       1, $ ;AppReadmeVersion
       /restrict_os)

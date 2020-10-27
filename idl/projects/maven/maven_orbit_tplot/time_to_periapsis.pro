@@ -31,14 +31,16 @@
 ;
 ;       RESULT:        Named variable to hold the result structure.
 ;
+;       VERBOSE:       Verbosity level.  See dprint.pro.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-02-24 11:07:39 -0800 (Sun, 24 Feb 2019) $
-; $LastChangedRevision: 26696 $
+; $LastChangedDate: 2020-10-26 15:28:30 -0700 (Mon, 26 Oct 2020) $
+; $LastChangedRevision: 29295 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/time_to_periapsis.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
-pro time_to_periapsis, h, time=tref, result=dat
+pro time_to_periapsis, h, time=tref, result=dat, verbose=verbose
 
   @maven_orbit_common
 
@@ -52,6 +54,8 @@ pro time_to_periapsis, h, time=tref, result=dat
 
   if keyword_set(tref) then tref = time_double(tref[0]) else tref = systime(/utc,/sec)
 
+  if not keyword_set(verbose) then verbose=0
+
 ; Load ephemeris (if necessary)
 
   R_m = 3389.50D  ; volumetric mean radius of Mars
@@ -60,13 +64,13 @@ pro time_to_periapsis, h, time=tref, result=dat
 
   if (size(time,/type) ne 5) then begin
     timespan, tsp
-    maven_orbit_tplot, /loadonly, /shadow, datum='ell', success=ok
+    maven_orbit_tplot, /loadonly, /shadow, datum='ell', verbose=verbose, success=ok
     if (not ok) then return
   endif
 
   if ((tsp[0] lt min(time)) or (tsp[1] gt max(time))) then begin
     timespan, tsp
-    maven_orbit_tplot, /loadonly, /shadow, datum='ell', success=ok
+    maven_orbit_tplot, /loadonly, /shadow, datum='ell', verbose=verbose, success=ok
     if (not ok) then return
     if ((tsp[0] lt min(time)) or (tsp[1] gt max(time))) then begin
       print,"Ephemeris end time: " + time_string(max(time))
@@ -78,14 +82,14 @@ pro time_to_periapsis, h, time=tref, result=dat
 
   if (datum ne 'ellipsoid') then begin
     timespan, tsp
-    maven_orbit_tplot, /loadonly, /shadow, datum='ell', success=ok
+    maven_orbit_tplot, /loadonly, /shadow, datum='ell', verbose=verbose, success=ok
     if (not ok) then return
   endif
 
   get_data,'alt',data=alt,index=j
   if (j eq 0) then begin
     timespan, tsp
-    maven_orbit_tplot, /loadonly, /shadow, datum='ell', success=ok
+    maven_orbit_tplot, /loadonly, /shadow, datum='ell', verbose=verbose, success=ok
     if (not ok) then return
     get_data,'alt',data=alt,index=j
     if (j eq 0) then begin

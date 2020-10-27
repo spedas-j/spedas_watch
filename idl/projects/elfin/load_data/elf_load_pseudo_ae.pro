@@ -1,3 +1,4 @@
+; this routine is obsolete and has been replaced by elf_load_proxy_ae
 pro elf_load_pseudo_ae, no_download=no_download, trange=trange, smooth=smooth, nsmooth=nsmooth
 
   defsysv,'!elf',exists=exists

@@ -18,6 +18,8 @@
 ;  Settings  in this file will be overridden by settings in the environment.
 ;
 ;  KEYWORDS
+;     colortable  - sets the color table for spd_graphics_config. this is not
+;                   set if the no_color_setup keyword is used
 ;     no_color_setup   added to prevent cronjob to crash, hfrey, 2007-02-10
 ;
 ;  Author:  Davin Larson Nov 2006
@@ -60,9 +62,6 @@ pro elf_config, colortable=colortable, no_color_setup=no_color_setup
     !elf.remote_data_dir = 'ftp://themis-data.igpp.ucla.edu/themis/data/elfin/'
   !elf.remote_data_dir = spd_addslash(!elf.remote_data_dir)
 
-;  if getenv('ROOT_DATA_DIR') ne '' then $
-;    !elf.LOCAL_DATA_DIR = spd_addslash(getenv('ROOT_DATA_DIR'))+'elfin/'
-
   ; Settings of environment variables can override elf_config
   if getenv('ELF_DATA_DIR') ne '' then $
     !elf.local_data_dir = getenv('ELF_DATA_DIR')
@@ -104,9 +103,6 @@ pro elf_config, colortable=colortable, no_color_setup=no_color_setup
   ; Some other useful options:
   tplot_options,window=0            ; Forces tplot to use only window 0 for all time plots
   tplot_options,'wshow',1           ; Raises tplot window when tplot is called
-  ;If(!elf.verbose Eq 0) Then tplot_options, 'verbose', 0 $ ;turn off default to verbose if !elf.verbose is zero, jmm, 30-sep-2009
-  ;Else tplot_options,'verbose',1         ; Displays some extra messages in tplot (e.g. When variables get created/altered)
-  ;tplot_options,'psym_lim',100      ; Displays symbols if less than 100 point in panel
   tplot_options,'ygap',.5           ; Set gap distance between tplot panels.
   tplot_options,'lazy_ytitle',1     ; breaks "_" into carriage returns on ytitles
   tplot_options,'no_interp',1       ; prevents interpolation in spectrograms (recommended)

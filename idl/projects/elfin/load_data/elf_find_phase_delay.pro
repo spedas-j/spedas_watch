@@ -1,3 +1,25 @@
+;+
+; PROCEDURE:
+;         elf_find_phase_delay
+;
+; PURPOSE:
+;         This routine will retrieve all the phase delay values. The routine
+;         searches through the time stamped phase delay values to find the closest 
+;         science zone. A structure is returned
+;           phase_delay={dsect2add:dsect2add, dphang2add:dphang2add, minpa:minpa, $
+;                        badflag:badflag, medianflag:medianflag}
+
+;
+; KEYWORDS:
+;         trange:       time range of interest [starttime, endtime] with the format
+;                       ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;                       ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
+;         probe:        'a' or 'b' 
+;         no_download:  set this flag to search for the file on your local disk
+;         hourly:       set this flag to find the nearest science zone within an hour of the 
+;                       trange
+;
+;-
 function elf_find_phase_delay, trange=trange, no_download=no_download, probe=probe, $
     instrument=instrument, hourly=hourly 
 
@@ -14,6 +36,7 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
   if not keyword_set(probe) then probe = 'a'
   if ~undefined(instrument) then instrument='epde'
   
+  ; download and read the phase delay file
   phase_delays=elf_get_phase_delays(no_download=nodownload, probe=probe, $
      instrument=instrument)
   npd = n_elements(phase_delays)
@@ -25,7 +48,7 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
    tdiff= abs(phase_delays.starttimes - tr[0])
    mdt = min(tdiff,midx)
  
-   ; if within 
+   ; check to see which phase delay is closest to the time range entered  
    if mdt LE 600. then begin
      if ~keyword_set(hourly) then begin 
        if phase_delays.badflag[midx] ne 1 then begin

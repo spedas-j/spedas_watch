@@ -6,13 +6,11 @@
 ;         Write to and update the data availability
 ;
 ; KEYWORDS:
-;         tdate: time to be used for calculation
-;                (format can be time string '2020-03-20'
-;                or time double)
-;         probe: probe name, probes include 'a' and 'b'
+;         filename: name of the csv file
+;         newdat: structure containing the availability data, start times, stop
+;               times and science zone
 ;         instrument: instrument name, insturments include 'epd', 'fgm', 'mrm'
-;         data: structure containing the availability data, start times, stop
-;               times and science zone 
+;         probe: probe name, probes include 'a' and 'b'
 ;
 ; OUTPUT:
 ;

@@ -2,7 +2,7 @@
 ;PROCEDURE: elf_get_att
 ;
 ;PURPOSE:
-; This routine will get the latest elfin attitude information. tplot variables created include
+;     This routine will get the latest elfin attitude information. tplot variables created include
 ;     ela_att_gei, ela_att_last_solution, ela_spin_norm_ang, and ela_spin_sun_ang, ela_pos_gei
 ;     and ela_vel_gei 
 ;     NOTE: This routine can also be called from the elf_load_state routine by using the keyword
