@@ -14,7 +14,6 @@
 ;$LastChangedRevision: 23763 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elf/common/data_status_bar/elf_load_fast_segments.pro $
 ;-
-
 pro elf_load_fgm_fast_segments, tplotname=tplotname, probe=probe 
 
   ; initialize variables if needed

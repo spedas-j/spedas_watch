@@ -1,5 +1,26 @@
+;+
+; FUNCTION:
+;         elf_calc_sci_zone_att
+;
+; PURPOSE:
+;         Calculates the science attitude vector and determines which auroral crossing 
+;         (science zone name)
+;
+; KEYWORDS:
+;         trange: time frame to be used for calculation
+;                (format can be time string '2020-03-20'
+;                or time double). Example: trange=['2020-03-20;,'2020-03-21']
+;         probe: probe name, probes include 'a' and 'b'
+;         lat: magnetic latitude of spacecraft. Find auroral crossings
+;
+; OUTPUT:
+;         creates a tplot variable 'el'+probe+'_spin_att_ang' that contains the following
+;          data={x:times, y:colats, z:zone_names}
+;
+;-
 pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat
 
+  ; initialize parameters if needed
   if undefined(probe) then probe ='a' else probe=strlowcase(probe)
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
@@ -7,6 +28,7 @@ pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat
   endif
   if ~undefined(trange) && n_elements(trange) eq 2 then trange = timerange(trange) else trange = timerange()
   
+  ; get position in gsm coordinates
   elf_load_state, probe=probe, suffix='_tmp', trange=trange
   cotrans,  'el'+ probe + '_pos_gei_tmp',  'el'+ probe + '_pos_gse_tmp', /gei2gse
   cotrans,  'el'+ probe + '_pos_gse_tmp',  'el'+ probe + '_pos_gsm_tmp', /gse2gsm  

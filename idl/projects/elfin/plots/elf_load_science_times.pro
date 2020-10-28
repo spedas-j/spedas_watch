@@ -1,14 +1,17 @@
 ;+
 ; PROCEDURE:
-;         elf_load_science_timess
+;         elf_load_science_times
 ;
 ; PURPOSE:
 ;         Get science data for FGM and EPD and load into tplot vars
 ;         Return science collection times structure (for elfin a and b)
-;         This routine is for use by elf_map_state_t96_intervals.
+;         This routine is used by elf_map_state_t96_intervals.
 ;
 ; KEYWORDS:
-;         pred: use this flag
+;         tdate:   time of interest (start time) with the format
+;                  'YYYY-MM-DD'
+;         dur:     duration of time frame in factional days. default value is 1
+;         pred:     use this flag if you want to check predicted data
 ;-
 function elf_load_science_times, pred=pred, tdate=tdate, dur=dur
 

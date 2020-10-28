@@ -1,7 +1,7 @@
 pro elf_plot_sci_zone_lat, probe=probe, tstart=tstart, dur=dur
 
-  tstart=time_double('2020-06-01')
-  dur=58
+  tstart=time_double('2020-08-01')
+  dur=40
   probe='b'
   if undefined(probe) then probe='a' else probe=probe
   
@@ -10,7 +10,7 @@ pro elf_plot_sci_zone_lat, probe=probe, tstart=tstart, dur=dur
 ;    this_start=tstart + i*86400.
 ;    this_end=this_start + 86400.
 
-    timespan, tstart, 58., /days
+    timespan, tstart, 40., /days
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Get position data
@@ -146,30 +146,30 @@ undefine, sz_min_st
 undefine, sz_min_en
 undefine, s_lats
 undefine, s_lats
-stop  
+ 
 restore, file='test_maga_starts.sav'
-t0=time_double('2020-06-01')
+t0=time_double('2020-08-01')
 sdays_na=(na_starts-t0)/86400.
 sdays_sa=(sa_starts-t0)/86400.
 smags_na=na_smags
 smags_sa=sa_smags
 
 restore, file='test_magb_starts.sav'
-t0=time_double('2020-06-01')
+t0=time_double('2020-08-01')
 sdays_nb=(nb_starts-t0)/86400.
 sdays_sb=(sb_starts-t0)/86400.
 smags_nb=nb_smags
 smags_sb=sb_smags
 
 restore, file='test_maga_ends.sav'
-t0=time_double('2020-06-01')
+t0=time_double('2020-08-01')
 edays_na=(na_ends-t0)/86400.
 edays_sa=(sa_ends-t0)/86400.
 emags_na=na_emags
 emags_sa=sa_emags
 
 restore, file='test_magb_ends.sav'
-t0=time_double('2020-06-01')
+t0=time_double('2020-08-01')
 edays_nb=(nb_ends-t0)/86400.
 edays_sb=(sb_ends-t0)/86400.
 emags_nb=nb_emags
@@ -180,7 +180,7 @@ thm_init
 window, xsize=850, ysize=950
 
 title='ELFIN A North Science Zones'
-xtitle='Days since June 1, 2020'
+xtitle='Days since August 1, 2020'
 ytitle='Starting/Ending Magnetic Latitude, deg'
 subtitle='Start - Blue Square, End = Red Diamond'
 ;plot, sdays_na, smags_na, title=title, xtitle=xtitle, ytitle=ytitle, $
@@ -192,7 +192,7 @@ oplot, sdays_na, smags_na, color=80, psym=6
 oplot, edays_na, emags_na, color=250, psym=4
 
 title='ELFIN B North Science Zones'
-xtitle='Days since June 1, 2020'
+xtitle='Days since August 1, 2020'
 ytitle='Starting/Ending Magnetic Latitude, deg'
 ;plot, sdays_nb, smags_nb, title=title, xtitle=xtitle, ytitle=ytitle, $
  ; yrange=[0,90], linestyle=1, subtitle=subtitle
@@ -217,7 +217,7 @@ oplot, sdays_sb, smags_sb, color=80, psym=6
 ;oplot, edays_sb, emags_sb, linestyle=1
 oplot, edays_sb, emags_sb, color=250, psym=4
 
-makejpg, 'C:\Users\clrussell\Desktop\Starting and Ending Magnetic Latitudes in Science Zones '
+makejpg, 'C:\Users\clrussell\Desktop\Starting and Ending Magnetic Latitudes in Science Zones 20200801'
 
 
 end

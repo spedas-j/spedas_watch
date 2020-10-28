@@ -7,14 +7,12 @@
 ;
 ; KEYWORDS:
 ;         tplotname:    name of tplot variable (should be ela_epdes or elb_ela_epdis)
-;         nodownload:   set this flag to force routine to load local data only (no download)
 ;
 ;$LastChangedBy: egrimes $
 ;$LastChangedDate: 2017-08-08 09:33:48 -0700 (Tue, 08 Aug 2017) $
 ;$LastChangedRevision: 23763 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elf/common/data_status_bar/elf_load_fast_segments.pro $
 ;-
-
 pro elf_load_epd_survey_segments, tplotname=tplotname
 
   ; Get epd survey mode data and create an array of times for the bar display
