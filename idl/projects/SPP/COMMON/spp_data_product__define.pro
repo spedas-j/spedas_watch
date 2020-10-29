@@ -2,8 +2,8 @@
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-04-15 17:18:26 -0700 (Wed, 15 Apr 2020) $
-; $LastChangedRevision: 28586 $
+; $LastChangedDate: 2020-10-28 14:02:27 -0700 (Wed, 28 Oct 2020) $
+; $LastChangedRevision: 29305 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -90,7 +90,7 @@ pro spp_data_product::add_var,var,varname=varname
 end
 
 
-function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,valname=valname,verbose=verbose,extrapolate=extrapolate,cursor=cursor
+function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,valname=valname,verbose=verbose,extrapolate=extrapolate,cursor=cursor,average=average
   if ~ptr_valid(self.data_ptr) then begin
     dprint,'No data loaded for: ',self.name
     return,!null
@@ -124,6 +124,10 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
       retval =!null
       str_element,dats,valname,retval
       return, retval
+    endif
+    if n_elements(index) gt 1 then begin
+      dprint,n_elements(index)
+      dats = average(dats)
     endif
     if keyword_set(dats) then dprint,dlevel=4,verbose=verbose,self.name+' '+string(index[0])+' '+time_string(dats[0].time)
     return,dats

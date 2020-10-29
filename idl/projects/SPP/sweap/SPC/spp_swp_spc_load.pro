@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-09-04 16:30:42 -0700 (Fri, 04 Sep 2020) $
-; $LastChangedRevision: 29116 $
+; $LastChangedDate: 2020-10-28 14:04:41 -0700 (Wed, 28 Oct 2020) $
+; $LastChangedRevision: 29306 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 
@@ -146,6 +146,10 @@ pro spp_swp_spc_load,  trange=trange,type=type,files=files,no_load=no_load,save=
    
   if type eq 'l3i' then begin
     get_data,prefix+'DQF',ptr=ptr
+    if ~ptr_valid(ptr) then begin
+      dprint,dlevel=1,'No SPC data in specified range.'
+      return
+    endif
     DQF = *ptr.y
     nt  = n_elements(*ptr.x)
     DQF_vals = indgen(32)

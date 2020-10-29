@@ -6,8 +6,8 @@
 ;  C kernels (ck) includes a type string:
 ;
 ;    red  = reconstructed, daily
-;    rec  = reconstructed, variable length
-;    rel  = reconstructed, long
+;    rec  = reconstructed, contact-to-contact (typically a few days)
+;    rel  = reconstructed, long (typically one week)
 ;    pred = predicted
 ;
 ;USAGE:
@@ -42,8 +42,8 @@
 ;    SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-04-03 17:42:04 -0700 (Fri, 03 Apr 2020) $
-; $LastChangedRevision: 28495 $
+; $LastChangedDate: 2020-10-28 14:00:24 -0700 (Wed, 28 Oct 2020) $
+; $LastChangedRevision: 29303 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
