@@ -21,16 +21,25 @@
 ;    model    specify Tsyganenko model like 't89' or 't01', default is 't96'
 ;    dir_move directory name to move plots to
 ;    quick_trace  run ttrace2iono on smaller set of points for speed
+;    tstep    use this to turn on tick marks and set the frequency in seconds
+;    clean    obsolete (parameter should be removed)
+;    no_trace set this flag if you already have the data in hand and calculated in
+;             a previous run
+;    one_hour_only: set this flag to only plot the first orbit
 ;    hires    set this flag to create a higher resolution plot
 ;    sm       set this keyword for footprint in SM coordinates, default is GEO
 ;    bfirst   set this keyword for probe b footprint on top (default is for a on top)
 ;             note that this keyword is only used if the coordinates are in SM
+;    pred     set this flag to use predicted state data
+;    insert_stop set this flag to stop after the first plot (used for debugging)
 ;
 ; OUTPUTS:
 ;    GIF images
 ;
 ; EXAMPLE:
-;    elf_map_state_t96_intervals,'2018-11-10/00:00:00'
+;    elf_map_state_t96_intervals,'2018-11-10/00:00:00'   ; this will defer to defaults and plot only
+;                                                        ; northern hemisphere, geographic grids in
+;                                                        ; normal resolution
 ;
 ; MODIFICATION HISTORY:
 ;    Written by: C L Russell May 2020
@@ -192,54 +201,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     tt89,'el'+probes[sc]+'_pos_gsm', kp=2,newname='el'+probes[sc]+'_bt89_gsm',/igrf_only
     tdotp,'el'+probes[sc]+'_bt89_gsm','el'+probes[sc]+'_pos_gsm',newname='el'+probes[sc]+'_Br_sign'
 
-    ;if keyword_set(sm) then ifoot = ifoot_sm else ifoot = ifoot_geo
-    ;;----------------------------
-    ;; CONVERT TRACE to LAT LON
-    ;;----------------------------
-    ;Case sc of
-    ;  ; ELFIN A
-    ;  0: begin
-    ;    ; convert to lat lon
-    ;    lon = !radeg * atan(ifoot.y[*,1],ifoot.y[*,0])
-    ;    lat = !radeg * atan(ifoot.y[*,2],sqrt(ifoot.y[*,0]^2+ifoot.y[*,1]^2))
-    ;    dposa=dpos_geo
-    ;    lona_all=lon
-    ;    lata_all=lat
-
-    ;    ; clean up data that's out of scope
-    ;    if keyword_set(south) then begin
-    ;      junk=where(Br_sign_tmp.y le 0., count)
-    ;    endif else begin
-    ;      junk=where(Br_sign_tmp.y gt 0., count)
-    ;    endelse
-    ;    if (count gt 0) then begin
-    ;      lat[junk]=!values.f_nan
-    ;      lon[junk]=!values.f_nan
-    ;    endif
-    ;  end
-
-    ;  ; ELFIN B
-    ;  1: begin
-    ;    ; convert to lat lon
-    ;    lon2 = !radeg * atan(ifoot.y[*,1],ifoot.y[*,0])
-    ;    lat2 = !radeg * atan(ifoot.y[*,2],sqrt(ifoot.y[*,0]^2+ifoot.y[*,1]^2))
-    ;    dposb=dpos_geo
-    ;    lonb_all=lon2
-    ;    latb_all=lat2
-    ;    ; clean up data that's out of scope
-    ;    if keyword_set(south) then begin
-    ;      junk=where(Br_sign_tmp.y le 0., count2)
-    ;    endif else begin
-    ;      junk=where(Br_sign_tmp.y gt 0., count2)
-    ;    endelse
-    ;    if (count2 gt 0) then begin
-    ;      lat2[junk]=!values.f_nan
-    ;      lon2[junk]=!values.f_nan
-    ;    endif
-    ;  end
-    ;Endcase
-	;;;; end of Jiang Liu's revision
-
     print,'Done '+tsyg_mod+' ',probes[sc]
 
   endfor  ; END of SC Loop
@@ -251,12 +212,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   epda_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='a', instrument='epd')
   epdb_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='b', instrument='epd')
   
-;  sci_times=elf_load_science_times()
-;  epd_sci_timesa=sci_times.epda
-;  epd_sci_timesb=sci_times.epdb  
-;  fgm_sci_timesa=sci_times.fgma
-;  fgm_sci_timesb=sci_times.fgmb
-
   ; Get position and attitude 
   get_data,'ela_pos_sm',data=ela_state_pos_sm
   get_data,'elb_pos_sm',data=elb_state_pos_sm
@@ -345,26 +300,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   nmlats=geo_grids.nmlats
   nmlons=geo_grids.nmlons
 
-  ;;;;; Jiang Liu edit here
-  ;; Make SM GRIDS
-  ;if keyword_set(sm) then begin
-  ;  ; get poles
-  ;  tdate=ela_state_pos_sm.x[0] ;+45.*60./2.
-  ;  sm_grid=elf_make_sm_grid(tdate=tdate) 
-  ;  lonlats=sm_grid.lat_circles
-  ;  nll=n_elements(lonlats[*,1])-1
-  ;  diffll=lonlats[1:nll,1]-lonlats[0:nll-1,1]
-  ;  llidx =where(diffll GT 5,ncnt)
-  ;  llidx=[0,llidx]
-  ;  llidx=[llidx,nll-8]
-  ;  if ~keyword_set(south) then latpole=sm_grid.pole[0] else latpole=-sm_grid.pole[0]
-  ;  lonpole=sm_grid.pole[1]
-  ;endif else begin
-  ;  if ~keyword_set(south) then latpole=90. else latpole=-90
-  ;  lonpole=-90.
-  ;endelse
-  ;;;;; end of Jiang Liu edit
-
   ; for gif-output
   date=strmid(tstart,0,10)
   timespan, tstart
@@ -390,18 +325,18 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     xann=9.96
     if hires then yann=750 else yann=463
 
-	;;;; Jiang Liu edit here
+	  ;;;; Jiang Liu edit here
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
     midpt=n_elements(this_time)/2.
-	tdate = this_time[midpt]
+	  tdate = this_time[midpt]
 
     ; Make SM GRIDS
     if keyword_set(sm) then begin
       ; get poles
-	  ;;;; Jiang Liu edit here: This is necessary because the noon location needes to be known
+	    ;;;; Jiang Liu edit here: This is necessary because the noon location needes to be known
       ;sm_grid=elf_make_sm_grid(tdate=tdate, south = south) 
       sm_grid=elf_make_sm_grid(tdate=tdate, south = south) 
-	  ;;;; end of Jiang Liu edit
+	    ;;;; end of Jiang Liu edit
       lonlats=sm_grid.lat_circles
       nll=n_elements(lonlats[*,1])-1
       diffll=lonlats[1:nll,1]-lonlats[0:nll-1,1]
@@ -500,26 +435,13 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 	;;;; Jiang Liu edit here
 	if keyword_set(sm) then this_rot = 90-(-180.-sm_grid.noon[1])-lonpole $
 	   else this_rot=180.-mid_hr*15.
-	;;;; end of Jiang Liu edit
     if keyword_set(south) then begin
       title=pred_str+'Southern '+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
-      ;if keyword_set(sm) then latpole=-80.5 else latpole=-90.
-      ;map_set,latpole,-90.,this_rot,/orthographic,/conti,limit=[-10.,-180.,-90.,180.],$
-	  ;;;; Jiang Liu edit here
-      ;map_set,latpole,lonpole,this_rot,/orthographic,/conti,limit=[-10.,-180.,-90.,180.],$
-      ;  title=title,position=[0.005,0.005,600./800.*0.96,0.96], charsize=.9
       map_set,latpole,lonpole,-this_rot,/orthographic,/conti,title=title,position=[0.005,0.005,600./800.*0.96,0.96], charsize=.9
-	  ;;;; end of Jiang Liu edit
       map_grid,latdel=10.,londel=30.
     endif else begin
       title=pred_str+'Northern '+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
-	  ;;;; Jiang Liu edit here
-      ;this_rot=180.-mid_hr*15.
-      ;map_set,latpole,lonpole,this_rot,/orthographic, /conti,limit=[10.,-180.,90.,180.],$
-      ;  title=title,position=[0.005,0.005,600./800.*0.96,0.96], xmargin=[15,3],$
-      ;  ymargin=[15,3], charsize=.9
       map_set,latpole,lonpole,this_rot,/orthographic, /conti, title=title, position=[0.005,0.005,600./800.*0.96,0.96], xmargin=[15,3], ymargin=[15,3], charsize=.9
-	  ;;;; end of Jiang Liu edit
       map_grid,latdel=10.,londel=30.
     endelse
 
@@ -535,34 +457,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       llidx =where(diffll GT 5,ncnt)
       llidx=[0,llidx]
       llidx=[llidx,nll]
-	  ;;;; Jiang Liu edits here
-      ;if keyword_set(south) then begin
-      ;  for lx=0,n_elements(llidx)-2 do $
-      ;    plots, lonlats[llidx[lx]+1:llidx[lx+1],0], -lonlats[llidx[lx]+1:llidx[lx+1],1], linestyle=1, color=250
-      ;endif else begin
-      ;  for lx=0,n_elements(llidx)-2 do $
-      ;    plots, lonlats[llidx[lx]+1:llidx[lx+1],0], lonlats[llidx[lx]+1:llidx[lx+1],1], linestyle=1, color=250
-      ;endelse
       for lx=0,n_elements(llidx)-2 do $
         plots, lonlats[llidx[lx]+1:llidx[lx+1],0], lonlats[llidx[lx]+1:llidx[lx+1],1], psym=3, color=250 ;linestyle=1, color=250
       ; plot longitude lines
       lonlats=sm_grid.lon_lines
-	  ;;;; Jiang Liu edits here
-      ;if keyword_set(south) then begin
-      ;  plot_lats=[0,latpole]
-      ;  for i=0,11 do begin
-      ;    offset=this_rot - lonpole - 90.
-      ;    plot_lons=[(30.*i)-offset, lonpole]
-      ;    plots, plot_lons, plot_lats, linestyle=1, color=250
-      ;  endfor
-      ;endif else begin
-      ;   plot_lats=[0,latpole]
-      ;   for i=0,11 do begin
-      ;     offset=this_rot + lonpole - 90.
-      ;     plot_lons=[(30.*i)+offset, lonpole]
-      ;     plots, plot_lons, plot_lats, linestyle=1, color=250
-      ;   endfor         
-      ;endelse
       nll=n_elements(lonlats[*,1])-1
       diffll=lonlats[1:nll,1]-lonlats[0:nll-1,1]
       llidx =where(abs(diffll) GT 40,ncnt)
@@ -593,13 +491,9 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endelse
 
     ; Set up data for ELFIN A for this time span
-	;;; Jiang Liu edit here
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsa=n_elements(this_time)
-    ;if ~keyword_set(sm) then this_lon=lon[min_st[k]:min_en[k]] else $
-    ;  this_lon=lon[min_st[k]:min_en[k]]-mid_hr*15.-180.
-	this_lon=lon[min_st[k]:min_en[k]]
-	;;; end of Jiang Liu edit
+  	this_lon=lon[min_st[k]:min_en[k]]
     this_lat=lat[min_st[k]:min_en[k]]
     this_ax=ela_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_ay=ela_state_pos_sm.y[min_st[k]:min_en[k],1]
@@ -621,20 +515,13 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         this_a_sz_st=epda_sci_zones.starts[idx]
         this_a_sz_en=epda_sci_zones.ends[idx]
         if epda_sci_zones.ends[azones-1] GT this_time[nptsa-1] then this_a_sz_en[azones-1]=this_time[nptsa-1]
-      endif ;else begin
-;        undefine, this_a_sz_st
-;        undefine, this_a_sz_en
-;      endelse
+      endif 
     endif
 
     ; repeat for ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsb=n_elements(this_time2)
-	;;; Jiang Liu edit here
-    ;if ~keyword_set(sm) then this_lon2=lon2[min_st[k]:min_en[k]] else $
-    ;  this_lon2=lon2[min_st[k]:min_en[k]]-mid_hr*15.-180.
-	this_lon2=lon2[min_st[k]:min_en[k]]
-	;;; end of Jiang Liu edit here
+  	this_lon2=lon2[min_st[k]:min_en[k]]
     this_lat2=lat2[min_st[k]:min_en[k]]
     this_bx=elb_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_by=elb_state_pos_sm.y[min_st[k]:min_en[k],1]
@@ -648,23 +535,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       this_b_att_gei = attgeib.y[bgei_idx,*]
       this_b_att_gse = attgseb.y[bgse_idx,*]
     endif
-	;;;; Jiang Liu edit: to reduce errors for the ease of debugging
-	undefine, this_b_sz_st
-	undefine, this_b_sz_en
-  if ~undefined(epdb_sci_zones) && epdb_sci_zones.starts[0] NE -1 then begin
-     idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
-     if bzones GT 0 then begin
-       this_b_sz_st=epdb_sci_zones.starts[idx]
-       this_b_sz_en=epdb_sci_zones.ends[idx]
-       if epdb_sci_zones.ends[bzones-1] GT this_time2[nptsb-1] then this_b_sz_en[bzones-1]=this_time2[nptsb-1]
-     endif ;else begin
-       ;undefine, this_b_sz_st
-       ;undefine, this_b_sz_en
-     ;endelse
-  endif
-	;undefine, this_b_sz_st
-	;undefine, this_b_sz_en
-	;;;; end of Jiang Liu edit
+  	;;;; Jiang Liu edit: to reduce errors for the ease of debugging
+  	undefine, this_b_sz_st
+  	undefine, this_b_sz_en
+    if ~undefined(epdb_sci_zones) && epdb_sci_zones.starts[0] NE -1 then begin
+       idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
+       if bzones GT 0 then begin
+         this_b_sz_st=epdb_sci_zones.starts[idx]
+         this_b_sz_en=epdb_sci_zones.ends[idx]
+         if epdb_sci_zones.ends[bzones-1] GT this_time2[nptsb-1] then this_b_sz_en[bzones-1]=this_time2[nptsb-1]
+       endif 
+    endif
     
     ; Plot foot points
     if ~keyword_set(bfirst) then begin
@@ -829,68 +710,39 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     rp=make_array(n_elements(pwdboundlonlat[*,0]), /double)+100.
     outlon=make_array(n_elements(pwdboundlonlat[*,0]))
     outlat=make_array(n_elements(pwdboundlonlat[*,0]))
-	;;;;;;;; Jiang Liu edit here
-	;;;; Note: Lon Lat are in SM
-	if keyword_set(south) && keyword_set(sm) then begin
-		pwdboundlonlat[*,0] = pwdboundlonlat[*,0]+180
-		ewdboundlonlat[*,0] = ewdboundlonlat[*,0]+180
-	endif
-	;;;;;; end of Jiang Liu's edit
+  	;;;; Note: Lon Lat are in SM
+  	if keyword_set(south) && keyword_set(sm) then begin
+  		pwdboundlonlat[*,0] = pwdboundlonlat[*,0]+180
+  		ewdboundlonlat[*,0] = ewdboundlonlat[*,0]+180
+  	endif
     sphere_to_cart, rp, pwdboundlonlat[*,1], pwdboundlonlat[*,0], vec=pwd_oval_sm
     sphere_to_cart, rp, ewdboundlonlat[*,1], ewdboundlonlat[*,0], vec=ewd_oval_sm
 
-	;;;;;; Jiang Liu edit here
-    ;midpt=n_elements(this_time)/2.
-	t=make_array(n_elements(pwdboundlonlat[*,0]), /double)+tdate
-	;t=make_array(n_elements(pwdboundlonlat[*,0]), /double)+this_time[midpt]
-	;;;;;; end of Jiang Liu's edit
+  	t=make_array(n_elements(pwdboundlonlat[*,0]), /double)+tdate
     store_data, 'oval_sm', data={x:t, y:pwd_oval_sm}
     cotrans, 'oval_sm', 'oval_gsm', /sm2gsm
     cotrans, 'oval_gsm', 'oval_gse', /gsm2gse
     cotrans, 'oval_gse', 'oval_gei', /gse2gei
     cotrans, 'oval_gei', 'oval_geo', /gei2geo
     cotrans, 'oval_geo', 'oval_mag', /geo2mag
-	;;;;; Jiang Liu edit here
-    ;get_data, 'oval_mag', data=d
     get_data, 'oval_geo', data=d
-	;;;;; end of Jiang Liu edit
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     pwdboundlonlat[*,0]=phi
     pwdboundlonlat[*,1]=theta
 
-	;;;;;; Jiang Liu edit here
-	t=make_array(n_elements(ewdboundlonlat[*,0]), /double)+tdate
-	;t=make_array(n_elements(ewdboundlonlat[*,0]), /double)+this_time[midpt]
-	;;;;;; end of Jiang Liu's edit
+	  t=make_array(n_elements(ewdboundlonlat[*,0]), /double)+tdate
     store_data, 'oval_sm', data={x:t, y:ewd_oval_sm}
     cotrans, 'oval_sm', 'oval_gsm', /sm2gsm
     cotrans, 'oval_gsm', 'oval_gse', /gsm2gse
     cotrans, 'oval_gse', 'oval_gei', /gse2gei
     cotrans, 'oval_gei', 'oval_geo', /gei2geo
     cotrans, 'oval_geo', 'oval_mag', /geo2mag
-	;;;;; Jiang Liu edit here
-    ;get_data, 'oval_mag', data=d
     get_data, 'oval_geo', data=d
-	;;;;; end of Jiang Liu edit
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     ewdboundlonlat[*,0]=phi
     ewdboundlonlat[*,1]=theta
 
-	;;;;; Jiang Liu edit here
-    ;for lidx=0,n_elements(pwdboundlonlat[*,0])-1 do begin
-    ;  cnv_aacgm, pwdboundlonlat[lidx,1],pwdboundlonlat[lidx,0],100.,plat,plon,r1,error,/geo
-    ;  pwdboundlonlat[lidx,1]=plat
-    ;  pwdboundlonlat[lidx,0]=plon
-    ;endfor
-    ;for lidx=0,n_elements(ewdboundlonlat[*,0])-1 do begin
-    ;  cnv_aacgm, ewdboundlonlat[lidx,1],ewdboundlonlat[lidx,0],100.,elat,elon,r1,error,/geo
-    ;  ewdboundlonlat[lidx,1]=elat
-    ;  ewdboundlonlat[lidx,0]=elon
-    ;endfor
-	;;;;; end of Jiang Liu edit
-
     if keyword_set(south) then begin
-	  ;;;;;;;;;; Jiang Liu edit here
 	    if keyword_set(sm) then begin
         plots,pwdboundlonlat[*,0]+180,-pwdboundlonlat[*,1],color=155, thick=1.05
         plots,ewdboundlonlat[*,0]+180,-ewdboundlonlat[*,1],color=155, thick=1.05
@@ -898,7 +750,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         plots,pwdboundlonlat[*,0],-pwdboundlonlat[*,1],color=155, thick=1.05
         plots,ewdboundlonlat[*,0],-ewdboundlonlat[*,1],color=155, thick=1.05
       endelse
-	  ;;;;;;;;;; end of Jiang Liu edit
     endif else begin
       plots,pwdboundlonlat[*,0],pwdboundlonlat[*,1],color=155, thick=1.05
       plots,ewdboundlonlat[*,0],ewdboundlonlat[*,1],color=155, thick=1.05
@@ -1098,7 +949,6 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     yann=0.02
     if hires then xann = 660 else xann=393
     case 1 of
-      ;tsyg_mod eq 't89': xyouts,.6182,.82,'Tsyganenko-1989',/normal,charsize=.75,color=255
       tsyg_mod eq 't89': xyouts,xann+20,yann+12.5*2,'Tsyganenko-1989',/device,charsize=charsize,color=255
       tsyg_mod eq 't96': xyouts,xann+20,yann+12.5*2,'Tsyganenko-1996',/device,charsize=charsize,color=255
       tsyg_mod eq 't01': xyouts,xann+20,yann+12.5*2,'Tsyganenko-2001',/device,charsize=charsize,color=255
@@ -1431,10 +1281,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       if not keyword_set(noview) then tv,image
       dir_products = !elf.local_data_dir + 'gtrackplots/'+ strmid(date,0,4)+'/'+strmid(date,5,2)+'/'+strmid(date,8,2)+'/'
       file_mkdir, dir_products
-	  ;;; Jiang Liu edited this line to be able to make plots.
-      ;filedate=file_dailynames(trange=tr, /unique, times=times)
       filedate=file_dailynames(trange=tr+[0, -1801.], /unique, times=times)
-	  ;;; end of Jiang Liu edit
   
       if keyword_set(south) then plot_name = 'southtrack' else plot_name = 'northtrack'
       if keyword_set(sm) then begin

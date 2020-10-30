@@ -3,7 +3,8 @@
 ;         elf_convert_state_gei2sm
 ;
 ; PURPOSE:
-;         Convert previously loaded state data from gei coordinates to SM
+;         Convert previously loaded state data from gei coordinates to SM. This is a 
+;         utility routine. This coordinate conversion occurs frequently in ELFIN code
 ;
 ; KEYWORDS:
 ;         probe: spacecraft probe name 'a' or 'b'

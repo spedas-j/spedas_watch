@@ -1,16 +1,33 @@
+;+
+; PROCEDURE:
+;         elf_plot_sci_zone_lat
+;
+; PURPOSE:
+;         This routine will plot the latitude values at the start and end times of science zones 
+;         Scienc zone panels are separated by science zone North Ascending, South Ascending, North
+;         Descending, and South Descending
+;
+; KEYWORDS:
+;         tstart: start time to be used for the plot
+;                (format can be time string '2020-03-20'
+;                or time double)
+;         dur: duration in days
+;         probe: probe name, probes include 'a' and 'b'
+;         instrument: instrument name, insturments include 'epd', 'fgm', 'mrm'
+;
+; OUTPUT:
+;
+; EXAMPLE:
+;         elf_update_data_availability_table, '2020-03-20', probe='a', instrument='epd'
+;
+;-
 pro elf_plot_sci_zone_lat, probe=probe, tstart=tstart, dur=dur
 
-  tstart=time_double('2020-08-01')
-  dur=40
-  probe='b'
+  if ~keyword_set(tstart) then tstart=time_double('2020-08-01')
+  if ~keyword_set(dur) then dur=40
   if undefined(probe) then probe='a' else probe=probe
-  
-;  for i=0,37 do begin
 
-;    this_start=tstart + i*86400.
-;    this_end=this_start + 86400.
-
-    timespan, tstart, 40., /days
+    timespan, tstart, dur, /days
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ; Get position data
@@ -107,6 +124,7 @@ pro elf_plot_sci_zone_lat, probe=probe, tstart=tstart, dur=dur
     endif    
   endelse
 
+  ; write results to sav file for later use
   if probe EQ 'a' then save, file='test_mag'+probe+'_starts.sav', na_starts, na_smags, sa_starts, sa_smags, tstart
   if probe EQ 'b' then save, file='test_mag'+probe+'_starts.sav', nb_starts, nb_smags, sb_starts, sb_smags, tstart
 
@@ -146,7 +164,8 @@ undefine, sz_min_st
 undefine, sz_min_en
 undefine, s_lats
 undefine, s_lats
- 
+
+; restore the saved data files if needed
 restore, file='test_maga_starts.sav'
 t0=time_double('2020-08-01')
 sdays_na=(na_starts-t0)/86400.
@@ -175,31 +194,27 @@ edays_sb=(sb_ends-t0)/86400.
 emags_nb=nb_emags
 emags_sb=sb_emags
 
+; set up plot parameters
 thm_init
 !p.multi=[0,2,2,0,0]
 window, xsize=850, ysize=950
 
+; plot the data
 title='ELFIN A North Science Zones'
 xtitle='Days since August 1, 2020'
 ytitle='Starting/Ending Magnetic Latitude, deg'
 subtitle='Start - Blue Square, End = Red Diamond'
-;plot, sdays_na, smags_na, title=title, xtitle=xtitle, ytitle=ytitle, $
-;    yrange=[0,90], linestyle=1, subtitle=subtitle
-  plot, sdays_na, smags_na, title=title, xtitle=xtitle, ytitle=ytitle, $
+plot, sdays_na, smags_na, title=title, xtitle=xtitle, ytitle=ytitle, $
     yrange=[0,90], psym=6, subtitle=subtitle
 oplot, sdays_na, smags_na, color=80, psym=6
-;oplot, edays_na, emags_na, linestyle=1
 oplot, edays_na, emags_na, color=250, psym=4
 
 title='ELFIN B North Science Zones'
 xtitle='Days since August 1, 2020'
 ytitle='Starting/Ending Magnetic Latitude, deg'
-;plot, sdays_nb, smags_nb, title=title, xtitle=xtitle, ytitle=ytitle, $
- ; yrange=[0,90], linestyle=1, subtitle=subtitle
   plot, sdays_nb, smags_nb, title=title, xtitle=xtitle, ytitle=ytitle, $
     yrange=[0,90], psym=6, subtitle=subtitle
 oplot, sdays_nb, smags_nb, color=80, psym=6
-;oplot, edays_nb, emags_nb, linestyle=1
 oplot, edays_nb, emags_nb, color=250, psym=4
 
 title='ELFIN A South Science Zones'
@@ -207,17 +222,14 @@ subtitle='Start - Blue Square, End = Red Diamond'
 plot, sdays_sa, smags_sa, title=title, xtitle=xtitle, ytitle=ytitle, $
   yrange=[0,-90], psym=6, subtitle=subtitle
 oplot, sdays_sa, smags_sa, color=80, psym=6
-;oplot, edays_sa, emags_sa, linestyle=1
 oplot, edays_sa, emags_sa, color=250, psym=4
 
 title='ELFIN B South Science Zones'
 plot, sdays_sb, smags_sb, title=title, xtitle=xtitle, ytitle=ytitle, $
   yrange=[0,-90], psym=6, subtitle=subtitle
 oplot, sdays_sb, smags_sb, color=80, psym=6
-;oplot, edays_sb, emags_sb, linestyle=1
 oplot, edays_sb, emags_sb, color=250, psym=4
 
 makejpg, 'C:\Users\clrussell\Desktop\Starting and Ending Magnetic Latitudes in Science Zones 20200801'
-
 
 end

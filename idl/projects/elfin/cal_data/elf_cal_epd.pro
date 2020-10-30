@@ -93,7 +93,8 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_
         sec_num = i mod 16
         if (sec_num eq 0) then dt = d.x[i]-d.x[i-1]
         for j = 0, 15 do begin
-          if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
+          ;if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
+          if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 6.2 ; energy in units of MeV
           if deadtime_corr then begin
             ;print, 'Deadtime correction applied'
             d.y[i,j] = d.y[i,j]/dt*1. ; cps
@@ -111,7 +112,8 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_
         sec_num = i mod 16
         if (sec_num eq 0) then dt = d.x[i]-d.x[i-1]
         for j = 0, 15 do begin
-          if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
+          ;if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
+          if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 6.2 ; energy in units of MeV
           if deadtime_corr then begin
             ;print, 'Deadtime correction applied'
             d.y[i,j] = d.y[i,j]/dt*1. ; cps

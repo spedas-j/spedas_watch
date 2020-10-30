@@ -12,6 +12,8 @@
   ;  probe: 'a' or 'b'
   ;  no_download: If set no files will be downloaded
   ;  sci_zone: If set this flag will create overplots by science zone rather than by hour
+  ;  quick_run: set this flag to reduce the resolution of the data for a quicker run
+  ;  one_zone_only: set this flag to plot only the first zone (this is for debug purposes)
   ;-
 pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_download, $
     sci_zone=sci_zone,quick_run=quick_run, one_zone_only=one_zone_only
