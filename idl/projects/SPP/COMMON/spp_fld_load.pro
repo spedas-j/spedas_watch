@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-10-25 21:27:12 -0700 (Sun, 25 Oct 2020) $
-; $LastChangedRevision: 29287 $
+; $LastChangedDate: 2020-10-30 14:18:59 -0700 (Fri, 30 Oct 2020) $
+; $LastChangedRevision: 29312 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -129,6 +129,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
     'rfs_hfr_cross', 'rfs_lfr_hires', $
     'dfb_ac_bpf1', 'dfb_ac_bpf2', $
     'dfb_dc_bpf1', 'dfb_dc_bpf2', $
+    'aeb1_hk', 'aeb2_hk', $
     'mago_survey', $
     'dcb_analog_hk', $
     'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps', 'dfb_hk']
