@@ -32,7 +32,7 @@ pro spp_fld_make_or_retrieve_cdf, $
     fileprefix = 'psp/data/sci/fields/staging/l1/'
 
     pathformat = apid_name + '/YYYY/MM/spp_fld_l1_' + $
-      apid_name + '_YYYYMMDD_v00.cdf'
+      apid_name + '_YYYYMMDD_v??.cdf'
 
     spp_fld_load, type = apid_name, fileprefix = fileprefix, $
       pathformat = pathformat, /no_load, files = files, $
