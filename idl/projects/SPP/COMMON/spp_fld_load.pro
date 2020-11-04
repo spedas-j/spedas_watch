@@ -91,9 +91,9 @@
 ; CREATED BY:       Davin Larson December 2018
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-10-30 14:18:59 -0700 (Fri, 30 Oct 2020) $
-; $LastChangedRevision: 29312 $
+; $LastChangedBy: anarock $
+; $LastChangedDate: 2020-11-03 08:50:59 -0800 (Tue, 03 Nov 2020) $
+; $LastChangedRevision: 29318 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -508,11 +508,25 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       endif else begin
 
         if n_elements(varformat) GT 0 then begin
-          cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/load_labels
+          cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/load_labels, tplotnames=tn
         endif else begin
-          cdf2tplot,files,prefix=tname_prefix,/all,/load_labels
+          cdf2tplot,files,prefix=tname_prefix,/all,/load_labels, tplotnames=tn
         endelse
+        
+        ; Create time specific quality flag to use for filtering
+        r = where(tn.Matches('(mag_RTN|mag_SC|mag_RTN_1min|mag_SC_1min|mag_RTN_4_Sa_per_Cyc|mag_SC_4_Sa_per_Cyc)$'), count)
+        if count eq 1 then begin
+          get_data, tn[r], data=d
+          if tn[r].Matches('(mag_RTN|mag_SC)$') then  tag = '_hires' $
+          else if tn[r].Matches('(_1min)$')then tag = '_1min' $
+          else if tn[r].Matches('(_4_Sa_per_Cyc)$') then tag = '_4_per_cycle'
 
+          r = where(tn.Matches('psp_fld_l2_quality_flags'), count)
+          if count eq 1 then begin
+            psp_fld_extend_epoch, tn[r], d.x, tag
+            tn = [tn,  tn[r]+tag]
+          endif
+        endif
       endelse
 
       ;
@@ -520,62 +534,17 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       ;
 
       if strmatch(type,'mag_*') then begin
+        r = where(tn.Matches('(mag_RTN|mag_RTN_1min|mag_RTN_4_Sa_per_Cyc)$'),/NULL)
+        options,tn[r],/def,ytitle='MAG RTN',max_points=10000,psym_lim=300
+        options,tn[r],/def,colors='bgr'
 
-        if tnames('psp_fld_l2_mag_RTN_1min') NE '' then begin
-          options,'psp_fld_l2_mag_RTN_1min', 'ytitle', 'MAG RTN'
-          options,'psp_fld_l2_mag_RTN_1min',colors='bgr' ,/default
-          ;options,'psp_fld_l2_mag_RTN_1min',labels=['R','T','N'] ,/default
-          options,'psp_fld_l2_mag_RTN_1min','max_points',10000
-          options,'psp_fld_l2_mag_RTN_1min','psym_lim',300
-        endif
+        r = where(tn.Matches('(mag_SC|mag_SC_1min|mag_SC_4_Sa_per_Cyc)$'),/NULL)
+        options,tn[r],/def,ytitle='MAG SC',max_points=10000,psym_lim=300
+        options,tn[r],/def,colors='bgr'
 
-        if tnames('psp_fld_l2_mag_SC_1min') NE '' then begin
-          options,'psp_fld_l2_mag_SC_1min', 'ytitle', 'MAG SC'
-          options,'psp_fld_l2_mag_SC_1min',colors='bgr' ,/default
-          ;options,'psp_fld_l2_mag_SC_1min',labels=['X','Y','Z'] ,/default
-          options,'psp_fld_l2_mag_SC_1min','max_points',10000
-          options,'psp_fld_l2_mag_SC_1min','psym_lim',300
-        endif
-
-        if tnames('psp_fld_l2_mag_RTN_4_Sa_per_Cyc') NE '' then begin
-          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc', 'ytitle', 'MAG RTN'
-          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc',colors='bgr' ,/default
-          ;options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc',labels=['R','T','N'] ,/default
-          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc','max_points',10000
-          options,'psp_fld_l2_mag_RTN_4_Sa_per_Cyc','psym_lim',300
-        endif
-
-        if tnames('psp_fld_l2_mag_SC_4_Sa_per_Cyc') NE '' then begin
-          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc', 'ytitle', 'MAG SC'
-          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc',colors='bgr' ,/default
-          ;options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc',labels=['X','Y','Z'] ,/default
-          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc','max_points',10000
-          options,'psp_fld_l2_mag_SC_4_Sa_per_Cyc','psym_lim',300
-        endif
-
-        if tnames('psp_fld_l2_mag_RTN') NE '' then begin
-          options,'psp_fld_l2_mag_RTN', 'ytitle', 'MAG RTN'
-          options,'psp_fld_l2_mag_RTN',colors='bgr' ,/default
-          ;options,'psp_fld_l2_mag_RTN',labels=['R','T','N'] ,/default
-          options,'psp_fld_l2_mag_RTN','max_points',10000
-          options,'psp_fld_l2_mag_RTN','psym_lim',300
-        endif
-
-        if tnames('psp_fld_l2_mag_VSO') NE '' then begin
-          options,'psp_fld_l2_mag_VSO', 'ytitle', 'MAG VSO'
-          options,'psp_fld_l2_mag_VSO',colors='bgr' ,/default
-          options,'psp_fld_l2_mag_VSO','max_points',10000
-          options,'psp_fld_l2_mag_VSO','psym_lim',300
-        endif
-
-        if tnames('psp_fld_l2_mag_SC') NE '' then begin
-          options,'psp_fld_l2_mag_SC', 'ytitle', 'MAG SC'
-          options,'psp_fld_l2_mag_SC',colors='bgr' ,/default
-          ;options,'psp_fld_l2_mag_SC',labels=['X','Y','Z'] ,/default
-          options,'psp_fld_l2_mag_SC','max_points',10000
-          options,'psp_fld_l2_mag_SC','psym_lim',300
-        endif
-
+        r = where(tn.Matches('(mag_VSO)$'),/NULL)
+        options,tn[r],/def,ytitle='MAG VSO',max_points=10000,psym_lim=300
+        options,tn[r],/def,colors='bgr'       
       endif
 
       if strmatch(type, 'dfb_wf_*') then begin

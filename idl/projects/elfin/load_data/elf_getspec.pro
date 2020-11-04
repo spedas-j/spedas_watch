@@ -20,7 +20,7 @@
 pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
   type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
   probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps,quadratic=myquadfit, $
-  fullspin=fullspin,starton=userstarton,timesortpas=timesortpas
+  fullspin=fullspin,starton=userstarton,timesortpas=timesortpas,datatype=mydatatype
   ;
   ;
   ; INPUTS
@@ -32,6 +32,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; elf_getspec,energies=[[50.,160.],[160.,345.],[345.,900.],[900.,7000.]],/regularize ; gives same results as:
   ; elf_getspec,/regularize
   ;
+  ; species is 'e' or 'i' (default is 'e')
+  ; datatype is 'pef', 'pif', 'pes' or other... default is 'pef' and over-writes species!!!
   ; dSect2add is number of sectors to add to sectnum to bring 0 sector closer to dBzdt zero crossing time
   ; dSpinPh2add is number of degrees (can be floating point) to add on top of sectors (+/- 11) for the same reason
   ; type is the type of data to process (cps, nflux...)
@@ -87,7 +89,16 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   if keyword_set(no_download) then no_download=1 else no_download=0
   if ~keyword_set(probe) then probe='a' else probe=probe
-  if ~keyword_set(myspecies) then eori='e' else eori=myspecies
+  if ~keyword_set(myspecies) then begin
+    eori='e' 
+  endif else begin
+    eori=myspecies
+  endelse
+  mydataprod='p'+eori+'f' ; if nothing is set the 'pef'
+  if keyword_set(mydatatype) then begin ; if datatype is set then it has priority
+    mydataprod=mydatatype
+    eori=strmid('pef',1,1)
+  endif
   if keyword_set(usertype) then mytype=usertype else $
     mytype='nflux'     ; Here specify default data type to act on
   FOVo2=11.          ; Field of View divided by 2 (deg)
