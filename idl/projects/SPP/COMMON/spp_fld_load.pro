@@ -91,9 +91,9 @@
 ; CREATED BY:       Davin Larson December 2018
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
-; $LastChangedBy: anarock $
-; $LastChangedDate: 2020-11-03 08:50:59 -0800 (Tue, 03 Nov 2020) $
-; $LastChangedRevision: 29318 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-11-05 17:29:35 -0800 (Thu, 05 Nov 2020) $
+; $LastChangedRevision: 29328 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -514,19 +514,19 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
         endelse
         
         ; Create time specific quality flag to use for filtering
-        r = where(tn.Matches('(mag_RTN|mag_SC|mag_RTN_1min|mag_SC_1min|mag_RTN_4_Sa_per_Cyc|mag_SC_4_Sa_per_Cyc)$'), count)
-        if count eq 1 then begin
-          get_data, tn[r], data=d
-          if tn[r].Matches('(mag_RTN|mag_SC)$') then  tag = '_hires' $
-          else if tn[r].Matches('(_1min)$')then tag = '_1min' $
-          else if tn[r].Matches('(_4_Sa_per_Cyc)$') then tag = '_4_per_cycle'
-
-          r = where(tn.Matches('psp_fld_l2_quality_flags'), count)
-          if count eq 1 then begin
-            psp_fld_extend_epoch, tn[r], d.x, tag
-            tn = [tn,  tn[r]+tag]
-          endif
-        endif
+;        r = where(tn.Matches('(mag_RTN|mag_SC|mag_RTN_1min|mag_SC_1min|mag_RTN_4_Sa_per_Cyc|mag_SC_4_Sa_per_Cyc)$'), count)
+;        if count eq 1 then begin
+;          get_data, tn[r], data=d
+;          if tn[r].Matches('(mag_RTN|mag_SC)$') then  tag = '_hires' $
+;          else if tn[r].Matches('(_1min)$')then tag = '_1min' $
+;          else if tn[r].Matches('(_4_Sa_per_Cyc)$') then tag = '_4_per_cycle'
+;
+;          r = where(tn.Matches('psp_fld_l2_quality_flags'), count)
+;          if count eq 1 then begin
+;            psp_fld_extend_epoch, tn[r], d.x, tag
+;            tn = [tn,  tn[r]+tag]
+;          endif
+;        endif
       endelse
 
       ;
@@ -535,16 +535,20 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
       if strmatch(type,'mag_*') then begin
         r = where(tn.Matches('(mag_RTN|mag_RTN_1min|mag_RTN_4_Sa_per_Cyc)$'),/NULL)
-        options,tn[r],/def,ytitle='MAG RTN',max_points=10000,psym_lim=300
+        options,tn[r],/def,ytitle='MAG RTN',psym_lim=300
         options,tn[r],/def,colors='bgr'
+        options,tn[r],max_points=10000 ; not a default option, so users can turn it off
 
         r = where(tn.Matches('(mag_SC|mag_SC_1min|mag_SC_4_Sa_per_Cyc)$'),/NULL)
-        options,tn[r],/def,ytitle='MAG SC',max_points=10000,psym_lim=300
+        options,tn[r],/def,ytitle='MAG SC',psym_lim=300
         options,tn[r],/def,colors='bgr'
+        options,tn[r],max_points=10000 ; see above
 
         r = where(tn.Matches('(mag_VSO)$'),/NULL)
-        options,tn[r],/def,ytitle='MAG VSO',max_points=10000,psym_lim=300
+        options,tn[r],/def,ytitle='MAG VSO',psym_lim=300
         options,tn[r],/def,colors='bgr'       
+        options,tn[r],max_points=10000 ; see above
+
       endif
 
       if strmatch(type, 'dfb_wf_*') then begin

@@ -1,8 +1,30 @@
+; PROCEDURE:
+;         elf_set_overview_options
+;
+; PURPOSE:
+;         This routine takes the spectral data displayed in the ELFIN summary plots
+;         and sets up the 
+;
+; KEYWORDS:
+;         trange: start time and stop time to be used for the plot
+;                (format can be time string ['2020-03-20','2020-03-21']
+;                or time double)
+;         probe: probe name, probes include 'a' and 'b'
+;         no_switch: obsolete keyword that was used early on to not switch out the energy bin values
+;                    this should be removed from this routine and from epde_plot_overviews
+;
+; OUTPUT:
+;
+; EXAMPLE:
+;         elf_update_data_availability_table, '2020-03-20', probe='a', instrument='epd'
+;
+;-
 pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
 
    if ~keyword_set(probe) then probe='a' else probe=probe
 
    if ~keyword_set(no_switch) then begin
+     ; make sure that the energy bins are set
      get_data, 'el'+probe+'_pef_nflux', data=pef_nflux, dlimits=pef_nflux_dl, limits=pef_nflux_l
      get_data, 'el'+probe+'_pef_en_spec2plot_omni', data=omni, dlimits=omni_dl, limits=omni_l
      if pef_nflux.v[0] LT omni.v[0] then omni.v[0]=pef_nflux.v[0]
@@ -37,7 +59,8 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
         store_data, 'el'+probe+'_pef_en_reg_spec2plot_para', data=para, dlimits=para_dl, limits=para_l
       endif
    endif
-   
+ 
+   ; set up titles  
    options, 'el'+probe+'_pef_en_spec2plot_omni', charsize=.9
    options, 'el'+probe+'_pef_en_spec2plot_omni', 'ztitle','nflux' 
    options, 'el'+probe+'_pef_en_spec2plot_omni', 'ysubtitle','[keV]'
@@ -63,6 +86,7 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
    options, 'el'+probe+'_pef_en_reg_spec2plot_para', 'ztitle','nflux'
    options, 'el'+probe+'_pef_en_reg_spec2plot_para', 'ysubtitle','[keV]'
    
+   ; set up zlimits for the spectral data
    ;options, 'el'+probe+'_bt89_sm_NED', charsize=.8
    ;options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]
    zlim, 'el'+probe+'_pef_en_spec2plot_omni', 1.e1, 2.e6
@@ -99,6 +123,7 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch2LC',zstyle=1
    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch3LC',zstyle=1
 
+   ; set up y and z titles
    options, 'el'+probe+'_pef_pa_spec2plot_ch0LC', 'ysubtitle','[deg]'
    options, 'el'+probe+'_pef_pa_spec2plot_ch0LC', 'ztitle','nflux'  
    options, 'el'+probe+'_pef_pa_spec2plot_ch1LC', 'ysubtitle','[deg]'
@@ -116,6 +141,7 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch3LC', 'ysubtitle','[deg]'
    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch3LC', 'ztitle','nflux'
 
+   ; set the range for the z axis
    options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle','nflux'
    options,'el?_p?f_pa*spec2plot_ch0LC*','zrange',[2e3,2e6]
    options,'el?_p?f_pa*spec2plot_ch1LC*','zrange',[1e3,2e5]

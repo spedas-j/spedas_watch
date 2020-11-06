@@ -71,8 +71,8 @@
 ;          
 ;          
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-09-29 12:37:28 -0700 (Tue, 29 Sep 2020) $
-;$LastChangedRevision: 29194 $
+;$LastChangedDate: 2020-11-04 22:40:52 -0800 (Wed, 04 Nov 2020) $
+;$LastChangedRevision: 29323 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/mec/mms_load_mec.pro $
 ;-
 
@@ -118,6 +118,8 @@ pro mms_load_mec, trange = trange, probes = probes, datatype = datatype, $
                 names_out=ras_dec_vars     
             copy_data, ras_dec_vars[0], 'mms'+strcompress(string(probes[probe_idx]), /rem)+'_defatt_spinras'+suffix
             copy_data, ras_dec_vars[1], 'mms'+strcompress(string(probes[probe_idx]), /rem)+'_defatt_spindec'+suffix
+            append_array, tplotnames, 'mms'+strcompress(string(probes[probe_idx]), /rem)+'_defatt_spinras'+suffix
+            append_array, tplotnames, 'mms'+strcompress(string(probes[probe_idx]), /rem)+'_defatt_spindec'+suffix
         endif else dprint, dlevel = 1, 'No right ascension/declination of the L-vector found.'
         ; fix the metadata
         mms_mec_fix_metadata, tplotnames, probes[probe_idx], suffix = suffix

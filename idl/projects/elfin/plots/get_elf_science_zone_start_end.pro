@@ -1,5 +1,30 @@
+;+
+;PROCEDURE:
+;   get_elf_science_zone_start_end
+;
+;PURPOSE:
+;   This routine searches a specified time range for science zone collections and returns a 
+;   structure sci_zones={starts:sz_starttimes, ends:sz_endtimes}
+;   This is a utility routine used by some of the plot routines but can be used standalong 
+;
+; KEYWORDS:
+;         trange:       time range of interest [starttime, endtime] with the format
+;                       ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;                       ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
+;         probe:        spacecraft specifier, 'a' or 'b'. default value is 'a'
+;         instrument:   string containing name of instrument to find the science zone
+;                       time frame. 'epd' is the only instrument implemented in this routine
+;                       'fgm' needs to be added
+;
+;OUTPUT:
+;   sci_zones={starts:sz_starttimes, ends:sz_endtimes}
+;   
+;AUTHOR:
+;v1.0 S.Frey 12-30-03
+;-
 function get_elf_science_zone_start_end, trange=trange, probe=probe, instrument=instrument
 
+   ; set up parameters if needed
    if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
     return, -1
@@ -9,6 +34,7 @@ function get_elf_science_zone_start_end, trange=trange, probe=probe, instrument=
    if not keyword_set(probe) then probe = 'a'
    if not keyword_set(instrument) then instrument='epd'
 
+   ; retrieve data
    elf_load_epd, probe=probe, trange=trange, datatype='pef', type='nflux'
    get_data, 'el'+probe+'_pef_nflux', data=pef_nflux
  
