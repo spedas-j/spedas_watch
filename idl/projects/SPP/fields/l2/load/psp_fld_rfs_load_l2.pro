@@ -1,4 +1,4 @@
-pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
+pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only,varformat=vars_fmt
 
   if n_elements(files) EQ 0 and n_elements(hfr_only) EQ 0 and n_elements(lfr_only) EQ 0 then begin
 
@@ -24,28 +24,30 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
 
   endif
 
-  vars_fmt = []
+  if ~keyword_set(vars_fmt) then begin
+    vars_fmt = []
+    for i = 0, n_elements(files) -1 do begin
 
-  for i = 0, n_elements(files) -1 do begin
+      file = files[i]
 
-    file = files[i]
+      cdf_id = cdf_open(file)
 
-    cdf_id = cdf_open(file)
+      info = cdf_info(cdf_id,verbose=verbose)
 
-    info = cdf_info(cdf_id,verbose=verbose)
+      for j = 0, info.nv - 1 do begin
+        name = info.vars[j].name
+        if strmid(name,0,7) EQ 'psp_fld' then begin
+          cdf_control,cdf_id,variable=name, get_var_info=vinfo
+          ;print, name, vinfo.maxrecs, vinfo.maxrec, file
+          if vinfo.maxrec GE 0 and where(vars_fmt EQ name) EQ -1 then vars_fmt = [vars_fmt, name]
+        endif
+      endfor
 
-    for j = 0, info.nv - 1 do begin
-      name = info.vars[j].name
-      if strmid(name,0,7) EQ 'psp_fld' then begin
-        cdf_control,cdf_id,variable=name, get_var_info=vinfo
-        ;print, name, vinfo.maxrecs, vinfo.maxrec, file
-        if vinfo.maxrec GE 0 and where(vars_fmt EQ name) EQ -1 then vars_fmt = [vars_fmt, name]
-      endif
+      cdf_close, cdf_id
+
     endfor
+  endif
 
-    cdf_close, cdf_id
-
-  endfor
 
   cdf2tplot, files, varformat = vars_fmt, varnames = varnames
 
@@ -215,18 +217,20 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only
 
         get_data, var, data = d
 
-        options, var, 'yrange', minmax(d.v)
-        options, var, 'datagap', 180d
-        options, var, 'ystyle', 1
-        if strpos(var, '_hires_') EQ 0 then options, var, 'ylog', 1
-        options, var, 'no_interp', 1
-        options, var, 'panel_size', 2
+        if keyword_set(d) then begin
+          options, var, 'yrange', minmax(d.v)
+          options, var, 'datagap', 180d
+          options, var, 'ystyle', 1
+          if strpos(var, '_hires_') EQ 0 then options, var, 'ylog', 1
+          options, var, 'no_interp', 1
+          options, var, 'panel_size', 2
 
-        options, var, 'ysubtitle', '[Hz]'
+          options, var, 'ysubtitle', '[Hz]'
 
-        ytitle = rec + '!C' + strupcase(type) + '!C' + src
+          ytitle = rec + '!C' + strupcase(type) + '!C' + src
 
-        options, var, 'ytitle', ytitle
+          options, var, 'ytitle', ytitle
+        endif
 
         ; add source information to metavariables
 

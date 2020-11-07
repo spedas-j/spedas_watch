@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-11-05 17:29:35 -0800 (Thu, 05 Nov 2020) $
-; $LastChangedRevision: 29328 $
+; $LastChangedDate: 2020-11-06 14:47:39 -0800 (Fri, 06 Nov 2020) $
+; $LastChangedRevision: 29342 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -489,7 +489,8 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       ; in SPEDAS.
       ;
 
-      spp_fld_load_l1, files, varformat = varformat, downsample = downsample
+      spp_fld_load_l1, files, varformat = varformat, downsample = downsample, $
+        add_prefix = tname_prefix
 
     endif else begin
 
@@ -503,7 +504,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
       if strmatch(type,'rfs_?fr') then begin
 
-        psp_fld_rfs_load_l2, files
+        psp_fld_rfs_load_l2, files,varformat=varformat
 
       endif else begin
 

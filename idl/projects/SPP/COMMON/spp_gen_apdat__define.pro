@@ -2,8 +2,8 @@
 ;  SPP_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29220 $
+; $LastChangedDate: 2020-11-05 22:50:09 -0800 (Thu, 05 Nov 2020) $
+; $LastChangedRevision: 29335 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -237,8 +237,8 @@ end
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29220 $
+; $LastChangedDate: 2020-11-05 22:50:09 -0800 (Thu, 05 Nov 2020) $
+; $LastChangedRevision: 29335 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 function spp_gen_apdat::sw_version
@@ -255,8 +255,8 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 29220 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-11-05 22:50:09 -0800 (Thu, 05 Nov 2020) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 29335 $'
 
     return,sw_hash
 end
@@ -298,8 +298,8 @@ function spp_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: ali $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2020-10-07 14:42:50 -0700 (Wed, 07 Oct 2020) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 29220 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2020-11-05 22:50:09 -0800 (Thu, 05 Nov 2020) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 29335 $'
 
   return,global_att
 end
@@ -444,7 +444,7 @@ pro spp_gen_apdat::sav_makefile,sav_format=sav_format,verbose=verbose
     filename=time_string(trange[0],tformat=sav_format)
     filename=root_data_dir()+str_sub(filename,'$NAME$',self.name)
     file_mkdir2,file_dirname(filename)
-    dprint,'Saving file: '+filename
+    ;dprint,'Saving file: '+filename
     save,file=filename,self,verbose=verbose,/compress
     dprint,'Saved file:  '+filename
   endfor

@@ -28,8 +28,8 @@
 ;                       Fixed bug on macOS when saving figures of restored data using makepng/makegif/makejpg, 24-jan-2019, egrimes
 ;
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-03-05 14:17:16 -0800 (Thu, 05 Mar 2020) $
-; $LastChangedRevision: 28383 $
+; $LastChangedDate: 2020-11-05 22:46:13 -0800 (Thu, 05 Nov 2020) $
+; $LastChangedRevision: 29332 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot_restore.pro $
 ;-
 pro tplot_restore,filenames=filenames,all=all,append=append,sort=sort,$
@@ -123,7 +123,7 @@ pro tplot_restore,filenames=filenames,all=all,append=append,sort=sort,$
                 endif else newy = ptr_new([*olddata.y,*(*thisdq.dh).y])
               endif else newy = ptr_new(*olddata.y)
               if ptr_valid((*thisdq.dh).x) then newx = ptr_new([*olddata.x,*(*thisdq.dh).x]) else newx = ptr_new(*olddata.x)
-              ptr_free,(*thisdq.dh).x,(*thisdq.dh).y
+              ;ptr_free,(*thisdq.dh).x,(*thisdq.dh).y ;this line is not compatible with tplot variables that share their time pointers (Deja Vu!)
               oldv = ptr_new()
               str_element,olddata,'v',oldv
               if ptr_valid(oldv) then begin

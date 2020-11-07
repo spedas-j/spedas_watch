@@ -538,13 +538,21 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   	;;;; Jiang Liu edit: to reduce errors for the ease of debugging
   	undefine, this_b_sz_st
   	undefine, this_b_sz_en
-    if ~undefined(epdb_sci_zones) && epdb_sci_zones.starts[0] NE -1 then begin
-       idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
-       if bzones GT 0 then begin
-         this_b_sz_st=epdb_sci_zones.starts[idx]
-         this_b_sz_en=epdb_sci_zones.ends[idx]
-         if epdb_sci_zones.ends[bzones-1] GT this_time2[nptsb-1] then this_b_sz_en[bzones-1]=this_time2[nptsb-1]
-       endif 
+;    if ~undefined(epdb_sci_zones) && epdb_sci_zones.starts[0] NE -1 then begin
+;       idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
+;       if bzones GT 0 then begin
+;         this_b_sz_st=epdb_sci_zones.starts[idx]
+;         this_b_sz_en=epdb_sci_zones.ends[idx]
+;         if epdb_sci_zones.ends[bzones-1] GT this_time2[nptsb-1] then this_b_sz_en[bzones-1]=this_time2[nptsb-1]
+;       endif 
+;    endif
+    if ~undefined(epdb_sci_zones) && size(epdb_sci_zones, /type) EQ 8 then begin
+      idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
+      if bzones GT 0 then begin
+        this_b_sz_st=epdb_sci_zones.starts[idx]
+        this_b_sz_en=epdb_sci_zones.ends[idx]
+        if epdb_sci_zones.ends[bzones-1] GT this_time2[nptsb-1] then this_b_sz_en[bzones-1]=this_time2[nptsb-1]
+      endif
     endif
     
     ; Plot foot points

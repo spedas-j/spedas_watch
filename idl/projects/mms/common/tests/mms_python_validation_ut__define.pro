@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-10-22 15:05:35 -0700 (Thu, 22 Oct 2020) $
-; $LastChangedRevision: 29278 $
+; $LastChangedDate: 2020-11-05 18:21:30 -0800 (Thu, 05 Nov 2020) $
+; $LastChangedRevision: 29330 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -68,6 +68,17 @@ function mms_python_validation_ut::test_scm_brst
   py_script = ["from pyspedas import mms_load_scm", "mms_load_scm(trange=['2015-10-16/13:06', '2015-10-16/13:07'], data_rate='brst', probe=1)"]
   vars = ['mms1_scm_acb_gse_scb_brst_l2', 'mms1_scm_acb_gse_schb_brst_l2']
   return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_scm_dpwrspc_brst
+  mms_load_scm, data_rate='brst', probe=1, trange=['2015-10-16/13:06', '2015-10-16/13:07']
+  tdpwrspc, 'mms1_scm_acb_gse_scb_brst_l2', nboxpoints=8192, nshiftpoints=8192, bin=1
+  py_script = ["from pyspedas import mms_load_scm", $
+    "from pyspedas.analysis.tdpwrspc import tdpwrspc", $
+    "mms_load_scm(trange=['2015-10-16/13:06', '2015-10-16/13:07'], data_rate='brst', probe=1)", $
+    "tdpwrspc('mms1_scm_acb_gse_scb_brst_l2', nboxpoints=8192, nshiftpoints=8192, binsize=1)"]
+  vars = ['mms1_scm_acb_gse_scb_brst_l2_x_dpwrspc', 'mms1_scm_acb_gse_scb_brst_l2_y_dpwrspc', 'mms1_scm_acb_gse_scb_brst_l2_z_dpwrspc']
+  return, spd_run_py_validation(py_script, vars, tol=1e-4)
 end
 
 function mms_python_validation_ut::test_edp_default

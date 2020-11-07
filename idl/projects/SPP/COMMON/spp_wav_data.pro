@@ -1,16 +1,16 @@
 ;Ali: February 2020
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-10-07 14:42:22 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29218 $
+; $LastChangedDate: 2020-11-05 22:48:36 -0800 (Thu, 05 Nov 2020) $
+; $LastChangedRevision: 29334 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_wav_data.pro $
 ; $ID: $
 
-;no keyword set: loads daily 1min resolution files (used for a few day timerange)
-;/month loads monthly 1min resolution files (used for really long timeranges)
+;no keyword set: loads daily 1min resolution files (default: faily fast for use for up to a few day timerange)
+;/month loads monthly 1min resolution files (used for longer than a few day timerange)
 ;/hires  loads daily  1sec resolution files (loads faster than /hourly, since needs to load only 1 file per day)
 ;/hourly loads hourly 1sec resolution files (24 files per day)
 ;/hourly,/hires loads hourly full-resolution files (only recommended for short timespans, since file sizes can be huge!)
-;run by Ali:
+;the below keywords are typically run by Ali:
 ;/genhourly generates hourly full-resolution and 1sec files
 ;/gendaily generates daily 1sec and 1min files from the hourly 1sec files
 ;/genmonthly generates monthly 1min files from the daily 1min files
@@ -22,6 +22,7 @@ pro spp_wav_data,trange=trange,types=types,hires=hires,hourly=hourly,monthly=mon
   path='psp/data/sci/sweap/.wav/$TYPE$/YYYY/MM/DD/psp_fld_l2_$TYPE$_YYYYMMDD'
   if keyword_set(monthly) then path='psp/data/sci/sweap/.wav/$TYPE$_1sec/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMM'
   cdfpath='psp/data/sci/fields/staging/l2/$TYPE$/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMMDDhh_v??.cdf'
+  cdfpath='psp/data/sci/fields/l2/$TYPE$/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMMDDhh_v??.cdf'
   if keyword_set(monthly) then lowresstr='' else lowresstr='_1sec'
   if keyword_set(hourly) or keyword_set(gendaily) then begin
     path=path+'hh'
@@ -70,7 +71,7 @@ pro spp_wav_data,trange=trange,types=types,hires=hires,hourly=hourly,monthly=mon
             options,tpname,'yrange',/default
             if (t0+hr) mod 24 lt 10 then zero='0' else zero=''
             ;tplotname=dir+'sweap/.wav/'+files[i].substring(40,-11)+zero+strtrim((t0+hr) mod 24,2) ;monthly directories
-            tplotname=dir+'sweap/.wav/'+files[i].substring(43,57+subs[type])+files[i].substring(82+2*subs[type],-11)+files[i].substring(57+subs[type],-11)+zero+strtrim((t0+hr) mod 24,2) ;daily
+            tplotname=dir+'sweap/.wav/'+files[i].substring(-51-2*subs[type],-37-subs[type])+files[i].substring(-12,-11)+files[i].substring(-37-subs[type],-11)+zero+strtrim((t0+hr) mod 24,2) ;daily
             tplot_save,tpname,filename=tplotname ;full hourly
             foreach tpname1,tpname do begin
               get_data,tpname1,ptr=ptr,dat=dat
