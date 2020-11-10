@@ -18,7 +18,7 @@
 ;       'Ew' - Waveform from the Ew electric monopole antenna
 ;       'Ex' - Waveform from the Eu and Ev electric dipole antennas, aligned along the x axis of the spacecraft
 ;       '7kHz' - Output 140 mks sample interval 7.143 kHz rolloff data, by default 10 ms sample data 100 Hz rolloff are sent
-;     Collection HiRes_MidFreq_Waveform: 
+;     Collection HiRes_MidFreq_Waveform (at this moment, onlye one parameter: Ew or Ex can be selected): 
 ;       'Ew' - Waveform from the Ew electric monopole antenna
 ;       'Ex' (Currently, does not work) - Waveform from the Eu and Ev electric dipole antennas, aligned along the X axis of the spacecraft
 ;       '80khz' - chage band rolloff to 80khz (default is 10khz)          
@@ -33,8 +33,8 @@
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-10-26 19:12:46 -0700 (Mon, 26 Oct 2020) $
-; $Revision: 29299 $
+; $Date: 2020-11-09 12:50:57 -0800 (Mon, 09 Nov 2020) $
+; $Revision: 29345 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_waveform.pro $
 ;-
 
@@ -79,8 +79,8 @@ pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution
       ; Set additional parameters
       aparam = []
       if array_contains(output, '80khz') then aparam = [aparam, '--80khz']
-      if array_contains(output, 'Ex') then aparam = [aparam, '--Ex=true']
-      if array_contains(output, 'Ew') then aparam = [aparam, '--Ew=true']
+      if array_contains(output, 'Ex') then aparam = [aparam, '--Ex']
+      if array_contains(output, 'Ew') then aparam = [aparam, '--Ew']
             
       if parameter ne '' then parameter = strjoin([aparam, parameter], '+') $
       else if keyword_set(aparam) then parameter = strjoin(aparam, '+')  
