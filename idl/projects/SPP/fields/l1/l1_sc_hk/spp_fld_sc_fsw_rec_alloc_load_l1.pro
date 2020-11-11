@@ -1,3 +1,12 @@
+;+
+;
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-11-10 17:38:09 -0800 (Tue, 10 Nov 2020) $
+; $LastChangedRevision: 29349 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/l1/l1_sc_hk/spp_fld_sc_fsw_rec_alloc_load_l1.pro $
+;
+;-
+
 pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varformat
 
   clusters_per_gbit = 3890d
@@ -76,12 +85,15 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
   ;
   ;  if the number of points is too large, then this takes too long
   ;
-  
+
   get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit', data = d_gbit, al = al
 
   if n_elements(d_gbit.x) LT 50000l then begin
 
     gbit2 = dblarr(n_elements(d_gbit.x))
+
+    kbit2 = dblarr(n_elements(d_gbit.x))
+
 
     for i = 0, n_elements(d_gbit.x)-1 do begin
 
@@ -90,10 +102,10 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
       ; an hour time scale seems to be a reasonable compromise between getting
       ; a smooth data rate plot in kbps, and catching transitions
 
-      ind_lo = where(diff LE 0d and diff GT -1800d, count_lo)
-      ind_hi = where(diff GE 0d and diff LT  1800d, count_hi)
+      ind_lo = where(diff LE 0d and diff GT -3600d, count_lo)
+      ind_hi = where(diff GE 0d and diff LT  3600d, count_hi)
 
-      if count_hi LT 3 or count_lo LT 3 then begin
+      if (count_hi + count_lo) LT 3 then begin
 
         gbit2[i] = d_gbit.y[i]
 
@@ -103,6 +115,8 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
 
         gbit2[i] = lf_par[0] + lf_par[1] * d_gbit.x[i]
 
+        kbit2[i] = lf_par[1] * 1d6 > 0d
+
       endelse
 
     endfor
@@ -110,16 +124,26 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
     store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', $
       data = {x:d_gbit.x, y:gbit2}, lim = al
 
-    deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', nsmooth = 6
+    store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps_smooth', $
+      data = {x:d_gbit.x, y:kbit2}, lim = al
 
-    get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth_ddt', dat = d_ddt
+    ;
+    ; an older method that relied on the spedas deriv_data function
+    ; 
+    ; made a smoother line but had more difficulty identifying
+    ; sharp transitions (which we want to ID mode changes)
+    ;
 
-    if size(/type, d_ddt) EQ 8 then begin
+    ;deriv_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth', nsmooth = 6
 
-      store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps_smooth', $
-        dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
+    ;get_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_Gbit_smooth_ddt', dat = d_ddt
 
-    endif
+    ;if size(/type, d_ddt) EQ 8 then begin
+
+    ;  store_data, 'spp_fld_sc_fsw_rec_alloc_used_fields_kbps_smooth', $
+    ;    dat = {x:d_ddt.x, y:(d_ddt.y*1e6 > 0d)}
+
+    ;endif
 
   endif
 

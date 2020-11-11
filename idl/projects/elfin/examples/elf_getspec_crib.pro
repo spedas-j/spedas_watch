@@ -5,6 +5,9 @@
 ; 
 ; To execute type: elf_getspec_crib and hit .c at each stop to continue
 ;
+; Revision: 2020/11/10 (VA) 
+; - added calls to reload epd prior to elf_getspec when units changed!
+; - changed event to the one published in ELFIN mission paper, publicly available
 ; Change history: First release, Vassilis 2020/11/01
 ;
 pro elf_getspec_crib
@@ -16,8 +19,10 @@ pro elf_getspec_crib
 ;
 ; pick an event; here from 2019-09-27 storm on EL-A
 ; 
- tstart='2020-04-22/05:43:50'
- tend='2020-04-22/05:48:30'
+ tstart='2019-09-28/16:19:00' ; <- this is the ELFIN mission paper event, Fig. 21
+ tend='2019-09-28/16:22:00'   ; <- this is the ELFIN mission paper event, Fig. 21
+ ; tstart='2020-04-22/05:43:50' ; <--- uncommend this to plot a different event
+ ; tend='2020-04-22/05:48:30'   ; <--- uncommend this to plot a different event
  time2plot=[tstart,tend]
  timeduration=time_double(tend)-time_double(tstart)
  timespan,tstart,timeduration,/seconds ; set the analysis time interval
@@ -37,13 +42,14 @@ elf_getspec,probe=sclet,datatype='pef' ; get some spectra (default is 'a',specie
 tplot,['*en_spec2plot*','*pa_spec2plot_ch?LC']
 ;
 print,'*********************************************************************************'
-print,'This shows how to introduce and plot energy and pitch-angle spectra the fastest way
-print,'Default ch[1-3] energy ranges are [[50.,160.],[160.,345.],[345.,900.],[900.,7000.]]
+print,'This shows how to introduce and plot energy and pitch-angle spectra the fastest way'
+print,'Default ch[1-3] energy ranges are [[50.,160.],[160.,345.],[345.,900.],[900.,7000.]]'
+print,'Default quantities introduced are in units of !!!number flux!!!, as shown here          '
 print,'*********************************************************************************'
 ;
 stop
 ;
-; if you want another type you must reload the data and call elf_getspec again!
+; if you want another type you MUST reload the data and call elf_getspec again!
 elf_load_epd, probes=sclet, datatype='pef', level='l1', type = 'eflux' ; loads energy flux (could be 'raw', 'cps', or default: 'nflux')
 ; get regularized spectra (at fixed, regular pitch angles) at half-spin (max) resolution
 elf_getspec,/regularize,probe=sclet,type = 'eflux' ; note, you must use getspec for the same type as loaded!!
@@ -60,21 +66,32 @@ tplot,'ela_pef_'+['en_spec2plot_omni','en_spec2plot_anti','en_spec2plot_perp','e
   'pa_spec2plot_ch[0-3]LC']
 ;
 print,'*********************************************************************************'
-print,'This shows how to plot energy spectra and pitch-angle spectra at Tspin/2 resolution without angle interpolation'
+print,'This shows how to plot energy spectra and pitch-angle spectra at Tspin/2 resolution'
+print,'without angle interpolation (not regularized). Here data were read in !!!eflux!!! units'
 print,'*********************************************************************************'
 ;
 stop
 ;
 ; plot the regularized quantities (obtained with keyword regularized in elf_getspec)
 ; Note that you need not use the regularized keyword above, and the routine will go faster)
+; 
+; The spin sector centers are also shifted by an angle that is read from the
+; calibration file. The values, as used, can be plotted for reference in the title
+; and compared with the online plots to ensure consistency. This is also shown here.
+; 
+myphasedelay = elf_find_phase_delay(probe=sclet, instrument='epde', trange=[tstart,tend])
+mysect2add=myphasedelay.DSECT2ADD
+mydSpinPh2add=myphasedelay.DPHANG2ADD
+mytitle='el'+sclet+'_pef dSect='+strtrim(mysect2add,1)+' dSpinPh='+strtrim(mydSpinPh2add,1)
 ;
 tplot,'ela_pef_'+['en_reg_spec2plot_omni','en_reg_spec2plot_anti','en_reg_spec2plot_perp','en_reg_spec2plot_para', + $
-  'pa_reg_spec2plot_ch[0-3]LC']
+  'pa_reg_spec2plot_ch[0-3]LC'],title=mytitle
 ;
-print,'*********************************************************************************'
-print,'This shows regularized energy and pitch-angle spectra at Tspin/2 resolution (pitch-angle inter/extrapolated at regular angles)'
-print,'This results in artificial values which are not so well constrained when counts are low'
-print,'*********************************************************************************'
+print,'****************************************************************************************'
+print,'This shows regularized energy and pitch-angle spectra at Tspin/2 resolution
+print,'(pitch-angle inter/extrapolated at regular angles), pre-computed also in the same call.'
+print,'This option may result in artificial values, especially poorly constrained for low counts'
+print,'******************************************************************************************'
 ;
 stop
 ;
@@ -97,7 +114,7 @@ stop
 ; You can change the energies included in the energy spectra 
 ; and the range of pitch-angle angles included in the para and perp spectra and their ratios
 ; to non-default ones...
-; 
+; note: you do not have to reload the data again as they were loaded with type='eflux' last.
 myenergies=[[50.,100.],[100.,150.],[150.,250.],[250.,400.],[400.,600.],[600.,900.]] ; these are the energies I want
 myLCpartol=22.5+11.25 ; my tolerance to use in para and anti: excludes pitch-angles that are closer than myLCpartol from the Loss Cone Edge
 elf_getspec,probe=sclet,type = 'eflux',energies=myenergies,/regularize,LCpartol2use=myLCpartol; note, you must use getspec for the same type as loaded!!
@@ -114,6 +131,7 @@ print,'*************************************************************************
 print,'Showing new quantities...
 print,'*********************************************************************************'
 ;
+stop
 ; replot all energy and angle spectrograms (here for regularized)
 ;
 zlim,'el?_pef_pa_*spec2plot_ch0*',5.e5,1.e9,1
@@ -129,6 +147,8 @@ tplot,'ela_pef_'+['en_reg_spec2plot_omni','en_reg_spec2plot_anti','en_reg_spec2p
 print,'*********************************************************************************'
 print,'Shows multiple energies and user-controled loss-cone restrictions'
 print,'*********************************************************************************'
+;
+stop
 ;
 ; You can roughly double the angular resolution at the expense of halfing the time resolution
 ; This is done using keyword /fullspin which produces max number of sectors (typ. 16) each full spin
@@ -153,6 +173,7 @@ print,'*************************************************************************
 ; but because (1) consecutive sectors are obtained in close time-proximity to each other and (2) there is no way to tell how much
 ; of the difference at distant sectors (say 0. and 180. deg) is due to true instantaneous anisotropy as opposed to time-variability.
 ; 
+; note: you do not have to reload the data again as they were loaded with type='eflux' last.
 elf_getspec,probe=sclet,type = 'eflux',/fullspin,/regularize ; (default energies) produces quantities: '*_fulspn_*'
 ;
 tplot_names,'*_fulspn_*'
@@ -186,15 +207,18 @@ stop
 ; For the products of interest compute fractional error in each bin =1/sqrt(counts in bin). Then use that to constrain the data
 ; and make low-count points NaNs so they dont appear on the plot.
 ;
+elf_load_epd,probe=sclet,datatype='pef',type='raw'
 elf_getspec,probe=sclet,type='raw',/fullspin,/regularize ; now the tplot variables contain raw counts, not eflux
 ; Use these raw counts to produce the df/f error estimate = 1/sqrt(counts) for all quantities you need to. Use calc with globing:
 calc," 'ela_pef_en_reg_fulspn_spec2plot_????_err' = 1/sqrt('ela_pef_en_reg_fulspn_spec2plot_????') " ; <-- what I will use later, err means df/f
 calc," 'ela_pef_pa_reg_fulspn_spec2plot_ch?_err' = 1/sqrt('ela_pef_pa_reg_fulspn_spec2plot_ch?') " ; <-- same for angle spectrograms
+; reload in eflux units now (two calls: first load data, then compute spectra)
+elf_load_epd,probe=sclet,datatype='pef',type='eflux'
 elf_getspec,probe=sclet,type = 'eflux',/fullspin,/regularize ; reload eflux... 
 ; now clean up quantities
 quants2clean='ela_pef_en_reg_fulspn_spec2plot_'+['perp','omni','para','anti'] ; array of tplot names of energy spectrograms
 quants2clean=[quants2clean,'ela_pef_pa_reg_fulspn_spec2plot_ch'+['0','1','2','3']] ; append array of angle spectrograms
-errmax2use=0.1 ; this means % max error is df/f=100*errmax2use 
+errmax2use=0.5 ; this means % max error is df/f=100*errmax2use 
 foreach element, quants2clean do begin
   error2use=element+'_err'
   copy_data,element,'quant2clean'
@@ -213,6 +237,10 @@ foreach element, quants2clean do begin
 endforeach
 ;
 tplot ; this replots the previous plot but now the low-count points (fractional err> 100.*errmax2use %) have been removed
+; same as above just verbose:
+;tplot,'ela_pef_'+['en_reg_fulspn_spec2plot_omni','en_reg_fulspn_spec2plot_anti','en_reg_fulspn_spec2plot_perp','en_reg_fulspn_spec2plot_para', + $
+;  'pa_reg_fulspn_spec2plot_ch[0-3]LC']
+;
 print,'*********************************************************************************'
 print,'Shows use of raw counts for removing low-confidence points.
 print,'*********************************************************************************'
