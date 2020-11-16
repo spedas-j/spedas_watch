@@ -34,8 +34,8 @@
 ;   IDL> psp_fld_quality_flag_examples, 'THRUSTER'
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-11-05 17:30:02 -0800 (Thu, 05 Nov 2020) $
-; $LastChangedRevision: 29329 $
+; $LastChangedDate: 2020-11-12 22:39:16 -0800 (Thu, 12 Nov 2020) $
+; $LastChangedRevision: 29352 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/crib/psp_fld_quality_flag_examples.pro $
 ;
 ;-
@@ -190,7 +190,7 @@ pro psp_fld_quality_flag_examples, qf_type, $
     ;
     ; The optimum bias currents and voltages are determined by bias sweeps,
     ; which typically occur twice per day during the encounter phase of the
-    ; orbit (solar distance > 0.25 au).
+    ; orbit (solar distance < 0.25 au).
     ;
     ; More information on biasing the FIELDS antennas is available in:
     ; Bale et al. (2016), https://doi.org/10.1007/s11214-016-0244-5
