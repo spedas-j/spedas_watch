@@ -11,11 +11,13 @@
 ; from the appropriate spacecraft (e.g., ela_pef_nflux and 'ela_att_gei', 'ela_pos_gei') have been loaded already!!!!!
 ; It also assumes the user has the ability to run T89 routine (.dlm, .dll have been included in their distribution)!!!
 ; 
-; Version 2020-09-13 also outputs sector limits on pitch-angle values (one per sector). These are
+; V 2020-09-13: now also outputs sector limits on pitch-angle values (one per sector). These are
 ; passed in tplot quantities elx_pxf_pa_spec_pa_vals and ela_pef_pa_fulspn_spec_pa_vals 
 ; that hold Nx8x6 or NxMx6 values (N=number of times, M=number of sectors - twice as many for full spin than for halfspin - and 
 ; 6 are the output values). The 6 values are fullmin, halfmin, center, halfmax, fullmax, spinphase, where spinphase 
 ; is the sector spin phase from which you can obtain other useful things such as optimal pitch-angle (if B were on spin plane). 
+; 
+; V 2020-11-17 added fulspn_spec_full when keyword fullspin and get3Dspec are both set (product was inadvertently omitted before)
 ;
 pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
   type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
@@ -78,7 +80,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; 'ela_pef_pa_reg_spec2plot_ch?' : numchannels regularized pitch angle spectrograms for ? channel
   ; 'ela_pef_pa_spec2plot_ch?LC' and 'ela_pef_pa_reg_spec2plot_ch?LC: same as above but pseudovariables, including losscone/antilosscone overplotted
   ; 'ela_pef_pa_spec_pa_vals'      : pitch angles at full-width and half-width min/max and cntr of sector plus spin phase for reference (fmin,hmin,cntr,hmax,fmax,phi) supplements "v" quant's above
-  ; 'ela_pef_pa_fulspn_spec_pa_vals': same as above but for full spin spectra
   ;
   ; 'ela_pef_en_spec2plot_omni/para/perp/anti': energy spectra averaged over phase space within pitch angle range specified nhalfspinsavailable x Max_numchannels
   ; 'ela_pef_en_reg_spec2plot_omni/para/perp/anti': same as above but obtained from regularized versions of the pitch angle spectra
@@ -543,6 +544,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   elx_pxf_pa_spec_pa_vals = make_array(nhalfspinsavailable,(nspinsectors/2),6,/double)
   for jvals=0,5 do elx_pxf_pa_spec_pa_vals[*,*,jvals]=elx_pxf_pa_spec_pa_vals_temp[jvals,*,*]
   if keyword_set(get3Dspec) then store_data,mystring+'pa_spec',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec, v:elx_pxf_pa_spec_pas}
+  if keyword_set(get3Dspec) then store_data,mystring+'pa_spec_pa_vals',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec_pa_vals} ; no extra angles for these (not intended for angle spectra, just line plots)
   ;
   ; if regularize keyword is present then repeat for regularized sectors (though they should be identical)
 
@@ -668,13 +670,14 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
           endfor
         endfor
         ; no need for further processing of these, store'm
-        store_data,mystring+'pa_spec_pa_vals',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec_pa_vals} ; no extra angles for these (not intended for angle spectra, just line plots)
-        store_data,mystring+'pa_fulspn_spec_pa_vals',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_pa_fulspn_spec_pa_vals} ; no extra angle padding (only intended for line plots)
-        if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_fulspn_spec',data={x:elx_pxf_pa_reg_fulspn_spec_times, y:elx_pxf_pa_reg_fulspn_spec, v:elx_pxf_pa_reg_fulspn_spec_pas}
+        store_data,mystring+'pa_reg_fulspn_spec',data={x:elx_pxf_pa_reg_fulspn_spec_times, y:elx_pxf_pa_reg_fulspn_spec, v:elx_pxf_pa_reg_fulspn_spec_pas}
         if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_fulspn_spec_full',data={x:elx_pxf_pa_reg_fulspn_spec_times, y:elx_pxf_pa_reg_fulspn_spec_full, v:elx_pxf_pa_reg_fulspn_spec_pas}
       endif
     endif
-    ;
+    ; no need for further processing of these, store'm
+    store_data,mystring+'pa_fulspn_spec_pa_vals',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_pa_fulspn_spec_pa_vals} ; no extra angle padding (only intended for line plots)
+    if keyword_set(get3Dspec) then store_data,mystring+'pa_fulspn_spec_full',data={x:elx_pxf_pa_fulspn_spec_times, y:elx_pxf_pa_fulspn_spec_full, v:elx_pxf_pa_fulspn_spec_pas}
+   ;
   endif
   ;stop
   ;
