@@ -48,8 +48,8 @@
 ;CREATED BY: Ayris Narock, Jonathan Tsang (ADNET/GSFC) 2020
 ;
 ; $LastChangedBy: anarock $
-; $LastChangedDate: 2020-11-03 08:57:10 -0800 (Tue, 03 Nov 2020) $
-; $LastChangedRevision: 29319 $
+; $LastChangedDate: 2020-11-18 13:19:37 -0800 (Wed, 18 Nov 2020) $
+; $LastChangedRevision: 29360 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/misc/psp_fld_qf_filter.pro $
 ;-
 
@@ -57,6 +57,8 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
                         verbose=verbose
                        
   compile_opt idl2
+
+  names_out = []
   
   ; Handle HELP option
   @psp_fld_common
@@ -65,11 +67,8 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
     return
   endif
   
-  if ~isa(verbose, 'INT') then verbose = 2
-   
-  names_out = []
-  
   ; Argument checking
+  if ~isa(verbose, 'INT') then verbose = 2
   if isa(dqflag, 'UNDEFINED') then dqflag = 0 else $
   if ~isa(dqflag, /INT) then begin
     dprint, dlevel=1, verbose=verbose, "DQFLAG must be INT or INT ARRAY"
@@ -85,6 +84,39 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
       return
     endif
   endforeach
+
+
+  ; Create time specific quality flags as needed
+  tn = tnames(tvars)
+  r = where(tn.Matches('(mag_RTN|mag_SC|mag_RTN_1min|mag_SC_1min|mag_RTN_4_Sa_per_Cyc|mag_SC_4_Sa_per_Cyc)$'), count)
+  if count ge 1 then begin
+    foreach tvar, tn[r] do begin
+      get_data, tvar, data = d
+      prefix = (tvar.Split('psp_fld'))[0]
+
+      if tvar.Matches('(mag_RTN|mag_SC)$') then  tag = '_hires' $
+      else if tvar.Matches('(_1min)$')then tag = '_1min' $
+      else if tvar.Matches('(_4_Sa_per_Cyc)$') then tag = '_4_per_cycle'
+
+      make_qf_var = !false
+      tn_qf = tnames(prefix+'psp_fld_l2_quality_flags'+tag)
+      if tn_qf eq '' then begin ; It doesn't already exist
+        make_qf_var = !true
+      endif else begin ; It exists. Is it the correct timerange?
+        get_data, tn_qf, data=dqf
+        if (dqf.x[0] ne d.x[0]) or (dqf.x[-1] ne d.x[-1]) then begin
+          make_qf_var = !true
+        endif
+      endelse
+
+      if make_qf_var then begin
+        psp_fld_extend_epoch, prefix+'psp_fld_l2_quality_flags', d.x, tag
+      endif
+    endforeach
+  endif else begin
+    print,"No valid variables for filtering
+    return
+  endelse
 
   ; Retrieve DQF array and flagged bits      
   ; 

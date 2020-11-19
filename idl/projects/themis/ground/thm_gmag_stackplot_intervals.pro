@@ -379,7 +379,7 @@ for k=0,n_elements(dhr)-1 do begin
   
     date_compress = strcompress(strmid(date, 0, 4)+strmid(date, 5, 2)+strmid(date, 8, 2), /remove_all)
 
-    if(keyword_set(plot_dir)) then pdir = thm_addslash(plot_dir) else pdir = './'
+    if(keyword_set(plot_dir)) then pdir = spd_addslash(plot_dir) else pdir = './'
     ;if k ne 0 then tlimit, start_times[k], end_times[k]
   
     if w eq 0 then begin
