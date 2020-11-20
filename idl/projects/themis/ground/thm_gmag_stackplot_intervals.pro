@@ -42,21 +42,21 @@
 ;
 ;-
 
-pro thm_gmag_stackplot_intervals, date, duration, stack_shift=stack_shift, $
-                        make_png = make_png, max_deviation = max_deviation, $
-                        no_data_load = no_data_load, hi_lat = hi_lat, lo_lat = lo_lat, $
-                        plot_dir = plot_dir, _extra = _extra
+pro thm_gmag_stackplot_intervals, date_in, duration, stack_shift=stack_shift, $
+                                  make_png = make_png, max_deviation = max_deviation, $
+                                  no_data_load = no_data_load, hi_lat = hi_lat, lo_lat = lo_lat, $
+                                  plot_dir = plot_dir, _extra = _extra
 
 
-compile_opt idl2, hidden
+compile_opt idl2
 ;________________________________________________________________________________________________
 ;find all gmag CDF files on given date and put data into tplot variables
 ;________________________________________________________________________________________________
 
-if not keyword_set(date) then begin
+if not keyword_set(date_in) then begin
    dprint,  'You must specify a date. (Format : YYYY-MM-DD/HH:MM:SS)'
    return
-endif
+endif else date = time_string(date_in) ;allow for non-string date
 
 if not keyword_set(duration) then duration=1.
 if keyword_set(hi_lat) then a=0 else a=1      ; do high lat
