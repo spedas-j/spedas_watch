@@ -34,9 +34,9 @@ pro spp_fld_f1_100bps_load_l1, file, prefix = prefix, varformat = varformat
     data = prefix + 'MNMX_V?'
 
 
-  options, prefix + '*BX', 'colors', 6 ; red
+  options, prefix + '*BX', 'colors', 2 ; red
   options, prefix + '*BY', 'colors', 4 ; green
-  options, prefix + '*BZ', 'colors', 2 ; blue
+  options, prefix + '*BZ', 'colors', 6 ; blue
 
   options, prefix + '*BX', 'labels', 'X'
   options, prefix + '*BY', 'labels', '  Y'
