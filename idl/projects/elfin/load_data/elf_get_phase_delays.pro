@@ -119,6 +119,8 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
     endwhile
   endelse  
   
+  free_lun, lun
+  
   phase_delay = { $
     starttimes:starttimes, $
     endtimes:endtimes, $

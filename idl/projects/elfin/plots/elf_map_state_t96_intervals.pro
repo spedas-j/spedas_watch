@@ -69,7 +69,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   if keyword_set(dir_move) then begin
     dir_products=dir_move
   endif
-  if ~keyword_set(quick) then quick=1
+  if ~keyword_set(noview) then noview=1 else nonview=1
+  if ~keyword_set(tstep) then tstep=1 else tstep=1
+  if ~keyword_set(quick) then quick=1 else quick=1
+  if ~keyword_set(gifout) then gifout=1 else gifout=1
   if keyword_set(hires) then hires=1 else hires=0
   if keyword_set(sm) then ft_coord='sm' else ft_coord='geo'
   if keyword_set(pred) then pred=1 else pred=0

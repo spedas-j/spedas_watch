@@ -72,8 +72,8 @@
 ;HISTORY:
 ; 2014-05-12, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-08-25 13:56:04 -0700 (Tue, 25 Aug 2020) $
-; $LastChangedRevision: 29081 $
+; $LastChangedDate: 2020-11-23 10:08:50 -0800 (Mon, 23 Nov 2020) $
+; $LastChangedRevision: 29370 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_cmn_l2read.pro $
 ;-
 Function mvn_sta_cmn_l2read, filename, trange = trange, cdf_info = cdfi, $
@@ -194,7 +194,10 @@ Function mvn_sta_cmn_l2read, filename, trange = trange, cdf_info = cdfi, $
      Endif
 ;quick test for iv1 data
 ;     printf, 1, 'FILE: '+filename ;remember to change this
-;     If(tag_exist(cmn_dat, 'eflux')) Then printf, 1, minmax(cmn_dat.eflux)
+;     If(tag_exist(cmn_dat, 'eflux')) Then printf, 1,
+;     minmax(cmn_dat.eflux)
+     If(tag_exist(cmn_dat, 'eflux') && size(cmn_dat.eflux, /type) Eq 5) Then $
+        str_element, cmn_dat, 'eflux', float(cmn_dat.eflux), /add_replace
      Return, cmn_dat 
   Endif Else Return, otp
 

@@ -9,8 +9,8 @@
 ;
 ;
 ; $LastChangedBy: moka $
-; $LastChangedDate: 2020-11-19 13:13:44 -0800 (Thu, 19 Nov 2020) $
-; $LastChangedRevision: 29366 $
+; $LastChangedDate: 2020-11-23 14:42:29 -0800 (Mon, 23 Nov 2020) $
+; $LastChangedRevision: 29382 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sppeva/sppeva.pro $
 ;-
 
@@ -99,6 +99,7 @@ PRO sppeva
   scr_dim    = get_screen_size()
   xoffset = 0;scr_dim[0]*0.3 > 0.;-650.-286-50. > 0.
 
+  sppeva_init
   
   ;----------------
   ; Top Level Base

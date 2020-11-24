@@ -27,9 +27,9 @@
 ;                       Removed additional output text - Use dprint,debug=3  to restore text.   Nov 2008
 ;                       Fixed bug on macOS when saving figures of restored data using makepng/makegif/makejpg, 24-jan-2019, egrimes
 ;
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-11-05 22:46:13 -0800 (Thu, 05 Nov 2020) $
-; $LastChangedRevision: 29332 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2020-11-23 10:28:45 -0800 (Mon, 23 Nov 2020) $
+; $LastChangedRevision: 29372 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot_restore.pro $
 ;-
 pro tplot_restore,filenames=filenames,all=all,append=append,sort=sort,$
@@ -98,7 +98,13 @@ pro tplot_restore,filenames=filenames,all=all,append=append,sort=sort,$
         dprint,dlevel=3, 'The tplot variable '+thisdq.name+' is being restored.'
         restored_varnames = [restored_varnames, thisdq.name]
         names = strsplit(thisdq.name,'.')
-        if keyword_set(append) then get_data,thisdq.name,ptr=olddata
+        if keyword_set(append) then begin
+          get_data,thisdq.name,ptr=olddata
+          if is_struct(olddata) && (~ptr_valid(olddata.x) || ~ptr_valid(olddata.y)) then begin
+            dprint, dlevel=1, 'Invalid pointer to existing tplot variable ('+thisdq.name+'); Skipping...'
+            continue
+          endif
+        endif
         if keyword_set(append) and keyword_set(olddata) then begin
           if keyword_set(*thisdq.dh) then begin
             if thisdq.dtype eq 1 then begin

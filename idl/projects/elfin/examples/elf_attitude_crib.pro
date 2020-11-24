@@ -15,7 +15,7 @@ pro elf_attitude_crib
   ;; 1) Select date and time interval
   ;;    =================================
   ; download data for 7/21/2019
-  date = '2019-07-15/00:00:00'
+  date = '2020-07-04/00:00:00'
   timespan,date,1,/day
   tr=timerange()
 
@@ -46,8 +46,10 @@ pro elf_attitude_crib
 
   ; quick look at some of the tplot vars returned
   get_data, 'ela_att_gei', data=att
-  get_data, 'ela_att_last_solution', data=date_soln
+  get_data, 'ela_att_solution_date', data=date_soln
   get_data, 'ela_spin_sun_ang', data=sun_ang
+help, att, date_soln, sun_ang
+stop
   print, ''
   print, 'ATTITUDE VECTOR'
   print, time_string(att.x)
@@ -73,7 +75,7 @@ pro elf_attitude_crib
   ;;    ========================================
   ;delete existing elfin tvars first
   del_data, 'el*'
-  elf_load_state, probe='a', trange=tr, /get_att
+  elf_load_state, probe='a', trange=tr
   tplot_names
   stop
 
