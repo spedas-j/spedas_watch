@@ -8,8 +8,8 @@
 ;     Initial call will take more time than subsequent calls, due to the need to download the event index
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-04-29 10:32:46 -0700 (Mon, 29 Apr 2019) $
-; $LastChangedRevision: 27124 $
+; $LastChangedDate: 2020-11-24 13:13:35 -0800 (Tue, 24 Nov 2020) $
+; $LastChangedRevision: 29388 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_event_search_crib.pro $
 ;-
 
@@ -57,7 +57,7 @@ ends = end_times[-5:-1]
 
 for event_idx=0, n_elements(descs)-1 do begin
   print, 'Downloading: ' + descs[event_idx] + '; from ' + time_string(starts[event_idx]) + ' to ' + time_string(ends[event_idx])
-  mms_load_fgm, data_rate='brst', trange=[starts[event_idx], ends[event_idx]], /time_clip
+  mms_load_fgm, probe=4, data_rate='brst', trange=[starts[event_idx], ends[event_idx]], /time_clip
 endfor
 
 end

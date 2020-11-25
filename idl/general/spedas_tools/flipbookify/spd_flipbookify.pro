@@ -87,8 +87,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-04-07 19:02:05 -0700 (Tue, 07 Apr 2020) $
-; $LastChangedRevision: 28524 $
+; $LastChangedDate: 2020-11-24 13:54:39 -0800 (Tue, 24 Nov 2020) $
+; $LastChangedRevision: 29389 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/flipbookify/spd_flipbookify.pro $
 ;-
 
@@ -223,7 +223,7 @@ pro spd_flipbookify, dists, trange=trange, mag_data=mag_data, vel_data=vel_data,
     if ~undefined(draw_box) then timebar, (minmax(trange))[1], color=box_color, linestyle=box_style, thick=box_thickness
     wait, 0.02
     if keyword_set(postscript) then pclose
-   ; if ~keyword_set(postscript) and ~keyword_set(nopng) then makepng, output_dir+filename_prefix+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix
+    if ~keyword_set(postscript) and ~keyword_set(nopng) then makepng, output_dir+filename_prefix+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix
     if keyword_set(gif) then makegif, output_dir+filename_prefix+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix
     if keyword_set(jpg) then makejpg, output_dir+filename_prefix+time_string(times[time_idx], tformat='YYYY-MM-DD-hh-mm-ss.fff')+filename_suffix
     if keyword_set(video) then begin

@@ -37,7 +37,9 @@ tplot_names
 stop
 
 ; use no_download flag
-elf_load_mrma, probes=probe, datatype='mrma', /no_download
+date = '2018-11-01/03:06:00'
+timespan,date,120.,/sec
+elf_load_mrma, probes=probe, datatype='mrma'
 tplot, 'ela_mrma'
 stop
 

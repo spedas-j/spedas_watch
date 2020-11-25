@@ -43,9 +43,9 @@
 ;HISTORY:
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
-;$LastChangedBy: nikos $
-;$LastChangedDate: 2020-10-16 13:06:04 -0700 (Fri, 16 Oct 2020) $
-;$LastChangedRevision: 29260 $
+;$LastChangedBy: jimm $
+;$LastChangedDate: 2020-11-24 11:07:28 -0800 (Tue, 24 Nov 2020) $
+;$LastChangedRevision: 29387 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -719,7 +719,7 @@ filler[*, *] = float('NaN')
 ;2020-03-24, FSIM, FSMI, RANK, SNKQ checked in that order
 test_sites = tnames('thg_ask_'+['fsim', 'fsmi', 'rank', 'snkq'])
 other_sites = ssl_set_complement(test_sites, asi_sites)
-If(other_sites[0] Eq -1) Then other_sites = '' ;protect against low-probability
+If(~is_string(other_sites)) Then other_sites = '' ;protect against low-probability
 asi_sites = [test_sites, other_sites]
 ;check sites for good data in order
 have_keogram = 0b

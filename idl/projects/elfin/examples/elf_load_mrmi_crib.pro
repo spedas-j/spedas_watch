@@ -33,6 +33,8 @@ stop
 tplot_names
 stop
 
+date = '2018-11-14/02:00:00'
+timespan,date,21600.,/sec
 elf_load_mrmi, probes=probe, datatype=datatype, /no_download
 tplot, 'ela_mrmi'
 stop
