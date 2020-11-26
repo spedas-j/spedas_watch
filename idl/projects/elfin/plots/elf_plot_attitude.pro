@@ -18,7 +18,8 @@
 ;-
 
 pro elf_plot_attitude, trange=trange
- trange=['2020-01-01','2020-02-29']
+
+ ;trange=['2020-01-01','2020-02-29']
   ; Initialize elfin system variables
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
