@@ -1,4 +1,4 @@
-;Return structure with burst 1 start/stop times, duration, and
+;Return structure with burst 2 start/stop times, duration, and
 ;sample rate for specified timerange
 
 ;Written by Aaron W Breneman, Jan 16, 2020
@@ -7,14 +7,9 @@ function rbsp_get_burst2_times_list,sc
 
   tr = timerange()
 
-  ;grab IDL save file with burst1 info
-
-  ;**************************************
-  ;**************************************
-  ;****PATH NEEDS TO BE GENERALIZED******
-  ;**************************************
-  ;**************************************
-  path = '/Users/aaronbreneman/Desktop/code/Aaron/RBSP/TDAS_trunk_svn/general/missions/rbsp/efw/calibration_files/'
+  ;grab IDL save file with burst2 info
+  homedir = (file_search('~',/expand_tilde))[0]+'/'
+  path = homedir + 'Desktop/code/Aaron/RBSP/TDAS_trunk_svn/general/missions/rbsp/efw/calibration_files/'
   fn = 'burst2_times_RBSP'+sc+'.sav
   restore,path+fn
 

@@ -8,7 +8,8 @@ function rbsp_get_burst_times_rates_list,sc
   tr = timerange()
 
   ;grab IDL save file with burst1 info
-  path = '/Users/aaronbreneman/Desktop/code/Aaron/RBSP/TDAS_trunk_svn/general/missions/rbsp/efw/calibration_files/'
+  homedir = (file_search('~',/expand_tilde))[0]+'/'
+  path = homedir + 'Desktop/code/Aaron/RBSP/TDAS_trunk_svn/general/missions/rbsp/efw/calibration_files/'
   fn = 'burst1_times_rates_RBSP'+sc+'.sav
   restore,path+fn
 
