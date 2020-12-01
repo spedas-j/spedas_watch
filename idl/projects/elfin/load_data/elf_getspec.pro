@@ -11,15 +11,16 @@
 ; from the appropriate spacecraft (e.g., ela_pef_nflux and 'ela_att_gei', 'ela_pos_gei') have been loaded already!!!!!
 ; It also assumes the user has the ability to run T89 routine (.dlm, .dll have been included in their distribution)!!!
 ; 
-; V 2020-09-13: now also outputs sector limits on pitch-angle values (one per sector). These are
+; Vassilis: 2020-09-13: now also outputs sector limits on pitch-angle values (one per sector). These are
 ; passed in tplot quantities elx_pxf_pa_spec_pa_vals and ela_pef_pa_fulspn_spec_pa_vals 
 ; that hold Nx8x6 or NxMx6 values (N=number of times, M=number of sectors - twice as many for full spin than for halfspin - and 
 ; 6 are the output values). The 6 values are fullmin, halfmin, center, halfmax, fullmax, spinphase, where spinphase 
 ; is the sector spin phase from which you can obtain other useful things such as optimal pitch-angle (if B were on spin plane). 
 ; 
-; V 2020-11-17 added fulspn_spec_full when keyword fullspin and get3Dspec are both set (product was inadvertently omitted before)
+; V: 2020-11-17 added fulspn_spec_full when keyword fullspin and get3Dspec are both set (product was inadvertently omitted before)
+; V: 2020-11-28 added keyword enerbins to fix that no energy info in elx_p?f.v when type='raw' so non-standard ch0, ch1, etc bombed
 ;
-pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
+pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbins,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
   type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
   probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps,quadratic=myquadfit, $
   fullspin=fullspin,starton=userstarton,timesortpas=timesortpas,datatype=mydatatype
@@ -28,12 +29,12 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; INPUTS
   ;
   ; userenergies is an [Nusrergiesx2] array of Emin,Emax energies to use for pitch-angle spectra
-  ;
-  ; example:
-  ;
-  ; elf_getspec,energies=[[50.,160.],[160.,345.],[345.,900.],[900.,7000.]],/regularize ; gives same results as:
-  ; elf_getspec,/regularize
-  ;
+  ; userenerbins is same as userenergies but does it by bin number and has PRIORITY over energies...
+  ;      userenerbins is required for type='raw' and non-standard definitions of E-boundaries, but optional for other types
+  ;      for example:
+  ;      elf_getspec,energies=[[50.,160.],[160.,345.],[345.,900.],[900.,7000.]],/regularize ; gives same results as:
+  ;      elf_getspec,/regularize ; and same as
+  ;      elf_getspec,enerbins=[[0,2],[3,5],[6,8],[9,15]],/regularize ; 
   ; species is 'e' or 'i' (default is 'e')
   ; datatype is 'pef', 'pif', 'pes' or other... default is 'pef' and over-writes species!!!
   ; dSect2add is number of sectors to add to sectnum to bring 0 sector closer to dBzdt zero crossing time
@@ -141,20 +142,29 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
   ; in the middle between sector nspinsectors-1 and sector 0, meaning there is no need for any other time-shift rel.to.FGM
   ; CORRECT UNITS IN PLOT, AND ENERGY BINS
   ;
-  Emids=elx_pxf.v
-  Emins=elx_pxf.v
-  Emaxs=elx_pxf.v
   Max_numchannels = n_elements(elx_pxf.v) ; this is 16 (nominally)
-  Emins[Max_numchannels-1]=5800. ; keV, fixed Emin of uppermost channel
-  for j=0,Max_numchannels-2 do Emins[Max_numchannels-2-j]= $
-      10^(2*alog10(Emids[Max_numchannels-2-j])-alog10(Emins[Max_numchannels-2-j+1]))
-  Emaxs[Max_numchannels-1]=Emids[Max_numchannels-1]+(Emids[Max_numchannels-1]-Emins[Max_numchannels-1])
-  for j=0,Max_numchannels-2 do Emaxs[j]=Emins[j+1]
+  ;
+  if mytype ne 'raw' then begin; you can define energy bin mins and maxs if you need them (used further only when type is not 'raw')
+    Emids=elx_pxf.v
+    Emins=elx_pxf.v
+    Emaxs=elx_pxf.v
+    Emins[Max_numchannels-1]=5800. ; keV, fixed Emin of uppermost channel
+    for j=0,Max_numchannels-2 do Emins[Max_numchannels-2-j]= $
+        10^(2*alog10(Emids[Max_numchannels-2-j])-alog10(Emins[Max_numchannels-2-j+1]))
+    Emaxs[Max_numchannels-1]=Emids[Max_numchannels-1]+(Emids[Max_numchannels-1]-Emins[Max_numchannels-1])
+    for j=0,Max_numchannels-2 do Emaxs[j]=Emins[j+1]
+  endif
   ;
   ; Next define the energies to plot pitch angle spectra for
   ;
-  if keyword_set(userenergies) then begin
-    ; use user-specified energy ranges if provided
+  if keyword_set(userenergies) and keyword_set(userenerbins) then begin
+    print,'***********************************************************************************************'
+    print,'WARNING: Both keywords: energies= , and enerbins= have been SET. enerbins takes precedence !!!!'
+    print,'***********************************************************************************************'
+  endif
+  if mytype eq 'raw' and keyword_set(userenergies) and ~keyword_set(userenerbins) then $
+    stop,'ERROR: When using type="raw" you cannot request special energy channels using energies=..., you must use enerbins=... keyword !!!!'
+  if keyword_set(userenergies) and ~keyword_set(userenerbins) then begin ; use user-specified energy ranges if provided
     MinE_values=userenergies[0,*]
     MaxE_values=userenergies[1,*] ; <-- corrected this
     numchannels = n_elements(MinE_values)
@@ -165,14 +175,19 @@ pro elf_getspec,regularize=regularize,energies=userenergies,dSect2add=userdSectr
       MinE_channels[jthchan]=min(iEchannels2use)
       MaxE_channels[jthchan]=max(iEchannels2use)
     endfor
-  endif else begin
-    ; else go with default values
+  endif
+  if keyword_set(userenerbins) then begin ; userenerbins overwrites userenergies if both are set!!
+    MinE_channels = userenerbins[0,*]
+    numchannels = n_elements(MinE_channels)
+    MaxE_channels = userenerbins[1,*]
+  endif
+  if ~keyword_set(userenergies)  and ~keyword_set(userenerbins) then begin ; if neither set, then use default val's
     MinE_channels = [0, 3, 6, 9]
     numchannels = n_elements(MinE_channels)
     if numchannels gt 1 then $
       MaxE_channels = [MinE_channels[1:numchannels-1]-1,Max_numchannels-1] else $
       MaxE_channels = MinE_channels+1
-  endelse
+  endif
   ;
   phasedelay = elf_find_phase_delay(probe=probe, instrument='epd'+eori, trange=[elx_pxf.x[0],elx_pxf.x[-1]]) ; get the applicable phase delays 
   if ~undefined(userdSectr2add) && finite(userdSectr2add) then dSectr2add=userdSectr2add else $
