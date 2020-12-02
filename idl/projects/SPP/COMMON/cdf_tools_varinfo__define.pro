@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson October 2018
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-30 23:52:01 -0700 (Sun, 30 Aug 2020) $
-; $LastChangedRevision: 29095 $
+; $LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29404 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools_varinfo__define.pro $
 ;-
 
@@ -322,6 +322,7 @@ FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_arra
   self.d = size(/dimen,value)
   ;  if debug(3) and keyword_set(ex) then dprint,ex,phelp=2,dlevel=4
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
+  if self.recvary then self.numrec = (size(/dimen,all_values))[0]
   RETURN, 1
 end
 

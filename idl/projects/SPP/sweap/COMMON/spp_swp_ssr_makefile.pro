@@ -1,10 +1,20 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-24 21:48:37 -0700 (Mon, 24 Aug 2020) $
-; $LastChangedRevision: 29073 $
+; $LastChangedDate: 2020-12-01 10:50:21 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29405 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
+;KEYWORDS:
+;load_ssr: loads ssr files. very slow, especially during processing of compressed packets.
+;load_sav: loads sav files that are generated from ssr files. much faster.
+;make_sav: creates sav files with one-to-one correspondence to ssr files. typically run by a cronjob
+;make_cdf: creates cdf files (L1). typically run by a cronjob.
+
+function spp_apdat_all
+  return,[spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*'),spp_apdat('sc_hkp_*')]
+end
+
 
 pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load_ssr=load_ssr, $
   make_cdf=make_cdf,make_ql=make_ql,make_sav=make_sav,load_sav=load_sav,verbose=verbose,reset=reset,sc_files=sc_files, $
@@ -28,7 +38,9 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
   if ~isa(ssr_format,/string) then ssr_format = 'YYYY/DOY/*_?_E?'
   if keyword_set(sc_files) then ssr_format = 'YYYY/DOY/*_?_FP'
   if ~isa(make_sav) then make_sav=0
-  tr = timerange(trange_full)
+  tr=timerange(trange_full)
+  root=root_data_dir()
+  relative_position=strlen(root+output_prefix)
 
   if keyword_set(load_ssr) || make_sav eq 1 then begin
     ssr_files=spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix,verbose=verbose)
@@ -46,16 +58,18 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
     if keyword_set(load_ssr) then spp_ssr_file_read,ssr_files,/sort_flag,/finish,no_init = ~keyword_set(reset)
   endif
 
-  if keyword_set(load_sav) then begin ;loads sav files 
+  if keyword_set(load_sav) then begin ;loads sav files
     sav_files=spp_file_retrieve(ssr_format+'.sav',trange=tr,/daily_names,prefix=output_prefix+'.sav/ssr/',/valid_only,verbose=verbose)
     if ~keyword_set(sav_files) then dprint,'No .sav files found!'
     if make_sav eq 2 then begin ;make apid specific daily sav files
       foreach sav_file,sav_files do begin
+        parent='file_checksum not saved for parent of: '+sav_file.substring(relative_position)
         spp_apdat_info,/reset
-        spp_apdat_info,file_restore=sav_file
+        spp_apdat_info,file_restore=sav_file,parent=parent
         spp_swp_apdat_init,/reset
-        if keyword_set(type) then aps=spp_apdat(type) else aps = [spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*')]
-        foreach a,aps do a.sav_makefile,sav_format=sav_format+file_basename(sav_file)
+        if keyword_set(type) then aps=spp_apdat(type) else aps=spp_apdat_all()
+        parent_chksum=file_checksum(sav_file,/add_mtime,relative_position=relative_position)
+        foreach a,aps do a.sav_makefile,sav_format=sav_format+file_basename(sav_file),parent=[parent_chksum,'grandparents>',parent]
       endforeach
     endif else begin
       foreach sav_file,sav_files do spp_apdat_info,file_restore=sav_file
@@ -65,17 +79,18 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
     endelse
   endif
 
-  if make_sav eq 1 then begin ;creates sav files with one-to-one correspondence with ssr files
+  if make_sav eq 1 then begin ;creates sav files with one-to-one correspondence to ssr files
     foreach ssr_file,ssr_files do begin
-      sav_file=root_data_dir()+output_prefix+'.sav/ssr/'+(ssr_file).substring(-24)+'.sav' ;substring is preferred here. strsub may fail b/c ssr_prefix can change!
+      sav_file=root+output_prefix+'.sav/ssr/'+(ssr_file).substring(-24)+'.sav' ;substring is preferred here. strsub may fail b/c ssr_prefix can change!
       if (file_info(ssr_file)).mtime le (file_info(sav_file)).mtime then continue
-      file_mkdir2,file_dirname(sav_file)
+      parent_chksum=file_checksum(ssr_file,/add_mtime,relative_position=strlen(root+ssr_prefix))
       spp_apdat_info,/reset
       spp_swp_apdat_init,/reset
       spp_ssr_file_read,ssr_file
-      spp_apdat_info,file_save=sav_file,/compress
-      if keyword_set(type) then aps=spp_apdat(type) else aps = [spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*')]
-      foreach a,aps do a.sav_makefile,sav_format=sav_format+file_basename(sav_file)
+      file_mkdir2,file_dirname(sav_file)
+      spp_apdat_info,file_save=sav_file,/compress,parent=parent_chksum
+      if keyword_set(type) then aps=spp_apdat(type) else aps=spp_apdat_all()
+      foreach a,aps do a.sav_makefile,sav_format=sav_format+file_basename(sav_file),parent=parent_chksum
     endforeach
     ;save,file=sav_file+'.code',/routines,/verbose
   endif
@@ -85,12 +100,13 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
   if keyword_set(make_cdf) then begin ;make cdf files
     cdf_suffix='/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
     spp_swp_apdat_init,/reset
-    spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'sp[ab]_*',cdf_pathname = output_prefix+'spe'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem'+cdf_suffix,cdf_linkname= linkname
-    if keyword_set(type) then aps=spp_apdat(type) else aps = [spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*')]
+    spp_apdat_info,'swem_*',  cdf_pathname=output_prefix+'swem'+  cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'sp[ab]_*',cdf_pathname=output_prefix+'spe'+   cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'spi_*',   cdf_pathname=output_prefix+'spi'+   cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'spc_*',   cdf_pathname=output_prefix+'spc2'+  cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'wrp_*',   cdf_pathname=output_prefix+'swem'+  cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'sc_hkp_*',cdf_pathname=output_prefix+'sc_hkp'+cdf_suffix,cdf_linkname=linkname
+    if keyword_set(type) then aps=spp_apdat(type) else aps=spp_apdat_all()
     for day=daynum[0],daynum[1] do begin ;loop over days
       trdaily = double(day * res)
       trange = trdaily + [0,1]*res
@@ -98,20 +114,28 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
       if make_cdf eq 2 then foreach a,aps do a.cdf_makefile,trange=trange ;makes cdf after loading all_apdat from ssr or sav files
       if make_cdf eq 1 then begin ;makes cdf from apid specific daily sav files
         foreach a,aps do begin
-          sav_files=str_sub(sav_format+'*_?_E?.sav','$NAME$',a.name)
-          sav_files=spp_file_retrieve(sav_files,trange=trange,/daily_names,/valid_only,verbose=verbose)
+          sav_frmt=str_sub(sav_format+'*_?_??.sav','$NAME$',a.name)
+          ;sav_files=spp_file_retrieve(sav_frmt,trange=trange,/daily_names,/valid_only,verbose=verbose)
+          sav_files=file_search(time_string(tformat=root+sav_frmt,trange[0])) ;slightly faster than the above line
           cdf_file=time_string(trange[0],tformat=a.cdf_pathname)
-          cdf_file=root_data_dir()+str_sub(cdf_file,'$NAME$',a.name)
+          cdf_file=root+str_sub(cdf_file,'$NAME$',a.name)
           if max((file_info(sav_files)).mtime) le (file_info(cdf_file)).mtime then continue
           cdf=!null
+          parents=!null
           foreach sav_file,sav_files do begin
+            self=!null
+            parent='file_checksum not saved for parent of: '+sav_file.substring(relative_position)
             dprint,'Restoring file: '+sav_file+' Size: '+strtrim((file_info(sav_file)).size/1e3,2)+' KB'
             restore,sav_file,verbose=verbose,/relax,/skip
             if obj_valid(cdf) then cdf.append,self else cdf=self
+            parents=[parents,parent]
           endforeach
           cdf.sort
           cdf.cdf_linkname=linkname
-          cdf.cdf_makefile,filename=cdf_file
+          ;parents=file_search(root+ssr_prefix+'????/???/'+sav_files.substring(-19,-5))
+          ;if n_elements(parents) ne n_elements(sav_files) then message,'incorrect number of parent SSR files!'
+          parents_chksum=file_checksum(sav_files,/add_mtime,relative_position=relative_position)
+          cdf.cdf_makefile,filename=cdf_file,parents=[parents_chksum,'grandparents>',parents]
         endforeach
       endif
     endfor

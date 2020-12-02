@@ -10,7 +10,7 @@ pro elf_multixaxis_crib
 ;
   elf_init
   tplot_options, 'xmargin', [20,9]
-  cwdirname='C:\My Documents\ucla\Elfin\science\analysis' ; your directory here, if other than default IDL dir
+  cwdirname=!elf.local_data_dir ; your directory here, if other than default IDL dir
   cwd,cwdirname
   pival=!PI
   Re=6378.1 ; Earth equatorial radius in km
@@ -75,6 +75,36 @@ tplot,'el'+sclet+'_'+['pos_gei','att_gei','spin_orbnorm_angle','spin_sun_angle']
 ;
 print,'*****************************************************************************'
 print,'This replots the same as before, but has MLAT, MLT, L as supplementary Xaxes
+print,'*****************************************************************************'
+stop
+;;trace to equator to get L, MLAT in IGRF
+ttrace2equator,'el'+sclet+'_pos_gsm',external_model='none',internal_model='igrf',/km,in_coord='gsm',out_coord='gsm',rlim=100.*Re
+get_data,'el'+sclet+'_pos_gsm_foot',data=elx_pos_eq
+L1=sqrt(total(elx_pos_eq.y^2.0,2,/nan))/Re
+store_data,'el'+sclet+'_L_igrf',data={x:elx_pos_eq.x,y:L1}
+get_data,'elx_pos_sm',data=elx_pos_sm
+req=sqrt(total(elx_pos_eq.y^2.0,2,/nan))
+rloc=sqrt(total(elx_pos_sm.y^2.0,2,/nan))
+rratio=rloc/req
+ibad=where(rratio gt 1.)
+if ibad[0] ne -1. then rratio[ibad]=1.00
+lat2=acos(sqrt(rratio))/!dtor
+tdotp,'elx_bt89_gsm','el'+sclet+'_pos_gsm',newname='elx_br_tmp'
+get_data,'elx_br_tmp',data=Br_tmp
+ineg=where(Br_tmp.y gt 0.)
+if ineg[0] ne -1. then lat2[ineg]=-1.*abs(lat2[ineg])
+store_data,'el'+sclet+'_MLAT_igrf',data={x:elx_pos_eq.x,y:lat2}
+;;trace to ionosphere (100km) and calculate MLT using AACGM
+ttrace2iono,'el'+sclet+'_pos_gsm',newname='el'+sclet+'_ifootn_gsm',external_model='none' $
+  ,internal_model='igrf',/km,in_coord='gsm',out_coord='gsm',rlim=100.*Re,/geopack_2008,dsmax=0.01,/standard_mapping
+thm_cotrans, 'el'+sclet+'_ifootn_gsm', 'el'+sclet+'_ifootn_mag', out_coord='mag',in_coord='gsm'
+get_data,'el'+sclet+'_ifootn_mag',data=elx_nf_mag
+cart_to_sphere,elx_nf_mag.y[*,0],elx_nf_mag.y[*,1],elx_nf_mag.y[*,2],r_mag,theta_mag,phi_mag
+mlt_igrf = aacgmmlt(time_string(elx_nf_mag.x,precision=-5), elx_nf_mag.x, phi_mag)
+store_data,'el'+sclet+'_MLT_igrf',data={x:elx_nf_mag.x,y:mlt_igrf};;projected to 100km and use aacgm
+;
+print,'*****************************************************************************'
+print,'This shows how to estimate MLAT, MLT, L in IGRF field, instead of a dipole
 print,'*****************************************************************************'
 stop
 ;

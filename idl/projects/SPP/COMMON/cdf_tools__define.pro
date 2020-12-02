@@ -3,8 +3,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-18 08:27:41 -0700 (Tue, 18 Aug 2020) $
-; $LastChangedRevision: 29037 $
+; $LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29404 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
 ;-
@@ -28,8 +28,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-18 08:27:41 -0700 (Tue, 18 Aug 2020) $
-; $LastChangedRevision: 29037 $
+; $LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29404 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -51,8 +51,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['cdf_svn_changedby'] = '$LastChangedBy: ali $'
-    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-08-18 08:27:41 -0700 (Tue, 18 Aug 2020) $'
-    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 29037 $'
+    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $'
+    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 29404 $'
     sw_hash['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
 
     return,sw_hash
@@ -135,8 +135,8 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
   global_attributes = self.g_attributes
   
   global_attributes['cdf_svn_changedby'] = '$LastChangedBy: ali $'
-  global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-08-18 08:27:41 -0700 (Tue, 18 Aug 2020) $'
-  global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 29037 $'
+  global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $'
+  global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 29404 $'
   global_attributes['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
   login_info = get_login_info()
   global_attributes['sw_runby'] = login_info.user_name
@@ -758,9 +758,10 @@ pro cdf_tools::make_tplot_var,varnames,prefix=prefix
 end
 
 
-PRO cdf_tools::GetProperty, filename=filename, vars=vars, G_attributes=G_attributes,files=files ;, nvars=nvars
+PRO cdf_tools::GetProperty,filename=filename,linkname=linkname,vars=vars,G_attributes=G_attributes,files=files ;, nvars=nvars
   COMPILE_OPT IDL2
   IF (ARG_PRESENT(filename)) THEN filename = self.filename
+  IF (ARG_PRESENT(linkname)) THEN linkname = self.linkname
   IF (ARG_PRESENT(files)) THEN files = self.filenames
   IF (ARG_PRESENT(nvars)) THEN nvars = n_elements(self.vars)
   IF (ARG_PRESENT(G_attributes)) THEN G_attributes = self.G_attributes

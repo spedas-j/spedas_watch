@@ -17,18 +17,21 @@
 ;
 ; NO_SERVER:      If set, prevents any contact with the remote server.
 ;
+;       PSA:      Downloads the ELS data from ESA/PSA. Default = 1.
+;                 If set psa = 0, downloads from wustl instead.
+;
 ;CREATED BY:      Takuya Hara on 2018-01-18.
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-06 12:02:59 -0700 (Fri, 06 Apr 2018) $
-; $LastChangedRevision: 25012 $
+; $LastChangedDate: 2020-12-01 17:08:12 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29416 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_els_load.pro $
 ;
 ;-
 PRO mex_asp_els_list, trange, verbose=verbose, save=save, l2=l2, wget=wflg, $
-                      file=file, time=modify_time
-
+                      file=file, time=modify_time, psa=psa
+  oneday = 86400.d0
   IF KEYWORD_SET(l2) THEN lflg = 0 ELSE lflg = 1
 
   ldir = root_data_dir() + 'mex/aspera/els/'
@@ -36,10 +39,10 @@ PRO mex_asp_els_list, trange, verbose=verbose, save=save, l2=l2, wget=wflg, $
   ldir += 'csv/'
   file_mkdir2, ldir
 
-  mtime = ['2003-06-02', '2006-01', '2007-10', '2010', '2013', '2015', '2017']
+  mtime = ['2003-06-02', '2006-01', '2007-10', '2010', '2013', '2015', '2017', '2019']
   mtime = time_double(mtime)
 
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday, /daily_res, tformat='YYYY-MM-DD'))
   phase = FIX(INTERP(FINDGEN(N_ELEMENTS(mtime)), mtime, time_double(date))) < (N_ELEMENTS(mtime)-1)
   phase = STRING(phase, '(I0)')
 
@@ -47,22 +50,34 @@ PRO mex_asp_els_list, trange, verbose=verbose, save=save, l2=l2, wget=wflg, $
   IF nw GT 0 THEN phase[w] = ''
   IF nv GT 0 THEN phase[v] = '-EXT' + phase[v]
 
-  pdir = 'MEX-M-ASPERA3-' ; pdir stands for "phase dir".
+  pdir = 'MEX-M-ASPERA3-'       ; pdir stands for "phase dir".
   IF (lflg) THEN pdir += '2-EDR-' ELSE pdir += '3-RDR-'
   pdir += 'ELS'
-  pdir += phase + '-V1.0/'
 
-  dprint, dlevel=2, verbose=verbose, 'Starts connecting ESA/PSA FTP server...'
-
-  rpath = 'ftp://psa.esac.esa.int/pub/mirror/MARS-EXPRESS/ASPERA-3/'
+  IF (psa) THEN BEGIN
+     pdir += phase + '-V1.0/'
+     dprint, dlevel=2, verbose=verbose, 'Starts connecting ESA/PSA FTP server...'
+     rpath = 'ftp://psa.esac.esa.int/pub/mirror/MARS-EXPRESS/ASPERA-3/' 
+  ENDIF ELSE BEGIN
+     pdir += phase + '-v1/'
+     pdir = STRLOWCASE(pdir)
+     rpath = 'https://pds-geosciences.wustl.edu/mex/'
+  ENDELSE 
   ndat = N_ELEMENTS(date)
 
   FOR i=0, ndat-1 DO BEGIN
      IF (wflg) THEN $
         cmd = 'wget --spider -N -r -nd -A "ELSSCI*' + $
               time_string(date[i], tformat='YYYYDOY') + '*.CSV" ' + rpath + pdir[i] + 'DATA/ELS_' $
-     ELSE cmd = rpath + pdir[i] + 'DATA/ELS_'
-     
+     ELSE BEGIN
+        IF (psa) THEN cmd = rpath + pdir[i] + 'DATA/ELS_' $
+        ELSE BEGIN
+           cmd = rpath + pdir[i] + 'mexasp_1'
+           IF (lflg) THEN cmd += '1' ELSE cmd += '2'
+           cmd += STRING(LONG(STRMID(phase[i], 0, 1, /reverse)), '(I2.2)') + '/data/els_'
+        ENDELSE 
+     ENDELSE 
+
      IF (lflg) THEN BEGIN 
         cmd += 'EDR_L1B_'
         IF (phase[i] NE '') THEN cmd += time_string(date[i], tformat='YYYY_MM/') $
@@ -80,25 +95,48 @@ PRO mex_asp_els_list, trange, verbose=verbose, save=save, l2=l2, wget=wflg, $
         SPAWN, cmd
         list_file = ldir + 'mex_asp_els_lists.txt'
      ENDIF ELSE BEGIN
+        IF (psa EQ 0) THEN cmd = STRLOWCASE(cmd)
         dflg = 0
         IF SIZE(cmd_old, /type) EQ 0 THEN dflg = 1 $
         ELSE IF cmd NE cmd_old THEN dflg = 1
-        IF (dflg) THEN list_file = spd_download(remote_path=cmd, remote_file='*', local_path=ldir, local_file='mex_asp_els_lists.txt', ftp_connection_mode=0)
+        IF (dflg) THEN BEGIN
+           IF (psa) THEN list_file = spd_download(remote_path=cmd, remote_file='*', local_path=ldir, local_file='mex_asp_els_lists.txt', ftp_connection_mode=0) $
+           ELSE list_file = spd_download(remote_path=cmd, local_path=ldir, local_file='mex_asp_els_lists.txt')
+        ENDIF 
      ENDELSE 
 
      OPENR, unit, list_file, /get_lun
      text = STRARR(FILE_LINES(list_file))
      READF, unit, text
      FREE_LUN, unit
-     
+
      IF (wflg) THEN w = WHERE(STRMATCH(STRMID(text, 0, 2), '--') EQ 1 AND STRMATCH(text, '*.CSV') EQ 1, nw) $
      ELSE BEGIN
-        text = STRSPLIT(text, ' ', /extract)
-        text = text.toarray()
-        text[*, 6] = STRING(LONG(text[*, 6]), '(I2.2)')
-        mod_time = time_double(text[*, 5] + text[*, 6] + text[*, 7], tformat='MTHDDYYYY')
-        w = WHERE(STRMATCH(text[*, -1], 'ELSSCI*' + time_string(date[i], tformat='YYYYDOY') + '*.CSV') EQ 1, nw)
-     ENDELSE 
+        IF (psa) THEN BEGIN
+           text = STRSPLIT(text, ' ', /extract)
+           text = text.toarray()
+           text[*, 6] = STRING(LONG(text[*, 6]), '(I2.2)')
+           mod_time = time_double(text[*, 5] + text[*, 6] + text[*, 7], tformat='MTHDDYYYY')
+           w = WHERE(STRMATCH(text[*, -1], 'ELSSCI*' + time_string(date[i], tformat='YYYYDOY') + '*.CSV') EQ 1, nw)
+        ENDIF ELSE BEGIN
+           otext = STRSPLIT(text[-1], '<', escape='>', /extract)
+           otext = otext[1:-2]
+           undefine, text
+           FOR j=0, (0.5 * N_ELEMENTS(otext))-1 DO BEGIN
+              mt = STRSPLIT(otext[2*j], ' ', /extract)
+              mt_d = STRSPLIT(mt[1], '/', /extract)
+              mt_d = time_double(STRING(LONG(mt_d[0]), '(I2.2)') + STRING(LONG(mt_d[1]), '(I2.2)') + mt_d[2], tformat='MMDDYYYY')
+              mt_t = STRSPLIT(mt[2], ':', /extract)
+              mt_t = LONG(mt_t[0]) * 3600.d0 + LONG(mt_t[1]) * 60.d0
+              IF mt[3] EQ 'PM' THEN mt_t += 0.5 * oneday
+              append_array, mod_time, mt_d + mt_t
+              undefine, mt, mt_d, mt_t
+              append_array, text, (STRSPLIT(otext[2*j+1], '"', /extract))[-1]
+           ENDFOR 
+           w = WHERE(STRMATCH(text, 'elssci*' + time_string(date[i], tformat='YYYYDOY') + '*.csv') EQ 1, nw)
+        ENDELSE  
+     ENDELSE
+
      IF nw GT 0 THEN BEGIN
         IF (wflg) THEN BEGIN
            afile = text[w]
@@ -108,7 +146,7 @@ PRO mex_asp_els_list, trange, verbose=verbose, save=save, l2=l2, wget=wflg, $
               afile = afile.toarray()
               afile = afile[*, -1]
            ENDELSE 
-        ENDIF ELSE afile = cmd + text[w, -1]
+        ENDIF ELSE IF (psa) THEN afile = cmd + text[w, -1] ELSE afile = cmd + text[w]
      ENDIF 
      IF SIZE(afile, /type) NE 0 THEN BEGIN
         append_array, file, afile
@@ -143,7 +181,7 @@ PRO mex_asp_els_save, time, counts, energy, l2=l2, file=file, mode=mode, nenergy
   dprint, dlevel=2, verbose=verbose, 'Saving ' + path + fname + '.'
   asp_els_file = file
   SAVE, filename=path + fname, asp_els_stime, asp_els_etime, asp_els_file, $
-        asp_els_cnts, asp_els_engy, asp_els_mode, asp_els_nene
+        asp_els_cnts, asp_els_engy, asp_els_mode, asp_els_nene, /compress
 
   RETURN
 END
@@ -186,6 +224,7 @@ END
 
 PRO mex_asp_els_read, trange, verbose=verbose, time=stime, end_time=etime, counts=counts, energy=energy, nenergy=nenergy, $
                       mode=mode, l2=l2, save=save, wget=wget, file=remote_file, mtime=modify_time, status=status, no_server=no_server
+  oneday = 86400.d0
   nan = !values.f_nan
   status = 1
   IF KEYWORD_SET(wget) THEN wflg = 1 ELSE wflg = 0
@@ -198,7 +237,7 @@ PRO mex_asp_els_read, trange, verbose=verbose, time=stime, end_time=etime, count
 
   IF KEYWORD_SET(l2) THEN lflg = 0 ELSE lflg = 1
   
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday , /daily_res, tformat='YYYY-MM-DD'))
 
   ldir = root_data_dir() + 'mex/aspera/els/' 
   IF (lflg) THEN ldir += 'l1b/' ELSE ldir += 'l2/'
@@ -280,7 +319,7 @@ PRO mex_asp_els_read, trange, verbose=verbose, time=stime, end_time=etime, count
         stime.add, time_double(scan[*, 0], tformat='YYYY-DOYThh:mm:ss.fff')
         etime.add, time_double(scan[*, 1], tformat='YYYY-DOYThh:mm:ss.fff')
      ENDIF 
-     
+
      w = WHERE(STRMATCH(data, '*SENSOR*') EQ 1, nw)
      IF nw GT 0 THEN BEGIN
         sensor = STRSPLIT(data[w], ',', /extract)
@@ -294,7 +333,6 @@ PRO mex_asp_els_read, trange, verbose=verbose, time=stime, end_time=etime, count
            cnts.add, FLOAT(sensor[16L*k:16L*k+15L, *])
            ene.add, kf # DOUBLE(scan[k, *])
         ENDFOR 
-
         counts.add, cnts.toarray()
         energy.add, ene.toarray()
      ENDIF 
@@ -330,7 +368,7 @@ PRO mex_asp_els_merge, st, et, cnt, ene, file=file, mode=mode, verbose=verbose, 
      ENDIF ELSE mflg = 0
  
      IF (mflg) THEN BEGIN
-        IF STRMATCH(FILE_BASENAME(file[i]), 'ELSSCIH*') EQ 1 THEN BEGIN
+        IF STRMATCH(FILE_BASENAME(file[i]), 'ELSSCIH*', /fold_case) EQ 1 THEN BEGIN
            stime0 = st[i]
            etime0 = et[i]
            hcnts = cnt[i]
@@ -475,7 +513,7 @@ PRO mex_asp_els_fill_nan, counts, energy, nenergy=nenergy, mode=mode
   RETURN
 END
 
-PRO mex_asp_els_load, itime, verbose=verbose, l2=l2, save=save, wget=wget, no_server=no_server
+PRO mex_asp_els_load, itime, verbose=verbose, l2=l2, save=save, wget=wget, no_server=no_server, psa=psa
   COMMON mex_asp_dat, mex_asp_ima, mex_asp_els
   undefine, mex_asp_els
   t0 = SYSTIME(/sec)
@@ -488,9 +526,10 @@ PRO mex_asp_els_load, itime, verbose=verbose, l2=l2, save=save, wget=wget, no_se
   IF KEYWORD_SET(wget) THEN wflg = 1 ELSE wflg = 0
   IF KEYWORD_SET(no_server) THEN nflg = 0 ELSE nflg = 1
   IF (lflg) THEN lvl = 'l1b' ELSE lvl = 'l2'
+  IF SIZE(psa, /type) EQ 0 THEN pflg = 1 ELSE pflg = FIX(psa)
 
   IF (nflg) THEN BEGIN
-     mex_asp_els_list, trange, verbose=verbose, l2=l2, wget=wflg, file=remote_file, time=mtime
+     mex_asp_els_list, trange, verbose=verbose, l2=l2, wget=wflg, file=remote_file, time=mtime, psa=pflg
      IF N_ELEMENTS(remote_file) EQ 0 THEN BEGIN
         dprint, 'No data found.', dlevel=2, verbose=verbose
         RETURN

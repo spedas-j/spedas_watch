@@ -8,13 +8,13 @@
 ;  Note: time is in the last dimension  (not like tplot storage)
 ; 
 ; Author: Davin Larson  
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-10-07 14:31:46 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29215 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-12-01 12:07:25 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29408 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/spice_vector_rotate_tplot.pro $
 ;-
 
-pro SPICE_VECTOR_ROTATE_TPLOT,tvarnames,to_frame,check_objects=check_objects,force_objects=force_objects,verbose=verbose,suffix=suffix,names=names,trange=trange
+pro SPICE_VECTOR_ROTATE_TPLOT,tvarnames,to_frame,from_frame=from_frame,check_objects=check_objects,force_objects=force_objects,verbose=verbose,suffix=suffix,names=names,trange=trange
 
 if ~keyword_set(suffix) then suffix='_'+to_frame
 tvn= tnames(tvarnames,n)

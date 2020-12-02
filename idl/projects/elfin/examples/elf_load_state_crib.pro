@@ -87,5 +87,6 @@ tplot, 'ela_pos_gei'
 stop
 
 ;
+del_data, '*'
 
 end

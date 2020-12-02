@@ -70,11 +70,19 @@
 ;                  The plot limits will be set to include this and
 ;                  all interior planets.
 ;
+;       FIXEARTH:  Rotate the all planet and satellite positions 
+;                  about the Z axis so that Earth is always at the 
+;                  same longitude.  Set this keyword to the desired
+;                  longitude (0-360 deg) for Earth.  Applies only 
+;                  to plotting - does not affect the returned EPH 
+;                  structure.
+;
 ;       SCALE:     Scale factor for adjusting the size of the
 ;                  plot window.  Default = 1.
 ;
-;       EPH:       Named variable to hold structure of planetary
-;                  orbital ephemeris data (1900-2100).
+;       EPH:       Named variable to hold structure of planet and
+;                  satellite ephemeris data (1900-2100, or as 
+;                  available).
 ;
 ;       STEREO:    Plot the locations of the STEREO spacecraft,
 ;                  when available.  (The Stereo-B ephemeris has
@@ -83,7 +91,9 @@
 ;                  "behind" orbit.  This routine deletes the bad
 ;                  ephemeris values and interpolates across the 
 ;                  gap.)
-;                    Coverage: 2006-10-26 to 2020-10-26
+;                    Coverage:
+;                      Stereo A: 2006-10-26 to 2021-01-01
+;                      Stereo B: 2006-10-26 to 2014-09-28
 ;
 ;       SORB:      Plot the location of Solar Orbiter.  Includes a
 ;                  predict ephemeris.
@@ -137,12 +147,12 @@
 ;                  Default = 0 (no output).  Try a value > 2 to see
 ;                  more messages; > 4 for lots of messages.
 ;
-;       FULL:      Show everything: planets and spacecraft, Parker
+;       FULL:      Show everything: planets, all spacecraft, Parker
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-16 09:57:09 -0700 (Wed, 16 Sep 2020) $
-; $LastChangedRevision: 29159 $
+; $LastChangedDate: 2020-12-01 13:02:34 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29414 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -151,7 +161,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   spiral=spiral, Vsw=Vsw, srot=srot, movie=movie, stereo=stereo, $
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
                   xyrange=range, planet=pnum, sorb=solorb, psp=sprobe, sall=sall, $
-                  verbose=verbose, full=full
+                  verbose=verbose, full=full, fixearth=fixearth
 
   common planetorb, planet, sta, stb, sorb, psp
   @swe_snap_common
@@ -163,6 +173,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   au = 1.495978707d13  ; Astronomical Unit (cm)
   Rs = 6.957d10        ; Radius of Sun (cm)
   c = 2.99792458d10    ; Speed of light (cm/s)
+  suncol = 5           ; Sun color
+  sunsze = 5           ; Sun symbol size
+  pkscol = 4           ; Parker spiral color
   wnum = !d.window
 
   pname = ['MERCURY','VENUS','EARTH','MARS','JUPITER','SATURN','URANUS','NEPTUNE','PLUTO']
@@ -265,6 +278,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   kflg = keyword_set(keepwin)
 
   if keyword_set(reset) then Owin = -1
+
+  if (size(fixearth,/type) eq 0) then fflg = 0 else fflg = 1
 
 ; Check the version of ICY/SPICE
 
@@ -829,8 +844,6 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   if keyword_set(noplot) then return
 
-  if (mflg) then Twin = !d.window
-
   if not keyword_set(scale) then scale = 1.
 
   if keyword_set(nobox) then begin
@@ -846,6 +859,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   usersym,a*cos(phi),a*sin(phi),/fill
 
   if (mflg) then begin
+    Twin = !d.window
     putwin, /free, key=Ropt, scale=scale
     Owin = !d.window
     zscl = 1.
@@ -870,6 +884,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       zp = xp
       rp = xp
 
+      cosp = 1.
+      sinp = 0.
+
       inbounds = nn2(planet[3].time, t, maxdt=oneday) ge 0L
       if (inbounds) then begin
         for k=0,ipmax do begin
@@ -878,6 +895,16 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
           zp[k] = spl_interp(planet[k].time, planet[k].z, planet[k].d2z, t)
           rp[k] = sqrt(xp[k]*xp[k] + yp[k]*yp[k] + zp[k]*zp[k])
         endfor
+        if (fflg) then begin
+          phie = atan(yp[2], xp[2])
+          phi = phie - (fixearth*!dtor)
+          cosp = cos(phi)
+          sinp = sin(phi)
+          x =  xp*cosp + yp*sinp
+          y = -xp*sinp + yp*cosp
+          xp = x
+          yp = y
+        endif
       endif
 
       if (sflg) then begin
@@ -887,6 +914,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         if (i ge 0L) then begin
           xsta = spl_interp(sta.time, sta.x, sta.d2x, t)
           ysta = spl_interp(sta.time, sta.y, sta.d2y, t)
+          if (fflg) then begin
+            x =  xsta*cosp + ysta*sinp
+            y = -xsta*sinp + ysta*cosp
+            xsta = x
+            ysta = y
+          endif
         endif
 
         xstb = !values.f_nan
@@ -895,6 +928,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         if (i ge 0L) then begin
           xstb = spl_interp(stb.time, stb.x, stb.d2x, t)
           ystb = spl_interp(stb.time, stb.y, stb.d2y, t)
+          if (fflg) then begin
+            x =  xstb*cosp + ystb*sinp
+            y = -xstb*sinp + ystb*cosp
+            xstb = x
+            ystb = y
+          endif
         endif
       endif
 
@@ -905,6 +944,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         if (isorb ge 0L) then begin
           xsorb = spl_interp(sorb.time, sorb.x, sorb.d2x, t)
           ysorb = spl_interp(sorb.time, sorb.y, sorb.d2y, t)
+          if (fflg) then begin
+            x =  xsorb*cosp + ysorb*sinp
+            y = -xsorb*sinp + ysorb*cosp
+            xsorb = x
+            ysorb = y
+          endif
         endif
       endif
 
@@ -915,6 +960,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         if (ipsp ge 0L) then begin
           xpsp = spl_interp(psp.time, psp.x, psp.d2x, t)
           ypsp = spl_interp(psp.time, psp.y, psp.d2y, t)
+          if (fflg) then begin
+            x =  xpsp*cosp + ypsp*sinp
+            y = -xpsp*sinp + ypsp*cosp
+            xpsp = x
+            ypsp = y
+          endif
         endif
       endif
 
@@ -940,16 +991,26 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         for i=0,11 do begin
           xs = rs*cos(phi)
           ys = -rs*sin(phi)
-          oplot, xs, ys, color=4, line=1
+          oplot, xs, ys, color=pkscol, line=1
           phi = phi + (30.*!dtor)
         endfor
 
       endif
 
       pday = pday < (n_elements(planet[3].x)-1)
-      for k=0,ipmax do oplot, planet[k].x[0:pday[k]], planet[k].y[0:pday[k]]
+      for k=0,ipmax do begin
+        xx = planet[k].x[0:pday[k]]
+        yy = planet[k].y[0:pday[k]]
+        if (fflg) then begin
+          x =  xx*cosp + yy*sinp
+          y = -xx*sinp + yy*cosp
+          xx = x
+          yy = y
+        endif
+        oplot, xx, yy
+      endfor
       for k=0,ipmax do oplot, [xp[k]], [yp[k]], psym=8, symsize=psze[k]*zscl, color=pcol[k]
-      oplot, [0.], [0.], psym=8, symsize=5*zscl, color=5
+      oplot, [0.], [0.], psym=8, symsize=sunsze*zscl, color=suncol
 
       if (sflg) then begin
         oplot, [xsta], [ysta], psym=ssym[0], symsize=ssze[0]*zscl, color=scol[0]
@@ -959,14 +1020,30 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       if (oflg) then if (finite(xsorb)) then begin
         imin = (isorb - sday[2]) > 0L
         imax = (isorb + sday[2]) < (n_elements(sorb.time) - 1L)
-        oplot, sorb.x[imin:imax], sorb.y[imin:imax], color=scol[2]  
+        xx = sorb.x[imin:imax]
+        yy = sorb.y[imin:imax]
+        if (fflg) then begin
+          x =  xx*cosp + yy*sinp
+          y = -xx*sinp + yy*cosp
+          xx = x
+          yy = y
+        endif
+        oplot, xx, yy, color=scol[2]  
         oplot, [xsorb], [ysorb], psym=ssym[2], symsize=ssze[2]*zscl, color=scol[2]
       endif
 
       if (pflg) then if (finite(xpsp)) then begin
         imin = (ipsp - sday[3]) > 0L
         imax = (ipsp + sday[3]) < (n_elements(psp.time) - 1L)
-        oplot, psp.x[imin:imax], psp.y[imin:imax], color=scol[3]  
+        xx = psp.x[imin:imax]
+        yy = psp.y[imin:imax]
+        if (fflg) then begin
+          x =  xx*cosp + yy*sinp
+          y = -xx*sinp + yy*cosp
+          xx = x
+          yy = y
+        endif
+        oplot, xx, yy, color=scol[3]  
         oplot, [xpsp] , [ypsp] , psym=ssym[3], symsize=ssze[3]*zscl, color=scol[3]
       endif
 
@@ -1093,6 +1170,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   zp = xp
   rp = zp
 
+  cosp = 1.
+  sinp = 0.
+
   i = nn2(planet[3].time, t, maxdt=oneday)
   j = where(i ge 0L, count)
   inbounds = count gt 0L
@@ -1103,6 +1183,16 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       zp[k,j] = spl_interp(planet[k].time, planet[k].z, planet[k].d2z, t[j])
       rp[k,j] = sqrt(xp[k,j]*xp[k,j] + yp[k,j]*yp[k,j] + zp[k,j]*zp[k,j])
     endfor
+    if (fflg) then begin
+      phie = atan(yp[2], xp[2])
+      phi = phie - (fixearth*!dtor)
+      cosp = cos(phi)
+      sinp = sin(phi)
+      x =  xp*cosp + yp*sinp
+      y = -xp*sinp + yp*cosp
+      xp = x
+      yp = y
+    endif
   endif
 
   if (sflg) then begin
@@ -1113,6 +1203,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     if (count gt 0L) then begin
       xsta[j] = spl_interp(sta.time, sta.x, sta.d2x, t[j])
       ysta[j] = spl_interp(sta.time, sta.y, sta.d2y, t[j])
+      if (fflg) then begin
+        x =  xsta*cosp + ysta*sinp
+        y = -xsta*sinp + ysta*cosp
+        xsta = x
+        ysta = y
+      endif
     endif
   
     xstb = replicate(!values.f_nan, n_elements(t))
@@ -1122,6 +1218,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     if (count gt 0L) then begin
       xstb[j] = spl_interp(stb.time, stb.x, stb.d2x, t[j])
       ystb[j] = spl_interp(stb.time, stb.y, stb.d2y, t[j])
+      if (fflg) then begin
+        x =  xstb*cosp + ystb*sinp
+        y = -xstb*sinp + ystb*cosp
+        xsta = x
+        ysta = y
+      endif
     endif
   endif
 
@@ -1134,6 +1236,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       isorb = round(mean(i[j]))
       xsorb[j] = spl_interp(sorb.time, sorb.x, sorb.d2x, t[j])
       ysorb[j] = spl_interp(sorb.time, sorb.y, sorb.d2y, t[j])
+      if (fflg) then begin
+        x =  xsorb*cosp + ysorb*sinp
+        y = -xsorb*sinp + ysorb*cosp
+        xsorb = x
+        ysorb = y
+      endif
     endif
   endif
 
@@ -1146,6 +1254,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       ipsp = round(mean(i[j]))
       xpsp[j] = spl_interp(psp.time, psp.x, psp.d2x, t[j])
       ypsp[j] = spl_interp(psp.time, psp.y, psp.d2y, t[j])
+      if (fflg) then begin
+        x =  xpsp*cosp + ypsp*sinp
+        y = -xpsp*sinp + ypsp*cosp
+        xpsp = x
+        ypsp = y
+      endif
     endif
   endif
 
@@ -1185,15 +1299,25 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     for i=0,11 do begin
       xs = rs*cos(phi)
       ys = -rs*sin(phi)
-      oplot, xs, ys, color=4, line=1
+      oplot, xs, ys, color=pkscol, line=1
       phi = phi + (30.*!dtor)
     endfor
   endif
 
   pday = pday < (n_elements(planet[3].x)-1)
-  for k=0,ipmax do oplot, planet[k].x[0:pday[k]], planet[k].y[0:pday[k]]
+  for k=0,ipmax do begin
+    xx = planet[k].x[0:pday[k]]
+    yy = planet[k].y[0:pday[k]]
+    if (fflg) then begin
+      x =  xx*cosp + yy*sinp
+      y = -xx*sinp + yy*cosp
+      xx = x
+      yy = y
+    endif
+    oplot, xx, yy
+  endfor
   for i=0,ipmax do oplot, [xp[i,*]], [yp[i,*]], color=pcol[i], thick=2
-  oplot, [0.], [0.], psym=8, symsize=5*zscl, color=5
+  oplot, [0.], [0.], psym=8, symsize=sunsze*zscl, color=suncol
 
   count = n_elements(xp[2,*])
   j = [0L, (count/2L), (count-1L)]
@@ -1207,14 +1331,30 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   if (oflg) then if (max(finite(xsorb))) then begin
     imin = (isorb - sday[2]) > 0L
     imax = (isorb + sday[2]) < (n_elements(sorb.time) - 1L)
-    oplot, sorb.x[imin:imax], sorb.y[imin:imax], color=scol[2]  
+    xx = sorb.x[imin:imax]
+    yy = sorb.y[imin:imax]
+    if (fflg) then begin
+      x =  xx*cosp + yy*sinp
+      y = -xx*sinp + yy*cosp
+      xx = x
+      yy = y
+    endif
+    oplot, xx, yy, color=scol[2]  
     oplot, [xsorb], [ysorb], psym=ssym[2], symsize=ssze[2]*zscl, color=scol[2]
   endif
 
   if (pflg) then if (max(finite(xpsp))) then begin
     imin = (ipsp - sday[3]) > 0L
     imax = (ipsp + sday[3]) < (n_elements(psp.time) - 1L)
-    oplot, psp.x[imin:imax], psp.y[imin:imax], color=scol[3]  
+    xx = psp.x[imin:imax]
+    yy = psp.y[imin:imax]
+    if (fflg) then begin
+      x =  xx*cosp + yy*sinp
+      y = -xx*sinp + yy*cosp
+      xx = x
+      yy = y
+    endif
+    oplot, xx, yy, color=scol[3]  
     oplot, [xpsp], [ypsp], psym=ssym[3], symsize=ssze[3]*zscl, color=scol[3]
   endif
 
@@ -1336,10 +1476,10 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     ys = 0.975
     xyouts, xs, ys, msg, color=6, /norm, align=0.5, charsize=csize
     tvcrs,0.5,0.5,/norm
-    cursor,x,y,/down
+    cursor,x,y,/up
     while (!mouse.button eq 2) do begin
       tvcrs,0.5,0.5,/norm
-      cursor,x,y,/down
+      cursor,x,y,/up
     endwhile
     if (!mouse.button eq 1) then begin
       xyouts, xs, ys, msg, color=!p.background, /norm, align=0.5, charsize=csize

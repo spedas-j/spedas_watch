@@ -2,8 +2,8 @@
 ;  SPP_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-11-05 22:50:09 -0800 (Thu, 05 Nov 2020) $
-; $LastChangedRevision: 29335 $
+; $LastChangedDate: 2020-12-01 10:45:10 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29403 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -69,7 +69,7 @@ END
 
 
 pro spp_gen_apdat::trim
-  self.data.trim
+  if isa(self.data.array) then self.data.trim
   *self.last_data_p=!null
   *self.ccsds_last=!null
 end
@@ -237,8 +237,8 @@ end
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-11-05 22:50:09 -0800 (Thu, 05 Nov 2020) $
-; $LastChangedRevision: 29335 $
+; $LastChangedDate: 2020-12-01 10:45:10 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29403 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 function spp_gen_apdat::sw_version
@@ -255,8 +255,8 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-11-05 22:50:09 -0800 (Thu, 05 Nov 2020) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 29335 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2020-12-01 10:45:10 -0800 (Tue, 01 Dec 2020) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 29403 $'
 
     return,sw_hash
 end
@@ -265,12 +265,12 @@ function spp_gen_apdat::cdf_global_attributes
   global_att=orderedhash()
 
   global_att['Acknowledgement'] = !NULL
-  global_att['Project'] = 'PSP>Parker Solar Probe'
+  global_att['Project'] = 'LWS>Living With a Star
   global_att['Source_name'] = 'PSP>Parker Solar Probe'
-  global_att['TITLE'] = 'PSP SPAN Electron and Ion Data'
+  global_att['TITLE'] = 'PSP/SWEAP/SPAN Electron and Ion Data'
   global_att['Discipline'] = 'Heliospheric Physics>Particles'
-  global_att['Descriptor'] = 'SPAN>SWEAP Solar Wind Particle Analyzer'
-  global_att['Data_type'] = 'Particle Flux'
+  global_att['Descriptor'] = 'PSP/SWEAP/SPAN>Parker Solar Probe/Solar Wind Electrons Alphas and Protons/Solar Probe ANalyzers'
+  global_att['Data_type'] = '>Solar Wind Particle Distributions'
   global_att['Data_version'] = 'v00'
   global_att['TEXT'] = 'http://sprg.ssl.berkeley.edu/data/psp/pub/sci/sweap/description/'
   global_att['MODS'] = 'Revision 0'
@@ -287,7 +287,7 @@ function spp_gen_apdat::cdf_global_attributes
   global_att['InstrumentLead_name'] = ' '
   global_att['InstrumentLead_email'] = ' @berkeley.edu'
   global_att['InstrumentLead_affiliation'] = 'U.C. Berkeley Space Sciences Laboratory'
-  global_att['Instrument_type'] = 'Electrostatic Analyzer, Particle Detector, Particles (space), Plasma and Solar Wind'
+  global_att['Instrument_type'] =['Plasma and Solar Wind','Particles (space)']
   global_att['Mission_group'] = 'PSP'
   global_att['Parents'] = ' '
 
@@ -298,8 +298,8 @@ function spp_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: ali $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2020-11-05 22:50:09 -0800 (Thu, 05 Nov 2020) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 29335 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2020-12-01 10:45:10 -0800 (Tue, 01 Dec 2020) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 29403 $'
 
   return,global_att
 end
@@ -393,7 +393,7 @@ function spp_gen_apdat::cdf_makeobj,  datavary, datanovary,  vnames=vnames, igno
 end
 
 
-pro spp_gen_apdat::cdf_makefile,trange=trange,verbose=verbose,filename=filename
+pro spp_gen_apdat::cdf_makefile,trange=trange,verbose=verbose,filename=filename,parents=parents
 
   ;  printdat,time_string(trange)
   datarray = self.data.array
@@ -419,6 +419,7 @@ pro spp_gen_apdat::cdf_makefile,trange=trange,verbose=verbose,filename=filename
       filename=root_data_dir()+str_sub(filename,'$NAME$',self.name)
     endif
     if keyword_set(self.cdf_linkname) then cdf.linkname=root_data_dir()+self.cdf_linkname
+    if keyword_set(parents) then cdf.g_attributes['Parents'] = parents
     ;    dprint,dlevel=self.dlevel,verbose=verbose,
     cdf.write,filename,verbose = verbose    ; isa(verbose) ? verbose : self.verbose
     obj_destroy,cdf
@@ -426,7 +427,7 @@ pro spp_gen_apdat::cdf_makefile,trange=trange,verbose=verbose,filename=filename
 end
 
 
-pro spp_gen_apdat::sav_makefile,sav_format=sav_format,verbose=verbose
+pro spp_gen_apdat::sav_makefile,sav_format=sav_format,parent=parent,verbose=verbose
 
   datarray=self.data.array
   if ~keyword_set(datarray) then return
@@ -440,12 +441,12 @@ pro spp_gen_apdat::sav_makefile,sav_format=sav_format,verbose=verbose
     if nw eq 0 then continue
     self.data.array=datarray[w]
     self.data.size=nw
-    self.data.name=self.name ;in case spp_swp_apdat_init changes the object name after object was saved (e.g., wrp_P5P7)
+    self.data.name=self.name ;in case spp_swp_apdat_init updated the object name (e.g., from wrp_P5 to wrp_P5P7)
     filename=time_string(trange[0],tformat=sav_format)
     filename=root_data_dir()+str_sub(filename,'$NAME$',self.name)
     file_mkdir2,file_dirname(filename)
     ;dprint,'Saving file: '+filename
-    save,file=filename,self,verbose=verbose,/compress
+    save,file=filename,self,parent,verbose=verbose,/compress
     dprint,'Saved file:  '+filename
   endfor
 end
