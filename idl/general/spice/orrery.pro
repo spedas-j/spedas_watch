@@ -70,12 +70,16 @@
 ;                  The plot limits will be set to include this and
 ;                  all interior planets.
 ;
-;       FIXEARTH:  Rotate the all planet and satellite positions 
-;                  about the Z axis so that Earth is always at the 
-;                  same longitude.  Set this keyword to the desired
-;                  longitude (0-360 deg) for Earth.  Applies only 
-;                  to plotting - does not affect the returned EPH 
-;                  structure.
+;       FIXPLANET: Rotate the all planet and satellite positions 
+;                  about the Z axis so that the specified planet is
+;                  fixed at the same longitude.  Set this keyword
+;                  to a scalar or two-element array:
+;
+;                    fix[0] : fixed longitude (0-360 deg)
+;                    fix[1] : planet number (1-9); default = 3
+;
+;                  Applies only to plotting - does not affect the 
+;                  returned EPH structure.
 ;
 ;       SCALE:     Scale factor for adjusting the size of the
 ;                  plot window.  Default = 1.
@@ -151,8 +155,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-01 13:02:34 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29414 $
+; $LastChangedDate: 2020-12-02 15:56:56 -0800 (Wed, 02 Dec 2020) $
+; $LastChangedRevision: 29422 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -161,7 +165,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   spiral=spiral, Vsw=Vsw, srot=srot, movie=movie, stereo=stereo, $
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
                   xyrange=range, planet=pnum, sorb=solorb, psp=sprobe, sall=sall, $
-                  verbose=verbose, full=full, fixearth=fixearth
+                  verbose=verbose, full=full, fixplanet=fixplanet
 
   common planetorb, planet, sta, stb, sorb, psp
   @swe_snap_common
@@ -279,7 +283,23 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   if keyword_set(reset) then Owin = -1
 
-  if (size(fixearth,/type) eq 0) then fflg = 0 else fflg = 1
+  case n_elements(fixplanet) of
+      0  : fflg = 0
+      1  : begin
+             fflg = 1
+             flon = fixplanet
+             fnum = 2
+           end
+    else : begin
+             fflg = 1
+             flon = fixplanet[0]
+             fnum = fix(fixplanet[1]) - 1
+             if ((fnum lt 0) or (fnum gt ipmax)) then begin
+               print,'Invalid planet to fix!'
+               fflg = 0
+             endif
+           end
+  endcase
 
 ; Check the version of ICY/SPICE
 
@@ -896,8 +916,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
           rp[k] = sqrt(xp[k]*xp[k] + yp[k]*yp[k] + zp[k]*zp[k])
         endfor
         if (fflg) then begin
-          phie = atan(yp[2], xp[2])
-          phi = phie - (fixearth*!dtor)
+          phi0 = atan(yp[fnum], xp[fnum])
+          phi = phi0 - (flon*!dtor)
           cosp = cos(phi)
           sinp = sin(phi)
           x =  xp*cosp + yp*sinp
@@ -1184,8 +1204,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       rp[k,j] = sqrt(xp[k,j]*xp[k,j] + yp[k,j]*yp[k,j] + zp[k,j]*zp[k,j])
     endfor
     if (fflg) then begin
-      phie = atan(yp[2], xp[2])
-      phi = phie - (fixearth*!dtor)
+      phi0 = atan(yp[fnum], xp[fnum])
+      phi = phi0 - (flon*!dtor)
       cosp = cos(phi)
       sinp = sin(phi)
       x =  xp*cosp + yp*sinp

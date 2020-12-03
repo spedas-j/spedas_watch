@@ -3,6 +3,7 @@
 ;       mex_marsis_ex_mission
 ; PURPOSE:
 ;       returns "i"th extended missions from orbit numbers
+;       used to specify the directory path to the data
 ;       needs to be updated manually every time a new extended mission starts
 ; CALLING SEQUENCE:
 ;       Nex = mex_marsis_ex_misssion(orbnum)
@@ -12,8 +13,8 @@
 ;       Yuki Harada on 2017-05-04
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-04-06 01:38:33 -0700 (Fri, 06 Apr 2018) $
-; $LastChangedRevision: 25009 $
+; $LastChangedDate: 2020-12-01 19:31:14 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29418 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/marsis/mex_marsis_ex_mission.pro $
 ;-
 
@@ -45,11 +46,15 @@ if nw gt 0 then Nex[w] = 4
 w = where( orbnums ge 13960 and orbnums le 16469 , nw )
 if nw gt 0 then Nex[w] = 5
 
-;;; 6th
-w = where( orbnums ge 16470 and orbnums le 30000 , nw )
+;;; 6th, using predicted number TBC
+w = where( orbnums ge 16470 and orbnums le 18979 , nw )
 if nw gt 0 then Nex[w] = 6
 
-;;; inconsistent mission phases...
+;;; 7th, using predicted number TBC
+w = where( orbnums ge 18980 and orbnums le 30000 , nw )
+if nw gt 0 then Nex[w] = 7
+
+;;; inconsistent mission phases in RDR...
 if keyword_set(rdr) then begin
    w = where( orbnums ge 11450 and orbnums le 13969 , nw )
    if nw gt 0 then Nex[w] = 4

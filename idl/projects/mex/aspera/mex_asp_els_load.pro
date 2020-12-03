@@ -24,8 +24,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2020-12-01 17:08:12 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29416 $
+; $LastChangedDate: 2020-12-01 20:24:47 -0800 (Tue, 01 Dec 2020) $
+; $LastChangedRevision: 29419 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_els_load.pro $
 ;
 ;-
@@ -124,9 +124,10 @@ PRO mex_asp_els_list, trange, verbose=verbose, save=save, l2=l2, wget=wflg, $
            undefine, text
            FOR j=0, (0.5 * N_ELEMENTS(otext))-1 DO BEGIN
               mt = STRSPLIT(otext[2*j], ' ', /extract)
-              mt_d = STRSPLIT(mt[1], '/', /extract)
-              mt_d = time_double(STRING(LONG(mt_d[0]), '(I2.2)') + STRING(LONG(mt_d[1]), '(I2.2)') + mt_d[2], tformat='MMDDYYYY')
-              mt_t = STRSPLIT(mt[2], ':', /extract)
+              mt_d = STRSPLIT(mt[-4], '/', /extract, escape='<')
+              mt_d[-3] = STRSPLIT(mt_d[-3], '[A-za-z]', /regex, /extract)
+              mt_d = time_double(STRING(LONG(mt_d[-3]), '(I2.2)') + STRING(LONG(mt_d[-2]), '(I2.2)') + mt_d[-1], tformat='MMDDYYYY')
+              mt_t = STRSPLIT(mt[-3], ':', /extract)
               mt_t = LONG(mt_t[0]) * 3600.d0 + LONG(mt_t[1]) * 60.d0
               IF mt[3] EQ 'PM' THEN mt_t += 0.5 * oneday
               append_array, mod_time, mt_d + mt_t
@@ -516,6 +517,8 @@ END
 PRO mex_asp_els_load, itime, verbose=verbose, l2=l2, save=save, wget=wget, no_server=no_server, psa=psa
   COMMON mex_asp_dat, mex_asp_ima, mex_asp_els
   undefine, mex_asp_els
+
+  oneday = 86400.d0
   t0 = SYSTIME(/sec)
   IF SIZE(itime, /type) EQ 0 THEN get_timespan, trange $
   ELSE BEGIN
@@ -536,7 +539,7 @@ PRO mex_asp_els_load, itime, verbose=verbose, l2=l2, save=save, wget=wget, no_se
      ENDIF 
   ENDIF 
 
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday, /daily_res, tformat='YYYY-MM-DD'))
   path = root_data_dir() + 'mex/aspera/els/' + lvl + '/sav/' + time_string(date, tformat='YYYY/MM/') + $
          'mex_asp_els_*' + time_string(date, tformat='YYYYMMDD') + '*.sav'
 
@@ -557,7 +560,7 @@ PRO mex_asp_els_load, itime, verbose=verbose, l2=l2, save=save, wget=wget, no_se
         lfile = lfile[SORT(lfile)]
         rfile = FILE_BASENAME(remote_file)
         rfile = rfile[SORT(rfile)]
-        IF (compare_struct(rfile, lfile) EQ 1) THEN sflg = 0 ELSE sflg = 1
+        IF (compare_struct(STRUPCASE(rfile), STRUPCASE(lfile)) EQ 1) THEN sflg = 0 ELSE sflg = 1
      ENDIF ELSE sflg = 0
   ENDIF ELSE sflg = 1
 

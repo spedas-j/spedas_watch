@@ -33,6 +33,8 @@
 ;       + 2019-11-21, I. Cohen    : changed new variable prefix to 'mmsx' instead of 'mms#-#'
 ;       + 2020-06-16, I. Cohen    : removed probes keyword, added ability to automatically define probes based on loaded EIS data like mms_eis_spec_combine_sc.pro;
 ;                                   change format of energy ranges in thissc_pad_vars definition
+;       + 2020-10-26, I. Cohen    : added/edited lines from mms_eis_spec_combine_sc.pro to create spin-averaged variables
+;       + 2020-11-02, R. Nikoukar : changed 'mmsx' to 'mms#-#' for consistency with mms_eis_spec_combine_sc.pro; corrected time indexing for spin-averaged variables
 ;
 ;-
 pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, data_rate = data_rate, $
@@ -117,6 +119,20 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
       endfor    
     endfor
     ;
+    ; SET UP FOR SPIN-AVERAGING
+    ;
+    if (data_rate eq 'brst') then prefix = 'mms'+probes[ref_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[ref_sc_loc]+'_epd_eis_'+datatype+'_'
+    get_data, prefix + 'spin' + suffix, data=spin_nums
+    if ~is_struct(spin_nums) then begin
+      print, 'ERROR: COULD NOT FIND EIS SPIN VARIABLE -- NOW ENDING PROCEDURE'
+      return ; gracefully handle the case of no spin # variable found
+    endif
+    ;
+    ; find where the spins start
+    spin_starts = uniq(spin_nums.Y)
+    sp = '_spin'
+    ;
+    ; LOOP THROUGH INDIVIDUAL ENERGY CHANNELS
     for ee=0,n_elements(common_energy)-1 do begin
       ;
       for tt=0,n_elements(temp_refprobe.x)-1 do for bb=0,n_elements(temp_refprobe.v1)-1 do allmms_pad_energy_avg[tt,bb,ee] = average(allmms_pad_thisenergy[tt,bb,ee,*],/NAN)
@@ -127,6 +143,23 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
         ysubtitle='PA [Deg]',ztitle='Intensity!C[1/cm!U-2!N-sr-s-keV]',minzlog=.001
       if data_units eq 'flux' then zlim, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[ee])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad', 5e2, 1e4, 1
       tdegap, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[ee])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad', /overwrite
+      ;
+      ; spin-average
+      spin_avg_pad_energy = dblarr(n_elements(spin_starts), n_elements(temp_refprobe.v1))
+      current_start = 0
+      stop
+      ; loop through the spins for this telescope
+      for spin_idx = 0,n_elements(spin_starts)-1 do begin
+        ; loop over bins
+        for bb=0,n_elements(temp_refprobe.v1)-1 do spin_avg_pad_energy[spin_idx, bb] = average(allmms_pad_energy_avg[current_start:spin_starts[spin_idx], bb, ee], 1, /NAN)
+        current_start = spin_starts[spin_idx]+1
+      endfor
+      ;
+      store_data, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[ee])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'+sp, data={x:temp_refprobe.x[spin_starts],y:spin_avg_pad_energy,v:pa_label}
+      options, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[ee])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'+sp, yrange = [0,180], ystyle=1, spec = 1, no_interp=1, $
+        ysubtitle='PA [Deg]',ztitle='Intensity!C[1/cm!U-2!N-sr-s-keV]',minzlog=.001
+      if data_units eq 'flux' then zlim, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[ee])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'+sp, 5e2, 1e4, 1
+      tdegap, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[ee])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'+sp, /overwrite
     endfor
     ;
     store_data,allmms_prefix+datatype[dd]+'_'+species+'_'+data_units+'_omni'+suffix+'_pads',data={x:temp_refprobe.x,y:allmms_pad_energy_avg,v1:pa_label,v2:common_energy}
@@ -142,6 +175,23 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
     ;
     spd_smooth_time, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad', $
       newname=allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad_smth', 20, /nan
+    ;
+    spin_avg_pad = dblarr(n_elements(spin_starts), n_elements(allmms_pad_avg[0, *]))
+    ;
+    current_start = 0
+    ; loop through the spins for this telescope
+    for spin_idx = 0, n_elements(spin_starts)-1 do begin
+      ; loop over energies
+      spin_avg_pad[spin_idx, *] = average(allmms_pad_avg[current_start:spin_starts[spin_idx], *], 1, /NAN)
+      current_start = spin_starts[spin_idx]+1
+    endfor
+    ;
+    store_data, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'+sp, data={x:temp_refprobe.x,y:spin_avg_pad,v:pa_label}
+    options, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'+sp, yrange = [0,180], ystyle=1, spec = 1, no_interp=1, $
+      ysubtitle='PA [Deg]',ztitle='Intensity!C[1/cm!U-2!N-sr-s-keV]',minzlog=.001, /extend_y_edges
+    if data_units eq 'flux' then zlim, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'+sp, 5e2, 1e4, 1
+    tdegap, allmms_prefix+datatype[dd]+'_'+strtrim(string(fix(common_energy[0])),2)+'-'+strtrim(string(fix(common_energy[-1])),2)+'keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'+sp, /overwrite
+    ;
   endfor
   ;
 end
