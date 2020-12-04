@@ -17,19 +17,20 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-06 12:02:59 -0700 (Fri, 06 Apr 2018) $
-; $LastChangedRevision: 25012 $
+; $LastChangedDate: 2020-12-03 17:42:35 -0800 (Thu, 03 Dec 2020) $
+; $LastChangedRevision: 29429 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_load.pro $
 ;
 ;-
-PRO mex_asp_ima_list, trange, verbose=verbose, file=file, time=modify_time
+PRO mex_asp_ima_list, trange, verbose=verbose, file=file, time=modify_time, psa=psa
+  oneday = 86400.d0
   ldir = root_data_dir() + 'mex/aspera/ima/csv/'
   file_mkdir2, ldir
 
-  mtime = ['2003-06-02', '2006-01', '2007-10', '2010', '2013', '2015', '2017']
+  mtime = ['2003-06-02', '2006-01', '2007-10', '2010', '2013', '2015', '2017', '2019']
   mtime = time_double(mtime)
 
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday, /daily_res, tformat='YYYY-MM-DD'))
   phase = FIX(INTERP(FINDGEN(N_ELEMENTS(mtime)), mtime, time_double(date))) < (N_ELEMENTS(mtime)-1)
   phase = STRING(phase, '(I0)')
 
@@ -38,36 +39,71 @@ PRO mex_asp_ima_list, trange, verbose=verbose, file=file, time=modify_time
   IF nv GT 0 THEN phase[v] = '-EXT' + phase[v]
 
   pdir = 'MEX-M-ASPERA3-2-EDR-IMA' ; pdir stands for "phase dir".
-  pdir += phase + '-V1.0/'
 
-  dprint, dlevel=2, verbose=verbose, 'Starts connecting ESA/PSA FTP server...'
-
-  rpath = 'ftp://psa.esac.esa.int/pub/mirror/MARS-EXPRESS/ASPERA-3/'
+  IF (psa) THEN BEGIN
+     pdir += phase + '-V1.0/'
+     dprint, dlevel=2, verbose=verbose, 'Starts connecting ESA/PSA FTP server...'
+     rpath = 'ftp://psa.esac.esa.int/pub/mirror/MARS-EXPRESS/ASPERA-3/'
+  ENDIF ELSE BEGIN
+     pdir += phase + '-v1/'
+     pdir = STRLOWCASE(pdir)
+     rpath = 'https://pds-geosciences.wustl.edu/mex/'
+  ENDELSE 
   ndat = N_ELEMENTS(date)
 
   FOR i=0, ndat-1 DO BEGIN
-     cmd = rpath + pdir[i] + 'DATA/IMA_EDR_L1B_' + time_string(date[i], tformat='YYYY_')
+     IF (psa) THEN cmd = rpath + pdir[i] $
+     ELSE BEGIN
+        cmd = rpath + pdir[i] + 'mexasp_21'
+        cmd += STRING(LONG(STRMID(phase[i], 0, 1, /reverse)), '(I2.2)') + '/'
+     ENDELSE 
+     cmd += 'DATA/IMA_EDR_L1B_' + time_string(date[i], tformat='YYYY_') 
 
      IF (date[i] GE time_double('2004')) THEN cmd += time_string(date[i], tformat='MM/') $
      ELSE IF LONG(time_string(date[i], tformat='DOY')) GT 250 THEN cmd += 'IC/' ELSE cmd += 'EV/'
+     IF (psa EQ 0) THEN cmd = STRLOWCASE(cmd) 
 
      dflg = 0
      IF SIZE(cmd_old, /type) EQ 0 THEN dflg = 1 $
      ELSE IF cmd NE cmd_old THEN dflg = 1
-     IF (dflg) THEN list_file = spd_download(remote_path=cmd, remote_file='*', local_path=ldir, local_file='mex_asp_ima_lists.txt', ftp_connection_mode=0)
-     
+     IF (dflg) THEN BEGIN
+        IF (psa) THEN list_file = spd_download(remote_path=cmd, remote_file='*', local_path=ldir, local_file='mex_asp_ima_lists.txt', ftp_connection_mode=0) $
+        ELSE list_file = spd_download(remote_path=cmd, local_path=ldir, local_file='mex_asp_ima_lists.txt')
+     ENDIF 
+
      OPENR, unit, list_file, /get_lun
      text = STRARR(FILE_LINES(list_file))
      READF, unit, text
      FREE_LUN, unit
      
-     text = STRSPLIT(text, ' ', /extract)
-     text = text.toarray()
-     text[*, 6] = STRING(LONG(text[*, 6]), '(I2.2)')
-     mod_time = time_double(text[*, 5] + text[*, 6] + text[*, 7], tformat='MTHDDYYYY')
+     IF (psa) THEN BEGIN
+        text = STRSPLIT(text, ' ', /extract)
+        text = text.toarray()
+        text[*, 6] = STRING(LONG(text[*, 6]), '(I2.2)')
+        mod_time = time_double(text[*, 5] + text[*, 6] + text[*, 7], tformat='MTHDDYYYY')
+        w = WHERE(STRMATCH(text[*, -1], 'IMA_AZ*' + time_string(date[i], tformat='YYYYDOY') + '*.CSV') EQ 1, nw)
+        IF nw GT 0 THEN afile = cmd + text[w, -1]
+     ENDIF ELSE BEGIN
+        otext = STRSPLIT(text[-1], '<', escape='>', /extract)
+        otext = otext[1:-2]
+        undefine, text
 
-     w = WHERE(STRMATCH(text[*, -1], 'IMA_AZ*' + time_string(date[i], tformat='YYYYDOY') + '*.CSV') EQ 1, nw)
-     IF nw GT 0 THEN afile = cmd + text[w, -1]
+        FOR j=0, (0.5 * N_ELEMENTS(otext))-1 DO BEGIN
+           mt = STRSPLIT(otext[2*j], ' ', /extract)
+           mt_d = STRSPLIT(mt[-4], '/', /extract, escape='<')
+           mt_d[-3] = STRSPLIT(mt_d[-3], '[A-za-z]', /regex, /extract)
+           mt_d = time_double(STRING(LONG(mt_d[-3]), '(I2.2)') + STRING(LONG(mt_d[-2]), '(I2.2)') + mt_d[-1], tformat='MMDDYYYY')
+           mt_t = STRSPLIT(mt[-3], ':', /extract)
+           mt_t = LONG(mt_t[0]) * 3600.d0 + LONG(mt_t[1]) * 60.d0
+           IF mt[3] EQ 'PM' THEN mt_t += 0.5 * oneday
+           append_array, mod_time, mt_d + mt_t
+           undefine, mt, mt_d, mt_t
+           append_array, text, (STRSPLIT(otext[2*j+1], '"', /extract))[-1]
+        ENDFOR
+        w = WHERE(STRMATCH(text, 'ima_az*' + time_string(date[i], tformat='YYYYDOY') + '*.csv') EQ 1, nw)
+        IF nw GT 0 THEN afile = cmd + text[w]
+     ENDELSE
+ 
      IF SIZE(afile, /type) NE 0 THEN BEGIN
         append_array, file, afile
         append_array, modify_time, mod_time[w]
@@ -93,17 +129,17 @@ PRO mex_asp_ima_save, time, counts, polar, pacc, hk, file=file, verbose=verbose
   asp_ima_pacc  = pacc
   asp_ima_cnts  = counts
   asp_ima_hk    = hk
-  asp_ima_file  = file
+  asp_ima_file  = FILE_BASENAME(file)
 
   file_mkdir2, path, dlevel=2, verbose=verbose
   dprint, dlevel=2, verbose=verbose, 'Saving ' + path + fname + '.'
   SAVE, filename=path + fname, asp_ima_stime, asp_ima_etime, asp_ima_polar, $
-        asp_ima_pacc, asp_ima_cnts, asp_ima_hk, asp_ima_file
+        asp_ima_pacc, asp_ima_cnts, asp_ima_hk, asp_ima_file, /compress
   RETURN
 END
                     
 PRO mex_asp_ima_com, time, counts, polar, pacc, hk, file=file, verbose=verbose, $
-                     data=mex_asp3_ima, trange=trange
+                     data=mex_asp3_ima, trange=trange, bkg=bkg, fast=fast
 
   COMMON mex_asp_dat, mex_asp_ima, mex_asp_els
   units = 'counts'
@@ -123,6 +159,9 @@ PRO mex_asp_ima_com, time, counts, polar, pacc, hk, file=file, verbose=verbose, 
              polar: 0, pacc: 0, hk: hk_form}
              
 
+  IF (fast) THEN $
+     extract_tags, dformat, {energy: DBLARR(nenergy), enoise: DBLARR(nenergy), theta: DBLARR(nenergy)}
+     
   ndat = N_ELEMENTS(stime)
   mex_asp_ima = REPLICATE(dformat, ndat)
 
@@ -130,16 +169,16 @@ PRO mex_asp_ima_com, time, counts, polar, pacc, hk, file=file, verbose=verbose, 
   mex_asp_ima.end_time = etime
   mex_asp_ima.polar    = polar
   mex_asp_ima.pacc     = pacc
-  mex_asp_ima.data     = TRANSPOSE(counts, [1, 2, 3, 0])
+  mex_asp_ima.data     = TRANSPOSE(TEMPORARY(counts), [1, 2, 3, 0])
   mex_asp_ima.hk       = hk
 
   time = MEAN(time, dim=2)
-  mex_asp_ima_ene_theta, time, polar, opidx=hk.opidx, verbose=verbose, energy=energy, theta=theta, enoise=enoise
-  mex_asp_ima.energy = energy
-  mex_asp_ima.theta  = theta
-  mex_asp_ima.enoise = enoise
+  mex_asp_ima_ene_theta, time, polar, opidx=hk.opidx, verbose=verbose, energy=energy, theta=theta, enoise=enoise, fast=fast
+  mex_asp_ima.energy = TEMPORARY(energy)
+  mex_asp_ima.theta  = TEMPORARY(theta)
+  mex_asp_ima.enoise = TEMPORARY(enoise)
 
-  mex_asp_ima_bkg, verbose=verbose
+  IF (bkg) THEN mex_asp_ima_bkg, verbose=verbose
   IF SIZE(trange, /type) NE 0 THEN BEGIN
      w = WHERE(time GE trange[0] AND time LE trange[1], nw)
      mex_asp_ima = mex_asp_ima[w]
@@ -151,17 +190,18 @@ END
 
 PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, counts=counts, polar=polar, pacc=pacc, $
                       hk=hk, save=save, file=remote_file, mtime=modify_time, status=status, no_server=no_server
+  oneday = 86400.d0
   nan = !values.f_nan
   status = 1
   IF KEYWORD_SET(no_server) THEN nflg = 0 ELSE nflg = 1
 
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday, /daily_res, tformat='YYYY-MM-DD'))
 
   ldir = root_data_dir() + 'mex/aspera/ima/csv/' 
   spath = ldir + time_string(date, tformat='YYYY/MM/')
   
   FOR i=0, N_ELEMENTS(date)-1 DO BEGIN
-     afile = FILE_SEARCH(spath[i], 'IMA_AZ*' + time_string(date[i], tformat='YYYYDOY') + '*.CSV', count=nfile)
+     afile = FILE_SEARCH(spath[i], 'IMA_AZ*' + time_string(date[i], tformat='YYYYDOY') + '*.CSV', count=nfile, /fold_case)
      IF nfile GT 0 THEN append_array, file, afile
      undefine, afile, nfile
   ENDFOR 
@@ -176,7 +216,7 @@ PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, count
   IF (rflg) THEN BEGIN
      nfile = N_ELEMENTS(remote_file)
      FOR i=0, nfile-1 DO BEGIN 
-       IF SIZE(file, /type) EQ 0 THEN dflg = 1 $
+        IF SIZE(file, /type) EQ 0 THEN dflg = 1 $
         ELSE BEGIN
            w = WHERE(STRMATCH(FILE_BASENAME(file), FILE_BASENAME(remote_file[i])) EQ 1, nw)
            IF nw EQ 0 THEN dflg = 1 ELSE dflg = 0
@@ -219,9 +259,10 @@ PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, count
   undefine, file
   files = list()
   FOR i=0, nfile-1 DO BEGIN
+     skip = 0
      cnts = list()
      FOR j=0, 15 DO BEGIN
-        idx = WHERE(STRMATCH(FILE_BASENAME(fname), 'IMA_AZ' + STRING(j, '(I2.2)') + time_string(ftime[i], tformat='YYYYDOYhhmm') + '*.CSV') EQ 1)
+        idx = WHERE(STRMATCH(FILE_BASENAME(fname), 'IMA_AZ' + STRING(j, '(I2.2)') + time_string(ftime[i], tformat='YYYYDOYhhmm') + '*.CSV', /fold_case) EQ 1)
 
         OPENR, unit, fname[idx], /get_lun
         data = STRARR(FILE_LINES(fname[idx]))
@@ -233,10 +274,20 @@ PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, count
            IF nv GT 0 THEN BEGIN
               mode = STRSPLIT(data[v], ',', /extract)
               mode = mode.toarray()
-              IF (trange[0] GT time_double(mode[-1, 1], tformat='YYYY-DOYThh:mm:ss.fff')) OR $
-                 (trange[1] LT time_double(mode[ 0, 0], tformat='YYYY-DOYThh:mm:ss.fff')) THEN GOTO, next $
-              ELSE dprint, dlevel=2, verbose=verbose, 'Reading ' + FILE_DIRNAME(fname[idx], /mark) + $
-                           'IMA_AZ**' + time_string(ftime[i], tformat='YYYYDOYhhmm') + 'C_ACCS01.CSV.'
+
+              IF ((trange[0] GT time_double(mode[-1, 1], tformat='YYYY-DOYThh:mm:ss.fff')) OR $
+                  (trange[1] LT time_double(mode[ 0, 0], tformat='YYYY-DOYThh:mm:ss.fff'))) THEN skip = 1
+
+              IF KEYWORD_SET(save) THEN BEGIN
+                 IF (skip EQ 1) AND $
+                    (FILE_TEST(root_data_dir() + 'mex/aspera/ima/sav/' + time_string(ftime[i], tformat='YYYY/MM/') + $
+                               'mex_asp_ima_l1b_' + time_string(ftime[i], tformat='YYYYMMDD_hhmm') + '.sav') EQ 0) THEN skip = 0
+              ENDIF 
+
+              IF (skip) THEN BREAK
+
+              dprint, dlevel=2, verbose=verbose, 'Reading ' + FILE_DIRNAME(fname[idx], /mark) + $
+                      'IMA_AZ**' + time_string(ftime[i], tformat='YYYYDOYhhmm') + 'C_ACCS01.CSV.'
 
               polar.add, FIX(mode[*, -1])
            ENDIF 
@@ -344,7 +395,6 @@ PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, count
      ENDIF 
      counts.add, cnts
      files.add, TEMPORARY(file)
-     next:
   ENDFOR 
 
   IF KEYWORD_SET(save) THEN $
@@ -384,17 +434,21 @@ FUNCTION mex_asp_ima_toarray, data
   RETURN, hk
 END
 
-PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, bkg=bkg
+PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, bkg=bkg, psa=psa, fast=fast
   COMMON mex_asp_dat, mex_asp_ima, mex_asp_els
   undefine, mex_asp_ima
+
+  oneday = 86400.d0
   t0 = SYSTIME(/sec)
   IF SIZE(trange, /type) EQ 0 THEN get_timespan, trange
   IF KEYWORD_SET(no_server) THEN nflg = 0 ELSE nflg = 1
   IF KEYWORD_SET(bkg) THEN bflg = 1 ELSE bflg = 0
+  IF SIZE(psa, /type) EQ 0 THEN pflg = 1 ELSE pflg = FIX(psa)
+  IF SIZE(fast, /type) EQ 0 THEN fflg = 1 ELSE fflg = FIX(fast)
   lvl = 'l1b'
 
   IF (nflg) THEN BEGIN
-     mex_asp_ima_list, trange, verbose=verbose, file=remote_file, time=mtime
+     mex_asp_ima_list, trange, verbose=verbose, file=remote_file, time=mtime, psa=pflg
      IF N_ELEMENTS(remote_file) EQ 0 THEN BEGIN
         dprint, 'No data found.', dlevel=2, verbose=verbose
         RETURN
@@ -402,7 +456,7 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
      mex_asp_ima_timestamp, remote_file, rtime, verbose=verbose, /csv, /uniq
   ENDIF 
 
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1., 1.]*oneday, /daily_res, tformat='YYYY-MM-DD'))
   path = root_data_dir() + 'mex/aspera/ima/sav/' + time_string(date, tformat='YYYY/MM/') + $
          'mex_asp_ima_*' + time_string(date, tformat='YYYYMMDD') + '*.sav'
 
@@ -423,7 +477,7 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
         lfile = lfile[SORT(lfile)]
         rfile = FILE_BASENAME(remote_file)
         rfile = rfile[SORT(rfile)]
-        IF (compare_struct(rfile, lfile) EQ 1) THEN sflg = 0 ELSE sflg = 1
+        IF (compare_struct(STRUPCASE(rfile), STRUPCASE(lfile)) EQ 1) THEN sflg = 0 ELSE sflg = 1
      ENDIF ELSE sflg = 0
   ENDIF ELSE sflg = 1
 
@@ -468,15 +522,16 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
      dprint, dlevel=2, verbose=verbose, 'No data found.'
      RETURN
   ENDIF ELSE BEGIN
-     mex_asp_ima_com, [ [stime], [etime] ], counts, polar, pacc, hk, data=ima, trange=trange
+     mex_asp_ima_com, [ [stime], [etime] ], counts, polar, pacc, hk, data=ima, trange=trange, bkg=bflg, fast=fflg
      time = time[w]
      IF (bflg) THEN cnt = (ima.data - ima.bkg) > 0. ELSE cnt = ima.data
      ene  = ima.energy
+     IF (fflg) THEN ene = TRANSPOSE(ene) ELSE ene = TRANSPOSE(MEAN(MEAN(ene, dim=2, /nan), dim=2, /nan))
   ENDELSE 
 
-  store_data, 'mex_asp_ima_espec', data={x: time, y: TRANSPOSE(TOTAL(TOTAL(cnt, 2), 2)), v: TRANSPOSE(MEAN(MEAN(ene, dim=2, /nan), dim=2, /nan))}, $
-              dlim={spec: 1, datagap: 30.d0, ysubtitle: 'Energy [eV]', ytitle: 'MEX/ASPERA-3 (IMA)'} ;, $
-                                ;ytickformat: 'exponent', ztickformat: 'exponent}
+  store_data, 'mex_asp_ima_espec', data={x: time, y: TRANSPOSE(TOTAL(TOTAL(cnt, 2), 2)), v: ene}, $
+              dlim={spec: 1, datagap: 30.d0, ysubtitle: 'Energy [eV]', ytitle: 'MEX/ASPERA-3 (IMA)'}
+
   ylim, 'mex_asp_ima_espec', 1., 30.e3, 1, /def
   zlim, 'mex_asp_ima_espec', 1., 1000., 1, /def
   options, 'mex_asp_ima_espec', ztitle='Counts [#]', /def

@@ -3,8 +3,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29404 $
+; $LastChangedDate: 2020-12-02 21:12:20 -0800 (Wed, 02 Dec 2020) $
+; $LastChangedRevision: 29424 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
 ;-
@@ -28,8 +28,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29404 $
+; $LastChangedDate: 2020-12-02 21:12:20 -0800 (Wed, 02 Dec 2020) $
+; $LastChangedRevision: 29424 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -51,8 +51,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['cdf_svn_changedby'] = '$LastChangedBy: ali $'
-    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $'
-    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 29404 $'
+    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-02 21:12:20 -0800 (Wed, 02 Dec 2020) $'
+    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 29424 $'
     sw_hash['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
 
     return,sw_hash
@@ -133,12 +133,12 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
   dprint,'starting: '+pathname,dlevel=self.dlevel+1,verbose = isa(verbose) ? verbose : self.verbose
 
   global_attributes = self.g_attributes
-  
+
   global_attributes['cdf_svn_changedby'] = '$LastChangedBy: ali $'
-  global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $'
-  global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 29404 $'
-  global_attributes['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
-  login_info = get_login_info()
+    global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-02 21:12:20 -0800 (Wed, 02 Dec 2020) $'
+    global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 29424 $'
+    global_attributes['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
+    login_info = get_login_info()
   global_attributes['sw_runby'] = login_info.user_name
   global_attributes['sw_machine'] = login_info.machine_name
   global_attributes['sw_runtime'] = time_string(systime(1)) + ' UTC'
@@ -175,7 +175,7 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
 
   cdf_close,self.fileid
   self.fileid = 0
-  dprint,'Created: '+pathname,dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
+  dprint,'Created: '+pathname+' Size: '+strtrim(((file_info(pathname)).size)/1000,2)+' KB',dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
 end
 
 
@@ -382,6 +382,7 @@ pro cdf_tools::filter_variables, index
   foreach var,self.vars,vname do begin
     if var.recvary then begin
       array = var.data.array
+      if (size(array,/dim))[0] le max(index) then message,'Attempt to subscript ARRAY with INDEX out of range.'
       case var.ndimen of
         0:  var.data.array = array[index]
         1:  var.data.array = array[index,*]
@@ -394,8 +395,6 @@ pro cdf_tools::filter_variables, index
     endif
   endforeach
 end
-
-
 
 
 pro cdf_tools::add_variable,vi
@@ -649,7 +648,7 @@ pro cdf_tools::fill_nan,names
       w = where( *v.data.ptr eq fval,/null,nw)
       (*v.data.ptr)[w] = !values.f_nan
       if isa(w) then begin
-        v.attributes['FILLVAL'] = (*v.data.ptr)[w[0]] 
+        v.attributes['FILLVAL'] = (*v.data.ptr)[w[0]]
       endif
     endif
   endforeach
@@ -665,7 +664,7 @@ function cdf_tools::var_info_structures   ; not ready yet
     foreach v,self.vars,vname do begin
       strct[i++] = v
     endforeach
-    return,strct    
+    return,strct
   endif
   return,!null
 
@@ -752,19 +751,28 @@ pro cdf_tools::make_tplot_var,varnames,prefix=prefix
       dprint , var ,' not found'
     endelse
 
-
   endforeach
 
 end
 
 
-PRO cdf_tools::GetProperty,filename=filename,linkname=linkname,vars=vars,G_attributes=G_attributes,files=files ;, nvars=nvars
+pro cdf_tools::copy,new
+  self.filename = new.filename
+  self.linkname = new.linkname
+  self.filenames= (new.files)[*]
+  self.G_attributes = (new.G_attributes)[*]
+  self.nvars = new.nvars
+  self.vars = (new.vars)[*] ;needs fixing. still results in cloning of DATA and ATTRIBUTES within the "vars" keys.
+end
+
+
+PRO cdf_tools::GetProperty,filename=filename,linkname=linkname,files=files,G_attributes=G_attributes,nvars=nvars,vars=vars
   COMPILE_OPT IDL2
   IF (ARG_PRESENT(filename)) THEN filename = self.filename
   IF (ARG_PRESENT(linkname)) THEN linkname = self.linkname
-  IF (ARG_PRESENT(files)) THEN files = self.filenames
-  IF (ARG_PRESENT(nvars)) THEN nvars = n_elements(self.vars)
+  IF (ARG_PRESENT(files))THEN files= self.filenames
   IF (ARG_PRESENT(G_attributes)) THEN G_attributes = self.G_attributes
+  IF (ARG_PRESENT(nvars)) THEN nvars = n_elements(self.vars)
   IF (ARG_PRESENT(vars)) THEN vars = self.vars
 END
 
@@ -795,12 +803,11 @@ PRO cdf_tools__define
   void = {cdf_tools, $
     inherits generic_object, $    ; superclass
     filename: '',  $
-    filenames: obj_new(), $
     linkname: '',  $
+    filenames: obj_new(), $
     fileid:  0uL,  $
     inq_ptr:  ptr_new() ,  $          ; pointer to inquire structure
     G_attributes: obj_new(),  $     ; ordered hash
-    ;  nv:  0     , $
     nvars: 0, $
     vars:  obj_new() $
   }

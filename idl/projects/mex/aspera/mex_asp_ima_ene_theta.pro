@@ -13,12 +13,12 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-06 12:02:59 -0700 (Fri, 06 Apr 2018) $
-; $LastChangedRevision: 25012 $
+; $LastChangedDate: 2020-12-03 15:21:42 -0800 (Thu, 03 Dec 2020) $
+; $LastChangedRevision: 29428 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_ene_theta.pro $
 ;
 ;-
-PRO mex_asp_ima_ene_theta, time, polar, opidx=opidx, energy=energy, theta=theta, enoise=enoise, verbose=verbose
+PRO mex_asp_ima_ene_theta, time, polar, opidx=opidx, energy=energy, theta=theta, enoise=enoise, verbose=verbose, fast=fast
   nan = !values.f_nan
   ldir = root_data_dir() + 'mex/aspera/ima/calib/'
   file_mkdir2, ldir
@@ -106,14 +106,19 @@ PRO mex_asp_ima_ene_theta, time, polar, opidx=opidx, energy=energy, theta=theta,
      undefine, w, nw
   ENDFOR
 
-  energy = REBIN(TEMPORARY(energy), ndat, nenergy, nbins, nmass, /sample)
-  theta = REBIN(TEMPORARY(theta), ndat, nenergy, nbins, nmass, /sample)
-  enoise = REBIN(TEMPORARY(enoise), ndat, nenergy, nbins, nmass, /sample)
-
-  energy = TRANSPOSE(energy, [1, 2, 3, 0])
-  theta  = TRANSPOSE(theta, [1, 2, 3, 0])
-  enoise = TRANSPOSE(enoise, [1, 2, 3, 0])
-
+  IF KEYWORD_SET(fast) THEN BEGIN
+     energy = TRANSPOSE(TEMPORARY(energy))
+     theta = TRANSPOSE(TEMPORARY(theta))
+     enoise = TRANSPOSE(TEMPORARY(enoise))
+  ENDIF ELSE BEGIN
+     energy = REBIN(TEMPORARY(energy), ndat, nenergy, nbins, nmass, /sample)
+     theta = REBIN(TEMPORARY(theta), ndat, nenergy, nbins, nmass, /sample)
+     enoise = REBIN(TEMPORARY(enoise), ndat, nenergy, nbins, nmass, /sample)
+     
+     energy = TRANSPOSE(TEMPORARY(energy), [1, 2, 3, 0])
+     theta  = TRANSPOSE(TEMPORARY(theta), [1, 2, 3, 0])
+     enoise = TRANSPOSE(TEMPORARY(enoise), [1, 2, 3, 0])
+  ENDELSE 
   ;;; It seems that "theta" is defined as the looking direction rather than
   ;;; the ions moving direction. Therefore, changing its sign.
   theta *= -1.
