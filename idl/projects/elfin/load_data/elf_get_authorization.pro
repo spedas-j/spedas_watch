@@ -19,9 +19,16 @@ function elf_get_authorization
 
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
+
+  ; check to see if authorization has already been retrieved
+  get_data, 'elfin_authorization', data=authorization
+  if is_struct(authorization) then begin
+    authorization = { user_name: authorization.user_name[0], password: authorization.password[0] }
+    return, authorization
+  endif
+  
   user_name = ''
   password = ''
-  
   authorization_file = !elf.local_data_dir + 'elf_authorization.txt'
   if strlowcase(!version.os_family) eq 'windows' then authorization_file = strjoin(strsplit(authorization_file, '/', /extract), path_sep())
 
@@ -29,11 +36,12 @@ function elf_get_authorization
     openr, lun, authorization_file, /get_lun
     readf, lun, user_name
     readf, lun, password
+    close, lun
     free_lun, lun
+    authorization = { user_name: user_name, password: password }
+    store_data, 'elfin_authorization', data=authorization
   endif
-  
-  authorization = { user_name: user_name, password: password }
-  
+
   return, authorization
   
 end

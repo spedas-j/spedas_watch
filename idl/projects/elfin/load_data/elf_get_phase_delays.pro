@@ -49,6 +49,14 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
 
   if ~undefined(instrument) then instrument='epde'
   instrument='epde'
+  
+  ; check for existing phase_delays tplot var
+  get_data, 'el'+probe+'_epd_phase_delays', data=pd_struct
+  if is_struct(pd_struct) then begin
+    phase_delays=pd_struct.phase_delays[0]
+    return, phase_delays
+  endif
+  
   ; create calibration file name
   sc='el'+probe
   remote_cal_dir=!elf.REMOTE_DATA_DIR+sc+'/calibration_files'
@@ -117,9 +125,9 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
       append_array, minpa, float(data[12])
       count=count+1
     endwhile
+    close, lun
+    free_lun, lun
   endelse  
-  
-  free_lun, lun
   
   phase_delay = { $
     starttimes:starttimes, $
@@ -135,7 +143,9 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
     badflag:badflag, $
     HQflag:HQflag, $
     minpa:minpa }
-    
+
+   store_data, 'el'+probe+'_epd_phase_delays', data={phase_delays:phase_delay}
+   
   return, phase_delay
   
 end

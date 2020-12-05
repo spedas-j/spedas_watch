@@ -91,10 +91,14 @@
 ;       SECONDARY: Put window in highest numbered non-primary monitor
 ;                  (usually the largest one).
 ;
-;       DX:        Horizontal offset from CORNER (pixels).
+;       DX:        Horizontal offset from left or right edge (pixels).
+;                    If DX is positive, offset is from left.
+;                    If DX is negative, offset is from right.
 ;                  Replaces XPOS.  Default = 0.
 ;
-;       DY:        Vertical offset from CORNER (pixels).
+;       DY:        Vertical offset from top or bottom edge (pixels).
+;                    If DY is positive, offset is from top.
+;                    If DX is negative, offset is from bottom.
 ;                  Replaces YPOS.  Default = 0.
 ;
 ;                  Note: XPOS and YPOS only work if CONFIG = 0.  They
@@ -104,7 +108,9 @@
 ;                  the bounds of the physical monitors, so windows can
 ;                  be placed in regions that cannot be seen.
 ;
-;       CORNER:    DX and DY are measured from this corner:
+;       CORNER:    Alternate method for determining which corner to 
+;                  place window.  If this keyword is set, then only the
+;                  absolute values of DX and DY are used.
 ;
 ;                    0 = top left (default)
 ;                    1 = top right
@@ -134,10 +140,10 @@
 ;                  this behavior and create the window as requested.
 ;
 ;       XFULL:     Make the window full-screen in X.
-;                  (Ignore, XSIZE and DX.)
+;                  (Ignore XSIZE, DX.)
 ;
 ;       YFULL:     Make the window full-screen in Y.
-;                  (Ignore, YSIZE and DY.)
+;                  (Ignore YSIZE, DY.)
 ;
 ;       FULL:      If set, make a full-screen window in MONITOR.
 ;                  (Ignore XSIZE, YSIZE, DX, DY, SCALE, ASPECT.)
@@ -156,8 +162,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-10-13 15:46:35 -0700 (Tue, 13 Oct 2020) $
-; $LastChangedRevision: 29246 $
+; $LastChangedDate: 2020-12-04 08:51:32 -0800 (Fri, 04 Dec 2020) $
+; $LastChangedRevision: 29431 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -368,8 +374,17 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
   if keyword_set(ycenter) then dy = (mgeom[3, monitor] - ysize)/2
   dx = fix(dx[0])
   dy = fix(dy[0])
-  if (n_elements(corner) eq 0) then corner = 0 else corner = fix(corner[0])
-  corner = abs(corner) mod 4
+
+  if (n_elements(corner) eq 0) then begin
+    corner = 0
+    if (dx lt 0) then begin
+      if (dy lt 0) then corner = 3 else corner = 1
+    endif else begin
+      if (dy lt 0) then corner = 2 else corner = 0
+    endelse
+  endif else corner = abs(fix(corner[0])) mod 4
+  dx = abs(dx)
+  dy = abs(dy)
 
   xoff = mgeom[0, monitor]          ; horizontal offset
   yoff = mgeom[1, monitor]          ; vertical offset

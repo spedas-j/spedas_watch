@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2020-12-03 17:42:35 -0800 (Thu, 03 Dec 2020) $
-; $LastChangedRevision: 29429 $
+; $LastChangedDate: 2020-12-04 11:49:59 -0800 (Fri, 04 Dec 2020) $
+; $LastChangedRevision: 29433 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_load.pro $
 ;
 ;-
@@ -189,7 +189,7 @@ PRO mex_asp_ima_com, time, counts, polar, pacc, hk, file=file, verbose=verbose, 
 END
 
 PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, counts=counts, polar=polar, pacc=pacc, $
-                      hk=hk, save=save, file=remote_file, mtime=modify_time, status=status, no_server=no_server
+                      hk=hk, save=save, file=remote_file, mtime=modify_time, status=status, no_server=no_server, psa=psa
   oneday = 86400.d0
   nan = !values.f_nan
   status = 1
@@ -225,7 +225,7 @@ PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, count
            suffix = FILE_BASENAME(remote_file[i])
            suffix = STRSPLIT(suffix, '_', /extract)
            suffix = time_string(time_double(suffix[1], tformat='AZ**YYYYDOYhhmmC'), tformat='YYYY/MM/')
-           append_array, fname, spd_download(remote_file=remote_file[i], local_path=ldir+suffix, ftp_connection_mode=0)
+           append_array, fname, spd_download(remote_file=remote_file[i], local_path=ldir+suffix, ftp_connection_mode=1-psa)
            file_touch, fname[-1], modify_time[i] - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
         ENDIF ELSE append_array, fname, file[w]
      ENDFOR
@@ -384,6 +384,7 @@ PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, count
         undefine, w, nw, v, nv
         undefine, sensor, data, idx, cnt
      ENDFOR 
+     IF (skip) THEN CONTINUE
      cnts = TRANSPOSE(cnts.toarray(), [1, 3, 0, 2]) ; time, energy, angle, mass
      IF nenergy NE 96 THEN BEGIN
         sz = SIZE(cnts)
@@ -483,7 +484,7 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
 
   IF (sflg) THEN BEGIN
      mex_asp_ima_read, trange, time=stime, end_time=etime, counts=counts, polar=polar, pacc=pacc, hk=hk, $
-                       verbose=verbose, save=save, file=remote_file, mtime=mtime, status=status, no_server=no_server
+                       verbose=verbose, save=save, file=remote_file, mtime=mtime, status=status, no_server=no_server, psa=pflg
      IF (status EQ 0) THEN RETURN
   ENDIF ELSE BEGIN
      stime  = list()
