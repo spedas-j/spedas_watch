@@ -35,8 +35,8 @@
 ;                   1. New stations (GAK, KAP, ZGN) are included
 ;                   2. Use spd_download instead of file_retrieve
 ;
-; $LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-; $LastChangedRevision: 27922 $
+; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
+; $LastChangedRevision: 29445 $
 ;
 ;-
 
@@ -54,7 +54,7 @@ endif
 
 ;--- all sites (default)
 site_code_all = strsplit( $
-  'ath gak hus kap mgd msr nai ptk rik sta zgn', $
+  'ath gak hus kap lcl mgd msr nai ptk rik sta zgn', $
   ' ', /extract)
 
 ;--- check site codes

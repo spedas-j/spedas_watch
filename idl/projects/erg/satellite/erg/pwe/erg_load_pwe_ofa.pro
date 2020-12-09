@@ -35,8 +35,8 @@
 ; :Authors:
 ;   Masafumi Shoji, ERG Science Center (E-mail: masafumi.shoji at nagoya-u.jp)
 ;
-; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
-; $LastChangedRevision: 28604 $
+; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
+; $LastChangedRevision: 29445 $
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_ofa.pro $
 ;-
 
@@ -175,7 +175,40 @@ pro erg_load_pwe_ofa, $
    endelse
 
    print, '**********************************************************************'
-   
+
+  ;;;;;;;;;extract erg_load_datalist [version number] ;;;;;;;;;;;;;;;;;;
+  
+  
+  get_data, 'erg_load_datalist', data=datalist
+
+  if (undefined(datalist) or (ISA(datalist, 'hash') NE 1)) then begin
+    datalist = hash()
+    filelist = hash()
+  endif
+
+  foreach file, datfiles do begin
+
+    p1 = strpos(file, '/', /REVERSE_SEARCH)
+    p2 = strpos(file, '_v', /REVERSE_SEARCH)
+    fn = strmid(file, p1+1, (p2-9-p1-1))
+
+    if datalist.HasKey(fn) then filelist = datalist[fn] else filelist = hash()
+
+    cdfinx = strpos(file, '.cdf')
+    ymd = strmid(file, cdfinx - 15, 8)
+    Majver = strmid(file, cdfinx - 5, 2)
+    Minver = strmid(file, cdfinx - 2, 2)
+
+    filelist[ymd] = hash('major',Majver, 'minor',Minver, 'fullpath', file )
+    datalist[fn] = filelist
+
+
+  endforeach
+
+  store_data, 'erg_load_datalist', data=datalist
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
    gt1:
    
 END

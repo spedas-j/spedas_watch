@@ -38,9 +38,9 @@
 ;   Kuni Keika, Department of Earth and Planetary Science,
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-05-07 14:05:13 -0700 (Thu, 07 May 2020) $
-; $LastChangedRevision: 28675 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
+; $LastChangedRevision: 29445 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/orb/erg_load_orb_l3.pro $
 ;-
 
@@ -53,6 +53,7 @@ pro erg_load_orb_l3, $
   get_support_data=get_support_data, $
   downloadonly=downloadonly, $
   no_download=no_download, $
+  localdir=localdir,$
   verbose=verbose, $
   _extra=_extra 
   
@@ -75,7 +76,7 @@ pro erg_load_orb_l3, $
         remotedir = !erg.remote_data_dir +'satellite/erg/orb/l3/opq/'
         ;help, parse_url(remotedir)
         ;
-        localdir = !erg.local_data_dir + 'satellite/erg/orb/l3/opq/'
+        if ~keyword_set(localdir) then localdir = !erg.local_data_dir + 'satellite/erg/orb/l3/opq/'
         ;
         ;Relative file path
         relfpathfmt = 'YYYY/MM/erg_orb_' + level + '_op_YYYYMMDD_v??.cdf'
@@ -89,7 +90,8 @@ pro erg_load_orb_l3, $
         remotedir = !erg.remote_data_dir +'satellite/erg/orb/l3/t89/'
         ;help, parse_url(remotedir)
         ;
-        localdir = !erg.local_data_dir + '/satellite/erg/orb/l3/t89/'
+        if ~keyword_set(localdir) then localdir = !erg.local_data_dir + '/satellite/erg/orb/l3/t89/'
+        
         ;
         ;Relative file path
         relfpathfmt = 'YYYY/MM/erg_orb_' + level + '_t89_YYYYMMDD_v??.cdf'
@@ -103,7 +105,7 @@ pro erg_load_orb_l3, $
         remotedir = !erg.remote_data_dir +'satellite/erg/orb/l3/ts04/'
         ;help, parse_url(remotedir)
         ;
-        localdir = !erg.local_data_dir + 'satellite/erg/orb/l3/ts04/'
+        if ~keyword_set(localdir) then localdir = !erg.local_data_dir + '/satellite/erg/orb/l3/ts04/'
         ;
         ;Relative file path
         relfpathfmt = 'YYYY/MM/erg_orb_' + level + '_ts04_YYYYMMDD_v??.cdf'
@@ -279,6 +281,6 @@ pro erg_load_orb_l3, $
   print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp'
   print, 'Contact: erg-sc-core at isee.nagoya-u.ac.jp'
   print, '**************************************************************************'  
-    
+  
   return
 end

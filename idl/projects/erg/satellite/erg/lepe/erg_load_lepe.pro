@@ -58,9 +58,9 @@
 ;   Tzu-Fang Chang, ERG Science Center (E-mail: jocelyn at isee.nagoya-u.ac.jp)
 ;   Chae-Woo Jun, ERG Science Center (E-mail: chae-woo at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-05-07 14:05:13 -0700 (Thu, 07 May 2020) $
-; $LastChangedRevision: 28675 $
+; $LastChangedBy: egrimes $
+; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
+; $LastChangedRevision: 29445 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/lepe/erg_load_lepe.pro $
 ;-
 pro erg_load_lepe, $
@@ -153,10 +153,15 @@ pro erg_load_lepe, $
       get_data, vns[i], data=ori_data, dl=dl, lim=lim ; get data from tplot variable
       name_tag = tag_names(ori_data) ; get tag names
       n_tag = n_tags(ori_data) ; get number of tags
+      
+      ; get time interval
+      get_timespan,tr
+      cor_ad = where(ori_data.x gt tr[0]-600d and ori_data.x lt tr[1]+600d,ndata)
+      
       ; set an initial time of the data set
       yyyymmdd = strmid( (strsplit(file_basename(dl.cdf.filename),'_',/ext))[4], 0, 8 )  ; CDF
-      initial_time = time_double(strmid(yyyymmdd, 0,4 )+'-'+strmid(yyyymmdd, 4,2 )+'-'+strmid(yyyymmdd, 6,2 ))
-      cor_ad = where(ori_data.x - initial_time ge 0,ndata)
+      ;initial_time = time_double(strmid(yyyymmdd, 0,4 )+'-'+strmid(yyyymmdd, 4,2 )+'-'+strmid(yyyymmdd, 6,2 ))
+      ;cor_ad = where(ori_data.x - initial_time ge 0,ndata)
       
       for ii = 0, n_tag-1 do begin
         result = ori_data.(ii)
@@ -276,18 +281,20 @@ pro erg_load_lepe, $
 
     ;;Read CDF files and generate tplot variables
     prefix = 'erg_lepe_' + level + '_' + datatype + '_'
-    cdf2tplot, file=datfiles, prefix=prefix, get_support_data=get_support_data, $
-      varformat=varformat, verbose=verbose
+    cdf2tplot, file=datfiles, prefix=prefix, /get_support_data, $
+      varformat=varformat, verbose=verbose,varname = varname
 
     ;;Options for tplot variables
     vns = ''
     append_array, vns, prefix+['FEDU']  ;;common to flux/count arrays
-    options, vns, spec=1, ysubtitle='[eV]', ztickformat='pwr10tick', extend_y_edges=1, $
-      datagap=17., zticklen=-0.4
-
+    append_array, vns, prefix+['N_Energy']  ;;common to flux/count arrays
+    
     ;; drop invalid time intervals
     ;get_data, vns, data=data, dl=dl, lim=lim
-    get_data, vns, data=ori_data, dl=dl, lim=lim ; get data from tplot variable
+    get_data, vns[0], data=ori_data, dl=dl, lim=lim ; get data from tplot variable
+    get_data, vns[1], data=ori_n_E;, dl=dl, lim=lim ; get data from tplot variable
+    del_data,prefix+'*'
+    
     name_tag = tag_names(ori_data) ; get tag names
     n_tag = n_tags(ori_data) ; get number of tags
     ; set an initial time of the data set
@@ -315,11 +322,23 @@ pro erg_load_lepe, $
       endcase
     endfor
     
+    corrected_n_eng = ori_n_E.y[cor_ad]
+    energy_channel = data.v1 
+    corrected_time = data.x
     flux = data.y
-    energy_arr = total(data.v1,2)/2
-
+    energy_arr = total(data.v1,2,/nan)/2
     pa_arr = [5.625,16.875,28.125,39.375,50.625,61.875,73.125,84.375,95.625,106.875,118.125,129.375,140.625,151.875,163.125,174.375]
-
+    
+    ; skip the lose cone mode (number of energy channel less than 5) for L3 data
+    LC_ad = where(corrected_n_eng gt 31, count_LC)
+    if (count_LC gt 0) then begin
+      flux[LC_ad,*,*] = !values.F_nan
+      energy_channel[LC_ad,*,*] = !values.F_nan
+    endif
+    
+    store_data,vns[0],data={x:corrected_time, y:flux, v1:energy_channel, v2:pa_arr}, dl=dl, lim=lim
+    options, vns[0], spec=1, ysubtitle='[eV]', ztickformat='pwr10tick', extend_y_edges=1, $
+      datagap=17., zticklen=-0.4
     ; store L3 data into tplot variables. Default is pitch angle-time diagram. If set a keyword of 'et_diagram', then return energy-time diagrams for each pitch angle bin.
     if ~keyword_set(et_diagram) then begin 
       dim = size(energy_arr,/dim)
@@ -329,7 +348,6 @@ pro erg_load_lepe, $
         store_data, vn, data={x:data.x, y:reform(flux[*,j,*]), v:pa_arr}, dl=dl, lim=lim
         options, vn, ztitle='['+dl.cdf.vatt.units+']'
         options, vn, ytitle='ERG LEP-e!C'+string(energy_arr[0,j],'(f9.2)')+' eV!CPitch angle', YSUBTITLE = '[deg]', yrange=[0,180],ytickinterval=30
-        
       endfor
     endif else begin
       n_chn = n_elements(pa_arr)

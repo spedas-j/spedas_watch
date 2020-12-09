@@ -43,7 +43,7 @@
 
 
 
-pro erg_load_pwe_efd, $
+pro erg_load_pwe_efd_test, $
    datatype=datatype, coord=coord, level = level, $
    downloadonly=downloadonly, $
    no_download=no_download, $
@@ -53,6 +53,7 @@ pro erg_load_pwe_efd, $
    passwd=passwd, $
    band_width=band_width, $
    ror=ror, $
+   datalist=datalist, $
    _extra=_extra  
   
   erg_init
@@ -120,7 +121,7 @@ pro erg_load_pwe_efd, $
         IF ~keyword_set(coord) THEN coord='dsi'
         component = ['Ex', 'Ey']
         IF coord EQ 'wpt' then component=['Eu', 'Ev']
-        component = component +'_waveform'
+        component = component +'_waveform'+'_'+mode+'_'+coord
         IF coord EQ 'dsi' then component = [component, 'Eu_offset'+'_'+mode, 'Ev_offset'+'_'+mode]
      end
      '256': begin
@@ -129,7 +130,7 @@ pro erg_load_pwe_efd, $
         IF ~keyword_set(coord) THEN coord='dsi'
         component = ['Ex', 'Ey']
         IF coord EQ 'wpt' then component=['Eu', 'Ev']
-        component = component +'_waveform'
+        component = component +'_waveform'+'_'+mode+'_'+coord
         IF coord EQ 'dsi' then component = [component, 'Eu_offset'+'_'+mode, 'Ev_offset'+'_'+mode]
      end
      'pot': begin
@@ -153,11 +154,6 @@ pro erg_load_pwe_efd, $
 
   IF ~keyword_set(coord) THEN coord=''
   IF coord NE '' THEN coord='_'+coord
-  IF ~keyword_set(datatype) THEN datatype=''
-  IF coord NE '' THEN datatype='_'+datatype
-
-
-  prefix = prefix+md+coord+'_'
 
   localdir=!erg.local_data_dir+'satellite/erg/pwe/efd/'+level+'/'+md+'/'
   remotedir=!erg.remote_data_dir+'satellite/erg/pwe/efd/'+level+'/'+md+'/'
@@ -170,14 +166,14 @@ pro erg_load_pwe_efd, $
 
 
   filestest=file_test(files)  
-
+  
   if(total(filestest) ge 1) then begin
      datfiles=files[where(filestest eq 1)]
   endif else begin
      print, 'No file is loaded.'
      return
   endelse
-
+  
   if keyword_set(downloadonly) then return
   cdf2tplot, file=datfiles, prefix=prefix, get_support_data=get_support_data
   
@@ -245,10 +241,6 @@ foreach elem, component do begin
 
   gt0:
 
-  ; storing data information
-  erg_export_filever, datfiles
-
-  ; view RoR on terminal
   gatt=cdf_var_atts(datfiles[0])
 
   print_str_maxlet, ' '
@@ -275,6 +267,35 @@ foreach elem, component do begin
 
   print, '**********************************************************************'
 
+
+  ;;;;;;;;;extract version number ;;;;;;;;;;;;;;;;;;
+  
+  if undefined(datalist) then begin
+    datalist = hash()
+    filelist = hash()
+  endif
+
+  foreach file, datfiles do begin
+
+    p1 = strpos(relfpathfmt, '/', /REVERSE_SEARCH)
+    p2 = strpos(relfpathfmt, '_v', /REVERSE_SEARCH)
+    fn = strmid(relfpathfmt, p1+1, (p2-9-p1-1))
+
+    if datalist.HasKey(fn) then filelist = datalist[fn] else filelist = hash()
+
+    path = remotedir + relfpathfmt
+
+    cdfinx = strpos(file, '.cdf')
+    ymd = strmid(file, cdfinx - 15, 8)
+    Majver = strmid(file, cdfinx - 5, 2)
+    Minver = strmid(file, cdfinx - 2, 2)
+
+    filelist[ymd] = hash('major',Majver, 'minor',Minver, 'fullpath', path )
+    datalist[fn] = filelist
+    
+  endforeach
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 END

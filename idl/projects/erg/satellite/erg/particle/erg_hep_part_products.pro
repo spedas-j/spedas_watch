@@ -20,7 +20,6 @@
 ;Exmaple usage:
 ; IDL> erg_hep_part_products, 'erg_hep_l2_3dflux_FEDU_L', $
 ;        outputs='energy'
-; (More examples can be found in erg_hep_part_products_crib_sheet.pro)
 ;
 ;Input arguments and keywords:
 ;  in_tvarname: a tplot variable of 3-D flux data. currently only
@@ -60,8 +59,8 @@
 ;         a gap in time is filled in a spectrogram. You can
 ;         also set this manually with tdegap. 
 ;
-;$LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-;$LastChangedRevision: 27922 $
+;$LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
+;$LastChangedRevision: 29445 $
 ;-
 pro erg_hep_part_products, $
    in_tvarname, $
@@ -158,7 +157,7 @@ pro erg_hep_part_products, $
       dprint, 'ERROR: Gyro restrictions must have range no larger than 360 deg'
       return
     endif
-    gyro = spd_pgs_map_azimuth(phi_in)
+    gyro = spd_pgs_map_azimuth(gyro_in)
     if gyro[0] eq gyro[1] then gyro = [0., 360.]
   endelse
 
@@ -260,7 +259,7 @@ pro erg_hep_part_products, $
   ;; for a single time frame.
   if debug then dprint, 'Getting alldist now'
   alldist = erg_hep_get_dist(in_tvarname, /structure, $
-                             species=species, units=input_units, debug=debug)
+                             species=species, units=input_units, exclude_azms=exclude_azms, debug=debug)
   alldist_ptr = ptr_new( alldist, /no_copy )
   if debug then help,  alldist_ptr, *(alldist_ptr)
 

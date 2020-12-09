@@ -36,19 +36,21 @@
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_hfa.pro $
 ;-
 
-pro erg_load_pwe_hfa, $
-  level=level, $
-  mode=mode, $
-  trange=trange, $
-  get_support_data = get_support_data, $
-  downloadonly=downloadonly, $
-  no_download=no_download, $
-  verbose=verbose, $
-  uname=uname, $
-  passwd=passwd, $
-  ror=ror, $
-   _extra=_extra
+pro erg_load_pwe_hfa_test, $
+   level=level, $
+   mode=mode, $
+   trange=trange, $
+   get_support_data = get_support_data, $
+   downloadonly=downloadonly, $
+   no_download=no_download, $
+   verbose=verbose, $
+   uname=uname, $
+   passwd=passwd, $
+   ror=ror, $
+   _extra=_extra, $
+   datalist = datalist
 
+  
   erg_init
   
   if ~keyword_set(level) then level='l2'
@@ -122,7 +124,10 @@ pro erg_load_pwe_hfa, $
                verbose = verbose
     
  endfor
-  
+
+;  stop
+
+
   prefix = 'erg_pwe_hfa_'+lvl+'_'
   if strcmp(lvl,'l2') then begin
     com=['eu','ev','bgamma','esum', 'er', 'el', 'e_mix', 'e_ar', 'eu_ev', 'eu_bg', 'ev_bg']
@@ -196,38 +201,34 @@ pro erg_load_pwe_hfa, $
   print, '**************************************************************************'
 
 
-  ;;;;;;;;;extract erg_load_datalist [version number] ;;;;;;;;;;;;;;;;;;
+  ;;;;;;;;;extract version number ;;;;;;;;;;;;;;;;;;
   
-  
-  get_data, 'erg_load_datalist', data=datalist
-
-  if (undefined(datalist) or (ISA(datalist, 'hash') NE 1)) then begin
+  if undefined(datalist) then begin
     datalist = hash()
     filelist = hash()
   endif
 
   foreach file, datfiles do begin
 
-    p1 = strpos(file, '/', /REVERSE_SEARCH)
-    p2 = strpos(file, '_v', /REVERSE_SEARCH)
-    fn = strmid(file, p1+1, (p2-9-p1-1))
+    p1 = strpos(relfpathfmt, '/', /REVERSE_SEARCH)
+    p2 = strpos(relfpathfmt, '_v', /REVERSE_SEARCH)
+    fn = strmid(relfpathfmt, p1+1, (p2-9-p1-1))
 
     if datalist.HasKey(fn) then filelist = datalist[fn] else filelist = hash()
+
+    path = remotedir + relfpathfmt
 
     cdfinx = strpos(file, '.cdf')
     ymd = strmid(file, cdfinx - 15, 8)
     Majver = strmid(file, cdfinx - 5, 2)
     Minver = strmid(file, cdfinx - 2, 2)
 
-    filelist[ymd] = hash('major',Majver, 'minor',Minver, 'fullpath', file )
+    filelist[ymd] = hash('major',Majver, 'minor',Minver, 'fullpath', path )
     datalist[fn] = filelist
-
-
+    
   endforeach
-
-  store_data, 'erg_load_datalist', data=datalist
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
+  
 END

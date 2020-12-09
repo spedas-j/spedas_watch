@@ -16,9 +16,9 @@
 ;History:
 ;  ver.0.0: The 1st experimental release
 ;
-;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-10-23 14:19:14 -0700 (Wed, 23 Oct 2019) $
-;$LastChangedRevision: 27922 $
+;$LastChangedBy: egrimes $
+;$LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
+;$LastChangedRevision: 29445 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/particle/erg_lepe_get_dist.pro $
 ;-
 function erg_lepe_get_dist $
@@ -217,9 +217,11 @@ function erg_lepe_get_dist $
   
   ;; Energy ch
   ;; Energy bin width from the data variable in a CDF file
-  id = where( strcmp( cdfi.vars.name, 'FEDU_Energy' ) )
-  enearr = ( *( cdfi.vars[id].dataptr ) )[index, *, *] ;; [time, 2, 32] 
-  e0 = reform( (enearr[*, 0, *] + enearr[*, 1, *])/2  ) ;; [time, 32]
+  ;;id = where( strcmp( cdfi.vars.name, 'FEDU_Energy' ) )
+  ;;enearr = ( *( cdfi.vars[id].dataptr ) )[index, *, *] ;; [time, 2, 32] 
+  ;;e0 = reform( (enearr[*, 0, *] + enearr[*, 1, *])/2  ) ;; [time, 32]
+
+  e0 = (*p.v)[index, *] ;; [time, 32]
 
   dist.energy =  rebin( reform( transpose(e0), [dim[0], 1,  1, n_times]), [dim, n_times] )
 

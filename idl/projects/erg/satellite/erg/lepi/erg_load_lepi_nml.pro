@@ -38,8 +38,8 @@
 ; :Authors:
 ;   Yoshi Miyoshi, ERG Science Center (E-mail: miyoshi at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
-; $LastChangedRevision: 28604 $
+; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
+; $LastChangedRevision: 29445 $
 ;-
 pro erg_load_lepi_nml, $
    debug=debug, $
@@ -240,6 +240,9 @@ pro erg_load_lepi_nml, $
   
   gatt=cdf_var_atts(datfiles[0])
   
+; storing data information
+  erg_export_filever, datfiles
+
   print_str_maxlet, ' '
   print, '**********************************************************************'
   print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 70
