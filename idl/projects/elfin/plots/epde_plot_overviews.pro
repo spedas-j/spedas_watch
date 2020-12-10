@@ -793,7 +793,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       write_gif, gif_file+'.gif',image,r,g,b
 
       luns=lindgen(124)+5
-      for j=0,n_elements(luns)-1 do free_lun, luns[j]
       print, 'Hourly plot time: '+strtrim(systime(/sec)-t0,2)+' sec'
  
     if keyword_set(one_zone_only) then break

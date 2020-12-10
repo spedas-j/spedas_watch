@@ -1,7 +1,7 @@
 ; +
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-01 10:45:10 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29403 $
+; $LastChangedDate: 2020-12-09 08:23:10 -0800 (Wed, 09 Dec 2020) $
+; $LastChangedRevision: 29448 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_apdat_info.pro $
 ; $ID: $
 ; This is the master routine that changes or accesses the ccsds data structures for each type of packet that is received
@@ -111,7 +111,7 @@ pro spp_apdat_info,apid_description,name=name,verbose=verbose,$
     spp_apdat_info,/trim ;trimming the size and clearing last_data_p and ccsds_last
     dprint,'Saving file: '+file_save
     save,file=file_save,all_apdat,parent,verbose=verbose,compress=compress
-    dprint,'Saved file:  '+file_save
+    dprint,'Saved file:  '+file_save+' Size: '+strtrim((file_info(file_save)).size/1e3,2)+' KB'
 ;    foreach memdump,memdumps do all_apdat[memdump] = obj_new('spp_swp_memdump_apdat',memdump,(spp_apdat(memdump)).name) ;repopulating memdump
   endif
 

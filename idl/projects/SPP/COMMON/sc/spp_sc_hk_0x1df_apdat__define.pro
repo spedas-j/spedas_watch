@@ -1,15 +1,21 @@
 ;Ali: June 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-06-16 08:55:23 -0700 (Tue, 16 Jun 2020) $
-; $LastChangedRevision: 28779 $
+; $LastChangedDate: 2020-12-09 08:27:23 -0800 (Wed, 09 Dec 2020) $
+; $LastChangedRevision: 29449 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x1df_apdat__define.pro $
 ;-
 
 function spp_SC_HK_0x1df_struct,ccsds_data
   if n_elements(ccsds_data) eq 0 then ccsds_data = bytarr(67)
 
-  a1 = 100./255
+  a1=100./255
+  spd0=spp_swp_data_select(ccsds_data,56*8+7-7,16)
+  spd1=spp_swp_data_select(ccsds_data,58*8+7-7,16)
+  spd2=spp_swp_data_select(ccsds_data,60*8+7-7,16)
+  spd3=spp_swp_data_select(ccsds_data,62*8+7-7,16)
+  spd_all=[spd0,spd1,spd2,spd3]
+
   str = {time:!values.d_nan ,$
     met:!values.d_nan, $
     seqn: 0u, $
@@ -21,6 +27,8 @@ function spp_SC_HK_0x1df_struct,ccsds_data
     FSW_SPP_WISPR_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,27*8+7-7,8), $
     FSW_SPP_FIELDS_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,28*8+7-7,8), $
     FSW_SPP_SWEAP_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,30*8+7-7,8), $
+    FSW_SPP_THRUST_FIRE:spp_swp_data_select(ccsds_data,52*8+7-3,1), $
+    FSW_SPP_RX_WHEEL_SPEED_RAW:spd_all, $
     gap:0B}
   return, str
 end
@@ -31,6 +39,12 @@ end
 ;FSW_SPP_WISPR_SSR_ALLOC_STATUS,                                27,    7,    8;
 ;FSW_SPP_FIELDS_SSR_ALLOC_STATUS,                               28,    7,    8;
 ;FSW_SPP_SWEAP_SSR_ALLOC_STATUS,                                30,    7,    8;
+;FSW_SPP_THRUST_FIRE,                                           52,    3,    1;
+;FSW_SPP_RX_WHEEL_1_SPEED,                                      56,    7,   16;
+;FSW_SPP_RX_WHEEL_2_SPEED,                                      58,    7,   16;
+;FSW_SPP_RX_WHEEL_3_SPEED,                                      60,    7,   16;
+;FSW_SPP_RX_WHEEL_4_SPEED,                                      62,    7,   16;
+
 ;EU(Raw='SC_HK_0x1DF.FSW_SPP_EPI_LO_SSR_ALLOC_STATUS') := fCalCurve([1.0, 255.0], [0.392156862745098, 100.0], Raw)
 ;EU(Raw='SC_HK_0x1DF.FSW_SPP_EPI_HI_SSR_ALLOC_STATUS') := fCalCurve([1.0, 255.0], [0.392156862745098, 100.0], Raw)
 ;EU(Raw='SC_HK_0x1DF.FSW_SPP_WISPR_SSR_ALLOC_STATUS') := fCalCurve([1.0, 255.0], [0.392156862745098, 100.0], Raw)

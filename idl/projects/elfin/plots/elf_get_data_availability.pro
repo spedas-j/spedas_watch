@@ -21,19 +21,28 @@
 ; EXAMPLE:
 ;         data_struct=elf_get_data_availability('2020-03-20', probe='a', instrument='epd'
 ;
+;
+;VERSION LAST EDITED: lauraiglesias4@gmail.com 11/17/2020
 ;-
-function elf_get_data_availability, tdate, instrument=instrument, probe=probe
+function elf_get_data_availability, tdate, instrument=instrument, probe=probe, days = days
 
   ; initialize parameters
   if undefined(tdate) then begin
      print, 'You must provide a date. Example: 2020-01-01'
      return, -1 
   endif
-  timespan, time_double(tdate)-31.*86400., 31d
-
+  
+  if undefined(days) then days = 31
+  dt = DOUBLE(days)
+  timespan, time_double(tdate)-dt*86400., dt
   trange=timerange()
+  
+  ;dt = DOUBLE(days)
+  ;timespan, time_double(tdate)-dt*86400., dt
+
+  ;trange=timerange()
   ;current_time=systime() 
-   
+
   if undefined(instrument) then instrument='epd' else instrument=strlowcase(instrument)
   if instrument ne 'epd' and instrument ne 'fgm' and $
     instrument ne 'mrm' then begin
@@ -65,7 +74,8 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe
       get_data, sc+'_mrma', data=d
     end
   Endcase
-    
+  
+
   ; check for collections
   if ~undefined(d) && size(d,/type) EQ 8 then begin
     npts=n_elements(d.x)
@@ -120,7 +130,7 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe
     get_data, sc+'_pos_sm', data=pos   
     ; get latitude of science collection (needed to determine zone)
     elf_mlt_l_lat,sc+'_pos_sm',MLT0=MLT0,L0=L0,lat0=lat0 ;;subroutine to calculate mlt,l,mlat under dipole configuration
-    
+
     ; Determine which science zone data was collected for  
     for i=0,n_elements(sz_starttimes)-1 do begin
       this_start=sz_starttimes[i]
@@ -131,24 +141,51 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe
         return, -1
       endif
       sz_lat=lat0[idx] 
+      sz_L0 = L0[idx]
+      sz_MLT = MLT0[idx]
       median_lat=median(sz_lat)
       dlat = sz_lat[1:n_elements(sz_lat)-1] - sz_lat[0:n_elements(sz_lat)-2]
+      dL0 = string(sz_L0[0], FORMAT = '%0.1f') +' - ' + string(sz_L0[-1], FORMAT = '%0.1f')
+      medMLT = string(sz_MLT[where(sz_MLT eq median(idx, /EVEN))], FORMAT = '%0.1f')
+
       if median_lat GT 0 then begin
         if median(dlat) GT 0 then sz_name = 'nasc' else sz_name = 'ndes'
       endif else begin
         if median(dlat) GT 0 then sz_name = 'sasc' else sz_name =  'sdes'
       endelse
       append_array, sz_names, sz_name
+      append_array, sz_dL0s, dL0
+      append_array, sz_medMLTs, medMLT
     endfor     
-    data_availability={starttimes:sz_starttimes, endtimes:sz_endtimes, zones:sz_names}
-
-  ; Handle MRM data (only 1 collection every other day)      
-  endif else begin
-    mrm_start = d.x[0]
-    mrm_end = d.x[n_elements(d.x)-1]  
-    data_availability={starttimes:sz_starttimes, endtimes:sz_endtimes} 
-  endelse
+    data_availability={starttimes:sz_starttimes, endtimes:sz_endtimes, zones:sz_names, dL: sz_dL0s, medMLT: sz_medMLTs}
   
+  ; Handle MRM data (only 1 collection every other day)     
+
+  
+  endif else begin
+    ; get position data to determine whether s/c is ascending or descending
+    elf_mlt_l_lat,sc+'_pos_sm',MLT0=MLT0,L0=L0,lat0=lat0 ;;subroutine to calculate mlt,l,mlat under dipole configuration
+
+    mrm_start = d.x[0]
+    mrm_end = d.x[n_elements(d.x)-1] 
+    
+    idx=where(d.x GE mrm_start AND d.x LE mrm_end, ncnt)
+
+      if ncnt eq 0 then begin
+        print, 'There is no state data for start: '+time_string(mrm_start)+' to '+time_string(mrm_end)
+        return, -1
+      endif
+
+    sz_L0 = L0[idx]
+    sz_MLT = MLT0[idx]
+    dL0 = string(sz_L0[0], FORMAT = '%0.1f') +' - ' + string(sz_L0[-1], FORMAT = '%0.1f')
+    medMLT = string(sz_MLT[where(sz_MLT eq median(idx, /EVEN))], FORMAT = '%0.1f')
+
+    append_array, sz_dL0s, dL0
+    append_array, sz_medMLTs, medMLT
+
+    data_availability={starttimes:mrm_start, endtimes:mrm_end, dL: sz_dL0s, medMLT: sz_medMLTs} 
+  endelse
   return, data_availability
    
 end

@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-01 10:50:21 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29405 $
+; $LastChangedDate: 2020-12-09 08:36:08 -0800 (Wed, 09 Dec 2020) $
+; $LastChangedRevision: 29452 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -8,8 +8,9 @@
 ;KEYWORDS:
 ;load_ssr: loads ssr files. very slow, especially during processing of compressed packets.
 ;load_sav: loads sav files that are generated from ssr files. much faster.
-;make_sav: creates sav files with one-to-one correspondence to ssr files. typically run by a cronjob
+;make_sav: creates sav files with one-to-one correspondence to ssr files. typically run by a cronjob.
 ;make_cdf: creates cdf files (L1). typically run by a cronjob.
+;force_make: ignores file timestamp comparison for making files
 
 function spp_apdat_all
   return,[spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*'),spp_apdat('sc_hkp_*')]
@@ -18,7 +19,7 @@ end
 
 pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load_ssr=load_ssr, $
   make_cdf=make_cdf,make_ql=make_ql,make_sav=make_sav,load_sav=load_sav,verbose=verbose,reset=reset,sc_files=sc_files, $
-  ssr_format=ssr_format,mtime_range=mtime_range,make_tplotvar=make_tplotvar,ssr_prefix=ssr_prefix
+  ssr_format=ssr_format,mtime_range=mtime_range,make_tplotvar=make_tplotvar,ssr_prefix=ssr_prefix,force_make=force_make
 
   if keyword_set(all) then trange_full = [time_double('2018-10-3'),systime(1)] else trange_full = timerange(trange_full)
 
@@ -82,7 +83,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
   if make_sav eq 1 then begin ;creates sav files with one-to-one correspondence to ssr files
     foreach ssr_file,ssr_files do begin
       sav_file=root+output_prefix+'.sav/ssr/'+(ssr_file).substring(-24)+'.sav' ;substring is preferred here. strsub may fail b/c ssr_prefix can change!
-      if (file_info(ssr_file)).mtime le (file_info(sav_file)).mtime then continue
+      if ~keyword_set(force_make) then if (file_info(ssr_file)).mtime le (file_info(sav_file)).mtime then continue
       parent_chksum=file_checksum(ssr_file,/add_mtime,relative_position=strlen(root+ssr_prefix))
       spp_apdat_info,/reset
       spp_swp_apdat_init,/reset
@@ -119,7 +120,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
           sav_files=file_search(time_string(tformat=root+sav_frmt,trange[0])) ;slightly faster than the above line
           cdf_file=time_string(trange[0],tformat=a.cdf_pathname)
           cdf_file=root+str_sub(cdf_file,'$NAME$',a.name)
-          if max((file_info(sav_files)).mtime) le (file_info(cdf_file)).mtime then continue
+          if ~keyword_set(force_make) then if max((file_info(sav_files)).mtime) le (file_info(cdf_file)).mtime then continue
           cdf=!null
           parents=!null
           foreach sav_file,sav_files do begin

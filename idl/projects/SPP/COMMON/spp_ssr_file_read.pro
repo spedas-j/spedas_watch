@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-07-01 08:47:47 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28827 $
+; $LastChangedDate: 2020-12-09 08:28:03 -0800 (Wed, 09 Dec 2020) $
+; $LastChangedRevision: 29450 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ; 
 ; ;  This routine will read SSR files that (series of CCSDS packets)
@@ -44,7 +44,6 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
       dprint,dlevel=1,'Warning: Skipping file '+filename+time_string(filetime,tformat='  YYYY-MM-DD/hh:mm:ss (DOY)')+' which has already been loaded.',verbose=verbose
       continue
     endif
-    spp_apdat_info,current_filename = filename   ; info.input_sourcename
     file_open,'r',info.input_sourcename ,unit=lun,dlevel=3,compress=-1
     if lun eq 0 then begin
       dprint,'Bad file: '+filename
@@ -62,6 +61,7 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
       dprint,!error_state.msg
       dprint,'Skipping file '+filename
     endif
+    spp_apdat_info,current_filename = filename   ; info.input_sourcename
   endfor
   dt = systime(1)-t0
   

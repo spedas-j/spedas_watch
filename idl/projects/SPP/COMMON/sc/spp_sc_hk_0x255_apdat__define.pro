@@ -1,13 +1,37 @@
 ;Ali: June 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-06-16 08:55:23 -0700 (Tue, 16 Jun 2020) $
-; $LastChangedRevision: 28779 $
+; $LastChangedDate: 2020-12-09 08:27:23 -0800 (Wed, 09 Dec 2020) $
+; $LastChangedRevision: 29449 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x255_apdat__define.pro $
 ;-
 
 function spp_SC_HK_0x255_struct,ccsds_data
   if n_elements(ccsds_data) eq 0 then ccsds_data = bytarr(67)
+
+  FSW_GC_HK_HK_SYS_MOMENTUM_BODY0=spp_swp_data_select(ccsds_data,117*8+7-7,16)
+  FSW_GC_HK_HK_SYS_MOMENTUM_BODY1=spp_swp_data_select(ccsds_data,119*8+7-7,16)
+  FSW_GC_HK_HK_SYS_MOMENTUM_BODY2=spp_swp_data_select(ccsds_data,121*8+7-7,16)
+  FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED0=spp_swp_data_select(ccsds_data,147*8+7-7,16)
+  FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED1=spp_swp_data_select(ccsds_data,149*8+7-7,16)
+  FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED2=spp_swp_data_select(ccsds_data,151*8+7-7,16)
+  FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED3=spp_swp_data_select(ccsds_data,153*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS0=spp_swp_data_select(ccsds_data,155*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS1=spp_swp_data_select(ccsds_data,157*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS2=spp_swp_data_select(ccsds_data,159*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS3=spp_swp_data_select(ccsds_data,161*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS4=spp_swp_data_select(ccsds_data,163*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS5=spp_swp_data_select(ccsds_data,165*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS6=spp_swp_data_select(ccsds_data,167*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS7=spp_swp_data_select(ccsds_data,169*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS8=spp_swp_data_select(ccsds_data,171*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS9=spp_swp_data_select(ccsds_data,173*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS10=spp_swp_data_select(ccsds_data,175*8+7-7,16)
+  FSW_GC_HK_HK_THR_CNTS11=spp_swp_data_select(ccsds_data,177*8+7-7,16)
+  PDU_WHEEL1_CURR=spp_swp_data_select(ccsds_data,267*8+7-4,8)
+  PDU_WHEEL2_CURR=spp_swp_data_select(ccsds_data,344*8+7-4,8)
+  PDU_WHEEL3_CURR=spp_swp_data_select(ccsds_data,297*8+7-4,8)
+  PDU_WHEEL4_CURR=spp_swp_data_select(ccsds_data,342*8+7-4,8)
 
   str = {time:!values.d_nan ,$
     met:!values.d_nan, $
@@ -19,16 +43,61 @@ function spp_SC_HK_0x255_struct,ccsds_data
     PDU_SWEAP_CURR:interp([-1.125779040605658, 1.244296913976348, 8.36225289009219],[0.0, 102.0, 255.0],spp_swp_data_select(ccsds_data,279*8+7-4,8)), $
     PDU_SWEAP_SPAN_AB_SURV_HTRS_CURR:interp([-0.5590297951162084, 0.6239597053559871, 4.226999660991688],[0.0, 101.5, 255.0],spp_swp_data_select(ccsds_data,301*8+7-4,8)), $
     PDU_SWEAP_SPC_SURV_HTR_CURR:interp([-0.2815494183296126, 0.311373041137364, 2.122413461396678],[0.0, 101.5, 255.0],spp_swp_data_select(ccsds_data,309*8+7-4,8)), $
+    FSW_GC_HK_HK_SYS_MOMENTUM_BODY:-5.0+0.00244140625*[FSW_GC_HK_HK_SYS_MOMENTUM_BODY0,FSW_GC_HK_HK_SYS_MOMENTUM_BODY1,FSW_GC_HK_HK_SYS_MOMENTUM_BODY2],$
+    FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED:-0.075+1.831054687e-05*[FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED0,FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED1,$
+    FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED2,FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED3],$
+    FSW_GC_HK_HK_THR_CNTS:[FSW_GC_HK_HK_THR_CNTS0,FSW_GC_HK_HK_THR_CNTS1,FSW_GC_HK_HK_THR_CNTS2,FSW_GC_HK_HK_THR_CNTS3,FSW_GC_HK_HK_THR_CNTS4,FSW_GC_HK_HK_THR_CNTS5,$
+    FSW_GC_HK_HK_THR_CNTS6,FSW_GC_HK_HK_THR_CNTS7,FSW_GC_HK_HK_THR_CNTS8,FSW_GC_HK_HK_THR_CNTS9,FSW_GC_HK_HK_THR_CNTS10,FSW_GC_HK_HK_THR_CNTS11],$
+    FSW_GC_HK_HK_SPIN_RATE:-0.008726646+6.817692391e-05*spp_swp_data_select(ccsds_data,179*8+7-7,8),$
+    PDU_WHEEL_CURR_RAW:[PDU_WHEEL1_CURR,PDU_WHEEL2_CURR,PDU_WHEEL3_CURR,PDU_WHEEL4_CURR],$
     gap:0B}
   return, str
 end
 
-;PDU_SWEAP_CURR,                                               279,    4,    8;
-;PDU_SWEAP_SPAN_AB_SURV_HTRS_CURR,                             301,    4,    8;
-;PDU_SWEAP_SPC_SURV_HTR_CURR,                                  309,    4,    8;
 ;EU(Raw='SC_HK_0x255.PDU_SWEAP_CURR') := fCalCurve([0.0, 102.0, 255.0], [-1.125779040605658, 1.244296913976348, 8.36225289009219], Raw)
 ;EU(Raw='SC_HK_0x255.PDU_SWEAP_SPAN_AB_SURV_HTRS_CURR') := fCalCurve([0.0, 101.5, 255.0], [-0.5590297951162084, 0.6239597053559871, 4.226999660991688], Raw)
 ;EU(Raw='SC_HK_0x255.PDU_SWEAP_SPC_SURV_HTR_CURR') := fCalCurve([0.0, 101.5, 255.0], [-0.2815494183296126, 0.311373041137364, 2.122413461396678], Raw)
+;EU(Raw='SC_HK_0x255.PDU_WHEEL1_CURR') := fCalCurve([0.0, 101.5, 255.0], [-2.03425878519223, 2.341301629495125, 15.89848437526145], Raw)
+;EU(Raw='SC_HK_0x255.PDU_WHEEL2_CURR') := fCalCurve([0.0, 101.5, 255.0], [-2.071673591298432, 2.308261837238808, 15.49779722875937], Raw)
+;EU(Raw='SC_HK_0x255.PDU_WHEEL3_CURR') := fCalCurve([0.0, 102.0, 255.0], [-2.189674753945994, 2.389793001872445, 15.86056018999356], Raw)
+;EU(Raw='SC_HK_0x255.PDU_WHEEL4_CURR') := fCalCurve([0.0, 101.5, 255.0], [-2.166342989411793, 2.40412604065547, 16.1744727462611], Raw)
+;EU(Raw='SC_HK_0x255.FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED0') := fPolynomial([-0.075, 1.831054687e-05], Raw)
+;EU(Raw='SC_HK_0x255.FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED1') := fPolynomial([-0.075, 1.831054687e-05], Raw)
+;EU(Raw='SC_HK_0x255.FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED2') := fPolynomial([-0.075, 1.831054687e-05], Raw)
+;EU(Raw='SC_HK_0x255.FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED3') := fPolynomial([-0.075, 1.831054687e-05], Raw)
+;EU(Raw='SC_HK_0x255.FSW_GC_HK_HK_SPIN_RATE') := fPolynomial([-0.008726646, 6.817692391e-05], Raw)
+;EU(Raw='SC_HK_0x255.FSW_GC_HK_HK_SYS_MOMENTUM_BODY0') := fPolynomial([-5.0, 0.00244140625], Raw)
+;EU(Raw='SC_HK_0x255.FSW_GC_HK_HK_SYS_MOMENTUM_BODY1') := fPolynomial([-5.0, 0.00244140625], Raw)
+;EU(Raw='SC_HK_0x255.FSW_GC_HK_HK_SYS_MOMENTUM_BODY2') := fPolynomial([-5.0, 0.00244140625], Raw)
+
+;PDU_SWEAP_CURR,                                               279,    4,    8;
+;PDU_SWEAP_SPAN_AB_SURV_HTRS_CURR,                             301,    4,    8;
+;PDU_SWEAP_SPC_SURV_HTR_CURR,                                  309,    4,    8;
+;FSW_GC_HK_HK_SYS_MOMENTUM_BODY0,                              117,    7,   16;
+;FSW_GC_HK_HK_SYS_MOMENTUM_BODY1,                              119,    7,   16;
+;FSW_GC_HK_HK_SYS_MOMENTUM_BODY2,                              121,    7,   16;
+;FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED0,                    147,    7,   16;
+;FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED1,                    149,    7,   16;
+;FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED2,                    151,    7,   16;
+;FSW_GC_HK_HK_TORQ_CMD_IN_WHEEL_QUANTIZED3,                    153,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS0,                                       155,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS1,                                       157,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS2,                                       159,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS3,                                       161,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS4,                                       163,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS5,                                       165,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS6,                                       167,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS7,                                       169,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS8,                                       171,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS9,                                       173,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS10,                                      175,    7,   16;
+;FSW_GC_HK_HK_THR_CNTS11,                                      177,    7,   16;
+;FSW_GC_HK_HK_SPIN_RATE,                                       179,    7,    8;
+;PDU_WHEEL1_CURR,                                              267,    4,    8;
+;PDU_WHEEL2_CURR,                                              344,    4,    8;
+;PDU_WHEEL3_CURR,                                              297,    4,    8;
+;PDU_WHEEL4_CURR,                                              342,    4,    8;
+
 
 
 function SPP_SC_HK_0x255_apdat::decom,ccsds, source_dict=source_dict   ;,ptp_header=ptp_header

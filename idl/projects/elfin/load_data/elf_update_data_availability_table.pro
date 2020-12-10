@@ -16,16 +16,20 @@
 ;
 ; EXAMPLE:
 ;         elf_update_data_availability_table, '2020-03-20', probe='a', instrument='mrm'
+;         
+;LAST EDITED: lauraiglesias4@gmail.com 11/10/20
 ;
 ;-
-pro elf_update_data_availability_table, tdate, probe=probe, instrument=instrument
-
+pro elf_update_data_availability_table, tdate, probe=probe, instrument=instrument, days = days
+ 
   ; initialize parameters
   if undefined(tdate) then begin
     print, 'You must provide a date. Example: 2020-01-01'
     return
   endif
-  timespan, time_double(tdate)-30.*86400., 30d
+  if undefined(days) then days = 31
+  dt = DOUBLE(days)
+  timespan, time_double(tdate)-dt*86400., dt
   trange=timerange()
 
   if undefined(instrument) then instrument='epd' else instrument=strlowcase(instrument)
@@ -45,19 +49,16 @@ pro elf_update_data_availability_table, tdate, probe=probe, instrument=instrumen
   sc='el'+probe
 
   ; Determine what data is available
-  data_avail=elf_get_data_availability(tdate, probe=probe, instrument=instrument)
+
+  data_avail=elf_get_data_availability(tdate, probe=probe, instrument=instrument, days = dt)
   ; Update the csv file
   if ~undefined(data_avail) && size(data_avail, /type) EQ 8 then begin
     print, 'Data available'
-    remote_pathname=!elf.remote_data_dir + '\data_availability\'
-    remote_filename=pathname+'el'+probe+'_'+instrument
-    local_pathname=!elf.local_data_dir + '\data_availability\'
-    local_filename=pathname+'el'+probe+'_'+instrument
     filename='el'+probe+'_'+instrument
-    print, filename
     elf_write_data_availability_table, filename, data_avail, instrument, probe
   endif else begin
     print, 'There is no data for probe '+probe+' , instrument '+instrument+' on '+time_string(tdate)     
   endelse
+  Beep
  
 end

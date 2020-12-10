@@ -12,8 +12,8 @@
 ;       Yuki Harada on 2017-05-03
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2020-09-16 23:11:27 -0700 (Wed, 16 Sep 2020) $
-; $LastChangedRevision: 29164 $
+; $LastChangedDate: 2020-12-09 16:46:07 -0800 (Wed, 09 Dec 2020) $
+; $LastChangedRevision: 29459 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/marsis/mex_marsis_load.pro $
 ;-
 
@@ -343,7 +343,10 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       bytdum = bytarr(400)
       readu,unit,bytdum
       ;;; get useful info (cf: http://www-pw.physics.uiowa.edu/plasma-wave/marsx/restricted/super/LABEL/AIS_FORMAT.FMT)
-      SCET_STRING = string(bytdum[24:48])
+      ;;; https://space.physics.uiowa.edu/pds/MEX-M-MARSIS-3-RDR-AIS-V1.0/LABEL/AIS_FORMAT.FMT
+      SCET_DAYS = long(reverse(bytdum[8:11]),0) ;- Spacecraft event time in days since 1958-001T00:00:00Z.
+      SCET_MSEC = long(reverse(bytdum[12:15]),0) ;- Spacecraft event time in milliseconds of day. SCET_DAYS and SCET_MSEC are provided to accurately time tag the data in UTC without the need for calls to the spice kernel.
+      SCET_STRING = string(bytdum[24:47])        ;- Spacecraft event time of the first transmit pulse in a set.
       TRANSMIT_POWER = bytdum[59]
       FREQUENCY_TABLE_NUMBER = bytdum[60]
       FREQUENCY_NUMBER = bytdum[61]
@@ -355,7 +358,7 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       itime = long(irow/160)
       ifreq = long(irow mod 160)
 
-      dat[itime].time = time_double(SCET_STRING,tf='YYYY-DOYThh:mm:ss.fff')
+      dat[itime].time = time_double(SCET_STRING,tf='YYYY-DOYThh:mm:ss.fff') ;- UTC_ASCII  - Spacecrafte event time in human readable ISO-8601 format
       dat[itime].freq[ifreq] = FREQUENCY
       dat[itime].spec[ifreq,*]= SPECTRAL_DENSITY
    endfor

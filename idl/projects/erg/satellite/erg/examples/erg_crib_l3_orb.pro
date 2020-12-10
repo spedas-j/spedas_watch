@@ -12,8 +12,8 @@
 ;             ERG Science Center, ISEE, Nagoya Univ.
 ;             erg-sc-core at isee.nagoya-u.ac.jp
 ;
-;   $LastChangedDate: 2019-03-17 21:51:57 -0700 (Sun, 17 Mar 2019) $
-;   $LastChangedRevision: 26838 $
+;   $LastChangedDate: 2020-12-09 13:56:36 -0800 (Wed, 09 Dec 2020) $
+;   $LastChangedRevision: 29458 $
 ;-
 
 ; Initialize the user environmental variables for ERG
@@ -23,7 +23,7 @@ erg_init
 timespan, '2017-04-04'
 
 ; load ERG orbit L3 data (using OP77Q model)
-erg_load_orb,level='l3'
+erg_load_orb_l3
 
 ; view the loaded data names
 tplot_names
