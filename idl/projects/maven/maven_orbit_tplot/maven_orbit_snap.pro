@@ -114,9 +114,16 @@
 ;       LANDERS:  Plot the locations of landers.  Can also be an 2 x N array
 ;                 of surface locations (lon, lat) in the IAU_Mars frame.
 ;
+;       SLAB:     Text labels for each of the landers.  If LANDERS is a scalar,
+;                 then this provides a 1- or 2-character label for each lander.
+;                 If LANDERS is a 2 x N array, SLAB should be an N-element string
+;                 array.  Set SLAB to zero to disable text labels and just plot
+;                 symbols instead.  Text labels are centered in longitude with
+;                 the baseline at latitude.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-10-21 13:15:17 -0700 (Wed, 21 Oct 2020) $
-; $LastChangedRevision: 29267 $
+; $LastChangedDate: 2020-12-10 08:55:41 -0800 (Thu, 10 Dec 2020) $
+; $LastChangedRevision: 29462 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -125,7 +132,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     npole=npole, noerase=noerase, keep=keep, color=color, reset=reset, cyl=cyl, times=times, $
     nodot=nodot, terminator=terminator, thick=thick, Bdir=Bdir, scale=scale, scsym=scsym, $
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
-    alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers
+    alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab
 
   @maven_orbit_common
   @swe_snap_common
@@ -172,19 +179,30 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   sz = size(landers)
   if (((sz[0] eq 1) or (sz[0] eq 2)) and (sz[1] eq 2)) then begin
     sites = landers
+    nsites = n_elements(landers)/2
+    if (size(slab,/type) eq 7) then begin
+      nlab = n_elements(slab)
+      if (nlab ne nsites) then begin
+        slab2 = replicate('',nsites)
+        slab2[0:(nlab-1)<(nsites-1)] = slab[0:(nlab-1)<(nsites-1)]
+        slab = slab2
+      endif
+    endif else slab = 0
     ok = 1
   endif
   if ((not ok) and keyword_set(landers)) then begin
     sites = fltarr(2,9)
-    sites[*,0] = [311.778,  22.697]  ; Viking 1 Lander
-    sites[*,1] = [134.010,  48.269]  ; Viking 2 Lander
-    sites[*,2] = [326.450,  19.330]  ; Pathfinder Lander
-    sites[*,3] = [175.479, -14.572]  ; Spirit Rover
-    sites[*,4] = [354.473,  -1.946]  ; Opportunity Rover
-    sites[*,5] = [234.100,  68.150]  ; Phoenix Lander
-    sites[*,6] = [137.200,  -4.600]  ; Curiosity Rover (MSL)
-    sites[*,7] = [135.000,   4.500]  ; InSight Lander
-    sites[*,8] = [ 77.500,  18.400]  ; Perserverence (Mars 2020)
+    sites[*,0] = [311.778,  22.697]  ; Viking 1 Lander (1976-1982)
+    sites[*,1] = [134.010,  48.269]  ; Viking 2 Lander (1976-1980)
+    sites[*,2] = [326.450,  19.330]  ; Pathfinder (Sojourner Rover Jul-Sep 1997)
+    sites[*,3] = [175.479, -14.572]  ; Spirit Rover (2004-2010)
+    sites[*,4] = [354.473,  -1.946]  ; Opportunity Rover (2004-2018)
+    sites[*,5] = [234.100,  68.150]  ; Phoenix Lander (May-Nov 2008)
+    sites[*,6] = [137.200,  -4.600]  ; Curiosity Rover (MSL 2012-)
+    sites[*,7] = [135.000,   4.500]  ; InSight Lander (2018-)
+    sites[*,8] = [ 77.500,  18.400]  ; Perserverence Rover (2021-)
+    if (size(slab,/type) gt 0) then dolab = keyword_set(slab) else dolab = 1
+    if (dolab) then slab = ['V1','V2','Pa','S','O','Ph','C','I','Pe'] else slab = 0
   endif
 
   if keyword_set(times) then begin
@@ -1013,7 +1031,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (doalt) then sc_alt = hgt[i] else sc_alt = 0
       mag_mola_orbit, lon[i], lat[i], big=mbig, noerase=noerase, title=title, color=j, $
                       terminator=ttime, psym=scsym, shadow=(doterm - 1), alt=sc_alt, $
-                      sites=sites
+                      sites=sites, slab=slab
     endif
 
 ; Put up Mars North polar plot

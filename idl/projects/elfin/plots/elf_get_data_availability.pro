@@ -136,7 +136,7 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe, d
       this_start=sz_starttimes[i]
       this_end=sz_endtimes[i] 
       idx=where(pos.x GE this_start AND pos.x LE this_end, ncnt)
-      if ncnt eq 0 then begin
+      if ncnt lt 3 then begin
         print, 'There is no state data for start: '+time_string(this_start)+' to '+time_string(this_end)
         return, -1
       endif

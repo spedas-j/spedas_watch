@@ -155,8 +155,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-02 15:56:56 -0800 (Wed, 02 Dec 2020) $
-; $LastChangedRevision: 29422 $
+; $LastChangedDate: 2020-12-10 10:51:42 -0800 (Thu, 10 Dec 2020) $
+; $LastChangedRevision: 29465 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -287,7 +287,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       0  : fflg = 0
       1  : begin
              fflg = 1
-             flon = fixplanet
+             flon = fixplanet[0]
              fnum = 2
            end
     else : begin
@@ -916,8 +916,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
           rp[k] = sqrt(xp[k]*xp[k] + yp[k]*yp[k] + zp[k]*zp[k])
         endfor
         if (fflg) then begin
-          phi0 = atan(yp[fnum], xp[fnum])
-          phi = phi0 - (flon*!dtor)
+          phi = atan(yp[fnum], xp[fnum]) - (flon*!dtor)
           cosp = cos(phi)
           sinp = sin(phi)
           x =  xp*cosp + yp*sinp
@@ -1204,8 +1203,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       rp[k,j] = sqrt(xp[k,j]*xp[k,j] + yp[k,j]*yp[k,j] + zp[k,j]*zp[k,j])
     endfor
     if (fflg) then begin
-      phi0 = atan(yp[fnum], xp[fnum])
-      phi = phi0 - (flon*!dtor)
+      phi = atan(yp[fnum], xp[fnum]) - (flon*!dtor)
       cosp = cos(phi)
       sinp = sin(phi)
       x =  xp*cosp + yp*sinp

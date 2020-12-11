@@ -41,16 +41,19 @@
 ;
 ;       SITES:      A 2 x N array of surface locations to plot.
 ;
+;       SLAB:       Text labels for each of the sites.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-20 11:54:23 -0700 (Thu, 20 Aug 2020) $
-; $LastChangedRevision: 29051 $
+; $LastChangedDate: 2020-12-10 08:55:59 -0800 (Thu, 10 Dec 2020) $
+; $LastChangedRevision: 29463 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mag_mola_orbit.pro $
 ;
 ;CREATED BY:	David L. Mitchell  04-02-03
 ;-
 pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
                     reset=reset, big=big, noerase=noerase, title=title, $
-                    terminator=ttime, shadow=shadow, alt=alt, sites=sites
+                    terminator=ttime, shadow=shadow, alt=alt, sites=sites, $
+                    slab=slab
 
   common magmola_orb_com, img, ppos
   @swe_snap_common
@@ -72,6 +75,7 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
   nsites = 0
   if ((sz[0] eq 1) and (sz[1] ge 2)) then nsites = 1
   if ((sz[0] eq 2) and (sz[1] eq 2)) then nsites = sz[2]
+  dolab = (size(slab,/type) eq 7)
 
   if (psym gt 7) then psym = 8
   a = 0.8
@@ -119,7 +123,11 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
     oplot,[tdat.slon],[tdat.slat],color=5,psym=8,symsize=3
   endif
 
-  for i=0,(nsites-1) do oplot,[sites[0,i]],[sites[1,i]],psym=8,symsize=1.5,color=6
+  if (dolab) then begin
+    for i=0,(nsites-1) do xyouts,sites[0,i],sites[1,i],slab[i],align=0.5,charsize=1.5,color=6,charthick=2
+  endif else begin
+    for i=0,(nsites-1) do oplot,[sites[0,i]],[sites[1,i]],psym=8,symsize=1.5,color=6
+  endelse
 
   oplot,[lon],[lat],psym=psym,color=color,linestyle=lstyle,thick=2,symsize=1.4
   if keyword_set(alt) then xyouts,[lon]+2,[lat]+2,string(round(alt),format='(i4)'),color=color,charsize=1.2

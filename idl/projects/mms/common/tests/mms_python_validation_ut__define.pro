@@ -6,10 +6,17 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-11-05 18:21:30 -0800 (Thu, 05 Nov 2020) $
-; $LastChangedRevision: 29330 $
+; $LastChangedDate: 2020-12-10 07:32:08 -0800 (Thu, 10 Dec 2020) $
+; $LastChangedRevision: 29461 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
+
+function mms_python_validation_ut::test_state_ascii
+  mms_load_state, trange=['2015-10-16', '2015-10-17'], /ascii, probe=1
+  py_script = ["from pyspedas import mms", "mms.state(datatypes=['pos', 'vel', 'spinras', 'spindec'], probe=1, trange=['2015-10-16','2015-10-17'])"]
+  vars = ['mms1_defeph_pos', 'mms1_defeph_vel', 'mms1_defatt_spindec', 'mms1_defatt_spinras']
+  return, spd_run_py_validation(py_script, vars)
+end
 
 function mms_python_validation_ut::test_aspoc_default
   mms_load_aspoc, probe=1, trange=['2015-10-16','2015-10-17']
