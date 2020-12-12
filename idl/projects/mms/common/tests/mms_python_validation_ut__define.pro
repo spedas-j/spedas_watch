@@ -6,10 +6,21 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-12-10 07:32:08 -0800 (Thu, 10 Dec 2020) $
-; $LastChangedRevision: 29461 $
+; $LastChangedDate: 2020-12-11 09:57:17 -0800 (Fri, 11 Dec 2020) $
+; $LastChangedRevision: 29472 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
+
+function mms_python_validation_ut::test_data_segment_intervals
+  mms_load_brst_segments, trange=['2015-10-16', '2015-10-17'], start_times=brst_starts, end_times=brst_ends
+  mms_load_fast_segments, trange=['2015-10-1', '2015-10-31'], start_times=fast_starts, end_times=fast_ends
+  py_script = ["from pyspedas.mms.mms_load_fast_segments import mms_load_fast_segments",$
+               "from pyspedas.mms.mms_load_brst_segments import mms_load_brst_segments",$
+               "i = mms_load_fast_segments(trange=['2015-10-1', '2015-10-31'])",$
+               "i = mms_load_brst_segments(trange=['2015-10-16', '2015-10-17'])"]
+  vars = ['mms_bss_burst', 'mms_bss_fast']
+  return, spd_run_py_validation(py_script, vars)
+end
 
 function mms_python_validation_ut::test_state_ascii
   mms_load_state, trange=['2015-10-16', '2015-10-17'], /ascii, probe=1

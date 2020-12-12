@@ -29,6 +29,9 @@
 ;
 ;       BIG:        Use a 1000x500 MAG-MOLA image.
 ;
+;       DBR:        Use a 1000x500 dBr/dt image.
+;                   (Note: dBr/dt is approx. the same as dBr/dlat.)
+;
 ;       TERMINATOR: Overlay the terminator at the time specified by this
 ;                   keyword.
 ;
@@ -44,8 +47,8 @@
 ;       SLAB:       Text labels for each of the sites.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-10 08:55:59 -0800 (Thu, 10 Dec 2020) $
-; $LastChangedRevision: 29463 $
+; $LastChangedDate: 2020-12-11 11:49:05 -0800 (Fri, 11 Dec 2020) $
+; $LastChangedRevision: 29473 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mag_mola_orbit.pro $
 ;
 ;CREATED BY:	David L. Mitchell  04-02-03
@@ -53,7 +56,7 @@
 pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
                     reset=reset, big=big, noerase=noerase, title=title, $
                     terminator=ttime, shadow=shadow, alt=alt, sites=sites, $
-                    slab=slab
+                    slab=slab, dbr=dbr
 
   common magmola_orb_com, img, ppos
   @swe_snap_common
@@ -85,6 +88,7 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
   if ((size(img,/type) eq 0) or keyword_set(reset)) then begin
     if keyword_set(big) then fname = file_which('MAG_MOLA_lg.bmp') $
                         else fname = file_which('MAG_MOLA.bmp')
+    if keyword_set(dbr) then fname = file_which('DBR_TOPO_lg.bmp')
 
     if (fname eq '') then begin
       print, "MAG_MOLA.bmp not found!"
@@ -99,6 +103,7 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
     j = sz[3] + (2*yoff)
     
 	if keyword_set(big) then Mkey = MMopt else Mkey = Mopt
+	if keyword_set(dbr) then Mkey = MMopt
 	putwin, owin, key=Mkey
 
     px = [0.0, 1.0] * !d.x_vsize + xoff + 16

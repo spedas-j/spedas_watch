@@ -43,10 +43,14 @@
 ;       YZ:       Plot only the YZ projection (view from Sun)
 ;
 ;       MARS:     Plot the position of the spacecraft (PREC=1) or periapsis 
-;                 (PREC=0) on an image of Mars topography and magnetic field
-;                 based on MGS data (from Connerney).
-;                   1 : Use a small image
-;                   2 : Use a large image
+;                 (PREC=0) on an image of Mars topography (colors from MOLA)
+;                 and radial magnetic field (contours from Connerney et al. 
+;                 2001).  Alternatively, use an image of dBr/dt that better
+;                 filters out solar wind influences (Connerney et al. 2004),
+;                 on top of a greyscale topo map with elevation contours.
+;                   1 : Use a small MAG-MOLA image
+;                   2 : Use a large MAG-MOLA image
+;                   3 : Use a large dBr-topology image
 ;
 ;       NPOLE:    Plot the position of the spacecraft (PREC=1) or periapsis
 ;                 (PREC=0) on a north polar projection (lat > 55 deg).  The
@@ -122,8 +126,8 @@
 ;                 the baseline at latitude.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-10 08:55:41 -0800 (Thu, 10 Dec 2020) $
-; $LastChangedRevision: 29462 $
+; $LastChangedDate: 2020-12-11 11:49:05 -0800 (Fri, 11 Dec 2020) $
+; $LastChangedRevision: 29473 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -276,9 +280,15 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
 
   if keyword_set(latlon) then gflg = 1 else gflg = 0
   
+  dbr = 0
   if keyword_set(mars) then begin
     mflg = mars
-    if (mflg gt 1) then mbig = 1 else mbig = 0
+    case mflg of
+        1  : mbig = 0
+        2  : mbig = 1
+        3  : dbr = 1
+      else : mflg = 0
+    endcase
   endif else mflg = 0
   
   if keyword_set(orbit) then oflg = 1 else oflg = 0
@@ -332,7 +342,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   endif
 
   if (mflg gt 0) then begin              ; GEO Lat-Lon
-    if (~noerase or reset) then mag_mola_orbit, -100., -100., big=mbig, /reset
+    if (~noerase or reset) then mag_mola_orbit, -100., -100., big=mbig, dbr=dbr, /reset
   endif
 
 ; Get the orbit closest the selected time
@@ -1031,7 +1041,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (doalt) then sc_alt = hgt[i] else sc_alt = 0
       mag_mola_orbit, lon[i], lat[i], big=mbig, noerase=noerase, title=title, color=j, $
                       terminator=ttime, psym=scsym, shadow=(doterm - 1), alt=sc_alt, $
-                      sites=sites, slab=slab
+                      sites=sites, slab=slab, dbr=dbr
     endif
 
 ; Put up Mars North polar plot

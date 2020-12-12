@@ -3,8 +3,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-09 08:23:10 -0800 (Wed, 09 Dec 2020) $
-; $LastChangedRevision: 29448 $
+; $LastChangedDate: 2020-12-11 14:13:21 -0800 (Fri, 11 Dec 2020) $
+; $LastChangedRevision: 29475 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
 ;-
@@ -28,8 +28,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-09 08:23:10 -0800 (Wed, 09 Dec 2020) $
-; $LastChangedRevision: 29448 $
+; $LastChangedDate: 2020-12-11 14:13:21 -0800 (Fri, 11 Dec 2020) $
+; $LastChangedRevision: 29475 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -51,8 +51,8 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['cdf_svn_changedby'] = '$LastChangedBy: ali $'
-    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-09 08:23:10 -0800 (Wed, 09 Dec 2020) $'
-    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 29448 $'
+    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-11 14:13:21 -0800 (Fri, 11 Dec 2020) $'
+    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 29475 $'
     sw_hash['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
 
     return,sw_hash
@@ -129,14 +129,15 @@ end
 
 
 pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
+  t0=systime(1)
   ;  if not keyword_set(self.cdf_pathname) then return
   dprint,'starting: '+pathname,dlevel=self.dlevel+1,verbose = isa(verbose) ? verbose : self.verbose
 
   global_attributes = self.g_attributes
 
   global_attributes['cdf_svn_changedby'] = '$LastChangedBy: ali $'
-    global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-09 08:23:10 -0800 (Wed, 09 Dec 2020) $'
-    global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 29448 $'
+    global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2020-12-11 14:13:21 -0800 (Fri, 11 Dec 2020) $'
+    global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 29475 $'
     global_attributes['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
     login_info = get_login_info()
   global_attributes['sw_runby'] = login_info.user_name
@@ -175,7 +176,7 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
 
   cdf_close,self.fileid
   self.fileid = 0
-  dprint,'Created: '+pathname+' Size: '+strtrim(((file_info(pathname)).size)/1000,2)+' KB',dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
+  dprint,'Created: "'+pathname+'" in '+strtrim(systime(1)-t0,2)+' Seconds, Size: '+strtrim(((file_info(pathname)).size)/1000,2)+' KB',dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
 end
 
 
@@ -510,7 +511,7 @@ pro cdf_tools::read,filenames
         continue
       endelse
       ;   res = create_struct('filename',fn,'inq',inq,'g_attributes',g_atts,'nv',nv,'vars',vinfo)  ;'num_recs',num_recs,'nvars',nv
-      dprint,dlevel=2,verbose=verbose,'Loading file: '+file+' Size: '+strtrim(((file_info(file)).size)/1000,2)+' KB'
+      dprint,dlevel=2,verbose=verbose,'Loading file: "'+file+'" Size: '+strtrim(((file_info(file)).size)/1000,2)+' KB'
 
       inq = cdf_inquire(self.fileid)
       q = !quiet
