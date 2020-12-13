@@ -125,41 +125,45 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
       get_data, name, data = d
 
-      ndims = size(d.y, /n_dimensions)
-      dims = size(d.y, /dimensions)
+      if size(/type, d) EQ 8 then begin
 
-      if ndims EQ 2 then begin
-        if dims[1] EQ 3 then begin
-          options, name, 'colors', 'bgr'
+        ndims = size(d.y, /n_dimensions)
+        dims = size(d.y, /dimensions)
 
-          options, name, 'labels', labels
+        if ndims EQ 2 then begin
+          if dims[1] EQ 3 then begin
+            options, name, 'colors', 'bgr'
 
-          if strpos(name, 'vector') NE -1 then begin
+            options, name, 'labels', labels
 
-            options, name, 'labels', 'SC' + $
-              strupcase(strmid(name_no_prefix, 3, 1)) + '-' + labels
+            if strpos(name, 'vector') NE -1 then begin
+
+              options, name, 'labels', 'SC' + $
+                strupcase(strmid(name_no_prefix, 3, 1)) + '-' + labels
+
+            endif
 
           endif
-
         endif
-      endif
 
-      options, name, 'ynozero', 1
+        options, name, 'ynozero', 1
 
-      if strpos(name, '_label') LT 0 then begin
+        if strpos(name, '_label') LT 0 then begin
 
-        options, name, 'ytitle', $
-          'PSP!C' + strupcase(frame) + '!C' + name_no_prefix
+          options, name, 'ytitle', $
+            'PSP!C' + strupcase(frame) + '!C' + name_no_prefix
+
+        end
+
+        if n_elements(d.x) GT 1 then begin
+          options, name, 'psym_lim', 100
+          ; don't set data gap for the full orbit plots
+          if d.x[-1] - d.x[0] LT 1200d then options, name, 'datagap', 600d
+        endif
+
+        options, name, 'symsize', 0.75
 
       end
-
-      if n_elements(d.x) GT 1 then begin
-        options, name, 'psym_lim', 100
-        ; don't set data gap for the full orbit plots
-        if d.x[-1] - d.x[0] LT 1200d then options, name, 'datagap', 600d
-      endif
-
-      options, name, 'symsize', 0.75
 
     endforeach
 
