@@ -12,9 +12,9 @@
 ;   According to ISTP/IACG guidelines "Epoch" should be the first variable in each CDF data set.
 ;   https://spdf.gsfc.nasa.gov/istp_guide/variables.html#Epoch
 ;
-; $LastChangedBy: adrozdov $
-; $LastChangedDate: 2020-10-12 18:53:38 -0700 (Mon, 12 Oct 2020) $
-; $LastChangedRevision: 29241 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2020-12-14 12:20:16 -0800 (Mon, 14 Dec 2020) $
+; $LastChangedRevision: 29480 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf_info_to_tplot.pro $
 ;-
 pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=non_record_varying, tt2000=tt2000,$
@@ -31,7 +31,7 @@ pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=
         load_labels=load_labels ;copy labels from labl_ptr_1 in attributes into dlimits
                                       ;resolve labels implemented as keyword to preserve backwards compatibility
 
-dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 29241 2020-10-13 01:53:38Z adrozdov $'
+dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 29480 2020-12-14 20:20:16Z jwl $'
 tplotnames=''
 vbs = keyword_set(verbose) ? verbose : 0
 
@@ -188,24 +188,60 @@ for i=0,nv-1 do begin
 
    spec = strcmp(display_type,'spectrogram',/fold_case)
    log  = strcmp(scaletyp,'log',3,/fold_case)
-
+   
    if ptr_valid(tvar.dataptr) and ptr_valid(v.dataptr) then begin
 
-     if size(/n_dimens,*v.dataptr) ne v.ndimen +1 then begin    ; Cluge for (lost) trailing dimension of 1
-;in rare circumstances, var_2 may not exist here, jmm, 17-mar-2009,
-;          var_1 = var_2        ;bpif  v.name eq 'thb_sir_001'
-          if(keyword_set(var_2)) then var_1 = var_2 else var_1 = 0 ;bpif  v.name eq 'thb_sir_001'
-          var_2 = 0
+     if tvar.numrec ne v.numrec then begin
+       dprint,dlevel=1,verbose=verbose,'Warning: record count for variable '+v.name+' does not match time variable.'
+       dprint,dlevel=1,verbose=verbose,'Data record count: '+string(v.numrec)
+       dprint,dlevel=1,verbose=verbose,'Time variable: '+tvar.name
+       dprint,dlevel=1,verbose=verbose,'Time record count: '+string(tvar.numrec)
+       dprint,dlevel=1,verbose=verbose,'Skipping variable.'
+       continue
+     endif
+
+     if size(/n_dimens,*v.dataptr) ne v.ndimen +1 then begin    
+      ; Cluge for (lost) trailing dimension of 1
+      ;in rare circumstances, var_2 may not exist here, jmm, 17-mar-2009,
+      ;          var_1 = var_2        ;bpif  v.name eq 'thb_sir_001'
+      ;    if(keyword_set(var_2)) then var_1 = var_2 else var_1 = 0 ;bpif  v.name eq 'thb_sir_001'
+      ;    var_2 = 0
+
+      ;   Revised 2020-12-08 by JWL
+      ;   Reform the data array to the expected dimensions in case a size-1 dimension gets dropped.  This can happen
+      ;   if a CDF has a single sample for that variable, but is marked "non-record-variant".   Simply zeroing var_2
+      ;   can result in a crash in the code below.
+          rec_count=tvar.numrec
+          current_dimens=size(*v.dataptr,/dimen)
+          new_dimens=[rec_count,current_dimens]
+          dprint,verbose=verbose,dlevel=1,'Warning: unexpected data array dimensions for variable '+v.name
+          dprint,verbose=verbose,dlevel=1,'Expected ',new_dimens
+          dprint,verbose=verbose,dlevel=1,'Got ',current_dimens
+          dprint,verbose=verbose,dlevel=1,'Reforming.'
+          *v.dataptr = reform(*v.dataptr,new_dimens,/overwrite)
+          
+          
+
      endif
      
       ; Issue a warning if correponsded depend_n is emtpy      
       for dpn=0,size(/n_dimens,*v.dataptr)-1 do begin
       case dpn of
-        0: if depend_0 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_0 is empty'        
-        1: if depend_1 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_1 is empty'
-        2: if depend_2 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_2 is empty'
-        3: if depend_3 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_3 is empty'
-        4: if depend_4 eq '' then  dprint,verbose=verbose,dlevel=6,'Warning: depend_4 is empty'
+        0: if depend_0 eq '' then  begin
+              dprint,verbose=verbose,dlevel=1,'Warning: depend_0 for variable '+v.name+' is empty'   
+           endif     
+        1: if depend_1 eq '' then  begin
+              dprint,verbose=verbose,dlevel=1,'Warning: depend_1 for variable '+v.name+' is empty'
+           endif
+        2: if depend_2 eq '' then  begin
+              dprint,verbose=verbose,dlevel=1,'Warning: depend_2 for variable '+v.name+' is empty'
+           endif
+        3: if depend_3 eq '' then  begin
+              dprint,verbose=verbose,dlevel=1,'Warning: depend_3 for variable '+v.name+' is empty'
+           endif
+        4: if depend_4 eq '' then  begin
+              dprint,verbose=verbose,dlevel=1,'Warning: depend_4 for variable '+v.name+' is empty'
+           endif
       endcase
       endfor 
 
@@ -260,7 +296,15 @@ for i=0,nv-1 do begin
      if keyword_set(suffix) then tn = tn+suffix
      store_data,tn,data=data,dlimit=dlimit, verbose=verbose
      tplotnames = keyword_set(tplotnames) ? [tplotnames,tn] : tn
-   endif
+   endif else begin   ; either the time variable, or data variable, or both, are empty.  Not necessarily a warning.
+     if ~ptr_valid(tvar.dataptr) and ptr_valid(v.dataptr) and ~strmatch(v.name,'th*_time') then begin
+       ;  Data pointer is valid, time is not.  This is normal for THEMIS timestamp variables (referenced by a DEPEND_TIME attribute
+       ;  somewhere else), which have a DEPEND_0 pointing to some flavor of CDF_EPOCH that virtual, and therefore empty here.  
+       ;  That's OK and we don't want to warn about it.  However, if it doesn't match the naming convention for THEMIS times, 
+       ;  something is wrong and a warning should be issued.  JWL 2020-12-11
+       dprint,dlevel=1,verbose=verbose,'Warning: empty time variable '+tvar.name+' for '+v.name+', skipping.'
+     endif
+   endelse
    var_1=0
    var_2=0
    var_3=0

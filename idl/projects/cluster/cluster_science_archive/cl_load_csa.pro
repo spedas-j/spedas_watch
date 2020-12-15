@@ -1,16 +1,15 @@
-pro cl_load_esac_postprocess,netobj=netobj,filedir=filedir,filename=filename
+pro cl_load_csa_postprocess,netobj=netobj,filedir=filedir,filename=filename,verbose=verbose
 
 ; get content_disposition header
 netobj->getproperty,response_header=rh
 res=stregex(rh,'Content-Disposition.*filename="(.*)"',length=l,/SUBEXPR)
 if n_elements(res) ne 2 then begin
-   print,'Unable to get Content-Disposition filename'
-   print,'Response headers:'
-   print,rh
+   dprint,dlevel=1,verbose=verbose,'Unable to get Content-Disposition filename'
+   dprint,dlevel=1,verbose=verbose,'Response headers:',rh
    return
 endif
 newname=strmid(rh,res[1],l[1])
-print,'Newname: '+newname
+dprint,dlevel=3,verbose=verbose,'Newname: '+newname
 ; rename file
 new_full_path=filedir+path_sep()+newname
 file_move,filename,new_full_path
@@ -18,29 +17,38 @@ file_move,filename,new_full_path
 file_gunzip,new_full_path
 ; trim .gz to get unzipped name
 unzipped_filename=strmid(new_full_path,0,strlen(new_full_path)-3)
-print,'Unzipped file: ' + unzipped_filename
+dprint,dlevel=3,verbose=verbose,'Unzipped file: ' + unzipped_filename
 ; untar
 ; Untar needs a little help creating the directory structure, so we list the files first, then mkdir all the dirnames
 file_untar,unzipped_filename,/list,files=files
 dirs=file_dirname(files)
 fully_qualified_dirs=filedir+path_sep()+dirs
-print,'Preparing directories for file_untar: '+fully_qualified_dirs
+dprint,dlevel=3,verbose=verbose,'Preparing directories for file_untar: '
+dprint,dlevel=3,verbose=verbose,fully_qualified_dirs
 file_mkdir,fully_qualified_dirs
 ; Now we can extract the files
 file_untar,unzipped_filename,files=untarred_files,/verbose
-print,'Untarred files:'
-print,untarred_files
+dprint,dlevel=3,verbose=verbose,'Untarred files:'
+dprint,dlevel=3,verbose=verbose,untarred_files
 ; find cdfs
 ; spd_cdf2tplot
 for i=0,n_elements(untarred_files)-1 do begin
-   print,'Loading '+untarred_files[i]
-   spd_cdf2tplot,file=untarred_files[i],/get_supp,/all,/load_labels
+   dprint,dlevel=3,verbose=verbose,'Loading '+untarred_files[i]
+   tplot_varnames = 0
+   spd_cdf2tplot,file=untarred_files[i],tplotnames=tplot_varnames,verbose=verbose,/get_supp,/all,/load_labels
+   dprint,dlevel=3,verbose=verbose,"tplot variables loaded:"
+   dprint,dlevel=3,verbose=verbose,tplot_varnames
 endfor
 end
 
-pro cl_load_esac,trange=trange,probes=probes,datatypes=datatypes,valid_names=valid_names
+pro cl_load_csa,trange=trange,probes=probes,datatypes=datatypes,valid_names=valid_names,verbose=verbose
 
-spedas_init
+defsysv,'!spedas',exists=exists
+if not(keyword_set(exists)) then begin
+  spedas_init
+endif
+
+
 ; Base URL
 base_url='http://csa.esac.esa.int/csa/aio/product-action'
 ; Start/end dates
@@ -75,26 +83,22 @@ master_datatypes=['CE_WBD_WAVEFORM_CDF','CP_AUX_POSGSE_1M','CP_CIS-CODIF_HS_H1_M
   endif
   
   if size(trange,/type) eq 7 then begin
-    print,'Using time strings directly provided'
     start_date=trange[0]
     end_date=trange[1]
   endif else begin
-    print,'Converting numeric times to ISO strings'
     start_date=time_string(trange[0],tformat="YYYY-MM-DDThh:mm:ssZ")
     end_date=time_string(trange[1],tformat="YYYY-MM-DDThh:mm:ssZ")
   endelse
-
-print,"Start date: "+trange[0]
-print,"End date: "+trange[1]
-
-print,"Probes:"
-print,probes
-
-print,"Datatypes:"
-print,datatypes
-
-;datatypes=master_datatypes[40:42]
-;probes=master_probes[0]
+  
+  ; Avoid overwriting input params
+  ;uc_datatypes=strupcase(datatypes)
+  ;uc_probes=strupcase(probes)
+  uc_datatypes=datatypes
+  uc_probes=probes
+  
+  ; Resolve wildcards, ensure multiple args represented as arrays
+  my_datatypes=ssl_check_valid_name(uc_datatypes,master_datatypes)
+  my_probes=ssl_check_valid_name(uc_probes,master_probes)
 
 ; Delivery format
 
@@ -112,18 +116,18 @@ delivery_interval='ALL'
 ; Make query string
 
 query_string='START_DATE='+start_date+'&END_DATE='+end_date+'&DELIVERY_FORMAT='+delivery_format+'&DELIVERY_INTERVAL='+delivery_interval+'&NON_BROWSER'
-for i=0,n_elements(probes)-1 do begin
-   for j=0,n_elements(datatypes)-1 do begin
-      query_string=query_string + '&DATASET_ID='+probes[i]+'_'+datatypes[j]
+for i=0,n_elements(my_probes)-1 do begin
+   for j=0,n_elements(my_datatypes)-1 do begin
+      query_string=query_string + '&DATASET_ID='+my_probes[i]+'_'+my_datatypes[j]
    endfor
 endfor
 
 ; Start/stop times contain ':' characters, which should be URL-encoded.  Otherwise parse_url gets confused.
-print,'query string:'
-print,query_string
-encoded_query_string=idlneturl.urlencode(query_string)
-print,'URL encoded query string'
-print,encoded_query_string
+dprint,dlevel=3,verbose=verbose,'query string:'
+dprint,dlevel=3,verbose=verbose,query_string
+;encoded_query_string=idlneturl.urlencode(query_string)
+;print,'URL encoded query string'
+;print,encoded_query_string
 url=base_url+'?'+query_string
 
 url_struct=parse_url(base_url)
@@ -184,7 +188,7 @@ if url_struct.username ne '' then begin
 endif
 
 
-dprint, dlevel=2, 'Downloading: '+url
+dprint, dlevel=2,verbose=verbose, 'Downloading: '+url
 
 ;manually create any new directories so that permissions can be set
 ;if ~keyword_set(string_array) then begin
@@ -209,7 +213,7 @@ if (error ne 0) && (first_time_download eq 1) && (response_code eq 401) then beg
   ; sometimes we need to try again to get the file
 
   first_time_download = 0
-  dprint, dlevel=2, 'Download failed. Trying a second time.'
+  dprint, dlevel=2,verbose=verbose, 'Download failed. Trying a second time.'
 
   ;get the file
 
@@ -258,7 +262,7 @@ endif else if error eq 0 then begin
 
     dprint, dlevel=2, 'Download complete:  '+filename
     catch,/cancel
-    cl_load_esac_postprocess,netobj=net_object,filedir=file_dirname(filename),filename=filename
+    cl_load_csa_postprocess,netobj=net_object,filedir=file_dirname(filename),filename=filename,verbose=verbose
 
   endif else begin
 

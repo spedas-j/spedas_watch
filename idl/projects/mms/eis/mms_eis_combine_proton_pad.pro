@@ -1,4 +1,3 @@
-;+
 ; PROCEDURE:
 ;   mms_eis_combine_proton_pad.pro
 ;
@@ -20,20 +19,20 @@
 ;                                     energy ranges that do not include all energy channels; also fixed indexing on line 95 to accommodate
 ;       + 2018-06-12, I. Cohen      : removed 12 keV energy from combined pad range; imposed new min energy limit
 ;       + 2018-08-09, I. Cohen      : introduced energy_string to keep user-defined energy range from being overwritten
-;
+;       + 2020-12-11, I. Cohen      : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords
 ;-
 pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units = data_units, size_pabin = size_pabin, energy = energy, suffix = suffix
   ;
   compile_opt idl2
-  if not KEYWORD_SET(data_rate) then data_rate = 'srvy'
-  if not KEYWORD_SET(data_units) then data_units = 'flux'
-  if not KEYWORD_SET(suffix) then suffix = ''
+  if undefined(data_rate) then data_rate = 'srvy'
+  if undefined(data_units) then data_units = 'flux'
+  if undefined(suffix) then suffix = ''
   if (data_units ne 'flux') then begin
     print,'Combination of PHxTOF and ExTOF data products is only recommended for flux data!'
     return
   endif
-  if not KEYWORD_SET(size_pabin) then size_pabin = 15d
-  if not KEYWORD_SET(energy) then energy = [55d,800d]
+  if undefined(size_pabin) then size_pabin = 15d
+  if undefined(energy) then energy = [55d,800d]
   ;
   if (data_rate eq 'brst') then eis_prefix = 'mms'+probes+'_epd_eis_brst_' else eis_prefix = 'mms'+probes+'_epd_eis_'
   units_label = data_units eq 'cps' ? '1/s': '1/(cm!U2!N-sr-s-keV)'

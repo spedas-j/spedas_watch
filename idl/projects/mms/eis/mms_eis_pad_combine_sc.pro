@@ -35,19 +35,22 @@
 ;                                   change format of energy ranges in thissc_pad_vars definition
 ;       + 2020-10-26, I. Cohen    : added/edited lines from mms_eis_spec_combine_sc.pro to create spin-averaged variables
 ;       + 2020-11-02, R. Nikoukar : changed 'mmsx' to 'mms#-#' for consistency with mms_eis_spec_combine_sc.pro; corrected time indexing for spin-averaged variables
+;       + 2020-12-14, I. Cohen    : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords; 
+;                                   added "datarate_str" to handle issue with probes definition if both burst and survey data are loaded
 ;
 ;-
 pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, data_rate = data_rate, $
                 energy = energy, data_units = data_units, datatype = datatype, suffix = suffix, combine_proton_data = combine_proton_data
   ;
   compile_opt idl2
-  if not KEYWORD_SET(data_rate) then data_rate = 'srvy' else data_rate = strlowcase(data_rate)
-  if not KEYWORD_SET(scopes) then scopes = ['0','1','2','3','4','5']
-  if not KEYWORD_SET(level) then level = 'l2'
-  if not KEYWORD_SET(energy) then energy = [55,800]
-  if not KEYWORD_SET(data_units) then data_units = 'flux'
-  if not KEYWORD_SET(species) then species = 'proton'
-  if not KEYWORD_SET(suffix) then suffix = ''
+  if undefined(data_rate) then data_rate = 'srvy' else data_rate = strlowcase(data_rate)
+  if (data_rate eq 'brst') then  datarate_str = 'brst_' else datarate_str = ''
+  if undefined(scopes) then scopes = ['0','1','2','3','4','5']
+  if undefined(level) then level = 'l2'
+  if undefined(energy) then energy = [55,800]
+  if undefined(data_units) then data_units = 'flux'
+  if undefined(species) then species = 'proton'
+  if undefined(suffix) then suffix = ''
   if undefined(combine_proton_data) then combine_proton_data = 0
   if undefined(datatype) then begin
     case species of
@@ -61,7 +64,8 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
       'electron': datatype = 'electronenergy'
     endcase
   endif
-  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_proton*flux*omni'+suffix) else eis_sc_check = tnames('mms*eis*phxtof_proton*flux*omni'+suffix)
+  stop
+  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*'+datarate_str+'extof_proton*flux*omni'+suffix) else eis_sc_check = tnames('mms*eis'+datarate_str+'phxtof_proton*flux*omni'+suffix)
   probes = strmid(eis_sc_check, 3, 1)
   if (n_elements(probes) gt 4) then probes = probes[0:-2]
   ;
@@ -147,7 +151,6 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
       ; spin-average
       spin_avg_pad_energy = dblarr(n_elements(spin_starts), n_elements(temp_refprobe.v1))
       current_start = 0
-      stop
       ; loop through the spins for this telescope
       for spin_idx = 0,n_elements(spin_starts)-1 do begin
         ; loop over bins

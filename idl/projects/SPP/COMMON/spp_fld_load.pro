@@ -91,9 +91,9 @@
 ; CREATED BY:       Davin Larson December 2018
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
-; $LastChangedBy: anarock $
-; $LastChangedDate: 2020-11-18 13:19:37 -0800 (Wed, 18 Nov 2020) $
-; $LastChangedRevision: 29360 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2020-12-13 22:49:45 -0800 (Sun, 13 Dec 2020) $
+; $LastChangedRevision: 29478 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -109,7 +109,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
   if not keyword_set(type) then begin
     dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr mag_SC_4_Sa_per_Cyc'
-    dprint,'See the directories at: "http://research.ssl.berkeley.edu/data/psp/data/sci/fields/staging/l2/" for other valid entries'
+    dprint,'See the directories at: "http://research.ssl.berkeley.edu/data/psp/data/sci/fields/l2/" for other valid entries'
     type = 'mag_SC_4_Sa_per_Cyc'
     dprint,'Default is: ', type
   endif

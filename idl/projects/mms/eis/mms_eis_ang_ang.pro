@@ -62,10 +62,11 @@
 ;       + 2017-05-05, I. Cohen      : added ability to use "helium" as species; altered EIS varformat to include look direction and magnetic field;
 ;                                   : added print command to inform if data is unavailable
 ;       + 2020-07-02, S. Bingham    : added no_plot, cdf_version, and n_azbins keywords; added output of ang-ang data to tplot variable; changed procedure name to 'mms_eis_ang_ang.pro'
+;       + 2020-12-11, I. Cohen      : changed "undefined" to "undefined" in initialization of some keywords
 ;                        
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-10-01 14:31:42 -0700 (Thu, 01 Oct 2020) $
-;$LastChangedRevision: 29200 $
+;$LastChangedDate: 2020-12-14 09:04:52 -0800 (Mon, 14 Dec 2020) $
+;$LastChangedRevision: 29479 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/eis/mms_eis_ang_ang.pro $
 ;-
 
@@ -73,19 +74,19 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
   energy_chan = energy_chan, avgdata=avgdata, i_print = i_print, p_filename = p_filename, png = png, no_plot = no_plot, cdf_version = cdf_version, n_azbins = n_azbins
   
   ; set defaults
-  if not KEYWORD_SET(probe) then probe = '1' else probe = strcompress(string(probe), /rem)
-  if not KEYWORD_SET(species) then species = 'proton'
-  if not KEYWORD_SET(datatype) then datatype = 'extof'
-  if not KEYWORD_SET(data_units) then data_units = 'flux'
-  if not KEYWORD_SET(data_rate) then data_rate = 'srvy'
-  if not KEYWORD_SET(level) then level = 'l2'
-  if not KEYWORD_SET(energy_chan) then energy_chan = [1,2,3,4]
-  if not KEYWORD_SET(i_print) then i_print = 0
-  if not KEYWORD_SET(avgdata) then avgdata = 0
-  if not KEYWORD_SET(trange) && n_elements(trange) eq 2 $
+  if undefined(probe) then probe = '1' else probe = strcompress(string(probe), /rem)
+  if undefined(species) then species = 'proton'
+  if undefined(datatype) then datatype = 'extof'
+  if undefined(data_units) then data_units = 'flux'
+  if undefined(data_rate) then data_rate = 'srvy'
+  if undefined(level) then level = 'l2'
+  if undefined(energy_chan) then energy_chan = [1,2,3,4]
+  if undefined(i_print) then i_print = 0
+  if undefined(avgdata) then avgdata = 0
+  if undefined(trange) && n_elements(trange) eq 2 $
     then trange = timerange(trange) $
     else trange = timerange()
-  if not KEYWORD_SET(no_plot) then no_plot = 0
+  if undefined(no_plot) then no_plot = 0
   
   ; species should always be 'electron' for 'electronenergy' datatypes
   if datatype eq 'electronenergy' then species = 'electron'
@@ -153,7 +154,7 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
   max_pol_edges = -80 + 160*(findgen(n_pol)+1)/n_pol
   
   ;if data_rate eq 'brst' then n_azi = 32 else n_azi = 8
-  IF KEYWORD_SET(n_azbins) THEN n_azi = n_azimuths ELSE n_azi = n_elements(uniq(sector.Y, sort(sector.Y)))
+  IF KEYWORD_SET(n_azbins) THEN n_azi = n_azbins ELSE n_azi = n_elements(uniq(sector.Y, sort(sector.Y)))
   
   min_azi_edges = -180 + 360*findgen(n_azi)/n_azi
   max_azi_edges = -180 + 360*(findgen(n_azi)+1)/n_azi

@@ -31,7 +31,9 @@
 ;         + 2020-09-28, I. Cohen        : fixed issue with proton being hardcoded in call for spin-averaging
 ;         + 2020-09-29, I. Cohen        : changed "mmsx" prefix to mms#-# for consistency with other EIS procedures and 
 ;                                         removed call to mms_eis_spin_avg.pro, instead create spin-averaged variables directly here
-;         + 2020-09-30, I. Cohen        : removed duplicate "datatype" in name of tplot spin variable (line 105)                            
+;         + 2020-09-30, I. Cohen        : removed duplicate "datatype" in name of tplot spin variable (line 105)
+;         + 2020-10-26, I. Cohen        : added missing "datatype" in definition of prefix for survey data                   
+;         + 2020-12-11, I. Cohen        : moved eis_sc_check definition into species loop to address issue handling multiple species from single call              
 ;
 ;-
 pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
@@ -44,18 +46,19 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
     'cps': ztitle_string = 'CountRate!C[counts/s]'
     'counts': ztitle_string = 'Counts!C[counts]'
   endcase
-  if undefined(species) then species = 'proton'
+  
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = 'srvy'
+  if undefined(species) then species = 'proton'
   if datatype eq 'electronenergy' then species = 'electron'
-  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species+'*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_'+species+'*flux*omni')
-  probes = strmid(eis_sc_check, 3, 1)
-  if (n_elements(probes) gt 4) then probes = probes[0:-2]
-  if (n_elements(probes) gt 1) then probe_string = probes[0]+'-'+probes[-1] else probe_string = probes
-  if (data_rate eq 'brst') then allmms_prefix = 'mms'+probe_string+'_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mms'+probe_string+'_epd_eis_'+datatype+'_'
   ;
   ;
   for ss=0,n_elements(species)-1 do begin
+    if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species[ss]+'*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_'+species[ss]+'*flux*omni')
+    probes = strmid(eis_sc_check, 3, 1)
+    if (n_elements(probes) gt 4) then probes = probes[0:-2]
+    if (n_elements(probes) gt 1) then probe_string = probes[0]+'-'+probes[-1] else probe_string = probes
+    if (data_rate eq 'brst') then allmms_prefix = 'mms'+probe_string+'_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mms'+probe_string+'_epd_eis_'+datatype+'_'
     ;
     ; DETERMINE SPACECRAFT WITH SMALLEST NUMBER OF TIME STEPS TO USE AS REFERENCE SPACECRAFT
     if (data_rate eq 'brst') then omni_vars = tnames('mms?_epd_eis_brst_'+datatype+'_'+species[ss]+'_'+data_units+'_omni') else if (data_rate eq 'srvy') then omni_vars = tnames('mms?_epd_eis_'+datatype+'_'+species[ss]+'_'+data_units+'_omni')
@@ -73,7 +76,7 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
       energy_size[pp] = n_elements(thisprobe_flux.v)
     endfor
     ref_sc_time_size = min(time_size, reftime_sc_loc)
-    if (data_rate eq 'brst') then prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_' 
+    if (data_rate eq 'brst') then prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_'+datatype+'_'
     get_data, omni_vars[reftime_sc_loc], data=time_refprobe
     ref_sc_energy_size = min(energy_size, refenergy_sc_loc)
     get_data, omni_vars[refenergy_sc_loc], data=energy_refprobe
