@@ -29,8 +29,8 @@
 ;       SHIFTPOT:      Correct for spacecraft potential.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-10-21 16:29:50 -0700 (Wed, 21 Oct 2020) $
-; $LastChangedRevision: 29270 $
+; $LastChangedDate: 2020-12-15 13:03:48 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29495 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_get3d.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -379,12 +379,7 @@ function mvn_swe_get3d, time, archive=archive, all=all, sum=sum, units=units, bu
 ; other units.
 
     rate = counts/(swe_integ_t*ddd[n].dt_arr)  ; raw count rate
-    dtc = 1. - rate*swe_dead
-
-    indx = where(dtc lt swe_min_dtc, count)    ; maximum deadtime correction
-    if (count gt 0L) then dtc[indx] = !values.f_nan
-
-    ddd[n].dtc = dtc                           ; corrected count rate = rate/dtc
+    ddd[n].dtc = swe_deadtime(rate)            ; corrected count rate = rate/dtc
     
 ; Insert MAG1 data, if available
 

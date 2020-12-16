@@ -32,8 +32,8 @@
 ;  
 ;   
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-11-25 15:04:18 -0800 (Wed, 25 Nov 2020) $
-; $LastChangedRevision: 29392 $
+; $LastChangedDate: 2020-12-15 12:11:10 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29486 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot2cdf.pro $
 ;-
 
@@ -277,6 +277,8 @@ pro tplot2cdf, filename=filename, tvars=tplot_vars, inq=inq_structure, g_attribu
     if ~undefined(VAR) then begin
       attr = dl.cdf.vatt
       if STRCMP(attr.VAR_TYPE, 'undefined') then attr.VAR_TYPE = 'data' ;Change attributes for data variable variable
+      if ~tag_exist(attr, 'DISPLAY_TYPE') then str_element, attr, 'DISPLAY_TYPE', 'time_series', /add
+      
       if STRCMP(attr.DISPLAY_TYPE, 'undefined') then begin
         attr.DISPLAY_TYPE = 'time_series' ; if display type is not defined we assume that it is a time_series        
         if array_contains(t,'DEPEND_1') then begin

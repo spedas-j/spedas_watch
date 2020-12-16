@@ -205,9 +205,15 @@ end
 ;       TWOT:          Compare energy of peak energy flux and temperature of 
 ;                      Maxwell-Boltzmann fit. (Nominally, E_peak = 2*T)
 ;
+;       SHOWDEAD:      Show the scaled deadtime correction.  Does not work with
+;                      summed spectra (keywords SUM and TSMO) because spectra
+;                      are summed in units of corrected count rate (CRATE) so
+;                      that the deadtime corrections for the individual spectra
+;                      are lost.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 12:21:06 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28842 $
+; $LastChangedDate: 2020-12-15 13:00:04 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29490 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -221,7 +227,8 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
                    xrange=xrange,yrange=frange,sscale=sscale, popen=popen, times=times, $
                    flev=flev, pylim=pylim, k_e=k_e, peref=peref, error_bars=error_bars, $
                    trange=tspan, tsmo=tsmo, wscale=wscale, cscale=cscale, voffset=voffset, $
-                   endx=endx, twot=twot, rcolors=rcolors, cuii=cuii, fmfit=fmfit
+                   endx=endx, twot=twot, rcolors=rcolors, cuii=cuii, fmfit=fmfit, nolab=nolab, $
+                   showdead=showdead
 
   @mvn_swe_com
   @mvn_scpot_com
@@ -239,15 +246,20 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
 
   aflg = keyword_set(archive) or keyword_set(burst)
   if not keyword_set(units) then units = 'eflux'
-  if keyword_set(sum) then npts = 2 else npts = 1
+  if keyword_set(sum) then begin
+    npts = 2
+    showdead = 0  ; incompatible with summed spectra
+  endif else npts = 1
   if keyword_set(tsmo) then begin
     npts = 1
     dosmo = 1
     delta_t = double(tsmo)/2D
+    showdead = 0  ; incompatible with summed spectra
   endif else dosmo = 0
   if (size(error_bars,/type) eq 0) then ebar = 1 else ebar = keyword_set(error_bars)
   dflg = keyword_set(ddd)
   oflg = ~keyword_set(noerase)
+  dolab = ~keyword_set(nolab)
   if (size(scp,/type) eq 0) then scp = !values.f_nan else scp = float(scp[0])
   if (size(fixy,/type) eq 0) then fflg = 1 else fflg = keyword_set(fixy)
   rflg = keyword_set(rainbow)
@@ -295,6 +307,8 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
     get_data,'lon',data=lon
     get_data,'lat',data=lat
   endif else doalt = 0
+
+  if (~dolab) then doalt = 0
 
   domag = 0
   if keyword_set(magdir) then begin
@@ -397,7 +411,9 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
   Ewin = !d.window
 
   if (hflg) then begin
-    putwin, /free, key=Hopt
+    opt = Hopt
+    opt.dx = Eopt.xsize*wscale + 20
+    putwin, /free, key=opt
     Hwin = !d.window
   endif
   
@@ -482,6 +498,10 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
       mvn_swe_convert_units, spec, units
     endif else spec.energy -= pot
   endif
+
+  rate = spec
+  mvn_swe_convert_units, rate, 'rate'
+  rate = rate.data
   
   case strupcase(units) of
     'COUNTS' : ytitle = 'Raw Counts'
@@ -517,7 +537,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
 
     psym = 10
 
-    if ((nplot eq 0) or oflg) then plot_oo,x,y,yrange=yrange,/ysty,xrange=xrange, $
+    if ((nplot eq 0) or oflg) then plot_oo,x,y,yrange=yrange,/ysty,xrange=xrange,/xsty, $
             xtitle='Energy (eV)', ytitle=ytitle,charsize=csize2,psym=psym,title=time_string(spec.time), $
             xmargin=[10,3] $
                               else oplot,x,y,psym=psym
@@ -528,6 +548,18 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
       col = rcol[nplot mod ncol]
       oplot,x,y,psym=psym,color=col
       if (ebar) then errplot,x,(y-dy)>tiny,y+dy,width=0,color=col
+    endif
+
+    if keyword_set(showdead) then begin
+      scale = max(yrange)/10.
+      if (swe_paralyze) then mindtc = 1./exp(1.) else mindtc = swe_min_dtc
+      oplot,x,scale/swe_deadtime(rate),psym=psym,color=6
+      oplot,xrange,[scale,scale],line=2,color=6
+      oplot,xrange,[scale,scale]/mindtc,line=2,color=6
+      msg = "!4s!1H = " + string(swe_dead, format='(e8.2)')
+      xyouts, max(xrange)*0.8, scale*0.75/mindtc, msg, charsize=csize2, align=1, color=6
+      msg = ["non-paralyzable","paralyzable"]
+      xyouts, max(xrange)*0.8, scale*0.55/mindtc, msg[swe_paralyze], charsize=csize2, align=1, color=6
     endif
 
     if (keyword_set(fmfit) and strupcase(units) eq 'DF') then begin
@@ -861,7 +893,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
       ys -= dys
     endif
     
-    if (~mb and ~mom) then begin
+    if (~mb and ~mom and dolab) then begin
       xyouts,xs,ys,string(pot,format='("V = ",f6.2)'),color=col,charsize=csize1,/norm
       ys -= dys
     endif
@@ -1112,6 +1144,10 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
             mvn_swe_convert_units, spec, units
           endif else spec.energy -= pot
         endif
+
+        rate = spec
+        mvn_swe_convert_units, rate, 'rate'
+        rate = rate.data
 
         if (fflg) then yrange = drange
         if keyword_set(frange) then yrange = frange

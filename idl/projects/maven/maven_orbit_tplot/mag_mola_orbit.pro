@@ -46,9 +46,11 @@
 ;
 ;       SLAB:       Text labels for each of the sites.
 ;
+;       SCOL:       Color for each of the sites.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-11 11:49:05 -0800 (Fri, 11 Dec 2020) $
-; $LastChangedRevision: 29473 $
+; $LastChangedDate: 2020-12-15 12:57:26 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29487 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mag_mola_orbit.pro $
 ;
 ;CREATED BY:	David L. Mitchell  04-02-03
@@ -56,7 +58,7 @@
 pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
                     reset=reset, big=big, noerase=noerase, title=title, $
                     terminator=ttime, shadow=shadow, alt=alt, sites=sites, $
-                    slab=slab, dbr=dbr
+                    slab=slab, scol=scol, dbr=dbr
 
   common magmola_orb_com, img, ppos
   @swe_snap_common
@@ -79,6 +81,11 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
   if ((sz[0] eq 1) and (sz[1] ge 2)) then nsites = 1
   if ((sz[0] eq 2) and (sz[1] eq 2)) then nsites = sz[2]
   dolab = (size(slab,/type) eq 7)
+  scol2 = replicate(6,nsites>1)
+  ncol = n_elements(scol)
+  if (ncol gt 0) then scol2[0:(ncol-1)<(nsites-1)] = scol[0:(ncol-1)<(nsites-1)]
+  if (ncol lt nsites) then scol2[ncol:(nsites-1)] = scol[ncol-1]
+  scol = scol2
 
   if (psym gt 7) then psym = 8
   a = 0.8
@@ -129,9 +136,9 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
   endif
 
   if (dolab) then begin
-    for i=0,(nsites-1) do xyouts,sites[0,i],sites[1,i],slab[i],align=0.5,charsize=1.5,color=6,charthick=2
+    for i=0,(nsites-1) do xyouts,sites[0,i],sites[1,i],slab[i],align=0.5,charsize=1.5,color=scol[i],charthick=2
   endif else begin
-    for i=0,(nsites-1) do oplot,[sites[0,i]],[sites[1,i]],psym=8,symsize=1.5,color=6
+    for i=0,(nsites-1) do oplot,[sites[0,i]],[sites[1,i]],psym=8,symsize=1.5,color=scol[i]
   endelse
 
   oplot,[lon],[lat],psym=psym,color=color,linestyle=lstyle,thick=2,symsize=1.4

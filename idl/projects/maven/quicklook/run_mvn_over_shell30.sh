@@ -14,11 +14,11 @@ if !( $?IDL_PATH ) then
 endif
 
 setenv IDL_PATH $IDL_PATH':'+$IDL_BASE_DIR
-setenv CDF_TMP /mydisks/home/maven
+setenv CDF_TMP /mydisks/home/maven/muser
 
 #check for lock file here
 if (! -e /mydisks/home/maven/muser/MVN_OVER_SHELL30lock.txt) then
-    cd /mydisks/home/maven
+    cd /mydisks/home/maven/muser
     rm -f run_mvn_over_shell30.bm
     rm -f /mydisks/home/maven/muser/run_mvn_over_shell30.txt
 

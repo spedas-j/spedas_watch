@@ -22,6 +22,9 @@
 ;       wnum:      Window number.  Can be an integer from 0 to 31.
 ;                  Default: next free widow number > 31.
 ;
+;                  This can also be set to a variable name, which will
+;                  return the window number chosen.
+;
 ;       monitor:   Monitor number.  Can also be set by keyword (see
 ;                  below), but this method takes precedence.  Only the
 ;                  second input will be interpreted as a monitor number.
@@ -32,6 +35,9 @@
 ;                  "primary monitor", where graphics windows appear by
 ;                  default.  This routine also defaults to the primary
 ;                  monitor.  See keywords SECONDARY and SHOW.
+;
+;                  This can also be set to a variable name, which will
+;                  return the monitor number chosen.
 ;
 ;KEYWORDS:
 ;       Accepts all keywords for WINDOW.  In addition, the following
@@ -157,13 +163,21 @@
 ;
 ;                    {KEYWORD:value, KEYWORD:value, ...}
 ;
+;                  Case folded minimum matching is used to match tag
+;                  names in this structure to valid keywords.  For
+;                  example:
+;
+;                    {f:1, m:2} is interpreted as FULL=1, MONITOR=2.
+;
+;                  Unrecognized or ambiguous tag names are ignored.
+;
 ;                  Keywords set using this mechanism take precedence.
-;                  All other keywords for WINDOW must be passed  
+;                  All other keywords for WINDOW must be passed
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-04 08:51:32 -0800 (Fri, 04 Dec 2020) $
-; $LastChangedRevision: 29431 $
+; $LastChangedDate: 2020-12-15 13:09:06 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -185,48 +199,43 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 ; all keywords for WINDOW must be passed separately in the usual way.
 
   if (size(key,/type) eq 8) then begin
-    str_element, key, 'CONFIG', value, success=ok
-    if (ok) then config = value
-    str_element, key, 'STAT', value, success=ok
-    if (ok) then stat = value
-    str_element, key, 'SHOW', value, success=ok
-    if (ok) then show = value
-    str_element, key, 'MONITOR', value, success=ok
-    if (ok) then monitor = value
-    str_element, key, 'SECONDARY', value, success=ok
-    if (ok) then secondary = value
-    str_element, key, 'DX', value, success=ok
-    if (ok) then dx = value
-    str_element, key, 'DY', value, success=ok
-    if (ok) then dy = value
-    str_element, key, 'NORM', value, success=ok
-    if (ok) then norm = value
-    str_element, key, 'CENTER', value, success=ok
-    if (ok) then center = value
-    str_element, key, 'XCENTER', value, success=ok
-    if (ok) then xcenter = value
-    str_element, key, 'YCENTER', value, success=ok
-    if (ok) then ycenter = value
-    str_element, key, 'CORNER', value, success=ok
-    if (ok) then corner = value
-    str_element, key, 'SCALE', value, success=ok
-    if (ok) then scale = value
-    str_element, key, 'FULL', value, success=ok
-    if (ok) then full = value
-    str_element, key, 'XFULL', value, success=ok
-    if (ok) then xfull = value
-    str_element, key, 'YFULL', value, success=ok
-    if (ok) then yfull = value
-    str_element, key, 'ASPECT', value, success=ok
-    if (ok) then aspect = value
-    str_element, key, 'XSIZE', value, success=ok
-    if (ok) then xsize = value
-    str_element, key, 'YSIZE', value, success=ok
-    if (ok) then ysize = value
-    str_element, key, 'NOFIT', value, success=ok
-    if (ok) then nofit = value
-    str_element, key, 'TBAR', value, success=ok
-    if (ok) then tbar = value
+    ktag = tag_names(key)
+    klist = ['CONFIG','STAT','SHOW','MONITOR','SECONDARY','DX','DY','NORM', $
+             'CENTER','XCENTER','YCENTER','CORNER','SCALE','FULL','XFULL', $
+             'YFULL','ASPECT','XSIZE','YSIZE','NOFIT','TBAR']
+    for j=0,(n_elements(ktag)-1) do begin
+      i = strmatch(klist, ktag[j]+'*', /fold)
+      case (total(i)) of
+          0  : print, "Keyword not recognized: ", ktag[j]
+          1  : begin
+                 k = (where(i eq 1))[0]
+                 case k of
+                    0 : config = key.(j)
+                    1 : stat = key.(j)
+                    2 : show = key.(j)
+                    3 : monitor = key.(j)
+                    4 : secondary = key.(j)
+                    5 : dx = key.(j)
+                    6 : dy = key.(j)
+                    7 : norm = key.(j)
+                    8 : center = key.(j)
+                    9 : xcenter = key.(j)
+                   10 : ycenter = key.(j)
+                   11 : corner = key.(j)
+                   12 : scale = key.(j)
+                   13 : full = key.(j)
+                   14 : xfull = key.(j)
+                   15 : yfull = key.(j)
+                   16 : aspect = key.(j)
+                   17 : xsize = key.(j)
+                   18 : ysize = key.(j)
+                   19 : nofit = key.(j)
+                   20 : tbar = key.(j)
+                 endcase
+               end
+        else : print, "Keyword ambiguous: ", ktag[j]
+      endcase
+    endfor
   endif
 
 ; Output the current monitor configuration.
@@ -345,12 +354,18 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     endif
   endif else monitor = fix(monitor[0])
   monitor = (monitor > 0) < maxmon
+  mnum = monitor
+
   if (size(aspect,/type) gt 0) then begin
     if (n_elements(xsize) gt 0) then begin
       ysize = float(xsize[0])/aspect
     endif else begin
       if (n_elements(ysize) gt 0) then xsize = float(ysize[0])*aspect
     endelse
+    if ((n_elements(xsize) eq 0) and (n_elements(ysize) eq 0)) then begin
+      ysize = mgeom[3, monitor]/2
+      xsize = float(ysize[0])*aspect
+    endif
   endif
   if (n_elements(xsize) eq 0) then begin
     xsize = mgeom[2, monitor]/2
@@ -360,6 +375,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
   if (n_elements(scale) eq 0) then scale = 1.
   xsize = fix(float(xsize[0])*scale)
   ysize = fix(float(ysize[0])*scale)
+
   if (n_elements(dx) eq 0) then dx = 0
   if (n_elements(dy) eq 0) then dy = 0
   if keyword_set(norm) then begin

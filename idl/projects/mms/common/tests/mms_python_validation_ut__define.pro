@@ -6,10 +6,26 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-12-11 09:57:17 -0800 (Fri, 11 Dec 2020) $
-; $LastChangedRevision: 29472 $
+; $LastChangedDate: 2020-12-15 15:00:06 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29500 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
+
+function mms_python_validation_ut::test_tplot_restore_hpca_moments
+  mms_load_hpca, datatype='moments', trange=['2015-10-16', '2015-10-17']
+  tplot_save, ['mms1_hpca_hplus_number_density', 'mms1_hpca_hplus_ion_bulk_velocity'], filename='hpca_moments'
+  py_script = ["from pytplot import tplot_restore", "tplot_restore('hpca_moments.tplot')"]
+  vars = ['mms1_hpca_hplus_number_density', 'mms1_hpca_hplus_ion_bulk_velocity']
+  return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_tplot_restore_hpca_df
+  mms_load_hpca, datatype='ion', trange=['2015-10-16', '2015-10-16/03:00']
+  tplot_save, ['mms1_hpca_hplus_number_density', 'mms1_hpca_hplus_ion_bulk_velocity'], filename='hpca_df'
+  py_script = ["from pytplot import tplot_restore", "tplot_restore('hpca_df.tplot')"]
+  vars = ['mms1_hpca_hplus_flux', 'mms1_hpca_hplus_phase_space_density']
+  return, spd_run_py_validation(py_script, vars)
+end
 
 function mms_python_validation_ut::test_data_segment_intervals
   mms_load_brst_segments, trange=['2015-10-16', '2015-10-17'], start_times=brst_starts, end_times=brst_ends

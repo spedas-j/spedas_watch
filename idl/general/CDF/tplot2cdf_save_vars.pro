@@ -24,14 +24,21 @@
 ;  Alexander Drozdov
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2018-12-13 08:16:04 -0800 (Thu, 13 Dec 2018) $
-; $LastChangedRevision: 26321 $
+; $LastChangedDate: 2020-12-15 12:11:10 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29486 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/tplot2cdf_save_vars.pro $
 ;-
 
 pro tplot2cdf_save_vars, cdf_structure, new_cdf_name, compress_cdf=compress_cdf, cdfconvert=cdfconvert, cdfparams=cdfparams, cdf_compress_error=cdf_compress_error, cdf_tmp_dir=cdf_tmp_dir
 
 compile_opt idl2
+
+catch, error_status
+
+if error_status ne 0 then begin
+  dprint, dlevel=0, 'Error: ', strcompress(string(error_status), /rem) + ': ' + !error_state.msg
+  catch, /cancel
+endif
 
 ;check input
 ;-----------
@@ -106,6 +113,10 @@ for i=0,cdf_structure.nv-1 do begin
 	if (cdf_structure.vars[i].recvary eq 0) then recvary='rec_novary' else recvary='rec_vary'	
 	
 	if (ptr_valid(cdf_structure.vars[i].dataptr)) then begin	
+	   if *cdf_structure.vars[i].dataptr eq !NULL then begin
+	     dprint, dlevel=2, 'Warning: variable ' + var_name + ' has no valid data'
+	     continue
+	   endif
 	   data_dimen = dimen(*cdf_structure.vars[i].dataptr)	   
 	   data_ndimen = ndimen(*cdf_structure.vars[i].dataptr)
 	   	   

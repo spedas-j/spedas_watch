@@ -33,8 +33,8 @@
 ;       DAY:       PAD units are days.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-10-13 15:47:37 -0700 (Tue, 13 Oct 2020) $
-; $LastChangedRevision: 29247 $
+; $LastChangedDate: 2020-12-15 12:58:34 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29488 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/timefit.pro $
 ;
 ;CREATED BY:	David L. Mitchell  07-06-14
@@ -51,7 +51,11 @@ pro timefit, time, var=var, pad=pad, min=min, hour=hour, day=day
       print, "Cannot process compound variable: ", var
       return
     endif
-    time = minmax(dat.x)
+    str_element, dat, 'x', x, success=ok
+    if (ok) then time = minmax(x) else begin
+      print, "Cannot process variable: ", var
+      return
+    endelse
   endif
 
   case n_elements(time) of
@@ -69,7 +73,11 @@ pro timefit, time, var=var, pad=pad, min=min, hour=hour, day=day
                print, "Cannot process compound variable: ", time
                return
              endif
-             time = minmax(dat.x)
+             str_element, dat, 'x', x, success=ok
+             if (ok) then time = minmax(x) else begin
+               print, "Cannot process variable: ", time
+               return
+             endelse
            end
     else : ; do nothing
   endcase

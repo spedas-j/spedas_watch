@@ -31,8 +31,8 @@
 ;       WORK2:         Equivalent to LAYOUT=1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-09-02 13:32:52 -0700 (Wed, 02 Sep 2020) $
-; $LastChangedRevision: 29109 $
+; $LastChangedDate: 2020-12-15 12:59:03 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29489 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_snap_layout.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -74,7 +74,7 @@ pro swe_snap_layout, layout, home=home, work=work, work2=work2
              Sopt = {xsize:450, ysize:600, dx:820, dy:10, monitor:m, corner:0}   ; 3D SPEC
 
              Popt = {xsize:800, ysize:600, dx:10, dy:10, monitor:m, corner:0}    ; PAD
-             Nopt = {xsize:600, ysize:450, dx:10, dy:10, monitor:m, corner:2}    ; PAD Energy Cut
+             Nopt = {xsize:600, ysize:450, dx:10, dy:620, monitor:m, corner:0}   ; PAD Energy Cut
              Copt = {xsize:500, ysize:700, dx:10, dy:10, monitor:m, corner:2}    ; PAD 3D View
              Fopt = {xsize:400, ysize:600, dx:820, dy:10, monitor:m, corner:0}   ; PAD SPEC
 
@@ -101,7 +101,7 @@ pro swe_snap_layout, layout, home=home, work=work, work2=work2
 
              Popt = {xsize:800, ysize:600, dx:10, dy:10, monitor:m, corner:0}    ; PAD
              Nopt = {xsize:600, ysize:450, dx:10, dy:620, monitor:m, corner:0}   ; PAD Energy Cut
-             Copt = {xsize:500, ysize:700, dx:10, dy:10, monitor:m, corner:2}    ; PAD 3D View
+             Copt = {xsize:500, ysize:700, dx:640, dy:10, monitor:m, corner:2}   ; PAD 3D View
              Fopt = {xsize:400, ysize:600, dx:820, dy:10, monitor:m, corner:0}   ; PAD SPEC
 
              Eopt = {xsize:400, ysize:600, dx:10, dy:10, monitor:m, corner:0}    ; SPEC
@@ -109,7 +109,7 @@ pro swe_snap_layout, layout, home=home, work=work, work2=work2
 
              Oopt  = {yfull:1, aspect:0.351, dx:10, dy:0, monitor:m, corner:0}   ; Orbit 1x3
              Oopt1 = {xsize:500,  ysize:473, dx:10, dy:10, monitor:m, corner:0}  ; Orbit 1x1
-             OCopt = {xsize:600,  ysize:350, dx:10, dy:10, monitor:m, corner:2}  ; Orbit cylindrical
+             OCopt = {xsize:600,  ysize:350, dx:510, dy:10, monitor:m, corner:0} ; Orbit cylindrical
              Mopt  = {xsize:757,  ysize:409, dx:550, dy:10, monitor:m, corner:0} ; Mars Small
              MMopt = {xsize:1082, ysize:572, dx:550, dy:10, monitor:m, corner:0} ; Mars Large
              SSopt = {xsize:600,  ysize:280, dx:10, dy:10, monitor:m, corner:2}  ; MSO Lat-Lon

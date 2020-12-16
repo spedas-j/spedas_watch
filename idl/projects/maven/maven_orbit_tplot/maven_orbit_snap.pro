@@ -125,9 +125,13 @@
 ;                 symbols instead.  Text labels are centered in longitude with
 ;                 the baseline at latitude.
 ;
+;       SCOL:     Color(s) for the lander labels or symbols.  If there are more
+;                 landers than colors, then additional landers are all given the
+;                 last color.  Default is 6 (red) for all.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-11 11:49:05 -0800 (Fri, 11 Dec 2020) $
-; $LastChangedRevision: 29473 $
+; $LastChangedDate: 2020-12-15 12:57:26 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29487 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -136,7 +140,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     npole=npole, noerase=noerase, keep=keep, color=color, reset=reset, cyl=cyl, times=times, $
     nodot=nodot, terminator=terminator, thick=thick, Bdir=Bdir, scale=scale, scsym=scsym, $
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
-    alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab
+    alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab, $
+    scol=scol
 
   @maven_orbit_common
   @swe_snap_common
@@ -180,6 +185,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
 
   ok = 0
   sites = 0
+  nsites = 0
   sz = size(landers)
   if (((sz[0] eq 1) or (sz[0] eq 2)) and (sz[1] eq 2)) then begin
     sites = landers
@@ -195,7 +201,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     ok = 1
   endif
   if ((not ok) and keyword_set(landers)) then begin
-    sites = fltarr(2,9)
+    nsites = 9
+    sites = fltarr(2,nsites)
     sites[*,0] = [311.778,  22.697]  ; Viking 1 Lander (1976-1982)
     sites[*,1] = [134.010,  48.269]  ; Viking 2 Lander (1976-1980)
     sites[*,2] = [326.450,  19.330]  ; Pathfinder (Sojourner Rover Jul-Sep 1997)
@@ -208,6 +215,11 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     if (size(slab,/type) gt 0) then dolab = keyword_set(slab) else dolab = 1
     if (dolab) then slab = ['V1','V2','Pa','S','O','Ph','C','I','Pe'] else slab = 0
   endif
+  scol2 = replicate(6,nsites>1)
+  ncol = n_elements(scol)
+  if (ncol gt 0) then scol2[0:(ncol-1)<(nsites-1)] = scol[0:(ncol-1)<(nsites-1)]
+  if (ncol lt nsites) then scol2[ncol:(nsites-1)] = scol[ncol-1]
+  scol = scol2
 
   if keyword_set(times) then begin
     times = time_double(times)
@@ -1041,7 +1053,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (doalt) then sc_alt = hgt[i] else sc_alt = 0
       mag_mola_orbit, lon[i], lat[i], big=mbig, noerase=noerase, title=title, color=j, $
                       terminator=ttime, psym=scsym, shadow=(doterm - 1), alt=sc_alt, $
-                      sites=sites, slab=slab, dbr=dbr
+                      sites=sites, slab=slab, scol=scol, dbr=dbr
     endif
 
 ; Put up Mars North polar plot

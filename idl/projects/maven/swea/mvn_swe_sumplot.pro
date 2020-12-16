@@ -68,8 +68,8 @@
 ;       BURST:        Plot a color bar showing PAD burst coverage.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-03-17 11:23:59 -0700 (Tue, 17 Mar 2020) $
-; $LastChangedRevision: 28423 $
+; $LastChangedDate: 2020-12-15 13:02:28 -0800 (Tue, 15 Dec 2020) $
+; $LastChangedRevision: 29492 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sumplot.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -541,11 +541,11 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
 
 ; Correct for deadtime.
 
-    yc = y/(1. - swe_dead*y)
+    yc = y/swe_deadtime(y)
     
     pad_s = strtrim(string(round(pad_e)),2)
     pname = 'swe_a2_' + pad_s
- 
+
     store_data,pname,data={x:x, y:yc, v:findgen(16)}
     options,pname,'ytitle',('E PAD (' + pad_s + ')')
     if (sflg) then begin
@@ -748,7 +748,7 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
 
 ; Correct for deadtime.
 
-    yc = y/(1. - swe_dead*y)
+    yc = y/swe_deadtime(y)
     
     pad_s = strtrim(string(round(pad_e)),2)
     pname = 'swe_a3_' + pad_s
