@@ -18,12 +18,13 @@
 ;"LOAD" routines should assume that SPICE kernels are already loaded.
 ;
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-10-07 14:36:30 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29216 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-12-16 14:00:08 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29527 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
+  ,mars=mars,jupiter=jupiter,saturn=saturn $
   ,reconstruct=reconstruct,no_update=no_update,no_server=no_server,no_download=no_download,last_version=last_version,predict=predict,attitude=attitude
 
   if spice_test() eq 0 then return,''
@@ -45,7 +46,7 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
   for i=0,n_elements(names)-1 do begin
     case strupcase(names[i]) of
       ;  "Standard" kernels
-      'STD':append_array, kernels,spice_standard_kernels(source=source,no_update=no_update)
+      'STD':append_array, kernels,spice_standard_kernels(source=source,no_update=no_update,mars=mars,jupiter=jupiter,saturn=saturn)
       ;Leap Second (TLS)
       'LSK':append_array,kernels,spd_download_plus(remote_file = source.remote_data_dir+'generic_kernels/lsk/naif00??.tls', $
         local_path = source.local_data_dir+'generic_kernels/lsk/', no_update = no_update, $

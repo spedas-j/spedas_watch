@@ -1,19 +1,19 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-01 10:53:17 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29407 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-12-16 13:53:04 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29523 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
 ;-
 
 pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname_prefix=tname_prefix,save=save,$
-  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay,spcname=spcname
+  verbose=verbose,varformat=varformat,fileprefix=fileprefix,overlay=overlay,spcname=spcname,sc_frame=sc_frame,sc2_frame=sc2_frame,rtn_frame=rtn_frame
 
   if ~keyword_set(level) then level='L3'
   level=strupcase(level)
   if ~keyword_set(types) then types=['sf00']  ;,'sf01','sf0a']
 
-  if types[0] eq 'all' then begin
+  if types[0] eq '*' || types[0] eq 'all' then begin
     types=['hkp','fhkp','tof','rates','events']
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1','2'] do foreach type3,['0','1','2','3','a'] do types=[types,type0+type1+type2+type3]
   endif
@@ -47,7 +47,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
       novardata = !null
       loadcdfstr,filenames=files,vardata,novardata
       source=spp_data_product_hash('spi_'+type+'_'+level,vardata)
-      printdat,source
+      ;printdat,source
     endif
 
     ;; Do not load the files
@@ -134,6 +134,55 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
 ;    options,'psp_swp_spc_l3i_np_fit',colors='b'
 ;    options,'psp_swp_spc_l3i_np_moment',colors='c'
     store_data,'psp_swp_density',data = 'psp_swp_spc_l3i_np_moment psp_swp_spc_l3i_np_fit psp_swp_spi_??0[01]_L3_DENS',dlimit={yrange:[10,600],ylog:1}
+  endif
+  
+  if keyword_set(SC_frame) || keyword_set(rtn_frame) then begin
+    rot_th = 20. ; rotation angle
+    rotr = [[1,0,0.],[0,cosd(rot_th),sind(rot_th)],[0,-sind(rot_th),cosd(rot_th)]]
+    rel = [[0,-1,0],[0,0,-1],[1,0,0]]    ; effective relabelling of axes
+    RotMat_inst_sc = rel ## rotr ; transformation matrix from ion instrument coordinates TO spacecraft
+    get_data,prefix+'VEL',data = spi_VEL
+    spi_vel.y = rotmat_inst_sc ## spi_vel.y
+    store_data,prefix+'VEL_SC',data = spi_VEL,dlimit={colors:'bgr',labels:['Vx','Vy','Vz'],labflag:-1}
+    if keyword_set(sc_frame) && sc_frame eq 2 then xyz_to_polar,prefix+'VEL_SC'
+  endif
+
+  if keyword_set(SC2_frame) then begin
+    quat_SC2_to_SC = [.5d,.5d,.5d,-.5d]
+    quat_SC_to_SC2 = [.5d,-.5d,-.5d,.5d]
+    if 0 then begin
+      rot_th = 20. ; rotation angle
+      rotr = [[1,0,0.],[0,cosd(rot_th),sind(rot_th)],[0,-sind(rot_th),cosd(rot_th)]]
+      rel = [[0,-1,0],[0,0,-1],[1,0,0]]    ; effective relabelling of axes
+      RotMat_inst_sc = rel ## rotr ; transformation matrix from ion instrument coordinates TO SC Frame     
+      print,spice_m2q(rotmat_inst_sc) 
+    endif
+    quat_inst_to_sc = [ 0.57922797d  ,   0.40557979d  ,    -0.57922797d ,    0.40557979d]
+    quat_inst_to_sc2 =  qmult(quat_sc_to_sc2,quat_inst_to_sc)  
+    get_data,prefix+'VEL',data = spi_VEL
+    spi_vel.y = quaternion_rotation(  spi_vel.y ,quat_inst_to_sc2 , last_index=0)
+    store_data,prefix+'VEL_SC2',data = spi_VEL,dlimit={colors:'bgr',labels:['Vx2','Vy2','Vz2'],labflag:-1}
+    if sc2_frame eq 2 then xyz_to_polar,prefix+'VEL_SC2'
+  endif
+
+  if keyword_set(RTN_frame) then begin
+;    quat_SC2_to_SC = [.5d,.5d,.5d,-.5d]
+;    quat_SC_to_SC2 = [.5d,-.5d,-.5d,.5d]
+;    if 0 then begin
+;      rot_th = 20. ; rotation angle
+;      rotr = [[1,0,0.],[0,cosd(rot_th),sind(rot_th)],[0,-sind(rot_th),cosd(rot_th)]]
+;      rel = [[0,-1,0],[0,0,-1],[1,0,0]]    ; effective relabelling of axes
+;      RotMat_inst_sc = rel ## rotr ; transformation matrix from ion instrument coordinates TO SC Frame
+;      print,spice_m2q(rotmat_inst_sc)
+;    endif
+  ;  quat_inst_to_sc = [ 0.57922797d  ,   0.40557979d  ,    -0.57922797d ,    0.40557979d]
+;    quat_inst_to_sc2 =  qmult(quat_sc_to_sc2,quat_inst_to_sc)
+    n = prefix+'VEL_RTN'
+    tplot_quaternion_rotate,  prefix+'VEL_SC' ,'SPP_SPACECRAFT_QROT_SPP_RTN' ,newname = n
+    options,n,colors='bgr',labels=['V_R','V_T','V_N'],labflag=-1
+    add_data,prefix+'VEL_RTN','SPP_VEL_(SUN-ECLIPJ2000)_RTN',newname=prefix+'VEL_RTN-I'
+    
+    if RTN_frame eq 2 then xyz_to_polar,prefix+'VEL_RTN'
   endif
 
 end

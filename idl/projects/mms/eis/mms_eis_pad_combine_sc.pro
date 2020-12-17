@@ -64,7 +64,7 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
       'electron': datatype = 'electronenergy'
     endcase
   endif
-  stop
+
   if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*'+datarate_str+'extof_proton*flux*omni'+suffix) else eis_sc_check = tnames('mms*eis'+datarate_str+'phxtof_proton*flux*omni'+suffix)
   probes = strmid(eis_sc_check, 3, 1)
   if (n_elements(probes) gt 4) then probes = probes[0:-2]

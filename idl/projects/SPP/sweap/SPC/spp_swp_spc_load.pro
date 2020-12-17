@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-11-05 22:43:19 -0800 (Thu, 05 Nov 2020) $
-; $LastChangedRevision: 29331 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-12-16 14:01:21 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29528 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 
@@ -69,7 +69,10 @@ end
 
 pro spp_swp_spc_load,trange=trange,type=type,files=files,no_load=no_load,save=save,load_labels=load_labels,$
   cut=cut,peaktrack=peaktrack,fullscan=fullscan,flowangle=flowangle,maketplot=maketplot,varformat=varformat,$
-  nul_bad=nul_bad,mask=mask,prefix=prefix,ltype=ltype,rapidshare=rapidshare,extras=extras,version=version,correct_time=correct_time
+  nul_bad=nul_bad,mask=mask,prefix=prefix,ltype=ltype,rapidshare=rapidshare,extras=extras,version=version,correct_time=correct_time, $
+  level=level
+  
+  if isa(level) then ltype = level
 
   tplots=['peaktrack','fullscan','flowangle']
   tpre='psp_swp_spc_l2_'
@@ -115,11 +118,16 @@ pro spp_swp_spc_load,trange=trange,type=type,files=files,no_load=no_load,save=sa
     ltype = 'RAPIDSHARE'
   endif
 
-  if not keyword_set(type) then type = 'l3i'
+  if isa(ltype,/string) && strlowcase(ltype) eq 'l1' then begin
+    if ~isa(type,/string) then type = 'APID354'
+    pathname = 'psp/data/sci/sweap/spc/L1/YYYY/MM/'+type+'/spp_swp_spc_'+type+'L1_YYYYMMDD_v??.cdf'
+  endif else begin
+    if not keyword_set(type) then type = 'l3i'
+    if not keyword_set(ltype) then ltype = 'L'+strmid(type,1,1)
 
-  if not keyword_set(ltype) then ltype = 'L'+strmid(type,1,1)
-
-  pathname = 'psp/data/sci/sweap/spc/'+Ltype+'/YYYY/MM/spp_swp_spc_'+type+'_YYYYMMDD_v??.cdf'
+    pathname = 'psp/data/sci/sweap/spc/'+Ltype+'/YYYY/MM/spp_swp_spc_'+type+'_YYYYMMDD_v??.cdf'
+    
+  endelse
 
   if type EQ 'l2e' then pathname = str_sub(pathname,'psp_swp_spc_','spp_swp_spc_')
 

@@ -91,9 +91,9 @@
 ; CREATED BY:       Davin Larson December 2018
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-12-13 22:49:45 -0800 (Sun, 13 Dec 2020) $
-; $LastChangedRevision: 29478 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-12-16 13:58:10 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29526 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -106,6 +106,8 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   longterm_ephem = longterm_ephem, $
   level = level, get_support = get_support, downsample = downsample, $
   no_staging = no_staging, version = version
+  
+  if n_elements(no_staging) eq 0 then no_staging=1
 
   if not keyword_set(type) then begin
     dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr mag_SC_4_Sa_per_Cyc'

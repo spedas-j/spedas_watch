@@ -6,20 +6,23 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-01 12:23:05 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29411 $
+; $LastChangedDate: 2020-12-16 17:03:10 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29530 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
 pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,predict=predict,scale=scale,$
+  venus=venus,earth=earth,mercury=mercury,mars=mars,jupiter=jupiter,saturn=saturn,planets=planets, $
   quaternion=quaternion,no_download=no_download,res=res,load=load,position=position,angle_error=angle_error,att_frame=att_frame,ref_frame=ref_frame,test=test
   
   common spp_spice_kernels_com, last_load_time,last_trange
-  if ~keyword_set(ref_frame) then ref_frame ='J2000'
+
+  if ~keyword_set(body) then BODY = 'SPP'
+  if ~keyword_set(ref_frame) then ref_frame ='ECLIPJ2000'
   if ~keyword_set(att_frame) then att_frame ='SPP_RTN'
   
   if ~keyword_set(res) then res=60d ;1min resolution
-  if ~keyword_set(angle_error) then angle_error=3. ;error in degrees
+  if ~keyword_set(angle_error) then angle_error=2. ;error in degrees
   trange=timerange(trange) ;get default trange
   
   current_time=systime(1)
@@ -27,9 +30,23 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
     if ~keyword_set(last_load_time) || current_time gt (last_load_time + 24*3600.) then load_anyway=1
     if ~keyword_set(last_trange) || trange[0] lt last_trange[0] || trange[1] gt last_trange[1] then load_anyway=1
   endif
+  
+  if keyword_set(position) && position ge 3 then begin
+    planets =1
+  endif
+  
+  if keyword_set(planets) then begin
+    mercury=1
+    mars = 1
+    jupiter=1
+    earth =1
+    venus =1
+    saturn =1
+  endif
 
   if keyword_set(load) || keyword_set(load_anyway) then begin
-    kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download,predict=predict,attitude=quaternion)
+    kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download  $
+        ,predict=predict,attitude=quaternion,mars=mars,jupiter=jupiter,saturn=saturn)
     last_load_time=systime(1)
     last_trange=trange
   endif
@@ -39,24 +56,275 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
   if keyword_set(position) then begin
     if ~keyword_set(scale) then scale='r'
     if scale eq 'km' then begin
-      scale1=1e6
-      scale2=1e3
-      ysub1='(Million km)'
-      ysub2='(1000 km)'
+      scale_sun=1d6
+      scale_venus=1d3
+      ysub_sun='(Million km)'
+      ysub_venus='(1000 km)'
     endif
     if scale eq 'r' then begin
-      scale1=695700
-      scale2=6051.8
-      ysub1='(Rsun)'
-      ysub2='(Rvenus)'
+      scale_sun=695700.d
+   ;   scale_sun=696340.d  ; km (google)
+      scale_venus=6051.8d
+      ysub_sun='(Rsun)'
+      ysub_venus='(Rvenus)'
     endif
-    spice_position_to_tplot,'SPP','SUN',frame=ref_frame,res=res,scale=scale1,name=n1,trange=trange,/force_objects ;million km
-    spice_position_to_tplot,'SPP','Venus',frame=ref_frame,res=res,scale=scale2,name=n2,trange=trange,/force_objects ; 1000 km
-    xyz_to_polar,[n1,n2],/ph_0_360
-    options,'SPP_POS_(SUN-'+ref_frame+')_mag',ysubtitle=ysub1
-    options,'SPP_POS_(Venus-'+ref_frame+')_mag',ysubtitle=ysub2
-    options,'SPP_VEL_(*-'+ref_frame+')_mag',ysubtitle='(km/s)'
+    
+    ;    if n_elements(venus) eq 0 then venus=1    ; using as default since Ali set it up this way
+    
+    
+    if position ge 3 then begin
+      spice_position_to_tplot,body,'SSB',frame=ref_frame,res=res,name=nams,trange=trange,check_objects=[body],/force_objects
+      xyz_to_polar,nams[0],/ph_0_360
+      options,nams[0]+'_mag',ysubtitle='(km)'
+      get_data,nams[0],data=pos_ssb
+      nams_acc = str_sub(nams[0],'POS_','ACC_')
+      deriv_data,nams[1],newname = nams_acc
+      xyz_to_polar,/quick_mag,nams_acc
+      nams_acc_all = nams_acc
+      ftot_m = 0
+    endif
+    
+    rscale = 695700.d ;  km   solar radius
+    ysub='(Rsun)'
+    gm = 1.32712440042d20 / 1e9 ; km^3/s^2
+    nam_freefall = 'AccSun'
+    observer = 'Sun'  
+    c = 299792d   ; speed of light km/s
+    spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
+    xyz_to_polar,nams[0],/ph_0_360
+    options,nams[0]+'_mag',ysubtitle=ysub  ;,ytitle='Rsun'
+    if position ge 2 then begin    ; get "constants" of motion for sun
+      get_data,nams[0]     ,data=pos
+      dist = sqrt(total( pos.y ^2,2))
+      get_data,nams[1] ,data = vel
+
+      ;Caluclate orbital angular momentum - constant of motion (2 body only)
+      nam_rxv = str_sub(nams[0],'POS_','RxV_')
+      rxv = crossp2(pos.y,vel.y)   ; angular mmomentum / m
+      L2 = total(rxv ^2,2)         ;  L^2
+      store_data,nam_rxv,pos.x,rxv
+
+      ; look at energy as constant of the motion
+
+      KE = 0.5d * total(vel.y^2,2) - gm/ (rscale*dist) ; - gm  / C^2 * L2 / dist^3 /rscale
+      store_data,'SPP_SKE',vel.x,ke
+      KE = 0.5d * total(vel.y^2,2) - gm/ (rscale*dist)  - gm  / C^2 * L2 / dist^3 /rscale
+      store_data,'SPP_SKE_GR',vel.x,ke
+      
+    endif
+    
+    if position ge 3 then begin
+      
+      ; Estimate acceration due to gravity    
+      f_m = gm / rscale^2 * pos.y / (dist^3 # [1,1,1])
+      ftot_m += f_m
+      store_data,nam_freefall,pos.x,f_m 
+      xyz_to_polar,/quick_mag,nam_freefall
+      options,nam_freefall+'_mag',colors='g'
+;      store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+      ;  Estimate GR effects
+      fgr_m = 3* gm / C^2  / rscale^2 * ( (L2 / dist^5) # [1,1,1]) * pos.y    ; general relativity correction
+      ftot_m += Fgr_m
+      store_data,'AccSun_gr',pos.x,fgr_m
+      xyz_to_polar,'AccSun_gr',/quick_mag
+      options,'AccSun_gr'+'_mag',colors='b'
+      
+      ;  Estimate radiation pressure
+      Gsc = 1361d  ; W/m2   solar constant (at 1 AU)
+      AU  = 149.6e6 ;  km   astronomical units
+      area_sc = 5.d   ; m^2    fudged this value to make the answer come out correct
+      area_sc = 1.2d   ; m^2     fudged this value to make the answer come out correct
+      mass_sc = 600d ; kg    (drymass = 555kg   launch mass=685kg
+      Pr2 = Gsc/(c*1000) *AU^2        ;          ; pressure * r^2   where r is in km
+      fr2_m = 2* Pr2 * area_sc / mass_sc / 1000   ; km^3/s^2
+      printdat,fr2_m /gm 
+      frp_m = - fr2_m  /rscale^2 * pos.y / (dist^3 # [1,1,1])
+      ftot_m += Frp_m
+      store_data,'AccSun_rp',pos.x,frp_m
+      xyz_to_polar,'AccSun_rp',/quick_mag
+      options,'AccSun_rp'+'_mag',colors='b'
+      nams_acc_all = [nams_acc_all,nam_freefall,'AccSun_gr','AccSun_rp']
+    endif
+    
+    options,nams[0]+'_mag',ytitle='Rsun'
+    tplot_options,var_label=nams[0]+'_mag'                 ;
+
+    if keyword_set(venus) then begin
+      gm = 0.324859d6  ; km^3/s^2
+      rscale = scale_venus
+      ysub='(R_Venus)'
+      nam_freefall = 'AccVenus'
+      observer = 'Venus'
+      spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
+      xyz_to_polar,nams[0],/ph_0_360
+      options,nams[0]+'_mag',ysubtitle=ysub  
+      if position ge 3 then begin
+        get_data,nams[0]     ,data=pos
+        dist = sqrt(total( pos.y ^2,2))
+        get_data,nams[1] ,data = vel
+        f_m = gm / rscale^2 * pos.y / (dist^3 # [1,1,1])
+        ftot_m += f_m
+        store_data,nam_freefall,pos.x,f_m
+        xyz_to_polar,/quick_mag,nam_freefall
+        ;      store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
+        store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
+        options,nam_freefall+'_mag',colors='c'
+        nams_acc_all = [nams_acc_all,nam_freefall]
+      endif
+    endif
+
+
+    if keyword_set(earth) then begin
+      gm = 3.986004418d5    ; km^3/s^2
+      rscale = 6000d
+      ysub='(R_Earth)'
+      nam_freefall = 'AccEarth'
+      observer = 'Earth'
+      spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
+      xyz_to_polar,nams[0],/ph_0_360,/quick_mag
+      options,nams[0]+'_mag',ysubtitle=ysub
+      if position ge 3 then begin
+        get_data,nams[0]     ,data=pos
+        dist = sqrt(total( pos.y ^2,2))
+        get_data,nams[1] ,data = vel
+        f_m = gm / rscale^2 * pos.y / (dist^3 # [1,1,1])
+        ftot_m += f_m
+        store_data,nam_freefall,pos.x,f_m
+        xyz_to_polar,/quick_mag,nam_freefall
+        ;      store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
+        store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
+        options,nam_freefall+'_mag',colors='m'
+        nams_acc_all = [nams_acc_all,nam_freefall]
+      endif
+    endif
+
+    if keyword_set(mercury) then begin
+      gm =  0.022032d6    ;   km^3/s^2
+      rscale = 1000d
+      ysub='(R_Mercury)'
+      nam_freefall = 'AccMercury'
+      observer = 'Mercury'
+      spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
+      xyz_to_polar,nams[0],/ph_0_360,/quick_mag
+      options,nams[0]+'_mag',ysubtitle=ysub
+      if position ge 3 then begin
+        get_data,nams[0]     ,data=pos
+        dist = sqrt(total( pos.y ^2,2))
+        get_data,nams[1] ,data = vel
+        f_m = gm / rscale^2 * pos.y / (dist^3 # [1,1,1])
+        ftot_m += f_m
+        store_data,nam_freefall,pos.x,f_m
+        xyz_to_polar,/quick_mag,nam_freefall
+        ;      store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
+        store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
+        options,nam_freefall+'_mag',colors='y'
+        nams_acc_all = [nams_acc_all,nam_freefall]
+      endif
+    endif
+
+    if keyword_set(mars) then begin
+      gm =  4.282837442560939d+04    ;   km^3/s^2
+      rscale = 4000d
+      ysub='(R_Mars)'
+      nam_freefall = 'AccMars'
+      observer = 'Mars'
+      spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
+      xyz_to_polar,nams[0],/ph_0_360,/quick_mag
+      options,nams[0]+'_mag',ysubtitle=ysub
+      if position ge 3 then begin
+        get_data,nams[0]     ,data=pos
+        dist = sqrt(total( pos.y ^2,2))
+        get_data,nams[1] ,data = vel
+        f_m = gm / rscale^2 * pos.y / (dist^3 # [1,1,1])
+        ftot_m += f_m
+        store_data,nam_freefall,pos.x,f_m
+        xyz_to_polar,/quick_mag,nam_freefall
+        ;      store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
+        store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
+        options,nam_freefall+'_mag',colors='b'
+        nams_acc_all = [nams_acc_all,nam_freefall]
+      endif
+    endif
+
+    if keyword_set(jupiter) then begin
+      gm =1.266865343447731D+08     ;  126.687d6    ;   km^3/s^2
+      rscale = 69911d
+      ysub='(R_Jupiter)'
+      nam_freefall = 'AccJupiter'
+      observer = 'Jupiter'
+      spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
+      xyz_to_polar,nams[0],/ph_0_360,/quick_mag
+      options,nams[0]+'_mag',ysubtitle=ysub
+      if position ge 3 then begin
+        get_data,nams[0]     ,data=pos
+        dist = sqrt(total( pos.y ^2,2))
+        get_data,nams[1] ,data = vel
+        f_m = gm / rscale^2 * pos.y / (dist^3 # [1,1,1])
+        ftot_m += f_m
+        store_data,nam_freefall,pos.x,f_m
+        xyz_to_polar,/quick_mag,nam_freefall
+        ;      store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
+        store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
+        options,nam_freefall+'_mag',colors='g'
+        nams_acc_all = [nams_acc_all,nam_freefall]
+      endif
+    endif
+
+    if keyword_set(saturn) then begin
+      gm =3.794058484179918D+07      ;   km^3/s^2
+      rscale = 6.033000000000000d+04
+      ysub='(R_Saturn)'
+      nam_freefall = 'AccSaturn'
+      observer = 'Saturn'
+      spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
+      xyz_to_polar,nams[0],/ph_0_360,/quick_mag
+      options,nams[0]+'_mag',ysubtitle=ysub
+      if position ge 3 then begin
+        get_data,nams[0]     ,data=pos
+        dist = sqrt(total( pos.y ^2,2))
+        get_data,nams[1] ,data = vel
+        f_m = gm / rscale^2 * pos.y / (dist^3 # [1,1,1])
+        ftot_m += f_m
+        store_data,nam_freefall,pos.x,f_m
+        xyz_to_polar,/quick_mag,nam_freefall
+        ;      store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
+        store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
+        options,nam_freefall+'_mag',colors='g'
+        nams_acc_all = [nams_acc_all,nam_freefall]
+      endif
+    endif
+
+
+    if position ge 3 then begin
+      nam_ftot = 'AccTot'
+      nam_diff = nams_acc+'-'+nam_ftot
+      get_data, nams_acc,data=acc_ssb
+      store_data,nam_ftot,acc_ssb.x,ftot_m
+      store_data,nam_diff,acc_ssb.x,acc_ssb.y + ftot_m
+      nams_acc_all = [nams_acc_all,nam_ftot,nam_diff]
+      ;    nams_acc_all = [nams_acc,nam_ftot,nam_diff]
+      ;xyz_to_polar,/quick_mag,nams_acc_all
+      xyz_to_polar,/quick_mag,[nam_ftot,nam_diff]
+      options,nam_ftot+'_mag',colors='b'
+      options,nam_diff+'_mag',colors='r'
+      store_data,'|ACC|',data=nams_acc_all + '_mag',dlimit=struct(panel_size=3,yrange=[1e-14,1e-2],/ylog)
+    endif
+      
+
+
+    if 0 then begin
+      spice_qrot_to_tplot,ref_frame,att_frame,res=3600d,check_obj=[body,'SUN'],error=angle_error*!pi/180.
+      tplot_quaternion_rotate,nam_sun,ref_frame+'_QROT_SPP_RTN'   ;spacecraft velocity in RTN frame
+    endif
+    
   endif
+  
   if keyword_set(quaternion) then begin
     spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,trange=trange,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
 
@@ -79,19 +347,45 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
         ctime,tr
         spp_fld_load,trange=tr,type='mag_SC'
         copy_data,'psp_fld_l2_mag_SC','psp_mag_SC'
+        options,/default,'psp_mag_SC','ytitle'
         spp_fld_load,trange=tr,type='mag_RTN'
 
-        store_data,'spp_QROT_SC>SC2',tr,replicate(1,n_elements(tr)) # quat_sc_to_sc2   ; this rotation is a constant
+        store_data,'spp_QROT_SC>SC2',[1e9,2e9],replicate(1,2) # quat_sc_to_sc2   ; this rotation is a constant
         tplot_quaternion_rotate,'psp_mag_SC','spp_QROT_SC>SC2'
         tplot_quaternion_rotate,'psp_mag_SC2','spp_QROT_SC2>RTN',newname='psp_mag_test_RTN'
         tplot_quaternion_rotate,'psp_mag_SC','spp_QROT_SC>RTN',name=name
         printdat,name
         
+        
+        
         dif_data,'psp_fld_l2_mag_RTN','psp_mag_test_RTN'
         dif_data,'psp_fld_l2_mag_RTN','psp_mag_RTN'
+        options,'psp_fld_l2_mag_RTN-psp_mag_RTN', ytitle='M1-M2',colors='bgr'
         
-        options,'psp_mag_SC',spice_frame='SPP_SPACECRAFT', /default
-        spice_vector_rotate_tplot,'psp_mag_SC','SPP_RTN' ;,check_obj=['SPP_SPACECRAFT','SPP','SPP_RTN'];,/force_objects
+        get_data,'spp_QROT_SC>RTN',data=qdat
+        qdat.x += 3.9   ; time shift
+        store_data,'shift_QROT_SC>RTN',data=qdat
+        tplot_quaternion_rotate,'psp_mag_SC','shift_QROT_SC>RTN',newname = 'psp_shift_mag_RTN'
+   ;     dif_data,'psp_mag_RTN','test_mag_RTN'
+        dif_data,'psp_fld_l2_mag_RTN','psp_shift_mag_RTN'
+        
+        options,'*RTN-psp*',yrange=[-.6,.6],ystyle=1,constant=0.
+
+        tplot,['spp_QROT_SC2>RTN','SPP_SPACECRAFT_Q-OMEGA2_SPP_RTN','spp_QROT_RTN>SC2_Euler_angles','psp_mag_SC2','psp_fld_l2_mag_RTN','psp_mag_RTN', $
+          'psp_fld_l2_mag_RTN-psp_mag_RTN','psp_fld_l2_mag_RTN-psp_shift_mag_RTN']
+
+        
+     ;   tplot,/add,'psp_fld_l2_mag_RTN-shift_mag_RTN'
+        
+        
+
+    ;    tplot,/add,'psp_mag_RTN-test_mag_RTN'
+
+        
+        if 0 then begin
+          options,'psp_mag_SC',spice_frame='SPP_SPACECRAFT', /default
+          spice_vector_rotate_tplot,'psp_mag_SC','SPP_RTN' ;,check_obj=['SPP_SPACECRAFT','SPP','SPP_RTN'];,/force_objects          
+        endif
 
         
         

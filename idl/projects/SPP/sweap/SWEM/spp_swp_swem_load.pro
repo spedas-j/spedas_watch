@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-17 20:31:44 -0700 (Mon, 17 Aug 2020) $
-; $LastChangedRevision: 29036 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-12-16 16:55:09 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29529 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_swem_load.pro $
 ;
 ;this is a test routine for now.
@@ -26,7 +26,7 @@ if ~keyword_set(type) then type = 'swem_dig_hkp'
     case type of
       'swem_dig_hkp': varformat = 'SW_SSRWRADDR *OSCPUUSAGE *CMDCOUNTER'
       'swem_ana_hkp': varformat = '*TEMP'
-      else:
+      else:  varformat='*'
     endcase
     
   endif

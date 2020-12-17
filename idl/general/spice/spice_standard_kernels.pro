@@ -25,12 +25,12 @@
 ;OUTPUT:
 ; fully qualified kernel filename(s)
 ;
-; $LastChangedBy: rlillis3 $
-; $LastChangedDate: 2019-12-20 16:22:29 -0800 (Fri, 20 Dec 2019) $
-; $LastChangedRevision: 28135 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-12-16 13:11:41 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29508 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/spice_standard_kernels.pro $
 ;-
-function spice_standard_kernels,load=load,source=src,reset=reset,verbose=verbose,mars=mars,no_update=no_update
+function spice_standard_kernels,load=load,source=src,reset=reset,verbose=verbose,mars=mars,jupiter=jupiter,saturn=saturn,no_update=no_update
 common spice_standard_kernels_com, kernels,retrievetime,tranges
 if ~spice_test()  then return,''
 if keyword_set(reset) then kernels=0
@@ -61,6 +61,13 @@ if ~keyword_set(kernels) || (ct - retrievetime) gt waittime then begin     ;
     if keyword_set(mars) then append_array, kernels, spd_download_plus(remote_file = source.remote_data_dir+'generic_kernels/spk/satellites/mar097.bsp', $
                                                                   local_path = source.local_data_dir+'generic_kernels/spk/satellites/', $
                                                                   no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o) ; mar097.bsp is most recent as of 2014/1/1 ??    
+    if keyword_set(jupiter) then append_array, kernels, spd_download_plus(remote_file = source.remote_data_dir+'generic_kernels/spk/satellites/jup343.bsp', $
+                            local_path = source.local_data_dir+'generic_kernels/spk/satellites/', $
+                            no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o) ; jup343.bsp is most recent as of 2029/12/1 ??
+    if keyword_set(saturn) then append_array, kernels, spd_download_plus(remote_file = source.remote_data_dir+'generic_kernels/spk/satellites/sat427.bsp', $
+                            local_path = source.local_data_dir+'generic_kernels/spk/satellites/', $
+                            no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o) ; jup343.bsp is most recent as of 2029/12/1 ??
+   ;https://naif.jpl.nasa.gov/pub/naif/generic_kernels/spk/satellites/jup343.bsp
     retrievetime = ct
 ;    kernels = file_search(kernels)
 endif

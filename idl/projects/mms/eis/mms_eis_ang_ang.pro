@@ -65,8 +65,8 @@
 ;       + 2020-12-11, I. Cohen      : changed "undefined" to "undefined" in initialization of some keywords
 ;                        
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-12-14 09:04:52 -0800 (Mon, 14 Dec 2020) $
-;$LastChangedRevision: 29479 $
+;$LastChangedDate: 2020-12-16 07:50:45 -0800 (Wed, 16 Dec 2020) $
+;$LastChangedRevision: 29503 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/eis/mms_eis_ang_ang.pro $
 ;-
 
@@ -83,7 +83,7 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
   if undefined(energy_chan) then energy_chan = [1,2,3,4]
   if undefined(i_print) then i_print = 0
   if undefined(avgdata) then avgdata = 0
-  if undefined(trange) && n_elements(trange) eq 2 $
+  if ~undefined(trange) && n_elements(trange) eq 2 $
     then trange = timerange(trange) $
     else trange = timerange()
   if undefined(no_plot) then no_plot = 0

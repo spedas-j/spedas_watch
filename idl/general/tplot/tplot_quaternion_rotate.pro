@@ -8,16 +8,24 @@
 ;Written by: Davin Larson
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-01 12:08:02 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29409 $
+; $LastChangedDate: 2020-12-16 13:28:30 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29513 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot_quaternion_rotate.pro $
 ;-
 
-pro tplot_quaternion_rotate,vecname,quatname,name=name,newname=newname
+pro tplot_quaternion_rotate,vecname,quatname,names=names,newname=newname
 
-
+names=[]
 vecnames = tnames(vecname,nvecnames)
 quatnames = tnames(quatname,nquatnames)
+if nvecnames eq 0 then begin
+  dprint,'No Vector names found to transform'
+endif
+
+if nquatnames eq 0 then begin
+  dprint,'No Quaternion names found to transform'
+endif
+
 for i=0,nvecnames-1 do begin
    get_data,vecnames[i],data=vec
    if ~keyword_set(vec) then begin
@@ -30,10 +38,11 @@ for i=0,nvecnames-1 do begin
         dprint,'tplot quaternion variable: ',quatnames[j],' Not found!'
         continue
       endif
+      vname = vecnames[i]
+      qname = quatnames[j]
 
       if ~keyword_set(newname) then begin
-        vname = vecnames[i]
-        qname = quatnames[j]
+        name = vname
         p = strpos(vname,'_',/reverse_search)
         coord1a = strmid(vname,p+1)
         rotname = strmid( qname, strpos(/reverse_search,qname,'_')+1 )
@@ -41,20 +50,20 @@ for i=0,nvecnames-1 do begin
         coord2 = strmid(rotname,strpos(rotname,'>')+1)
         if coord1a ne coord1 then begin
           dprint,dlevel=1,'Warning! Improper coord transform: '+coord1a+' '+coord1
-          vname += '_'+rotname
-        endif else    str_replace,vname,'_'+coord1a, '_'+coord2
+          name += '_'+rotname
+        endif else    str_replace,name,'_'+coord1a, '_'+coord2
         ;         name = vecnames[i]+'_R('+quatnames[j]+')'
         ;         newname = vecnames[i]
         ;         newname = strmid(newname,strpos(/reverse,newname,'_'))
 
       endif else begin
-        vname = newname
+        name = newname
       endelse
-      name = vname
       quati = interp(quat.y,quat.x,vec.x,/no_extrap,/ignore_nan)
       quati /= sqrt(total(quati^2,2)) # replicate(1,4)
       newvec  = quaternion_rotation(vec.y , quati)
-      store_data,vname,data={x:vec.x,y:newvec},dlimit={colors:'bgr'}
+      store_data,name,data={x:vec.x,y:newvec},dlimit={colors:'bgr',quaternion_name:qname}
+      append_array,names,name
    endfor
 endfor
 

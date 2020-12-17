@@ -1,9 +1,9 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-09 08:36:18 -0800 (Wed, 09 Dec 2020) $
-; $LastChangedRevision: 29453 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2020-12-16 13:56:19 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29525 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
-pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save
+pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save,preprefix=preprefix
 
   t0 = systime(1)
   if keyword_set(all) then begin
@@ -79,7 +79,8 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
       if keyword_set(no_load) then continue
 
       ;; Convert to TPLOT
-      prefix='psp_swp_'+spx+'_'+type+'_'+level+'_'
+      if ~isa(/string,preprefix) then preprefix = 'psp_swp_'
+      prefix=preprefix+spx+'_'+type+'_'+level+'_'
       if spx eq 'sc_hkp' then prefix='spp_'+spx+'_'+type+'_'
       cdf2tplot,files,prefix=prefix,varformat=varformat,verbose=verbose
       spp_swp_qf,prefix=prefix
