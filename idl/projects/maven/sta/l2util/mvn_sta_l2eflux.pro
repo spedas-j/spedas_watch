@@ -11,8 +11,8 @@
 ; hacked from mvn_sta_cmn_l2gen, 2016-02-26, jmm,
 ; jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-11-23 10:08:50 -0800 (Mon, 23 Nov 2020) $
-; $LastChangedRevision: 29370 $
+; $LastChangedDate: 2020-12-17 09:32:27 -0800 (Thu, 17 Dec 2020) $
+; $LastChangedRevision: 29537 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_l2eflux.pro $
 ;-
 
@@ -79,8 +79,8 @@ Pro mvn_sta_l2eflux, cmn_dat
      dt = float(cmn_dat.integ_t#replicate(1.,nenergy*nbins*nmass))
      eflux = (cmn_dat.data-bkg)*dead/(gf*eff*dt)
   Endelse
-;Fix for double eflux in structure
-  If(size(cmn_dat.eflux, /type) Eq 5) Then Begin
+;Fix for double eflux in structure, or the eflux may not exist if Level 0 process
+  If(~tag_exist(cmn_dat, 'eflux') || size(cmn_dat.eflux, /type) Eq 5) Then Begin
      str_element, cmn_dat, 'eflux', eflux, /add_replace
   Endif Else cmn_dat.eflux = float(eflux)
 

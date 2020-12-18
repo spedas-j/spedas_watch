@@ -83,12 +83,13 @@
 ; 24-aug-2020, jmm, jimm@ssl.berkeley.edu, hacked from
 ; mvn_sta_cmn_l2gen.pro for cdf's with only the background calculation
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-08-25 10:49:37 -0700 (Tue, 25 Aug 2020) $
-; $LastChangedRevision: 29076 $
+; $LastChangedDate: 2020-12-17 09:26:42 -0800 (Thu, 17 Dec 2020) $
+; $LastChangedRevision: 29534 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_bkg_l2gen.pro $
 ;-
 Pro mvn_sta_bkg_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, $
-                       no_compression = no_compression, iv_level = iv_level, _extra = _extra
+                       no_compression = no_compression, iv_level = iv_level, $
+                       _extra = _extra
 
 ;Need to keep track of spice kernels
   common mvn_spc_met_to_unixtime_com, cor_clkdrift, icy_installed, kernel_verified, time_verified, sclk, tls

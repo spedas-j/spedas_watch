@@ -135,8 +135,8 @@
 ;   Data is returned in pointer variables. Calling routine is responsible for freeing up heap memory - otherwise a memory leak will occur.
 ;
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-09 08:31:27 -0800 (Wed, 09 Dec 2020) $
-; $LastChangedRevision: 29451 $
+; $LastChangedDate: 2020-12-16 23:15:52 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29532 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/cdf_load_vars.pro $
 ; $ID: $
 ;-
@@ -150,7 +150,7 @@ function cdf_load_vars,files,varnames=vars,varformat=vars_fmt,info=info,verbose=
 vb = keyword_set(verbose) ? verbose : 0
 vars=''
 info = 0
-dprint,dlevel=4,verbose=verbose,'$Id: cdf_load_vars.pro 29451 2020-12-09 16:31:27Z ali $'
+dprint,dlevel=4,verbose=verbose,'$Id: cdf_load_vars.pro 29532 2020-12-17 07:15:52Z ali $'
 
 ;Get cdf version, hacked from read_myCDF, jmm, 2019-10-07
 CDF_LIB_INFO, VERSION=V, RELEASE=R, COPYRIGHT=C, INCREMENT=I
@@ -224,7 +224,7 @@ for fi=0,n_elements(files)-1 do begin
     endif
 
     ;dprint,dlevel=2,verbose=verbose,'Loading file: "'+files[fi]+'"'
-    dprint,dlevel=2,verbose=verbose,'Loading file: '+files[fi]+' Size: '+strtrim(((file_info(files[fi])).size)/1000,2)+' KB'
+    dprint,dlevel=2,verbose=verbose,'Loading file: "'+files[fi]+'" Size: '+strtrim(((file_info(files[fi])).size)/1000,2)+' KB'
 
     for j=0,n_elements(vars2)-1 do begin
         w = (where( strcmp(info.vars.name, vars2[j]) , nw))[0]

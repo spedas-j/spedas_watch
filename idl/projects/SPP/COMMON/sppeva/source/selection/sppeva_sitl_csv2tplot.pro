@@ -40,7 +40,8 @@ PRO sppeva_sitl_csv2tplot, filename, var=var, status=status, suffix=suffix
     status = 3
     return
   endif
-
+  
+  
   ;----------------
   ; STRUCTURE
   ;----------------
@@ -52,13 +53,14 @@ PRO sppeva_sitl_csv2tplot, filename, var=var, status=status, suffix=suffix
     SOURCEID: result.FIELD4, $
     BLOCKSTART: result.FIELD5, $
     BLOCKLEN: result.FIELD6, $
-    DISCUSSION: result.FIELD7}
+    DISCUSSION: result.FIELD7, $
+    TABLE_HEADER: table_header}
   
   ;----------------
   ; TPLOT VARIABLE
   ;----------------
   if undefined(suffix) then suffix = ''
   
-  sppeva_sitl_strct2tplot, s, var+suffix
+  SPPEVA_SITL_STRCT2TPLOT, s, var+suffix
   status = 4
 END

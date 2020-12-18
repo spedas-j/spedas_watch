@@ -88,13 +88,15 @@
 ; 1-nov-2014, jmm, PDS compliance
 ; 6-nov-2014, jmm, Corrects clock drift 
 ; 22-dec-2014, jmm, added eprom_ver and header
+; 25-aug-2020, jmm, Added iv_level
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-08-25 10:49:37 -0700 (Tue, 25 Aug 2020) $
-; $LastChangedRevision: 29076 $
+; $LastChangedDate: 2020-12-17 09:26:42 -0800 (Thu, 17 Dec 2020) $
+; $LastChangedRevision: 29534 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_cmn_l2gen.pro $
 ;-
 Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, $
-                       no_compression = no_compression, iv_level = iv_level, _extra = _extra
+                       no_compression = no_compression, iv_level = iv_level, $
+                       _extra = _extra
 
 ;Need to keep track of spice kernels
   common mvn_spc_met_to_unixtime_com, cor_clkdrift, icy_installed, kernel_verified, time_verified, sclk, tls
@@ -113,7 +115,8 @@ Pro mvn_sta_cmn_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, 
      apid = strlowcase(cmn_dat.apid)
      If(in_set(apid, ['c0', 'c6', 'c8', 'ca', 'd0', 'd1']) Eq 0) Then Return
      mvn_sta_bkg_l2gen, cmn_dat, otp_struct = otp_struct, directory = directory, $
-                        no_compression = no_compression, iv_level = iv_level, _extra = _extra
+                        no_compression = no_compression, iv_level = iv_level, $
+                        _extra = _extra
      Return     
   Endif
 

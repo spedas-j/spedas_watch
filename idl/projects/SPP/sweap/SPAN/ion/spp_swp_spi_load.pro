@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-16 13:53:04 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29523 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-12-16 23:15:52 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29532 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -120,8 +120,8 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
 
 
   endforeach
-  options,'psp_swp_spi_sf??_L3_VEL'   ,colors='bgr',labels=['Vx','Vy','Vz'],labflag=-1
-  options,'psp_swp_spi_sf??_L3_MAGF_*',colors='bgr',labels=['Bx','By','Bz'],labflag=-1
+  options,'psp_swp_spi_????_L3_VEL'   ,colors='bgr',labels=['Vx','Vy','Vz'],labflag=-1
+  options,'psp_swp_spi_????_L3_MAGF_*',colors='bgr',labels=['Bx','By','Bz'],labflag=-1
 
   ;; Set tplot Preferences
   if level eq 'L1' then begin

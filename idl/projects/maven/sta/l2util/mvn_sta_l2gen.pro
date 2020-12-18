@@ -25,8 +25,8 @@
 ;HISTORY:
 ; 2014-05-14, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-08-25 10:49:37 -0700 (Tue, 25 Aug 2020) $
-; $LastChangedRevision: 29076 $
+; $LastChangedDate: 2020-12-17 09:28:01 -0800 (Thu, 17 Dec 2020) $
+; $LastChangedRevision: 29535 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_l2gen.pro $
 ;-
 Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
@@ -257,30 +257,42 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
   common mvn_da, mvn_da_ind, mvn_da_dat & mvn_da_dat=0 & mvn_da_ind=-1l
   common mvn_db, mvn_db_ind, mvn_db_dat & mvn_db_dat=0 & mvn_db_ind=-1l
 
-;load l0 data, or L2 data
+;load l0 data, or L2 data, or IV data from previous process
   If(keyword_set(iv_level)) Then Begin
+     If(iv_level Eq 1) Then Begin
 ;use no_time_clip to get all data, mvn_sta_l2_load will fill all of
 ;the common blocks
-     mvn_sta_l2_load, /no_time_clip, _extra = _extra
+        mvn_sta_l2_load, /no_time_clip, _extra = _extra
 ;Check for 2a data, if not present, return
-     If(~is_struct(mvn_2a_dat)) Then Begin
-        message, /info, 'No HKP data for: '+time_string(date)
-        Return
-     Endif
-     message, /info, 'IV LEVEL: '+iv_str+ 'PROCESSING'
+        If(~is_struct(mvn_2a_dat)) Then Begin
+           message, /info, 'No HKP data for: '+time_string(date)
+           Return
+        Endif
+        message, /info, 'IV LEVEL: '+iv_str+ 'PROCESSING'
 ;iv processing
-     common mvn_sta_dead, dat_dead
-     mvn_sta_dead_load, /make_common, /test
-     If(is_struct(dat_dead)) Then Begin
-        deadfile = dir_dead+'mvn_sta_dead_'+yyyy+mmmm+dddd+'.sav'
-        save, dat_dead, file = deadfile
-        ;permission
-        file_chmod, deadfile, '664'o
-        If(!version.os Eq 'linux') Then spawn, 'chgrp maven '+deadfile
-        message, /info, 'Saved: '+deadfile
+        common mvn_sta_dead, dat_dead
+        mvn_sta_dead_load, /make_common, /test
+        If(is_struct(dat_dead)) Then Begin
+           deadfile = dir_dead+'mvn_sta_dead_'+yyyy+mmmm+dddd+'.sav'
+           save, dat_dead, file = deadfile
+                                ;permission
+           file_chmod, deadfile, '664'o
+           If(!version.os Eq 'linux') Then spawn, 'chgrp maven '+deadfile
+           message, /info, 'Saved: '+deadfile
+        Endif
+        mvn_sta_bkg_load                
+        mvn_sta_scpot_load
+     Endif Else If(iv_level Eq 2) Then Begin
+        mvn_sta_l2_load, /no_time_clip, iv_level = 1;, /bkg_only
+        mvn_sta_bkg_correct
+     Endif Else If(iv_level Eq 3) Then Begin
+        mvn_sta_l2_load, /no_time_clip, iv_level = 1, $
+                         sta_apid = ['2a c0 c6 c8 ca d0 d1 d6 d8 d9 da db']
+;Dead time files are under iv1
+        dir_dead1 = '/disks/data/maven/data/sci/sta/iv1/dead/'
+        mvn_sta_bkg_correct_straggle, maven_dead_dir = dir_dead1
      Endif
-     mvn_sta_bkg_load                
-     mvn_sta_scpot_load
+;the common blocks at this point should only contain background, no data or eflux
   Endif Else If(keyword_set(use_l2_files)) Then Begin
 ;use no_time_clip to get all data, mvn_sta_l2_load will fill all of
 ;the common blocks

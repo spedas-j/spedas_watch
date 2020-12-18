@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-16 13:55:15 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29524 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-12-16 19:17:51 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29531 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -101,13 +101,13 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
   if keyword_set(make_cdf) then begin ;make cdf files
     cdf_suffix='/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
     spp_swp_apdat_init,/reset
-    spp_apdat_info,'swem_*',cdf_pathname = output_prefix+'swem'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'sp[ab]_*',cdf_pathname = output_prefix+'spe'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'spi_*',cdf_pathname = output_prefix+'spi'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'spc_*',cdf_pathname = output_prefix+'spc2'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'wrp_*',cdf_pathname = output_prefix+'swem'+cdf_suffix,cdf_linkname= linkname
-    spp_apdat_info,'sc_hkp_*',cdf_pathname = output_prefix+'sc_hkp'+cdf_suffix,cdf_linkname= linkname
-    if keyword_set(type) then aps=spp_apdat(type) else aps = [spp_apdat('sp[abi]_*'),spp_apdat('swem_*'),spp_apdat('wrp_*'),spp_apdat('spc_*'),spp_apdat('sc_hkp_*')]
+    spp_apdat_info,'swem_*',  cdf_pathname=output_prefix+'swem'+  cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'sp[ab]_*',cdf_pathname=output_prefix+'spe'+   cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'spi_*',   cdf_pathname=output_prefix+'spi'+   cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'spc_*',   cdf_pathname=output_prefix+'spc2'+  cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'wrp_*',   cdf_pathname=output_prefix+'swem'+  cdf_suffix,cdf_linkname=linkname
+    spp_apdat_info,'sc_hkp_*',cdf_pathname=output_prefix+'sc_hkp'+cdf_suffix,cdf_linkname=linkname
+    if keyword_set(type) then aps=spp_apdat(type) else aps=spp_apdat_all()
     for day=daynum[0],daynum[1] do begin ;loop over days
       trdaily = double(day * res)
       trange = trdaily + [0,1]*res

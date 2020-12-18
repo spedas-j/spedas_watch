@@ -8,8 +8,8 @@
 ;group: sequence group: 0:middle of multipacket (very rare, huge packets? usually sign of error) 1:start of multi-packet 2:end of multi-packet 3:single packet
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-10-07 14:52:54 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29221 $
+; $LastChangedDate: 2020-12-16 23:15:52 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29532 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/spp_swp_wrp_stat.pro $
 ;-
 
@@ -105,6 +105,7 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
   endelse
 
   if keyword_set(trange) then begin
+    if n_elements(trange) ne 2 then message,'expected 2-element trange!'
     trange=time_double(trange)
     wt=where((tt gt trange[0]) and (tt lt trange[1]),/null)
     if ~keyword_set(wt) then return

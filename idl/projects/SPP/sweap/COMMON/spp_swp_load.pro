@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-16 13:56:19 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29525 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2020-12-16 23:15:52 -0800 (Wed, 16 Dec 2020) $
+; $LastChangedRevision: 29532 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save,preprefix=preprefix
@@ -28,7 +28,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
   if ~keyword_set(level) then level='L1'
   level=strupcase(level)
   if ~keyword_set(spxs) then spxs=['spa','spb','spi','swem']
-  if spxs[0] eq 'sc_hkp' && ~keyword_set(types) then types='0x'+['1c5','1de','1df','081','254','255','256','257','262']
+  if spxs[0] eq 'sc_hkp' && ~keyword_set(types) then types='0x'+['081','1c5','1de','1df','254','255','256','257','262']
   if ~keyword_set(types) then types='all'
   if ~keyword_set(varformat) then varformat='*'
   if varformat eq ' ' then varformat=[]
@@ -79,13 +79,11 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
       if keyword_set(no_load) then continue
 
       ;; Convert to TPLOT
-      if ~isa(/string,preprefix) then preprefix = 'psp_swp_'
-      prefix=preprefix+spx+'_'+type+'_'+level+'_'
-      if spx eq 'sc_hkp' then prefix='spp_'+spx+'_'+type+'_'
+      if spx eq 'sc_hkp' then prefix='psp_'+spx+'_'+type+'_' else prefix='psp_swp_'+spx+'_'+type+'_'+level+'_'
       cdf2tplot,files,prefix=prefix,varformat=varformat,verbose=verbose
       spp_swp_qf,prefix=prefix
-      if spx eq 'sc_hkp' then spp_sc_hk_tplot
     endforeach
+    if spx eq 'sc_hkp' then spp_sc_hk_tplot,prefix='psp_sc_hkp_'
   endforeach
 
   dprint,'Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()

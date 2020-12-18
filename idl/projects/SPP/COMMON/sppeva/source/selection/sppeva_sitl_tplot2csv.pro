@@ -49,20 +49,39 @@ PRO sppeva_sitl_tplot2csv, var, filename=filename, msg=msg, error=error, auto=au
   ;------------------------------------------
   ; HEADER
   ;------------------------------------------
-  date = time_string(systime(/seconds,/utc))
-  header = [' Start UT            ',' End UT              ','FOM   ', 'Tohban','Start Block',$
-    'Length in Blocks','Comments']
-  instr = strmatch(var,'*_fld_*') ? 'FIELDS' : 'SWEAP'
-  instr2= strmatch(var,'*_fld_*') ? 'FIELDS' : 'SWEM'
-  l1 = strmid(date,0,10)+' '+instr +' Selected Events from Archive Data'
-  l2 = 'This file contains a prioritized list of data to select from the '+instr2+' to downlink.'
-  l3 = 'Chosen by '+!SPPEVA.USER.FULLNAME
-  l4 = 'EMAIL: '+!SPPEVA.USER.EMAIL
-  l5 = 'Team:  '+!SPPEVA.USER.TEAM
+  tn=tag_names(s)
+  idx = where(tn eq 'TABLE_HEADER',ct)
+  if(ct gt 0)then begin
+    table_header = s.TABLE_HEADER
+    mmax=n_elements(table_header)
+    for m=0,mmax-1 do begin
+      str = table_header[m]
+      strn = strlen(str)
+      comma_pos=strpos(str,',',/reverse_search)
+      while( (comma_pos ge 0) and (comma_pos eq strn - 1) ) do begin
+        str = strmid(str,0,strn-1)
+        strn = strlen(str)
+        comma_pos=strpos(str,',',/reverse_search)
+      endwhile
+      table_header[m] = str
+    endfor
+  endif else begin
+    date = time_string(systime(/seconds,/utc))
+    header = [' Start UT            ',' End UT              ','FOM   ', 'Tohban','Start Block',$
+      'Length in Blocks','Comments']
+    instr = strmatch(var,'*_fld_*',/FOLD_CASE) ? 'FIELDS' : 'SWEAP'
+    instr2= strmatch(var,'*_fld_*',/FOLD_CASE) ? 'FIELDS' : 'SWEM'
+    l1 = strmid(date,0,10)+' '+instr +' Selected Events from Archive Data'
+    l2 = 'This file contains a prioritized list of data to select from the '+instr2+' to downlink.'
+    l3 = 'Chosen by '+!SPPEVA.USER.FULLNAME
+    l4 = 'EMAIL: '+!SPPEVA.USER.EMAIL
+    l5 = 'Team:  '+!SPPEVA.USER.TEAM
+    table_header = [l1,l2,l3,l4,l5,'']
+  endelse
   
   ;------------------------------------------
   ; WRITE
   ;------------------------------------------
   write_csv, filename, time_string(s.START), time_string(s.STOP), strFOM, s.SOURCEID, $
-    strBLstart, strBLlen, s.DISCUSSION, header=header, table_header = [l1,l2,l3,l4,l5,'']
+    strBLstart, strBLlen, s.DISCUSSION, header=header, table_header = table_header 
 END
