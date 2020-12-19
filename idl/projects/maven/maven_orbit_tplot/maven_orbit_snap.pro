@@ -75,6 +75,8 @@
 ;
 ;       NODOT:    Do not plot a filled circle at periapsis or spacecraft location.
 ;
+;       NOORB:    Do not plot the orbit.
+;
 ;       RESET:    Initialize all plots.
 ;
 ;       COLOR:    Symbol color index.
@@ -85,6 +87,8 @@
 ;                 a single version of the plot.  For evenly spaced times, this
 ;                 produces a "spirograph" effect.  This overrides the interactive
 ;                 entry of times with the cursor.  Sets KEEP, NOERASE, and RESET.
+;
+;       TCOLORS:  Color index for every element of TIMES.
 ;
 ;       BDIR:     Set keyword to show magnetic field direction in three planes,
 ;                 In each plane, the same two components of B in MSO coordinates 
@@ -130,8 +134,8 @@
 ;                 last color.  Default is 6 (red) for all.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-15 12:57:26 -0800 (Tue, 15 Dec 2020) $
-; $LastChangedRevision: 29487 $
+; $LastChangedDate: 2020-12-18 13:36:22 -0800 (Fri, 18 Dec 2020) $
+; $LastChangedRevision: 29542 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -141,7 +145,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     nodot=nodot, terminator=terminator, thick=thick, Bdir=Bdir, scale=scale, scsym=scsym, $
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
     alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab, $
-    scol=scol
+    scol=scol, tcolors=tcolors, noorb=noorb
 
   @maven_orbit_common
   @swe_snap_common
@@ -171,6 +175,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if keyword_set(noerase) then noerase = 1 else noerase = 0
   if keyword_set(reset) then reset = 1 else reset = 0
   if keyword_set(nodot) then dodot = 0 else dodot = 1
+  if keyword_set(noorb) then doorb = 0 else doorb = 1
   if (size(terminator,/type) gt 0) then doterm = fix(round(terminator)) < 3 else doterm = 0
   if not keyword_set(magnify) then mag = 1. else mag = float(magnify)
   csize = 2.0*mag
@@ -224,12 +229,14 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if keyword_set(times) then begin
     times = time_double(times)
     ntimes = n_elements(times)
+    if (n_elements(tcolors) ne ntimes) then tcolors = replicate(5, ntimes)
     reset = 1
     noerase = 1
     keep = 1
     tflg = 1
   endif else begin
     ntimes = 1L
+    if (n_elements(tcolors) eq 0) then tcolors = 5 else tcolors = tcolors[0]
     tflg = 0
   endelse
 
@@ -376,6 +383,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     endif
     trange = times[k]
   endif else begin
+    k = 0L
     wset,Twin
     ctime2,trange,npoints=1,/silent,button=button
     if (size(trange,/type) eq 2) then begin
@@ -538,9 +546,9 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
            xtitle='X (Rp)',ytitle='Y (Rp)',charsize=csize,title=msg,thick=thick
       msg = ''
       oplot,xm,ym,color=6,thick=thick
-      oplot,x,y,thick=thick
+      if (doorb) then oplot,x,y,thick=thick
 
-      if (dodot) then oplot,[x[i]],[y[i]],psym=8,color=5
+      if (dodot) then oplot,[x[i]],[y[i]],psym=8,color=tcolors[k]
 
       if (dob) then begin
         cts = n_elements(rndx)
@@ -578,7 +586,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         x[indx] = !values.f_nan
         y[indx] = !values.f_nan
       endif
-      oplot,x,y,color=rcols[0],thick=thick
+      if (doorb) then oplot,x,y,color=rcols[0],thick=thick
 
       x = xp
       y = yp
@@ -589,7 +597,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         x[indx] = !values.f_nan
         y[indx] = !values.f_nan
       endif
-      oplot,x,y,color=rcols[1],thick=thick
+      if (doorb) then oplot,x,y,color=rcols[1],thick=thick
 
       x = xw
       y = yw
@@ -600,7 +608,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         x[indx] = !values.f_nan
         y[indx] = !values.f_nan
       endif
-      oplot,x,y,color=rcols[2],thick=thick
+      if (doorb) then oplot,x,y,color=rcols[2],thick=thick
 
 ; Shock conic
 
@@ -681,10 +689,10 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
            xtitle='X (Rp)',ytitle='Z (Rp)',charsize=csize,title=msg,thick=thick
       msg = ''
       oplot,xm,ym,color=6,thick=thick
-      oplot,x,z,thick=thick
+      if (doorb) then oplot,x,z,thick=thick
 
       if (pflg) then i = imid else i = imin
-      if (dodot) then oplot,[x[i]],[z[i]],psym=8,color=5,thick=thick
+      if (dodot) then oplot,[x[i]],[z[i]],psym=8,color=tcolors[k],thick=thick
 
       if (dob) then begin
           cts = n_elements(rndx)
@@ -720,7 +728,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         x[indx] = !values.f_nan
         z[indx] = !values.f_nan
       endif
-      oplot,x,z,color=rcols[0],thick=thick
+      if (doorb) then oplot,x,z,color=rcols[0],thick=thick
 
       x = xp
       y = yp
@@ -731,7 +739,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         x[indx] = !values.f_nan
         y[indx] = !values.f_nan
       endif
-      oplot,x,z,color=rcols[1],thick=thick
+      if (doorb) then oplot,x,z,color=rcols[1],thick=thick
 
       x = xw
       y = yw
@@ -742,7 +750,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         x[indx] = !values.f_nan
         z[indx] = !values.f_nan
       endif
-      oplot,x,z,color=rcols[2],thick=thick
+      if (doorb) then oplot,x,z,color=rcols[2],thick=thick
 
 ; Shock conic
 
@@ -816,10 +824,10 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
            xtitle='Y (Rp)',ytitle='Z (Rp)',title=msg,charsize=csize,thick=thick
       msg = ''
       oplot,xm,ym,color=6,thick=thick
-      oplot,y,z,thick=thick
+      if (doorb) then oplot,y,z,thick=thick
 
       if (pflg) then i = imid else i = imin
-      if (dodot) then oplot,[y[i]],[z[i]],psym=8,color=5,thick=thick
+      if (dodot) then oplot,[y[i]],[z[i]],psym=8,color=tcolors[k],thick=thick
 
       if (dob) then begin
           cts = n_elements(rndx)
@@ -856,7 +864,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         y[indx] = !values.f_nan
         z[indx] = !values.f_nan
       endif
-      oplot,y,z,color=rcols[0],thick=thick
+      if (doorb) then oplot,y,z,color=rcols[0],thick=thick
 
       x = xp
       y = yp
@@ -867,7 +875,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         x[indx] = !values.f_nan
         y[indx] = !values.f_nan
       endif
-      oplot,y,z,color=rcols[1],thick=thick
+      if (doorb) then oplot,y,z,color=rcols[1],thick=thick
 
       x = xw
       y = yw
@@ -878,7 +886,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         y[indx] = !values.f_nan
         z[indx] = !values.f_nan
       endif
-      oplot,y,z,color=rcols[2],thick=thick
+      if (doorb) then oplot,y,z,color=rcols[2],thick=thick
 
       L0 = sqrt((L + psi*x0)^2. - x0*x0)
       oplot,L0*xm,L0*ym,color=3,line=1,thick=thick
@@ -910,14 +918,14 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
        plot,xm,ym,xrange=xrange,yrange=[0,yrange[1]],/xsty,/ysty,/noerase, $
             xtitle='X (Rp)',ytitle='S (Rp)',charsize=csize,title=title,thick=thick
        oplot,xm,ym,color=6,thick=thick
-       oplot,x,s,thick=thick
+       if (doorb) then oplot,x,s,thick=thick
 
       if (pflg) then i = imid else i = imin
-      if (dodot) then oplot,[x[i]],[s[i]],psym=8,color=5,thick=thick
+      if (dodot) then oplot,[x[i]],[s[i]],psym=8,color=tcolors[k],thick=thick
 
-      oplot,xs,sqrt(ys*ys + zs*zs),color=rcols[0],thick=thick
-      oplot,xp,sqrt(yp*yp + zp*zp),color=rcols[1],thick=thick
-      oplot,xw,sqrt(yw*yw + zw*zw),color=rcols[2],thick=thick
+      if (doorb) then oplot,xs,sqrt(ys*ys + zs*zs),color=rcols[0],thick=thick
+      if (doorb) then oplot,xp,sqrt(yp*yp + zp*zp),color=rcols[1],thick=thick
+      if (doorb) then oplot,xw,sqrt(yw*yw + zw*zw),color=rcols[2],thick=thick
 
 ; Shock conic
 
@@ -1049,6 +1057,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (pflg) then i = iref else i = rndx[imin]
       title = ''
       if (cflg) then j = color else j = 2
+      if (ntimes gt 0) then j = tcolors[k]
       if (doterm gt 0) then ttime = trange[0] else ttime = 0
       if (doalt) then sc_alt = hgt[i] else sc_alt = 0
       mag_mola_orbit, lon[i], lat[i], big=mbig, noerase=noerase, title=title, color=j, $

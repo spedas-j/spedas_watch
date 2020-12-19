@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-12-15 15:00:06 -0800 (Tue, 15 Dec 2020) $
-; $LastChangedRevision: 29500 $
+; $LastChangedDate: 2020-12-18 14:13:44 -0800 (Fri, 18 Dec 2020) $
+; $LastChangedRevision: 29543 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -21,9 +21,17 @@ end
 
 function mms_python_validation_ut::test_tplot_restore_hpca_df
   mms_load_hpca, datatype='ion', trange=['2015-10-16', '2015-10-16/03:00']
-  tplot_save, ['mms1_hpca_hplus_number_density', 'mms1_hpca_hplus_ion_bulk_velocity'], filename='hpca_df'
+  tplot_save, ['mms1_hpca_hplus_flux', 'mms1_hpca_hplus_phase_space_density'], filename='hpca_df'
   py_script = ["from pytplot import tplot_restore", "tplot_restore('hpca_df.tplot')"]
   vars = ['mms1_hpca_hplus_flux', 'mms1_hpca_hplus_phase_space_density']
+  return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_tplot_restore_des_df
+  mms_load_fpi, datatype='des-dist', trange=['2015-10-16/12', '2015-10-16/13']
+  tplot_save, ['mms3_des_dist_fast'], filename='des_df'
+  py_script = ["from pytplot import tplot_restore", "tplot_restore('des_df.tplot')"]
+  vars = ['mms3_des_dist_fast']
   return, spd_run_py_validation(py_script, vars)
 end
 
