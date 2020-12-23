@@ -176,8 +176,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-15 13:09:06 -0800 (Tue, 15 Dec 2020) $
-; $LastChangedRevision: 29498 $
+; $LastChangedDate: 2020-12-22 16:32:15 -0800 (Tue, 22 Dec 2020) $
+; $LastChangedRevision: 29552 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -207,32 +207,29 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       i = strmatch(klist, ktag[j]+'*', /fold)
       case (total(i)) of
           0  : print, "Keyword not recognized: ", ktag[j]
-          1  : begin
-                 k = (where(i eq 1))[0]
-                 case k of
-                    0 : config = key.(j)
-                    1 : stat = key.(j)
-                    2 : show = key.(j)
-                    3 : monitor = key.(j)
-                    4 : secondary = key.(j)
-                    5 : dx = key.(j)
-                    6 : dy = key.(j)
-                    7 : norm = key.(j)
-                    8 : center = key.(j)
-                    9 : xcenter = key.(j)
-                   10 : ycenter = key.(j)
-                   11 : corner = key.(j)
-                   12 : scale = key.(j)
-                   13 : full = key.(j)
-                   14 : xfull = key.(j)
-                   15 : yfull = key.(j)
-                   16 : aspect = key.(j)
-                   17 : xsize = key.(j)
-                   18 : ysize = key.(j)
-                   19 : nofit = key.(j)
-                   20 : tbar = key.(j)
-                 endcase
-               end
+          1  : case (where(i eq 1))[0] of
+                  0 : config = key.(j)
+                  1 : stat = key.(j)
+                  2 : show = key.(j)
+                  3 : monitor = key.(j)
+                  4 : secondary = key.(j)
+                  5 : dx = key.(j)
+                  6 : dy = key.(j)
+                  7 : norm = key.(j)
+                  8 : center = key.(j)
+                  9 : xcenter = key.(j)
+                 10 : ycenter = key.(j)
+                 11 : corner = key.(j)
+                 12 : scale = key.(j)
+                 13 : full = key.(j)
+                 14 : xfull = key.(j)
+                 15 : yfull = key.(j)
+                 16 : aspect = key.(j)
+                 17 : xsize = key.(j)
+                 18 : ysize = key.(j)
+                 19 : nofit = key.(j)
+                 20 : tbar = key.(j)
+               endcase
         else : print, "Keyword ambiguous: ", ktag[j]
       endcase
     endfor
@@ -462,7 +459,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
   if ((wnum lt 0) or (wnum gt 31)) then begin
     window, /free, xpos=x0, ypos=y0, xsize=xsize, ysize=ysize, _extra=extra
-    wnum = !d.window
+    wnum = fix(!d.window)
   endif else begin
     window, wnum, xpos=x0, ypos=y0, xsize=xsize, ysize=ysize, _extra=extra
   endelse

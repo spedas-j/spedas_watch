@@ -158,9 +158,9 @@
 ;
 ;        NOTE:         Insert a text label.  Keep it short.
 ;        
-; $LastChangedBy: xussui $
-; $LastChangedDate: 2020-09-02 14:42:13 -0700 (Wed, 02 Sep 2020) $
-; $LastChangedRevision: 29110 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2020-12-22 16:35:00 -0800 (Tue, 22 Dec 2020) $
+; $LastChangedRevision: 29553 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -525,20 +525,15 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
 ; Select the first time, then get the PAD spectrum closest that time
 
-  if size(pad, /type) ne 8 then begin
-     print,'Use button 1 to select time; button 3 to quit.'
+  print,'Use button 1 to select time; button 3 to quit.'
      
-     wset,Twin
-     if (~tflg) then begin
-       ctime,trange,npoints=npts,/silent
-       if (npts gt 1) then cursor,cx,cy,/norm,/up  ; Make sure mouse button released
-     endif else trange = tspan
-     pdflg = 1
-  endif else begin
-     trange = 0.5*(pad.time + pad.end_time)
-     pdflg = 0
-     kflg = 0
-  endelse 
+  wset,Twin
+  if (~tflg) then begin
+    ctime,trange,npoints=npts,/silent
+    if (npts gt 1) then cursor,cx,cy,/norm,/up  ; Make sure mouse button released
+  endif else trange = tspan
+  pdflg = 1
+
   if (size(trange,/type) eq 2) then begin          ; Abort before first time select.
     if (~rflg) then wdelete,Pwin                   ; Don't keep empty windows.
     if (sflg) then wdelete,Nwin

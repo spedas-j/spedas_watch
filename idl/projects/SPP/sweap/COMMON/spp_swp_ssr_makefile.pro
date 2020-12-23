@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-16 19:17:51 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29531 $
+; $LastChangedDate: 2020-12-22 16:00:17 -0800 (Tue, 22 Dec 2020) $
+; $LastChangedRevision: 29551 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -88,6 +88,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
       spp_apdat_info,/reset
       spp_swp_apdat_init,/reset
       spp_ssr_file_read,ssr_file
+      spp_apdat_info,/print
       file_mkdir2,file_dirname(sav_file)
       spp_apdat_info,file_save=sav_file,/compress,parent=parent_chksum
       if keyword_set(type) then aps=spp_apdat(type) else aps=spp_apdat_all()
@@ -118,6 +119,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
           sav_frmt=str_sub(sav_format+'*_?_??.sav','$NAME$',a.name)
           ;sav_files=spp_file_retrieve(sav_frmt,trange=trange,/daily_names,/valid_only,verbose=verbose)
           sav_files=file_search(time_string(tformat=root+sav_frmt,trange[0])) ;slightly faster than the above line
+          if ~keyword_set(sav_files) then continue
           cdf_file=time_string(trange[0],tformat=a.cdf_pathname)
           cdf_file=root+str_sub(cdf_file,'$NAME$',a.name)
           if ~keyword_set(force_make) then if max((file_info(sav_files)).mtime) le (file_info(cdf_file)).mtime then continue
@@ -126,8 +128,8 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
           foreach sav_file,sav_files do begin
             self=!null
             parent='file_checksum not saved for parent of: '+sav_file.substring(relative_position)
-            dprint,'Restoring file: '+sav_file+' Size: '+strtrim((file_info(sav_file)).size/1e3,2)+' KB'
-            restore,sav_file,verbose=verbose,/relax,/skip
+            dprint,dlevel=1,verbose=verbose,'Restoring file: '+sav_file+' Size: '+strtrim((file_info(sav_file)).size/1e3,2)+' KB'
+            restore,sav_file,/relax,/skip
             if obj_valid(cdf) then cdf.append,self else cdf=self
             parents=[parents,parent]
           endforeach
@@ -154,6 +156,6 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
       makepng,pngfile
     endfor
   endif
-  dprint,'Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()
+  dprint,dlevel=1,verbose=verbose,ssr_prefix+ssr_format+' Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()
 
 end

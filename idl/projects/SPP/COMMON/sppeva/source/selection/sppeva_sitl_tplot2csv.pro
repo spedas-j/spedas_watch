@@ -49,6 +49,9 @@ PRO sppeva_sitl_tplot2csv, var, filename=filename, msg=msg, error=error, auto=au
   ;------------------------------------------
   ; HEADER
   ;------------------------------------------
+  header = [' Start UT            ',' End UT              ','FOM   ', 'Tohban','Start Block',$
+    'Length in Blocks','Comments']
+
   tn=tag_names(s)
   idx = where(tn eq 'TABLE_HEADER',ct)
   if(ct gt 0)then begin
@@ -67,8 +70,6 @@ PRO sppeva_sitl_tplot2csv, var, filename=filename, msg=msg, error=error, auto=au
     endfor
   endif else begin
     date = time_string(systime(/seconds,/utc))
-    header = [' Start UT            ',' End UT              ','FOM   ', 'Tohban','Start Block',$
-      'Length in Blocks','Comments']
     instr = strmatch(var,'*_fld_*',/FOLD_CASE) ? 'FIELDS' : 'SWEAP'
     instr2= strmatch(var,'*_fld_*',/FOLD_CASE) ? 'FIELDS' : 'SWEM'
     l1 = strmid(date,0,10)+' '+instr +' Selected Events from Archive Data'

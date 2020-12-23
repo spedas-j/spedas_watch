@@ -51,5 +51,7 @@ PRO elf_config_write, pref
     endelse
     printf, nf, x0+'='+x1
   endfor
+  close, nf
   free_lun, nf
+  
 END
