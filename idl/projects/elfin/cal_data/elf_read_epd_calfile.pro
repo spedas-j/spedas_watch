@@ -46,6 +46,14 @@ function elf_read_epd_calfile, probe=probe, instrument=instrument, no_download=n
   if ~keyword_set(probe) then probe='a' else probe=strlowcase(probe)
   if ~keyword_set(instrument) then instrument='epde' else instrument=strlowcase(instrument)
   if ~keyword_set(no_download) then no_download=0 else no_download=1
+
+  get_data, 'epd_calibration_data', data=epd_cal
+  if is_struct(epd_cal) then begin
+    epd_calibration_data=epd_cal.epd_calibration_data[0]
+    stop
+    return, epd_calibration_data
+  endif
+
   ebins = make_array(16, /float)
   ebins_logmean = make_array(16, /float)
   ebins_minmax = make_array(16, 2, /float)
@@ -207,6 +215,8 @@ function elf_read_epd_calfile, probe=probe, instrument=instrument, no_download=n
       epd_ebins_minmax:ebins_minmax, $
       epd_ebin_lbls:ebin_lbls }
 
+  store_data, 'epd_calibration_data', data=epd_calibration_data
+  
   return, epd_calibration_data
   
 end

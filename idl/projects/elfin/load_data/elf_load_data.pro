@@ -178,17 +178,11 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           day_string = time_string(tr[0], tformat='YYYYMMDD')
           ; note, -1 second so we don't download the data for the next day accidently
           end_string = time_string(tr[1], tformat='YYYYMMDD')          
-
+          year_string = strmid(day_string,0,4)
+          
           ; construct file names
           daily_names = file_dailynames(trange=tr, /unique, times=times)
           fnames=make_array(n_elements(daily_names), /string)
-          ;if instrument EQ 'fgm' && level EQ 'l1' then $
-          ;   fnames = probe + '_' + level + '_' + datatype + '_' + daily_names + '_v01.cdf' else $           
-          ;   fnames = probe + '_' + level + '_' + instrument + '_' + daily_names + '_v01.cdf' 
-          ;if instrument EQ 'epd' && level EQ 'l1' then begin
-          ;   ftype = instrument + strmid(datatype, 1, 2)
-          ;   fnames = probe + '_' + level + '_' + ftype + '_' + daily_names + '_v01.cdf' 
-          ;endif
           
           Case instrument of
             'epd': begin
@@ -236,6 +230,8 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'fgm' then begin
             if datatype EQ 'fgs' then subdir = 'survey/' else subdir = 'fast/'
           endif
+          ;subdir = subdir + year_string + '/'
+          
           remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
           if keyword_set(public_data) then begin
             slen=strlen(remote_data_dir)
@@ -251,13 +247,11 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'fgm' then local_path = spd_addslash(local_path)
           
           for file_idx = 0, n_elements(fnames)-1 do begin 
-
               paths = '' 
               ; download data as long as no flags are set
               if no_download eq 0 then begin
                 if file_test(local_path,/dir) eq 0 then file_mkdir2, local_path
                 dprint, dlevel=1, 'Downloading ' + fnames[file_idx] + ' to ' + local_path                    
-
                 paths = spd_download(remote_file=fnames[file_idx], remote_path=remote_path, $
                                      local_file=fnames[file_idx], local_path=local_path, $
                                      url_username=user, url_password=pw, ssl_verify_peer=1, $

@@ -37,7 +37,14 @@ function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=ins
 
   if not keyword_set(probe) then probe = 'a'
   if not keyword_set(instrument) then instrument='epde'
-  
+
+  get_data, 'el'+probe+'_epd_cal_logs', data=epd_cal
+  if is_struct(epd_cal) then begin
+    epd_cal_logs=epd_cal.epd_cal_logs[0]
+    stop
+    return, epd_cal_logs 
+  endif
+   
   ; create calibration file name
   sc='el'+probe
   remote_cal_dir=!elf.REMOTE_DATA_DIR+sc+'/calibration_files'
@@ -124,6 +131,8 @@ function elf_get_epd_calibration_log, trange=trange, probe=probe, instrument=ins
 
   if undefined(epd_cal_logs) then epd_cal_logs=-1
 
+  store_data, 'el'+probe+'_epd_cal_logs', data=epd_cal_logs
+  stop
   return, epd_cal_logs
 
 end
