@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-10-25 11:40:59 -0700 (Sun, 25 Oct 2020) $
-; $LastChangedRevision: 29286 $
+; $LastChangedDate: 2021-01-01 09:48:39 -0800 (Fri, 01 Jan 2021) $
+; $LastChangedRevision: 29564 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sep/cdf/mvn_sep_makefile.pro $
 ; $ID: $
 
@@ -72,7 +72,7 @@ pro mvn_sep_makefile,init=init,trange=trange0
 
   ;if n_elements(load) eq 0 then load =1
 
-  for i=0L,nd-1 do begin
+  for i=0L,nd do begin
     tr = trange[0] + [i,i+1] * res
 
     sw_version = mvn_sep_sw_version()

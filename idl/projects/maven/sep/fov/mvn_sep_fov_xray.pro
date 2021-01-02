@@ -1,13 +1,16 @@
 ;20180413 Ali
 ;plots sco x-1 x-ray count rates vs. sep fov map
 
-pro mvn_sep_fov_xray,det=det,sep=sep,sld=sld,occ=occ,spec=spec,fov=fov,ebin=ebin,trange=trange,save=save
-;det: detector
-;sep: 0=sep1, 1=sep2
-;sld: sep look-direction: 0:front, 1:rear
-;occ: occultation analysis and curve-fit
-;spec: energy response
-;fov: fov response
+pro mvn_sep_fov_xray,det=det,sep=sep,sld=sld,occ=occ,spec=spec,fov=fov,ebin=ebin,trange=trange,save=save,mvnalt=mvnalt,tanalt=tanalt,ylog=ylog,bx=bx
+  ;det: detector ['A-O','A-T','A-F','B-O','B-T','B-F']
+  ;sep: 0=sep1, 1=sep2
+  ;sld: sep look-direction: 0:front, 1:rear
+  ;occ: occultation analysis and curve-fit
+  ;spec: energy response
+  ;fov: fov response
+  ;alt: altitude above which to do occultation analysis
+  ;tanalt: occultation tangent altitude range
+  ;bx: [background counts,x-ray counts]
 
   @mvn_sep_fov_common.pro
   @mvn_sep_handler_commonblock.pro
@@ -46,28 +49,25 @@ pro mvn_sep_fov_xray,det=det,sep=sep,sld=sld,occ=occ,spec=spec,fov=fov,ebin=ebin
   if mvn_sep_fov0.arc then sepn= sep ? *(sep2_arc.x) : *(sep1_arc.x) else sepn= sep ? *(sep2_svy.x) : *(sep1_svy.x)
 
   if keyword_set(occ) then begin
-    hialt=tal[2,*].mar gt 1000.
-;    hialt=1
-    wtal=tal[2,*].sx1 gt -50. and tal[2,*].sx1 lt 200.
-;    wtal=1
+    if ~keyword_set(mvnalt) then mvnalt=1000.
+    hialt=tal[2,*].mar gt mvnalt
+    ;    hialt=1
+    if ~keyword_set(tanalt) then tanalt=[-50.,200.]
+    wtal=tal[2,*].sx1 gt tanalt[0] and tal[2,*].sx1 lt tanalt[1]
+    ;    wtal=1
     whr=where(hialt and wtal and wpos and watt and wtime,/null,nwhr)
     if nwhr eq 0 then message,'no occultation found!'
     p=getwindows('mvn_sep_xray_occ')
     if keyword_set(p) then p.setcurrent else p=window(name='mvn_sep_xray_occ')
     p.erase
-    p=plot(/current,[0],/nodat,xrange=[-50,200],ytitle='SEP'+strtrim(sep+1,2)+' '+detlab[det]+' Count Rate (Hz)',xtitle='Sco X-1 Tangent Altitude (km)')
-    ;    p=plot(/o,tal[2,whr].sx1,crl[sep,det,whr],'r1.')
-    ;    crsep2bfbin=average_hist(crl[sep,det,whr],tal[2,whr].sx1,binsize=10.,xbins=taltsx1bin,/nan,stdev=stdev,hist=hist)
-    ;    p=errorplot(/o,taltsx1bin,crsep2bfbin,stdev/sqrt(hist))
+    p=plot(/current,[0],/nodat,xrange=tanalt,ytitle='SEP'+strtrim(sep+1,2)+detlab[det]+' Count Rate (Hz)',xtitle='Sco X-1 Tangent Altitude (km)')
+    p=plot(/o,tal[2,whr].sx1,crl[sep,det,whr],'r1.',ylog=ylog,name='data')
+    crav=average_hist(crl[sep,det,whr],tal[2,whr].sx1,binsize=5.,xbins=taltsx1bin,/nan,stdev=stdev,hist=hist)
+    p=errorplot(/o,taltsx1bin,crav,stdev/sqrt(hist),name='mean','D')
     p=text(0,0,time_string(minmax(times[whr])))
-    if 1 then begin
-      bkg=.6
-      xflx=4.
-      get_data,'mvn_sep_xray_transmittance',data=trans
-      p=plot(tal[2,whr].sx1,bkg+xflx*trans.y[whr,0],/o,'r',name='Warm')
-      p=plot(tal[2,whr].sx1,bkg+xflx*trans.y[whr,1],/o,'b',name='Cold')
-    endif
-
+    if ~keyword_set(bx) then bx=[.67,2.] ;for 2018-03-12 occultation analysis
+    mvn_sep_fov_xray_model,bx=bx,whr=whr,fit=reform(crl[sep,det,whr])
+ 
     if keyword_set(ebin) then begin
       ind=where(map1.name eq detlab[det],nen,/null)
       ind0=ind[ebin]

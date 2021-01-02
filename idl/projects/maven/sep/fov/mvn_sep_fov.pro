@@ -15,7 +15,7 @@
 ;nospice: skips slow spice calculations
 ;
 pro mvn_sep_fov,lowres=lowres,tplot=tplot,load=load,spice=spice,trange=trange,arc=arc,restore=restore,occalt=occalt,$
-  times=times,calc=calc,snap=snap,objects=objects,nospice=nospice
+  times=times,calc=calc,snap=snap,objects=objects,nospice=nospice,model=model
 
   @mvn_sep_fov_common.pro
   @mvn_sep_handler_commonblock.pro
@@ -62,5 +62,6 @@ pro mvn_sep_fov,lowres=lowres,tplot=tplot,load=load,spice=spice,trange=trange,ar
   if keyword_set(calc) then mvn_sep_fov_calc,times,nospice=nospice
   if keyword_set(snap) then mvn_sep_fov_snap,/sep,/mars,vector=2
   if keyword_set(tplot) then mvn_sep_fov_tplot,/store
+  if keyword_set(model) then mvn_sep_fov_xray_model
 
 end

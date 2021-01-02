@@ -36,10 +36,7 @@ pro mvn_sep_fov_tplot,tplot=tplot,store=store,fraction=fraction,resdeg=resdeg
 
     tag=strlowcase(tag_names(pdm))
     npos=n_tags(pos)
-    ;for ipos=0,npos-1 do begin
-    for ipos=0,1 do begin
-      store_data,'mvn_sep_dot_'+tag[ipos],times,transpose(pos.(ipos)),dlim={yrange:[-1,1],constant:0.,colors:'bgr',labels:['SEP1','SEP1y','SEP2'],labflag:-1,ystyle:2}
-    endfor
+    for ipos=0,npos-1 do store_data,'mvn_sep_dot_'+tag[ipos],times,transpose(pos.(ipos)),dlim={yrange:[-1,1],constant:0.,colors:'bgr',labels:['SEP1','SEP1y','SEP2'],labflag:-1,ystyle:2}
 
     cos45=cos(!dtor*45.) ;earth pointed comm-pass
     cos25=cos(!dtor*25.) ;sun keep-out fov

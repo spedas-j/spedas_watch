@@ -30,25 +30,25 @@ pro mvn_sep_fov_calc,times,nospice=nospice
       pos.(iobj)/=replicate(1.d,3)#rad.(iobj)
     endfor
     from_frame='j2000'
-    if ~keyword_set(nospice) then pos.ram=spice_body_vel('mars',observer,frame=from_frame,utc=times,check_objects=['mars',observer,check_maven],/force_objects) ;maven velocity wrt Mars in J2000 (km/s)
+    pos.ram=spice_body_vel('mars',observer,frame=from_frame,utc=times,check_objects=['mars',observer,check_maven],/force_objects) ;maven velocity wrt Mars in J2000 (km/s)
     rad.ram=sqrt(total(pos.ram^2,1)) ;maven speed (km/s)
     pos.ram/=-replicate(1.d,3)#rad.ram ;MAVEN velocity unit vector wrt Mars in J2000
 
     qrot=spice_body_att(from_frame,toframe,times,/quaternion,check_objects=check_maven,/force_objects)
     qrot_iau=spice_body_att(toframe,'IAU_MARS',times,/quaternion,check_objects=check_maven,/force_objects)
-    ;  from_frame='IAU_MARS'
-    ;  zdir=[0.,0.,1.] ;Mars North pole in IAU_MARS (oblate spheroid symmetry axis)
-    ;  pos.mnp=spice_vector_rotate(zdir,times,from_frame,toframe,check_objects=check_maven,/force_objects) ;Mars North pole in sep1 coordinates
+    mvn_sep_fov=replicate({pos:pos[*,0],rad:rad[0],pdm:pdm[0],occ:occ[0],tal:tal[*,0],qrot:qrot[*,0],qrot_iau:qrot_iau[*,0],time:times[0],att:[0.,0.],crl:fltarr(2,6),crh:fltarr(2,6),sur:fltarr(3,4)},nt) ;saving results to common block
   endif else begin
     pos=mvn_sep_fov.pos
     rad=mvn_sep_fov.rad
     qrot=mvn_sep_fov.qrot
     qrot_iau=mvn_sep_fov.qrot_iau
   endelse
+  from_frame='IAU_MARS'
+  zdir=[0.,0.,1.] ;Mars North pole in IAU_MARS (oblate spheroid symmetry axis)
+  posmnp=spice_vector_rotate(zdir,times,from_frame,toframe,check_objects=check_maven,/force_objects) ;Mars North pole in sep1 coordinates
 
   posmar=(replicate(1.,3)#rad.mar)*pos.mar
   sur=mvn_sep_fov_mars_incidence(rmars,posmar,[[1.,0,0],[0,0,1],[-1,0,0],[0,0,-1]]) ;mars surface coordinates intercepting centers of fov of sep[1f,2f,1r,2r]
-  mvn_sep_fov=replicate({pos:pos[*,0],rad:rad[0],pdm:pdm[0],occ:occ[0],tal:tal[*,0],qrot:qrot[*,0],qrot_iau:qrot_iau[*,0],time:times[0],att:[0.,0.],crl:fltarr(2,6),crh:fltarr(2,6),sur:fltarr(3,4)},nt) ;saving results to common block
 
   ;m1=[0.102810,0.921371,0.374841] ;crab nebula coordinates in J2000 from NAIF
   ;cbnm1rd=[05h 34m 31.94s , +22° 00′ 52.2″] ;Crab Nebula (M1) Right Ascention/Declination
@@ -101,7 +101,7 @@ pro mvn_sep_fov_calc,times,nospice=nospice
     wpdmlt0=where(pdm.(ipos) lt 0.,/null) ;where line of sight away from Mars
     if n_elements(wpdmlt0) gt 0 then tal[0,wpdmlt0].(ipos)=transpose(alt[wpdmlt0]) ;set tangent altitude equal to altitude
     horcro=((tal[0,*].(ipos)-occalt[1])*shift((tal[0,*].(ipos)-occalt[1]),1)) lt 0. ;crossed the occalt
-    horcro=tal[0,*].(ipos) gt occalt[0] and tal[0,*].(ipos) lt occalt[1] ;within the occalt
+    ;horcro=tal[0,*].(ipos) gt occalt[0] and tal[0,*].(ipos) lt occalt[1] ;within the occalt
     occ.(ipos)=0
     occ[where((pos[0,*].(ipos) gt +occos) and horcro and att[0,*] eq 1.,/null)].(ipos)=1 ;sep1f
     occ[where((pos[2,*].(ipos) gt +occos) and horcro and att[1,*] eq 1.,/null)].(ipos)=2 ;sep2f
@@ -110,20 +110,30 @@ pro mvn_sep_fov_calc,times,nospice=nospice
   endfor
   pdm.mar=sqrt(1.-(rmars/rad.mar)^2) ;dot product of mars surface by mars center
   pdm.ram=sqrt(1.-((rmars+occalt[1])/rad.mar)^2) ;dot product of mars occalt by mars center
-  ;  tal.mar=alt
-  ;  occtimes=where(occ.sx1 ne 0,/null)
+  ;tal.mar=alt
+  ;occtimes=where(occ.sx1 ne 0,/null)
 
-  ;  cspice_bodvrd, 'MARS', 'RADII', 3, radii ;rmars=[3396.2,3396.2,3376.2] km
-  ;  re = total(radii[0:1])/2. ;equatorial radius (km)
-  ;  rp = radii[2] ;polar radius (km)
-  ;  mdz=-total(pos.mar*pos.mnp,1) ;maven dot mars north pole (cosine of polar angle)
   ones3=replicate(1d,3)
   talsx1=(ones3#rad.mar)*((ones3#pdm.sx1)*pos.sx1-pos.mar) ;sco x-1 tangent altitude vector from Mars center (km)
   wpdmlt0=where(pdm.sx1 lt 0.,/null) ;where line of sight away from Mars
   if n_elements(wpdmlt0) gt 0 then talsx1[*,wpdmlt0]=-posmar[*,wpdmlt0] ;set tangent altitude equal to altitude
-  ;  tdz=total(talsx1*pos.mnp,1)/sqrt(total(talsx1^2,1)) ;cosine of polar angle (90-latitude) of sub-tangent altitude point
-  ;  rad.mnp=sqrt((re^4*(1.-mdz^2)+rp^4*mdz^2)/(re^2*(1.-mdz^2)+rp^2*mdz^2)) ;radius of sub-maven surface point (km)
-  ;  tal.mnp=sqrt((re^4*(1.-tdz^2)+rp^4*tdz^2)/(re^2*(1.-tdz^2)+rp^2*tdz^2)) ;radius of sub-tangent altitude point (km)
+
+  talsza=total(talsx1*pos.sun,1)/sqrt(total(talsx1^2,1)) ;cosine of solar zenith angle of tangent altitude
+  tdz=total(talsx1*posmnp,1)/sqrt(total(talsx1^2,1)) ;cosine of polar angle (90-latitude) of tangent altitude
+  posdawn=transpose(crossp2(transpose(posmnp),transpose(pos.sun)))
+  posdawn/=replicate(1.,3)#sqrt(total(posdawn^2,1))
+  lst=12.+12./!pi*atan(-total(talsx1*posdawn,1),total(talsx1*pos.sun,1)) ;!pi+atan(-y,-x) = atan(y,x)
+  store_data,'mvn_sep_xray_tanalt_sza',times,!radeg*acos(talsza)
+  store_data,'mvn_sep_xray_tanalt_lat',times,90.-!radeg*acos(tdz)
+  store_data,'mvn_sep_xray_tanalt_lst',times,lst
+
+  ;cspice_bodvrd, 'MARS', 'RADII', 3, radii ;rmars=[3396.2,3396.2,3376.2] km
+  ;re = total(radii[0:1])/2. ;equatorial radius (km)
+  ;rp = radii[2] ;polar radius (km)
+  ;mdz=-total(pos.mar*posmnp,1) ;maven dot mars north pole (cosine of polar angle)
+  ;radmnp=sqrt((re^4*(1.-mdz^2)+rp^4*mdz^2)/(re^2*(1.-mdz^2)+rp^2*mdz^2)) ;radius of sub-maven surface point (km)
+  ;talmnp=sqrt((re^4*(1.-tdz^2)+rp^4*tdz^2)/(re^2*(1.-tdz^2)+rp^2*tdz^2)) ;radius of sub-tangent altitude point (km)
+
   posmar_iau=quaternion_rotation(-pos.mar,qrot_iau,/last_ind)*(ones3#rad.mar) ;MAVEN position from Mars center in IAU_MARS
   talsx1_iau=quaternion_rotation(  talsx1,qrot_iau,/last_ind)
   mvn_altitude,cart=posmar_iau,datum='sphere',result=adat
@@ -138,6 +148,8 @@ pro mvn_sep_fov_calc,times,nospice=nospice
   tal[1,*].sx1=transpose(adat.alt)
   mvn_altitude,cart=talsx1_iau,datum='areoid',result=adat
   tal[2,*].sx1=transpose(adat.alt)
+  store_data,'mvn_sep_xray_tanalt_lat2',times,adat.lat
+  store_data,'mvn_sep_xray_tanalt_lon',times,adat.lon
 
   mvn_sep_fov.pos=pos
   mvn_sep_fov.tal=tal

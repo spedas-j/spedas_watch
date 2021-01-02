@@ -13,8 +13,9 @@ function mvn_sep_fov_xray_fit_param,x,param=p ;fitting parameters
     return , p
   endif
 
-;  y = (p.bkg+p.xflx)*((1+erf((x-p.h0)/p.scht))/2)+p.bkg
-  y = p.xflx*((1.+erf((x-p.h0)/p.scht))/2.)+p.bkg
+; y = (p.bkg+p.xflx)*((1+erf((x-p.h0)/p.scht))/2)+p.bkg ;davin's version
+  ;y = p.xflx*((1.+erf((x-p.h0)/p.scht))/2.)+p.bkg ;error function
+  y = p.xflx/(1.+exp(-(x-p.h0)/p.scht))+p.bkg ;logistic function
   return,y
 end
 
