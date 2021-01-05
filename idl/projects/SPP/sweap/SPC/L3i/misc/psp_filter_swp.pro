@@ -50,8 +50,8 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2020
 ;
 ; $LastChangedBy: anarock $
-; $LastChangedDate: 2020-10-27 12:50:05 -0700 (Tue, 27 Oct 2020) $
-; $LastChangedRevision: 29302 $
+; $LastChangedDate: 2021-01-04 11:00:24 -0800 (Mon, 04 Jan 2021) $
+; $LastChangedRevision: 29570 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/L3i/misc/psp_filter_swp.pro $
 ;-
 
@@ -86,7 +86,7 @@ pro psp_filter_swp, tvars, dqflag, STATUS=status, HELP=help, NAMES_OUT=names_out
   ;  All flags are encoded as follows:
   ;  --------------------------
   ;  = 0,   good/nominal/condition not present/etc
-  ;  > 1,  bad/problematic/condition present/etc
+  ;  > 0,  bad/problematic/condition present/etc
   ;  = -1,  status not determined ("don't know")
   ;  < -1,  status does not matter ("don't care")
   ;
@@ -100,10 +100,10 @@ pro psp_filter_swp, tvars, dqflag, STATUS=status, HELP=help, NAMES_OUT=names_out
   foreach flg,dqflag do begin
     case (status) of
       1: begin
-        r = where(dqf[*,flg] gt 1, /NULL)
+        r = where(dqf[*,flg] gt 0, /NULL)
       end
       2: begin
-       r = where((dqf[*,flg] gt 1) or (dqf[*,flg] eq -1), /NULL)
+       r = where((dqf[*,flg] gt 0) or (dqf[*,flg] eq -1), /NULL)
       end
       3: begin
         rgood = where(dqf[*,flg] eq 0, /NULL, COMPLEMENT=r)
@@ -123,8 +123,6 @@ pro psp_filter_swp, tvars, dqflag, STATUS=status, HELP=help, NAMES_OUT=names_out
     if tag_exist(d,'dyL') then d.dyL[rem_idx,*] = !values.f_NAN
     if tag_exist(d,'dyH') then d.dyH[rem_idx,*] = !values.f_NAN
    
-    
-    
     store_data,tnames(tname)+suffix,data=d,dl=dl
     names_out = [names_out, tnames(name)+suffix]
   endforeach
