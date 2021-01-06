@@ -10,12 +10,12 @@
 ;     Yuki Harada on 2018-05-28
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-05-30 16:47:03 -0700 (Wed, 30 May 2018) $
-; $LastChangedRevision: 25299 $
+; $LastChangedDate: 2021-01-05 17:50:36 -0800 (Tue, 05 Jan 2021) $
+; $LastChangedRevision: 29573 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/pace/kgy_esa_pad_comb.pro $
 ;-
 
-pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=erange, npa=npa, suffix=suffix
+pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=erange, npa=npa, suffix=suffix, mask_uv=mask_uv
 
   tr = timerange(trange)
 
@@ -62,7 +62,8 @@ pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=er
 
      if abs(d1.time-d2.time) gt .5d then d2.bins = 0
      if d1.type ne d2.type then d2.bins = 0
-
+     if keyword_set(mask_uv) then if total(d2.bins) eq 0 then d1.bins = 0 ;- Mask S1 data if S2 data are masked
+     
      if d1.type eq 2 then begin ;- FIXME: type02
 ;;         if total(finite(d1.magf)) ne 3 then continue
 ;;         if d1.svs ne 0 then continue

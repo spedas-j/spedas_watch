@@ -230,7 +230,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'fgm' then begin
             if datatype EQ 'fgs' then subdir = 'survey/' else subdir = 'fast/'
           endif
-          ;subdir = subdir + year_string + '/'
+          subdir = subdir + year_string + '/'
           
           remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
           if keyword_set(public_data) then begin
@@ -283,9 +283,10 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               endif      
 
           endfor
-        
+
           if ~undefined(files) then begin
-            spd_cdf2tplot, files, tplotnames = loaded_tnames, varformat=varformat, $
+            unique_files = files[uniq(files, sort(files))]
+            spd_cdf2tplot, unique_files, tplotnames = loaded_tnames, varformat=varformat, $
               suffix = suffix, get_support_data = get_support_data, /load_labels, $
               min_version=min_version,version=cdf_version,latest_version=latest_version, $
               number_records=cdf_records, center_measurement=center_measurement, $
