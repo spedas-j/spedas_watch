@@ -37,6 +37,7 @@
 ;       + 2020-11-02, R. Nikoukar : changed 'mmsx' to 'mms#-#' for consistency with mms_eis_spec_combine_sc.pro; corrected time indexing for spin-averaged variables
 ;       + 2020-12-14, I. Cohen    : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords; 
 ;                                   added "datarate_str" to handle issue with probes definition if both burst and survey data are loaded
+;       + 2021-01-06, I. Cohen    : added wildcard into string in definition of eis_sc_check for phxtof data
 ;
 ;-
 pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, data_rate = data_rate, $
@@ -65,7 +66,7 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
     endcase
   endif
 
-  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*'+datarate_str+'extof_proton*flux*omni'+suffix) else eis_sc_check = tnames('mms*eis'+datarate_str+'phxtof_proton*flux*omni'+suffix)
+  if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*'+datarate_str+'extof_proton*flux*omni'+suffix) else eis_sc_check = tnames('mms*eis*'+datarate_str+'phxtof_proton*flux*omni'+suffix)
   probes = strmid(eis_sc_check, 3, 1)
   if (n_elements(probes) gt 4) then probes = probes[0:-2]
   ;
