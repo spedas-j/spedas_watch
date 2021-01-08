@@ -11,9 +11,17 @@
 function elf_make_geo_grid
 
   ;MLAT contours
-  latstep=10   ; 5.
-  latstart=0; 40.
+  latstep=10   ; 5. 
+  ;latstart=0; 40.
+  ;latend=90
+  ;-------------------------
+  ;JWu edit start
+  latstart=-90; 40.
   latend=90
+  ;JWu edit end
+  ;------------------------
+
+
   ;mlon contours
   ;get magnetic lat/lons
   lonstep=30
@@ -25,7 +33,7 @@ function elf_make_geo_grid
   v_lat=fltarr(nmlats,n2)
   v_lon=fltarr(nmlats,n2)
   height=100.
-  ; Calculate latitudes
+  ; Calculate latitude circile; each latitude circle has 150 points
   ;the call of cnv_aacgm here converts from geomagnetic to geographic
   for i=0,nmlats-1 do begin
     for j=0,n2-1 do begin
@@ -40,7 +48,7 @@ function elf_make_geo_grid
   n2=20
   u_lat=fltarr(nmlons,n2)
   u_lon=fltarr(nmlons,n2)
-  cnv_aacgm, 86.39, 175.35, height, outlat,outlon,r1,error  
+  cnv_aacgm, 86.39, 175.35, height, outlat,outlon,r1,error   ;JWu ???
   mlats=latstart+findgen(n2)/float(n2-1)*(latend-latstart)
   ;  Calculate longitude values
   for i=0,nmlons-1 do begin

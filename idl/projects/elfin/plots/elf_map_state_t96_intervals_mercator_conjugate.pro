@@ -16,6 +16,7 @@ pro elf_map_state_t96_intervals_mercator_conjugate, tstart, gifout=gifout, south
   endif
 
   ; some setup
+  
   if keyword_set(dir_move) then begin
     dir_products=dir_move
   endif
@@ -410,7 +411,7 @@ pro elf_map_state_t96_intervals_mercator_conjugate, tstart, gifout=gifout, south
     ; (nmlats-1)/2 is equator index
     equ_lon=(v_lon[(nmlats-1)/2-1,*]+v_lon[(nmlats-1)/2+1,*])/2
     equ_lat=(v_lat[(nmlats-1)/2-1,*]+v_lat[(nmlats-1)/2+1,*])/2
-    oplot,equ_lon,equ_lat,color=248,thick=3,linestyle=1
+    oplot,equ_lon,equ_lat,color=248,thick=contour_thick,linestyle=1
     for i=0,nmlons-1 do begin
       idx=where(u_lon[i,*] NE 0)
       oplot,u_lon[i,idx],u_lat[i,idx],color=248,thick=contour_thick,linestyle=1

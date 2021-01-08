@@ -31,7 +31,10 @@ pro elf_plot_attitude, trange=trange
   if ~undefined(trange) && n_elements(trange) eq 2 $
     then tr = timerange(trange) $
   else tr = timerange()
-  
+  daily_names = file_dailynames(trange=tr, /unique, times=times)
+  dname=daily_names[0]
+  dname2=daily_names[n_elements(daily_names)-1]
+
   ; set up times and titles
   tdate=strmid(time_string(time_double(trange[0])),0,10)
   tdate1=strmid(time_string(time_double(trange[1])),0,10)  
@@ -86,17 +89,26 @@ pro elf_plot_attitude, trange=trange
   dlp={ysubtitle:'[deg]', labels:['phi'], colors:[2]}   
   store_data, 'ela_theta', data={x:ela_att.x, y:tha}, dlimits=dlt
   store_data, 'ela_phi', data={x:ela_att.x, y:pha}, dlimits=dlp
-  options, 'ela_theta', yrange=[-180,180]
-  options, 'ela_phi', yrange=[-180,180]
+  options, 'ela_theta', yrange=[-95,95]
+  options, 'ela_theta', ystyle=1
+  options, 'ela_phi', yrange=[-185,185]
+  options, 'ela_phi', ystyle=1
   store_data, 'elb_theta', data={x:elb_att.x, y:thb}, dlimits=dlt
   store_data, 'elb_phi', data={x:elb_att.x, y:phb}, dlimits=dlp
-  options, 'elb_theta', yrange=[-180,180]
-  options, 'elb_phi', yrange=[-180,180]
+  options, 'elb_theta', yrange=[-95,95]
+  options, 'elb_theta', ystyle=1
+  options, 'elb_phi', yrange=[-185,185]
+  options, 'elb_phi', ystyle=1
+  options, 'ela_att_gei', yrange=[-1.05,1.05]
+  options, 'ela_att_gei', ystyle=1
+  options, 'elb_att_gei', yrange=[-1.05,1.05]
+  options, 'elb_att_gei', ystyle=1
   
   ; set up plot parameters
   thm_init
   window, xsize=850, ysize=950
 
+  
   ; Plot Probe A
   tplot, ['ela_att_gei', $
          'ela_theta',$
@@ -105,9 +117,9 @@ pro elf_plot_attitude, trange=trange
   xyouts,  .75, .005, 'Created: '+systime(),/normal,charsize=.9 
   dir_products = !elf.local_data_dir + 'ela/attplots/
   file_mkdir, dir_products
-  gif_file = dir_products+'ela_attitude_plot_'+tdate+'_'+tdate1
+  gif_file = dir_products+'ela_attitude_plot_'+dname+'_'+dname2
   dprint, 'Making gif file '+gif_file+'.gif'
-  makegif, gif_file
+  elf_make_att_gif, gif_file
 
   ; Plot probe B
   tplot, ['elb_att_gei', $
@@ -117,8 +129,8 @@ pro elf_plot_attitude, trange=trange
   xyouts,  .75, .005, 'Created: '+systime(),/normal,charsize=.9
   dir_products = !elf.local_data_dir + 'elb/attplots/
   file_mkdir, dir_products
-  gif_file = dir_products+'elb_attitude_plot_'+tdate+'_'+tdate1
+  gif_file = dir_products+'elb_attitude_plot_'+dname+'_'+dname2
   dprint, 'Making gif file '+gif_file+'.gif'
-  makegif, gif_file
+  elf_make_att_gif, gif_file
 
 end
