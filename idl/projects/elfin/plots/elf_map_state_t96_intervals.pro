@@ -55,7 +55,7 @@
 ;   $URL:
 ;
 ;-
-pro elf_map_state_t96_intervals_2, tstart, gifout=gifout, south=south, noview=noview,$
+pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=noview,$
   model=model, dir_move=dir_move, insert_stop=insert_stop, hires=hires, $
   no_trace=no_trace, tstep=tstep, clean=clean, quick_trace=quick_trace, pred=pred, $
   sm=sm, bfirst=bfirst, one_hour_only=one_hour_only
