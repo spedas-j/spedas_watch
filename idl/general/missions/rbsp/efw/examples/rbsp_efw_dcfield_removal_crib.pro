@@ -11,7 +11,7 @@
 ;
 ;  INPUT:
 ;		probe   -> 'a' or 'b'
-;		model   -> Any of the Tsyganenko models or IGRF. Defaults to 't96'
+;		model   -> Any of the Tsyganenko models or 'igrf'. Defaults to 't96'
 ;		ql -> set to load quicklook EMFISIS data
 ;               cadence -> cadence of EMFISIS data. 'hires', '4sec', '1sec'
 ;               nodelete -> don't delete various tplot
@@ -75,7 +75,7 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
 
 
 
-  if ~keyword_set(model) then model = 't96'
+  if ~keyword_set(model) then model = 't89'
   if ~keyword_set(cadence) then cadence = '1sec'
 
 
@@ -111,6 +111,7 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
   cotrans,rbspx+'_state_pos_gse',rbspx+'_state_pos_gsm',/gse2gsm
   copy_data,rbspx+'_state_pos_gsm','pos_gsm'
 
+
   ;Downsample ephemeris data to once/min
   timestmp = 60.*dindgen(1440.) + tr[0]
   tinterpol_mxn,'pos_gsm',timestmp,/overwrite
@@ -120,43 +121,45 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
   posname = 'pos_gsm'
 
 
-
-
+  ;now put time back to requested range
   if model eq 't01' then timespan,tr[0],(tr[1]-tr[0]),/seconds
 
 
-  ;Load EMFISIS L3 data in GSE.
+  ;Load EMFISIS L3 data in GSE for mag model subtract
   if ~keyword_set(ql) then begin
-  if ~tdexists(rbspx+'_emfisis_l3_4sec_gse_Mag',tr[0],tr[1]) then rbsp_load_emfisis,probe=probe,coord='gse',cadence=cadence,level='l3' ;load this for the mag model subtract
+    if ~tdexists(rbspx+'_emfisis_l3_4sec_gse_Mag',tr[0],tr[1]) then $
+      rbsp_load_emfisis,probe=probe,coord='gse',cadence=cadence,level='l3'
 
 
-  ;decimate the data? Either way, rename it to rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_dec'
-  if keyword_set(decimate_level) then $
-;    rbsp_decimate,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag',$
-;    level=decimate_level,newname=rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_dec' else $
-;    copy_data,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag',rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS'
-    rbsp_decimate,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag',$
-    level=decimate_level,newname=rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS' else $
-    copy_data,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag',rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS'
+    ;decimate the data? Either way, rename it to rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_dec'
+    if keyword_set(decimate_level) then $
+  ;    rbsp_decimate,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag',$
+  ;    level=decimate_level,newname=rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_dec' else $
+  ;    copy_data,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag',rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS'
+      rbsp_decimate,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag',$
+      level=decimate_level,newname=rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS' else $
+      copy_data,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag',rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS'
 
 
 
-  get_data,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS',data=dd
-  if ~is_struct(dd) then begin
-    print,'*****  NO EMFISIS L3 DATA TO LOAD *****'
-    print,'exiting rbsp_efw_DCfield_removal_crib.pro'
-    return
+    get_data,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS',data=dd
+    if ~is_struct(dd) then begin
+      print,'*****  NO EMFISIS L3 DATA TO LOAD *****'
+      print,'exiting rbsp_efw_DCfield_removal_crib.pro'
+      return
+    endif
+
+    tinterpol_mxn,rbspx+'_spinaxis_direction_gse',rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS',/spline
+
+    copy_data,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS',rbspx+'_mag_gse'
+
+    get_data,rbspx+'_spinaxis_direction_gse_interp',data=wsc_GSE_tmp
+    rbsp_gse2mgse,rbspx+'_mag_gse',reform(wsc_GSE_tmp.y),newname=rbspx+'_mag_mgse'
+
+
   endif
 
-  tinterpol_mxn,rbspx+'_spinaxis_direction_gse',rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS',/spline
 
-  copy_data,rbspx+'_emfisis_l3_'+cadence+'_gse_Mag_DS',rbspx+'_mag_gse'
-
-  get_data,rbspx+'_spinaxis_direction_gse_interp',data=wsc_GSE_tmp
-  rbsp_gse2mgse,rbspx+'_mag_gse',reform(wsc_GSE_tmp.y),newname=rbspx+'_mag_mgse'
-
-
-  endif
 
   if keyword_set(ql) then begin
     if ~tdexists(rbspx+'_emfisis_quicklook_Mag',tr[0],tr[1]) then rbsp_load_emfisis,probe=probe,/quicklook
@@ -212,8 +215,6 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
 
 
 
-
-
     ;Rotate the MGSE data to GSE
     rbsp_mgse2gse,rbspx + '_mag_mgse',wsc_GSE_tmp.y,$
       newname=rbspx+'_mag_gse',probe=probe,$
@@ -233,7 +234,7 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
 
 
 
-  if ~keyword_set(model) then model = 't89'
+;  if ~keyword_set(model) then model = 't89'
 
   ;;--------------------------------------------------
   ;;Call the specific model
@@ -241,9 +242,9 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
 
   ;;Call the models without any solar wind input. Later, we'll
   ;;also call them with model input from OMNI, Wind, ACE
-  if model eq 't89' then call_procedure,'t'+model,posname,kp=2.0,period=0.5
-  if model eq 't96' then call_procedure,'t'+model,posname,pdyn=2.0D,dsti=-30.0D,$
-  yimf=0.0D,zimf=-5.0D,period=0.5
+  if model eq 't89' then call_procedure,'tt89',posname,kp=2.0,period=0.5
+  if model eq 't96' then call_procedure,'tt96',posname,pdyn=2.0D,dsti=-30.0D,$
+                            yimf=0.0D,zimf=-5.0D,period=0.5
 
   ;;Vsw of 400 km/s and By=0, Bz=-5 nT (general default values from Tsyganenko02b)
 
@@ -253,11 +254,9 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
   if model eq 't01' then begin
     timespan,tr2[0],(tr2[1] - tr2[0]),/seconds
 
-
-
     g1 = 6. & g2 = 10.
-    if model eq 't01' then call_procedure,'t'+model,posname,pdyn=2.0D,dsti=-30.0D,$
-    yimf=0.0D,zimf=-5.0D,g1=g1,g2=g2,period=0.5
+    if model eq 't01' then call_procedure,'tt01',posname,pdyn=2.0D,dsti=-30.0D,$
+                              yimf=0.0D,zimf=-5.0D,g1=g1,g2=g2,period=0.5
 
     ;;return timespan to original
     timespan,tr[0],(tr[1]-tr[0]),/seconds
@@ -268,8 +267,11 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
   ;;--------------------------------------------------
 
 
-
-  copy_data,'pos_gsm_b'+model,rbspx+'_mag_gsm_'+model
+  if model eq 'igrf' then begin 
+    call_procedure,'tt89',/igrf_only,posname,period=0.5
+    copy_data,'pos_gsm_bt89',rbspx+'_mag_gsm_igrf'
+  endif else copy_data,'pos_gsm_b'+model,rbspx+'_mag_gsm_'+model
+    
 
   ;model output can be choppy (some problem within t89.pro). Smooth it here
   get_data,posname,data=dd
@@ -285,6 +287,7 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
 
   ;;         ylim,[rbspx+'_mag_gsm_t89_smoothed',rbspx+'_mag_gsm_t89_smoothed_smoothed']+'_detrend',-200,200
   ;;         tplot,[rbspx+'_mag_gsm_t89_smoothed',rbspx+'_mag_gsm_t89_smoothed_smoothed']+'_detrend'
+
 
 
   ;Transform the GSM mag model to GSE
@@ -385,11 +388,11 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
         ;;only the By and Bz IMF components used
         store_data,'wi_imf',data={x:goo.x,y:[[goo.y[*,0]],[goo.y[*,1]],[goo.y[*,2]]]}
 
-        get_tsy_params,'kyoto_dst','wi_imf','wi_3dp_k0_ion_density','wi_3dp_k0_ion_vel',strupcase(model)
+        if model ne 'igrf' then get_tsy_params,'kyoto_dst','wi_imf','wi_3dp_k0_ion_density','wi_3dp_k0_ion_vel',strupcase(model)
 
 
         ;Call the model with the Wind parameters
-        if model eq 'igrf' then call_procedure,'igrf',posname,parmod=model+'_par',period=0.5 $
+        if model eq 'igrf' then call_procedure,'tt89',/igrf_only,posname,period=0.5 $
         else call_procedure,'t'+model,posname,parmod=model+'_par',period=0.5
 
 
@@ -454,9 +457,9 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
 
         ;;only the By and Bz IMF components used
         store_data,'ace_imf',data={x:goo.x,y:[[goo.y[*,0]],[goo.y[*,1]],[goo.y[*,2]]]}
-        get_tsy_params,'kyoto_dst','ace_imf','ace_k0_swe_Np','ace_k0_swe_Vp',strupcase(model),/speed
+        if model ne 'igrf' then get_tsy_params,'kyoto_dst','ace_imf','ace_k0_swe_Np','ace_k0_swe_Vp',strupcase(model),/speed
 
-        if model eq 'igrf' then call_procedure,'igrf',posname,parmod=model+'_par',period=0.5 $
+        if model eq 'igrf' then call_procedure,'tt89',/igrf_only,posname,period=0.5 $
         else call_procedure,'t'+model,posname,parmod=model+'_par',period=0.5
 
         if model eq 't01' then begin
@@ -524,10 +527,10 @@ pro rbsp_efw_dcfield_removal_crib,probe,$
 
         store_data,'omni_imf',data=['OMNI_HRO_1min_BY_GSM','OMNI_HRO_1min_BZ_GSM']
 
-        get_tsy_params,'kyoto_dst','omni_imf','OMNI_HRO_1min_proton_density','OMNI_HRO_1min_flow_speed',strupcase(model),/speed,/imf_yz
+        if model ne 'igrf' then get_tsy_params,'kyoto_dst','omni_imf','OMNI_HRO_1min_proton_density','OMNI_HRO_1min_flow_speed',strupcase(model),/speed,/imf_yz
 
 
-        if model eq 'igrf' then call_procedure,'igrf',posname,parmod=model+'_par',period=0.5 $
+        if model eq 'igrf' then call_procedure,'tt89',/igrf_only,posname,period=0.5 $
         else call_procedure,'t'+model,posname,parmod=model+'_par',period=0.5
 
 
