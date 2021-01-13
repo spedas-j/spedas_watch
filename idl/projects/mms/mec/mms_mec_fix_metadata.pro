@@ -8,25 +8,28 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-09-29 12:37:28 -0700 (Tue, 29 Sep 2020) $
-;$LastChangedRevision: 29194 $
+;$LastChangedDate: 2021-01-12 10:31:13 -0800 (Tue, 12 Jan 2021) $
+;$LastChangedRevision: 29593 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/mec/mms_mec_fix_metadata.pro $
 ;-
 
 pro mms_mec_fix_metadata, tplotnames, probe, suffix = suffix
     if undefined(suffix) then suffix = ''
     probe = strcompress(string(probe), /rem)
-    position_vars = tnames('mms'+probe+'_mec_r_*')
-    velocity_vars = tnames('mms'+probe+'_mec_v_*')
     
+    position_vars = tnames('mms'+probe+'_mec_r_*')
+    if ~is_array(position_vars) then position_vars = [position_vars]
     position_vars = ssl_set_intersection(position_vars, tplotnames)
-    velocity_vars = ssl_set_intersection(velocity_vars, tplotnames)
 
     if is_string(position_vars[0]) then begin
       for pos_idx = 0, n_elements(position_vars)-1 do begin
           options, position_vars[pos_idx], colors=[2, 4, 6]
       endfor
     endif
+    
+    velocity_vars = tnames('mms'+probe+'_mec_v_*')
+    if ~is_array(velocity_vars) then velocity_vars = [velocity_vars]
+    velocity_vars = ssl_set_intersection(velocity_vars, tplotnames)
     
     if is_string(velocity_vars[0]) then begin
       for vel_idx = 0, n_elements(velocity_vars)-1 do begin
