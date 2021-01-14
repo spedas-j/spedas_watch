@@ -48,8 +48,8 @@
 ;CREATED BY: Ayris Narock, Jonathan Tsang (ADNET/GSFC) 2020
 ;
 ; $LastChangedBy: anarock $
-; $LastChangedDate: 2020-11-18 13:19:37 -0800 (Wed, 18 Nov 2020) $
-; $LastChangedRevision: 29360 $
+; $LastChangedDate: 2021-01-13 08:33:08 -0800 (Wed, 13 Jan 2021) $
+; $LastChangedRevision: 29594 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/misc/psp_fld_qf_filter.pro $
 ;-
 
@@ -85,6 +85,7 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
     endif
   endforeach
 
+  if n_elements(dqflag eq 1) then dqflag = dqflag[0]
 
   ; Create time specific quality flags as needed
   tn = tnames(tvars)

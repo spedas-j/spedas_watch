@@ -7,7 +7,8 @@
 ;    orange = Sun point
 ;    blue   = Earth point
 ;    green  = Fly +/- Y
-;    red    = Fly-Z
+;    red    = Fly-Z (including up and down variants)
+;    purple = Fly+Z (including up and down variants)
 ;
 ;USAGE:
 ;  mvn_attitude_bar
@@ -19,8 +20,8 @@
 ;       none
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-03-13 12:44:17 -0700 (Wed, 13 Mar 2019) $
-; $LastChangedRevision: 26787 $
+; $LastChangedDate: 2021-01-13 15:12:27 -0800 (Wed, 13 Jan 2021) $
+; $LastChangedRevision: 29597 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_attitude_bar.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -57,14 +58,19 @@ pro mvn_attitude_bar
     ram_v = sqrt(total(ram_y^2.,2))
     ram_y /= (ram_v # replicate(1.,3))
 
+    z_phi = acos(ram_y[*,2])*!radeg
+
     get_data, 'alt', data=alt
     alt = spline(alt.x, alt.y, sth.x)
 
     indx = where((alt lt 800.) and (abs(abs(ram_y[*,1]) - 1.) lt 0.001), count)
     if (count gt 0L) then y[indx,*] = 4.85  ; Fly-Y or Fly+Y
 
-    indx = where((alt lt 800.) and (abs(abs(ram_y[*,2]) - 1.) lt 0.005), count)
+    indx = where((alt lt 800.) and (abs(ram_y[*,1]) lt 0.001) and (z_phi gt 100.), count)
     if (count gt 0L) then y[indx,*] = 10.   ; Fly-Z
+
+    indx = where((alt lt 800.) and (abs(ram_y[*,1]) lt 0.001) and (z_phi lt 80.), count)
+    if (count gt 0L) then y[indx,*] = 1.4   ; Fly+Z
   endif
 
   bname = 'mvn_att_bar'
