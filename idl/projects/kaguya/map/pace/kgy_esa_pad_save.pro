@@ -5,12 +5,12 @@
 ;       Yuki Harada on 2018-06-02
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-06-10 21:14:06 -0700 (Sun, 10 Jun 2018) $
-; $LastChangedRevision: 25342 $
+; $LastChangedDate: 2021-01-14 23:35:04 -0800 (Thu, 14 Jan 2021) $
+; $LastChangedRevision: 29602 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/pace/kgy_esa_pad_save.pro $
 ;-
 
-pro kgy_esa_pad_save, trange=trange, version=version, wdatadir=wdatadir
+pro kgy_esa_pad_save, trange=trange, version=version, wdatadir=wdatadir, cntcorr=cntcorr
 
 if ~keyword_set(version) then version = '_v00_r00'
 if ~keyword_set(wdatadir) then wdatadir = root_data_dir()+'kaguya/pace/esa_pad/'
@@ -24,10 +24,10 @@ get_data,'kgy_esa1_en_counts',dtype=dtype1
 get_data,'kgy_lmag_Bsat',dtype=dtype2
 if dtype1*dtype2 eq 0 then return
 
-kgy_esa_pad_comb,trange=tr,erange=[50,150],suffix='_50-150'
-kgy_esa_pad_comb,trange=tr,erange=[150,250],suffix='_150-250'
-kgy_esa_pad_comb,trange=tr,erange=[250,350],suffix='_250-350'
-kgy_esa_pad_comb,trange=tr,erange=[350,450],suffix='_350-450'
+kgy_esa_pad_comb,trange=tr,erange=[50,150],suffix='_50-150',cntcorr=cntcorr
+kgy_esa_pad_comb,trange=tr,erange=[150,250],suffix='_150-250',cntcorr=cntcorr
+kgy_esa_pad_comb,trange=tr,erange=[250,350],suffix='_250-350',cntcorr=cntcorr
+kgy_esa_pad_comb,trange=tr,erange=[350,450],suffix='_350-450',cntcorr=cntcorr
 
 tname = [ 'kgy_esa_pad_50-150','kgy_esa_pad_aveflux_50-150','kgy_esa_pad_counts_50-150', $
           'kgy_esa_pad_150-250','kgy_esa_pad_aveflux_150-250','kgy_esa_pad_counts_150-250', $

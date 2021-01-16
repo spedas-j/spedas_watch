@@ -10,12 +10,12 @@
 ;     Yuki Harada on 2018-05-28
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2021-01-05 17:50:36 -0800 (Tue, 05 Jan 2021) $
-; $LastChangedRevision: 29573 $
+; $LastChangedDate: 2021-01-14 23:35:04 -0800 (Thu, 14 Jan 2021) $
+; $LastChangedRevision: 29602 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/pace/kgy_esa_pad_comb.pro $
 ;-
 
-pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=erange, npa=npa, suffix=suffix, mask_uv=mask_uv
+pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=erange, npa=npa, suffix=suffix, mask_uv=mask_uv, cntcorr=cntcorr
 
   tr = timerange(trange)
 
@@ -30,7 +30,8 @@ pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=er
   if size(erange,/n_ele) ne 2 then erange = [150,250]
   if ~keyword_set(suffix) then suffix=''
   if ~keyword_set(npa) then npa = 16
-
+  if ~keyword_set(cntcorr) then cntcorr = 1
+  
   times = kgy_esa1_get3d(/gettimes)
 
   wt = where( times ge tr[0] and times lt tr[1] , nwt )
@@ -57,8 +58,8 @@ pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=er
      now = times[it]
      if it mod 10 eq 0 then dprint,dlevel=1,verbose=verbose,'Comp PADs: ',it,' / ',nwt-1,' : '+time_string(now)
 
-     d1 = kgy_esa1_get3d(now,sabin=1)
-     d2 = kgy_esa2_get3d(now,sabin=1)
+     d1 = kgy_esa1_get3d(now,sabin=1, cntcorr=cntcorr)
+     d2 = kgy_esa2_get3d(now,sabin=1, cntcorr=cntcorr)
 
      if abs(d1.time-d2.time) gt .5d then d2.bins = 0
      if d1.type ne d2.type then d2.bins = 0

@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-12-18 14:13:44 -0800 (Fri, 18 Dec 2020) $
-; $LastChangedRevision: 29543 $
+; $LastChangedDate: 2021-01-15 12:34:25 -0800 (Fri, 15 Jan 2021) $
+; $LastChangedRevision: 29604 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -153,43 +153,49 @@ end
 
 function mms_python_validation_ut::test_feeps_srvy_electron
   mms_load_feeps, trange=['2015-10-16','2015-10-17']
-  py_script = ["from pyspedas import mms_load_feeps", "mms_load_feeps(trange=['2015-10-16','2015-10-17'])"]
-  vars = ['mms1_epd_feeps_srvy_l2_electron_intensity_omni', 'mms1_epd_feeps_srvy_l2_electron_intensity_omni_spin']
+  mms_feeps_pad
+  py_script = ["from pyspedas import mms_load_feeps, mms_feeps_pad", "mms_load_feeps(trange=['2015-10-16','2015-10-17'])", "mms_feeps_pad()"]
+  vars = ['mms1_epd_feeps_srvy_l2_electron_intensity_omni', 'mms1_epd_feeps_srvy_l2_electron_intensity_omni_spin', 'mms1_epd_feeps_srvy_l2_electron_intensity_70-600keV_pad', 'mms1_epd_feeps_srvy_l2_electron_intensity_70-600keV_pad_spin']
   return, spd_run_py_validation(py_script, vars, tol=1e-4)
 end
 
 function mms_python_validation_ut::test_feeps_srvy_ion
   mms_load_feeps, datatype='ion', trange=['2015-10-16','2015-10-17']
-  py_script = ["from pyspedas import mms_load_feeps", "mms_load_feeps(trange=['2015-10-16','2015-10-17'], datatype='ion')"]
-  vars = ['mms1_epd_feeps_srvy_l2_ion_intensity_omni', 'mms1_epd_feeps_srvy_l2_ion_intensity_omni_spin']
+  mms_feeps_pad, datatype='ion'
+  py_script = ["from pyspedas import mms_load_feeps, mms_feeps_pad", "mms_load_feeps(trange=['2015-10-16','2015-10-17'], datatype='ion')", "mms_feeps_pad(datatype='ion')"]
+  vars = ['mms1_epd_feeps_srvy_l2_ion_intensity_omni', 'mms1_epd_feeps_srvy_l2_ion_intensity_omni_spin', 'mms1_epd_feeps_srvy_l2_ion_intensity_70-600keV_pad', 'mms1_epd_feeps_srvy_l2_ion_intensity_70-600keV_pad_spin']
   return, spd_run_py_validation(py_script, vars, tol=1e-4)
 end
 
 function mms_python_validation_ut::test_feeps_brst_ion
   mms_load_feeps, data_rate='brst', datatype='ion', trange=['2015-10-16/13:06', '2015-10-16/13:07']
-  py_script = ["from pyspedas import mms_load_feeps", "mms_load_feeps(trange=['2015-10-16/13:06', '2015-10-16/13:07'], datatype='ion', data_rate='brst')"]
-  vars = ['mms1_epd_feeps_brst_l2_ion_intensity_omni']
+  mms_feeps_pad, data_rate='brst', datatype='ion'
+  py_script = ["from pyspedas import mms_load_feeps, mms_feeps_pad", "mms_load_feeps(trange=['2015-10-16/13:06', '2015-10-16/13:07'], datatype='ion', data_rate='brst')", "mms_feeps_pad(data_rate='brst', datatype='ion')"]
+  vars = ['mms1_epd_feeps_brst_l2_ion_intensity_omni', 'mms1_epd_feeps_brst_l2_ion_intensity_70-600keV_pad']
   return, spd_run_py_validation(py_script, vars, tol=1e-4)
 end
 
 function mms_python_validation_ut::test_feeps_brst_electron
   mms_load_feeps, data_rate='brst', trange=['2015-10-16/13:06', '2015-10-16/13:07']
-  py_script = ["from pyspedas import mms_load_feeps", "mms_load_feeps(trange=['2015-10-16/13:06', '2015-10-16/13:07'], data_rate='brst')"]
-  vars = ['mms1_epd_feeps_brst_l2_electron_intensity_omni']
-  return, spd_run_py_validation(py_script, vars)
+  mms_feeps_pad, data_rate='brst'
+  py_script = ["from pyspedas import mms_load_feeps", "from pyspedas import mms_feeps_pad", "mms_load_feeps(trange=['2015-10-16/13:06', '2015-10-16/13:07'], data_rate='brst')", "mms_feeps_pad(data_rate='brst')"]
+  vars = ['mms1_epd_feeps_brst_l2_electron_intensity_omni', 'mms1_epd_feeps_brst_l2_electron_intensity_70-600keV_pad']
+  return, spd_run_py_validation(py_script, vars, tol=1e-5)
 end
 
 function mms_python_validation_ut::test_eis_default
   mms_load_eis, datatype=['extof', 'phxtof'], probe=4, trange=['2019-10-16','2019-10-17']
-  py_script = ["from pyspedas import mms_load_eis", "mms_load_eis(datatype=['extof', 'phxtof'], probe=4, trange=['2019-10-16','2019-10-17'])"]
-  vars = ['mms4_epd_eis_extof_proton_flux_omni', 'mms4_epd_eis_phxtof_proton_flux_omni', 'mms4_epd_eis_extof_proton_flux_omni_spin', 'mms4_epd_eis_phxtof_proton_flux_omni_spin']
+  mms_eis_pad, datatype=['extof', 'phxtof'], probe=4
+  py_script = ["from pyspedas import mms_load_eis, mms_eis_pad", "mms_load_eis(datatype=['extof', 'phxtof'], probe=4, trange=['2019-10-16','2019-10-17'])", "mms_eis_pad(datatype=['extof', 'phxtof'], probe=4)"]
+  vars = ['mms4_epd_eis_extof_proton_flux_omni', 'mms4_epd_eis_phxtof_proton_flux_omni', 'mms4_epd_eis_extof_proton_flux_omni_spin', 'mms4_epd_eis_phxtof_proton_flux_omni_spin', 'mms4_epd_eis_phxtof_46-75keV_proton_flux_omni_pad_spin', 'mms4_epd_eis_phxtof_46-75keV_proton_flux_omni_pad', 'mms4_epd_eis_extof_44-979keV_proton_flux_omni_pad', 'mms4_epd_eis_extof_44-979keV_proton_flux_omni_pad_spin']
   return, spd_run_py_validation(py_script, vars)
 end
 
 function mms_python_validation_ut::test_eis_brst
   mms_load_eis, datatype=['extof', 'phxtof'], probe=1, data_rate='brst', trange=['2015-10-16/13:06', '2015-10-16/13:07']
-  py_script = ["from pyspedas import mms_load_eis", "mms_load_eis(datatype=['extof', 'phxtof'], probe=1, data_rate='brst', trange=['2015-10-16/13:06', '2015-10-16/13:07'])"]
-  vars = ['mms1_epd_eis_brst_phxtof_proton_flux_omni', 'mms1_epd_eis_brst_phxtof_oxygen_flux_omni', 'mms1_epd_eis_brst_extof_proton_flux_omni', 'mms1_epd_eis_brst_extof_alpha_flux_omni', 'mms1_epd_eis_brst_extof_oxygen_flux_omni']
+  mms_eis_pad, datatype=['extof', 'phxtof'], probe=1, data_rate='brst'
+  py_script = ["from pyspedas import mms_load_eis, mms_eis_pad", "mms_load_eis(datatype=['extof', 'phxtof'], probe=1, data_rate='brst', trange=['2015-10-16/13:06', '2015-10-16/13:07'])", "mms_eis_pad(datatype=['extof', 'phxtof'], probe=1, data_rate='brst')"]
+  vars = ['mms1_epd_eis_brst_phxtof_proton_flux_omni', 'mms1_epd_eis_brst_phxtof_oxygen_flux_omni', 'mms1_epd_eis_brst_extof_proton_flux_omni', 'mms1_epd_eis_brst_extof_alpha_flux_omni', 'mms1_epd_eis_brst_extof_oxygen_flux_omni', 'mms1_epd_eis_brst_phxtof_54-76keV_proton_flux_omni_pad', 'mms1_epd_eis_brst_extof_54-897keV_proton_flux_omni_pad']
   return, spd_run_py_validation(py_script, vars)
 end
 
