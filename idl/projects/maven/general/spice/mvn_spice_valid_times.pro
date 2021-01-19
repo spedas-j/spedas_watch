@@ -21,9 +21,9 @@
 ;CREATED BY:      Takuya Hara on 2018-07-11.
 ;
 ;LAST MODIFICATION:
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2018-09-05 11:54:32 -0700 (Wed, 05 Sep 2018) $
-; $LastChangedRevision: 25733 $
+; $LastChangedBy: hara $
+; $LastChangedDate: 2021-01-17 18:28:37 -0800 (Sun, 17 Jan 2021) $
+; $LastChangedRevision: 29607 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_valid_times.pro $
 ;
 ;-
@@ -55,8 +55,8 @@ FUNCTION mvn_spice_valid_times, tvar, verbose=verbose, tolerance=tol, spkonly=sp
      IF nw GT 0 THEN spk = info[w]
 
      undefine, w, nw, info
-
-     info = [ck, spk]
+     IF SIZE(ck, /type) NE 0 THEN append_array, info, ck
+     IF SIZE(spk, /type) NE 0 THEN append_array, info, spk
      kernels = info.filename
      objects = info.obj_name  ; keep track of the s/c bus and APP gimbals separately
 ;    kernels = kernels[UNIQ(kernels, SORT(kernels))] ; UNIQ can discard info about multiple objects
