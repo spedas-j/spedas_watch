@@ -35,6 +35,7 @@
 ;       + 2020-06-23, E. Grimes         : updated call to mms_eis_omni to use the /spin keyword when calculating the spin-averages
 ;       + 2020-11-19, I. Cohen          : fixed issue with overlap energies - average between all shared energies
 ;       + 2020-12-11, I. Cohen          : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords
+;       + 2021-01-21, I. Cohen          : remove lowest ExTOF energy channel because of noise near detector threshold
 ;                       
 ;-
 pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
@@ -74,6 +75,9 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
       ;
       ; Make sure ExTOF and PHxTOF data have the same time dimension
       get_data,extof_vars[aa],data=proton_extof
+      ; remove lowest ExTOF energy channel because of noise near detector threshold
+      proton_extof.v = proton_extof.v[1:-1]
+      proton_extof.y = proton_extof.y[*, 1:-1]
       get_data,phxtof_vars[aa],data=proton_phxtof
       data_size = [n_elements(proton_phxtof.x),n_elements(proton_extof.x)]
       

@@ -2,12 +2,16 @@
 ;PROCEDURE:   putwin
 ;PURPOSE:
 ;  Creates a window and places it in a specified monitor, with
-;  offsets relative to the screen edges. This is a user-friendly
-;  version of WINDOW that is designed for a multiple monitor setup.
+;  offsets relative to the screen edges or to another existing
+;  window. This is a user-friendly version of WINDOW designed 
+;  for a multiple monitor setup.
 ;
 ;  This routine is hardware dependent and will not work properly until
 ;  it is configured for your monitor(s) and their arrangement, which
-;  determine how IDL positions graphics windows.  See keyword CONFIG.
+;  determine how IDL positions graphics windows.  Automatic configuration
+;  is provided that works well on Mac systems with attached monitor(s), 
+;  but has not been thoroughly tested on other platforms.  See keyword
+;  CONFIG for more information.
 ;
 ;  If no configuration is defined, putwin behaves exactly like window.
 ;  This allows the routine to be used in public code, where the user 
@@ -114,6 +118,27 @@
 ;                  the bounds of the physical monitors, so windows can
 ;                  be placed in regions that cannot be seen.
 ;
+;       RELATIVE:  Set this keyword to an existing window number.  Then
+;                  DX and DY specify offsets of the new window location
+;                  from the perimeter of the existing window.
+;                    If DX (DY) is positive, place window right (above).
+;                    If DX (DY) is negative, place window left (below).
+;                  Usually, DX and/or DY are non-zero, in which case the
+;                  new window is placed around the perimeter of the 
+;                  existing window.  However, when DX and DY are both 
+;                  zero, the new window is placed on top of the existing 
+;                  window, with the bottom left corners aligned.
+;
+;                  If RELATIVE is set, NOFIT=1 and NORM=0 are enforced.
+;
+;       TOP:       If RELATIVE is set and DY=0, align the top edges of 
+;                  the new and existing windows.  Otherwise, the bottom
+;                  edges are aligned.
+;
+;       RIGHT:     If RELATIVE is set and DX=0, align the right edges of
+;                  the new and existing windows.  Otherwise, the left
+;                  edges are aligned.
+;
 ;       CORNER:    Alternate method for determining which corner to 
 ;                  place window.  If this keyword is set, then only the
 ;                  absolute values of DX and DY are used.
@@ -176,8 +201,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-22 16:32:15 -0800 (Tue, 22 Dec 2020) $
-; $LastChangedRevision: 29552 $
+; $LastChangedDate: 2021-01-21 14:54:33 -0800 (Thu, 21 Jan 2021) $
+; $LastChangedRevision: 29615 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -187,7 +212,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                   key=key, stat=stat, nofit=nofit, norm=norm, center=center, $
                   xcenter=xcenter, ycenter=ycenter, tbar=tbar2, xfull=xfull, $
                   yfull=yfull, aspect=aspect, show=show, secondary=secondary, $
-                  _extra=extra
+                  relative=rel, top=top, right=right, _extra=extra
 
   @putwin_common
 
@@ -202,7 +227,8 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     ktag = tag_names(key)
     klist = ['CONFIG','STAT','SHOW','MONITOR','SECONDARY','DX','DY','NORM', $
              'CENTER','XCENTER','YCENTER','CORNER','SCALE','FULL','XFULL', $
-             'YFULL','ASPECT','XSIZE','YSIZE','NOFIT','TBAR']
+             'YFULL','ASPECT','XSIZE','YSIZE','NOFIT','TBAR','RELATIVE', $
+             'TOP','RIGHT']
     for j=0,(n_elements(ktag)-1) do begin
       i = strmatch(klist, ktag[j]+'*', /fold)
       case (total(i)) of
@@ -229,6 +255,9 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                  18 : ysize = key.(j)
                  19 : nofit = key.(j)
                  20 : tbar = key.(j)
+                 21 : rel = key.(j)
+                 22 : top = key.(j)
+                 23 : right = key.(j)
                endcase
         else : print, "Keyword ambiguous: ", ktag[j]
       endcase
@@ -375,10 +404,40 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
   if (n_elements(dx) eq 0) then dx = 0
   if (n_elements(dy) eq 0) then dy = 0
+
+  if (size(rel,/type) gt 0) then begin
+    cmd = 'wset, ' + strtrim(string(fix(rel[0])),2)
+    ok = execute(cmd,0,1)
+    if (ok) then begin
+      rel = !d.window
+      device, get_window_position=wpos
+
+      dx1 = wpos[0]
+      if (dx lt 0) then dx1 -= (xsize - dx)
+      if (dx gt 0) then dx1 += (!d.x_size + dx)
+      if ((dx eq 0) and keyword_set(right)) then dx1 -= (xsize - !d.x_size)
+      dx = dx1
+
+      dy1 = wpos[1] - 1  ; not sure why there's a 1-pixel offset
+      if (dy lt 0) then dy1 -= (ysize + tbar - dy)
+      if (dy gt 0) then dy1 += (!d.y_size + tbar + dy)
+      if ((dy eq 0) and keyword_set(top)) then dy1 -= (ysize - !d.y_size)
+      dy = dy1
+
+      monitor = primarymon
+      corner = 2
+      nofit = 1
+    endif else begin
+      print,"Window ",strmid(cmd,6)," does not exist."
+      return
+    endelse
+  endif else rel = -1
+
   if keyword_set(norm) then begin
     dx *= mgeom[2, monitor]
     dy *= mgeom[3, monitor]
   endif
+
   if keyword_set(center) then begin
     xcenter = 1
     ycenter = 1
@@ -396,8 +455,10 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       if (dy lt 0) then corner = 2 else corner = 0
     endelse
   endif else corner = abs(fix(corner[0])) mod 4
-  dx = abs(dx)
-  dy = abs(dy)
+  if (rel lt 0) then begin
+    dx = abs(dx)
+    dy = abs(dy)
+  endif
 
   xoff = mgeom[0, monitor]          ; horizontal offset
   yoff = mgeom[1, monitor]          ; vertical offset
@@ -455,6 +516,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
           x0 = xoff + (xdim - xsize) - dx
           y0 = yoff + tbar + dy
         end
+    else :     ; do nothing
   endcase
 
   if ((wnum lt 0) or (wnum gt 31)) then begin
