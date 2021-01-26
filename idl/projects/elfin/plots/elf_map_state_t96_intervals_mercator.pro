@@ -2,10 +2,11 @@
 ;normal footprint
 ;
 
-pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, noview=noview,$
+pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
   model=model, dir_move=dir_move, insert_stop=insert_stop, hires=hires, $
-  no_trace=no_trace, tstep=tstep, clean=clean, quick_trace=quick_trace, pred=pred, $
-  sm=sm, bfirst=bfirst, one_hour_only=one_hour_only
+  no_trace=no_trace, tstep=tstep, clean=clean, quick_trace=quick_trace, pred=pred, bfirst=bfirst, one_hour_only=one_hour_only
+
+
   ; ACN
   pro_start_time=SYSTIME(/SECONDS)
   print, SYSTIME(), ' -- Creating overview plots'  ; show the time when the plot is being created
@@ -29,23 +30,43 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
   loadct,39 ;color tables
   thm_init
 
+  xwidth=950
+  ywidth=1500
+  decharsize=1  ;default char size for low resolution
+  delinewidth=1.5  ;default line width for low resolution
+  desymsize=1.9 ;default symbol size for low resolution
+  decharthick=1 ;default char thick for low resolution
+  
+  hrs=1.5 ;high resolution scale
+  if hires then begin
+    xwidth=950*hrs
+    ywidth=1500*hrs
+    decharsize=1*hrs  ;default char size for high resolution
+    delinewidth=1.5*hrs  ;default line width for high resolution
+    desymsize=1.9*hrs ;default symbol size for high resolution
+    decharthick=1*hrs
+  endif
+  
   set_plot,'z'     ; z-buffer
-  device,set_resolution=[800,630]
+  device,set_resolution=[xwidth,ywidth]
   tvlct,r,g,b,/get
 
   ; set symbols
   symbols=[4, 2]
   probes=['a','b']
-  index=[254,253,252]  
-  
+  index=[254,253,252,251]
 
   ; set colors
+  r[0]=255 & g[0]=255 & b[0]=255
+  r[255]=0 & g[255]=0 & b[255]=0
   ;ELFIN A Blue
   r[index[1]]=0 & g[index[1]]=0  & b[index[1]]=255
   ;ELFIN B Orange
   r[index[0]]=255 & g[index[0]]=99 & b[index[0]]=71
   ;Grey (for RHS SM orbit plots)
   r[index[2]]=170 & g[index[2]]=170 & b[index[2]]=170
+  ;yellow
+  r[index[3]]=250 & g[index[3]]=177 & b[index[3]]=17
   tvlct,r,g,b
 
   ; time input
@@ -85,17 +106,12 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
     if ~keyword_set(pred) then elf_load_state,probe=probes[sc] else elf_load_state,probe=probes[sc], /pred  ;, no_download=no_download
     get_data,'el'+probes[sc]+'_pos_gei',data=dats, dlimits=dl, limits=l  ; position in GEI
     elf_convert_state_gei2sm, probe=probes[sc]
-    get_data,'el'+probes[sc]+'_pos_gsm',data=datgsm  ; position in SM
-
-    ; Set up for quick_trace -> do only every 60th point (i.e. per minute)
-    count=n_elements(datgsm.x)
-    num=n_elements(datgsm.x)-1
-    tsyg_param_count=count
-    if keyword_set(quick_trace) then begin
-      store_data, 'el'+probes[sc]+'_pos_gsm_mins', data={x: datgsm.x[0:*:60], y: datgsm.y[0:*:60,*]}
-      tsyg_param_count=n_elements(datgsm.x[0:*:60]) ; prepare fewer replicated parameters below
-    endif
-
+    get_data,'el'+probes[sc]+'_pos_sm',data=dpos_sm  ; position in SM
+    ;high latitude in conjugate tracing should be avoid; use SM latitude <70 degree here
+    pos_lon = !radeg * atan2(dpos_sm.y[*,1],dpos_sm.y[*,0])
+    pos_lat = !radeg * atan(dpos_sm.y[*,2],sqrt(dpos_sm.y[*,0]^2+dpos_sm.y[*,1]^2))
+    pos_lat_mins = pos_lat[0:*:60]
+    
     ;----------------------------------
     ; trace steup
     ;----------------------------------
@@ -105,122 +121,220 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
 
     ;no quick trace setup
     get_data,'el'+probes[sc]+'_Br_sign',data=Br_sign_tmp
-    north_index=where(Br_sign_tmp.y lt 0., north_index_count)
-    south_index=where(Br_sign_tmp.y gt 0., south_index_count)
     get_data, 'el'+probes[sc]+'_pos_gsm', data=pos_gsm
-    store_data, 'el'+probes[sc]+'_pos_gsm_north', data={x:pos_gsm.x[north_index], y: pos_gsm.y[north_index,*]}
-    store_data, 'el'+probes[sc]+'_pos_gsm_south', data={x:pos_gsm.x[south_index], y: pos_gsm.y[south_index,*]}
+    ; down map tracing
+    north_index_down=where(Br_sign_tmp.y lt 0., north_index_count_down)
+    south_index_down=where(Br_sign_tmp.y gt 0., south_index_count_down)
+    store_data, 'el'+probes[sc]+'_pos_gsm_north_down', data={x:pos_gsm.x[north_index_down], y: pos_gsm.y[north_index_down,*]}
+    store_data, 'el'+probes[sc]+'_pos_gsm_south_down', data={x:pos_gsm.x[south_index_down], y: pos_gsm.y[south_index_down,*]}
+    
+    ;conjugate map tracing
+    ;do not trace above 70 degree SM latitude
+    north_index_conj=where((Br_sign_tmp.y gt 0.) and (abs(pos_lat) lt 70.), north_index_count_conj) ;locate in south but should trace to north
+    south_index_conj=where((Br_sign_tmp.y lt 0.) and (abs(pos_lat) lt 70.), south_index_count_conj) ;locate in north but should trace to south
+    store_data, 'el'+probes[sc]+'_pos_gsm_north_conj', data={x:pos_gsm.x[north_index_conj], y: pos_gsm.y[north_index_conj,*]}
+    store_data, 'el'+probes[sc]+'_pos_gsm_south_conj', data={x:pos_gsm.x[south_index_conj], y: pos_gsm.y[south_index_conj,*]}
+    
 
     ;quick trace
     if keyword_set(quick_trace) then begin
       store_data, 'el'+probes[sc]+'_Br_sign_mins', data={x: Br_sign_tmp.x[0:*:60], y: Br_sign_tmp.y[0:*:60,*]}
       get_data,'el'+probes[sc]+'_Br_sign_mins',data=Br_sign_tmp_mins
-      north_index_mins=where(Br_sign_tmp_mins.y lt 0., north_index_mins_count)
-      south_index_mins=where(Br_sign_tmp_mins.y gt 0.,south_index_mins_count)
+      store_data, 'el'+probes[sc]+'_pos_gsm_mins', data={x: pos_gsm.x[0:*:60], y: pos_gsm.y[0:*:60,*]}
       get_data, 'el'+probes[sc]+'_pos_gsm_mins', data=pos_gsm_mins
-      store_data, 'el'+probes[sc]+'_pos_gsm_mins_north', data={x:pos_gsm_mins.x[north_index_mins], y: pos_gsm_mins.y[north_index_mins,*]}
-      store_data, 'el'+probes[sc]+'_pos_gsm_mins_south', data={x:pos_gsm_mins.x[south_index_mins], y: pos_gsm_mins.y[south_index_mins,*]}
+      ; down map tracing
+      north_index_mins_down=where(Br_sign_tmp_mins.y lt 0., north_index_mins_count_down)
+      south_index_mins_down=where(Br_sign_tmp_mins.y gt 0.,south_index_mins_count_down)     
+      store_data, 'el'+probes[sc]+'_pos_gsm_mins_north_down', data={x:pos_gsm_mins.x[north_index_mins_down], y: pos_gsm_mins.y[north_index_mins_down,*]}
+      store_data, 'el'+probes[sc]+'_pos_gsm_mins_south_down', data={x:pos_gsm_mins.x[south_index_mins_down], y: pos_gsm_mins.y[south_index_mins_down,*]}
+      
+      ;conjugate map tracing
+      north_index_mins_conj=where((Br_sign_tmp_mins.y gt 0.) and (abs(pos_lat_mins) lt 70.), north_index_mins_count_conj) ;locate in south but should trace to north
+      south_index_mins_conj=where((Br_sign_tmp_mins.y lt 0.) and (abs(pos_lat_mins) lt 70.), south_index_mins_count_conj) ;locate in north but should trace to south
+      store_data, 'el'+probes[sc]+'_pos_gsm_north_mins_conj', data={x:pos_gsm_mins.x[north_index_mins_conj], y: pos_gsm_mins.y[north_index_mins_conj,*]}
+      store_data, 'el'+probes[sc]+'_pos_gsm_south_mins_conj', data={x:pos_gsm_mins.x[south_index_mins_conj], y: pos_gsm_mins.y[south_index_mins_conj,*]}
     endif
-
+    
     ; Setup info for Tsyganenko models
+    count=n_elements(dpos_sm.x)
+    num=n_elements(dpos_sm.x)-1
     if keyword_set(quick_trace) then begin
-      tsyg_param_count_north=north_index_mins_count
-      tsyg_param_count_south=south_index_mins_count
+      tsyg_param_count_north_down=north_index_mins_count_down
+      tsyg_param_count_south_down=south_index_mins_count_down
+      tsyg_param_count_north_conj=north_index_mins_count_conj
+      tsyg_param_count_south_conj=south_index_mins_count_conj
     endif else begin
-      tsyg_param_count_north=north_index_count
-      tsyg_param_count_south=south_index_count
+      tsyg_param_count_north_down=north_index_count_down
+      tsyg_param_count_south_down=south_index_count_down
+      tsyg_param_count_north_conj=north_index_count_conj
+      tsyg_param_count_south_conj=south_index_count_conj
     endelse
     case 1 of  ; north
-      (tsyg_mod eq 't89'): tsyg_parameter_north=2.0d
-      (tsyg_mod eq 't96'): tsyg_parameter_north=[[replicate(dynp,tsyg_param_count_north)], $
-        [replicate(dst,tsyg_param_count_north)],[replicate(bswy,tsyg_param_count_north)],[replicate(bswz,tsyg_param_count_north)],$
-        [replicate(0.,tsyg_param_count_north)],[replicate(0.,tsyg_param_count_north)],[replicate(0.,tsyg_param_count_north)],$
-        [replicate(0.,tsyg_param_count_north)],[replicate(0.,tsyg_param_count_north)],[replicate(0.,tsyg_param_count_north)]]
-      (tsyg_mod eq 't01'): tsyg_parameter_north=[[replicate(dynp,tsyg_param_count_north)],$
-        [replicate(dst,tsyg_param_count_north)],[replicate(bswy,tsyg_param_count_north)],[replicate(bswz,tsyg_param_count_north)],$
-        [replicate(g1,tsyg_param_count_north)],[replicate(g2,tsyg_param_count_north)],[replicate(0.,tsyg_param_count_north)],$
-        [replicate(0.,tsyg_param_count_north)],[replicate(0.,tsyg_param_count_north)],[replicate(0.,tsyg_param_count_north)]]
+      (tsyg_mod eq 't89'): begin
+        tsyg_parameter_north_down=2.0d
+        tsyg_parameter_south_down=2.0d
+        tsyg_parameter_north_conj=2.0d
+        tsyg_parameter_south_conj=2.0d
+        end
+      (tsyg_mod eq 't96'): begin
+        tsyg_parameter_north_down=[[replicate(dynp,tsyg_param_count_north_down)], $
+        [replicate(dst,tsyg_param_count_north_down)],[replicate(bswy,tsyg_param_count_north_down)],[replicate(bswz,tsyg_param_count_north_down)],$
+        [replicate(0.,tsyg_param_count_north_down)],[replicate(0.,tsyg_param_count_north_down)],[replicate(0.,tsyg_param_count_north_down)],$
+        [replicate(0.,tsyg_param_count_north_down)],[replicate(0.,tsyg_param_count_north_down)],[replicate(0.,tsyg_param_count_north_down)]]
+        tsyg_parameter_south_down=[[replicate(dynp,tsyg_param_count_south_down)], $
+        [replicate(dst,tsyg_param_count_south_down)],[replicate(bswy,tsyg_param_count_south_down)],[replicate(bswz,tsyg_param_count_south_down)],$
+        [replicate(0.,tsyg_param_count_south_down)],[replicate(0.,tsyg_param_count_south_down)],[replicate(0.,tsyg_param_count_south_down)],$
+        [replicate(0.,tsyg_param_count_south_down)],[replicate(0.,tsyg_param_count_south_down)],[replicate(0.,tsyg_param_count_south_down)]]
+        tsyg_parameter_north_conj=[[replicate(dynp,tsyg_param_count_north_conj)], $
+        [replicate(dst,tsyg_param_count_north_conj)],[replicate(bswy,tsyg_param_count_north_conj)],[replicate(bswz,tsyg_param_count_north_conj)],$
+        [replicate(0.,tsyg_param_count_north_conj)],[replicate(0.,tsyg_param_count_north_conj)],[replicate(0.,tsyg_param_count_north_conj)],$
+        [replicate(0.,tsyg_param_count_north_conj)],[replicate(0.,tsyg_param_count_north_conj)],[replicate(0.,tsyg_param_count_north_conj)]]
+        tsyg_parameter_south_conj=[[replicate(dynp,tsyg_param_count_south_conj)], $
+        [replicate(dst,tsyg_param_count_south_conj)],[replicate(bswy,tsyg_param_count_south_conj)],[replicate(bswz,tsyg_param_count_south_conj)],$
+        [replicate(0.,tsyg_param_count_south_conj)],[replicate(0.,tsyg_param_count_south_conj)],[replicate(0.,tsyg_param_count_south_conj)],$
+        [replicate(0.,tsyg_param_count_south_conj)],[replicate(0.,tsyg_param_count_south_conj)],[replicate(0.,tsyg_param_count_south_conj)]]
+        end
+      (tsyg_mod eq 't01'): begin
+        tsyg_parameter_north_down=[[replicate(dynp,tsyg_param_count_north_down)],$
+        [replicate(dst,tsyg_param_count_north_down)],[replicate(bswy,tsyg_param_count_north_down)],[replicate(bswz,tsyg_param_count_north_down)],$
+        [replicate(g1,tsyg_param_count_north_down)],[replicate(g2,tsyg_param_count_north_down)],[replicate(0.,tsyg_param_count_north_down)],$
+        [replicate(0.,tsyg_param_count_north_down)],[replicate(0.,tsyg_param_count_north_down)],[replicate(0.,tsyg_param_count_north_down)]]
+        tsyg_parameter_south_down=[[replicate(dynp,tsyg_param_count_south_down)],$
+        [replicate(dst,tsyg_param_count_south_down)],[replicate(bswy,tsyg_param_count_south_down)],[replicate(bswz,tsyg_param_count_south_down)],$
+        [replicate(g1,tsyg_param_count_south_down)],[replicate(g2,tsyg_param_count_south_down)],[replicate(0.,tsyg_param_count_south_down)],$
+        [replicate(0.,tsyg_param_count_south_down)],[replicate(0.,tsyg_param_count_south_down)],[replicate(0.,tsyg_param_count_south_down)]]
+        tsyg_parameter_north_conj=[[replicate(dynp,tsyg_param_count_north_conj)],$
+        [replicate(dst,tsyg_param_count_north_conj)],[replicate(bswy,tsyg_param_count_north_conj)],[replicate(bswz,tsyg_param_count_north_conj)],$
+        [replicate(g1,tsyg_param_count_north_conj)],[replicate(g2,tsyg_param_count_north_conj)],[replicate(0.,tsyg_param_count_north_conj)],$
+        [replicate(0.,tsyg_param_count_north_conj)],[replicate(0.,tsyg_param_count_north_conj)],[replicate(0.,tsyg_param_count_north_conj)]]
+      tsyg_parameter_south_down=[[replicate(dynp,tsyg_param_count_south_conj)],$
+        [replicate(dst,tsyg_param_count_south_conj)],[replicate(bswy,tsyg_param_count_south_conj)],[replicate(bswz,tsyg_param_count_south_conj)],$
+        [replicate(g1,tsyg_param_count_south_conj)],[replicate(g2,tsyg_param_count_south_conj)],[replicate(0.,tsyg_param_count_south_conj)],$
+        [replicate(0.,tsyg_param_count_south_conj)],[replicate(0.,tsyg_param_count_south_conj)],[replicate(0.,tsyg_param_count_south_conj)]]
+        end
       else: begin
         print,'Unknown Tsyganenko model'
         return
       end
     endcase
-    case 1 of ; south
-      (tsyg_mod eq 't89'): tsyg_parameter_south=2.0d
-      (tsyg_mod eq 't96'): tsyg_parameter_south=[[replicate(dynp,tsyg_param_count_south)], $
-        [replicate(dst,tsyg_param_count_south)],[replicate(bswy,tsyg_param_count_south)],[replicate(bswz,tsyg_param_count_south)],$
-        [replicate(0.,tsyg_param_count_south)],[replicate(0.,tsyg_param_count_south)],[replicate(0.,tsyg_param_count_south)],$
-        [replicate(0.,tsyg_param_count_south)],[replicate(0.,tsyg_param_count_south)],[replicate(0.,tsyg_param_count_south)]]
-      (tsyg_mod eq 't01'): tsyg_parameter_south=[[replicate(dynp,tsyg_param_count_south)],$
-        [replicate(dst,tsyg_param_count_south)],[replicate(bswy,tsyg_param_count_south)],[replicate(bswz,tsyg_param_count_south)],$
-        [replicate(g1,tsyg_param_count_south)],[replicate(g2,tsyg_param_count_south)],[replicate(0.,tsyg_param_count_south)],$
-        [replicate(0.,tsyg_param_count_south)],[replicate(0.,tsyg_param_count_south)],[replicate(0.,tsyg_param_count_south)]]
-      else: begin
-        print,'Unknown Tsyganenko model'
-        return
-      end
-    endcase
-
-
+  
     ; for development convenience only (ttrace2iono takes a long time)
     if keyword_set(no_trace) then goto, skip_trace
 
     ;----------------------------------
-    ; trace to ionosphere
+    ;    trace to ionosphere 
     ;----------------------------------
-
-    ; Use quick trace (high resolution not needed)
     if keyword_set(quick_trace) then begin
-      ;  south trace
-      ttrace2iono,'el'+probes[sc]+'_pos_gsm_mins_south',newname='el'+probes[sc]+'_ifoot_gsm_mins_south', $
-        external_model=tsyg_mod,par=tsyg_parameter_south,R0= 1.0156 ,/km,/south
-      ;  north trace
-      ttrace2iono,'el'+probes[sc]+'_pos_gsm_mins_north',newname='el'+probes[sc]+'_ifoot_gsm_mins_north', $
-        external_model=tsyg_mod,par=tsyg_parameter_north,R0= 1.0156,/km
+      ;--------------------------
+      ;     quick trace
+      ;--------------------------
+      ;--------------------------
+      ;     down map
+      ;--------------------------
+      ;  south trace 
+      ttrace2iono,'el'+probes[sc]+'_pos_gsm_mins_south_down',newname='el'+probes[sc]+'_ifoot_gsm_mins_south_down', $
+        external_model=tsyg_mod,par=tsyg_parameter_south_down,R0= 1.0156 ,/km,/south
+      ;  north trace 
+      ttrace2iono,'el'+probes[sc]+'_pos_gsm_mins_north_down',newname='el'+probes[sc]+'_ifoot_gsm_mins_north_down', $
+        external_model=tsyg_mod,par=tsyg_parameter_north_down,R0= 1.0156,/km
       ; combine north and south data
-      get_data,'el'+probes[sc]+'_ifoot_gsm_mins_south',data=ifoot_mins_south
-      get_data,'el'+probes[sc]+'_ifoot_gsm_mins_north',data=ifoot_mins_north
-      ifoot_mins=make_array(n_elements(pos_gsm_mins.x),3, value= 0.0)
-      ifoot_mins[south_index_mins,*]=ifoot_mins_south.y[*,*]
-      ifoot_mins[north_index_mins,*]=ifoot_mins_north.y[*,*]
+      get_data,'el'+probes[sc]+'_ifoot_gsm_mins_south_down',data=ifoot_mins_south_down
+      get_data,'el'+probes[sc]+'_ifoot_gsm_mins_north_down',data=ifoot_mins_north_down
+      ifoot_mins_down=make_array(n_elements(pos_gsm_mins.x),3, value= 0.0)
+      ifoot_mins_down[south_index_mins_down,*]=ifoot_mins_south_down.y[*,*]
+      ifoot_mins_down[north_index_mins_down,*]=ifoot_mins_north_down.y[*,*]
       ; interpolate the minute-by-minute data back to the full array
-      store_data,'el'+probes[sc]+'_ifoot_gsm',data={x: dats.x, y: interp(ifoot_mins[*,*], pos_gsm_mins.x, dats.x)}
-      ; clean up the temporary data
-      ;del_data, '*_mins'
-    endif else begin ; not quick trace
+      store_data,'el'+probes[sc]+'_ifoot_gsm_down',data={x: dats.x, y: interp(ifoot_mins_down[*,*], pos_gsm_mins.x, dats.x)}
+      ;--------------------------
+      ;     conjugate map
+      ;--------------------------
       ;  south trace
-      ttrace2iono,'el'+probes[sc]+'_pos_gsm_south',newname='el'+probes[sc]+'_ifoot_gsm_south', $
-        external_model=tsyg_mod,par=tsyg_parameter_south,R0= 1.0156 ,/km,/south
+      ttrace2iono,'el'+probes[sc]+'_pos_gsm_south_mins_conj',newname='el'+probes[sc]+'_ifoot_gsm_south_mins_conj', $
+        external_model=tsyg_mod,par=tsyg_parameter_south_conj,R0= 1.0156 ,/km,/south
       ;  north trace
-      ttrace2iono,'el'+probes[sc]+'_pos_gsm_north',newname='el'+probes[sc]+'_ifoot_gsm_north', $
-        external_model=tsyg_mod,par=tsyg_parameter_north,R0= 1.0156 ,/km
+      ttrace2iono,'el'+probes[sc]+'_pos_gsm_north_mins_conj',newname='el'+probes[sc]+'_ifoot_gsm_north_mins_conj', $
+        external_model=tsyg_mod,par=tsyg_parameter_north_conj,R0= 1.0156,/km
       ; combine north and south data
-      get_data,'el'+probes[sc]+'_ifoot_gsm_south',data=ifoot_south
-      get_data,'el'+probes[sc]+'_ifoot_gsm_north',data=ifoot_north
-      ifoot=make_array(n_elements(pos_gsm.x),3, value= 0.0)
-      ifoot[south_index,*]=ifoot_south.y[*,*]
-      ifoot[north_index,*]=ifoot_north.y[*,*]
-      store_data,'el'+probes[sc]+'_ifoot_gsm',data={x: dats.x, y: ifoot[*,*]}
+      get_data,'el'+probes[sc]+'_ifoot_gsm_south_mins_conj',data=ifoot_mins_south_conj
+      get_data,'el'+probes[sc]+'_ifoot_gsm_north_mins_conj',data=ifoot_mins_north_conj
+      ifoot_mins_conj=make_array(n_elements(pos_gsm_mins.x),3, value= !values.f_nan)
+      ifoot_mins_conj[south_index_mins_conj,*]=ifoot_mins_south_conj.y[*,*]
+      ifoot_mins_conj[north_index_mins_conj,*]=ifoot_mins_north_conj.y[*,*]
+      ;some high latitude points have been tracing to magnetopshere
+      ;exclude footprints not in ionosphere
+      ex_points=where(sqrt(ifoot_mins_conj[*,0]^2+ifoot_mins_conj[*,1]^2+ifoot_mins_conj[*,2]^2) gt 7000)
+      ifoot_mins_conj[ex_points,*]=!values.f_nan
+      ; interpolate the minute-by-minute data back to the full array
+      store_data,'el'+probes[sc]+'_ifoot_gsm_conj',data={x: dats.x, y: interp(ifoot_mins_conj[*,*], pos_gsm_mins.x, dats.x)}
+
+      ; clean up the temporary data
+      del_data, '*_mins'
+    endif else begin 
+      ;--------------------------
+      ;     no quick trace
+      ;--------------------------
+      ;--------------------------
+      ;     down map
+      ;--------------------------
+      ;  south trace
+      ttrace2iono,'el'+probes[sc]+'_pos_gsm_south_down',newname='el'+probes[sc]+'_ifoot_gsm_south_down', $
+        external_model=tsyg_mod,par=tsyg_parameter_south_down,R0= 1.0156 ,/km,/south
+      ;  north trace
+      ttrace2iono,'el'+probes[sc]+'_pos_gsm_north_down',newname='el'+probes[sc]+'_ifoot_gsm_north_down', $
+        external_model=tsyg_mod,par=tsyg_parameter_north_down,R0= 1.0156 ,/km
+      ; combine north and south data
+      get_data,'el'+probes[sc]+'_ifoot_gsm_south_down',data=ifoot_south_down
+      get_data,'el'+probes[sc]+'_ifoot_gsm_north_down',data=ifoot_north_down
+      ifoot_down=make_array(n_elements(pos_gsm.x),3, value= 0.0)
+      ifoot_down[south_index_down,*]=ifoot_south_down.y[*,*]
+      ifoot_down[north_index_down,*]=ifoot_north_down.y[*,*]
+      store_data,'el'+probes[sc]+'_ifoot_gsm_down',data={x: dats.x, y: ifoot_down[*,*]}
+      ;--------------------------
+      ;     conjugate map
+      ;--------------------------
+      ;  south trace
+      ttrace2iono,'el'+probes[sc]+'_pos_gsm_south_conj',newname='el'+probes[sc]+'_ifoot_gsm_south_conj', $
+        external_model=tsyg_mod,par=tsyg_parameter_south_conj,R0= 1.0156 ,/km,/south
+      ;  north trace
+      ttrace2iono,'el'+probes[sc]+'_pos_gsm_north_conj',newname='el'+probes[sc]+'_ifoot_gsm_north_conj', $
+        external_model=tsyg_mod,par=tsyg_parameter_north_conj,R0= 1.0156 ,/km
+      ; combine north and south data
+      get_data,'el'+probes[sc]+'_ifoot_gsm_south_conj',data=ifoot_south_conj
+      get_data,'el'+probes[sc]+'_ifoot_gsm_north_conj',data=ifoot_north_conj
+      ifoot_conj=make_array(n_elements(pos_gsm.x),3, value= !values.f_nan)
+      ifoot_conj[south_index_conj,*]=ifoot_south_conj.y[*,*]
+      ifoot_conj[north_index_conj,*]=ifoot_north_conj.y[*,*]
+      ;exclude points that havn't trace to ionosphere
+      ex_points=where(sqrt(ifoot_conj[*,0]^2+ifoot_conj[*,1]^2+ifoot_conj[*,2]^2) gt 7000)
+      ifoot_conj[ex_points,*]=!values.f_nan
+      store_data,'el'+probes[sc]+'_ifoot_gsm_conj',data={x: dats.x, y: ifoot_conj[*,*]}
+
     endelse
 
     skip_trace:
 
     ; CONVERT coordinate system to geo and sm
-    cotrans, 'el'+probes[sc]+'_ifoot_gsm', 'el'+probes[sc]+'_ifoot_gse', /gsm2gse
-    cotrans, 'el'+probes[sc]+'_ifoot_gsm', 'el'+probes[sc]+'_ifoot_sm', /gsm2sm
-    cotrans, 'el'+probes[sc]+'_ifoot_gse', 'el'+probes[sc]+'_ifoot_gei', /gse2gei
-    cotrans, 'el'+probes[sc]+'_ifoot_gei', 'el'+probes[sc]+'_ifoot_geo', /gei2geo
+    cotrans, 'el'+probes[sc]+'_ifoot_gsm_down', 'el'+probes[sc]+'_ifoot_gse_down', /gsm2gse
+    cotrans, 'el'+probes[sc]+'_ifoot_gsm_down', 'el'+probes[sc]+'_ifoot_sm_down', /gsm2sm
+    cotrans, 'el'+probes[sc]+'_ifoot_gse_down', 'el'+probes[sc]+'_ifoot_gei_down', /gse2gei
+    cotrans, 'el'+probes[sc]+'_ifoot_gei_down', 'el'+probes[sc]+'_ifoot_geo_down', /gei2geo
+    
+    cotrans, 'el'+probes[sc]+'_ifoot_gsm_conj', 'el'+probes[sc]+'_ifoot_gse_conj', /gsm2gse
+    cotrans, 'el'+probes[sc]+'_ifoot_gsm_conj', 'el'+probes[sc]+'_ifoot_sm_conj', /gsm2sm
+    cotrans, 'el'+probes[sc]+'_ifoot_gse_conj', 'el'+probes[sc]+'_ifoot_gei_conj', /gse2gei
+    cotrans, 'el'+probes[sc]+'_ifoot_gei_conj', 'el'+probes[sc]+'_ifoot_geo_conj', /gei2geo
 
     print,'Done '+tsyg_mod+' ',probes[sc]
 
   endfor  ; END of SC Loop
+
 
   ;---------------------------
   ; COLLECT DATA FOR PLOTS
   ;--------------------------
   ; Get science collection times
   epda_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='a', instrument='epd')
-  epdb_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='b', instrument='epd') 
+  epdb_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='b', instrument='epd')
 
   ; Get position and attitude
   get_data,'ela_pos_sm',data=ela_state_pos_sm
@@ -297,7 +411,9 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
   endfor
   nplots = n_elements(min_st)
   midhrs=findgen(24)+.75
+  
 
+  
   ;---------------------------------
   ; CREATE LAT/LON grids and poles
   ;---------------------------------
@@ -316,37 +432,40 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
   timespan, tstart
   tr=timerange()
 
+  ;sun symbol
+  theta = findgen(25) * (!pi*2/24.)
+  for i=0,24 do begin
+    if (i mod 3) eq 0 then begin
+      append_array, sun_x, [cos(theta[i]),2*cos(theta[i])]
+      append_array, sun_y, [sin(theta[i]),2*sin(theta[i])]
+    endif
+    append_array, sun_x, cos(theta[i])
+    append_array, sun_y, sin(theta[i])
+  endfor
+  
   ;----------------------------------
   ; Start Plots
   ;----------------------------------
   for k=0,nplots-1 do begin
-
-    !p.multi=0
+    !p.multi=[0,1,2,0,0]
     if keyword_set(gifout) then begin
       set_plot,'z'
-      if hires then device,set_resolution=[1200,900] else device,set_resolution=[800,630]
-      charsize=1
+      device,set_resolution=[xwidth,ywidth]
     endif else begin
-      set_plot,'win'   
-      window,xsize=800,ysize=630
-      charsize=1
+      set_plot,'x'
+      ;set_plot,'win'    
+      window,xsize=xwidth,ysize=ywidth
     endelse
-
-    ; annotate constants
-    ;xann=100
-    if hires then yann=780 else yann=500
-
-    ;;;; Jiang Liu edit here
+    
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
     midpt=n_elements(this_time)/2.
     tdate = this_time[midpt]
 
     ;;;;; spacecraft location
     for sc = 0,1 do begin
-
-      get_data, 'el'+probes[sc]+'_ifoot_geo', data = ifoot_geo
-      ifoot = ifoot_geo
-
+      get_data, 'el'+probes[sc]+'_ifoot_geo_down', data = ifoot_down
+      get_data, 'el'+probes[sc]+'_ifoot_geo_conj', data = ifoot_conj
+      ifoot=ifoot_down
       ;----------------------------
       ; CONVERT TRACE to LAT LON
       ;----------------------------
@@ -354,63 +473,119 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
       Case sc of
         ; ELFIN A
         0: begin
-          lon = !radeg * atan2(ifoot.y[*,1],ifoot.y[*,0])
-          lat = !radeg * atan(ifoot.y[*,2],sqrt(ifoot.y[*,0]^2+ifoot.y[*,1]^2))
+          lon_a_down = !radeg * atan2(ifoot_down.y[*,1],ifoot_down.y[*,0])
+          lat_a_down = !radeg * atan(ifoot_down.y[*,2],sqrt(ifoot_down.y[*,0]^2+ifoot_down.y[*,1]^2))
+          lon_a_conj = !radeg * atan2(ifoot_conj.y[*,1],ifoot_conj.y[*,0])
+          lat_a_conj = !radeg * atan(ifoot_conj.y[*,2],sqrt(ifoot_conj.y[*,0]^2+ifoot_conj.y[*,1]^2))
           dposa=dpos_geo
-          lona_all=lon
-          lata_all=lat
         end
-
         ; ELFIN B
         1: begin
-          lon2 = !radeg * atan2(ifoot.y[*,1],ifoot.y[*,0])
-          lat2 = !radeg * atan(ifoot.y[*,2],sqrt(ifoot.y[*,0]^2+ifoot.y[*,1]^2))
+          lon_b_down = !radeg * atan2(ifoot_down.y[*,1],ifoot_down.y[*,0])
+          lat_b_down = !radeg * atan(ifoot_down.y[*,2],sqrt(ifoot_down.y[*,0]^2+ifoot_down.y[*,1]^2))
+          lon_b_conj = !radeg * atan2(ifoot_conj.y[*,1],ifoot_conj.y[*,0])
+          lat_b_conj = !radeg * atan(ifoot_conj.y[*,2],sqrt(ifoot_conj.y[*,0]^2+ifoot_conj.y[*,1]^2))
           dposb=dpos_geo
-          lonb_all=lon2
-          latb_all=lat2
         end
       Endcase
     endfor
-    ;;;;; end of Jiang Liu edit
-
 
     ; find midpt MLT for this orbit track
     midx=min_st[k] + (min_en[k] - min_st[k])/2.
     mid_time_struc=time_struct(ela_state_pos_sm.x[midx])
     mid_hr=mid_time_struc.hour + mid_time_struc.min/60.
     mid_hr=midhrs[k]  ;mid UT
+    
+    ;----------------------------------
+    ;    day/night boundary
+    ;----------------------------------
+    earthRadius=6370. ;km
+    Taltitude=[0., 100., 400.] ;terminator altitude in km
+    terminator_geo_r = FltArr(361,3)
+    terminator_geo_lat = FltArr(361,3)
+    terminator_geo_lon = FltArr(361,3)
+    terminator_gse_lon = FltArr(361,3)
+    terminator_gse_lat = FltArr(361,3)
+    terminator_gse_x=FltArr(361,3)
+    terminator_gse_y=FltArr(361,3)
+    terminator_gse_z=FltArr(361,3)
+    for j=0,2 do begin
+      alpha=asin(earthRadius / (earthRadius+Taltitude[j]))/!DTOR
+      r_terminus = earthRadius+Taltitude
+      for i=0,360 do begin
+        azimuth=i*1.
+        ;cart_to_sphere,-1,0,0,r,theta,phi
+        results = LL_Arc_Distance([180, 0], alpha*!DTOR, azimuth, /degrees)
+        terminator_gse_lon[i,j] = results[0] ;GSE 
+        terminator_gse_lat[i,j] = results[1]
+      endfor
+      sphere_to_cart, replicate(earthRadius,361), terminator_gse_lat[*,j], terminator_gse_lon[*,j], Tx, Ty, Tz
+      terminator_gse_x[*,j] = Tx
+      terminator_gse_y[*,j] = Ty
+      terminator_gse_z[*,j] = Tz 
+      times=make_array(361,/double)+tdate
+      store_data, 'terminator_gse', data={x:times, y:[[terminator_gse_x[*,j]], [terminator_gse_y[*,j]], [terminator_gse_z[*,j]]]}
+      cotrans, 'terminator_gse', 'terminator_gei', /gse2gei
+      cotrans, 'terminator_gei', 'terminator_geo', /gei2geo
+      get_data, 'terminator_geo', data=terminator_geo
+      cart_to_sphere,terminator_geo.y[*,0],terminator_geo.y[*,1],terminator_geo.y[*,2],Tr,Tlat,Tlon
+      terminator_geo_r[*,j]=Tr
+      terminator_geo_lat[*,j]=Tlat
+      terminator_geo_lon[*,j]=Tlon
+    endfor
+    ; sub solar location
+    times=make_array(2,/double)+tdate
+    store_data, 'terminator_sun_gse', data={x:times, y:[[1], [0], [0]]}
+    cotrans, 'terminator_sun_gse', 'terminator_sun_gei', /gse2gei
+    cotrans, 'terminator_sun_gei', 'terminator_sun_geo', /gei2geo
+    get_data, 'terminator_sun_geo', data=terminator_sun_geo
+    cart_to_sphere,terminator_sun_geo.y[*,0],terminator_sun_geo.y[*,1],terminator_sun_geo.y[*,2],terminator_sun_geo_r,terminator_sun_geo_lat,terminator_sun_geo_lon
 
     ; -------------------------------------
     ; MAP PLOT
     ; -------------------------------------
     ; set up map
-    coord='Geographic'
+    coord='Down'
     if keyword_set(pred) then pred_str='Predicted ' else pred_str=''
     title=pred_str+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
-    map_set,0,0,0, /mercator, /conti, position=[0.02,0.01,0.98,0.98], charsize=.7, /isotropic
-    xyouts, (!X.Window[1] - !X.Window[0]) / 2. + !X.Window[0], 0.975, title, $
-      /Normal, Alignment=0.5, Charsize=1.25
-    map_grid,latdel=10.,londel=30., label=1, charsize=0.7
-    map_continents, color=252
+    map_set,0,0,0, /mercator, /conti, charsize=decharsize, position=[0.01,0.51,0.99,0.98]
+    xyouts, (!x.window[1] - !x.window[0]) / 2. + !x.window[0], 0.985, title, $
+      /normal, alignment=0.5, charsize=decharsize*1.5, charthick=decharthick*1.5
+    map_grid,latdel=10.,londel=30., label=1, charsize=decharsize, glinethick=delinewidth*1.2,charthick=decharthick
+    map_continents, color=252, mlinethick=delinewidth*0.5
+    ;
+    ;
+    ;
+    oplot,terminator_geo_lon[*,0],terminator_geo_lat[*,0],color=255,thick=delinewidth*1.5,linestyle=0 ;Talt=0
+    oplot,terminator_geo_lon[*,1],terminator_geo_lat[*,1],color=255,thick=delinewidth*0.5,linestyle=0 ;Talt=100
+    oplot,terminator_geo_lon[*,2],terminator_geo_lat[*,2],color=255,thick=delinewidth*1,linestyle=2 ;Talt=400
+   
+    usersym, sun_x, sun_y
+    plots,terminator_sun_geo_lon[0],terminator_sun_geo_lat[0],psym=8, symsize=desymsize, color=255 ;sub solar point
+    usersym, cos(theta), sin(theta), /fill
+    plots,terminator_sun_geo_lon[0],terminator_sun_geo_lat[0],psym=8, symsize=desymsize, color=251 ;sub solar point
+    
     ;----------------------
     ;;; MAG Coords
     ;----------------------
-    for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=contour_thick,linestyle=1 ;latitude rings
+    for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=delinewidth*1.2,linestyle=1 ;latitude rings
     ; plot geomagnetic equator
     ; (nmlats-1)/2 is equator index
-    equ_lon=(v_lon[(nmlats-1)/2-1,*]+v_lon[(nmlats-1)/2+1,*])/2
-    equ_lat=(v_lat[(nmlats-1)/2-1,*]+v_lat[(nmlats-1)/2+1,*])/2
-    oplot,equ_lon,equ_lat,color=248,thick=contour_thick,linestyle=1
+    ;equ_lon=(v_lon[(nmlats-1)/2-1,*]+v_lon[(nmlats-1)/2+1,*])/2
+    ;equ_lat=(v_lat[(nmlats-1)/2-1,*]+v_lat[(nmlats-1)/2+1,*])/2
+    ;oplot,equ_lon,equ_lat,color=248,thick=3,linestyle=1
     for i=0,nmlons-1 do begin
       idx=where(u_lon[i,*] NE 0)
-      oplot,u_lon[i,idx],u_lat[i,idx],color=248,thick=contour_thick,linestyle=1
+      oplot,u_lon[i,idx],u_lat[i,idx],color=248,thick=delinewidth*1.2,linestyle=1
     endfor
 
     ; Set up data for ELFIN A for this time span
     this_time=ela_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsa=n_elements(this_time)
-    this_lon=lon[min_st[k]:min_en[k]]
-    this_lat=lat[min_st[k]:min_en[k]]
+    this_a_lon_down=lon_a_down[min_st[k]:min_en[k]]
+    this_a_lat_down=lat_a_down[min_st[k]:min_en[k]]
+    this_a_lon_conj=lon_a_conj[min_st[k]:min_en[k]]
+    this_a_lat_conj=lat_a_conj[min_st[k]:min_en[k]]
     this_ax=ela_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_ay=ela_state_pos_sm.y[min_st[k]:min_en[k],1]
     this_az=ela_state_pos_sm.y[min_st[k]:min_en[k],2]
@@ -437,8 +612,10 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
     ; repeat for ELFIN B
     this_time2=elb_state_pos_sm.x[min_st[k]:min_en[k]]
     nptsb=n_elements(this_time2)
-    this_lon2=lon2[min_st[k]:min_en[k]]
-    this_lat2=lat2[min_st[k]:min_en[k]]
+    this_b_lon_down=lon_b_down[min_st[k]:min_en[k]]
+    this_b_lat_down=lat_b_down[min_st[k]:min_en[k]]
+    this_b_lon_conj=lon_b_conj[min_st[k]:min_en[k]]
+    this_b_lat_conj=lat_b_conj[min_st[k]:min_en[k]]
     this_bx=elb_state_pos_sm.y[min_st[k]:min_en[k],0]
     this_by=elb_state_pos_sm.y[min_st[k]:min_en[k],1]
     this_bz=elb_state_pos_sm.y[min_st[k]:min_en[k],2]
@@ -454,14 +631,6 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
     ;;;; Jiang Liu edit: to reduce errors for the ease of debugging
     undefine, this_b_sz_st
     undefine, this_b_sz_en
-    ;    if ~undefined(epdb_sci_zones) && epdb_sci_zones.starts[0] NE -1 then begin
-    ;       idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
-    ;       if bzones GT 0 then begin
-    ;         this_b_sz_st=epdb_sci_zones.starts[idx]
-    ;         this_b_sz_en=epdb_sci_zones.ends[idx]
-    ;         if epdb_sci_zones.ends[bzones-1] GT this_time2[nptsb-1] then this_b_sz_en[bzones-1]=this_time2[nptsb-1]
-    ;       endif
-    ;    endif
     if ~undefined(epdb_sci_zones) && size(epdb_sci_zones, /type) EQ 8 then begin
       idx=where(epdb_sci_zones.starts GE this_time2[0] and epdb_sci_zones.starts LT this_time2[nptsb-1], bzones)
       if bzones GT 0 then begin
@@ -473,11 +642,11 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
 
     ; Plot foot points
     if ~keyword_set(bfirst) then begin
-      plots, this_lon2, this_lat2, color=254    
-      plots, this_lon, this_lat, color=253   
+      oplot, this_b_lon_down, this_b_lat_down, color=254, thick=delinewidth*1.5
+      oplot, this_a_lon_down, this_a_lat_down, color=253, thick=delinewidth*1.5
     endif else begin
-      plots, this_lon, this_lat, color=25  
-      plots, this_lon2, this_lat2, color=254 
+      oplot, this_a_lon_down, this_a_lat_down, color=253, thick=delinewidth*1.5
+      oplot, this_b_lon_down, this_b_lat_down, color=254, thick=delinewidth*1.5
     endelse
 
     ;-----------------------------------------------------
@@ -499,7 +668,7 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
 
     ; Repeat for A
     spin_stra=''
-    get_data, 'ela_pef_spinper', data=spina ; spin period 
+    get_data, 'ela_pef_spinper', data=spina ; spin period
     if size(spina, /type) EQ 8 then begin
       spin_idxa=where(spina.x GE this_time2[0] AND spina.x LT this_time2[nptsa-1], ncnt)
       if ncnt GT 5 then begin
@@ -518,7 +687,8 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
         for sci=0, n_elements(bzones)-1 do begin
           tidxb=where(this_time2 GE this_b_sz_st[sci] and this_time2 LT this_b_sz_en[sci], bcnt)
           if bcnt GT 5 then begin
-            plots, this_lon2[tidxb], this_lat2[tidxb], psym=2, symsize=.25, color=254, thick=3
+            ;plots, this_b_lon_down[tidxb], this_b_lat_down[tidxb], psym=2, symsize=.25, color=254, thick=3
+            oplot, this_b_lon_down[tidxb], this_b_lat_down[tidxb], color=254, thick=delinewidth*4     
           endif
         endfor
       endif
@@ -526,7 +696,8 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
         for sci=0, azones-1 do begin
           tidxa=where(this_time GE this_a_sz_st[sci] and this_time LT this_a_sz_en[sci], acnt)
           if acnt GT 5 then begin
-            plots, this_lon[tidxa], this_lat[tidxa], psym=2, symsize=.25, color=253, thick=3
+            ;plots, this_a_lon_down[tidxa], this_a_lat_down[tidxa], psym=2, symsize=.25, color=253, thick=3
+            oplot, this_a_lon_down[tidxa], this_a_lat_down[tidxa], color=253, thick=delinewidth*4     
           endif
         endfor
       endif
@@ -535,7 +706,8 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
         for sci=0, azones-1 do begin
           tidxa=where(this_time GE this_a_sz_st[sci] and this_time LT this_a_sz_en[sci], acnt)
           if acnt GT 5 then begin
-            plots, this_lon[tidxa], this_lat[tidxa], psym=2, symsize=.25, color=253, thick=3
+            ;plots, this_a_lon_down[tidxa], this_a_lat_down[tidxa], psym=2, symsize=.25, color=253, thick=3
+            oplot, this_a_lon_down[tidxa], this_a_lat_down[tidxa], color=253, thick=delinewidth*4
           endif
         endfor
       endif
@@ -543,56 +715,65 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
         for sci=0, n_elements(bzones)-1 do begin
           tidxb=where(this_time2 GE this_b_sz_st[sci] and this_time2 LT this_b_sz_en[sci], bcnt)
           if bcnt GT 5 then begin
-            plots, this_lon2[tidxb], this_lat2[tidxb], psym=2, symsize=.25, color=254, thick=3
+            ;plots, this_b_lon_down[tidxb], this_b_lat_down[tidxb], psym=2, symsize=.25, color=254, thick=3
+            oplot, this_b_lon_down[tidxb], this_b_lat_down[tidxb], color=254, thick=delinewidth*4 
           endif
         endfor
       endif
     endelse
-
+ 
     ;-----------------------------------------
     ; Plot dataset start/stop position markers
     ; ----------------------------------------
     ; elfinb
     if ~keyword_set(bfirst) then begin
-      count=nptsb   ;n_elements(this_lon2)
-      plots, this_lon2[0], this_lat2[0], psym=4, symsize=1.9, color=254
-      plots, this_lon2[count-1], this_lat2[count-1], psym=2, symsize=1.9, color=254 ;*
-      plots, this_lon2[0], this_lat2[0], psym=4, symsize=1.75, color=254 ;diamond
-      plots, this_lon2[count-1], this_lat2[count-1], psym=2, symsize=1.75, color=254
-      plots, this_lon2[0], this_lat2[0], psym=4, symsize=1.6, color=254
-      plots, this_lon2[count-1], this_lat2[count-1], psym=2, symsize=1.6, color=254
-      ;plots, this_lon2[count/2], this_lat2[count/2], psym=5, symsize=1.9, color=254 ;triangle
+      count=nptsb   ;n_elements(this_b_lon_down)
+      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize, color=254 ;diamond
+      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
+      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.85, color=254
+      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize, color=254 ;*
+      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=254    
+      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=254
+      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize, color=254 ;triangle
+      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
+      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
       ; elfina
-      count=nptsa    ;n_elements(this_lon)
-      plots, this_lon[0], this_lat[0], psym=4, symsize=1.9, color=253
-      plots, this_lon[count-1], this_lat[count-1], psym=2, symsize=1.9, color=253
-      plots, this_lon[0], this_lat[0], psym=4, symsize=1.75, color=253
-      plots, this_lon[count-1], this_lat[count-1], psym=2, symsize=1.75, color=253
-      plots, this_lon[0], this_lat[0], psym=4, symsize=1.6, color=253
-      plots, this_lon[count-1], this_lat[count-1], psym=2, symsize=1.6, color=253
-      ;plots, this_lon[count/2], this_lat[count/2], psym=5, symsize=1.9, color=253
+      count=nptsa    ;n_elements(this_a_lon_down)
+      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize, color=253
+      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.85, color=253
+      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize, color=253     
+      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=253
+      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize, color=253
+      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=253
     endif else begin
       ; elfina
-      count=nptsa    ;n_elements(this_lon)
-      plots, this_lon[0], this_lat[0], psym=4, symsize=1.9, color=253
-      plots, this_lon[count-1], this_lat[count-1], psym=2, symsize=1.9, color=253
-      plots, this_lon[0], this_lat[0], psym=4, symsize=1.75, color=253
-      plots, this_lon[count-1], this_lat[count-1], psym=2, symsize=1.75, color=253
-      plots, this_lon[0], this_lat[0], psym=4, symsize=1.6, color=253
-      plots, this_lon[count-1], this_lat[count-1], psym=2, symsize=1.6, color=253
-      ;plots, this_lon[count/2], this_lat[count/2], psym=5, symsize=1.9, color=253
-      count=nptsb   ;n_elements(this_lon2)
-      plots, this_lon2[0], this_lat2[0], psym=4, symsize=1.9, color=254
-      plots, this_lon2[count-1], this_lat2[count-1], psym=2, symsize=1.9, color=254
-      plots, this_lon2[0], this_lat2[0], psym=4, symsize=1.75, color=254
-      plots, this_lon2[count-1], this_lat2[count-1], psym=2, symsize=1.75, color=254
-      plots, this_lon2[0], this_lat2[0], psym=4, symsize=1.6, color=254
-      plots, this_lon2[count-1], this_lat2[count-1], psym=2, symsize=1.6, color=254
-      ;plots, this_lon2[count/2], this_lat2[count/2], psym=5, symsize=1.9, color=254
+      count=nptsa    ;n_elements(this_a_lon_down)
+      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize, color=253
+      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.85, color=253
+      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize, color=253     
+      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=253
+      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize, color=253
+      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=253
+      count=nptsb   ;n_elements(this_b_lon_down)
+      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize, color=254 ;diamond
+      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
+      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.85, color=254
+      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize, color=254 ;*
+      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=254    
+      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=254
+      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize, color=254 ;triangle
+      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
+      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
     endelse
 
     ;---------------------
-    ; ADD Tick Marks  
+    ; ADD Tick Marks
     ;---------------------
     if keyword_set(tstep) then begin
       tstep=300.
@@ -617,30 +798,50 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
       dummy=min(abs(this_time-tsteps0),istep0)
       istepsa=steps+istep0
     endif
-
+    
     if ~keyword_set(bfirst) then begin
-      plots, this_lon2[istepsb], this_lat2[istepsb], psym=1, symsize=1.5, color=254, clip=[-180, -78, 180, 78], NOCLIP=0
-      plots, this_lon[istepsa], this_lat[istepsa], psym=1, symsize=1.35, color=253, clip=[-180, -78, 180, 78], NOCLIP=0
+      plots, this_b_lon_down[istepsb], this_b_lat_down[istepsb], psym=1, symsize=desymsize*1, color=254, clip=[-180, -78, 180, 78], NOCLIP=0 ;plus sign
+      plots, this_a_lon_down[istepsa], this_a_lat_down[istepsa], psym=1, symsize=desymsize*1, color=253, clip=[-180, -78, 180, 78], NOCLIP=0
     endif else begin
-      plots, this_lon[istepsa], this_lat[istepsa], psym=1, symsize=1.35, color=253, clip=[-180, -78, 180, 78], NOCLIP=0
-      plots, this_lon2[istepsb], this_lat2[istepsb], psym=1, symsize=1.5, color=254, clip=[-180, -78, 180, 78], NOCLIP=0
+      plots, this_a_lon_down[istepsa], this_a_lat_down[istepsa], psym=1, symsize=desymsize*1, color=253, clip=[-180, -78, 180, 78], NOCLIP=0
+      plots, this_b_lon_down[istepsb], this_b_lat_down[istepsb], psym=1, symsize=desymsize*1, color=254, clip=[-180, -78, 180, 78], NOCLIP=0
     endelse
+    
+    index_equ_a=where(abs(this_a_lat_down) lt 0.5) ;when cross equator
+    index_equ_b=where(abs(this_b_lat_down) lt 0.5)
+    if this_a_lon_down[index_equ_a[0]] lt this_b_lon_down[index_equ_b[0]] then begin ;a is on the left of b
+      ;add elfa number label
+      for i=1,n_elements(istepsa)-1 do begin
+        if abs(this_a_lat_down[istepsa[i]]) lt 78 then begin
+          tick_label=strtrim(string(fix(istepsa(i)/60)),2)
+          xyouts,this_a_lon_down[istepsa[i]]-10,this_a_lat_down[istepsa[i]],tick_label,alignment=0.0,charsize=decharsize*1.2,color=253, charthick=decharthick*2
+        endif
+      endfor
 
-    ;add elfa number label
-    for i=1,n_elements(istepsa)-1 do begin
-      if abs(this_lat[istepsa[i]]) lt 78 then begin
-        tick_label=strtrim(string(fix(istepsa(i)/60)),2)
-        xyouts,this_lon[istepsa[i]]+1,this_lat[istepsa[i]]+0.5,tick_label,alignment=0.0,charsize=.75,color=253
-      endif
-    endfor
+      ;add elfb number label
+      for i=1,n_elements(istepsb)-1 do begin
+        if abs(this_b_lat_down[istepsb[i]]) lt 78 then begin
+          tick_label=strtrim(string(fix(istepsb(i)/60)),2)
+          xyouts,this_b_lon_down[istepsb[i]]+10,this_b_lat_down[istepsb[i]],tick_label,alignment=1.0,charsize=decharsize*1.2,color=254, charthick=decharthick*2
+        endif
+      endfor
+    endif else begin
+      ;add elfa number label
+      for i=1,n_elements(istepsa)-1 do begin
+        if abs(this_a_lat_down[istepsa[i]]) lt 78 then begin
+          tick_label=strtrim(string(fix(istepsa(i)/60)),2)
+          xyouts,this_a_lon_down[istepsa[i]]+2,this_a_lat_down[istepsa[i]],tick_label,alignment=0.0,charsize=decharsize*1.2,color=253, charthick=decharthick*2
+        endif
+      endfor
 
-    ;add elfb number label
-    for i=1,n_elements(istepsb)-1 do begin
-      if abs(this_lat2[istepsb[i]]) lt 78 then begin
-        tick_label=strtrim(string(fix(istepsb(i)/60)),2)
-        xyouts,this_lon2[istepsb[i]]-1,this_lat2[istepsb[i]]+0.5,tick_label,alignment=1.0,charsize=.75,color=254
-      endif
-    endfor
+      ;add elfb number label
+      for i=1,n_elements(istepsb)-1 do begin
+        if abs(this_b_lat_down[istepsb[i]]) lt 78 then begin
+          tick_label=strtrim(string(fix(istepsb(i)/60)),2)
+          xyouts,this_b_lon_down[istepsb[i]]-2,this_b_lat_down[istepsb[i]],tick_label,alignment=1.0,charsize=decharsize*1.2,color=254, charthick=decharthick*2
+        endif
+      endfor
+    endelse
 
     ; get spin angle
     if size(attgeia, /type) EQ 8 then begin  ;a
@@ -778,80 +979,253 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
       b_att_gse_str = 'S: not available'
     endelse
 
-    if hires then charsize=.75 else charsize=.65
-    ; annotate
-    xann=17
-    xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
-    xyouts,xann,yann+12.5*7,a_orb_spin_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*6,ela_spin_att_ang_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*5,a_att_gei_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,a_att_gse_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,'S w/Sun, deg: '+suna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,'S w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*1,'Att.Solution@'+solna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*0,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
+    ; annotate constants
+    yann1=1-0.03
+    yann2=0.015
+    xann=0.015
+    dyann=0.013
+    xyouts,xann,yann1-dyann*0,'ELFIN (A)',/normal,charsize=decharsize,color=253,charthick=decharthick*2
+    xyouts,xann,yann1-dyann*1,a_orb_spin_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann1-dyann*2,ela_spin_att_ang_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann1-dyann*3,a_att_gei_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann1-dyann*4,a_att_gse_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann1-dyann*5,'S w/Sun, deg: '+suna_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann1-dyann*6,'S w/OrbNorm, deg: '+norma_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann1-dyann*7,'Att.Solution@'+solna_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann1-dyann*8,'Altitude, km: '+this_a_alt_str,/normal,charsize=decharsize,charthick=decharthick
+    
+    
+    xyouts,xann,yann2+dyann*8,'ELFIN (B)',/normal,charsize=decharsize,color=254,charthick=decharthick*2
+    xyouts,xann,yann2+dyann*7,b_orb_spin_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann2+dyann*6,elb_spin_att_ang_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann2+dyann*5,b_att_gei_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann2+dyann*4,b_att_gse_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann2+dyann*3,'S w/Sun, deg: '+sunb_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann2+dyann*2,'S w/OrbNorm, deg: '+normb_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann2+dyann*1,'Att.Solution@: '+solnb_str,/normal,charsize=decharsize,charthick=decharthick
+    xyouts,xann,yann2+dyann*0,'Altitude, km: '+this_b_alt_str,/normal,charsize=decharsize,charthick=decharthick
+ 
+    ;--------------------------------
+    ;
+    ;
+    ;       CONJUGATE FOOTPRINT
+    ; 
+    ; 
+    ;-------------------------------- 
+    coord='Conjugate'
+    if keyword_set(pred) then pred_str='Predicted ' else pred_str=''
+    title=pred_str+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
+    map_set,0,0,0, /mercator, /conti, charsize=decharsize, /advance, position=[0.01,0.01,0.99,0.49]
+    xyouts, (!x.window[1] - !x.window[0]) / 2. + !x.window[0], 0.495, title, $
+      /normal, alignment=0.5, charsize=decharsize*1.5,charthick=decharthick*1.5
+    map_grid,latdel=10.,londel=30., label=1, charsize=decharsize, glinethick=delinewidth*1.2,charthick=decharthick
+    map_continents, color=252, mlinethick=delinewidth*0.5
+    
+    oplot,terminator_geo_lon[*,0],terminator_geo_lat[*,0],color=255,thick=delinewidth*1.5,linestyle=0 ;Talt=0
+    oplot,terminator_geo_lon[*,1],terminator_geo_lat[*,1],color=255,thick=delinewidth*0.5,linestyle=0 ;Talt=100
+    oplot,terminator_geo_lon[*,2],terminator_geo_lat[*,2],color=255,thick=delinewidth*1,linestyle=2 ;Talt=400
+    usersym, sun_x, sun_y
+    plots,terminator_sun_geo_lon[0],terminator_sun_geo_lat[0],psym=8, symsize=desymsize, color=255 ;sub solar point
+    usersym, cos(theta), sin(theta), /fill
+    plots,terminator_sun_geo_lon[0],terminator_sun_geo_lat[0],psym=8, symsize=desymsize, color=251 ;sub solar point
 
-    yann=6
-    xyouts,xann,yann+12.5*9,'ELFIN (B)',/device,charsize=.75,color=254
-    xyouts,xann,yann+12.5*8,b_orb_spin_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*7,elb_spin_att_ang_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*6,b_att_gei_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*5,b_att_gse_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,'S w/Sun, deg: '+sunb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,'S w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,'Att.Solution@: '+solnb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
-
-    latlon_text='Mag Lat/Lon - Red dotted lines'
-    oxadd=47 & lxadd=21
-    if hires then begin
-      yann=750
-      xann=780
-      xyouts, xann-5,yann+12.5*8,'Earth/Oval View Center Time (triangle)',/device,color=255,charsize=charsize
-      xyouts, xann+10,yann+12.5*7,'Thick - Science (FGM and/or EPD)',/device,color=255,charsize=charsize
-      xyouts, xann+18,yann+12.5*6,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
-      xyouts, xann+25,yann+12.5*5, latlon_text,/device,color=251,charsize=charsize
-      ;xyouts, xann+75,yann+12.5*4,'Tick Marks every 5min from '+hr_ststr[k]+':00',/device,color=255,charsize=charsize
-      xyouts, xann-10,yann+12.5*4,'Tick Marks every 5min from '+hr_ststr[k]+':00 UTC',/device,color=255,charsize=charsize
-      xyouts, xann+85,yann+12.5*2,'Start Time-Diamond',/device,color=255,charsize=charsize
-      xyouts, xann+95,yann+12.5*1,'End Time-Asterisk',/device,color=255,charsize=charsize
+    ; MAG Coords
+    for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=delinewidth*1.2,linestyle=1 ;latitude rings
+    ; plot geomagnetic equator
+    ; (nmlats-1)/2 is equator index
+    ;equ_lon=(v_lon[(nmlats-1)/2-1,*]+v_lon[(nmlats-1)/2+1,*])/2
+    ;equ_lat=(v_lat[(nmlats-1)/2-1,*]+v_lat[(nmlats-1)/2+1,*])/2
+    ;oplot,equ_lon,equ_lat,color=248,thick=3,linestyle=1
+    for i=0,nmlons-1 do begin
+      idx=where(u_lon[i,*] NE 0)
+      oplot,u_lon[i,idx],u_lat[i,idx],color=248,thick=delinewidth*1.2,linestyle=1
+    endfor
+    
+    ; Plot foot points
+    if ~keyword_set(bfirst) then begin
+      oplot, this_b_lon_conj[0:*:5], this_b_lat_conj[0:*:5], color=254, linestyle=2, thick=delinewidth*1.5
+      oplot, this_a_lon_conj[0:*:5], this_a_lat_conj[0:*:5], color=253, linestyle=2, thick=delinewidth*1.5      
     endif else begin
-      yann=500
-      xann=615
-      xyouts, xann-5,yann+12.5*8,'Earth/Oval View Center Time (triangle)',/device,color=255,charsize=charsize
-      xyouts, xann+10,yann+12.5*7,'Thick - Science (FGM and/or EPD)',/device,color=255,charsize=charsize
-      xyouts, xann+15,yann+12.5*6,'Geo Lat/Lon - Black dotted lines',/device,color=255,charsize=charsize
-      xyouts, xann+lxadd,yann+12.5*5, latlon_text,/device,color=251,charsize=charsize
-      ;xyouts, xann+66,yann+12.5*4,'Tick Marks every 5min from '+hr_ststr[k]+':00',/device,color=255,charsize=charsize
-      xyouts, xann-10,yann+12.5*4,'Tick Marks every 5min from '+hr_ststr[k]+':00 UTC',/device,color=255,charsize=charsize
-      xyouts, xann+76,yann+12.5*3,'Start Time-Diamond',/device,color=255,charsize=charsize
-      xyouts, xann+85,yann+12.5*2,'End Time-Asterisk',/device,color=255,charsize=charsize
+      oplot, this_a_lon_conj[0:*:5], this_a_lat_conj[0:*:5], color=253, linestyle=2, thick=delinewidth*1.5   
+      oplot, this_b_lon_conj[0:*:5], this_b_lat_conj[0:*:5], color=254, linestyle=2, thick=delinewidth*1.5
     endelse
-    yann=6
-    if hires then xann = 660 else xann=600
+    
+
+    ; ------------------------------
+    ; PLOT science collection
+    ;-------------------------------
+    if ~keyword_set(bfirst) then begin
+      if ~undefined(this_b_sz_st) then begin
+        for sci=0, n_elements(bzones)-1 do begin
+          tidxb=where(this_time2 GE this_b_sz_st[sci] and this_time2 LT this_b_sz_en[sci], bcnt)
+          if bcnt GT 5 then begin
+            ;plots, this_b_lon_conj[tidxb], this_b_lat_conj[tidxb], psym=2, symsize=.25, color=254, thick=3
+            oplot, this_b_lon_conj[tidxb], this_b_lat_conj[tidxb], color=254, thick=delinewidth*4
+          endif
+        endfor
+      endif
+      if ~undefined(this_a_sz_st) then begin
+        for sci=0, azones-1 do begin
+          tidxa=where(this_time GE this_a_sz_st[sci] and this_time LT this_a_sz_en[sci], acnt)
+          if acnt GT 5 then begin
+            ;plots, this_a_lon_conj[tidxa], this_a_lat_conj[tidxa], psym=2, symsize=.25, color=253, thick=3
+            oplot, this_a_lon_conj[tidxa], this_a_lat_conj[tidxa], color=253, thick=delinewidth*4
+          endif
+        endfor
+      endif
+    endif else begin
+      if ~undefined(this_a_sz_st) then begin
+        for sci=0, azones-1 do begin
+          tidxa=where(this_time GE this_a_sz_st[sci] and this_time LT this_a_sz_en[sci], acnt)
+          if acnt GT 5 then begin
+            oplot, this_a_lon_conj[tidxa], this_a_lat_conj[tidxa], color=253, thick=delinewidth*4
+          endif
+        endfor
+      endif
+      if ~undefined(this_b_sz_st) then begin
+        for sci=0, n_elements(bzones)-1 do begin
+          tidxb=where(this_time2 GE this_b_sz_st[sci] and this_time2 LT this_b_sz_en[sci], bcnt)
+          if bcnt GT 5 then begin
+            oplot, this_b_lon_conj[tidxb], this_b_lat_conj[tidxb], color=254, thick=delinewidth*4
+          endif
+        endfor
+      endif
+    endelse
+
+    ;-----------------------------------------
+    ; Plot dataset start/stop position markers
+    ; ----------------------------------------
+    ; elfinb
+    if ~keyword_set(bfirst) then begin
+      count=nptsb   ;n_elements(this_b_lon_down)
+      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize, color=254
+      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
+      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.85, color=254
+      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize, color=254 ;*     
+      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=254      
+      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=254
+      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize, color=254 ;triangle
+      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
+      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+      ; elfina
+      count=nptsa    ;n_elements(this_a_lon_conj)
+      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize, color=253
+      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.85, color=253
+      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize, color=253
+      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=253    
+      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=253
+      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize, color=253
+      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=253
+    endif else begin
+      ; elfina
+      count=nptsa    ;n_elements(this_a_lon_conj)
+      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize, color=253
+      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.85, color=253
+      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize, color=253
+      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=253    
+      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=253
+      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize, color=253
+      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=253
+      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=253
+      count=nptsb   ;n_elements(this_b_lon_conj)
+      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize, color=254
+      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
+      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.85, color=254
+      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize, color=254 ;*     
+      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=254      
+      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=254
+      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize, color=254 ;triangle
+      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
+      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+    endelse
+
+    ;---------------------
+    ; ADD Tick Marks
+    ;---------------------
+    if ~keyword_set(bfirst) then begin
+      plots, this_b_lon_conj[istepsb], this_b_lat_conj[istepsb], psym=1, symsize=desymsize*1, color=254, clip=[-180, -78, 180, 78], NOCLIP=0 ;plus sign
+      plots, this_a_lon_conj[istepsa], this_a_lat_conj[istepsa], psym=1, symsize=desymsize*1, color=253, clip=[-180, -78, 180, 78], NOCLIP=0
+    endif else begin
+      plots, this_a_lon_conj[istepsa], this_a_lat_conj[istepsa], psym=1, symsize=desymsize*1, color=253, clip=[-180, -78, 180, 78], NOCLIP=0
+      plots, this_b_lon_conj[istepsb], this_b_lat_conj[istepsb], psym=1, symsize=desymsize*1, color=254, clip=[-180, -78, 180, 78], NOCLIP=0
+    endelse
+        
+    index_equ_a=where(abs(this_a_lat_conj) lt 0.5) ;when cross equator
+    index_equ_b=where(abs(this_b_lat_conj) lt 0.5)
+    if this_a_lon_conj[index_equ_a[0]] lt this_b_lon_conj[index_equ_b[0]] then begin ;a is on the left of b
+      ;add elfa number label
+      for i=1,n_elements(istepsa)-1 do begin
+        if abs(this_a_lat_conj[istepsa[i]]) lt 78 then begin
+          tick_label=strtrim(string(fix(istepsa(i)/60)),2)
+          xyouts,this_a_lon_conj[istepsa[i]]-10,this_a_lat_conj[istepsa[i]]-4,tick_label,alignment=0.0,charsize=decharsize*1.2,color=253, charthick=decharthick*2 
+          endif
+      endfor
+
+      ;add elfb number label
+      for i=1,n_elements(istepsb)-1 do begin
+        if abs(this_b_lat_conj[istepsb[i]]) lt 78 then begin
+          tick_label=strtrim(string(fix(istepsb(i)/60)),2)
+          xyouts,this_b_lon_conj[istepsb[i]]+10,this_b_lat_conj[istepsb[i]]+1,tick_label,alignment=1.0,charsize=decharsize*1.2,color=254, charthick=decharthick*2 
+          endif
+      endfor
+    endif else begin
+      ;add elfa number label
+      for i=1,n_elements(istepsa)-1 do begin
+        if abs(this_a_lat_conj[istepsa[i]]) lt 78 then begin
+          tick_label=strtrim(string(fix(istepsa(i)/60)),2)
+          xyouts,this_a_lon_conj[istepsa[i]]+2,this_a_lat_conj[istepsa[i]]+1,tick_label,alignment=0.0,charsize=decharsize*1.2,color=253, charthick=decharthick*2 
+        endif
+      endfor
+
+      ;add elfb number label
+      for i=1,n_elements(istepsb)-1 do begin
+        if abs(this_b_lat_conj[istepsb[i]]) lt 78 then begin
+          tick_label=strtrim(string(fix(istepsb(i)/60)),2)
+          xyouts,this_b_lon_conj[istepsb[i]]-2,this_b_lat_conj[istepsb[i]]+1,tick_label,alignment=1.0,charsize=decharsize*1.2,color=254, charthick=decharthick*2 
+        endif
+      endfor
+    endelse
+    
+    latlon_text='Mag Lat/Lon - Red dotted lines'
+    yann1=1-0.03
+    xann=1-0.015
+    dyann=0.013
+    yann2=0.015
+    xyouts, xann,yann1-dyann*0,'Mercator View Center Time (triangle)',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick
+    xyouts, xann,yann1-dyann*1,'Thick - Science (FGM and/or EPD)',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick 
+    xyouts, xann,yann1-dyann*2,'Geo Lat/Lon - Black dotted lines',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick  
+    xyouts, xann,yann1-dyann*3, latlon_text,/normal,color=250,charsize=decharsize, alignment=1,charthick=decharthick  
+    xyouts, xann,yann1-dyann*4,'Tick Marks every 5min from '+hr_ststr[k]+':00 UTC',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick 
+    xyouts, xann,yann1-dyann*5,'Start Time-Diamond',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick
+    xyouts, xann,yann1-dyann*6,'End Time-Asterisk',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick
+    xyouts, xann,yann1-dyann*7,'Terminator: ground-thick solid',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick
+    xyouts, xann,yann1-dyann*8,'100 km-thin solid',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick
+    xyouts, xann,yann1-dyann*9,'400 km-dashed',/normal,color=255,charsize=decharsize, alignment=1,charthick=decharthick
+    xyouts,  xann, yann2+dyann*0, 'Created: '+systime(),/normal,color=255, charsize=decharsize, alignment=1,charthick=decharthick       ; add time of creation
     case 1 of
-      tsyg_mod eq 't89': xyouts,xann+20,yann+12.5*2,'Tsyganenko-1989',/device,charsize=charsize,color=255
-      tsyg_mod eq 't96': xyouts,xann+20,yann+12.5*2,'Tsyganenko-1996',/device,charsize=charsize,color=255
-      tsyg_mod eq 't01': xyouts,xann+20,yann+12.5*2,'Tsyganenko-2001',/device,charsize=charsize,color=255
+      tsyg_mod eq 't89': xyouts,xann,yann2+dyann*1,'Tsyganenko-1989',/normal,charsize=decharsize,color=255, alignment=1,charthick=decharthick 
+      tsyg_mod eq 't96': xyouts,xann,yann2+dyann*1,'Tsyganenko-1996',/normal,charsize=decharsize,color=255, alignment=1,charthick=decharthick 
+      tsyg_mod eq 't01': xyouts,xann,yann2+dyann*1,'Tsyganenko-2001',/normal,charsize=decharsize,color=255, alignment=1,charthick=decharthick
     endcase
 
-
-    ; add time of creation
-    xyouts,  xann+20, yann+12.5, 'Created: '+systime(),/device,color=255, charsize=charsize
-
+    
     ;--------------------------------
     ; CREATE GIF
     ;--------------------------------
     if keyword_set(gifout) then begin
-
       ; Create small plot
       image=tvrd()
       device,/close
+      ;set_plot,'x'
       set_plot,'z'
-      ;device,set_resolution=[1200,900]
-      image[where(image eq 255)]=1
-      image[where(image eq 0)]=255
-      if not keyword_set(noview) then window,3,xsize=800,ysize=630
+      ;image[where(image eq 255)]=1
+      ;image[where(image eq 0)]=255
+      if not keyword_set(noview) then begin
+        window,3,xsize=xwidth,ysize=ywidth
+      endif
       if not keyword_set(noview) then tv,image
       dir_products = !elf.local_data_dir + 'gtrackplots/'+ strmid(date,0,4)+'/'+strmid(date,5,2)+'/'+strmid(date,8,2)+'/'
       file_mkdir, dir_products
@@ -860,7 +1234,7 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, south=south, no
       plot_name = 'mercator'
       coord_name='_'
       pname='elf'
-      gif_name=dir_products+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k]
+      gif_name=dir_products+'/'+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k]
 
       if hires then gif_name=gif_name+'_hires'
       write_gif,gif_name+'.gif',image,r,g,b
