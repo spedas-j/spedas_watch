@@ -77,6 +77,7 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
   lim=2
   earth=findgen(361)
   launch_date = time_double('2018-09-16')
+  filetime=tr[0]
 
   ; average solar wind conditions
   dst=-10.
@@ -1227,9 +1228,12 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
         window,3,xsize=xwidth,ysize=ywidth
       endif
       if not keyword_set(noview) then tv,image
+
       dir_products = !elf.local_data_dir + 'gtrackplots/'+ strmid(date,0,4)+'/'+strmid(date,5,2)+'/'+strmid(date,8,2)+'/'
       file_mkdir, dir_products
-      filedate=file_dailynames(trange=tr+[0, -1801.], /unique, times=times)
+      ;filedate=file_dailynames(trange=tr+[0, -1801.], /unique, times=times)
+
+      filedate=file_dailynames(trange=filetime[0], /unique, times=times)
 
       plot_name = 'mercator'
       coord_name='_'

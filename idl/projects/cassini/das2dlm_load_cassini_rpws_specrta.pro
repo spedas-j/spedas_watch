@@ -1,30 +1,31 @@
 ;+
-; PRO: das2dlm_load_cassini_rpws_waveform, ...
+; PRO: das2dlm_load_cassini_rpws_spectra, ...
 ;
 ; Description: Cassini data from Radio and Plasma Wave Science, waveformw (PSD level 3 filed), das2 dataset: /Cassini/RPWS/...; 
 ;   Available datasets:
-;     'HiRes_LoFreq_Waveform' - Collection: 100 Hz and 7.14 kHz sample rate, correlated 5-Component waveforms from the WFR
-;     'HiRes_MidFreq_Waveform' - Collection: 27.8 kHz and 222 kHz sample rate waveforms from the WBR (PDS level 3 files)
+;     'HiRes_LoFreq_Spectra' - Collection: 25 Hz and 2.5 kHz, correlated 5-Component spectral densities (PDS level 3 files)
+;     'HiRes MidFreq Spectra' - Collection: 10 kHz and 80 kHz Spectra from the WBR (PDS level 3 files)
 ;   Data may be retured from diffrent datasets. The tplot variables will indicate the dataset name (e.g. '_Ex_05') 
 ;            
 ; Keywords:
 ;    trange: Sets the time tange 
 ;    source (optional): String that defines dataset: 'MidFreq', 'LoFreq' (default: 'LoFreq')
-;    output (optional): String (Case sensetive!), or array of strings of output data from this collection
-;     Collection HiRes_LoFreq_Waveform:
+;    output (optional): String (Case sensetive!), or array of strings of output data from this collection. 
+;     One das2 request returns only one output, e.g. 'Bx' or 'By' or 'Bz' or 'Ew' or 'Ex'.
+;     Collection HiRes_LoFreq_Spectra:
 ;       'Bx' - Waveform from the tri-axial search coil magnetic antenna Bx, detect magnetic components of electromagnetic waves
 ;       'By' - Waveform from the By antenna used as a monopole, detect magnetic components of electromagnetic waves
 ;       'Bz' - Waveform from the Bz antenna used as a monopole, detect magnetic components of electromagnetic waves
 ;       'Ew' - Waveform from the Ew electric monopole antenna
 ;       'Ex' - Waveform from the Eu and Ev electric dipole antennas, aligned along the x axis of the spacecraft
-;       '7kHz' - Output 140 mks sample interval 7.143 kHz rolloff data, by default 10 ms sample data 100 Hz rolloff are sent
+;       '7kHz' - Output spectra from 7.143 kHz rate waveforms, default is 100 Hz rate waveforms
 ;     Collection HiRes_MidFreq_Waveform (at this moment, onlye one parameter: Ew or Ex can be selected): 
 ;       'Ew' - Waveform from the Ew electric monopole antenna
-;       'Ex' (Currently, does not work) - Waveform from the Eu and Ev electric dipole antennas, aligned along the X axis of the spacecraft
-;       '80khz' - chage band rolloff to 80khz (default is 10khz)          
+;       'Ex' - Waveform from the Eu and Ev electric dipole antennas, aligned along the X axis of the spacecraft
+;       '10khz' - band rolloff 10khz 
+;       '80khz' - band rolloff to 80khz (default is 10khz)          
 ;     Examples:
 ;       output='Ex'
-;       output=['Ex','Ew','7kHz']
 ;       output=['Ew','80khz']          
 ;    resolution (optional): string of the resolution, e.g. '.21' (default, '')         
 ;    parameter (optional): string of optional das2 parameters  
@@ -39,10 +40,10 @@
 ; $LastChangedBy: adrozdov $
 ; $Date: 2021-01-25 20:29:41 -0800 (Mon, 25 Jan 2021) $
 ; $Revision: 29621 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_waveform.pro $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_specrta.pro $
 ;-
 
-pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution=resolution, output=output, parameter=parameter
+pro das2dlm_load_cassini_rpws_spectra, trange=trange, source=source, resolution=resolution, output=output, parameter=parameter
   
   das2dlm_cassini_init
   
@@ -58,8 +59,9 @@ pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution
      
    case strlowcase(source) of
     'lofreq': begin
-      source = 'HiRes_LoFreq_Waveform'
-      t_name = 'time'      
+      source = 'HiRes_LoFreq_Spectra'
+      t_name = 'time'
+      f_name = 'frequency'
       ; filter output and leave only acceptable parameters
       v_arr = strfilter(output,['Ex','Ew','Bx','By','Bz','7kHz'])
       ; We parameter is not empty, merge with the request
@@ -75,16 +77,18 @@ pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution
                          
     end 
     'midfreq': begin
-      source = 'HiRes_MidFreq_Waveform'
+      source = 'HiRes_MidFreq_Spectra'
       t_name = 'time'
+      f_name = 'frequency'
       v_arr = ['WBR'] 
       ; This collection uses diffrent way to process the parameters. Currently parameters Ew and Ex do not return data 
-      output = strfilter(output,['Ex','Ew','80khz'])
+      output = strfilter(output,['Ex','Ew','10khz','80khz'])
       ; Set additional parameters
       aparam = []
-      if array_contains(output, '80khz') then aparam = [aparam, '--80khz']
-      if array_contains(output, 'Ex') then aparam = [aparam, '--Ex']
-      if array_contains(output, 'Ew') then aparam = [aparam, '--Ew']
+      if array_contains(output, '10khz') then aparam = [aparam, '10khz']
+      if array_contains(output, '80khz') then aparam = [aparam, '80khz']
+      if array_contains(output, 'Ex') then aparam = [aparam, 'Ex']
+      if array_contains(output, 'Ew') then aparam = [aparam, 'Ew']
             
       if parameter ne '' then parameter = strjoin([aparam, parameter], '+') $
       else if keyword_set(aparam) then parameter = strjoin(aparam, '+')  
@@ -122,42 +126,40 @@ pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution
     return
   endif
   
-  ; Get dataset
-  ;for i=0,size(v_arr,/n_elem)-1 do begin
+  ; Get dataset in case we have mulitple datasets
    for i=0,query.n_dsets-1 do begin
     nset = i
     ds = das2c_datasets(query, nset)  
     
     ; Get time
-    das2dlm_get_ds_var, ds[0], 'time', 'center', p=pt, v=vt, m=mt, d=dt
+    das2dlm_get_ds_var, ds[0], t_name, 'center', p=pt, v=vt, m=mt, d=dt
   
     ; Exit on empty data
     ;if undefined(dt) then begin
     ;  dprint, dlevel = 0, 'Dataset has no data for the selected period.'
     ;  return
     ;endif
-
+  
+    ; Get frequency
+    das2dlm_get_ds_var, ds[0], f_name, 'center', p=pf, v=vf, m=my, d=df
+  
+    ; We have to determine v_name dynamically, since it is not nessesary in the order of parameters
+    das2dlm_get_ds_var_name, ds[0], vnames=vnames, exclude=[t_name, f_name]
+    v_name = vnames[0]
+    ; Get data variable
+    das2dlm_get_ds_var, ds[0], v_name, 'center', p=pd, v=vd, m=md, d=dd
+   
+    ; Manually fix the dimentions according to variable's rank
+    dt = transpose(dt[0, *],[1, 0])  
+    df = df[*, 0]
+    dd = transpose(dd, [1, 0])
+    
     ; Convert time
     dt = das2dlm_time_to_unixtime(dt, vt.units)
-    ; Manually fix the dimentions according to variable's rank
-    dt=dt[*]
-  
-    ; v_name = v_arr[i]
-    ; We have to determine v_name dynamically, since it is not nessesary in the order of parameters
-    das2dlm_get_ds_var_name, ds[0], vnames=vnames, exclude=['time']
-    v_name = vnames[0]
-    ; Get variables
-    das2dlm_get_ds_var, ds[0], v_name, 'center', p=pf, v=vf, m=mf, d=df
-   
-    ; Manually fix the dimentions according to variable's rank
-    df=df[*]  
-    ;dt = transpose(dt[0, *],[1, 0])  
-    ;df = df[*, 0]
-    ;da = transpose(da, [1, 0])
-   
+
     tvarname = 'cassini_rpws_' + strlowcase(source)  + '_' + ds[0].name ; + v_name ; ds[0].name also contains the dataset number  
-    store_data, tvarname, data={x:dt, y:df}, $
-      dlimits={spec:0, ylog:0, zlog:0} 
+    store_data, tvarname, data={x:dt, y:dd, v:df}, $
+      dlimits={spec:1, ylog:1, zlog:1} 
           
     ; Metadata
     das2dlm_get_ds_meta, ds[0], meta=mds, title=das2name
@@ -166,8 +168,9 @@ pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution
     str_element, DAS2, 'name', das2name, /add
     str_element, DAS2, 'propds', mds, /add ; add data set property
   
-    das2dlm_add_metadata, DAS2, p=pt, v=vt, m=mt, add='t'
-    das2dlm_add_metadata, DAS2, p=pf, v=vf, m=mf, add='y' 
+    das2dlm_add_metadata, DAS2, p=pt, v=vt, m=mt, add='x'
+    das2dlm_add_metadata, DAS2, p=pd, v=vd, m=md, add='y' 
+    das2dlm_add_metadata, DAS2, p=pf, v=vf, m=mf, add='v' 
     
     options, /default, tvarname, 'DAS2', DAS2 ; Store metadata (this should not affect graphics)
     
@@ -177,8 +180,7 @@ pro das2dlm_load_cassini_rpws_waveform, trange=trange, source=source, resolution
     options, /default, tvarname, 'ytitle', ytitle ;
     
     ; Clear ds (some strange crashes happen if this is not included'
-    ds = !null
-    
+    ds = !null    
   endfor
   
   ; Cleaning up

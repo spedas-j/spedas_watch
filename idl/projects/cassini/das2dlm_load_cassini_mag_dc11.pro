@@ -9,12 +9,16 @@
 ;    trange: Sets the time tange
 ;    parameter (optional): string of optional das2 parameters  
 ;    
+; Note:
+;   Please reffer to the das2.org catalog for additional information or examples of das2 use:
+;   https://das2.org/browse/uiowa/cassini/mag    
+;    
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-10-09 17:22:43 -0700 (Fri, 09 Oct 2020) $
-; $Revision: 29235 $
+; $Date: 2021-01-25 20:29:41 -0800 (Mon, 25 Jan 2021) $
+; $Revision: 29621 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_mag_dc11.pro $
 ;-
 

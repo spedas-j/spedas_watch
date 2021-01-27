@@ -91,23 +91,26 @@
 ; CREATED BY:       Davin Larson December 2018
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-16 13:58:10 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29526 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2021-01-25 22:28:17 -0800 (Mon, 25 Jan 2021) $
+; $LastChangedRevision: 29622 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
 
 pro spp_fld_load, trange=trange, type=type, files=files, $
   fileprefix=fileprefix,$
-  tname_prefix=tname_prefix, pathformat=pathformat,$
+  tname_prefix=tname_prefix, tname_suffix=tname_suffix, $
+  pathformat=pathformat,$
   no_load=no_load,varformat=varformat, $
   no_server = no_server, $
   longterm_ephem = longterm_ephem, $
   level = level, get_support = get_support, downsample = downsample, $
-  no_staging = no_staging, version = version
-  
+  no_staging = no_staging, use_staging = use_staging, version = version
+
   if n_elements(no_staging) eq 0 then no_staging=1
+
+  if keyword_set(use_staging) then no_staging=0
 
   if not keyword_set(type) then begin
     dprint,'Choices for type include: mag_SC mag_RTN rfs_lfr rfs_hfr mag_SC_4_Sa_per_Cyc'
@@ -198,7 +201,8 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
       spp_fld_load, trange=trange, type = type + '_' + spec_type, files=files, $
         fileprefix=fileprefix,$
-        tname_prefix=tname_prefix, pathformat=pathformat,$
+        tname_prefix=tname_prefix, tname_suffix=tname_suffix, $
+        pathformat=pathformat,$
         no_load=no_load,varformat=varformat, $
         level = level, get_support = get_support, downsample = downsample, $
         no_staging = no_staging
@@ -247,7 +251,8 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
       spp_fld_load, trange=trange, type = type + '_' + spec_type, files=files, $
         fileprefix=fileprefix,$
-        tname_prefix=tname_prefix, pathformat=pathformat,$
+        tname_prefix=tname_prefix, tname_suffix=tname_suffix,$
+        pathformat=pathformat,$
         no_load=no_load,varformat=varformat, $
         level = level, get_support = get_support, downsample = downsample, $
         no_staging = no_staging
@@ -296,7 +301,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
     endcase
   endif
 
-  if n_elements(no_staging) GT 0 then $
+  if keyword_set(no_staging) then $
     fileprefix = str_sub(fileprefix, '/staging/', '/')
 
   ;
@@ -492,7 +497,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       ;
 
       spp_fld_load_l1, files, varformat = varformat, downsample = downsample, $
-        add_prefix = tname_prefix
+        add_prefix = tname_prefix, add_suffix = tname_suffix
 
     endif else begin
 
@@ -511,9 +516,11 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       endif else begin
 
         if n_elements(varformat) GT 0 then begin
-          cdf2tplot,files,varformat=varformat,prefix=tname_prefix,/load_labels, tplotnames=tn
+          cdf2tplot,files,varformat=varformat,$
+            prefix=tname_prefix,suffix=tname_suffix,/load_labels, tplotnames=tn
         endif else begin
-          cdf2tplot,files,prefix=tname_prefix,/all,/load_labels, tplotnames=tn
+          cdf2tplot,files,prefix=tname_prefix,suffix=tname_suffix,$
+            /all,/load_labels, tplotnames=tn
         endelse
       endelse
 
@@ -534,7 +541,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
         r = where(tn.Matches('(mag_VSO)$'),/NULL)
         options,tn[r],/def,ytitle='MAG VSO',psym_lim=300
-        options,tn[r],/def,colors='bgr'       
+        options,tn[r],/def,colors='bgr'
         options,tn[r],max_points=10000 ; see above
 
       endif
@@ -598,9 +605,9 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
       ;
       ; Quality flags
-      ; 
+      ;
       ; From the CDF metadata:
-      ; 
+      ;
       ; FIELDS quality flags. This is a bitwise variable, meaning that
       ; multiple flags can be set for a single time, by adding flag values.
       ; Current flagged values are:
@@ -612,13 +619,13 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       ;  32: SWEAP SPC in electron mode,
       ;  64: PSP Solar limb sensor (SLS) test.
       ; 128: PSP spacecraft is off umbra pointing.
-      ; 
+      ;
       ; A value of zero corresponds to no set flags.
-      ; 
+      ;
       ; These plot options set up the BITPLOT routine to display the flags
-      ; individually, on separate lines in a single TPLOT panel. 
-      ; 
-      ; The flags loaded from a L2/L3 filesare at a default resolution of 1 
+      ; individually, on separate lines in a single TPLOT panel.
+      ;
+      ; The flags loaded from a L2/L3 filesare at a default resolution of 1
       ; minute. The routine ??? will filter TPLOT variables based on these
       ; quality flags.
       ;

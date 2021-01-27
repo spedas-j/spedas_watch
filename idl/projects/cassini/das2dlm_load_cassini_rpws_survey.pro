@@ -17,13 +17,17 @@
 ;    nset (optional): dataset number (default: 0)
 ;    resolution (optional): string of the resolution, e.g. '43.2' (default, '')
 ;    parameter (optional): string of optional das2 parameters         
+;
+; Note:
+;   Please reffer to the das2.org catalog for additional information or examples of das2 use:
+;   https://das2.org/browse/uiowa/cassini/rpws
 ;   
 ; CREATED BY:
 ;    Alexander Drozdov (adrozdov@ucla.edu)
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-10-09 18:17:32 -0700 (Fri, 09 Oct 2020) $
-; $Revision: 29238 $
+; $Date: 2021-01-25 20:29:41 -0800 (Mon, 25 Jan 2021) $
+; $Revision: 29621 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cassini/das2dlm_load_cassini_rpws_survey.pro $
 ;-
 
@@ -81,13 +85,19 @@ pro das2dlm_load_cassini_rpws_survey, trange=trange, nset=nset, source=source, r
   ; We have to obtain the variables in the loop since we don't know the name
   pdims = das2c_pdims(ds) ; get all pdims
   nd = size(pdims, /n_elem)
-  ; Get all variables
-  name = ''
-  for i=0,nd-1 do begin
-    name = pdims[i].pdim
-    if strcmp(name, 'time',/fold) then continue
-    if strcmp(name, 'frequency',/fold) then continue
-  endfor
+  
+  ; Get variable name
+  das2dlm_get_ds_var_name, ds[0], vnames=vnames, exclude=['time', 'frequency']
+  name = vnames[0]
+  
+  ; Old method of getting the variable name
+  ;name = ''  
+  ;for i=0,nd-1 do begin
+  ;  name = pdims[i].pdim
+  ;  if strcmp(name, 'time',/fold) then continue
+  ;  if strcmp(name, 'frequency',/fold) then continue
+  ;endfor
+  
   ; we must have variable name after that
   if name eq '' then begin
     dprint, dlevel = 0, 'Error: Valid variable name not found'

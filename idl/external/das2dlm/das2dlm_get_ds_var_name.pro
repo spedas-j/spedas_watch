@@ -16,8 +16,8 @@
 ;   This function is under active development. Its behavior can change in the future.
 ;
 ; $LastChangedBy: adrozdov $
-; $Date: 2020-10-26 18:36:43 -0700 (Mon, 26 Oct 2020) $
-; $Revision: 29297 $
+; $Date: 2021-01-25 20:24:16 -0800 (Mon, 25 Jan 2021) $
+; $Revision: 29620 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/das2dlm/das2dlm_get_ds_var_name.pro $
 ;-
 
@@ -30,7 +30,7 @@ pro das2dlm_get_ds_var_name, ds, vnames=vnames, exclude=exclude
   for i=0,nd-1 do begin
     name = pdims[i].pdim
     ; exlude variables that we don't want (e.g 'time')
-    if array_contains(name, exclude) then continue    
+    if array_contains(exclude, name) then continue    
     vnames = [vnames, name]    
   endfor
 end

@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-11-06 15:39:49 -0800 (Fri, 06 Nov 2020) $
-; $LastChangedRevision: 29344 $
+; $LastChangedDate: 2021-01-25 22:28:52 -0800 (Mon, 25 Jan 2021) $
+; $LastChangedRevision: 29623 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/common/spp_fld_load_l1.pro $
 ;
 ;-
@@ -11,7 +11,7 @@ pro spp_fld_load_l1, filename, $
   load_procedure = load_procedure, $
   file_timerange = file_timerange, $
   varformat = varformat, $
-  downsample = downsample, add_prefix = add_prefix
+  downsample = downsample, add_prefix = add_prefix, add_suffix = add_suffix
 
   defsysv, '!SPP_FLD_TMLIB', exists = exists
 
@@ -47,8 +47,14 @@ pro spp_fld_load_l1, filename, $
 
   if not keyword_set(load_procedure) then $
     load_procedure = strlowcase(load_routine_prefix) + '_load_l1'
-  
+
   if n_elements(add_prefix) GT 0 then prefix = add_prefix + prefix
+
+  if n_elements(add_suffix) GT 0 then begin
+
+    print, 'add_suffix not yet implemented for Level 1s'
+
+  endif
 
   if n_elements(downsample) GT 0 then begin
 
