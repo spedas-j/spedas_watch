@@ -34,18 +34,29 @@ pro elf_write_data_availability_table, filename, data_available, instrument, pro
     return
   endif
 
-  ;finding local directory
-  path=!elf.LOCAL_DATA_DIR+'el'+probe+ '/data_availability/'
-  
+  ; get authorization information
+  if undefined(user) OR undefined(pw) then authorization = elf_get_authorization()
+  user=authorization.user_name
+  pw=authorization.password
+  ; only query user if authorization file not found
+  If user EQ '' OR pw EQ '' then begin
+    print, 'Please enter your ELFIN user name and password'
+    read,user,prompt='User Name: '
+    read,pw,prompt='Password: '
+  endif
+
+  ; define local and remote paths
+  local_path=!elf.LOCAL_DATA_DIR+'el'+probe+ '/data_availability/'
+  remote_path=!elf.REMOTE_DATA_DIR+'el'+probe+ '/data_availability/'
+
   if instrument NE 'mrm' then begin
     zone_names=['sasc','nasc','sdes','ndes']  
     for i=0,3 do begin
       current = where(data_available.zones eq zone_names[i])
       if current[0] ne -1 then begin
-        newdat = {name:'newdat', starttimes: data_available.starttimes[current], endtimes: data_available.endtimes[current], dL:data_available.dL, medMLT:data_available.medMLT}
-        
-        this_file = path + filename + '_' + zone_names[i] + '.csv'  
-        
+        newdat = {name:'newdat', starttimes: data_available.starttimes[current], $
+          endtimes: data_available.endtimes[current], dL:data_available.dL, medMLT:data_available.medMLT}
+                
         ;writing the header. the position is added to the header
         if i eq 0 then pos = ' South Ascending'
         if i eq 1 then pos = ' North Ascending'
@@ -53,27 +64,42 @@ pro elf_write_data_availability_table, filename, data_available, instrument, pro
         if i eq 3 then pos = ' North Descending'
 
         header = 'ELFIN ' + strupcase(probe) + ' - '+ strupcase(instrument) + pos + ' Science Collections'
-        ;print, this_file
-        ;reading the data
+
+        ;finding local directory
+        this_file = filename + '_' + zone_names[i] + '.csv'
+        
+        ; Download CSV file
+        paths = ''
+        ; download data as long as no flags are set
+        if file_test(local_path,/dir) eq 0 then file_mkdir2, local_path
+        dprint, dlevel=1, 'Downloading ' + remote_path + this_file + ' to ' + local_path + this_file
+        paths = spd_download(remote_file=this_file, remote_path=remote_path, $
+            local_file=this_file, local_path=local_path, $
+            url_username=user, url_password=pw, ssl_verify_peer=1, $
+            ssl_verify_host=1)
+        if undefined(paths) or paths EQ '' then $
+          dprint, devel=1, 'Unable to download ' + remote_file else $
         
         ;making sure the file exists. if not, it will just create one
-        existing = FILE_TEST(this_file)
+        existing = FILE_TEST(local_path+this_file)
+        
         if existing eq 0 then begin
           starttimes = newdat.starttimes
           endtimes = newdat.endtimes
           dL = newdat.dL
           medMLT = newdat.medMLT
         endif else begin 
-          olddat = READ_CSV(this_file, N_TABLE_HEADER = 2)
+          olddat = READ_CSV(local_path+this_file, N_TABLE_HEADER = 2)
           ;finding the start/end index
-          olddat_doub = {name:'olddat_doub', starttimes: time_double(olddat.field1), endtimes: time_double(olddat.field2), dL:olddat.field3, medMLT:olddat.field4}
+          olddat_doub = {name:'olddat_doub', starttimes: time_double(olddat.field1), $
+             endtimes: time_double(olddat.field2), dL:olddat.field3, medMLT:olddat.field4}
           UNDEFINE, olddat
           
           starttimes = [olddat_doub.starttimes, newdat.starttimes]
           endtimes = [olddat_doub.endtimes, newdat.endtimes]
           dL = [olddat_doub.dL, newdat.dL]
           medMLT = [olddat_doub.medMLT, newdat.medMLT]
-          endelse 
+        endelse 
   
         ;sorting
         
@@ -108,9 +134,11 @@ pro elf_write_data_availability_table, filename, data_available, instrument, pro
       ;  handle mrm data (should only be one entry)
       
       ;reading the data passed in
-      this_file = path + 'el'+probe+'_'+instrument+'.csv'
+      ;this_file = path + 'el'+probe+'_'+instrument+'.csv'
+      this_file = path + filename + '.csv'
 
-      newdat = {name:'newdat', starttimes: data_available.starttimes, endtimes: data_available.endtimes, dL:data_available.dL, medMLT:data_available.medMLT}
+      newdat = {name:'newdat', starttimes: data_available.starttimes, endtimes: data_available.endtimes, $
+        dL:data_available.dL, medMLT:data_available.medMLT}
 
       ;writing the header
       header = 'ELFIN '+ strupcase(probe) + ' - '+ strupcase(instrument)

@@ -189,6 +189,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
       MaxE_channels = MinE_channels+1
   endif
   ;
+
   phasedelay = elf_find_phase_delay(probe=probe, instrument='epd'+eori, trange=[elx_pxf.x[0],elx_pxf.x[-1]]) ; get the applicable phase delays 
   if ~undefined(userdSectr2add) && finite(userdSectr2add) then dSectr2add=userdSectr2add else $
     dSectr2add=phasedelay.DSECT2ADD    ; Here specify default # of sectors to add
@@ -204,6 +205,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
       elx_pxf.y[dSectr2add:nsectors-1,*]=!VALUES.F_NaN
     endelse
   endif
+  
   store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
   ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

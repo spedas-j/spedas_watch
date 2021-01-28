@@ -91,9 +91,9 @@
 ; CREATED BY:       Davin Larson December 2018
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2021-01-25 22:28:17 -0800 (Mon, 25 Jan 2021) $
-; $LastChangedRevision: 29622 $
+; $LastChangedBy: anarock $
+; $LastChangedDate: 2021-01-27 15:43:20 -0800 (Wed, 27 Jan 2021) $
+; $LastChangedRevision: 29632 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -529,17 +529,27 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       ;
 
       if strmatch(type,'mag_*') then begin
-        r = where(tn.Matches('(mag_RTN|mag_RTN_1min|mag_RTN_4_Sa_per_Cyc)$'),/NULL)
-        options,tn[r],/def,ytitle='MAG RTN',psym_lim=300
-        options,tn[r],/def,colors='bgr'
+        r = where(tn.Matches('quality_flag'))
+        qf_root = tn[r[0]]
+        
+        r = where(tn.Matches('mag_RTN') and $
+              not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'),/NULL)
+        options,tn[r],/def,ytitle='MAG RTN', $
+                            psym_lim=300, $
+                            colors='bgr', $
+                            qf_root=qf_root ;To simplify dealing with pre/suffixes for qf filtering
         options,tn[r],max_points=10000 ; not a default option, so users can turn it off
 
-        r = where(tn.Matches('(mag_SC|mag_SC_1min|mag_SC_4_Sa_per_Cyc)$'),/NULL)
-        options,tn[r],/def,ytitle='MAG SC',psym_lim=300
-        options,tn[r],/def,colors='bgr'
+        r = where(tn.Matches('mag_SC') and $
+              not tn.Matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'),/NULL)
+        options,tn[r],/def,ytitle='MAG SC', $
+                            psym_lim=300, $
+                            colors='bgr', $
+                            qf_root=qf_root ; see above
         options,tn[r],max_points=10000 ; see above
 
-        r = where(tn.Matches('(mag_VSO)$'),/NULL)
+        r = where(tn.Matches('mag_VSO') and $
+              not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'),/NULL)
         options,tn[r],/def,ytitle='MAG VSO',psym_lim=300
         options,tn[r],/def,colors='bgr'
         options,tn[r],max_points=10000 ; see above

@@ -26,7 +26,8 @@ pro elf_update_data_availability_table, tdate, probe=probe, instrument=instrumen
     return
   endif
   
-  timespan, time_double(tdate)-31.*86400., 31d
+  if ~keyword_set(days) then days = 31. 
+  timespan, time_double(tdate)-days*86400., days
   trange=timerange()
 
   if undefined(instrument) then instrument='epd' else instrument=strlowcase(instrument)

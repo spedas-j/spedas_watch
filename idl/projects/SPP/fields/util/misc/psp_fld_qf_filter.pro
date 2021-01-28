@@ -13,7 +13,7 @@
 ; So, psp_fld_qf_filter,'mag_RTN_1min_x',[4,16] results in tvar named "mag_RTN_1min_x_004016"
 ; Or, psp_fld_qf_filter,'mag_RTN_1min',0 results in tvar named "mag_RTN_1min_000"
 ; 
-; Valid for 'psp_fld_l2_mag...' prefixed variables only.
+; Valid for '...psp_fld_l2_mag_...'  variables only.
 ;  
 ;INPUT:
 ; TVARS:    (string/strarr) Elements are data handle names
@@ -43,13 +43,14 @@
 ;             names, so that tvar[i] filtered is in names_out[i]
 ;
 ;EXAMPLE:
-;
-;
-;CREATED BY: Ayris Narock, Jonathan Tsang (ADNET/GSFC) 2020
+;   psp_fld_qf_filter,'psp_fld_l2_mag_RTN_1min',0
+;   psp_fld_qf_filter,'psp_fld_l2_mag_RTN_1min',[16,32]
+;   
+;CREATED BY: Ayris Narock (ADNET/GSFC) 2020
 ;
 ; $LastChangedBy: anarock $
-; $LastChangedDate: 2021-01-14 06:08:15 -0800 (Thu, 14 Jan 2021) $
-; $LastChangedRevision: 29598 $
+; $LastChangedDate: 2021-01-27 15:43:20 -0800 (Wed, 27 Jan 2021) $
+; $LastChangedRevision: 29632 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/misc/psp_fld_qf_filter.pro $
 ;-
 
@@ -89,18 +90,21 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
 
   ; Create time specific quality flags as needed
   tn = tnames(tvars)
-  r = where(tn.Matches('(mag_RTN|mag_SC|mag_RTN_1min|mag_SC_1min|mag_RTN_4_Sa_per_Cyc|mag_SC_4_Sa_per_Cyc)$'), count)
+  r = where(tn.Matches('(mag_RTN|mag_SC)') and $
+        not tn.Matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'), count)
   if count ge 1 then begin
-    foreach tvar, tn[r] do begin
-      get_data, tvar, data = d
-      prefix = (tvar.Split('psp_fld'))[0]
-
-      if tvar.Matches('(mag_RTN|mag_SC)$') then  tag = '_hires' $
-      else if tvar.Matches('(_1min)$')then tag = '_1min' $
-      else if tvar.Matches('(_4_Sa_per_Cyc)$') then tag = '_4_per_cycle'
+    valid_tn = tn[r]
+    qf_target = []
+    foreach tvar, valid_tn do begin
+      get_data, tvar, data = d, dlimit = dl
+      qf_root = dl.qf_root
+      
+      if tvar.Matches('_1min') then tag = '_1min' $
+      else if tvar.Matches('_4_Sa_per_Cyc') then tag = '_4_per_cycle' $
+      else tag = '_hires'
 
       make_qf_var = !false
-      tn_qf = tnames(prefix+'psp_fld_l2_quality_flags'+tag)
+      tn_qf = tnames(qf_root+tag)
       if tn_qf eq '' then begin ; It doesn't already exist
         make_qf_var = !true
       endif else begin ; It exists. Is it the correct timerange?
@@ -111,8 +115,9 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
       endelse
 
       if make_qf_var then begin
-        psp_fld_extend_epoch, prefix+'psp_fld_l2_quality_flags', d.x, tag
+        psp_fld_extend_epoch, qf_root, d.x, tag
       endif
+      qf_target = [qf_target, qf_root+tag]
     endforeach
   endif else begin
     print,"No valid variables for filtering
@@ -132,70 +137,32 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
   ;CDF metadata and on the FIELDS SOC website for information on how the various
   ;flags impact FIELDS data. Additional flagged items may be added in the future. 
   
-  ; First, know which resolution quality flag to reference
-  ; 1=hires, 2=1min, 3=4 Sa per Cyc
-  res = []
-  foreach tname,tvars do begin
-    tn = tnames(tname)
-    if tn.Matches('_4_Sa_per_Cyc') then res = [res, 3] $
-    else if tn.Matches('_1min') then res = [res, 2] $
-    else if tn.Matches('(mag_RTN|mag_SC)$') then res = [res, 1] $
-    else message,'Bad variable passed: '+tn
-  endforeach
-  r = where(res eq 1, count1)
-  r = where(res eq 2, count2)
-  r = where(res eq 3, count3)
-  
-  ; Get bits array for all needed time resolutions
-  if count1 gt 0 then begin
-    get_data,'psp_fld_l2_quality_flags_hires',data=d
-    dqf1 = d.y
-    n1 = n_elements(d.x)
-    bits2, dqf1, dqfbits1
-  endif
-  if count2 gt 0 then begin
-    get_data,'psp_fld_l2_quality_flags_1min',data=d
-    dqf2 = d.y
-    n2 = n_elements(d.x)
-    bits2, dqf2, dqfbits2
-  endif
-  if count3 gt 0 then begin
-    get_data,'psp_fld_l2_quality_flags_4_per_cycle',data=d
-    dqf3 = d.y
-    n3 = n_elements(d.x)
-    bits2, dqf3, dqfbits3
-  endif  
+  qfmap = hash(qf_target)
+  foreach key,qfmap.keys() do begin
+    qfmap[key] = hash(['dqf','dqfbits'])
+    get_data,key,data=d
+    bits2, d.y, dbits       
+    qfmap[key, 'dqf'] = d.y
+    qfmap[key, 'dqfbits'] = dbits
+  endforeach  
   
   ; Handle -1 case (0 and 128) and return
   if isa(dqflag, /SCALAR) && (dqflag eq -1) then begin
     suffix = '_0-1'
-    for i=0,n_elements(tvars)-1 do begin
-      case (res[i]) of
-        1: begin
-          dqfbits = dqfbits1
-          dqf = dqf1
-        end
-        2: begin
-          dqfbits = dqfbits2
-          dqf = dqf2       
-        end
-        3: begin
-          dqfbits = dqfbits3
-          dqf = dqf3  
-        end
-      endcase
-      rgood = where((dqf eq 0) OR (dqf eq 128), /NULL, COMPLEMENT=r) 
-      get_data,tvars[i],data=d, dl=dl
+    for i=0,valid_tn.length - 1 do begin
+      dqf = qfmap[qf_target[i],'dqf']
+      rgood = where((dqf eq 0) OR (dqf eq 128), /NULL, COMPLEMENT=r)
+      get_data,valid_tn[i],data=d, dl=dl, l=l
       d.y[r,*] = !values.f_NAN
       if tag_exist(dl, 'ytitle',/quiet) then begin
         dl.ytitle = dl.ytitle +"!Cfilter"+suffix
       endif
       if tag_exist(l, 'ytitle',/quiet) then begin
         l.ytitle = l.ytitle +"!Cfilter"+suffix
-      endif      
-      store_data,tnames(tvars[i])+suffix,data=d,dl=dl
-      names_out = [names_out, tnames(tvars[i])+suffix]      
-    endfor  
+      endif
+      store_data,tnames(valid_tn[i])+suffix,data=d,dl=dl,l=l
+      names_out = [names_out, tnames(valid_tn[i])+suffix]
+    endfor
     return
   endif else if isa(dqflag, /ARRAY) then begin
     r = where(dqflag eq -1, count)
@@ -204,28 +171,14 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
       return
     endif
   endif
-  
-  
+
   ;handle case 0 and return
   if isa(dqflag, /SCALAR) && (dqflag eq 0) then begin
     suffix = '_000'
-    for i=0,n_elements(tvars)-1 do begin
-      case (res[i]) of
-        1: begin
-          dqfbits = dqfbits1
-          dqf = dqf1
-        end
-        2: begin
-          dqfbits = dqfbits2
-          dqf = dqf2
-        end
-        3: begin
-          dqfbits = dqfbits3
-          dqf = dqf3
-        end
-      endcase
+    for i=0,valid_tn.length - 1 do begin
+      dqf = qfmap[qf_target[i],'dqf']
       rgood = where((dqf eq 0) , /NULL, COMPLEMENT=r)
-      get_data,tvars[i],data=d, dl=dl, lim=l
+      get_data,valid_tn[i],data=d, dl=dl, lim=l
       d.y[r,*] = !values.f_NAN
       if tag_exist(dl, 'ytitle',/quiet) then begin
         dl.ytitle = dl.ytitle +"!Cfilter"+suffix
@@ -233,8 +186,8 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
       if tag_exist(l, 'ytitle',/quiet) then begin
         l.ytitle = l.ytitle +"!Cfilter"+suffix
       endif
-      store_data,tnames(tvars[i])+suffix,data=d,dl=dl, lim=l
-      names_out = [names_out, tnames(tvars[i])+suffix]
+      store_data,tnames(valid_tn[i])+suffix, data=d, dl=dl, lim=l
+      names_out = [names_out, tnames(valid_tn[i])+suffix]
     endfor
     return
   endif else if isa(dqflag, /ARRAY) then begin
@@ -244,64 +197,38 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
       return
     endif
   endif
-  
-  
+
   ; If not asking for 0 or -1, Find index of elements to remove based on DQFLAGS
+  suffix = '_'
   bits2,0,mybits
   foreach flg,dqflag do begin
+    suffix+= flg.ToString('(I03)')
     bits2,flg,flgbits
     mybits = mybits + flgbits
   endforeach
-
-  if count1 gt 0 then begin
-    rem_mask1 = replicate(0, n1)
-    for i=0,n_elements(mybits)-1 do begin
-      if mybits[i] eq 1 then begin
-        r = where(dqfbits1[i,*] eq 1, /NULL)
-        rem_mask1[r] = 1
-      endif
-    endfor
-    rem_idx1 = where(rem_mask1 eq 1, /NULL)    
-  endif
-  if count2 gt 0 then begin
-    rem_mask2 = replicate(0, n2)
-    for i=0,n_elements(mybits)-1 do begin
-      if mybits[i] eq 1 then begin
-        r = where(dqfbits2[i,*] eq 1, /NULL)
-        rem_mask2[r] = 1
-      endif
-    endfor
-    rem_idx2 = where(rem_mask2 eq 1, /NULL)    
-  endif
-  if count3 gt 0 then begin
-    rem_mask3 = replicate(0, n3)
-    for i=0,n_elements(mybits)-1 do begin
-      if mybits[i] eq 1 then begin
-        r = where(dqfbits3[i,*] eq 1, /NULL)
-        rem_mask3[r] = 1
-      endif
-    endfor
-    rem_idx3 = where(rem_mask3 eq 1, /NULL)    
-  endif
+  for i=0,valid_tn.length - 1 do begin
+    dqfbits = qfmap[qf_target[i],'dqfbits']
+    dqf = qfmap[qf_target[i],'dqf']
     
-  ; Remove data from tplot vars and store in "meaningful" tplot names
-  suffix = '_'
-  foreach flg,dqflag do suffix+= flg.ToString('(I03)')
-  for i=0,n_elements(tvars)-1 do begin
-    case (res[i]) of
-      1: rem_idx = rem_idx1
-      2: rem_idx = rem_idx2
-      3: rem_idx = rem_idx3
-    endcase
-    get_data,tvars[i],data=d, dl=dl
+    rem_mask = replicate(0, dqf.length)
+    for j=0,mybits.length-1 do begin
+      if mybits[i] eq 1 then begin
+        r = where(dqfbits[i,*] eq 1, /NULL)
+        rem_mask[r] = 1
+      endif
+    endfor
+    rem_idx = where(rem_mask eq 1, /NULL)
+
+    get_data,valid_tn[i],data=d, dl=dl, l=l
     d.y[rem_idx,*] = !values.f_NAN
     if tag_exist(dl, 'ytitle',/quiet) then begin
       dl.ytitle = dl.ytitle +"!Cfilter"+suffix
     endif
     if tag_exist(l, 'ytitle',/quiet) then begin
       l.ytitle = l.ytitle +"!Cfilter"+suffix
-    endif    
-    store_data,tnames(tvars[i])+suffix,data=d,dl=dl
-    names_out = [names_out, tnames(tvars[i])+suffix]
+    endif
+    store_data,tnames(valid_tn[i])+suffix, data=d, dl=dl, l=l
+    names_out = [names_out, tnames(valid_tn[i])+suffix]    
   endfor  
+
 end

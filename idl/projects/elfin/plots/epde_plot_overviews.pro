@@ -577,8 +577,10 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   timespan, this_tr[0], tdur, /sec
   elf_load_state, probes=probe, /no_download
   elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux', /no_download
-  if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then $
-  elf_getspec, probe=probe, /only_loss_cone ;this should overwrite 'lossconedeg' and 'antilossconedeg' with full day
+  if spd_data_exists('el'+probe+'_pef_nflux',this_tr[0],this_tr[1]) then begin
+    batch_procedure_error_handler, 'elf_getspec', probe=probe, /only_loss_cone
+  endif
+;  elf_getspec, probe=probe, /only_loss_cone ;this should overwrite 'lossconedeg' and 'antilossconedeg' with full day
 
   for jthchan=0,3 do begin ;reg
     if jthchan eq 0 then mystr=pa_ch0_reg_str

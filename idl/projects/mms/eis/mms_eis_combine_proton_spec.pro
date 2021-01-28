@@ -35,7 +35,8 @@
 ;       + 2020-06-23, E. Grimes         : updated call to mms_eis_omni to use the /spin keyword when calculating the spin-averages
 ;       + 2020-11-19, I. Cohen          : fixed issue with overlap energies - average between all shared energies
 ;       + 2020-12-11, I. Cohen          : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords
-;       + 2021-01-21, I. Cohen          : remove lowest ExTOF energy channel because of noise near detector threshold
+;       + 2021-01-21, I. Cohen          : removed lowest ExTOF energy channel because of noise near detector threshold
+;       + 2021-01-27, I. Cohen          ; fixed error from previous change that duplicated uppermost energy channel
 ;                       
 ;-
 pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
@@ -76,8 +77,8 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
       ; Make sure ExTOF and PHxTOF data have the same time dimension
       get_data,extof_vars[aa],data=proton_extof
       ; remove lowest ExTOF energy channel because of noise near detector threshold
-      proton_extof.v = proton_extof.v[1:-1]
-      proton_extof.y = proton_extof.y[*, 1:-1]
+      proton_extof_energy = proton_extof.v[1:-1]
+      proton_extof_flux = proton_extof.y[*, 1:-1]
       get_data,phxtof_vars[aa],data=proton_phxtof
       data_size = [n_elements(proton_phxtof.x),n_elements(proton_extof.x)]
       
@@ -96,11 +97,11 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
           ENDFOR
           time_data = proton_extof.x[e_inds]
           phxtof_spec_data = proton_phxtof.y[ph_inds,*]
-          extof_spec_data = proton_extof.y[e_inds,*]
+          extof_spec_data = proton_extof_flux[e_inds,*]
         ENDIF ELSE BEGIN
           time_data = proton_phxtof.x
           phxtof_spec_data = proton_phxtof.y
-          extof_spec_data = proton_extof.y
+          extof_spec_data = proton_extof_flux
         ENDELSE 
       endif else if (data_size[0] gt data_size[1]) then begin
       bad_inds = WHERE(proton_phxtof.x[0:n_elements(proton_extof.x)-1] - proton_extof.x NE 0, bad_count) ; identify mismatching timesteps
@@ -116,11 +117,11 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
           ENDFOR
           time_data = proton_extof.x[e_inds]
           phxtof_spec_data = proton_phxtof.y[ph_inds,*]
-          extof_spec_data = proton_extof.y[e_inds,*]
+          extof_spec_data = proton_extof_flux[e_inds,*]
         ENDIF ELSE BEGIN
           time_data = proton_extof.x
           phxtof_spec_data = proton_phxtof.y[0:n_elements(proton_extof.x)-1,*]
-          extof_spec_data = proton_extof.y
+          extof_spec_data = proton_extof_flux
         ENDELSE
       endif else if (data_size[0] lt data_size[1]) then begin
         bad_inds = WHERE(proton_phxtof.x - proton_extof.x[0:n_elements(proton_phxtof.x)-1] NE 0, bad_count) ; identify mismatching timesteps
@@ -136,20 +137,20 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
           ENDFOR
           time_data = proton_phxtof.x[ph_inds]
           phxtof_spec_data = proton_phxtof.y[ph_inds,*]
-          extof_spec_data = proton_extof.y[e_inds,*]
+          extof_spec_data = proton_extof_flux[e_inds,*]
         ENDIF ELSE BEGIN
           time_data = proton_phxtof.x
           phxtof_spec_data = proton_phxtof.y
-          extof_spec_data = proton_extof.y[0:n_elements(proton_phxtof.x)-1,*]
+          extof_spec_data = proton_extof_flux[0:n_elements(proton_phxtof.x)-1,*]
         ENDELSE
       endif
 ;      if (total(where(phxtof_spec_data eq 0)) ge 0) then phxtof_spec_data[where(phxtof_spec_data eq 0)] = !Values.d_NAN
 ;      if (total(where(extof_spec_data eq 0) ge 0)) then extof_spec_data[where(extof_spec_data eq 0)] = !Values.d_NAN
       ; Find xPH E below xE E, cross-over E below highest xPH E, and xE E above second highest xPH E
-      target_phxtof_energies = where((proton_phxtof.v lt proton_extof.v[0]), n_target_phxtof_energies)
-      target_phxtof_crossover_energies = where(proton_phxtof.v gt proton_extof.v[0], n_target_phxtof_crossover_energies)
-      target_extof_crossover_energies = where(proton_extof.v lt proton_phxtof.v[-1], n_target_extof_crossover_energies)
-      target_extof_energies = where(proton_extof.v gt proton_phxtof.v[-1], n_target_extof_energies)
+      target_phxtof_energies = where((proton_phxtof.v lt proton_extof_energy[0]), n_target_phxtof_energies)
+      target_phxtof_crossover_energies = where(proton_phxtof.v gt proton_extof_energy[0], n_target_phxtof_crossover_energies)
+      target_extof_crossover_energies = where(proton_extof_energy lt proton_phxtof.v[-1], n_target_extof_crossover_energies)
+      target_extof_energies = where(proton_extof_energy gt proton_phxtof.v[-1], n_target_extof_energies)
       n_energies = n_target_phxtof_energies +  n_target_phxtof_crossover_energies + n_target_extof_energies
       combined_energy_low = dblarr(n_energies)
       combined_energy_hi = dblarr(n_energies)
@@ -164,15 +165,15 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
       combined_energy_hi[0:n_target_phxtof_energies-1] = combined_energy[0:n_target_phxtof_energies-1] + phxtof_energy_plus.y[target_phxtof_energies]
       for ii=0,n_target_phxtof_crossover_energies-1 do begin
         for tt=0,n_elements(time_data)-1 do combined_array[tt,n_target_phxtof_energies+ii] = average([phxtof_spec_data[tt,target_phxtof_crossover_energies[ii]], extof_spec_data[tt,target_extof_crossover_energies[ii]]],/NAN)
-        combined_energy_low[n_target_phxtof_energies+ii] = min([[proton_phxtof.v[n_target_phxtof_energies+ii] - phxtof_energy_minus.y[n_target_phxtof_energies+ii]],[proton_extof.v[ii] - extof_energy_minus.y[ii]]],/NAN)
-        combined_energy_hi[n_target_phxtof_energies+ii] = max([[proton_phxtof.v[n_target_phxtof_energies+ii] + phxtof_energy_plus.y[n_target_phxtof_energies+ii]],[proton_extof.v[ii] + extof_energy_plus.y[ii]]],/NAN)
+        combined_energy_low[n_target_phxtof_energies+ii] = min([[proton_phxtof.v[n_target_phxtof_energies+ii] - phxtof_energy_minus.y[n_target_phxtof_energies+ii]],[proton_extof_energy[ii] - extof_energy_minus.y[ii]]],/NAN)
+        combined_energy_hi[n_target_phxtof_energies+ii] = max([[proton_phxtof.v[n_target_phxtof_energies+ii] + phxtof_energy_plus.y[n_target_phxtof_energies+ii]],[proton_extof_energy[ii] + extof_energy_plus.y[ii]]],/NAN)
         combined_energy[n_target_phxtof_energies+ii] = sqrt(combined_energy_low[n_target_phxtof_energies+ii]*combined_energy_hi[n_target_phxtof_energies+ii])
       endfor
     ;  stop
       combined_array[*,n_elements(proton_phxtof.v):-1] = extof_spec_data[*,target_extof_energies]
-      combined_energy[n_elements(proton_phxtof.v):-1] = proton_extof.v[target_extof_energies]
-      combined_energy_low[n_elements(proton_phxtof.v):-1] = proton_extof.v[target_extof_energies] - extof_energy_minus.y[target_extof_energies]
-      combined_energy_hi[n_elements(proton_phxtof.v):-1] = proton_extof.v[target_extof_energies] + extof_energy_plus.y[target_extof_energies]
+      combined_energy[n_elements(proton_phxtof.v):-1] = proton_extof_energy[target_extof_energies]
+      combined_energy_low[n_elements(proton_phxtof.v):-1] = proton_extof_energy[target_extof_energies] - extof_energy_minus.y[target_extof_energies]
+      combined_energy_hi[n_elements(proton_phxtof.v):-1] = proton_extof_energy[target_extof_energies] + extof_energy_plus.y[target_extof_energies]
       ;
       combined_array[where(finite(combined_array) eq 0)] = 0d
       store_data,eis_prefix+'combined_proton_P'+p_num[0]+'_'+data_units+'_t'+strtrim(string(aa),2)+suffix,data={x:time_data,y:combined_array,v:combined_energy}
