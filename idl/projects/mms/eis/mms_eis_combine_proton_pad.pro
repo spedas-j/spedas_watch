@@ -20,6 +20,7 @@
 ;       + 2018-06-12, I. Cohen      : removed 12 keV energy from combined pad range; imposed new min energy limit
 ;       + 2018-08-09, I. Cohen      : introduced energy_string to keep user-defined energy range from being overwritten
 ;       + 2020-12-11, I. Cohen      : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords
+;       + 2021-01-28, I. Cohen      : changed lower energy limit of phxtof data to 10 keV
 ;-
 pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units = data_units, size_pabin = size_pabin, energy = energy, suffix = suffix
   ;
@@ -87,7 +88,7 @@ pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units
   energy_size = where((proton_combined_spec.v ge energy[0]) and (proton_combined_spec.v le energy[1]))
   proton_pad = dblarr(n_elements(time_data),n_pabins,n_elements(energy_size)) + !Values.d_NAN                                               ; time x bins x energy
   ;
-  target_phxtof_energies = where((phxtof_pad.v2 gt 14) and (phxtof_pad.v2 lt 52) and (phxtof_pad.v2 gt energy[0]), n_target_phxtof_energies)
+  target_phxtof_energies = where((phxtof_pad.v2 gt 10) and (phxtof_pad.v2 lt 52) and (phxtof_pad.v2 gt energy[0]), n_target_phxtof_energies)
   target_phxtof_crossover_energies = where(phxtof_pad.v2 gt 52, n_target_phxtof_crossover_energies)
   target_extof_crossover_energies = where(extof_pad.v2 lt 82, n_target_extof_crossover_energies)
   target_extof_energies = where((extof_pad.v2 gt 82) and (extof_pad.v2 lt energy[1]), n_target_extof_energies)
