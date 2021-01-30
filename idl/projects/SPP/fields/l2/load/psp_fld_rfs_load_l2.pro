@@ -49,7 +49,7 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only,varform
   endif
 
 
-  cdf2tplot, files, varformat = vars_fmt, varnames = varnames
+  cdf2tplot, files, varformat = vars_fmt, varnames = varnames, tplotnames=tn
 
   meta_end = ['averages', 'peaks', 'ch0', 'ch1', 'string', $
     'nsum', 'gain', 'hl']
@@ -258,5 +258,9 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only,varform
     endif
 
   endfor
-
+  
+  ; For quality flag filtering support 
+  r = where(tn.Matches('quality_flag'))
+  qf_root = tn[r[0]]
+  options,tn,/def,qf_root=qf_root
 end

@@ -18,6 +18,13 @@
 ;  EPOCH_TARGET: (DOUBLE) 1D array holding target epoch times as found
 ;                 from a tplot variable data.x field.
 ;  TAG: (STRING) Tplot variable name suffix for new quality flag variable
+;  
+;KEYWORD OUTPUT:
+;  ERROR: Optional named variable to hold error status.  
+;         0 for nominal execution
+;         1 if the source and target epoch ranges are completely disjoint
+;           or do not overlap by at least 90% of the target time range.
+;           No new tplot variables are created in this instance.
 ;
 ;EXAMPLE:
 ;  fname = 'psp_fld_l2_mag_rtn_4_sa_per_cyc_20181111_v01.cdf'
@@ -29,21 +36,40 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2020
 ;
 ; $LastChangedBy: anarock $
-; $LastChangedDate: 2020-11-03 08:57:10 -0800 (Tue, 03 Nov 2020) $
-; $LastChangedRevision: 29319 $
+; $LastChangedDate: 2021-01-29 10:50:47 -0800 (Fri, 29 Jan 2021) $
+; $LastChangedRevision: 29634 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/misc/psp_fld_extend_epoch.pro $
 ;-
 
-pro psp_fld_extend_epoch, dqf, epoch_target, tag
+pro psp_fld_extend_epoch, dqf, epoch_target, tag, ERROR=err
   compile_opt idl2
 
+  err = 0
+  
   if n_params() ne 3 then begin
     dprint,dlevel=2,"PSP_FLD_EXTEND_EPOCH: Incorrect number of arguments"
+    err = 1
     return
   endif
   
   ; Retrieve quality flag starting epochs and extend to target epoch
   get_data,dqf,data=dq,dlimit=dl
+  
+  if (epoch_target[-1] le dq.x[0]) || (epoch_target[0] ge dq.x[-1]) then begin
+    err = 1
+    dprint,dlevel=2,"Bad epoch ranges"
+    return
+  endif else begin
+    target_len = epoch_target[-1] - epoch_target[0]
+    r = where((dq.x ge epoch_target[0]) and (dq.x le epoch_target[-1]),/NULL)
+    overlap_len = dq.x[r[-1]] - dq.x[r[0]]
+    if overlap_len / target_len lt 0.9 then begin
+      err = 1
+      dprint,dlevel=2,"Bad epoch ranges"
+      return      
+    endif
+  endelse
+  
   newdq = dq
   newY  = replicate(dq.y[0],n_elements(epoch_target))
   

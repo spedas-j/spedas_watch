@@ -13,7 +13,9 @@
 ; So, psp_fld_qf_filter,'mag_RTN_1min_x',[4,16] results in tvar named "mag_RTN_1min_x_004016"
 ; Or, psp_fld_qf_filter,'mag_RTN_1min',0 results in tvar named "mag_RTN_1min_000"
 ; 
-; Valid for '...psp_fld_l2_mag_...'  variables only.
+; Valid for variables of type:
+;    '...psp_fld_l2_mag_...' (full res, 1 minute, or 4 Sa per cycle)
+;    '...psp_fld_l2_rfs_...' (lfr and hfr) 
 ;  
 ;INPUT:
 ; TVARS:    (string/strarr) Elements are data handle names
@@ -49,8 +51,8 @@
 ;CREATED BY: Ayris Narock (ADNET/GSFC) 2020
 ;
 ; $LastChangedBy: anarock $
-; $LastChangedDate: 2021-01-27 15:43:20 -0800 (Wed, 27 Jan 2021) $
-; $LastChangedRevision: 29632 $
+; $LastChangedDate: 2021-01-29 11:52:15 -0800 (Fri, 29 Jan 2021) $
+; $LastChangedRevision: 29636 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/misc/psp_fld_qf_filter.pro $
 ;-
 
@@ -69,6 +71,10 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
   endif
   
   ; Argument checking
+  if n_params() eq 0 then begin
+    dprint, dlevel=1, verbose=verbose, "Must supply a tplot variable"
+    return
+  endif
   if ~isa(verbose, 'INT') then verbose = 2
   if isa(dqflag, 'UNDEFINED') then dqflag = 0 else $
   if ~isa(dqflag, /INT) then begin
@@ -88,42 +94,93 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
 
   if n_elements(dqflag) eq 1 then dqflag = dqflag[0]
 
+  if isa(dqflag, /ARRAY) then begin
+    r = where(dqflag eq 0, count)
+    if count gt 0 then begin
+      dprint, dlevel=1, verbose=verbose, "DQFLAG of 0 must be set by itself"
+      return
+    endif
+    
+    r = where(dqflag eq -1, count)
+    if count gt 0 then begin
+      dprint, dlevel=1, verbose=verbose, "DQFLAG of -1 must be set by itself"
+      return
+    endif
+    
+    dqflag = dqflag[sort(dqflag)]
+  endif
+
   ; Create time specific quality flags as needed
   tn = tnames(tvars)
-  r = where(tn.Matches('(mag_RTN|mag_SC)') and $
-        not tn.Matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'), count)
+  r = where((tn.Matches('rfs_[lh]fr')) or $
+        (tn.Matches('(mag_RTN|mag_SC)') and $
+        not tn.Matches('(_zero|_MET|_range|_mode|_rate|_packet_index)')), count)
   if count ge 1 then begin
     valid_tn = tn[r]
     qf_target = []
-    foreach tvar, valid_tn do begin
+    err_flg = []
+    keep = []
+    leave = []
+    foreach tvar, valid_tn, i do begin
       get_data, tvar, data = d, dlimit = dl
-      qf_root = dl.qf_root
-      
-      if tvar.Matches('_1min') then tag = '_1min' $
-      else if tvar.Matches('_4_Sa_per_Cyc') then tag = '_4_per_cycle' $
-      else tag = '_hires'
+      if tag_exist(dl,'qf_root') then begin
+        keep = [keep, i]
+        qf_root = dl.qf_root
 
-      make_qf_var = !false
-      tn_qf = tnames(qf_root+tag)
-      if tn_qf eq '' then begin ; It doesn't already exist
-        make_qf_var = !true
-      endif else begin ; It exists. Is it the correct timerange?
-        get_data, tn_qf, data=dqf
-        if (dqf.x[0] ne d.x[0]) or (dqf.x[-1] ne d.x[-1]) then begin
+        if tvar.Matches('rfs_[lh]fr') then begin
+          ; Lots of possible epoch tags for the rfs data
+          tag = '_' + dl.cdf.vatt.depend_0
+        endif else if tvar.Matches('_1min') then tag = '_1min' $
+        else if tvar.Matches('_4_Sa_per_Cyc') then tag = '_4_per_cycle' $
+        else tag = '_hires'
+
+        make_qf_var = !false
+        tn_qf = tnames(qf_root+tag)
+        if tn_qf eq '' then begin ; It doesn't already exist
           make_qf_var = !true
-        endif
-      endelse
+        endif else begin ; It exists. Is it the correct timerange?
+          get_data, tn_qf, data=dqf
+          if (dqf.x[0] ne d.x[0]) or (dqf.x[-1] ne d.x[-1]) then begin
+            make_qf_var = !true
+          endif
+        endelse
 
-      if make_qf_var then begin
-        psp_fld_extend_epoch, qf_root, d.x, tag
-      endif
-      qf_target = [qf_target, qf_root+tag]
+        if make_qf_var then begin
+          psp_fld_extend_epoch, qf_root, d.x, tag, err = err
+          err_flg = [err_flg, err]
+        endif else err_flg = [err_flg, 0]
+
+        qf_target = [qf_target, qf_root+tag]        
+      endif else leave = [leave, i]
     endforeach
   endif else begin
     print,"No valid variables for filtering
     return
   endelse
 
+  ; Remove cases where no valid qf_root variable was set
+  if n_elements(leave) gt 0 then begin
+    dprint,dlevel=2,"Source quality flags missing. No filtered variabled created for: "
+    dprint,dlevel=2,valid_tn[leave]
+    dprint,dlevel=2,""
+  endif
+  valid_tn = valid_tn[keep]
+
+  ; Remove cases where extend epoch could not work
+  r = where(err_flg eq 0, /NULL, COMPLEMENT=rc)
+  if n_elements(rc) gt 0 then begin
+    dprint,dlevel=2,"Error creating matching time quality flags."
+    dprint,dlevel=2,"No filtered variabled created for: ", valid_tn[rc]
+    dprint,dlevel=2,""
+  endif
+    
+  valid_tn = valid_tn[r]
+  qf_target = qf_target[r]
+  if n_elements(valid_tn) eq 0 then begin
+    print,"No valid variables for filtering\n"
+    return    
+  endif
+  
   ; Retrieve DQF array and flagged bits      
   ; 
   ;FIELDS quality flags. This is a bitwise variable, meaning that multiple flags
@@ -164,13 +221,8 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
       names_out = [names_out, tnames(valid_tn[i])+suffix]
     endfor
     return
-  endif else if isa(dqflag, /ARRAY) then begin
-    r = where(dqflag eq -1, count)
-    if count gt 0 then begin
-      dprint, dlevel=1, verbose=verbose, "DQFLAG of -1 must be set by itself"
-      return
-    endif
-  endif
+  endif 
+
 
   ;handle case 0 and return
   if isa(dqflag, /SCALAR) && (dqflag eq 0) then begin
@@ -190,13 +242,7 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
       names_out = [names_out, tnames(valid_tn[i])+suffix]
     endfor
     return
-  endif else if isa(dqflag, /ARRAY) then begin
-    r = where(dqflag eq 0, count)
-    if count gt 0 then begin
-      dprint, dlevel=1, verbose=verbose, "DQFLAG of 0 must be set by itself"
-      return
-    endif
-  endif
+  endif 
 
   ; If not asking for 0 or -1, Find index of elements to remove based on DQFLAGS
   suffix = '_'
@@ -227,6 +273,7 @@ pro psp_fld_qf_filter, tvars, dqflag,HELP=help, NAMES_OUT=names_out, $
     if tag_exist(l, 'ytitle',/quiet) then begin
       l.ytitle = l.ytitle +"!Cfilter"+suffix
     endif
+    str_element,dl,'qf_root',/DELETE
     store_data,tnames(valid_tn[i])+suffix, data=d, dl=dl, l=l
     names_out = [names_out, tnames(valid_tn[i])+suffix]    
   endfor  
