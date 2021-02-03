@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
 ; $LastChangedBy: anarock $
-; $LastChangedDate: 2021-01-27 15:43:20 -0800 (Wed, 27 Jan 2021) $
-; $LastChangedRevision: 29632 $
+; $LastChangedDate: 2021-02-02 07:19:32 -0800 (Tue, 02 Feb 2021) $
+; $LastChangedRevision: 29640 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -635,9 +635,9 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       ; These plot options set up the BITPLOT routine to display the flags
       ; individually, on separate lines in a single TPLOT panel.
       ;
-      ; The flags loaded from a L2/L3 filesare at a default resolution of 1
-      ; minute. The routine ??? will filter TPLOT variables based on these
-      ; quality flags.
+      ; The flags loaded from a L2/L3 files are at a default resolution of 1
+      ; minute. The routine PSP_FLD_QF_FILTER will filter TPLOT variables 
+      ; based on these quality flags.  
       ;
 
       if (tnames('psp_fld_l?_quality_flags'))[0] NE '' then begin
