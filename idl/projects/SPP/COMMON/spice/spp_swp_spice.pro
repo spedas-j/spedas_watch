@@ -6,14 +6,14 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-16 17:03:10 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29530 $
+; $LastChangedDate: 2021-02-03 16:01:12 -0800 (Wed, 03 Feb 2021) $
+; $LastChangedRevision: 29645 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
-pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verbose=verbose,predict=predict,scale=scale,$
-  venus=venus,earth=earth,mercury=mercury,mars=mars,jupiter=jupiter,saturn=saturn,planets=planets, $
-  quaternion=quaternion,no_download=no_download,res=res,load=load,position=position,angle_error=angle_error,att_frame=att_frame,ref_frame=ref_frame,test=test
+pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=download_only,verbose=verbose,predict=predict,scale=scale,$
+  venus=venus,earth=earth,mercury=mercury,mars=mars,jupiter=jupiter,saturn=saturn,planets=planets,no_update=no_update, $
+  quaternion=quaternion,no_download=no_download,load=load,position=position,angle_error=angle_error,att_frame=att_frame,ref_frame=ref_frame,test=test
   
   common spp_spice_kernels_com, last_load_time,last_trange
 
@@ -46,7 +46,7 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
 
   if keyword_set(load) || keyword_set(load_anyway) then begin
     kernels=spp_spice_kernels(/all,/clear,/load,trange=trange,verbose=verbose,no_download=no_download  $
-        ,predict=predict,attitude=quaternion,mars=mars,jupiter=jupiter,saturn=saturn)
+        ,predict=predict,attitude=quaternion,mars=mars,jupiter=jupiter,saturn=saturn,no_update=no_update)
     last_load_time=systime(1)
     last_trange=trange
   endif
@@ -102,7 +102,7 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
       nam_rxv = str_sub(nams[0],'POS_','RxV_')
       rxv = crossp2(pos.y,vel.y)   ; angular mmomentum / m
       L2 = total(rxv ^2,2)         ;  L^2
-      store_data,nam_rxv,pos.x,rxv
+      store_data,nam_rxv,pos.x,rxv,dlimit=struct(colors='bgr')
 
       ; look at energy as constant of the motion
 
@@ -133,7 +133,7 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
       Gsc = 1361d  ; W/m2   solar constant (at 1 AU)
       AU  = 149.6e6 ;  km   astronomical units
       area_sc = 5.d   ; m^2    fudged this value to make the answer come out correct
-      area_sc = 1.2d   ; m^2     fudged this value to make the answer come out correct
+      area_sc = 2.5d   ; m^2     fudged this value to make the answer come out correct
       mass_sc = 600d ; kg    (drymass = 555kg   launch mass=685kg
       Pr2 = Gsc/(c*1000) *AU^2        ;          ; pressure * r^2   where r is in km
       fr2_m = 2* Pr2 * area_sc / mass_sc / 1000   ; km^3/s^2
@@ -318,14 +318,16 @@ pro spp_swp_spice,trange=trange,kernels=kernels,download_only=download_only,verb
       
 
 
-    if 0 then begin
-      spice_qrot_to_tplot,ref_frame,att_frame,res=3600d,check_obj=[body,'SUN'],error=angle_error*!pi/180.
-      tplot_quaternion_rotate,nam_sun,ref_frame+'_QROT_SPP_RTN'   ;spacecraft velocity in RTN frame
-    endif
     
   endif
   
   if keyword_set(quaternion) then begin
+    if 1 then begin
+      spice_qrot_to_tplot,ref_frame,att_frame,res=3600d,check_obj=[body,'SUN'],error=angle_error*!pi/180.
+     ; tplot_quaternion_rotate,nam_sun,ref_frame+'_QROT_SPP_RTN'   ;spacecraft velocity in RTN frame
+      tplot_quaternion_rotate,  'SPP_VEL_(Sun-ECLIPJ2000)' ,'ECLIPJ2000_QROT_SPP_RTN' ,newname = 'SPP_VEL_(SUN-ECLIPJ2000)_RTN'      
+    endif
+    
     spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,trange=trange,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
 
     get_data,'SPP_SPACECRAFT_QROT_SPP_RTN',dat=dat

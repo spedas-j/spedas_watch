@@ -177,8 +177,9 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
           day_string = time_string(tr[0], tformat='YYYYMMDD')
           ; note, -1 second so we don't download the data for the next day accidently
-          end_string = time_string(tr[1], tformat='YYYYMMDD')          
+          end_string = time_string(tr[1], tformat='YYYYMMDD')           
           year_string = strmid(day_string,0,4)
+          if strmid(end_string,0,4) NE year_string then year_string=[year_string,strmid(end_string,0,4)] 
           
           ; construct file names
           daily_names = file_dailynames(trange=tr, /unique, times=times)
@@ -230,7 +231,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'fgm' then begin
             if datatype EQ 'fgs' then subdir = 'survey/' else subdir = 'fast/'
           endif
-          subdir = subdir + year_string + '/'
+          subdir = subdir + year_string[0] + '/'
           
           remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
           if keyword_set(public_data) then begin
@@ -245,8 +246,11 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'state' then local_path = spd_addslash(local_path)
           if instrument EQ 'epd' then local_path = spd_addslash(local_path)
           if instrument EQ 'fgm' then local_path = spd_addslash(local_path)
+          if instrument EQ 'mrma' then local_path = spd_addslash(local_path)
+          if instrument EQ 'mrmi' then local_path = spd_addslash(local_path)
           
           for file_idx = 0, n_elements(fnames)-1 do begin 
+             
               paths = '' 
               ; download data as long as no flags are set
               if no_download eq 0 then begin

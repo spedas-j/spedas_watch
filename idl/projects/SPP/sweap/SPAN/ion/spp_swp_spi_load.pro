@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-16 23:15:52 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29532 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2021-02-03 16:01:12 -0800 (Wed, 03 Feb 2021) $
+; $LastChangedRevision: 29645 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -179,8 +179,9 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
 ;    quat_inst_to_sc2 =  qmult(quat_sc_to_sc2,quat_inst_to_sc)
     n = prefix+'VEL_RTN'
     tplot_quaternion_rotate,  prefix+'VEL_SC' ,'SPP_SPACECRAFT_QROT_SPP_RTN' ,newname = n
+    tplot_quaternion_rotate,  'SPP_VEL_(Sun-ECLIPJ2000)' ,'ECLIPJ2000_QROT_SPP_RTN' ,newname = 'SPP_VEL_(SUN-ECLIPJ2000)_RTN'   ; this line is incorrect
     options,n,colors='bgr',labels=['V_R','V_T','V_N'],labflag=-1
-    add_data,prefix+'VEL_RTN','SPP_VEL_(SUN-ECLIPJ2000)_RTN',newname=prefix+'VEL_RTN-I'
+    add_data,prefix+'VEL_RTN','SPP_VEL_(SUN-ECLIPJ2000)_RTN',newname=prefix+'VEL_RTN-SUN'
     
     if RTN_frame eq 2 then xyz_to_polar,prefix+'VEL_RTN'
   endif
