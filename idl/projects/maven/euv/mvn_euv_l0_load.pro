@@ -15,8 +15,8 @@
 ; HISTORY:
 ; VERSION:
 ;  $LastChangedBy: ali $
-;  $LastChangedDate: 2020-10-25 11:40:59 -0700 (Sun, 25 Oct 2020) $
-;  $LastChangedRevision: 29286 $
+;  $LastChangedDate: 2021-02-04 16:52:21 -0800 (Thu, 04 Feb 2021) $
+;  $LastChangedRevision: 29646 $
 ;  $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/euv/mvn_euv_l0_load.pro $
 ;CREATED BY:  ali 20160830
 ;FILE: mvn_euv_l0_load.pro
@@ -34,7 +34,7 @@ pro mvn_euv_l0_load,trange=trange,tplot=tplot,verbose=verbose,save=save,l0=l0,ge
     nd=daynum[1]-daynum[0]
     trange=res*double(daynum); round to days
 
-    for i=0L,nd-1 do begin
+    for i=0L,nd do begin
       tr=trange[0]+[i,i+1]*res
       L0_file=mvn_pfp_file_retrieve(/l0,trange=tr,/daily_names,/valid_only,verbose=verbose) ;should be scalar
       tp_file=mvn_pfp_file_retrieve(tplotpath,trange=tr[0],/daily_names,/create_dir,verbose=verbose)

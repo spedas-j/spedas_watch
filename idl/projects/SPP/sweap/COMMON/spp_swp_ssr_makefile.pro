@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-22 16:00:17 -0800 (Tue, 22 Dec 2020) $
-; $LastChangedRevision: 29551 $
+; $LastChangedDate: 2021-02-04 16:52:21 -0800 (Thu, 04 Feb 2021) $
+; $LastChangedRevision: 29646 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -101,6 +101,8 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
 
   if keyword_set(make_cdf) then begin ;make cdf files
     cdf_suffix='/L1/$NAME$/YYYY/MM/psp_swp_$NAME$_L1_YYYYMMDD_v00.cdf'
+    ssr_prefix=output_prefix ;for the Finish dprint message at the end of the code
+    ssr_format=cdf_suffix ;ditto
     spp_swp_apdat_init,/reset
     spp_apdat_info,'swem_*',  cdf_pathname=output_prefix+'swem'+  cdf_suffix,cdf_linkname=linkname
     spp_apdat_info,'sp[ab]_*',cdf_pathname=output_prefix+'spe'+   cdf_suffix,cdf_linkname=linkname
@@ -156,6 +158,6 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
       makepng,pngfile
     endfor
   endif
-  dprint,dlevel=1,verbose=verbose,ssr_prefix+ssr_format+' Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()
+  dprint,dlevel=1,verbose=verbose,' Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()+' '+ssr_prefix+ssr_format
 
 end

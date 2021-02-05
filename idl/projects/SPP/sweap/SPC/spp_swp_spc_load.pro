@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-16 14:01:21 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29528 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-02-04 16:52:21 -0800 (Thu, 04 Feb 2021) $
+; $LastChangedRevision: 29646 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPC/spp_swp_spc_load.pro $
 
 
@@ -77,7 +77,7 @@ pro spp_swp_spc_load,trange=trange,type=type,files=files,no_load=no_load,save=sa
   tplots=['peaktrack','fullscan','flowangle']
   tpre='psp_swp_spc_l2_'
   tpval=tpre+['?_current_mode0_peak-track','?_current_mode1_full-scan','flow_angle '+tpre+'MODE_FLAG']
-  tnames=orderedhash(tplots,tpval)
+  tnames0=orderedhash(tplots,tpval)
   trange=timerange(trange)
   pathname0='psp/data/sci/sweap/spc2/L2/$TNAME/YYYY/MM/spp_swp_spc_l2_$TNAME_YYYYMMDD.tplot'
 
@@ -90,11 +90,11 @@ pro spp_swp_spc_load,trange=trange,type=type,files=files,no_load=no_load,save=sa
       del_data,tpre+'*'
       spp_swp_spc_load,type='l2',trange=tr
       foreach tname,tplots do begin
-        if ~keyword_set(tnames(tnames[tname])) then continue
+        if ~keyword_set(tnames(tnames0[tname])) then continue
         pathname=str_sub(pathname0,'$TNAME',tname)
         files=spp_file_retrieve(pathname,trange=tr,/daily_names,verbose=2)
-        tplot_save,filename=files,tnames[tname],/compress,/no_add_extension
-        del_data,tnames[tname]
+        tplot_save,filename=files,tnames0[tname],/compress,/no_add_extension
+        del_data,tnames0[tname]
       endforeach
     endfor
     return
@@ -108,7 +108,7 @@ pro spp_swp_spc_load,trange=trange,type=type,files=files,no_load=no_load,save=sa
     pathname=str_sub(pathname0,'$TNAME',tname)
     files=spp_file_retrieve(pathname,trange=trange,/daily_names,/valid_only,verbose=2)
     if ~keyword_set(files) then continue
-    del_data,tnames[tname]
+    del_data,tnames0[tname]
     tplot_restore,filenames=files,/append,/sort
   endforeach
   if keyword_set(tplot) then return
@@ -186,8 +186,8 @@ pro spp_swp_spc_load,trange=trange,type=type,files=files,no_load=no_load,save=sa
     get_data,prefix+'MODE_FLAG',dat=datmode
     if ~keyword_set(datmode) then return
     modes=['mode0_peak-track','mode1_full-scan'];,'mode2_flux-angle','mode3_calibration']
-    tnames=tnames(prefix+'*_current',ntnames)
-    foreach tname,tnames do begin
+    tnames0=tnames(prefix+'*_current',ntnames)
+    foreach tname,tnames0 do begin
       undefine,lim,data,dlim
       get_data,tname,lim=lim,data=data,dlim=dlim
       foreach mode,modes,imode do begin
