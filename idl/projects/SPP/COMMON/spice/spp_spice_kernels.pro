@@ -18,9 +18,9 @@
 ;"LOAD" routines should assume that SPICE kernels are already loaded.
 ;
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-16 14:00:08 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29527 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-02-08 15:09:30 -0800 (Mon, 08 Feb 2021) $
+; $LastChangedRevision: 29647 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -42,7 +42,8 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
   trange = timerange(trange)
 
   kernels=''
-  pathname='psp/data/sci/MOC/SPP/data_products/'
+  pathname='psp/data/sci/sweap/sao/psp/data/moc_data_products/' ;SWEAP
+  pathname='psp/data/sci/MOC/SPP/data_products/' ;FIELDS
   for i=0,n_elements(names)-1 do begin
     case strupcase(names[i]) of
       ;  "Standard" kernels
@@ -63,7 +64,10 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
       'SPK':begin
         if keyword_set(predict) then begin
           append_array,kernels,spp_file_retrieve(pathname+'ephemeris_predict/????/*.bsp')
-        endif else append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/????/*.bsp')
+        endif else begin
+          ;append_array,kernels,spp_file_retrieve(pathname+'reconstructed_ephemeris/????/*.bsp') ;multiple files. single merged file is below:
+          append_array,kernels,spp_file_retrieve('psp/data/sci/sweap/sao/psp/data/teams/psp_soc/soc_ephem/ephem_current/spp_recon_20180812_????????_merge.bsp',last=last,/valid_only)
+        endelse
       end
       ; Spacecraft Attitude (BC)
       'CK': if keyword_set(attitude) then begin
