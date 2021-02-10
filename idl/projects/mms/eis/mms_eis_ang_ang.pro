@@ -8,8 +8,8 @@
 ;         trange:             time range of interest (string, ex. ['yyyy-mm-dd','yyyy-mm-dd'])
 ;         datatype:           'extof', 'phxtof', or 'electronenergy'
 ;         species:            depends on datatype: 
-;                               - ExTOF: 'proton', 'oxygen', 'alpha'
-;                               - PHxTOF: 'proton', 'oxygen'
+;                               - ExTOF: 'proton', 'oxygen', 'helium' (formerly 'alpha')
+;                               - PHxTOF: 'proton'
 ;                               - electronenergy: 'electron' (this will be set automatically if you specify 'electronenergy' as the datatype)
 ;         level:               data level ['l1a','l1b','l2pre','l2' (default)]
 ;         data_units:         'flux' or 'cps'
@@ -63,10 +63,11 @@
 ;                                   : added print command to inform if data is unavailable
 ;       + 2020-07-02, S. Bingham    : added no_plot, cdf_version, and n_azbins keywords; added output of ang-ang data to tplot variable; changed procedure name to 'mms_eis_ang_ang.pro'
 ;       + 2020-12-11, I. Cohen      : changed "undefined" to "undefined" in initialization of some keywords
+;       + 2021-02-09, I. Cohen      : added helium to species in header under KEYWORD section and removed PHxTOF oxygen; added loadct call for species='helium'
 ;                        
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-12-16 07:50:45 -0800 (Wed, 16 Dec 2020) $
-;$LastChangedRevision: 29503 $
+;$LastChangedDate: 2021-02-09 17:23:11 -0800 (Tue, 09 Feb 2021) $
+;$LastChangedRevision: 29648 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/eis/mms_eis_ang_ang.pro $
 ;-
 
@@ -90,7 +91,7 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
   
   ; species should always be 'electron' for 'electronenergy' datatypes
   if datatype eq 'electronenergy' then species = 'electron'
-  if species eq 'helium' then species = 'alpha'
+;  if species eq 'helium' then species = 'alpha'
   
   date_dir = strmid(trange(0),0,10)
   date_filename = strmid(trange(0),0,4)+strmid(trange(0),5,2)+strmid(trange(0),8,2)
@@ -187,6 +188,7 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
   ;; set color table specific to each species
   if species eq 'proton' then loadct,1
   if species eq 'alpha' then loadct,8
+  if species eq 'helium' then loadct,8
   if species eq 'oxygen' then loadct,3
   if species eq 'electron' then loadct,7
   

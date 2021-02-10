@@ -10,7 +10,7 @@
 ; KEYWORDS:
 ;         probes:               value for MMS SC #
 ;         trange:               time range of interest
-;         species:              proton (default), alpha, oxygen, electron
+;         species:              proton (default), helium (formerly alpha), oxygen, electron
 ;         level:                data level ['l1a','l1b','l2pre','l2' (default)] 
 ;         data_rate:            instrument data rates ['brst', 'srvy' (default), 'fast', 'slow']
 ;         energy:               energy range to include in the calculation
@@ -38,6 +38,7 @@
 ;       + 2020-12-14, I. Cohen    : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords; 
 ;                                   added "datarate_str" to handle issue with probes definition if both burst and survey data are loaded
 ;       + 2021-01-06, I. Cohen    : added wildcard into string in definition of eis_sc_check for phxtof data
+;       + 2021-02-09, I. Cohen    : added helium to species in header under KEYWORD section and added default datatype if species=helium
 ;
 ;-
 pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, data_rate = data_rate, $
@@ -61,6 +62,7 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
                     if (combine_proton_data eq 1) then datatype = 'combined' else datatype = ['phxtof','extof']
                   endelse
       'alpha':    datatype = 'extof'
+      'helium':   datatype = 'extof'
       'oxygen':   datatype = 'extof'
       'electron': datatype = 'electronenergy'
     endcase

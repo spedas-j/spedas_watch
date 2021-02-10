@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_load_eis_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-10-07 14:21:31 -0700 (Wed, 07 Oct 2020) $
-; $LastChangedRevision: 29214 $
+; $LastChangedDate: 2021-02-09 17:23:50 -0800 (Tue, 09 Feb 2021) $
+; $LastChangedRevision: 29649 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_load_eis_ut__define.pro $
 ;-
 
@@ -113,7 +113,7 @@ function mms_load_eis_ut::test_ang_ang_data_units
 end
 
 function mms_load_eis_ut::test_ang_ang_extof_helium
-  mms_eis_ang_ang, datatype='extof', species='helium'
+  mms_eis_ang_ang, datatype='extof', species='alpha'
   assert, spd_data_exists('mms1_epd_eis_extof_alpha_flux_omni', '2015-12-15', '2015-12-16'), 'Problem with EIS angle-angle with ExTOF oxygen'
   return, 1
 end
@@ -195,14 +195,14 @@ end
 
 function mms_load_eis_ut::test_load_with_suffix
   mms_load_eis, datatype='phxtof', level='l2', probe=4, suffix='_s'
-  assert, spd_data_exists('mms4_epd_eis_phxtof_proton_flux_omni_s_spin mms4_epd_eis_phxtof_oxygen_flux_omni_s_spin mms4_epd_eis_phxtof_proton_flux_omni_s mms4_epd_eis_phxtof_oxygen_flux_omni_s mms4_epd_eis_phxtof_proton_P3_flux_t5_s_spin mms4_epd_eis_phxtof_pitch_angle_t0_s', '2015-12-15', '2015-12-16'), $
+  assert, spd_data_exists('mms4_epd_eis_phxtof_proton_flux_omni_s_spin mms4_epd_eis_phxtof_proton_flux_omni_s mms4_epd_eis_phxtof_proton_P3_flux_t5_s_spin mms4_epd_eis_phxtof_pitch_angle_t0_s', '2015-12-15', '2015-12-16'), $
     'Problem loading EIS PHxTOF data with a suffix'
   return, 1
 end
 
 function mms_load_eis_ut::test_phxtof_omni_spec_load
   mms_load_eis, datatype='phxtof', level='l2', probe=1
-  assert, spd_data_exists('mms1_epd_eis_phxtof_proton_flux_omni mms1_epd_eis_phxtof_oxygen_flux_omni', '2015-12-15', '2015-12-16'), $
+  assert, spd_data_exists('mms1_epd_eis_phxtof_proton_flux_omni', '2015-12-15', '2015-12-16'), $
     'Problem loading non-spin averaged omni-directional spectra (phxtof)'
   return, 1
 end

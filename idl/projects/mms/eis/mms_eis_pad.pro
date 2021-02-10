@@ -9,7 +9,7 @@
 ; KEYWORDS:
 ;         trange:               time range of interest
 ;         probes:               value for MMS SC #
-;         species:              proton (default), alpha, oxygen, electron
+;         species:              proton (default), helium (formerly alpha), oxygen, electron
 ;         energy:               energy range to include in the calculation
 ;         size_pabin:           size of the pitch angle bins
 ;         data_units:           flux or cps
@@ -34,8 +34,8 @@
 ;     This was written by Brian Walsh; minor modifications by egrimes@igpp and Ian Cohen (APL)
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-12-14 09:04:52 -0800 (Mon, 14 Dec 2020) $
-;$LastChangedRevision: 29479 $
+;$LastChangedDate: 2021-02-09 17:23:11 -0800 (Tue, 09 Feb 2021) $
+;$LastChangedRevision: 29648 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/eis/mms_eis_pad.pro $
 ;-
 ; REVISION HISTORY:
@@ -70,6 +70,7 @@
 ;       + 2020-10-26, I. Cohen      : added ability to create energy range from energy limit variables without having to load support data; 
 ;                                     changed "undefined" to "KEYWORD_SET" in initialization of some keywords
 ;       + 2020-12-10, I. Cohen      : undid change of "undefined" to "KEYWORD_SET" in initialization of some keywords from 2020-10-26, set all back to "undefined"
+;       + 2021-02-09, I. Cohen      : added helium to species in header under KEYWORD section
 ;                             
 ;-
 

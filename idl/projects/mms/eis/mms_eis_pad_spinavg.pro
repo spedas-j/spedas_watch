@@ -15,14 +15,14 @@
 ;         data_units:   desired units for data. Options are ['flux' (default), 'cps', 'counts'].
 ;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
 ;                       preserving original tplot variable.
-;         species:      species (should be: proton (default), oxygen, alpha, or electron)
+;         species:      species (should be: proton (default), oxygen, helium (formerly alpha), or electron)
 ;         scopes:       string array of telescopes to be included in PAD ('0'-'5')
 ;
 ; OUTPUT:
 ; 
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-12-14 09:04:52 -0800 (Mon, 14 Dec 2020) $
-;$LastChangedRevision: 29479 $
+;$LastChangedDate: 2021-02-09 17:23:11 -0800 (Tue, 09 Feb 2021) $
+;$LastChangedRevision: 29648 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/eis/mms_eis_pad_spinavg.pro $
 ;
 ; REVISION HISTORY:
@@ -38,6 +38,7 @@
 ;                                     capabilities of mms_eis_pad.pro (changed pad_name variable to pad_vars); change 
 ;                                     size_pabin keyword to size_pabin                   
 ;       + 2020-12-11, I. Cohen      : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords
+;       + 2021-02-09, I. Cohen      : added helium to species in header under KEYWORD section
 ;
 ;
 ;-

@@ -16,7 +16,7 @@
 ;                       The default is 'flux'.
 ;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
 ;                       preserving original tplot variable.
-;         species:      proton (default), oxygen, alpha or electron
+;         species:      proton (default), oxygen, helium (formerly alpha) or electron
 ;         
 ; CREATED BY: I. Cohen, 2017-11-17
 ;
@@ -33,7 +33,8 @@
 ;                                         removed call to mms_eis_spin_avg.pro, instead create spin-averaged variables directly here
 ;         + 2020-09-30, I. Cohen        : removed duplicate "datatype" in name of tplot spin variable (line 105)
 ;         + 2020-10-26, I. Cohen        : added missing "datatype" in definition of prefix for survey data                   
-;         + 2020-12-11, I. Cohen        : moved eis_sc_check definition into species loop to address issue handling multiple species from single call              
+;         + 2020-12-11, I. Cohen        : moved eis_sc_check definition into species loop to address issue handling multiple species from single call
+;         + 2021-02-09, I. Cohen        : added helium to species in header under KEYWORD section        
 ;
 ;-
 pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
