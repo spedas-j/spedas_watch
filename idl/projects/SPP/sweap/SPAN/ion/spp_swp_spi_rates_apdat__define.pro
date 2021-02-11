@@ -1,3 +1,77 @@
+;+
+;
+; SPP_SWP_SPI_RATES_APDAT
+;
+; APID: 0x3BB
+; Descritpion: SPAN-Ai Rates Package
+; Size: 112 Bytes
+;
+;----------------------------------------------
+; Byte  |   Bits   |        Data Value
+;----------------------------------------------
+;   0   | 00001aaa | ApID Upper Byte
+;   1   | aaaaaaaa | ApID Lower Byte
+;   2   | 11cccccc | Sequence Count Upper Byte
+;   3   | cccccccc | Sequence Count Lower Byte
+;   4   | LLLLLLLL | Message Length Upper Byte
+;   5   | LLLLLLLL | Message Length Lower Byte
+;   6   | MMMMMMMM | MET Byte 5
+;   7   | MMMMMMMM | MET Byte 4
+;   8   | MMMMMMMM | MET Byte 3
+;   9   | MMMMMMMM | MET Byte 2
+;  10   | ssssssss | MET Byte 1 [subseconds]
+;  11   | ssssssss | s = MET subseconds
+;       |          | x = Cycle Count LSBs
+;       |          |     (sub NYS Indicator)
+;  12   | LTCSNNNN | L = Log Compressed
+;       |          | T = No Targeted Sweep
+;       |          | C = Compress/Truncate TOF
+;       |          | S = Summing
+;       |          | N = 2^N Sum/Sample Period
+;  13   | QQQQQQQQ | Spare
+;  14   | mmmmmmmm | Mode ID Upper Byte
+;  15   | mmmmmmmm | Mode ID Lower Byte
+;  16   | FFFFFFFF | F0 Counter Upper Byte
+;  17   | FFFFFFFF | F0 Counter Lower Byte
+;  18   | AAtHDDDD | A = Attenuator State
+;       |          | t = Test Pulser
+;       |          | H = HV Enable
+;       |          | D = HV Mode
+;  19   | XXXXXXXX | X = Peak Count Step
+;  20   | 000000fT | f = Full histogram
+;       |          | T = Target Histogram
+;  21   | NNNNCCCC | N = 2^N
+;       |          | C = Channel
+;  22   | XXXXXXXX | Maximum HV Step
+;  23   | UUUUUUUU | Minimum HV Step
+;
+; 20 - 111
+; --------
+; Rates data in 19->8 bit compression where:
+;
+;    CH    - Channel
+;    VAL   - Valid Events
+;    NVAL  - Non Valid Events
+;    STNSP - Start No Stop
+;    SPNST - Stop  No Start
+;    VE - 
+;    VE - Valid Events
+;    ## - Anode
+;
+;           |   Byte3   |   Byte2   |   Byte1   |   Byte0   |
+;  20 -  23 |  CH00VAL  |  CH00NVAL | CH00STNSP | CH00SPNST |
+;  24 -  27 |  CH01VAL  |  CH01NVAL | CH01STNSP | CH01SPNST |
+;  ...
+;  80 -  83 |  CH15VAL  |  CH15NVAL | CH15STNSP | CH15SPNST |
+;  84 -  87 |  CH00ST   |  CH00SP   | CH01SP    | CH02ST    |
+;  88 -  91 |  CH02SP   |  CH03SP   | CH04ST    | CH04SP    |
+;  92 -  95 |  CH05SP   |  CH06ST   | CH06SP    | CH07SP    |
+;  96 -  99 |  CH08ST   |  CH08SP   | CH09SP    | CH10ST    |
+; 100 - 103 |  CH10SP   |  CH11ST   | CH11SP    | CH12ST    |
+; 104 - 107 |  CH12SP   |  CH13ST   | CH13SP    | CH14ST    |
+; 108 - 111 |  CH14SP   |  CH15ST   | CH15SP    |    0      |
+;
+;-
 
 function spp_swp_spi_rates_apdat::decom,ccsds ,source_dict=source_dict ;, ptp_header=ptp_header, apdat=apdat
 
