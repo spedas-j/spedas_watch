@@ -80,6 +80,9 @@ pro elf_map_state_t96_intervals_wrapper,date,dur=dur,south_only=south_only, $
         elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/hires
         elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/bfirst
         elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/south,/quick_trace,/no_trace,/sm,/bfirst,/hires        
+        ; now mercator
+        elf_map_state_t96_intervals_mercator,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace
+        elf_map_state_t96_intervals_mercator,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace,/no_trace,/hires        
       endif else begin
         if ~keyword_set(sm) then begin
           elf_map_state_t96_intervals,time_string(in_date),/gif,/tstep,/noview,dir_move=dir_products,/quick_trace
