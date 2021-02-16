@@ -78,20 +78,24 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_
   Case type of
     'raw': store_data, tplotname, data={x:d.x, y:d.y, v:findgen(16) }, dlimits=dl, limits=l      
     'cps': begin
-      dt=d.x[1:n_elements(d.x)-1]-d.x[0:n_elements(d.x)-2]
-      dt=[dt, dt[n_elements(dt)-1]]
-      y_cps=d.y
-      for i=0,15 do y_cps[*,i]=d.y[*,i]/dt   
-      if deadtime_corr then begin
-        ;print, 'Deadtime correction applied'
-        for i=0,15 do y_cps[*,i]=y_cps[*,i]/(1.0 - y_cps[*,i]/max_count_rate)
-      endif        
-      store_data, tplotname, data={x:d.x, y:y_cps, v:ebins_logmean }, dlimits=dl, limits=l
+      for i = 0, num_samples-1 do begin
+        sec_num = i mod 16
+        if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2]) ; VA/CR changed to median here
+;      dt=d.x[1:n_elements(d.x)-1]-d.x[0:n_elements(d.x)-2]
+;      dt=[dt, dt[n_elements(dt)-1]]
+;      y_cps=d.y
+        for j=0,15 do d.y[i,j]=d.y[i,j]/dt   
+        if deadtime_corr then begin
+          ;print, 'Deadtime correction applied'
+          for j=0,15 do d.y[i,j]=d.y[i,j]/(1.0 - d.y[i,j]/max_count_rate)
+        endif        
+      endfor
+      store_data, tplotname, data={x:d.x, y:d.y, v:ebins_logmean }, dlimits=dl, limits=l
     end
     'nflux': begin
       for i = 0, num_samples-1 do begin
         sec_num = i mod 16
-        if (sec_num eq 0) then dt = d.x[i]-d.x[i-1]
+        if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2]) ; VA changed to median here
         for j = 0, 15 do begin
           ;if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
           if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 6.2 ; energy in units of MeV
@@ -110,7 +114,7 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_
     'eflux': begin
       for i = 0, num_samples-1 do begin
         sec_num = i mod 16
-        if (sec_num eq 0) then dt = d.x[i]-d.x[i-1]
+        if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2]) ; VA changed to median here
         for j = 0, 15 do begin
           ;if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
           if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 6.2 ; energy in units of MeV

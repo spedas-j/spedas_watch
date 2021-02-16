@@ -11,6 +11,7 @@
 ; from the appropriate spacecraft (e.g., ela_pef_nflux and 'ela_att_gei', 'ela_pos_gei') have been loaded already!!!!!
 ; It also assumes the user has the ability to run T89 routine (.dlm, .dll have been included in their distribution)!!!
 ; 
+; Vassilis: 2021-02-13: added showsplitspins keyword
 ; Vassilis: 2020-09-13: now also outputs sector limits on pitch-angle values (one per sector). These are
 ; passed in tplot quantities elx_pxf_pa_spec_pa_vals and ela_pef_pa_fulspn_spec_pa_vals 
 ; that hold Nx8x6 or NxMx6 values (N=number of times, M=number of sectors - twice as many for full spin than for halfspin - and 
@@ -22,7 +23,7 @@
 ;
 pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbins,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
   type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
-  probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps,quadratic=myquadfit, $
+  probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps,delsplitspins=delsplitspins,quadratic=myquadfit, $
   fullspin=fullspin,starton=userstarton,timesortpas=timesortpas,datatype=mydatatype
   ;
   ;
@@ -46,13 +47,18 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   ;     (default is to open the perp direction by FOVo2, not restricting it, so default is a negative value; when user specifies positive value that increases perp view!)
   ; nodegaps is a keyword that (if set) prevents the program from forcing two additional time points per gap filled with NaNs (in spectra and losscone angles)
   ;     (default behavior is to place 2 NaNs in each gap for plotting purposes, for each ESSENTIAL tplot variable output, listed below).
+  ;     It treats gaps exactly the same way, whether split-spin sectors have been inserted or not (if inserted, there'll be 2 gaps for every one).
+  ; delsplitspins keyword removes previously inserted full-spin-data during any gap whose collection was split, partially before and partially after the gap.
+  ;     Due to the large gap duration, the values of this rogue split spin were obtained at times that can be far apart (begin and end times of the gap).
+  ;     The above aliased-data spin is assigned the average time of the spin sector data, a non-standard t-res time closest to the spin portion with the largest # of sectors
+  ;     The default is to include this splitspin (delsplitspins=0). Use delsplitspins=1 to delete split spins and thus avoid the inclusion of
+  ;     incorrect/aliased sectors in these rogue spins, which result in bogus directional flux ratios (very badly time-aliased).
   ; quadratic is a keyword that applies to the regularized spectra: it changes the default behavior of interpolation in time
   ;     from linear to quadratic. The linear interpolation results in fewer jumps at low counts but underestimates 90deg peaks 
   ;     in flux (because the collections were made away from 90). The quadratic does a better job in fitting the 90deg peaks
   ;     but is jumpy at low counts and results in both under and over-estimates there, causing undue pixellation (not too bad).
   ;     So when there is a need to capture the full 90deg flux to better than 20% use quadratic but ignore the jumpiness at low
   ;     counts in para/anti as well as higher energies
-  ; 
   ; 
   ; OUTPUTS
   ;
@@ -189,7 +195,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
       MaxE_channels = MinE_channels+1
   endif
   ;
-
   phasedelay = elf_find_phase_delay(probe=probe, instrument='epd'+eori, trange=[elx_pxf.x[0],elx_pxf.x[-1]]) ; get the applicable phase delays 
   if ~undefined(userdSectr2add) && finite(userdSectr2add) then dSectr2add=userdSectr2add else $
     dSectr2add=phasedelay.DSECT2ADD    ; Here specify default # of sectors to add
@@ -205,7 +210,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
       elx_pxf.y[dSectr2add:nsectors-1,*]=!VALUES.F_NaN
     endelse
   endif
-  
   store_data,'elx_pxf',data={x:elx_pxf.x,y:elx_pxf.y,v:elx_pxf.v},dlim=mypxfdata_dlim,lim=mypxfdata_lim ; you can save a NaN!
   ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -234,13 +238,15 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
   get_data,'elx_pxf_spinper',data=elx_pxf_spinper,dlim=myspinperdata_dlim,lim=myspinperdata_lim
   get_data,'elx_pxf_sectnum',data=elx_pxf_sectnum,dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
-
   ;
   nsectors=n_elements(elx_pxf.x)
   xra=make_array(nsectors-1,/index,/long)
   dts=elx_pxf.x[xra+1]-elx_pxf.x[xra]
   ddts=[0,dts-median(dts)]
   store_data,'ddts',data={x:elx_pxf.x,y:ddts}
+  ;
+  igapends=where(ddts gt 3*median(dts),jgaps) ; gap is more than 4x the median sector duration or 4/16 of a spin
+  igapbegins=igapends-1
   ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;
@@ -276,7 +282,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   threeones=[1,1,1]
   cotrans,'elx_pos_gei','elx_pos_gse',/GEI2GSE
   cotrans,'elx_pos_gse','elx_pos_gsm',/GSE2GSM
-
   get_data, 'elx_pos_gsm', data=datgsm, dlimits=dl, limits=l
   gsm_dur=(datgsm.x[n_elements(datgsm.x)-1]-datgsm.x[0])/60.
   if gsm_dur GT 100. then begin
@@ -389,7 +394,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   ; it with the neighboring counts/fluxes.
   ;
   ; Note that Bz ascending zero is when part PA is minumum (closest to 0).
-  ; This is NOT sector 0, but between sectors 3 and 4.
+  ; This is NOT sector 0, but somewhere around sectors 3 and 4.
   ;
   nspins=nsectors/nspinsectors
   npitchangles=2*nspins
@@ -546,7 +551,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   endif
   ;
   ; find the first starttime of a full PA range that contains any data (Ascnd or Descnd), add integer # of halfspins
-  ; note: first and last PARTIAL sectors are lost (not plotted) and gaps show as single point in the middle!
+  ; note: first and last PARTIAL sectors are lost (not plotted) and gaps show (if requested) as a point at the average sectortime
   istart2reform=min([istartAscnd,istartDscnd])
   nhalfspinsavailable=long((nsectors-(istart2reform+1))/(nspinsectors/2.))
   ifinis2reform=(nspinsectors/2)*nhalfspinsavailable+istart2reform-1 ; exact # of half-spins (full PA ranges)
@@ -555,7 +560,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   for jthchan=0,numchannels-1 do elx_pxf_pa_spec[*,*,jthchan]=transpose(reform(elx_pxf_val[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
   for jthchan=0,Max_numchannels-1 do elx_pxf_pa_spec_full[*,*,jthchan]=transpose(reform(elx_pxf_val_full[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
   elx_pxf_pa_spec_times=transpose(reform(elx_pxf_pa.x[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
-  elx_pxf_pa_spec_times=total(elx_pxf_pa_spec_times,2)/(nspinsectors/2.) ; these are midpoints anyway, no need for the ones above
+  elx_pxf_pa_spec_times=total(elx_pxf_pa_spec_times,2)/(nspinsectors/2.) ; these are time averages
   elx_pxf_pa_spec_pas=transpose(reform(elx_pxf_pa.y[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
   elx_pxf_pa_spec_pa_vals_temp=transpose(reform(elx_pxf_mesh_pa_vals[istart2reform:ifinis2reform,*],(nspinsectors/2),nhalfspinsavailable,6)) ; 6xNhalfspinsxNhalfsectors, 6=fmin,hmin,cntr,hmax,fmax,spinphases
   elx_pxf_pa_spec_pa_vals = make_array(nhalfspinsavailable,(nspinsectors/2),6,/double)
@@ -564,7 +569,6 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   if keyword_set(get3Dspec) then store_data,mystring+'pa_spec_pa_vals',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec_pa_vals} ; no extra angles for these (not intended for angle spectra, just line plots)
   ;
   ; if regularize keyword is present then repeat for regularized sectors (though they should be identical)
-
   if keyword_set(regularize) then begin
     get_data,'elx_pxf_pa_reg',data=elx_pxf_pa_reg
     elx_pxf_pa_reg_spec=make_array(nhalfspinsavailable,(nspinsectors/2),numchannels,/double)
@@ -594,7 +598,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
     elx_pxf_pa_fulspn_spec_full=transpose(reform(transpose(elx_pxf_pa_spec_full[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*,*]),Max_numchannels,nspinsectors,nfullspinsavailable))
     elx_pxf_pa_fulspn_spec_pa_vals = make_array(nfullspinsavailable,nspinsectors,6,/double)
     ispins=make_array(nfullspinsavailable,/index,/long)
-    elx_pxf_pa_fulspn_spec_times=(elx_pxf_pa_spec_times[ifirsthalfspin+2*ispins]+elx_pxf_pa_spec_times[ifirsthalfspin+2*ispins+1])/2.
+    elx_pxf_pa_fulspn_spec_times=(elx_pxf_pa_spec_times[ifirsthalfspin+2*ispins]+elx_pxf_pa_spec_times[ifirsthalfspin+2*ispins+1])/2. ; this is also average of sectortimes
     elx_pxf_pa_fulspn_spec_pas=transpose(reform(transpose(elx_pxf_pa_spec_pas[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*]),nspinsectors,nfullspinsavailable))
     elx_pxf_pa_fulspn_spec_pa_vals=transpose(reform(transpose(elx_pxf_pa_spec_pa_vals[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*,*]),6,nspinsectors,nfullspinsavailable))
     ;
@@ -1272,17 +1276,43 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
       myysubtitle=mypxfdata_dlim.ysubtitle
     end
   endcase
-  ;
+  options,'el?_p?f_en*spec2plot_????','ysubtitle',myysubtitle ; for plotting purposes
+  ; 
+  ; The above code naturally produces one non-nominal t-res point per gap (rogue, has aliased sectors)
+  ; near the middle of gap, and no NaNs between that point and its neighbors (gaps don't show in specs)
+  ; The code below removs of the rogue point, if needed, and insertion of NaNs so the gap shows.
+  ; You can (by keyowrd delsplitspins=1) request removal of the rogue mid-gap points
+  ; 
+  ; these are the quantities to operate on:
+  tplot_names,'el?_p?f_en*spec2plot_???? el?_p?f_pa*spec*ch?',names=vars2fixgaps,/silent ; ONLY 2D QUANTITIES!!! NOT LOSSCONE ONES
+  if keyword_set(delsplitspins) and jgaps gt 0 then begin ; if there are indeed sector gaps then do this
+      foreach element, vars2fixgaps do begin
+        copy_data,element,'var2fix'
+        get_data,'var2fix',data=mydata_var2fix,dlim=mydlim_var2fix,lim=mylim_quant2clean
+        inongapelems=make_array(n_elements(mydata_var2fix.x),value=1,/long)
+        for jthgap=0,jgaps-1 do begin
+          ivarelemsingap=where(mydata_var2fix.x gt elx_pxf.x[igapbegins[jthgap]] and mydata_var2fix.x lt elx_pxf.x[igapends[jthgap]],jvarelemsingap)
+          if jvarelemsingap gt 0 then inongapelems[ivarelemsingap] = 0
+        endfor
+        inongappnts=where(inongapelems gt 0,jnongappnts)
+        if jnongappnts lt 1 then inongappnts = [0] ; first point only if no good data (so it wont crash)
+        arrayinfo=size(mydata_var2fix.v)
+        case 1 of 
+          arrayinfo[0] eq 1: myvsarray=mydata_var2fix.v
+          arrayinfo[0] eq 2: myvsarray=mydata_var2fix.v[inongappnts,*]
+        else: print,element,' v array has incorrect dimensions (>2?)'
+        endcase
+        store_data,'var2fix',data={x:mydata_var2fix.x[inongappnts],y:mydata_var2fix.y[inongappnts,*],v:myvsarray},dlim=mydlim_var2fix,lim=mylim_quant2clean
+        copy_data,'var2fix',element
+      endforeach
+  endif
+  ; 
   ; degap interior gaps with two NaNs per gap
-  options,'el?_p?f_en*spec2plot_????','ysubtitle',myysubtitle
   if ~keyword_set(nonansingaps) then begin
     if keyword_set(fullspin) then mydt=Tspin else mydt=Tspin/2.
-    tdegap,'el?_p?f_en*spec2plot_????',dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
-    tdegap,'el?_p?f_pa*spec*ch?',dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
-    tdegap,'el?_p?f*losscone',dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
-    tdeflag,mystring+'losscone','linear',/over
-    tdeflag,mystring+'antilosscone','linear',/over
+    tdegap,vars2fixgaps,dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
+    tdeflag,mystring+'losscone','linear',/over ; no degap for this one!
+    tdeflag,mystring+'antilosscone','linear',/over ; no degap for this one!
   endif
-  ;stop
-  ;
+;  stop
 end
