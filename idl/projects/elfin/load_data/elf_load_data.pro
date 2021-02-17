@@ -175,11 +175,12 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           ;ensure no descriptor is used if instrument doesn't use datatypes
           if datatype eq '' then undefine, descriptor else descriptor = datatype
 
-          day_string = time_string(tr[0], tformat='YYYYMMDD')
+          ;**** Moved down to fnames loop
+          ;day_string = time_string(tr[0], tformat='YYYYMMDD')
           ; note, -1 second so we don't download the data for the next day accidently
-          end_string = time_string(tr[1], tformat='YYYYMMDD')           
-          year_string = strmid(day_string,0,4)
-          if strmid(end_string,0,4) NE year_string then year_string=[year_string,strmid(end_string,0,4)] 
+          ;end_string = time_string(tr[1], tformat='YYYYMMDD')           
+          ;year_string = strmid(day_string,0,4)
+          ;if strmid(end_string,0,4) NE year_string then year_string=[year_string,strmid(end_string,0,4)] 
           
           ; construct file names
           daily_names = file_dailynames(trange=tr, /unique, times=times)
@@ -231,7 +232,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'fgm' then begin
             if datatype EQ 'fgs' then subdir = 'survey/' else subdir = 'fast/'
           endif
-          subdir = subdir + year_string[0] + '/'
+;          subdir = subdir + year_string[0] + '/'   ; moved below
           
           remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
           if keyword_set(public_data) then begin
@@ -243,26 +244,31 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
             SUBDIRECTORY=[probe, level, instrument]) + subdir 
 
           if strlowcase(!version.os_family) eq 'windows' then local_path = strjoin(strsplit(local_path, '/', /extract), path_sep())
-          if instrument EQ 'state' then local_path = spd_addslash(local_path)
-          if instrument EQ 'epd' then local_path = spd_addslash(local_path)
-          if instrument EQ 'fgm' then local_path = spd_addslash(local_path)
-          if instrument EQ 'mrma' then local_path = spd_addslash(local_path)
-          if instrument EQ 'mrmi' then local_path = spd_addslash(local_path)
+          ;if instrument EQ 'state' then local_path = spd_addslash(local_path)
+          ;if instrument EQ 'epd' then local_path = spd_addslash(local_path)
+          ;if instrument EQ 'fgm' then local_path = spd_addslash(local_path)
+          ;if instrument EQ 'mrma' then local_path = spd_addslash(local_path)
+          ;if instrument EQ 'mrmi' then local_path = spd_addslash(local_path)
           
           for file_idx = 0, n_elements(fnames)-1 do begin 
-             
+           
+              yeardir=strmid(daily_names[file_idx],0,4) + '/'
+              this_local_path=local_path +  '/' + yeardir
+              this_local_path = spd_addslash(this_local_path)
+              this_remote_path=remote_path + yeardir
+
               paths = '' 
               ; download data as long as no flags are set
               if no_download eq 0 then begin
-                if file_test(local_path,/dir) eq 0 then file_mkdir2, local_path
+                if file_test(this_local_path,/dir) eq 0 then file_mkdir2, this_local_path
                 dprint, dlevel=1, 'Downloading ' + fnames[file_idx] + ' to ' + local_path                    
-                paths = spd_download(remote_file=fnames[file_idx], remote_path=remote_path, $
-                                     local_file=fnames[file_idx], local_path=local_path, $
+                paths = spd_download(remote_file=fnames[file_idx], remote_path=this_remote_path, $
+                                     local_file=fnames[file_idx], local_path=this_local_path, $
                                      url_username=user, url_password=pw, ssl_verify_peer=1, $
                                      ssl_verify_host=1)
                 if undefined(paths) or paths EQ '' then $
                    dprint, devel=1, 'Unable to download ' + fnames[file_idx] else $
-                   append_array, files, local_path+fnames[file_idx]
+                   append_array, files, this_local_path+fnames[file_idx]
               endif              
 
               ; if remote file not found or no_download set then look for local copy
@@ -297,7 +303,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               loaded_versions = the_loaded_versions, major_version=major_version, $
               tt2000=tt2000
           endif
-          
+                  
           append_array, cdf_filenames, files
           if ~undefined(loaded_tnames) then append_array, all_tnames, loaded_tnames
           if ~undefined(the_loaded_versions) then append_array, versions, the_loaded_versions

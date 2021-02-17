@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-01-01 09:48:39 -0800 (Fri, 01 Jan 2021) $
-; $LastChangedRevision: 29564 $
+; $LastChangedDate: 2021-02-15 23:03:32 -0800 (Mon, 15 Feb 2021) $
+; $LastChangedRevision: 29657 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sep/mvn_sep_save_reduce_timeres.pro $
 
 ;20160623 Ali
@@ -53,11 +53,7 @@ end
 pro mvn_sep_save_reduce_timeres,pathformat=pathformat,trange=trange0,init=init,timestamp=timestamp,verbose=verbose,$
   resstr=resstr,resolution=res,description=description,hourly=hourly
 
-  if keyword_set(init) then begin
-    trange0=[time_double('2014-9-22'),systime(1)]
-    if init lt 0 then trange0=[time_double('2013-12-5'),systime(1)]
-  endif else trange0=timerange(trange0)
-
+  if keyword_set(init) then trange0=[time_double('2013-12-03'),systime(1)] else trange0=timerange(trange0)
   if keyword_set(hourly) then resstr='01hr'
   if ~keyword_set(resstr) then resstr='5min'
   if ~keyword_set(res) then begin
