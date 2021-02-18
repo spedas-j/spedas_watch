@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-16 23:15:52 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29532 $
+; $LastChangedDate: 2021-02-16 22:57:38 -0800 (Tue, 16 Feb 2021) $
+; $LastChangedRevision: 29661 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save,preprefix=preprefix
@@ -34,7 +34,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
   if varformat eq ' ' then varformat=[]
 
   if types[0] eq 'all' then begin
-    types=['hkp','fhkp','tof','rates','events','ana_hkp','dig_hkp','crit_hkp']
+    types=['hkp','fhkp','tof','rates','events','ana_hkp','dig_hkp','crit_hkp','event_log']
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1','2'] do foreach type3,['0','1','2','3','a'] do types=[types,type0+type1+type2+type3]
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1'] do types=[types,type0+type1+type2]
   endif
@@ -52,7 +52,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
     foreach type2,['0','1'] do types=[types,type2]
     types=type0+types
   endif
-  if types[0] eq 'all_hkp' then types=['hkp','fhkp','ana_hkp','dig_hkp','crit_hkp']
+  if types[0] eq 'all_hkp' then types=['hkp','fhkp','ana_hkp','dig_hkp','crit_hkp','event_log']
 
   if not keyword_set(fileprefix) then fileprefix='psp/data/sci/sweap/'
 
@@ -82,6 +82,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
       if spx eq 'sc_hkp' then prefix='psp_'+spx+'_'+type+'_' else prefix='psp_swp_'+spx+'_'+type+'_'+level+'_'
       cdf2tplot,files,prefix=prefix,varformat=varformat,verbose=verbose
       spp_swp_qf,prefix=prefix
+      if spx eq 'swem' && type eq 'event_log' then spp_swp_swem_events_tplot,prefix=prefix
     endforeach
     if spx eq 'sc_hkp' then spp_sc_hk_tplot,prefix='psp_sc_hkp_'
   endforeach

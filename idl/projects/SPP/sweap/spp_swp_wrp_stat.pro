@@ -8,12 +8,12 @@
 ;group: sequence group: 0:middle of multipacket (very rare, huge packets? usually sign of error) 1:start of multi-packet 2:end of multi-packet 3:single packet
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-16 23:15:52 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29532 $
+; $LastChangedDate: 2021-02-16 22:59:29 -0800 (Tue, 16 Feb 2021) $
+; $LastChangedRevision: 29663 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/spp_swp_wrp_stat.pro $
 ;-
 
-pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats=stats,all=all,comp=comp,group=group,trange=trange
+pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats=stats,all=all,comp=comp,group=group,trange=trange,tplot_comp_ratio=tplot_comp_ratio
 
   spp_swp_apdat_init
   apr=[0,'7ff'x] ;range of all apids: to check for possible bad packets
@@ -29,7 +29,7 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
     stats2=replicate(stat,[apr[1]-apr[0]+1,wapr[1]-wapr[0]+1])
     names=replicate('',wapr[1]-wapr[0]+1)
     for wapid=wapr[0],wapr[1] do begin
-      spp_swp_wrp_stat,wapid,load=load,cdf=cdf,stats=stats,all=all,comp=comp,group=group,trange=trange
+      spp_swp_wrp_stat,wapid,load=load,cdf=cdf,stats=stats,all=all,comp=comp,group=group,trange=trange,tplot_comp_ratio=tplot_comp_ratio
       for istat=0,3 do stats2[*,wapid-wapr[0]].(istat)=stats.(istat)
       names[wapid-wapr[0]]=(spp_apdat(wapid)).name
     endfor
@@ -71,7 +71,7 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
   apid=apdat.apid
   if (apid lt wapr[0]) || (apid gt wapr[1]) then begin ;apid is not a wrapper apid
     print,apdat.name,apid,apid,format='(a-20,i4,7(" "),"0x",Z03)'
-    for wapid=wapr[0],wapr[1] do spp_swp_wrp_stat,wapid,load=load,cdf=cdf,capid=apid,comp=comp,group=group,trange=trange,noheader=wapid ne wapr[0]
+    for wapid=wapr[0],wapr[1] do spp_swp_wrp_stat,wapid,load=load,cdf=cdf,capid=apid,comp=comp,group=group,trange=trange,tplot_comp_ratio=tplot_comp_ratio,noheader=wapid ne wapr[0]
     return
   endif
 
@@ -112,6 +112,7 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
     tt=tt[wt]
     sg=sg[wt]
     ps=ps[wt]
+    td=td[wt]
     ca=ca[wt]
     ds=ds[wt]
     cc=cc[wt]
@@ -122,7 +123,9 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
   if isa(group) then begin
     wsg=where(sg eq group,/null)
     if ~keyword_set(wsg) then return
+    tt=tt[wsg]
     ps=ps[wsg]
+    td=td[wsg]
     ca=ca[wsg]
     ds=ds[wsg]
     cc=cc[wsg]
@@ -135,7 +138,9 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
   if isa(comp) then begin
     if comp eq 0 then wcc=wncc
     if ~keyword_set(wcc) then return
+    tt=tt[wcc]
     ps=ps[wcc]
+    td=td[wcc]
     ca=ca[wcc]
     ds=ds[wcc]
   endif
@@ -159,6 +164,10 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
     stats[ap-apr[0]].tod=tod+(12+20)*nca
     if keyword_set(capid0) then ap2=apid else ap2=ap
     print,(spp_apdat(ap2)).name,ap2,ap2,nca,tot,tot/dtt,(ad+12+20)/av,av,ad,stdev,stded,100.*stdev/av,100.*stded/(ad+12+20),format='(a-20,i4,7(" "),"0x",Z03,2i12,8f12.3)'
+    if keyword_set(tplot_comp_ratio) then begin
+      store_data,'psp_swp_'+(spp_apdat(ap2)).name+'_'+type+'_L1_COMP_RATIO_wrap_time',tt[w],ds[w]/ps[w]
+      store_data,'psp_swp_'+(spp_apdat(ap2)).name+'_'+type+'_L1_COMP_RATIO_orig_time',tt[w]-td[w],ds[w]/ps[w]
+    endif
   endfor
 
 

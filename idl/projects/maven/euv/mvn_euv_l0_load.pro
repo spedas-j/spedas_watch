@@ -15,8 +15,8 @@
 ; HISTORY:
 ; VERSION:
 ;  $LastChangedBy: ali $
-;  $LastChangedDate: 2021-02-15 23:03:32 -0800 (Mon, 15 Feb 2021) $
-;  $LastChangedRevision: 29657 $
+;  $LastChangedDate: 2021-02-17 14:55:39 -0800 (Wed, 17 Feb 2021) $
+;  $LastChangedRevision: 29664 $
 ;  $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/euv/mvn_euv_l0_load.pro $
 ;CREATED BY:  ali 20160830
 ;FILE: mvn_euv_l0_load.pro
@@ -50,7 +50,7 @@ pro mvn_euv_l0_load,trange=trange,tplot=tplot,verbose=verbose,save=save,l0=l0,ge
       tp_timestamp=tp_info.mtime
 
       if L0_timestamp gt tp_timestamp then begin ;skip if tplot file does not need to be regenerated
-        ;if tr[0] lt systime(1)-100l*24l*3600l then message,'L0 files changed more than 100 days in the past!!! Exiting... '+l0_file
+        if tr[0] lt systime(1)-100l*24l*3600l then message,'L0 files changed more than 100 days in the past!!! Exiting... '+l0_file
         dprint,'Generating EUV tplot file: '+tp_file
         mvn_euv_l0_load,trange=tr,/l0,/save
       endif

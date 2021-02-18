@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2020-12-04 11:49:59 -0800 (Fri, 04 Dec 2020) $
-; $LastChangedRevision: 29433 $
+; $LastChangedDate: 2021-02-16 21:58:41 -0800 (Tue, 16 Feb 2021) $
+; $LastChangedRevision: 29660 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_load.pro $
 ;
 ;-
@@ -531,12 +531,12 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
   ENDELSE 
 
   store_data, 'mex_asp_ima_espec', data={x: time, y: TRANSPOSE(TOTAL(TOTAL(cnt, 2), 2)), v: ene}, $
-              dlim={spec: 1, datagap: 30.d0, ysubtitle: 'Energy [eV]', ytitle: 'MEX/ASPERA-3 (IMA)'}
+              dlim={spec: 1, datagap: 30.d0, ysubtitle: 'Energy [eV]', ytitle: 'MEX/ASPERA-3 (IMA)', ytickunits: 'scientific'}
 
   ylim, 'mex_asp_ima_espec', 1., 30.e3, 1, /def
   zlim, 'mex_asp_ima_espec', 1., 1000., 1, /def
   options, 'mex_asp_ima_espec', ztitle='Counts [#]', /def
   
-  dprint, dlevel=2, verbose=verbose, 'Ellapsed time: ' + time_string(SYSTIME(/sec)-t0, tformat='mm:ss.fff')
+  dprint, dlevel=2, verbose=verbose, 'Ellapsed time: ' + time_string(SYSTIME(/sec)-t0, tformat='hh:mm:ss.fff')
   RETURN
 END
