@@ -27,22 +27,25 @@
 ;KEYWORDS:
 ;         BADVAL:     Value to mask anomalous data with.  Default = NaN.
 ;
+;         ALLBAD:     Mask all low energy channels as bad.
+;
 ;         STATUS:     Return the current coverage and return.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-03-17 11:25:17 -0700 (Tue, 17 Mar 2020) $
-; $LastChangedRevision: 28425 $
+; $LastChangedDate: 2021-02-18 16:28:27 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29683 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_lowe_mask.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;FILE: mvn_swe_lowe_mask.pro
 ;-
-pro mvn_swe_lowe_mask, data, badval=badval, status=status
+pro mvn_swe_lowe_mask, data, badval=badval, allbad=allbad, status=status
 
   @mvn_swe_com
   common swe_lowe_com, anom
 
   if not keyword_set(badval) then badval = !values.f_nan
+  allbad = keyword_set(allbad)
 
 ; Load database
 
@@ -79,7 +82,8 @@ pro mvn_swe_lowe_mask, data, badval=badval, status=status
 
   str_element, data, 'time', success=ok
   if (ok) then begin
-    tndx = nn2(data.time, anom.x, maxdt=0.25D)
+    if (allbad) then tndx = lindgen(n_elements(data.time)) $
+                else tndx = nn2(data.time, anom.x, maxdt=0.25D)
     indx = where(tndx ge 0L, count)
     if (count gt 0L) then begin
       tndx = tndx[indx]
@@ -95,7 +99,8 @@ pro mvn_swe_lowe_mask, data, badval=badval, status=status
 
   str_element, data, 'x', success=ok
   if (ok) then begin
-    tndx = nn2(data.x, anom.x, maxdt=0.25D)
+    if (allbad) then tndx = lindgen(n_elements(data.x)) $
+                else tndx = nn2(data.x, anom.x, maxdt=0.25D)
     indx = where(tndx ge 0L, count)
     if (count gt 0L) then begin
       tndx = tndx[indx]

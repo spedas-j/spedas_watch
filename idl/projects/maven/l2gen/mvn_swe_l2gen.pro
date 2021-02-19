@@ -33,21 +33,24 @@
 ;              Default = 1 (yes).  Set this to 0 to disable and use the
 ;              above 3 keywords only (not recommended!).
 ;
+;   ALLBAD:    Flag all data as affected by the sporadic low-energy anomaly.
+;
 ;HISTORY:
 ; Hacked from Matt F's crib_l0_to_l2.txt, 2014-11-14: jmm
 ; Better memory management and added keywords to control processing: dlm
-; $LastChangedBy: muser $
-; $LastChangedDate: 2019-11-12 15:57:15 -0800 (Tue, 12 Nov 2019) $
-; $LastChangedRevision: 28013 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2021-02-18 13:40:21 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29670 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
                    nol2=nol2, abins=abins, dbins=dbins, obins=obsin, mask_sc=mask_sc, $
-                   _extra=_extra
+                   allbad=allbad, _extra=_extra
 
   @mvn_swe_com
   
   if keyword_set(l2only) then l2only = 1 else l2only = 0
+  allbad = keyword_set(allbad)
 
 ; Construct FOV masking arrays
 ;   96 solid angles X 2 boom states
@@ -128,7 +131,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
       indx = where(ddd.time gt t_mtx[2], icnt, complement=jndx, ncomplement=jcnt)
       if (icnt gt 0L) then ddd[indx].data *= reform(dmask1 # replicate(1.,icnt),64,96,icnt)
       if (jcnt gt 0L) then ddd[jndx].data *= reform(dmask0 # replicate(1.,jcnt),64,96,jcnt)
-      mvn_swe_lowe_mask, ddd
+      mvn_swe_lowe_mask, ddd, allbad=allbad
       mvn_swe_makecdf_3d, ddd, directory=directory
       dt = systime(/sec) - timer_start
       print,dt/60D,format='("Time to process (min): ",f6.2)'
@@ -143,7 +146,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
       indx = where(ddd.time gt t_mtx[2], icnt, complement=jndx, ncomplement=jcnt)
       if (icnt gt 0L) then ddd[indx].data *= reform(dmask1 # replicate(1.,icnt),64,96,icnt)
       if (jcnt gt 0L) then ddd[jndx].data *= reform(dmask0 # replicate(1.,jcnt),64,96,jcnt)
-      mvn_swe_lowe_mask, ddd
+      mvn_swe_lowe_mask, ddd, allbad=allbad
       mvn_swe_makecdf_3d, ddd, directory=directory
       dt = systime(/sec) - timer_start
       print,dt/60D,format='("Time to process (min): ",f6.2)'
@@ -168,7 +171,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
         indx = where(pad.time gt t_mtx[2], icnt, complement=jndx, ncomplement=jcnt)
         if (icnt gt 0L) then pad[indx].data *= reform(pmask1[*,pad[indx].k3d],64,16,icnt)
         if (jcnt gt 0L) then pad[jndx].data *= reform(pmask0[*,pad[jndx].k3d],64,16,jcnt)
-        mvn_swe_lowe_mask, pad
+        mvn_swe_lowe_mask, pad, allbad=allbad
         mvn_swe_makecdf_pad, pad, directory=directory, mname=mname
         dt = systime(/sec) - timer_start
         print,dt/60D,format='("Time to process (min): ",f6.2)'
@@ -183,7 +186,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
         indx = where(pad.time gt t_mtx[2], icnt, complement=jndx, ncomplement=jcnt)
         if (icnt gt 0L) then pad[indx].data *= reform(pmask1[*,pad[indx].k3d],64,16,icnt)
         if (jcnt gt 0L) then pad[jndx].data *= reform(pmask0[*,pad[jndx].k3d],64,16,jcnt)
-        mvn_swe_lowe_mask, pad
+        mvn_swe_lowe_mask, pad, allbad=allbad
         mvn_swe_makecdf_pad, pad, directory=directory, mname=mname
         dt = systime(/sec) - timer_start
         print,dt/60D,format='("Time to process (min): ",f6.2)'
@@ -197,7 +200,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
     print,"Generating SPEC Survey data"
     spec = mvn_swe_getspec([t0,t1])
     if (size(spec,/type) eq 8) then begin
-      mvn_swe_lowe_mask, spec
+      mvn_swe_lowe_mask, spec, allbad=allbad
       mvn_swe_makecdf_spec, spec, directory=directory
       dt = systime(/sec) - timer_start
       print,dt/60D,format='("Time to process (min): ",f6.2)'
@@ -209,7 +212,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
     print,"Generating SPEC Archive data"
     spec = mvn_swe_getspec([t0,t1], /archive)
     if (size(spec,/type) eq 8) then begin
-      mvn_swe_lowe_mask, spec
+      mvn_swe_lowe_mask, spec, allbad=allbad
       mvn_swe_makecdf_spec, spec, directory=directory
       dt = systime(/sec) - timer_start
       print,dt/60D,format='("Time to process (min): ",f6.2)'
@@ -224,7 +227,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
   if ~keyword_set(nokp) then begin
     timer_start = systime(/sec)
     print,"Generating Key Parameters"
-    mvn_swe_kp, l2only=l2only
+    mvn_swe_kp, l2only=l2only, allbad=allbad
     dt = systime(/sec) - timer_start
     print,dt/60D,format='("Time to process (min): ",f6.2)'
     print,""

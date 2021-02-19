@@ -91,8 +91,8 @@
 ;       LIST:         List the current calibration constants.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-15 13:06:12 -0800 (Tue, 15 Dec 2020) $
-; $LastChangedRevision: 29497 $
+; $LastChangedDate: 2021-02-18 15:19:26 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29673 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_calib.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -132,23 +132,18 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default,
              'deadtime','minimum deadtime correction','paralyzable deadtime']
     mlist = 'Setting ' + mlist + ': '
     for j=0,(n_elements(ftag)-1) do begin
+      ok = 0
       i = strmatch(tlist, stag[j]+'*', /fold)
       case (total(i)) of
          0   : print, "Calibration parameter not recognized: ", ftag[j]
          1   : begin
                  k = (where(i eq 1))[0]
-                 case k of
-                   0 : swe_Ka = setcal.(j)
-                   1 : swe_G = setcal.(j)
-                   2 : swe_Ke = setcal.(j)
-                   3 : swe_dead = setcal.(j)
-                   4 : swe_min_dtc = setcal.(j)
-                   5 : swe_paralyze = setcal.(j)
-                 endcase
-                 print, mlist[k], setcal.(j)
+                 ok = execute('swe_' + tlist[k] + ' = setcal.(j)',0,1)
+                 if (ok) then print, mlist[k], setcal.(j)
                end
         else : print, "Calibration parameter ambiguous: ", ftag[j]
       endcase
+      if (not ok) then return
     endfor
   endif
 

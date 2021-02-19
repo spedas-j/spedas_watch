@@ -1,10 +1,10 @@
 ;+
 ;PROCEDURE:   putwin
 ;PURPOSE:
-;  Creates a window and places it in a specified monitor, with
-;  offsets relative to the screen edges or to another existing
-;  window. This is a user-friendly version of WINDOW designed 
-;  for a multiple monitor setup.
+;  Creates a window and places it in a specified monitor, with offsets
+;  relative to the screen edges or to another existing window.  This
+;  is a user-friendly version of WINDOW designed for a multiple monitor
+;  setup.
 ;
 ;  This routine is hardware dependent and will not work properly until
 ;  it is configured for your monitor(s) and their arrangement, which
@@ -88,11 +88,13 @@
 ;
 ;       STAT:      Output the current monitor configuration.  When 
 ;                  this keyword is set, CONFIG will return the current 
-;                  monitor array and the primary monitor index.
+;                  monitor array and the primary and secondary monitor
+;                  indices.
 ;
 ;       SHOW:      Same as STAT, except in addition a small window is
-;                  placed in each monitor for 2 sec to identify
-;                  the monitor numbers, including which is primary.
+;                  placed in each monitor for 3 sec to identify
+;                  the monitor numbers, and which are primary and
+;                  secondary.
 ;
 ;       MONITOR:   Put window in this monitor.
 ;
@@ -108,7 +110,7 @@
 ;
 ;       DY:        Vertical offset from top or bottom edge (pixels).
 ;                    If DY is positive, offset is from top.
-;                    If DX is negative, offset is from bottom.
+;                    If DY is negative, offset is from bottom.
 ;                  Replaces YPOS.  Default = 0.
 ;
 ;                  Note: XPOS and YPOS only work if CONFIG = 0.  They
@@ -139,6 +141,13 @@
 ;                  the new and existing windows.  Otherwise, the left
 ;                  edges are aligned.
 ;
+;       CLONE:     Create a new window with the same dimensions as the
+;                  (existing) window specified by this keyword.  SCALE
+;                  can then be used to shrink/expand the window while
+;                  maintaining the aspect ratio.  Unless NOFIT is set,
+;                  the clone is allowed to move around and shrink/expand
+;                  so that it fits entirely on the monitor.
+;
 ;       CORNER:    Alternate method for determining which corner to 
 ;                  place window.  If this keyword is set, then only the
 ;                  absolute values of DX and DY are used.
@@ -157,9 +166,9 @@
 ;
 ;       CENTER:    Center the window in both X and Y.
 ;
-;       SCALE:     Scale factor for setting the window size.  Only
-;                  applies when XSIZE and/or YSIZE are set explicitly 
-;                  (via keyword) or implictly (via swe_snap_layout).
+;       SCALE:     Scale factor for setting the window size.  If no
+;                  window size is specified, then SCALE is relative
+;                  to the default size: 1/4 of the monitor size.
 ;                  Default = 1.
 ;
 ;       NOFIT:     If the combination of XSIZE, YSIZE, SCALE, DX and
@@ -201,8 +210,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-01-21 14:54:33 -0800 (Thu, 21 Jan 2021) $
-; $LastChangedRevision: 29615 $
+; $LastChangedDate: 2021-02-18 13:39:31 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29669 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -212,13 +221,28 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                   key=key, stat=stat, nofit=nofit, norm=norm, center=center, $
                   xcenter=xcenter, ycenter=ycenter, tbar=tbar2, xfull=xfull, $
                   yfull=yfull, aspect=aspect, show=show, secondary=secondary, $
-                  relative=rel, top=top, right=right, _extra=extra
+                  relative=rel, top=top, right=right, clone=clone, _extra=extra
 
   @putwin_common
 
-; Silently act like window until CONFIG is set.
+; Query the operating system to get monitor information.
+; Silently act like WINDOW until CONFIG is set.
 
-  if (size(windex,/type) eq 0) then windex = -1
+  if (size(windex,/type) eq 0) then begin
+    oInfo = obj_new('IDLsysMonitorInfo')
+      numMons = oInfo->GetNumberOfMonitors()
+      rects = oInfo->GetRectangles()
+      primon = oInfo->GetPrimaryMonitorIndex()
+    obj_destroy, oInfo
+
+    primarymon = primon
+    mons = indgen(numMons)
+    i = where(mons ne primarymon, count)
+    if (count gt 0) then secondarymon = max(mons[i]) $
+                    else secondarymon = primarymon
+
+    windex = -1
+  endif
 
 ; Alternate method of setting PUTWIN keywords.  Except for XSIZE and YSIZE,
 ; all keywords for WINDOW must be passed separately in the usual way.
@@ -228,39 +252,16 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     klist = ['CONFIG','STAT','SHOW','MONITOR','SECONDARY','DX','DY','NORM', $
              'CENTER','XCENTER','YCENTER','CORNER','SCALE','FULL','XFULL', $
              'YFULL','ASPECT','XSIZE','YSIZE','NOFIT','TBAR','RELATIVE', $
-             'TOP','RIGHT']
+             'TOP','RIGHT','CLONE']
     for j=0,(n_elements(ktag)-1) do begin
+      ok = 0
       i = strmatch(klist, ktag[j]+'*', /fold)
       case (total(i)) of
           0  : print, "Keyword not recognized: ", ktag[j]
-          1  : case (where(i eq 1))[0] of
-                  0 : config = key.(j)
-                  1 : stat = key.(j)
-                  2 : show = key.(j)
-                  3 : monitor = key.(j)
-                  4 : secondary = key.(j)
-                  5 : dx = key.(j)
-                  6 : dy = key.(j)
-                  7 : norm = key.(j)
-                  8 : center = key.(j)
-                  9 : xcenter = key.(j)
-                 10 : ycenter = key.(j)
-                 11 : corner = key.(j)
-                 12 : scale = key.(j)
-                 13 : full = key.(j)
-                 14 : xfull = key.(j)
-                 15 : yfull = key.(j)
-                 16 : aspect = key.(j)
-                 17 : xsize = key.(j)
-                 18 : ysize = key.(j)
-                 19 : nofit = key.(j)
-                 20 : tbar = key.(j)
-                 21 : rel = key.(j)
-                 22 : top = key.(j)
-                 23 : right = key.(j)
-               endcase
+          1  : ok = execute((klist[where(i eq 1)])[0] + ' = key.(j)',0,1)
         else : print, "Keyword ambiguous: ", ktag[j]
       endcase
+      if (not ok) then return
     endfor
   endif
 
@@ -271,8 +272,13 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       print,"Monitor configuration:"
       j = sort(mgeom[1,0:maxmon])
       for i=maxmon,0,-1 do begin
-        print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4,$)'
-        if (i eq primarymon) then print," (primary)" else print,""
+        print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4," ",$)'
+        case i of
+          primarymon   : msg = "(primary)"
+          secondarymon : msg = "(secondary)"
+          else         : msg = ""
+        endcase
+        print, msg
       endfor
       print,""
 
@@ -283,12 +289,16 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
           ys = mgeom[3,i]/10.
           putwin, 32, i, xsize=xs, ysize=ys, /center
           xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
-          if (i eq primarymon) then $
-            xyouts,0.5,0.1,"(primary)",/norm,align=0.5,charsize=1.5,charthick=1,color=6
+          case i of
+            primarymon   : msg = "(primary)"
+            secondarymon : msg = "(secondary)"
+            else         : msg = ""
+          endcase
+          xyouts,0.5,0.1,msg,/norm,align=0.5,charsize=1.5,charthick=1,color=6
           j = [j, !d.window]
         endfor
         j = j[1:*]
-        wait, 2
+        wait, 3
         for i=0,maxmon do wdelete, j[i]
       endif
 
@@ -304,27 +314,26 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
 ; Monitor configuration
 
-  oInfo = obj_new('IDLsysMonitorInfo')
-    numMons = oInfo->GetNumberOfMonitors()
-    rects = oInfo->GetRectangles()
-    primon = oInfo->GetPrimaryMonitorIndex()
-  obj_destroy, oInfo
-
   sz = size(config)
 
   if ((sz[0] eq 2) and (sz[1] eq 4)) then begin
     mgeom = fix(config)
     maxmon = sz[2] - 1
+
+    primarymon = primon
+    mons = indgen(sz[2])
+    i = where(mons ne primarymon, count)
+    if (count gt 0) then secondarymon = max(mons[i]) $
+                    else secondarymon = primarymon
+
     windex = 4  ; user-defined
     swe_snap_layout, 0
-    primarymon = primon
     putwin, /stat
     return
   endif
 
   if (max(sz) gt 0) then begin
     cfg = fix(config[0])
-    primarymon = primon
 
     if (cfg eq 0) then begin
       swe_snap_layout, 0
@@ -336,6 +345,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     mgeom = rects
     mgeom[1,*] = rects[3,primarymon] - rects[3,*] - rects[1,*]
     maxmon = numMons - 1
+    primarymon = primon
 
     case maxmon of
        0   : windex = 0                        ; laptop only
@@ -348,8 +358,14 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                primarymon = 1
                windex = 1
              endif else windex = 2             ; laptop with two externals
-      else : windex = 5                        ; unknown configuration
+      else : windex = 5                        ; laptop with > 2 externals
     endcase
+
+    mons = indgen(maxmon + 1)
+    i = where(mons ne primarymon, count)
+    if (count gt 0) then secondarymon = max(mons[i]) $
+                    else secondarymon = primarymon
+
     swe_snap_layout, windex
     putwin, /stat
     return
@@ -367,20 +383,36 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     return
   endif
 
-; Calculate window geometry and placement
+; Choose monitor
 
   if (n_elements(wnum) eq 0) then wnum = -1 else wnum = fix(wnum[0])
   if (size(mnum,/type) gt 0) then monitor = fix(mnum[0])
   if (n_elements(monitor) eq 0) then begin
     monitor = primarymon
-    if keyword_set(secondary) then begin
-      mons = indgen(maxmon+1)
-      i = where(mons ne primarymon, count)
-      if (count gt 0) then monitor = max(mons[i])
-    endif
+    if keyword_set(secondary) then monitor = secondarymon
   endif else monitor = fix(monitor[0])
   monitor = (monitor > 0) < maxmon
   mnum = monitor
+
+  xoff = mgeom[0, monitor]          ; horizontal offset
+  yoff = mgeom[1, monitor]          ; vertical offset
+  xdim = mgeom[2, monitor]          ; horizontal dimension
+  ydim = mgeom[3, monitor]          ; vertical dimension
+
+; Window dimensions
+
+  if (size(clone,/type) gt 0) then begin
+    cmd = 'wset, ' + strtrim(string(fix(clone[0])),2)
+    ok = execute(cmd,0,1)
+    if (ok) then begin
+      xsize = !d.x_size
+      ysize = !d.y_size
+      aspect = float(xsize)/float(ysize)
+    endif else begin
+      print,"Window ",strmid(cmd,6)," does not exist."
+      return
+    endelse
+  endif
 
   if (size(aspect,/type) gt 0) then begin
     if (n_elements(xsize) gt 0) then begin
@@ -389,18 +421,21 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       if (n_elements(ysize) gt 0) then xsize = float(ysize[0])*aspect
     endelse
     if ((n_elements(xsize) eq 0) and (n_elements(ysize) eq 0)) then begin
-      ysize = mgeom[3, monitor]/2
+      ysize = ydim/2
       xsize = float(ysize[0])*aspect
     endif
   endif
+
   if (n_elements(xsize) eq 0) then begin
-    xsize = mgeom[2, monitor]/2
+    xsize = xdim/2
     if ((windex eq 1) and (monitor eq 1)) then xsize /= 2
   endif
-  if (n_elements(ysize) eq 0) then ysize = mgeom[3, monitor]/2
+  if (n_elements(ysize) eq 0) then ysize = ydim/2
   if (n_elements(scale) eq 0) then scale = 1.
   xsize = fix(float(xsize[0])*scale)
   ysize = fix(float(ysize[0])*scale)
+
+; Window placement within monitor
 
   if (n_elements(dx) eq 0) then dx = 0
   if (n_elements(dy) eq 0) then dy = 0
@@ -434,16 +469,16 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
   endif else rel = -1
 
   if keyword_set(norm) then begin
-    dx *= mgeom[2, monitor]
-    dy *= mgeom[3, monitor]
+    dx *= xdim
+    dy *= ydim
   endif
 
   if keyword_set(center) then begin
     xcenter = 1
     ycenter = 1
   endif
-  if keyword_set(xcenter) then dx = (mgeom[2, monitor] - xsize)/2
-  if keyword_set(ycenter) then dy = (mgeom[3, monitor] - ysize)/2
+  if keyword_set(xcenter) then dx = (xdim - xsize)/2
+  if keyword_set(ycenter) then dy = (ydim - ysize)/2
   dx = fix(dx[0])
   dy = fix(dy[0])
 
@@ -460,10 +495,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     dy = abs(dy)
   endif
 
-  xoff = mgeom[0, monitor]          ; horizontal offset
-  yoff = mgeom[1, monitor]          ; vertical offset
-  xdim = mgeom[2, monitor]          ; horizontal dimension
-  ydim = mgeom[3, monitor]          ; vertical dimension
+; Override dimensions and placement if full-screen window requested
 
   if keyword_set(full) then begin
     xfull = 1
@@ -518,6 +550,8 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
         end
     else :     ; do nothing
   endcase
+
+; Finally, create the window
 
   if ((wnum lt 0) or (wnum gt 31)) then begin
     window, /free, xpos=x0, ypos=y0, xsize=xsize, ysize=ysize, _extra=extra

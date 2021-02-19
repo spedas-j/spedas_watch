@@ -87,6 +87,9 @@ end
 ;
 ;       KEEPWINS:      If set, then don't close the snapshot window(s) on exit.
 ;
+;       MONITOR:       Put snapshot windows in this monitor.  Default is the 
+;                      secondary monitor (see putwin.pro).
+;
 ;       ARCHIVE:       If set, show shapshots of archive data (A5).
 ;
 ;       BURST:         Synonym for ARCHIVE.
@@ -212,8 +215,8 @@ end
 ;                      are lost.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-15 13:00:04 -0800 (Tue, 15 Dec 2020) $
-; $LastChangedRevision: 29490 $
+; $LastChangedDate: 2021-02-18 15:23:47 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29680 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -228,11 +231,11 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
                    flev=flev, pylim=pylim, k_e=k_e, peref=peref, error_bars=error_bars, $
                    trange=tspan, tsmo=tsmo, wscale=wscale, cscale=cscale, voffset=voffset, $
                    endx=endx, twot=twot, rcolors=rcolors, cuii=cuii, fmfit=fmfit, nolab=nolab, $
-                   showdead=showdead
+                   showdead=showdead, monitor=monitor
 
   @mvn_swe_com
   @mvn_scpot_com
-  @swe_snap_common
+  @putwin_common
 
   if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
 
@@ -407,18 +410,25 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
 
   Twin = !d.window
 
-  putwin, /free, key=Eopt, scale=wscale
+  undefine, mnum
+  if (size(monitor,/type) gt 0) then begin
+    if (size(windex,/type) eq 0) then putwin, /config $
+                                 else if (windex eq -1) then putwin, /config
+    mnum = fix(monitor[0])
+  endif else begin
+    if (size(secondarymon,/type) gt 0) then mnum = secondarymon
+  endelse
+
+  putwin, /free, monitor=mnum, xsize=400, ysize=600, dx=10, dy=10, scale=wscale
   Ewin = !d.window
 
   if (hflg) then begin
-    opt = Hopt
-    opt.dx = Eopt.xsize*wscale + 20
-    putwin, /free, key=opt
+    putwin, /free, rel=!d.window, xsize=200, ysize=600, dx=10, /top
     Hwin = !d.window
   endif
   
   if (pflg) then begin
-    putwin, /free, key=Sopt
+    putwin, /free, rel=!d.window, xsize=450, ysize=600, dx=10, /top
     Pwin = !d.window
   endif
 

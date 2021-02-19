@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2021-01-15 12:34:25 -0800 (Fri, 15 Jan 2021) $
-; $LastChangedRevision: 29604 $
+; $LastChangedDate: 2021-02-18 13:44:37 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29671 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -195,7 +195,7 @@ function mms_python_validation_ut::test_eis_brst
   mms_load_eis, datatype=['extof', 'phxtof'], probe=1, data_rate='brst', trange=['2015-10-16/13:06', '2015-10-16/13:07']
   mms_eis_pad, datatype=['extof', 'phxtof'], probe=1, data_rate='brst'
   py_script = ["from pyspedas import mms_load_eis, mms_eis_pad", "mms_load_eis(datatype=['extof', 'phxtof'], probe=1, data_rate='brst', trange=['2015-10-16/13:06', '2015-10-16/13:07'])", "mms_eis_pad(datatype=['extof', 'phxtof'], probe=1, data_rate='brst')"]
-  vars = ['mms1_epd_eis_brst_phxtof_proton_flux_omni', 'mms1_epd_eis_brst_phxtof_oxygen_flux_omni', 'mms1_epd_eis_brst_extof_proton_flux_omni', 'mms1_epd_eis_brst_extof_alpha_flux_omni', 'mms1_epd_eis_brst_extof_oxygen_flux_omni', 'mms1_epd_eis_brst_phxtof_54-76keV_proton_flux_omni_pad', 'mms1_epd_eis_brst_extof_54-897keV_proton_flux_omni_pad']
+  vars = ['mms1_epd_eis_brst_phxtof_proton_flux_omni', 'mms1_epd_eis_brst_extof_proton_flux_omni', 'mms1_epd_eis_brst_extof_alpha_flux_omni', 'mms1_epd_eis_brst_extof_oxygen_flux_omni', 'mms1_epd_eis_brst_phxtof_54-76keV_proton_flux_omni_pad', 'mms1_epd_eis_brst_extof_54-897keV_proton_flux_omni_pad']
   return, spd_run_py_validation(py_script, vars)
 end
 

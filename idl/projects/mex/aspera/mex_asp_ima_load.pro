@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2021-02-16 21:58:41 -0800 (Tue, 16 Feb 2021) $
-; $LastChangedRevision: 29660 $
+; $LastChangedDate: 2021-02-18 13:53:12 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29672 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_load.pro $
 ;
 ;-
@@ -52,58 +52,71 @@ PRO mex_asp_ima_list, trange, verbose=verbose, file=file, time=modify_time, psa=
   ndat = N_ELEMENTS(date)
 
   FOR i=0, ndat-1 DO BEGIN
+     flist = ldir + time_string(date[i], tformat='YYYY/MM/') + 'mex_asp_ima_file_list_' + time_string(date[i], tformat='YYYYMM') + '.sav'
+     IF FILE_TEST(flist) THEN lflg = 1 ELSE lflg = 0
+
      IF (psa) THEN cmd = rpath + pdir[i] $
      ELSE BEGIN
         cmd = rpath + pdir[i] + 'mexasp_21'
         cmd += STRING(LONG(STRMID(phase[i], 0, 1, /reverse)), '(I2.2)') + '/'
      ENDELSE 
      cmd += 'DATA/IMA_EDR_L1B_' + time_string(date[i], tformat='YYYY_') 
-
+        
      IF (date[i] GE time_double('2004')) THEN cmd += time_string(date[i], tformat='MM/') $
      ELSE IF LONG(time_string(date[i], tformat='DOY')) GT 250 THEN cmd += 'IC/' ELSE cmd += 'EV/'
      IF (psa EQ 0) THEN cmd = STRLOWCASE(cmd) 
 
-     dflg = 0
-     IF SIZE(cmd_old, /type) EQ 0 THEN dflg = 1 $
-     ELSE IF cmd NE cmd_old THEN dflg = 1
-     IF (dflg) THEN BEGIN
-        IF (psa) THEN list_file = spd_download(remote_path=cmd, remote_file='*', local_path=ldir, local_file='mex_asp_ima_lists.txt', ftp_connection_mode=0) $
-        ELSE list_file = spd_download(remote_path=cmd, local_path=ldir, local_file='mex_asp_ima_lists.txt')
-     ENDIF 
-
-     OPENR, unit, list_file, /get_lun
-     text = STRARR(FILE_LINES(list_file))
-     READF, unit, text
-     FREE_LUN, unit
-     
-     IF (psa) THEN BEGIN
-        text = STRSPLIT(text, ' ', /extract)
-        text = text.toarray()
-        text[*, 6] = STRING(LONG(text[*, 6]), '(I2.2)')
-        mod_time = time_double(text[*, 5] + text[*, 6] + text[*, 7], tformat='MTHDDYYYY')
-        w = WHERE(STRMATCH(text[*, -1], 'IMA_AZ*' + time_string(date[i], tformat='YYYYDOY') + '*.CSV') EQ 1, nw)
-        IF nw GT 0 THEN afile = cmd + text[w, -1]
+     IF (lflg) THEN BEGIN
+        RESTORE, flist
+        text = TEMPORARY(mex_asp_ima_file_list)
+        mod_time = TEMPORARY(mex_asp_ima_file_mtime)
      ENDIF ELSE BEGIN
-        otext = STRSPLIT(text[-1], '<', escape='>', /extract)
-        otext = otext[1:-2]
-        undefine, text
+        dflg = 0
+        IF SIZE(cmd_old, /type) EQ 0 THEN dflg = 1 $
+        ELSE IF cmd NE cmd_old THEN dflg = 1
+        IF (dflg) THEN BEGIN
+           IF (psa) THEN list_file = spd_download(remote_path=cmd, remote_file='*', local_path=ldir, local_file='mex_asp_ima_lists.txt', ftp_connection_mode=0) $
+           ELSE list_file = spd_download(remote_path=cmd, local_path=ldir, local_file='mex_asp_ima_lists.txt')
+        ENDIF 
 
-        FOR j=0, (0.5 * N_ELEMENTS(otext))-1 DO BEGIN
-           mt = STRSPLIT(otext[2*j], ' ', /extract)
-           mt_d = STRSPLIT(mt[-4], '/', /extract, escape='<')
-           mt_d[-3] = STRSPLIT(mt_d[-3], '[A-za-z]', /regex, /extract)
-           mt_d = time_double(STRING(LONG(mt_d[-3]), '(I2.2)') + STRING(LONG(mt_d[-2]), '(I2.2)') + mt_d[-1], tformat='MMDDYYYY')
-           mt_t = STRSPLIT(mt[-3], ':', /extract)
-           mt_t = LONG(mt_t[0]) * 3600.d0 + LONG(mt_t[1]) * 60.d0
-           IF mt[3] EQ 'PM' THEN mt_t += 0.5 * oneday
-           append_array, mod_time, mt_d + mt_t
-           undefine, mt, mt_d, mt_t
-           append_array, text, (STRSPLIT(otext[2*j+1], '"', /extract))[-1]
-        ENDFOR
-        w = WHERE(STRMATCH(text, 'ima_az*' + time_string(date[i], tformat='YYYYDOY') + '*.csv') EQ 1, nw)
-        IF nw GT 0 THEN afile = cmd + text[w]
-     ENDELSE
- 
+        OPENR, unit, list_file, /get_lun
+        text = STRARR(FILE_LINES(list_file))
+        READF, unit, text
+        FREE_LUN, unit
+     
+        IF (psa) THEN BEGIN
+           text = STRSPLIT(text, ' ', /extract)
+           text = text.toarray()
+           text[*, 6] = STRING(LONG(text[*, 6]), '(I2.2)')
+           mod_time = time_double(text[*, 5] + text[*, 6] + text[*, 7], tformat='MTHDDYYYY')
+        ENDIF ELSE BEGIN
+           otext = STRSPLIT(text[-1], '<', escape='>', /extract)
+           otext = otext[1:-2]
+           undefine, text
+
+           FOR j=0, (0.5 * N_ELEMENTS(otext))-1 DO BEGIN
+              mt = STRSPLIT(otext[2*j], ' ', /extract)
+              mt_d = STRSPLIT(mt[-4], '/', /extract, escape='<')
+              mt_d[-3] = STRSPLIT(mt_d[-3], '[A-za-z]', /regex, /extract)
+              mt_d = time_double(STRING(LONG(mt_d[-3]), '(I2.2)') + STRING(LONG(mt_d[-2]), '(I2.2)') + mt_d[-1], tformat='MMDDYYYY')
+              mt_t = STRSPLIT(mt[-3], ':', /extract)
+              mt_t = LONG(mt_t[0]) * 3600.d0 + LONG(mt_t[1]) * 60.d0
+              IF mt[3] EQ 'PM' THEN mt_t += 0.5 * oneday
+              append_array, mod_time, mt_d + mt_t
+              undefine, mt, mt_d, mt_t
+              append_array, text, (STRSPLIT(otext[2*j+1], '"', /extract))[-1]
+           ENDFOR
+        ENDELSE
+        
+        mex_asp_ima_file_list = REFORM(text[*, -1])
+        mex_asp_ima_file_mtime = REFORM(mod_time)
+        file_mkdir2, FILE_DIRNAME(flist), dlevel=2, verbose=verbose        
+        SAVE, mex_asp_ima_file_list, mex_asp_ima_file_mtime, filename=flist, /compress
+     ENDELSE 
+
+     w = WHERE(STRMATCH(text[*, -1], 'ima_az*' + time_string(date[i], tformat='YYYYDOY') + '*.csv', /fold_case) EQ 1, nw)
+     IF nw GT 0 THEN afile = cmd + text[w, -1]
+
      IF SIZE(afile, /type) NE 0 THEN BEGIN
         append_array, file, afile
         append_array, modify_time, mod_time[w]
@@ -363,21 +376,20 @@ PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, count
            IF j EQ 0 THEN BEGIN
               nenergy = N_ELEMENTS(data[0, *])
               undefine, st, et
-              st  = list()
-              et  = list()
+              st = REFORM(sensor[*, 0])
+              et = REFORM(sensor[*, 1])
+              st = spd_uniq(st)
+              et = spd_uniq(et)
            ENDIF 
-
-           FOR k=0L, ndat-1L DO BEGIN
-              cnt.add, FLOAT(data[32L*k:32L*k+31L, *])
-              IF j EQ 0 THEN BEGIN
-                 st.add, time_double(sensor[31L*k, 0], tformat='YYYY-DOYThh:mm:ss.fff')
-                 et.add, time_double(sensor[31L*k, 1], tformat='YYYY-DOYThh:mm:ss.fff')
-              ENDIF 
-           ENDFOR 
            
+           index = value_locate(st, REFORM(sensor[*, 0]))
+           hist = histbins(index, binsize=1, range=minmax(index) + 0.5 * [-1, 1], reverse=ri)
+           FOR k=0L, ndat-1L DO cnt.add, FLOAT(data[ri[ri[k]:ri[k+1]-1], *])
+           undefine, index, hist, ri
+
            IF j EQ 0 THEN BEGIN
-              stime.add, st.toarray()
-              etime.add, et.toarray()
+              stime.add, time_double(st, tformat='YYYY-DOYThh:mm:ss.fff')
+              etime.add, time_double(et, tformat='YYYY-DOYThh:mm:ss.fff')
            ENDIF 
            cnts.add, cnt.toarray()
         ENDIF 
@@ -475,10 +487,12 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
            append_array, lfile, TEMPORARY(asp_ima_file)
            OBJ_DESTROY, obj
         ENDFOR
+        lfile = lfile.tolower()
         lfile = lfile[SORT(lfile)]
         rfile = FILE_BASENAME(remote_file)
+        rfile = rfile.tolower()
         rfile = rfile[SORT(rfile)]
-        IF (compare_struct(STRUPCASE(rfile), STRUPCASE(lfile)) EQ 1) THEN sflg = 0 ELSE sflg = 1
+        IF (compare_struct(rfile, lfile) EQ 1) THEN sflg = 0 ELSE sflg = 1
      ENDIF ELSE sflg = 0
   ENDIF ELSE sflg = 1
 
