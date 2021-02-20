@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2021-02-18 13:53:12 -0800 (Thu, 18 Feb 2021) $
-; $LastChangedRevision: 29672 $
+; $LastChangedDate: 2021-02-18 21:28:29 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29685 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_load.pro $
 ;
 ;-
@@ -152,7 +152,7 @@ PRO mex_asp_ima_save, time, counts, polar, pacc, hk, file=file, verbose=verbose
 END
                     
 PRO mex_asp_ima_com, time, counts, polar, pacc, hk, file=file, verbose=verbose, $
-                     data=mex_asp3_ima, trange=trange, bkg=bkg, fast=fast
+                     data=mex_asp3_ima, trange=trange, bkg=bkg, fast=fast, psa=psa
 
   COMMON mex_asp_dat, mex_asp_ima, mex_asp_els
   units = 'counts'
@@ -191,7 +191,7 @@ PRO mex_asp_ima_com, time, counts, polar, pacc, hk, file=file, verbose=verbose, 
   mex_asp_ima.theta  = TEMPORARY(theta)
   mex_asp_ima.enoise = TEMPORARY(enoise)
 
-  IF (bkg) THEN mex_asp_ima_bkg, verbose=verbose
+  IF (bkg) THEN mex_asp_ima_bkg, verbose=verbose, psa=psa
   IF SIZE(trange, /type) NE 0 THEN BEGIN
      w = WHERE(time GE trange[0] AND time LE trange[1], nw)
      mex_asp_ima = mex_asp_ima[w]
@@ -447,7 +447,7 @@ FUNCTION mex_asp_ima_toarray, data
   RETURN, hk
 END
 
-PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, bkg=bkg, psa=psa, fast=fast
+PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, bkg=bkg, psa=psa, fast=fast, omni=omni
   COMMON mex_asp_dat, mex_asp_ima, mex_asp_els
   undefine, mex_asp_ima
 
@@ -458,6 +458,7 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
   IF KEYWORD_SET(bkg) THEN bflg = 1 ELSE bflg = 0
   IF SIZE(psa, /type) EQ 0 THEN pflg = 1 ELSE pflg = FIX(psa)
   IF SIZE(fast, /type) EQ 0 THEN fflg = 1 ELSE fflg = FIX(fast)
+  IF undefined(omni) THEN oflg = 0 ELSE oflg = FIX(omni)
   lvl = 'l1b'
 
   IF (nflg) THEN BEGIN
@@ -537,20 +538,43 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
      dprint, dlevel=2, verbose=verbose, 'No data found.'
      RETURN
   ENDIF ELSE BEGIN
-     mex_asp_ima_com, [ [stime], [etime] ], counts, polar, pacc, hk, data=ima, trange=trange, bkg=bflg, fast=fflg
+     mex_asp_ima_com, [ [stime], [etime] ], counts, polar, pacc, hk, data=ima, trange=trange, bkg=bflg, fast=fflg, psa=pflg
      time = time[w]
      IF (bflg) THEN cnt = (ima.data - ima.bkg) > 0. ELSE cnt = ima.data
      ene  = ima.energy
      IF (fflg) THEN ene = TRANSPOSE(ene) ELSE ene = TRANSPOSE(MEAN(MEAN(ene, dim=2, /nan), dim=2, /nan))
+     pol  = ima.polar
   ENDELSE 
 
-  store_data, 'mex_asp_ima_espec', data={x: time, y: TRANSPOSE(TOTAL(TOTAL(cnt, 2), 2)), v: ene}, $
-              dlim={spec: 1, datagap: 30.d0, ysubtitle: 'Energy [eV]', ytitle: 'MEX/ASPERA-3 (IMA)', ytickunits: 'scientific'}
+  IF (oflg) THEN BEGIN
+     pmin = MIN(pol, max=pmax)
+     imin = WHERE(pol EQ pmin, nmin)
+     imax = WHERE(pol EQ pmax, nmax)
 
+     c = LIST()
+     e = LIST()
+     FOR i=0, nmin-1 DO BEGIN
+        IF (imin[i] + pmax) GE N_ELEMENTS(ima) THEN CONTINUE
+        append_array, t, MEAN(time[imin[i]:imin[i]+pmax])      ; time
+        c.add, MEAN(cnt[*, *, *, imin[i]:imin[i]+pmax], dim=4) ; counts
+        e.add, MEAN(ene[imin[i]:imin[i]+pmax, *], dim=1)       ; energy
+     ENDFOR
+
+     time = TEMPORARY(t)
+     cnt = TRANSPOSE(c.toarray(), [1, 2, 3, 0])
+     ene = e.toarray()
+     undefine, c, e
+  ENDIF 
+
+  store_data, 'mex_asp_ima_espec', data={x: time, y: TRANSPOSE(TOTAL(TOTAL(cnt, 2), 2)), v: ene}, $
+              dlim={spec: 1, ysubtitle: 'Energy [eV]', ytitle: 'MEX/ASPERA-3 (IMA)', ytickunits: 'scientific'}
+  
   ylim, 'mex_asp_ima_espec', 1., 30.e3, 1, /def
   zlim, 'mex_asp_ima_espec', 1., 1000., 1, /def
   options, 'mex_asp_ima_espec', ztitle='Counts [#]', /def
   
+  IF (oflg) THEN options, 'mex_asp_ima_espec', datagap=200.d0, /def ELSE options, 'mex_asp_ima_espec', datagap=30.d0, /def
+
   dprint, dlevel=2, verbose=verbose, 'Ellapsed time: ' + time_string(SYSTIME(/sec)-t0, tformat='hh:mm:ss.fff')
   RETURN
 END

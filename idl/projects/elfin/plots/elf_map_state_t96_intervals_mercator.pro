@@ -448,6 +448,7 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
   ; Start Plots
   ;----------------------------------
   for k=0,nplots-1 do begin
+    for kk=0,1 do begin  ; two sets of figure 0/180 GLON center
     !p.multi=[0,1,2,0,0]
     if keyword_set(gifout) then begin
       set_plot,'z'
@@ -549,10 +550,23 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
     coord='Down'
     if keyword_set(pred) then pred_str='Predicted ' else pred_str=''
     title=pred_str+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
-    map_set,0,0,0, /mercator, /conti, charsize=decharsize, position=[0.01,0.51,0.99,0.98]
+    latnames=['-70','-60','-50','-40','-30','-20','-10','10','20','30','40','50','60','70'] ; exclude 0 so it doesn't overlap with 0 longitude
+    lats=[indgen(7,increment=10,start=-70),indgen(7,increment=10,start=10)]
+    lonnames0=['-180','-150','-120','-90','-60','-30','0','30','60','90','120','150','180']
+    lons0=indgen(13,increment=30,start=-180)
+    lons0[0]=lons0[0]+1  ; -180 degree is not shown so i use -179
+    lonnames180=['0','30','60','90','120','150','180','210','240','270','300','330','360']
+    lons180=indgen(13,increment=30,start=0)
+    lons180[12]=lons180[12]-1  ; 360 degree is not shown so i use 359
+    if kk eq 0 then begin
+      map_set,0,0,0, /mercator, /conti, charsize=decharsize, position=[0.01,0.51,0.99,0.98], limit=[-80, -180, 80, 180] 
+      map_grid,lats=lats, latnames=latnames,label=1, lons=lons0,lonnames=lonnames0, charsize=decharsize, glinethick=delinewidth*1.2,charthick=decharthick
+    endif else begin
+      map_set,0,180,0, /mercator, /conti, charsize=decharsize, position=[0.01,0.51,0.99,0.98], limit=[-80, 0, 80, 360]   
+      map_grid,lats=lats, latnames=latnames,label=1,lons=lons180,lonnames=lonnames180, charsize=decharsize, glinethick=delinewidth*1.2,charthick=decharthick
+    endelse
     xyouts, (!x.window[1] - !x.window[0]) / 2. + !x.window[0], 0.985, title, $
-      /normal, alignment=0.5, charsize=decharsize*1.5, charthick=decharthick*1.5
-    map_grid,latdel=10.,londel=30., label=1, charsize=decharsize, glinethick=delinewidth*1.2,charthick=decharthick
+      /normal, alignment=0.5, charsize=decharsize*1.5, charthick=decharthick*1.5    
     map_continents, color=252, mlinethick=delinewidth*0.5
     ;
     ;
@@ -729,48 +743,72 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
     ; elfinb
     if ~keyword_set(bfirst) then begin
       count=nptsb   ;n_elements(this_b_lon_down)
-      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize, color=254 ;diamond
-      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
-      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.85, color=254
-      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize, color=254 ;*
-      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=254    
-      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=254
-      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize, color=254 ;triangle
-      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
-      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+      if (this_b_lat_down[0] lt 80) and (this_b_lat_down[0] gt -80) then begin
+        plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize, color=254 ;diamond
+        plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
+        plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.85, color=254
+      endif
+      if (this_b_lat_down[count-1] lt 80) and (this_b_lat_down[count-1] gt -80) then begin
+        plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize, color=254 ;*
+        plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=254    
+        plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=254
+      endif
+      if (this_b_lat_down[count/2] lt 80) and (this_b_lat_down[count/2] gt -80) then begin
+        plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize, color=254 ;triangle
+        plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
+        plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+      endif
       ; elfina
       count=nptsa    ;n_elements(this_a_lon_down)
-      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize, color=253
-      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.85, color=253
-      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize, color=253     
-      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=253
-      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize, color=253
-      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=253
+      if (this_a_lat_down[0] lt 80) and (this_a_lat_down[0] gt -80) then begin
+        plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize, color=253
+        plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.85, color=253
+      endif
+      if (this_a_lat_down[count-1] lt 80) and (this_a_lat_down[count-1] gt -80) then begin
+        plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize, color=253     
+        plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=253
+      endif
+      if (this_a_lat_down[count/2] lt 80) and (this_a_lat_down[count/2] gt -80) then begin
+        plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize, color=253
+        plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=253
+       endif
     endif else begin
       ; elfina
       count=nptsa    ;n_elements(this_a_lon_down)
-      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize, color=253
-      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.85, color=253
-      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize, color=253     
-      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=253
-      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize, color=253
-      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=253
+      if (this_a_lat_down[0] lt 80) and (this_a_lat_down[0] gt -80) then begin
+        plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize, color=253
+        plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_down[0], this_a_lat_down[0], psym=4, symsize=desymsize*0.85, color=253
+      endif
+      if (this_a_lat_down[count-1] lt 80) and (this_a_lat_down[count-1] gt -80) then begin
+        plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize, color=253     
+        plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_down[count-1], this_a_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=253
+      endif
+      if (this_a_lat_down[count/2] lt 80) and (this_a_lat_down[count/2] gt -80) then begin
+        plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize, color=253
+        plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_down[count/2], this_a_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=253
+      endif
       count=nptsb   ;n_elements(this_b_lon_down)
-      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize, color=254 ;diamond
-      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
-      plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.85, color=254
-      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize, color=254 ;*
-      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=254    
-      plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=254
-      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize, color=254 ;triangle
-      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
-      plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+      if (this_b_lat_down[0] lt 80) and (this_b_lat_down[0] gt -80) then begin
+        plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize, color=254 ;diamond
+        plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
+        plots, this_b_lon_down[0], this_b_lat_down[0], psym=4, symsize=desymsize*0.85, color=254
+      endif
+      if (this_b_lat_down[count-1] lt 80) and (this_b_lat_down[count-1] gt -80) then begin
+        plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize, color=254 ;*
+        plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.92, color=254    
+        plots, this_b_lon_down[count-1], this_b_lat_down[count-1], psym=2, symsize=desymsize*0.85, color=254
+      endif
+      if (this_b_lat_down[count/2] lt 80) and (this_b_lat_down[count/2] gt -80) then begin
+        plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize, color=254 ;triangle
+        plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
+        plots, this_b_lon_down[count/2], this_b_lat_down[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+      endif
     endelse
 
     ;---------------------
@@ -1016,10 +1054,16 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
     coord='Conjugate'
     if keyword_set(pred) then pred_str='Predicted ' else pred_str=''
     title=pred_str+coord+' Footprints '+strmid(tstart,0,10)+plot_lbl[k]+' UTC'
-    map_set,0,0,0, /mercator, /conti, charsize=decharsize, /advance, position=[0.01,0.01,0.99,0.49]
+    if kk eq 0 then begin
+      map_set,0,0,0, /mercator, /conti, charsize=decharsize, /advance, position=[0.01,0.01,0.99,0.49], limit=[-80, -180, 80, 180]
+      map_grid,lats=lats,latnames=latnames,label=1,lons=lons0,lonnames=lonnames0, charsize=decharsize, glinethick=delinewidth*1.2,charthick=decharthick
+    endif else begin
+      map_set,0,180,0, /mercator, /conti, charsize=decharsize, /advance, position=[0.01,0.01,0.99,0.49], limit=[-80, 0, 80, 360]
+      map_grid,lats=lats,latnames=latnames,label=1,lons=lons180,lonnames=lonnames180, charsize=decharsize, glinethick=delinewidth*1.2,charthick=decharthick
+    endelse
+
     xyouts, (!x.window[1] - !x.window[0]) / 2. + !x.window[0], 0.495, title, $
       /normal, alignment=0.5, charsize=decharsize*1.5,charthick=decharthick*1.5
-    map_grid,latdel=10.,londel=30., label=1, charsize=decharsize, glinethick=delinewidth*1.2,charthick=decharthick
     map_continents, color=252, mlinethick=delinewidth*0.5
     
     oplot,terminator_geo_lon[*,0],terminator_geo_lat[*,0],color=255,thick=delinewidth*1.5,linestyle=0 ;Talt=0
@@ -1099,48 +1143,72 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
     ; elfinb
     if ~keyword_set(bfirst) then begin
       count=nptsb   ;n_elements(this_b_lon_down)
-      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize, color=254
-      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
-      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.85, color=254
-      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize, color=254 ;*     
-      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=254      
-      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=254
-      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize, color=254 ;triangle
-      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
-      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+      if (this_b_lat_conj[0] lt 80) and (this_b_lat_conj[0] gt -80) then begin
+        plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize, color=254
+        plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
+        plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.85, color=254
+      endif
+      if (this_b_lat_conj[count-1] lt 80) and (this_b_lat_conj[count-1] gt -80) then begin
+        plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize, color=254 ;*     
+        plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=254      
+        plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=254
+      endif
+      if (this_b_lat_conj[count/2] lt 80) and (this_b_lat_conj[count/2] gt -80) then begin
+        plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize, color=254 ;triangle
+        plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
+        plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+      endif
       ; elfina
       count=nptsa    ;n_elements(this_a_lon_conj)
-      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize, color=253
-      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.85, color=253
-      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize, color=253
-      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=253    
-      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=253
-      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize, color=253
-      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=253
+      if (this_a_lat_conj[0] lt 80) and (this_a_lat_conj[0] gt -80) then begin
+        plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize, color=253
+        plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.85, color=253
+      endif
+      if (this_a_lat_conj[count-1] lt 80) and (this_a_lat_conj[count-1] gt -80) then begin
+        plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize, color=253
+        plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=253    
+        plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=253
+      endif
+      if (this_a_lat_conj[count/2] lt 80) and (this_a_lat_conj[count/2] gt -80) then begin
+        plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize, color=253
+        plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=253
+      endif
     endif else begin
       ; elfina
       count=nptsa    ;n_elements(this_a_lon_conj)
-      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize, color=253
-      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.85, color=253
-      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize, color=253
-      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=253    
-      plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=253
-      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize, color=253
-      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=253
-      plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=253
+      if (this_a_lat_conj[0] lt 80) and (this_a_lat_conj[0] gt -80) then begin
+        plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize, color=253
+        plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_conj[0], this_a_lat_conj[0], psym=4, symsize=desymsize*0.85, color=253
+      endif
+      if (this_a_lat_conj[count-1] lt 80) and (this_a_lat_conj[count-1] gt -80) then begin
+        plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize, color=253
+        plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=253    
+        plots, this_a_lon_conj[count-1], this_a_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=253
+      endif
+      if (this_a_lat_conj[count/2] lt 80) and (this_a_lat_conj[count/2] gt -80) then begin
+        plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize, color=253
+        plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=253
+        plots, this_a_lon_conj[count/2], this_a_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=253
+      endif
       count=nptsb   ;n_elements(this_b_lon_conj)
-      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize, color=254
-      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
-      plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.85, color=254
-      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize, color=254 ;*     
-      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=254      
-      plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=254
-      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize, color=254 ;triangle
-      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
-      plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+      if (this_b_lat_conj[0] lt 80) and (this_b_lat_conj[0] gt -80) then begin
+        plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize, color=254
+        plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.92, color=254 ;diamond
+        plots, this_b_lon_conj[0], this_b_lat_conj[0], psym=4, symsize=desymsize*0.85, color=254
+      endif
+      if (this_b_lat_conj[count-1] lt 80) and (this_b_lat_conj[count-1] gt -80) then begin
+        plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize, color=254 ;*     
+        plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.92, color=254      
+        plots, this_b_lon_conj[count-1], this_b_lat_conj[count-1], psym=2, symsize=desymsize*0.85, color=254
+      endif
+      if (this_b_lat_conj[count/2] lt 80) and (this_b_lat_conj[count/2] gt -80) then begin
+        plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize, color=254 ;triangle
+        plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.92, color=254 ;triangle
+        plots, this_b_lon_conj[count/2], this_b_lat_conj[count/2], psym=5, symsize=desymsize*0.85, color=254 ;triangle
+       endif
     endelse
 
     ;---------------------
@@ -1236,16 +1304,18 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
       filedate=file_dailynames(trange=filetime[0], /unique, times=times)
 
       plot_name = 'mercator'
+      if kk eq 0 then suffix = '' else suffix = '_180glon'
+      
       coord_name='_'
       pname='elf'
-      gif_name=dir_products+'/'+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k]
+      gif_name=dir_products+'/'+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k]+suffix
 
       if hires then gif_name=gif_name+'_hires'
       write_gif,gif_name+'.gif',image,r,g,b
       print,'Output in ',gif_name+'.gif'
 
     endif
-
+    endfor
     if keyword_set(insert_stop) then stop
     if keyword_set(one_hour_only) then break
 

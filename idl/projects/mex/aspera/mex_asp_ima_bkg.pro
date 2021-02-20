@@ -15,20 +15,22 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-04 16:17:13 -0700 (Wed, 04 Apr 2018) $
-; $LastChangedRevision: 24998 $
+; $LastChangedDate: 2021-02-18 21:27:03 -0800 (Thu, 18 Feb 2021) $
+; $LastChangedRevision: 29684 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_bkg.pro $
 ;
 ;-
-PRO mex_asp_ima_bkg, bkg, verbose=verbose
+PRO mex_asp_ima_bkg, bkg, verbose=verbose, psa=psa
   COMMON mex_asp_dat, mex_asp_ima, mex_asp_els
   
   IF SIZE(mex_asp_ima, /type) NE 8 THEN BEGIN
      dprint, dlevel=2, verbose=verbose, 'No IMA data loaded yet.'
      RETURN
   ENDIF
+  
+  IF undefined(psa) THEN pflg = 1 ELSE pflg = FIX(psa)
 
-  mex_asp_ima_calib, calib, verbose=verbose
+  mex_asp_ima_calib, calib, verbose=verbose, psa=pflg
   mnoise = calib.mnoise
   mratio = calib.mratio
 
