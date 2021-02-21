@@ -15,8 +15,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2021-02-18 21:27:03 -0800 (Thu, 18 Feb 2021) $
-; $LastChangedRevision: 29684 $
+; $LastChangedDate: 2021-02-20 14:53:03 -0800 (Sat, 20 Feb 2021) $
+; $LastChangedRevision: 29688 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_bkg.pro $
 ;
 ;-
@@ -54,6 +54,10 @@ PRO mex_asp_ima_bkg, bkg, verbose=verbose, psa=psa
   bkg = counts
   bkg[*] = 0.
 
+  enoise = mex_asp_ima.enoise
+  IF ndimen(enoise) EQ 2 THEN enoise = REBIN(enoise, nenergy, ndat, 16, nmass, /sample)
+  enoise = TRANSPOSE(TEMPORARY(enoise), [0, 2, 3, 1])
+
   FOR i=0, ndat-1 DO BEGIN
      asum = mex_asp_ima[i].hk.asum
      psum = mex_asp_ima[i].hk.psum
@@ -67,7 +71,8 @@ PRO mex_asp_ima_bkg, bkg, verbose=verbose, psa=psa
            undefine, w, nw
         ENDIF ELSE mbkg = avg[j, i]
 
-        noise = (mbkg * REFORM(mex_asp_ima[i].enoise[*, j, *]) * TRANSPOSE(REBIN(mnoise, nmass, nenergy, /sample))) / af
+        noise = (mbkg * REFORM(enoise[*, j, *, i]) * TRANSPOSE(REBIN(mnoise, nmass, nenergy, /sample))) / af
+        ;noise = (mbkg * REFORM(mex_asp_ima[i].enoise[*, j, *]) * TRANSPOSE(REBIN(mnoise, nmass, nenergy, /sample))) / af
         cnt_remove_bkg = ((cnt - noise) > 0.) * TRANSPOSE(REBIN(mratio, nmass, nenergy, /sample))
         
         bkg[*, j, *, i] = (cnt - cnt_remove_bkg) > 0.
