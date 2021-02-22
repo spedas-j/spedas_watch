@@ -210,8 +210,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-18 13:39:31 -0800 (Thu, 18 Feb 2021) $
-; $LastChangedRevision: 29669 $
+; $LastChangedDate: 2021-02-21 15:48:50 -0800 (Sun, 21 Feb 2021) $
+; $LastChangedRevision: 29690 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -221,7 +221,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                   key=key, stat=stat, nofit=nofit, norm=norm, center=center, $
                   xcenter=xcenter, ycenter=ycenter, tbar=tbar2, xfull=xfull, $
                   yfull=yfull, aspect=aspect, show=show, secondary=secondary, $
-                  relative=rel, top=top, right=right, clone=clone, _extra=extra
+                  relative=relative, top=top, right=right, clone=clone, _extra=extra
 
   @putwin_common
 
@@ -251,7 +251,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     ktag = tag_names(key)
     klist = ['CONFIG','STAT','SHOW','MONITOR','SECONDARY','DX','DY','NORM', $
              'CENTER','XCENTER','YCENTER','CORNER','SCALE','FULL','XFULL', $
-             'YFULL','ASPECT','XSIZE','YSIZE','NOFIT','TBAR','RELATIVE', $
+             'YFULL','ASPECT','XSIZE','YSIZE','NOFIT','TBAR2','RELATIVE', $
              'TOP','RIGHT','CLONE']
     for j=0,(n_elements(ktag)-1) do begin
       ok = 0
@@ -440,11 +440,11 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
   if (n_elements(dx) eq 0) then dx = 0
   if (n_elements(dy) eq 0) then dy = 0
 
-  if (size(rel,/type) gt 0) then begin
-    cmd = 'wset, ' + strtrim(string(fix(rel[0])),2)
+  if (size(relative,/type) gt 0) then begin
+    cmd = 'wset, ' + strtrim(string(fix(relative[0])),2)
     ok = execute(cmd,0,1)
     if (ok) then begin
-      rel = !d.window
+      relative = !d.window
       device, get_window_position=wpos
 
       dx1 = wpos[0]
@@ -466,7 +466,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       print,"Window ",strmid(cmd,6)," does not exist."
       return
     endelse
-  endif else rel = -1
+  endif else relative = -1
 
   if keyword_set(norm) then begin
     dx *= xdim
@@ -490,7 +490,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
       if (dy lt 0) then corner = 2 else corner = 0
     endelse
   endif else corner = abs(fix(corner[0])) mod 4
-  if (rel lt 0) then begin
+  if (relative lt 0) then begin
     dx = abs(dx)
     dy = abs(dy)
   endif
