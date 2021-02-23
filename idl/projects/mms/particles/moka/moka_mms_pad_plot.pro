@@ -46,6 +46,8 @@ PRO moka_mms_pad_plot, pad, second_pad, $
   window=window, $
   noerase=noerase, $
   xunit = xunit, $ ; 'keV' or 'eV' or 'km/s'
+  title = title, $
+  nolabel = nolabel, $
   ; Additional plots
   add1=add1, add2=add2, add3=add3, $
   ; Eport
@@ -209,7 +211,7 @@ PRO moka_mms_pad_plot, pad, second_pad, $
       xlblpos = 10^(alog10(abs(xrange[0]))+lblpos_x[i]*(alog10(abs(xrange[1]))-alog10(abs(xrange[0]))))
     endelse
     ylblpos = 10^(alog10(yrange[0])+lblpos_y[i]*(alog10(yrange[1])-alog10(yrange[0])))
-    xyouts,xlblpos, ylblpos, output[i],color=colors[i]
+    if ~keyword_set(nolabel) then xyouts,xlblpos, ylblpos, output[i],color=colors[i]
   endif
   if imax1 gt 1 then begin
     for i=1,imax1-1 do begin
@@ -224,7 +226,7 @@ PRO moka_mms_pad_plot, pad, second_pad, $
             xlblpos = 10^(alog10(abs(xrange[0]))+lblpos_x[i]*(alog10(abs(xrange[1]))-alog10(abs(xrange[0]))))
           endelse
           ylblpos = 10^(alog10(yrange[0])+lblpos_y[i]*(alog10(yrange[1])-alog10(yrange[0])))
-          xyouts,xlblpos, ylblpos, output[i],color=colors[i]
+          if ~keyword_set(nolabel) then xyouts,xlblpos, ylblpos, output[i],color=colors[i]
         endif
       endif
     endfor

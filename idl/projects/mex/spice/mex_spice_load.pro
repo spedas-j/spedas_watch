@@ -9,19 +9,23 @@
 ;
 ;KEYWORDS:
 ;
+;     STORE:      If set, the computed MEX ephemeris is stored into the common blocks.
+;
+;       DEG:      If set, the unit of ephemeris angles (LAT, LON, SZA) is converted to be degree.
+;
 ;NOTE:            This routine was initially based on 'mvn_spice_load'.
 ;
 ;CREATED BY:      Takuya Hara on 2015-04-04.
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-05 23:07:21 -0700 (Thu, 05 Apr 2018) $
-; $LastChangedRevision: 25007 $
+; $LastChangedDate: 2021-02-22 11:18:55 -0800 (Mon, 22 Feb 2021) $
+; $LastChangedRevision: 29692 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/spice/mex_spice_load.pro $
 ;
 ;-
 PRO mex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
-                    download_only=download_only, verbose=verbose, resolution=resolution
+                    download_only=download_only, verbose=verbose, resolution=resolution, deg=deg, store=store
 
   IF SIZE(time, /type) EQ 0 THEN get_timespan, trange $
   ELSE BEGIN
@@ -66,6 +70,26 @@ PRO mex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
   pos.lat  = lat
   pos.elon = lon
   pos.sza  = ATAN(SQRT(TOTAL(mso[1:2, *]*mso[1:2, *], 1)), mso[0, *]) 
+
+  IF KEYWORD_SET(deg) THEN BEGIN
+     pos.lat  *= !RADEG
+     pos.elon *= !RADEG
+     pos.sza  *= !RADEG
+     pos.elon = (pos.elon + 360. MOD 360.)
+  ENDIF 
+
+  IF KEYWORD_SET(store) THEN BEGIN
+     COMMON mex_eph_dat, mex_eph
+     mex_eph = {time: 0.d0, mso: REPLICATE(0.d0, 3), geo: REPLICATE(0.d0, 3), alt: 0.d0, lat: 0.d0, lon: 0.d0, sza: 0.d0}
+     mex_eph = REPLICATE(mex_eph, N_ELEMENTS(times))
+     mex_eph.time = pos.time
+     mex_eph.mso  = TRANSPOSE([ [pos.x_ss], [pos.y_ss], [pos.z_ss] ])
+     mex_eph.geo  = TRANSPOSE([ [pos.x_pc], [pos.y_pc], [pos.z_pc] ])
+     mex_eph.alt  = pos.alt
+     mex_eph.lat  = pos.lat
+     mex_eph.lon  = pos.elon
+     mex_eph.sza  = pos.sza
+  ENDIF 
 
   IF KEYWORD_SET(download_only) THEN RETURN
   
