@@ -39,8 +39,10 @@ pro elf_state_fix_metadata, tplotnames, suffix = suffix
     ; handle time 
     if strpos(tplotnames[i], 'solution_date') GE 0 then begin
        get_data, tplotnames[i], data=d, dlimits=dl, limits=l
-       newy=time_double(LONG64(d.y), /tt2000)
-       store_data, tplotnames[i], data={x:d.x, y:newy}, dlimits=dl, limits=l
+       if size(d, /type) EQ 8 then begin
+        newy=time_double(LONG64(d.y), /tt2000)
+        store_data, tplotnames[i], data={x:d.x, y:newy}, dlimits=dl, limits=l
+      endif
     endif
 
   endfor

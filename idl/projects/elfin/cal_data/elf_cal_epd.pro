@@ -19,13 +19,18 @@
 ;   type: type of calibrated data cps, nflux, eflux
 ;   probe:  name of probe 'a' or 'b'
 ;   nodownload: set this flag to force routine to use local files 
-;   deadtime_corr: set this flag to correct for deadtime
+;   deadtime_corr: set this flag to zero to not correct for deadtime, or to your preferred deadtime (default = 8.e-6 seconds)
 ;   
 ;AUTHOR:
+; 2021-02-19 (VA) fixed: dt to median over spin (does not falter if it includes gaps)
+;                        overaccumulation now applied along with dt, prior to deadtime
+;                        dead time correction now applied on total cps in sector
+;                        revised maxcps to 1.25e5 +2% after review of all 2019 data
+;                        eliminated <0 val's from deadtime cor. (set=0 & then nearest-neighbor interpol.)
 ; Initially written by Colin Wilkins (colinwilkins@ucla.edu)
 ;-
 
-PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_download=no_download, deadtime_corr=deadtime_corr
+PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_download=no_download, deadtime_corr=my_deadtime
 
   ; get epd data and double check that it exists
   get_data, tplotname, data=d, dlimits=dl, limits=l
@@ -58,7 +63,7 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_
      dprint, dlevel = 1, 'EPD calibration data was not retrieved. Unable to calibrate the data.'
      return
   endif
-
+  ;
   ; setup variables
   num_samples = (size(d.x))[1]
   dt = 0.
@@ -67,69 +72,72 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, no_
   cal_ch_factors = epd_cal.epd_cal_ch_factors
   overint_factors = epd_cal.epd_overaccumulation_factors
   ebins_logmean = epd_cal.epd_ebins_logmean
-  
+  ;
   ; ... for dead time correction
-  deadtime_corr = 1
-  if deadtime_corr then $
-   print, 'Deadtime correction applied'
-  max_count_rate = 1.03e5 ; [counts/s] 
-  
+  if ~keyword_set(my_deadtime) then begin $
+    my_deadtime = 1./(1.02*1.25e5) ; [default ~ 2% above ~max cps in data (after overaccum. corr.) of 125Kcps corresponds to 8.e-6 us peak hold in front preamp] 
+    print, 'Deadtime correction applied with above, default deadtime; to not apply set deadtime_corr= 0. or a tiny value, e.g. 1.e-9'
+  endif
+  ;
   ; Perform calibration
   Case type of
     'raw': store_data, tplotname, data={x:d.x, y:d.y, v:findgen(16) }, dlimits=dl, limits=l      
     'cps': begin
-      for i = 0, num_samples-1 do begin
-        sec_num = i mod 16
-        if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2]) ; VA/CR changed to median here
-;      dt=d.x[1:n_elements(d.x)-1]-d.x[0:n_elements(d.x)-2]
-;      dt=[dt, dt[n_elements(dt)-1]]
-;      y_cps=d.y
-        for j=0,15 do d.y[i,j]=d.y[i,j]/dt   
-        if deadtime_corr then begin
-          ;print, 'Deadtime correction applied'
-          for j=0,15 do d.y[i,j]=d.y[i,j]/(1.0 - d.y[i,j]/max_count_rate)
-        endif        
-      endfor
-      store_data, tplotname, data={x:d.x, y:d.y, v:ebins_logmean }, dlimits=dl, limits=l
-    end
+     for i = 0, num_samples-1 do begin
+       sec_num = i mod 16
+       if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2])
+       d.y[i,*]=d.y[i,*]/(dt*overint_factors[sec_num]) ; cps
+       totcps=total(d.y[i,*],/NaN)
+       d.y[i,*]=d.y[i,*]/(1.0 -totcps*my_deadtime) ; deadtime correction
+     endfor  
+     ineg=where(total(d.y,2,/NaN) lt 0,jneg) ; only reason for negatives is deadtime cor.
+     if jneg gt 0 then begin
+       d.y[ineg,*]=0
+       d3interpol=d.y
+       d3interpol[1:num_samples-2,*]=(d.y[0:num_samples-3,*]+d.y[2:num_samples-1,*])/2.
+       d.y[ineg,*]=d3interpol[ineg,*]
+     endif
+     store_data, tplotname, data={x:d.x, y:d.y, v:ebins_logmean }, dlimits=dl, limits=l
+     end
     'nflux': begin
       for i = 0, num_samples-1 do begin
         sec_num = i mod 16
-        if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2]) ; VA changed to median here
-        for j = 0, 15 do begin
-          ;if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
-          if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 6.2 ; energy in units of MeV
-          if deadtime_corr then begin
-            ;print, 'Deadtime correction applied'
-            d.y[i,j] = d.y[i,j]/dt*1. ; cps
-            d.y[i,j] =  d.y[i,j]/(1.0 - d.y[i,j]/max_count_rate) ; deadtime correction
-            d.y[i,j] *= cal_ch_factors[j]*overint_factors[sec_num]*1./dE ; calibration 
-          endif else begin
-            d.y[i,j] *= cal_ch_factors[j]*overint_factors[sec_num]*1./dt*1./dE
-          endelse  
-        endfor
+        if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2])
+        dE = 1.e-3*(ebins[1:15]-ebins[0:14]) ; in MeV
+        dE = [dE,6.2] ; energy in units of MeV
+        d.y[i,*] = d.y[i,*]/(dt*overint_factors[sec_num]) ; cps
+        totcps=total(d.y[i,*],/NaN)
+        d.y[i,*] = d.y[i,*]/(1.0 - totcps*my_deadtime) ; deadtime correction
+        d.y[i,*] = d.y[i,*]*cal_ch_factors/dE ; calibration 
       endfor
+      ineg=where(total(d.y,2,/NaN) lt 0,jneg) ; only reason for negatives is deadtime cor.
+      if jneg gt 0 then begin
+        d.y[ineg,*]=0
+        d3interpol=d.y
+        d3interpol[1:num_samples-2,*]=(d.y[0:num_samples-3,*]+d.y[2:num_samples-1,*])/2.
+        d.y[ineg,*]=d3interpol[ineg,*]
+      endif
       store_data, tplotname, data={x:d.x, y:d.y, v:ebins_logmean }, dlimits=dl, limits=l
     end
     'eflux': begin
       for i = 0, num_samples-1 do begin
         sec_num = i mod 16
-        if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2]) ; VA changed to median here
-        for j = 0, 15 do begin
-          ;if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 1. ; energy in units of MeV
-          if (j ne 15) then dE = 1.e-3*(ebins[j+1]-ebins[j]) else dE = 6.2 ; energy in units of MeV
-          if deadtime_corr then begin
-            ;print, 'Deadtime correction applied'
-            d.y[i,j] = d.y[i,j]/dt*1. ; cps
-            d.y[i,j] =  d.y[i,j]/(1.0 - d.y[i,j]/max_count_rate) ; deadtime correction
-            d.y[i,j] *= ebins_logmean[j]*cal_ch_factors[j]*overint_factors[sec_num]*1./dE
-          endif else begin
-           d.y[i,j] *= ebins_logmean[j]*cal_ch_factors[j]*overint_factors[sec_num]*1./dt*1./dE
-          endelse
-        endfor
+        if (sec_num eq 0 and i+16-1 le num_samples-1) then dt = median(d.x[i+1:i+16-1]-d.x[i+0:i+16-2])
+        dE = 1.e-3*(ebins[1:15]-ebins[0:14]) ; in MeV
+        dE = [dE,6.2] ; energy in units of MeV
+        d.y[i,*] = d.y[i,*]/(dt*overint_factors[sec_num]) ; cps
+        totcps=total(d.y[i,*],/NaN)
+        d.y[i,*]=d.y[i,*]/(1.0 - totcps*my_deadtime) ; deadtime correction
+        d.y[i,*]=d.y[i,*]*ebins_logmean*cal_ch_factors/dE
       endfor
+      ineg=where(total(d.y,2,/NaN) lt 0,jneg) ; only reason for negatives is deadtime cor.
+      if jneg gt 0 then begin
+        d.y[ineg,*]=0
+        d3interpol=d.y
+        d3interpol[1:num_samples-2,*]=(d.y[0:num_samples-3,*]+d.y[2:num_samples-1,*])/2.
+        d.y[ineg,*]=d3interpol[ineg,*]
+      endif
       store_data, tplotname, data={x:d.x, y:d.y, v:ebins_logmean }, dlimits=dl, limits=l
-    end
+      end
   Endcase
-
 END

@@ -89,22 +89,22 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
    ; set up zlimits for the spectral data
    ;options, 'el'+probe+'_bt89_sm_NED', charsize=.8
    ;options, 'el'+probe+'_bt89_sm_NED', colors=[251, 155, 252]
-   zlim, 'el'+probe+'_pef_en_spec2plot_omni', 1.e1, 2.e6
-   zlim, 'el'+probe+'_pef_en_spec2plot_anti', 1.e1, 2.e6
-   zlim, 'el'+probe+'_pef_en_spec2plot_perp', 1.e1, 2.e6
-   zlim, 'el'+probe+'_pef_en_spec2plot_para', 1.e1, 2.e6
-   zlim, 'el'+probe+'_pef_pa_spec2plot_ch0LC', 2.e3, 2.e6
-   zlim, 'el'+probe+'_pef_pa_spec2plot_ch1LC',1.e3, 2.e5
-   zlim, 'el'+probe+'_pef_pa_spec2plot_ch2LC', 1.e2, 1.e5
-   zlim, 'el'+probe+'_pef_pa_spec2plot_ch3LC', 1.e1, 2.e3
-   zlim, 'el'+probe+'_pef_en_reg_spec2plot_omni', 1.e1, 2.e6
-   zlim, 'el'+probe+'_pef_en_reg_spec2plot_anti', 1.e1, 2.e6
-   zlim, 'el'+probe+'_pef_en_reg_spec2plot_perp', 1.e1, 2.e6
-   zlim, 'el'+probe+'_pef_en_reg_spec2plot_para', 1.e1, 2.e6
-   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch0LC', 2.e3, 2.e6
-   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC', 1.e3, 2.e5
-   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch2LC', 1.e2, 1.e5
-   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch3LC', 1.e1, 2.e3
+   zlim, 'el'+probe+'_pef_en_spec2plot_omni', 1.e1, 2.e7
+   zlim, 'el'+probe+'_pef_en_spec2plot_anti', 1.e1, 2.e7
+   zlim, 'el'+probe+'_pef_en_spec2plot_perp', 1.e1, 2.e7
+   zlim, 'el'+probe+'_pef_en_spec2plot_para', 1.e1, 2.e7
+   zlim, 'el'+probe+'_pef_pa_spec2plot_ch0LC', 2.e3, 2.e7
+   zlim, 'el'+probe+'_pef_pa_spec2plot_ch1LC',1.e3, 4.e6
+   zlim, 'el'+probe+'_pef_pa_spec2plot_ch2LC', 1.e2, 1.e6
+   zlim, 'el'+probe+'_pef_pa_spec2plot_ch3LC', 1.e1, 2.e4
+   zlim, 'el'+probe+'_pef_en_reg_spec2plot_omni', 1.e1, 2.e7
+   zlim, 'el'+probe+'_pef_en_reg_spec2plot_anti', 1.e1, 2.e7
+   zlim, 'el'+probe+'_pef_en_reg_spec2plot_perp', 1.e1, 2.e7
+   zlim, 'el'+probe+'_pef_en_reg_spec2plot_para', 1.e1, 2.e7
+   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch0LC', 2.e3, 2.e7
+   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC', 1.e3, 4.e6
+   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch2LC', 1.e2, 1.e6
+   zlim, 'el'+probe+'_pef_pa_reg_spec2plot_ch3LC', 1.e1, 2.e4
 
    options, 'el'+probe+'_pef_en_spec2plot_omni',zstyle=1
    options, 'el'+probe+'_pef_en_spec2plot_anti',zstyle=1
@@ -143,17 +143,17 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
 
    ; set the range for the z axis
    options,'el?_p?f_pa*spec2plot_ch*LC*','ztitle','nflux'
-   options,'el?_p?f_pa*spec2plot_ch0LC*','zrange',[2e3,2e6]
-   options,'el?_p?f_pa*spec2plot_ch1LC*','zrange',[1e3,2e5]
-   options,'el?_p?f_pa*spec2plot_ch2LC*','zrange',[1e2,1e5]
-   options,'el?_p?f_pa*spec2plot_ch3LC*','zrange',[1e1,2e3]
+   options,'el?_p?f_pa*spec2plot_ch0LC*','zrange',[2e3,2e7]
+   options,'el?_p?f_pa*spec2plot_ch1LC*','zrange',[1e3,4e6]
+   options,'el?_p?f_pa*spec2plot_ch2LC*','zrange',[1e2,1e6]
+   options,'el?_p?f_pa*spec2plot_ch3LC*','zrange',[1e1,2e4]
    options,'el?_p?f_pa*spec2plot_ch0LC*','zstyle',1
    options,'el?_p?f_pa*spec2plot_ch1LC*','zstyle',1
    options,'el?_p?f_pa*spec2plot_ch2LC*','zstyle',1
    options,'el?_p?f_pa*spec2plot_ch3LC*','zstyle',1
-   options,'el?_p?f_en_spec2plot*','zrange',[1e1,2e6]
+   options,'el?_p?f_en_spec2plot*','zrange',[1e1,2e7]
    options,'el?_p?f_en_spec2plot*','zstyle',1
-   options,'el?_p?f_en_reg_spec2plot*','zrange',[1e1,2e6]
+   options,'el?_p?f_en_reg_spec2plot*','zrange',[1e1,2e7]
    options,'el?_p?f_en_reg_spec2plot*','zstyle',1
 
    options, 'el'+probe+'_pef_en_spec2plot_omni','extend_edges',1
