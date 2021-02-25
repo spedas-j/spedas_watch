@@ -34,7 +34,8 @@
 ;         + 2020-09-30, I. Cohen        : removed duplicate "datatype" in name of tplot spin variable (line 105)
 ;         + 2020-10-26, I. Cohen        : added missing "datatype" in definition of prefix for survey data                   
 ;         + 2020-12-11, I. Cohen        : moved eis_sc_check definition into species loop to address issue handling multiple species from single call
-;         + 2021-02-09, I. Cohen        : added helium to species in header under KEYWORD section        
+;         + 2021-02-09, I. Cohen        : added helium to species in header under KEYWORD section 
+;         + 2021-02-24, I. Cohen        : changed combined s/c variable names from mms#-# to mmsx
 ;
 ;-
 pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
@@ -58,8 +59,8 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
     if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species[ss]+'*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_'+species[ss]+'*flux*omni')
     probes = strmid(eis_sc_check, 3, 1)
     if (n_elements(probes) gt 4) then probes = probes[0:-2]
-    if (n_elements(probes) gt 1) then probe_string = probes[0]+'-'+probes[-1] else probe_string = probes
-    if (data_rate eq 'brst') then allmms_prefix = 'mms'+probe_string+'_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mms'+probe_string+'_epd_eis_'+datatype+'_'
+    ;if (n_elements(probes) gt 1) then probe_string = probes[0]+'-'+probes[-1] else probe_string = probes
+    if (data_rate eq 'brst') then allmms_prefix = 'mmsx_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mmsx_epd_eis_'+datatype+'_'
     ;
     ; DETERMINE SPACECRAFT WITH SMALLEST NUMBER OF TIME STEPS TO USE AS REFERENCE SPACECRAFT
     if (data_rate eq 'brst') then omni_vars = tnames('mms?_epd_eis_brst_'+datatype+'_'+species[ss]+'_'+data_units+'_omni') else if (data_rate eq 'srvy') then omni_vars = tnames('mms?_epd_eis_'+datatype+'_'+species[ss]+'_'+data_units+'_omni')

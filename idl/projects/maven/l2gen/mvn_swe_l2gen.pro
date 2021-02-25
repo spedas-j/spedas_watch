@@ -39,8 +39,8 @@
 ; Hacked from Matt F's crib_l0_to_l2.txt, 2014-11-14: jmm
 ; Better memory management and added keywords to control processing: dlm
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-18 13:40:21 -0800 (Thu, 18 Feb 2021) $
-; $LastChangedRevision: 29670 $
+; $LastChangedDate: 2021-02-24 11:21:40 -0800 (Wed, 24 Feb 2021) $
+; $LastChangedRevision: 29698 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
@@ -102,13 +102,13 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, nokp=nokp, $
   message, /info, 'PROCESSING: '+time_string(t0)
   timespan, t0, 1
 
-; get SPICE kernels
+; get SPICE time and frames kernels
 
-  mvn_swe_spice_init, /force
+  mvn_swe_spice_init, /baseonly, /force, /list
 
 ; Load L0 SWEA data
 
-  mvn_swe_load_l0
+  mvn_swe_load_l0, /nospice
 
 ; Load highest level MAG data available (for pitch angle sorting)
 ;   L0 --> MAG angles computed onboard (stored in A2/A3 packets)
