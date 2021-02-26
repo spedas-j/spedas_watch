@@ -15,8 +15,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2018-08-20 12:17:17 -0700 (Mon, 20 Aug 2018) $
-; $LastChangedRevision: 25665 $
+; $LastChangedDate: 2021-02-25 08:53:57 -0800 (Thu, 25 Feb 2021) $
+; $LastChangedRevision: 29701 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_programs/mvn_sta_gf_corr.pro $
 ;
 ;-
@@ -31,17 +31,11 @@ PRO mvn_sta_gf_corr, tplot=tplot, verbose=verbose
   c0 = 1
   IF N_ELEMENTS(mvn_c0_ind) EQ 0 THEN c0 = 0 $
   ELSE IF mvn_c0_ind EQ -1 THEN c0 = 0
-  IF (c0 EQ 0) THEN BEGIN
-     dprint, dlevel=2, verbose=verbose, 'No C0 data product loaded.'
-     RETURN
-  ENDIF 
+
   c6 = 1
   IF N_ELEMENTS(mvn_c6_ind) EQ 0 THEN c6 = 0 $
   ELSE IF mvn_c6_ind EQ -1 THEN c6 = 0
-  IF (c6 EQ 0) THEN BEGIN
-     dprint, dlevel=2, verbose=verbose, 'No C6 data product loaded.'
-     RETURN
-  ENDIF 
+
   ca = 1
   IF N_ELEMENTS(mvn_ca_ind) EQ 0 THEN ca = 0 $
   ELSE IF mvn_ca_ind EQ -1 THEN ca = 0
@@ -81,104 +75,108 @@ PRO mvn_sta_gf_corr, tplot=tplot, verbose=verbose
   gfca = TEMPORARY(gf)
 
   ; C0
-  npts = N_ELEMENTS(mvn_c0_dat.time)
-  iswp = mvn_c0_dat.swp_ind
-  ieff = mvn_c0_dat.eff_ind
-  iatt = mvn_c0_dat.att_ind
-  nenergy = mvn_c0_dat.nenergy
-  avg_nrg = nenergy / mvn_ca_dat.nenergy
-  nmass = mvn_c0_dat.nmass
-
-  time = (mvn_c0_dat.time + mvn_c0_dat.end_time)/2.
-  data = mvn_c0_dat.data
-  energy = REFORM(mvn_c0_dat.energy[iswp, *, 0])
-  mass = TOTAL(mvn_c0_dat.mass_arr[iswp, *, *], 2)/nenergy
+  IF (c0) THEN BEGIN
+     npts = N_ELEMENTS(mvn_c0_dat.time)
+     iswp = mvn_c0_dat.swp_ind
+     ieff = mvn_c0_dat.eff_ind
+     iatt = mvn_c0_dat.att_ind
+     nenergy = mvn_c0_dat.nenergy
+     avg_nrg = nenergy / mvn_ca_dat.nenergy
+     nmass = mvn_c0_dat.nmass
      
-  bkg = mvn_c0_dat.bkg
-  dead = mvn_c0_dat.dead
-  gf = REFORM(mvn_c0_dat.gf[iswp, *, 0]*((iatt EQ 0)#REPLICATE(1., nenergy)) +$
-              mvn_c0_dat.gf[iswp, *, 1]*((iatt EQ 1)#REPLICATE(1., nenergy)) +$
-              mvn_c0_dat.gf[iswp, *, 2]*((iatt EQ 2)#REPLICATE(1., nenergy)) +$
-              mvn_c0_dat.gf[iswp, *, 3]*((iatt EQ 3)#REPLICATE(1., nenergy)), npts*nenergy)#REPLICATE(1., nmass)
-  eff = mvn_c0_dat.eff[ieff, *, *]
-  dt = FLOAT(mvn_c0_dat.integ_t#REPLICATE(1., nenergy*nmass))
+     time = (mvn_c0_dat.time + mvn_c0_dat.end_time)/2.
+     data = mvn_c0_dat.data
+     energy = REFORM(mvn_c0_dat.energy[iswp, *, 0])
+     mass = TOTAL(mvn_c0_dat.mass_arr[iswp, *, *], 2)/nenergy
+     
+     bkg = mvn_c0_dat.bkg
+     dead = mvn_c0_dat.dead
+     gf = REFORM(mvn_c0_dat.gf[iswp, *, 0]*((iatt EQ 0)#REPLICATE(1., nenergy)) +$
+                 mvn_c0_dat.gf[iswp, *, 1]*((iatt EQ 1)#REPLICATE(1., nenergy)) +$
+                 mvn_c0_dat.gf[iswp, *, 2]*((iatt EQ 2)#REPLICATE(1., nenergy)) +$
+                 mvn_c0_dat.gf[iswp, *, 3]*((iatt EQ 3)#REPLICATE(1., nenergy)), npts*nenergy)#REPLICATE(1., nmass)
+     eff = mvn_c0_dat.eff[ieff, *, *]
+     dt = FLOAT(mvn_c0_dat.integ_t#REPLICATE(1., nenergy*nmass))
 
-  n = nn(mvn_ca_dat.time, mvn_c0_dat.time)
-  gf2 = gf_corr[n, *]  
-  gf2 = REBIN(gf2, npts, mvn_ca_dat.nenergy, avg_nrg, /sample)
-  gf2 = REBIN(REFORM(TRANSPOSE(gf2, [0, 2, 1]), npts, nenergy), npts, nenergy, nmass, /sample)
-  cf  = gf2 / gf
-  str_element, mvn_c0_dat, 'gf_corr', cf[*, *, 0], /add ; slim down array size
+     n = nn(mvn_ca_dat.time, mvn_c0_dat.time)
+     gf2 = gf_corr[n, *]  
+     gf2 = REBIN(gf2, npts, mvn_ca_dat.nenergy, avg_nrg, /sample)
+     gf2 = REBIN(REFORM(TRANSPOSE(gf2, [0, 2, 1]), npts, nenergy), npts, nenergy, nmass, /sample)
+     cf  = gf2 / gf
+     str_element, mvn_c0_dat, 'gf_corr', cf[*, *, 0], /add ; slim down array size
 
-  gf = mvn_c0_dat.geom_factor*REFORM(gf, npts, nenergy, nmass)
-  eflux = (data-bkg)*dead/((gf*cf)*eff*dt)
-  str_element, mvn_c0_dat, 'eflux', eflux, /add_replace
+     gf = mvn_c0_dat.geom_factor*REFORM(gf, npts, nenergy, nmass)
+     eflux = (data-bkg)*dead/((gf*cf)*eff*dt)
+     str_element, mvn_c0_dat, 'eflux', eflux, /add_replace
+     
+     IF KEYWORD_SET(tplot) THEN BEGIN
+        qf = (mvn_c0_dat.quality_flag AND 128)/128 OR (mvn_c0_dat.quality_flag AND 64)/64
+        ind = where(qf EQ 1, count)
+        IF count GE 1 THEN data[ind, *, *] = 0.
+        IF count GE 1 THEN eflux[ind, *, *] = 0.
 
-  IF KEYWORD_SET(tplot) THEN BEGIN
-     qf = (mvn_c0_dat.quality_flag AND 128)/128 OR (mvn_c0_dat.quality_flag AND 64)/64
-     ind = where(qf EQ 1, count)
-     IF count GE 1 THEN data[ind, *, *] = 0.
-     IF count GE 1 THEN eflux[ind, *, *] = 0.
-
-     store_data,'mvn_sta_c0_e_gf_corr', data={x: time, y: TOTAL(eflux, 3), v: energy}, $
-                dlim={ylog: 1, zlog: 1, datagap: 7., spec: 1, ytitle: 'STA C0', ztitle: 'eflux', no_interp: 1, $
-                      ysubtitle: 'Energy [eV]'};, ytickformat: 'exponent'}
-     ylim, 'mvn_sta_c0_e_gf_corr', .1, 40.e3, 1, /def
-     zlim, 'mvn_sta_c0_e_gf_corr', 1.e3, 1.e9, 1, /def
+        store_data,'mvn_sta_c0_e_gf_corr', data={x: time, y: TOTAL(eflux, 3), v: energy}, $
+                   dlim={ylog: 1, zlog: 1, datagap: 7., spec: 1, ytitle: 'STA C0', ztitle: 'eflux', no_interp: 1, $
+                         ysubtitle: 'Energy [eV]'}
+        ylim, 'mvn_sta_c0_e_gf_corr', .1, 40.e3, 1, /def
+        zlim, 'mvn_sta_c0_e_gf_corr', 1.e3, 1.e9, 1, /def
+     ENDIF 
   ENDIF 
 
   ; C6
-  npts = N_ELEMENTS(mvn_c6_dat.time)
-  iswp = mvn_c6_dat.swp_ind
-  ieff = mvn_c6_dat.eff_ind
-  iatt = mvn_c6_dat.att_ind
-  nenergy = mvn_c6_dat.nenergy
-  avg_nrg = nenergy / mvn_ca_dat.nenergy
-  nmass = mvn_c6_dat.nmass
-
-  time = (mvn_c6_dat.time + mvn_c6_dat.end_time)/2.
-  data = mvn_c6_dat.data
-  energy = REFORM(mvn_c6_dat.energy[iswp, *, 0])
-  mass = TOTAL(mvn_c6_dat.mass_arr[iswp, *, *], 2)/nenergy
-  
-  bkg = mvn_c6_dat.bkg
-  dead = mvn_c6_dat.dead
-  gf = REFORM(mvn_c6_dat.gf[iswp, *, 0]*((iatt EQ 0)#REPLICATE(1., nenergy)) +$
-              mvn_c6_dat.gf[iswp, *, 1]*((iatt EQ 1)#REPLICATE(1., nenergy)) +$
-              mvn_c6_dat.gf[iswp, *, 2]*((iatt EQ 2)#REPLICATE(1., nenergy)) +$
-              mvn_c6_dat.gf[iswp, *, 3]*((iatt EQ 3)#REPLICATE(1., nenergy)), npts*nenergy)#REPLICATE(1., nmass)
-
-  eff = mvn_c6_dat.eff[ieff, *, *]
-  dt = FLOAT(mvn_c6_dat.integ_t#REPLICATE(1., nenergy*nmass))
-
-  n = nn(mvn_ca_dat.time, mvn_c6_dat.time)
-  gf2 = gf_corr[n, *]
-  gf2 = REBIN(gf2, npts, mvn_ca_dat.nenergy, avg_nrg, /sample)
-  gf2 = REBIN(REFORM(TRANSPOSE(gf2, [0, 2, 1]), npts, nenergy), npts, nenergy, nmass, /sample)
-  cf  = gf2 / gf
-  str_element, mvn_c6_dat, 'gf_corr', cf[*, *, 0], /add
-
-  gf = mvn_c6_dat.geom_factor*REFORM(gf, npts, nenergy, nmass)  
-  eflux = (data-bkg)*dead/((gf*cf)*eff*dt)
-  str_element, mvn_c6_dat, 'eflux', eflux, /add_replace
+  IF (c6) THEN BEGIN
+     npts = N_ELEMENTS(mvn_c6_dat.time)
+     iswp = mvn_c6_dat.swp_ind
+     ieff = mvn_c6_dat.eff_ind
+     iatt = mvn_c6_dat.att_ind
+     nenergy = mvn_c6_dat.nenergy
+     avg_nrg = nenergy / mvn_ca_dat.nenergy
+     nmass = mvn_c6_dat.nmass
      
-  IF KEYWORD_SET(tplot) THEN BEGIN
-     qf = (mvn_c6_dat.quality_flag AND 128)/128 OR (mvn_c6_dat.quality_flag AND 64)/64
-     ind = where(qf EQ 1, count)
-     IF count GT 0 THEN data[ind, *, *] = 0.
-     IF count GT 0 THEN eflux[ind, *, *] = 0.
-    
-     store_data,'mvn_sta_c6_e_gf_corr', data={x: time, y: TOTAL(eflux, 3), v: energy}, $
-                dlim={ylog: 1, zlog: 1, datagap: 7., spec: 1, ytitle: 'STA C6', ztitle: 'eflux', no_interp: 1, $
-                      ysubtitle: 'Energy [eV]'};, ytickformat: 'exponent'}
-     ylim, 'mvn_sta_c6_e_gf_corr', .1, 40.e3, 1, /def
-     zlim, 'mvn_sta_c6_e_gf_corr', 1.e3, 1.e9, 1, /def
+     time = (mvn_c6_dat.time + mvn_c6_dat.end_time)/2.
+     data = mvn_c6_dat.data
+     energy = REFORM(mvn_c6_dat.energy[iswp, *, 0])
+     mass = TOTAL(mvn_c6_dat.mass_arr[iswp, *, *], 2)/nenergy
      
-     store_data,'mvn_sta_c6_m_gf_corr', data={x: time, y: TOTAL(eflux, 2), v: mass}, $
-                dlim={ylog: 1, zlog: 1, datagap: 7., spec: 1, ytitle: 'STA C6', ztitle: 'eflux', no_interp: 1, $
-                      ysubtitle: 'Mass [amu]'};, ytickformat: 'exponent'}
-     ylim, 'mvn_sta_c6_m_gf_corr', .5, 100., /def
-     zlim, 'mvn_sta_c6_m_gf_corr', 1.e3, 1.e9, 1, /def
+     bkg = mvn_c6_dat.bkg
+     dead = mvn_c6_dat.dead
+     gf = REFORM(mvn_c6_dat.gf[iswp, *, 0]*((iatt EQ 0)#REPLICATE(1., nenergy)) +$
+                 mvn_c6_dat.gf[iswp, *, 1]*((iatt EQ 1)#REPLICATE(1., nenergy)) +$
+                 mvn_c6_dat.gf[iswp, *, 2]*((iatt EQ 2)#REPLICATE(1., nenergy)) +$
+                 mvn_c6_dat.gf[iswp, *, 3]*((iatt EQ 3)#REPLICATE(1., nenergy)), npts*nenergy)#REPLICATE(1., nmass)
+     
+     eff = mvn_c6_dat.eff[ieff, *, *]
+     dt = FLOAT(mvn_c6_dat.integ_t#REPLICATE(1., nenergy*nmass))
+     
+     n = nn(mvn_ca_dat.time, mvn_c6_dat.time)
+     gf2 = gf_corr[n, *]
+     gf2 = REBIN(gf2, npts, mvn_ca_dat.nenergy, avg_nrg, /sample)
+     gf2 = REBIN(REFORM(TRANSPOSE(gf2, [0, 2, 1]), npts, nenergy), npts, nenergy, nmass, /sample)
+     cf  = gf2 / gf
+     str_element, mvn_c6_dat, 'gf_corr', cf[*, *, 0], /add
+     
+     gf = mvn_c6_dat.geom_factor*REFORM(gf, npts, nenergy, nmass)  
+     eflux = (data-bkg)*dead/((gf*cf)*eff*dt)
+     str_element, mvn_c6_dat, 'eflux', eflux, /add_replace
+     
+     IF KEYWORD_SET(tplot) THEN BEGIN
+        qf = (mvn_c6_dat.quality_flag AND 128)/128 OR (mvn_c6_dat.quality_flag AND 64)/64
+        ind = where(qf EQ 1, count)
+        IF count GT 0 THEN data[ind, *, *] = 0.
+        IF count GT 0 THEN eflux[ind, *, *] = 0.
+        
+        store_data,'mvn_sta_c6_e_gf_corr', data={x: time, y: TOTAL(eflux, 3), v: energy}, $
+                   dlim={ylog: 1, zlog: 1, datagap: 7., spec: 1, ytitle: 'STA C6', ztitle: 'eflux', no_interp: 1, $
+                         ysubtitle: 'Energy [eV]'}
+        ylim, 'mvn_sta_c6_e_gf_corr', .1, 40.e3, 1, /def
+        zlim, 'mvn_sta_c6_e_gf_corr', 1.e3, 1.e9, 1, /def
+        
+        store_data,'mvn_sta_c6_m_gf_corr', data={x: time, y: TOTAL(eflux, 2), v: mass}, $
+                   dlim={ylog: 1, zlog: 1, datagap: 7., spec: 1, ytitle: 'STA C6', ztitle: 'eflux', no_interp: 1, $
+                         ysubtitle: 'Mass [amu]'}
+        ylim, 'mvn_sta_c6_m_gf_corr', .5, 100., /def
+        zlim, 'mvn_sta_c6_m_gf_corr', 1.e3, 1.e9, 1, /def
+     ENDIF 
   ENDIF 
 
   ; C6E
