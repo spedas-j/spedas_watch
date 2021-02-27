@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2021-02-03 16:01:12 -0800 (Wed, 03 Feb 2021) $
-; $LastChangedRevision: 29645 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-02-26 13:43:02 -0800 (Fri, 26 Feb 2021) $
+; $LastChangedRevision: 29704 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 ;
@@ -99,7 +99,7 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
       store_data,prefix+'EFLUX_VS_THETA_OVL',data =vname_th ,dlimit={yrange:[-60,60],ylog:0,zlog:1,ystyle:3}
       store_data,prefix+'EFLUX_VS_PHI_OVL',data = vname_phi,dlimit={yrange:[90.,190.],ylog:0,zlog:1,ystyle:3}
     endif
-    
+
     if type eq 'tof' then begin
       name = prefix+'TOF'
       get_data,name,data=d
@@ -111,13 +111,12 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
         d.y = d.y / (replicate(1, n_elements(d.x)) # tbin)
         str_element,/add,d,'v',ttbin/5.   ; approx calibration.
         store_data,name+'_cor',data=d,dlim={spec:1,panel_size:3.,zlog:1,yrange:[6,220],ylog:1,ystyle:3}
-        mm = average(d.y[*,44:56],2)
+        mm = average(d.y[*,44:56],2) ;proton peak
         store_data,name+'_TOTAL',data={x:d.x, y:mm}
         d.y = d.y / (mm # replicate(1.,512) )
-        store_data,name+'_NORM',data=d,dlim={spec:1,panel_size:3.,zrange:[1e-4,1]*2,zlog:1,yrange:[6,220],ylog:1,ystyle:3}        
+        store_data,name+'_NORM',data=d,dlim={spec:1,panel_size:3.,zrange:[1e-4,1]*2,zlog:1,yrange:[6,220],ylog:1,ystyle:3}
       endif
     endif
-
 
   endforeach
   options,'psp_swp_spi_????_L3_VEL'   ,colors='bgr',labels=['Vx','Vy','Vz'],labflag=-1
@@ -131,11 +130,11 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
   endif
 
   if keyword_set(overlay) then begin
-;    options,'psp_swp_spc_l3i_np_fit',colors='b'
-;    options,'psp_swp_spc_l3i_np_moment',colors='c'
+    ;options,'psp_swp_spc_l3i_np_fit',colors='b'
+    ;options,'psp_swp_spc_l3i_np_moment',colors='c'
     store_data,'psp_swp_density',data = 'psp_swp_spc_l3i_np_moment psp_swp_spc_l3i_np_fit psp_swp_spi_??0[01]_L3_DENS',dlimit={yrange:[10,600],ylog:1}
   endif
-  
+
   if keyword_set(SC_frame) || keyword_set(rtn_frame) then begin
     rot_th = 20. ; rotation angle
     rotr = [[1,0,0.],[0,cosd(rot_th),sind(rot_th)],[0,-sind(rot_th),cosd(rot_th)]]
@@ -154,11 +153,11 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
       rot_th = 20. ; rotation angle
       rotr = [[1,0,0.],[0,cosd(rot_th),sind(rot_th)],[0,-sind(rot_th),cosd(rot_th)]]
       rel = [[0,-1,0],[0,0,-1],[1,0,0]]    ; effective relabelling of axes
-      RotMat_inst_sc = rel ## rotr ; transformation matrix from ion instrument coordinates TO SC Frame     
-      print,spice_m2q(rotmat_inst_sc) 
+      RotMat_inst_sc = rel ## rotr ; transformation matrix from ion instrument coordinates TO SC Frame
+      print,spice_m2q(rotmat_inst_sc)
     endif
     quat_inst_to_sc = [ 0.57922797d  ,   0.40557979d  ,    -0.57922797d ,    0.40557979d]
-    quat_inst_to_sc2 =  qmult(quat_sc_to_sc2,quat_inst_to_sc)  
+    quat_inst_to_sc2 =  qmult(quat_sc_to_sc2,quat_inst_to_sc)
     get_data,prefix+'VEL',data = spi_VEL
     spi_vel.y = quaternion_rotation(  spi_vel.y ,quat_inst_to_sc2 , last_index=0)
     store_data,prefix+'VEL_SC2',data = spi_VEL,dlimit={colors:'bgr',labels:['Vx2','Vy2','Vz2'],labflag:-1}
@@ -166,23 +165,10 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
   endif
 
   if keyword_set(RTN_frame) then begin
-;    quat_SC2_to_SC = [.5d,.5d,.5d,-.5d]
-;    quat_SC_to_SC2 = [.5d,-.5d,-.5d,.5d]
-;    if 0 then begin
-;      rot_th = 20. ; rotation angle
-;      rotr = [[1,0,0.],[0,cosd(rot_th),sind(rot_th)],[0,-sind(rot_th),cosd(rot_th)]]
-;      rel = [[0,-1,0],[0,0,-1],[1,0,0]]    ; effective relabelling of axes
-;      RotMat_inst_sc = rel ## rotr ; transformation matrix from ion instrument coordinates TO SC Frame
-;      print,spice_m2q(rotmat_inst_sc)
-;    endif
-  ;  quat_inst_to_sc = [ 0.57922797d  ,   0.40557979d  ,    -0.57922797d ,    0.40557979d]
-;    quat_inst_to_sc2 =  qmult(quat_sc_to_sc2,quat_inst_to_sc)
-    n = prefix+'VEL_RTN'
-    tplot_quaternion_rotate,  prefix+'VEL_SC' ,'SPP_SPACECRAFT_QROT_SPP_RTN' ,newname = n
-    tplot_quaternion_rotate,  'SPP_VEL_(Sun-ECLIPJ2000)' ,'ECLIPJ2000_QROT_SPP_RTN' ,newname = 'SPP_VEL_(SUN-ECLIPJ2000)_RTN'   ; this line is incorrect
-    options,n,colors='bgr',labels=['V_R','V_T','V_N'],labflag=-1
+    tplot_quaternion_rotate,  prefix+'VEL_SC' ,'SPP_SPACECRAFT_QROT_SPP_RTN' ,newname = prefix+'VEL_RTN'
+    tplot_quaternion_rotate,  'SPP_VEL_(Sun-ECLIPJ2000)' ,'ECLIPJ2000_QROT_SPP_RTN' ,newname = 'SPP_VEL_(SUN-ECLIPJ2000)_RTN'
     add_data,prefix+'VEL_RTN','SPP_VEL_(SUN-ECLIPJ2000)_RTN',newname=prefix+'VEL_RTN-SUN'
-    
+    options, prefix+'VEL_RTN* SPP_VEL_(SUN-ECLIPJ2000)_RTN',colors='bgr',labels=['V_R','V_T','V_N'],labflag=-1
     if RTN_frame eq 2 then xyz_to_polar,prefix+'VEL_RTN'
   endif
 
