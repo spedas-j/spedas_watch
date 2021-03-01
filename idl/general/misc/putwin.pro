@@ -203,15 +203,16 @@
 ;
 ;                    {f:1, m:2} is interpreted as FULL=1, MONITOR=2.
 ;
-;                  Unrecognized or ambiguous tag names are ignored.
+;                  Unrecognized or ambiguous tag names generate an
+;                  error message, and no window is created.
 ;
 ;                  Keywords set using this mechanism take precedence.
 ;                  All other keywords for WINDOW must be passed
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-21 15:48:50 -0800 (Sun, 21 Feb 2021) $
-; $LastChangedRevision: 29690 $
+; $LastChangedDate: 2021-02-28 12:48:20 -0800 (Sun, 28 Feb 2021) $
+; $LastChangedRevision: 29712 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03

@@ -51,6 +51,10 @@
 ;
 ;       KEEPWINS:      If set, then don't close the snapshot window(s) on exit.
 ;
+;       MONITOR:       Put snapshot windows in this monitor.  Monitors are numbered
+;                      from 0 to N-1, where N is the number of monitors recognized
+;                      by the operating system.  See putwin.pro for details.
+;
 ;       ARCHIVE:       If set, show snapshots of archive data.
 ;
 ;       BURST:         Synonym for ARCHIVE.
@@ -122,10 +126,6 @@
 ;        FBDATA:       Tplot variable name that contains the 32-Hz MAG data.
 ;                      Default = 'mvn_B_full'.
 ;
-;        WINDOW:       Window number for the first snapshot window.  Additional 
-;                      snapshot windows are in numerical sequence.  If not set,
-;                      then all snapshot window numbers are generated automatically.
-;
 ;        ADIABATIC:    Calculate and display the adiabatic condition:
 ;
 ;                        (1/B)*(dB/dx)*Rg << 1
@@ -159,8 +159,8 @@
 ;        NOTE:         Insert a text label.  Keep it short.
 ;        
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-22 16:35:00 -0800 (Tue, 22 Dec 2020) $
-; $LastChangedRevision: 29553 $
+; $LastChangedDate: 2021-02-28 12:43:45 -0800 (Sun, 28 Feb 2021) $
+; $LastChangedRevision: 29709 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -171,7 +171,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                   abins=abins, dbins=dbins, obins=obins, burst=burst, $
                   pot=pot, scp=scp, spec=spec, plotlims=plotlims, norm=norm, $
                   center=center, pep=pep, resample=resample, hires=hires, $
-                  fbdata=fbdata, window=window, adiabatic=adiabatic, $
+                  fbdata=fbdata, monitor=monitor, adiabatic=adiabatic, $
                   nomid=nomid, uncertainty=uncertainty, nospec90=nospec90, $
                   shiftpot=shiftpot,popen=popen, indspec=indspec, twopot=twopot, $
                   xrange=xrange, error_bars=error_bars, yrange=yrange, trange=tspan, $
@@ -180,7 +180,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                   result=result, vdis=vdis
 
   @mvn_swe_com
-  @swe_snap_common
+  @putwin_common
 
   if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
 
@@ -249,7 +249,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     npts = 1
     doall = 1
     dosmo = 1
-    delta_t = double(tsmo)/2D
+    dtsmo = double(tsmo)/2D
   endif else dosmo = 0
   if not keyword_set(smo) then smo = 1
   if keyword_set(norm) then nflg = 1 else nflg = 0
@@ -382,84 +382,55 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
   tplot_options, get_opt=topt
   str_element, topt, 'window', value=Twin, success=ok
   if (not ok) then Twin = !d.window
+  wset, Twin
 
-  if (size(window,/type) gt 0) then begin
-     wnum = window  ; snapshot window numbers determined by user
-     free = 0
+  undefine, mnum
+  if (size(monitor,/type) gt 0) then begin
+    if (size(windex,/type) eq 0) then putwin, /config $
+                                 else if (windex eq -1) then putwin, /config
+    mnum = fix(monitor[0])
   endif else begin
-     wnum = 0       ; snapshot window numbers determined by IDL
-     free = 1
-     wstat = 0
+    if (size(secondarymon,/type) gt 0) then mnum = secondarymon
   endelse
 
-  wdy = 0.
-  if keyword_set(dir) then if (dir gt 1) then wdy = fix(0.125*Nopt.ysize)
-  Nopt2 = Nopt
-  Nopt2.ysize += wdy
+  if (rflg or hflg or uflg) then begin
+    rflg = 1
+    ysize = fix(300.*float(rflg+hflg+uflg))
+    putwin, /free, monitor=mnum, xsize=800, ysize=ysize, dx=10, dy=10, scale=wscale  ; PAD (resample)
+    Pwin = !d.window
+  endif
 
   if (~rflg) then begin
-    if (~free) then wstat = execute("wset, wnum",0,1)
-    if wstat eq 0 then putwin, wnum, free=free, key=Popt, scale=wscale  ; PAD
+    putwin, /free, monitor=mnum, xsize=800, ysize=600, dx=10, dy=10, scale=wscale  ; PAD
     Pwin = !d.window
-    wnum += 1
   endif
+
+  wdy = 0.
+  if keyword_set(dir) then if (dir gt 1) then wdy = fix(0.125*450.)
 
   if (sflg) then begin
-    if (~free) then wstat = execute("wset, wnum",0,1)
-    if wstat eq 0 then putwin, wnum, free=free, key=Nopt2, scale=wscale ; PAD E-cut
+    putwin, /free, xsize=600, ysize=(450+wdy), rel=Pwin, dy=-10, scale=wscale ; PAD E-cut
     Nwin = !d.window
-    wnum += 1
-  endif
-  
-  if (dflg) then begin
-    if (~free) then wstat = execute("wset, wnum",0,1)
-    if wstat eq 0 then putwin, wnum, free=free, key=Copt, scale=wscale  ; 3D view
-    Cwin = !d.window
-    wnum += 1
-  endif
-  
-  if (dospec) then begin
-    if (~free) then wstat = execute("wset, wnum",0,1)
-    if wstat eq 0 then putwin, wnum, free=free, key=Fopt, scale=wscale  ; PAD spec
-    Ewin = !d.window
-    wnum += 1
   endif
 
-  if (rflg or hflg or uflg) then begin
-     if (~free) then wstat = execute("wset, wnum",0,1)
-     if wstat eq 0 then begin
-       Popt2 = Popt
-       Popt2.ysize *= 0.5*(rflg+hflg+uflg)
-       putwin, wnum, free=free, key=Popt2, scale=wscale
-     endif
-     Rwin = !d.window
-     wnum += 1
+  if (dospec) then begin
+    putwin, /free, xsize=400, ysize=600, rel=Pwin, dx=10, /top, scale=wscale  ; PAD spec
+    Ewin = !d.window
+  endif
+
+  if (dflg) then begin
+    putwin, /free, monitor=mnum, xsize=500, ysize=700, dx=10, dy=-10, scale=wscale  ; 3D view
+    Cwin = !d.window
   endif
 
   if (doind) then begin
-      if ~(free) then wstat = execute("wset, wnum",0,1)
-      if wstat eq 0 then begin
-        Fopt2 = Fopt
-        Fopt2.xsize *= 2
-        ;Fopt2.dx += 1
-        ;Fopt2.dy += 1
-        putwin, wnum, free=free, key=Fopt2, scale=wscale
-      endif
-      Iwin = !d.window
-      wnum += 1
+    putwin, /free, monitor=mnum, xsize=800, ysize=600, dx=-10, dy=10, scale=wscale
+    Iwin = !d.window
   endif
 
   if (dov) then begin
-      if ~(free) then wstat = execute("wset, wnum",0,1)
-      if wstat eq 0 then begin
-        Fopt2 = Fopt
-        Fopt2.xsize *= 2
-        ;Fopt2.dx += 1
-        ;Fopt2.dy += 1
-        putwin, wnum, free=free, key=Fopt2, scale=wscale
-      endif
-      Vwin = !d.window
-      wnum += 1
+    putwin, /free, monitor=mnum, xsize=800, ysize=600, dx=-10, dy=-10, scale=wscale
+    Vwin = !d.window
   endif
 
 ; Set plot options
@@ -538,7 +509,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     if (~rflg) then wdelete,Pwin                   ; Don't keep empty windows.
     if (sflg) then wdelete,Nwin
     if (dospec) then wdelete,Ewin
-    if (rflg or hflg or uflg) then wdelete,Rwin
+    if (rflg or hflg or uflg) then wdelete,Pwin
     wset,Twin
     return
   endif
@@ -567,7 +538,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
     if (dosmo) then begin
       tmin = min(trange, max=tmax)
-      trange = [(tmin - delta_t), (tmax + delta_t)]
+      trange = [(tmin - dtsmo), (tmax + dtsmo)]
     endif
 
     if (psflg) then popen, psname + string(nplot,format='("_",i2.2)')
@@ -628,6 +599,9 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
     if (size(pad,/type) eq 8) then begin
 
+      delta_t = pad.end_time - pad.time
+      str_element, pad, 'trange', [(pad.time - delta_t), pad.end_time], /add
+
       pmask = replicate(1.,n_e,16)
       counts = pad
       mvn_swe_convert_units, counts, 'counts'
@@ -673,7 +647,12 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         else     : zlo = 1
       endcase
 
-      tstring = time_string(pad.time, prec=tprec)
+      delta_t = pad.end_time - pad.time
+      if (delta_t gt 1D) then begin
+        tstart = time_string(pad.time - delta_t, prec=tprec)
+        tend   = time_string(pad.end_time, prec=tprec)
+        tstring = tstart + ' - ' + strmid(tend,11)
+      endif else tstring = time_string(pad.time, prec=tprec)
       title = strtrim(string(tstring) + '   ' + note)
       str_element,limits,'title',title,/add
       
@@ -777,7 +756,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
       endif
 
       if (rflg or hflg or uflg) then begin
-         if (~psflg) then wset, Rwin
+         if (~psflg) then wset, Pwin
          if (rflg + hflg + uflg) gt 1 then !p.multi = [0, 1, rflg+hflg+uflg]
          if (rflg) then begin
             rlim = limits
@@ -804,8 +783,11 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
             respad=arpad
 
             if (nflg) then arpad /= rebin(average(arpad, 2, /nan), n_elements(arpad[*, 0]), n_elements(arpad[0, *]), /sample)
-            str_element, rlim, 'title', strtrim(time_string(mean(rpad.time)) + ' (Resampled)' + $
-                                                '   ' + note), /add_replace
+            str_element, rlim, 'title', rtitle, success=aok
+            if (not aok) then begin
+              str_element, rlim, 'title', strtrim(time_string(mean(rpad.time)) + ' (Resampled)' + $
+                                                  '   ' + note), /add_replace
+            endif else str_element, rlim, 'title', rtitle + ' (Resampled)', /add_replace
             specplot, average(pad.energy, 2), rpad[0].xax, arpad, lim=rlim
             str_element, result, 'pad_resample', {x:average(pad.energy, 2), y:rpad[0].xax, z:arpad}, /add
 
@@ -1349,7 +1331,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     if (sflg) then wdelete, Nwin
     if (dflg) then wdelete, Cwin
     if (dospec) then wdelete, Ewin
-    if (rflg or hflg or uflg) then wdelete, Rwin
+    if (rflg or hflg or uflg) then wdelete, Pwin
     if (doind) then wdelete, Iwin
     if (dov) then wdelete, vwin
   endif

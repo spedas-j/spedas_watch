@@ -87,8 +87,9 @@ end
 ;
 ;       KEEPWINS:      If set, then don't close the snapshot window(s) on exit.
 ;
-;       MONITOR:       Put snapshot windows in this monitor.  Default is the 
-;                      secondary monitor (see putwin.pro).
+;       MONITOR:       Put snapshot windows in this monitor.  Monitors are numbered
+;                      from 0 to N-1, where N is the number of monitors recognized
+;                      by the operating system.  See putwin.pro for details.
 ;
 ;       ARCHIVE:       If set, show shapshots of archive data (A5).
 ;
@@ -215,8 +216,8 @@ end
 ;                      are lost.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-18 15:23:47 -0800 (Thu, 18 Feb 2021) $
-; $LastChangedRevision: 29680 $
+; $LastChangedDate: 2021-02-28 12:43:45 -0800 (Sun, 28 Feb 2021) $
+; $LastChangedRevision: 29709 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -256,7 +257,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
   if keyword_set(tsmo) then begin
     npts = 1
     dosmo = 1
-    delta_t = double(tsmo)/2D
+    dtsmo = double(tsmo)/2D
     showdead = 0  ; incompatible with summed spectra
   endif else dosmo = 0
   if (size(error_bars,/type) eq 0) then ebar = 1 else ebar = keyword_set(error_bars)
@@ -455,7 +456,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
   
   if (dosmo) then begin
     tmin = min(trange, max=tmax)
-    trange = [(tmin - delta_t), (tmax + delta_t)]
+    trange = [(tmin - dtsmo), (tmax + dtsmo)]
   endif
 
   if (tflg) then begin
@@ -547,8 +548,15 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
 
     psym = 10
 
+    delta_t = spec.end_time - spec.time
+    if (delta_t gt 1D) then begin
+      tstart = time_string(spec.time - delta_t)
+      tend   = strmid(time_string(spec.end_time),11)
+      title = tstart + ' - ' + tend
+    endif else title = time_string(spec.time)
+
     if ((nplot eq 0) or oflg) then plot_oo,x,y,yrange=yrange,/ysty,xrange=xrange,/xsty, $
-            xtitle='Energy (eV)', ytitle=ytitle,charsize=csize2,psym=psym,title=time_string(spec.time), $
+            xtitle='Energy (eV)', ytitle=ytitle,charsize=csize2,psym=psym,title=title, $
             xmargin=[10,3] $
                               else oplot,x,y,psym=psym
 
@@ -1105,7 +1113,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
   
         if (dosmo) then begin
           tmin = min(trange, max=tmax)
-          trange = [(tmin - delta_t), (tmax + delta_t)]
+          trange = [(tmin - dtsmo), (tmax + dtsmo)]
         endif
 
         if (tflg) then begin

@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2021-02-18 21:28:29 -0800 (Thu, 18 Feb 2021) $
-; $LastChangedRevision: 29685 $
+; $LastChangedDate: 2021-02-28 12:06:11 -0800 (Sun, 28 Feb 2021) $
+; $LastChangedRevision: 29707 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/aspera/mex_asp_ima_load.pro $
 ;
 ;-
@@ -127,7 +127,7 @@ PRO mex_asp_ima_list, trange, verbose=verbose, file=file, time=modify_time, psa=
   RETURN
 END
 
-PRO mex_asp_ima_save, time, counts, polar, pacc, hk, file=file, verbose=verbose
+PRO mex_asp_ima_save, time, counts, polar, pacc, hk, file=file, verbose=verbose, overwrite=overwrite
   prefix = 'mex_asp_ima_'
   lvl = 'l1b'
   name  = (STRSPLIT(file, '_', /extract))[0]
@@ -144,10 +144,15 @@ PRO mex_asp_ima_save, time, counts, polar, pacc, hk, file=file, verbose=verbose
   asp_ima_hk    = hk
   asp_ima_file  = FILE_BASENAME(file)
 
-  file_mkdir2, path, dlevel=2, verbose=verbose
-  dprint, dlevel=2, verbose=verbose, 'Saving ' + path + fname + '.'
-  SAVE, filename=path + fname, asp_ima_stime, asp_ima_etime, asp_ima_polar, $
-        asp_ima_pacc, asp_ima_cnts, asp_ima_hk, asp_ima_file, /compress
+  IF FILE_TEST(path + fname) THEN sflg = 0 ELSE sflg = 1
+  IF KEYWORD_SET(overwrite) THEN sflg = 1
+
+  IF (sflg) THEN BEGIN
+     file_mkdir2, path, dlevel=2, verbose=verbose
+     dprint, dlevel=2, verbose=verbose, 'Saving ' + path + fname + '.'
+     SAVE, filename=path + fname, asp_ima_stime, asp_ima_etime, asp_ima_polar, $
+           asp_ima_pacc, asp_ima_cnts, asp_ima_hk, asp_ima_file, /compress
+  ENDIF 
   RETURN
 END
                     
@@ -202,7 +207,7 @@ PRO mex_asp_ima_com, time, counts, polar, pacc, hk, file=file, verbose=verbose, 
 END
 
 PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, counts=counts, polar=polar, pacc=pacc, $
-                      hk=hk, save=save, file=remote_file, mtime=modify_time, status=status, no_server=no_server, psa=psa
+                      hk=hk, save=save, file=remote_file, mtime=modify_time, status=status, no_server=no_server, psa=psa, overwrite=overwrite
   oneday = 86400.d0
   nan = !values.f_nan
   status = 1
@@ -413,7 +418,7 @@ PRO mex_asp_ima_read, trange, verbose=verbose, time=stime, end_time=etime, count
   IF KEYWORD_SET(save) THEN $
      FOR i=0, N_ELEMENTS(files)-1 DO $
         mex_asp_ima_save, [ [stime[i]], [etime[i]] ], counts[i], polar[i], pacc[i], hk[i], $
-                          file=files[i], verbose=verbose
+                          file=files[i], verbose=verbose, overwrite=overwrite
 
   RETURN
 END
@@ -447,7 +452,7 @@ FUNCTION mex_asp_ima_toarray, data
   RETURN, hk
 END
 
-PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, bkg=bkg, psa=psa, fast=fast, omni=omni
+PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, bkg=bkg, psa=psa, fast=fast, omni=omni, load_only=load_only, overwrite=overwrite
   COMMON mex_asp_dat, mex_asp_ima, mex_asp_els
   undefine, mex_asp_ima
 
@@ -499,7 +504,7 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
 
   IF (sflg) THEN BEGIN
      mex_asp_ima_read, trange, time=stime, end_time=etime, counts=counts, polar=polar, pacc=pacc, hk=hk, $
-                       verbose=verbose, save=save, file=remote_file, mtime=mtime, status=status, no_server=no_server, psa=pflg
+                       verbose=verbose, save=save, file=remote_file, mtime=mtime, status=status, no_server=no_server, psa=pflg, overwrite=overwrite
      IF (status EQ 0) THEN RETURN
   ENDIF ELSE BEGIN
      stime  = list()
@@ -539,6 +544,7 @@ PRO mex_asp_ima_load, trange, verbose=verbose, save=save, no_server=no_server, b
      RETURN
   ENDIF ELSE BEGIN
      mex_asp_ima_com, [ [stime], [etime] ], counts, polar, pacc, hk, data=ima, trange=trange, bkg=bflg, fast=fflg, psa=pflg
+     IF KEYWORD_SET(load_only) THEN RETURN
      time = time[w]
      IF (bflg) THEN cnt = (ima.data - ima.bkg) > 0. ELSE cnt = ima.data
      ene  = ima.energy

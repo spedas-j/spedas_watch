@@ -448,7 +448,7 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
   ; Start Plots
   ;----------------------------------
   for k=0,nplots-1 do begin
-    for kk=0,1 do begin  ; two sets of figure 0/180 GLON center
+    for kk=0,1 do begin  ; two sets of figure 0/180 GLON center   ****TEMP****** only doing 180
     !p.multi=[0,1,2,0,0]
     if keyword_set(gifout) then begin
       set_plot,'z'
@@ -1308,9 +1308,9 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
       
       coord_name='_'
       pname='elf'
-      gif_name=dir_products+'/'+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k]+suffix
+      gif_name=dir_products+'/'+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k]
 
-      if hires then gif_name=gif_name+'_hires'
+      if hires then gif_name=gif_name+'_hires'+suffix else gif_name=gif_name+suffix
       write_gif,gif_name+'.gif',image,r,g,b
       print,'Output in ',gif_name+'.gif'
 

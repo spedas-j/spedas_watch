@@ -249,7 +249,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           ;if instrument EQ 'fgm' then local_path = spd_addslash(local_path)
           ;if instrument EQ 'mrma' then local_path = spd_addslash(local_path)
           ;if instrument EQ 'mrmi' then local_path = spd_addslash(local_path)
-          
+
           for file_idx = 0, n_elements(fnames)-1 do begin 
            
               yeardir=strmid(daily_names[file_idx],0,4) + '/'
@@ -275,7 +275,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               if paths EQ '' OR no_download NE 0 then begin                
                 ; get all files from the beginning of the first day
                 day_string=strmid(daily_names[file_idx],0,4)+'-'+strmid(daily_names[file_idx],4,2)+'-'+strmid(daily_names[file_idx],6,2)
-                end_string=time_string(time_double(day_string)+86400.)
+                end_string=time_string(time_double(day_string)+86399.)
                 local_files = elf_get_local_files(probe=probe, instrument=instrument, $
                   data_rate=data_rate, datatype=datatype, level=level, $
                   trange=time_double([day_string, end_string]), cdf_version=cdf_version, $
@@ -315,7 +315,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           undefine, loaded_tnames
           undefine, the_loaded_versions
           undefine, ftypes
-          
+         
           ; don't go loop through data type for state, mrmi, mrma, or eng
           if instrument EQ 'state' then break
           if instrument EQ 'mrmi' then break

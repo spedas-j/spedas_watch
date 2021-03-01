@@ -200,7 +200,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
     dSectr2add=phasedelay.DSECT2ADD    ; Here specify default # of sectors to add
   if ~undefined(userdPhAng2add) && finite(userdPhAng2add) then dPhAng2add=userdPhAng2add else $
     dPhAng2add=phasedelay.DPHANG2ADD   ; Here specify default # of degrees to add in addition to the sectors
-  if dSectr2add ne 0 then begin
+  
+  if dSectr2add ne 0 && phasedelay.badflag ne 1 then begin
     xra=make_array(nsectors-dSectr2add,/index,/long)
     if dSectr2add gt 0 then begin ; shift forward
       elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]

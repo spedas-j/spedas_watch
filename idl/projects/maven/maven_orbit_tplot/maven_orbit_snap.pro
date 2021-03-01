@@ -134,8 +134,8 @@
 ;                 last color.  Default is 6 (red) for all.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-18 13:36:22 -0800 (Fri, 18 Dec 2020) $
-; $LastChangedRevision: 29542 $
+; $LastChangedDate: 2021-02-28 12:46:54 -0800 (Sun, 28 Feb 2021) $
+; $LastChangedRevision: 29711 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -145,10 +145,10 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     nodot=nodot, terminator=terminator, thick=thick, Bdir=Bdir, scale=scale, scsym=scsym, $
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
     alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab, $
-    scol=scol, tcolors=tcolors, noorb=noorb
+    scol=scol, tcolors=tcolors, noorb=noorb, monitor=monitor
 
   @maven_orbit_common
-  @swe_snap_common
+  @putwin_common
 
   if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
 
@@ -171,7 +171,13 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if ((size(prec,/type) eq 0) and (delta_t lt (7D*86400D))) then prec = 1
 
   if keyword_set(prec) then pflg = 1 else pflg = 0
-  if (size(color,/type) gt 0) then cflg = 1 else cflg = 0  
+  if (size(color,/type) gt 0) then begin
+    color = color[0]
+    cflg = 1
+  endif else begin
+    color = 5
+    cflg = 0
+  endelse
   if keyword_set(noerase) then noerase = 1 else noerase = 0
   if keyword_set(reset) then reset = 1 else reset = 0
   if keyword_set(nodot) then dodot = 0 else dodot = 1
@@ -229,14 +235,14 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if keyword_set(times) then begin
     times = time_double(times)
     ntimes = n_elements(times)
-    if (n_elements(tcolors) ne ntimes) then tcolors = replicate(5, ntimes)
+    if (n_elements(tcolors) ne ntimes) then tcolors = replicate(color, ntimes)
     reset = 1
     noerase = 1
     keep = 1
     tflg = 1
   endif else begin
     ntimes = 1L
-    if (n_elements(tcolors) eq 0) then tcolors = 5 else tcolors = tcolors[0]
+    if (n_elements(tcolors) eq 0) then tcolors = color else tcolors = tcolors[0]
     tflg = 0
   endelse
 
@@ -272,35 +278,10 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     csize *= 0.75
   endif
 
-  if keyword_set(mhd) then begin
-    if (mhd gt 1) then begin
-      if (~noerase or reset) then mhd_orbit, [-10.], [-10.], /reset, /xz
-      nflg = 2
-    endif else begin
-      if (~noerase or reset) then mhd_orbit, [-10.], [-10.], /reset, /xy
-      nflg = 1
-    endelse
-  endif else nflg = 0
-
-  if keyword_set(hybrid) then begin
-    if (hybrid eq 1) then begin
-      if (~noerase or reset) then hybrid_orbit_new, [-10.], [-10.], /reset, /xz
-      bflg = 1
-    endif else begin
-      if (~noerase or reset) then hybrid_orbit_new, [-10.], [-10.], /reset, /xz, /flip
-      bflg = 2
-    endelse
-  endif else bflg = 0
-
-  if keyword_set(npole) then begin
-    if (~noerase or reset) then mag_npole_orbit, [0.], [0.], /reset
-    npflg = 1
-  endif else npflg = 0
-
   if keyword_set(latlon) then gflg = 1 else gflg = 0
   
   dbr = 0
-  if keyword_set(mars) then begin
+  if (size(mars,/type) gt 0) then begin
     mflg = mars
     case mflg of
         1  : mbig = 0
@@ -313,8 +294,6 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if keyword_set(orbit) then oflg = 1 else oflg = 0
   
   if keyword_set(cyl) then cyflg = 1 else cyflg = 0
-
-  Twin = !d.window
 
 ; Mars shock parameters
 
@@ -335,34 +314,69 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
 
 ; Create snapshot windows
 
+  Twin = !d.window
+
+  undefine, mnum
+  if (size(monitor,/type) gt 0) then begin
+    if (size(windex,/type) eq 0) then putwin, /config $
+                                 else if (windex eq -1) then putwin, /config
+    mnum = fix(monitor[0])
+  endif else begin
+    if (size(secondarymon,/type) gt 0) then mnum = secondarymon
+  endelse
+
   if (size(psname,/type) eq 7) then begin
     psflg = 1
   endif else begin
     psflg = 0
     if (npans eq 1) then begin
-      putwin, 26, key=Oopt1, scale=mag  ; MSO projections 1x1
+      putwin, /free, monitor=mnum, xsize=500, ysize=473, dx=10, dy=10, scale=mag  ; MSO projections 1x1
       Owin = !d.window
     endif else begin
-      putwin, 26, key=Oopt, scale=mag   ; MSO projections 1x3
+      putwin, /free, monitor=mnum, /yfull, aspect=0.351, dx=10   ; MSO projections 1x3
       Owin = !d.window
       csize = float(!d.x_size)/175.
     endelse
   endelse
 
   if (gflg) then begin
-    SSopt = {xsize:600, ysize:280, dx:10, dy:10, monitor:0, corner:2}
-    putwin, /free, key=SSopt, scale=mag  ; MSO Lat-Lon
+    putwin, /free, monitor=mnum, xsize=600, ysize=280, dx=-10, dy=-10, scale=mag  ; MSO Lat-Lon
     Gwin = !d.window
   endif
 
   if (cyflg) then begin
-    putwin, /free, key=OCopt, scale=mag  ; MSO cylindrical
+    putwin, /free, xsize=600, ysize=350, rel=Owin, dx=10, scale=mag  ; MSO cylindrical
     Cwin = !d.window
   endif
 
-  if (mflg gt 0) then begin              ; GEO Lat-Lon
-    if (~noerase or reset) then mag_mola_orbit, -100., -100., big=mbig, dbr=dbr, /reset
+  if (mflg gt 0) then begin                                          ; GEO Lat-Lon on MAG-MOLA map
+    if (~noerase or reset) then mag_mola_orbit, -100., -100., big=mbig, dbr=dbr, rwin=Owin, /reset
   endif
+
+  if keyword_set(mhd) then begin                                     ; MHD simulation
+    if (mhd gt 1) then begin
+      if (~noerase or reset) then mhd_orbit, [-10.], [-10.], /reset, /xz, monitor=mnum
+      nflg = 2
+    endif else begin
+      if (~noerase or reset) then mhd_orbit, [-10.], [-10.], /reset, /xy, monitor=mnum
+      nflg = 1
+    endelse
+  endif else nflg = 0
+
+  if keyword_set(hybrid) then begin                                  ; Hybrid simulation
+    if (hybrid eq 1) then begin
+      if (~noerase or reset) then hybrid_orbit, [-10.], [-10.], /reset, /xz, monitor=mnum
+      bflg = 1
+    endif else begin
+      if (~noerase or reset) then hybrid_orbit, [-10.], [-10.], /reset, /xz, /flip, monitor=mnum
+      bflg = 2
+    endelse
+  endif else bflg = 0
+
+  if keyword_set(npole) then begin                                   ; North pole projection
+    if (~noerase or reset) then mag_npole_orbit, [0.], [0.], monitor=mnum, /reset
+    npflg = 1
+  endif else npflg = 0
 
 ; Get the orbit closest the selected time
 
@@ -916,7 +930,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
        s = sqrt(y*y + z*z)
 
        plot,xm,ym,xrange=xrange,yrange=[0,yrange[1]],/xsty,/ysty,/noerase, $
-            xtitle='X (Rp)',ytitle='S (Rp)',charsize=csize,title=title,thick=thick
+            xtitle='X (Rp)',ytitle='S (Rp)',charsize=csize/2.,title=title,thick=thick
        oplot,xm,ym,color=6,thick=thick
        if (doorb) then oplot,x,s,thick=thick
 
@@ -1047,8 +1061,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (pflg) then i = imid else i = imin
       if (cflg) then j = color else j = 255
 
-      if (bflg eq 1) then hybrid_orbit_new, x, z, x[i], z[i], color=j, psym=0, /xz $
-                     else hybrid_orbit_new, x, z, x[i], z[i], color=j, psym=0, /xz, /flip
+      if (bflg eq 1) then hybrid_orbit, x, z, x[i], z[i], color=j, psym=0, /xz $
+                     else hybrid_orbit, x, z, x[i], z[i], color=j, psym=0, /xz, /flip
     endif
 
 ; Put up Mars orbit

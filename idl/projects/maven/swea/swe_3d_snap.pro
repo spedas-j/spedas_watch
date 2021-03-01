@@ -71,6 +71,10 @@
 ;
 ;       KEEPWINS:      If set, then don't close the snapshot window(s) on exit.
 ;
+;       MONITOR:       Put snapshot windows in this monitor.  Monitors are numbered
+;                      from 0 to N-1, where N is the number of monitors recognized
+;                      by the operating system.  See putwin.pro for details.
+;
 ;       ARCHIVE:       If set, show snapshots of archive data.
 ;
 ;       BURST:         Synonym for ARCHIVE.
@@ -88,8 +92,8 @@
 ;                      interactive time range selection.)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 11:20:00 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28834 $
+; $LastChangedDate: 2021-02-28 12:43:45 -0800 (Sun, 28 Feb 2021) $
+; $LastChangedRevision: 29709 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -101,10 +105,10 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
                  abins=abins, dbins=dbins, obins=obins, mask_sc=mask_sc, burst=burst, $
                  plot_sc=plot_sc, padmap=padmap, pot=pot, plot_fov=plot_fov, $
                  labsize=labsize, trange=tspan, tsmo=tsmo, wscale=wscale, zlog=zlog, $
-                 zrange=zrange
+                 zrange=zrange, monitor=monitor
 
   @mvn_swe_com
-  @swe_snap_common
+  @putwin_common
 
   a = 0.8
   phi = findgen(49)*(2.*!pi/49)
@@ -205,7 +209,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
     npts = 1
     doall = 1
     dotsmo = 1
-    delta_t = double(tsmo)/2D
+    dtsmo = double(tsmo)/2D
   endif else dotsmo = 0
 
   if keyword_set(sundir) then begin
@@ -235,21 +239,30 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
 
   Twin = !d.window
 
-  putwin, /free, key=Dopt, scale=wscale
+  undefine, mnum
+  if (size(monitor,/type) gt 0) then begin
+    if (size(windex,/type) eq 0) then putwin, /config $
+                                 else if (windex eq -1) then putwin, /config
+    mnum = fix(monitor[0])
+  endif else begin
+    if (size(secondarymon,/type) gt 0) then mnum = secondarymon
+  endelse
+
+  putwin, /free, monitor=mnum, xsize=800, ysize=600, dx=10, dy=10, scale=wscale
   Dwin = !d.window
 
   if (sflg) then begin
-    putwin, /free, key=Sopt, scale=wscale
+    putwin, /free, xsize=450, ysize=600, rel=Dwin, dx=10, /top, scale=wscale
     Swin = !d.window
   endif
   
   if (dflg) then begin
-    putwin, /free, key=Sopt, scale=wscale
+    putwin, /free, xsize=450, ysize=600, rel=!d.window, dx=10, /top, scale=wscale
     Fwin = !d.window
   endif
   
   if (dopam) then begin
-    putwin, /free, key=Nopt, scale=wscale
+    putwin, /free, xsize=600, ysize=450, rel=Dwin, dy=-10, scale=wscale
     Pwin = !d.window
   endif
 
@@ -291,7 +304,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
 
     if (dotsmo) then begin
       tmin = min(trange, max=tmax)
-      trange = [(tmin - delta_t), (tmax + delta_t)]
+      trange = [(tmin - dtsmo), (tmax + dtsmo)]
     endif
 
 ; Put up a 3D spectrogram

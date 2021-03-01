@@ -80,6 +80,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   del_data, '*_all'
   elf_load_epd, probes=probe, datatype='pef', level='l1', type='nflux', no_download=no_download
   get_data, 'el'+probe+'_pef_nflux', data=pef_nflux
+
   if size(pef_nflux, /type) NE 8 then begin
     dprint, dlevel=0, 'No data was downloaded for el' + probe + '_pef_nflux.'
     dprint, dlevel=0, 'No plots were producted.
@@ -359,7 +360,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       spin_str=''
       if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
         completed_szs=[completed_szs,sz_tr[0]] ;append science zone start time to list
-        if medianflag NE 2 then begin
+        if medianflag NE 2 && badflag NE 1 then begin
            batch_procedure_error_handler, 'elf_getspec', /regularize, probe=probe, dSect2add=dsect2add, dSpinPh2add=dphang2add, no_download=no_download
            if not spd_data_exists('el'+probe+'_pef_pa_reg_spec2plot_ch0',sz_tr[0],sz_tr[1]) then begin
              elf_getspec, probe=probe
@@ -374,7 +375,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
          spin_str='Median Spin Period, s: '+strmid(strtrim(string(med_spin), 1),0,4) + ', ' +$
            strmid(strtrim(string(spin_var), 1),0,4)+'% of Median'
       endif
-      
+     
       ; handle scaling of y axis
       if size(proxy_ae, /type) EQ 8 then begin
         ae_idx = where(proxy_ae.x GE sz_tr[0] and proxy_ae.x LT sz_tr[1], ncnt)
