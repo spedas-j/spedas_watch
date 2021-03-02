@@ -3,7 +3,7 @@
 ;         elf_calc_sci_zone_att
 ;
 ; PURPOSE:
-;         Calculates the science attitude vector and determines which auroral crossing 
+;         Calculates the science attitude vector and determines which auroral crossing
 ;         (science zone name)
 ;
 ; KEYWORDS:
@@ -11,14 +11,16 @@
 ;                (format can be time string '2020-03-20'
 ;                or time double). Example: trange=['2020-03-20;,'2020-03-21']
 ;         probe: probe name, probes include 'a' and 'b'
-;         lat: magnetic latitude of spacecraft. Find auroral crossings
+;         lat: lattitude (used to determine which zone)
+;         lshell: lshell used to determine whether IBO or OBO
+;         obo: set this keyword to get inner belt att
 ;
 ; OUTPUT:
 ;         creates a tplot variable 'el'+probe+'_spin_att_ang' that contains the following
 ;          data={x:times, y:colats, z:zone_names}
 ;
 ;-
-pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat
+pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat, lshell=lshell, ibo=ibo
 
   ; initialize parameters if needed
   if undefined(probe) then probe ='a' else probe=strlowcase(probe)
@@ -27,11 +29,11 @@ pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat
     return
   endif
   if ~undefined(trange) && n_elements(trange) eq 2 then trange = timerange(trange) else trange = timerange()
-  
+
   ; get position in gsm coordinates
   elf_load_state, probe=probe, suffix='_tmp', trange=trange
   cotrans,  'el'+ probe + '_pos_gei_tmp',  'el'+ probe + '_pos_gse_tmp', /gei2gse
-  cotrans,  'el'+ probe + '_pos_gse_tmp',  'el'+ probe + '_pos_gsm_tmp', /gse2gsm  
+  cotrans,  'el'+ probe + '_pos_gse_tmp',  'el'+ probe + '_pos_gsm_tmp', /gse2gsm
   get_data, 'el'+ probe + '_pos_gsm_tmp', data=pos_gsm
 
   ; Get igrf field and convert to gei
@@ -39,7 +41,7 @@ pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat
   cotrans, 'el'+ probe + '_igrf_gsm_tmp', 'el'+ probe + '_igrf_gse_tmp', /gsm2gse
   cotrans, 'el'+ probe + '_igrf_gse_tmp', 'el'+ probe + '_igrf_gei_tmp', /gse2gei
 
-  ; interpolate to attitude resolution 
+  ; interpolate to attitude resolution
   get_data, 'el'+ probe + '_igrf_gei_tmp', data=d, dlimits=dl, limits=l
   store_data, 'el'+ probe + '_igrf_gei_tmp', data={x: d.x[0:*:60], y: d.y[0:*:60,*]}, dlimits=dl, limits=l
 
@@ -60,14 +62,20 @@ pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat
   store_data, 'el'+probe+'_colat_dsl', data={x:pos_gsm.x, y:interp(colat_dsl, dotprod.x, pos_gsm.x)}
   get_data, 'el'+probe+'_colat_dsl', data=colat
   npts=n_elements(colat.x)
-  
+
   ; Find auroral crossings (lat is magnetic lat)
-  idx = where(abs(lat) GE 50 and abs(lat) LE 75, ncnt)
+  if keyword_set(ibo) then begin
+    lhigh=3.2
+    llow=1.27
+  endif else begin
+    lhigh=18
+    llow=3.25
+  endelse
+  idx = where(abs(lshell) GE llow and abs(lshell) LE lhigh, ncnt)
   if ncnt GT 0 then begin
     find_interval, idx, ist, ien
     nidx=n_elements(ien)-1
     if ien[nidx] GE npts then ien[nidx]=ien[nidx]-1
-
     for i=0,n_elements(ist)-1 do begin
       ; determine whether ascending or descending
       this_time=colat.x[ist[i]:ien[i]]
@@ -80,9 +88,9 @@ pro elf_calc_sci_zone_att, probe=probe, trange=trange, lat=lat
       ; North zones
       if this_lat[mididx] GT 0 then begin
         if diff GT 0 then append_array, zone_names, 'NA' else $
-          append_array, zone_names, 'ND'        
+          append_array, zone_names, 'ND'
       endif else begin
-        ; South Zones  
+        ; South Zones
         if diff GT 0 then append_array, zone_names, 'SA' else $
           append_array, zone_names, 'SD'
       endelse

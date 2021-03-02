@@ -76,7 +76,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   if ~keyword_set(noview) then noview=1 else nonview=1
   if ~keyword_set(tstep) then tstep=1 else tstep=1
   if ~keyword_set(quick) then quick=1 else quick=1
-  if ~keyword_set(gifout) then gifout=1 else gifout=1  
+  if ~keyword_set(gifout) then gifout=1 else gifout=1
   if ~keyword_set(quick) then quick=1
   if keyword_set(hires) then hires=1 else hires=0
   if keyword_set(sm) then ft_coord='sm' else ft_coord='geo'
@@ -206,7 +206,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     cotrans, 'el'+probes[sc]+'_ifoot_gse', 'el'+probes[sc]+'_ifoot_gei', /gse2gei
     cotrans, 'el'+probes[sc]+'_ifoot_gei', 'el'+probes[sc]+'_ifoot_geo', /gei2geo
 
-    tt89,'el'+probes[sc]+'_pos_gsm', kp=2,newname='el'+probes[sc]+'_bt89_gsm',/igrf_only 
+    tt89,'el'+probes[sc]+'_pos_gsm', kp=2,newname='el'+probes[sc]+'_bt89_gsm',/igrf_only
     tdotp,'el'+probes[sc]+'_bt89_gsm','el'+probes[sc]+'_pos_gsm',newname='el'+probes[sc]+'_Br_sign'
 
     print,'Done '+tsyg_mod+' ',probes[sc]
@@ -218,7 +218,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
   ;--------------------------
   ; Get science collection times
   epda_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='a', instrument='epd') ;alternate pef_spinper/pef_nflux
-  epdb_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='b', instrument='epd') 
+  epdb_sci_zones=get_elf_science_zone_start_end(trange=trange, probe='b', instrument='epd')
 
   ; Get position and attitude
   get_data,'ela_pos_sm',data=ela_state_pos_sm
@@ -325,7 +325,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       if hires then device,set_resolution=[1200,900] else device,set_resolution=[800,600]
       charsize=1
     endif else begin
-      set_plot,'win'   
+      set_plot,'win'
       ;set_plot,'x'
       window,xsize=800,ysize=600
       charsize=1
@@ -360,7 +360,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       lonpole=-90.
     endelse
 
-    ;;;;; spacecraft location     
+    ;;;;; spacecraft location
     for sc = 0,1 do begin
       if keyword_set(sm) then begin
         del_data, 'el'+probes[sc]+'_ifoot_geo_ftime'
@@ -498,7 +498,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
         for i=0,nmlats-1 do oplot,v_lon[i,*],v_lat[i,*],color=250,thick=contour_thick,linestyle=1 ;latitude rings
         for i=0,nmlons-1 do begin
           idx=where(u_lon[i,*] NE 0)   ;9 and 10 Lat=0 Lon=0 maybe b/c too close to equator
-          if i EQ 0 then color=100 else color=250   
+          if i EQ 0 then color=100 else color=250
           oplot,u_lon[i,idx],u_lat[i,idx],color=color,thick=contour_thick,linestyle=1
         endfor
       endelse
@@ -515,6 +515,10 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_dposa=dposa.y[min_st[k]:min_en[k],2]
     this_a_alt = mean(sqrt(this_ax^2 + this_ay^2 + this_az^2))-6371.
     this_a_alt_str = strtrim(string(this_a_alt),1)
+    alt_len=strlen(this_a_alt_str)
+    this_a_alt_str=strmid(this_a_alt_str,0,alt_len-2)+'km'
+    this_a_lat = lata[min_st[k]:min_en[k]]
+    this_a_l = la[min_st[k]:min_en[k]]
     if size(attgeia, /type) EQ 8 then begin
       min_a_att_gei=min(abs(ela_state_pos_sm.x[midx]-attgeia.x),agei_idx)
       min_a_att_gse=min(abs(ela_state_pos_sm.x[midx]-attgsea.x),agse_idx)
@@ -543,6 +547,11 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     this_dposb=dposb.y[min_st[k]:min_en[k],2]
     this_b_alt = mean(sqrt(this_bx^2 + this_by^2 + this_bz^2))-6371.
     this_b_alt_str = strtrim(string(this_b_alt),1)
+    alt_len=strlen(this_b_alt_str)
+    this_b_alt_str=strmid(this_b_alt_str,0,alt_len-2)+'km'
+;    this_b_alt_str = strtrim(string(this_b_alt),1)
+    this_b_lat = latb[min_st[k]:min_en[k]]
+    this_b_l = lb[min_st[k]:min_en[k]]
     if size(attgeib, /type) EQ 8 then begin
       min_b_att_gei=min(abs(elb_state_pos_sm.x[midx]-attgeib.x),bgei_idx)
       min_b_att_gse=min(abs(elb_state_pos_sm.x[midx]-attgseb.x),bgse_idx)
@@ -598,7 +607,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
 
     ; Repeat for A
     spin_stra=''
-    get_data, 'ela_pef_spinper', data=spina ; spin period 
+    get_data, 'ela_pef_spinper', data=spina ; spin period
     if size(spina, /type) EQ 8 then begin
       spin_idxa=where(spina.x GE this_time[0] AND spina.x LT this_time[nptsa-1], ncnt)
       ;JWu
@@ -693,7 +702,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     endelse
 
     ;---------------------
-    ; ADD Tick Marks  
+    ; ADD Tick Marks
     ;---------------------
     if keyword_set(tstep) then begin
       tstep=300.
@@ -773,7 +782,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     cart_to_sphere, d.y[*,0], d.y[*,1], d.y[*,2], rp, theta, phi
     ewdboundlonlat[*,0]=phi
     ewdboundlonlat[*,1]=theta
-    
+
     ;JWu edit start
     ;    if keyword_set(south) then begin
     ;      if keyword_set(sm) then begin
@@ -792,19 +801,41 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     plots,ewdboundlonlat[*,0],ewdboundlonlat[*,1],color=155, thick=1.05
 
     ; get spin angle
+    spin_att_ang_str='B/SP: (NA/ND/SD/SA)'
+    ; ELFIN A
+    ; IBO
     if size(attgeia, /type) EQ 8 then begin  ;a
-      elf_calc_sci_zone_att,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
-        lat=lata[min_st[k]:min_en[k]]*!radeg
-      ela_spin_att_ang_str = elf_make_spin_att_string(probe='a')
+      elf_calc_sci_zone_att_ibo,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
+        lat=this_a_lat*!radeg, lshell=this_a_l, /ibo
+      ela_ibo_spin_att_ang_str = 'IBO: ' + elf_make_spin_att_string_ibo(probe='a')
     endif else begin
-      ela_spin_att_ang_str = 'B/SP: not available'
+      ela_ibo_spin_att_ang_str = 'IBO: not available'
     endelse
+    ; OBO
+    if size(attgeia, /type) EQ 8 then begin  ;a
+      elf_calc_sci_zone_att_ibo,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
+        lat=this_a_lat*!radeg, lshell=this_a_l
+      ela_obo_spin_att_ang_str = 'OBO: ' + elf_make_spin_att_string_ibo(probe='a')
+    endif else begin
+      ela_obo_spin_att_ang_str = 'OBO: not available'
+    endelse
+
+    ; ELFIN B
+    ; IBO
     if size(attgeib, /type) EQ 8 then begin    ;b
       elf_calc_sci_zone_att,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
-        lat=latb[min_st[k]:min_en[k]]*!radeg
-      elb_spin_att_ang_str = elf_make_spin_att_string(probe='b')
+        lat=this_b_lat*!radeg, lshell=this_b_l, /ibo
+      elb_ibo_spin_att_ang_str = 'IBO: ' + elf_make_spin_att_string(probe='b')
     endif else begin
-      elb_spin_att_ang_str = 'B/SP: not available'
+      elb_ibo_spin_att_ang_str = 'IBO: not available'
+    endelse
+    ; OBO
+    if size(attgeib, /type) EQ 8 then begin    ;b
+      elf_calc_sci_zone_att,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
+        lat=this_b_lat*!radeg, lshell=this_b_l
+      elb_obo_spin_att_ang_str = 'OBO: ' + elf_make_spin_att_string(probe='b')
+    endif else begin
+      elb_obo_spin_att_ang_str = 'OBO: not available'
     endelse
 
     ;-----------------------------------------
@@ -824,15 +855,16 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     a_sp=60./a_rpm
     a_spinper = strmid(strtrim(string(a_sp),1),0,4)
     a_rpm_str = strmid(strtrim(string(a_rpm),1),0,5)
-    a_orb_spin_str='Torb='+a_period_str+'min; Tspin='+a_spinper+'s ['+a_rpm_str+'RPM]'
+    a_spin_str='Tspin='+a_spinper+'s['+a_rpm_str+'RPM]'
+    a_torb_str='Torb='+a_period_str+'min'
     ; elfin b
     ; ******get spin period routines******
     b_rpm=elf_load_att(probe='b', tdate=ela_state_pos_sm.x[min_st[k]])
     b_sp=60./b_rpm
     b_spinper = strmid(strtrim(string(b_sp),1),0,4)
     b_rpm_str = strmid(strtrim(string(b_rpm),1),0,5)
-    b_orb_spin_str='Torb='+b_period_str+'min; Tspin='+b_spinper+'s ['+b_rpm_str+'RPM]'
-
+    b_spin_str='Tspin='+b_spinper+'s['+b_rpm_str+'RPM]'
+    b_torb_str='Torb='+b_period_str+'min'
 
     ; create attitude strings
     ; elfin a
@@ -932,25 +964,40 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; annotate
     xann=9.6
     xyouts,xann,yann+12.5*8,'ELFIN (A)',/device,charsize=.75,color=253
-    xyouts,xann,yann+12.5*7,a_orb_spin_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*6,ela_spin_att_ang_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*5,a_att_gei_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*4,a_att_gse_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*3,'S w/Sun, deg: '+suna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,'S w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*1,'Att.Solution@'+solna_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*0,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
+;    xyouts,xann,yann+12.5*7,a_orb_spin_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*7,a_spin_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*6,a_torb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*5,spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*4,ela_obo_spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*3,ela_ibo_spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,a_att_gei_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*1,a_att_gse_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*0,'S w/Sun, deg: '+suna_str,/device,charsize=charsize
+    xyouts,xann,yann-12.5*1,'S w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
+    xyouts,xann,yann-12.5*2,'Att.Sol@'+solna_str,/device,charsize=charsize
+    xyouts,xann,yann-12.5*3,'Altitude: '+this_a_alt_str,/device,charsize=charsize
+    ;    xyouts,xann,yann+12.5*6,ela_spin_att_ang_str,/device,charsize=charsize
+    ;    xyouts,xann,yann+12.5*5,a_att_gei_str,/device,charsize=charsize
+    ;    xyouts,xann,yann+12.5*4,a_att_gse_str,/device,charsize=charsize
+    ;    xyouts,xann,yann+12.5*3,'S w/Sun, deg: '+suna_str,/device,charsize=charsize
+    ;    xyouts,xann,yann+12.5*2,'S w/OrbNorm, deg: '+norma_str,/device,charsize=charsize
+    ;    xyouts,xann,yann+12.5*1,'Att.Solution@'+solna_str,/device,charsize=charsize
+    ;    xyouts,xann,yann+12.5*0,'Altitude, km: '+this_a_alt_str,/device,charsize=charsize
 
     yann=0.02
-    xyouts,xann,yann+12.5*9,'ELFIN (B)',/device,charsize=.75,color=254
-    xyouts,xann,yann+12.5*8,b_orb_spin_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*7,elb_spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*12,'ELFIN (B)',/device,charsize=.75,color=254
+;    xyouts,xann,yann+12.5*10,b_orb_spin_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*11,b_spin_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*10,b_torb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*9,spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*8,elb_obo_spin_att_ang_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*7,elb_ibo_spin_att_ang_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*6,b_att_gei_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*5,b_att_gse_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*4,'S w/Sun, deg: '+sunb_str,/device,charsize=charsize
     xyouts,xann,yann+12.5*3,'S w/OrbNorm, deg: '+normb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*2,'Att.Solution@: '+solnb_str,/device,charsize=charsize
-    xyouts,xann,yann+12.5*1,'Altitude, km: '+this_b_alt_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*2,'Att.Sol@: '+solnb_str,/device,charsize=charsize
+    xyouts,xann,yann+12.5*1,'Altitude: '+this_b_alt_str,/device,charsize=charsize
 
     if keyword_set(sm) then latlon_text='SM Lat/Lon - Red dotted lines' $
     else latlon_text='Mag Lat/Lon - Red dotted lines'
@@ -1311,7 +1358,7 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
       image=tvrd()
       device,/close
       set_plot,'z'
-      ;set_plot,'x' 
+      ;set_plot,'x'
       ;device,set_resolution=[1200,900]
       image[where(image eq 255)]=1
       image[where(image eq 0)]=255
