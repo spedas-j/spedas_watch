@@ -216,8 +216,8 @@ end
 ;                      are lost.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-28 12:43:45 -0800 (Sun, 28 Feb 2021) $
-; $LastChangedRevision: 29709 $
+; $LastChangedDate: 2021-03-02 11:48:03 -0800 (Tue, 02 Mar 2021) $
+; $LastChangedRevision: 29727 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -238,13 +238,37 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
   @mvn_scpot_com
   @putwin_common
 
-  if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
-
   mass = 5.6856297d-06             ; electron rest mass [eV/(km/s)^2]
   c1 = (mass/(2D*!dpi))^1.5
   c2 = (2d5/(mass*mass))
   c3 = 4D*!dpi*1d-5*sqrt(mass/2D)  ; assume isotropic electron distribution
   tiny = 1.e-31
+
+; Load any keyword defaults
+
+  swe_snap_options, get=key, /silent
+  ktag = tag_names(key)
+  klist = ['UNITS','KEEPWINS','ARCHIVE','DDD','ABINS','DBINS','OBINS2', $
+           'SUM','POT','PDIAG','PXLIM','MB','KAP','MOM','SCAT','ERANGE', $
+           'NOERASE','SCP','FIXY','PEPEAKS','BURST','RAINBOW','MASK_SC','SEC', $
+           'BKG','TPLOT','MAGDIR','BCK','SHIFTPOT','XRANGE','YRANGE','SSCALE', $
+           'POPEN','TIMES','FLEV','PYLIM','K_E','PEREF','ERROR_BARS','TRANGE', $
+           'TSMO','WSCALE','CSCALE','VOFFSET','ENDX','TWOT','RCOLORS','CUII', $
+           'FMFIT','NOLAB','SHOWDEAD','MONITOR']
+  for j=0,(n_elements(ktag)-1) do begin
+    i = strmatch(klist, ktag[j]+'*', /fold)
+    case (total(i)) of
+        0  : ; keyword not recognized -> do nothing
+        1  : begin
+               kname = (klist[where(i eq 1)])[0]
+               ok = execute('kset = size(' + kname + ',/type) gt 0',0,1)
+               if (not kset) then ok = execute(kname + ' = key.(j)',0,1)
+             end
+      else : print, "Keyword ambiguous: ", ktag[j]
+    endcase
+  endfor
+
+; Process keywords
 
   if (size(Espan,/type) eq 0) then mvn_scpot_defaults
 
@@ -273,7 +297,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
   spflg = keyword_set(shiftpot)
   if (n_elements(xrange) ne 2) then xrange = [1.,1.e4]
   if not keyword_set(wscale) then wscale = 1.
-  if not keyword_set(cscale) then cscale = 1.
+  if not keyword_set(cscale) then cscale = wscale
   if not keyword_set(voffset) then voffset = 1.
   if not keyword_set(rcolors) then begin
     ncol = 6

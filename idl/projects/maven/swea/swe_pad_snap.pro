@@ -159,8 +159,8 @@
 ;        NOTE:         Insert a text label.  Keep it short.
 ;        
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-28 12:43:45 -0800 (Sun, 28 Feb 2021) $
-; $LastChangedRevision: 29709 $
+; $LastChangedDate: 2021-03-02 11:48:03 -0800 (Tue, 02 Mar 2021) $
+; $LastChangedRevision: 29727 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -174,7 +174,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                   fbdata=fbdata, monitor=monitor, adiabatic=adiabatic, $
                   nomid=nomid, uncertainty=uncertainty, nospec90=nospec90, $
                   shiftpot=shiftpot,popen=popen, indspec=indspec, twopot=twopot, $
-                  xrange=xrange, error_bars=error_bars, yrange=yrange, trange=tspan, $
+                  xrange=xrange, error_bars=error_bars, yrange=yrange, trange=trange2, $
                   note=note, mincounts=mincounts, maxrerr=maxrerr, tsmo=tsmo, $
                   sundir=sundir, wscale=wscale, cscale=cscale, fscale=fscale, $
                   result=result, vdis=vdis
@@ -182,14 +182,38 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
   @mvn_swe_com
   @putwin_common
 
-  if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
-
   a = 0.8
   phi = findgen(49)*(2.*!pi/49)
   usersym,a*cos(phi),a*sin(phi),/fill
   cols = get_colors()
 
   tiny = 1.e-31
+
+; Load any keyword defaults
+
+  swe_snap_options, get=key, /silent
+  ktag = tag_names(key)
+  klist = ['KEEPWINS','ARCHIVE','ENERGY','UNITS','DDD','ZRANGE','SUM', $
+           'LABEL','SMO','DIR','MASK_SC','ABINS','DBINS','OBINS','BURST', $
+           'POT','SCP','SPEC','PLOTLIMS','NORM','CENTER','PEP','RESAMPLE', $
+           'HIRES','FBDATA','MONITOR','ADIABATIC','NOMID','UNCERTAINTY', $
+           'NOSPEC90','SHIFTPOT','POPEN','INDSPEC','TWOPOT','XRANGE',$
+           'ERROR_BARS','YRANGE','TRANGE2','NOTE','MINCOUNTS','MAXRERR', $
+           'TSMO','SUNDIR','WSCALE','CSCALE','FSCALE','RESULT','VDIS']
+  for j=0,(n_elements(ktag)-1) do begin
+    i = strmatch(klist, ktag[j]+'*', /fold)
+    case (total(i)) of
+        0  : ; keyword not recognized -> do nothing
+        1  : begin
+               kname = (klist[where(i eq 1)])[0]
+               ok = execute('kset = size(' + kname + ',/type) gt 0',0,1)
+               if (not kset) then ok = execute(kname + ' = key.(j)',0,1)
+             end
+      else : print, "Keyword ambiguous: ", ktag[j]
+    endcase
+  endfor
+
+; Process keywords
 
   if (size(note,/type) ne 7) then note = ''
   if keyword_set(archive) then aflg = 1 else aflg = 0
@@ -208,15 +232,15 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     xflg = 1
   endif else xflg = 0
 
-  case n_elements(tspan) of
+  case n_elements(trange2) of
        0 : tflg = 0
        1 : begin
-             tspan = time_double(tspan)
+             trange2 = time_double(trange2)
              tflg = 1
              kflg = 0
            end
     else : begin
-             tspan = minmax(time_double(tspan))
+             trange2 = minmax(time_double(trange2))
              tflg = 1
              kflg = 0
            end
@@ -502,7 +526,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
   if (~tflg) then begin
     ctime,trange,npoints=npts,/silent
     if (npts gt 1) then cursor,cx,cy,/norm,/up  ; Make sure mouse button released
-  endif else trange = tspan
+  endif else trange = trange2
   pdflg = 1
 
   if (size(trange,/type) eq 2) then begin          ; Abort before first time select.
@@ -1080,7 +1104,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         if (~psflg) then wset, Ewin
         x = pad.energy[*,0]
 
-        pndx = where(reform(pad.pa_max[63,*]) lt swidth, nbins)
+        pndx = where(reform(pad.pa[63,*]) le swidth, nbins)
         case nbins of
              0 : begin
                    Fp = replicate(!values.f_nan,64)
@@ -1097,7 +1121,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                  end
         endcase
 
-        mndx = where(reform(pad.pa_min[63,*]) gt (!pi - swidth), nbins)
+        mndx = where(reform(pad.pa[63,*]) ge (!pi - swidth), nbins)
         case nbins of
              0 : begin
                    Fm = replicate(!values.f_nan,64)
@@ -1114,8 +1138,8 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                  end
         endcase
 
-        zndx = where((reform(pad.pa_max[63,*]) lt (!pi - swidth)) and $
-                     (reform(pad.pa_min[63,*]) gt swidth), nbins)
+        zndx = where((reform(pad.pa[63,*]) lt (!pi - swidth)) and $
+                     (reform(pad.pa[63,*]) gt swidth), nbins)
         case nbins of
              0 : begin
                    Fz = replicate(!values.f_nan,64)

@@ -11,6 +11,10 @@
 ;  See putwin.pro for details on how the configuration structures are
 ;  used to create and place windows.
 ;
+;  UPDATE: This routine is now obsolete.  The snapshot routines have
+;  been modified to use putwin to place snapshot windows in logically
+;  convenient locations.
+;
 ;USAGE:
 ;  swe_snap_layout, layout
 ;
@@ -31,8 +35,8 @@
 ;       WORK2:         Equivalent to LAYOUT=1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-15 12:59:03 -0800 (Tue, 15 Dec 2020) $
-; $LastChangedRevision: 29489 $
+; $LastChangedDate: 2021-03-02 11:47:00 -0800 (Tue, 02 Mar 2021) $
+; $LastChangedRevision: 29726 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_snap_layout.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -41,11 +45,14 @@ pro swe_snap_layout, layout, home=home, work=work, work2=work2
 
   @swe_snap_common
   @putwin_common
-  
+
+  print,"THIS ROUTINE IS OBSOLETE.  IT SHOULD CONTINUE TO WORK IN LEGACY CODE."
+  print,"ALL SNAPSHOT ROUTINES NOW USE PUTWIN TO PLACE WINDOWS."
+
   if keyword_set(home) then layout = 3
   if keyword_set(work) then layout = 2
   if keyword_set(work2) then layout = 1
-  
+
   if (size(layout,/type) eq 0) then begin
     print,"Hardware-dependent positions for snapshot windows."
     print,"  0 --> Default.  No fixed window positions."

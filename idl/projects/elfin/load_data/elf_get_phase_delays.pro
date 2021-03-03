@@ -109,14 +109,28 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
       append_array, starttimes, time_double(data[0])
       append_array, endtimes, time_double(data[1])
       append_array, tspin, data[2]
-      if data[3] EQ ' NaN' then thisdsect=!values.f_nan else thisdsect=fix(data[3])
+      this_bflag=fix(data[10]
+      idxn=strpos(data[3],'NaN')
+      if idxn NE -1 then thisdsect=!values.f_nan else thisdsect=fix(data[3])
+;      if data[3] EQ ' NaN' then thisdsect=!values.f_nan else thisdsect=fix(data[3])
       append_array, dsect2add, thisdsect
-      if data[4] EQ ' NaN' then thisdph=!values.f_nan else thisdph=float(data[4])
+      idxn=strpos(data[4],'NaN')
+      if idxn NE -1 then thisdph=!values.f_nan else thisdph=float(data[4])
       append_array, dphang2add, thisdph
       append_array, ticksconfig, float(data[5])
-      if data[6] EQ ' NaN' then thislms=!values.f_nan else thislms=fix(data[6])
+      idxn=strpos(data[6],'NaN')
+      if idxn GE 0 then begin
+        thislms=fix(data[6])
+      endif else begin
+        if this_bflag then thislms=thisdesct else thislms=!values.f_nan
+      endelse
       append_array, latestmediansectr, thislms
-      if data[7] EQ ' NaN' then thislmpa=!values.f_nan else thislmpa=float(data[7])
+      idxn=strpos(data[7],'NaN')
+      if idxn GE 0 then begin
+        thislmpa=float(data[7])
+      endif else begin
+        if this_bflag then thislmpa=thisdph else thislmpa=!values.f_nan 
+      endelse
       append_array, latestmedianphang, thislmpa
       append_array, chisq, float(data[8])
       append_array, attunc, float(data[9])

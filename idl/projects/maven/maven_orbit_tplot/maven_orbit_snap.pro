@@ -98,8 +98,8 @@
 ;
 ;       BCLIP:    Maximum amplitude for plotting B whisker.
 ;
-;       SCALE:    To change the scale/length of field lines, the default value is
-;                 set to 0.05
+;       MSCALE:   To change the scale/length of magnetic field lines, the default
+;                 value is set to 0.05
 ;
 ;       VDIR:     Set keyword to a tplot variable containing MSO vectors for a whisker
 ;                 plot (like BDIR).
@@ -113,7 +113,11 @@
 ;
 ;       THICK:    Line thickness.
 ;
-;       MAGNIFY:  Change size of plot windows.
+;       WSCALE:   Scale factor for sizing plot windows.  Default = 1.
+;                 Has no effect when plotting orbit projections over images, which
+;                 have fixed sizes.
+;
+;       MAGNIFY:  Synonym for WSCALE.  (WSCALE takes precedence.)
 ;
 ;       NOLABEL:  Omit text labels showing altitude and solar zenith angle.
 ;
@@ -134,30 +138,26 @@
 ;                 last color.  Default is 6 (red) for all.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-28 12:46:54 -0800 (Sun, 28 Feb 2021) $
-; $LastChangedRevision: 29711 $
+; $LastChangedDate: 2021-03-02 11:50:19 -0800 (Tue, 02 Mar 2021) $
+; $LastChangedRevision: 29729 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
 ;-
 pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, mars=mars, $
     npole=npole, noerase=noerase, keep=keep, color=color, reset=reset, cyl=cyl, times=times, $
-    nodot=nodot, terminator=terminator, thick=thick, Bdir=Bdir, scale=scale, scsym=scsym, $
+    nodot=nodot, terminator=terminator, thick=thick, Bdir=Bdir, mscale=mscale, scsym=scsym, $
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
     alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab, $
-    scol=scol, tcolors=tcolors, noorb=noorb, monitor=monitor
+    scol=scol, tcolors=tcolors, noorb=noorb, monitor=monitor, wscale=wscale
 
   @maven_orbit_common
   @putwin_common
-
-  if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
 
   if (size(time,/type) ne 5) then begin
     print, "You must run maven_orbit_tplot first!"
     return
   endif
-  
-  if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
 
   a = 0.8
   phi = findgen(49)*(2.*!pi/49)
@@ -183,8 +183,13 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if keyword_set(nodot) then dodot = 0 else dodot = 1
   if keyword_set(noorb) then doorb = 0 else doorb = 1
   if (size(terminator,/type) gt 0) then doterm = fix(round(terminator)) < 3 else doterm = 0
-  if not keyword_set(magnify) then mag = 1. else mag = float(magnify)
-  csize = 2.0*mag
+  if keyword_set(wscale) then begin
+    wscale = float(wscale[0])
+  endif else begin
+    wscale = 1.
+    if keyword_set(magnify) then wscale = float(magnify[0])
+  endelse
+  csize = 2.0*wscale
   if (size(Bclip,/type) eq 0) then Bclip = 1.e9
   if (size(Vclip,/type) eq 0) then Vclip = 1.e3
 
@@ -330,7 +335,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   endif else begin
     psflg = 0
     if (npans eq 1) then begin
-      putwin, /free, monitor=mnum, xsize=500, ysize=473, dx=10, dy=10, scale=mag  ; MSO projections 1x1
+      putwin, /free, monitor=mnum, xsize=500, ysize=473, dx=10, dy=10, scale=wscale  ; MSO projections 1x1
       Owin = !d.window
     endif else begin
       putwin, /free, monitor=mnum, /yfull, aspect=0.351, dx=10   ; MSO projections 1x3
@@ -340,12 +345,12 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   endelse
 
   if (gflg) then begin
-    putwin, /free, monitor=mnum, xsize=600, ysize=280, dx=-10, dy=-10, scale=mag  ; MSO Lat-Lon
+    putwin, /free, monitor=mnum, xsize=600, ysize=280, dx=-10, dy=-10, scale=wscale  ; MSO Lat-Lon
     Gwin = !d.window
   endif
 
   if (cyflg) then begin
-    putwin, /free, xsize=600, ysize=350, rel=Owin, dx=10, scale=mag  ; MSO cylindrical
+    putwin, /free, xsize=600, ysize=350, rel=Owin, dx=10, scale=wscale  ; MSO cylindrical
     Cwin = !d.window
   endif
 
@@ -496,7 +501,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         bb[*,0]=interpol(bb0[*,0],bt,time[rndx])
         bb[*,1]=interpol(bb0[*,1],bt,time[rndx])
         bb[*,2]=interpol(bb0[*,2],bt,time[rndx])
-        if ~(keyword_set(scale)) then scale=0.05
+        if ~(keyword_set(mscale)) then mscale=0.05
         nskp=5
     endif
     
@@ -569,8 +574,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
           for i=0,cts-1,nskp do begin
               x1=x[i]
               y1=y[i]
-              x2=scale*bb[i,0]+x1
-              y2=scale*bb[i,1]+y1
+              x2=mscale*bb[i,0]+x1
+              y2=mscale*bb[i,1]+y1
               if bb[i,2] le 0 then clr=64 $
               else clr=254
               oplot,[x1,x2],[y1,y2],color=clr
@@ -713,8 +718,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
           for i=0,cts-1,nskp do begin
             x1=x[i]
             y1=z[i]
-            x2=scale*bb[i,0]+x1
-            y2=scale*bb[i,2]+y1
+            x2=mscale*bb[i,0]+x1
+            y2=mscale*bb[i,2]+y1
             if bb[i,1] le 0 then clr=64 else clr=254
             oplot,[x1,x2],[y1,y2],color=clr
           endfor
@@ -848,8 +853,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
           for i=0,cts-1,nskp do begin
               x1=y[i]
               y1=z[i]
-              x2=scale*bb[i,1]+x1
-              y2=scale*bb[i,2]+y1
+              x2=mscale*bb[i,1]+x1
+              y2=mscale*bb[i,2]+y1
               if bb[i,0] le 0 then clr=64 $
               else clr=254
               oplot,[x1,x2],[y1,y2],color=clr

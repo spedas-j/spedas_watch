@@ -805,17 +805,17 @@ pro elf_map_state_t96_intervals, tstart, gifout=gifout, south=south, noview=novi
     ; ELFIN A
     ; IBO
     if size(attgeia, /type) EQ 8 then begin  ;a
-      elf_calc_sci_zone_att_ibo,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
+      elf_calc_sci_zone_att,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
         lat=this_a_lat*!radeg, lshell=this_a_l, /ibo
-      ela_ibo_spin_att_ang_str = 'IBO: ' + elf_make_spin_att_string_ibo(probe='a')
+      ela_ibo_spin_att_ang_str = 'IBO: ' + elf_make_spin_att_string(probe='a')
     endif else begin
       ela_ibo_spin_att_ang_str = 'IBO: not available'
     endelse
     ; OBO
     if size(attgeia, /type) EQ 8 then begin  ;a
-      elf_calc_sci_zone_att_ibo,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
+      elf_calc_sci_zone_att,probe='a',trange=[this_time[0],this_time[n_elements(this_time)-1]], $
         lat=this_a_lat*!radeg, lshell=this_a_l
-      ela_obo_spin_att_ang_str = 'OBO: ' + elf_make_spin_att_string_ibo(probe='a')
+      ela_obo_spin_att_ang_str = 'OBO: ' + elf_make_spin_att_string(probe='a')
     endif else begin
       ela_obo_spin_att_ang_str = 'OBO: not available'
     endelse

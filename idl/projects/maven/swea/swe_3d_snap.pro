@@ -92,8 +92,8 @@
 ;                      interactive time range selection.)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-28 12:43:45 -0800 (Sun, 28 Feb 2021) $
-; $LastChangedRevision: 29709 $
+; $LastChangedDate: 2021-03-02 11:48:03 -0800 (Tue, 02 Mar 2021) $
+; $LastChangedRevision: 29727 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -101,10 +101,10 @@
 pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
                  center=center, units=units, ddd=ddd, sum=sum, padmag=padmag, $
                  energy=energy, label=label, smo=smo, symdir=symdir, sundir=sundir, $
-                 symenergy=symenergy, symdiag=symdiag, power=pow, map=map, $
+                 symenergy=symenergy, symdiag=symdiag, power=power, map=map, $
                  abins=abins, dbins=dbins, obins=obins, mask_sc=mask_sc, burst=burst, $
                  plot_sc=plot_sc, padmap=padmap, pot=pot, plot_fov=plot_fov, $
-                 labsize=labsize, trange=tspan, tsmo=tsmo, wscale=wscale, zlog=zlog, $
+                 labsize=labsize, trange=trange2, tsmo=tsmo, wscale=wscale, zlog=zlog, $
                  zrange=zrange, monitor=monitor
 
   @mvn_swe_com
@@ -113,8 +113,30 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
   a = 0.8
   phi = findgen(49)*(2.*!pi/49)
   usersym,a*cos(phi),a*sin(phi),/fill
-  
-  if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
+
+; Load any keyword defaults
+
+  swe_snap_options, get=key, /silent
+  ktag = tag_names(key)
+  klist = ['SPEC','KEEPWINS','ARCHIVE','EBINS','CENTER','UNITS','SUM', $
+           'PADMAG','ENERGY','LABEL','SMO','SYMDIR','SUNDIR','SYMENERGY', $
+           'SYMDIAG','POWER','MAP','ABINS','DBINS','OBINS','MASK_SC','BURST', $
+           'PLOT_SC','PADMAP','POT','PLOT_FOV','LABSIZE','TRANGE2','TSMO', $
+           'WSCALE','ZLOG','ZRANGE','MONITOR']
+  for j=0,(n_elements(ktag)-1) do begin
+    i = strmatch(klist, ktag[j]+'*', /fold)
+    case (total(i)) of
+        0  : ; keyword not recognized -> do nothing
+        1  : begin
+               kname = (klist[where(i eq 1)])[0]
+               ok = execute('kset = size(' + kname + ',/type) gt 0',0,1)
+               if (not kset) then ok = execute(kname + ' = key.(j)',0,1)
+             end
+      else : print, "Keyword ambiguous: ", ktag[j]
+    endcase
+  endfor
+
+; Process keywords
 
   if keyword_set(archive) then aflg = 1 else aflg = 0
   if keyword_set(burst) then aflg = 1
@@ -173,19 +195,19 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
   if (keyword_set(padmag) and (size(a2,/type) eq 8)) then pflg = 1 else pflg = 0
   if (size(ebins,/type) eq 0) then ebins = reverse(4*indgen(16))
   if not keyword_set(symenergy) then symenergy = 130.
-  if not keyword_set(pow) then pow = 3.
+  if not keyword_set(power) then power = 3.
   if keyword_set(symdiag) then dflg = 1 else dflg = 0
   if keyword_set(padmap) then dopam = 1 else dopam = 0
 
-  case n_elements(tspan) of
+  case n_elements(trange2) of
        0 : tflg = 0
        1 : begin
-             tspan = time_double(tspan)
+             trange2 = time_double(trange2)
              tflg = 1
              kflg = 0
            end
     else : begin
-             tspan = minmax(time_double(tspan))
+             trange2 = minmax(time_double(trange2))
              tflg = 1
              kflg = 0
            end
@@ -286,7 +308,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
     if (~tflg) then begin
       ctime,trange,npoints=npts,/silent
       if (npts gt 1) then cursor,cx,cy,/norm,/up  ; Make sure mouse button released
-    endif else trange = tspan
+    endif else trange = trange2
 
     if (size(trange,/type) eq 2) then begin  ; Abort before first time select.
       wdelete,Dwin                           ; Don't keep empty windows.
@@ -406,7 +428,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
         fmax = max(f,k)
         k = k mod 16
 
-        faz = total((f/fmax)^pow,2)
+        faz = total((f/fmax)^power,2)
         faz = (faz - mean(faz)) > 0.
         k = (k + 9) mod 16
         az = shift(phi,-k)
@@ -417,7 +439,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
 
         el = reform(the,6)
         f = shift(f,-k,0)
-        fel = total((f[m,*]/fmax)^pow,1)
+        fel = total((f[m,*]/fmax)^power,1)
         fel = (fel - mean(fel)) > 0.
         el0 = total(el*fel)/total(fel)
 

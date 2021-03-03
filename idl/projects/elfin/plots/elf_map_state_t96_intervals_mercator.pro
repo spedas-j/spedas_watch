@@ -915,17 +915,17 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
       ; ELFIN B
       ; IBO
       if size(attgeib, /type) EQ 8 then begin  ;b
-        elf_calc_sci_zone_att_ibo,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
+        elf_calc_sci_zone_att,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
           lat=this_b_lat*!radeg, lshell=this_b_l, /ibo
-        elb_ibo_spin_att_ang_str = 'IBO: ' + elf_make_spin_att_string_ibo(probe='b')
+        elb_ibo_spin_att_ang_str = 'IBO: ' + elf_make_spin_att_string(probe='b')
       endif else begin
         elb_ibo_spin_att_ang_str = 'IBO: not available'
       endelse
       ; OBO
       if size(attgeib, /type) EQ 8 then begin  ;b
-        elf_calc_sci_zone_att_ibo,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
+        elf_calc_sci_zone_att,probe='b',trange=[this_time2[0],this_time2[n_elements(this_time2)-1]], $
           lat=this_b_lat*!radeg, lshell=this_b_l
-        elb_obo_spin_att_ang_str = 'OBO: ' + elf_make_spin_att_string_ibo(probe='b')
+        elb_obo_spin_att_ang_str = 'OBO: ' + elf_make_spin_att_string(probe='b')
       endif else begin
         elb_obo_spin_att_ang_str = 'OBO: not available'
       endelse

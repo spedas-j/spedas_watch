@@ -153,8 +153,8 @@
 ;                 save files are 8.7 GB in size.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-10-13 15:50:39 -0700 (Tue, 13 Oct 2020) $
-; $LastChangedRevision: 29248 $
+; $LastChangedDate: 2021-03-02 12:52:49 -0800 (Tue, 02 Mar 2021) $
+; $LastChangedRevision: 29732 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -803,7 +803,7 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
                            else options,'alt2','constant',-1
 
   if keyword_set(pds) then begin
-    nmon = 20
+    nmon = 100  ; extends to 2040-02-15
     pds_rel = replicate(time_struct('2015-05-15'),nmon)
     pds_rel.month += 3*indgen(nmon)
     pds_rel = time_double(pds_rel)
