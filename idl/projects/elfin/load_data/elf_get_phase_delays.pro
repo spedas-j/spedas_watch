@@ -109,7 +109,7 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
       append_array, starttimes, time_double(data[0])
       append_array, endtimes, time_double(data[1])
       append_array, tspin, data[2]
-      this_bflag=fix(data[10]
+      this_bflag=fix(data[10])
       idxn=strpos(data[3],'NaN')
       if idxn NE -1 then thisdsect=!values.f_nan else thisdsect=fix(data[3])
 ;      if data[3] EQ ' NaN' then thisdsect=!values.f_nan else thisdsect=fix(data[3])
@@ -122,7 +122,7 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
       if idxn GE 0 then begin
         thislms=fix(data[6])
       endif else begin
-        if this_bflag then thislms=thisdesct else thislms=!values.f_nan
+        if this_bflag then thislms=thisdsect else thislms=!values.f_nan
       endelse
       append_array, latestmediansectr, thislms
       idxn=strpos(data[7],'NaN')
