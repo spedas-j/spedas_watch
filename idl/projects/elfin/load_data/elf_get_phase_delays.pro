@@ -119,14 +119,14 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
       append_array, dphang2add, thisdph
       append_array, ticksconfig, float(data[5])
       idxn=strpos(data[6],'NaN')
-      if idxn GE 0 then begin
+      if idxn EQ -1 then begin
         thislms=fix(data[6])
       endif else begin
         if this_bflag then thislms=thisdsect else thislms=!values.f_nan
       endelse
       append_array, latestmediansectr, thislms
       idxn=strpos(data[7],'NaN')
-      if idxn GE 0 then begin
+      if idxn EQ -1 then begin
         thislmpa=float(data[7])
       endif else begin
         if this_bflag then thislmpa=thisdph else thislmpa=!values.f_nan 
