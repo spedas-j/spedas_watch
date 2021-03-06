@@ -22,7 +22,7 @@
 ;         data_struct=elf_get_data_availability('2020-03-20', probe='a', instrument='epd'
 ;
 ;
-;VERSION LAST EDITED: lauraiglesias4@gmail.com 11/17/2020
+;VERSION LAST EDITED: lauraiglesias4@gmail.com 03/04/2021
 ;-
 function elf_get_data_availability, tdate, instrument=instrument, probe=probe, days = days
 
@@ -100,20 +100,19 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe, d
           this_e = d.x[idx[sz]]
 ;          eidx = idx[sz]
         endelse
-        if (this_e-this_s) lt 60. then continue
+        if instrument EQ 'mrm' then gapsize = 20 else gapsize = 60
+        if (this_e-this_s) lt gapsize then continue
         append_array, sz_starttimes, this_s
         append_array, sz_endtimes, this_e
       endfor
     endelse
   endif else begin
     ; no data
-    print, 'There is no data for '+instrument+' on '+tdate
+    print, 'There is no data for '+instrument+' in specified range '
     return, -1 
   endelse
   
-  ; Find which size zone
-  if instrument EQ 'epd' or instrument EQ 'fgm' then begin
-
+    
     ; get position data and convert to SM coordinates
     elf_load_state, probe=probe, trange=trange
     get_data, sc+'_pos_gei', data=dat_gei
@@ -147,45 +146,24 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe, d
       dlat = sz_lat[1:n_elements(sz_lat)-1] - sz_lat[0:n_elements(sz_lat)-2]
       dL0 = string(sz_L0[0], FORMAT = '%0.1f') +' - ' + string(sz_L0[-1], FORMAT = '%0.1f')
       medMLT = string(sz_MLT[where(sz_MLT eq median(idx, /EVEN))], FORMAT = '%0.1f')
-
-      if median_lat GT 0 then begin
-        if median(dlat) GT 0 then sz_name = 'nasc' else sz_name = 'ndes'
+      
+      if sign(sz_lat[0]) NE sign(sz_lat[-1]) AND instrument eq 'mrm' then begin
+        sz_name = 'eq' 
       endif else begin
-        if median(dlat) GT 0 then sz_name = 'sasc' else sz_name =  'sdes'
+        if median_lat GT 0 then begin
+          if median(dlat) GT 0 then sz_name = 'nasc' else sz_name = 'ndes'
+        endif else begin
+          if median(dlat) GT 0 then sz_name = 'sasc' else sz_name = 'sdes'
+        endelse
       endelse
+      
       append_array, sz_names, sz_name
       append_array, sz_dL0s, dL0
       append_array, sz_medMLTs, medMLT
-    endfor     
+     endfor     
     data_availability={starttimes:sz_starttimes, endtimes:sz_endtimes, zones:sz_names, dL: sz_dL0s, medMLT: sz_medMLTs}
   
-  ; Handle MRM data (only 1 collection every other day)     
 
-  
-  endif else begin
-    ; get position data to determine whether s/c is ascending or descending
-    elf_mlt_l_lat,sc+'_pos_sm',MLT0=MLT0,L0=L0,lat0=lat0 ;;subroutine to calculate mlt,l,mlat under dipole configuration
-
-    mrm_start = d.x[0]
-    mrm_end = d.x[n_elements(d.x)-1] 
-    
-    idx=where(d.x GE mrm_start AND d.x LE mrm_end, ncnt)
-
-      if ncnt eq 0 then begin
-        print, 'There is no state data for start: '+time_string(mrm_start)+' to '+time_string(mrm_end)
-        return, -1
-      endif
-
-    sz_L0 = L0[idx]
-    sz_MLT = MLT0[idx]
-    dL0 = string(sz_L0[0], FORMAT = '%0.1f') +' - ' + string(sz_L0[-1], FORMAT = '%0.1f')
-    medMLT = string(sz_MLT[where(sz_MLT eq median(idx, /EVEN))], FORMAT = '%0.1f')
-
-    append_array, sz_dL0s, dL0
-    append_array, sz_medMLTs, medMLT
-
-    data_availability={starttimes:mrm_start, endtimes:mrm_end, dL: sz_dL0s, medMLT: sz_medMLTs} 
-  endelse
   return, data_availability
    
 end

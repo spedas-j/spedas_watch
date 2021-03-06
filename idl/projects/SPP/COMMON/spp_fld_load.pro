@@ -91,9 +91,9 @@
 ; CREATED BY:       Davin Larson December 2018
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
-; $LastChangedBy: anarock $
-; $LastChangedDate: 2021-02-02 07:19:32 -0800 (Tue, 02 Feb 2021) $
-; $LastChangedRevision: 29640 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2021-03-04 23:08:15 -0800 (Thu, 04 Mar 2021) $
+; $LastChangedRevision: 29739 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -135,7 +135,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
     'dfb_ac_bpf1', 'dfb_ac_bpf2', $
     'dfb_dc_bpf1', 'dfb_dc_bpf2', $
     'aeb1_hk', 'aeb2_hk', $
-    'mago_survey', $
+    'mago_survey', 'magi_survey', $
     'dcb_analog_hk', $
     'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps', 'dfb_hk']
 
