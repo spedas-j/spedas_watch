@@ -131,7 +131,7 @@
 ;                  zero, the new window is placed on top of the existing 
 ;                  window, with the bottom left corners aligned.
 ;
-;                  If RELATIVE is set, NOFIT=1 and NORM=0 are enforced.
+;                  If RELATIVE is set, NORM=0 and NOFIT=1 are enforced.
 ;
 ;       TOP:       If RELATIVE is set and DY=0, align the top edges of 
 ;                  the new and existing windows.  Otherwise, the bottom
@@ -211,8 +211,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-02-28 12:48:20 -0800 (Sun, 28 Feb 2021) $
-; $LastChangedRevision: 29712 $
+; $LastChangedDate: 2021-03-08 12:43:45 -0800 (Mon, 08 Mar 2021) $
+; $LastChangedRevision: 29744 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -242,6 +242,11 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     if (count gt 0) then secondarymon = max(mons[i]) $
                     else secondarymon = primarymon
 
+    klist = ['CONFIG','STAT','SHOW','MONITOR','SECONDARY','DX','DY','NORM', $
+             'CENTER','XCENTER','YCENTER','CORNER','SCALE','FULL','XFULL', $
+             'YFULL','ASPECT','XSIZE','YSIZE','NOFIT','TBAR2','RELATIVE', $
+             'TOP','RIGHT','CLONE']
+
     windex = -1
   endif
 
@@ -250,10 +255,6 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
   if (size(key,/type) eq 8) then begin
     ktag = tag_names(key)
-    klist = ['CONFIG','STAT','SHOW','MONITOR','SECONDARY','DX','DY','NORM', $
-             'CENTER','XCENTER','YCENTER','CORNER','SCALE','FULL','XFULL', $
-             'YFULL','ASPECT','XSIZE','YSIZE','NOFIT','TBAR2','RELATIVE', $
-             'TOP','RIGHT','CLONE']
     for j=0,(n_elements(ktag)-1) do begin
       ok = 0
       i = strmatch(klist, ktag[j]+'*', /fold)
@@ -328,7 +329,6 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
                     else secondarymon = primarymon
 
     windex = 4  ; user-defined
-    swe_snap_layout, 0
     putwin, /stat
     return
   endif
@@ -337,7 +337,6 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     cfg = fix(config[0])
 
     if (cfg eq 0) then begin
-      swe_snap_layout, 0
       windex = -1
       putwin, /stat
       return
@@ -367,7 +366,6 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     if (count gt 0) then secondarymon = max(mons[i]) $
                     else secondarymon = primarymon
 
-    swe_snap_layout, windex
     putwin, /stat
     return
   endif

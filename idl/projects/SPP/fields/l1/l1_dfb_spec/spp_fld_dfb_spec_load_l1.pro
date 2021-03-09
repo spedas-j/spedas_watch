@@ -18,6 +18,15 @@ pro spp_fld_dfb_spec_load_l1, file, prefix = prefix, varformat = varformat
     4: colors = 1 ; magenta
   endcase
 
+  get_data, prefix + 'navg', data = dat_navg
+
+  if size(/type, dat_navg) NE 8 then begin
+
+    print, 'no DFB spectra loaded'
+    return
+
+  endif
+
   options, prefix + status_items, 'colors', colors
   ;options, prefix + status_items, 'psym', spec_number + 3
   options, prefix + status_items, 'psym_lim', 100
@@ -63,8 +72,6 @@ pro spp_fld_dfb_spec_load_l1, file, prefix = prefix, varformat = varformat
   options, prefix + 'gain', 'yminor', 1
   options, prefix + 'gain', 'ysubtitle', ''
   options, prefix + 'gain', 'panel_size', 0.35
-
-  get_data, prefix + 'navg', data = dat_navg
 
   if n_elements(uniq(dat_navg.y)) EQ 1 then begin
 
