@@ -156,7 +156,7 @@ pro elf_plot_attitude, trange=trange
   gif_file = dir_products+'ela_attitude_plot_'+dname+'_'+dname2
   dprint, 'Making gif file '+gif_file+'.gif'
   elf_make_att_gif, gif_file
-stop
+
   ; Plot probe B
   tplot, ['elb_att_gei', $
           'elb_theta', $
@@ -170,7 +170,7 @@ stop
   gif_file = dir_products+'elb_attitude_plot_'+dname+'_'+dname2
   dprint, 'Making gif file '+gif_file+'.gif'
   elf_make_att_gif, gif_file
-stop
+
   ; Plot keplerian elements
   ; set up plot parameters
   ; Convert position vector to keplerian elements
@@ -206,35 +206,34 @@ stop
   btitle='ELFIN B Elements, '+tdate+' to ' + tdate1
 
   ; Plot Probe A Elements
-  window, xsize=850, ysize=950
-  tplot, ['ela_alt', $
-    'ela_inc', $
-    'ela_ecc', $
-    'ela_ra', $
-    'ela_aper', $
-    'ela_ma']
-  timebar, atimes, linestyle=2
-  xyouts,  .75, .005, 'Created: '+systime(),/normal,charsize=.9
-  dir_products = !elf.local_data_dir + 'ela/attplots/
-  file_mkdir, dir_products
-  gif_file = dir_products+'ela_elements_plot_'+dname+'_'+dname2
-  dprint, 'Making gif file '+gif_file+'.gif'
-  elf_make_att_gif, gif_file
-stop
+;  window, xsize=850, ysize=950
+;  tplot, ['ela_alt', $
+;    'ela_inc', $
+;    'ela_ecc', $
+;    'ela_ra', $
+;    'ela_aper', $
+;    'ela_ma']
+;  timebar, atimes, linestyle=2
+;  xyouts,  .75, .005, 'Created: '+systime(),/normal,charsize=.9
+;  dir_products = !elf.local_data_dir + 'ela/attplots/
+;  file_mkdir, dir_products
+;  gif_file = dir_products+'ela_elements_plot_'+dname+'_'+dname2
+;  dprint, 'Making gif file '+gif_file+'.gif'
+;  elf_make_att_gif, gif_file
+
   ; Plot Probe B Elements
-  tplot, ['elb_alt', $
-    'elb_inc', $
-    'elb_ecc', $
-    'elb_ra', $
-    'elb_aper', $
-    'elb_ma']
-  timebar, btimes, linestyle=2
-  xyouts,  .75, .005, 'Created: '+systime(),/normal,charsize=.9
-  dir_products = !elf.local_data_dir + 'elb/attplots/
-  file_mkdir, dir_products
-  gif_file = dir_products+'elb_elements_plot_'+dname+'_'+dname2
-  dprint, 'Making gif file '+gif_file+'.gif'
-  elf_make_att_gif, gif_file
-stop
+;  tplot, ['elb_alt', $
+;    'elb_inc', $
+;    'elb_ecc', $
+;    'elb_ra', $
+;    'elb_aper', $
+;    'elb_ma']
+;  timebar, btimes, linestyle=2
+;  xyouts,  .75, .005, 'Created: '+systime(),/normal,charsize=.9
+;  dir_products = !elf.local_data_dir + 'elb/attplots/
+;  file_mkdir, dir_products
+;  gif_file = dir_products+'elb_elements_plot_'+dname+'_'+dname2
+;  dprint, 'Making gif file '+gif_file+'.gif'
+;  elf_make_att_gif, gif_file
 
 end
