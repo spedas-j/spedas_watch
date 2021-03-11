@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-02-04 16:52:21 -0800 (Thu, 04 Feb 2021) $
-; $LastChangedRevision: 29646 $
+; $LastChangedDate: 2021-03-09 19:26:00 -0800 (Tue, 09 Mar 2021) $
+; $LastChangedRevision: 29749 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
@@ -17,7 +17,7 @@ function spp_apdat_all
 end
 
 
-pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load_ssr=load_ssr, $
+pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load_ssr=load_ssr,fields=fields, $
   make_cdf=make_cdf,make_ql=make_ql,make_sav=make_sav,load_sav=load_sav,verbose=verbose,reset=reset,sc_files=sc_files, $
   ssr_format=ssr_format,mtime_range=mtime_range,make_tplotvar=make_tplotvar,ssr_prefix=ssr_prefix,force_make=force_make
 
@@ -33,8 +33,8 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
   ql_dir=output_prefix+'swem/ql/'
   linkname=output_prefix+'.hidden/.htaccess'
   if ~keyword_set(ssr_prefix) then begin
-    ssr_prefix='psp/data/sci/MOC/SPP/data_products/ssr_telemetry/'
-    ssr_prefix='psp/data/sci/sweap/raw/SSR/'
+    ssr_prefix='psp/data/sci/sweap/sao/psp/data/moc_data_products/'
+    if keyword_set(fields) then ssr_prefix='psp/data/sci/MOC/SPP/data_products/'
   endif
   if ~isa(ssr_format,/string) then ssr_format = 'YYYY/DOY/*_?_E?'
   if keyword_set(sc_files) then ssr_format = 'YYYY/DOY/*_?_FP'
@@ -44,7 +44,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
   relative_position=strlen(root+output_prefix)
 
   if keyword_set(load_ssr) || make_sav eq 1 then begin
-    ssr_files=spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix,verbose=verbose)
+    ssr_files=spp_file_retrieve(ssr_format,trange=tr,/daily_names,/valid_only,prefix=ssr_prefix+'ssr_telemetry/',verbose=verbose)
     if keyword_set(mtime_range) then begin
       fi=file_info(ssr_files)
       mtrge=time_double(mtime_range)
@@ -56,7 +56,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
       endif
       ssr_files=fi.name
     endif
-    if keyword_set(load_ssr) then spp_ssr_file_read,ssr_files,/sort_flag,/finish,no_init = ~keyword_set(reset)
+    if keyword_set(load_ssr) then spp_ssr_file_read,ssr_files,/sort_flag,/finish,no_init = ~keyword_set(reset),kernels=kernels
   endif
 
   if keyword_set(load_sav) then begin ;loads sav files
@@ -84,10 +84,13 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
     foreach ssr_file,ssr_files do begin
       sav_file=root+output_prefix+'.sav/ssr/'+(ssr_file).substring(-24)+'.sav' ;substring is preferred here. strsub may fail b/c ssr_prefix can change!
       if ~keyword_set(force_make) then if (file_info(ssr_file)).mtime le (file_info(sav_file)).mtime then continue
-      parent_chksum=file_checksum(ssr_file,/add_mtime,relative_position=strlen(root+ssr_prefix))
       spp_apdat_info,/reset
       spp_swp_apdat_init,/reset
-      spp_ssr_file_read,ssr_file
+      spp_ssr_file_read,ssr_file,kernels=kernels
+      knl_chksum=file_checksum(kernels,/add_mtime,relative_position=strlen(root))
+      ssr_chksum=file_checksum(ssr_file,/add_mtime,relative_position=strlen(root+ssr_prefix))
+      parent_chksum=[knl_chksum,ssr_chksum]
+      dprint,parent_chksum
       spp_apdat_info,/print
       file_mkdir2,file_dirname(sav_file)
       spp_apdat_info,file_save=sav_file,/compress,parent=parent_chksum
@@ -130,15 +133,13 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
           foreach sav_file,sav_files do begin
             self=!null
             parent='file_checksum not saved for parent of: '+sav_file.substring(relative_position)
-            dprint,dlevel=1,verbose=verbose,'Restoring file: '+sav_file+' Size: '+strtrim((file_info(sav_file)).size/1e3,2)+' KB'
+            dprint,dlevel=1,verbose=verbose,'Restoring file: '+sav_file+' Size(KB):'+strtrim((file_info(sav_file)).size/1e3,2)+' mtime(UTC):'+time_string((file_info(sav_file)).mtime)
             restore,sav_file,/relax,/skip
             if obj_valid(cdf) then cdf.append,self else cdf=self
             parents=[parents,parent]
           endforeach
           cdf.sort
           cdf.cdf_linkname=linkname
-          ;parents=file_search(root+ssr_prefix+'????/???/'+sav_files.substring(-19,-5))
-          ;if n_elements(parents) ne n_elements(sav_files) then message,'incorrect number of parent SSR files!'
           parents_chksum=file_checksum(sav_files,/add_mtime,relative_position=relative_position)
           cdf.cdf_makefile,filename=cdf_file,parents=[parents_chksum,'grandparents>',parents]
         endforeach
@@ -158,6 +159,6 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
       makepng,pngfile
     endfor
   endif
-  dprint,dlevel=1,verbose=verbose,' Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()+' '+ssr_prefix+ssr_format
+  dprint,dlevel=1,verbose=verbose,' Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()+' '+ssr_prefix+'ssr_telemetry/'+ssr_format
 
 end

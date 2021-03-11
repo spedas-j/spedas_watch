@@ -1,11 +1,11 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-09 08:28:03 -0800 (Wed, 09 Dec 2020) $
-; $LastChangedRevision: 29450 $
+; $LastChangedDate: 2021-03-09 19:26:00 -0800 (Tue, 09 Mar 2021) $
+; $LastChangedRevision: 29749 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ; 
 ; ;  This routine will read SSR files that (series of CCSDS packets)
 
-pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_flag,no_init=no_init,finish=finish
+pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_flag,no_init=no_init,finish=finish,kernels=kernels
   
 ;  oldmethod =0
   dummy = {cdf_tools}
@@ -36,7 +36,7 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
     filename = files[i]
     basename = file_basename(filename)
     hashcode = basename.hashcode()
-    filetime = spp_spc_met_to_unixtime(ulong(strmid(basename,0,10)))
+    filetime = spp_spc_met_to_unixtime(ulong(strmid(basename,0,10)),kernels=kernels)
     info.input_sourcename = filename 
     info.input_sourcehash = hashcode
     fi = file_info(info.input_sourcename )

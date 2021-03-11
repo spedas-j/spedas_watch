@@ -19,8 +19,8 @@
 ;
 ; Author: Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-03-04 22:17:43 -0800 (Thu, 04 Mar 2021) $
-; $LastChangedRevision: 29738 $
+; $LastChangedDate: 2021-03-09 19:26:00 -0800 (Tue, 09 Mar 2021) $
+; $LastChangedRevision: 29749 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_spice_kernels.pro $
 ;-
 function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear,$
@@ -38,11 +38,9 @@ function spp_spice_kernels,names,trange=trange,all=all,load=load,verbose=verbose
   if keyword_set(no_download) or keyword_set(no_server) then source.no_server = 1
   if ~keyword_set(source) then source = naif
   trange = timerange(trange)
-
   kernels=''
-  if keyword_set(fields) then begin
-    pathname='psp/data/sci/MOC/SPP/data_products/' ;FIELDS
-  endif else pathname='psp/data/sci/sweap/sao/psp/data/moc_data_products/' ;SWEAP
+  pathname='psp/data/sci/sweap/sao/psp/data/moc_data_products/' ;SWEAP
+  if keyword_set(fields) then pathname='psp/data/sci/MOC/SPP/data_products/' ;FIELDS
 
   for i=0,n_elements(names)-1 do begin
     case strupcase(names[i]) of

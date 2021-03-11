@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-02-16 22:57:38 -0800 (Tue, 16 Feb 2021) $
-; $LastChangedRevision: 29661 $
+; $LastChangedDate: 2021-03-09 19:26:28 -0800 (Tue, 09 Mar 2021) $
+; $LastChangedRevision: 29750 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save,preprefix=preprefix
@@ -29,11 +29,12 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
   level=strupcase(level)
   if ~keyword_set(spxs) then spxs=['spa','spb','spi','swem']
   if spxs[0] eq 'sc_hkp' && ~keyword_set(types) then types='0x'+['081','1c5','1de','1df','254','255','256','257','262']
+  if spxs[0] eq 'spc' && ~keyword_set(types) then types=['all','cfg','hkp','sci','tim']
   if ~keyword_set(types) then types='all'
   if ~keyword_set(varformat) then varformat='*'
   if varformat eq ' ' then varformat=[]
 
-  if types[0] eq 'all' then begin
+  if spxs[0] ne 'spc' && types[0] eq 'all' then begin
     types=['hkp','fhkp','tof','rates','events','ana_hkp','dig_hkp','crit_hkp','event_log']
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1','2'] do foreach type3,['0','1','2','3','a'] do types=[types,type0+type1+type2+type3]
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1'] do types=[types,type0+type1+type2]
@@ -60,6 +61,7 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
   foreach spx,spxs do begin
     foreach type,types do begin
       dir=spx+'/'+level+'/'+spx+'_'+type+'*/YYYY/MM/'
+      if spx eq 'spc' then dir='spc2/'+level+'/'+spx+'_'+type+'/YYYY/MM/';spc folder is spc2
       fileformat=dir+'psp_swp_'+spx+'_'+type+'_'+level+'*_YYYYMMDD_v??.cdf'
       if type.substring(0,2) eq 'wrp' then begin ;wrapper file names don't include swem_*
         dir=spx+'/'+level+'/'+type+'/YYYY/MM/'

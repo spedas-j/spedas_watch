@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-02-16 22:57:38 -0800 (Tue, 16 Feb 2021) $
-; $LastChangedRevision: 29661 $
+; $LastChangedDate: 2021-03-09 19:26:28 -0800 (Tue, 09 Mar 2021) $
+; $LastChangedRevision: 29750 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_swem_events_strings.pro $
 
 function spp_swp_swem_events_strings
@@ -597,7 +597,7 @@ function spp_swp_swem_events_strings
     'EVT_USER_11 24C,' , $
     'EVT_USER_11 24D,' , $
     'EVT_USER_11 24E,' , $
-    'EVT_USER_11 24F,' , $
+    'EVT_I2C_SYNCING_CHNL_0_READ_TO_F0,' , $
     'EVT_USER_11 250,' , $
     'EVT_USER_11 251,' , $
     '????  Unknown ??????'  ]

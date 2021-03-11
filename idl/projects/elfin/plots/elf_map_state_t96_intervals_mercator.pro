@@ -1394,13 +1394,13 @@ pro elf_map_state_t96_intervals_mercator, tstart, gifout=gifout, noview=noview,$
         filedate=file_dailynames(trange=filetime[0], /unique, times=times)
 
         plot_name = 'mercator'
-        if kk eq 0 then suffix = '' else suffix = '_180glon'
+        if kk eq 0 then pcenter = '_0glon' else pcenter = '_180glon'
         
         coord_name='_'
         pname='elf'
-        gif_name=dir_products+'/'+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k]
+        gif_name=dir_products+'/'+pname+'_l2_'+plot_name+coord_name+filedate+file_lbl[k]+pcenter
 
-        if hires then gif_name=gif_name+'_hires'+suffix else gif_name=gif_name+suffix
+        if hires then gif_name=gif_name+'_hires' else gif_name=gif_name
         write_gif,gif_name+'.gif',image,r,g,b
         print,'Output in ',gif_name+'.gif'
         if keyword_set(insert_stop) then stop

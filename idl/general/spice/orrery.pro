@@ -132,6 +132,10 @@
 ;
 ;       KEEPWIN:   Just keep the plot window (don't ask).
 ;
+;       MONITOR:   Put snapshot windows in this monitor.  Monitors are numbered
+;                  from 0 to N-1, where N is the number of monitors recognized
+;                  by the operating system.  See putwin.pro for details.
+;
 ;       OUTER:     Plot the outer planets.  The inner planets will
 ;                  be crowded together in the center.  Pluto's orbit
 ;                  is incomplete over the 1900-2100 ephemeris range.
@@ -155,8 +159,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-10 10:51:42 -0800 (Thu, 10 Dec 2020) $
-; $LastChangedRevision: 29465 $
+; $LastChangedDate: 2021-03-09 22:13:47 -0800 (Tue, 09 Mar 2021) $
+; $LastChangedRevision: 29751 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -165,12 +169,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   spiral=spiral, Vsw=Vsw, srot=srot, movie=movie, stereo=stereo, $
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
                   xyrange=range, planet=pnum, sorb=solorb, psp=sprobe, sall=sall, $
-                  verbose=verbose, full=full, fixplanet=fixplanet
+                  verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor
 
   common planetorb, planet, sta, stb, sorb, psp
-  @swe_snap_common
+  @putwin_common
 
-  if (size(snap_index,/type) eq 0) then swe_snap_layout, 0
   if (size(verbose,/type) eq 0) then verbose = 0
 
   oneday = 86400D
@@ -878,9 +881,19 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   phi = findgen(49)*(2.*!pi/49)
   usersym,a*cos(phi),a*sin(phi),/fill
 
+  Twin = !d.window
+
+  undefine, mnum
+  if (size(monitor,/type) gt 0) then begin
+    if (size(windex,/type) eq 0) then putwin, /config $
+                                 else if (windex eq -1) then putwin, /config
+    mnum = fix(monitor[0])
+  endif else begin
+    if (size(secondarymon,/type) gt 0) then mnum = secondarymon
+  endelse
+
   if (mflg) then begin
-    Twin = !d.window
-    putwin, /free, key=Ropt, scale=scale
+    putwin, /free, monitor=mnum, xsize=792, ysize=765, dx=10, dy=10, scale=scale
     Owin = !d.window
     zscl = 1.
     csize = 1.5*zscl*scale
@@ -1286,7 +1299,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     zscl = 0.8
   endif else begin
     if (Owin eq -1) then begin
-      putwin, /free, key=Ropt, scale=scale
+      putwin, /free, monitor=mnum, xsize=792, ysize=765, dx=10, dy=10, scale=scale
       Owin = !d.window
     endif
     zscl = 1.
