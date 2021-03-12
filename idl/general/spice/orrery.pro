@@ -1,24 +1,21 @@
 ;+
 ;PROCEDURE:   orrery
 ;PURPOSE:
-;  Plots the orbits of the planets to scale as viewed from the
-;  north ecliptic pole, based on the DE435 ephemeris.  Planet
-;  locations are shown by colored disks at the time(s) provided.
-;  If time is an array, then colored arcs are drawn to show the
-;  orbital positions spanned by the input time array.  In this
-;  case, colored disks mark the beginning, middle and end of
-;  each arc.  Time can also be input by clicking in a tplot
-;  window (see keyword MOVIE).
+;  Plots the orbits of the planets to scale as viewed from the north
+;  ecliptic pole, based on the DE438 ephemeris.  Planet locations are
+;  shown by colored disks at the time(s) provided.  If time is an 
+;  array, then colored arcs are drawn to show the orbital positions 
+;  spanned by the input time array.  In this case, colored disks mark 
+;  the beginning, middle and end of each arc.  Time can also be input 
+;  by clicking in a tplot window (see keyword MOVIE).
 ;
-;  By default, this routine shows the inner planets (Mercury
-;  to Mars).  Use keyword OUTER to show all the planets plus
-;  Pluto.  In this case, the inner planets will be crowded
-;  together in the center.
+;  By default, this routine shows the inner planets (Mercury to Mars).
+;  Use keyword OUTER to show all the planets plus Pluto.  In this case, 
+;  the inner planets will be crowded together in the center.
 ;
-;  The routine was originally designed (long ago) to show
-;  only Earth and Mars.  Some useful Earth-Mars geometry is
-;  calculated and can be shown using LABEL=2.  Information
-;  includes:
+;  This routine was originally designed (long ago in the Great Valley)
+;  to show only Earth and Mars.  Some useful Earth-Mars geometry is 
+;  calculated and can be shown using LABEL=2.  Information includes:
 ;
 ;    Earth-Sun-Mars angle (amount of solar rotation E -> M)
 ;    Sun-Mars-Earth angle (elongation of Earth from Mars)
@@ -26,25 +23,25 @@
 ;    One-way light time (Mars to Earth, min)
 ;    Subsolar latitude on Mars (deg)
 ;
-;  Use keyword PLANET to calculate the same geometry for any
-;  other planet.
+;  Use keyword PLANET to calculate the same geometry for any other 
+;  planet.
 ;
-;  Optionally returns (keyword EPH) the orbital positions of 
-;  the planets plus Pluto for the entire ephemeris time period.
+;  Optionally returns (keyword EPH) the orbital positions of the 
+;  planets plus Pluto for the entire ephemeris time period.
 ;
-;  Note: This routine uses long-range predict kernels for Solar
-;  Probe and Solar Orbiter.  These kernels use a format that
-;  cannot be read by earlier versions of ICY/SPICE.  You may
-;  need to update ICY/SPICE to see the positions of these two
-;  spacecraft.  Version 1.8.0 is known to work.
+;  Note: This routine uses long-range predict kernels for Solar Probe 
+;  and Solar Orbiter.  These kernels use a format that cannot be read 
+;  by earlier versions of ICY/SPICE.  You may need to update ICY/SPICE 
+;  to see the positions of these two spacecraft.  Version 1.8.0 is 
+;  known to work.
 ;
 ;USAGE:
 ;  orrery [, time] [,KEYWORD=value, ...]
 ;
 ;INPUTS:
-;       time:      Show planet positions at this time(s).  Valid
-;                  times are from 1900-01-05 to 2100-01-01 in any
-;                  format accepted by time_double().
+;       time:      Show planet positions at this time(s).  Valid times
+;                  are from 1900-01-05 to 2100-01-01 in any format
+;                  accepted by time_double().
 ;
 ;                  If not specified, use the current system time.
 ;
@@ -96,7 +93,7 @@
 ;                  ephemeris values and interpolates across the 
 ;                  gap.)
 ;                    Coverage:
-;                      Stereo A: 2006-10-26 to 2021-01-01
+;                      Stereo A: 2006-10-26 to 2021-03-04
 ;                      Stereo B: 2006-10-26 to 2014-09-28
 ;
 ;       SORB:      Plot the location of Solar Orbiter.  Includes a
@@ -132,9 +129,17 @@
 ;
 ;       KEEPWIN:   Just keep the plot window (don't ask).
 ;
+;       WINDOW:    Window number for the snapshot window.  This is a number
+;                  from 0 to 31 (same range as WINDOW command).  Any value
+;                  outside this range will invoke the FREE keyword.
+;
 ;       MONITOR:   Put snapshot windows in this monitor.  Monitors are numbered
 ;                  from 0 to N-1, where N is the number of monitors recognized
 ;                  by the operating system.  See putwin.pro for details.
+;
+;       PNG:       Set this to the full filename (including path) of a png.
+;                  No snapshot window is created.  All graphics output is
+;                  written to the png file instead.  MOVIE = 0 is enforced.
 ;
 ;       OUTER:     Plot the outer planets.  The inner planets will
 ;                  be crowded together in the center.  Pluto's orbit
@@ -159,8 +164,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-09 22:13:47 -0800 (Tue, 09 Mar 2021) $
-; $LastChangedRevision: 29751 $
+; $LastChangedDate: 2021-03-10 19:23:02 -0800 (Wed, 10 Mar 2021) $
+; $LastChangedRevision: 29756 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -169,7 +174,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   spiral=spiral, Vsw=Vsw, srot=srot, movie=movie, stereo=stereo, $
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
                   xyrange=range, planet=pnum, sorb=solorb, psp=sprobe, sall=sall, $
-                  verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor
+                  verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor, $
+                  window=window, png=png
 
   common planetorb, planet, sta, stb, sorb, psp
   @putwin_common
@@ -183,7 +189,6 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   suncol = 5           ; Sun color
   sunsze = 5           ; Sun symbol size
   pkscol = 4           ; Parker spiral color
-  wnum = !d.window
 
   pname = ['MERCURY','VENUS','EARTH','MARS','JUPITER','SATURN','URANUS','NEPTUNE','PLUTO']
   pstr = ['H','V','E','M','J','S','U','N','P']  ; planet letters
@@ -199,6 +204,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   ssze = [ 2,   2,  1.5, 1.5]  ; spacecraft symbol sizes
   sday = [367, 367, 150,  90]  ; days per orbit (typical)
 
+  xsize = 792
+  ysize = 765
   reset = 1
   eph = 0
 
@@ -265,7 +272,6 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     pflg = 1
   endif
   mflg = keyword_set(movie)
-  if (!d.name eq 'Z') then zflg = 1 else zflg = 0
 
   case n_elements(range) of
      0   : ; do nothing
@@ -283,6 +289,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   dolab = label < 2
 
   kflg = keyword_set(keepwin)
+
+  if (size(png,/type) eq 7) then begin
+    pngname = png
+    dopng = 1
+    mflg = 0
+  endif else dopng = 0
 
   if keyword_set(reset) then Owin = -1
 
@@ -881,19 +893,24 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   phi = findgen(49)*(2.*!pi/49)
   usersym,a*cos(phi),a*sin(phi),/fill
 
-  Twin = !d.window
+  if (not dopng) then begin
+    Twin = !d.window
 
-  undefine, mnum
-  if (size(monitor,/type) gt 0) then begin
-    if (size(windex,/type) eq 0) then putwin, /config $
-                                 else if (windex eq -1) then putwin, /config
-    mnum = fix(monitor[0])
-  endif else begin
-    if (size(secondarymon,/type) gt 0) then mnum = secondarymon
-  endelse
+    undefine, mnum
+    if (size(monitor,/type) gt 0) then begin
+      if (size(windex,/type) eq 0) then putwin, /config $
+                                   else if (windex eq -1) then putwin, /config
+      mnum = fix(monitor[0])
+    endif else begin
+      if (size(secondarymon,/type) gt 0) then mnum = secondarymon
+    endelse
+
+    undefine, wnum
+    if (size(window,/type) gt 0) then wnum = fix(window[0])
+  endif
 
   if (mflg) then begin
-    putwin, /free, monitor=mnum, xsize=792, ysize=765, dx=10, dy=10, scale=scale
+    putwin, wnum, mnum, xsize=xsize, ysize=ysize, dx=10, dy=10, scale=scale
     Owin = !d.window
     zscl = 1.
     csize = 1.5*zscl*scale
@@ -1241,7 +1258,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         ysta = y
       endif
     endif
-  
+
     xstb = replicate(!values.f_nan, n_elements(t))
     ystb = xstb
     i = nn2(stb.time, t, maxdt=oneday)
@@ -1294,12 +1311,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endif
   endif
 
-  if (zflg) then begin
-    device, set_resolution=[xsize*1.033,ysize]
+  if (dopng) then begin
+    current_dev = !d.name
+    set_plot, 'z'
+    device, set_resolution=[xsize*1.010, ysize]*scale
     zscl = 0.8
   endif else begin
     if (Owin eq -1) then begin
-      putwin, /free, monitor=mnum, xsize=792, ysize=765, dx=10, dy=10, scale=scale
+      putwin, wnum, mnum, xsize=xsize, ysize=ysize, dx=10, dy=10, scale=scale
       Owin = !d.window
     endif
     zscl = 1.
@@ -1501,7 +1520,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
 ; Determine fate of plot window
 
-  if ((not zflg) and (not kflg)) then begin
+  if ((not dopng) and (not kflg)) then begin
     msg = 'Button 1: Keep window.   Button 3: Delete window.'
     xs = 0.54
     ys = 0.975
@@ -1520,9 +1539,16 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endelse
   endif
 
-; Reset plot and window parameters
+; Create a png file, if requested
 
-  wset, wnum
+  if (dopng) then begin
+    print, "Writing png file: ",pngname," ... ",format='(3a,$)'
+    img = tvrd()
+    tvlct, red, green, blue, /get
+    write_image, pngname, 'png', img, red, green, blue
+    print, "done"
+    set_plot, current_dev
+  endif else wset, Twin
 
   return
 
