@@ -19,6 +19,12 @@ pro spp_fld_ephem_load_l1, file, prefix = prefix, varformat = varformat
 
   options, prefix + 'position_rs', 'ysubtitle', '[Rs]'
 
+  options, prefix + 'reconstructed', 'yrange', [-0.2,1.2]
+  options, prefix + 'reconstructed', 'ystyle', 1
+  options, prefix + 'reconstructed', 'yticks', 1
+  options, prefix + 'reconstructed', 'ytickv', [0,1]
+  options, prefix + 'reconstructed', 'colors', 6
+
   if frame EQ 'spp_rtn' or frame EQ 'spp_hertn' or frame EQ 'solo_rtn' then begin
 
     store_data, prefix + 'radial_distance', $
