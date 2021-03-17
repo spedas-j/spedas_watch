@@ -164,8 +164,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-10 19:23:02 -0800 (Wed, 10 Mar 2021) $
-; $LastChangedRevision: 29756 $
+; $LastChangedDate: 2021-03-16 15:40:21 -0700 (Tue, 16 Mar 2021) $
+; $LastChangedRevision: 29762 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -404,19 +404,19 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
     success = 0B
 
-    ok = max(stregex(mk,'naif[0-9]{4}.tls',/subexpr,/fold_case)) gt (-1)
+    ok = max(stregex(mk,'naif[0-9]{4}\.tls',/subexpr,/fold_case)) gt (-1)
     if (not ok) then print,"No leap seconds kernel: naif????.tls"
     success += ok
 
-    ok = max(stregex(mk,'pck[0-9]{5}.tpc',/subexpr,/fold_case)) gt (-1)
+    ok = max(stregex(mk,'pck[0-9]{5}\.tpc',/subexpr,/fold_case)) gt (-1)
     if (not ok) then print,"No planet geometry kernel: pck?????.tpc"
     success += ok
 
-    ok = max(stregex(mk,'de[0-9]{3}.bsp',/subexpr,/fold_case)) gt (-1)
-    if (not ok) then print,"No planet orbit kernel: de???.bsp"
+    ok = max(stregex(mk,'de[0-9]{3}.*\.bsp',/subexpr,/fold_case)) gt (-1)
+    if (not ok) then print,"No planet orbit kernel: de????.bsp"
     success += ok
 
-    ok = max(stregex(mk,'mar[0-9]{3}.bsp',/subexpr,/fold_case)) gt (-1)
+    ok = max(stregex(mk,'mar[0-9]{3}\.bsp',/subexpr,/fold_case)) gt (-1)
     if (not ok) then print,"No Mars/Phobos/Deimos kernel: mar???.bsp"
     success += ok
 
@@ -788,6 +788,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       store_data,tname,data={x:planet[pnum].time, y:planet[pnum].owlt/3600D}
       options,tname,'ytitle','E-' + pstr[pnum] + '!cOWLT (hrs)'
     endelse
+    options,tname,'ynozero',1
+
+    tname = 'R-' + pstr[pnum]
+    store_data,tname,data={x:planet[pnum].time, y:planet[pnum].r}
+    msg = strmid(pname[pnum],0,1) + strlowcase(strmid(pname[pnum],1))
+    options,tname,'ytitle',msg + '-Sun' + ' (AU)'
     options,tname,'ynozero',1
 
     dphi = phi_m - phi_e
