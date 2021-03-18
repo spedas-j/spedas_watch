@@ -2,12 +2,12 @@
 ;PROCEDURE:   orrery
 ;PURPOSE:
 ;  Plots the orbits of the planets to scale as viewed from the north
-;  ecliptic pole, based on the DE438 ephemeris.  Planet locations are
-;  shown by colored disks at the time(s) provided.  If time is an 
-;  array, then colored arcs are drawn to show the orbital positions 
-;  spanned by the input time array.  In this case, colored disks mark 
-;  the beginning, middle and end of each arc.  Time can also be input 
-;  by clicking in a tplot window (see keyword MOVIE).
+;  ecliptic pole, based on the latest JPL planetary ephemeris.  Planet
+;  locations are shown by colored disks at the time(s) provided.  If 
+;  time is an array, then colored arcs are drawn to show the orbital 
+;  positions spanned by the input time array.  In this case, colored 
+;  disks mark the beginning, middle and end of each arc.  Time can 
+;  also be input by clicking in a tplot window (see keyword MOVIE).
 ;
 ;  By default, this routine shows the inner planets (Mercury to Mars).
 ;  Use keyword OUTER to show all the planets plus Pluto.  In this case, 
@@ -156,6 +156,8 @@
 ;       TPLOT:     Create Earth-PLANET geometry and spacecraft position
 ;                  tplot variables.
 ;
+;       VARNAMES:  Standard set of tplot variables to plot.
+;
 ;       VERBOSE:   Controls verbosity of file_retrieve.
 ;                  Default = 0 (no output).  Try a value > 2 to see
 ;                  more messages; > 4 for lots of messages.
@@ -164,8 +166,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-16 15:40:21 -0700 (Tue, 16 Mar 2021) $
-; $LastChangedRevision: 29762 $
+; $LastChangedDate: 2021-03-16 19:27:54 -0700 (Tue, 16 Mar 2021) $
+; $LastChangedRevision: 29764 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -175,7 +177,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
                   xyrange=range, planet=pnum, sorb=solorb, psp=sprobe, sall=sall, $
                   verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor, $
-                  window=window, png=png
+                  window=window, png=png, varnames=varnames
 
   common planetorb, planet, sta, stb, sorb, psp
   @putwin_common
@@ -315,6 +317,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
              endif
            end
   endcase
+
+  varnames = ['S-M','Lss','STEREO','R-SORB','Lat-SORB','R-PSP']
 
 ; Check the version of ICY/SPICE
 
@@ -790,10 +794,10 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endelse
     options,tname,'ynozero',1
 
-    tname = 'R-' + pstr[pnum]
+    tname = 'S-' + pstr[pnum]
     store_data,tname,data={x:planet[pnum].time, y:planet[pnum].r}
-    msg = strmid(pname[pnum],0,1) + strlowcase(strmid(pname[pnum],1))
-    options,tname,'ytitle',msg + '-Sun' + ' (AU)'
+    msg = strupcase(strmid(pname[pnum],0,1)) + strlowcase(strmid(pname[pnum],1))
+    options,tname,'ytitle','Sun-' + msg + ' (AU)'
     options,tname,'ynozero',1
 
     dphi = phi_m - phi_e

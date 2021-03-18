@@ -15,8 +15,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-07-15 08:24:00 -0700 (Mon, 15 Jul 2019) $
-; $LastChangedRevision: 27445 $
+; $LastChangedDate: 2021-03-17 15:24:54 -0700 (Wed, 17 Mar 2021) $
+; $LastChangedRevision: 29767 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/spd_get_spectra_units.pro $
 ;-
 
@@ -48,6 +48,8 @@ function spd_get_spectra_units, var
 
   ; spectra variables should always have depend_1 set in their CDF variable atts
   get_data, dl.cdf.vatt.depend_1, dlimits=yaxis_metadata
+  
+  if ~is_struct(yaxis_metadata) then return, -1
   
   return, {yunits: yaxis_metadata.cdf.vatt.units, zunits: dl.cdf.vatt.units}
 end

@@ -27,8 +27,10 @@
 ;       RANGETITLE:  If keyword is set, display range of the averagind time instead of the center time
 ;                    Does not affect deafult name of the png or postscript file 
 ;       TO_KEV:      Converts the x-axis to keV from eV (checks units in ysubtitle)
-;       TO_FLUX: Converts the y-axis to units of flux, i.e., '1/(cm^2 s sr keV)', as with TO_KEV, 
+;       TO_FLUX:     Converts the y-axis to units of flux, i.e., '1/(cm^2 s sr keV)', as with TO_KEV, 
 ;                     this keyword uses the units string in the ztitle
+;       XTITLE:      Manually set the title on the x-axis; if not set, the x-axis units are used
+;       YTITLE:      Manually set the title on the y-axis; if not set, the y-axis units are used
 ;
 ; EXAMPLE:
 ;     To create line plots of FPI electron energy spectra for all MMS spacecraft:
@@ -43,8 +45,8 @@
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-07-16 13:52:51 -0700 (Tue, 16 Jul 2019) $
-;$LastChangedRevision: 27464 $
+;$LastChangedDate: 2021-03-17 16:31:07 -0700 (Wed, 17 Mar 2021) $
+;$LastChangedRevision: 29768 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -85,6 +87,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
    charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, xvalues=xvalues, yvalues=yvalues, $
+   xtitle=xtitle, ytitle=ytitle, $
    _extra=_extra
    
   @tplot_com.pro
@@ -312,9 +315,12 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         if xunit_str eq '' && cdf_yunits ne '' then xunit_str = cdf_yunits
         if yunit_str eq '' && cdf_zunits ne '' then yunit_str = cdf_zunits
         
+        if undefined(xtitle) then xtitle = xunit_str
+        if undefined(ytitle) then ytitle = yunit_str
+        
         plot, x_data, y_data, $
           xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
-          xtitle=xunit_str, ytitle=yunit_str, $
+          xtitle=xtitle, ytitle=ytitle, $
           charsize=charsize, title=title_str, color=colors[v_idx], _extra=_extra
           
           if ~keyword_set(nolegend) then begin
