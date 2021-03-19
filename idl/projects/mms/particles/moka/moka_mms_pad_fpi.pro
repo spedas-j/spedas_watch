@@ -77,6 +77,7 @@ FUNCTION moka_mms_pad_fpi, input, input_err, $
   units=units,$
   norm=norm, $
   subtract_bulk=subtract_bulk, $
+  oclreal=oclreal, $
   _extra = _extra
   compile_opt idl2
 
@@ -546,8 +547,9 @@ FUNCTION moka_mms_pad_fpi, input, input_err, $
   ; 'f_psd' is the PSD    averaged over time and angular ranges.
   ; 'f_cnt' is the counts averaged over time and angular ranges.
   ; 'count_dat is the total number of time and angular bins.
-  f_ocl = f_psd/(f_cnt*float(count_dat))
-
+  ;  f_ocl = f_psd/(f_cnt*float(count_dat))
+  f_ocl = f_psd/(f_cnt*float(nne-nns+1))
+  
   ; Real one-count-level of the instrument in a sampling time and in an angular bin
   if keyword_set(oclreal) then begin
     f_ocl = f_psd/f_cnt

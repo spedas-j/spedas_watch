@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2021-02-16 22:57:38 -0800 (Tue, 16 Feb 2021) $
-; $LastChangedRevision: 29661 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2021-03-18 13:54:18 -0700 (Thu, 18 Mar 2021) $
+; $LastChangedRevision: 29772 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_swem_events_apdat__define.pro $
 
 function spp_swp_swem_events_apdat::display_string, strct  
@@ -48,7 +48,7 @@ function spp_swp_swem_events_apdat::decom,ccsds  ,source_dict = source_dict  ;,h
       strct.code = uint(b[4]*256u+b[5])
       strct.num = i
       strct.id = b[6:9]
-      strct.str = event_str[strct.code]
+      strct.str = event_str[strct.code < (n_elements(event_str)-1)]
       strcts = [strcts,strct]
     endfor
   endif else dprint,dlevel=self.dlevel,'Invalid EVENT packet length: ',ccsds.pkt_size
