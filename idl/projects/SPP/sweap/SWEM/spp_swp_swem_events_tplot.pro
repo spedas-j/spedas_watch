@@ -1,7 +1,7 @@
 ;Ali: Feb 2021
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-03-09 19:26:28 -0800 (Tue, 09 Mar 2021) $
-; $LastChangedRevision: 29750 $
+; $LastChangedDate: 2021-03-19 15:22:45 -0700 (Fri, 19 Mar 2021) $
+; $LastChangedRevision: 29779 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_swem_events_tplot.pro $
 
 pro spp_swp_swem_events_bad_blocks
@@ -36,12 +36,12 @@ pro spp_swp_swem_events_tplot,prefix=prefix,blocks=blocks,ptp=ptp
   get_data,prefix+'CODE',eventt,eventcode
   if ~keyword_set(eventt) then return
   ;codeuniq=eventcode[UNIQ(eventcode, SORT(eventcode))]
-  if n_elements(event_str) eq 0 then event_str=(strtrim(spp_swp_swem_events_strings(),2)).substring(4,-2)
+  if n_elements(event_str) eq 0 then event_str=(strtrim(spp_swp_swem_events_strings(),2))
   if keyword_set(blocks) then wstring=where(event_str.contains('BLOCK',/fold_case),/null,nstring) else begin
     nstring=n_elements(event_str)
     wstring=indgen(nstring)
   endelse
-  event_str2=string(wstring,format='0x%03Z_')+event_str
+  event_str2=string(wstring,format='0x%03Z_')+event_str.substring(0,-2)
   eventcode2=eventcode
   eventcode2[*]=-1
   labels=event_str

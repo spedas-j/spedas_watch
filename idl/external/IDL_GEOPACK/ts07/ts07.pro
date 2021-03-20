@@ -127,7 +127,7 @@ function ts07,tarray,rgsm_array,pdyn,dsti,yimf,zimf,w1,w2,w3,w4,w5,w6, $
   if not keyword_set(iopr) then iopr = 0 ; both SRC and PRC
 
   if period le 0. then begin
-    message, /contiune, 'period must be positive'
+    message, /continue, 'period must be positive'
     return, -1L
   endif
 
