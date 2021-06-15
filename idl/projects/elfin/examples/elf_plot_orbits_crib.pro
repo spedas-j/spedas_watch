@@ -18,6 +18,14 @@
 ;
 ;       USE the keyword quick_trace to reduce calculation times (this reduces 
 ;       the resolution of data when calculating IGRF)
+; 
+; NOTES: To run this crib sheet you will need to first compile aacgmidl
+;              IDL >  .compile aacgmidl 
+;        You can also check aacgmidl routines
+;              IDL > aacgm_example
+;          or  IDL > aacgm_plot 
+;
+;**********************************************
 ;       
 ; First release: 2020/11/23
 ;

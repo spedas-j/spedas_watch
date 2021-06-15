@@ -18,9 +18,9 @@
 ;   When the Kyoto AE is available, it shows [Themis AE (black, 0), Kyoto AE (blue, 2)]
 ;   When the Kyoto AE is not available, it shows [Themis AE (black, 0), Real Time Kyoto AE (green, 4)]
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-10-22 14:22:21 -0700 (Thu, 22 Oct 2020) $
-; $LastChangedRevision: 29276 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-05-30 21:57:27 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 30014 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/misc/spd_gen_overplot_ae_panel.pro $
 ;-
 
@@ -29,23 +29,26 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
   compile_opt idl2
   error = 0
 
-  ; Catch errors and return
-  catch, errstats
-  if errstats ne 0 then begin
-    error = 1
-    dprint, dlevel=1, 'Error: ', !ERROR_STATE.MSG
-    store_data,'kyoto_thm_combined_ae'+suffix, data={x:time_double(date_ext)+dindgen(2), y:replicate(!values.d_nan,2)}
-    options, 'kyoto_thm_combined_ae'+suffix, 'ytitle', 'AE Index'
-    options, 'kyoto_thm_combined_ae'+suffix, 'ysubtitle', '[nT]'
-    catch, /cancel
-    return
-  endif
-
   if undefined(suffix) then suffix=''
   if undefined(duration) then duration = 1 ; days
   if ~undefined(date) then begin
     overviewdate = time_string(date)
     timespan, overviewdate, duration, /day
+  endif
+  
+  ; For error handling and recovery
+  input_timerange = timerange()
+
+  ; Catch errors and return
+  catch, errstats
+  if errstats ne 0 then begin
+    error = 1
+    dprint, dlevel=1, 'Error: ', !ERROR_STATE.MSG
+    store_data,'kyoto_thm_combined_ae'+suffix, data={x:input_timerange, y:replicate(!values.d_nan,2)}
+    options, 'kyoto_thm_combined_ae'+suffix, 'ytitle', 'AE Index'
+    options, 'kyoto_thm_combined_ae'+suffix, 'ysubtitle', '[nT]'
+    catch, /cancel
+    return
   endif
 
   del_data, 'kyoto_ae'
@@ -114,7 +117,7 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
     options, 'kyoto_thm_combined_ae'+suffix, 'ysubtitle', '[nT]'
     options, 'kyoto_thm_combined_ae'+suffix, 'colors', kyoto_color_single
   endif else begin ;if nothing is there, create empty variable
-    store_data,'kyoto_thm_combined_ae'+suffix, data={x:time_double(date_ext)+dindgen(2), y:replicate(!values.d_nan,2)}
+    store_data,'kyoto_thm_combined_ae'+suffix, data={x:input_timerange, y:replicate(!values.d_nan,2)}
     options, 'kyoto_thm_combined_ae'+suffix, 'ytitle', 'AE Index'
     options, 'kyoto_thm_combined_ae'+suffix, 'ysubtitle', '[nT]'
   endelse

@@ -29,6 +29,8 @@
 ;              program loads data from the designated CDF file(s), ignoring any
 ;              other options specifying local/remote data paths. 
 ;   split_anode: Set to generate a F?DU tplot variable for each anode
+;   get_filever: Set to create a tplot variable "erg_load_datalist"
+;                containing the version information of data files
 ;
 ; :Examples:
 ;   IDL> timespan, '2017-04-01'
@@ -38,8 +40,8 @@
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
-; $LastChangedRevision: 28604 $
+; $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29822 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/mep/erg_load_mepi_nml.pro $
 ;-
 pro erg_load_mepi_nml, $
@@ -56,6 +58,7 @@ pro erg_load_mepi_nml, $
    remotedir=remotedir, $
    datafpath=datafpath, $
    split_anode=split_anode, $
+   get_filever=get_filever, $
    _extra=_extra 
 
   
@@ -125,6 +128,9 @@ pro erg_load_mepi_nml, $
   datfiles = datfiles[idx] ;;Clip empty strings and non-existing files
   if keyword_set(downloadonly) then return ;;Stop here if downloadonly is set
 
+  ;;Obtain the version information of data files
+  if keyword_set(get_filever) then erg_export_filever, datfiles
+  
   ;;Species to be loaded
   spcs = strsplit(/ext, 'P HE2 HE OPP O O2P' )
    

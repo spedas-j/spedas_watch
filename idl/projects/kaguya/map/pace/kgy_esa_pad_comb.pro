@@ -10,8 +10,8 @@
 ;     Yuki Harada on 2018-05-28
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2021-01-14 23:35:04 -0800 (Thu, 14 Jan 2021) $
-; $LastChangedRevision: 29602 $
+; $LastChangedDate: 2021-06-09 22:50:49 -0700 (Wed, 09 Jun 2021) $
+; $LastChangedRevision: 30038 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/pace/kgy_esa_pad_comb.pro $
 ;-
 
@@ -30,7 +30,7 @@ pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=er
   if size(erange,/n_ele) ne 2 then erange = [150,250]
   if ~keyword_set(suffix) then suffix=''
   if ~keyword_set(npa) then npa = 16
-  if ~keyword_set(cntcorr) then cntcorr = 1
+  if size(cntcorr,/type) eq 0 then cntcorr = 1
   
   times = kgy_esa1_get3d(/gettimes)
 
@@ -56,7 +56,7 @@ pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=er
 
   for it=0,nwt-1 do begin ;- loop through time steps
      now = times[it]
-     if it mod 10 eq 0 then dprint,dlevel=1,verbose=verbose,'Comp PADs: ',it,' / ',nwt-1,' : '+time_string(now)
+     if it mod 10 eq 0 then dprint,dlevel=1,verbose=verbose,'Comp PADs'+suffix+': ',it,' / ',nwt-1,' : '+time_string(now)
 
      d1 = kgy_esa1_get3d(now,sabin=1, cntcorr=cntcorr)
      d2 = kgy_esa2_get3d(now,sabin=1, cntcorr=cntcorr)
@@ -261,6 +261,17 @@ pro kgy_esa_pad_comb, trange=trange, gf_thld=gf_thld, thrange=thrange, erange=er
                    zlog:1,ztitle:'counts', $
                    datagap:63,minzlog:1.e-30}
   tplot_sort,'kgy_esa_pad_counts'+suffix
+  store_data,'kgy_esa_pad_eflux'+suffix,verbose=verbose, $
+             data={x:times,y:pads*rebin(aveflux,n_elements(times),npa),v:pangles}, $
+                dlim={spec:1,ytitle:'ESA!c'+ $
+                      string(erange[0],format='(i0)')+'-'+ $
+                      string(erange[1],format='(i0)') $
+                      +' eV!cPitch angle!c[deg.]', $
+                      constant:[90], $
+                      yrange:[0,180],ystyle:1,yminor:3,yticks:4, $
+                      zlog:1,ztitle:'Eflux', $
+                      datagap:63,minzlog:1.e-30}
+  tplot_sort,'kgy_esa_pad_eflux'+suffix
 
 
 end

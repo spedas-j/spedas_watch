@@ -1,6 +1,6 @@
-; $LastChangedBy: phyllisw2 $
-; $LastChangedDate: 2018-09-09 14:43:54 -0700 (Sun, 09 Sep 2018) $
-; $LastChangedRevision: 25755 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_lun_read.pro $
 ;
 ;function spp_ptp_header_struct,ptphdr
@@ -22,8 +22,6 @@
 ;end
 
 
-
-
 pro spp_ssr_lun_read,in_lun,out_lun,info=info
 
   dwait = 10.
@@ -31,71 +29,68 @@ pro spp_ssr_lun_read,in_lun,out_lun,info=info
   valid_APIDs['7b0'x:'7df'x] = 1b
   source_dict = dictionary()
 
-  
   on_ioerror, nextfile
-    info.time_received = systime(1)
-    msg = time_string(info.time_received,tformat='hh:mm:ss -',local=localtime)
-;    in_lun = info.hfp
-    out_lun = info.dfp
-    buf = bytarr(6)
-    remainder = !null
-    nbytes = 0
-    run_proc = struct_value(info,'run_proc',default=1)
-    source_dict.source_info = info
-    while file_poll_input(in_lun,timeout=0) && ~eof(in_lun) do begin
-      readu,in_lun,buf,transfer_count=nb
-      nbytes += nb
-      if keyword_set(out_lun) then writeu,out_lun, buf
-      ccsds_hdr = [remainder,buf]
-      sz = ccsds_hdr[4]*256 + ccsds_hdr[5] + 7
-      if (sz lt 8  || sz gt 8096) then  begin     ;; Lost sync - read one byte at a time  - should put other checks in here (i.e. valid APIDS)
-          remainder = ccsds_hdr[1:*]
-          buf = bytarr(1)
-          if debug(2) then begin
-            dprint,dlevel=2,'Lost sync:',dwait=10
-          endif
-          continue  
+  info.time_received = systime(1)
+  msg = time_string(info.time_received,tformat='hh:mm:ss -',local=localtime)
+  ;    in_lun = info.hfp
+  out_lun = info.dfp
+  buf = bytarr(6)
+  remainder = !null
+  nbytes = 0
+  run_proc = struct_value(info,'run_proc',default=1)
+  source_dict.source_info = info
+  while file_poll_input(in_lun,timeout=0) && ~eof(in_lun) do begin
+    readu,in_lun,buf,transfer_count=nb
+    nbytes += nb
+    if keyword_set(out_lun) then writeu,out_lun, buf
+    ccsds_hdr = [remainder,buf]
+    sz = ccsds_hdr[4]*256 + ccsds_hdr[5] + 7
+    if (sz lt 8  || sz gt 8096) then  begin     ;; Lost sync - read one byte at a time  - should put other checks in here (i.e. valid APIDS)
+      remainder = ccsds_hdr[1:*]
+      buf = bytarr(1)
+      if debug(2) then begin
+        dprint,dlevel=2,'Lost sync:',dwait=10
       endif
-      ptp_header = !null  ; spp_ptp_header_struct(ccsds_hdr)
-      ccsds_remainder = bytarr(sz - n_elements(ccsds_hdr))
-      readu,in_lun,ccsds_remainder,transfer_count=nb
-      nbytes += nb
-      if keyword_set(out_lun) then writeu,out_lun, ccsds_remainder
-      ccsds_buf = [ccsds_hdr,ccsds_remainder]
-      
-      fst = fstat(in_lun)
-      if debug(2) && fst.cur_ptr ne 0 && fst.size ne 0 then begin
-        dprint,dwait=dwait,dlevel=2,fst.compress ? '(Compressed) ' : '','File percentage: ' ,(fst.cur_ptr*100.)/fst.size
-      endif
-      
-      if nb ne  sz-6 then begin
-        fst = fstat(in_lun)
-        dprint,'File read error. Aborting @ ',fst.cur_ptr,' bytes'
-        break
-      endif
-      if debug(5) then begin
-        hexprint,dlevel=3,ccsds_buf,nbytes=32
-      endif
-      if run_proc then   spp_ccsds_spkt_handler,ccsds_buf, source_dict=source_dict  ; ,source_info=info  ,ptp_header=ptp_header  
-
-      buf = bytarr(6)
-      remainder=!null
-    endwhile
-    
-    bsz = n_elements(ccsds_buf)
-    if nbytes ne 0 then msg += string(/print,nbytes,ccsds_buf[0:(bsz < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
-    else msg+= ' No data available'
-
-    dprint,dlevel=4,msg
-    info.msg = msg
-
-    if 0 then begin
-      nextfile:
-      dprint,!error_state.msg
-      dprint,'Skipping file'
+      continue
     endif
-;    dprint,dlevel=2,'Compression: ',float(fp)/fi.size
-  
+    ptp_header = !null  ; spp_ptp_header_struct(ccsds_hdr)
+    ccsds_remainder = bytarr(sz - n_elements(ccsds_hdr))
+    readu,in_lun,ccsds_remainder,transfer_count=nb
+    nbytes += nb
+    if keyword_set(out_lun) then writeu,out_lun, ccsds_remainder
+    ccsds_buf = [ccsds_hdr,ccsds_remainder]
+
+    fst = fstat(in_lun)
+    if debug(2) && fst.cur_ptr ne 0 && fst.size ne 0 then begin
+      dprint,dwait=dwait,dlevel=2,fst.compress ? '(Compressed) ' : '','File percentage: ' ,(fst.cur_ptr*100.)/fst.size
+    endif
+
+    if nb ne  sz-6 then begin
+      fst = fstat(in_lun)
+      dprint,'File read error. Aborting @ ',fst.cur_ptr,' bytes'
+      break
+    endif
+    if debug(5) then begin
+      hexprint,dlevel=3,ccsds_buf,nbytes=32
+    endif
+    if run_proc then   spp_ccsds_spkt_handler,ccsds_buf, source_dict=source_dict  ; ,source_info=info  ,ptp_header=ptp_header
+
+    buf = bytarr(6)
+    remainder=!null
+  endwhile
+
+  bsz = n_elements(ccsds_buf)
+  if nbytes ne 0 then msg += string(/print,nbytes,ccsds_buf[0:(bsz < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
+  else msg+= ' No data available'
+
+  dprint,dlevel=4,msg
+  info.msg = msg
+
+  if 0 then begin
+    nextfile:
+    dprint,!error_state.msg
+    dprint,'Skipping file'
+  endif
+  ;    dprint,dlevel=2,'Compression: ',float(fp)/fi.size
+
 end
-
-

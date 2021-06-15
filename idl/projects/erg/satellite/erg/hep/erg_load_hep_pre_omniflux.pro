@@ -21,8 +21,8 @@
 ; Tomo Hori, ERG Science Center ( E-mail: tomo.hori _at_ nagoya-u.jp )
 ;
 ; Written by: T. Hori
-;   $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-;   $LastChangedRevision: 29445 $
+;   $LastChangedDate: 2021-03-25 13:26:37 -0700 (Thu, 25 Mar 2021) $
+;   $LastChangedRevision: 29823 $
 ;-
 pro erg_load_hep_pre_omniflux, files=files, $
   div_dene=div_dene, lineplot=lineplot, $

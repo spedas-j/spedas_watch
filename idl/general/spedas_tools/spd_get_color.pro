@@ -5,6 +5,9 @@
 ; PURPOSE:
 ;   Return color index by name
 ; 
+; KEYWORDS:
+;   RGB: flag to return the RGB values of the name instead of the indices
+;   
 ; SUPPORTED COLORS:
 ;   This function does a nearest neighbor search on your colorbar, so the actual colors 
 ;   available depend on your current colorbar; the possible options are:
@@ -61,8 +64,8 @@
 ;   - you can visualize the current color table with the xpalette procedure
 ;   
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-03-23 08:22:15 -0700 (Sat, 23 Mar 2019) $
-; $LastChangedRevision: 26886 $
+; $LastChangedDate: 2021-05-12 14:07:48 -0700 (Wed, 12 May 2021) $
+; $LastChangedRevision: 29953 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/spd_get_color.pro $
 ;-
 
@@ -75,7 +78,7 @@ function spd_get_color_index,color
   return,byte(bin)
 end
 
-function spd_get_color, name
+function spd_get_color, name, rgb=rgb
 
   if undefined(name) then begin
     dprint, 'ERROR - no color name is given!'
@@ -147,12 +150,24 @@ function spd_get_color, name
   gvalue = [ gvalue,           50,           43,           32 ]
   bvalue = [ bvalue,          204,          226,          240 ]
 
+  if keyword_set(rgb) then rgb_vals = intarr(n_elements(name), 3)
+  
   for n=0, n_elements(name)-1 do begin
     color_idx = where(strlowcase(colors) eq strlowcase(name[n]), colorcount)
-    ;; Padded with color id #0 (black) unless a matched color is found. 
-    col_id = colorcount ne 0 ? spd_get_color_index([rvalue[color_idx], gvalue[color_idx], bvalue[color_idx]]) : 0B
-    append_array, col_ids, col_id
+    
+    if colorcount eq 0 then begin
+      dprint, dlevel=0, 'Name not found: ' + name[n]
+      continue
+    endif
+    
+    if keyword_set(rgb) then begin
+      rgb_vals[n, *] = [rvalue[color_idx], gvalue[color_idx], bvalue[color_idx]]
+    endif else begin
+      ;; Padded with color id #0 (black) unless a matched color is found. 
+      col_id = colorcount ne 0 ? spd_get_color_index([rvalue[color_idx], gvalue[color_idx], bvalue[color_idx]]) : 0B
+      append_array, col_ids, col_id
+    endelse
   endfor
-  return, col_ids
+  return, keyword_set(rgb) ? rgb_vals : col_ids
       
 end

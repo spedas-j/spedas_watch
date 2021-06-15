@@ -35,7 +35,11 @@
 ;         + 2020-10-26, I. Cohen        : added missing "datatype" in definition of prefix for survey data                   
 ;         + 2020-12-11, I. Cohen        : moved eis_sc_check definition into species loop to address issue handling multiple species from single call
 ;         + 2021-02-09, I. Cohen        : added helium to species in header under KEYWORD section 
+;         + 2021-02-15, R. Nikoukar     : accommodate data_units other than flux
 ;         + 2021-02-24, I. Cohen        : changed combined s/c variable names from mms#-# to mmsx
+;         + 2021-03-11, I. Cohen        : updated to allow to work for electrons
+;         + 2021-03-16, R. Nikoukar     : use existing individual spacecraft spin parameters to make combined spacecraft spin parameters
+;         + 2021-05-12, I. Cohen        : fixed eis_sc_check definition to handle any datatype
 ;
 ;-
 pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
@@ -55,79 +59,77 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
   if datatype eq 'electronenergy' then species = 'electron'
   ;
   ;
-  for ss=0,n_elements(species)-1 do begin
-    if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species[ss]+'*flux*omni') else eis_sc_check = tnames('mms*eis*phxtof_'+species[ss]+'*flux*omni')
-    probes = strmid(eis_sc_check, 3, 1)
-    if (n_elements(probes) gt 4) then probes = probes[0:-2]
-    ;if (n_elements(probes) gt 1) then probe_string = probes[0]+'-'+probes[-1] else probe_string = probes
-    if (data_rate eq 'brst') then allmms_prefix = 'mmsx_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mmsx_epd_eis_'+datatype+'_'
+  suffix_ind = ['', '_spin']
+  for sp = 0, n_elements(suffix_ind)-1 do begin         ; loop through to handle both spin-avg and "full-resolution" variables
     ;
-    ; DETERMINE SPACECRAFT WITH SMALLEST NUMBER OF TIME STEPS TO USE AS REFERENCE SPACECRAFT
-    if (data_rate eq 'brst') then omni_vars = tnames('mms?_epd_eis_brst_'+datatype+'_'+species[ss]+'_'+data_units+'_omni') else if (data_rate eq 'srvy') then omni_vars = tnames('mms?_epd_eis_'+datatype+'_'+species[ss]+'_'+data_units+'_omni')
+    for ss=0,n_elements(species)-1 do begin              ; loop through species
+      ;
+      ;if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species[ss]+'*' + data_units + '*omni' + suffix_ind[sp]) else eis_sc_check = tnames('mms*eis*phxtof_'+species[ss]+'*' + data_units + '*omni'+ suffix_ind[sp])
+      eis_sc_check = tnames('mms*eis*'+datatype+'*'+species[ss]+'*' + data_units + '*omni'+ suffix_ind[sp])
+      ;
+      probes = strmid(eis_sc_check, 3, 1)
+      if (n_elements(probes) gt 4) then probes = probes[0:-2]
+      ; if (n_elements(probes) gt 1) then probe_string = probes[0]+'-'+probes[-1] else probe_string = probes
+      probe_string = 'x'
+      if (data_rate eq 'brst') then allmms_prefix = 'mmsx_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mmsx_epd_eis_'+datatype+'_'
+      ;
+      ; DETERMINE SPACECRAFT WITH SMALLEST NUMBER OF TIME STEPS TO USE AS REFERENCE SPACECRAFT
+      if (data_rate eq 'brst') then omni_vars = tnames('mms?_epd_eis_brst_'+datatype+'_'+species[ss]+'_'+data_units+'_omni'+ suffix_ind[sp]) else if (data_rate eq 'srvy') then omni_vars = tnames('mms?_epd_eis_'+datatype+'_'+species[ss]+'_'+data_units+'_omni'+ suffix_ind[sp])
+      ;
+      if (omni_vars[0] eq '') then begin
+        print, 'No EIS '+datatype+' data loaded!'
+        return
+      endif
+      time_size = dblarr(n_elements(probes))
+      energy_size = dblarr(n_elements(probes))
+      for pp=0,n_elements(probes)-1 do begin
+        get_data, omni_vars[pp], data=thisprobe_pad
+        time_size[pp] = n_elements(thisprobe_pad.x)
+        get_data,omni_vars[pp],data=thisprobe_flux
+        energy_size[pp] = n_elements(thisprobe_flux.v)
+      endfor
+      ref_sc_time_size = min(time_size, reftime_sc_loc)
+      if (data_rate eq 'brst') then prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_'+datatype+'_'
+      get_data, omni_vars[reftime_sc_loc], data=time_refprobe
+      ref_sc_energy_size = min(energy_size, refenergy_sc_loc)
+      get_data, omni_vars[refenergy_sc_loc], data=energy_refprobe
+      omni_spec_data = dblarr(n_elements(time_refprobe.x),n_elements(energy_refprobe.v),n_elements(probes)) + !Values.d_NAN       ; time x energy x spacecraft
+      omni_spec = dblarr(n_elements(time_refprobe.x),n_elements(energy_refprobe.v)) + !Values.d_NAN                               ; time x energy
+      energy_data = dblarr(n_elements(energy_refprobe.v),n_elements(probes))
+      common_energy = dblarr(n_elements(energy_refprobe.v))  
+      ;
+      ; Average omni flux over all spacecraft and define common energy grid
+      for pp=0,n_elements(omni_vars)-1 do begin
+        get_data, omni_vars[pp], data=temp_data
+        energy_data[*,pp] = temp_data.v[0:n_elements(common_energy)-1]
+    ;    start_time_loc = where((temp_data.x ge time_refprobe.x[0]) and (temp_data.x le time_refprobe.x[1]))
+    ;    omni_spec_data[0:ref_sc_time_size-1,*,pp] = temp_data.y[start_time_loc[0]:start_time_loc[0]+ref_sc_time_size-1,*]
+        omni_spec_data[0:ref_sc_time_size-1,*,pp] = temp_data.y[0:ref_sc_time_size-1,0:n_elements(common_energy)-1]
+      endfor
+      for ee=0,n_elements(common_energy)-1 do common_energy[ee] = average(energy_data[ee,*],/NAN)
+      ;
+      ; Average omni flux over all spacecraft - sum for counts
+      if data_units eq 'counts' then $
+      for tt=0,n_elements(time_refprobe.x)-1 do for ee=0,n_elements(energy_refprobe.v)-1 do omni_spec[tt,ee] = total(omni_spec_data[tt,ee,*],/NAN) $
+      else for tt=0,n_elements(time_refprobe.x)-1 do for ee=0,n_elements(energy_refprobe.v)-1 do omni_spec[tt,ee] = average(omni_spec_data[tt,ee,*],/NAN) 
+      ;
+      ; store new tplot variable
+      omni_spec[where(finite(omni_spec) eq 0)] = 0d
+      if suffix_ind[sp] eq '' then begin 
+         store_data, allmms_prefix+species[ss]+'_'+data_units+'_omni', data={x:time_refprobe.x,y:omni_spec,v:energy_refprobe.v}
+         options, allmms_prefix+species[ss]+'_'+data_units+'_omni', yrange = minmax(common_energy), ystyle=1, spec = 1, no_interp=1, ysubtitle='Energy [keV]', ztitle=ztitle_string, minzlog=.001, ylog = 1
+         zlim, allmms_prefix+species[ss]+'_'+data_units+'_omni', 0, 0, 1
+      endif else begin
+         store_data, allmms_prefix+species[ss]+'_'+data_units+'_omni' + suffix_ind[sp], data={x:time_refprobe.x,y:omni_spec,v:energy_refprobe.v}, dlimits=flux_dl
+         options, allmms_prefix+species[ss]+'_'+data_units+'_omni' + suffix_ind[sp], spec=1, minzlog = .01, ystyle=1, yrange = minmax(common_energy), ylog = 1
+         zlim, allmms_prefix+species[ss]+'_'+data_units+'_omni' + suffix_ind[sp], 0,0,1
+     endelse    
+     if data_units eq 'counts' then $
+        options, allmms_prefix+species[ss]+'_'+data_units+'_omni' + suffix_ind[sp], ztitle = 'counts', ytitle = 'mms'+probe_string+  '!C'+ species[ss] + '!Comni-spin', ysubtitle = 'Energy!C[keV]'
+     
+
+    endfor ; ss
     ;
-    if (omni_vars[0] eq '') then begin
-      print, 'No EIS '+datatype+' data loaded!'
-      return
-    endif
-    time_size = dblarr(n_elements(probes))
-    energy_size = dblarr(n_elements(probes))
-    for pp=0,n_elements(probes)-1 do begin
-      get_data, omni_vars[pp], data=thisprobe_pad
-      time_size[pp] = n_elements(thisprobe_pad.x)
-      get_data,omni_vars[pp],data=thisprobe_flux
-      energy_size[pp] = n_elements(thisprobe_flux.v)
-    endfor
-    ref_sc_time_size = min(time_size, reftime_sc_loc)
-    if (data_rate eq 'brst') then prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_'+datatype+'_'
-    get_data, omni_vars[reftime_sc_loc], data=time_refprobe
-    ref_sc_energy_size = min(energy_size, refenergy_sc_loc)
-    get_data, omni_vars[refenergy_sc_loc], data=energy_refprobe
-    omni_spec_data = dblarr(n_elements(time_refprobe.x),n_elements(energy_refprobe.v),n_elements(probes)) + !Values.d_NAN       ; time x energy x spacecraft
-    omni_spec = dblarr(n_elements(time_refprobe.x),n_elements(energy_refprobe.v)) + !Values.d_NAN                               ; time x energy
-    energy_data = dblarr(n_elements(energy_refprobe.v),n_elements(probes))
-    common_energy = dblarr(n_elements(energy_refprobe.v))  
-    ;
-    ; Average omni flux over all spacecraft and define common energy grid
-    for pp=0,n_elements(omni_vars)-1 do begin
-      get_data, omni_vars[pp], data=temp_data
-      energy_data[*,pp] = temp_data.v[0:n_elements(common_energy)-1]
-  ;    start_time_loc = where((temp_data.x ge time_refprobe.x[0]) and (temp_data.x le time_refprobe.x[1]))
-  ;    omni_spec_data[0:ref_sc_time_size-1,*,pp] = temp_data.y[start_time_loc[0]:start_time_loc[0]+ref_sc_time_size-1,*]
-      omni_spec_data[0:ref_sc_time_size-1,*,pp] = temp_data.y[0:ref_sc_time_size-1,0:n_elements(common_energy)-1]
-    endfor
-    for ee=0,n_elements(common_energy)-1 do common_energy[ee] = average(energy_data[ee,*],/NAN)
-    ;
-    ; Average omni flux over all spacecraft
-    for tt=0,n_elements(time_refprobe.x)-1 do for ee=0,n_elements(energy_refprobe.v)-1 do omni_spec[tt,ee] = average(omni_spec_data[tt,ee,*],/NAN)
-    ;
-    ; store new tplot variable
-    omni_spec[where(finite(omni_spec) eq 0)] = 0d
-    store_data, allmms_prefix+species[ss]+'_'+data_units+'_omni', data={x:time_refprobe.x,y:omni_spec,v:energy_refprobe.v}
-    options, allmms_prefix+species[ss]+'_'+data_units+'_omni', yrange = minmax(common_energy), ystyle=1, spec = 1, no_interp=1, ysubtitle='Energy [keV]', ztitle=ztitle_string, minzlog=.001
-    zlim, allmms_prefix+species[ss]+'_'+data_units+'_omni', 0, 0, 1
-    ;
-    ; NOW SPIN-AVERAGE THE DATA
-    ;
-    get_data, prefix + 'spin' + suffix, data=spin_nums
-    if ~is_struct(spin_nums) then begin
-      print, 'ERROR: COULD NOT FIND EIS SPIN VARIABLE -- NOW ENDING PROCEDURE'
-      return ; gracefully handle the case of no spin # variable found
-    endif
-    ;
-    ; find where the spins start
-    spin_starts = uniq(spin_nums.Y)
-    spin_sum_flux = dblarr(n_elements(spin_starts), n_elements(omni_spec[0, *]))
-    ;
-    current_start = 0
-    ; loop through the spins for this telescope
-    for spin_idx = 0, n_elements(spin_starts)-1 do begin
-      ; loop over energies
-      spin_sum_flux[spin_idx, *] = average(omni_spec[current_start:spin_starts[spin_idx], *], 1, /NAN)
-      current_start = spin_starts[spin_idx]+1
-    endfor
-    sp = '_spin'
-    store_data, allmms_prefix+species[ss]+'_'+data_units+'_omni'+sp, data={x: spin_nums.X[spin_starts], y: spin_sum_flux, v: energy_refprobe.V}, dlimits=flux_dl
-    options, allmms_prefix+species[ss]+'_'+data_units+'_omni'+sp, spec=1, minzlog = .01, ystyle=1
-  endfor
+  endfor ; sp
   ;
 end

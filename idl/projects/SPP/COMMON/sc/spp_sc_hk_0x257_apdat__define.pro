@@ -1,8 +1,8 @@
 ;Ali: June 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-06-16 08:55:23 -0700 (Tue, 16 Jun 2020) $
-; $LastChangedRevision: 28779 $
+; $LastChangedDate: 2021-05-30 19:24:43 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 29999 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x257_apdat__define.pro $
 ;-
 
@@ -19,6 +19,7 @@ function spp_SC_HK_0x257_struct,ccsds_data
     FSW_SPP_WISPR_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,2807*8+7-1,8), $
     FSW_SPP_FIELDS_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,2808*8+7-1,8), $
     FSW_SPP_SWEAP_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,2809*8+7-1,8), $
+    FSW_REC_HK_ALLOC_ERR_SSR_SWEAP_FIELDS_WISPR_EPIHI_LO:spp_swp_data_select(ccsds_data,2767*8+7-7,6), $
     gap:0B}
   return, str
 end
@@ -33,6 +34,13 @@ end
 ;EU(Raw='SC_HK_0x257.FSW_SPP_WISPR_SSR_ALLOC_STATUS') := fCalCurve([1.0, 255.0], [0.392156862745098, 100.0], Raw)
 ;EU(Raw='SC_HK_0x257.FSW_SPP_FIELDS_SSR_ALLOC_STATUS') := fCalCurve([1.0, 255.0], [0.392156862745098, 100.0], Raw)
 ;EU(Raw='SC_HK_0x257.FSW_SPP_SWEAP_SSR_ALLOC_STATUS') := fCalCurve([1.0, 255.0], [0.392156862745098, 100.0], Raw)
+;FSW_REC_HK_ALLOC_ERR_05_CDH_SSR_HK_TT,                       2767,    7,    1;
+;FSW_REC_HK_ALLOC_ERR_04_SWEAP_TT,                            2767,    6,    1;
+;FSW_REC_HK_ALLOC_ERR_03_FIELDS_TT,                           2767,    5,    1;
+;FSW_REC_HK_ALLOC_ERR_02_WISPR_TT,                            2767,    4,    1;
+;FSW_REC_HK_ALLOC_ERR_01_EPIHI_TT,                            2767,    3,    1;
+;FSW_REC_HK_ALLOC_ERR_00_EPILO_TT,                            2767,    2,    1;
+
 
 function SPP_SC_HK_0x257_apdat::decom,ccsds, source_dict=source_dict   ;,ptp_header=ptp_header
 

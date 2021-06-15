@@ -8,17 +8,11 @@
 ;         phase_delay = { $
 ;            starttimes:starttimes, $
 ;              endtimes:endtimes, $
-;              tspin:tspin, $
 ;              sect2add:dsect2add, $
 ;              phang2add:dphang2add, $
-;              ticksconfig:ticksconfig, $
 ;              lastestmediansectr:latestmediansectr, $
 ;              latestmedianphang:latestmedianphang, $
-;              chisq:chisq, $
-;              attunc:attunc, $
-;              badflag:badflag, $
-;              HQflag:HQflag, $
-;              minpa:minpa }
+;              badflag:badflag }
 ;
 ;
 ; KEYWORDS:
@@ -49,7 +43,7 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
 
   if ~undefined(instrument) then instrument='epde'
   instrument='epde'
-  
+ 
   ; check for existing phase_delays tplot var
   get_data, 'el'+probe+'_epd_phase_delays', data=pd_struct
   if is_struct(pd_struct) then begin
@@ -63,8 +57,8 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
   local_cal_dir=!elf.LOCAL_DATA_DIR+sc+'/calibration_files'
   if strlowcase(!version.os_family) eq 'windows' then local_cal_dir = strjoin(strsplit(local_cal_dir, '/', /extract), path_sep())
 
-  remote_filename=remote_cal_dir+'/'+sc+'_'+instrument+'_phase_delays.txt'
-  local_filename=local_cal_dir+'/'+sc+'_'+instrument+'_phase_delays.txt'
+  remote_filename=remote_cal_dir+'/'+sc+'_'+instrument+'_phase_delays.csv'
+  local_filename=local_cal_dir+'/'+sc+'_'+instrument+'_phase_delays.csv'
   paths = ''
 
   if keyword_set(no_download) then no_download=1 else no_download=0
@@ -90,76 +84,29 @@ function elf_get_phase_delays, no_download=no_download, trange=trange, probe=pro
     if undefined(paths) or paths EQ '' then $
       dprint, devel=1, 'Unable to download ' + local_filename
   endif
+
   ; check that there is a local file
   if file_test(local_filename) NE 1 then begin
     dprint, dlevel=1, 'Unable to find local file ' + local_filename
     return, -1
   endif else begin  
-    ; open file and read first 7 lines (these are just headers)
-    openr, lun, local_filename, /get_lun
-    le_string=''    
-    count=0  
-    ; read header
-    readf, lun, le_string
-    dtypes=strsplit(le_string, ',', /extract) 
-    while (eof(lun) NE 1) do begin  
-      readf, lun, le_string
-      if le_string eq '' then continue
-      data=strsplit(le_string, ',', /extract)
-      append_array, starttimes, time_double(data[0])
-      append_array, endtimes, time_double(data[1])
-      append_array, tspin, data[2]
-      this_bflag=fix(data[10])
-      idxn=strpos(data[3],'NaN')
-      if idxn NE -1 then thisdsect=!values.f_nan else thisdsect=fix(data[3])
-;      if data[3] EQ ' NaN' then thisdsect=!values.f_nan else thisdsect=fix(data[3])
-      append_array, dsect2add, thisdsect
-      idxn=strpos(data[4],'NaN')
-      if idxn NE -1 then thisdph=!values.f_nan else thisdph=float(data[4])
-      append_array, dphang2add, thisdph
-      append_array, ticksconfig, float(data[5])
-      idxn=strpos(data[6],'NaN')
-      if idxn EQ -1 then begin
-        thislms=fix(data[6])
-      endif else begin
-        if this_bflag then thislms=thisdsect else thislms=!values.f_nan
-      endelse
-      append_array, latestmediansectr, thislms
-      idxn=strpos(data[7],'NaN')
-      if idxn EQ -1 then begin
-        thislmpa=float(data[7])
-      endif else begin
-        if this_bflag then thislmpa=thisdph else thislmpa=!values.f_nan 
-      endelse
-      append_array, latestmedianphang, thislmpa
-      append_array, chisq, float(data[8])
-      append_array, attunc, float(data[9])
-      append_array, badflag, fix(data[10])
-      append_array, HQflag, fix(data[11])
-      append_array, minpa, float(data[12])
-      count=count+1
-    endwhile
-    close, lun
-    free_lun, lun
+    pd_data=read_csv(local_filename)
+    if is_struct(pd_data) then begin
+      phase_delay = { $
+        starttimes:time_double(pd_data.field1), $
+        endtimes:time_double(pd_data.field2), $
+        sect2add:pd_data.field3, $
+        phang2add:pd_data.field4, $
+        lastestmediansectr:pd_data.field5, $
+        latestmedianphang:pd_data.field6, $
+        badflag:pd_data.field7 }      
+      store_data, 'el'+probe+'_epd_phase_delays', data={phase_delays:phase_delay}
+    endif else begin
+      dprint, dlevel=1, 'Unable to open and read local file ' + local_filename
+      return, -1      
+    endelse
   endelse  
   
-  phase_delay = { $
-    starttimes:starttimes, $
-    endtimes:endtimes, $
-    tspin:tspin, $
-    sect2add:dsect2add, $
-    phang2add:dphang2add, $
-    ticksconfig:ticksconfig, $
-    lastestmediansectr:latestmediansectr, $
-    latestmedianphang:latestmedianphang, $
-    chisq:chisq, $
-    attunc:attunc, $
-    badflag:badflag, $
-    HQflag:HQflag, $
-    minpa:minpa }
-
-   store_data, 'el'+probe+'_epd_phase_delays', data={phase_delays:phase_delay}
-   
   return, phase_delay
   
 end

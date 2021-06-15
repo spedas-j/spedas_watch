@@ -42,8 +42,11 @@
 ;                   1. Add the lcl station to the list of a site_code_all variable.
 ;                   2. Add '64hz' to the datatype for donwloading the lcl 64hz CDF data.
 ;
-;   $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-;   $LastChangedRevision: 29445 $
+;       2021-01-14: Atsuki Shinbori, ISEE, Nagoya U.
+;                   1. Add '1s' to the datatype for the mdm and tew stations.
+;                   
+;   $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+;   $LastChangedRevision: 29822 $
 ;-
 
 pro erg_load_gmag_isee_fluxgate, site=site, datatype=datatype, $
@@ -158,8 +161,8 @@ for i=0, n_elements(site_code)-1 do begin
 
             ;--- Rename
             if(tnames('isee_fluxgate_mag_'+site_code[i]+'_'+tres+'_hdz') eq 'isee_fluxgate_mag_'+site_code[i]+'_'+tres+'_hdz') then $
-              del_data, 'isee_fluxgate_mag_'+site_code[i]+'_'+tres+'_hdz'
               store_data, 'isee_fluxgate_hdz_'+tres+'_'+site_code[i], newname='isee_fluxgate_mag_'+site_code[i]+'_'+tres+'_hdz'
+              del_data, 'isee_fluxgate_mag_'+site_code[i]+'_'+tres+'_hdz'
             ;--- time clip
             if(keyword_set(timeclip)) then begin
               get_timespan, tr & tmspan=time_string(tr)

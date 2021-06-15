@@ -27,6 +27,7 @@ pro mvn_sep_fov_tplot,tplot=tplot,store=store,fraction=fraction,resdeg=resdeg
   if keyword_set(fraction) then begin
     dprint,'calculating mars shine. this might take a while to complete...'
     fraction=mvn_sep_fov_mars_shine(mvn_sep_fov0.rmars,(replicate(1.,3)#rad.mar)*pos.mar,pos.sun,resdeg=resdeg,/fov)
+    fraction.time=times
     mvn_sep_fov1=fraction ;store in common block
     ;   fraction2=mvn_sep_anc_fov_mars_fraction(times,check_objects=['MAVEN_SC_BUS']) ;Rob's routine (slow)
   endif
@@ -74,8 +75,8 @@ pro mvn_sep_fov_tplot,tplot=tplot,store=store,fraction=fraction,resdeg=resdeg
 
     if keyword_set(mvn_sep_fov1) then begin
       fraction=mvn_sep_fov1
-      for isep=0,3 do store_data,'mvn_sep'+(['1f','2f','1r','2r'])[isep]+'_fov_fraction',times,transpose([fraction.mars_surfa[isep,*],fraction.mars_shine[isep,*],fraction.mshine_fov[isep,*],fraction.atmo_shine[isep,*],fraction.ashine_fov[isep,*]]),dlim={colors:'brmcg',labels:['Disc','Mars Shine','Mfov','Atmo Shine','Afov'],labflag:-1,ystyle:2,ylog:1,yrange:[.01,1]}
-      for isep=0,3 do store_data,'mvn_sep'+(['1f','2f','1r','2r'])[isep]+'_fov_fraction_model_crate',times,([1e5,1e4,1e3,3e3])[isep]*transpose(fraction.mshine_fov[isep,*])^([4,4,3.5,3.5])[isep]
+      for isep=0,3 do store_data,'mvn_sep'+(['1f','2f','1r','2r'])[isep]+'_fov_fraction',fraction.time,transpose([fraction.mars_surfa[isep,*],fraction.mars_shine[isep,*],fraction.mshine_fov[isep,*],fraction.atmo_shine[isep,*],fraction.ashine_fov[isep,*]]),dlim={colors:'brmcg',labels:['Disc','Mars Shine','Mfov','Atmo Shine','Afov'],labflag:-1,ystyle:2,ylog:1,yrange:[.01,1]}
+      for isep=0,3 do store_data,'mvn_sep'+(['1f','2f','1r','2r'])[isep]+'_fov_fraction_model_crate',fraction.time,([1e5,1e4,1e3,3e3])[isep]*transpose(fraction.mshine_fov[isep,*])^([4,4,3.5,3.5])[isep]
       store_data,'mvn_sep1_shine_crate_model-data',data='mvn_sep1_lowe_crate mvn_sep1?_fov_fraction_model_crate',dlim={yrange:[.1,1e4]}
       store_data,'mvn_sep2_shine_crate_model-data',data='mvn_sep2_lowe_crate mvn_sep2?_fov_fraction_model_crate',dlim={yrange:[.1,1e4]}
     endif

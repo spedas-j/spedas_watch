@@ -1,4 +1,8 @@
 ;+
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_rates_apdat__define.pro $
 ;
 ; SPP_SWP_SPI_RATES_APDAT
 ;
@@ -54,7 +58,7 @@
 ;    NVAL  - Non Valid Events
 ;    STNSP - Start No Stop
 ;    SPNST - Stop  No Start
-;    VE - 
+;    VE -
 ;    VE - Valid Events
 ;    ## - Anode
 ;
@@ -85,9 +89,9 @@ function spp_swp_spi_rates_apdat::decom,ccsds ,source_dict=source_dict ;, ptp_he
   b = ccsds_data
   psize = 105+7
   if n_elements(b) ne psize then begin
-     dprint,dlevel=1, 'Size error ',ccsds.pkt_size,ccsds.apid
-     return,0
-  endif  
+    dprint,dlevel=1, 'Size error ',ccsds.pkt_size,ccsds.apid
+    return,0
+  endif
 
   ;dprint,time_string(ccsds.time)
   sf0 = ccsds_data[11] and 3
@@ -101,9 +105,16 @@ function spp_swp_spi_rates_apdat::decom,ccsds ,source_dict=source_dict ;, ptp_he
   stopbins =  [1,2,4,5,7,8,10,11,13,14,16,18,20,22,24,26]
 
   rates_str = { $
-    time:               time, $
-    met:                ccsds.met,  $
-    seqn:               ccsds.seqn, $
+    time:         ccsds.time, $
+    MET:          ccsds.met,  $
+    apid:         ccsds.apid, $
+    seqn:         ccsds.seqn,  $
+    seqn_delta:   ccsds.seqn_delta,  $
+    seqn_group:   ccsds.seqn_group,  $
+    pkt_size:     ccsds.pkt_size,  $
+    source_apid:  ccsds.source_apid,  $
+    source_hash:  ccsds.source_hash,  $
+    compr_ratio:  ccsds.compr_ratio,  $
     mode:               b[13] , $
     valid_cnts:         reform( rates[0,*]) , $
     multi_cnts:         reform( rates[1,*]), $
@@ -111,33 +122,28 @@ function spp_swp_spi_rates_apdat::decom,ccsds ,source_dict=source_dict ;, ptp_he
     stop_nostart_cnts:  reform( rates[3,*]) , $
     starts_cnts:        rates2[startbins] , $
     stops_cnts:         rates2[stopbins] , $
-    gap:                0 }
+    gap:          ccsds.gap}
 
-
-;anode =0
+  ;anode =0
   if n_elements(anode) ne 0 then begin
     dprint,dlevel=2,rates_str.starts_cnts[anode],rates_str.stops_cnts[anode],rates_str.valid_cnts[anode],rates_str.multi_cnts[anode]
-    
+
   endif
-  
+
   ;dprint,sf0
   ;printdat,ccsds,/hex
-;  if sf0 and 1 then return,0    ; This gets rid of targeted packets
+  ;  if sf0 and 1 then return,0    ; This gets rid of targeted packets
 
   return,rates_str
 
 end
 
 
-
 PRO spp_swp_spi_rates_apdat__define
   void = {spp_swp_spi_rates_apdat, $
     inherits spp_gen_apdat, $    ; superclass
- ;   temp1 : 0u, $
- ;   buffer: ptr_new(),   $
-     flag: 0 $
+    ;   temp1 : 0u, $
+    ;   buffer: ptr_new(),   $
+    flag: 0 $
   }
 END
-
-
-

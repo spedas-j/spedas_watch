@@ -25,12 +25,13 @@ probe = 'a'
 datatype = 'mrma'    ; mrma is the only data type
 
 elf_load_mrma, probes=probe, datatype='mrma'
+stop
 tplot, 'ela_mrma'
 stop
 
 ; load mrma data only
-elf_load_mrma, probes=['a', 'b']
-tplot, ['el*']
+elf_load_mrma, probes=['b']
+tplot, 'elb_mrma'
 
 ; variables loaded so far
 tplot_names

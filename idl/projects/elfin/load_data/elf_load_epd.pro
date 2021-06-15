@@ -70,8 +70,9 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
   varformat = varformat, cdf_filenames = cdf_filenames, no_download=no_download, $
   cdf_version = cdf_version, cdf_records = cdf_records, $
-  spdf = spdf, versions = versions, tt2000=tt2000
-
+  spdf = spdf, versions = versions, tt2000=tt2000, $
+  nspinsinsum=my_nspinsinsum
+  
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
     return
@@ -133,6 +134,10 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
     'cps': unit = 'counts/s'
     'nflux': unit = '#/(scm!U2!NstrMeV)'
     'eflux': unit = 'keV/(scm!U2!NstrMeV)'
+    else: begin     ; default to nflux if user didn't enter type
+      unit = '#/(scm!U2!NstrMeV)'
+      type = 'nflux'
+    end
   endcase
 
   elf_load_data, trange = tr, probes = probes, level = level, instrument = 'epd', $
@@ -150,22 +155,40 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
   endif
  
   ; Post processing - calibration and fix meta data 
+  ; first calibrate spinper to turn it to seconds
+  fgmsamplespersec = 80.
+  for i=0,n_elements(tplotnames)-1 do begin
+    if strpos(tplotnames[i], 'spinper') NE -1 then begin
+      get_data, tplotnames[i], data=d, dlimits=dl, limits=l
+      if size(d, /type) EQ 8 then begin
+        d.y=d.y/fgmsamplespersec
+        store_data, tplotnames[i], data=d, dlimits=dl, limits=l
+      endif
+    endif
+  endfor
+  ;
+  
   for i=0,n_elements(tplotnames)-1 do begin
     
-    ;if tplotnames[i] EQ 'ela_spinper'+suffix OR tplotnames[i] EQ 'elb_spinper'+suffix then continue ; don't need to calibrate spin period
-    if strpos(tplotnames[i], 'sectnum') NE -1 then continue
     if strpos(tplotnames[i], 'energies') NE -1 then begin
       del_data, tplotnames[i]
       continue
     endif
-
+    if strpos(tplotnames[i], 'sectnum') NE -1 then begin
+      tplotnames[i]=tplotnames[i]+suffix
+      continue
+    endif
     if strpos(tplotnames[i], 'spinper') NE -1 then begin
-       get_data, tplotnames[i], data=d, dlimits=dl, limits=l
-       if size(d, /type) EQ 8 then begin
-        d.y=d.y/80.
-        store_data, tplotnames[i], data=d, dlimits=dl, limits=l
-       endif
-       continue
+      tplotnames[i]=tplotnames[i]+suffix
+      continue
+    endif
+    if strpos(tplotnames[i], 'nspinsinsum') NE -1 then begin
+      tplotnames[i]=tplotnames[i]+suffix
+      continue
+    endif
+    if strpos(tplotnames[i], 'nsectors') NE -1 then begin
+      tplotnames[i]=tplotnames[i]+suffix
+      continue
     endif
 
     ; add type of end of tplotnames
@@ -175,13 +198,21 @@ pro elf_load_epd, trange = trange, probes = probes, datatype = datatype, $
       tplotnames[i]=tplotnames[i]+'_'+type
       endif else begin
         newname=strmid(tplotnames[i],0,7)+'_'+type+suffix
-        tplot_rename, tplotnames[i], newname ;tplotnames[i]+'_'+type
-        tplotnames[i]=newname;tplotnames[i]+'_'+type        
+        tplot_rename, tplotnames[i], newname 
+        tplotnames[i]=newname  
       endelse
     endif
+   
+    if ~keyword_set(my_nspinsinsum) then begin
+      tn=tnames('*nspinsinsum*')
+      get_data, tn, data=nspin
+      if is_struct(nspin) then my_nspinsinsum=nspin.y else my_nspinsinsum=1
+    endif 
 
+    if undefined(my_nspinsinsum) then my_nspinsinsum=1
     ; calibrate data
-    elf_cal_epd, tplotname=tplotnames[i], trange=trange, type=type, no_download=no_download
+    elf_cal_epd, tplotname=tplotnames[i], trange=trange, type=type, no_download=no_download, $
+      nspinsinsum=my_nspinsinsum
     get_data, tplotnames[i], data=d, dlimits=dl, limits=l
     if size(d, /type) EQ 8 then begin
       dl.ysubtitle=unit

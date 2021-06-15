@@ -228,8 +228,8 @@
 ;           (requested by the FPI team at last year's GEM)
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-05-05 13:43:39 -0700 (Tue, 05 May 2020) $
-;$LastChangedRevision: 28669 $
+;$LastChangedDate: 2021-04-13 14:39:50 -0700 (Tue, 13 Apr 2021) $
+;$LastChangedRevision: 29878 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_slice2d.pro $
 ;-
 
@@ -299,7 +299,7 @@ pro mms_part_slice2d, time=time, probe=probe, level=level, data_rate=data_rate, 
     endelse
 
     if keyword_set(correct_photoelectrons) then begin
-      dist = mms_fpi_correct_photoelectrons(name, probe=probe, trange=trange, subtract_error=subtract_error, error=error_variable, /structure)
+      dist = mms_fpi_correct_photoelectrons(name, probe=probe, subtract_error=subtract_error, error=error_variable, /structure)
     endif else dist = mms_get_dist(name, instrument=instrument, probe=probe, trange=trange, subtract_error=subtract_error, error=error_variable, /structure)
     
     if keyword_set(units) then begin

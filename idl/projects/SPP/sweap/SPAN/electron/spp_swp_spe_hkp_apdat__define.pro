@@ -1,3 +1,8 @@
+;$LastChangedBy: ali $
+;$LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+;$LastChangedRevision: 30043 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_hkp_apdat__define.pro $
+
 ;;---------------------------------------
 ;; Slow Housekeeping
 
@@ -41,35 +46,31 @@
 ;ADC 1: Ch 6 = Ground
 ;ADC 1: Ch 7 = Ground
 ;
-
-
-
-
 function spp_swp_spe_hkp_apdat::decom,ccsds ,source_dict=source_dict   ;, ptp_header=ptp_header, apdat=apdat
 
-;  if  ~keyword_set(apdat.data_array) then   apdat.data_array = dynamicarray(name='hkp_')
-;
-;  if n_params() eq 0 then begin    ; This will get called after the file is loaded to save parameters in tplot.
-;    if isa(apdat.data_array,'dynamicarray') then store_data,apdat.tname,data= apdat.data_array.array,tagnames= apdat.tfields
-;    return, !null
-;  endif
+  ;  if  ~keyword_set(apdat.data_array) then   apdat.data_array = dynamicarray(name='hkp_')
+  ;
+  ;  if n_params() eq 0 then begin    ; This will get called after the file is loaded to save parameters in tplot.
+  ;    if isa(apdat.data_array,'dynamicarray') then store_data,apdat.tname,data= apdat.data_array.array,tagnames= apdat.tfields
+  ;    return, !null
+  ;  endif
 
 
-  ccsds_data = spp_swp_ccsds_data(ccsds)  
+  ccsds_data = spp_swp_ccsds_data(ccsds)
 
   b = ccsds_data
-  
+
   ;print, 'SIZE[B]', size(b)
   ;  psize = 69  ; REV  16
   ;  psize =81   ; REV 19
   ;  psize =89   ; REV 26?
-;  psize = 101                   ; REV 29
-;  psize = 97                    ;  REV 27
-;  psize = 105                   ; REV ??
-;  psize = 113                   ; REV ???????
-;  psize = 117                   ; REV 3B
-;  psize = 133                   ; rev 3d
-;  psize = 145                   ; rev 49 & 4b  fixed to allow for both EM2 and EM3
+  ;  psize = 101                   ; REV 29
+  ;  psize = 97                    ;  REV 27
+  ;  psize = 105                   ; REV ??
+  ;  psize = 113                   ; REV ???????
+  ;  psize = 117                   ; REV 3B
+  ;  psize = 133                   ; rev 3d
+  ;  psize = 145                   ; rev 49 & 4b  fixed to allow for both EM2 and EM3
   psize = 149                   ; rev 52 & 54
 
   if n_elements(b) ne psize+7 then begin
@@ -77,28 +78,26 @@ function spp_swp_spe_hkp_apdat::decom,ccsds ,source_dict=source_dict   ;, ptp_he
     return,0
   endif
 
+  chksum1 = swap_endian(/swap_if_little_endian, uint( b,152 ) )
+  bschk = b[0:151]
 
+  uint_array = swap_endian(/swap_if_little_endian,  uint(bschk,0,n_elements(bschk)/2 ) )
+  chksum2 = total(/preserve,   uint_array )
+  ulong_array = swap_endian(/swap_if_little_endian, ulong(bschk,0,n_elements(bschk)/4) )
+  chksum3 = total(/preserve, ulong_array)
+  chksum3 = ((chksum3 and 'ffff'x)  + ishft(chksum3,-16) ) and 'ffff'x
 
-chksum1 = swap_endian(/swap_if_little_endian, uint( b,152 ) )
-bschk = b[0:151]
-
-uint_array = swap_endian(/swap_if_little_endian,  uint(bschk,0,n_elements(bschk)/2 ) )
-chksum2 = total(/preserve,   uint_array )
-ulong_array = swap_endian(/swap_if_little_endian, ulong(bschk,0,n_elements(bschk)/4) )
-chksum3 = total(/preserve, ulong_array)
-chksum3 = ((chksum3 and 'ffff'x)  + ishft(chksum3,-16) ) and 'ffff'x
-
-if debug(5) then begin
-  hexprint,uint_array
-  printdat,/hex,chksum1
-  printdat,/hex,chksum2
-  printdat,/hex,chksum3
-  printdat,chksum1 - chksum3 
-endif
+  if debug(5) then begin
+    hexprint,uint_array
+    printdat,/hex,chksum1
+    printdat,/hex,chksum2
+    printdat,/hex,chksum3
+    printdat,chksum1 - chksum3
+  endif
 
   if chksum1 ne chksum3 then dprint,'Bad spane checksum',dlevel=2
 
- ; EM2 = 1
+  ; EM2 = 1
   EM3 = 1
   EM2 = ~EM3
   if EM2 then begin
@@ -134,16 +133,14 @@ endif
   endif
 
 
-  
-
   sf0 = ccsds_data[11] and 3
   if sf0 ne 0 then dprint,dlevel=5,sf0, ' Odd time at: ',time_string(ccsds.time)
 
-;  ref = 5.29 ; Volts   (EM is 5 volt reference,  FM will be 4 volt reference)
+  ;ref = 5.29 ; Volts   (EM is 5 volt reference,  FM will be 4 volt reference)
   ref = 4.   ; Volts   (EM is 5 volt reference,  FM will be 4 volt reference)
 
   rio_scale = .002444
-  
+
   temp_par = spp_swp_therm_temp()
 
   temp_par_8bit       = temp_par
@@ -156,35 +153,42 @@ endif
 
   MON_LVPS_TEMP =   func(swap_endian(/swap_if_little_endian,  fix(b,24 ) ), param = temp_par_10bit)
   MON_ANAL_TEMP =   func(swap_endian(/swap_if_little_endian,  fix(b,42 ) ), param = temp_par_10bit)
-;  MON_PCB_TEMP=     func(swap_endian(/swap_if_little_endian,  fix(b,66 ) ), param = temp_par_12bit)
+  ;MON_PCB_TEMP=     func(swap_endian(/swap_if_little_endian,  fix(b,66 ) ), param = temp_par_12bit)
   MON_FPGA_TEMP=    func(swap_endian(/swap_if_little_endian,  fix(b,70 ) ), param = temp_par_12bit)
   MON_ASIC_TEMP=    func(swap_endian(/swap_if_little_endian,  fix(b,74 ) ), param = temp_par_12bit)
-  
+
   ADCarray = [swap_endian(/swap_if_little_endian,  fix(b,MCP_VMON_CH ) ), $
-  swap_endian(/swap_if_little_endian,  fix(b,54 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,MCP_IMON_CH ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,58 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,RAW_HV_VMON_CH ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,62 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,RAW_HV_IMON_CH ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,66 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,HEMI_VMON_CH ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,70 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,72 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,74 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,76 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,78 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,80 ) ),$
-  swap_endian(/swap_if_little_endian,  fix(b,82 ) )]
-  
-  
+    swap_endian(/swap_if_little_endian,  fix(b,54 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,MCP_IMON_CH ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,58 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,RAW_HV_VMON_CH ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,62 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,RAW_HV_IMON_CH ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,66 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,HEMI_VMON_CH ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,70 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,72 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,74 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,76 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,78 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,80 ) ),$
+    swap_endian(/swap_if_little_endian,  fix(b,82 ) )]
+
+
   spae = { $
-    time:           ccsds.time, $
-    time_delta:     ccsds.time_delta/ccsds.seqn_delta, $
-    met:            ccsds.met,  $
-;    delay_time:     ptp_header.ptp_time - ccsds.time, $
-    seqn :          ccsds.seqn, $
-    seqn_delta:     ccsds.seqn_delta  < 15, $
+    time:         ccsds.time, $
+    MET:          ccsds.met,  $
+    apid:         ccsds.apid, $
+    seqn:         ccsds.seqn,  $
+    seqn_delta:   ccsds.seqn_delta,  $
+    seqn_group:   ccsds.seqn_group,  $
+    pkt_size:     ccsds.pkt_size,  $
+    source_apid:  ccsds.source_apid,  $
+    source_hash:  ccsds.source_hash,  $
+    compr_ratio:  ccsds.compr_ratio,  $
+    time_delta:   ccsds.time_delta/ccsds.seqn_delta, $
+    ;delay_time:     ptp_header.ptp_time - ccsds.time, $
+    ;seqn_delta:     ccsds.seqn_delta  < 15, $
     HDR_12:         b[12], $
     HDR_13:         b[13], $
     HDR_14:         b[14], $
@@ -218,7 +222,7 @@ endif
     adc_VMON_RAW:   swap_endian(/swap_if_little_endian,  fix(b,RAW_HV_VMON_CH ) ) * ref*1250./4095. , $
     adc_VMON_SPL:   swap_endian(/swap_if_little_endian,  fix(b,62 ) )              * ref*20.12/4095. , $
     adc_IMON_RAW:   swap_endian(/swap_if_little_endian,  fix(b,RAW_HV_IMON_CH ) ) * ref*1000./40.2/4095. , $
-;    adc_PCB_TEMP:       MON_PCB_TEMP,$ ;swap_endian(/swap_if_little_endian,  fix(b,66 ) )             * ref/4095. , $
+    ;    adc_PCB_TEMP:       MON_PCB_TEMP,$ ;swap_endian(/swap_if_little_endian,  fix(b,66 ) )             * ref/4095. , $
     adc_VMON_HEM:   swap_endian(/swap_if_little_endian,  fix(b,HEMI_VMON_CH ) )  * ref*500./4095. , $     ;  * ref*1271./4095. , $
     adc_FPGA_TEMP:      MON_FPGA_TEMP,$ ;swap_endian(/swap_if_little_endian,  fix(b,70 ) ) * ref/4095. , $
     ;adc_FPGA_TEMP_HEX: swap_endian(/swap_if_little_endian,  fix(b,70 ) ), $
@@ -278,14 +282,13 @@ endif
     mram_wr_addr:   swap_endian(/swap_if_little_endian, uint( b,149 ) ) and 'ffff'x , $
     mram_wr_addr_hi:b[148], $
     clks_per_nys:   b[151], $
-;    pkt_csum:       swap_endian(/swap_if_little_endian, uint( b,152 ) ) and 'ffff'x , $
+    ;    pkt_csum:       swap_endian(/swap_if_little_endian, uint( b,152 ) ) and 'ffff'x , $
     pkt_csum_diff:  chksum1 - chksum3, $
     edba:           swap_endian(/swap_if_little_endian, uint( b,154 ) ) and 'ffff'x , $
     all_ADC:        ADCarray, $
     GAP:            ccsds.gap}
 
-
-; if ~finite(spae.time) then spae.time = ptp_header.ptp_time
+  ; if ~finite(spae.time) then spae.time = ptp_header.ptp_time
 
   if debug(5) then begin
     dprint,dlevel=3,time_string(spae.time),' ',spae.adc_ASIC_TEMP
@@ -296,16 +299,9 @@ endif
 end
 
 
-
-
-
 PRO spp_swp_spe_hkp_apdat__define
   void = {spp_swp_spe_hkp_apdat, $
     inherits spp_gen_apdat, $    ; superclass
     flag: 0  $
   }
 END
-
-
-
-

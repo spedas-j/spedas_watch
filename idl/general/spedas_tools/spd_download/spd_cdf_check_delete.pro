@@ -27,8 +27,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2019-04-29 12:00:37 -0700 (Mon, 29 Apr 2019) $
-;$LastChangedRevision: 27131 $
+;$LastChangedDate: 2021-06-10 14:39:13 -0700 (Thu, 10 Jun 2021) $
+;$LastChangedRevision: 30039 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/spd_download/spd_cdf_check_delete.pro $
 ;
 ;-------------------------------------------------------------------
@@ -66,8 +66,16 @@ function spd_cdf_check_delete, filenames, iscdf=iscdf, isnetcdf=isnetcdf, delete
     endif
 
     ; handle file opening errors
+    count = 0
     catch, ferror
     if ferror ne 0 then begin
+      count++;
+      if count ge 2 then begin
+        deleted_files = [deleted_files, nfile]
+        dprint, dlevel=1, 'spd_cdf_check_delete: ', !ERROR_STATE.MSG
+        catch, /cancel
+        continue
+      endif
       dprint, dlevel=1, 'spd_cdf_check_delete: Error while attempting to open file: ', !ERROR_STATE.MSG
       if keyword_set(delete_file) then begin
         ; delete file

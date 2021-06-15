@@ -80,7 +80,7 @@ function mvn_sep_fov_mars_shine,rmars,posmar,possun,fov=fov,resdeg=resdeg,respon
   endif
   if vector eq 0 then begin ;loop over time
     for it=0,nt-1 do begin
-      if it gt 0 and ~(it mod 1e4) then dprint,it,'   out of',nt,'  time steps done.'
+      if ~(it mod 1e4) then dprint,it,'   out of',nt,'  time steps done.'
       spoint=mvn_sep_fov_mars_incidence(rmars,posmar[*,it],dvec)
       cossza=reform(total((spoint-rebin(posmar[*,it],[3,nphi*nthe]))*rebin(possun[*,it],[3,nphi*nthe]),1),[nphi,nthe])/rmars
       atmosh=cossza ;need to fix this
@@ -118,7 +118,7 @@ function mvn_sep_fov_mars_shine,rmars,posmar,possun,fov=fov,resdeg=resdeg,respon
     endfor
   endif
 
-  fraction={fov:['SEP1F','SEP2F','SEP1R','SEP2R'],mars_surfa:mars_surfa,mars_shine:mars_shine,atmo_shine:atmo_shine,mshine_fov:mshine_fov,ashine_fov:ashine_fov,surfce:spoint,cossza:cossza,tanalt:tanalt,atmosh:atmosh,phid:phid,thed:thed}
+  fraction={time:replicate(!values.d_nan,nt),fov:['SEP1F','SEP2F','SEP1R','SEP2R'],mars_surfa:mars_surfa,mars_shine:mars_shine,atmo_shine:atmo_shine,mshine_fov:mshine_fov,ashine_fov:ashine_fov,surfce:spoint,cossza:cossza,tanalt:tanalt,atmosh:atmosh,phid:phid,thed:thed}
   return,fraction
 
   if 0 then begin ;old method: Mars shine on surface based on cos(sza)

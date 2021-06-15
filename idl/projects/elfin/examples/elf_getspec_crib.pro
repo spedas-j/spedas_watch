@@ -14,8 +14,8 @@ pro elf_getspec_crib
 ;
   elf_init
   tplot_options, 'xmargin', [20,9]
-  cwdirname='C:\My Documents\ucla\Elfin\science\analysis' ; your directory here, if other than default IDL dir
-  cwd,cwdirname
+;  cwdirname='C:\My Documents\ucla\Elfin\science\analysis' ; your directory here, if other than default IDL dir
+;  cwd,cwdirname
 ;
 ; pick an event; here from 2019-09-27 storm on EL-A
 ; 

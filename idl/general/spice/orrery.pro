@@ -55,6 +55,10 @@
 ;                    1 = a few labels (default)
 ;                    2 = all labels (incl. E-M geometry)
 ;
+;       PLABEL:    Print the name of each planet next to its symbol.
+;
+;       SLABEL:    Print the name of each spacecraft next to its symbol.
+;
 ;       PLANET:    Planet number or name for calculating geometry
 ;                  with respect to Earth.  Numbering starts at 1.
 ;                  For string input, case-folded minimum matching
@@ -93,7 +97,7 @@
 ;                  ephemeris values and interpolates across the 
 ;                  gap.)
 ;                    Coverage:
-;                      Stereo A: 2006-10-26 to 2021-03-04
+;                      Stereo A: 2006-10-26 to 2021-09-28
 ;                      Stereo B: 2006-10-26 to 2014-09-28
 ;
 ;       SORB:      Plot the location of Solar Orbiter.  Includes a
@@ -166,8 +170,8 @@
 ;                  spiral, and all labels.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-16 19:27:54 -0700 (Tue, 16 Mar 2021) $
-; $LastChangedRevision: 29764 $
+; $LastChangedDate: 2021-06-03 15:11:08 -0700 (Thu, 03 Jun 2021) $
+; $LastChangedRevision: 30018 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -175,12 +179,34 @@
 pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph, $
                   spiral=spiral, Vsw=Vsw, srot=srot, movie=movie, stereo=stereo, $
                   keepwin=keepwin, tplot=tplot, reload=reload, outer=outer, $
-                  xyrange=range, planet=pnum, sorb=solorb, psp=sprobe, sall=sall, $
+                  xyrange=range, planet=planet2, sorb=sorb2, psp=psp2, sall=sall, $
                   verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor, $
-                  window=window, png=png, varnames=varnames
+                  window=window, png=png, varnames=varnames, plabel=plabel, slabel=slabel, $
+                  key=key
 
-  common planetorb, planet, sta, stb, sorb, psp
+  common planetorb, planet, sta, stb, sorb, psp, orrkey
   @putwin_common
+
+; Load any keyword defaults
+
+  orrery_options, get=key, /silent
+  ktag = tag_names(key)
+  tlist = ['NOPLOT','NOBOX','LABEL','SCALE','EPH','SPIRAL','VSW','SROT','MOVIE', $
+           'STEREO','KEEPWIN','TPLOT','RELOAD','OUTER','XYRANGE','PLANET2','SORB2', $
+           'PSP2','SALL','VERBOSE','FULL','FIXPLANET','MONITOR','WINDOW','PNG', $
+           'VARNAMES','PLABEL','SLABEL']
+  for j=0,(n_elements(ktag)-1) do begin
+    i = strmatch(tlist, ktag[j]+'*', /fold)
+    case (total(i)) of
+        0  : ; keyword not recognized -> do nothing
+        1  : begin
+               kname = (tlist[where(i eq 1)])[0]
+               ok = execute('kset = size(' + kname + ',/type) gt 0',0,1)
+               if (not kset) then ok = execute(kname + ' = key.(j)',0,1)
+             end
+      else : print, "Keyword ambiguous: ", ktag[j]
+    endcase
+  endfor
 
   if (size(verbose,/type) eq 0) then verbose = 0
 
@@ -194,13 +220,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   pname = ['MERCURY','VENUS','EARTH','MARS','JUPITER','SATURN','URANUS','NEPTUNE','PLUTO']
   pstr = ['H','V','E','M','J','S','U','N','P']  ; planet letters
-  pcol = [ 4, 204, 3,  6, 204, 4,  5,  3,  2 ]  ; planet colors
+  pcol = [ 4, 204, 3,  6, 204, 4,  5,  3,  1 ]  ; planet colors
   psze = [ 3,  4,  4,  3,  6,  5,  4,  4,  3 ]  ; planet symbol sizes
   pday = [89, 226, 367, 688, 4334, 10757, 30689, 60192, 90562]  ; days per orbit
   tspan = time_double(['1900-01-05','2100-01-01'])  ; range covered by mar097.bsp
   nplan = n_elements(pname)
 
   sname = ['STEREO AHEAD','STEREO BEHIND','SOLAR ORBITER','SOLAR PROBE PLUS']
+  slab = ['STA','STB','SO','PSP']
   ssym = [ 1,   1,   5,   6 ]  ; spacecraft symbols
   scol = [ 4,   5,   6,   1 ]  ; spacecraft colors
   ssze = [ 2,   2,  1.5, 1.5]  ; spacecraft symbol sizes
@@ -222,21 +249,21 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
 ; Process keywords
 
-  if (size(pnum,/type) eq 0) then pnum = 4      ; default is Mars
-  if (size(pnum,/type) eq 7) then begin
+  if (size(planet2,/type) eq 0) then planet2 = 4      ; default is Mars
+  if (size(planet2,/type) eq 7) then begin
     ok = 0
-    i = strmatch(pname, pnum+'*', /fold)
+    i = strmatch(pname, planet2+'*', /fold)
     case total(i) of
-       0   : print, "Planet name not recognized: ", pnum
+       0   : print, "Planet name not recognized: ", planet2
        1   : begin
-               pnum = (where(i eq 1))[0] + 1
+               planet2 = (where(i eq 1))[0] + 1
                ok = 1
              end
-      else : print, "Planet name ambiguous: ", pnum
+      else : print, "Planet name ambiguous: ", planet2
     endcase
     if (not ok) then return
   endif
-  pnum = (fix(pnum - 1) > 0) < (nplan - 1)
+  pnum = (fix(planet2 - 1) > 0) < (nplan - 1)
   if (pnum eq 2) then begin
     print,"Keyword PLANET cannot be 'Earth'.  Using Mars."
     pnum = 3
@@ -260,9 +287,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     ipmax = nplan - 1
   endif
 
+  loff = psze*(xyrange[1] - xyrange[0])/400.
+
   sflg = keyword_set(stereo)
-  oflg = keyword_set(solorb)
-  pflg = keyword_set(sprobe)
+  oflg = keyword_set(sorb2)
+  pflg = keyword_set(psp2)
   if keyword_set(full) then begin
     sall = 1
     label = 2
@@ -289,6 +318,19 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   if (size(label,/type) eq 0) then label = 1
   dolab = label < 2
+
+  plab = replicate(0,nplan)
+  nlab = n_elements(plabel)
+  case nlab of
+     0   : ; do nothing
+     1   : begin
+             plab[*] = plabel
+             if (ipmax gt 4) then plab[0:3] = 0
+           end
+    else : for i=0,(nlab-1) do plab[i] = plabel[i]
+  endcase
+
+  slabel = keyword_set(slabel)
 
   kflg = keyword_set(keepwin)
 
@@ -1068,12 +1110,17 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         endif
         oplot, xx, yy
       endfor
-      for k=0,ipmax do oplot, [xp[k]], [yp[k]], psym=8, symsize=psze[k]*zscl, color=pcol[k]
+      for k=0,ipmax do begin
+        oplot, [xp[k]], [yp[k]], psym=8, symsize=psze[k]*zscl, color=pcol[k]
+        if (plab[k]) then xyouts, [xp[k]+loff[k]], [yp[k]+loff[k]], pname[k], color=pcol[k], charsize=scale
+      endfor
       oplot, [0.], [0.], psym=8, symsize=sunsze*zscl, color=suncol
 
       if (sflg) then begin
         oplot, [xsta], [ysta], psym=ssym[0], symsize=ssze[0]*zscl, color=scol[0]
+        if (slabel) then xyouts, [xsta+loff[3]], [ysta+loff[3]], slab[0], color=scol[0], charsize=scale
         oplot, [xstb], [ystb], psym=ssym[1], symsize=ssze[1]*zscl, color=scol[1]
+        if (slabel) then xyouts, [xstb+loff[3]], [ystb+loff[3]], slab[1], color=scol[1], charsize=scale
       endif
 
       if (oflg) then if (finite(xsorb)) then begin
@@ -1089,6 +1136,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         endif
         oplot, xx, yy, color=scol[2]  
         oplot, [xsorb], [ysorb], psym=ssym[2], symsize=ssze[2]*zscl, color=scol[2]
+        if (slabel) then xyouts, [xsorb+loff[3]], [ysorb+loff[3]], slab[2], color=scol[2], charsize=scale
       endif
 
       if (pflg) then if (finite(xpsp)) then begin
@@ -1104,6 +1152,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         endif
         oplot, xx, yy, color=scol[3]  
         oplot, [xpsp] , [ypsp] , psym=ssym[3], symsize=ssze[3]*zscl, color=scol[3]
+        if (slabel) then xyouts, [xpsp+loff[3]], [ypsp+loff[3]], slab[3], color=scol[3], charsize=scale
       endif
 
       if (inbounds and (dolab gt 0)) then begin
@@ -1348,7 +1397,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     ys = -rs*sin(phi)
 
     rp3 = median([rp[pnum,*]])
-    if (finite(rp3)) then begin
+    if (finite(rp3) and (pnum lt 6)) then begin
       dr = min(abs(rs - rp3), k)
       dx = xs[k+1] - xs[k-1]
       dy = ys[k+1] - ys[k-1]
@@ -1381,11 +1430,16 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   count = n_elements(xp[2,*])
   j = [0L, (count/2L), (count-1L)]
-  for i=0,ipmax do oplot, [xp[i,j]], [yp[i,j]], psym=8, symsize=psze[i]*zscl, color=pcol[i]
+  for i=0,ipmax do begin
+    oplot, [xp[i,j]], [yp[i,j]], psym=8, symsize=psze[i]*zscl, color=pcol[i]
+    if (plab[i]) then xyouts, [xp[i,j[1]]+loff[i]], [yp[i,j[1]]+loff[i]], pname[i], color=pcol[i], chars=scale
+  endfor
 
   if (sflg) then begin
     oplot, [xsta], [ysta], psym=ssym[0], symsize=ssze[0]*zscl, color=scol[0]
+    if (slabel) then xyouts, [xsta+loff[3]], [ysta+loff[3]], slab[0], color=scol[0], charsize=scale
     oplot, [xstb], [ystb], psym=ssym[1], symsize=ssze[1]*zscl, color=scol[1]
+    if (slabel) then xyouts, [xstb+loff[3]], [ystb+loff[3]], slab[1], color=scol[1], charsize=scale
   endif
 
   if (oflg) then if (max(finite(xsorb))) then begin
@@ -1401,6 +1455,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endif
     oplot, xx, yy, color=scol[2]  
     oplot, [xsorb], [ysorb], psym=ssym[2], symsize=ssze[2]*zscl, color=scol[2]
+    if (slabel) then xyouts, [xsorb+loff[3]], [ysorb+loff[3]], slab[2], color=scol[2], charsize=scale
   endif
 
   if (pflg) then if (max(finite(xpsp))) then begin
@@ -1416,6 +1471,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endif
     oplot, xx, yy, color=scol[3]  
     oplot, [xpsp], [ypsp], psym=ssym[3], symsize=ssze[3]*zscl, color=scol[3]
+    if (slabel) then xyouts, [xpsp+loff[3]], [ypsp+loff[3]], slab[3], color=scol[3], charsize=scale
   endif
 
   if (inbounds and (dolab gt 0)) then begin
@@ -1450,7 +1506,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       xyouts, xs, ys, msg, /norm, charsize=csize
       ys -= dys
 
-      sem = acos((rp[2,j[1]]^2. + ds^2. - rp[3,j[1]]^2.)/(2.*rp[2,j[1]]*ds))*!radeg
+      sem = acos((rp[2,j[1]]^2. + ds^2. - rp[pnum,j[1]]^2.)/(2.*rp[2,j[1]]*ds))*!radeg
 
       msg = string(pstr[pnum], round(sem), format='("SE",a1," = ",i," deg")')
       msg = strcompress(msg)

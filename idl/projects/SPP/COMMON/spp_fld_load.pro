@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2020
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2021-03-04 23:08:15 -0800 (Thu, 04 Mar 2021) $
-; $LastChangedRevision: 29739 $
+; $LastChangedDate: 2021-05-17 14:49:46 -0700 (Mon, 17 May 2021) $
+; $LastChangedRevision: 29967 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -531,25 +531,25 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       if strmatch(type,'mag_*') then begin
         r = where(tn.Matches('quality_flag'))
         qf_root = tn[r[0]]
-        
+
         r = where(tn.Matches('mag_RTN') and $
-              not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'),/NULL)
+          not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'),/NULL)
         options,tn[r],/def,ytitle='MAG RTN', $
-                            psym_lim=300, $
-                            colors='bgr', $
-                            qf_root=qf_root ;To simplify dealing with pre/suffixes for qf filtering
+          psym_lim=300, $
+          colors='bgr', $
+          qf_root=qf_root ;To simplify dealing with pre/suffixes for qf filtering
         options,tn[r],max_points=10000 ; not a default option, so users can turn it off
 
         r = where(tn.Matches('mag_SC') and $
-              not tn.Matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'),/NULL)
+          not tn.Matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'),/NULL)
         options,tn[r],/def,ytitle='MAG SC', $
-                            psym_lim=300, $
-                            colors='bgr', $
-                            qf_root=qf_root ; see above
+          psym_lim=300, $
+          colors='bgr', $
+          qf_root=qf_root ; see above
         options,tn[r],max_points=10000 ; see above
 
         r = where(tn.Matches('mag_VSO') and $
-              not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'),/NULL)
+          not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'),/NULL)
         options,tn[r],/def,ytitle='MAG VSO',psym_lim=300
         options,tn[r],/def,colors='bgr'
         options,tn[r],max_points=10000 ; see above
@@ -593,23 +593,45 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
       endif
 
+      if strmatch(type, 'dfb_wf_edc') then begin
+
+        if tnames('psp_fld_l3_dfb_wf_edc_sc') NE '' then begin
+
+          options, 'psp_fld_l3_dfb_wf_edc_' + $
+            ['sc', 'vxb_sc', 'leff', 'angdev', 'offset', 'corrcoeff'], $
+            'colors', 'br'
+
+          edc_tnames = tnames('psp_fld_l3_dfb_wf_edc*', n_edc_tnames)
+
+          for i = 0, n_edc_tnames - 1 do begin
+
+            options, edc_tnames[i], 'ytitle', 'DFB WF EDC!C' + $
+              strmid(edc_tnames[i], 22)
+
+          endfor
+
+        endif
+      endif
+
       if strmatch(type, 'merged_scam_wf') then begin
 
         options,'psp_fld_l3_merged_scam_wf_SC', 'ytitle', 'SCaM SC'
-        options,'psp_fld_l3_merged_scam_wf_SC', 'ysubtitle', '[nT]'
-        options,'psp_fld_l3_merged_scam_' + ['wf_*','scm_sample_rate','mag_offset_SC'],colors='bgr' ,/default
+        options,'psp_fld_l3_merged_scam_wf_uvw', 'ytitle', 'SCaM uvw'
+        options,'psp_fld_l3_merged_scam_wf_*', 'ysubtitle', '[nT]'
+        options,'psp_fld_l3_merged_scam_' + ['wf_*','scm_sample_rate','mag_offset_*'],colors='bgr' ,/default
         options,'psp_fld_l3_merged_scam_rxn_whl',colors='bgrk' ,/default
         options,'psp_fld_l3_merged_scam_wf_SC', 'max_points', 10000
         options,'psp_fld_l3_merged_scam_wf_SC', 'psym_lim', 300
 
-        options,'psp_fld_l3_merged_scam_mag_sample_rate', 'colors', 'r'
+        options,'psp_fld_l3_merged_scam_???_sample_rate', 'colors', 'r'
         options,'psp_fld_l3_merged_scam_mag_range', 'colors', 'r'
 
         options,'psp_fld_l3_merged_scam_scm_sample_rate', 'ytitle', 'SCaM!CSCM Rate'
         options,'psp_fld_l3_merged_scam_mag_sample_rate', 'ytitle', 'SCaM!CMAG Rate'
         options,'psp_fld_l3_merged_scam_rxn_whl', 'ytitle', 'SCaM!CRXN WHL'
         options,'psp_fld_l3_merged_scam_mag_range', 'ytitle', 'SCaM!CMAG Range'
-        options,'psp_fld_l3_merged_scam_mag_offset_SC', 'ytitle', 'SCaM!CMAG Offset'
+        options,'psp_fld_l3_merged_scam_mag_offset_uvw', 'ytitle', 'SCaM!CMAG Off!Cuvw'
+        options,'psp_fld_l3_merged_scam_mag_offset_SC', 'ytitle', 'SCaM!CMAG Off'
 
       end
 
@@ -636,8 +658,8 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       ; individually, on separate lines in a single TPLOT panel.
       ;
       ; The flags loaded from a L2/L3 files are at a default resolution of 1
-      ; minute. The routine PSP_FLD_QF_FILTER will filter TPLOT variables 
-      ; based on these quality flags.  
+      ; minute. The routine PSP_FLD_QF_FILTER will filter TPLOT variables
+      ; based on these quality flags.
       ;
 
       if (tnames('psp_fld_l?_quality_flags'))[0] NE '' then begin

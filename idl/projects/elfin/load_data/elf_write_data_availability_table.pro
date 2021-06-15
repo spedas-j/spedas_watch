@@ -19,7 +19,7 @@
 ; EXAMPLE:
 ;         elf_write_data_availability_table, filename, data_avail, 'epd', 'a'
 ;         
-;LAST EDITED: lauraiglesias4@gmail.com 03/01/21
+;LAST EDITED: lauraiglesias4@gmail.com 05/18/21
 ;
 ;-
 pro elf_write_data_availability_table, filename, data_available, instrument, probe
@@ -55,7 +55,7 @@ pro elf_write_data_availability_table, filename, data_available, instrument, pro
       if current[0] ne -1 then begin
         
         newdat = {name:'newdat', starttimes: data_available.starttimes[current], $
-          endtimes: data_available.endtimes[current], dL:data_available.dL, medMLT:data_available.medMLT}
+          endtimes: data_available.endtimes[current], dL:data_available.dL[current], medMLT:data_available.medMLT[current]}
                 
         ;writing the header. the position is added to the header
         if i eq 0 then pos = ' South Ascending'
@@ -98,12 +98,19 @@ pro elf_write_data_availability_table, filename, data_available, instrument, pro
           ;finding the start/end index
           olddat_doub = {name:'olddat_doub', starttimes: time_double(olddat.field1), $
              endtimes: time_double(olddat.field2), dL:olddat.field3, medMLT:olddat.field4}
-          UNDEFINE, olddat
+          ;UNDEFINE, olddat
           
-          starttimes = [olddat_doub.starttimes, newdat.starttimes]
-          endtimes = [olddat_doub.endtimes, newdat.endtimes]
-          dL = [olddat_doub.dL, newdat.dL]
-          medMLT = [olddat_doub.medMLT, newdat.medMLT]
+          if n_elements(time_double(olddat.field1)) ne n_elements(time_double(olddat.field3)) AND n_elements(time_double(olddat.field1)) ne n_elements(time_double(olddat.field4)) then stop
+          
+
+          no_overlap = where(olddat_doub.starttimes lt floor(newdat.starttimes[0]) or olddat_doub.starttimes gt floor(newdat.starttimes[-1]))
+
+          starttimes = [olddat_doub.starttimes[no_overlap], newdat.starttimes]
+          endtimes = [olddat_doub.endtimes[no_overlap], newdat.endtimes]
+          dL = [olddat_doub.dL[no_overlap], newdat.dL]
+          medMLT = [olddat_doub.medMLT[no_overlap], newdat.medMLT]
+        
+         
         endelse 
   
         ;sorting
@@ -115,6 +122,7 @@ pro elf_write_data_availability_table, filename, data_available, instrument, pro
 
         UNDEFINE, sorting
 
+        ;there shouldn't be any repeating times, but sometimes there are very minute differences in the start times, so we need this
         unique = uniq(time_string(starttimes))
         starttimes = starttimes[unique]
         endtimes = endtimes[unique]
@@ -122,7 +130,7 @@ pro elf_write_data_availability_table, filename, data_available, instrument, pro
         medMLT = medMLT[unique]
         UNDEFINE, unique
        
-        
+       
         write_csv, local_path+this_file, time_string(starttimes), time_string(endtimes), dL, medMLT, HEADER = ['tstart', 'tend', 'Lstart, Lend', 'median MLT'], TABLE_HEADER=header + ' Science Collections'
           
         ;taking note of the files we write to 

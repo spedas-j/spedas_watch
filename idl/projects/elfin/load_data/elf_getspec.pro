@@ -11,24 +11,41 @@
 ; from the appropriate spacecraft (e.g., ela_pef_nflux and 'ela_att_gei', 'ela_pos_gei') have been loaded already!!!!!
 ; It also assumes the user has the ability to run T89 routine (.dlm, .dll have been included in their distribution)!!!
 ; 
-; Vassilis: 2021-02-13: added showsplitspins keyword
+; V: 2021-03-27 added keyword inpacketonly to prevent use of out-of-packet sectors (best for when spins were summed)
+; V: 2021-03-26 added capability for summed spins esp. for IBO [spreads the sectors over the spins that summation took place]
+; V: 2021-02-13 added showsplitspins keyword
+; V: 2020-11-17 added fulspn_spec_full when keyword fullspin and get3Dspec are both set (product was inadvertently omitted before)
+; V: 2020-11-28 added keyword enerbins to fix that no energy info in elx_p?f.v when type='raw' so non-standard ch0, ch1, etc bombed
 ; Vassilis: 2020-09-13: now also outputs sector limits on pitch-angle values (one per sector). These are
 ; passed in tplot quantities elx_pxf_pa_spec_pa_vals and ela_pef_pa_fulspn_spec_pa_vals 
 ; that hold Nx8x6 or NxMx6 values (N=number of times, M=number of sectors - twice as many for full spin than for halfspin - and 
 ; 6 are the output values). The 6 values are fullmin, halfmin, center, halfmax, fullmax, spinphase, where spinphase 
 ; is the sector spin phase from which you can obtain other useful things such as optimal pitch-angle (if B were on spin plane). 
-; 
-; V: 2020-11-17 added fulspn_spec_full when keyword fullspin and get3Dspec are both set (product was inadvertently omitted before)
-; V: 2020-11-28 added keyword enerbins to fix that no energy info in elx_p?f.v when type='raw' so non-standard ch0, ch1, etc bombed
+; Version: v7_wIBO_collection_expanded3 (3/29/2021)
 ;
 pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbins,dSect2add=userdSectr2add,dSpinPh2add=userdPhAng2add, $
   type=usertype,LCpartol2use=userLCpartol,LCpertol2use=userLCpertol,get3Dspec=get3Dspec, no_download=no_download, $
   probe=probe,species=myspecies,only_loss_cone=only_loss_cone,nodegaps=nonansingaps,delsplitspins=delsplitspins,quadratic=myquadfit, $
-  fullspin=fullspin,starton=userstarton,timesortpas=timesortpas,datatype=mydatatype
+  fullspin=fullspin,starton=userstarton,timesortpas=timesortpas,datatype=mydatatype, inpacketonly=usepacketonly, nspinsinsum=my_nspinsinsum
   ;
   ;
   ; INPUTS
   ;
+  ; inpacketonly: keyword when >0 (e.g.+1, set, in-packet-only) forces the sectors of an individual packet to be re-arranged into pitch-angles,
+  ;               even when they may not be monotonic in time. This is good for summed spins (where time-ordering is lost anyway
+  ;               within the packet. This option is useful for both fullspin and halfspin choices over summation so it is the default.
+  ;               When <0 (e.g., set to -1) it forces contiguous packets to contribute to the pitch-angle collections, which is the
+  ;               nominal and desired behavior when packets are continuous and not summed. Then, for no-summing, assuming no gaps,
+  ;               the sectors are monotonic in time even across packet boundaries and this option (-1, out-of-packet) is the preferred
+  ;               because it provides the best time-resolution and least time aliasing.
+  ;               Default: If spinsinsum=1 then inpacketonly=-1; if spinsinsum>1 then inpacketonly=+1.
+  ;               The user can force inpacketonly independently of spinsinsum, but if keyword has not been set then the default prevails.
+  ;               Note that this keyword can be applied to all collections (summed or not, IBO or OBO) and can also benefit non-summed
+  ;               collections (not the default) when there are many gaps: in that case, rather than throwing away many partial spins on
+  ;               either side of the many gaps, you can keep all the spins at the expense of increased aliasing on one of the half-spins.
+  ;               This option (+1, even for no-summing) is also not unreasonable (though this is not the default) when using full-spin,
+  ;               at spin-resolution when many gaps exist because the extra aliasing (= few sectors + spin period) is only a little more than
+  ;               when sectors on either end of the spin are lumped together (the max aliasing approaches the spin period for those sectors).
   ; userenergies is an [Nusrergiesx2] array of Emin,Emax energies to use for pitch-angle spectra
   ; userenerbins is same as userenergies but does it by bin number and has PRIORITY over energies...
   ;      userenerbins is required for type='raw' and non-standard definitions of E-boundaries, but optional for other types
@@ -95,6 +112,14 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   ; note that dPhAng2add more than +/- 11 does not work. You have to add sectors rather than increase dPhAng2add
   ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  if ~keyword_set(my_nspinsinsum) then my_nspinsinsum=1
+;  if ~keyword_set(usepacketonly) then if my_nspinsinsum eq 1 then usepacketonly=-1 else usepacketonly=+1 ; in the future to be time-dependent
+  if ~keyword_set(usepacketonly) then begin
+    ianysummed=where(my_nspinsinsum gt 1, janysummed)
+    if janysummed gt 0 then usepacketonly=+1 else usepacketonly=-1
+  endif
+
+;  if total(my_nspinsinsum) GT 1. then usepacketonly=+1 else usepacketonly=-1
   if keyword_set(no_download) then no_download=1 else no_download=0
   if ~keyword_set(probe) then probe='a' else probe=probe
   if ~keyword_set(myspecies) then begin
@@ -105,7 +130,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   mydataprod='p'+eori+'f' ; if nothing is set the 'pef'
   if keyword_set(mydatatype) then begin ; if datatype is set then it has priority
     mydataprod=mydatatype
-    eori=strmid('pef',1,1)
+    ;eori=strmid('pef',1,1)
+    eori = strmid(mydatatype,1,1)  ; change default behavior when dataype if already set
   endif
   if keyword_set(usertype) then mytype=usertype else $
     mytype='nflux'     ; Here specify default data type to act on
@@ -133,11 +159,20 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   ;
   copy_data,mystring+mytype,'elx_pxf'; DEFAULT UNITS ARE NFLUX; CODE ASSUMES TYPE EXISTS!; COPY INTO GENERIC VARIABLE TO AVOID CLASHES
   copy_data,mystring+'sectnum','elx_pxf_sectnum'; COPY INTO GENERIC VARIABLE TO AVOID CLASHES
-  copy_data,mystring+'spinper','elx_pxf_spinper'; COPY INTO GENERIC VARIABLE TO AVOID CLASHES
+  copy_data,mystring+'spinper','elx_pxf_spinper'; COPY INTO GENERIC VARIABLE TO AVOID CLASHES. NOTE THIS IS IN SECONDS NOT 80Hz TICKS
   get_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
   get_data,'elx_pxf_sectnum',data=elx_pxf_sectnum,dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
+  get_data,'elx_pxf_spinper',data=elx_pxf_spinper,dlim=myspinperdata,lim=myspinperdata_lim
   nsectors=n_elements(elx_pxf.x)
   nspinsectors=long(max(elx_pxf_sectnum.y)+1)
+  tcor=(my_nspinsinsum-1.)*(elx_pxf_spinper.y/nspinsectors)*(float(elx_pxf_sectnum.y)-float(nspinsectors)/2.+0.5) ; spread in time
+  elx_pxf.x=elx_pxf.x+tcor ; here correct (spread) sectors to full accumulation interval
+  elx_pxf_sectnum.x=elx_pxf_sectnum.x+tcor ; (spread) sectors to full accumulation interval
+  elx_pxf_spinper.x=elx_pxf_spinper.x+tcor ; (spread) sectors to full accumulation interval
+;  elx_pxf_spinper.y=my_nspinsinsum*elx_pxf_spinper.y ; from now on all points will assume this is the new "effective" spin period
+  store_data,'elx_pxf',data=elx_pxf,dlim=mypxfdata_dlim,lim=mypxfdata_lim
+  store_data,'elx_pxf_sectnum',data=elx_pxf_sectnum,dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
+  store_data,'elx_pxf_spinper',data=elx_pxf_spinper,dlim=myspinperdata,lim=myspinperdata_lim
   mypxforigarray=reform(elx_pxf.y,nsectors*nspinsectors)
   ianynegpxfs=where(mypxforigarray lt 0.,janynegpxfs) ; eliminate negative values from raw data -- these should not be there!
   if janynegpxfs gt 0 then mypxforigarray[ianynegpxfs]=0.
@@ -200,8 +235,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
     dSectr2add=phasedelay.DSECT2ADD    ; Here specify default # of sectors to add
   if ~undefined(userdPhAng2add) && finite(userdPhAng2add) then dPhAng2add=userdPhAng2add else $
     dPhAng2add=phasedelay.DPHANG2ADD   ; Here specify default # of degrees to add in addition to the sectors
-  
-  if dSectr2add ne 0 && phasedelay.badflag ne 1 then begin
+  if dSectr2add ne 0 then begin
     xra=make_array(nsectors-dSectr2add,/index,/long)
     if dSectr2add gt 0 then begin ; shift forward
       elx_pxf.y[dSectr2add:nsectors-1,*]=elx_pxf.y[xra,*]
@@ -215,21 +249,22 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; extrapolate on the left and right to [0,...nspinsectors-1]
-  tres,'elx_pxf_sectnum',dt_sectnum
+  dt_sectnum_left=median(elx_pxf_sectnum.x[1:nspinsectors-1]-elx_pxf_sectnum.x[0:nspinsectors-2]) ; median dt of first spin's sectors
+  dt_sectnum_rite=median(elx_pxf_sectnum.x[nsectors-nspinsectors+1:nsectors-1]-elx_pxf_sectnum.x[nsectors-nspinsectors:nsectors-2]) ; median of last spin's sectors
   elx_pxf_sectnum_new=elx_pxf_sectnum.y
   elx_pxf_sectnum_new_times = elx_pxf_sectnum.x
   if elx_pxf_sectnum.y[0] gt 0 then begin
     npadsleft=elx_pxf_sectnum.y[0]
     rapadleft=make_array(npadsleft,/index,/int)
     elx_pxf_sectnum_new = [rapadleft, elx_pxf_sectnum.y]
-    elx_pxf_sectnum_new_times = [elx_pxf_sectnum.x[0] - (elx_pxf_sectnum.y[0]-rapadleft)*dt_sectnum, elx_pxf_sectnum_new_times]
+    elx_pxf_sectnum_new_times = [elx_pxf_sectnum.x[0] - (elx_pxf_sectnum.y[0]-rapadleft)*dt_sectnum_left, elx_pxf_sectnum_new_times]
   endif
   if elx_pxf_sectnum.y[n_elements(elx_pxf_sectnum.y)-1] lt (nspinsectors-1) then begin
     npadsright=(nspinsectors-1)-elx_pxf_sectnum.y[n_elements(elx_pxf_sectnum.y)-1]
     rapadright=make_array(npadsright,/index,/int)
     elx_pxf_sectnum_new = [elx_pxf_sectnum_new, elx_pxf_sectnum.y[n_elements(elx_pxf_sectnum.y)-1]+rapadright+1]
     elx_pxf_sectnum_new_times = $
-      [elx_pxf_sectnum_new_times , elx_pxf_sectnum_new_times[n_elements(elx_pxf_sectnum.y)-1] + (rapadright+1)*dt_sectnum]
+      [elx_pxf_sectnum_new_times , elx_pxf_sectnum_new_times[n_elements(elx_pxf_sectnum.y)-1] + (rapadright+1)*dt_sectnum_rite]
   endif
   store_data,'elx_pxf_sectnum',data={x:elx_pxf_sectnum_new_times,y:elx_pxf_sectnum_new},dlim=mysectnumdata_dlim,lim=mysectnumdata_lim
   ;
@@ -268,7 +303,8 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   ; TO DETERMINE IF THIS IS A CONSTANT TIME OR HOW TO MODEL AS FUNCTION OF SPIN PERIOD. BY SHIFTING THE SPINPHASE OF THE
   ; SECTOR TO THE RIGHT YOU DECLARE THAT THE SECTOR CENTERS HAVE LARGER PHASES AND ARE ASYMMETRIC W/R/T THE ZERO CROSSING (AND 90DEG PA).
   ; OR EQUIVALENTLY THAT THE TIMES ARE INCORRECT BY THE SAME AMOUNT AND THE DATA WAS TAKEN LATER THAN DECLARED IN THEIR TIMES.
-  spinphase180=((dPhAng2add+float(elx_pxf_sectnum.x-elx_pxf_sectnum.x[lastzero]+0.5*elx_pxf_spinper.y/float(nspinsectors))*360./elx_pxf_spinper.y)+360.) mod 360. ; <-- CORRECTED added 360 (negative values remained negative before)
+  ; this has been changed to account for summing by using my_nspinsinsum
+  spinphase180=((dPhAng2add+float(elx_pxf_sectnum.x-elx_pxf_sectnum.x[lastzero]+0.5*my_nspinsinsum*elx_pxf_spinper.y/float(nspinsectors))*360./my_nspinsinsum/elx_pxf_spinper.y)+360.) mod 360. ; <-- CORRECTED added 360 (negative values remained negative before)
   spinphase=spinphase180*!PI/180. ; in radians corresponds to the center of the sector
   store_data,'spinphase',data={x:elx_pxf_sectnum.x,y:spinphase} ; just to see...
   store_data,'spinphasedeg',data={x:elx_pxf_sectnum.x,y:spinphase*180./!PI} ; just to see...
@@ -420,7 +456,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   if keyword_set(regularize) then begin
     regspinphase180=elx_pxf_sectnum.y*22.5 ; in degrees
     regspinphase=regspinphase180*!PI/180.
-    regtimes=elx_pxf_sectnum.x-((spinphase180-regspinphase180)/360.)*elx_pxf_spinper.y
+    regtimes=elx_pxf_sectnum.x-((spinphase180-regspinphase180)/360.)*my_nspinsinsum*elx_pxf_spinper.y
     store_data,'regspinphasedeg',data={x:regtimes,y:regspinphase180}
     options,'regspinphasedeg',colors=['r'],linestyle=2 ; just to see...
     store_data,'spinphases',data='spinphasedeg regspinphasedeg' ; just to see...
@@ -477,7 +513,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   endif
   ;stop
   ;
-  Tspin=average(elx_pxf_spinper.y)
+  Tspineff=average(my_nspinsinsum*elx_pxf_spinper.y)
   ipasorted=sort(elx_pxf_pa.y[0:nspinsectors-1])
   istartAscnd=max(elx_pxf_sectnum.y[ipasorted[0:1]])
   if abs(ipasorted[0]-ipasorted[1]) ge 2 then istartAscnd=min(elx_pxf_sectnum.y[ipasorted[0:1]])
@@ -487,6 +523,18 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   istartDscnds=where(abs(elx_pxf_sectnum.y-elx_pxf_sectnum.y[istartDscnd]) lt 0.1)
   tstartAscnds=elx_pxf_sectnum.x[istartAscnds]
   tstartDscnds=elx_pxf_sectnum.x[istartDscnds]
+  ;now get a map of sectors to make them fall within packet (this will make time run backwards but that's OK); Use it in assigning values and center times later
+  imapinpckt=make_array(nsectors,/long,/index)
+  usepcktidx=where(my_nspinsinsum GT 1,usepcktcnt)
+  if usepcktcnt gt 0 and istartAscnd gt 0 then begin
+    nsect2mapinpckt = istartAscnd
+    usepckt_imapinpckt=make_array(usepcktcnt,/long,/index)
+    for jthsect2mapinpckt=0,nsect2mapinpckt-1 do imapinpckt[istartDscnds[usepckt_imapinpckt]+(nspinsectors/2.)+jthsect2mapinpckt]=imapinpckt[istartDscnds[usepckt_imapinpckt]-(nspinsectors/2.)+jthsect2mapinpckt]
+;    for jthsect2mapinpckt=0,nsect2mapinpckt-1 do usepckt_imapinpckt[istartDscnds+(nspinsectors/2.)+jthsect2mapinpckt]=usepckt_imapinpckt[istartDscnds-(nspinsectors/2.)+jthsect2mapinpckt]
+;    imapinpckt[usepcktidx]=usepckt_imapinpckt
+  endif
+  inegs=where(imapinpckt lt 0, jnegs)
+  if jnegs gt 0 then imapinpckt[inegs]=imapinpckt[inegs]+nspinsectors ; first packet, if incompletely introduced, reverts to standard map (outside packet) 
   ;
   ; repeat for regularized times
   if keyword_set(regularize) then begin
@@ -494,24 +542,24 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
     tstartregDscnds=elx_pxf_val_reg.x[istartDscnds]
   endif
   ;
-  if tstartAscnds[0] lt tstartDscnds[0] then begin ; add a half period on the left as a precautionsince there is a chance that hanging sectors exist (not been accounted for yet)
-    tstartDscnds=[tstartDscnds[0]-Tspin,tstartDscnds]
-    if keyword_set(regularize) then tstartregDscnds=[tstartregDscnds[0]-Tspin,tstartregDscnds]
+  if tstartAscnds[0] lt tstartDscnds[0] then begin ; add a half period on the left as a precaution since there is a chance that hanging sectors exist (not been accounted for yet)
+    tstartDscnds=[tstartDscnds[0]-Tspineff,tstartDscnds]
+    if keyword_set(regularize) then tstartregDscnds=[tstartregDscnds[0]-Tspineff,tstartregDscnds]
   endif else begin
-    tstartAscnds=[tstartAscnds[0]-Tspin,tstartAscnds]
-    if keyword_set(regularize) then tstartregAscnds=[tstartregAscnds[0]-Tspin,tstartregAscnds]
+    tstartAscnds=[tstartAscnds[0]-Tspineff,tstartAscnds]
+    if keyword_set(regularize) then tstartregAscnds=[tstartregAscnds[0]-Tspineff,tstartregAscnds]
   endelse
   nstartAscnds=n_elements(tstartAscnds)
   nstartDscnds=n_elements(tstartDscnds)
   nstartregAscnds=n_elements(tstartregAscnds)
   nstartregDscnds=n_elements(tstartregDscnds)
   ;
-  if tstartDscnds[nstartDscnds-1] lt tstartAscnds[nstartAscnds-1] then begin ; add a half period on the right as a precautionsince chances are there are hanging ectors (not been accounted for yet)
-    tstartDscnds=[tstartDscnds,tstartDscnds[nstartDscnds-1]+Tspin]
-    if keyword_set(regularize) then tstartregDscnds=[tstartregDscnds,tstartregDscnds[nstartregDscnds-1]+Tspin]
+  if tstartDscnds[nstartDscnds-1] lt tstartAscnds[nstartAscnds-1] then begin ; add a half period on the right as a precaution since chances are there are hanging sectors (not been accounted for yet)
+    tstartDscnds=[tstartDscnds,tstartDscnds[nstartDscnds-1]+Tspineff]
+    if keyword_set(regularize) then tstartregDscnds=[tstartregDscnds,tstartregDscnds[nstartregDscnds-1]+Tspineff]
   endif else begin
-    tstartAscnds=[tstartAscnds,tstartAscnds[nstartAscnds-1]+Tspin]
-    if keyword_set(regularize) then tstartregAscnds=[tstartregAscnds,tstartregAscnds[nstartregAscnds-1]+Tspin]
+    tstartAscnds=[tstartAscnds,tstartAscnds[nstartAscnds-1]+Tspineff]
+    if keyword_set(regularize) then tstartregAscnds=[tstartregAscnds,tstartregAscnds[nstartregAscnds-1]+Tspineff]
   endelse
   nstartAscnds=n_elements(tstartAscnds)
   nstartDscnds=n_elements(tstartDscnds)
@@ -558,12 +606,24 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   ifinis2reform=(nspinsectors/2)*nhalfspinsavailable+istart2reform-1 ; exact # of half-spins (full PA ranges)
   elx_pxf_pa_spec=make_array(nhalfspinsavailable,(nspinsectors/2),numchannels,/double)
   elx_pxf_pa_spec_full=make_array(nhalfspinsavailable,(nspinsectors/2),Max_numchannels,/double) ; has ALL ENERGIES = Max_numchannels
-  for jthchan=0,numchannels-1 do elx_pxf_pa_spec[*,*,jthchan]=transpose(reform(elx_pxf_val[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
-  for jthchan=0,Max_numchannels-1 do elx_pxf_pa_spec_full[*,*,jthchan]=transpose(reform(elx_pxf_val_full[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
-  elx_pxf_pa_spec_times=transpose(reform(elx_pxf_pa.x[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
+  for jthchan=0,numchannels-1 do elx_pxf_pa_spec[*,*,jthchan]=transpose(reform(elx_pxf_val[imapinpckt[istart2reform:ifinis2reform],jthchan],(nspinsectors/2),nhalfspinsavailable))
+  for jthchan=0,Max_numchannels-1 do elx_pxf_pa_spec_full[*,*,jthchan]=transpose(reform(elx_pxf_val_full[imapinpckt[istart2reform:ifinis2reform],jthchan],(nspinsectors/2),nhalfspinsavailable))
+
+  if usepacketonly gt 0 then begin ; here correct times of half-spins to be within packet
+    centercorr=float(((elx_pxf_sectnum.y-istart2reform+nspinsectors) mod nspinsectors)/(nspinsectors/2)) ; zero for ascending and one for descending
+    ishiftleft=where(centercorr lt 0.5, jshiftleft)
+    ishiftrite=where(centercorr gt 0.5, jshiftrite)
+    myshiftarrayleft= istart2reform*my_nspinsinsum*elx_pxf_spinper.y/nspinsectors
+    myshiftarrayrite=-istart2reform*my_nspinsinsum*elx_pxf_spinper.y/nspinsectors
+    if jshiftleft gt 0 then centercorr[ishiftleft] =  myshiftarrayleft[ishiftleft] ; all shift by istart2reform sector widths left
+    if jshiftrite gt 0 then centercorr[ishiftrite] =  myshiftarrayrite[ishiftrite] ; all shift by istart2reform sector widths right
+  endif else begin
+    centercorr= 0. * elx_pxf_sectnum.y ; just 0.
+  endelse
+  elx_pxf_pa_spec_times=transpose(reform(elx_pxf_pa.x[imapinpckt[istart2reform:ifinis2reform]]+centercorr[imapinpckt[istart2reform:ifinis2reform]],(nspinsectors/2),nhalfspinsavailable)) ; change times 2 stay in packet if required
   elx_pxf_pa_spec_times=total(elx_pxf_pa_spec_times,2)/(nspinsectors/2.) ; these are time averages
-  elx_pxf_pa_spec_pas=transpose(reform(elx_pxf_pa.y[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
-  elx_pxf_pa_spec_pa_vals_temp=transpose(reform(elx_pxf_mesh_pa_vals[istart2reform:ifinis2reform,*],(nspinsectors/2),nhalfspinsavailable,6)) ; 6xNhalfspinsxNhalfsectors, 6=fmin,hmin,cntr,hmax,fmax,spinphases
+  elx_pxf_pa_spec_pas=transpose(reform(elx_pxf_pa.y[imapinpckt[istart2reform:ifinis2reform]],(nspinsectors/2),nhalfspinsavailable))
+  elx_pxf_pa_spec_pa_vals_temp=transpose(reform(elx_pxf_mesh_pa_vals[imapinpckt[istart2reform:ifinis2reform],*],(nspinsectors/2),nhalfspinsavailable,6)) ; 6xNhalfspinsxNhalfsectors, 6=fmin,hmin,cntr,hmax,fmax,spinphases
   elx_pxf_pa_spec_pa_vals = make_array(nhalfspinsavailable,(nspinsectors/2),6,/double)
   for jvals=0,5 do elx_pxf_pa_spec_pa_vals[*,*,jvals]=elx_pxf_pa_spec_pa_vals_temp[jvals,*,*]
   if keyword_set(get3Dspec) then store_data,mystring+'pa_spec',data={x:elx_pxf_pa_spec_times, y:elx_pxf_pa_spec, v:elx_pxf_pa_spec_pas}
@@ -574,10 +634,10 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
     get_data,'elx_pxf_pa_reg',data=elx_pxf_pa_reg
     elx_pxf_pa_reg_spec=make_array(nhalfspinsavailable,(nspinsectors/2),numchannels,/double)
     elx_pxf_pa_reg_spec_full=make_array(nhalfspinsavailable,(nspinsectors/2),Max_numchannels,/double) ; has ALL ENERGIES = Max_numchannels
-    for jthchan=0,numchannels-1 do elx_pxf_pa_reg_spec[*,*,jthchan]=transpose(reform(elx_pxf_val_reg.y[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
-    for jthchan=0,Max_numchannels-1 do elx_pxf_pa_reg_spec_full[*,*,jthchan]=transpose(reform(elx_pxf_val_reg_full.y[istart2reform:ifinis2reform,jthchan],(nspinsectors/2),nhalfspinsavailable))
+    for jthchan=0,numchannels-1 do elx_pxf_pa_reg_spec[*,*,jthchan]=transpose(reform(elx_pxf_val_reg.y[imapinpckt[istart2reform:ifinis2reform],jthchan],(nspinsectors/2),nhalfspinsavailable))
+    for jthchan=0,Max_numchannels-1 do elx_pxf_pa_reg_spec_full[*,*,jthchan]=transpose(reform(elx_pxf_val_reg_full.y[imapinpckt[istart2reform:ifinis2reform],jthchan],(nspinsectors/2),nhalfspinsavailable))
     elx_pxf_pa_reg_spec_times=elx_pxf_pa_spec_times
-    elx_pxf_pa_reg_spec_pas=transpose(reform(elx_pxf_pa_reg.y[istart2reform:ifinis2reform],(nspinsectors/2),nhalfspinsavailable))
+    elx_pxf_pa_reg_spec_pas=transpose(reform(elx_pxf_pa_reg.y[imapinpckt[istart2reform:ifinis2reform]],(nspinsectors/2),nhalfspinsavailable))
     if keyword_set(get3Dspec) then store_data,mystring+'pa_reg_spec',data={x:elx_pxf_pa_reg_spec_times, y:elx_pxf_pa_reg_spec, v:elx_pxf_pa_reg_spec_pas}
   endif
   ;
@@ -598,12 +658,13 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
     elx_pxf_pa_fulspn_spec=transpose(reform(transpose(elx_pxf_pa_spec[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*,*]),numchannels,nspinsectors,nfullspinsavailable))
     elx_pxf_pa_fulspn_spec_full=transpose(reform(transpose(elx_pxf_pa_spec_full[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*,*]),Max_numchannels,nspinsectors,nfullspinsavailable))
     elx_pxf_pa_fulspn_spec_pa_vals = make_array(nfullspinsavailable,nspinsectors,6,/double)
-    ispins=make_array(nfullspinsavailable,/index,/long)
+;    stop
+    ispins=make_array(nfullspinsavailable,/index,/long) ; the time of fulspn determination works for case of inpacketonly as well
     elx_pxf_pa_fulspn_spec_times=(elx_pxf_pa_spec_times[ifirsthalfspin+2*ispins]+elx_pxf_pa_spec_times[ifirsthalfspin+2*ispins+1])/2. ; this is also average of sectortimes
     elx_pxf_pa_fulspn_spec_pas=transpose(reform(transpose(elx_pxf_pa_spec_pas[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*]),nspinsectors,nfullspinsavailable))
     elx_pxf_pa_fulspn_spec_pa_vals=transpose(reform(transpose(elx_pxf_pa_spec_pa_vals[ifirsthalfspin:ifirsthalfspin+nfullspinsavailable*2L-1,*,*]),6,nspinsectors,nfullspinsavailable))
     ;
-    ; By default, sort by pitch angle within each spin, else leave sorted by time.
+    ; By default, sort by pitch angle within each spin, else leave sorted by time (the latter case does not make sense if you used keyword inpacketonly)
     ; Here first perform sorting anyway, then sort final arrays if you need to (below), 
     ; or use only for regularization if you need to (further below), or neither if neither is needed
     ; If timesortpas is set, and regularization is requested then sorting is still needed
@@ -905,7 +966,7 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
   ;
   ; Now make energy spectra: Omni, Para, Perp, Anti
   ; Para and Anti: check when theta less that losscone+tolerance, where LCfatol tolerance=FOVo2+SectWidth/2 and LCfptol=FOVo2 unless user-specified
-  ; Omni halfs tres (1/2 Tspin)  but includes one more sector along, and one more opposite the Bfield, such that all times have both para and anti sectors.
+  ; Omni halfs tres (1/2 Tspineff)  but includes one more sector along, and one more opposite the Bfield, such that all times have both para and anti sectors.
   ; In the following the deltagyro is not included in domega (same in the numerator and denominator integrals: Int(f*domega) and Int(domega) ), give 2*pi which cancels
   SectWidtho2 = dphsect/2.
   if keyword_set(userLCpartol) then LCfatol=userLCpartol else LCfatol=FOVo2+SectWidtho2
@@ -1254,18 +1315,18 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
     end
     'cps': begin
       zlim,'el?_p?f_en*spec*',0.1,2.e5,1
-      zlim,'el?_pef_pa_*spec2plot_ch0*',5.e1,5.e4,1
-      zlim,'el?_pef_pa_*spec2plot_ch1*',2.e1,5.e4,1
-      zlim,'el?_pef_pa_*spec2plot_ch2*',1.e1,5.e4,1
-      zlim,'el?_pef_pa_*spec2plot_ch3*',1.e-1,1.e4,1
+      zlim,'el?_pef_pa_*spec2plot_ch0*',5.e1,5.e5,1
+      zlim,'el?_pef_pa_*spec2plot_ch1*',2.e1,5.e5,1
+      zlim,'el?_pef_pa_*spec2plot_ch2*',1.e1,5.e5,1
+      zlim,'el?_pef_pa_*spec2plot_ch3*',1.e-1,1.e5,1
       myysubtitle='counts/s'
     end
     'eflux': begin
       zlim,'el?_p?f_en*spec*',1e4,1e9,1
-      zlim,'el?_pef_pa_*spec2plot_ch0*',5.e5,1.e9,1
-      zlim,'el?_pef_pa_*spec2plot_ch1*',5.e5,5.e8,1
-      zlim,'el?_pef_pa_*spec2plot_ch2*',5.e5,2.5e8,1
-      zlim,'el?_pef_pa_*spec2plot_ch3*',1.e5,1.e7,1
+      zlim,'el?_pef_pa_*spec2plot_ch0*',5.e5,1.e10,1
+      zlim,'el?_pef_pa_*spec2plot_ch1*',5.e5,5.e9,1
+      zlim,'el?_pef_pa_*spec2plot_ch2*',5.e5,2.5e9,1
+      zlim,'el?_pef_pa_*spec2plot_ch3*',1.e5,1.e8,1
       myysubtitle=mypxfdata_dlim.ysubtitle
     end
     'nflux': begin
@@ -1307,13 +1368,12 @@ pro elf_getspec,regularize=regularize,energies=userenergies,enerbins=userenerbin
         copy_data,'var2fix',element
       endforeach
   endif
-  ; 
-  ; degap interior gaps with two NaNs per gap
+  ; ;
+  ; ;degap interior gaps with two NaNs per gap
   if ~keyword_set(nonansingaps) then begin
-    if keyword_set(fullspin) then mydt=Tspin else mydt=Tspin/2.
+    if keyword_set(fullspin) then mydt=Tspineff else mydt=Tspineff/2.
     tdegap,vars2fixgaps,dt=mydt,margin=0.5*mydt/2.,/twonanpergap,/over
     tdeflag,mystring+'losscone','linear',/over ; no degap for this one!
     tdeflag,mystring+'antilosscone','linear',/over ; no degap for this one!
   endif
-;  stop
 end

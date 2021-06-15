@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-06-12 01:49:56 -0700 (Wed, 12 Jun 2019) $
-; $LastChangedRevision: 27333 $
+; $LastChangedDate: 2021-04-02 12:45:19 -0700 (Fri, 02 Apr 2021) $
+; $LastChangedRevision: 29850 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_crib.pro $
 ;spp_swp_crib
 ;
@@ -15,7 +15,20 @@
 ; Define a time range
 timespan,'2018-11-3',5   ; 5 days starting on venus encounter
 timespan,'2019-3-20',26   ; 5 days starting on venus encounter
+timespan, '2018 11 1', 14   ; encounter 1
+timespan, '2019 3 29', 14   ; encounter 2
+timespan, '2019 8 30',14   ; encounter 3
+timespan ,'2020 1 18',22   ; encounter 4
+timespan ,'2020 5 25',25   ; encounter 5
+timespan ,'2020 9 13',33   ; encounter 6
+timespan,['2021-01-09/00:00:00', '2021-01-29/00:00:00'] ; encounter 7
+
 stop
+
+
+spp_fld_load  ;   type =mag_SC_4_Sa_per_Cyc'  ;   default is spacecraft frame 4 NYHz
+
+spp_fld_load, type = 'mag_RTN_4_Sa_per_Cyc'  ;   Get RTN frame mag data at 4 NYHz
 
 
 ; Subsequent load routines will use this timespan for the default time range
@@ -28,11 +41,11 @@ spp_fld_load,type='mag_RTN',trange=centertime   ; Get a single day of high res m
 tplot,'psp_fld_l2_mag_RTN'
 
 
+spp_swp_spice,/quaternion,/position
 
-; Load (illicit) mag data at 1Hz resolution  (SC frame)
-spp_swp_mag_load,res='1Hz'
-tplot,'psp_fld_l2_1Hz_mag_SC',/add    ; plot it
+spp_swp_spe_load
 
+spp_swp_spi_load,/rtn_frame
 
 
 ; Load L3 SPC data

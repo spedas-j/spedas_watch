@@ -17,13 +17,17 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2020-10-16 09:56:39 -0700 (Fri, 16 Oct 2020) $
-; $LastChangedRevision: 29258 $
+; $LastChangedDate: 2021-05-26 10:11:56 -0700 (Wed, 26 May 2021) $
+; $LastChangedRevision: 29991 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_ima_load.pro $
 ;
 ;-
-PRO vex_asp_ima_list, trange, verbose=verbose, save=save, file=file, time=modify_time
+PRO vex_asp_ima_list, trange, verbose=verbose, file=file, time=modify_time
   oneday = 86400.d0
+
+  IF FILE_TEST(root_data_dir() + 'vex/aspera/ima/tab/vex_asp_ima_lists.sav') THEN $
+     RESTORE, root_data_dir() + 'vex/aspera/ima/tab/vex_asp_ima_lists.sav' ELSE vex_asp_ima_lists = HASH()
+
   ldir = root_data_dir() + 'vex/aspera/ima/tab/'
   file_mkdir2, ldir
 
@@ -32,12 +36,12 @@ PRO vex_asp_ima_list, trange, verbose=verbose, save=save, file=file, time=modify
 
   date = time_double(time_intervals(trange=trange + [-1.d0, 1.d0]*oneday, /daily_res, tformat='YYYY-MM-DD'))
   phase = FIX(INTERP(FINDGEN(N_ELEMENTS(mtime)), mtime, time_double(date))) < (N_ELEMENTS(mtime)-1)
-  phase = STRING(phase, '(I0)')
 
-  w = WHERE(phase EQ '0', nw, complement=v, ncomplement=nv)
-  IF nw GT 0 THEN phase[w] = ''
-  IF nv GT 0 THEN phase[v] = 'EXT' + phase[v]
-  pdir = 'VEX-V-SW-ASPERA-2-' + phase + '-IMA-V1.0/' ; pdir stands for "phase dir".
+  pdir = STRING(phase, '(I0)')
+  w = WHERE(pdir EQ '0', nw, complement=v, ncomplement=nv)
+  IF nw GT 0 THEN pdir[w] = ''
+  IF nv GT 0 THEN pdir[v] = 'EXT' + pdir[v]
+  pdir = 'VEX-V-SW-ASPERA-2-' + pdir + '-IMA-V1.0/' ; pdir stands for "phase dir".
 
   dprint, dlevel=2, verbose=verbose, 'Starts connecting ESA/PSA FTP server...'
 
@@ -51,55 +55,80 @@ PRO vex_asp_ima_list, trange, verbose=verbose, save=save, file=file, time=modify
      IF SIZE(rdir_old, /type) EQ 0 THEN rflg = 1 $
      ELSE IF rdir NE rdir_old THEN rflg = 1
      IF (rflg) THEN BEGIN
-        list_dir = spd_download(remote_path=rdir, remote_file='*', local_path=ldir, local_file='vex_asp_ima_lists.txt', ftp_connection_mode=0)
-        rdir_old = rdir
+        IF vex_asp_ima_lists.haskey(phase[i]) THEN BEGIN
+           subdir = (vex_asp_ima_lists[phase[i]]).keys()
+           IF TYPENAME(subdir) EQ 'LIST' THEN subdir = subdir.toarray()
+        ENDIF ELSE BEGIN
+           list_dir = spd_download(remote_path=rdir, remote_file='*', local_path=ldir, local_file='vex_asp_ima_lists.txt', ftp_connection_mode=0)
+           rdir_old = rdir
 
-        OPENR, unit, list_dir, /get_lun
-        text = STRARR(FILE_LINES(list_dir))
-        READF, unit, text
-        FREE_LUN, unit
+           OPENR, unit, list_dir, /get_lun
+           text = STRARR(FILE_LINES(list_dir))
+           READF, unit, text
+           FREE_LUN, unit
+           
+           text = STRSPLIT(text, ' ', /extract)
+           text = text.toarray()
+           subdir = REFORM(TEMPORARY(text[*, -1]))
 
-        text = STRSPLIT(text, ' ', /extract)
-        text = text.toarray()
-        subdir = REFORM(TEMPORARY(text[*, -1]))
+           FOR j=0, N_ELEMENTS(subdir)-1 DO BEGIN
+              IF (j EQ 0) THEN vex_asp_ima_lists += HASH(phase[i], HASH(subdir[j])) $
+              ELSE vex_asp_ima_lists[phase[i]] += HASH(subdir[j])
+           ENDFOR 
+        ENDELSE 
         dir_time = STRSPLIT(REFORM(subdir), '_', /extract)
         dir_time = dir_time.toarray()
         dir_time = time_double(REFORM(dir_time[*, 0]), tformat='YYYYMMDD')
      ENDIF 
 
+     subdir = subdir[SORT(dir_time)]
+     dir_time = dir_time[SORT(dir_time)]
      w = FIX(INTERP(FINDGEN(N_ELEMENTS(dir_time)), dir_time, time_double(date[i]))) < (N_ELEMENTS(dir_time)-1)
 
      dflg = 0
      IF SIZE(subdir_old, /type) EQ 0 THEN dflg = 1 $
      ELSE IF subdir[w] NE subdir_old THEN dflg = 1
-     IF (dflg) THEN list_file = spd_download(remote_path=rdir + subdir[w] + '/', remote_file='*', local_path=ldir, local_file='vex_asp_ima_lists.txt', ftp_connection_mode=0)
-     subdir_old = subdir[w]
-  
-     OPENR, unit, list_file, /get_lun
-     text = STRARR(FILE_LINES(list_file))
-     READF, unit, text
-     FREE_LUN, unit
+     IF (dflg) THEN BEGIN
+        IF SIZE(vex_asp_ima_lists[phase[i], subdir[w]], /type) EQ 0 THEN BEGIN
+           list_file = spd_download(remote_path=rdir + subdir[w] + '/', remote_file='*', local_path=ldir, local_file='vex_asp_ima_lists.txt', ftp_connection_mode=0)
+           
+           OPENR, unit, list_file, /get_lun
+           text = STRARR(FILE_LINES(list_file))
+           READF, unit, text
+           FREE_LUN, unit
+           
+           text = STRSPLIT(text, ' ', /extract)
+           text = text.toarray()
+           text[*, 6] = STRING(LONG(text[*, 6]), '(I2.2)')
+           mod_time = time_double(text[*, 5] + text[*, 6] + text[*, 7], tformat='MTHDDYYYY')
+           text = text[*, -1]
+           
+           vex_asp_ima_lists[phase[i], subdir[w]] = HASH('name', text, 'mtime', mod_time)
+           SAVE, vex_asp_ima_lists, filename=root_data_dir() + 'vex/aspera/ima/tab/vex_asp_ima_lists.sav', /compress 
+        ENDIF ELSE BEGIN
+           text     = vex_asp_ima_lists[phase[i], subdir[w], 'name']
+           mod_time = vex_asp_ima_lists[phase[i], subdir[w], 'mtime']
+        ENDELSE 
+        subdir_old = subdir[w]
+     ENDIF 
 
-     text = STRSPLIT(text, ' ', /extract)
-     text = text.toarray()
-     text[*, 6] = STRING(LONG(text[*, 6]), '(I2.2)')
-     mod_time = time_double(text[*, 5] + text[*, 6] + text[*, 7], tformat='MTHDDYYYY')
-     
-     w = WHERE(STRMATCH(text[*, -1], 'IMA_M*_' + time_string(date[i], tformat='yyMMDD') + '*') EQ 1, nw)
-     
-     IF nw GT 0 THEN afile = rdir + subdir_old + '/' + text[w, -1]
+     ;;;w = WHERE(STRMATCH(text[*, -1], 'IMA_M*_' + time_string(date[i], tformat='yyMMDD') + '*') EQ 1, nw)
+     ;;;IF nw GT 0 THEN afile = rdir + subdir_old + '/' + text[w, -1]
+
+     w = WHERE(STRMATCH(text, 'IMA_M*_' + time_string(date[i], tformat='yyMMDD') + '*') EQ 1, nw)
+     IF nw GT 0 THEN afile = rdir + subdir_old + '/' + text[w]
 
      IF SIZE(afile, /type) NE 0 THEN BEGIN
         append_array, file, afile
         append_array, modify_time, mod_time[w]
      ENDIF 
-     undefine, w, nw, text, afile
+     undefine, w, nw, afile;, text
   ENDFOR 
   IF SIZE(list_file, /type) EQ 7 THEN FILE_DELETE, list_file
   RETURN
 END
 
-PRO vex_asp_ima_save, time, counts, polar, pacc, file=file, verbose=verbose
+PRO vex_asp_ima_save, time, counts, polar, pacc, eprom, file=file, verbose=verbose, mtime=mtime
   prefix = 'vex_asp_ima_'
   
   name  = (STRSPLIT(file[0], '_', /extract))[2]
@@ -108,15 +137,21 @@ PRO vex_asp_ima_save, time, counts, polar, pacc, file=file, verbose=verbose
   path  = root_data_dir() + 'vex/aspera/ima/sav/' + time_string(ftime, tformat='YYYY/MM/')
   fname = prefix + time_string(ftime, tformat='YYYYMMDD_hhmmss') + '.sav'
 
+  IF FILE_TEST(path + fname) THEN RETURN
+
   asp_ima_stime = time
   asp_ima_polar = polar
   asp_ima_pacc  = pacc
   asp_ima_cnts  = counts
-  asp_ima_file  = file
+  asp_ima_eprom = eprom
+  asp_ima_file  = FILE_BASENAME(file)
 
   file_mkdir2, path, dlevel=2, verbose=verbose
   dprint, dlevel=2, verbose=verbose, 'Saving ' + path + fname + '.'
-  SAVE, filename=path + fname, asp_ima_stime, asp_ima_polar, asp_ima_pacc, asp_ima_cnts, asp_ima_file
+  SAVE, filename=path + fname, asp_ima_stime, asp_ima_polar, asp_ima_pacc, asp_ima_cnts, asp_ima_eprom, asp_ima_file, /compress
+
+  IF ~undefined(mtime) THEN $
+     file_touch, path + fname, mtime - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
 
   RETURN
 END
@@ -188,30 +223,6 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
            rflg = 0 ELSE rflg = 1 ELSE rflg = 0
   ENDELSE 
 
-;  IF (rflg) THEN BEGIN
-;     nfile = N_ELEMENTS(remote_file)
-;     FOR i=0, nfile-1 DO BEGIN
-;        IF SIZE(file, /type) EQ 0 THEN dflg = 1 $
-;        ELSE BEGIN
-;           w = WHERE(STRMATCH(FILE_BASENAME(file), FILE_BASENAME(remote_file[i])) EQ 1, nw)
-;           IF nw EQ 0 THEN dflg = 1 ELSE dflg = 0
-;        ENDELSE 
-;        IF (dflg) THEN BEGIN
-;           suffix = FILE_BASENAME(remote_file[i])
-;           suffix = STRSPLIT(suffix, '_', /extract)
-;           suffix = time_string(time_double(suffix[2], tformat='yyMMDDhhmmss'), tformat='YYYY/MM/')
-;           append_array, fname, spd_download(remote_file=remote_file[i], local_path=ldir+suffix, ftp_connection_mode=0)
-;           file_touch, fname[-1], modify_time[i] - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
-;        ENDIF ELSE append_array, fname, file[w]
-;     ENDFOR
-;  ENDIF ELSE fname = file
-  
-;  IF N_ELEMENTS(fname) EQ 0 THEN BEGIN
-;     dprint, dlevel=2, verbose=verbose, 'No data found.'
-;     status = 0
-;     RETURN
-;  ENDIF ELSE undefine, file
-
   IF (rflg) THEN fname = FILE_BASENAME(remote_file) ELSE fname = file
   undefine, file
 
@@ -231,7 +242,9 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
         suffix = (STRSPLIT(lfile[i], '_', /extract))[2]
         suffix = time_string(time_double(suffix, tformat='yyMM'), tformat='YYYY/MM/')
         IF FILE_TEST(ldir + suffix + lfile[i]) EQ 0 THEN BEGIN
+           lfile_download_again:
            lfile[i] = spd_download(remote_file=remote_file[v[i]], local_path=ldir+suffix, ftp_connection_mode=0)
+           IF (FILE_INFO(lfile[i])).size EQ 0 THEN GOTO, lfile_download_again
            file_touch, lfile[i], modify_time[v[i]] - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
         ENDIF ELSE lfile[i] = ldir + suffix + lfile[i]
      ENDIF 
@@ -247,10 +260,12 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
 
      idx = INTERP([0., 1.], trange, tdata)
      iv = WHERE(MAX(idx) LT 0. OR MIN(idx) GT 1., niv)
-     IF niv EQ 0 THEN BEGIN
+     IF (niv EQ 0) OR (KEYWORD_SET(save)) THEN BEGIN
         IF (rflg) THEN BEGIN
            IF FILE_TEST(ldir + suffix + tfile[i]) EQ 0 THEN BEGIN
+              tfile_download_again:
               tfile[i] = spd_download(remote_file=remote_file[w[i]], local_path=ldir+suffix, ftp_connection_mode=0)
+              IF (FILE_INFO(tfile[i])).size EQ 0 THEN GOTO, tfile_download_again
               file_touch, tfile[i], modify_time[w[i]] - DOUBLE(time_zone_offset()) * 3600.d0, /mtime
            ENDIF ELSE tfile[i] = ldir + suffix + tfile[i]
         ENDIF 
@@ -321,16 +336,24 @@ PRO vex_asp_ima_read, trange, verbose=verbose, time=stime, counts=counts, polar=
      undefine, data, cnts
   ENDFOR
 
-  IF KEYWORD_SET(save) THEN $
+  IF KEYWORD_SET(save) THEN BEGIN
+     mtime = HASH(FILE_BASENAME(remote_file[0]), modify_time[0])
+     FOR i=1, N_ELEMENTS(remote_file)-1 DO mtime += HASH(FILE_BASENAME(remote_file[i]), modify_time[i])
+
      FOR i=0, N_ELEMENTS(fname)-1 DO $
-        vex_asp_ima_save, stime[i], counts[i], polar[i], pacc[i], file=fname[i], verbose=verbose
+        vex_asp_ima_save, stime[i], counts[i], polar[i], pacc[i], eprom[i], file=fname[i], verbose=verbose, mtime=mtime[FILE_BASENAME(fname[i])]
+     
+     undefine, mtime
+  ENDIF
 
   RETURN
 END
 
 PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
   COMMON vex_asp_dat, vex_asp_ima, vex_asp_els
-  undefine, vex_ima_els
+  undefine, vex_asp_ima
+
+  oneday = 86400.d0
   t0 = SYSTIME(/sec)
   IF SIZE(itime, /type) EQ 0 THEN get_timespan, trange $
   ELSE BEGIN
@@ -347,7 +370,7 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
      ENDIF 
   ENDIF 
 
-  date = time_double(time_intervals(trange=trange, /daily_res, tformat='YYYY-MM-DD'))
+  date = time_double(time_intervals(trange=trange + [-1.d0, 1.d0]*oneday, /daily_res, tformat='YYYY-MM-DD'))
   path = root_data_dir() + 'vex/aspera/ima/sav/' + time_string(date, tformat='YYYY/MM/') + $
          'vex_asp_ima_*' + time_string(date, tformat='YYYYMMDD') + '*.sav'
 
@@ -368,7 +391,10 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
         lfile = lfile[SORT(lfile)]
         rfile = FILE_BASENAME(remote_file)
         rfile = rfile[SORT(rfile)]
-        IF (compare_struct(rfile, lfile) EQ 1) THEN sflg = 0 ELSE sflg = 1
+        
+        lfile = FILE_BASENAME(lfile, '.TAB')
+        rfile = spd_uniq(((STRSPLIT(rfile, '.', /extract)).toarray())[*, 0])
+        IF compare_struct(rfile, lfile) AND (N_ELEMENTS(lfile) EQ N_ELEMENTS(rfile)) THEN sflg = 0 ELSE sflg = 1
      ENDIF ELSE sflg = 0
   ENDIF ELSE sflg = 1
 
@@ -381,6 +407,7 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
      counts = list()
      polar  = list()
      pacc   = list()
+     eprom  = list()
      FOR i=0, N_ELEMENTS(file)-1 DO BEGIN
         dprint, dlevel=2, verbose=verbose, 'Restoring ' + file[i] + '.'
         obj = OBJ_NEW('IDL_Savefile', file[i])
@@ -391,6 +418,7 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
         counts.add, TEMPORARY(asp_ima_cnts)
         polar.add,  TEMPORARY(asp_ima_polar)
         pacc.add,   TEMPORARY(asp_ima_pacc)
+        eprom.add,  TEMPORARY(asp_ima_eprom)
         undefine, obj, vname, v
      ENDFOR 
   ENDELSE 
@@ -423,7 +451,7 @@ PRO vex_asp_ima_load, itime, verbose=verbose, save=save, no_server=no_server
   zlim, 'vex_asp_ima_espec', 1., 1.e4, 1, /def
   options, 'vex_asp_ima_espec', ztitle='Counts [#]', /def
 
-  store_data, 'vex_asp_ima_polar', data={x: time, y: polar}, dlim={psym: 10, ytitle: 'VEX/ASPERA-4 (IMA)', ysubtitle: 'Polar'}
+  store_data, 'vex_asp_ima_polar', data={x: time, y: polar}, dlim={psym: 10, ytitle: 'VEX/ASPERA-4 (IMA)', ysubtitle: 'Polar'}, lim={datagap: 60.}
 
   dprint, dlevel=2, verbose=verbose, 'Ellapsed time: ' + time_string(SYSTIME(/sec)-t0, tformat='mm:ss.fff')
   RETURN

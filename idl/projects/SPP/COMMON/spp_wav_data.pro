@@ -1,13 +1,13 @@
 ;Ali: February 2020
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-11-05 22:48:36 -0800 (Thu, 05 Nov 2020) $
-; $LastChangedRevision: 29334 $
+; $LastChangedDate: 2021-05-30 19:39:00 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 30005 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_wav_data.pro $
 ; $ID: $
 
-;no keyword set: loads daily 1min resolution files (default: faily fast for use for up to a few day timerange)
-;/month loads monthly 1min resolution files (used for longer than a few day timerange)
-;/hires  loads daily  1sec resolution files (loads faster than /hourly, since needs to load only 1 file per day)
+;no keyword set: loads daily 1min resolution files (default: fairly fast for use for up to a few days timerange)
+;/month loads monthly 1min resolution files (used for longer than a few days timerange)
+;/hires  loads daily  1sec resolution files (loads faster than /hourly below, since needs to load only 1 file per day)
 ;/hourly loads hourly 1sec resolution files (24 files per day)
 ;/hourly,/hires loads hourly full-resolution files (only recommended for short timespans, since file sizes can be huge!)
 ;the below keywords are typically run by Ali:

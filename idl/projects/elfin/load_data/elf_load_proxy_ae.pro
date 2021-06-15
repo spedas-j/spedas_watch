@@ -79,7 +79,7 @@ pro elf_load_proxy_ae, trange=trange, smooth=smooth, nsmooth=nsmooth, no_downloa
       proxy_ae = read_csv(local_filename[i])
       t0=time_double(strmid(time_string(tr[0]+i*86400.),0,10))
       append_array, proxy_ae_x, (proxy_ae.field1 * 60.) + t0
-      append_array, proxy_ae_y, double([proxy_ae.field4])
+      append_array, proxy_ae_y, double([proxy_ae.field5])
     endfor
     dl = {ytitle:'proxy_ae', labels:['proxy_AE'], colors:[2]}
     idx=where(proxy_ae_y LT 2000., ncnt)

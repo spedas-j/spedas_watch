@@ -11,6 +11,7 @@
 ;           'l3': Level-3
 ;           'l4': Level-4
 ;           Default is 'l2'.
+;   get_filever: Get data file version.
 ;
 ; :Examples:
 ;    erg_load_orb ; load Level-2 definitive orbit data.
@@ -32,8 +33,8 @@
 ;   Kuni Keika, Department of Earth and Planetary Science,
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
-; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
-; $LastChangedRevision: 28604 $
+; $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29822 $
 ;-
 
 pro erg_load_orb, $
@@ -45,6 +46,7 @@ pro erg_load_orb, $
   downloadonly=downloadonly, $
   no_download=no_download, $
   verbose=verbose, $
+  get_filever=get_filever,$
   t89=t89, $
   _extra=_extra
 
@@ -199,7 +201,10 @@ pro erg_load_orb, $
 
     endif else print,'Orb L3 CDF file (T89) has not been created yet!'
   endif
-
+  
+  ; storing data information
+  if (keyword_set(get_filever)) then erg_export_filever, datfiles
+  
   return
 end
 

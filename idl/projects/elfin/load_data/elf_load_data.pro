@@ -73,8 +73,10 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
  
   if undefined(source) then source = !elf
 
-  if undefined(probes) then probes = ['a'] else probes = strlowcase(probes) ; default to ELFIN A
+  if undefined(probes) then probes = ['a','b'] else probes = strlowcase(probes) ; default to ELFIN A
+  if probes[0] eq '*' then probes = ['a','b']
   probes = strcompress(string(probes), /rem) ; probes should be strings
+  
   if undefined(instrument) then instrument = 'fgm' else instrument = strlowcase(instrument)
   if undefined(levels) then begin
     if instrument EQ 'state' then levels = 'l1' else levels = 'l2'
@@ -149,14 +151,20 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
     ; NOTE: directory is temporarily password protected. this will be
     ;       removed when data is made public.
     if undefined(user) OR undefined(pw) then authorization = elf_get_authorization()
-    user=authorization.user_name
-    pw=authorization.password
+    if is_struct(authorization) then begin
+      user=authorization.user_name 
+      pw=authorization.password
+    endif else begin
+      user=''
+      pw=''
+    endelse 
+    
     ; only query user if authorization file not found
-    If user EQ '' OR pw EQ '' then begin
-      print, 'Please enter your ELFIN user name and password'
-      read,user,prompt='User Name: '
-      read,pw,prompt='Password: '
-    endif
+    ;If user EQ '' OR pw EQ '' then begin
+    ;  print, 'Please enter your ELFIN user name and password'
+    ;  read,user,prompt='User Name: '
+    ;  read,pw,prompt='Password: '
+    ;endif
   endif
 
   ;loop over probe, rate, level
@@ -256,21 +264,21 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               this_local_path=local_path +  '/' + yeardir
               this_local_path = spd_addslash(this_local_path)
               this_remote_path=remote_path + yeardir
-
               paths = '' 
+              
               ; download data as long as no flags are set
               if no_download eq 0 then begin
                 if file_test(this_local_path,/dir) eq 0 then file_mkdir2, this_local_path
                 dprint, dlevel=1, 'Downloading ' + fnames[file_idx] + ' to ' + local_path                    
-                paths = spd_download(remote_file=fnames[file_idx], remote_path=this_remote_path, $
+                  paths = spd_download(remote_file=fnames[file_idx], remote_path=this_remote_path, $
                                      local_file=fnames[file_idx], local_path=this_local_path, $
                                      url_username=user, url_password=pw, ssl_verify_peer=1, $
-                                     ssl_verify_host=1)
+                                     ssl_verify_host=1)                                   
                 if undefined(paths) or paths EQ '' then $
                    dprint, devel=1, 'Unable to download ' + fnames[file_idx] else $
                    append_array, files, this_local_path+fnames[file_idx]
               endif              
-
+              
               ; if remote file not found or no_download set then look for local copy
               if paths EQ '' OR no_download NE 0 then begin                
                 ; get all files from the beginning of the first day

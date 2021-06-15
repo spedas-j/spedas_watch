@@ -1,9 +1,9 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-03-09 19:26:28 -0800 (Tue, 09 Mar 2021) $
-; $LastChangedRevision: 29750 $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
-pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save,preprefix=preprefix
+pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save,fileprefix=fileprefix
 
   t0 = systime(1)
   if keyword_set(all) then begin
@@ -85,6 +85,13 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
       cdf2tplot,files,prefix=prefix,varformat=varformat,verbose=verbose
       spp_swp_qf,prefix=prefix
       if spx eq 'swem' && type eq 'event_log' then spp_swp_swem_events_tplot,prefix=prefix
+      if spx eq 'swem' && type eq 'dig_hkp' then begin
+        tn=prefix+'SW_SSR'+['WR','RD']+'ADDR'
+        deriv_data,tn
+        options,tn+'_ddt',yrange=[-.1,.5],constant=0.
+        store_data,prefix+'SW_SSRADDR',data=tn,dlimits={labels:['WRITE','READ'],colors:'rb',labflag:-1}
+        store_data,prefix+'SW_SSRADDR_ddt',data=tn+'_ddt',dlimits={labels:['WRITE','READ'],colors:'rb',labflag:-1,yrange:[-.1,.5],constant:0.}
+      endif
     endforeach
     if spx eq 'sc_hkp' then spp_sc_hk_tplot,prefix='psp_sc_hkp_'
   endforeach

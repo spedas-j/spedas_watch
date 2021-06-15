@@ -77,9 +77,10 @@ pro elf_load_mrma, trange = trange, probes = probes, datatype = datatype, $
   spdf = spdf, available = available, versions = versions, $
   tt2000=tt2000
 
-  if undefined(probes) then probes = ['a'] ; default to ela
-  ; temporarily removed 'b' since there is no b fgm data yet
-  if probes EQ ['*'] then probes = ['a','b'] 
+  if undefined(probes) then probes = ['a','b'] else probes = strlowcase(probes) ; default to ELFIN A
+  if probes[0] eq '*' then probes = ['a','b']
+  probes = strcompress(string(probes), /rem) ; probes should be strings
+
   if n_elements(probes) GT 2 then begin
     dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
     return

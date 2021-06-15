@@ -27,13 +27,13 @@ endif else begin
 endelse
 
 empty_roi = 0
-if count_before gt 0 then begin
-  for i = 0, count_before-1 do begin
-    loc_select = where(real_starts ge sroi_starts_tai[roi_before_loc[i]] $
-      and real_stops le sroi_stops_tai[roi_before_loc[i]], count_select)
-    if count_select eq 0 then empty_roi += 1
-  endfor
-endif
+;if count_before gt 0 then begin
+;  for i = 0, count_before-1 do begin
+;    loc_select = where(real_starts ge sroi_starts_tai[roi_before_loc[i]] $
+;      and real_stops le sroi_stops_tai[roi_before_loc[i]], count_select)
+;    if count_select eq 0 then empty_roi += 1
+;  endfor
+;endif
 
 
 ;-----------------------------------------------------------------------------

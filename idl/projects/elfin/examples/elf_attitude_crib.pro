@@ -19,9 +19,6 @@ pro elf_attitude_crib
   timespan,date,1,/day
   tr=timerange()
 
-  ; clear any elfin tplot vars
-  del_data, 'el*'
-
   ;;    =================================
   ;; 2) Select probe
   ;;    =================================

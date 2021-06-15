@@ -22,7 +22,7 @@
 ;         data_struct=elf_get_data_availability('2020-03-20', probe='a', instrument='epd'
 ;
 ;
-;VERSION LAST EDITED: lauraiglesias4@gmail.com 03/04/2021
+;VERSION LAST EDITED: lauraiglesias4@gmail.com 05/18/2021
 ;-
 function elf_get_data_availability, tdate, instrument=instrument, probe=probe, days = days
 
@@ -146,7 +146,7 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe, d
       dlat = sz_lat[1:n_elements(sz_lat)-1] - sz_lat[0:n_elements(sz_lat)-2]
       dL0 = string(sz_L0[0], FORMAT = '%0.1f') +' - ' + string(sz_L0[-1], FORMAT = '%0.1f')
       medMLT = string(sz_MLT[where(sz_MLT eq median(idx, /EVEN))], FORMAT = '%0.1f')
-      
+
       if sign(sz_lat[0]) NE sign(sz_lat[-1]) AND instrument eq 'mrm' then begin
         sz_name = 'eq' 
       endif else begin
@@ -162,8 +162,6 @@ function elf_get_data_availability, tdate, instrument=instrument, probe=probe, d
       append_array, sz_medMLTs, medMLT
      endfor     
     data_availability={starttimes:sz_starttimes, endtimes:sz_endtimes, zones:sz_names, dL: sz_dL0s, medMLT: sz_medMLTs}
-  
-
   return, data_availability
    
 end

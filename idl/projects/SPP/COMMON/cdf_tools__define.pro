@@ -3,8 +3,8 @@
 ;  cdf_tools
 ;  This basic object is the entry point for reading and writing cdf files
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-03-09 19:26:28 -0800 (Tue, 09 Mar 2021) $
-; $LastChangedRevision: 29750 $
+; $LastChangedDate: 2021-05-30 19:45:35 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 30010 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;
 ;-
@@ -28,8 +28,8 @@
 ; Acts as a timestamp file to trigger the regeneration of SEP data products. Also provides Software Version info for the MAVEN SEP instrument.
 ;Author: Davin Larson  - January 2014
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-03-09 19:26:28 -0800 (Tue, 09 Mar 2021) $
-; $LastChangedRevision: 29750 $
+; $LastChangedDate: 2021-05-30 19:45:35 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 30010 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $
 ;-
 
@@ -51,11 +51,11 @@ function cdf_tools::sw_version
   sw_hash['sw_runby'] = login_info.user_name
   sw_hash['sw_machine'] = login_info.machine_name
   sw_hash['cdf_svn_changedby'] = '$LastChangedBy: ali $'
-    sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2021-03-09 19:26:28 -0800 (Tue, 09 Mar 2021) $'
-    sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 29750 $'
-    sw_hash['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
+  sw_hash['cdf_svn_changedate'] = '$LastChangedDate: 2021-05-30 19:45:35 -0700 (Sun, 30 May 2021) $'
+  sw_hash['cdf_svn_revision'] = '$LastChangedRevision: 30010 $'
+  sw_hash['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
 
-    return,sw_hash
+  return,sw_hash
 end
 
 ;function cdf_tools::default_global_attributes
@@ -136,10 +136,10 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
   global_attributes = self.g_attributes
 
   global_attributes['cdf_svn_changedby'] = '$LastChangedBy: ali $'
-    global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2021-03-09 19:26:28 -0800 (Tue, 09 Mar 2021) $'
-    global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 29750 $'
-    global_attributes['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
-    login_info = get_login_info()
+  global_attributes['cdf_svn_changedate'] = '$LastChangedDate: 2021-05-30 19:45:35 -0700 (Sun, 30 May 2021) $'
+  global_attributes['cdf_svn_revision'] = '$LastChangedRevision: 30010 $'
+  global_attributes['cdf_svn_URL'] = '$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools__define.pro $'
+  login_info = get_login_info()
   global_attributes['sw_runby'] = login_info.user_name
   global_attributes['sw_machine'] = login_info.machine_name
   global_attributes['sw_runtime'] = time_string(systime(1)) + ' UTC'
@@ -176,7 +176,7 @@ pro cdf_tools::write,pathname,cdftags=cdftags,verbose=verbose
 
   cdf_close,self.fileid
   self.fileid = 0
-  dprint,'Created: "'+pathname+'" in '+strtrim(systime(1)-t0,2)+' Seconds, Size(KB):'+strtrim(((file_info(pathname)).size)/1e3,2),dlevel=self.dlevel,verbose = isa(verbose) ? verbose : self.verbose
+  dprint,'Created in '+strtrim(systime(1)-t0,2)+' Seconds '+file_info_string(pathname)
 end
 
 
@@ -253,12 +253,14 @@ pro cdf_tools::var_att_create,var
   rec_novary = ~var.recvary
   if isa(data,'DYNAMICARRAY') then begin
     data=  data.array
-    if size(/n_dimen,data) eq 2 then data = transpose(data)
-    if size(/n_dimen,data) eq 3 then begin
-      ;stop
-      data = transpose(data,[2,1,0])
+    if var.recvary then begin  ;will need to eliminate the transpose operations
+      if size(/n_dimen,data) eq 2 then data = transpose(data)
+      if size(/n_dimen,data) eq 3 then begin
+        ;stop
+        data = transpose(data,[2,1,0])
+      endif
+      if size(/n_dimen,data) ge 4 then message,'Not ready'
     endif
-    if size(/n_dimen,data) ge 4 then message,'Not ready'
   endif
 
   dim = var.d
@@ -364,7 +366,7 @@ function cdf_tools::get_var_struct,  names, struct0=struct0,add_time = add_time
     vals = vi.data.array
     ;  dprint,size(/n_dimen,vals),names[i]
     if size(/n_dimen,vals) ge 2 then begin   ; need a correction if ndimen >= 3
-      vals = transpose(vals)
+      vals = transpose(vals) ;will need to eliminate this
     endif  else if numrec eq 1 then vals = vals[0]
     str_element,/add,strct_n,names[i], vals
   endfor
@@ -432,7 +434,7 @@ function cdf_tools::datavary_struct,varnames=varnames
   strct = replicate(strct0,maxrec)
   foreach v,self.vars,k do begin
     dat=v.data.array
-    strct.(k) = transpose(dat)
+    strct.(k) = transpose(dat) ;will need to eliminate this
   endforeach
 
   printdat,strct
@@ -507,11 +509,11 @@ pro cdf_tools::read,filenames
     for n=0,n_elements(filenames)-1 do begin
       file = filenames[n]
       if file_test(file) then  self.fileid=cdf_open(file)      else begin
-        dprint,dlevel=2,verbose=verbose,'File not found: "'+file+'"'
+        dprint,dlevel=2,verbose=verbose,'File not found: '+file
         continue
       endelse
       ;   res = create_struct('filename',fn,'inq',inq,'g_attributes',g_atts,'nv',nv,'vars',vinfo)  ;'num_recs',num_recs,'nvars',nv
-      dprint,dlevel=1,verbose=verbose,'Loading file: "'+file+'" Size(KB):'+strtrim(((file_info(file)).size)/1e3,2)+' mtime(UTC):'+time_string((file_info(file)).mtime)
+      dprint,dlevel=1,verbose=verbose,'Loading '+file_info_string(file)
 
       inq = cdf_inquire(self.fileid)
       q = !quiet
@@ -591,7 +593,7 @@ pro cdf_tools::read,filenames
                     value = reform(/overwrite,value, [1,size(/dimensions,value)] )  ; Special case for variables with a single record
                   endif else begin
                     transshift = shift(indgen(vinfo_i.ndimen+1),1)
-                    value=transpose(value,transshift)
+                    value=transpose(value,transshift) ;will need to eliminate this
                   endelse
                 endif else value = reform(value,/overwrite)
 
@@ -724,7 +726,7 @@ pro cdf_tools::load_variables_from_structure,datavary,names=vnames
         endfor
       endif else begin
         if n_elements(vals) gt 1 then  begin
-          vals = reform(transpose(vals))
+          vals = reform(transpose(vals)) ;may not be what we want for multi-dimensional arrays, will need to eliminate this
         endif
       endelse
       vho = cdf_tools_varinfo(vname, val, all_values=vals, /recvary,/set_default_atts)

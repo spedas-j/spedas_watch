@@ -29,6 +29,8 @@
 ;              program loads data from the designated CDF file(s), ignoring any
 ;              other options specifying local/remote data paths. 
 ;   split_apd: Set to generate a FEDU tplot variable for each APD
+;   get_filever: Set to create a tplot variable "erg_load_datalist"
+;                containing the version information of data files
 ;
 ; :Examples:
 ;   IDL> timespan, '2017-04-01'
@@ -38,8 +40,8 @@
 ; :Authors:
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
-; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
-; $LastChangedRevision: 28604 $
+; $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29822 $
 ;-
 pro erg_load_mepe, $
    debug=debug, $
@@ -55,6 +57,7 @@ pro erg_load_mepe, $
    remotedir=remotedir, $
    datafpath=datafpath, $
    split_apd=split_apd, $
+   get_filever=get_filever, $
    _extra=_extra 
 
   
@@ -107,6 +110,9 @@ pro erg_load_mepe, $
   endif
   datfiles = datfiles[idx] ;;Clip empty strings and non-existing files
   if keyword_set(downloadonly) then return ;;Stop here if downloadonly is set
+
+  ;;Obtain the version information of data files
+  if keyword_set(get_filever) then erg_export_filever, datfiles
   
   ;;Read CDF files and generate tplot variables
   prefix = 'erg_mepe_' + level + '_' + datatype + '_'

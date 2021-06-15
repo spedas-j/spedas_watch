@@ -1,14 +1,14 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-03-09 19:26:00 -0800 (Tue, 09 Mar 2021) $
-; $LastChangedRevision: 29749 $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_ssr_makefile.pro $
 ; $ID: $
 ;20180524 Ali
 ;20180527 Davin
 ;KEYWORDS:
 ;load_ssr: loads ssr files. very slow, especially during processing of compressed packets.
-;load_sav: loads sav files that are generated from ssr files. much faster.
-;make_sav: creates sav files with one-to-one correspondence to ssr files. typically run by a cronjob.
+;load_sav: loads sav files that are generated from ssr files. much faster than above.
+;make_sav: creates sav files with one-to-one correspondence to ssr files and/or by apid and day. typically run by a cronjob.
 ;make_cdf: creates cdf files (L1). typically run by a cronjob.
 ;force_make: ignores file timestamp comparison for making files
 
@@ -62,9 +62,9 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
   if keyword_set(load_sav) then begin ;loads sav files
     sav_files=spp_file_retrieve(ssr_format+'.sav',trange=tr,/daily_names,prefix=output_prefix+'.sav/ssr/',/valid_only,verbose=verbose)
     if ~keyword_set(sav_files) then dprint,'No .sav files found!'
-    if make_sav eq 2 then begin ;make apid specific daily sav files
+    if make_sav eq 2 then begin ;loads ssr-specific sav files and creates apid-specific sav files (typically not used by default)
       foreach sav_file,sav_files do begin
-        parent='file_checksum not saved for parent of: '+sav_file.substring(relative_position)
+        parent='file_checksum not saved for parents of: '+sav_file.substring(relative_position)
         spp_apdat_info,/reset
         spp_apdat_info,file_restore=sav_file,parent=parent
         spp_swp_apdat_init,/reset
@@ -80,7 +80,7 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
     endelse
   endif
 
-  if make_sav eq 1 then begin ;creates sav files with one-to-one correspondence to ssr files
+  if make_sav eq 1 then begin ;creates ssr-specific and apid-specific sav files (default)
     foreach ssr_file,ssr_files do begin
       sav_file=root+output_prefix+'.sav/ssr/'+(ssr_file).substring(-24)+'.sav' ;substring is preferred here. strsub may fail b/c ssr_prefix can change!
       if ~keyword_set(force_make) then if (file_info(ssr_file)).mtime le (file_info(sav_file)).mtime then continue
@@ -92,10 +92,12 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
       parent_chksum=[knl_chksum,ssr_chksum]
       dprint,parent_chksum
       spp_apdat_info,/print
-      file_mkdir2,file_dirname(sav_file)
-      spp_apdat_info,file_save=sav_file,/compress,parent=parent_chksum
+      foreach memdump,spp_apdat('*_memdump') do memdump.nomem ;clearing memdump ram to get smaller file size. apids:['342'x,'3b8'x,'36d'x,'37d'x]
+      foreach prod,spp_apdat('sp[abi]_[as][ft]*') do prod.clear,/noprod ;clearing multidimensional products
+      spp_apdat_info,/trim ;trimming the size and clearing last_data_p and ccsds_last
       if keyword_set(type) then aps=spp_apdat(type) else aps=spp_apdat_all()
       foreach a,aps do a.sav_makefile,sav_format=sav_format+file_basename(sav_file),parent=parent_chksum
+      spp_apdat_info,file_save=sav_file,/compress,parent=parent_chksum
     endforeach
     ;save,file=sav_file+'.code',/routines,/verbose
   endif
@@ -115,11 +117,11 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
     spp_apdat_info,'sc_hkp_*',cdf_pathname=output_prefix+'sc_hkp'+cdf_suffix,cdf_linkname=linkname
     if keyword_set(type) then aps=spp_apdat(type) else aps=spp_apdat_all()
     for day=daynum[0],daynum[1] do begin ;loop over days
-      trdaily = double(day * res)
-      trange = trdaily + [0,1]*res
+      trdaily=double(day*res)
+      trange=trdaily+[0,1]*res
       dprint,dlevel=2,verbose=verbose,'Time: '+strjoin("'"+time_string(trange)+"'",' to ')
       if make_cdf eq 2 then foreach a,aps do a.cdf_makefile,trange=trange ;makes cdf after loading all_apdat from ssr or sav files
-      if make_cdf eq 1 then begin ;makes cdf from apid specific daily sav files
+      if make_cdf eq 1 then begin ;makes cdf from apid-specific daily sav files
         foreach a,aps do begin
           sav_frmt=str_sub(sav_format+'*_?_??.sav','$NAME$',a.name)
           ;sav_files=spp_file_retrieve(sav_frmt,trange=trange,/daily_names,/valid_only,verbose=verbose)
@@ -128,20 +130,26 @@ pro spp_swp_ssr_makefile,trange=trange_full,all=all,type=type,finish=finish,load
           cdf_file=time_string(trange[0],tformat=a.cdf_pathname)
           cdf_file=root+str_sub(cdf_file,'$NAME$',a.name)
           if ~keyword_set(force_make) then if max((file_info(sav_files)).mtime) le (file_info(cdf_file)).mtime then continue
+          if ~keyword_set(dummy) then dummy=obj_new('spp_swp_span_prod') ;ensuring the latest span_prod structure definition is compiled before restoring the save files to avoid type mismatch
           cdf=!null
           parents=!null
           foreach sav_file,sav_files do begin
             self=!null
-            parent='file_checksum not saved for parent of: '+sav_file.substring(relative_position)
-            dprint,dlevel=1,verbose=verbose,'Restoring file: '+sav_file+' Size(KB):'+strtrim((file_info(sav_file)).size/1e3,2)+' mtime(UTC):'+time_string((file_info(sav_file)).mtime)
+            parent='file_checksum not saved for parents of: '+sav_file.substring(relative_position)
+            dprint,dlevel=1,verbose=verbose,'Restoring '+file_info_string(sav_file)
             restore,sav_file,/relax,/skip
             if obj_valid(cdf) then cdf.append,self else cdf=self
             parents=[parents,parent]
           endforeach
+          cdf.trim
+          parents=parents[uniq(parents,sort(parents))]
+          time=spp_spc_met_to_unixtime(cdf.array.met,kernels=kernels)
+          (*(cdf.data.ptr)).time=time
           cdf.sort
           cdf.cdf_linkname=linkname
           parents_chksum=file_checksum(sav_files,/add_mtime,relative_position=relative_position)
-          cdf.cdf_makefile,filename=cdf_file,parents=[parents_chksum,'grandparents>',parents]
+          kernels_chksum=file_checksum(kernels,/add_mtime,relative_position=strlen(root))
+          cdf.cdf_makefile,filename=cdf_file,parents=[parents_chksum,kernels_chksum,'grandparents>',parents]
         endforeach
       endif
     endfor

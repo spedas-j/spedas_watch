@@ -25,12 +25,12 @@
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-03-01 10:50:14 -0800 (Fri, 01 Mar 2019) $
-;$LastChangedRevision: 26732 $
+;$LastChangedDate: 2021-04-13 14:32:42 -0700 (Tue, 13 Apr 2021) $
+;$LastChangedRevision: 29877 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/fpi/mms_fpi_correct_photoelectrons.pro $
 ;-
 
-function mms_fpi_correct_photoelectrons, in_tvarname, scpot=scpot, _extra=_extra
+function mms_fpi_correct_photoelectrons, in_tvarname, scpot=scpot, trange=trange, _extra=_extra
 
   get_data, in_tvarname, data=indata
   
@@ -38,7 +38,11 @@ function mms_fpi_correct_photoelectrons, in_tvarname, scpot=scpot, _extra=_extra
     dprint, dlevel=0, 'Error, ' + in_tvarname + ' not found.'
     return, -1
   endif
-  time_idx = lindgen(n_elements(indata.X))
+  
+  if ~undefined(trange) then begin
+    dprint, dlevel=0, 'Error, trange keyword not supported'
+    undefine, trange
+  endif
   
   fpi_photoelectrons = mms_part_des_photoelectrons(in_tvarname)
 
@@ -82,7 +86,7 @@ function mms_fpi_correct_photoelectrons, in_tvarname, scpot=scpot, _extra=_extra
     
   get_data, 'mms'+probe+'_des_startdelphi_count_'+data_rate, data=startdelphi
   
-  for i = 0l,n_elements(time_idx)-1 do begin
+  for i = 0l,n_elements(dists)-1 do begin
     ; From Dan Gershman's release notes on the FPI photoelectron model:
     ; Find the index I in the startdelphi_counts_brst or startdelphi_counts_fast array
     ; [360 possibilities] whose corresponding value is closest to the measured

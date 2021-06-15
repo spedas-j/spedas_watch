@@ -1,4 +1,8 @@
 ;+
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/spp_swp_spi_prod_apdat__define.pro $
 ;
 ; SPP_SWP_SPI_PROD_APDAT
 ;
@@ -42,17 +46,7 @@
 ; 20 - ???
 ; --------
 ; Science Product Data
-;
-;
-;
-; spp_swp_spi_prod_apdat
-; $LastChangedBy: ali $
-; $LastChangedDate: 2020-08-24 21:48:08 -0700 (Mon, 24 Aug 2020) $
-; $LastChangedRevision: 29072 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/spp_swp_spi_prod_apdat__define.pro $
 ;-
-
-
 
 ;;-----------------------------------------------;;
 ;;                     08D                       ;;
@@ -383,10 +377,6 @@ FUNCTION spp_swp_spi_prod_apdat::decom,ccsds,source_dict=source_dict
     return, !null
   ENDIF
 
-  if ccsds.aggregate ne 0 then begin
-    return, self.decom_aggregate(ccsds,source_dict=source_dict)
-  endif
-
   ;; Check CCSDS Size Match
   ccsds_data = spp_swp_ccsds_data(ccsds)
   IF pksize NE n_elements(ccsds_data) THEN BEGIN
@@ -394,82 +384,13 @@ FUNCTION spp_swp_spi_prod_apdat::decom,ccsds,source_dict=source_dict
     return,!null
   ENDIF
 
-
-
-  if 1 then begin    ; New merged method
-
     spp_swp_span_prod__define,str,ccsds
 
-  endif else begin
-    message,'Obsolete'
-
-    if 0 && (abs(ccsds.time - 1.5363835e+09) lt 100) && (ccsds.apid eq '3a0'x) then begin
-      timebar,ccsds.time
-      stop
+    ;aggregate handling goes here
+    if ccsds.aggregate ne 0 then begin
+      dprint,'should never happen. check code! UNVERIFIED CODE!!!'
+      return, self.decom_aggregate(ccsds,str=str,source_dict=source_dict)
     endif
-
-    ;; Parse Header
-    ns = pksize - 20
-    header = ccsds_data[0:19]
-    log_flag = header[12]
-    mode1 = header[13]
-    mode2 = (swap_endian(uint(ccsds_data,14),/swap_if_little_endian))
-    f0 = (swap_endian(uint(header,16),/swap_if_little_endian))
-    status_bits = header[18]
-    peak_bin = header[19]
-    compression = (header[12] and 'a0'x) ne 0
-    bps  =  ([4,1])[ compression ]
-    ndat = ns / bps
-
-    IF ns GT 0 THEN BEGIN
-      data      = ccsds_data[20:*]
-      if compression then cnts = float(spp_swp_log_decomp(data,0)) $
-      else cnts = swap_endian(ulong(data,0,ndat) ,/swap_if_little_endian )
-      tcnts = total(cnts)
-    ENDIF ELSE BEGIN
-      tcnts = -1.
-      cnts = 0.
-    ENDELSE
-
-    emode2_ori = mode2
-    if ccsds.time gt 1.5409458e+09 &&  ccsds.time lt 1.5422472e+09 then mode2 = uint('0025'x)
-    tmode = mode2 and 'f'x
-    emode = ishft(mode2,-4) and 'f'x
-    ;   emode = emode_ori
-    pmode = ishft(mode2,-8) and 'f'x
-    mmode = ishft(mode2,-12) and 'f'x
-    str = { $
-      time:        ccsds.time,$
-      met:         ccsds.met, $
-      apid:        ccsds.apid,$
-      time_delta:  ccsds.time_delta,$
-      seqn:        ccsds.seqn,$
-      seqn_delta:  ccsds.seqn_delta,$
-      seq_group:   ccsds.seq_group,$
-      pkt_size:    ccsds.pkt_size,$
-      gap:         ccsds.gap,$
-      f0:          f0,$
-      datasize:    ns,$
-      ndat:        ndat,$
-      mode1:       mode1,$
-      mode2:       mode2,$
-      emode2_ori:   emode2_ori, $
-      tmode:       tmode, $
-      emode:       emode, $
-      pmode:       pmode, $
-      mmode:       mmode, $
-      log_flag:    log_flag,$
-      status_bits: status_bits,$
-      cnts:        tcnts,$
-      peak_bin:    peak_bin,$
-      def_spec:    fltarr(8),$
-      ano_spec:    fltarr(16),$
-      nrg_spec:    fltarr(32),$
-      mas_spec:    fltarr(16),$
-      ;         ful_spec:    fltarr(256),$
-      pdata:       ptr_new(cnts)}
-
-  endelse
 
   return,str
 END
@@ -545,8 +466,8 @@ FUNCTION spp_swp_spi_prod_apdat::Init,apid,name,_EXTRA=ex
 END
 
 
-PRO spp_swp_spi_prod_apdat::Clear
-  self->spp_gen_apdat::Clear
+PRO spp_swp_spi_prod_apdat::Clear,noprod=noprod
+  if ~keyword_set(noprod) then self->spp_gen_apdat::Clear
   self.prod_16A.array            = !null
   self.prod_32E.array            = !null
   self.prod_16Ax16M.array        = !null
@@ -560,25 +481,6 @@ PRO spp_swp_spi_prod_apdat::Clear
   self.prod_32Ex16Ax04M.array    = !null
   self.prod_08Dx32EX16Ax1M.array = !null
   self.prod_08Dx32EX16Ax2M.array = !null
-END
-
-
-PRO spp_swp_spi_prod_apdat::noprod
-
-  self.prod_16A.array            = !null
-  self.prod_32E.array            = !null
-  self.prod_16Ax16M.array        = !null
-  self.prod_256.array            = !null
-  self.prod_08Dx16A.array        = !null
-  self.prod_08Dx32E.array        = !null
-  self.prod_32Ex16A.array        = !null
-  self.prod_32Ex16M.array        = !null
-  self.prod_08Dx32Ex08A.array    = !null
-  self.prod_08Dx32Ex16A.array    = !null
-  self.prod_32Ex16Ax04M.array    = !null
-  self.prod_08Dx32EX16Ax1M.array = !null
-  self.prod_08Dx32EX16Ax2M.array = !null
-
 END
 
 

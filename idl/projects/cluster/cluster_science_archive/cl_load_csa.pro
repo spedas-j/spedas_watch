@@ -1,56 +1,190 @@
-pro cl_load_csa_postprocess,netobj=netobj,filedir=filedir,filename=filename,verbose=verbose
+;+
+; PROCEDURE:
+;         cl_load_csa_postprocess
+;
+; PURPOSE:
+;         Unpacks .tar.gz or .tgz files downloaded from CSA web services, loads CDF data into tplot variables, and optionally deletes
+;         temporary files when finished
+;
+; KEYWORDS:
+;         netobj:       IDLNetURL object used to download data
+;         
+;         filedir:      Directory where files should be unpacked
+;         
+;         filename:     File name of downloaded data
+;         
+;         get_support_data: If set, loads support data from downloaded CDFs
+;         
+;         verbose:       Higher values result in more progress/diagnostic output
+;         
+;         nocleanup:     If specified, do not delete downloaded and unpacked files from the temp directory
+;         
+;         
+;         
+; OUTPUT
+;
+;
+; EXAMPLE:
+;
+;
+; NOTES:
+;
+;
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2021-05-20 17:50:46 -0700 (Thu, 20 May 2021) $
+;$LastChangedRevision: 29980 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/cluster_science_archive/cl_load_csa.pro $
+;-
+
+
+pro cl_load_csa_postprocess,netobj=netobj,filedir=filedir,filename=filename,get_support_data=get_support_data,verbose=verbose, $
+  nocleanup=nocleanup
 
 ; get content_disposition header
 netobj->getproperty,response_header=rh
-res=stregex(rh,'Content-Disposition.*filename="(.*)"',length=l,/SUBEXPR)
-if n_elements(res) ne 2 then begin
+res=stregex(rh,'Content-Disposition.*filename="(.*)"',length=len,/SUBEXPR,/fold_case)
+if res[0] eq -1 then begin
    dprint,dlevel=1,verbose=verbose,'Unable to get Content-Disposition filename'
    dprint,dlevel=1,verbose=verbose,'Response headers:',rh
-   return
-endif
-newname=strmid(rh,res[1],l[1])
+   newname='csa_download.tar.gz'
+endif else begin
+  newname=strmid(rh,res[1],len[1])
+endelse
 dprint,dlevel=3,verbose=verbose,'Newname: '+newname
+; Remove suffixes to get filename root
+base1=file_basename(newname,'.tgz',/fold_case)
+base2=file_basename(base1,'.tar.gz',/fold_case)
+tarname=filedir+path_sep()+base2+'.tar'
+dataname=filedir+path_sep()+base2
 ; rename file
 new_full_path=filedir+path_sep()+newname
 file_move,filename,new_full_path
 ; unzip
-file_gunzip,new_full_path
-; trim .gz to get unzipped name
-unzipped_filename=strmid(new_full_path,0,strlen(new_full_path)-3)
-dprint,dlevel=3,verbose=verbose,'Unzipped file: ' + unzipped_filename
+file_gunzip,new_full_path,tarname
+
+dprint,dlevel=3,verbose=verbose,'Unzipped file: ' + tarname
 ; untar
 ; Untar needs a little help creating the directory structure, so we list the files first, then mkdir all the dirnames
-file_untar,unzipped_filename,/list,files=files
+file_untar,tarname,/list,files=files
 dirs=file_dirname(files)
+
+; There may be more than one top level directory which should get cleaned up later. Make a list (avoiding duplicates).
+toplevel_dirs=[file_dirname(dirs[0])]
+if n_elements(dirs) gt 1 then begin
+  for i=1,n_elements(dirs)-1 do begin
+    next_tld=file_dirname(dirs[i])
+    idx=where(next_tld eq toplevel_dirs,tld_count)
+    if tld_count eq 0 then begin
+      toplevel_dirs=[toplevel_dirs,next_tld]
+    endif
+  endfor
+endif
 fully_qualified_dirs=filedir+path_sep()+dirs
 dprint,dlevel=3,verbose=verbose,'Preparing directories for file_untar: '
 dprint,dlevel=3,verbose=verbose,fully_qualified_dirs
 file_mkdir,fully_qualified_dirs
 ; Now we can extract the files
-file_untar,unzipped_filename,files=untarred_files,/verbose
+file_untar,tarname,files=untarred_files,/verbose
 dprint,dlevel=3,verbose=verbose,'Untarred files:'
 dprint,dlevel=3,verbose=verbose,untarred_files
 ; find cdfs
 ; spd_cdf2tplot
+
 for i=0,n_elements(untarred_files)-1 do begin
    dprint,dlevel=3,verbose=verbose,'Loading '+untarred_files[i]
    tplot_varnames = 0
-   spd_cdf2tplot,file=untarred_files[i],tplotnames=tplot_varnames,verbose=verbose,/get_supp,/all,/load_labels
+   ; Parse filename
+   bname=file_basename(untarred_files[i])
+   res=stregex(bname,'(C.)_(.*)__(....).*\.cdf',len=len,/fold_case,/subexpr)
+   if res[0] eq -1 then begin
+    dprint,dlevel=1,verbose=verbose,'Unable to parse filename: '+untarred_files[i]
+   endif else begin
+    probe=strmid(bname,res[1],len[1])
+    datatype=strmid(bname,res[2],len[2])
+    year=strmid(bname,res[3],len[3])
+    file_destdir=!cluster_csa.local_data_dir + path_sep() + probe + path_sep() + datatype + path_sep() + year + path_sep()
+    file_dest=file_destdir+path_sep()+bname    
+    dprint,dlevel=3,verbose=verbose,'Creating File destination dir: '+file_destdir
+    file_mkdir,file_destdir
+    dprint,dlevel=3,verbose=verbose,'Moving CDF to destination: '+file_dest
+    file_copy,untarred_files[i],file_dest,/overwrite
+    untarred_files[i]=file_dest
+   endelse
+   spd_cdf2tplot,file=untarred_files[i],tplotnames=tplot_varnames,verbose=verbose,get_support_data=get_support_data,/all,/load_labels
    dprint,dlevel=3,verbose=verbose,"tplot variables loaded:"
    dprint,dlevel=3,verbose=verbose,tplot_varnames
 endfor
+if n_elements(nocleanup) eq 0 || nocleanup eq 0 then begin
+  ; remove gz file
+  file_delete,new_full_path,/verbose
+  ; remove tar file
+  file_delete,tarname, /verbose
+  ;Remove (possibly more than one) top level directories
+  for i=0, n_elements(toplevel_dirs)-1 do begin
+    if stregex(toplevel_dirs[i],'CSA_Download_.*',/fold_case) ne -1 then begin
+      fq_toplevel_dir=filedir+path_sep()+toplevel_dirs[i]
+      file_delete,fq_toplevel_dir,/recursive,/verbose,/allow_nonexistent
+    endif else begin
+      dprint,dlevel=1,verbose=verbose,'Untarred directory name not recognized, skipping deletion: ' + toplevel_dirs[i]
+    endelse   
+  endfor
+endif else begin
+  dprint,dlevel=1,verbose=verbose,'Nocleanup keyword specified, skipping cleanup of temp files.'
+endelse
 end
 
-pro cl_load_csa,trange=trange,probes=probes,datatypes=datatypes,valid_names=valid_names,verbose=verbose
+;+
+; PROCEDURE:
+;         cl_load_csa
+;
+; PURPOSE:
+;         Load Cluster data via one of the Cluster Science Archive web services
+;
+; KEYWORDS:
+;         trange:       time range of interest [starttime, endtime] containing either Unix timestamps,
+;                       or strings with the format YYYY-MM-DDThh:mm:ssZ
+;
+;         probes:       list of probes, valid values for Cluster probes are C1, C2, C3, C4 (wildcards accepted)
+;
+;         datatypes:    list of datatypes to download.  Names are case sensitive!  Wildcards accepted.  See
+;                       definition of master_datatypes below for valid names
+;                       
+;         valid_names:   If specified, returns the list of valid probes and datatypes through their respective keyword arguments
+;         
+;         get_support_data: If specified, load support data variables from downloaded CDFs.
+;         
+;         verbose:          Higher values print more diagnostic/progress information
+;         
+;         use_tap:          If specified, use the newer TAP interface rather than the default CAIO interface
+;         
+;         nocleanup:        If specified, do not remove downloaded files from the temp directory when finished
+;         
+; OUTPUT:
+;
+;
+; EXAMPLE:
+;
+;
+; NOTES:
+;
+;
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2021-05-20 17:50:46 -0700 (Thu, 20 May 2021) $
+;$LastChangedRevision: 29980 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/cluster_science_archive/cl_load_csa.pro $
+;-
 
+pro cl_load_csa,trange=trange,probes=probes,datatypes=datatypes,valid_names=valid_names,get_support_data=get_support_data, $
+  verbose=verbose,use_tap=use_tap,nocleanup=nocleanup
+  
 defsysv,'!spedas',exists=exists
 if not(keyword_set(exists)) then begin
   spedas_init
 endif
 
+cl_csa_init
 
-; Base URL
-base_url='http://csa.esac.esa.int/csa/aio/product-action'
+
 ; Start/end dates
 ;start_date='2001-02-01T00%3D00%3D00Z'
 ;end_date='2001-02-04T00%3D00%3D00Z'
@@ -81,13 +215,15 @@ master_datatypes=['CE_WBD_WAVEFORM_CDF','CP_AUX_POSGSE_1M','CP_CIS-CODIF_HS_H1_M
   if n_elements(trange) eq 0 then begin
     trange=timerange()
   endif
-  
+ 
+ ; Create time range parameter strings, URL-encoding the ':'s, which are special characters in URLs
+ ;  
   if size(trange,/type) eq 7 then begin
-    start_date=trange[0]
-    end_date=trange[1]
+    start_date=idlneturl.urlencode(trange[0])
+    end_date=idlneturl.urlencode(trange[1])
   endif else begin
-    start_date=time_string(trange[0],tformat="YYYY-MM-DDThh:mm:ssZ")
-    end_date=time_string(trange[1],tformat="YYYY-MM-DDThh:mm:ssZ")
+    start_date=idlneturl.urlencode(time_string(trange[0],tformat="YYYY-MM-DDThh:mm:ssZ"))
+    end_date=idlneturl.urlencode(time_string(trange[1],tformat="YYYY-MM-DDThh:mm:ssZ"))
   endelse
   
   ; Avoid overwriting input params
@@ -99,6 +235,10 @@ master_datatypes=['CE_WBD_WAVEFORM_CDF','CP_AUX_POSGSE_1M','CP_CIS-CODIF_HS_H1_M
   ; Resolve wildcards, ensure multiple args represented as arrays
   my_datatypes=ssl_check_valid_name(uc_datatypes,master_datatypes)
   my_probes=ssl_check_valid_name(uc_probes,master_probes)
+  
+  ; Return if no valid probes or datatypes are specified
+  
+  if (strlen(my_datatypes[0]) eq 0) || (strlen(my_probes[0]) eq 0) then return;
 
 ; Delivery format
 
@@ -114,8 +254,18 @@ delivery_interval='ALL'
 ; Non browser
 
 ; Make query string
+; Base and query URLs
 
-query_string='START_DATE='+start_date+'&END_DATE='+end_date+'&DELIVERY_FORMAT='+delivery_format+'&DELIVERY_INTERVAL='+delivery_interval+'&NON_BROWSER'
+if n_elements(use_tap) ge 1 then begin
+  ; newer TAP system
+  base_url='https://csa.esac.esa.int/csa-sl-tap/data'
+  query_string='retrieval_type=PRODUCT&START_DATE='+start_date+'&END_DATE='+end_date+'&DELIVERY_FORMAT='+delivery_format+'&DELIVERY_INTERVAL='+delivery_interval+'&NON_BROWSER'
+endif else begin
+  ;older CAIO system
+  base_url='http://csa.esac.esa.int/csa/aio/product-action'
+  query_string='START_DATE='+start_date+'&END_DATE='+end_date+'&DELIVERY_FORMAT='+delivery_format+'&DELIVERY_INTERVAL='+delivery_interval+'&NON_BROWSER'
+endelse
+
 for i=0,n_elements(my_probes)-1 do begin
    for j=0,n_elements(my_datatypes)-1 do begin
       query_string=query_string + '&DATASET_ID='+my_probes[i]+'_'+my_datatypes[j]
@@ -128,12 +278,13 @@ dprint,dlevel=3,verbose=verbose,query_string
 ;encoded_query_string=idlneturl.urlencode(query_string)
 ;print,'URL encoded query string'
 ;print,encoded_query_string
+; older CAIO system
+;url=base_url+'?'+query_string
+;newer TAP system
 url=base_url+'?'+query_string
-
 url_struct=parse_url(base_url)
 net_object=obj_new('idlneturl')
 headers = array_concat('User-Agent: '+'SPEDAS IDL/'+!version.release+' ('+!version.os+' '+!version.arch+')', headers)  
-callback_error=ptr_new(0b)
 
 ; Set neturl object properties
 ;  -any keywords passed through _extra will take precedent
@@ -219,7 +370,6 @@ if (error ne 0) && (first_time_download eq 1) && (response_code eq 401) then beg
 
   temp_filepath = net_object->get(filename=filename+file_suffix,string_array=string_array)
 
-  if ~keyword_set(string_array) then begin
 
     ;move file to the requested location
     file_move, temp_filepath, filename, /overwrite
@@ -233,21 +383,12 @@ if (error ne 0) && (first_time_download eq 1) && (response_code eq 401) then beg
     output = filename
 
     dprint, dlevel=2, 'Download complete:  '+filename
-  endif else begin
-
-    ;output file's contents
-    output = temp_filepath
-
-    dprint, dlevel=2, 'Download complete'
-
-  endelse
 
 endif else if error eq 0 then begin
 
   ;get the file
   temp_filepath = net_object->get(filename=filename+file_suffix,string_array=string_array)
 
-  if ~keyword_set(string_array) then begin
 
     ;move file to the requested location
     file_move, temp_filepath, filename, /overwrite
@@ -262,22 +403,13 @@ endif else if error eq 0 then begin
 
     dprint, dlevel=2, 'Download complete:  '+filename
     catch,/cancel
-    cl_load_csa_postprocess,netobj=net_object,filedir=file_dirname(filename),filename=filename,verbose=verbose
-
-  endif else begin
-
-    ;output file's contents
-    output = temp_filepath
-
-    dprint, dlevel=2, 'Download complete'
-
-  endelse
-
+    cl_load_csa_postprocess,netobj=net_object,filedir=file_dirname(filename),filename=filename,get_support_data=get_support_data,verbose=verbose,nocleanup=nocleanup
+ 
 endif else begin
   catch, /cancel
 
   ;remove temporary file
-  ;file_delete, filename+file_suffix, /allow_nonexistent
+  file_delete, filename+file_suffix, /allow_nonexistent
 
   ;handle exceptions from idlneturl
   spd_download_handler, net_object=net_object, $

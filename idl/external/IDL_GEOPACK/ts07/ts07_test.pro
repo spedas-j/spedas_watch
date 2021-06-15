@@ -27,7 +27,7 @@ pro orbital_vf_ts07, name
 
   get_data, name, data = d
 
-  tts07,name,pdyn=2.0D,dsti=-30.0D,yimf=0.0D,zimf=-5.0D,w1=8.0D,w2=5.0D,w3=9.5D,w4=30.0D,w5=18.5D,w6=60.0D,error=e
+  tts07,name,pdyn=2.0D,error=e
 
   get_data, name+'_bts07', data = td
 
@@ -59,7 +59,7 @@ timespan, '2008-03-23'
 thm_load_state, probe = 'b', coord = 'gsm'
 
 ;test with single number argument
-tts07, 'thb_state_pos',pdyn=2.0D,dsti=-30.0D,yimf=0.0D,zimf=-5.0D,w1=8.0D,w2=5.0D,w3=9.5D,w4=30.0D,w5=18.5D,w6=60.0D,error=e
+tts07, 'thb_state_pos',pdyn=2.0D,error=e
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -77,7 +77,7 @@ get_data,'thb_state_pos',data=d
 n = n_elements(d.x)
 
 ;test with an array argument
-tts07, 'thb_state_pos',pdyn=replicate(2.0D,n),dsti=replicate(-30.0D,n),yimf=replicate(0.0D,n),zimf=replicate(-5.0D,n),w1=replicate(8.0D,n),w2=replicate(5.0D,n),w3=replicate(9.5D,n),w4=replicate(30.0D,n),w5=replicate(18.5D,n),w6=replicate(60.0D,n),error=e
+tts07, 'thb_state_pos',pdyn=replicate(2.0D,n),error=e
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -94,44 +94,9 @@ d2 = {x:d.x[0],y:2.0D}
 
 store_data,'t_pdyn',data=d2
 
-d2 = {x:d.x[0],y:-30.0D}
-
-store_data,'t_dsti',data=d2
-
-d2 = {x:d.x[0],y:0.0D}
-
-store_data,'t_yimf',data=d2
-
-d2 = {x:d.x[0],y:-5.0D}
-
-store_data,'t_zimf',data=d2
-
-d2 = {x:d.x[0],y:8.0D}
-
-store_data,'t_w1',data=d2
-
-d2 = {x:d.x[0],y:5.0D}
-
-store_data,'t_w2',data=d2
-
-d2 = {x:d.x[0],y:9.5D}
-
-store_data,'t_w3',data=d2
-
-d2 = {x:d.x[0],y:30.0D}
-
-store_data,'t_w4',data=d2
-
-d2 = {x:d.x[0],y:18.5D}
-
-store_data,'t_w5',data=d2
-
-d2 = {x:d.x[0],y:60.0D}
-
-store_data,'t_w6',data=d2
 
 ;test with tplot arguments
-tts07,'thb_state_pos',pdyn='t_pdyn',dsti='t_dsti',yimf='t_yimf',zimf='t_zimf',w1='t_w1',w2='t_w2',w3='t_w3',w4='t_w4',w5='t_w5',w6='t_w6',error=e
+tts07,'thb_state_pos',pdyn='t_pdyn',error=e
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -145,7 +110,7 @@ stop
 del_data,'thb_state_pos_bts07'
 
 ;test with newname
-tts07, 'thb_state_pos',pdyn=2.0D,dsti=-30.0D,yimf=0.0D,zimf=-5.0D,w1=8.0D,w2=5.0D,w3=9.5D,w4=30.0D,w5=18.5D,w6=60.0D,newname='test',error=e
+tts07, 'thb_state_pos',pdyn=2.0D,newname='test',error=e
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -160,7 +125,7 @@ del_data,'test'
 
 ;test with a different period
 
-tts07, 'thb_state_pos',pdyn=2.0D,dsti=-30.0D,yimf=0.0D,zimf=-5.0D,w1=8.0D,w2=5.0D,w3=9.5D,w4=30.0D,w5=18.5D,w6=60.0D,period=30,error=e
+tts07, 'thb_state_pos',pdyn=2.0D,period=30,error=e
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -172,7 +137,7 @@ tplot,'thb_state_pos_bts07'
 stop
 
 ;test with an incremented tilt
-tts07, 'thb_state_pos',pdyn=2.0D,dsti=-30.0D,yimf=0.0D,zimf=-5.0D,period=30,w1=8.0D,w2=5.0D,w3=9.5D,w4=30.0D,w5=18.5D,w6=60.0D,error=e,get_tilt='tilt_vals',get_nperiod=gn,add_tilt=1
+tts07, 'thb_state_pos',pdyn=2.0D,error=e,get_tilt='tilt_vals',get_nperiod=gn,add_tilt=1
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -184,7 +149,7 @@ tplot,'tilt_vals'
 stop
 
 ;test with a set tilt
-tts07, 'thb_state_pos',pdyn=2.0D,dsti=-30.0D,yimf=0.0D,zimf=-5.0D,period=30,w1=8.0D,w2=5.0D,w3=9.5D,w4=30.0D,w5=18.5D,w6=60.0D,error=e,get_tilt='tilt_vals',get_nperiod=gn,set_tilt=1
+tts07, 'thb_state_pos',pdyn=2.0D,error=e,get_tilt='tilt_vals',get_nperiod=gn,set_tilt=1
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'

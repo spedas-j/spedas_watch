@@ -1,23 +1,29 @@
 ;$LastChangedBy: ali $
-;$LastChangedDate: 2020-07-01 08:47:47 -0700 (Wed, 01 Jul 2020) $
-;$LastChangedRevision: 28827 $
+;$LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+;$LastChangedRevision: 30043 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_memdump_apdat__define.pro $
 
 function spp_swp_memdump_apdat::decom,ccsds,source_dict=source_dict
 
   ccsds_data = spp_swp_ccsds_data(ccsds)
-
   offset = self.ccsds_offset
 
   strct = {  $
-    time:ccsds.time, $
-    seqn:ccsds.seqn, $
+    time:         ccsds.time, $
+    MET:          ccsds.met,  $
+    apid:         ccsds.apid, $
+    seqn:         ccsds.seqn,  $
+    seqn_delta:   ccsds.seqn_delta,  $
+    seqn_group:   ccsds.seqn_group,  $
+    pkt_size:     ccsds.pkt_size,  $
+    source_apid:  ccsds.source_apid,  $
+    source_hash:  ccsds.source_hash,  $
+    compr_ratio:  ccsds.compr_ratio,  $
     bsize: ccsds.pkt_size-offset-4, $
     addr: 0ul, $
     memp: ptr_new(),  $
     gap: ccsds.gap  $
   }
-
 
   mem = !null
   addr = spp_swp_data_select(ccsds_data,offset*8,32)  ;  address in memory
@@ -77,9 +83,7 @@ pro spp_swp_memdump_apdat::display,section,discntr=discntr,ram=ram,cntr=cntr,buf
       win.uvalue.MEM_IMAGE.setdata, b
 
     endif
-
   endif
-
 end
 
 

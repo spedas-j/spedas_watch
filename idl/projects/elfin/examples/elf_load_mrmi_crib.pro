@@ -1,6 +1,8 @@
 ;+
 ; ELF MRMi crib sheet
 ;
+; NOTE:  *** THIS Crib is obsolete. MRMI data is not collected. ***
+;
 ; do you have suggestions for this crib sheet?
 ;   please send them to clrussell@igpp.ucla.edu
 ;

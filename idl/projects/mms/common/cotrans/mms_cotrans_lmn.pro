@@ -27,12 +27,14 @@
 ;         Also accepts all keywords available to solarwind_load
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-05-28 13:57:39 -0700 (Thu, 28 May 2020) $
-;$LastChangedRevision: 28746 $
+;$LastChangedDate: 2021-04-13 13:15:22 -0700 (Tue, 13 Apr 2021) $
+;$LastChangedRevision: 29876 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/cotrans/mms_cotrans_lmn.pro $
 ;-
 
-pro mms_cotrans_lmn, name_in, name_out, gsm=gsm, gse=gse, probe=probe, data_rate=data_rate, _extra=ex
+pro mms_cotrans_lmn, name_in, name_out, gsm=gsm, gse=gse, probe=probe, data_rate=data_rate, wind=wind, h1=h1, _extra=ex
+  
+  if undefined(wind) && undefined(h1) then hro = 1b
   
   get_data, name_in, data=data_in, limit=l_in, dlimits=dl_in
   
@@ -56,7 +58,7 @@ pro mms_cotrans_lmn, name_in, name_out, gsm=gsm, gse=gse, probe=probe, data_rate
       dprint, dlevel=0, "Error, probe not found; please specify the probe via the 'probe' keyword"
     endif
   endif
-  
+
   ; load the spacecraft position data
   mms_load_mec, trange=minmax(data_in.x), probe=probe, data_rate=data_rate
   tinterpol, 'mms'+probe+'_mec_r_gsm', name_in, new_name='mms'+probe+'_mec_r_gsm_interp'
@@ -69,8 +71,8 @@ pro mms_cotrans_lmn, name_in, name_out, gsm=gsm, gse=gse, probe=probe, data_rate
 
   ; load the solar wind data
   sw_times = minmax(data_in.x)
-  solarwind_load, swdata, dst, sw_times, _extra=ex
-  
+  solarwind_load, swdata, dst, sw_times, hro=hro, wind=wind, h1=h1, _extra=ex
+
   txyz = [[data_in.X], [pos_data.Y]]
   bxyz = data_in.Y
   

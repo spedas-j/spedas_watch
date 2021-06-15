@@ -1,24 +1,30 @@
+;$LastChangedBy: ali $
+;$LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+;$LastChangedRevision: 30043 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/spp_swp_span_memdump_apdat__define.pro $
 
-
- 
- 
 function spp_swp_span_memdump_apdat::decom, source_dict=source_dict   ;,ccsds,header
-
+  message,'obsolete!! replaced with spp_swp_memdump_apdat'
   ccsds_data = spp_swp_ccsds_data(ccsds)
-  
+
   offset = self.ccsds_offset
 
   strct = {  $
-    time:ccsds.time, $
-    seqn:ccsds.seqn, $
+    time:         ccsds.time, $
+    MET:          ccsds.met,  $
+    apid:         ccsds.apid, $
+    seqn:         ccsds.seqn,  $
+    seqn_delta:   ccsds.seqn_delta,  $
+    seq_group:    ccsds.seq_group,  $
+    pkt_size:     ccsds.pkt_size,  $
+    source:       ccsds.source,  $
+    source_hash:  ccsds.source_hash,  $
+    compr_ratio:  ccsds.compr_ratio,  $
     bsize: ccsds.pkt_size-offset-4, $
     addr: 0ul, $
     memp: ptr_new(),  $
     gap: ccsds.gap  $
   }
-
-
-;  strct.bsize = ccsds.pkt_size - offset - 4
 
   mem = !null
   addr = spp_swp_data_select(ccsds_data,offset*8,32)  ;  address in memory
@@ -30,10 +36,7 @@ function spp_swp_span_memdump_apdat::decom, source_dict=source_dict   ;,ccsds,he
     dprint,strct.addr, n_elements(mem),format='(Z08, i)'
     hexprint,mem
   endif
-  
- ; if keyword_set( self.mram_p) eq 0 then self.mram_p = ptr_new(!null)
- ; if keyword_set(*self.mram_p) eq 0 then *self.mram_p = 
-  
+
   if addr + memsize le self.ram_size then begin
     dprint,dlevel=self.dlevel+2, format='("Addr: ", Z06,"     size:",i)',addr,memsize
     self.ram[addr: addr+memsize-1]  = mem
@@ -41,19 +44,13 @@ function spp_swp_span_memdump_apdat::decom, source_dict=source_dict   ;,ccsds,he
   endif else begin
     dprint, 'Not enough memory in object.', addr,memsize
   endelse
-  
   self.display, addr / '100000'x
-
   ;print,addr / '100000'x
   if debug(self.dlevel+1) then begin
     wi,2 ;map,wsize=[1024,1024]
   endif
- 
   return,strct
 end
-
-
-
 
 
 pro spp_swp_span_memdump_apdat::display,section,discntr=discntr,ram=ram,cntr=cntr,buffer=b,win_obj=win_obj
@@ -77,7 +74,7 @@ pro spp_swp_span_memdump_apdat::display,section,discntr=discntr,ram=ram,cntr=cnt
     b = b[start: start+meg-1]
     b = reform(b,1024,1024)
     ;printdat,b
-    str = *self.last_data_p                                   ; 
+    str = *self.last_data_p                                   ;
 
     if isa(str) then begin
       win.uvalue.addr_text.string = string(format='(Z06)',str.addr)
@@ -87,16 +84,13 @@ pro spp_swp_span_memdump_apdat::display,section,discntr=discntr,ram=ram,cntr=cnt
       b = b[start: start+meg-1]
       b = reform(b,1024,1024)
       win.uvalue.MEM_IMAGE.setdata, b
-      
+
     endif
 
   endif
-  
+
 
 end
-
-
-
 
 ; 6fffff
 
@@ -107,21 +101,16 @@ function spp_swp_span_memdump_apdat::init,apid,name,_extra=ex
   return,valid
 end
 
- 
+
 PRO spp_swp_span_memdump_apdat__define
 
-message,'Obsolete'
-ram_size = 2 * 2ul^20  ; 2 megabytes
-void = {spp_swp_span_memdump_apdat, $
-  inherits spp_gen_apdat, $    ; superclass
-  ccsds_offset: 0u , $
-  ram_size : ram_size, $
-  ram: bytarr(ram_size),   $
-  cntr: bytarr(ram_size) $
+  message,'Obsolete'
+  ram_size = 2 * 2ul^20  ; 2 megabytes
+  void = {spp_swp_span_memdump_apdat, $
+    inherits spp_gen_apdat, $    ; superclass
+    ccsds_offset: 0u , $
+    ram_size : ram_size, $
+    ram: bytarr(ram_size),   $
+    cntr: bytarr(ram_size) $
   }
 END
-
-
-
-
-

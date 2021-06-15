@@ -1,8 +1,8 @@
 ;Ali: June 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-09 08:27:23 -0800 (Wed, 09 Dec 2020) $
-; $LastChangedRevision: 29449 $
+; $LastChangedDate: 2021-05-30 19:27:32 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 30000 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x1df_apdat__define.pro $
 ;-
 
@@ -16,30 +16,56 @@ function spp_SC_HK_0x1df_struct,ccsds_data
   spd3=spp_swp_data_select(ccsds_data,62*8+7-7,16)
   spd_all=[spd0,spd1,spd2,spd3]
 
+  FSW_SPP_SA_POS_Y_FLAP_ANGLE=spp_swp_data_select(ccsds_data,20*8+7-7,8)
+  FSW_SPP_SA_NEG_Y_FLAP_ANGLE=spp_swp_data_select(ccsds_data,21*8+7-7,8)
+  FSW_SPP_SA_POS_Y_FTHR_ANGLE=spp_swp_data_select(ccsds_data,22*8+7-7,8)
+  FSW_SPP_SA_NEG_Y_FTHR_ANGLE=spp_swp_data_select(ccsds_data,23*8+7-7,8)
+
   str = {time:!values.d_nan ,$
     met:!values.d_nan, $
     seqn: 0u, $
     pkt_size: 0u, $
     FSW_SPP_SOLAR_DIST:spp_swp_data_select(ccsds_data,16*8+7-7,32), $
     FSW_SPP_SOLAR_DIST_RS:1./700e3*spp_swp_data_select(ccsds_data,16*8+7-7,32), $
+    FSW_SPP_SA_POS_NEG_Y_FLAP_ANGLE:90./255*[FSW_SPP_SA_POS_Y_FLAP_ANGLE,FSW_SPP_SA_NEG_Y_FLAP_ANGLE], $
+    FSW_SPP_SA_POS_NEG_Y_FTHR_ANGLE:180./255*[FSW_SPP_SA_POS_Y_FTHR_ANGLE,FSW_SPP_SA_NEG_Y_FTHR_ANGLE], $
     FSW_SPP_EPI_LO_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,25*8+7-7,8), $
     FSW_SPP_EPI_HI_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,26*8+7-7,8), $
     FSW_SPP_WISPR_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,27*8+7-7,8), $
     FSW_SPP_FIELDS_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,28*8+7-7,8), $
     FSW_SPP_SWEAP_SSR_ALLOC_STATUS:a1*spp_swp_data_select(ccsds_data,30*8+7-7,8), $
+    FSW_SPP_SWEAP_RATE_IND:spp_swp_data_select(ccsds_data,52*8+7-6,1), $
+    FSW_SPP_TWTA_EPC_PWRD:spp_swp_data_select(ccsds_data,52*8+7-4,1), $
     FSW_SPP_THRUST_FIRE:spp_swp_data_select(ccsds_data,52*8+7-3,1), $
+    FSW_SPP_FIELDS1_2_SWEAP_WISPR_EPIHI_LO_PWR_OFF_WARN:spp_swp_data_select(ccsds_data,52*8+7-2,6), $
+    FSW_SPP_SWEAP_STARTUP_MODE:spp_swp_data_select(ccsds_data,55*8+7-3,1), $
+    FSW_SPP_SWEAP_BOOT_MODE:spp_swp_data_select(ccsds_data,55*8+7-2,1), $
     FSW_SPP_RX_WHEEL_SPEED_RAW:spd_all, $
     gap:0B}
   return, str
 end
 
 ;FSW_SPP_SOLAR_DIST,                                            16,    7,   32;
+;FSW_SPP_SA_POS_Y_FLAP_ANGLE,                                   20,    7,    8;
+;FSW_SPP_SA_NEG_Y_FLAP_ANGLE,                                   21,    7,    8;
+;FSW_SPP_SA_POS_Y_FTHR_ANGLE,                                   22,    7,    8;
+;FSW_SPP_SA_NEG_Y_FTHR_ANGLE,                                   23,    7,    8;
 ;FSW_SPP_EPI_LO_SSR_ALLOC_STATUS,                               25,    7,    8;
 ;FSW_SPP_EPI_HI_SSR_ALLOC_STATUS,                               26,    7,    8;
 ;FSW_SPP_WISPR_SSR_ALLOC_STATUS,                                27,    7,    8;
 ;FSW_SPP_FIELDS_SSR_ALLOC_STATUS,                               28,    7,    8;
 ;FSW_SPP_SWEAP_SSR_ALLOC_STATUS,                                30,    7,    8;
+;FSW_SPP_SWEAP_RATE_IND,                                        52,    6,    1;
+;FSW_SPP_TWTA_EPC_PWRD,                                         52,    4,    1;
 ;FSW_SPP_THRUST_FIRE,                                           52,    3,    1;
+;FSW_SPP_FIELDS1_PWR_OFF_WARN,                                  52,    2,    1;
+;FSW_SPP_FIELDS2_PWR_OFF_WARN,                                  52,    1,    1;
+;FSW_SPP_SWEAP_PWR_OFF_WARN,                                    52,    0,    1;
+;FSW_SPP_WISPR_PWR_OFF_WARN,                                    53,    7,    1;
+;FSW_SPP_EPI_HI_PWR_OFF_WARN,                                   53,    6,    1;
+;FSW_SPP_EPI_LO_PWR_OFF_WARN,                                   53,    5,    1;
+;FSW_SPP_SWEAP_STARTUP_MODE,                                    55,    3,    1;
+;FSW_SPP_SWEAP_BOOT_MODE,                                       55,    2,    1;
 ;FSW_SPP_RX_WHEEL_1_SPEED,                                      56,    7,   16;
 ;FSW_SPP_RX_WHEEL_2_SPEED,                                      58,    7,   16;
 ;FSW_SPP_RX_WHEEL_3_SPEED,                                      60,    7,   16;

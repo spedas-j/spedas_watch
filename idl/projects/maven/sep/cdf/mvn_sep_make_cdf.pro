@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-08-20 18:35:15 -0700 (Tue, 20 Aug 2019) $
-; $LastChangedRevision: 27627 $
+; $LastChangedDate: 2021-05-30 19:45:35 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 30010 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sep/cdf/mvn_sep_make_cdf.pro $
 ; $ID: $
 
@@ -468,6 +468,6 @@ pro mvn_sep_make_cdf,data_vary,data_novary,filename=filename,dependencies=depend
   endif
 
   cdf_close,fileid
-  dprint,dlevel=2,'Created: "'+filename+'"'
+  dprint,dlevel=1,'Created '+file_info_string(filename)
 
 end

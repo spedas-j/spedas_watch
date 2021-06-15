@@ -27,6 +27,7 @@
 ;              program loads data from the designated CDF file(s), ignoring any
 ;              other options specifying local/remote data paths.
 ;   data_version = Set data version to load (set dataversion='v01.01' for loading the v01.01 files)
+;   get_filever =  If set, file version infromation is stored as a tplot variable
 ;
 ; EXAMPLE:
 ;   erg_load_mgf, datatype='8sec', trange=['2017-03-01/00:00:00','2017-03-02/00:00:00']
@@ -43,15 +44,15 @@
 ; Modified by: MT, June 28, 2018
 ;                 change the directroy structure of 8sec data from IYYYY to IYYYY/IMM
 ;
-;   $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
-;   $LastChangedRevision: 28604 $
+;   $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+;   $LastChangedRevision: 29822 $
 ;-
 
 pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_data, $
   downloadonly=downloadonly, no_server=no_server, no_download=no_download, $
   trange=trange, timeclip=timeclip, uname=uname, passwd=passwd, localdir=localdir, $
   remotedir=remotedir, $
-  datafpath=datafpath,data_version=data_version, $
+  datafpath=datafpath,data_version=data_version, get_filever=get_filever, $
   _extra=_extra
 
 
@@ -182,6 +183,9 @@ pro erg_load_mgf, datatype=datatype, coord=coord, get_support_data=get_support_d
         options, 'erg_mgf_l2_igrf_8sec_*', labflag=1, colors=[2,4,6]
       endif
     endif
+
+    ; storing data information
+    if KEYWORD_SET(get_filever) then erg_export_filever, files
 
     ;--- print PI info and rules of the road
     gatt=cdf_var_atts(files[0])

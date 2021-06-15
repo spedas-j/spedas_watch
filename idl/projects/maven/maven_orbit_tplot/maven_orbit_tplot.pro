@@ -18,6 +18,7 @@
 ;              Z -> 90 deg N latitude (= X x Y)
 ;              origin = center of Mars
 ;              units = kilometers
+;              full rotation once per Mars day
 ;
 ;   MSO = Mars-Sun-Orbit coordinates (approx. inertial)
 ;
@@ -26,6 +27,7 @@
 ;              Z = X x Y
 ;              origin = center of Mars
 ;              units = kilometers
+;              full rotation once per Mars year
 ;
 ;USAGE:
 ;  maven_orbit_tplot
@@ -76,30 +78,13 @@
 ;                 Used for long range predict and special events kernels.  Replaces
 ;                 keywords EXTENDED and HIRES.
 ;
-;       EXTENDED: Load one of the long-term predict ephemerides.  The value of this
-;                 keyword can range from 1 to 4, corresponding to the following spk
-;                 kernels:
+;       EXTENDED: If set, load long-term predict ephemerides created 2021-03-30.  
+;                 These include an apoapsis raise maneuver on 2022-06-01 and a 
+;                 periapsis raise maneuver on 2026-12-16.  The MarsGRAM density 
+;                 scale factor is assumed to be 2.5.  The SPK kernels are:
 ;
-;                   1 : trj_orb_191220-201220_targetM2020EDL-xso_191120.bsp
-;                   2 : trj_orb_200415-210512_targetM2020EDL-sro-ERTF2_191120.bsp
-;                   3 : trj_orb_210212-260101_dsf4_200429.bsp
-;                   4 : trj_orb_260101-301230_dsf4_200429.bsp
-;
-;                 Ephemerides 1 and 2 were created in November 2019.
-;                 The first is "extended science", with periapsis starting in the
-;                 nominal science density corridor (~150 km altitude) and then 
-;                 allowed to drift upward after 2020-04-10.  The second is
-;                 "science/relay", with perapsis raised to a minimum of ~180 km
-;                 on 2020-09-16.
-;
-;                 Ephemerides 3 and 4 were created in April 2020.
-;                 These extend the science-relay orbit out to the nominal end of
-;                 mission.  It is assumed that periapsis will continue to vary
-;                 between 180 and 240 km without corridor control.  Atmospheric
-;                 drag will gradually reduce apoapsis from 4400 km in early 2021
-;                 to 3850 km by the end of 2030.  Because of operational
-;                 constraints, the orbit cannot be allowed to decay this much, so
-;                 some change in the long-term mission design is required.
+;                   trj_orb_210326-260101_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
+;                   trj_orb_260101-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
 ;
 ;       HIRES:    OBSOLETE - this keyword has no effect at all.
 ;
@@ -140,7 +125,8 @@
 ;       PDS:      Plot vertical dashed lines separating the PDS release dates.
 ;
 ;       VERBOSE:  Verbosity level passed to mvn_pfp_file_retrieve.  Default = 0
-;                 (suppress most messages).
+;                 (suppress most messages).  Try a value > 2 to see more
+;                 messages; > 4 for lots of messages.
 ;
 ;       CLEAR:    Clear the common block and exit.
 ;
@@ -153,8 +139,8 @@
 ;                 save files are 8.7 GB in size.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-02 12:52:49 -0800 (Tue, 02 Mar 2021) $
-; $LastChangedRevision: 29732 $
+; $LastChangedDate: 2021-06-03 12:53:11 -0700 (Thu, 03 Jun 2021) $
+; $LastChangedRevision: 30017 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -163,7 +149,7 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
                        extended=extended, eph=eph, current=current, loadonly=loadonly, $
                        vars=vars, ellip=ellip, hires=hires, timecrop=timecrop, now=now, $
                        colors=colors, reset_trange=reset_trange, nocrop=nocrop, spk=spk, $
-                       segments=segments, shadow=shadow, datum=dtm, noload=noload, $
+                       segments=segments, shadow=shadow, datum=datum2, noload=noload, $
                        pds=pds, verbose=verbose, clear=clear, success=success, $
                        save=save, restore=restore, mission=mission
 
@@ -254,14 +240,35 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 
   R_m = R_vol       ; use the mean radius for converting to Mars radii
 
+; Load any keyword defaults
+
+  maven_orbit_options, get=key, /silent
+  ktag = tag_names(key)
+  tlist = ['STAT','DOMEX','SWIA','IALT','RESULT','EXTENDED','EPH','CURRENT', $
+           'LOADONLY','VARS','ELLIP','HIRES','TIMECROP','NOW','COLORS', $
+           'RESET_TRANGE','NOCROP','SPK','SEGMENTS','SHADOW','DATUM2','NOLOAD', $
+           'PDS','VERBOSE','CLEAR','SUCCESS','SAVE','RESTORE','MISSION']
+  for j=0,(n_elements(ktag)-1) do begin
+    i = strmatch(tlist, ktag[j]+'*', /fold)
+    case (total(i)) of
+        0  : ; keyword not recognized -> do nothing
+        1  : begin
+               kname = (tlist[where(i eq 1)])[0]
+               ok = execute('kset = size(' + kname + ',/type) gt 0',0,1)
+               if (not kset) then ok = execute(kname + ' = key.(j)',0,1)
+             end
+      else : print, "Keyword ambiguous: ", ktag[j]
+    endcase
+  endfor
+
 ; Determine the reference surface for calculating altitude
 
   dlist = ['sphere','ellipsoid','areoid','surface']
-  if (size(dtm,/type) ne 7) then dtm = dlist[1]
-  i = strmatch(dlist, dtm+'*', /fold)
+  if (size(datum2,/type) ne 7) then datum2 = dlist[1]
+  i = strmatch(dlist, datum2+'*', /fold)
   case (total(i)) of
      0   : begin
-             print, "Datum not recognized: ", dtm
+             print, "Datum not recognized: ", datum2
              return
            end
      1   : datum = (dlist[where(i eq 1)])[0]
@@ -278,7 +285,7 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
   if (treset) then nocrop = 1
 
   domex = keyword_set(domex)
-  eflg = keyword_set(ellip)
+  eflg = keyword_set(ellip)  ; doesn't seem to do anything
   if (size(shadow,/type) eq 0) then shadow = 1
   sflg = keyword_set(shadow)
   if not keyword_set(ialt) then ialt = !values.f_nan
@@ -315,58 +322,18 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 
   if keyword_set(extended) then begin
     case extended of
-       0 : ; do nothing (don't use extended predict ephemeris)
-       1 : begin
-             mname = 'maven_spacecraft_mso_targetM2020EDL-xso_191120.sav'
-             gname = 'maven_spacecraft_geo_targetM2020EDL-xso_191120.sav'
-             timespan, ['2019-12-20','2020-12-20']
-             treset = 1
-             nocrop = 1
-             timecrop = 0
-             print,"Using post-aerobraking extended science predict."
-             print,"  SPK = trj_orb_191220-201220_targetM2020EDL-xso_191120.bsp"
-             ttitle = "trj_orb_191220-201220_targetM2020EDL-xso_191120.bsp"
-           end
-       2 : begin
-             mname = 'maven_spacecraft_mso_targetM2020EDL-sro-ERTF2_191120.sav'
-             gname = 'maven_spacecraft_geo_targetM2020EDL-sro-ERTF2_191120.sav'
-             timespan, ['2020-04-16','2021-05-12']
-             treset = 1
-             nocrop = 1
-             timecrop = 0
-             print,"Using post-aerobraking science-relay predict."
-             print,"  SPK = trj_orb_200415-210512_targetM2020EDL-sro-ERTF2_191120.bsp"
-             ttitle = "trj_orb_200415-210512_targetM2020EDL-sro-ERTF2_191120.bsp"
-           end
-       3 : begin
-             mname = 'maven_spacecraft_mso_2021-2026_dsf4_200429.sav'
-             gname = 'maven_spacecraft_geo_2021-2026_dsf4_200429.sav'
-             timespan, ['2021-02-13','2026-01-01']
-             treset = 1
-             nocrop = 1
-             timecrop = 0
-             print,"Using long-range science-relay predict."
-             print,"  SPK = trj_orb_210212-260101_dsf4_200429.bsp"
-             ttitle = "trj_orb_210212-260101_dsf4_200429.bsp"
-           end
-       4 : begin
-             mname = 'maven_spacecraft_mso_2026-2030_dsf4_200429.sav'
-             gname = 'maven_spacecraft_geo_2026-2030_dsf4_200429.sav'
-             timespan, ['2026-01-01','2030-12-30']
-             treset = 1
-             nocrop = 1
-             timecrop = 0
-             print,"Using super-long-range science-relay predict."
-             print,"  SPK = trj_orb_260101-301230_dsf4_200429.bsp"
-             ttitle = "trj_orb_260101-301230_dsf4_200429.bsp"
-           end
+       0   : ; do nothing (don't use extended predict ephemeris)
       else : begin
-               print, "Extended ephemeris predict choices are:"
-               print, "  1 : 2019-12-20 to 2020-12-20 with periapsis drift after 2020-04-10"
-               print, "  2 : 2020-04-16 to 2021-05-12 with periapsis drift then raise on 2020-09-16"
-               print, "  3 : 2021-02-13 to 2026-01-01 long-range science-relay"
-               print, "  4 : 2026-01-01 to 2030-12-30 super-long-range science-relay"
-               return
+               mname = 'maven_spacecraft_mso_2021-2030_dsf2.5_210330.sav'
+               gname = 'maven_spacecraft_geo_2021-2030_dsf2.5_210330.sav'
+               timespan, ['2021-03-26','2030-12-30']
+               treset = 1
+               nocrop = 1
+               timecrop = 0
+               print,"Using extended predict ephemeris."
+               print,"  SPK = trj_orb_210326-260101_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
+               print,"  SPK = trj_orb_260101-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
+               ttitle = "trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
              end
     endcase
   endif else extended = 0

@@ -25,9 +25,9 @@
 ; Author: Davin Larson -  20th century
 ;   Forked from MMS, 04/09/2018, adrozdov
 ;
-; $LastChangedBy: jwl $
-; $LastChangedDate: 2019-04-26 16:18:53 -0700 (Fri, 26 Apr 2019) $
-; $LastChangedRevision: 27108 $
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2021-06-10 14:39:13 -0700 (Thu, 10 Jun 2021) $
+; $LastChangedRevision: 30039 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf2tplot.pro $
 ;-
 
@@ -59,7 +59,7 @@ if ~keyword_set(disable_cdfcheck) then begin
   ; Rename cdf files that cannot be opened (adding the file extension .todelete).
   cant_open = spd_cdf_check_delete(files, /iscdf)
   if n_elements(cant_open) gt 0 then begin
-    dprint, dlevel=2, 'spd_cdf2tplot: Error! Some files cannot be opened and were renamed:  ' + cant_open
+    dprint, dlevel=2, 'spd_cdf2tplot: Error! Some files cannot be opened and may have been renamed:  ' + cant_open
   endif
 endif
 

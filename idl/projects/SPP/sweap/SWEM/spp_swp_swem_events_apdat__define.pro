@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2021-03-18 13:54:18 -0700 (Thu, 18 Mar 2021) $
-; $LastChangedRevision: 29772 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_swem_events_apdat__define.pro $
 
 function spp_swp_swem_events_apdat::display_string, strct  
@@ -22,9 +22,16 @@ function spp_swp_swem_events_apdat::decom,ccsds  ,source_dict = source_dict  ;,h
   ccsds_data = spp_swp_ccsds_data(ccsds)
 
   strct = {  $
-    time:ccsds.time, $
-    met: ccsds.met,  $
-    seqn:ccsds.seqn, $
+    time:         ccsds.time, $
+    MET:          ccsds.met,  $
+    apid:         ccsds.apid, $
+    seqn:         ccsds.seqn,  $
+    seqn_delta:   ccsds.seqn_delta,  $
+    seqn_group:   ccsds.seqn_group,  $
+    pkt_size:     ccsds.pkt_size,  $
+    source_apid:  ccsds.source_apid,  $
+    source_hash:  ccsds.source_hash,  $
+    compr_ratio:  ccsds.compr_ratio,  $
     num: 0, $
     subtime: 0ul, $
     code: 0u, $

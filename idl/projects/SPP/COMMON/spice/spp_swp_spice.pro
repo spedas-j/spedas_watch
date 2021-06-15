@@ -6,8 +6,8 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-03-04 22:17:43 -0800 (Thu, 04 Mar 2021) $
-; $LastChangedRevision: 29738 $
+; $LastChangedDate: 2021-05-30 19:39:00 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 30005 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
@@ -66,14 +66,14 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       scale_sun=695700.d
       ;   scale_sun=696340.d  ; km (google)
       scale_venus=6051.8d
-      ysub_sun='(Rsun)'
-      ysub_venus='(Rvenus)'
+      ysub_sun='(R_Sun)'
+      ysub_venus='(R_Venus)'
     endif
 
     if position ge 3 then begin
       spice_position_to_tplot,body,'SSB',frame=ref_frame,res=res,name=nams,trange=trange,check_objects=[body],/force_objects
       xyz_to_polar,nams[0],/ph_0_360
-      options,nams[0]+'_mag',ysubtitle='(km)'
+      options,/def,nams[0]+'_mag',ysubtitle='(km)'
       get_data,nams[0],data=pos_ssb
       nams_acc = str_sub(nams[0],'POS_','ACC_')
       deriv_data,nams[1],newname = nams_acc
@@ -82,15 +82,18 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       ftot_m = 0
     endif
 
-    rscale = 695700.d ;  km   solar radius
-    ysub='(Rsun)'
+    rscale = scale_sun;  km   solar radius
+    ysub=ysub_sun
     gm = 1.32712440042d20 / 1e9 ; km^3/s^2
     nam_freefall = 'AccSun'
     observer = 'Sun'
     c = 299792d   ; speed of light km/s
     spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
     xyz_to_polar,nams[0],/ph_0_360
-    options,nams[0]+'_mag',ysubtitle=ysub  ;,ytitle='Rsun'
+    options,/def,nams[0]+'_mag',ysubtitle=ysub
+    spice_qrot_to_tplot,ref_frame,att_frame,res=res*60.,check_obj=[body,'SUN'],/force_objects,error=angle_error*!pi/180.
+    tplot_quaternion_rotate,'SPP_VEL_(Sun-ECLIPJ2000)','ECLIPJ2000_QROT_SPP_RTN',newname='SPP_VEL_RTN'
+    options,/def,'SPP_VEL_RTN',labels=['V_R','V_T','V_N'],ysubtitle='(km/s)',labflag=-1,constant=0
 
     if position ge 2 then begin    ; get "constants" of motion for sun
       get_data,nams[0]     ,data=pos
@@ -149,12 +152,12 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
     if keyword_set(venus) then begin
       gm = 0.324859d6  ; km^3/s^2
       rscale = scale_venus
-      ysub='(R_Venus)'
+      ysub=ysub_venus
       nam_freefall = 'AccVenus'
       observer = 'Venus'
       spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
       xyz_to_polar,nams[0],/ph_0_360
-      options,nams[0]+'_mag',ysubtitle=ysub
+      options,/def,nams[0]+'_mag',ysubtitle=ysub
       if position ge 3 then begin
         get_data,nams[0]     ,data=pos
         dist = sqrt(total( pos.y ^2,2))
@@ -314,14 +317,8 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
   endif
 
   if keyword_set(quaternion) then begin
-    if 1 then begin
-      spice_qrot_to_tplot,ref_frame,att_frame,res=3600d,check_obj=[body,'SUN'],error=angle_error*!pi/180.
-      ;tplot_quaternion_rotate,nam_sun,ref_frame+'_QROT_SPP_RTN'   ;spacecraft velocity in RTN frame
-      tplot_quaternion_rotate,  'SPP_VEL_(Sun-ECLIPJ2000)' ,'ECLIPJ2000_QROT_SPP_RTN' ,newname = 'SPP_VEL_(SUN-ECLIPJ2000)_RTN'
-    endif
-
     spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,trange=trange,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
-
+    ;tplot_quaternion_rotate,'SPP_VEL_RTN','SPP_SPACECRAFT_QROT_SPP_RTN'
     get_data,'SPP_SPACECRAFT_QROT_SPP_RTN',dat=dat
     qtime = dat.x
     quat_SC_to_RTN = dat.y
@@ -329,9 +326,9 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
     quat_SC_to_SC2 = [.5d,-.5d,-.5d,.5d]
 
     quat_SC2_to_RTN = qmult(quat_SC_to_RTN, replicate(1,n_elements(qtime)) # quat_SC2_to_SC)
-    store_data,'spp_QROT_SC2>RTN',qtime,quat_SC2_to_RTN,dlim={SPICE_FRAME:'SPP_SC2',colors:'dbgr',constant:0.,labels:['Q_W','Q_X','Q_Y','Q_Z'],labflag:-1}
-    store_data,'spp_QROT_SC2>RTN_Euler_angles',qtime, 180/!pi*quaternion_to_euler_angles(quat_SC2_to_RTN),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
-    store_data,'spp_QROT_RTN>SC2_Euler_angles',qtime, 180/!pi*quaternion_to_euler_angles(qconj(quat_SC2_to_RTN)),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
+    store_data,'SPP_QROT_SC2>RTN',qtime,quat_SC2_to_RTN,dlim={SPICE_FRAME:'SPP_SC2',colors:'dbgr',constant:0.,labels:['Q_W','Q_X','Q_Y','Q_Z'],labflag:-1}
+    store_data,'SPP_QROT_SC2>RTN_Euler_angles',qtime, 180/!pi*quaternion_to_euler_angles(quat_SC2_to_RTN),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
+    store_data,'SPP_QROT_RTN>SC2_Euler_angles',qtime, 180/!pi*quaternion_to_euler_angles(qconj(quat_SC2_to_RTN)),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
     ;tplot
 
     if keyword_set(test) then begin   ; test routines

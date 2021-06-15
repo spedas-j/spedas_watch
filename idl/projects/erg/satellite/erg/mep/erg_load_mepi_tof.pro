@@ -12,8 +12,8 @@
 ;   Tomo Hori, ERG Science Center (E-mail: tomo.hori at nagoya-u.jp)
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-04-23 14:59:10 -0700 (Thu, 23 Apr 2020) $
-; $LastChangedRevision: 28604 $
+; $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29822 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/mep/erg_load_mepi_tof.pro $
 ;-
 pro erg_load_mepi_tof, $
@@ -30,6 +30,7 @@ pro erg_load_mepi_tof, $
    remotedir=remotedir, $
    datafpath=datafpath, $
    tofspec=tofspec, $
+   get_filever=get_filever, $
    _extra=_extra 
 
   
@@ -91,6 +92,9 @@ pro erg_load_mepi_tof, $
   datfiles = datfiles[idx]                 ;;Clip empty strings and non-existing files
   if keyword_set(downloadonly) then return ;;Stop here if downloadonly is set
 
+  ;;Obtain the version information of data files
+  if keyword_set(get_filever) then erg_export_filever, datfiles
+  
   ;;Read CDF files and generate tplot variables
   prefix = 'erg_mepi_' + level + '_' + dtype + '_'
   cdf2tplot, file=datfiles, prefix=prefix, get_support_data=get_support_data, $

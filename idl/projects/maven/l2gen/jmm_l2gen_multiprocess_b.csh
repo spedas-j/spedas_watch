@@ -40,8 +40,8 @@ while ($i < $endproc)
     if (-e $function_in'_lock') then
 	echo $proc_workdir/$function_in$i/$function_in'_lock' Exists
     else
-        rm -rf $function_in.out
-        idl $function_in.pro > $function_in.out &
+#        rm -rf $function_in.out$line
+        idl $function_in.pro > $function_in.out$line &
     endif
     @ i = ($i + 1)
 end

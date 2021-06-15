@@ -25,6 +25,7 @@
 ;          authentication.
 ;   passwd: password to be passed to the remote server for
 ;           authentication.
+;   get_filever:  If set, file version infromation is stored as a tplot variable
 ;
 ; :Examples:
 ;   IDL> timespan, '2017-04-01'
@@ -37,14 +38,15 @@
 ; 2018/08/01: modified to load omni-directional XEP L2 data
 ; 2019/01/22: modified to load spin-phase XEP L2 data
 ; 2020/04/21: modified to display RoR
+; 2020/12/09: add get_filever keyword
 ;
 ; :Author:
 ;   Y. Miyashita, ERG Science Center, ISEE, Nagoya Univ. (erg-sc-core at isee.nagoya-u.ac.jp)
 ;   M. Teramoto, ERG Science Center, ISEE, Nagoya Univ.
 ;   S. Imajo, ERG Science Center, ISEE, Nagoya Univ.
 ;
-; $LastChangedDate: 2020-04-23 19:49:13 -0700 (Thu, 23 Apr 2020) $
-; $LastChangedRevision: 28605 $
+; $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29822 $
 ;-
 pro erg_load_xep, $
   debug=debug, $
@@ -59,7 +61,9 @@ pro erg_load_xep, $
   localdir=localdir, $
   remotedir=remotedir, $
   datafpath=datafpath, $
-  uname=uname, passwd=passwd
+  get_filever=get_filever, $
+  uname=uname, $
+  passwd=passwd
 
   ;Initialize the system variable for ERG
   erg_init
@@ -165,6 +169,8 @@ pro erg_load_xep, $
 
   endfor
 
+  ; storing data information
+  if KEYWORD_SET(get_filever) then erg_export_filever, datfiles
 
   ;--- print PI info and rules of the road
   gatt=dl.cdf.gatt

@@ -40,6 +40,9 @@
 ;              other options specifying local/remote data paths.
 ;   split_ch: Set to generate a FEDU tplot variable for each Channel only for Level-2 3Dflux data.
 ;   sorting_ene_chn: Set to sort energy channel only for Level-2 3Dflux data. 
+;   et_diagram: Get energy-time diagram
+;   only_fedu: only FEDU is extrancted as tplot variables.
+;   get_filever: Get data file version.
 ;   (PLEASE do not use this keyword if you want to do the "part_product" process.)
 ;
 ;
@@ -58,9 +61,9 @@
 ;   Tzu-Fang Chang, ERG Science Center (E-mail: jocelyn at isee.nagoya-u.ac.jp)
 ;   Chae-Woo Jun, ERG Science Center (E-mail: chae-woo at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-; $LastChangedRevision: 29445 $
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29822 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/lepe/erg_load_lepe.pro $
 ;-
 pro erg_load_lepe, $
@@ -79,6 +82,8 @@ pro erg_load_lepe, $
   sorting_ene_chn=sorting_ene_chn,$
   split_ch=split_ch, $
   et_diagram=et_diagram, $
+  get_filever=get_filever,$
+  only_fedu=only_fedu,$
   _extra=_extra
 
   ;;Initialize the user environmental variables for ERG
@@ -106,7 +111,7 @@ pro erg_load_lepe, $
 
     if debug then print, 'localdir = '+localdir
     if debug then print, 'remotedir = '+localdir
-
+    
     ;;Relative file path
     ;cdffn_prefix = 'erg_lepe_'+level+'_'+datatype+'_' ;
     cdffn_prefix = 'erg_lepe_l2_'+datatype+'_' ; for l2new
@@ -137,7 +142,7 @@ pro erg_load_lepe, $
     prefix = 'erg_lepe_' + level + '_' + datatype + '_'
     cdf2tplot, file=datfiles, prefix=prefix, get_support_data=get_support_data, $
       varformat=varformat, verbose=verbose
-
+    
     ;;Options for tplot variables
     vns = ''
     if total(strcmp( datatype, '3dflux' )) then $
@@ -151,51 +156,36 @@ pro erg_load_lepe, $
       if tnames(vns[i]) eq '' then continue
       ;; drop invalid time intervals
       get_data, vns[i], data=ori_data, dl=dl, lim=lim ; get data from tplot variable
-      name_tag = tag_names(ori_data) ; get tag names
-      n_tag = n_tags(ori_data) ; get number of tags
       
       ; get time interval
       get_timespan,tr
       cor_ad = where(ori_data.x gt tr[0]-600d and ori_data.x lt tr[1]+600d,ndata)
       
-      ; set an initial time of the data set
-      yyyymmdd = strmid( (strsplit(file_basename(dl.cdf.filename),'_',/ext))[4], 0, 8 )  ; CDF
-      ;initial_time = time_double(strmid(yyyymmdd, 0,4 )+'-'+strmid(yyyymmdd, 4,2 )+'-'+strmid(yyyymmdd, 6,2 ))
-      ;cor_ad = where(ori_data.x - initial_time ge 0,ndata)
-      
-      for ii = 0, n_tag-1 do begin
-        result = ori_data.(ii)
-        dims = size(result,/dimension)
-        type = size(result,/type)
-        dims[0] = ndata
-        n_dim = n_elements(dims)
-        value = make_array(dims,type=type)
-        ;if (ii eq 0) then value = make_array(dims,/double) else value = make_array(dims) 
-        case 1 of
-          (ii ge 1): data=create_struct(data, name_tag[ii], value)
-          (ii eq 0): data=create_struct(name_tag[ii], value)
-        endcase
-        case (n_dim) of
-          1: data.(ii) = result[cor_ad]
-          2: data.(ii) = result[cor_ad,*]
-          3: data.(ii) = result[cor_ad,*,*]
-          4: data.(ii) = result[cor_ad,*,*,*]
-        endcase
-      endfor
-      
       ;;sorted flux and count arrays for plotting the spectrum
       if vns[i] eq prefix+'FEDO' then begin
-        ene = total(data.v,2)/2
-        for n = 0, n_elements(data.x)-1 do begin
+        time = ori_data.x[cor_ad] 
+        flux = ori_data.y[cor_ad,*]
+        ene_ch = ori_data.v[cor_ad,*,*]
+        
+        ene = total(ene_ch,2)/2
+        for n = 0, n_elements(time)-1 do begin
           sort_idx=sort(ene[n,*])
-          data.y[n,*]=data.y[n,sort_idx]
+          flux[n,*]=flux[n,sort_idx]
           ene[n,*]=ene[n,sort_idx]
         endfor
-        store_data, vns[i], data={x:data.x, y:data.y, v:ene }, dl=dl, lim=lim
-        options, vns[i], ztitle='[/s-cm!U2!N-sr-eV]',ytitle='ERG!CLEP-e!CFEDO!CEnergy'
-      endif else begin
         
-        ene = total(data.v1,2)/2
+        store_data, vns[i], data={x:time, y:flux, v:ene }, dl=dl, lim=lim
+        options, vns[i], ztitle='[/s-cm!U2!N-sr-eV]',ytitle='ERG!CLEP-e!CFEDO!CEnergy'
+        options, vns[i], ztitle='['+dl.cdf.vatt.units+']'
+        options, vns[i], ytitle='ERG!CLEP-e!C'+dl.cdf.vatt.fieldnam+'!CEnergy'
+        zlim, vns[i], 1, 1e6, 1
+        ylim, vns[i], 19, 21*1e+3, 1
+      endif else begin
+        ; FEDU
+         time = ori_data.x[cor_ad]
+        flux = ori_data.y[cor_ad,*,*,*]
+        ene_ch = ori_data.v[cor_ad,*,*]
+        ene = total(ene_ch,2)/2
         if (keyword_set(sorting_ene_chn)) then begin
           for n = 0, n_elements(data.x)-1 do begin
             sort_idx=sort(ene[n,*])
@@ -204,10 +194,12 @@ pro erg_load_lepe, $
           endfor
         endif
         
-        store_data, vns[i], data={x:data.x, y:data.y, v:ene, v2:data.v2, $
+        store_data, vns[i], data={x:time, y:flux, v:ene, v2:ori_data.v2, $
           v3:indgen(16) }, dl=dl, lim=lim
         options, vns[i], ztitle='['+dl.cdf.vatt.units+']'
         options, vns[i], ytitle='ERG!CLEP-e!C'+dl.cdf.vatt.fieldnam+'!CEnergy'
+        zlim, vns[i], 1, 1e6, 1
+        ylim, vns[i], 19, 21*1e+3, 1
       endelse
       ylim, vns[i], 1e+1, 3e+4, 1
       zlim, vns[i], 0, 0, 1
@@ -233,6 +225,7 @@ pro erg_load_lepe, $
     endif
   endif
 
+ ; load l3 PAD CDF file
   if (level eq 'l3') then begin
     ;;Arguments and keywords
     if ~keyword_set(debug) then debug = 0  ;; Turn off the debug mode unless keyword debug is set
@@ -283,89 +276,79 @@ pro erg_load_lepe, $
     prefix = 'erg_lepe_' + level + '_' + datatype + '_'
     cdf2tplot, file=datfiles, prefix=prefix, /get_support_data, $
       varformat=varformat, verbose=verbose,varname = varname
-
+    
     ;;Options for tplot variables
     vns = ''
     append_array, vns, prefix+['FEDU']  ;;common to flux/count arrays
-    append_array, vns, prefix+['N_Energy']  ;;common to flux/count arrays
+    ;append_array, vns, prefix+['N_Energy']  ;;common to flux/count arrays
     
-    ;; drop invalid time intervals
-    ;get_data, vns, data=data, dl=dl, lim=lim
-    get_data, vns[0], data=ori_data, dl=dl, lim=lim ; get data from tplot variable
-    get_data, vns[1], data=ori_n_E;, dl=dl, lim=lim ; get data from tplot variable
-    del_data,prefix+'*'
-    
-    name_tag = tag_names(ori_data) ; get tag names
-    n_tag = n_tags(ori_data) ; get number of tags
-    ; set an initial time of the data set
-    yyyymmdd = strmid( (strsplit(file_basename(dl.cdf.filename),'_',/ext))[4], 0, 8 )  ; CDF
-    initial_time = time_double(strmid(yyyymmdd, 0,4 )+'-'+strmid(yyyymmdd, 4,2 )+'-'+strmid(yyyymmdd, 6,2 ))
-    cor_ad = where(ori_data.x - initial_time ge 0,ndata)
-
-    for ii = 0, n_tag-1 do begin
-      result = ori_data.(ii)
-      dims = size(result,/dimension)
-      type = size(result,/type)
-      dims[0] = ndata
-      n_dim = n_elements(dims)
-      value = make_array(dims,type=type)
-      ;if (ii eq 0) then value = make_array(dims,/double) else value = make_array(dims)
-      case 1 of
-        (ii ge 1): data=create_struct(data, name_tag[ii], value)
-        (ii eq 0): data=create_struct(name_tag[ii], value)
-      endcase
-      case (n_dim) of
-        1: data.(ii) = result[cor_ad]
-        2: data.(ii) = result[cor_ad,*]
-        3: data.(ii) = result[cor_ad,*,*]
-        4: data.(ii) = result[cor_ad,*,*,*]
-      endcase
-    endfor
-    
-    corrected_n_eng = ori_n_E.y[cor_ad]
-    energy_channel = data.v1 
-    corrected_time = data.x
-    flux = data.y
-    energy_arr = total(data.v1,2,/nan)/2
-    pa_arr = [5.625,16.875,28.125,39.375,50.625,61.875,73.125,84.375,95.625,106.875,118.125,129.375,140.625,151.875,163.125,174.375]
-    
-    ; skip the lose cone mode (number of energy channel less than 5) for L3 data
-    LC_ad = where(corrected_n_eng gt 31, count_LC)
-    if (count_LC gt 0) then begin
-      flux[LC_ad,*,*] = !values.F_nan
-      energy_channel[LC_ad,*,*] = !values.F_nan
-    endif
-    
-    store_data,vns[0],data={x:corrected_time, y:flux, v1:energy_channel, v2:pa_arr}, dl=dl, lim=lim
-    options, vns[0], spec=1, ysubtitle='[eV]', ztickformat='pwr10tick', extend_y_edges=1, $
-      datagap=17., zticklen=-0.4
-    ; store L3 data into tplot variables. Default is pitch angle-time diagram. If set a keyword of 'et_diagram', then return energy-time diagrams for each pitch angle bin.
-    if ~keyword_set(et_diagram) then begin 
-      dim = size(energy_arr,/dim)
-      n_chn = dim[1]
-      for j = 0, n_chn -1 do begin
-        vn = prefix+'enech_'+string(j+1, '(i02)')
-        store_data, vn, data={x:data.x, y:reform(flux[*,j,*]), v:pa_arr}, dl=dl, lim=lim
-        options, vn, ztitle='['+dl.cdf.vatt.units+']'
-        options, vn, ytitle='ERG LEP-e!C'+string(energy_arr[0,j],'(f9.2)')+' eV!CPitch angle', YSUBTITLE = '[deg]', yrange=[0,180],ytickinterval=30
-      endfor
+    if (vns eq '') then begin
+      print, 'The variable of FEDU cannot be found in this CDF file.'
+      return
     endif else begin
-      n_chn = n_elements(pa_arr)
-      for j = 0, n_chn -1 do begin
-        vn = prefix+'pabin_'+string(j+1, '(i02)')
-        store_data, vn, data={x:data.x, y:reform(flux[*,*,j]), v:energy_arr}, dl=dl, lim=lim
-        options, vn, ztitle='['+dl.cdf.vatt.units+']'
-        options, vn, ytitle='ERG LEP-e!c'+string(pa_arr[j],'(f7.3)')+' deg!CEnergy'
-        ylim, vn, 1e+1, 3e+4, 1
-        zlim, vn, 0, 0, 1
-      endfor
+      ;; drop invalid time intervals
+      ;get_data, vns, data=data, dl=dl, lim=lim
+      get_data, vns, data=ori_data, dl=dl, lim=lim ; get data from tplot variable
+      ;get_data, vns[1], data=ori_n_E;, dl=dl, lim=lim ; get data from tplot variable
+      ;del_data,[vns[0],vns[1]];prefix+'*'
+
+      ; get time interval
+      get_timespan,tr
+      cor_ad = where(ori_data.x gt tr[0]-600d and ori_data.x lt tr[1]+600d,ndata)
+      
+      time = ori_data.x[cor_ad]
+      flux = ori_data.y[cor_ad,*,*]
+      energy_channel = ori_data.v1[cor_ad,*,*]
+      energy_arr = total(energy_channel,2,/nan)/2
+      pa_arr = [5.625,16.875,28.125,39.375,50.625,61.875,73.125,84.375,95.625,106.875,118.125,129.375,140.625,151.875,163.125,174.375]
+
+      ;    ; skip the lose cone mode (number of energy channel less than 5) for L3 data
+      ;    LC_ad = where(corrected_n_eng gt 31, count_LC)
+      ;    if (count_LC gt 0) then begin
+      ;      flux[LC_ad,*,*] = !values.F_nan
+      ;      energy_channel[LC_ad,*,*] = !values.F_nan
+      ;    endif
+
+      store_data,vns,data={x:time, y:flux, v1:energy_channel, v2:pa_arr}, dl=dl, lim=lim
+      options, vns, spec=1, ysubtitle='[eV]', ztickformat='pwr10tick', extend_y_edges=1, $
+        datagap=17., zticklen=-0.4
+      zlim, vns, 1, 1e6, 1
+      ylim, vns, 19, 21*1e+3, 1
+      
+      if ~keyword_set(only_fedu) then begin
+        ; store L3 data into tplot variables. Default is pitch angle-time diagram. If set a keyword of 'et_diagram', then return energy-time diagrams for each pitch angle bin.
+        if ~keyword_set(et_diagram) then begin
+          dim = size(energy_arr,/dim)
+          n_chn = dim[1]
+          for j = 0, n_chn -1 do begin
+            vn = prefix+'enech_'+string(j+1, '(i02)')
+            store_data, vn, data={x:time, y:reform(flux[*,j,*]), v:pa_arr}, dl=dl, lim=lim
+            options, vn, ztitle='['+dl.cdf.vatt.units+']'
+            options, vn, ytitle='ERG LEP-e!C'+string(energy_arr[0,j],'(f9.2)')+' eV!CPitch angle', YSUBTITLE = '[deg]', yrange=[0,180],ytickinterval=30
+            zlim, vn, 1, 1e6, 1
+
+          endfor
+        endif else begin
+          n_chn = n_elements(pa_arr)
+          for j = 0, n_chn -1 do begin
+            vn = prefix+'pabin_'+string(j+1, '(i02)')
+            store_data, vn, data={x:time, y:reform(flux[*,*,j]), v:energy_arr}, dl=dl, lim=lim
+            options, vn, ztitle='['+dl.cdf.vatt.units+']'
+            options, vn, ytitle='ERG LEP-e!c'+string(pa_arr[j],'(f7.3)')+' deg!CEnergy'
+            zlim, vn, 1, 1e6, 1
+            ylim, vn, 19, 21*1e+3, 1
+          endfor
+        endelse
+      endif
     endelse
   endif
   
   ROR:
   ;--- print PI info and rules of the road
   gatt=cdf_var_atts(datfiles[0])
-
+  ; storing data information
+  if (keyword_set(get_filever)) then erg_export_filever, datfiles
+  
   print_str_maxlet, ' '
   print, '**************************************************************************'
   print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 75

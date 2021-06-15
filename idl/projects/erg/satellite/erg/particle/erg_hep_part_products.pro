@@ -58,9 +58,11 @@
 ;  degap: Setting for output tplot variables, controls how long
 ;         a gap in time is filled in a spectrogram. You can
 ;         also set this manually with tdegap. 
+;  include_allazms: Set to include flux values from all azimuthal channels 
+;                   for deriving flux spectra
 ;
-;$LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-;$LastChangedRevision: 29445 $
+;$LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+;$LastChangedRevision: 29822 $
 ;-
 pro erg_hep_part_products, $
    in_tvarname, $
@@ -85,6 +87,7 @@ pro erg_hep_part_products, $
    tplotnames=tplotnames, $
    silent=silent, $
    no_ang_weighting=no_ang_weighting, $
+   include_allazms=include_allazms, $
    debug=debug, $
    _extra=_extra
 
@@ -259,7 +262,9 @@ pro erg_hep_part_products, $
   ;; for a single time frame.
   if debug then dprint, 'Getting alldist now'
   alldist = erg_hep_get_dist(in_tvarname, /structure, $
-                             species=species, units=input_units, exclude_azms=exclude_azms, debug=debug)
+                             species=species, units=input_units, $
+                             exclude_azms=(~keyword_set(include_allazms)), $
+                             debug=debug)
   alldist_ptr = ptr_new( alldist, /no_copy )
   if debug then help,  alldist_ptr, *(alldist_ptr)
 

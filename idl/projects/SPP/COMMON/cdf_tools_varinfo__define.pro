@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson October 2018
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-01 10:45:51 -0800 (Tue, 01 Dec 2020) $
-; $LastChangedRevision: 29404 $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools_varinfo__define.pro $
 ;-
 
@@ -251,7 +251,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['UNITS']       = 'Counts'
       att['VAR_TYPE']    = 'data'
       att['DISPLAY_TYPE']= 'spectrogram'
-      att['DEPEND_1']    = ''
       att['VALIDMIN']    = 0.
       att['VALIDMAX']    = 1e6
       att['SCALETYP']    = 'log'
@@ -262,9 +261,13 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['LABLAXIS']    = 'Quality Flag'
       att['VAR_TYPE']    = 'data'
       att['FORMAT']      = 'I10'
-      att['FILLVAL']     = -1b
-      att['VALIDMIN']    = 0b
-      att['VALIDMAX']    = 255b
+      att['FILLVAL']     = -1u
+      att['VALIDMIN']    = 0u
+      att['VALIDMAX']    = -2u
+      att['VAR_NOTES']   = 'The quality flag is a two-byte variable with its least significant bit (Bit 1) indicating: Counter Overflow, '+$
+        'Bit 2: Snapshot ON, Bit 3: Alternate Energy Table, Bit 4: Spoiler Test, Bit 5: Attenuator Engaged, Bit 6: Highest Archive Rate, '+$
+        'Bit 7: No Targeted Sweep, Bit 8: SPAN-Ion New Mass Table (not applicable to electrons), Bit 9: Over-deflection, Bit 10: Archive Snapshot ON '+$
+        'Bits 11-16: Reserved.'
     end
     'ROTMAT_SC_INST': begin
       att['CATDESC']     = 'Rotation Matrix from Spacecraft to Instrument Coordinates'

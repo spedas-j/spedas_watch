@@ -1,7 +1,7 @@
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-12-09 08:27:23 -0800 (Wed, 09 Dec 2020) $
-; $LastChangedRevision: 29449 $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_0x254_apdat__define.pro $
 ;-
 
@@ -22,6 +22,8 @@
 ;FSW_GC_HK_HK_WHEEL_CTRL_MODE,                                 278,    4,    8;
 ;FSW_GC_HK_HK_SLEW_SEG,                                        279,    4,    8;
 ;FSW_GC_HK_HK_THRUST_CTRL_ENA,                                 304,    4,    8;
+;PDU_SWEAP_ENA_STATE,                                          565,    6,    1;
+;PDU_SWEAP_PWR_STATE,                                          565,    5,    2;
 
 
 function spp_SC_HK_0x254_struct,ccsds_data
@@ -58,6 +60,8 @@ str = {time:   !values.d_nan  ,$
   FSW_GC_HK_HK_WHEEL_CTRL_MODE:                           spp_swp_data_select(ccsds_data,278*8+7-4, 8),$
   FSW_GC_HK_HK_SLEW_SEG:                                  spp_swp_data_select(ccsds_data,279*8+7-4, 8),$
   FSW_GC_HK_HK_THRUST_CTRL_ENA:                           spp_swp_data_select(ccsds_data,304*8+7-4, 8),$
+  PDU_SWEAP_ENA_STATE:                                    spp_swp_data_select(ccsds_data,565*8+7-6, 1),$
+  PDU_SWEAP_PWR_STATE:                                    spp_swp_data_select(ccsds_data,565*8+7-5, 2),$
   RIU_3A_CH15N_COUNTS:                                    spp_swp_data_select(ccsds_data,696*8+7-0,10),$ ;CalChannel for SC_HK_0x256.SWEAP_SPAN_B_ELECT_BOX_TEMP and SC_HK_0x256.SWEAP_SPAN_B_TOP_ANALYZER_TEMP
   RIU_3B_CH15N_COUNTS:                                    spp_swp_data_select(ccsds_data,701*8+7-0,10),$ ;CalChannel for SC_HK_0x256.SWEAP_SPAN_A_POS_TOP_ANALYZER_TEMP
   gap:0B}

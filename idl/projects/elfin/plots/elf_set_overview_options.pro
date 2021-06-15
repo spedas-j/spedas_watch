@@ -123,6 +123,23 @@ pro elf_set_overview_options, probe=probe, trange=trange, no_switch=no_switch
    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch2LC',zstyle=1
    options, 'el'+probe+'_pef_pa_reg_spec2plot_ch3LC',zstyle=1
 
+   options, 'el'+probe+'_pef_en_spec2plot_omni',charsize=.9
+   options, 'el'+probe+'_pef_en_spec2plot_anti',charsize=.9
+   options, 'el'+probe+'_pef_en_spec2plot_perp',charsize=.9
+   options, 'el'+probe+'_pef_en_spec2plot_para',charsize=.9
+   options, 'el'+probe+'_pef_pa_spec2plot_ch1LC',charsize=.9
+   options, 'el'+probe+'_pef_pa_spec2plot_ch0LC',charsize=.9
+   options, 'el'+probe+'_pef_pa_spec2plot_ch2LC',charsize=.9
+   options, 'el'+probe+'_pef_pa_spec2plot_ch3LC',charsize=.9
+   options, 'el'+probe+'_pef_en_reg_spec2plot_omni',charsize=.9
+   options, 'el'+probe+'_pef_en_reg_spec2plot_anti',charsize=.9
+   options, 'el'+probe+'_pef_en_reg_spec2plot_perp',charsize=.9
+   options, 'el'+probe+'_pef_en_reg_spec2plot_para',charsize=.9
+   options, 'el'+probe+'_pef_pa_reg_spec2plot_ch1LC',charsize=.9
+   options, 'el'+probe+'_pef_pa_reg_spec2plot_ch0LC',charsize=.9
+   options, 'el'+probe+'_pef_pa_reg_spec2plot_ch2LC',charsize=.9
+   options, 'el'+probe+'_pef_pa_reg_spec2plot_ch3LC',charsize=.9
+
    ; set up y and z titles
    options, 'el'+probe+'_pef_pa_spec2plot_ch0LC', 'ysubtitle','[deg]'
    options, 'el'+probe+'_pef_pa_spec2plot_ch0LC', 'ztitle','nflux'  

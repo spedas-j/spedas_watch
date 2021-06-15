@@ -42,8 +42,8 @@
 ;    SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-10-28 14:00:24 -0700 (Wed, 28 Oct 2020) $
-; $LastChangedRevision: 29303 $
+; $LastChangedDate: 2021-05-17 11:20:50 -0700 (Mon, 17 May 2021) $
+; $LastChangedRevision: 29965 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
@@ -52,7 +52,12 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
 
   blab = ~keyword_set(silent)
 
-  summary = {spk_exists    : 0       , $
+  summary = {all_exist     : 0       , $
+             time_exists   : 0       , $
+             planets_exist : 0       , $
+             moons_exist   : 0       , $
+             frames_exist  : 0       , $
+             spk_exists    : 0       , $
              spk_trange    : [0D,0D] , $
              spk_ngaps     : 0       , $
              ck_sc_exists  : 0       , $
@@ -84,6 +89,21 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
     for i=0,(n_ker-1) do print,"    ",loadlist[i]
     print,''
   endif
+
+; Check for time, planet, moon, and frame kernels
+
+  ok = max(stregex(loadlist,'naif[0-9]{4}\.tls',/subexpr,/fold_case)) gt (-1)
+  ok += max(stregex(loadlist,'MVN_SCLKSCET.[0-9]{5}\.tsc',/subexpr,/fold_case)) gt (-1)
+  summary.time_exists = (ok eq 2)
+
+  ok = max(stregex(loadlist,'pck[0-9]{5}\.tpc',/subexpr,/fold_case)) gt (-1)
+  ok += max(stregex(loadlist,'de[0-9]{3}.*\.bsp',/subexpr,/fold_case)) gt (-1)
+  summary.planets_exist = (ok eq 2)
+
+  summary.moons_exist = max(stregex(loadlist,'mar[0-9]{3}\.bsp',/subexpr,/fold_case)) gt (-1)
+  summary.frames_exist = max(stregex(loadlist,'maven_v[0-9]{2}\.tf',/subexpr,/fold_case)) gt (-1)
+
+; Check for SPK and CK kernels
 
   dobar = 0
   cols = [3,4,6] ; [green, yellow, red]
@@ -275,6 +295,11 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
   endelse
 
   if (blab) then print,''
+
+  ok = summary.time_exists + summary.planets_exist + summary.moons_exist + $
+       summary.frames_exist + summary.spk_exists + summary.ck_sc_exists + $
+       summary.ck_app_exists
+  summary.all_exist = (ok eq 7)
 
   if (dobar) then begin
     indx = where(y eq 0, count)

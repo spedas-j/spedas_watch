@@ -35,10 +35,11 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
     else tr = timerange()
   if not keyword_set(probe) then probe = 'a'
   if ~undefined(instrument) then instrument='epde'
-  
+ 
   ; download and read the phase delay file
   phase_delays=elf_get_phase_delays(no_download=nodownload, probe=probe, $
      instrument=instrument)
+
   npd = n_elements(phase_delays)
   if size(phase_delays, /type) NE 8 then begin
     dprint, dlevel = 0, 'Unable to retrieve phase delays.' 
@@ -49,55 +50,23 @@ function elf_find_phase_delay, trange=trange, no_download=no_download, probe=pro
    mdt = min(tdiff,midx)
  
    ; check to see which phase delay is closest to the time range entered  
-   if mdt LE 600. then begin
-     if ~keyword_set(hourly) then begin 
-       if phase_delays.badflag[midx] ne 1 then begin
-         dsect2add=phase_delays.sect2add[midx]
-         dphang2add=phase_delays.phang2add[midx]
-         minpa=phase_delays.minpa[midx]
-         badflag=phase_delays.badflag[midx]
-         medianflag=0 
-       endif else begin
-         dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
-         dphang2add=phase_delays.latestmedianphang[midx]
-         minpa=phase_delays.minpa[midx]
-         badflag=phase_delays.badflag[midx]
-         medianflag=1                 
-       endelse
-     endif else begin
+   if mdt LE 600. then begin  
+     if phase_delays.badflag[midx] eq 0 then begin
+       dsect2add=phase_delays.sect2add[midx]
+       dphang2add=phase_delays.phang2add[midx]
+       badflag=phase_delays.badflag[midx]
+     endif else begin       
        dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
        dphang2add=phase_delays.latestmedianphang[midx]
-       minpa=phase_delays.minpa[midx]
        badflag=phase_delays.badflag[midx]
-       medianflag=1      
-     endelse
-     
+     endelse  
    endif else begin
-     if mdt GT 120. and mdt LT 86400.*7 then begin
-       if is_numeric(phase_delays.LASTESTMEDIANSECTR[midx]) then begin
-         dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
-         dphang2add=phase_delays.latestmedianphang[midx]
-         minpa=phase_delays.minpa[midx]
-         badflag=phase_delays.badflag[midx]
-         medianflag=1
-       endif else begin
-         dsect2add=0
-         dphang2add=0.0
-         minpa=phase_delays.minpa[midx]
-         badflag=phase_delays.badflag[midx]
-         medianflag=2
-       endelse  
-     endif else begin
-       dsect2add=0
-       dphang2add=0.0
-       minpa=phase_delays.minpa[midx]
-       badflag=0
-       medianflag=2    
-     endelse
+     dsect2add=phase_delays.LASTESTMEDIANSECTR[midx]
+     dphang2add=phase_delays.latestmedianphang[midx]
+     badflag=2 
    endelse
 
-  phase_delay={dsect2add:dsect2add, dphang2add:dphang2add, minpa:minpa, $
-    badflag:badflag, medianflag:medianflag}
+   phase_delay={dsect2add:dsect2add, dphang2add:dphang2add, badflag:badflag}
 
   return, phase_delay 
   

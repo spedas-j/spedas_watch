@@ -8,8 +8,8 @@
 ;group: sequence group: 0:middle of multipacket (very rare, huge packets? usually sign of error) 1:start of multi-packet 2:end of multi-packet 3:single packet
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-02-16 22:59:29 -0800 (Tue, 16 Feb 2021) $
-; $LastChangedRevision: 29663 $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/spp_swp_wrp_stat.pro $
 ;-
 
@@ -69,6 +69,7 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
   apdat=spp_apdat(apid)
   if ~keyword_set(apdat) then message,'unknown apid!'
   apid=apdat.apid
+  type=apdat.name
   if (apid lt wapr[0]) || (apid gt wapr[1]) then begin ;apid is not a wrapper apid
     print,apdat.name,apid,apid,format='(a-20,i4,7(" "),"0x",Z03)'
     for wapid=wapr[0],wapr[1] do spp_swp_wrp_stat,wapid,load=load,cdf=cdf,capid=apid,comp=comp,group=group,trange=trange,tplot_comp_ratio=tplot_comp_ratio,noheader=wapid ne wapr[0]
@@ -79,10 +80,9 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
   if ~keyword_set(noheader) then print,'Name','APID dec','0xhex','N_packets','Total_Bytes','Bytes/sec','Comp-Ratio','Average','Decomprsd','stdev','Decomprsd','%db/b','Decomprsd',format='(a4,a20,11a12)'
 
   if keyword_set(cdf) then begin
-    type=apdat.name
     if ~keyword_set(type) then message,'unknown apid!'
-    if keyword_set(load) then spp_swp_load,type=type,spx='swem'
-    get_data,'psp_swp_swem_'+type+'_L1_SEQ_GROUP',tt,sg
+    if keyword_set(load) then spp_swp_load,type=type,spx='swem',trange=trange
+    get_data,'psp_swp_swem_'+type+'_L1_SEQN_GROUP',tt,sg
     get_data,'psp_swp_swem_'+type+'_L1_PKT_SIZE',tt,ps
     get_data,'psp_swp_swem_'+type+'_L1_CONTENT_TIME_DIFF',tt,td
     get_data,'psp_swp_swem_'+type+'_L1_CONTENT_APID',tt,ca
@@ -95,7 +95,7 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
     str_element,array,'content_apid',success=success
     if success then begin
       tt=array.time
-      sg=array.seq_group
+      sg=array.seqn_group
       ps=array.pkt_size
       td=array.content_time_diff
       ca=array.content_apid
@@ -165,8 +165,8 @@ pro spp_swp_wrp_stat,load=load,cdf=cdf,apid,capid=capid0,noheader=noheader,stats
     if keyword_set(capid0) then ap2=apid else ap2=ap
     print,(spp_apdat(ap2)).name,ap2,ap2,nca,tot,tot/dtt,(ad+12+20)/av,av,ad,stdev,stded,100.*stdev/av,100.*stded/(ad+12+20),format='(a-20,i4,7(" "),"0x",Z03,2i12,8f12.3)'
     if keyword_set(tplot_comp_ratio) then begin
-      store_data,'psp_swp_'+(spp_apdat(ap2)).name+'_'+type+'_L1_COMP_RATIO_wrap_time',tt[w],ds[w]/ps[w]
-      store_data,'psp_swp_'+(spp_apdat(ap2)).name+'_'+type+'_L1_COMP_RATIO_orig_time',tt[w]-td[w],ds[w]/ps[w]
+      store_data,'psp_swp_'+(spp_apdat(ap2)).name+'_'+type+'_COMP_RATIO_wrap_time',tt[w],(12+20+ds[w])/ps[w]
+      store_data,'psp_swp_'+(spp_apdat(ap2)).name+'_'+type+'_COMP_RATIO_orig_time',tt[w]-td[w],(12+20+ds[w])/ps[w]
     endif
   endfor
 

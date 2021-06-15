@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-03-18 13:35:58 -0700 (Thu, 18 Mar 2021) $
-; $LastChangedRevision: 29771 $
+; $LastChangedDate: 2021-04-09 08:51:26 -0700 (Fri, 09 Apr 2021) $
+; $LastChangedRevision: 29859 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_swem_events_strings.pro $
 
 function spp_swp_swem_events_strings
@@ -596,12 +596,12 @@ function spp_swp_swem_events_strings
     'EVT_USER_11 24B,' , $
     'EVT_USER_11 24C,' , $
     'EVT_USER_11 24D,' , $
-    'EVT_USER_11 24E,' , $
+    'EVT_SEQ_CMD_SEQ_UNDER_EXECUTION,' , $
     'EVT_I2C_SYNCING_CHNL_0_READ_TO_F0,' , $
     'EVT_USER_11 250,' , $
     'EVT_SPC_ALLGAIN_BASE_PKT_SIZE_ERROR,' , $
     'EVT_USER_11 252,' , $
-    'EVT_USER_11 253,' , $
+    'EVT_SURVEY_COMPRESS_RESERVE_ERROR_AB_SPACE,' , $
     'EVT_FLASH_IF_BLOCK_METADATA,' , $
     'EVT_USER_11 255,' , $
     'EVT_USER_11 256,' , $

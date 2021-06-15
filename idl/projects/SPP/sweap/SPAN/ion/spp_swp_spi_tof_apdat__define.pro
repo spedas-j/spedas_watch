@@ -1,5 +1,9 @@
 ;+
-;
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
+; $LastChangedRevision: 30043 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_tof_apdat__define.pro $
+
 ; SPP_SWP_SPI_TOF_APDAT
 ;
 ; APID: 0x3BA
@@ -58,56 +62,63 @@
 
 FUNCTION spp_swp_spi_tof_apdat::decom, ccsds, source_dict=source_dict
 
-   ;; Check keywords
-   IF n_params() EQ 0 THEN BEGIN
-      dprint,'Not working yet.',dlevel=2
-      RETURN,!null
-   ENDIF
+  ;; Check keywords
+  IF n_params() EQ 0 THEN BEGIN
+    dprint,'Not working yet.',dlevel=2
+    RETURN,!null
+  ENDIF
 
-   ;; Extract data from CCSDS
-   ccsds_data = spp_swp_ccsds_data(ccsds)
-   b = ccsds_data
+  ;; Extract data from CCSDS
+  ccsds_data = spp_swp_ccsds_data(ccsds)
+  b = ccsds_data
 
-   ;; Check Packet Size
-   psize1 = 536   ;; correct size
-   psize2 = 564   ;; corrupt size after decompression
-   IF n_elements(b) NE psize1 AND $
+  ;; Check Packet Size
+  psize1 = 536   ;; correct size
+  psize2 = 564   ;; corrupt size after decompression
+  IF n_elements(b) NE psize1 AND $
     n_elements(b) NE psize2 THEN BEGIN
-      dprint,dlevel=1, 'Size error ',ccsds.pkt_size,ccsds.apid
-      return,0
-   ENDIF
+    dprint,dlevel=1, 'Size error ',ccsds.pkt_size,ccsds.apid
+    return,0
+  ENDIF
 
-   ;; TOF Counts
-   cnts = b[24:(511+24)]
+  ;; TOF Counts
+  cnts = b[24:(511+24)]
 
-   ;; Decompress TOF Counts
-   cnts = float(reform(spp_swp_log_decomp(temporary(cnts),0)))
-   
-   ;; Fill Structure
-   tof_str = {time:ccsds.time,$
-              met:ccsds.met,$
-              seqn:ccsds.seqn, $
-              pkt_size:ccsds.pkt_size,$
-              header_bytes:  b[0:23] , $
-              full_hist:ishft(b[20] AND '11'b,-1),$
-              targ_hist:b[20] AND '1'b,$
-              accum:ishft(b[21],-4),$
-              channel:b[21] AND '1111'b,$
-              max_hv:b[22],$
-              min_hv:b[23],$
-              tof:cnts,$
-              gap:0b}
+  ;; Decompress TOF Counts
+  cnts = float(reform(spp_swp_log_decomp(temporary(cnts),0)))
 
-   RETURN, tof_str
+  ;; Fill Structure
+  tof_str = {$
+    time:         ccsds.time, $
+    MET:          ccsds.met,  $
+    apid:         ccsds.apid, $
+    seqn:         ccsds.seqn,  $
+    seqn_delta:   ccsds.seqn_delta,  $
+    seqn_group:   ccsds.seqn_group,  $
+    pkt_size:     ccsds.pkt_size,  $
+    source_apid:  ccsds.source_apid,  $
+    source_hash:  ccsds.source_hash,  $
+    compr_ratio:  ccsds.compr_ratio,  $
+    header_bytes:  b[0:23] , $
+    full_hist:ishft(b[20] AND '11'b,-1),$
+    targ_hist:b[20] AND '1'b,$
+    accum:ishft(b[21],-4),$
+    channel:b[21] AND '1111'b,$
+    max_hv:b[22],$
+    min_hv:b[23],$
+    tof:cnts,$
+    gap:ccsds.gap}
+
+  RETURN, tof_str
 
 END
 
 PRO spp_swp_spi_tof_apdat__define
 
-   void = {spp_swp_spi_tof_apdat,$
-           ;; Superclass
-           inherits spp_gen_apdat,$ 
-           flag: 0 $
-          }
+  void = {spp_swp_spi_tof_apdat,$
+    ;; Superclass
+    inherits spp_gen_apdat,$
+    flag: 0 $
+  }
 
 END

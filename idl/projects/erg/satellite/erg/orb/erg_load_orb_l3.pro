@@ -11,6 +11,7 @@
 ;    uname: user ID to be passed to the remote server for authentication.
 ;    passwd: password to be passed to the remote server for authentication.
 ;    previous: if user wants to load previous version of L3 orbit files having a time resolution of 6 sec, please set this keyword.
+;   get_filever: Get data file version.
 ;
 ; :Examples:
 ;    erg_load_orb_l3  ; load orbit Level-3 data (using OP77Q).
@@ -38,9 +39,9 @@
 ;   Kuni Keika, Department of Earth and Planetary Science,
 ;     Graduate School of Science,The University of Tokyo (keika at eps.u-tokyo.ac.jp)
 ;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-; $LastChangedRevision: 29445 $
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29822 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/orb/erg_load_orb_l3.pro $
 ;-
 
@@ -54,6 +55,7 @@ pro erg_load_orb_l3, $
   downloadonly=downloadonly, $
   no_download=no_download, $
   localdir=localdir,$
+  get_filever=get_filever,$
   verbose=verbose, $
   _extra=_extra 
   
@@ -271,6 +273,8 @@ pro erg_load_orb_l3, $
     
   ;--- print PI info and rules of the road
   gatt=cdf_var_atts(datfiles[0])
+  ; storing data information
+  if (keyword_set(get_filever)) then erg_export_filever, datfiles
 
   print_str_maxlet, ' '
   print, '**************************************************************************'

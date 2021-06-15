@@ -15,6 +15,8 @@
 ;       USE the keyword quick_trace to reduce calculation times (this reduces
 ;       the resolution of data when calculating IGRF)
 ;
+; SPECIAL NOTE: Currently the mercator plots can only be generated on windows machines. 
+; 
 ; First release: 2020/11/23
 ;
 pro elf_plot_orbits_mercator_crib

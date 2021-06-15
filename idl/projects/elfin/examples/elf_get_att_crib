@@ -49,7 +49,7 @@ pro elf_get_att_crib
   
   ; quick look at some of the tplot vars returned
   get_data, 'ela_att_gei', data=att
-  get_data, 'ela_att_last_solution', data=date_soln
+  get_data, 'ela_att_solution_date', data=date_soln
   get_data, 'ela_spin_sun_ang', data=sun_ang
   print, ''
   print, 'ATTITUDE VECTOR'

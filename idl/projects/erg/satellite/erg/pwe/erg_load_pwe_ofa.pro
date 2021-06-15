@@ -35,8 +35,8 @@
 ; :Authors:
 ;   Masafumi Shoji, ERG Science Center (E-mail: masafumi.shoji at nagoya-u.jp)
 ;
-; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-; $LastChangedRevision: 29445 $
+; $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29822 $
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_ofa.pro $
 ;-
 
@@ -52,163 +52,149 @@ pro erg_load_pwe_ofa, $
    passwd=passwd, $
    band_width=band_width, $
    ror=ror, $
+   coord=coord, $
    _extra=_extra
 
-  erg_init
-  
-  if ~keyword_set(level) then level='l2' ;; level='l1_prime'
-  if ~keyword_set(datatype) then datatype='spec'
-  if ~keyword_set(downloadonly) then downloadonly = 0
-  if ~keyword_set(no_download) then begin
-     no_download = 0
-;     if ~keyword_set(uname) then begin
-;        uname=''
-;        read, uname, prompt='Enter username: '
-;     endif
-;     
-;     if ~keyword_set(passwd) then begin
-;        passwd=''
-;        read, passwd, prompt='Enter passwd: '
-;     endif
-  endif
+erg_init
 
-  if ~strcmp(datatype, 'spec') and ~strcmp(datatype, 'matrix') and ~strcmp(datatype, 'complex') then begin
-     print, 'Keyword datatype accepts only "spec", "matrix" and "complex".'
-     return
-  endif
-     
-  remotedir=!erg.remote_data_dir+'satellite/erg/pwe/ofa/'+level+'/'+datatype+'/'
-  localdir = !erg.local_data_dir + 'satellite/erg/pwe/ofa/'+level+'/'+datatype+'/'
+if ~keyword_set(level) then level='l2' ;; level='l1_prime'
+if ~keyword_set(datatype) then datatype='spec'
+if ~keyword_set(coord) then coord='sgi'
+if ~keyword_set(downloadonly) then downloadonly = 0
+if ~keyword_set(no_download) then begin
+   no_download = 0
+   ;     if ~keyword_set(uname) then begin
+   ;        uname=''
+   ;        read, uname, prompt='Enter username: '
+   ;     endif
+   ;     
+   ;     if ~keyword_set(passwd) then begin
+   ;        passwd=''
+   ;        read, passwd, prompt='Enter passwd: '
+   ;     endif
+endif
 
-  if strcmp(level,'l2') then begin
-     relfpathfmt = 'YYYY/MM/erg_pwe_ofa_' + level+'_'+datatype+'_YYYYMMDD_v??_??.cdf' ;;real
-  endif else begin
-     relfpathfmt = 'YYYY/erg_pwe_ofa_' + level + '_YYYYMMDD_v??.cdf'
-  endelse
+if ~strcmp(datatype, 'spec') and ~strcmp(datatype, 'matrix') and ~strcmp(datatype, 'complex') and ~strcmp(datatype, 'property') then begin
+   print, 'Keyword datatype accepts only "spec", "matrix" and "complex" for L2, and "property" for L3.'
+   return
+endif
 
-  relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
-  files=spd_download(remote_file=relfpaths,remote_path = remotedir,local_path=localdir,no_download=no_download,$
-                     _extra=source,authentication=2, url_username=uname, url_password=passwd, /last_version)
-  filestest=file_test(files)
+if strcmp(level,'l3') then begin
+   datatype = 'property'
+   coord = 'dsi'
+endif
 
-  if(total(filestest) ge 1) then begin
-     datfiles=files[where(filestest eq 1)]
-  endif else return
+coord_fix = ''
+if ~strcmp(datatype,'spec') then begin
+   coord_fix = coord+'_'
+endif
 
-  
-;  stop
+relfpathfmt = 'YYYY/MM/erg_pwe_ofa_' + level+'_'+datatype+'_'+ coord_fix + 'YYYYMMDD_v??_??.cdf' ;;real
+remotedir=!erg.remote_data_dir+'satellite/erg/pwe/ofa/'+level+'/'+datatype+'/'
+localdir = !erg.local_data_dir + 'satellite/erg/pwe/ofa/'+level+'/'+datatype+'/'
+prefix = 'erg_pwe_ofa_'+datatype+'_'+level+'_'
 
-  prefix = 'erg_pwe_ofa_'+datatype+'_'+level+'_'
-  if ~downloadonly then begin
-     cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
-                verbose = verbose
+relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
+files=spd_download(remote_file=relfpaths,remote_path = remotedir,local_path=localdir,no_download=no_download,$
+   _extra=source,authentication=2, url_username=uname, url_password=passwd, /last_version)
+filestest=file_test(files)
 
-     cdfi = cdf_load_vars(datfiles,varformat=varformat,var_type='support_data',/spdf_depend, $
-                          varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, all=all)
-     
-     idx_bw=where(strmatch(cdfi.vars.name, 'band_width_*') eq 1)
-     n=n_elements(idx_bw)
-     band_width=hash()
-     for i=0, n-1 do begin
-        x=fix(strmid(cdfi.vars[idx_bw[i]].name, 12, 5))
-        band_width[x]=*cdfi.vars[idx_bw[i]].dataptr
-     endfor
-  endif
+if (total(filestest) ge 1) then begin
+   datfiles=files[where(filestest eq 1)]
+endif else return
 
-  if strcmp(datatype, 'spec') then begin
-     
-     zlim, prefix+['E_spectra_*'], 1e-9, 1e-2, 1
-     zlim, prefix+['B_spectra_*'], 1e-4, 1e2, 1
-     options, prefix+['E_spectra_*'], 'datagap', 8.
-     options, prefix+['B_spectra_*'], 'datagap', 8.
-     
-     
-     if strcmp(tnames(prefix+['E_spectra_66']),'') and strcmp(tnames(prefix+['E_spectra_132']),'') and $
-        strcmp(tnames(prefix+['E_spectra_264']),'') and strcmp(tnames(prefix+['E_spectra_528']),'') then begin
-        
-        print, 'No varid OFA spectra data is loaded.'
-        goto, gt1
-     endif else begin    
-        store_data, prefix+'E_spectra_merged', data=[tnames(prefix+['E_spectra_66','E_spectra_132','E_spectra_264','E_spectra_528'])]
-        store_data, prefix+'B_spectra_merged', data=[tnames(prefix+['B_spectra_66','B_spectra_132','B_spectra_264','B_spectra_528'])]
-     endelse
-     
-;   stop
-     
-     ylim, prefix+'E_spectra_*', 32e-3, 20., 1
-     ylim, prefix+'B_spectra_*', 32e-3, 20., 1
-     options, prefix+['E_spectra_*'], 'ytitle', 'ERG PWE/OFA-SPEC (E)'
-     options, prefix+['B_spectra_*'], 'ytitle', 'ERG PWE/OFA-SPEC (B)'
-     options, ['*_spectra_*'], 'ysubtitle', 'frequency [kHz]'
-     options, prefix+'E_spectra_*', 'ztitle', 'mV^2/m^2/Hz'
-     options, prefix+'B_spectra_*', 'ztitle', 'pT^2/Hz'
-     
-  endif else begin
-     zlim, prefix+'Etotal_*', 1e-9, 1e-2, 1
-     zlim, prefix+'Btotal_*', 1e-4, 1e2, 1
-     ylim, prefix+'Etotal_*', 32e-3, 20., 1
-     ylim, prefix+'Btotal_*', 32e-3, 20., 1
-  endelse
-  
-  gatt=cdf_var_atts(datfiles[0])
-   
-   print_str_maxlet, ' '
-   print, '**********************************************************************'
-   print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 80
-   print, ''
-   print, 'Information about ERG PWE OFA'
-   print, ''
-   print, 'PI: ', gatt.PI_NAME
-   print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 80
-   print, ''
-   
-   if keyword_set(ror) then begin
-     print, 'Rules of the Road for ERG PWE OFA Data Use:'
-     for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 80
-     print, ''
-     print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
-   endif else begin
-     print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
-     print, 'RoR of PWE/OFA: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Pwe/Ofa'
-     print, 'To show the RoR, set "ror" keyword'
-     print, 'Contact: erg_pwe_info at isee.nagoya-u.ac.jp'
+if ~downloadonly then begin
+   cdf2tplot, file = datfiles, prefix = prefix, get_support_data = get_support_data, $
+      verbose = verbose
+
+   cdfi = cdf_load_vars(datfiles,varformat=varformat,var_type='support_data',/spdf_depend, $
+            varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, all=all)
+
+   idx_bw=where(strmatch(cdfi.vars.name, 'band_width_*') eq 1)
+   n=n_elements(idx_bw)
+   band_width=hash()
+   for i=0, n-1 do begin
+      x=fix(strmid(cdfi.vars[idx_bw[i]].name, 12, 5))
+      band_width[x]=*cdfi.vars[idx_bw[i]].dataptr
+   endfor
+endif
+
+if strcmp(level,'l2') and strcmp(datatype, 'spec') then begin
+
+   zlim, prefix+['E_spectra_*'], 1e-9, 1e-2, 1
+   zlim, prefix+['B_spectra_*'], 1e-4, 1e2, 1
+   options, prefix+['E_spectra_*'], 'datagap', 8.
+   options, prefix+['B_spectra_*'], 'datagap', 8.
+
+
+   if strcmp(tnames(prefix+['E_spectra_66']),'') and strcmp(tnames(prefix+['E_spectra_132']),'') and $
+      strcmp(tnames(prefix+['E_spectra_264']),'') and strcmp(tnames(prefix+['E_spectra_528']),'') then begin
+
+      print, 'No varid OFA spectra data is loaded.'
+      goto, gt1
+
+   endif else begin    
+      store_data, prefix+'E_spectra_merged', data=[tnames(prefix+['E_spectra_66','E_spectra_132','E_spectra_264','E_spectra_528'])]
+      store_data, prefix+'B_spectra_merged', data=[tnames(prefix+['B_spectra_66','B_spectra_132','B_spectra_264','B_spectra_528'])]
    endelse
 
-   print, '**********************************************************************'
+   ylim, prefix+'E_spectra_*', 32e-3, 20., 1
+   ylim, prefix+'B_spectra_*', 32e-3, 20., 1
+   options, prefix+['E_spectra_*'], 'ytitle', 'ERG PWE/OFA-SPEC (E)'
+   options, prefix+['B_spectra_*'], 'ytitle', 'ERG PWE/OFA-SPEC (B)'
+   options, ['*_spectra_*'], 'ysubtitle', 'frequency [kHz]'
+   options, prefix+'E_spectra_*', 'ztitle', 'mV^2/m^2/Hz'
+   options, prefix+'B_spectra_*', 'ztitle', 'pT^2/Hz'
 
-  ;;;;;;;;;extract erg_load_datalist [version number] ;;;;;;;;;;;;;;;;;;
-  
-  
-  get_data, 'erg_load_datalist', data=datalist
+   endif
 
-  if (undefined(datalist) or (ISA(datalist, 'hash') NE 1)) then begin
-    datalist = hash()
-    filelist = hash()
-  endif
+   if strcmp(level,'l3') then begin
 
-  foreach file, datfiles do begin
+      ylim, prefix+['?_spectra_*', 'kvec_*', 'polarization_*', 'planarity_*', 'Pvec_angle_*'], 32e-3, 20., 1
+      zlim, prefix+['kvec_polar_*'], 0, 90, 0
+      zlim, prefix+['kvec_azimuth_*'], -180., 180., 0
+      zlim, prefix+['polarization_*'], -1., 1., 0
+      zlim, prefix+['planarity_*'], 0., 1., 0
+      zlim, prefix+['Pvec_angle_*'], 0., 180., 0
+ 
+      options, prefix+['E_spectra_*'], 'ytitle', 'E field spectra'
+      options, prefix+['B_spectra_*'], 'ytitle', 'B field spectra'
+      options, ['*_spectra_*'], 'ysubtitle', 'frequency [kHz]'
+      options, prefix+'E_spectra_*', 'ztitle', 'mV^2/m^2/Hz'
+      options, prefix+'B_spectra_*', 'ztitle', 'pT^2/Hz'
+      options, prefix+['kvec_*', 'Pvec_angle_*'], 'ztitle', '[!Eo!N]'
 
-    p1 = strpos(file, '/', /REVERSE_SEARCH)
-    p2 = strpos(file, '_v', /REVERSE_SEARCH)
-    fn = strmid(file, p1+1, (p2-9-p1-1))
+   endif
 
-    if datalist.HasKey(fn) then filelist = datalist[fn] else filelist = hash()
+gatt=cdf_var_atts(datfiles[0])
 
-    cdfinx = strpos(file, '.cdf')
-    ymd = strmid(file, cdfinx - 15, 8)
-    Majver = strmid(file, cdfinx - 5, 2)
-    Minver = strmid(file, cdfinx - 2, 2)
+; storing data information
+erg_export_filever, datfiles
 
-    filelist[ymd] = hash('major',Majver, 'minor',Minver, 'fullpath', file )
-    datalist[fn] = filelist
+print_str_maxlet, ' '
+print, '**********************************************************************'
+print_str_maxlet, gatt.LOGICAL_SOURCE_DESCRIPTION, 80
+print, ''
+print, 'Information about ERG PWE OFA'
+print, ''
+print, 'PI: ', gatt.PI_NAME
+print_str_maxlet, 'Affiliation: '+gatt.PI_AFFILIATION, 80
+print, ''
 
+if keyword_set(ror) then begin
+print, 'Rules of the Road for ERG PWE OFA Data Use:'
+for igatt=0, n_elements(gatt.RULES_OF_USE)-1 do print_str_maxlet, gatt.RULES_OF_USE[igatt], 80
+print, ''
+print, gatt.LINK_TEXT, ' ', gatt.HTTP_LINK
+endif else begin
+print, 'RoR of ERG project common: https://ergsc.isee.nagoya-u.ac.jp/data_info/rules_of_the_road.shtml.en'
+print, 'RoR of PWE/OFA: https://ergsc.isee.nagoya-u.ac.jp/mw/index.php/ErgSat/Pwe/Ofa'
+print, 'To show the RoR, set "ror" keyword'
+print, 'Contact: erg_pwe_info at isee.nagoya-u.ac.jp'
+endelse
 
-  endforeach
+print, '**********************************************************************'
 
-  store_data, 'erg_load_datalist', data=datalist
+gt1:
 
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-   gt1:
-   
 END

@@ -8,12 +8,15 @@
 ;
 ; NOTE: See the rules of the road.
 ;
+; Update:
+; 2020-12-11: updated crib sheet to load ERG orbit l3 data for OP77Q, T89, and TS04 model
+;
 ; Written by: Tzu-Fang Chang, Aug. 28, 2018
 ;             ERG Science Center, ISEE, Nagoya Univ.
 ;             erg-sc-core at isee.nagoya-u.ac.jp
 ;
-;   $LastChangedDate: 2020-12-09 13:56:36 -0800 (Wed, 09 Dec 2020) $
-;   $LastChangedRevision: 29458 $
+;   $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+;   $LastChangedRevision: 29822 $
 ;-
 
 ; Initialize the user environmental variables for ERG
@@ -22,8 +25,9 @@ erg_init
 ; set the date and duration (in days)
 timespan, '2017-04-04'
 
-; load ERG orbit L3 data (using OP77Q model)
-erg_load_orb_l3
+; load ERG orbit L3 data
+; 1) using OP77Q model
+erg_load_orb_l3; or add a keyword (model='op')
 
 ; view the loaded data names
 tplot_names
@@ -35,6 +39,37 @@ tplot,['erg_orb_l3_pos_eq_op','erg_orb_l3_pos_blocal_op']
 ; Plot McIlwain L (Lm) parameter for different pitch angles &
 ; Roederer L (L-star) parameter for different pitch angles
 tplot,['erg_orb_l3_pos_lmc_op','erg_orb_l3_pos_lstar_op']
+stop
+
+; 2) using T89 model
+erg_load_orb_l3, model='t89'
+
+; view the loaded data names
+tplot_names
+
+; Plot Spacecraft positions mapped onto the magnetic equator &
+; Magnetic filed at spacecraft position
+tplot,['erg_orb_l3_pos_eq_t89','erg_orb_l3_pos_blocal_t89']
+
+; Plot McIlwain L (Lm) parameter for different pitch angles &
+; Roederer L (L-star) parameter for different pitch angles
+tplot,['erg_orb_l3_pos_lmc_t89','erg_orb_l3_pos_lstar_t89']
+stop
+
+; 3) using TS04 model
+erg_load_orb_l3, model='ts04'
+
+; view the loaded data names
+tplot_names
+
+; Plot Spacecraft positions mapped onto the magnetic equator &
+; Magnetic filed at spacecraft position
+tplot,['erg_orb_l3_pos_eq_TS04','erg_orb_l3_pos_blocal_TS04']
+
+; Plot McIlwain L (Lm) parameter for different pitch angles &
+; Roederer L (L-star) parameter for different pitch angles
+tplot,['erg_orb_l3_pos_lmc_TS04','erg_orb_l3_pos_lstar_TS04']
+stop
 
 end
 

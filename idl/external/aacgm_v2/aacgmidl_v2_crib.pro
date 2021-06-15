@@ -1,5 +1,6 @@
 pro aacgmidl_v2_crib
 
+  compile_opt strictarr
   ;------------------------------------------------------------------------
   ; To use all the AACGM-v2 routines you will need to first call the 
   ; main routine which sets environmental variables and compiles the 

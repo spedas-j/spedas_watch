@@ -1,8 +1,8 @@
 ;+
 ; Ali 20190601
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2020-05-05 15:09:33 -0700 (Tue, 05 May 2020) $
-; $LastChangedRevision: 28670 $
+; $LastChangedDate: 2021-05-30 19:39:00 -0700 (Sun, 30 May 2021) $
+; $LastChangedRevision: 30005 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_snap.pro $
 ;-
 ;
@@ -106,7 +106,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
         data=vardata.data
         times=vardata.time
         dt=times-shift(times,1)
-        totaccum=vardata.tot_accum_period
+        totaccum=vardata.time_accum
         dim=size(/dimen,data)
         nt=dim[1]
         maxcounts=max(data,dim=1)
@@ -192,7 +192,7 @@ pro spp_swp_spi_snap,level=level,types=types,trange=trange,load=load,alltypes=al
               endif
             endif
             if keyword_set(pixel_explode) then for itheta=0,7 do for iphi=0,7 do store_data,prefix+'energy_A'+strtrim(iphi,2)+'D'+strtrim(itheta,2),times,transpose(reform(data[itheta,*,iphi,*])),en,dlim={ylog:ylog,zlog:1,spec:1,yrange:yrange,ystyle:3,zrange:[10.^min,10.^max],ztitle:countrate}
-            if keyword_set(pixel_image) then for itheta=0,7 do for iphi=0,7 do p=image(alog10(transpose(reform(data[itheta,*,iphi,pixel_image]))),layout=[8,8,1+iphi+itheta*8],/current,margin=.01,rgb_table=33,aspect=0,min=0,max=1,axis_style=2,/order,xmajor=0,ymajor=0,xminor=0,yminor=0)
+            if keyword_set(pixel_image) then for itheta=0,7 do for iphi=0,7 do p=image(alog10(transpose(reform(data[itheta,*,iphi,pixel_image]))),layout=[8,9,9+iphi+itheta*8],/current,margin=.01,rgb_table=33,aspect=0,min=0,max=1,axis_style=2,/order,xmajor=0,ymajor=0,xminor=0,yminor=0)
           end
           256:begin
             data[*,2*lindgen(16),*]=reverse(data[*,2*lindgen(16),*],1) ;sf1x has the "snake pattern" deflection

@@ -6,8 +6,8 @@
 ;     IDL> mgunit, 'mms_python_validation_ut'
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2021-02-18 13:44:37 -0800 (Thu, 18 Feb 2021) $
-; $LastChangedRevision: 29671 $
+; $LastChangedDate: 2021-03-25 09:41:30 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29818 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_python_validation_ut__define.pro $
 ;-
 
@@ -184,9 +184,9 @@ function mms_python_validation_ut::test_feeps_brst_electron
 end
 
 function mms_python_validation_ut::test_eis_default
-  mms_load_eis, datatype=['extof', 'phxtof'], probe=4, trange=['2019-10-16','2019-10-17']
+  mms_load_eis, datatype=['extof', 'phxtof'], probe=4, trange=['2015-10-16','2015-10-17']
   mms_eis_pad, datatype=['extof', 'phxtof'], probe=4
-  py_script = ["from pyspedas import mms_load_eis, mms_eis_pad", "mms_load_eis(datatype=['extof', 'phxtof'], probe=4, trange=['2019-10-16','2019-10-17'])", "mms_eis_pad(datatype=['extof', 'phxtof'], probe=4)"]
+  py_script = ["from pyspedas import mms_load_eis, mms_eis_pad", "mms_load_eis(datatype=['extof', 'phxtof'], probe=4, trange=['2015-10-16','2015-10-17'])", "mms_eis_pad(datatype=['extof', 'phxtof'], probe=4)"]
   vars = ['mms4_epd_eis_extof_proton_flux_omni', 'mms4_epd_eis_phxtof_proton_flux_omni', 'mms4_epd_eis_extof_proton_flux_omni_spin', 'mms4_epd_eis_phxtof_proton_flux_omni_spin', 'mms4_epd_eis_phxtof_46-75keV_proton_flux_omni_pad_spin', 'mms4_epd_eis_phxtof_46-75keV_proton_flux_omni_pad', 'mms4_epd_eis_extof_44-979keV_proton_flux_omni_pad', 'mms4_epd_eis_extof_44-979keV_proton_flux_omni_pad_spin']
   return, spd_run_py_validation(py_script, vars)
 end
@@ -210,6 +210,20 @@ function mms_python_validation_ut::test_fpi_brst
   mms_load_fpi, data_rate='brst', datatype=['des-moms', 'dis-moms'], probe=1, trange=['2015-10-16/13:06', '2015-10-16/13:07']
   py_script = ["from pyspedas import mms_load_fpi", "mms_load_fpi(data_rate='brst', datatype=['des-moms', 'dis-moms'], probe=1, trange=['2015-10-16/13:06', '2015-10-16/13:07'])"]
   vars = ['mms1_des_energyspectr_omni_brst', 'mms1_des_numberdensity_brst', 'mms1_des_bulkv_gse_brst', 'mms1_dis_energyspectr_omni_brst', 'mms1_dis_bulkv_gse_brst', 'mms1_dis_numberdensity_brst']
+  return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_fpi_sitl
+  mms_load_fpi, probe=4, level='sitl', trange=['2015-12-15', '2015-12-16']
+  py_script = ["import pyspedas", "data = pyspedas.mms.fpi(probe=4, level='sitl', trange=['2015-12-15', '2015-12-16'])"]
+  vars = 'mms4_fpi_ePitchAngDist_avg'
+  return, spd_run_py_validation(py_script, vars)
+end
+
+function mms_python_validation_ut::test_fpi_ql
+  mms_load_fpi, probe=4, level='ql', trange=['2020-12-15', '2020-12-16']
+  py_script = ["import pyspedas", "data = pyspedas.mms.fpi(probe=4, level='ql', trange=['2020-12-15', '2020-12-16'])"]
+  vars = ['mms4_des_PitchAngDist_sum', 'mms4_des_pitchangdist_avg']
   return, spd_run_py_validation(py_script, vars)
 end
 

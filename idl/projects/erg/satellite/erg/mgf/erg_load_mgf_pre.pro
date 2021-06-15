@@ -32,8 +32,8 @@
 ;              by: M. Teramoto, November 08, 2017
 ;             ERG Science Center, ISEE, Nagoya University
 ;             erg-sc-core at isee.nagoya-u.ac.jp
-;   $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-;   $LastChangedRevision: 29445 $
+;   $LastChangedDate: 2021-03-25 13:26:37 -0700 (Thu, 25 Mar 2021) $
+;   $LastChangedRevision: 29823 $
 ;-
 
 pro erg_load_mgf_pre, datatype=datatype, coord=coord, get_support_data=get_support_data, $

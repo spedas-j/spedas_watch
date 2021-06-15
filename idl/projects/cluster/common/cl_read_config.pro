@@ -16,9 +16,9 @@
 ;   Cleaned up for new plug-ins by egrimes 14-may-2018
 ;   Copied from thm_read_config and tt2000_read_config lphilpott 20-jun-2012
 ;   
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-12-23 16:57:38 -0800 (Mon, 23 Dec 2019) $
-;$LastChangedRevision: 28136 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2021-05-20 16:55:32 -0700 (Thu, 20 May 2021) $
+;$LastChangedRevision: 29976 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/common/cl_read_config.pro $
 ;-
 
@@ -40,13 +40,13 @@ function cl_read_config, header = hhh
   otp = -1
   ; first step is to get the filename
   ; for this example the directory name has been hard coded
-  dir = 'C:\Users\clrussell\.idl\yyy\'
+  dir = cl_config_filedir(/app_query)
   if dir[0] ne '' then begin
-    filex = spd_addslash(dir) + 'yyy_config.txt'
+    filex = spd_addslash(dir) + 'cl_config.txt'
     
     ; does the file exist?
     if file_search(filex) ne '' then begin
-      template = yyy_config_template()
+      template = cl_config_template()
       strfx = read_ascii(filex, template = template, header = hhh)
       if size(strfx, /type) Eq 8 then begin
         otp = create_struct(strtrim(strfx.field1[0], 2), $
@@ -63,7 +63,7 @@ function cl_read_config, header = hhh
   endif
 
   ; check for slashes, add if necessary
-  !yyy.local_data_dir = spd_addslash(!yyy.local_data_dir)
-  !yyy.remote_data_dir = spd_addslash(!yyy.remote_data_dir)
+  !cluster.local_data_dir = spd_addslash(!cluster.local_data_dir)
+  !cluster.remote_data_dir = spd_addslash(!cluster.remote_data_dir)
   return, otp
 end

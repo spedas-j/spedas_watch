@@ -32,8 +32,8 @@
 ;
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-12-22 19:21:35 -0800 (Tue, 22 Dec 2020) $
-; $LastChangedRevision: 29554 $
+; $LastChangedDate: 2021-03-22 14:12:33 -0700 (Mon, 22 Mar 2021) $
+; $LastChangedRevision: 29797 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/goesr/goesr_load_data.pro $
 ;-
 
@@ -108,14 +108,14 @@ pro goesr_load_data, trange = trange, datatype = datatype, probes = probes, pref
           ; GOES 16, 17
           ; Default is 1 min. Hires is large files (>180MB).
           lr = level + '-' + resolution
-          pathformat = sc + '/' + level + '/data/magn-' + lr + '/YYYY/MM/dn_magn-' + lr + '_' + sc0 +'_dYYYYMMDD_v?-?-?.nc
+          pathformat = sc + '/' + level + '/data/magn-' + lr + '/YYYY/MM/dn_magn-' + lr + '_' + sc0 +'_dYYYYMMDD_v?-?-?.nc'
         endif else begin
           ; GOES 8-15: only high resolution is available (Dec 2020)
           if resolution eq 'hires' then begin
             remote_path = 'https://satdat.ngdc.noaa.gov/sem/goes/data/science/'
             res0 = 'hires'
             lr = level + '-' + res0
-            pathformat = 'mag/' + sc + '/magn-'+ lr +'/YYYY/MM/dn_magn-' + lr + '_' + sc0 +'_dYYYYMMDD_v?_?_?.nc
+            pathformat = 'mag/' + sc + '/magn-'+ lr +'/YYYY/MM/dn_magn-' + lr + '_' + sc0 +'_dYYYYMMDD_v?_?_?.nc'
           endif else begin
             msg = 'For GOES 8-15 only high resolution MAG data exists. Use \hires keyword.'
             dprint, dlevel=1, 'Error: ', msg
@@ -171,6 +171,5 @@ pro goesr_load_data, trange = trange, datatype = datatype, probes = probes, pref
     endfor
 
   endfor
-
 
 end

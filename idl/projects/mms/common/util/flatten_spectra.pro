@@ -6,21 +6,25 @@
 ;         Create quick plots of spectra at a certain time (i.e., energy vs. eflux, PA vs. eflux, etc)
 ;         
 ; KEYWORDS:
+;       REPLOT:    Recreate the figure with updated options (uses the previously selected time)
 ;       [XY]LOG:   [XY] axis in log format
 ;       [XY]RANGE: 2 element vector that sets [XY] axis range
 ;       NOLEGEND:  Disable legend display
 ;       COLORS:    n element vector that sets the colors of the line in order that they are in tplot_vars.options.varnames
 ;                  n is number of tplot variables in tplot_vars.options.varnames
 ;             
-;       PNG:         save png from the displayed windows (cannot be used with /POSTRSCRIPT keyword)
-;       POSTRSCRIPT: create postscript files instead of displaying the plot
+;       PNG:         save png from the displayed windows (cannot be used with /POSTSCRIPT keyword)
+;       POSTSCRIPT: create postscript files instead of displaying the plot
 ;       PREFIX:      filename prefix
 ;       FILENAME:    custorm filename, including folder. 
 ;                    By default the folder is !mms.local_data_dir and filename includes tplot names and selected time (or center time)      
 ;       
 ;       TIME_IN:     if the keyword is specified the time is determined from the variable, not from the cursor pick.
 ;       TRANGE:      Two-element time range over which data will be averaged. 
-;       SAMPLES:     Number of nearest samples to time to average. Override trange.      
+;       SAMPLES:     Number of nearest samples to time to average. Override trange.     
+;                    *** warning: using 'samples' with multiple variables containing data at different resolutions
+;                        can lead to different time ranges of data being used for each variable ***
+;                     
 ;       WINDOW:      Length in seconds over which data will be averaged. Override trange.
 ;       CENTER_TIME: Flag denoting that time should be midpoint for window instead of beginning.
 ;                    If TRANGE is specify, the the time center point is computed.
@@ -31,6 +35,12 @@
 ;                     this keyword uses the units string in the ztitle
 ;       XTITLE:      Manually set the title on the x-axis; if not set, the x-axis units are used
 ;       YTITLE:      Manually set the title on the y-axis; if not set, the y-axis units are used
+;       XCLIP:       2 element array specifying the range of data to include in the plot (only plots the data between [xmin, xmax])
+;       YCLIP:       2 element array specifying the range of data to include in the plot (only plots the data between [ymin, ymax])
+;       XEXPONENTIAL_FORMAT: force the x-axis ticks to show as 10^3  e.g. ’10!U3!N’
+;       YEXPONENTIAL_FORMAT: force the y-axis ticks to show as 10^3  e.g. ’10!U3!N’
+;       LEGEND_LEFT: move the legend to the left-hand side of the figure
+;       LEGEND_BOTTOM: move the legend to the bottom of the figure
 ;
 ; EXAMPLE:
 ;     To create line plots of FPI electron energy spectra for all MMS spacecraft:
@@ -42,11 +52,15 @@
 ;       --> then click the tplot window at the time you want to create the line plots at
 ;
 ; NOTES:
+;     To change the legend names for variables, set the 'legend_name' option prior to creating the figure
+;         e.g., 
+;           options, 'mms3_des_energyspectr_omni_fast', 'legend_name', 'MMS3 FPI DES'
+; 
 ;     work in progress; suggestions, comments, complaints, etc: egrimes@igpp.ucla.edu
 ;     
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2021-03-17 16:31:07 -0700 (Wed, 17 Mar 2021) $
-;$LastChangedRevision: 29768 $
+;$LastChangedDate: 2021-04-01 11:41:09 -0700 (Thu, 01 Apr 2021) $
+;$LastChangedRevision: 29844 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra.pro $
 ;-
 
@@ -81,14 +95,29 @@ pro fs_get_unit_array, metadata, field, arr=arr
   endelse
 end
 
+function fs_exp_tickformat, axis, index, number
+  if number eq 0 then return, '0'
+  
+  ex = string(number, format='(e8.0)')
+  pt = strpos(ex, '.')
 
+  first = strmid(ex, 0, pt)
+  sign = strmid(ex, pt+2, 1)
+  exponent = strmid(ex, pt+3)
+  
+  if strmid(exponent, 0, 1) eq 0 then exponent = strmid(exponent, 1)
+  
+  if sign eq '-' then begin
+    return, '10!U' + sign + exponent + '!N'
+  endif else return, '10!U' + exponent + '!N'
+end
 
 pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegend=nolegend, colors=colors,$
    png=png, postscript=postscript, prefix=prefix, filename=filename, $   
    time=time_in, trange=trange_in, window_time=window_time, center_time=center_time, samples=samples, rangetitle=rangetitle, $
    charsize=charsize, replot=replot, to_kev=to_kev, legend_left=legend_left, bar=bar, to_flux=to_flux, xvalues=xvalues, yvalues=yvalues, $
-   xtitle=xtitle, ytitle=ytitle, $
-   _extra=_extra
+   xtitle=xtitle, ytitle=ytitle, xexponential_format=xexponential_format, yexponential_format=yexponential_format, xclip=xclip, yclip=yclip, $
+   legend_bottom=legend_bottom, _extra=_extra
    
   @tplot_com.pro
   
@@ -150,6 +179,9 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
   ;
   fname = '' ; filename for if we save png of postscript  
   if UNDEFINED(prefix) THEN prefix = ''  
+  
+  if ~undefined(xexponential_format) then xexponential_format = 'fs_exp_tickformat'
+  if ~undefined(yexponential_format) then yexponential_format = 'fs_exp_tickformat'
   
   ; loop to get supporting information
   for v_idx=0, n_elements(vars_to_plot)-1 do begin  
@@ -215,7 +247,17 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
 
   ; position for the legend
   if keyword_set(legend_left) then leg_x = 0.04 else leg_x = 0.60
-  leg_y = 0.04
+  if keyword_set(legend_bottom) then begin
+    ; we need the # of spectra to know where to start the list
+    num_spectrograms = 0
+    for vidx=0, n_elements(vars_to_plot)-1 do begin
+      get_data, vars_to_plot[vidx], alimits=vardl
+      str_element, vardl, 'spec', success=spec_exists
+      if spec_exists then num_spectrograms += 1
+    endfor
+    if num_spectrograms gt 3 then leg_y = 0.50 else leg_y = 0.60
+    if num_spectrograms eq 1 then leg_y = 0.65
+  endif else leg_y = 0.04
   leg_dy = 0.04
 
   ; finalizing filename
@@ -230,6 +272,12 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
 
   ; Device = postscript or window
   if KEYWORD_SET(postscript) then popen, fname, /landscape else window, 1
+  
+  if n_elements(vars_to_plot) ge 2 && ~undefined(samples) then begin
+    dprint, dlevel=2, '*********************************************************'
+    dprint, dlevel=2, '****** Warning: using the samples keyword with data from different instruments may lead to invalid comparisons when the data are at different resolutions ******'
+    dprint, dlevel=2, '*********************************************************'
+  endif
   
   ; loop plot
   for v_idx=0, n_elements(vars_to_plot)-1 do begin
@@ -303,6 +351,33 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
       data_out = flatten_spectra_convert_units(vars_to_plot[v_idx], x_data, y_data, vardl, to_kev=to_kev, to_flux=to_flux)
       x_data = data_out['data_x']
       y_data = data_out['data_y']
+      
+      ; the following allows the user to clip the data between [min, max]
+      if ~undefined(xclip) then begin
+        if n_elements(xclip) ne 2 then begin
+          dprint, dlevel=0, 'Error, xclip must be specified as a two-element array containing the minimum and maximum. No data clipped'
+          undefine, xclip
+        endif else begin
+          where_to_clip = where(x_data lt xclip[0] or x_data gt xclip[1], clip_count)
+          if clip_count ne 0 then begin
+            x_data[where_to_clip] = !values.f_nan
+            y_data[where_to_clip] = !values.f_nan
+          endif
+        endelse
+      endif
+      
+      if ~undefined(yclip) then begin
+        if n_elements(yclip) ne 2 then begin
+          dprint, dlevel=0, 'Error, yclip must be specified as a two-element array containing the minimum and maximum. No data clipped'
+          undefine, yclip
+        endif else begin
+          where_to_clip = where(y_data lt yclip[0] or y_data gt yclip[1], clip_count)
+          if clip_count ne 0 then begin
+            x_data[where_to_clip] = !values.f_nan
+            y_data[where_to_clip] = !values.f_nan
+          endif
+        endelse
+      endif
 
       if v_idx eq 0 then begin
         title_format = 'YYYY-MM-DD/hh:mm:ss.fff'
@@ -320,7 +395,7 @@ pro flatten_spectra, xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, nolegen
         
         plot, x_data, y_data, $
           xlog=xlog, ylog=ylog, xrange=xrange, yrange=yrange, $
-          xtitle=xtitle, ytitle=ytitle, $
+          xtitle=xtitle, ytitle=ytitle, xtickformat=xexponential_format, ytickformat=yexponential_format, $
           charsize=charsize, title=title_str, color=colors[v_idx], _extra=_extra
           
           if ~keyword_set(nolegend) then begin

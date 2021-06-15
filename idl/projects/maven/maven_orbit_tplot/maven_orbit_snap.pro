@@ -77,6 +77,8 @@
 ;
 ;       NOORB:    Do not plot the orbit.
 ;
+;       SCSYM:    Symbol for the spacecraft.  Default = 1 (plus symbol).
+;
 ;       RESET:    Initialize all plots.
 ;
 ;       COLOR:    Symbol color index.
@@ -138,8 +140,8 @@
 ;                 last color.  Default is 6 (red) for all.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-02 11:50:19 -0800 (Tue, 02 Mar 2021) $
-; $LastChangedRevision: 29729 $
+; $LastChangedDate: 2021-06-03 12:53:11 -0700 (Thu, 03 Jun 2021) $
+; $LastChangedRevision: 30017 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -148,7 +150,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     npole=npole, noerase=noerase, keep=keep, color=color, reset=reset, cyl=cyl, times=times, $
     nodot=nodot, terminator=terminator, thick=thick, Bdir=Bdir, mscale=mscale, scsym=scsym, $
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
-    alt=doalt, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab, $
+    alt=alt2, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab, $
     scol=scol, tcolors=tcolors, noorb=noorb, monitor=monitor, wscale=wscale
 
   @maven_orbit_common
@@ -163,13 +165,36 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   phi = findgen(49)*(2.*!pi/49)
   usersym,a*cos(phi),a*sin(phi),/fill
   if (size(thick,/type) eq 0) then thick = 1
-  
-  if not keyword_set(scsym) then scsym = 1
 
   tplot_options, get_opt=topt
   delta_t = abs(topt.trange[1] - topt.trange[0])
   if ((size(prec,/type) eq 0) and (delta_t lt (7D*86400D))) then prec = 1
 
+; Load any keyword defaults
+
+  maven_orbit_options, get=key, /silent
+  ktag = tag_names(key)
+  tlist = ['PREC','MHD','HYBRID','LATLON','XZ','MARS','NPOLE','NOERASE','KEEP', $
+           'COLOR','RESET','CYL','TIMES','NODOT','TERMINATOR','THICK','BDIR', $
+           'MSCALE','SCSYM','MAGNIFY','BCLIP','VDIR','VCLIP','VSCALE','VRANGE', $
+           'ALT2','PSNAME','NOLABEL','XY','YZ','LANDERS','SLAB','SCOL','TCOLORS', $
+           'NOORB','MONITOR','WSCALE']
+  for j=0,(n_elements(ktag)-1) do begin
+    i = strmatch(tlist, ktag[j]+'*', /fold)
+    case (total(i)) of
+        0  : ; keyword not recognized -> do nothing
+        1  : begin
+               kname = (tlist[where(i eq 1)])[0]
+               ok = execute('kset = size(' + kname + ',/type) gt 0',0,1)
+               if (not kset) then ok = execute(kname + ' = key.(j)',0,1)
+             end
+      else : print, "Keyword ambiguous: ", ktag[j]
+    endcase
+  endfor
+
+; Process keywords
+
+  if not keyword_set(scsym) then scsym = 1
   if keyword_set(prec) then pflg = 1 else pflg = 0
   if (size(color,/type) gt 0) then begin
     color = color[0]
@@ -196,7 +221,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if keyword_set(Bdir) then dob = 1 else dob = 0
   if keyword_set(Vdir) then dov = 1 else dov = 0
 
-  doalt = keyword_set(doalt)
+  doalt = keyword_set(alt2)
   dolab = ~keyword_set(nolabel)
 
   ok = 0
@@ -231,10 +256,10 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     if (size(slab,/type) gt 0) then dolab = keyword_set(slab) else dolab = 1
     if (dolab) then slab = ['V1','V2','Pa','S','O','Ph','C','I','Pe'] else slab = 0
   endif
-  scol2 = replicate(6,nsites>1)
   ncol = n_elements(scol)
-  if (ncol gt 0) then scol2[0:(ncol-1)<(nsites-1)] = scol[0:(ncol-1)<(nsites-1)]
-  if (ncol lt nsites) then scol2[ncol:(nsites-1)] = scol[ncol-1]
+  if (ncol eq 1) then defcol = scol else defcol = 6
+  scol2 = replicate(defcol,nsites>1)
+  if (ncol gt 1) then scol2[0:(ncol-1)<(nsites-1)] = scol[0:(ncol-1)<(nsites-1)]
   scol = scol2
 
   if keyword_set(times) then begin
@@ -327,7 +352,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
                                  else if (windex eq -1) then putwin, /config
     mnum = fix(monitor[0])
   endif else begin
-    if (size(secondarymon,/type) gt 0) then mnum = secondarymon
+    if (size(windex,/type) gt 0) then if (windex gt -1) then mnum = secondarymon
   endelse
 
   if (size(psname,/type) eq 7) then begin
@@ -337,8 +362,10 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     if (npans eq 1) then begin
       putwin, /free, monitor=mnum, xsize=500, ysize=473, dx=10, dy=10, scale=wscale  ; MSO projections 1x1
       Owin = !d.window
-    endif else begin
-      putwin, /free, monitor=mnum, /yfull, aspect=0.351, dx=10   ; MSO projections 1x3
+    endif else begin                                                                 ; MSO projections 1x3
+      if (windex eq -1) then begin
+        putwin, /free, monitor=mnum, xsize=281, ysize=800, scale=wscale, dx=10
+      endif else putwin, /free, monitor=mnum, /yfull, aspect=0.351, dx=10
       Owin = !d.window
       csize = float(!d.x_size)/175.
     endelse
@@ -458,6 +485,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     yo = ss[rndx,1]
     zo = ss[rndx,2]
     ro = ss[rndx,3]
+    ho = hgt[rndx]
 
     xs = sheath[rndx,0]
     ys = sheath[rndx,1]
@@ -558,8 +586,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (pflg) then i = imid else i = imin
       mlon = atan(yo[i],xo[i])
       mlat = asin(zo[i]/ro[i])
-      alt = (ro[i] - 1D)*R_m
-      szaref = acos(cos(mlon)*cos(mlat))
+      altref = ho[i]
+      szaref = acos(cos(mlon)*cos(mlat))*!radeg
 
       plot,xm,ym,xrange=xrange,yrange=yrange,/xsty,/ysty,/noerase, $
            xtitle='X (Rp)',ytitle='Y (Rp)',charsize=csize,title=msg,thick=thick
@@ -675,11 +703,11 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (dolab) then begin
         if (npans eq 1) then begin
           xyouts, 0.70, 0.87, "View from Pole", /norm, charsize=csize
-          xyouts, 0.70, 0.82, "ALT = " + string(round(href), format='(i4)'), /norm, charsize=csize
-          xyouts, 0.70, 0.77, "SZA = " + string(round(zref), format='(i4)'), /norm, charsize=csize
+          xyouts, 0.70, 0.82, "ALT = " + string(round(altref), format='(i4)'), /norm, charsize=csize
+          xyouts, 0.70, 0.77, "SZA = " + string(round(szaref), format='(i4)'), /norm, charsize=csize
         endif else begin
-          xyouts, 0.73, 0.95, "ALT = " + string(round(href), format='(i4)'), /norm, charsize=csize/2.
-          xyouts, 0.73, 0.93, "SZA = " + string(round(zref), format='(i4)'), /norm, charsize=csize/2.
+          xyouts, 0.73, 0.95, "ALT = " + string(round(altref), format='(i4)'), /norm, charsize=csize/2.
+          xyouts, 0.73, 0.93, "SZA = " + string(round(szaref), format='(i4)'), /norm, charsize=csize/2.
           xyouts, 0.67, 0.62, "View from Side", /norm, charsize=csize/2.
           xyouts, 0.67, 0.285, "View from Sun", /norm, charsize=csize/2.
         endelse
@@ -816,8 +844,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
 
       if (dolab and (npans eq 1)) then begin
         xyouts, 0.70, 0.87, "View from Side", /norm, charsize=csize
-        xyouts, 0.70, 0.82, "ALT = " + string(round(href), format='(i4)'), /norm, charsize=csize
-        xyouts, 0.70, 0.77, "SZA = " + string(round(zref), format='(i4)'), /norm, charsize=csize
+        xyouts, 0.70, 0.82, "ALT = " + string(round(altref), format='(i4)'), /norm, charsize=csize
+        xyouts, 0.70, 0.77, "SZA = " + string(round(szaref), format='(i4)'), /norm, charsize=csize
       endif
 
       pan--
@@ -915,8 +943,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
 
       if (dolab and (npans eq 1)) then begin
         xyouts, 0.70, 0.87, "View from Sun", /norm, charsize=csize
-        xyouts, 0.70, 0.82, "ALT = " + string(round(href), format='(i4)'), /norm, charsize=csize
-        xyouts, 0.70, 0.77, "SZA = " + string(round(zref), format='(i4)'), /norm, charsize=csize
+        xyouts, 0.70, 0.82, "ALT = " + string(round(altref), format='(i4)'), /norm, charsize=csize
+        xyouts, 0.70, 0.77, "SZA = " + string(round(szaref), format='(i4)'), /norm, charsize=csize
       endif
 
     endif
@@ -997,9 +1025,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       if (first) then erase
       mlon = mlon*!radeg
       mlat = mlat*!radeg
-      szaref = szaref*!radeg
 
-      title = string(mlon,mlat,alt,szaref,$
+      title = string(mlon,mlat,altref,szaref,$
                 format='("Lon = ",f6.1,2x,"Lat = ",f5.1,2x,"Alt = ",f5.0,2x,"SZA = ",f5.1)')
 
       plot,[mlon],[mlat],xrange=[-180,180],/xsty,yrange=[-90,90],/ysty,$

@@ -156,11 +156,17 @@
 ;
 ;        CSCALE:       Scale all characters by this factor.  Default = 1.
 ;
+;        PADMAP:       Show the pitch angle map for the current spectrum.
+;                      Boundaries for the 3D solid angle bins are shown, and
+;                      if TSMO=0 and SUM=0, then boundaries for the PAD cut 
+;                      are also shown.  Bins blocked by the spacecraft are 
+;                      marked with a yellow 'X'.
+;
 ;        NOTE:         Insert a text label.  Keep it short.
-;        
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-02 11:48:03 -0800 (Tue, 02 Mar 2021) $
-; $LastChangedRevision: 29727 $
+; $LastChangedDate: 2021-04-24 13:53:44 -0700 (Sat, 24 Apr 2021) $
+; $LastChangedRevision: 29915 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -177,7 +183,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                   xrange=xrange, error_bars=error_bars, yrange=yrange, trange=trange2, $
                   note=note, mincounts=mincounts, maxrerr=maxrerr, tsmo=tsmo, $
                   sundir=sundir, wscale=wscale, cscale=cscale, fscale=fscale, $
-                  result=result, vdis=vdis
+                  result=result, vdis=vdis, padmap=padmap
 
   @mvn_swe_com
   @putwin_common
@@ -193,19 +199,20 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
   swe_snap_options, get=key, /silent
   ktag = tag_names(key)
-  klist = ['KEEPWINS','ARCHIVE','ENERGY','UNITS','DDD','ZRANGE','SUM', $
+  tlist = ['KEEPWINS','ARCHIVE','ENERGY','UNITS','DDD','ZRANGE','SUM', $
            'LABEL','SMO','DIR','MASK_SC','ABINS','DBINS','OBINS','BURST', $
            'POT','SCP','SPEC','PLOTLIMS','NORM','CENTER','PEP','RESAMPLE', $
            'HIRES','FBDATA','MONITOR','ADIABATIC','NOMID','UNCERTAINTY', $
            'NOSPEC90','SHIFTPOT','POPEN','INDSPEC','TWOPOT','XRANGE',$
            'ERROR_BARS','YRANGE','TRANGE2','NOTE','MINCOUNTS','MAXRERR', $
-           'TSMO','SUNDIR','WSCALE','CSCALE','FSCALE','RESULT','VDIS']
+           'TSMO','SUNDIR','WSCALE','CSCALE','FSCALE','RESULT','VDIS', $
+           'PADMAP']
   for j=0,(n_elements(ktag)-1) do begin
-    i = strmatch(klist, ktag[j]+'*', /fold)
+    i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
         0  : ; keyword not recognized -> do nothing
         1  : begin
-               kname = (klist[where(i eq 1)])[0]
+               kname = (tlist[where(i eq 1)])[0]
                ok = execute('kset = size(' + kname + ',/type) gt 0',0,1)
                if (not kset) then ok = execute(kname + ' = key.(j)',0,1)
              end
@@ -231,6 +238,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     xrange = minmax(xrange)
     xflg = 1
   endif else xflg = 0
+  padmap = keyword_set(padmap)
 
   case n_elements(trange2) of
        0 : tflg = 0
@@ -457,6 +465,11 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     Vwin = !d.window
   endif
 
+  if (padmap) then begin
+    putwin, /free, monitor=mnum, xsize=600, ysize=450, dx=-10, dy=-10, scale=wscale
+    Mwin = !d.window
+  endif
+
 ; Set plot options
 
   limits = {no_interp:1, xlog:1, xrange:xrange, xstyle:1, xtitle:'Energy (eV)', $
@@ -534,6 +547,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     if (sflg) then wdelete,Nwin
     if (dospec) then wdelete,Ewin
     if (rflg or hflg or uflg) then wdelete,Pwin
+    if (padmap) then wdelete,Mwin
     wset,Twin
     return
   endif
@@ -689,10 +703,20 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
       ylo = pad.pa_min*!radeg
       yhi = pad.pa_max*!radeg
       z = smooth(pad.data*pmask,[smo,1],/nan)/fscale
+      v = pad.var
 
       if (sflg) then begin
-        de = min(abs(energy - x),i)
-        penergy = x[i]
+        case n_elements(energy) of
+            0  : ; this is impossible
+            1  : begin
+                   de = min(abs(energy - x),i)
+                   penergy = x[i]
+                 end
+          else : begin
+                   erange = minmax(energy)
+                   i = where((x ge erange[0]) and (x le erange[1]), count)
+                 end
+        endcase
       endif
       
       if (nflg) then begin
@@ -1062,6 +1086,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         if (dflg and ~dwell) then begin
           ddd = mvn_swe_get3d(trange,archive=aflg,all=doall,/sum,units=units)
           if (size(ddd,/type) eq 8) then begin
+            loadct2,34,previous=pct
             indx = where(fovmask[*,boom] eq 0B, count)
             if (count gt 0L) then ddd.data[*,indx] = !values.f_nan
 
@@ -1096,6 +1121,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 ;             Sel = -Sel
 ;             oplot,[Saz],[Sel],psym=7,color=col,thick=2,symsize=1.2
             endif
+            loadct2, pct
           endif
         endif
       endif
@@ -1334,6 +1360,67 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         !p.multi=0
     endif
 
+    if (padmap) then begin
+      wset, Mwin
+
+      Naz = 256
+      daz = 2.*!pi/float(Naz)
+      az = daz*findgen(Naz + 1)
+
+      Nel = 128
+      elmin = (swe_el[0,63,pad.group] - 0.5*swe_del[0,63,pad.group])*!dtor
+      elmax = (swe_el[5,63,pad.group] + 0.5*swe_del[5,63,pad.group])*!dtor
+      del = (elmax - elmin)/float(Nel)
+      el = elmin + del*findgen(Nel + 1)
+
+      azm = az # replicate(1.,Nel+1)
+      elm = replicate(1.,Naz+1) # el
+      pam = acos(cos(azm - pad.Baz)*cos(elm)*cos(pad.Bel) + sin(elm)*sin(pad.Bel))
+
+      contour,pam*!radeg,az*!radeg,el*!radeg,levels=10*indgen(19),c_labels=replicate(1,19),$
+              xrange=[0,360],xstyle=9,xticks=4,xminor=3,yrange=[-90,90],ystyle=9,$
+              yticks=6,yminor=3,xmargin=[10,10],ymargin=[6,6],$
+              xtitle='SWEA Azimuth',ytitle='SWEA Elevation',charsize=csize2,$
+              c_charsize=csize1
+
+      axis,/yaxis,yrange=[1,181],charsize=csize2,ystyle=1,ytitle='Elevation Bin',$
+               yticks=6,yminor=0,yticklen=-0.00001,ytickv=(swe_el[*,63,0] + 91.),$
+               ytickname=string(indgen(6),format='(" ",i1," ")'),color=4
+
+      axis,/xaxis,xrange=[1,361],charsize=csize2,xstyle=1,xtitle='Azimuth Bin',$
+               xticks=16,xminor=0,xticklen=-0.00001,xtickv=(swe_az + 1.),$
+               xtickname=string(indgen(16),format='(i2)'),color=4
+
+      az = 22.5*findgen(17)
+      for i=1,15 do oplot,[az[i],az[i]],[elmin,elmax]*!radeg,color=4,linestyle=1
+      el = [swe_el[*,63,pad.group] - (swe_del[*,63,pad.group]/2.), elmax*!radeg]
+      for i=0,6 do oplot,[0,360],[el[i],el[i]],color=4,linestyle=1
+
+      if (~dosmo and (npts eq 1)) then for k=0,15 do begin
+        i = pad.iaz[k]
+        j = pad.jel[k]
+        azbox = [az[i], az[i+1], az[i+1], az[i]   ,az[i]]
+        elbox = [el[j], el[j]  , el[j+1], el[j+1] ,el[j]]
+        oplot,azbox,elbox,color=6,linestyle=2
+      endfor
+
+      kb = where(swe_sc_mask[*,boom] eq 0, count)
+      ib = kb mod 16
+      jb = kb / 16
+      for k=0,(count-1) do begin
+        i = ib[k]
+        j = jb[k]
+        oplot,[mean(az[i:i+1])],[mean(el[j:j+1])],psym=7,color=5
+      endfor
+
+      az = pad.Baz*!radeg
+      el = pad.Bel*!radeg
+      oplot,[az],[el],psym=1,symsize=2
+      if (az gt 180.) then az -= 180. else az += 180.
+      el = -el
+      oplot,[az],[el],psym=4,symsize=2
+    endif
+
     if (psflg) then pclose
     nplot++
     
@@ -1358,6 +1445,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
     if (rflg or hflg or uflg) then wdelete, Pwin
     if (doind) then wdelete, Iwin
     if (dov) then wdelete, vwin
+    if (padmap) then wdelete, Mwin
   endif
 
   wset, Twin

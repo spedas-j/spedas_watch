@@ -80,7 +80,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   spdf = spdf, available = available, versions = versions, $
   always_prompt = always_prompt, major_version=major_version, tt2000=tt2000
 
-  if undefined(probes) then probes = ['a'] ; default to ela
+  if undefined(probes) then probes = ['a','b'] ; default to ela
   if probes EQ ['*'] then probes = ['a', 'b']
   if n_elements(probes) GT 2 then begin
     dprint, dlevel = 1, 'There are only 2 ELFIN probes - a and b. Please select again.'
@@ -91,7 +91,7 @@ pro elf_load_state, trange = trange, probes = probes, datatype = datatype, $
   idx = where(probes EQ 'a', acnt)
   idx = where(probes EQ 'b', bcnt)
   if acnt EQ 0 && bcnt EQ 0 then begin
-    dprint, dlevel = 1, 'Invalid probe name. Valid probes are a and/or b. Please select again.'
+    dprint, dlevel = 1, 'Invalid probe name. Valid probes are a and b. Please select again.'
     return    
   endif
 

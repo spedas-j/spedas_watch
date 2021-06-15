@@ -420,11 +420,13 @@ end
 pro aacgmidl_v2
 
   ; set up the environmental variables
-  rt_dir = routine_dir()
+  rt_info = routine_info('aacgmidl_v2',/source)
+  basedir=file_dirname(rt_info.path)
 
-  setenv, 'AACGM_v2_DAT_PREFIX='+rt_dir+'/coeffs/aacgm_coeffs-13-'
-  setenv, 'IGRF_COEFFS='+rt_dir+'/magmodel_1590-2020.txt'
-
+  envstring1='AACGM_v2_DAT_PREFIX='+basedir+path_sep()+'coeffs'+path_sep()+'aacgm_coeffs-13-'
+  envstring2='IGRF_COEFFS='+basedir+path_sep()+'magmodel_1590-2020.txt'
+  setenv,envstring1
+  setenv,envstring2
   ; compile and initialize all routines needed for aacgm-v2
   igrflib_v2  
   aacgmlib_v2

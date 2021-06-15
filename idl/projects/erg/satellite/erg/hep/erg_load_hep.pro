@@ -20,7 +20,9 @@
 ;               repository, usually working with remote_srv keyword. 
 ;  download_only: If set, the program finishes after downloading data files, not making tplot vars. 
 ;  get_enecntr: If a named variable is set, an array containing the central values of 
-;               energy bins (by log-averaging) is returned. 
+;               energy bins (by log-averaging) is returned.
+;  get_filever: Set to create a tplot variable "erg_load_datalist"
+;               containing the version information of data files
 ;  
 ;:History:
 ; 2018/08/02: ver.2 (for public release)
@@ -31,8 +33,8 @@
 ; Tomo Hori, ERG Science Center ( E-mail: tomo.hori _at_ nagoya-u.jp )
 ;
 ; Written by: T. Hori
-;   $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-;   $LastChangedRevision: 29445 $
+;   $LastChangedDate: 2021-03-25 13:25:21 -0700 (Thu, 25 Mar 2021) $
+;   $LastChangedRevision: 29822 $
 ;-
 pro erg_load_hep, files=files, level=level, datatype=datatype, varformat=varformat, $
                   version=version, $
@@ -43,6 +45,7 @@ pro erg_load_hep, files=files, level=level, datatype=datatype, varformat=varform
                   get_enecntr=get_enecntr, $
                   uname=uname, passwd=passwd, $
                   ror=ror, $
+                  get_filever=get_filever, $
                   debug=debug
   
   if ~keyword_set(debug) then debug = 0
@@ -104,6 +107,8 @@ pro erg_load_hep, files=files, level=level, datatype=datatype, varformat=varform
   endif
   files = files[idx] 
   
+  ;; Obtain the version information of data files
+  if keyword_set(get_filever) then erg_export_filever, files
   
   ;Load the data and convert to tplot variables
   prefix = 'erg_hep_'+level+'_'

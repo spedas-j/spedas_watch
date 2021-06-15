@@ -16,7 +16,8 @@
 ;-
 pro ovalget,qindx,pwdboundlonlat,ewdboundlonlat
 
-  ovaldir=routine_dir()+'ovals\'   ;'C:\Users\clrussell\Desktop\spedas\projects\elfin\plots\
+  res=routine_info('ovalget', /source)
+  ovaldir=strmid(res.path,0,strlen(res.path)-11)+'ovals\'
   ovalpfile='ov_q'+strtrim(long(qindx),1)+'_p.dat' ; p for poleward ; fixed to not bomb for q=6
   ovalefile='ov_q'+strtrim(long(qindx),1)+'_e.dat' ; e for equatorward ; fixed to not bomb for q=6
 

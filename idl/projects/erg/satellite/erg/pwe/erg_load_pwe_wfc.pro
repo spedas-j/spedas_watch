@@ -32,8 +32,8 @@
 ;   Masafumi Shoji, ERG Science Center (E-mail: masafumi.shoji at
 ;   nagoya-u.jp)
 ;
-; $LastChangedDate: 2020-12-08 06:04:52 -0800 (Tue, 08 Dec 2020) $
-; $LastChangedRevision: 29445 $
+; $LastChangedDate: 2021-03-25 13:26:37 -0700 (Thu, 25 Mar 2021) $
+; $LastChangedRevision: 29823 $
 ; https://ergsc-local.isee.nagoya-u.ac.jp/svn/ergsc/trunk/erg/satellite/erg/pwe/erg_load_pwe_wfc.pro $
 ;-
 
@@ -56,9 +56,8 @@ pro erg_load_pwe_wfc, $
   ;if undefined(level) then level='l2_prov' 
   if undefined(level) then level='l2'
   if undefined(mode) then mode='65khz' ;; 'wp65khz'
-  ;if undefined(datatype) then datatype = 'spec'
-  if undefined(datatype) then datatype = 'data'
-  if undefined(coord) then coord = 'dsi'
+  if undefined(datatype) then datatype = 'waveform'
+  if undefined(coord) then coord = 'sgi'
 
   if undefined(trange) then begin
      get_timespan, trange
@@ -67,15 +66,15 @@ pro erg_load_pwe_wfc, $
   if undefined(downloadonly) then downloadonly = 0
   if undefined(no_download) then begin
      no_download = 0
-     if ~keyword_set(uname) then begin
-        uname=''
-        read, uname, prompt='Enter username: '
-     endif
+;     if ~keyword_set(uname) then begin
+;        uname=''
+;        read, uname, prompt='Enter username: '
+;     endif
 
-     if ~keyword_set(passwd) then begin
-        passwd=''
-        read, passwd, prompt='Enter passwd: '
-     endif
+;     if ~keyword_set(passwd) then begin
+;        passwd=''
+;        read, passwd, prompt='Enter passwd: '
+;     endif
   endif
 
 
@@ -124,10 +123,9 @@ pro erg_load_pwe_wfc, $
        endif else begin
          relfpathfmt = 'YYYY/MM/erg_pwe_wfc_'+com[i]+'_'+level+'_'+datatype+'_'+mode+'_YYYYMMDDhh_v??.cdf'
        endelse
-     endif else begin
-       relfpathfmt = 'YYYY/MM/erg_pwe_wfc_'+level+'_'+com[i]+'_'+mode+'_YYYYMMDDhh_v??_??.cdf'
-       ; relfpathfmt = 'YYYY/MM/erg_pwe_wfc_'+level+'_'+com[i]+'_'+mode+'_'+coord+'_YYYYMMDDhh_v??_??.cdf'
-     endelse
+     endif else if strcmp(datatype, 'waveform') then begin
+       relfpathfmt = 'YYYY/MM/erg_pwe_wfc_'+level+'_'+com[i]+'_'+datatype+'_'+mode+'_'+coord+'_YYYYMMDDhh_v??_??.cdf'
+     endif
      relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times, /hour_res)
 
      localdir=!erg.local_data_dir+'satellite/erg/pwe/wfc/'+Lvl+'/'+datatype+'/'
@@ -220,6 +218,7 @@ pro erg_load_pwe_wfc, $
      
      ndata=nt*ndt
      
+     if ndata le 0 then continue
      time_new=dblarr(ndata)
      data_new=fltarr(ndata)
 
@@ -266,37 +265,8 @@ pro erg_load_pwe_wfc, $
   print, '**********************************************************************'
 
 
-  ;;;;;;;;;extract erg_load_datalist [version number] ;;;;;;;;;;;;;;;;;;
-  
-  
-  get_data, 'erg_load_datalist', data=datalist
+  ; storing data information
+  erg_export_filever, datfiles
 
-  if (undefined(datalist) or (ISA(datalist, 'hash') NE 1)) then begin
-    datalist = hash()
-    filelist = hash()
-  endif
-
-  foreach file, datfiles do begin
-
-    p1 = strpos(file, '/', /REVERSE_SEARCH)
-    p2 = strpos(file, '_v', /REVERSE_SEARCH)
-    fn = strmid(file, p1+1, (p2-9-p1-1))
-
-    if datalist.HasKey(fn) then filelist = datalist[fn] else filelist = hash()
-
-    cdfinx = strpos(file, '.cdf')
-    ymd = strmid(file, cdfinx - 15, 8)
-    Majver = strmid(file, cdfinx - 5, 2)
-    Minver = strmid(file, cdfinx - 2, 2)
-
-    filelist[ymd] = hash('major',Majver, 'minor',Minver, 'fullpath', file )
-    datalist[fn] = filelist
-
-
-  endforeach
-
-  store_data, 'erg_load_datalist', data=datalist
-
-  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 END

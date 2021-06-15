@@ -15,69 +15,10 @@
 ;              value. If a tplot input is used it will be interpolated to
 ;              match the time inputs from the position var. Non-tplot array values
 ;              must match the number of times in the tplot input for pos_gsm_tvar
+;              
+;          Other parameters (Dst, yimf, zimf, etc) are derived from the downloaded coefficient 
+;          files and do not need to be passed explicitly.
 ;
-;          dsti(optional): DST index(nanoTeslas)  should either be a
-;              string naming a tplot variable or an array or a single
-;              value.  If a tplot input is used it will be interpolated to
-;              match the time inputs from the position var. Non-tplot array values
-;              must match the number of times in the tplot input for pos_gsm_tvar
-;
-;         yimf(optional): y component of the interplanetary magnetic field
-;             should either be a string naming a tplot variable or an
-;             array or a single value.  If a tplot input is used it will
-;             be interpolated to match the time inputs from the position
-;             var. Non-tplot array values must match the number of times in the
-;             tplot input for pos_gsm_tvar
-;
-;         zimf(optional): z component of the interplanetary magnetic field
-;             should either be a string naming a tplot variable or an
-;             array or a single value.  If a tplot input is used it will
-;             be interpolated to match the time inputs from the position
-;             var. Non-tplot array values must match the number of times in the
-;             tplot input for pos_gsm_tvar
-;
-;         w1(optional):  time integral from the beginning of a storm
-;             can be an array or a tplot variable(see paper reference
-;             below for definitions of w1-w6) or a single value.
-;             If a tplot input is used it will
-;             be interpolated to match the time inputs from the position
-;             var. Non-tplot array values must match the number of times in the
-;             tplot input for pos_gsm_tvar
-;
-;         w2(optional): time integral from the beginning of a storm
-;             can be an array or a tplot variable or a single value
-;             If a tplot input is used it will
-;             be interpolated to match the time inputs from the position
-;             var. Non-tplot array values must match the number of times in the
-;             tplot input for pos_gsm_tvar
-;
-;         w3(optional):  time integral from the beginning of a storm
-;             can be an array or a tplot variable or a single value
-;             If a tplot input is used it will
-;             be interpolated to match the time inputs from the position
-;             var. Non-tplot array values must match the number of times in the
-;             tplot input for pos_gsm_tvar
-;
-;         w4(optional): time integral from the beginning of a storm
-;             can be an array or a tplot variable or a single value
-;             If a tplot input is used it will
-;             be interpolated to match the time inputs from the position
-;             var. Non-tplot array values must match the number of times in the
-;             tplot input for pos_gsm_tvar
-;
-;         w5(optional):  time integral from the beginning of a storm
-;             can be an array or a tplot variable or a single value
-;             If a tplot input is used it will
-;             be interpolated to match the time inputs from the position
-;             var. Non-tplot array values must match the number of times in the
-;             tplot input for pos_gsm_tvar
-;
-;         w6(optional): time integral from the beginning of a storm
-;             can be an array or a tplot variable or a single value
-;             If a tplot input is used it will
-;             be interpolated to match the time inputs from the position
-;             var. Non-tplot array values must match the number of times in the
-;             tplot input for pos_gsm_tvar;
 ;
 ;         parmod(optional): can input the Nx10 parmod array used by the
 ;             fortran Tsyganenko model instead of inputing parameters as
@@ -117,6 +58,9 @@
 ;              that should be used for each period. If a tplot input is used it will be interpolated to match the time inputs from the position
 ;              var. Non-tplot array values must match the number of times in the tplot input for pos_gsm_tvar
 ;
+;         exact_tilt_times (optional):  Set this keyword to avoid grouping similar times (default 10 minutes) and instead
+;              recalculate the dipole tilt at each input time
+;
 ;         geopack_2008 (optional): Set this keyword to use the latest version (2008) of the Geopack
 ;              library. Version 9.2 of the IDL Geopack DLM is required for this keyword to work.
 ;
@@ -128,21 +72,10 @@
 ;                                  IOPGEN=4 - RING CURRENT FIELD ONLY
 ;                                  IOPGEN=5 - INTERCONNECTION FIELD ONLY
 ;
-;         IOPT (optional)
-;         -  TAIL FIELD FLAG:       IOPT=0  -  BOTH MODES
-;                                   IOPT=1  -  MODE 1 ONLY
-;                                   IOPT=2  -  MODE 2 ONLY
+;        param_dir (optional): Directory with files for TS07 model coefficients. 
 ;
-;         IOPB (optional)
-;         -  BIRKELAND FIELD FLAG: IOPB=0  -  ALL 4 TERMS
-;                                  IOPB=1  -  REGION 1, MODES 1 AND 2
-;                                  IOPB=2  -  REGION 2, MODES 1 AND 2
-;
-;         IOPR (optional)
-;         -  RING CURRENT FLAG:    IOPR=0  -  BOTH SRC AND PRC
-;                                  IOPR=1  -  SRC ONLY
-;                                  IOPR=2  -  PRC ONLY
-;
+;        param_file (optional): Filename of TS07 model coefficients file.
+;        
 ; Output: Stores the result of the field model calculations in tplot variables
 ;
 ; Notes:
@@ -163,15 +96,11 @@
 ;            http://geo.phys.spbu.ru/~tsyganenko/modeling.html
 ;            -or-
 ;            http://ampere.jhuapl.edu/code/idl_geopack.html
-;        7. Definition of W1-W6 can be found at:
-;            Tsyganenko, N. A., and M. I. Sitnov (2005), Modeling the dynamics of the
-;            inner magnetosphere during strong geomagnetic storms, J. Geophys.
-;            Res., v. 110 (A3), A03208, doi: 10.1029/2004JA010798.
-;        8. For a description of the ts07 model, see:
+;        7. For a description of the ts07 model, see:
 ;            Tsyganenko, N. A., and M. I. Sitnov (2007), Magnetospheric configurations 
 ;            from a highresolution data-based magnetic field model, J. Geophys. 
 ;            Res., v. 112 (A6), A06225, doi: 10.1029/2007ja012260.
-;        9. Here, both 'ts07' and 'ts07d' are used for the same model.    
+;        8. Here, both 'ts07' and 'ts07d' are used for the same model.    
 ;
 ; $LastChangedBy: $
 ; $LastChangedDate: $
@@ -179,11 +108,10 @@
 ; $URL: $
 ;-
 
-pro tts07, pos_gsm_tvar, pdyn=pdyn, dsti=dsti, yimf=yimf, zimf=zimf, $
-  w1=w1, w2=w2, w3=w3, w4=w4, w5=w5, w6=w6, parmod=parmod, period=period, $
+pro tts07, pos_gsm_tvar, pdyn=pdyn, parmod=parmod, period=period, $
   get_nperiod=get_nperiod, newname=newname, error=error, get_tilt=get_tilt, $
   set_tilt=set_tilt, add_tilt=add_tilt, geopack_2008=geopack_2008, $
-  iopgen=iopgen, iopt=iopt, iopb=iopb, iopr=iopr
+  iopgen=iopgen,  exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file
 
   error = 0
   
@@ -222,107 +150,17 @@ pro tts07, pos_gsm_tvar, pdyn=pdyn, dsti=dsti, yimf=yimf, zimf=zimf, $
       pdyn_dat = par_temp[*,0]
     endelse
 
-    if n_elements(dsti) gt 0 then begin
-      dsti_dat = tsy_valid_param(dsti, var_name)
-      if(size(dsti_dat, /n_dim) eq 0 && dsti_dat[0] eq -1L) then return
-    endif else begin
-      dsti_dat = par_temp[*,1]
-    endelse
-
-    if n_elements(yimf) gt 0 then begin
-      yimf_dat = tsy_valid_param(yimf, var_name)
-      if(size(yimf_dat, /n_dim) eq 0 && yimf_dat[0] eq -1L) then return
-    endif else begin
-      yimf_dat = par_temp[*,2]
-    endelse
-
-    if n_elements(zimf) gt 0 then begin
-      zimf_dat = tsy_valid_param(zimf, var_name)
-      if(size(zimf_dat, /n_dim) eq 0 && zimf_dat[0] eq -1L) then return
-    endif else begin
-      zimf_dat = par_temp[*,3]
-    endelse
-
-    if n_elements(w1) gt 0 then begin
-      w1_dat = tsy_valid_param(w1, var_name)
-      if(size(w1_dat, /n_dim) eq 0 && w1_dat[0] eq -1L) then return
-    endif else begin
-      w1_dat = par_temp[*,4]
-    endelse
-
-    if n_elements(w2) gt 0 then begin
-      w2_dat = tsy_valid_param(w2, var_name)
-      if(size(w2_dat, /n_dim) eq 0 && w2_dat[0] eq -1L) then return
-    endif else begin
-      w2_dat = par_temp[*,5]
-    endelse
-
-    if n_elements(w3) gt 0 then begin
-      w3_dat = tsy_valid_param(w3, var_name)
-      if(size(w3_dat, /n_dim) eq 0 && w3_dat[0] eq -1L) then return
-    endif else begin
-      w3_dat = par_temp[*,6]
-    endelse
-
-    if n_elements(w4) gt 0 then begin
-      w4_dat = tsy_valid_param(w4, var_name)
-      if(size(w4_dat, /n_dim) eq 0 && w4_dat[0] eq -1L) then return
-    endif else begin
-      w4_dat = par_temp[*,7]
-    endelse
-
-    if n_elements(w5) gt 0 then begin
-      w5_dat = tsy_valid_param(w5, var_name)
-      if(size(w5_dat, /n_dim) eq 0 && w5_dat[0] eq -1L) then return
-    endif else begin
-      w5_dat = par_temp[*,8]
-    endelse
-
-    if n_elements(w6) gt 0 then begin
-      w6_dat = tsy_valid_param(w6, var_name)
-      if(size(w6_dat, /n_dim) eq 0 && w6_dat[0] eq -1L) then return
-    endif else begin
-      w6_dat = par_temp[*,9]
-    endelse
 
   endif else begin
     ; the user didn't provide a parameter array (parmod), need to check
     ; the individual parameter keywords
-    if undefined(pdyn) || undefined(dsti) || undefined(yimf) || $
-      undefined(zimf) || undefined(w1) || undefined(w2) || $
-      undefined(w3) || undefined(w4) || undefined(w5) || undefined(w6) then begin
-      dprint, dlevel = 1, 'Error, missing one or more of the required model parameters'
+    if undefined(pdyn) then begin
+      dprint, dlevel = 1, 'Error, missing required Pdyn model parameters'
       return
     endif
     pdyn_dat = tsy_valid_param(pdyn, var_name)
     if(size(pdyn_dat, /n_dim) eq 0 && pdyn_dat[0] eq -1L) then return
 
-    dsti_dat = tsy_valid_param(dsti, var_name)
-    if(size(dsti_dat, /n_dim) eq 0 && dsti_dat[0] eq -1L) then return
-
-    yimf_dat = tsy_valid_param(yimf, var_name)
-    if(size(yimf_dat, /n_dim) eq 0 && yimf_dat[0] eq -1L) then return
-
-    zimf_dat = tsy_valid_param(zimf, var_name)
-    if(size(zimf_dat, /n_dim) eq 0 && zimf_dat[0] eq -1L) then return
-
-    w1_dat = tsy_valid_param(w1, var_name)
-    if(size(w1_dat, /n_dim) eq 0 && w1_dat[0] eq -1L) then return
-
-    w2_dat = tsy_valid_param(w2, var_name)
-    if(size(w2_dat, /n_dim) eq 0 && w2_dat[0] eq -1L) then return
-
-    w3_dat = tsy_valid_param(w3, var_name)
-    if(size(w3_dat, /n_dim) eq 0 && w3_dat[0] eq -1L) then return
-
-    w4_dat = tsy_valid_param(w4, var_name)
-    if(size(w4_dat, /n_dim) eq 0 && w4_dat[0] eq -1L) then return
-
-    w5_dat = tsy_valid_param(w5, var_name)
-    if(size(w5_dat, /n_dim) eq 0 && w5_dat[0] eq -1L) then return
-
-    w6_dat = tsy_valid_param(w6, var_name)
-    if(size(w6_dat, /n_dim) eq 0 && w6_dat[0] eq -1L) then return
   endelse
 
   get_data, var_name, data = d, dlimits = dl, limits = l
@@ -342,20 +180,17 @@ pro tts07, pos_gsm_tvar, pdyn=pdyn, dsti=dsti, yimf=yimf, zimf=zimf, $
 
   ;do the calculation, division converts position into earth radii units
   if n_elements(set_tilt) gt 0 then begin
-    mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, dsti_dat, yimf_dat, zimf_dat, w1_dat, $
-      w2_dat, w3_dat, w4_dat, w5_dat, w6_dat, period=period, get_nperiod=get_nperiod, $
+    mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat, set_tilt=set_tilt_dat, $
-      iopgen=iopgen, geopack_2008=geopack_2008, iopt=iopt, iopb=iopb, iopr=iopr)
+      iopgen=iopgen, geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file)
   endif else if n_elements(add_tilt) gt 0 then begin
-    mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, dsti_dat, yimf_dat, zimf_dat, w1_dat, $
-      w2_dat, w3_dat, w4_dat, w5_dat, w6_dat, period=period, get_nperiod=get_nperiod, $
+    mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat, add_tilt=add_tilt_dat, $
-      iopgen=iopgen, geopack_2008=geopack_2008, iopt=iopt, iopb=iopb, iopr=iopr)
+      iopgen=iopgen, geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file)
   endif else begin
-    mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, dsti_dat, yimf_dat, zimf_dat, w1_dat, $
-      w2_dat, w3_dat, w4_dat, w5_dat, w6_dat, period=period, get_nperiod=get_nperiod, $
+    mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat, iopgen=iopgen, geopack_2008=geopack_2008, $
-      iopt=iopt, iopb=iopb, iopr=iopr)
+      exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file)
   endelse
 
   if size(mag_array, /n_dim) eq 0 && mag_array[0] eq -1L then begin

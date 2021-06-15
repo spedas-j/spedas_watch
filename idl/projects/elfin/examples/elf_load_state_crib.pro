@@ -38,7 +38,7 @@ stop
 ; no probe specified so will get all probes
 ; no level specified so will default to definitive data if available
 elf_load_state
-tplot, ['el*']
+tplot, ['el*gei']
 stop
 
 ; variables loaded so far
@@ -46,7 +46,7 @@ tplot_names
 stop
 
 ; remove tplot variables created so far
-del_data, 'el*'
+del_data, 'ela*'
 
 ; set to future date
 date = '2019-11-31/00:00:00'

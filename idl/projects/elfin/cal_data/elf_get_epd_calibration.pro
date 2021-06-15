@@ -20,6 +20,7 @@
 ;         trange:      start/stop time frame ['mmmm-yy-dd/hh:mm:ss','mmmm-yy-dd/hh:mm:ss']
 ;         probe:       elfin probe name, 'a' or 'b'
 ;         instrument:  epd instrument name, 'epde' or 'epdi'
+;         no_download: set this flag to turn off download and use local files only
 ;
 ; EXAMPLES:
 ;         elf> cal_params = elf_get_epd_calibration(probe='a', instrument='epde', trange=tr)
@@ -34,7 +35,7 @@
 ;$LastChangedRevision: 25588 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_cal_mrmi.pro $
 ;-
-function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=trange
+function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=trange, no_download=no_download
 
   ;check that parameters are set and initialized
   if ~keyword_set(probe) then probe='a'
@@ -47,7 +48,7 @@ function elf_get_epd_calibration, probe=probe, instrument=instrument, trange=tra
 
   if instrument EQ 'epde' then begin
       ; get calibration values from log file
-      epd_cal_log=elf_read_epd_cal_data(probe=probe, instrument='epde', trange=trange)
+      epd_cal_log=elf_read_epd_cal_data(probe=probe, instrument='epde', trange=trange, no_download=no_download)
       epde_gf=epd_cal_log.gf
       epde_overaccumulation_factors=epd_cal_log.overaccumulation_factors
       epde_thresh_factors=epd_cal_log.thresh_factors      
