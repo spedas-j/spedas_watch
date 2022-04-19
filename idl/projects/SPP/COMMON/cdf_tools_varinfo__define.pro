@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson October 2018
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
-; $LastChangedRevision: 30043 $
+; $LastChangedDate: 2021-12-18 02:19:05 -0800 (Sat, 18 Dec 2021) $
+; $LastChangedRevision: 30472 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/cdf_tools_varinfo__define.pro $
 ;-
 
@@ -15,7 +15,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
   if ~isa(vname,/string) then return,att
   ;  Create default value place holders
   EPOCHname = 'Epoch'
-  att['CATDESC']     = vname          ;required for all variables: (catalog description) is an approximately 80-character string which is a textual description of the variable and includes a description of what the variable depends on. This information needs to be complete enough that users can select variables of interest based only on this value. 
+  att['CATDESC']     = vname          ;required for all variables: (catalog description) is an approximately 80-character string which is a textual description of the variable and includes a description of what the variable depends on. This information needs to be complete enough that users can select variables of interest based only on this value.
   att['FIELDNAM']    = vname          ;required for all variables: holds a character string (up to 30 characters) which describes the variable. It can be used to label a plot either above or below the axis, or can be used as a data listing heading. Therefore, consideration should be given to the use of upper and lower case letters where the appearance of the output plot or data listing heading will be affected.
   att['LABLAXIS']    = vname          ;required if not using LABL_PTR_1: should be a short character string (approximately 10 characters, but preferably 6 characters - more only if absolutely required for clarity) which can be used to label a y-axis for a plot or to provide a heading for a data listing.
   att['UNITS']       = ' '            ;required if not using UNIT_PTR (optional for time variables): is a character string (no more than 20 characters, but preferably 6 characters) representing the units of the variable,e.g., nT for magnetic field. If the standard abbreviation used is short then the units value can be added to a data listing heading or plot label. Use a blank character, rather than "None" or "unitless", for variables that have no units (e.g., a ratio or a direction cosine). For CDF_TIME_TT2000: SI measurement unit: s, ms(milliseconds for EPOCH variables), ns(nanoseconds for CDF_TIME_TT2000), ps(picoseconds for EPOCH16).
@@ -92,7 +92,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VALIDMAX']    = 90.
     end
     'PHI': begin
-      att['CATDESC']     = 'Azimuth Angle in instrument coordinates''
+      att['CATDESC']     = 'Azimuth Angle in instrument coordinates'
       att['FIELDNAM']    = 'Instrument Phi'
       att['LABLAXIS']    = 'Azimuth Angle'
       att['UNITS']       = 'Degrees'
@@ -100,7 +100,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VALIDMAX']    = 360.
     end
     'PHI_VALS': begin
-      att['CATDESC']     = 'Azimuth Angle in instrument coordinates''
+      att['CATDESC']     = 'Azimuth Angle in instrument coordinates'
       att['FIELDNAM']    = 'Instrument Phi'
       att['LABLAXIS']    = 'Azimuth Angle'
       att['UNITS']       = 'Degrees'
@@ -133,7 +133,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DISPLAY_TYPE']= 'spectrogram'
       att['DEPEND_1']    = 'ENERGY'
       att['VALIDMIN']    = 0.001
-      att['VALIDMAX']    = 1e12
+      att['VALIDMAX']    = 1e16
       att['SCALETYP']    = 'log'
     end
     'EFLUX_VS_ENERGY': begin
@@ -145,7 +145,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DISPLAY_TYPE']= 'spectrogram'
       att['DEPEND_1']    = 'ENERGY_VALS'
       att['VALIDMIN']    = 0.001
-      att['VALIDMAX']    = 1e12
+      att['VALIDMAX']    = 1e16
       att['SCALETYP']    = 'log'
     end
     'EFLUX_VS_THETA': begin
@@ -157,7 +157,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DISPLAY_TYPE']= 'spectrogram'
       att['DEPEND_1']    = 'THETA_VALS'
       att['VALIDMIN']    = 0.001
-      att['VALIDMAX']    = 1e12
+      att['VALIDMAX']    = 1e16
       att['SCALETYP']    = 'log'
     end
     'EFLUX_VS_PHI': begin
@@ -169,7 +169,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DISPLAY_TYPE']= 'spectrogram'
       att['DEPEND_1']    = 'PHI_VALS'
       att['VALIDMIN']    = 0.001
-      att['VALIDMAX']    = 1e12
+      att['VALIDMAX']    = 1e16
       att['SCALETYP']    = 'log'
     end
     'EFLUX_VS_PA_E': begin
@@ -182,7 +182,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['DEPEND_1']    = 'PITCHANGLE'
       att['DEPEND_2']    = 'ENERGY_VALS'
       att['VALIDMIN']    = 0.001
-      att['VALIDMAX']    = 1e12
+      att['VALIDMAX']    = 1e16
       att['SCALETYP']    = 'log'
     end
     'DENS': begin
@@ -195,9 +195,9 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VALIDMAX']    = 1e5
       att['SCALETYP']    = 'log'
     end
-    'VEL': begin
+    'VEL_INST': begin
       att['CATDESC']     = 'Partial Moment Velocity in Instrument Coordinates'
-      att['FIELDNAM']    = 'Velocity'
+      att['FIELDNAM']    = 'Velocity (Instrument)'
       att['LABLAXIS']    = 'Vx;Vy;Vz'
       att['UNITS']       = 'km/s'
       att['VAR_TYPE']    = 'data'
@@ -205,9 +205,65 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VALIDMAX']    = 10000.
       att['VAR_NOTES']   = 'In instrument frame'
     end
+    'VEL_SC': begin
+      att['CATDESC']     = 'Partial Moment Velocity in Spacecraft Coordinates'
+      att['FIELDNAM']    = 'Velocity (Spacecraft)'
+      att['LABLAXIS']    = 'Vx;Vy;Vz'
+      att['UNITS']       = 'km/s'
+      att['VAR_TYPE']    = 'data'
+      att['VALIDMIN']    = -10000.
+      att['VALIDMAX']    = 10000.
+      att['VAR_NOTES']   = 'In spacecraft frame, spacecraft velocity NOT removed'
+    end
+    'VEL_RTN_SUN': begin
+      att['CATDESC']     = 'Partial Moment Velocity in RTN Coordinates and Sun reference frame'
+      att['FIELDNAM']    = 'Velocity (RTN_SUN)'
+      att['LABLAXIS']    = 'Vx;Vy;Vz'
+      att['UNITS']       = 'km/s'
+      att['VAR_TYPE']    = 'data'
+      att['VALIDMIN']    = -10000.
+      att['VALIDMAX']    = 10000.
+      att['VAR_NOTES']   = 'In Sun frame, spacecraft velocity removed'
+    end
+    'SC_VEL_RTN_SUN': begin
+      att['CATDESC']     = 'Spacecraft Velocity in RTN Coordinates and Sun reference frame'
+      att['FIELDNAM']    = 'Spacecraft Velocity (RTN_SUN)'
+      att['LABLAXIS']    = 'Vx;Vy;Vz'
+      att['UNITS']       = 'km/s'
+      att['VAR_TYPE']    = 'data'
+      att['VALIDMIN']    = -10000.
+      att['VALIDMAX']    = 10000.
+      att['VAR_NOTES']   = 'In Sun frame'
+    end
+    'QUAT_SC_TO_RTN': begin
+      att['CATDESC']     = 'Quaternion for Rotating from Spacecraft to RTN Coordinates'
+      att['FIELDNAM']    = 'Quaternion'
+      att['LABLAXIS']    = 'Q1;Q2;Q3;Q4'
+      att['VAR_TYPE']    = 'data'
+      att['VALIDMIN']    = -1.
+      att['VALIDMAX']    = 1.
+    end
+    'SUN_DIST': begin
+      att['CATDESC']     = 'Spacecraft Distance to the Sun'
+      att['FIELDNAM']    = 'Sun Distance'
+      att['LABLAXIS']    = 'Sun Distance'
+      att['UNITS']       = 'km'
+      att['VAR_TYPE']    = 'data'
+      att['VALIDMIN']    = 0.
+      att['VALIDMAX']    = 1e9
+    end
+    'VENUS_DIST': begin
+      att['CATDESC']     = 'Spacecraft Distance to Venus'
+      att['FIELDNAM']    = 'Venus Distance'
+      att['LABLAXIS']    = 'Venus Distance'
+      att['UNITS']       = 'km'
+      att['VAR_TYPE']    = 'data'
+      att['VALIDMIN']    = 0.
+      att['VALIDMAX']    = 1e9
+    end
     'MAGF_SC': begin
       att['CATDESC']     = 'Magnetic Field in Spacecraft Coordinates'
-      att['FIELDNAM']    = 'Magnetic Field'
+      att['FIELDNAM']    = 'Magnetic Field (Spacecraft)'
       att['LABLAXIS']    = 'Bx;By;Bz'
       att['UNITS']       = 'nT'
       att['VAR_TYPE']    = 'data'
@@ -217,7 +273,7 @@ function cdf_tools_varinfo::variable_attributes, vname,value
     end
     'MAGF_INST': begin
       att['CATDESC']     = 'Magnetic Field in Instrument Coordinates'
-      att['FIELDNAM']    = 'Magnetic Field'
+      att['FIELDNAM']    = 'Magnetic Field (Instrument)'
       att['LABLAXIS']    = 'Bx;By;Bz'
       att['UNITS']       = 'nT'
       att['VAR_TYPE']    = 'data'
@@ -225,9 +281,9 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['VALIDMAX']    = 10000.
       att['VAR_NOTES']   = 'In instrument frame'
     end
-    'T_TENSOR': begin
+    'T_TENSOR_INST': begin
       att['CATDESC']     = 'Partial Moment Temperature Tensor in instrument frame'
-      att['FIELDNAM']    = 'Temperature Tensor'
+      att['FIELDNAM']    = 'Temperature Tensor (Instrument)'
       att['LABLAXIS']    = 'Txx;Tyy;Tzz;Txy;Txz;Tyz'
       att['UNITS']       = 'eV'
       att['VAR_TYPE']    = 'data'
@@ -264,10 +320,6 @@ function cdf_tools_varinfo::variable_attributes, vname,value
       att['FILLVAL']     = -1u
       att['VALIDMIN']    = 0u
       att['VALIDMAX']    = -2u
-      att['VAR_NOTES']   = 'The quality flag is a two-byte variable with its least significant bit (Bit 1) indicating: Counter Overflow, '+$
-        'Bit 2: Snapshot ON, Bit 3: Alternate Energy Table, Bit 4: Spoiler Test, Bit 5: Attenuator Engaged, Bit 6: Highest Archive Rate, '+$
-        'Bit 7: No Targeted Sweep, Bit 8: SPAN-Ion New Mass Table (not applicable to electrons), Bit 9: Over-deflection, Bit 10: Archive Snapshot ON '+$
-        'Bits 11-16: Reserved.'
     end
     'ROTMAT_SC_INST': begin
       att['CATDESC']     = 'Rotation Matrix from Spacecraft to Instrument Coordinates'
@@ -308,12 +360,12 @@ FUNCTION cdf_tools_varinfo::Init,name,value,all_values=all_values,structure_arra
   void = self.generic_Object::Init(_extra=ex)   ; Call the superclass Initialization method.
   if keyword_set(str_arr) then begin
     str_element,str_arr,name,dat_values
-    if n_elements(str_arr) gt 1 then begin
-      all_values = transpose(dat_values)
-    endif else begin
-      dprint,'Weird bug.  single value?'
-      all_values = dat_values   ;  Not sure if this is really a fix????
-    endelse
+    ;if n_elements(str_arr) gt 1 then begin
+    all_values = transpose([dat_values])
+    ;endif else begin
+    ;dprint,'Weird bug.  single value?'
+    ;all_values = dat_values   ;  Not sure if this is really a fix????
+    ;endelse
     str_element,str_arr[0],name,value
   endif
   if isa(name,/string) then self.name=name

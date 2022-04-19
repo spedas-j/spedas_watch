@@ -62,12 +62,12 @@
 ;                                  IOPGEN=4 - RING CURRENT FIELD ONLY
 ;                                  IOPGEN=5 - INTERCONNECTION FIELD ONLY
 ;         
-;        param_dir: Directory with parameter files needed in the TS07 model. 
+;        ts07_param_dir: Directory with parameter files needed in the TS07 model. 
 ;                   These files include the static shielding coefficients.
 ;                   They are downloaded automatically by spedas to a local directory.
 ;
-;        param_file: Filename of TS07 model coefficients file, containing the model coefficients, dipole tilt and dynamic pressure. 
-;             For an example, see the file  'ts07_sample_dyncoef.par' in the directory param_dir (usually !spedas.geopack_param_dir). 
+;        ts07_param_file: Filename of TS07 model coefficients file, containing the model coefficients, dipole tilt and dynamic pressure. 
+;             For an example, see the file  'ts07_sample_dyncoef.par' in the directory ts07_param_dir (usually !spedas.geopack_param_dir). 
 ;             Coefficients can be downloaded from:
 ;             https://rbspgway.jhuapl.edu/new_coeffs_mag_models_v02
 ;             https://spdf.gsfc.nasa.gov/pub/data/aaa_special-purpose-datasets/empirical-magnetic-field-modeling-database-with-TS07D-coefficients/derived_products/ts07_coefficients/
@@ -97,18 +97,21 @@
 ;      -or-
 ;      http://ampere.jhuapl.edu/code/idl_geopack.html
 ;
-; $LastChangedBy: $
-; $LastChangedDate: $
-; $LastChangedRevision: $
-; $URL: $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-07-28 18:16:15 -0700 (Wed, 28 Jul 2021) $
+; $LastChangedRevision: 30156 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ts07/ts07.pro $
 ;-
 
 function ts07,tarray,rgsm_array,pdyn, $
   period=period,add_tilt=add_tilt,get_tilt=get_tilt,set_tilt=set_tilt, $
   get_nperiod=get_nperiod,get_period_times=get_period_times,geopack_2008=geopack_2008, $
-  iopgen=iopgen, exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file
+  iopgen=iopgen, exact_tilt_times=exact_tilt_times, ts07_param_dir=ts07_param_dir, ts07_param_file=ts07_param_file, skip_ts07_load=skip_ts07_load
 
   ;sanity tests, setting defaults
+  if undefined(geopack_2008) then geopack_2008=0
+  if undefined(exact_tilt_times) then exact_tilt_times=0
+  if undefined(skip_ts07_load) then skip_ts07_load=0
   if ts07_supported() eq 0 then return, -1L
   if igp_test(geopack_2008=geopack_2008) eq 0 then return, -1L
   if not keyword_set(period) then period = 600
@@ -146,9 +149,9 @@ function ts07,tarray,rgsm_array,pdyn, $
 
   if pdyn_size[0] eq 0 then begin
     pdyn_array = replicate(pdyn,t_size)
-;  endif else if t_size[0] ne pdyn_size[0] then begin
-;    message, /continue, 'number of times in tarray does not match number of elements in pdyn_array'
-;    return, -1L
+  endif else if t_size[0] ne pdyn_size[0] then begin
+    message, /continue, 'number of times in tarray does not match number of elements in pdyn_array'
+    return, -1L
   endif else pdyn_array = pdyn
 
 
@@ -174,7 +177,7 @@ function ts07,tarray,rgsm_array,pdyn, $
 
   ts = time_struct(tarray)
 
-  if n_elements(exact_tilt_times) eq 0 then begin
+  if ~exact_tilt_times then begin
     ; The start time is now the center of the first period, rather than the start, so add an extra 1/2 period
     ct = 0.5D + (tend-tstart)/period
     nperiod = ceil(ct)
@@ -197,7 +200,7 @@ function ts07,tarray,rgsm_array,pdyn, $
 
   ;return the times at the center of each period
   if arg_present(get_period_times) then begin
-    if n_elements(exact_tilt_times) eq 0 then begin
+    if ~exact_tilt_times then begin
       get_period_times = tstart + dindgen(nperiod)*period
     endif else get_period_times=tarray
   endif
@@ -209,7 +212,7 @@ function ts07,tarray,rgsm_array,pdyn, $
       tilt_value = add_tilt
     endif else if n_elements(add_tilt) eq t_size[0] then begin
       ;resample tilt values to period intervals, using middle of sample
-      if n_elements(exact_tilt_times) eq 0 then begin
+      if ~exact_tilt_times then begin
         period_abcissas = tstart + dindgen(nperiod)*period
       endif else begin
         period_abcissas = tarray
@@ -228,7 +231,7 @@ function ts07,tarray,rgsm_array,pdyn, $
       tilt_value = set_tilt
     endif else if n_elements(set_tilt) eq t_size[0] then begin
       ;resample tilt values to period intervals, using middle of sample
-      if n_elements(exact_tilt_times) eq 0 then begin
+      if ~exact_tilt_times then begin
         period_abcissas = tstart + dindgen(nperiod)*period
       endif else begin
         period_abcissas = tarray
@@ -244,33 +247,46 @@ function ts07,tarray,rgsm_array,pdyn, $
   time_start = strmid(time_string(tarray[0]), 0, 4)
   time_end = strmid(time_string(tarray[n_elements(tarray)-1]), 0, 4)
 
-  if time_end gt time_start then begin
-    tdiff = 0 + time_end - time_start
-    years = [time_start]
-    for i=1, tdiff do begin
-      years = [years, time_start + i]
-    endfor
-  endif else ts07_years = [time_start]
+  if ~keyword_set(skip_ts07_load) then begin
+    
+     if time_end gt time_start then begin
+       tdiff = 0 + time_end - time_start
+       years = [time_start]
+       for i=1, tdiff do begin
+         years = [years, time_start + i]
+       endfor
+     endif else ts07_years = [time_start]
 
-  ts07_download, years=ts07_years
+     ts07_download, years=ts07_years
 
-  ; Directory for model parameters.
-  if not keyword_set(param_dir) then begin
-    param_dir = !spedas.geopack_param_dir
-  endif else if ~file_test(param_dir, /READ, /directory) then begin
-    param_dir = !spedas.geopack_param_dir
-  endif
-  ; Directory that contains the coeficient files
-  GEOPACK_TS07_SETPATH, param_dir[0]
-  if keyword_set(param_file) then begin
-    ; Coeficcient filename only, without the full path
-    GEOPACK_TS07_LOADCOEF, file_basename(param_file[0])
-  endif
+     ; Directory for model parameters.
+     if not keyword_set(ts07_param_dir) then begin
+       ts07_param_dir = !spedas.geopack_param_dir
+     endif else if ~file_test(ts07_param_dir, /READ, /directory) then begin
+       ts07_param_dir = !spedas.geopack_param_dir
+     endif
+     ; Directory that contains the coeficient files
+     GEOPACK_TS07_SETPATH, ts07_param_dir[0]
+     if keyword_set(ts07_param_file) then begin
+       ; Coeficcient filename only, without the full path
+       GEOPACK_TS07_LOADCOEF, file_basename(ts07_param_file[0])
+     endif else begin
+       dprint,'ts07_param_file not specified, returning.'
+       return, -1
+     endelse
+  endif else begin
+    dprint,'Skipping loading of TS07 parameters'
+  endelse
   
-
+  tilt=0.0D    ; Ensure tilt always defined
   while i lt nperiod do begin
+    
+    ; Default to most recently calculated tilt, in case no points lie in this interval
+    if n_elements(get_tilt) gt 0 then begin
+      get_tilt[i] = tilt
+    endif
 
-    if n_elements(exact_tilt_times) ne 0 then begin
+    if exact_tilt_times then begin
       idx = [i]
     endif else begin
       ;find indices of points to be input this iteration
@@ -284,7 +300,7 @@ function ts07,tarray,rgsm_array,pdyn, $
       id = idx[0]
 
       ;recalculate geomagnetic dipole
-      if ~undefined(geopack_2008) then begin
+      if geopack_2008 then begin
         ; the user requested the 2008 version
         geopack_recalc_08, ts[id].year, ts[id].doy, ts[id].hour, ts[id].min, ts[id].sec, tilt = tilt
       endif else begin
@@ -296,7 +312,7 @@ function ts07,tarray,rgsm_array,pdyn, $
       rgsm_z = rgsm_array[idx, 2]
 
       ;calculate internal contribution
-      if ~undefined(geopack_2008) then begin
+      if geopack_2008 then begin
         ; Geopack 2008 uses the GSW coordinate system instead of GSM
         geopack_igrf_gsw_08, rgsm_x, rgsm_y, rgsm_z, igrf_bx, igrf_by, igrf_bz
       endif else begin

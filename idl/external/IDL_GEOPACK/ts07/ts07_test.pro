@@ -4,10 +4,10 @@
 ; Purpose: A few tests to verify that the model and the wrapper
 ; procedures work correctly
 ;
-; $LastChangedBy: $
-; $LastChangedDate:  $
-; $LastChangedRevision: $
-; $URL: $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-07-28 18:16:15 -0700 (Wed, 28 Jul 2021) $
+; $LastChangedRevision: 30156 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ts07/ts07_test.pro $
 ;-
 
 ;takes a matrix whose columns define a plane
@@ -23,11 +23,11 @@ end
 
 ;constructs a vector field from orbital data, useful for visualization
 ;of results
-pro orbital_vf_ts07, name
+pro orbital_vf_ts07, name, param_dir, param_file
 
   get_data, name, data = d
 
-  tts07,name,pdyn=2.0D,error=e
+  tts07,name,pdyn=2.0D,error=e,ts07_param_dir=param_dir,ts07_param_file=param_file,/skip_ts07_load
 
   get_data, name+'_bts07', data = td
 
@@ -58,8 +58,14 @@ timespan, '2008-03-23'
 ;load state data
 thm_load_state, probe = 'b', coord = 'gsm'
 
+; load spedas configuration
+
+spedas_init
+
+param_dir=!spedas.geopack_param_dir
+param_file='ts07_sample_dyncoef.par'
 ;test with single number argument
-tts07, 'thb_state_pos',pdyn=2.0D,error=e
+tts07, 'thb_state_pos',pdyn=2.0D,error=e,ts07_param_dir=param_dir,ts07_param_file=param_file
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -77,7 +83,7 @@ get_data,'thb_state_pos',data=d
 n = n_elements(d.x)
 
 ;test with an array argument
-tts07, 'thb_state_pos',pdyn=replicate(2.0D,n),error=e
+tts07, 'thb_state_pos',pdyn=replicate(2.0D,n),error=e,ts07_param_dir=param_dir,ts07_param_file=param_file,/skip_ts07_load
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -96,7 +102,7 @@ store_data,'t_pdyn',data=d2
 
 
 ;test with tplot arguments
-tts07,'thb_state_pos',pdyn='t_pdyn',error=e
+tts07,'thb_state_pos',pdyn='t_pdyn',error=e,ts07_param_dir=param_dir,ts07_param_file=param_file,/skip_ts07_load
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -110,7 +116,7 @@ stop
 del_data,'thb_state_pos_bts07'
 
 ;test with newname
-tts07, 'thb_state_pos',pdyn=2.0D,newname='test',error=e
+tts07, 'thb_state_pos',pdyn=2.0D,newname='test',error=e,ts07_param_dir=param_dir,ts07_param_file=param_file,/skip_ts07_load
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -125,7 +131,7 @@ del_data,'test'
 
 ;test with a different period
 
-tts07, 'thb_state_pos',pdyn=2.0D,period=30,error=e
+tts07, 'thb_state_pos',pdyn=2.0D,period=30,error=e,ts07_param_dir=param_dir,ts07_param_file=param_file,/skip_ts07_load
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -137,7 +143,7 @@ tplot,'thb_state_pos_bts07'
 stop
 
 ;test with an incremented tilt
-tts07, 'thb_state_pos',pdyn=2.0D,error=e,get_tilt='tilt_vals',get_nperiod=gn,add_tilt=1
+tts07, 'thb_state_pos',pdyn=2.0D,error=e,get_tilt='tilt_vals',get_nperiod=gn,add_tilt=1,ts07_param_dir=param_dir,ts07_param_file=param_file,/skip_ts07_load
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -149,7 +155,7 @@ tplot,'tilt_vals'
 stop
 
 ;test with a set tilt
-tts07, 'thb_state_pos',pdyn=2.0D,error=e,get_tilt='tilt_vals',get_nperiod=gn,set_tilt=1
+tts07, 'thb_state_pos',pdyn=2.0D,error=e,get_tilt='tilt_vals',get_nperiod=gn,set_tilt=1,ts07_param_dir=param_dir,ts07_param_file=param_file,/skip_ts07_load
 
 if e eq 0 then begin
   message,/continue,'error detected, stopping'
@@ -161,7 +167,7 @@ tplot,'tilt_vals'
 options,'tilt_vals',yrange=[1,1]  ;reset to auto-range
 stop
 
-orbital_vf_ts07,'thb_state_pos'
+orbital_vf_ts07,'thb_state_pos',param_dir,param_file
 
 print,'The plot produced should look like the plot titled ts07_test.png'
 

@@ -64,10 +64,11 @@
 ;       + 2020-07-02, S. Bingham    : added no_plot, cdf_version, and n_azbins keywords; added output of ang-ang data to tplot variable; changed procedure name to 'mms_eis_ang_ang.pro'
 ;       + 2020-12-11, I. Cohen      : changed "undefined" to "undefined" in initialization of some keywords
 ;       + 2021-02-09, I. Cohen      : added helium to species in header under KEYWORD section and removed PHxTOF oxygen; added loadct call for species='helium'
+;       + 2021-04-08, I. Cohen      : updated prefix definition to handle new L2 variable names
 ;                        
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2021-02-09 17:23:11 -0800 (Tue, 09 Feb 2021) $
-;$LastChangedRevision: 29648 $
+;$LastChangedDate: 2021-08-06 09:27:09 -0700 (Fri, 06 Aug 2021) $
+;$LastChangedRevision: 30179 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/eis/mms_eis_ang_ang.pro $
 ;-
 
@@ -100,7 +101,7 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
   
   nenergies = n_elements(energy_chan)
   
-  if (data_rate eq 'brst') then prefix = 'mms'+probe+'_epd_eis_brst_' else prefix = 'mms'+probe+'_epd_eis_'
+  prefix = 'mms'+probe+'_epd_eis_'+data_rate+'_'+level+'_'
   
   ; load EIS data:
   mms_load_eis, probes=probe, cdf_version = cdf_version, trange=trange, datatype=datatype, level = level, data_rate = data_rate, data_units=data_units, $
@@ -123,8 +124,7 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
   this_variable = tnames(prefix + datatype + '_' + species + '*_' + data_units + '_t0')
   if level eq 'l2' || level eq 'l1b' then begin
     ; get the P# value from the name of telescope 0:
-    pval_num_in_name = data_rate eq 'brst' ? 6 : 5
-    pvalue = (strsplit(this_variable, '_', /extract))[pval_num_in_name]
+    pvalue = (strsplit(this_variable, '_', /extract))[7]
     if pvalue ne data_units then pvalue = pvalue + '_' else pvalue = ''
   endif else begin
     pvalue = ''
@@ -187,8 +187,7 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
   
   ;; set color table specific to each species
   if species eq 'proton' then loadct,1
-  if species eq 'alpha' then loadct,8
-  if species eq 'helium' then loadct,8
+  if (species eq 'alpha') or (species eq 'helium') then loadct,8
   if species eq 'oxygen' then loadct,3
   if species eq 'electron' then loadct,7
   
@@ -262,7 +261,7 @@ pro mms_eis_ang_ang, probe=probe, trange = trange, species = species, datatype =
       !p.charsize=0.6
       popen,p_filename,land=1
       if species eq 'proton' then loadct,1
-      if species eq 'alpha' then loadct,8
+      if (species eq 'alpha') OR (species eq 'helium') then loadct,8
       if species eq 'oxygen' then loadct,3
       if species eq 'electron' then loadct,7
 

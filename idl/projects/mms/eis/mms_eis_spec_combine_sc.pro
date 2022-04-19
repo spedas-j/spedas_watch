@@ -14,6 +14,7 @@
 ;                       default is 'srvy'.
 ;         data_units:   desired units for data. for eis units are ['flux', 'cps', 'counts'].
 ;                       The default is 'flux'.
+;         level:        data level ['l1a','l1b','l2pre','l2' (default)]
 ;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
 ;                       preserving original tplot variable.
 ;         species:      proton (default), oxygen, helium (formerly alpha) or electron
@@ -39,10 +40,12 @@
 ;         + 2021-02-24, I. Cohen        : changed combined s/c variable names from mms#-# to mmsx
 ;         + 2021-03-11, I. Cohen        : updated to allow to work for electrons
 ;         + 2021-03-16, R. Nikoukar     : use existing individual spacecraft spin parameters to make combined spacecraft spin parameters
+;         + 2021-04-08, I. Cohen        : added level keyword; updated allmms_prefix, omni_vars, & prefix definitions to handle new L2 variable names
 ;         + 2021-05-12, I. Cohen        : fixed eis_sc_check definition to handle any datatype
+;         + 2021-07-09, I. Cohen        : fixed default level defition to 'l2'
 ;
 ;-
-pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, suffix=suffix
+pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatype = datatype, data_rate = data_rate, level = level, suffix=suffix
   ;
   compile_opt idl2
   if undefined(datatype) then datatype = 'extof'
@@ -52,11 +55,11 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
     'cps': ztitle_string = 'CountRate!C[counts/s]'
     'counts': ztitle_string = 'Counts!C[counts]'
   endcase
-  
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = 'srvy'
   if undefined(species) then species = 'proton'
   if datatype eq 'electronenergy' then species = 'electron'
+  if undefined(level) then level = 'l2'
   ;
   ;
   suffix_ind = ['', '_spin']
@@ -64,17 +67,17 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
     ;
     for ss=0,n_elements(species)-1 do begin              ; loop through species
       ;
-      ;if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species[ss]+'*' + data_units + '*omni' + suffix_ind[sp]) else eis_sc_check = tnames('mms*eis*phxtof_'+species[ss]+'*' + data_units + '*omni'+ suffix_ind[sp])
-      eis_sc_check = tnames('mms*eis*'+datatype+'*'+species[ss]+'*' + data_units + '*omni'+ suffix_ind[sp])
+      ;if (datatype[0] ne 'phxtof') then eis_sc_check = tnames('mms*eis*extof_'+species[ss]+'*' + data_units + '*omni' + suffix_ind[sp] ) else eis_sc_check = tnames('mms*eis*phxtof_'+species[ss]+'*' + data_units + '*omni'+ suffix_ind[sp])
+      eis_sc_check = tnames('mms*eis*' + data_rate + '*' + datatype+'*' + species[ss] + '*' + data_units + '*omni'+ suffix_ind[sp])
       ;
       probes = strmid(eis_sc_check, 3, 1)
       if (n_elements(probes) gt 4) then probes = probes[0:-2]
       ; if (n_elements(probes) gt 1) then probe_string = probes[0]+'-'+probes[-1] else probe_string = probes
       probe_string = 'x'
-      if (data_rate eq 'brst') then allmms_prefix = 'mmsx_epd_eis_brst_'+datatype+'_' else allmms_prefix = 'mmsx_epd_eis_'+datatype+'_'
+      allmms_prefix = 'mmsx_epd_eis_'+data_rate+'_'+level+'_'+datatype+'_'
       ;
       ; DETERMINE SPACECRAFT WITH SMALLEST NUMBER OF TIME STEPS TO USE AS REFERENCE SPACECRAFT
-      if (data_rate eq 'brst') then omni_vars = tnames('mms?_epd_eis_brst_'+datatype+'_'+species[ss]+'_'+data_units+'_omni'+ suffix_ind[sp]) else if (data_rate eq 'srvy') then omni_vars = tnames('mms?_epd_eis_'+datatype+'_'+species[ss]+'_'+data_units+'_omni'+ suffix_ind[sp])
+      omni_vars = tnames('mms?_epd_eis_'+data_rate+'_'+level+'_'+datatype+'_'+species[ss]+'_'+data_units+'_omni'+ suffix_ind[sp])
       ;
       if (omni_vars[0] eq '') then begin
         print, 'No EIS '+datatype+' data loaded!'
@@ -89,7 +92,7 @@ pro mms_eis_spec_combine_sc, species = species, data_units = data_units, datatyp
         energy_size[pp] = n_elements(thisprobe_flux.v)
       endfor
       ref_sc_time_size = min(time_size, reftime_sc_loc)
-      if (data_rate eq 'brst') then prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_'+datatype+'_'
+      prefix = 'mms'+probes[reftime_sc_loc]+'_epd_eis_'+data_rate+'_'+level+'_'+datatype+'_'
       get_data, omni_vars[reftime_sc_loc], data=time_refprobe
       ref_sc_energy_size = min(energy_size, refenergy_sc_loc)
       get_data, omni_vars[refenergy_sc_loc], data=energy_refprobe

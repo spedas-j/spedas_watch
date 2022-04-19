@@ -42,7 +42,6 @@ pro spp_fld_dfb_cbs_status_load_l1, file, prefix = prefix
       title = title.Replace('BRSTQ', '!CBRSTQ')
 
       options, name, 'ynozero', 1
-      ;options, name, 'horizontal_ytitle', 1
       options, name, 'colors', [0]
       options, name, 'ytitle', 'DFB!CCBS!C' + title
 

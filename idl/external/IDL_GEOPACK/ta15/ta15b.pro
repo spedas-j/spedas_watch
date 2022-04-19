@@ -72,16 +72,20 @@
 ;  4. Position units are in earth radii, be sure to divide your normal
 ;      units by 6371.2 km to convert them.
 ;      6371.2 = the value used in the GEOPACK FORTRAN code for Re
-;  5.Find more documentation on the inner workings of the model,
-;      any gotchas, and the meaning of the arguments at:
-;      http://geo.phys.spbu.ru/~tsyganenko/modeling.html
-;      -or-
-;      http://ampere.jhuapl.edu/code/idl_geopack.html
+;      
 ;
-; $LastChangedBy: $
-; $LastChangedDate: $
-; $LastChangedRevision: $
-; $URL: $
+;  See Boynton 2011 for details:
+;  https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2010JA015505
+;;
+;  TA15B and TA15N model description:
+;  https://geo.phys.spbu.ru/~tsyganenko/TA15_Model_description.pdf
+;  
+;  The B-index calculation is implemented in omni2bindex.pro
+;
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-07-28 18:16:15 -0700 (Wed, 28 Jul 2021) $
+; $LastChangedRevision: 30156 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta15/ta15b.pro $
 ;-
 
 function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
@@ -90,6 +94,10 @@ function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
   exact_tilt_times=exact_tilt_times
 
   ;sanity tests, setting defaults
+  ; Ensure flags are set to their default values if not provided
+
+  if undefined(geopack_2008) then geopack_2008=0
+  if undefined(exact_tilt_times) then exact_tilt_times=0
   if ta15_supported() eq 0 then return, -1L
   if igp_test(geopack_2008=geopack_2008) eq 0 then return, -1L
   if not keyword_set(period) then period = 600
@@ -194,7 +202,7 @@ function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
 
   ts = time_struct(tarray)
 
-  if n_elements(exact_tilt_times) eq 0 then begin
+  if ~exact_tilt_times then begin
     ; The start time is now the center of the first period, rather than the start, so add an extra 1/2 period
     ct = 0.5D + (tend-tstart)/period
     nperiod = ceil(ct)
@@ -220,7 +228,7 @@ function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
 
   ;return the times at the center of each period
   if arg_present(get_period_times) then begin
-    if n_elements(exact_tilt_times) eq 0 then begin
+    if ~exact_tilt_times then begin
       get_period_times = tstart + dindgen(nperiod)*period
     endif else get_period_times=tarray
   endif
@@ -232,7 +240,7 @@ function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
       tilt_value = add_tilt
     endif else if n_elements(add_tilt) eq t_size[0] then begin
       ;resample tilt values to period intervals, using middle of sample
-      if n_elements(exact_tilt_times) eq 0 then begin
+      if ~exact_tilt_times then begin
         period_abcissas = tstart + dindgen(nperiod)*period
       endif else begin
         period_abcissas = tarray
@@ -251,7 +259,7 @@ function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
       tilt_value = set_tilt
     endif else if n_elements(set_tilt) eq t_size[0] then begin
       ;resample tilt values to period intervals, using middle of sample
-      if n_elements(exact_tilt_times) eq 0 then begin
+      if ~exact_tilt_times then begin
         period_abcissas = tstart + dindgen(nperiod)*period
       endif else begin
         period_abcissas = tarray
@@ -268,9 +276,16 @@ function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
   time_end = strmid(time_string(tarray[n_elements(tarray)-1]), 0, 4)
 
 
+  tilt = 0.0D    ;  ensure tilt is always defined
+  
   while i lt nperiod do begin
+ 
+    ; Default to most recently calculated tilt, if not points exist in this period
+    if n_elements(get_tilt) gt 0 then begin
+      get_tilt[i] = tilt
+    endif
 
-    if n_elements(exact_tilt_times) ne 0 then begin
+    if exact_tilt_times then begin
       idx = [i]
     endif else begin
       ;find indices of points to be input this iteration
@@ -284,7 +299,7 @@ function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
       id = idx[0]
 
       ;recalculate geomagnetic dipole
-      if ~undefined(geopack_2008) then begin
+      if geopack_2008 then begin
         ; the user requested the 2008 version
         geopack_recalc_08, ts[id].year, ts[id].doy, ts[id].hour, ts[id].min, ts[id].sec, tilt = tilt
       endif else begin
@@ -296,7 +311,7 @@ function ta15b,tarray,rgsm_array,pdyn,yimf,zimf,xind, $
       rgsm_z = rgsm_array[idx, 2]
 
       ;calculate internal contribution
-      if ~undefined(geopack_2008) then begin
+      if geopack_2008 then begin
         ; Geopack 2008 uses the GSW coordinate system instead of GSM
         geopack_igrf_gsw_08, rgsm_x, rgsm_y, rgsm_z, igrf_bx, igrf_by, igrf_bz
       endif else begin

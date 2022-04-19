@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2020-11-10 17:38:09 -0800 (Tue, 10 Nov 2020) $
-; $LastChangedRevision: 29349 $
+; $LastChangedDate: 2021-06-30 21:31:41 -0700 (Wed, 30 Jun 2021) $
+; $LastChangedRevision: 30095 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/l1/l1_sc_hk/spp_fld_sc_fsw_rec_alloc_load_l1.pro $
 ;
 ;-
@@ -28,7 +28,6 @@ pro spp_fld_sc_fsw_rec_alloc_load_l1, file, prefix = prefix, varformat = varform
       name = sc_fsw_rec_alloc_names[i]
 
       options, name, 'ynozero', 1
-      ;options, name, 'horizontal_ytitle', 1
       ;options, name, 'colors', [2]
       options, name, 'ytitle', name.Remove(0, prefix.Strlen()-1)
 

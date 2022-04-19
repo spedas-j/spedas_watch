@@ -29,104 +29,131 @@
 ;CREATED BY:	Davin Larson
 ;MODIFICATION BY: 	Peter Schroeder
 ;LAST MODIFICATION:	@(#)get_data.pro	1.28 02/04/17
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2019-07-03 16:08:21 -0700 (Wed, 03 Jul 2019) $
-; $LastChangedRevision: 27404 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-09-13 19:29:07 -0700 (Mon, 13 Sep 2021) $
+; $LastChangedRevision: 30293 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/get_data.pro $
 ;
 ;-
 pro get_data,name, time, data, values, $
-    data_str = data_str, $
-    limits_str = lim_str, $
-    alimits_str = alim_str, $
-    dlimits_str = dlim_str, $
-    ptr_str = ptr_str, $
-    index = index, $
-    dtype = dtype, $
-    null = null, $
-    trange = trange
+  data_str = data_str, $
+  limits_str = lim_str, $
+  alimits_str = alim_str, $
+  dlimits_str = dlim_str, $
+  ptr_str = ptr_str, $
+  index = index, $
+  dtype = dtype, $
+  null = null, $
+  trange = trange
 
-@tplot_com.pro
-time = 0
-data = 0
-values = 0
-data_str = 0
-lim_str = 0
-alim_str = 0
-dlim_str = 0
-dtype = 0
-ptr_str = 0
-trange = 0
-if keyword_set(null) then begin
-  time = !null
-  data = !null
-  values = !null
-  data_str = !null
-  lim_str = !null
-  alim_str = !null
-  dlim_str = !null
-  dtype = !null
-  ptr_str = !null
-  trange = !null
-endif
+  @tplot_com.pro
+  time = 0
+  data = 0
+  values = 0
+  data_str = 0
+  lim_str = 0
+  alim_str = 0
+  dlim_str = 0
+  dtype = 0
+  ptr_str = 0
+  trange = 0
+  if keyword_set(null) then begin
+    time = !null
+    data = !null
+    values = !null
+    data_str = !null
+    lim_str = !null
+    alim_str = !null
+    dlim_str = !null
+    dtype = !null
+    ptr_str = !null
+    trange = !null
+  endif
 
-index = find_handle(name)
+  index = find_handle(name)
 
-;if index eq 0 then begin
-;   auto_load,name,success=s
-;   if s ne 0 then index = find_handle(name,tagname)
-;endif
+  if index ne 0 then begin
+    dq = data_quants[index]
+    if arg_present(data) or arg_present(time) or arg_present(values) or arg_present(data_str) then begin
+      if dq.dtype eq 4 then begin
+        dh = (*dq.dh)
+        datastr_array = dh.ddata.sample()
+        tags = tag_names(datastr_array)
+        vardef = dh.vardef
+        labels = vardef.keys()
+        data_str = {}
+        for i = 0,n_elements(labels)-1 do begin
+          label = labels[i]
+          tag_num =  (where(/null,tags eq strupcase(vardef[label])))
+          dprint,dlevel=4,label +' : ' + vardef[label],tag_num
+          if isa(tag_num) then begin
+            val = datastr_array.(tag_num)   ; there is a bug here if size of datastr_array eq 1
+            if 1 && n_elements(datastr_array) gt 1 then begin   ; put time at the beginning
+              ndim = size(/n_dimension,val)
+              p = shift(indgen(ndim),1)
+              val = transpose(val,p)
+            endif
+            if arg_present(trange)  && label eq 'X' then trange = minmax(val)
+            if arg_present(data_str) then data_str = create_struct(data_str,label,val)
+            if arg_present(time)   && label eq 'X'  then time = temporary(val)
+            if arg_present(data)   && label eq 'Y'  then data = temporary(val)
+            if arg_present(values) && label eq 'V'  then values = temporary(val)
+          endif else dprint,dlevel=2, 'Label '+label+' not found in '+dh.ddata.name 
+        endfor
+        ptr_str = *dq.dh
+      endif else if size(/type,*dq.dh) eq 8 then begin
+        ; 	  		mytags = tag_names_r(*dq.dh)             Too goofy to be useful!!!   see similar line in store_data
+        mytags = tag_names(*dq.dh)
+        for i=0,n_elements(mytags)-1 do begin
+          str_element,*dq.dh,mytags[i],foo
+          if ptr_valid(foo) then $
+            str_element,data_str,mytags[i],*foo,/add
+        endfor
+        ; Old style: get x,y and v tag names:
+        str_element,data_str,'x',value= time
+        str_element,data_str,'y',value= data
+        str_element,data_str,'v',value= values
 
-if index ne 0 then begin
-   dq = data_quants[index]
-   if arg_present(data) or arg_present(time) or arg_present(values) or $
-   	arg_present(data_str) then begin
-   		if size(/type,*dq.dh) eq 8 then begin
-; 	  		mytags = tag_names_r(*dq.dh)             Too goofy to be useful!!!   see similar line in store_data
- 	  		mytags = tag_names(*dq.dh)
-	   		for i=0,n_elements(mytags)-1 do begin
-	   			str_element,*dq.dh,mytags[i],foo
-   				if ptr_valid(foo) then $
-   				    str_element,data_str,mytags[i],*foo,/add
-	   		endfor
-	   	endif else data_str = *dq.dh
-                if size(/type,data_str) ne 8 then $
-                   dprint, dlevel = 6, 'No Data Structure for: '+name
-   endif
+        ; New style: get time, data tag names:
+        str_element,data_str,'time',value= time
+        str_element,data_str,'data',value= data
+        ptr_str = *dq.dh
 
-   if arg_present(lim_str) or arg_present(alim_str) then begin
+      endif else data_str = *dq.dh     ; typically will be a string or array of strings
+      if arg_present(trange) then trange = dq.trange
+
+
+      ;str_element,dq,'dtype',dtype
+      dtype = dq.dtype
+
+
+      if size(/type,data_str) ne 8 then $
+        dprint, dlevel = 6, 'No Data Structure for: '+name
+    endif
+
+
+
+    if arg_present(lim_str) or arg_present(alim_str) then begin
       lim_str = *dq.lh
       if size(/type, lim_str) ne 8 then $
-         dprint, dlevel = 6, 'No Limits Structure for: '+name
-   endif
-   if arg_present(dlim_str) or arg_present(alim_str) then begin
+        dprint, dlevel = 6, 'No Limits Structure for: '+name
+    endif
+    if arg_present(dlim_str) or arg_present(alim_str) then begin
       dlim_str = *dq.dl
       if size(/type, dlim_str) ne 8 then $
-         dprint, dlevel = 6, 'No Dlimits Structure for: '+name
-   endif
+        dprint, dlevel = 6, 'No Dlimits Structure for: '+name
+    endif
 
-   extract_tags,alim_str,dlim_str,/replace
-   extract_tags,alim_str,lim_str,/replace
+    extract_tags,alim_str,dlim_str,/replace
+    extract_tags,alim_str,lim_str,/replace
+    dtype = dq.dtype
+    if arg_present(ptr_str) && ptr_valid(dq.dh) then begin
+      ptr_str = *dq.dh
+    endif
+    ;if size(/type,*dq.dh) eq 8 then ptr_str = *dq.dh
+    if arg_present(trange) then trange = dq.trange
 
-   if arg_present(trange) then trange = dq.trange
-
-;   if data_type(data_str) eq 7 and ndimen(data_str) eq 0 then $
-;      	get_data,data_str+'',data=data_str ; get links
-
-;   if data_type(data_str) eq 10 then data_str = *data_str
-
-; Old style: get x,y and v tag names:
-	str_element,data_str,'x',value= time
-	str_element,data_str,'y',value= data
-	str_element,data_str,'v',value= values
-
-; New style: get time, data tag names:
-	str_element,data_str,'time',value= time
-	str_element,data_str,'data',value= data
-	if size(/type,*dq.dh) eq 8 then ptr_str = *dq.dh
-
-str_element,dq,'dtype',dtype
-endif else dprint, dlevel = 6, 'Variable '+string(name)+ ' Not Found'
-return
+  endif else dprint, dlevel = 6, 'Variable '+string(name)+ ' Not Found'
+  return
 end
 

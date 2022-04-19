@@ -52,8 +52,8 @@
 ;         Spacecraft photoelectrons are corrected in moments_3d
 ;         
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2021-02-24 12:49:10 -0800 (Wed, 24 Feb 2021) $
-;$LastChangedRevision: 29699 $
+;$LastChangedDate: 2021-12-15 09:32:26 -0800 (Wed, 15 Dec 2021) $
+;$LastChangedRevision: 30469 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_getspec.pro $
 ;-
 
@@ -103,6 +103,7 @@ pro mms_part_getspec, probes=probes, $
                       photoelectron_corrections=photoelectron_corrections, $ ; Apply both internal photoelectron corrections (Dan Gershman's model) and correct for S/C potential (should not be used with either of the bottom two)
                       internal_photoelectron_corrections=internal_photoelectron_corrections, $ ; Only apply Dan Gershman's model (i.e., don't correct for the S/C potential in moments_3d)
                       correct_sc_potential=correct_sc_potential, $ ; only correect for the S/C potential (disables Dan Gershman's model)
+                      zero_negative_values=zero_negative_values, $ ; keyword that tells mms_part_products to turn negative values to 0 after doing the photoelectron corrections (DES)
                       with_aspoc=with_aspoc, $
                       
                       cdf_version=cdf_version, $
@@ -145,8 +146,16 @@ pro mms_part_getspec, probes=probes, $
         if instrument eq 'fpi' then data_rate = 'fast' else data_rate = 'srvy'
     endif else data_rate = strlowcase(data_rate)
     
-    if data_rate eq 'brst' && undefined(mag_data_rate) then mag_data_rate = 'brst' else mag_data_rate = 'srvy'
-    if data_rate eq 'brst' && undefined(scpot_data_rate) then scpot_data_rate = 'brst' else scpot_data_rate = 'fast'
+    if data_rate eq 'brst' && undefined(mag_data_rate) then begin
+      mag_data_rate = 'brst'
+    endif else begin
+      if undefined(mag_data_rate) then mag_data_rate = 'srvy'
+    endelse
+    if data_rate eq 'brst' && undefined(scpot_data_rate) then begin
+      scpot_data_rate = 'brst'
+    endif else begin 
+      if undefined(scpot_data_rate) then scpot_data_rate = 'fast'
+    endelse
     
     if ~keyword_set(species) then begin
         if instrument eq 'fpi' then species = 'e' else species = 'hplus'
@@ -221,7 +230,7 @@ pro mms_part_getspec, probes=probes, $
 
         ;;;;;;;;;;;;; kludge zone;;;;;;;;;;;
         if keyword_set(with_aspoc) then begin
-          mms_load_aspoc, trange=trange
+          mms_load_aspoc, trange=trange, probe=probes[probe_idx]
           tinterpol, 'mms'+probes[probe_idx]+'_edp_scpot_'+scpot_data_rate+'_l2', 'mms'+probes[probe_idx]+'_aspoc_ionc_l2'
           calc, '"scpot_adjusted"="mms'+probes[probe_idx]+'_edp_scpot_'+scpot_data_rate+'_l2_interp"+"mms'+probes[probe_idx]+'_aspoc_ionc_l2"'
           scpot_variable = 'scpot_adjusted'
@@ -247,7 +256,7 @@ pro mms_part_getspec, probes=probes, $
             error_variable=error_variable, instrument=instrument, species=species, $
             sc_pot_name=scpot_variable, data_rate=data_rate, correct_photoelectrons=photoelectron_corrections, $
             internal_photoelectron_corrections=internal_photoelectron_corrections, $
-            correct_sc_potential=correct_sc_potential, _extra=ex
+            correct_sc_potential=correct_sc_potential, zero_negative_values=zero_negative_values, _extra=ex
 
         if undefined(tplotnames_thisprobe) then continue ; nothing created by mms_part_products
         append_array, tplotnames, tplotnames_thisprobe

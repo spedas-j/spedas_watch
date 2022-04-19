@@ -58,22 +58,22 @@ pro elf_get_overview_plots, trange=trange, probe=probe, local_data_dir=local_dat
     paths = ''
     
     ; NOTE: directory is temporarily password protected. 
-    if undefined(user) OR undefined(pw) then authorization = elf_get_authorization()
-    user=authorization.user_name
-    pw=authorization.password
+;    if undefined(user) OR undefined(pw) then authorization = elf_get_authorization()
+;    user=authorization.user_name
+;    pw=authorization.password
     ; only query user if authorization file not found
-    If user EQ '' OR pw EQ '' then begin
-        print, 'Please enter your ELFIN user name and password'
-        read,user,prompt='User Name: '
-        read,pw,prompt='Password: '
-    endif  
+;    If user EQ '' OR pw EQ '' then begin
+;        print, 'Please enter your ELFIN user name and password'
+;        read,user,prompt='User Name: '
+;        read,pw,prompt='Password: '
+;    endif  
   
     ; Test that directory exists and then download file
     if file_test(local_png_dir,/dir) eq 0 then file_mkdir2, local_png_dir
     paths = spd_download(remote_file=remote_filename, $   
-       local_file=local_filename, $   ;local_path=local_cal_dir, $
-       url_username=user, url_password=pw, ssl_verify_peer=1, $
-       ssl_verify_host=1)
+       local_file=local_filename, ssl_verify_peer=1, ssl_verify_host=1)
+;       url_username=user, url_password=pw, ssl_verify_peer=1, $
+;       ssl_verify_host=1)
     if undefined(paths) or paths EQ '' then begin
        dprint, devel=1, 'Unable to download ' + local_filename
     endif    
@@ -86,9 +86,7 @@ pro elf_get_overview_plots, trange=trange, probe=probe, local_data_dir=local_dat
         local_filename=local_png_dir+'/'+sc+'_l2_overview_'+daily_names+hrs[j]+zones[i]+'.png'
         paths = ''
         paths = spd_download(remote_file=remote_filename, $   ;remote_path=remote_png_dir, $
-          local_file=local_filename, $   ;local_path=local_cal_dir, $
-          url_username=user, url_password=pw, ssl_verify_peer=1, $
-          ssl_verify_host=1)
+          local_file=local_filename, ssl_verify_peer=1, ssl_verify_host=1)
       endfor    ; end of science zone loop
     endif 
 

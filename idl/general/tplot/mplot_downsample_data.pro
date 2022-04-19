@@ -49,12 +49,12 @@
 ;   pulupa
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2018-06-08 15:15:49 -0700 (Fri, 08 Jun 2018) $
-; $LastChangedRevision: 25339 $
+; $LastChangedDate: 2021-07-06 16:49:05 -0700 (Tue, 06 Jul 2021) $
+; $LastChangedRevision: 30102 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/mplot_downsample_data.pro $
 ;-
 
-pro mplot_downsample_data, max_points, x, y, dy = dy
+pro mplot_downsample_data, max_points, x, y, dy = dy, dg = dg
 
   if n_elements(x) LE max_points then return
 
@@ -109,5 +109,7 @@ pro mplot_downsample_data, max_points, x, y, dy = dy
   x = plot_x
   y = plot_y
   if keyword_set(dy) then dy = plot_dy
+  
+  if keyword_set(dg) then makegap,dg,x,y,dy=dy
 
 end

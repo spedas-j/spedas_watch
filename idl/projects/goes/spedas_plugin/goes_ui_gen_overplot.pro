@@ -23,9 +23,9 @@
 ; OUTPUT:
 ;  none
 ;  
-;$LastChangedBy: pcruce $
-;$LastChangedDate: 2015-01-23 19:30:24 -0800 (Fri, 23 Jan 2015) $
-;$LastChangedRevision: 16723 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2022-03-04 13:45:18 -0800 (Fri, 04 Mar 2022) $
+;$LastChangedRevision: 30651 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/goes/spedas_plugin/goes_ui_gen_overplot.pro $
 ;-
 
@@ -113,7 +113,11 @@ pro goes_ui_gen_overplot_event, event
       tplot_options, title='GOES-'+string(state.probe)+' Overview ('+time_string(st_double)+')'
 
       state.statusBar->Update,'Generating GOES overview plot. Please wait!...'
-      goes_overview_plot, date = st_double, probe = state.probe, duration = dur, /gui_overplot, oplot_calls = (*state.data).oplot_calls, error = error
+      if state.probe le 15 then begin
+        goes_overview_plot, date = st_double, probe = state.probe, duration = dur, /gui_overplot, oplot_calls = (*state.data).oplot_calls, error = error
+      endif else begin
+        goesr_overview_plot, date = st_double, probe = state.probe, duration = dur, /gui_overplot, oplot_calls = (*state.data).oplot_calls, error = error
+      endelse
       
       if ~error then begin
         
@@ -174,6 +178,8 @@ pro goes_ui_gen_overplot_event, event
     'PROBE:13': state.probe='13'
     'PROBE:14': state.probe='14'
     'PROBE:15': state.probe='15'
+    'PROBE:16': state.probe='16'
+    'PROBE:17': state.probe='17'
     'TIME': ; don't send 'Not yet implemented' to the console for time events
     ELSE: dprint,  'Not yet implemented'
   ENDCASE
@@ -223,12 +229,12 @@ pro goes_ui_gen_overplot, gui_id = gui_id, $
       probeButtonBase = widget_base(probeBase, row=2, /exclusive)
     midBase = widget_base(mainBase, /Row)
       trvalsBase = Widget_Base(midBase, /Col, Frame=1, xpad=8)
-      keyButtonBase = widget_button(midBase, Value='Plot Key', UValue='KEY', XSize=80, $
+      keyButtonBase = widget_button(midBase, Value='Plot Key', UValue='KEY', $
                                     tooltip = 'Displays detailed descriptions of GOES overview plot panels.')
     goWebBase = Widget_Base(mainBase, /Row, Frame=1, xpad=8)
     buttonBase = Widget_Base(mainBase, /row, /align_center)
     goWebLabel = widget_label(goWebBase, Value='  Alternatively, you can view the plot on the web (single day).  ', /align_left)
-    goWebButton = Widget_Button(goWebBase, Value='  Web Plot  ', UValue='GOWEB', XSize=80)
+    goWebButton = Widget_Button(goWebBase, Value='  Web Plot  ', UValue='GOWEB')
     
 
 ; Help text
@@ -243,9 +249,11 @@ pro goes_ui_gen_overplot, gui_id = gui_id, $
   Button13 = widget_button(probeButtonBase, value='13', uvalue='PROBE:13')
   Button14 = widget_button(probeButtonBase, value='14', uvalue='PROBE:14')
   Button15 = widget_button(probeButtonBase, value='15', uvalue='PROBE:15')
+  Button16 = widget_button(probeButtonBase, value='16', uvalue='PROBE:16')
+  Button17 = widget_button(probeButtonBase, value='17', uvalue='PROBE:17')
   
-  widget_control, Button15, /set_button
-  probe='15'
+  widget_control, Button17, /set_button
+  probe='17'
 
 ; Time range-related widgets
   getresourcepath,rpath
@@ -264,8 +272,8 @@ pro goes_ui_gen_overplot, gui_id = gui_id, $
   
 
 ; Main window buttons
-  applyButton = Widget_Button(buttonBase, Value='Apply', UValue='APPLY', XSize=80)
-  cancelButton = Widget_Button(buttonBase, Value='Cancel', UValue='CANC', XSize=80)
+  applyButton = Widget_Button(buttonBase, Value='Apply', UValue='APPLY')
+  cancelButton = Widget_Button(buttonBase, Value='Cancel', UValue='CANC')
 
   ;flag denoting successful run
   success = 0

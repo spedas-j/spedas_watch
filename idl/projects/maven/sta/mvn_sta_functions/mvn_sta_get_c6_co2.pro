@@ -171,14 +171,27 @@ get_ind=ind
 
 	ind32 = where(mass_arr ge ms1 and mass_arr le ms2,count)		 
 
+if 0 then begin
+; old method
 	bkg1 = (total(dat.cnts[*,ind32],2)#replicate(1.,64)/cnts_scale)*(dat.mass_arr gt ms3)*exp(-dat.mass_arr/mass_scale)*dat.twt_arr 
-	bkg2 = dat.cnts*(dat.mass_arr lt ms3)
+	bkg2 = dat.cnts-*(dat.mass_arr lt ms3)
 	bkg3 = dat.cnts*(dat.mass_arr gt ms4)
 	dat.bkg[*]=0.
 	dat.cnts=(dat.cnts-bkg1-bkg2-bkg3)
 	ind33 = where(total(dat.cnts,2) lt 0.,count)
 	if count ge 1 then dat.cnts[ind33,*]=0.
 	dat.data=dat.cnts
+endif else begin
+; new method now that iv4 bkg array is filled in
+	bkg1 = (total(dat.cnts[*,ind32]-dat.bkg[*,ind32],2)#replicate(1.,64)/cnts_scale)*(dat.mass_arr gt ms3)*exp(-dat.mass_arr/mass_scale)*dat.twt_arr 
+	dat.bkg = dat.bkg+bkg1
+	mask = (dat.mass_arr gt ms3)*(dat.mass_arr lt ms4)
+	dat.bkg = dat.bkg*mask
+	dat.cnts = dat.cnts*mask
+	ind33 = where(total(dat.cnts,2) lt 0.,count)
+	if count ge 1 then dat.cnts[ind33,*]=0.
+	dat.data=dat.cnts
+endelse
 
 ; fix the dat.dead for co2 by adjusting it for differences in efficiency between o2 and co2.
 	mass_arr=reform(dat2.mass_arr(16,*))

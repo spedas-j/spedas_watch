@@ -98,7 +98,6 @@ PRO elf_cal_epd, tplotname=tplotname, trange=trange, type=type, probe=probe, $
     print, 'Deadtime correction applied with default deadtime; to not apply set deadtime_corr= 0. or a tiny value, e.g. 1.e-9'
   endif
   ;
-
   dt= (my_nspinsinsum*(dspinper.y/n_sectors)*overint_factors[dsectnum.y]) # mynrgyra ; accumulation time
   ;
   ; Perform calibration

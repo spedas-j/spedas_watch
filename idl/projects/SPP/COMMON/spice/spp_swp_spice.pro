@@ -6,8 +6,8 @@
 ;
 ;  Author:  Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-05-30 19:39:00 -0700 (Sun, 30 May 2021) $
-; $LastChangedRevision: 30005 $
+; $LastChangedDate: 2022-03-23 14:00:06 -0700 (Wed, 23 Mar 2022) $
+; $LastChangedRevision: 30713 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spice/spp_swp_spice.pro $
 ;-
 
@@ -22,7 +22,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
   if ~keyword_set(att_frame) then att_frame ='SPP_RTN'
 
   if ~keyword_set(res) then res=60d ;1min resolution
-  if ~keyword_set(angle_error) then angle_error=2. ;error in degrees
+  if ~keyword_set(angle_error) then angle_error=1. ;error in degrees
   trange=timerange(trange) ;get default trange
 
   current_time=systime(1)
@@ -73,7 +73,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
     if position ge 3 then begin
       spice_position_to_tplot,body,'SSB',frame=ref_frame,res=res,name=nams,trange=trange,check_objects=[body],/force_objects
       xyz_to_polar,nams[0],/ph_0_360
-      options,/def,nams[0]+'_mag',ysubtitle='(km)'
+      options,/def,nams[0]+'_mag',ysubtitle='(km)',ystyle=3
       get_data,nams[0],data=pos_ssb
       nams_acc = str_sub(nams[0],'POS_','ACC_')
       deriv_data,nams[1],newname = nams_acc
@@ -90,10 +90,10 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
     c = 299792d   ; speed of light km/s
     spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
     xyz_to_polar,nams[0],/ph_0_360
-    options,/def,nams[0]+'_mag',ysubtitle=ysub
-    spice_qrot_to_tplot,ref_frame,att_frame,res=res*60.,check_obj=[body,'SUN'],/force_objects,error=angle_error*!pi/180.
-    tplot_quaternion_rotate,'SPP_VEL_(Sun-ECLIPJ2000)','ECLIPJ2000_QROT_SPP_RTN',newname='SPP_VEL_RTN'
-    options,/def,'SPP_VEL_RTN',labels=['V_R','V_T','V_N'],ysubtitle='(km/s)',labflag=-1,constant=0
+    options,/def,nams[0]+'_mag',ysubtitle=ysub,ystyle=3
+    spice_qrot_to_tplot,ref_frame,att_frame,trange=trange,res=res*60.,check_obj=[body,'SUN'],/force_objects,error=angle_error*!pi/180.
+    tplot_quaternion_rotate,'SPP_VEL_(Sun-ECLIPJ2000)','ECLIPJ2000_QROT_SPP_RTN',newname='SPP_VEL_RTN_SUN'
+    options,/def,'SPP_VEL_RTN_SUN',labels=['V_R','V_T','V_N'],ysubtitle='(km/s)',labflag=-1,constant=0,ystyle=3
 
     if position ge 2 then begin    ; get "constants" of motion for sun
       get_data,nams[0]     ,data=pos
@@ -104,7 +104,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       nam_rxv = str_sub(nams[0],'POS_','RxV_')
       rxv = crossp2(pos.y,vel.y)   ; angular mmomentum / m
       L2 = total(rxv ^2,2)         ;  L^2
-      store_data,nam_rxv,pos.x,rxv,dlimit=struct(colors='bgr')
+      store_data,nam_rxv,pos.x,rxv,dlimit={colors:'bgr'}
 
       ;look at energy as constant of the motion
       KE = 0.5d * total(vel.y^2,2) - gm/ (rscale*dist) ; - gm  / C^2 * L2 / dist^3 /rscale
@@ -121,7 +121,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       store_data,nam_freefall,pos.x,f_m
       xyz_to_polar,/quick_mag,nam_freefall
       options,nam_freefall+'_mag',colors='g'
-      ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+      ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit={colors:'b'}
       ;Estimate GR effects
       fgr_m = 3* gm / C^2  / rscale^2 * ( (L2 / dist^5) # [1,1,1]) * pos.y    ; general relativity correction
       ftot_m += Fgr_m
@@ -157,7 +157,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       observer = 'Venus'
       spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
       xyz_to_polar,nams[0],/ph_0_360
-      options,/def,nams[0]+'_mag',ysubtitle=ysub
+      options,/def,nams[0]+'_mag',ysubtitle=ysub,ystyle=3
       if position ge 3 then begin
         get_data,nams[0]     ,data=pos
         dist = sqrt(total( pos.y ^2,2))
@@ -166,7 +166,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
         ftot_m += f_m
         store_data,nam_freefall,pos.x,f_m
         xyz_to_polar,/quick_mag,nam_freefall
-        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit={colors:'b'}
         nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
         store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
         options,nam_freefall+'_mag',colors='c'
@@ -182,7 +182,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       observer = 'Earth'
       spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
       xyz_to_polar,nams[0],/ph_0_360,/quick_mag
-      options,nams[0]+'_mag',ysubtitle=ysub
+      options,nams[0]+'_mag',ysubtitle=ysub,ystyle=3
       if position ge 3 then begin
         get_data,nams[0]     ,data=pos
         dist = sqrt(total( pos.y ^2,2))
@@ -191,7 +191,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
         ftot_m += f_m
         store_data,nam_freefall,pos.x,f_m
         xyz_to_polar,/quick_mag,nam_freefall
-        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit={colors:'b'}
         nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
         store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
         options,nam_freefall+'_mag',colors='m'
@@ -207,7 +207,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       observer = 'Mercury'
       spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
       xyz_to_polar,nams[0],/ph_0_360,/quick_mag
-      options,nams[0]+'_mag',ysubtitle=ysub
+      options,nams[0]+'_mag',ysubtitle=ysub,ystyle=3
       if position ge 3 then begin
         get_data,nams[0]     ,data=pos
         dist = sqrt(total( pos.y ^2,2))
@@ -216,7 +216,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
         ftot_m += f_m
         store_data,nam_freefall,pos.x,f_m
         xyz_to_polar,/quick_mag,nam_freefall
-        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit={colors:'b'}
         nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
         store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
         options,nam_freefall+'_mag',colors='y'
@@ -232,7 +232,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       observer = 'Mars'
       spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
       xyz_to_polar,nams[0],/ph_0_360,/quick_mag
-      options,nams[0]+'_mag',ysubtitle=ysub
+      options,nams[0]+'_mag',ysubtitle=ysub,ystyle=3
       if position ge 3 then begin
         get_data,nams[0]     ,data=pos
         dist = sqrt(total( pos.y ^2,2))
@@ -241,7 +241,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
         ftot_m += f_m
         store_data,nam_freefall,pos.x,f_m
         xyz_to_polar,/quick_mag,nam_freefall
-        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit={colors:'b'}
         nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
         store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
         options,nam_freefall+'_mag',colors='b'
@@ -257,7 +257,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       observer = 'Jupiter'
       spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
       xyz_to_polar,nams[0],/ph_0_360,/quick_mag
-      options,nams[0]+'_mag',ysubtitle=ysub
+      options,nams[0]+'_mag',ysubtitle=ysub,ystyle=3
       if position ge 3 then begin
         get_data,nams[0]     ,data=pos
         dist = sqrt(total( pos.y ^2,2))
@@ -266,7 +266,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
         ftot_m += f_m
         store_data,nam_freefall,pos.x,f_m
         xyz_to_polar,/quick_mag,nam_freefall
-        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit={colors:'b'}
         nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
         store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
         options,nam_freefall+'_mag',colors='g'
@@ -282,7 +282,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       observer = 'Saturn'
       spice_position_to_tplot,body,observer,frame=ref_frame,res=res,scale=rscale,name=nams,trange=trange,/force_objects ;million km
       xyz_to_polar,nams[0],/ph_0_360,/quick_mag
-      options,nams[0]+'_mag',ysubtitle=ysub
+      options,nams[0]+'_mag',ysubtitle=ysub,ystyle=3
       if position ge 3 then begin
         get_data,nams[0]     ,data=pos
         dist = sqrt(total( pos.y ^2,2))
@@ -291,7 +291,7 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
         ftot_m += f_m
         store_data,nam_freefall,pos.x,f_m
         xyz_to_polar,/quick_mag,nam_freefall
-        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit=struct(colors='b')
+        ;store_data,'|'+nam_freefall+'|' ,pos.x, sqrt(total(f_m^2,2)),dlimit={colors:'b'}
         nam_rxv = str_sub(nams[0],'_POS_','_RxV_')
         store_data,nam_rxv,pos.x,crossp2(pos.y,vel.y)
         options,nam_freefall+'_mag',colors='g'
@@ -311,24 +311,23 @@ pro spp_swp_spice,trange=trange,res=res,utc=utc,kernels=kernels,download_only=do
       xyz_to_polar,/quick_mag,[nam_ftot,nam_diff]
       options,nam_ftot+'_mag',colors='b'
       options,nam_diff+'_mag',colors='r'
-      store_data,'|ACC|',data=nams_acc_all + '_mag',dlimit=struct(panel_size=3,yrange=[1e-14,1e-2],/ylog)
+      store_data,'|ACC|',data=nams_acc_all + '_mag',dlimit={panel_size:3,yrange:[1e-14,1e-2],ylog:1}
     endif
 
   endif
 
   if keyword_set(quaternion) then begin
     spice_qrot_to_tplot,'SPP_SPACECRAFT',att_frame,get_omega=3,res=res,names=tn,trange=trange,check_obj=['SPP_SPACECRAFT','SPP','SUN'],/force_objects,error=angle_error*!pi/180.
-    ;tplot_quaternion_rotate,'SPP_VEL_RTN','SPP_SPACECRAFT_QROT_SPP_RTN'
     get_data,'SPP_SPACECRAFT_QROT_SPP_RTN',dat=dat
-    qtime = dat.x
-    quat_SC_to_RTN = dat.y
-    quat_SC2_to_SC = [.5d,.5d,.5d,-.5d]
-    quat_SC_to_SC2 = [.5d,-.5d,-.5d,.5d]
+    qtime=dat.x
+    quat_SC_to_RTN=dat.y
+    quat_SC2_to_SC=[.5d,.5d,.5d,-.5d]
+    quat_SC_to_SC2=[.5d,-.5d,-.5d,.5d]
 
-    quat_SC2_to_RTN = qmult(quat_SC_to_RTN, replicate(1,n_elements(qtime)) # quat_SC2_to_SC)
+    quat_SC2_to_RTN=qmult(quat_SC_to_RTN, replicate(1,n_elements(qtime)) # quat_SC2_to_SC)
     store_data,'SPP_QROT_SC2>RTN',qtime,quat_SC2_to_RTN,dlim={SPICE_FRAME:'SPP_SC2',colors:'dbgr',constant:0.,labels:['Q_W','Q_X','Q_Y','Q_Z'],labflag:-1}
-    store_data,'SPP_QROT_SC2>RTN_Euler_angles',qtime, 180/!pi*quaternion_to_euler_angles(quat_SC2_to_RTN),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
-    store_data,'SPP_QROT_RTN>SC2_Euler_angles',qtime, 180/!pi*quaternion_to_euler_angles(qconj(quat_SC2_to_RTN)),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
+    store_data,'SPP_QROT_SC2>RTN_Euler_angles',qtime,180/!pi*quaternion_to_euler_angles(quat_SC2_to_RTN),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
+    store_data,'SPP_QROT_RTN>SC2_Euler_angles',qtime,180/!pi*quaternion_to_euler_angles(qconj(quat_SC2_to_RTN)),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
     ;tplot
 
     if keyword_set(test) then begin   ; test routines

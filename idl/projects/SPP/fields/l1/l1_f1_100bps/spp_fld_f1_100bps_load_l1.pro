@@ -147,7 +147,6 @@ pro spp_fld_f1_100bps_load_l1, file, prefix = prefix, varformat = varformat
       get_data, name, alim = alim
 
       options, name, 'ynozero', 1
-      ;options, name, 'horizontal_ytitle', 1
       ;options, name, 'colors', [6]
       options, name, 'ytitle', '100BPS!C' + $
         strjoin(strsplit($

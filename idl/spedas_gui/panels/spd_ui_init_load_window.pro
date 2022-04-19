@@ -25,9 +25,9 @@
 ;  none
 ; 
 ;HISTORY:
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2015-05-22 10:59:17 -0700 (Fri, 22 May 2015) $
-;$LastChangedRevision: 17673 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2022-03-04 11:48:01 -0800 (Fri, 04 Mar 2022) $
+;$LastChangedRevision: 30648 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/panels/spd_ui_init_load_window.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -256,8 +256,17 @@ pro spd_ui_init_load_window, gui_id, windowStorage, loadedData, historyWin, $
 
   compile_opt idl2, hidden
   
+  spd_get_scroll_sizes,xfrac=0.8, yfrac=0.8, scroll_needed = scroll_needed, x_scroll_size=x_scroll_size, y_scroll_size=y_scroll_size
+ 
+  if (scroll_needed) then begin
+    tlb = widget_base(/Col, Title = "Load Data", Group_Leader = gui_id, $
+      x_scroll_size=x_scroll_size, y_scroll_size=y_scroll_size,/scroll, /Floating, /TLB_KILL_REQUEST_EVENTS)
+   
+  endif else begin
   tlb = widget_base(/Col, Title = "Load Data", Group_Leader = gui_id, $
-                    /Modal, /Floating, /TLB_KILL_REQUEST_EVENTS)
+                /Floating, /TLB_KILL_REQUEST_EVENTS)
+  endelse
+  
   tabBase = widget_tab(tlb, location=0, multiline=10)
 
   tabNum = n_elements(loadDataTabs)
@@ -291,7 +300,7 @@ pro spd_ui_init_load_window, gui_id, windowStorage, loadedData, historyWin, $
   widget_control, tabBase, set_tab_current=(*userSelectPtr).panelID
     
   ; Create Status Bar Object
-  okButton = Widget_Button(bottomBase, Value='Done', XSize=75, uValue='DISMISS', $
+  okButton = Widget_Button(bottomBase, Value='Done', uValue='DISMISS', $
     ToolTip='Dismiss Load Panel', /align_center)
   statusText = Obj_New('SPD_UI_MESSAGE_BAR', $
                        Value='Status information is displayed here.', $

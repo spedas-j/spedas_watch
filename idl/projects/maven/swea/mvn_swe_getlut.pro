@@ -29,14 +29,20 @@
 ;
 ;       VOLT:     Use analyzer voltage to identify tables 7 and 8.
 ;
+;       DV_MAX:   Maximum absolute difference between measured analyzer
+;                 voltage and nominal voltage.  Two values: one for 50 eV
+;                 one for 200 eV.  Default: [0.7, 2.0].
+;
+;       DIAG:     Make diagnostic plots.
+;
 ;       FLUX:     Use constant flux to identify tables 7 and 8.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 11:22:18 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28837 $
+; $LastChangedDate: 2021-08-11 14:04:13 -0700 (Wed, 11 Aug 2021) $
+; $LastChangedRevision: 30201 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getlut.pro $
 ;-
-pro mvn_swe_getlut, tplot=tplot, dt_lut=dt_lut, volt=volt, flux=flux
+pro mvn_swe_getlut, tplot=tplot, dt_lut=dt_lut, volt=volt, dv_max=dv, diag=diag, flux=flux
 
   @mvn_swe_com
   common lutcom, dtl, vflg, fflg
@@ -49,8 +55,13 @@ pro mvn_swe_getlut, tplot=tplot, dt_lut=dt_lut, volt=volt, flux=flux
 
   if (n_elements(dt_lut) gt 0) then dtl = double(dt_lut[0])
   if (n_elements(volt) gt 0) then vflg = keyword_set(volt)
+  case n_elements(dv) of
+     1   : dv_max = [dv, 2.0]
+     2   : dv_max = dv
+    else : dv_max = [0.7, 2.0]
+  endcase
   if (n_elements(flux) gt 0) then fflg = keyword_set(flux)
-  if (vflg or fflg) then dtl = 0D
+;  if (vflg or fflg) then dtl = 0D
 
   if (abs(dtl) gt 0D) then begin
     msg = strtrim(string(dtl, format='(f12.1)'),2)
@@ -106,9 +117,9 @@ pro mvn_swe_getlut, tplot=tplot, dt_lut=dt_lut, volt=volt, flux=flux
     print,"MVN_SWE_GETLUT%  Using analyzer voltage method."
     indx = where(lutnum eq 2 or lutnum eq 3, count)
     if (count gt 0L) then begin
-      indx = where(abs(swe_hsk.analv - 8.13) lt 0.7, count)
+      indx = where(abs(swe_hsk.analv - 8.13) lt dv_max[0], count)
       if (count gt 0L) then tabnum[indx] = 8B  ; hires @ 50 eV
-      indx = where(abs(swe_hsk.analv - 32.5) lt 2.0, count)
+      indx = where(abs(swe_hsk.analv - 32.5) lt dv_max[1], count)
       if (count gt 0L) then tabnum[indx] = 7B  ; hires @ 200 eV
     endif
   endif else begin
@@ -117,6 +128,18 @@ pro mvn_swe_getlut, tplot=tplot, dt_lut=dt_lut, volt=volt, flux=flux
     indx = where(lutnum eq 3, count)
     if (count gt 0L) then tabnum[indx] = 8B  ; hires @ 50 eV
   endelse
+
+  if keyword_set(diag) then begin
+    store_data,'dv50',data={x:swe_hsk.time, y:abs(swe_hsk.analv - 8.13)}
+    options,'dv50','psym',10
+    options,'dv50','constant',dv_max[0]
+    ylim,'dv50',0,2.*dv_max[0]
+
+    store_data,'dv200',data={x:swe_hsk.time, y:abs(swe_hsk.analv - 32.5)}
+    options,'dv200','psym',10
+    options,'dv200','constant',dv_max[1]
+    ylim,'dv200',0,2.*dv_max[1]
+  endif
 
 ; Use flat spectral shape to identify tables 7 and 8.  This doesn't work
 ; in superthermal electron voids, where the signal is close to background
@@ -173,13 +196,13 @@ pro mvn_swe_getlut, tplot=tplot, dt_lut=dt_lut, volt=volt, flux=flux
   if (fflg) then begin
     jndx = where(tabnum le 6B, count)
     if (count gt 0L) then begin
-      indx = nn2(swe_hsk[jndx].time, mvn_swe_engy[i1_5].time)
+      indx = nn2(swe_hsk[jndx].time + dtl, mvn_swe_engy[i1_5].time)
       mvn_swe_engy[i1_5].lut = tabnum[jndx[indx]]
     endif
 
     jndx = where(tabnum ge 7B, count)
     if (count gt 0L) then begin
-      indx = nn2(swe_hsk[jndx].time, mvn_swe_engy[i7_8].time)
+      indx = nn2(swe_hsk[jndx].time + dtl, mvn_swe_engy[i7_8].time)
       mvn_swe_engy[i7_8].lut = tabnum[jndx[indx]]
     endif
   endif else begin

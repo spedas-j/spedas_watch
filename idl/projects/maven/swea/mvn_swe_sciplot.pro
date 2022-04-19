@@ -46,6 +46,10 @@
 ;   STATIC:    Include two panels for STATIC data: one mass spectrum, one energy
 ;              spectrum.
 ;
+;   IV_LEVEL:  IV level for STATIC, from 0 to 4.  Values greater than zero fill
+;              in background estimates from up to four different sources.
+;              Currently in development.  Default = 0.
+;
 ;   APID:      Additional STATIC APID's to load.  (Hint: D0, D1 might be useful.)
 ;
 ;   LPW:       Include panel for electron density from LPW data.
@@ -74,8 +78,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-08-28 10:31:01 -0700 (Fri, 28 Aug 2020) $
-; $LastChangedRevision: 29087 $
+; $LastChangedDate: 2022-01-03 10:03:48 -0800 (Mon, 03 Jan 2022) $
+; $LastChangedRevision: 30484 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sciplot.pro $
 ;
 ;-
@@ -83,7 +87,7 @@
 pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lpw, euv=euv, $
                      sc_pot=sc_pot, eph=eph, min_pad_eflux=min_pad_eflux, loadonly=loadonly, $
                      pans=pans, padsmo=padsmo, apid=apid, shape=shape, nadir=nadir, datum=dtm, $
-                     magfull=magfull
+                     magfull=magfull, iv_level=iv_level
 
   compile_opt idl2
 
@@ -93,6 +97,7 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
   if not keyword_set(APID) then apid = 0
   
   if (size(min_pad_eflux,/type) eq 0) then min_pad_eflux = 6.e4
+  if (size(iv_level,/type) eq 0) then iv_level = 0
 
 ; Make sure the datum is valid
 
@@ -172,21 +177,21 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
   if keyword_set(sun) then begin
     mvn_sundir, frame='swe', /polar
     sun_pan = 'Sun_SWEA_The'
-    get_data,sun_pan,index=i
+    i = find_handle(sun_pan, verbose=-2)
     if (i eq 0) then sun_pan = ''
   endif else sun_pan = ''
 
   if keyword_set(ram) then begin
     mvn_ramdir
     ram_pan = 'V_sc_MAVEN_SPACECRAFT'
-    get_data,ram_pan,index=i
+    i = find_handle(ram_pan, verbose=-2)
     if (i eq 0) then ram_pan = ''
   endif else ram_pan = ''
 
   if keyword_set(nadir) then begin
     mvn_nadir
     ndr_pan = 'Nadir_MAVEN_SPACECRAFT'
-    get_data,ndr_pan,index=i
+    i = find_handle(ndr_pan, verbose=-2)
     if (i eq 0) then ndr_pan = ''
   endif else ndr_pan = ''
 
@@ -209,10 +214,10 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
   shape_pan = ''
   if keyword_set(shape) then begin
      mvn_swe_shape_restore,/tplot
-     get_data,'Shape_PAD',index=i
+     i = find_handle('Shape_PAD', verbose=-2)
     if (i eq 0) then begin
       mvn_swe_shape_par_pad_l2, spec=45, /pot, tsmo=16
-      get_data,'Shape_PAD',index=i
+      i = find_handle('Shape_PAD', verbose=-2)
     endif
     if (i gt 0) then begin
       shape_pan = 'Shape_PAD'
@@ -233,7 +238,7 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
 ; STATIC data
 
   sta_pan = ''
-  if keyword_set(static) then mvn_swe_addsta, pans=sta_pan, apid=apid
+  if keyword_set(static) then mvn_swe_addsta, pans=sta_pan, apid=apid, iv=iv_level
 
 ; LPW data
 
@@ -270,7 +275,7 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
 
 ; Burst bar, if available
 
-  get_data,'swe_a3_bar',index=i
+  i = find_handle('swe_a3_bar', verbose=-1)
   if (i gt 0) then bst_pan = 'swe_a3_bar' else bst_pan = ''
 
 ; Assemble the panels and plot

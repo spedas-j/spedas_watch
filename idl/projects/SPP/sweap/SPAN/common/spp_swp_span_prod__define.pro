@@ -1,8 +1,8 @@
 ;+
 ; spp_swp_span_prod
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
-; $LastChangedRevision: 30043 $
+; $LastChangedDate: 2021-08-16 07:29:05 -0700 (Mon, 16 Aug 2021) $
+; $LastChangedRevision: 30210 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/common/spp_swp_span_prod__define.pro $
 ;-
 ;----------------------------------------------
@@ -90,7 +90,7 @@ pro spp_swp_span_prod__define ,productstr, ccsds
   status_bits = header[18]
   peak_bin = header[19]
 
-  trg_flag = ishft(header[12],-6) and 1b ;1=no targeted
+  if ion then trg_flag = ishft(header[12],-6) and 1b else trg_flag = ishft(mode2,-7) and 1b ;1=no targeted
   smp_flag = ishft(header[12],-4) and 1b ;1=summing
   arc_flag = ishft(header[13],-4) and 1b ;1=summing
   smp_accum = header[12] and 15b

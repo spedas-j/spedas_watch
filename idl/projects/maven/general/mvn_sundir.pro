@@ -4,10 +4,12 @@
 ;  Determines the direction of the Sun at the position of the spacecraft in
 ;  one or more coordinate frames.  The results are stored in TPLOT variables.
 ;
-;  You must have SPICE installed for this routine to work.  If SPICE is 
-;  already initialized (e.g., mvn_swe_spice_init), this routine will use the 
-;  current loadlist.  Otherwise, this routine will try to initialize SPICE
-;  based on the current timespan.
+;  This vector can be rotated into any coordinate frame recognized by
+;  SPICE.  See mvn_frame_name for a list.  The default is MAVEN_SPACECRAFT.
+;
+;  You must have SPICE installed for this routine to work.  This routine will
+;  check to make sure SPICE has been initialized and that the loaded kernels
+;  cover the specified time range.
 ;
 ;USAGE:
 ;  mvn_sundir, trange
@@ -24,6 +26,8 @@
 ;                 by SPICE is allowed.  The default is 'MAVEN_SPACECRAFT'.
 ;                 Other possibilities are: 'MAVEN_APP', 'MAVEN_STATIC', etc.
 ;                 Type 'mvn_frame_name(/list)' to see a full list of frames.
+;                 Minimum matching name fragments (e.g., 'sta', 'swe') are
+;                 allowed -- see mvn_frame_name for details.
 ;
 ;       POLAR:    If set, convert the direction to polar coordinates and
 ;                 store as additional tplot variables.
@@ -33,18 +37,41 @@
 ;       PANS:     Named variable to hold the tplot variables created.  For the
 ;                 default frame, this would be 'Sun_MAVEN_SPACECRAFT'.
 ;
+;       FORCE:    Ignore the SPICE check and forge ahead anyway.
+;
 ;       SUCCESS:  Returns 1 on normal completion, 0 otherwise.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-09-24 15:48:26 -0700 (Tue, 24 Sep 2019) $
-; $LastChangedRevision: 27792 $
+; $LastChangedDate: 2022-01-17 20:38:46 -0800 (Mon, 17 Jan 2022) $
+; $LastChangedRevision: 30519 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_sundir.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
-pro mvn_sundir, trange, dt=dt, pans=pans, frame=frame, polar=polar, success=success
+pro mvn_sundir, trange, dt=dt, pans=pans, frame=frame, polar=polar, force=force, success=success
 
   success = 0
+  dopol = keyword_set(polar)
+  noguff = keyword_set(force)
+  if not keyword_set(dt) then dt = 1D else dt = double(dt[0])
+  
+  if (size(frame,/type) ne 7) then frame = 'MAVEN_SPACECRAFT'
+  frame = mvn_frame_name(frame, success=i)
+  gndx = where(i, count)
+  if (count eq 0) then begin
+    print,"No valid frames."
+    return
+  endif
+  frame = frame[i[gndx]]
+
+; The spacecraft CK is always needed.  Check to see if the APP CK is also needed.
+
+  need_app_ck = max(strmatch(frame,'*STATIC*',/fold)) or $
+                max(strmatch(frame,'*NGIMS*',/fold)) or $
+                max(strmatch(frame,'*IUVS*',/fold)) or $
+                max(strmatch(frame,'*APP*',/fold))
+
+; Get the time range
 
   if (size(trange,/type) eq 0) then begin
     tplot_options, get_opt=topt
@@ -56,32 +83,24 @@ pro mvn_sundir, trange, dt=dt, pans=pans, frame=frame, polar=polar, success=succ
   endif
   tmin = min(time_double(trange), max=tmax)
 
-; If SPICE is not initialized at all, then load kernels now.  Otherwise, use
-; the kernels already loaded.
+; Check the time range against the ephemeris coverage -- bail if there's a problem
 
   mk = spice_test('*', verbose=-1)
   indx = where(mk ne '', count)
   if (count eq 0) then begin
-    mvn_swe_spice_init, trange=[tmin,tmax]
-    mk = spice_test('*', verbose=-1)
-    indx = where(mk ne '', count)
-    if (count eq 0) then begin
-      print,"Insufficient SPICE coverage in requested time range."
-      return
-    endif
-  endif
-
-  if not keyword_set(dt) then dt = 1D else dt = double(dt[0])
-  dopol = keyword_set(polar)
-  
-  if (size(frame,/type) ne 7) then frame = 'MAVEN_SPACECRAFT'
-  frame = mvn_frame_name(frame, success=i)
-  gndx = where(i, count)
-  if (count eq 0) then begin
-    print,"No valid frames."
+    print,"You must initialize SPICE first."
     return
-  endif
-  frame = frame[i[gndx]]
+  endif else begin
+    mvn_spice_stat, summary=sinfo, check=[tmin,tmax], /silent
+    ok = sinfo.spk_check and sinfo.ck_sc_check
+    if (need_app_ck) then ok = ok and sinfo.ck_app_check
+    if (not ok) then begin
+      print,"Insufficient SPICE coverage for the requested time range."
+      print,"  -> Reinitialize SPICE to include your time range."
+      if (~noguff) then return
+      print,"  -> Keyword FORCE is set, so trying anyway."
+    endif
+  endelse
 
 ; First store the Sun direction in MAVEN_SSO coordinates
 
@@ -128,6 +147,7 @@ pro mvn_sundir, trange, dt=dt, pans=pans, frame=frame, polar=polar, success=succ
       options,the_name,'ytitle','Sun The!c'+fname
       options,the_name,'ynozero',1
       options,the_name,'psym',3
+      options,the_name,spice_frame=to_frame
 
       phi_name = 'Sun_' + fname + '_Phi'
       store_data,phi_name,data=phi
@@ -137,6 +157,7 @@ pro mvn_sundir, trange, dt=dt, pans=pans, frame=frame, polar=polar, success=succ
       options,phi_name,'yminor',3
       options,phi_name,'ynozero',1
       options,phi_name,'psym',3
+      options,phi_name,spice_frame=to_frame
 
       if (fname eq 'SWEA') then begin
         options,the_name,'constant',[-10, 0, 17, 37, 77, 87]  ; see mvn_swe_sundir

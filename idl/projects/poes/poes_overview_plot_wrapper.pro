@@ -11,6 +11,7 @@
 ;         date_start: begin processing at this date (eg. '2013-12-19')
 ;         date_end: end processing at this date (eg. '2013-12-29')
 ;         base_dir: root dir for output plots (eg. /disks/themisdata/overplots/)
+;         makepng: generate png files
 ;         server_run: for a cron job this has to be set to '1' to avoid downloading files
 ;         themis_dir: server directory for themis (eg. '/disks/themisdata/')
 ;         poes_dir: server directory for poes (eg. '/disks/data/goes/poes/qa/')
@@ -54,11 +55,12 @@
 ;  2013 15,16,17,18,19
 ;  2014 15,16,18,19
 ;  2015 15,16,18,19
+;  2021 15,18,19
 ;
 ;HISTORY:
-;$LastChangedBy: jimm $
-;$LastChangedDate: 2019-12-02 14:13:30 -0800 (Mon, 02 Dec 2019) $
-;$LastChangedRevision: 28069 $
+;$LastChangedBy: nikos $
+;$LastChangedDate: 2022-03-18 12:52:44 -0700 (Fri, 18 Mar 2022) $
+;$LastChangedRevision: 30691 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/poes/poes_overview_plot_wrapper.pro $
 ;----------
 
@@ -92,9 +94,9 @@ function check_poes_noaa_dir, base_dir, remote_http_dir
     RETURN, 0
   ENDIF
   
-  oUrl = OBJ_NEW('IDLnetUrl')
+  oUrl = OBJ_NEW('IDLnetUrl', ssl_verify_host=0, ssl_verify_peer=0)
   oUrl->SetProperty, VERBOSE = 1
-  oUrl->SetProperty, url_scheme = 'http'
+  oUrl->SetProperty, url_scheme = 'https'
   ;cd, base_dir
   oUrl->SetProperty, CALLBACK_function ='poes_url_callback'
   oUrl->SetProperty, URL_HOST = remote_http_dir
@@ -137,7 +139,7 @@ function poes_generate_datearray, date_start, date_end
 end
 
 pro poes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
-  date_mod = date_mod, probes = probes, base_dir = base_dir, $
+  date_mod = date_mod, probes = probes, base_dir = base_dir, makepng=makepng,$
   server_run = server_run, themis_dir = themis_dir, poes_dir = poes_dir, $
   reprocess = reprocess
   compile_opt idl2
@@ -234,7 +236,7 @@ pro poes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
         dprint, dlevel = 1, msgstr
         heap_gc
         poes_overview_plot, date = date, probe = probe, directory = directory, $
-                            device = device , duration = 1
+                            device = device , duration = 1, makepng=makepng
         if ~keyword_set(reprocess) then poes_write_lastdate, lastdate_file, date ;jmm, 2019-12-12
       endif
     endfor

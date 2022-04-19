@@ -19,7 +19,6 @@ pro spp_fld_sc_hk_191_load_l1, file, prefix = prefix, varformat = varformat
       ytitle = ytitle.Replace('_','!C')
 
       options, name, 'ynozero', 1
-      options, name, 'horizontal_ytitle', 1
       options, name, 'colors', [2]
       options, name, 'ytitle', ytitle
 

@@ -16,9 +16,9 @@
 ;spinner (as they change) so that the user can't click down below valid values.
 ;
 ;
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2014-07-28 13:47:52 -0700 (Mon, 28 Jul 2014) $
-;$LastChangedRevision: 15619 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2022-03-01 11:44:06 -0800 (Tue, 01 Mar 2022) $
+;$LastChangedRevision: 30633 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/panels/spd_ui_layout_options/spd_ui_layout_options.pro $
 ;--------------------------------------------------------------------------------
 
@@ -2549,10 +2549,15 @@ PRO spd_ui_layout_options, info
     spd_gui_error, info.master, info.historywin
     RETURN
   ENDIF
-    
-  tlb = Widget_Base(/Col, Title='Plot/Layout Options', Group_Leader=info.master, $
-                    /Modal, /Floating, /tlb_kill_request_events, tab_mode=1) 
-
+   
+  spd_get_scroll_sizes,xfrac=0.80,yfrac=0.80,scroll_needed=scroll_needed,x_scroll_size=x_scroll_size,y_scroll_size=y_scroll_size
+  if (scroll_needed) then begin
+     tlb = Widget_Base(/Col, Title='Plot/Layout Options', Group_Leader=info.master, $
+                    /scroll,x_scroll_size=x_scroll_size,y_scroll_size=y_scroll_size, /Floating, /tlb_kill_request_events, tab_mode=1) 
+  endif else begin
+    tlb = Widget_Base(/Col, Title='Plot/Layout Options', Group_Leader=info.master, $
+       /Floating, /tlb_kill_request_events, tab_mode=1)   
+  endelse
   toprowBase = Widget_Base(tlb, /Row, /Align_Left, space=200)
     traceBase = Widget_Base(toprowBase, /Row, /NonExclusive, /Align_Left)
     titleBase = Widget_Base(toprowBase, /Row, /Align_Center)
@@ -2803,11 +2808,11 @@ PRO spd_ui_layout_options, info
 
 
 ; MAIN BUTTON WIDGETS ----------------------------------------------------------
-  okButton = Widget_Button(buttonBase, Value=' OK ', UValue='OK', XSize=80, $
+  okButton = Widget_Button(buttonBase, Value=' OK ', UValue='OK', $
     Tooltip='Applies the changes to the layout and closes the window')
   applyButton = Widget_Button(buttonBase, Value=' Apply ', UValue='APPLY', $
-    Tooltip='Applies the changes to the layout', XSize=80)
-  cancelButton = Widget_Button(buttonBase, Value=' Cancel ', UValue='CANC', XSize=80, $
+    Tooltip='Applies the changes to the layout')
+  cancelButton = Widget_Button(buttonBase, Value=' Cancel ', UValue='CANC', $
     Tooltip='Cancels the operation and closes the window')
 
   

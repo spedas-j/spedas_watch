@@ -12,8 +12,8 @@
 ;       Yuki Harada on 2017-05-03
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2020-12-09 16:46:07 -0800 (Wed, 09 Dec 2020) $
-; $LastChangedRevision: 29459 $
+; $LastChangedDate: 2022-02-17 22:59:31 -0800 (Thu, 17 Feb 2022) $
+; $LastChangedRevision: 30598 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/marsis/mex_marsis_load.pro $
 ;-
 
@@ -36,7 +36,8 @@ if ~total(strlen(marsis_user_pass)) and ~size(public,/type) then public = 1
 
 ;;; set up file source
 s = file_retrieve(/struc)
-str_element,s,/add,'remote_data_dir','http://www-pw.physics.uiowa.edu/plasma-wave/marsx/'
+;str_element,s,/add,'remote_data_dir','http://www-pw.physics.uiowa.edu/plasma-wave/marsx/' ;- obsolete
+str_element,s,/add,'remote_data_dir','https://space.physics.uiowa.edu/plasma-wave/marsx/'
 str_element,s,/add,'local_data_dir',root_data_dir() + 'mex/'
 str_element,s,/add,'user_pass',marsis_user_pass
 str_element,s,/add,'last_version',1
@@ -83,7 +84,12 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       s.local_data_dir = '/opt/project/marsx/'
       pf = 'super/GEOMETRY/ACTIVE_IONOSPHERIC_SOUNDER/RDR'+orbnumx+'/FRM_AIS_RDR_'+string(orbnum,f='(i0)')+'.TAB'
       s.no_server = 1
-   endif
+   endif else begin             ;- restricted, now w/ https
+      ftmp = file_retrieve(pf,_extra=s,no_server=1)
+      if total(strlen(ftmp)) eq 0 then $ ;- if no local files
+         fff = spd_download(remote_file=pf,_extra=s)
+      s.no_server = 1
+   endelse
    f = file_retrieve(pf,_extra=s)
    s.no_server = no_server0
    if total(strlen(f)) eq 0 then continue
@@ -177,28 +183,33 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
    ;; endif                        ;- public
    if keyword_set(public) then begin ;- uiowa pub
       if exmission eq 0 then $       ;- prime mission
-         pf = 'MEX-M-MARSIS-5-DDR-ELEDENS-BMAG-'+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV' $
-      else pf = 'MEX-M-MARSIS-5-DDR-ELEDENS-BMAG-EXT'+string(exmission,f='(i0)')+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV'
+         pf = 'MEX-M-MARSIS-5-DDR-ELEDENS_BMAG-'+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV' $
+      else pf = 'MEX-M-MARSIS-5-DDR-ELEDENS_BMAG-EXT'+string(exmission,f='(i0)')+'-'+VVVV+'/DATA/MARSIS_ELEDENS_BMAG/DDR'+orbnumx+'/ELEDENS_BMAG_DDR_'+string(orbnum,f='(i5.5)')+'.CSV'
       ftmp = file_retrieve(pf,_extra=s,no_server=1)
       if total(strlen(ftmp)) eq 0 then $ ;- if no local files
          fff = spd_download(remote_file=pf,_extra=s)
       s.no_server = 1
-   endif                        ;- public
+   endif else begin             ;- restricted, now w/ https
+      ftmp = file_retrieve(pf,_extra=s,no_server=1)
+      if total(strlen(ftmp)) eq 0 then $ ;- if no local files
+         fff = spd_download(remote_file=pf,_extra=s)
+      s.no_server = 1
+   endelse
    f = file_retrieve(pf,_extra=s)
    s.no_server = no_server0
    if total(strlen(f)) eq 0 then continue
    ;;; error message html?
-   openr,unit,f,/get_lun
-   flag_html = 0 & line = ''
-   for iline=0,2 do begin
-      readf,unit,line
-      if strmatch(line,'*<html>*') then flag_html = 1
-   endfor
-   free_lun,unit
-   if flag_html then begin
-      file_delete,f             ;- clean up
-      continue
-   endif
+   ;; openr,unit,f,/get_lun
+   ;; flag_html = 0 & line = ''
+   ;; for iline=0,2 do begin
+   ;;    readf,unit,line
+   ;;    if strmatch(line,'*<html>*') then flag_html = 1
+   ;; endfor
+   ;; free_lun,unit
+   ;; if flag_html then begin
+   ;;    file_delete,f             ;- clean up
+   ;;    continue
+   ;; endif
    ;;; error message html?
    files = [ files, f ]
 
@@ -275,7 +286,12 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       if total(strlen(ftmp)) eq 0 then $ ;- if no local files
          fff = spd_download(remote_file=pf,_extra=s)
       s.no_server = 1
-   endif                        ;- public
+   endif else begin             ;- restricted, now w/ https
+      ftmp = file_retrieve(pf,_extra=s,no_server=1)
+      if total(strlen(ftmp)) eq 0 then $ ;- if no local files
+         fff = spd_download(remote_file=pf,_extra=s)
+      s.no_server = 1
+   endelse
    f = file_retrieve(pf,_extra=s)
    s.no_server = no_server0
 
@@ -304,7 +320,12 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       if total(strlen(ftmp)) eq 0 then $ ;- if no local files
          fff = spd_download(remote_file=lpf,_extra=s)
       s.no_server = 1
-   endif                        ;- public
+   endif else begin             ;- restricted, now w/ https
+      ftmp = file_retrieve(lpf,_extra=s,no_server=1)
+      if total(strlen(ftmp)) eq 0 then $ ;- if no local files
+         fff = spd_download(remote_file=lpf,_extra=s)
+      s.no_server = 1
+   endelse
    lf = file_retrieve(lpf,_extra=s)
    s.no_server = no_server0
 

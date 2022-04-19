@@ -1,5 +1,5 @@
 ;+
-;NAME:    elf_init
+;NAME:    elf_init_public
 ;
 ;PURPOSE:
 ;   Initializes system variables for elf. Currently the variable only contains information
@@ -38,7 +38,7 @@
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/common/elf_init.pro $
 ;-
 
-pro elf_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remote_data_dir,$
+pro elf_init_public, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remote_data_dir,$
   no_color_setup=no_color_setup
 
   def_struct = file_retrieve(/structure_format)

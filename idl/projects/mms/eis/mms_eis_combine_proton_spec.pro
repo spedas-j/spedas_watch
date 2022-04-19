@@ -8,6 +8,7 @@
 ;         probes:             string indicating value for MMS SC #
 ;         data_rate:          data rate ['srvy' (default), 'brst']
 ;         data_units:         data units ['flux' (default), 'cps', 'counts']
+;         level:              data level ['l1a','l1b','l2pre','l2' (default)]
 ;
 ; CREATED BY: I. Cohen, 2017-05-24
 ;
@@ -37,14 +38,17 @@
 ;       + 2020-12-11, I. Cohen          : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords
 ;       + 2021-01-21, I. Cohen          : removed lowest ExTOF energy channel because of noise near detector threshold
 ;       + 2021-01-27, I. Cohen          ; fixed error from previous change that duplicated uppermost energy channel
+;       + 2021-06-17, I. Cohen          : added level keyword; updated eis_prefix definition to handle new L2 variable names;
+;                                         added level to mms_eis_spin_avg and mms_eis_omni calls
 ;                       
 ;-
-pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
+pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, level = level, suffix = suffix
   ;
   compile_opt idl2
   if undefined(probes) then probes = '1'
   if undefined(data_rate) then data_rate = 'srvy'
   if undefined(data_units) then data_units = 'flux'
+  if undefined(level) then level = 'flux'
   if undefined(suffix) then suffix = ''
   if (data_units ne 'flux') then begin
     print,'Combination of PHxTOF and ExTOF data products is only recommended for flux data!'
@@ -53,7 +57,7 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
   ;
   for pp=0,n_elements(probes)-1 do begin
     ;
-    if (data_rate eq 'brst') then eis_prefix = 'mms'+probes[pp]+'_epd_eis_brst_' else eis_prefix = 'mms'+probes[pp]+'_epd_eis_'
+    eis_prefix = 'mms'+probes[pp]+'_epd_eis_'+data_rate+'_'+level+'_'
     ;
     extof_vars = tnames(eis_prefix+'extof_proton_P?_'+data_units+'_t?'+suffix)
     if (extof_vars[0] eq '') then begin
@@ -184,10 +188,10 @@ pro mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_unit
     endfor
     store_data,eis_prefix+'combined_proton_energy_limits',data={x:time_data,y:[[combined_energy_low],[combined_energy_hi]],v:combined_energy}
     ;
-    mms_eis_spin_avg, probe=probes[pp], datatype='combined', species='proton', data_units = data_units, data_rate = data_rate, suffix = suffix
+    mms_eis_spin_avg, probe=probes[pp], datatype='combined', species='proton', data_units = data_units, data_rate = data_rate, suffix = suffix, level = level
     ;
-    mms_eis_omni, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix, data_units = data_units, data_rate = data_rate
-    mms_eis_omni, /spin, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix, data_units = data_units, data_rate = data_rate
+    mms_eis_omni, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix, data_units = data_units, data_rate = data_rate, level = level
+    mms_eis_omni, /spin, probes[pp], species='proton', datatype='combined', tplotnames = tplotnames, suffix = suffix, data_units = data_units, data_rate = data_rate, level = level
     ;
   endfor
   ;

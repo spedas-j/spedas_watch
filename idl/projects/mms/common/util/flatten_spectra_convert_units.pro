@@ -9,12 +9,15 @@
 ; 
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-07-16 13:52:51 -0700 (Tue, 16 Jul 2019) $
-; $LastChangedRevision: 27464 $
+; $LastChangedDate: 2021-08-13 11:48:37 -0700 (Fri, 13 Aug 2021) $
+; $LastChangedRevision: 30205 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/util/flatten_spectra_convert_units.pro $
 ;-
 
 function flatten_spectra_convert_units, var, data_x, data_y, metadata, to_kev=to_kev, to_flux=to_flux
+  
+  ; first check that unit conversion was requested
+  if undefined(to_kev) && undefined(to_flux) then return, hash('data_x', data_x, 'data_y', data_y)
   
   cdf_yunits = ''
   cdf_zunits = ''

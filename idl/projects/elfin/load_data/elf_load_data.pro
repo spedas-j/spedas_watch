@@ -33,7 +33,8 @@
 ;         cdf_version:  specify a specific CDF version # to load (e.g., cdf_version='4.3.0')
 ;         cdf_records: specify the # of records to load from the CDF files; this is useful
 ;             for grabbing one record from a CDF file
-;         spdf:         grab the data from the SPDF instead of ELFIN server (only works for public data)
+;         spdf:         grab the data from the SPDF instead of ELFIN server - ***NOTE: only state and epdef data are 
+;                       at SPDF available
 ;         available:    (NOT YET IMPLEMENTED) returns a list of files available at the SDC for the requested parameters
 ;                       this is useful for finding which files would be downloaded (along with their sizes) if
 ;                       you didn't specify this keyword (also outputs total download size)
@@ -132,40 +133,21 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   ; clear CDF filenames, so we're not appending to an existing array
   undefine, cdf_filenames
 
-  if keyword_set(spdf) then begin
-    ;elf_load_data_spdf, probes = probes, datatype = datatypes, instrument = instrument, $
-    ;  trange = trange, source = source, level = level, tplotnames = tplotnames, $
-    ;  remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, $
-    ;  attitude_data = attitude_data, no_download = no_download, $
-    ;  no_server = no_server, data_rate = data_rates, get_support_data = get_support_data, $
-    ;  varformat = varformat, center_measurement=center_measurement, cdf_filenames = cdf_filenames, $
-    ;  cdf_records = cdf_records, min_version = min_version, cdf_version = cdf_version, $
-    ;  latest_version = latest_version, time_clip = time_clip, suffix = suffix, versions = versions
-    ;return
-    dprint, dlevel=1, 'ELFIN data is not yet avaialabe from the SPDF'
-  endif
+;  if keyword_set(spdf) then begin
+;    https://spdf.gsfc.nasa.gov/pub/data/elf/
+;    ;elf_load_data_spdf, probes = probes, datatype = datatypes, instrument = instrument, $
+;    ;  trange = trange, source = source, level = level, tplotnames = tplotnames, $
+;    ;  remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, $
+;    ;  attitude_data = attitude_data, no_download = no_download, $
+;    ;  no_server = no_server, data_rate = data_rates, get_support_data = get_support_data, $
+;    ;  varformat = varformat, center_measurement=center_measurement, cdf_filenames = cdf_filenames, $
+;    ;  cdf_records = cdf_records, min_version = min_version, cdf_version = cdf_version, $
+;    ;  latest_version = latest_version, time_clip = time_clip, suffix = suffix, versions = versions
+;    ;return
+;    ;dprint, dlevel=1, 'ELFIN data is not yet avaialabe from the SPDF'
+;  endif
 
   total_size = 0d ; for counting total download size when requesting /available
-  
-  if no_download eq 0 then begin
-    ; NOTE: directory is temporarily password protected. this will be
-    ;       removed when data is made public.
-    if undefined(user) OR undefined(pw) then authorization = elf_get_authorization()
-    if is_struct(authorization) then begin
-      user=authorization.user_name 
-      pw=authorization.password
-    endif else begin
-      user=''
-      pw=''
-    endelse 
-    
-    ; only query user if authorization file not found
-    ;If user EQ '' OR pw EQ '' then begin
-    ;  print, 'Please enter your ELFIN user name and password'
-    ;  read,user,prompt='User Name: '
-    ;  read,pw,prompt='Password: '
-    ;endif
-  endif
 
   ;loop over probe, rate, level
   ;omitting some tabbing to keep format reasonable
@@ -183,13 +165,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           ;ensure no descriptor is used if instrument doesn't use datatypes
           if datatype eq '' then undefine, descriptor else descriptor = datatype
 
-          ;**** Moved down to fnames loop
-          ;day_string = time_string(tr[0], tformat='YYYYMMDD')
-          ; note, -1 second so we don't download the data for the next day accidently
-          ;end_string = time_string(tr[1], tformat='YYYYMMDD')           
-          ;year_string = strmid(day_string,0,4)
-          ;if strmid(end_string,0,4) NE year_string then year_string=[year_string,strmid(end_string,0,4)] 
-          
           ; construct file names
           daily_names = file_dailynames(trange=tr, /unique, times=times)
           fnames=make_array(n_elements(daily_names), /string)
@@ -243,6 +218,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 ;          subdir = subdir + year_string[0] + '/'   ; moved below
           
           remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
+          
           if keyword_set(public_data) then begin
             slen=strlen(remote_data_dir)
             this_remote=strmid(remote_data_dir,0,slen-6)
@@ -252,11 +228,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
             SUBDIRECTORY=[probe, level, instrument]) + subdir 
 
           if strlowcase(!version.os_family) eq 'windows' then local_path = strjoin(strsplit(local_path, '/', /extract), path_sep())
-          ;if instrument EQ 'state' then local_path = spd_addslash(local_path)
-          ;if instrument EQ 'epd' then local_path = spd_addslash(local_path)
-          ;if instrument EQ 'fgm' then local_path = spd_addslash(local_path)
-          ;if instrument EQ 'mrma' then local_path = spd_addslash(local_path)
-          ;if instrument EQ 'mrmi' then local_path = spd_addslash(local_path)
 
           for file_idx = 0, n_elements(fnames)-1 do begin 
            
@@ -266,14 +237,28 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               this_remote_path=remote_path + yeardir
               paths = '' 
               
-              ; download data as long as no flags are set
+              ; download data as long as no flags are set or if spdf is set
+              if ~undefined(spdf) && spdf EQ 1 then no_download=0
               if no_download eq 0 then begin
                 if file_test(this_local_path,/dir) eq 0 then file_mkdir2, this_local_path
                 dprint, dlevel=1, 'Downloading ' + fnames[file_idx] + ' to ' + local_path                    
+                if ~undefined(spdf) && spdf EQ 1 then begin
+                  remote_path = 'https://spdf.gsfc.nasa.gov/pub/data/elfin/'
+                  if instrument EQ 'state' then begin
+                    if pred then subdir='pred/' else subdir='defn/'
+                  endif
+                  if instrument EQ 'epd' then subdir='epdef'
+                  relpath= 'elfin' + strcompress(string(probes[probe_idx]), /rem) +'/'+'ephemeris/'+subdir + '/' + yeardir
+                  relpathname=relpath + fnames[file_idx]
+                  paths = spd_download(remote_file=relpathname, remote_path=remote_path, $
+                    local_file=fnames[file_idx], local_path=this_local_path, ssl_verify_peer=0, ssl_verify_host=0)
+                endif else begin
                   paths = spd_download(remote_file=fnames[file_idx], remote_path=this_remote_path, $
                                      local_file=fnames[file_idx], local_path=this_local_path, $
-                                     url_username=user, url_password=pw, ssl_verify_peer=1, $
-                                     ssl_verify_host=1)                                   
+                                     ssl_verify_peer=1, ssl_verify_host=1)
+                                     ;url_username=user, url_password=pw, ssl_verify_peer=1, $
+                                     ;ssl_verify_host=1)    
+                endelse
                 if undefined(paths) or paths EQ '' then $
                    dprint, devel=1, 'Unable to download ' + fnames[file_idx] else $
                    append_array, files, this_local_path+fnames[file_idx]
@@ -356,13 +341,13 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
     error = 0
     if (n_elements(tr) eq 2) and (tplotnames[0] ne '') and ~keyword_set(no_time_clip) then begin
       tc0 = systime(/sec)
-      if instrument EQ 'state' && pred then begin
-        idx=where(strpos(tplotnames, 'att') GE 0 OR strpos(tplotnames, 'spin') GE 0, ncnt)
-        if ncnt GT 0 then del_data, tplotnames[idx]
-        idx=where(strpos(tplotnames, 'vel') GE 0 OR strpos(tplotnames, 'pos') GE 0, ncnt)
-        if ncnt GT 0 then tplotnames=tplotnames[idx]
-        dprint, dlevel=1,'Attitude or spin tplot variables are not valid for predicted state data.'
-      endif 
+      ;if instrument EQ 'state' && pred then begin
+      ;  idx=where(strpos(tplotnames, 'att') GE 0 OR strpos(tplotnames, 'spin') GE 0, ncnt)
+      ;  if ncnt GT 0 then del_data, tplotnames[idx]
+      ;  idx=where(strpos(tplotnames, 'vel') GE 0 OR strpos(tplotnames, 'pos') GE 0, ncnt)
+      ;  if ncnt GT 0 then tplotnames=tplotnames[idx]
+      ;  dprint, dlevel=1,'Attitude or spin tplot variables are not valid for predicted state data.'
+      ;endif 
       for tc=0,n_elements(tplotnames)-1 do begin
         time_clip, tplotnames[tc], tr[0], tr[1], replace=1, error=error
         if error EQ 1 then begin

@@ -39,7 +39,10 @@
 ;                                   added "datarate_str" to handle issue with probes definition if both burst and survey data are loaded
 ;       + 2021-01-06, I. Cohen    : added wildcard into string in definition of eis_sc_check for phxtof data
 ;       + 2021-02-09, I. Cohen    : added helium to species in header under KEYWORD section and added default datatype if species=helium
-;       + 2021-05-12, I. Cohen    : fixed eis_sc_check definition to handle any datatype
+;       + 2021-04-08, I. Cohen    : updated allmms_prefix definition to handle new L2 variable names
+;       + 2021-06-16, I. Cohen    : fixed error in definition of allmms_pad_vars and thissc_pad_vars 
+;       + 2021-06-17, I. Cohen    : fixed error in definition of prefix
+;       + 2021-07-09, I. Cohen    : fupdated definition of prefix to handle 'combined' datatype
 ;
 ;-
 pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, data_rate = data_rate, $
@@ -74,12 +77,12 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
   if (n_elements(probes) gt 4) then probes = probes[0:-2]
   ;
   ; Combine flux from all MMS spacecraft into omni-directional array
-  if (data_rate eq 'brst') then allmms_prefix = 'mmsx_epd_eis_brst_' else allmms_prefix = 'mmsx_epd_eis_'
+  allmms_prefix = 'mmsx_epd_eis_'+data_rate+'_'+level+'_'
   ;
   for dd=0,n_elements(datatype)-1 do begin
     ;
     ; Determine spacecraft with smallest number of time steps to use as reference spacecraft
-    if (data_rate eq 'brst') then allmms_pad_vars = tnames('mms*_epd_eis_brst_'+datatype[dd]+'_'+species+'*pads') else allmms_pad_vars = tnames('mms*_epd_eis_'+datatype[dd]+'_'+species+'*pads')
+    allmms_pad_vars = tnames('mms*_epd_eis_'+data_rate+'_'+level+'_'+datatype[dd]+'_'+species+'*pads')
     if (n_elements(allmms_pad_vars) ne n_elements(probes)) then begin
       print, 'EIS data from one or more EIS instruments is missing'
       probes = probes[where(probes eq strmid(allmms_pad_vars,3,1))]
@@ -117,8 +120,7 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
     allmms_pad_avg = dblarr(n_elements(temp_refprobe.x),n_elements(temp_refprobe.v1))                                                                           ; time x bins
     ;
     for pp=0,n_elements(probes)-1 do begin                                                                                                                      ; loop through telescopes
-      if (data_rate eq 'brst') then thissc_pad_vars = tnames(['mms'+probes[pp]+'_epd_eis_brst_'+datatype[dd]+'_*keV_'+species+'_'+data_units+'_omni'+suffix+'_pad']) $
-        else thissc_pad_vars = tnames(['mms'+probes[pp]+'_epd_eis_'+datatype[dd]+'_*keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'])
+      thissc_pad_vars = tnames(['mms'+probes[pp]+'_epd_eis_'+data_rate+'_'+level+'_'+datatype[dd]+'_*keV_'+species+'_'+data_units+'_omni'+suffix+'_pad'])
       ;
       for ee=0,n_elements(common_energy)-1 do begin
          get_data,thissc_pad_vars[ee],data=temp_data_pad
@@ -129,7 +131,7 @@ pro mms_eis_pad_combine_sc, trange = trange, species = species, level = level, d
     ;
     ; SET UP FOR SPIN-AVERAGING
     ;
-    if (data_rate eq 'brst') then prefix = 'mms'+probes[ref_sc_loc]+'_epd_eis_brst_'+datatype+'_' else prefix = 'mms'+probes[ref_sc_loc]+'_epd_eis_'+datatype+'_'
+    IF (datatype[dd] EQ 'combined') THEN prefix = 'mms'+probes[ref_sc_loc]+'_epd_eis_'+data_rate+'_'+level+'_extof_' ELSE prefix = 'mms'+probes[ref_sc_loc]+'_epd_eis_'+data_rate+'_'+level+'_'+datatype[dd]+'_'
     get_data, prefix + 'spin' + suffix, data=spin_nums
     if ~is_struct(spin_nums) then begin
       print, 'ERROR: COULD NOT FIND EIS SPIN VARIABLE -- NOW ENDING PROCEDURE'

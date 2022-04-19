@@ -10,24 +10,24 @@
 ;     vars: variables to check, specified as a string or array of strings
 ; 
 ; KEYWORDS:
-;     tolerance: maximum difference between the data and time values (default: 1e-6)
+;     tolerance: maximum percent difference between the data and time values (default: 1e-3)
 ;     py_exe_dir: location of the python executable on your machine
 ;     tmp_dir: local directory where the Python scripts are stored prior to running
 ;     points_to_check: number of data points to check
 ;     
 ; NOTES:
 ;     - IDL variables must already be loaded
-;     - This routine only checks a few data points throughout the variables
+;     - This routine only checks a few data points throughout the variables (set by the 'tolerance' keyword)
 ; 
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2020-10-08 10:36:36 -0700 (Thu, 08 Oct 2020) $
-; $LastChangedRevision: 29224 $
+; $LastChangedDate: 2021-08-20 15:33:18 -0700 (Fri, 20 Aug 2021) $
+; $LastChangedRevision: 30232 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/python_validation/spd_run_py_validation.pro $
 ;-
 
 function spd_run_py_compare, idl_result, py_result, tolerance=tolerance
-  if undefined(tolerance) then tolerance = 1e-6
-  notused = where(abs(idl_result-py_result) ge tolerance, bad_count)
+  if undefined(tolerance) then tolerance = 1e-3
+  notused = where(abs((py_result-idl_result)*100d/idl_result) ge tolerance, bad_count)
   return, bad_count eq 0 ? 1 : 0
 end
 
@@ -38,7 +38,7 @@ function spd_run_py_str_to_arr, str
 end
 
 function spd_run_py_validation, py_script, vars, tolerance=tolerance, py_exe_dir=py_exe_dir, tmp_dir=tmp_dir, points_to_check=points_to_check
-  if undefined(tolerance) then tolerance = 1e-6
+  if undefined(tolerance) then tolerance = 1e-3
   if undefined(points_to_check) then points_to_check = 10
   if undefined(py_exe_dir) then py_exe_dir = ''
   if undefined(tmp_dir) then tmp_dir = ''
@@ -93,7 +93,7 @@ function spd_run_py_validation, py_script, vars, tolerance=tolerance, py_exe_dir
   spawn, py_exe_dir + 'python '+tmp_dir+out_file, pyoutput
   
   count = 0
-  
+
   for var_idx=n_elements(vars)-1, 0, -1 do begin
     data = (var_table[vars[var_idx]])['data']
     for n=points_to_check-1, 0, -1 do begin

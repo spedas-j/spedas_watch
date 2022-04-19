@@ -10,14 +10,18 @@
 ;         suffix:       suffix to append to the tplot variable of the burst segments bar
 ;         start_times:  returns an array of unix times (double) containing the start for each burst interval
 ;         end_times:    returns an array of unix times (double) containing the end of each burst interval
+;         nodownload:   flag to load the file if it's stored locally, and not download it from the spedas.org server;
+;                       this is useful if the remote file seems out of date; you can run mms_update_brst_intervals
+;                       to manually update the file from the data at the SDC, and set this flag to load your local file
+;         sdc:          flag to load the brst intervals directly from the SDC; set this flag to 0 to load the data from spedas.org (may be out of date)
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2020-05-19 12:45:03 -0700 (Tue, 19 May 2020) $
-;$LastChangedRevision: 28714 $
+;$LastChangedDate: 2021-11-22 12:26:03 -0800 (Mon, 22 Nov 2021) $
+;$LastChangedRevision: 30433 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/data_status_bar/mms_load_brst_segments.pro $
 ;-
 
-pro mms_load_brst_segments, trange=trange, suffix=suffix, start_times=start_times, end_times=end_times
+pro mms_load_brst_segments, trange=trange, suffix=suffix, start_times=start_times, end_times=end_times, nodownload=nodownload, sdc=sdc
   if undefined(suffix) then suffix = ''
   if (keyword_set(trange) && n_elements(trange) eq 2) $
     then tr = timerange(trange) $
@@ -27,21 +31,28 @@ pro mms_load_brst_segments, trange=trange, suffix=suffix, start_times=start_time
   
   undefine, start_times
   undefine, end_times
+  
+  ; SDC option is the default as of 27 Oct 2021
+  if undefined(sdc) then sdc = 1
+  
+  if undefined(nodownload) and sdc eq 0 then begin
+    brst_file = spd_download(remote_file='http://www.spedas.org/mms/mms_brst_intervals.sav', $
+      local_file=!mms.local_data_dir+'mms_brst_intervals.sav', $
+      SSL_VERIFY_HOST=0, SSL_VERIFY_PEER=0) ; these keywords ignore certificate warnings
 
-  brst_file = spd_download(remote_file='http://www.spedas.org/mms/mms_brst_intervals.sav', $
-    local_file=!mms.local_data_dir+'mms_brst_intervals.sav', $
-    SSL_VERIFY_HOST=0, SSL_VERIFY_PEER=0) ; these keywords ignore certificate warnings
-
-  ; try updating the burst intervals file if there are any errors while trying to load the file
-  catch, error_status
-  if (error_status ne 0) then begin
-    catch, /cancel
-    if strpos(!error_state.msg, 'RESTORE: Error opening file.') ne -1 then begin
-        mms_update_brst_intervals
-        mms_load_brst_segments, trange=trange, suffix=suffix, start_times=start_times, end_times=end_times
+    ; try updating the burst intervals file if there are any errors while trying to load the file
+    catch, error_status
+    if (error_status ne 0) then begin
+      catch, /cancel
+      if strpos(!error_state.msg, 'RESTORE: Error opening file.') ne -1 then begin
+          mms_update_brst_intervals
+          brst_file = !mms.local_data_dir+'mms_brst_intervals.sav'
+      endif
     endif
-  endif
-    
+  endif else brst_file = !mms.local_data_dir+'mms_brst_intervals.sav'
+  
+  if undefined(nodownload) and sdc eq 1 then mms_update_brst_intervals
+  
   restore, brst_file
   
   if is_struct(brst_intervals) then begin

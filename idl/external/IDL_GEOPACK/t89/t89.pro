@@ -77,8 +77,8 @@
 ;      6371.2 = the value used in the GEOPACK FORTRAN code for Re
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2021-04-27 17:27:21 -0700 (Tue, 27 Apr 2021) $
-; $LastChangedRevision: 29923 $
+; $LastChangedDate: 2021-12-08 14:28:31 -0800 (Wed, 08 Dec 2021) $
+; $LastChangedRevision: 30452 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/t89/t89.pro $
 ;-
 
@@ -87,6 +87,8 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
     get_period_times=get_period_times, geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times
 
   ;sanity tests, setting defaults
+  if undefined(geopack_2008) then geopack_2008=0
+  if undefined(exact_tilt_times) then exact_tilt_times=0
 
   if igp_test(geopack_2008=geopack_2008) eq 0 then return, -1L
 
@@ -121,21 +123,26 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
       return,-1L
   endif
 
+  ; Range check for Kp values
+  ; Valid IOPT values are in the range [1.0,7.0]
+  ; kp2iopt will replace any out-of-range values with 1.0 or 7.0 as appropriate.
+  ; Therefore we only warn here, rather than throwing an error.
+  
   kp_idx_low = where(kp_array lt 0)
 
   if kp_idx_low[0] ne -1L then begin
-      message, /continue, 'Kp has value less than 0'
-      return, -1L
+      message, /continue, 'Kp has value less than 0, will be treated as 0'
   endif
 
   kp_idx_high = where(kp_array gt 6)
 
   if kp_idx_high[0] ne -1L then begin
-      message, /continue, 'Kp has value greater than 6'
-      return, -1L
+      message, /continue, 'Kp has value greater than 6, will be treated as 6'
   endif
+  
+  iopt=kp2iopt(kp_array)
 
-  if not keyword_set(period) then period2 = 600.0D  $
+  if not keyword_set(period) then period2 = 60.0D  $
   else period2 = double(period)
 
   if period2 le 0. then begin
@@ -186,7 +193,7 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
   ts = time_struct(tarray2)
 
   ;calculate the number of loop iterations
-  if n_elements(exact_tilt_times) eq 0 then begin
+  if ~exact_tilt_times then begin
     ; The start time is now the center of the first period, rather than the start, so add an extra 1/2 period
     ct = 0.5D + (tend-tstart)/period2
     nperiod = ceil(ct)
@@ -202,7 +209,7 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
   
   ;return the times at the center of each period
   if arg_present(get_period_times) then begin
-    if n_elements(exact_tilt_times) eq 0 then begin
+    if ~exact_tilt_times then begin
       get_period_times = tstart + dindgen(nperiod)*period2
     endif else get_period_times=tarray
   endif
@@ -214,7 +221,7 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
       tilt_value = add_tilt
     endif else if n_elements(add_tilt) eq t_size[0] then begin
       ;resample tilt values to period intervals, using middle of sample
-      if n_elements(exact_tilt_times) eq 0 then begin
+      if ~exact_tilt_times then begin
         period_abcissas = tstart + dindgen(nperiod)*period2
       endif else begin
         period_abcissas = tarray
@@ -233,7 +240,7 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
       tilt_value = set_tilt
     endif else if n_elements(set_tilt) eq t_size[0] then begin
       ;resample tilt values to period intervals, using middle of sample
-      if n_elements(exact_tilt_times) eq 0 then begin
+      if ~exact_tilt_times then begin
         period_abcissas = tstart + dindgen(nperiod)*period
       endif else begin
         period_abcissas = tarray
@@ -244,10 +251,16 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
       return,-1
     endelse
   endif
-  
+ 
+  tilt = 0.0D   ; Ensure tilt is always defined 
   while i lt nperiod do begin
 
-    if n_elements(exact_tilt_times) ne 0 then begin
+    ; Default to last calculated value, in case no points lie in this interval
+    if n_elements(get_tilt) gt 0 then begin
+      get_tilt[i] = tilt
+    endif
+
+    if exact_tilt_times then begin
       idx = [i]
     endif else begin
       ;find indices of points to be input this iteration
@@ -262,7 +275,7 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
       id = idx[0]
 
       ;recalculate geomagnetic dipole
-      if ~undefined(geopack_2008) then begin
+      if geopack_2008 then begin
         geopack_recalc_08, ts[id].year,ts[id].doy, ts[id].hour, ts[id].min, ts[id].sec, tilt = tilt
       endif else begin
         geopack_recalc, ts[id].year,ts[id].doy, ts[id].hour, ts[id].min, ts[id].sec, tilt = tilt
@@ -273,7 +286,7 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
       rgsm_z = rgsm_array2[idx, 2]
 
       ;calculate internal contribution
-      if ~undefined(geopack_2008) then begin
+      if geopack_2008 then begin
         geopack_igrf_gsw_08, rgsm_x, rgsm_y, rgsm_z, igrf_bx, igrf_by,igrf_bz 
       endif else begin
         geopack_igrf_gsm,rgsm_x, rgsm_y, rgsm_z, igrf_bx, igrf_by,igrf_bz 
@@ -294,7 +307,7 @@ function t89, tarray, rgsm_array, kp=kp, period=period, igrf_only=igrf_only,$
 
       ;calculate external contribution
       ;iopt = kp+1
-      geopack_t89, kp_array[id]+1, rgsm_x, rgsm_y, rgsm_z, t89_bx, t89_by, t89_bz, tilt = tilt
+      geopack_t89, iopt[id], rgsm_x, rgsm_y, rgsm_z, t89_bx, t89_by, t89_bz, tilt = tilt
       
       ;total field   
       if keyword_set(igrf_only) then begin

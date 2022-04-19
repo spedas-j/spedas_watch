@@ -1,5 +1,5 @@
 ;+
-;NAME:    elf_init_orig
+;NAME:    elf_init
 ;
 ;PURPOSE:
 ;   Initializes system variables for elf. Currently the variable only contains information
@@ -47,17 +47,15 @@ pro elf_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remote
   if not keyword_set(exists) then begin; if !elf does not exist
     defsysv,'!elf', def_struct
   endif
-
+  
   if keyword_set(reset) then !elf.init=0
 
   if !elf.init ne 0 then begin
     ;Assure that trailing slashes exist on data directories
-    ; ***** Remove once data goes public ******
-    sidx=strpos(!elf.remote_data_dir, 'elfin/')
-    if sidx GT 0 then !elf.remote_data_dir=strmid(!elf.remote_data_dir,0,sidx)
-    ;****** Remove once data goes public ******
-    !elf.local_data_dir = spd_addslash(!elf.local_data_dir)
+    !elf.remote_data_dir = 'https://data.elfin.ucla.edu/'    
     !elf.remote_data_dir = spd_addslash(!elf.remote_data_dir)
+    !elf.local_data_dir = spd_default_local_data_dir() + 'elfin/'
+    !elf.local_data_dir = spd_addslash(!elf.local_data_dir)
     return
   endif
 
@@ -69,25 +67,13 @@ pro elf_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=remote
   !elf.preserve_mtime = 0
 
   elf_config,no_color_setup=no_color_setup; override the defaults by local config file
+  ; temporarily override the private are and point to elfindata
+  !elf.remote_data_dir = 'https://data.elfin.ucla.edu/'    
+  !elf.remote_data_dir = spd_addslash(!elf.remote_data_dir)
+  !elf.local_data_dir = spd_default_local_data_dir() + 'elfin/'
+  !elf.local_data_dir = spd_addslash(!elf.local_data_dir)
 
   elf_set_verbose ;propagate verbose setting into tplot_vars
-
-  ; keywords on first call to elf_init (or /reset) override environment and
-  ; elf_config
-  ; ***** Remove once data goes public ******
-  sidx=strpos(!elf.remote_data_dir, 'elfin/')
-  if sidx GT 0 then !elf.remote_data_dir=strmid(!elf.remote_data_dir,0,sidx)
-  ;****** Remove once data goes public ******
-  ;****** Uncomment this section when public *********
-  ;if keyword_set(local_data_dir) then begin
-  ;  !elf.local_data_dir = spd_addslash(local_data_dir)
-  ;endif
-  ;if keyword_set(remote_data_dir) then begin
-  ;  !elf.remote_data_dir = spd_addslash(remote_data_dir)
-  ;endif
-  ;****** Uncomment this section when public *********
-  !elf.local_data_dir = spd_addslash(!elf.local_data_dir)
-  !elf.remote_data_dir = spd_addslash(!elf.remote_data_dir)
 
   cdf_lib_info,version=v,subincrement=si,release=r,increment=i,copyright=c
   cdf_version = string(format="(i0,'.',i0,'.',i0,a)",v,r,i,si)

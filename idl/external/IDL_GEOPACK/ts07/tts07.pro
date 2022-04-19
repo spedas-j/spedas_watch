@@ -15,7 +15,7 @@
 ;              value. If a tplot input is used it will be interpolated to
 ;              match the time inputs from the position var. Non-tplot array values
 ;              must match the number of times in the tplot input for pos_gsm_tvar
-;              
+;         
 ;          Other parameters (Dst, yimf, zimf, etc) are derived from the downloaded coefficient 
 ;          files and do not need to be passed explicitly.
 ;
@@ -72,9 +72,11 @@
 ;                                  IOPGEN=4 - RING CURRENT FIELD ONLY
 ;                                  IOPGEN=5 - INTERCONNECTION FIELD ONLY
 ;
-;        param_dir (optional): Directory with files for TS07 model coefficients. 
+;        ts07_param_dir (optional): Directory with files for TS07 model coefficients. 
 ;
-;        param_file (optional): Filename of TS07 model coefficients file.
+;        ts07_param_file (optional): Filename of TS07 model coefficients file.
+;        
+;        skip_ts07_load (optional): Do not reset parameter directory or reload parameter files
 ;        
 ; Output: Stores the result of the field model calculations in tplot variables
 ;
@@ -102,16 +104,16 @@
 ;            Res., v. 112 (A6), A06225, doi: 10.1029/2007ja012260.
 ;        8. Here, both 'ts07' and 'ts07d' are used for the same model.    
 ;
-; $LastChangedBy: $
-; $LastChangedDate: $
-; $LastChangedRevision: $
-; $URL: $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-07-28 18:16:15 -0700 (Wed, 28 Jul 2021) $
+; $LastChangedRevision: 30156 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ts07/tts07.pro $
 ;-
 
-pro tts07, pos_gsm_tvar, pdyn=pdyn, parmod=parmod, period=period, $
+pro tts07, pos_gsm_tvar, pdyn=pdyn,coeff_filename, parmod=parmod, period=period, $
   get_nperiod=get_nperiod, newname=newname, error=error, get_tilt=get_tilt, $
   set_tilt=set_tilt, add_tilt=add_tilt, geopack_2008=geopack_2008, $
-  iopgen=iopgen,  exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file
+  iopgen=iopgen,  exact_tilt_times=exact_tilt_times, ts07_param_dir=ts07_param_dir, ts07_param_file=ts07_param_file, skip_ts07_load=skip_ts07_load
 
   error = 0
   
@@ -182,15 +184,15 @@ pro tts07, pos_gsm_tvar, pdyn=pdyn, parmod=parmod, period=period, $
   if n_elements(set_tilt) gt 0 then begin
     mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat, set_tilt=set_tilt_dat, $
-      iopgen=iopgen, geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file)
+      iopgen=iopgen, geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times, ts07_param_dir=ts07_param_dir, ts07_param_file=ts07_param_file,skip_ts07_load=skip_ts07_load)
   endif else if n_elements(add_tilt) gt 0 then begin
     mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat, add_tilt=add_tilt_dat, $
-      iopgen=iopgen, geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file)
+      iopgen=iopgen, geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times, ts07_param_dir=ts07_param_dir, ts07_param_file=ts07_param_file,skip_ts07_load=skip_ts07_load)
   endif else begin
     mag_array = ts07(d.x, d.y/6371.2, pdyn_dat, period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat, iopgen=iopgen, geopack_2008=geopack_2008, $
-      exact_tilt_times=exact_tilt_times, param_dir=param_dir, param_file=param_file)
+      exact_tilt_times=exact_tilt_times, ts07_param_dir=ts07_param_dir, ts07_param_file=ts07_param_file,skip_ts07_load=skip_ts07_load)
   endelse
 
   if size(mag_array, /n_dim) eq 0 && mag_array[0] eq -1L then begin

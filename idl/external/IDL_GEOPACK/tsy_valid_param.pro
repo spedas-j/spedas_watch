@@ -14,13 +14,13 @@
 ; Returns -1L on failure
 ;  
 ;        
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2015-03-17 12:53:14 -0700 (Tue, 17 Mar 2015) $
-; $LastChangedRevision: 17145 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-09-20 11:08:14 -0700 (Mon, 20 Sep 2021) $
+; $LastChangedRevision: 30306 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/tsy_valid_param.pro $
 ;-
 
-function tsy_valid_param, in_val, pos_name
+function tsy_valid_param, in_val, pos_name, nearest_neighbor=nearest_neighbor
   COMPILE_OPT HIDDEN, IDL2
   if undefined(in_val) || undefined(pos_name) then begin
     dprint, dlevel = 0, 'Error in tsy_valid_param, undefined input parameter'
@@ -35,8 +35,7 @@ function tsy_valid_param, in_val, pos_name
         return, -1L
       endif
 
-      ; interpolate onto position data
-      tinterpol_mxn, in_val, pos_name, out=d_verify, error=e
+      tinterpol_mxn, in_val, pos_name, out=d_verify, /ignore_nans, /repeat_extrapolate, nearest_neighbor=nearest_neighbor,  error=e
 
       if e ne 0 then begin
         return, d_verify.y

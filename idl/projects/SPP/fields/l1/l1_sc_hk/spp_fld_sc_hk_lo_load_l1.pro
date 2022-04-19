@@ -18,13 +18,12 @@ pro spp_fld_sc_hk_lo_load_l1, file, prefix = prefix, varformat = varformat
       ytitle = ytitle.Replace('_','!C')
 
       options, name, 'ynozero', 1
-      options, name, 'horizontal_ytitle', 1
       options, name, 'colors', [2]
       options, name, 'ytitle', ytitle
       ;options, name, 'psym', 4
       options, name, 'psym_lim', 200
       options, name, 'symsize', 0.75
-      options, name, 'datagap';, 1200d
+      options, name, 'datagap', 3600d * 3
 
     endfor
 

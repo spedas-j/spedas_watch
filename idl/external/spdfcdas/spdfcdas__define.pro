@@ -117,7 +117,7 @@ function SpdfCdas::init, $
         self.proxy_port = proxyComponents.port
         self.proxy_username = proxyComponents.username
 
-        if strlen(proxy_username) gt 0 then begin
+        if strlen(self.proxy_username) gt 0 then begin
 
             self.proxy_authentication = 3
         endif
@@ -206,7 +206,8 @@ function SpdfCdas::getCurrentVersion
                   proxy_hostname = self.proxy_hostname, $
                   proxy_port = self.proxy_port, $
                   proxy_username = self.proxy_username, $
-                  proxy_password = self.proxy_password)
+                  proxy_password = self.proxy_password, $
+                  ssl_verify_host=0, ssl_verify_peer=0)
 
     return, url->get(/string_array, url=self.currentVersionUrl)
 end

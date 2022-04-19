@@ -18,13 +18,30 @@
 ;         varnames: list of variable names to load
 ;         gatt2istp: dictionary, mapping of HDF global attributes to ISTP global attributes
 ;         vatt2istp: dictionary, mapping of HDF variable attributes to ISTP variable attributes
+;         coord_list: list of coordinate systems, if set the variable name is used for coordinate system
 ;
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2020-12-21 10:54:55 -0800 (Mon, 21 Dec 2020) $
-; $LastChangedRevision: 29544 $
+; $LastChangedDate: 2021-10-14 14:24:46 -0700 (Thu, 14 Oct 2021) $
+; $LastChangedRevision: 30354 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/hdf/hdf_to_cdfstruct.pro $
 ;-
+
+function hdfi_read_attribute, id
+  ; Read the attribute string.
+  ; Some files contain H5T_CSET_UTF8 strings and IDL cannot read them.
+  compile_opt idl2
+
+  CATCH, err
+  IF err NE 0 THEN BEGIN
+    CATCH, /CANCEL
+    PRINT, !ERROR_STATE.MSG
+    RETURN, ''
+  ENDIF
+
+  result = h5a_read(id)
+  return, result
+end
 
 function hdfi_get_number, s
   ; Returns an integer from a string which contains mixed chars and numbers.
@@ -34,6 +51,26 @@ function hdfi_get_number, s
     an  = fix(0L + a, type=3)
     return, an
   endif else return, 0
+end
+
+function hdfi_get_coords_from_name, vname, coord_list
+  ; Finds the coordinate system from the variable name
+  result = ''
+
+  for i=0,n_elements(coord_list)-1 do begin
+    coord = "_" + coord_list[i]
+    if strlen(coord) lt 3 then continue
+    if strlen(vname) le (strlen(coord)+1) then continue
+    if strlowcase(coord) eq strlowcase(strmid(vname, strlen(coord)-1, strlen(coord), /reverse_offset)) then begin
+      if strlowcase(coord_list[i]) eq 'eci' then begin
+        return, 'GEI' ; return 'GEI' when the filename ends in 'eci'
+      endif else begin
+        return, coord_list[i]
+      endelse
+    endif
+  endfor
+
+  return, result
 end
 
 pro hdfi_find_dims, hdfi, hdfi_names=hdfi_names, hdfi_types=hdfi_types, hdfi_dims=hdfi_dims, hdfi_points=hdfi_points, hdfi_spec=hdfi_spec
@@ -104,7 +141,8 @@ pro hdfi_find_dims, hdfi, hdfi_names=hdfi_names, hdfi_types=hdfi_types, hdfi_dim
   endfor
 end
 
-function hdf_to_cdfstruct, hdfi, file, verbose=verbose, varnames=varnames, time_var=time_var, time_offset=time_offset, gatt2istp=gatt2istp, vatt2istp=vatt2istp, _extra=_extra
+function hdf_to_cdfstruct, hdfi, file, verbose=verbose, varnames=varnames, time_var=time_var, time_offset=time_offset, $
+  gatt2istp=gatt2istp, vatt2istp=vatt2istp, coord_list=coord_list, _extra=_extra
   ; Converts a Netcdf-4/HDF-5 structure to a CDF structure.
   compile_opt idl2
 
@@ -177,17 +215,7 @@ function hdf_to_cdfstruct, hdfi, file, verbose=verbose, varnames=varnames, time_
   for i=0, natt-1 do begin
     aid = h5a_open_idx(fid, i)
     an = h5a_get_name(aid)
-    ar = h5a_read(aid)
-
-    CATCH, Error_status
-    IF Error_status NE 0 THEN BEGIN
-      PRINT, 'Error index: ', Error_status
-      PRINT, 'Error message: ', !ERROR_STATE.MSG
-      PRINT, 'Error attribute: ', an
-      !ERROR = 0
-      h5a_close, aid
-      continue
-    ENDIF
+    ar = hdfi_read_attribute(aid)
 
     if use_gatt2istp then begin
       idx = where(gatt2istp.values() eq ':' + an)
@@ -223,7 +251,7 @@ function hdf_to_cdfstruct, hdfi, file, verbose=verbose, varnames=varnames, time_
   str_element, attr, 'DISPLAY_TYPE', 'time_series', /add
   str_element, attr, 'VAR_TYPE', 'data', /add
   str_element, attr, 'COORDINATE_SYSTEM', 'unknown', /add
-  str_element, attr, 'UNITS', 'seconds', /add
+  str_element, attr, 'UNITS', '', /add
 
   ; Create a structure with all the HDF variables (datasets)
   allvars = where(hdfi[0, *] eq 'dataset', nv)
@@ -235,20 +263,23 @@ function hdf_to_cdfstruct, hdfi, file, verbose=verbose, varnames=varnames, time_
   variables = []
   for j=0, n_elements(hdfi[0,*])-1 do begin
     if hdfi[0, j] eq 'dataset' then begin
-      if (hdfi_names[j] ne '') && (hdfi_types[j] eq 'H5T_FLOAT') && (hdfi_points[j] gt 0) && (hdfi_dims[j] le 3) then begin ; skip empty vars
+
+      if (hdfi_names[j] ne '') && (hdfi_types[j] eq 'H5T_FLOAT' || hdfi_types[j] eq 'H5T_INTEGER' ) && (hdfi_points[j] gt 0) then begin ; skip empty vars
         varnew = replicate(vars, 1)
         varatt = replicate(attr, 1)
-        varnew.name = hdfi_names[j]
+        variable_name = hdfi_names[j]
+        varnew.name = variable_name
 
-        vn = '/' + hdfi_names[j]
+        vn = '/' + variable_name
         vai = h5d_open(fid, vn)
         if H5D_GET_STORAGE_SIZE(vai) eq 0 then begin
           ;empty data
           varnew.dataptr = ptr_new()
         endif else begin
-          if hdfi_names[j] eq time_var then begin
+          if variable_name eq time_var then begin
+            varnew.name = 'time'
             varnew.dataptr = ptr_new(hdftime)
-          endif else if hdfi_names[j] eq time_orbit_var then begin
+          endif else if variable_name eq time_orbit_var then begin
             varnew.dataptr = ptr_new(hdftime_orbit)
           endif else begin
             vr = h5d_read(vai) ;this is the data
@@ -259,6 +290,32 @@ function hdf_to_cdfstruct, hdfi, file, verbose=verbose, varnames=varnames, time_
             varnew.dataptr = ptr_new(vr)
           endelse
         endelse
+
+        ; Variable attributes
+        vatt = h5a_get_num_attrs(vai)
+        if n_elements(vatt2istp) gt 0 then begin
+          vk = vatt2istp.keys()
+          use_vatt2istp = 1
+        endif else use_vatt2istp = 0
+        for i=0, vatt-1 do begin
+          vaid = h5a_open_idx(vai, i)
+          van = h5a_get_name(vaid)
+          vart = hdfi_read_attribute(vaid)
+
+          if use_vatt2istp then begin
+            idx = where(vatt2istp.values() eq ':' + van)
+            if idx[0] ne -1 then begin
+              vattname = vk[idx[0]]
+              str_element, varatt, vattname, vart, /add
+            endif
+          endif else begin
+            str_element, varatt, van, vart, /add
+          endelse
+
+          ;print, van, vart
+          h5a_close, vaid
+        endfor
+
         h5d_close, vai
         if hdfi_points[j] eq time_nbr then begin ; time variable
           varatt.DEPEND_TIME = 'time'
@@ -267,6 +324,15 @@ function hdf_to_cdfstruct, hdfi, file, verbose=verbose, varnames=varnames, time_
           varatt.DEPEND_TIME = 'time_orbit'
           varatt.VAR_TYPE = 'support data'
         endif
+
+        ; Set coordinates from variable name
+        if defined(coord_list) then begin
+          coord_name =  hdfi_get_coords_from_name(variable_name, coord_list)
+          if coord_name ne '' then begin
+            varatt.COORDINATE_SYSTEM = coord_name
+          endif
+        endif
+
         varnew.attrptr = ptr_new(varatt)
         variables = [variables, varnew]
       endif

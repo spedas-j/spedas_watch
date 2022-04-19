@@ -92,25 +92,19 @@
 ;        5. model parameters that are input as tplot variables they
 ;            will be interpolated to match the time values on the input
 ;            position
-;        6. Find more documentation on the inner workings of the model,
-;            any gotchas, and the meaning of the arguments at:
-;            http://geo.phys.spbu.ru/~tsyganenko/modeling.html
-;            -or-
-;            http://ampere.jhuapl.edu/code/idl_geopack.html
-;        7. Definition of W1-W6 can be found at:
-;            Tsyganenko, N. A., and M. I. Sitnov (2005), Modeling the dynamics of the
-;            inner magnetosphere during strong geomagnetic storms, J. Geophys.
-;            Res., v. 110 (A3), A03208, doi: 10.1029/2004JA010798.
-;        8. For a description of the ts07 model, see:
-;            Tsyganenko, N. A., and M. I. Sitnov (2007), Magnetospheric configurations 
-;            from a highresolution data-based magnetic field model, J. Geophys. 
-;            Res., v. 112 (A6), A06225, doi: 10.1029/2007ja012260.
-;        9. Here, both 'ts07' and 'ts07d' are used for the same model.    
+;            
+;  See Newell 2007 for details:
+;  https://agupubs.onlinelibrary.wiley.com/doi/full/10.1029/2006JA012015
 ;
-; $LastChangedBy: $
-; $LastChangedDate: $
-; $LastChangedRevision: $
-; $URL: $
+;  TA15B and TA15N model description:
+;  https://geo.phys.spbu.ru/~tsyganenko/TA15_Model_description.pdf
+;
+;  The N-index calculation is implemented in omni2nindex.pro
+;
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-07-28 18:16:15 -0700 (Wed, 28 Jul 2021) $
+; $LastChangedRevision: 30156 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta15/tta15n.pro $
 ;-
 
 pro tta15n, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, zimf=zimf, $
@@ -255,7 +249,7 @@ pro tta15n, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, zimf=zimf, $
   if keyword_set(newname) then $
     store_data, newname, data = d_out, dlimits = dl, limits = l $
   else $
-    store_data, var_name +'_bt15n', data = d_out, dlimits = dl, limits = l
+    store_data, var_name +'_bta15n', data = d_out, dlimits = dl, limits = l
 
   ;signal success
   error = 1

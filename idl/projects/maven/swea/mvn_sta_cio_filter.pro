@@ -39,8 +39,8 @@
 ;       SUCCESS :   Returns 1 if there were no problems.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-05-01 12:29:21 -0700 (Fri, 01 May 2020) $
-; $LastChangedRevision: 28660 $
+; $LastChangedDate: 2021-08-25 09:09:17 -0700 (Wed, 25 Aug 2021) $
+; $LastChangedRevision: 30249 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_filter.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -173,7 +173,8 @@ pro mvn_sta_cio_filter, ptr, in_filter, list=list, success=ok
       if (filter_tags[f_order[i]] eq 'time') then range = trange $
        else range = filter.(f_order[i])
 
-      if ((filter_tags[i] ne 'glon') and (filter_tags[i] ne 'slon')) then begin
+      if ((filter_tags[i] ne 'glon') and (filter_tags[i] ne 'slon') and $
+          (filter_tags[i] ne 'bclk')) then begin
         range = range[sort(range)]
         jndx = where(((*ptr).(tag)[indx] ge range[0]) and $
                      ((*ptr).(tag)[indx] le range[1]), count)

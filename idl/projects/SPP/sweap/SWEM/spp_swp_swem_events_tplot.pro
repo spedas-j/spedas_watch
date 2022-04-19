@@ -1,7 +1,7 @@
 ;Ali: Feb 2021
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
-; $LastChangedRevision: 30043 $
+; $LastChangedDate: 2021-10-11 14:41:07 -0700 (Mon, 11 Oct 2021) $
+; $LastChangedRevision: 30349 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SWEM/spp_swp_swem_events_tplot.pro $
 
 pro spp_swp_swem_events_tplot_labels,limits=lims,data=data
@@ -55,8 +55,8 @@ pro spp_swp_swem_events_tplot,prefix=prefix,event=event,ptp=ptp,reset=reset,bad_
   store_data,prefix+'CODE2',eventt,eventcode2,dlim={labels:labels,ytickinterval:ytickinterval,yrange:[-1,c],psym:1,yticklen:1,ygridstyle:1,$
     ystyle:3,yminor:1,panel_size:c/7.,tplot_routine:'spp_swp_swem_events_tplot_labels'}
   wnem1=where(eventid0 ne -1,/null)
-  store_data,prefix+'ID123',eventt[wnem1],eventid123[wnem1],dlim={psym:1}
-  store_data,prefix+'ID0',eventt[wnem1],eventid0[wnem1],dlim={psym:1}
+  store_data,prefix+'ID123',eventt[wnem1],eventid123[wnem1],dlim={psym:1,ystyle:3}
+  store_data,prefix+'ID0',eventt[wnem1],eventid0[wnem1],dlim={psym:1,ystyle:3}
 
   if keyword_set(bad_blocks) then begin
     block=replicate(0b,[0xFFFFFF,nstring])

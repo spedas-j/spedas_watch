@@ -90,7 +90,12 @@
 ;         STORM(optional): Specify storm-time version of T01 external 
 ;             magnetic field model use together with /T01.
 ;
-;             
+;         kp (optional): Kp index value for T89 model should either be a
+;              string naming a tplot variable or an array or a single
+;              value. If a tplot input is used it will be interpolated to
+;              match the time inputs from the position var. Non-tplot array values
+;              must match the number of times in the tplot input for pos_gsm_tvar
+;            
 ;         pdyn(optional): Solar wind pressure(nanoPascals) should either be a
 ;              string naming a tplot variable or an array or a single
 ;              value. If a tplot input is used it will be interpolated to
@@ -192,6 +197,12 @@
 ;     
 ;         geopack_2008 (optional): Set this keyword to use the latest version (2008) of the Geopack
 ;              library. Version 9.2 of the IDL Geopack DLM is required for this keyword to work.
+;              
+;         ts07_param_dir (optional): Specify location of TS07 parameter directory
+;         
+;         ts07_param_file (optional): Specify TS07 parameter file to load
+;         
+;         skip_ts07_load (optional):  Do not reset the TS07 parameter directory or reload the parameter file
 ;
 ;Example: ttrace2equator,'tha_state_pos',newname='tha_out_foot'
 ;
@@ -213,19 +224,32 @@
 ;
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2021-04-13 17:30:19 -0700 (Tue, 13 Apr 2021) $
-; $LastChangedRevision: 29879 $
+; $LastChangedDate: 2021-09-27 17:06:45 -0700 (Mon, 27 Sep 2021) $
+; $LastChangedRevision: 30325 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/trace/ttrace2equator.pro $
 ;-
 
 pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_coord=in_coord, $
     out_coord=out_coord, internal_model=internal_model, external_model=external_model, south=south, $
     km=km, par=par, period=period, error=error, r0=r0, rlim=rlim, noboundary=noboundary, storm=storm,$
-    pdyn=pdyn, dsti=dsti, yimf=yimf, zimf=zimf, g1=g1, g2=g2, w1=w1, w2=w2, w3=w3, w4=w4, w5=w5, w6=w6,$
-    get_tilt=get_tilt, set_tilt=set_tilt, add_tilt=add_tilt, get_nperiod=get_nperiod, exact_tilt_times=exact_tilt_times, _extra=_extra
+    kp=kp, pdyn=pdyn, dsti=dsti, yimf=yimf, zimf=zimf, g1=g1, g2=g2, w1=w1, w2=w2, w3=w3, w4=w4, w5=w5, w6=w6,$
+    get_tilt=get_tilt, set_tilt=set_tilt, add_tilt=add_tilt, get_nperiod=get_nperiod, exact_tilt_times=exact_tilt_times, $
+    ts07_param_dir=ts07_param_dir, ts07_param_file=ts07_param_file, $
+    xind=xind, skip_ts07_load=skip_ts07_load, _extra=_extra
 
     error = 0
     
+    ;constant arrays used for input validation
+    valid_externals = ['none', 't89', 't96', 't01', 't04s','ts07', 'ta15b', 'ta15n']
+
+    if keyword_set(external_model) then begin
+      external_model2 = strlowcase(external_model)
+      if(strfilter(valid_externals, external_model2) eq '') then begin
+        message, /continue, 'external_model not a valid external model name'
+        return
+      endif
+    endif else external_model2 = 'none'
+   
     if not keyword_set(in_pos_tvar) or tnames(in_pos_tvar) eq '' then begin
        message,/continue,'in_pos_tvar must be set'
        return
@@ -248,7 +272,18 @@ pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_
        get_data,'par_out',data=dat
        par_in = dat.y
     endif
-    
+  
+    if n_elements(kp) gt 0 then begin
+      if n_elements(par) gt 0 then begin
+        message,/continue,'Both kp and par values supplied, using kp.'
+      endif
+
+      kp_dat=tsy_valid_param(kp,in_pos_tvar,/nearest_neighbor)
+      if(size(kp_dat, /n_dim) eq 0 && kp_dat[0] eq -1L) then return
+
+      par_in = kp_dat
+    endif
+  
     if n_elements(pdyn) gt 0 then begin
        pdyn_dat = tsy_valid_param(pdyn, in_pos_tvar)
        if(size(pdyn_dat, /n_dim) eq 0 && pdyn_dat[0] eq -1L) then return
@@ -271,7 +306,9 @@ pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_
     
        par_in[*,1] = dsti_dat
     endif
-    
+ 
+    ;  YIMF goes to a different parmod element for TA15N and TA15B since Dst param not used for these models
+   
     if n_elements(yimf) gt 0 then begin
        yimf_dat = tsy_valid_param(yimf, in_pos_tvar)
        if(size(yimf_dat, /n_dim) eq 0 && yimf_dat[0] eq -1L) then return
@@ -280,9 +317,16 @@ pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_
           par_in = dblarr(n_elements(yimf_dat),10)
           message,/continue,'Possible error, not all parameters for model provided.'
        endif
-    
-       par_in[*,2] = yimf_dat
+       
+       if (external_model2 eq 'ta15n') || (external_model2 eq 'ta15b') then begin
+          par_in[*,1] = yimf_dat
+       endif else begin
+          par_in[*,2] = yimf_dat
+       endelse
     endif
+
+    ; ZIMF goes to a different parmod element for TA15N and TA15B since Dst param not used for these models
+
     
     if n_elements(zimf) gt 0 then begin
        zimf_dat = tsy_valid_param(zimf, in_pos_tvar)
@@ -292,9 +336,28 @@ pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_
           par_in = dblarr(n_elements(zimf_dat),10)
           message,/continue,'Possible error, not all parameters for model provided.'
        endif
-    
-       par_in[*,3] = zimf_dat
+       if (external_model2 eq 'ta15n') || (external_model2 eq 'ta15b') then begin
+         par_in[*,2] = zimf_dat
+       endif else begin
+         par_in[*,3] = zimf_dat
+       endelse
+   
     endif 
+
+    ;
+    ;   XIND is the N-index for TA15N, or the B-index for TA15B
+    ;
+    if n_elements(xind) gt 0 then begin
+      xind_dat = tsy_valid_param(xind, in_pos_tvar)
+      if(size(xind_dat, /n_dim) eq 0 && xind_dat[0] eq -1L) then return
+
+      if n_elements(par_in) eq 0 then begin
+        par_in = dblarr(n_elements(xind_dat),10)
+        message,/continue,'Possible error, not all parameters for model provided.'
+      endif
+
+      par_in[*,4] = xind_dat
+    endif
     
     if n_elements(g1) gt 0 then begin
        g1_dat = tsy_valid_param(g1, in_pos_tvar)
@@ -399,6 +462,20 @@ pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_
     
        par_in[*,9] = w6_dat
     endif
+
+    if n_elements(xind) gt 0 then begin
+      xind_dat = tsy_valid_param(xind, in_pos_tvar)
+      if(size(xind_dat, /n_dim) eq 0 && xind_dat[0] eq -1L) then return
+
+      if n_elements(par_in) eq 0 then begin
+        par_in = dblarr(n_elements(xind_dat),10)
+        message,/continue,'Possible error, not all parameters for model provided.'
+      endif
+
+      par_in[*,3] = xind_dat
+    endif
+
+
     
     if keyword_set(dl) then begin
         str_element,dl,'data_att',success=s
@@ -433,12 +510,13 @@ pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_
             internal_model=internal_model,external_model=external_model,south=south,km=km,$
             par=par_in,period=period,error=e,r0=r0,rlim=rlim,get_nperiod=get_nperiod,$
             get_tilt=tilt_dat,set_tilt=set_tilt_dat,get_period_times=period_times_dat,geopack_2008=geopack_2008,$
-            exact_tilt_times=exact_tilt_times,_extra=_extra 
+            exact_tilt_times=exact_tilt_times,ts07_param_dir=ts07_param_dir,ts07_param_file=ts07_param_file,skip_ts07_load=skip_ts07_load,_extra=_extra 
       endif else begin
         trace2equator,d.x,d.y,f,in_coord=in_coord,out_coord=out_coord,internal_model=internal_model,$
             external_model=external_model,south=south,km=km,par=par_in,period=period,error=e,r0=r0,$
             rlim=rlim,get_nperiod=get_nperiod,get_tilt=tilt_dat,set_tilt=set_tilt_dat,$
-            get_period_times=period_times_dat,geopack_2008=geopack_2008,exact_tilt_times=exact_tilt_times,_extra=_extra
+            get_period_times=period_times_dat,geopack_2008=geopack_2008,exact_tilt_times=exact_tilt_times,$
+            ts07_param_dir=ts07_param_dir,ts07_param_file=ts07_param_file, skip_ts07_load=skip_ts07_load,_extra=_extra
       endelse
       
     endif else if n_elements(add_tilt) gt 0 then begin
@@ -447,12 +525,13 @@ pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_
             internal_model=internal_model,external_model=external_model,south=south,km=km,$
             par=par_in,period=period,error=e,r0=r0,rlim=rlim,get_nperiod=get_nperiod,$
             get_tilt=tilt_dat,add_tilt=add_tilt_dat,get_period_times=period_times_dat,geopack_2008=geopack_2008,$
-            exact_tilt_times=exact_tilt_times,_extra=_extra 
+            exact_tilt_times=exact_tilt_times,ts07_param_dir=ts07_param_dir,ts07_param_file=ts07_param_file,skip_ts07_load=skip_ts07_load,_extra=_extra 
       endif else begin
         trace2equator,d.x,d.y,f,in_coord=in_coord,out_coord=out_coord,internal_model=internal_model,$
             external_model=external_model,south=south,km=km,par=par_in,period=period,error=e,r0=r0,$
             rlim=rlim,get_nperiod=get_nperiod,get_tilt=tilt_dat,add_tilt=add_tilt_dat,$
-            get_period_times=period_times_dat,geopack_2008=geopack_2008,exact_tilt_times=exact_tilt_times,_extra=_extra
+            get_period_times=period_times_dat,geopack_2008=geopack_2008,exact_tilt_times=exact_tilt_times,$
+            ts07_param_dir=ts07_param_dir,ts07_param_file=ts07_param_file,skip_ts07_load=skip_ts07_load,_extra=_extra
       endelse
     endif else begin
       if keyword_set(trace_tvar) then begin
@@ -460,16 +539,17 @@ pro ttrace2equator,in_pos_tvar,newname = newname, trace_var_name=trace_tvar, in_
             internal_model=internal_model,external_model=external_model,south=south,km=km,$
             par=par_in,period=period,error=e,r0=r0,rlim=rlim,get_nperiod=get_nperiod,$
             get_tilt=tilt_dat,get_period_times=period_times_dat,geopack_2008=geopack_2008,$
-            exact_tilt_times=exact_tilt_times,_extra=_extra 
+            exact_tilt_times=exact_tilt_times,ts07_param_dir=ts07_param_dir,ts07_param_file=ts07_param_file,skip_ts07_load=skip_ts07_load,_extra=_extra 
       endif else begin
         trace2equator,d.x,d.y,f,in_coord=in_coord,out_coord=out_coord,internal_model=internal_model,$
             external_model=external_model,south=south,km=km,par=par_in,period=period,error=e,r0=r0,$
             rlim=rlim,get_nperiod=get_nperiod,get_tilt=tilt_dat,get_period_times=period_times_dat,$
-            geopack_2008=geopack_2008,exact_tilt_times=exact_tilt_times,_extra=_extra
+            geopack_2008=geopack_2008,exact_tilt_times=exact_tilt_times, $
+            ts07_param_dir=ts07_param_dir,ts07_param_file=ts07_param_file,skip_ts07_load=skip_ts07_load,_extra=_extra
       endelse
     endelse 
     
-    if e eq 0 then message,'failed returning'
+    if e eq 0 then message,'trace2equator failed, returning'
     
     str_element,d,'v',success=s
     

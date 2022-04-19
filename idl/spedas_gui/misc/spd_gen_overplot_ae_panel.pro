@@ -16,11 +16,11 @@
 ;   This is used in THEMIS and GOES overview plots.
 ;   Combines THEMIS AE with Kyoto AE.
 ;   When the Kyoto AE is available, it shows [Themis AE (black, 0), Kyoto AE (blue, 2)]
-;   When the Kyoto AE is not available, it shows [Themis AE (black, 0), Real Time Kyoto AE (green, 4)]
+;   When the Kyoto AE is not available, it shows [Themis AE (black, 0), Real Time Kyoto AE 5-min (green, 4)]
 ;
-; $LastChangedBy: jwl $
-; $LastChangedDate: 2021-05-30 21:57:27 -0700 (Sun, 30 May 2021) $
-; $LastChangedRevision: 30014 $
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2021-07-08 12:41:39 -0700 (Thu, 08 Jul 2021) $
+; $LastChangedRevision: 30110 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/misc/spd_gen_overplot_ae_panel.pro $
 ;-
 
@@ -59,7 +59,7 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
   kyoto_color_single = [0]
 
   kyoto_load_ae, datatype = 'ae'
-  thm_load_pseudoAE,datatype=['ae', 'uc_ae']
+  thm_load_pseudoAE,datatype=['ae', 'uc_avg']
   if tnames('thg_idx_ae') eq '' then begin
     thm_make_AE ; no sites check, since the bad sites test is not distributed, jmm, 2018-04-30
   endif else copy_data, 'thg_idx_ae', 'thmAE'
@@ -69,7 +69,7 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
 
   if ~is_struct(kyoto_ae_data) then begin
     ; In this case, use the Kyoto real time AE generated at UCLA
-    get_data, 'thg_idx_uc_ae', data=kyoto_ae_data, dlimits=kyoto_ae_dlimits
+    get_data, 'thg_idx_uc_avg', data=kyoto_ae_data, dlimits=kyoto_ae_dlimits
     kyoto_ae_label = 'Kyoto!C proxy AE'
     kyoto_colors = [0, 4]
     kyoto_color_single = [4]

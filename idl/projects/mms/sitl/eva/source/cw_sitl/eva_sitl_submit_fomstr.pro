@@ -16,11 +16,11 @@ PRO eva_sitl_submit_FOMStr, tlb, TESTING, vcase, user_flag=user_flag
   ;------------------
   ; UPLINK Check
   ;------------------
-  result = eva_sitluplink_log(tai_FOMstr_mod, title=title, /check)
-  if strmatch(result,'*abort*',/fold_case) then begin
-    print, result
-    return
-  endif
+;  result = eva_sitluplink_log(tai_FOMstr_mod, title=title, /check)
+;  if strmatch(result,'*abort*',/fold_case) then begin
+;    print, result
+;    return
+;  endif
   
   ;------------------
   ; Modification Check
@@ -111,7 +111,7 @@ PRO eva_sitl_submit_FOMStr, tlb, TESTING, vcase, user_flag=user_flag
         msg=[msg, 'A validation email will be sent to you (within 60 min)']
         msg=[msg, 'if successfully received at SDC.']
         rst = dialog_message(msg,/information,/center,title=title)
-        print, eva_sitluplink_log(tai_FOMstr_mod)
+        ;print, eva_sitluplink_log(tai_FOMstr_mod)
         end
       2: begin
         msg='Attempt to submit FOM structure interrupted, check your internet connection and try again.'

@@ -31,9 +31,13 @@ pro elf_plot_attitude, trange=trange
   if ~undefined(trange) && n_elements(trange) eq 2 $
     then tr = timerange(trange) $
   else tr = timerange()
+  ;daily_names = file_dailynames(trange=tr, /unique, times=times)
+  ;dname=daily_names[0]
+  ;dname2=daily_names[n_elements(daily_names)-1]
   daily_names = file_dailynames(trange=tr, /unique, times=times)
+  daily_names2 = file_dailynames(trange=tr+86400., /unique, times=times)
   dname=daily_names[0]
-  dname2=daily_names[n_elements(daily_names)-1]
+  dname2=daily_names2[n_elements(daily_names2)-1]
 
   ; set up times and titles
   tdate=strmid(time_string(time_double(trange[0])),0,10)
@@ -96,7 +100,8 @@ pro elf_plot_attitude, trange=trange
 
    ; Get maneuver Times
    ; ELFIN A
-   man_file = !elf.local_data_dir + 'ela/attplots/ela_attitude_maneuvers_times.txt'
+   ;man_file = !elf.local_data_dir + 'ela/attplots/ela_attitude_maneuvers_times.txt'
+   man_file = !elf.local_data_dir + 'attitude\ela_attitudes.csv'
    openr, lun, man_file, /GET_LUN
    line = ''
    ; Read first line - header info
@@ -109,7 +114,8 @@ pro elf_plot_attitude, trange=trange
    free_lun, lun
 
    ; ELFIN B
-   man_file = !elf.local_data_dir + 'elb/attplots/elb_attitude_maneuvers_times.txt'
+   ;man_file = !elf.local_data_dir + 'elb/attplots/elb_attitude_maneuvers_times.txt'
+   man_file = !elf.local_data_dir + 'attitude\elb_attitudes.csv'
    openr, lun, man_file, /GET_LUN
    line = ''
    ; Read first line - header info

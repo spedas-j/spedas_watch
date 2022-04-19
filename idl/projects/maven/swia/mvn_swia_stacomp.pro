@@ -13,13 +13,13 @@
 ;	TRANGE: time range to use
 ;
 ; $LastChangedBy: jhalekas $
-; $LastChangedDate: 2021-06-14 12:50:13 -0700 (Mon, 14 Jun 2021) $
-; $LastChangedRevision: 30046 $
+; $LastChangedDate: 2021-07-26 05:30:31 -0700 (Mon, 26 Jul 2021) $
+; $LastChangedRevision: 30142 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swia/mvn_swia_stacomp.pro $
 ;
 ;-
 
-pro mvn_swia_stacomp, type = type, trange = trange, temperature = temperature, angspec = angspec
+pro mvn_swia_stacomp, type = type, trange = trange, temperature = temperature, angspec = angspec, usebg = usebg, tbg = tbg
 
 if not keyword_set(trange) then ctime,trange,npoints = 2
 if not keyword_set(type) then type = 'd0'
@@ -73,29 +73,50 @@ o2spec = sta.y
 pspec = sta.y
 aspec = sta.y
 hespec = sta.y
+oen = sta.v
+o2en = sta.v
+pen = sta.v
+aen = sta.v
+heen = sta.v
 
 for i = 0,nts-1 do begin 
 	dat = mvn_sta_get_c6(ts[i])
+	if keyword_set(usebg) then begin
+		bg = mvn_sta_c6_bkg(dat)
+		dat.bkg = bg
+		dat.data = dat.data-bg
+	endif
+	if keyword_set(tbg) then begin
+		bg = tweakbg(dat)
+		dat.bkg = bg
+		dat.data = dat.data-bg
+	endif
+
 	dat = conv_units(dat,'eflux')
 	for j = 0,31 do begin 
-		w = where(dat.mass_arr[j,*] le 1.8)
+		w = where(dat.mass_arr[j,*] ge 0.7 and dat.mass_arr[j,*] le 1.4,nw)
 		pspec[i,j] = total(dat.data[j,w])
-		w = where(dat.mass_arr[j,*] gt 1.8 and dat.mass_arr[j,*] le 2.5)
+		pen[i,j] = total(dat.energy[j,w])/nw
+		w = where(dat.mass_arr[j,*] gt 1.4 and dat.mass_arr[j,*] le 2.5,nw)
 		aspec[i,j] = total(dat.data[j,w])
-		w = where(dat.mass_arr[j,*] gt 3.3 and dat.mass_arr[j,*] le 4.7)
+		aen[i,j] = total(dat.energy[j,w])/nw	
+		w = where(dat.mass_arr[j,*] gt 2.8 and dat.mass_arr[j,*] le 5.0,nw)
 		hespec[i,j] = total(dat.data[j,w])
-		w = where(dat.mass_arr[j,*] gt 8 and dat.mass_arr[j,*] lt 24)
+		heen[i,j] = total(dat.energy[j,w])/nw
+		w = where(dat.mass_arr[j,*] gt 8 and dat.mass_arr[j,*] lt 24,nw)
 		ospec[i,j] = total(dat.data[j,w])
-		w = where(dat.mass_arr[j,*] gt 24 and dat.mass_arr[j,*] lt 40)
+		oen[i,j] = total(dat.energy[j,w])/nw
+		w = where(dat.mass_arr[j,*] gt 24 and dat.mass_arr[j,*] lt 40,nw)
 		o2spec[i,j] = total(dat.data[j,w])
+		o2en[i,j] = total(dat.energy[j,w])/nw
 	endfor
 endfor
 
-store_data,'pspec',data = {x:ts,y:pspec,v:en,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
-store_data,'aspec',data = {x:ts,y:aspec,v:en,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
-store_data,'hespec',data = {x:ts,y:hespec,v:en,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
-store_data,'ospec',data = {x:ts,y:ospec,v:en,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
-store_data,'o2spec',data = {x:ts,y:o2spec,v:en,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
+store_data,'pspec',data = {x:ts,y:pspec,v:pen,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
+store_data,'aspec',data = {x:ts,y:aspec,v:aen,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
+store_data,'hespec',data = {x:ts,y:hespec,v:heen,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
+store_data,'ospec',data = {x:ts,y:ospec,v:oen,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
+store_data,'o2spec',data = {x:ts,y:o2spec,v:o2en,ylog:1,spec:1,zlog:1,no_interp:1,yrange:[1,1e4]}
 
 if keyword_set(angspec) then begin
 	get_data,'mvn_sta_d1_D',data = dspec

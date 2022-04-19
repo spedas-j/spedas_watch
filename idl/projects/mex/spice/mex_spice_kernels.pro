@@ -21,9 +21,9 @@
 ;CREATED BY:      Takuya Hara on 2015-04-04.
 ;
 ;LAST MODIFICATION:
-; $LastChangedBy: hara $
-; $LastChangedDate: 2018-04-05 12:27:36 -0700 (Thu, 05 Apr 2018) $
-; $LastChangedRevision: 25003 $
+; $LastChangedBy: haraday $
+; $LastChangedDate: 2021-07-11 19:01:06 -0700 (Sun, 11 Jul 2021) $
+; $LastChangedRevision: 30120 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/spice/mex_spice_kernels.pro $
 ;
 ;-
@@ -93,7 +93,7 @@ FUNCTION mex_spice_kernels, names, trange=trange, all=all, load=load,       $
                                                     last_version=last_version, no_server=source.no_server, file_mode='666'o, dir_mode='777'o)
            
            IF MAX(tr) LT time_double('2003-12-25/03:00') THEN BEGIN ; Cruise ephemeris kernel
-              append_array, kernels, spd_download_plus(remote_file=source.remota_date_dir+'MEX/kernels/spk/ORHM_*.BSP', $
+              append_array, kernels, spd_download_plus(remote_file=source.remote_date_dir+'MEX/kernels/spk/ORHM_*.BSP', $
                                                        local_path=source.local_data_dir+'MEX/kernels/spk/', no_update=no_update, $
                                                        last_version=last_version, no_server=source.no_server, file_mode='666'o, dir_mode='777'o)
            ENDIF

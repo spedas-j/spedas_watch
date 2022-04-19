@@ -27,8 +27,8 @@
 ;                 data structures: swe_fpad, swe_fpad_arc.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-07-01 11:22:53 -0700 (Wed, 01 Jul 2020) $
-; $LastChangedRevision: 28838 $
+; $LastChangedDate: 2021-08-10 08:53:12 -0700 (Tue, 10 Aug 2021) $
+; $LastChangedRevision: 30194 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makefpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -126,6 +126,15 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pf
 
       get_data,'swe_pad_resample_200eV',data=lores,dlim=dlim
       get_data,'swe_pad_resample_32hz_200eV',data=hires,dlim=dlim
+
+      dt = hires.x - shift(hires.x, 1)
+      dt[0] = 1D
+      indx = where(dt gt 0.5, count)
+      if (count gt 0L) then begin
+        hires.y[indx,*] = !values.f_nan
+        hires.y[((indx-1L) > 0L),*] = !values.f_nan
+      endif
+
       yhi = hires.y
       nlo = n_elements(lores.x)
       nhi = n_elements(hires.x)
@@ -151,6 +160,15 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pf
 
       get_data,'swe_pad_resample_50eV',data=lores,dlim=dlim
       get_data,'swe_pad_resample_32hz_50eV',data=hires,dlim=dlim
+
+      dt = hires.x - shift(hires.x, 1)
+      dt[0] = 1D
+      indx = where(dt gt 0.5, count)
+      if (count gt 0L) then begin
+        hires.y[indx,*] = !values.f_nan
+        hires.y[((indx-1L) > 0L),*] = !values.f_nan
+      endif
+
       yhi = hires.y
       nlo = n_elements(lores.x)
       nhi = n_elements(hires.x)

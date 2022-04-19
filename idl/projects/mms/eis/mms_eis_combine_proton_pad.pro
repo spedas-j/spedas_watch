@@ -10,6 +10,7 @@
 ;         data_units:         data units ['flux' (default), 'cps', 'counts']
 ;         size_pabin:         size of the pitch angle bins
 ;         energy:             energy range to include in the calculation
+;         level:               data level ['l1a','l1b','l2pre','l2' (default)]
 ;
 ; CREATED BY: I. Cohen, 2017-11-17
 ;
@@ -21,12 +22,14 @@
 ;       + 2018-08-09, I. Cohen      : introduced energy_string to keep user-defined energy range from being overwritten
 ;       + 2020-12-11, I. Cohen      : changed "not KEYWORD_SET" to "undefined" in initialization of some keywords
 ;       + 2021-01-28, I. Cohen      : changed lower energy limit of phxtof data to 10 keV
+;       + 2021-06-17, I. Cohen      : added level keyword; updated eis_prefix definition to handle new L2 variable names; added level to mms_eis_combine_proton_spec call
 ;-
-pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units = data_units, size_pabin = size_pabin, energy = energy, suffix = suffix
+pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units = data_units, size_pabin = size_pabin, energy = energy, level = level, suffix = suffix
   ;
   compile_opt idl2
   if undefined(data_rate) then data_rate = 'srvy'
   if undefined(data_units) then data_units = 'flux'
+  if undefined(level) then level = 'l2'
   if undefined(suffix) then suffix = ''
   if (data_units ne 'flux') then begin
     print,'Combination of PHxTOF and ExTOF data products is only recommended for flux data!'
@@ -35,7 +38,7 @@ pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units
   if undefined(size_pabin) then size_pabin = 15d
   if undefined(energy) then energy = [55d,800d]
   ;
-  if (data_rate eq 'brst') then eis_prefix = 'mms'+probes+'_epd_eis_brst_' else eis_prefix = 'mms'+probes+'_epd_eis_'
+  eis_prefix = 'mms'+probes+'_epd_eis_'+data_rate+'_'+level+'_'
   units_label = data_units eq 'cps' ? '1/s': '1/(cm!U2!N-sr-s-keV)'
   ;
   ; set up the number of pa bins to create
@@ -55,7 +58,7 @@ pro mms_eis_combine_proton_pad, probes=probes, data_rate = data_rate, data_units
   endif
   get_data,extof_pads_var,data=extof_pad
   ;
-  mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix
+  mms_eis_combine_proton_spec, probes=probes, data_rate = data_rate, data_units = data_units, suffix = suffix, level = level
   get_data,eis_prefix+'combined_proton_flux_omni'+suffix,data=proton_combined_spec
   if (isa(proton_combined_spec,'STRUCT') eq 0) then begin
     print,'COMBINED EIS PROTON SPECTRUM FROM MMS_EIS_COMBINE_PROTON_SPEC.PRO NOT FOUND!

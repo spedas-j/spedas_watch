@@ -15,8 +15,8 @@
 ;
 ;
 ; $LastChangedBy: egrimes $
-; $LastChangedDate: 2021-03-17 15:24:54 -0700 (Wed, 17 Mar 2021) $
-; $LastChangedRevision: 29767 $
+; $LastChangedDate: 2021-08-13 11:45:39 -0700 (Fri, 13 Aug 2021) $
+; $LastChangedRevision: 30204 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/spd_get_spectra_units.pro $
 ;-
 
@@ -46,6 +46,12 @@ function spd_get_spectra_units, var
     return, -1
   endif
 
+  str_element, dl.cdf.vatt, 'depend_1', success=s
+  if ~s then begin
+    dprint, dlevel=1, 'No DEPEND_1 found in variable attributes: ' + var
+    return, -1
+  endif
+  
   ; spectra variables should always have depend_1 set in their CDF variable atts
   get_data, dl.cdf.vatt.depend_1, dlimits=yaxis_metadata
   

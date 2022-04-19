@@ -1,9 +1,9 @@
 ;+
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-10-28 14:02:27 -0700 (Wed, 28 Oct 2020) $
-; $LastChangedRevision: 29305 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-08-15 19:22:29 -0700 (Sun, 15 Aug 2021) $
+; $LastChangedRevision: 30208 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -13,8 +13,8 @@ FUNCTION spp_data_product::Init,_EXTRA=ex,data,filename=filename,name=name
   COMPILE_OPT IDL2
   ; Call our superclass Initialization method.
   void = self->generic_object::Init()
-;  printdat,ex
-;  self.data = dynamicarray(name=self.name)
+  ;  printdat,ex
+  ;  self.data = dynamicarray(name=self.name)
   self.dict = dictionary()
   if keyword_set(filename) then begin
     restore,file=filename,/verbose
@@ -39,12 +39,12 @@ end
 
 
 pro spp_data_product::savefile,filename=filename
-   if ~keyword_set(filename) then filename = self.name+'.sav'
-   data = *self.data_ptr
-   name = self.name
-   dict = self.dict
-   save,file=filename,/verbose,data,name,dict
-   dprint,'Saved data in file: '+filename,dlevel=1
+  if ~keyword_set(filename) then filename = self.name+'.sav'
+  data = *self.data_ptr
+  name = self.name
+  dict = self.dict
+  save,file=filename,/verbose,data,name,dict
+  dprint,'Saved data in file: '+filename,dlevel=1
 end
 
 
@@ -62,7 +62,7 @@ end
 
 
 pro spp_data_product::add_var,var,varname=varname
-;  obj = spp_data_product_hash(vname)
+  ;  obj = spp_data_product_hash(vname)
   ptr = self.data_ptr
   if isa(var,/string) then begin   ; var is assumed to be a tplot variable name
     if ~keyword_set(varname) then  varname=var
@@ -85,33 +85,38 @@ pro spp_data_product::add_var,var,varname=varname
       str_element,/add,*ptr,varname,var
     endif else dprint,'size error'
   endelse
-  
 
 end
 
 
 function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,valname=valname,verbose=verbose,extrapolate=extrapolate,cursor=cursor,average=average
   if ~ptr_valid(self.data_ptr) then begin
-    dprint,'No data loaded for: ',self.name
+    dprint,verbose=verbose,'No data loaded for: ',self.name
     return,!null
   endif
- ; verbose = 3
+  ; verbose = 3
   ns = n_elements(*self.data_ptr)
   if keyword_set(cursor) then begin
     ctime,trange,npoints=1,/silent
   endif
-  
+
   if isa(trange) then begin
-    index = interp(lindgen(ns),(*self.data_ptr).time,trange)  
-    index_range = minmax(round(index))
-    index = [index_range[0]: index_range[1]]
+    if 0 then begin
+      index = interp(lindgen(ns),(*self.data_ptr).time,trange)
+      index_range = minmax(round(index))
+      index = [index_range[0]: index_range[1]]
+    endif else begin
+      if n_elements(trange) eq 1 then index =round (interp(lindgen(ns),(*self.data_ptr).time,trange) )  $
+      else index = where( (*self.data_ptr).time ge trange[0] and (*self.data_ptr).time lt trange[1],/null)
+    endelse
   endif
+
 
   if isa(index,/integer) then begin
     irange = minmax(index)
     if irange[0] lt 0 || irange[1] ge ns then begin
-      dprint,"out of range: index="+strtrim(index,2)+", ns="+strtrim(ns,2)+' for '+self.name
-      if keyword_set(extrapolate) then index = 0 > index < (ns-1)    else return, !null   
+      dprint,dlevel=2,verbose=verbose,"out of range: index="+strtrim(index,2)+", ns="+strtrim(ns,2)+' for '+self.name
+      if keyword_set(extrapolate) then index = 0 > index < (ns-1)    else return, !null
     endif
     dats = (*self.data_ptr)[index]
     wbad = where(index lt 0,/null,nbad)
@@ -125,10 +130,12 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
       str_element,dats,valname,retval
       return, retval
     endif
-    if n_elements(index) gt 1 then begin
+    if n_elements(index) gt 1 && keyword_set(average) then begin
       dprint,n_elements(index)
       dats = average(dats)
-    endif
+    endif else begin
+      if isa(trange) then dprint,dlevel=2,verbose=verbose,'returning all values within range'
+    endelse
     if keyword_set(dats) then dprint,dlevel=4,verbose=verbose,self.name+' '+string(index[0])+' '+time_string(dats[0].time)
     return,dats
   endif
@@ -139,17 +146,15 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
     return, retval
   endif
 
-
   return, *self.data_ptr
 end
 
 
-
 PRO spp_data_product::GetProperty,  ptr=ptr, name=name , data=data,dict=dict
   COMPILE_OPT IDL2
-;  dprint,'hello',dlevel=3
+  ;  dprint,'hello',dlevel=3
   IF (ARG_PRESENT(ptr)) THEN ptr = self.data_ptr
-;  IF (ARG_PRESENT(data_ptr)) THEN data_ptr = self.data_ptr
+  ;  IF (ARG_PRESENT(data_ptr)) THEN data_ptr = self.data_ptr
   if arg_present(dict) then dict = self.dict
   IF (ARG_PRESENT(data)) THEN begin
     if ptr_valid(self.data_ptr) then data = *self.data_ptr else begin
@@ -159,9 +164,6 @@ PRO spp_data_product::GetProperty,  ptr=ptr, name=name , data=data,dict=dict
   ENDIF
   IF (ARG_PRESENT(name)) THEN name = self.name
 END
-
-
-
 
 
 PRO spp_data_product__define
@@ -174,6 +176,3 @@ PRO spp_data_product__define
     ;user_ptr: ptr_new() $
   }
 END
-
-
-

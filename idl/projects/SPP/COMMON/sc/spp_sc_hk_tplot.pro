@@ -1,35 +1,35 @@
 ;Ali: August 2020
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-05-30 19:17:01 -0700 (Sun, 30 May 2021) $
-; $LastChangedRevision: 29998 $
+; $LastChangedDate: 2021-08-27 12:49:50 -0700 (Fri, 27 Aug 2021) $
+; $LastChangedRevision: 30264 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/sc/spp_sc_hk_tplot.pro $
 ;-
 
-pro spp_sc_hk_tplot,prefix=prefix
+pro spp_sc_hk_tplot,prefix=prefix,default=default
 
   if ~keyword_set(prefix) then prefix='spp_sc_hkp_'
   pre262=prefix+'0x262_SWEAP_CRIT_SW_'
-  options,verbose=0,pre262+'58',tplot_routine='bitplot',numbits=8,yticks=9,psyms=1,labels=['SPC_PWR','SPANAI_PWR','SPANAE_PWR','SPANB_PWR','SPANA_HTR','SPANB_HTR','ACTR_PWR','OVERCURR_DETECT'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1,panel_size=2
-  options,verbose=0,pre262+'59',tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,labels=['LINK_B_ACTIVE','LINK_A_ACTIVE','FIELDS_CLOCK','FLASH_PLBK_IN_PROGRESS'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,verbose=0,pre262+'60',tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,labels=['WDOG_RESET_DETECTED','BOOT_MODE','FSW_CSCI','OP_OVERRUN'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,verbose=0,pre262+['SPANAI','SPANAE','SPANB'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,labels=['HV_ENABLED','ATT_OR_IN1_IN2','CVR_OR_EOT1_EOT2','HK_MON_TRIP'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,verbose=0,pre262+'SPC',tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,labels=['RAIL_DAC_GT_LIMIT','OR_ELEC_FA_CALON','HV_ENABLED','MODE'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,verbose=0,pre262+['LAST_FSW_EVENT','SPANAI_HV_MODE','SPANAE_HV_MODE','SPANB_HV_MODE'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,yticklen=1,ygridstyle=1,yminor=1
+  options,default=default,verbose=0,pre262+'58',tplot_routine='bitplot',numbits=8,yticks=9,psyms=1,labels=['SPC_PWR','SPANAI_PWR','SPANAE_PWR','SPANB_PWR','SPANA_HTR','SPANB_HTR','ACTR_PWR','OVERCURR_DETECT'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1,panel_size=2
+  options,default=default,verbose=0,pre262+'59',tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,labels=['LINK_B_ACTIVE','LINK_A_ACTIVE','FIELDS_CLOCK','FLASH_PLBK_IN_PROGRESS'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,default=default,verbose=0,pre262+'60',tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,labels=['WDOG_RESET_DETECTED','BOOT_MODE','FSW_CSCI','OP_OVERRUN'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,default=default,verbose=0,pre262+['SPANAI','SPANAE','SPANB'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,labels=['HV_ENABLED','ATT_OR_IN1_IN2','CVR_OR_EOT1_EOT2','HK_MON_TRIP'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,default=default,verbose=0,pre262+'SPC',tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,labels=['RAIL_DAC_GT_LIMIT','OR_ELEC_FA_CALON','HV_ENABLED','MODE'],colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,default=default,verbose=0,pre262+['LAST_FSW_EVENT','SPANAI_HV_MODE','SPANAE_HV_MODE','SPANB_HV_MODE'],tplot_routine='bitplot',numbits=4,yticks=5,psyms=1,yticklen=1,ygridstyle=1,yminor=1
 
-  options,prefix+'0x???_'+['MET','SEQN','PKT_SIZE'],panel_size=.5
-  options,prefix+'0x081_*',labels='0x081',colors='r',psym=-2
-  options,prefix+'0x1c4_FSW_REC_HK_ALLOC_ERR_RAM_SSR_SWEAP_FIELDS_WISPR_EPIHI_LO',labels=reverse(['RAM','SSR','SWEAP','FIELDS','WISPR','EPI_HI','EPI_LO']),tplot_routine='bitplot',numbits=7,yticks=8,psyms=1,colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,prefix+'0x1c5_*',labels='0x1c5',colors='g',psym=-1
+  options,default=default,prefix+'0x???_'+['MET','SEQN','PKT_SIZE'],panel_size=.5
+  options,default=default,prefix+'0x081_*',labels='0x081',colors='r',psym=-2
+  options,default=default,prefix+'0x1c4_FSW_REC_HK_ALLOC_ERR_RAM_SSR_SWEAP_FIELDS_WISPR_EPIHI_LO',labels=reverse(['RAM','SSR','SWEAP','FIELDS','WISPR','EPI_HI','EPI_LO']),tplot_routine='bitplot',numbits=7,yticks=8,psyms=1,colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,default=default,prefix+'0x1c5_*',labels='0x1c5',colors='g',psym=-1
   deriv_data,prefix+'0x1c5_FSW_REC_ALLOC_USED_SWEAP'
-  options,prefix+'0x1c5_FSW_REC_ALLOC_USED_SWEAP_ddt',yrange=[-1e-5,4e-5],constant=0.,psym=0
-  options,prefix+'0x1c5_FSW_REC_ALLOC_GBITS',labels=['EPILO','EPIHI','WISPR','FIELDS','SWEAP','CDH_SSR_HK','CDH_RAM_HK'],colors='bcgmrkybcgmrky',labflag=-1,panel_size=2,yrange=[0,100]
-  options,prefix+'0x1df_FSW_SPP_SOLAR_DIST_RS',yticks=0,psym=-2 ;yticks=2 creates a much more pleasant looking plot, but sometimes fails (hsk_spp_2020064_01.ptp.gz): PLOT: Data range for axis has zero length.
-  options,prefix+'0x1df_FSW_SPP_*_SSR_ALLOC_STATUS',labels='0x1df',colors='b',psym=-2
-  options,prefix+'0x1df_FSW_SPP_FIELDS1_2_SWEAP_WISPR_EPIHI_LO_PWR_OFF_WARN',labels=reverse(['FIELDS1','FIELDS2','SWEAP','WISPR','EPI_HI','EPI_LO']),tplot_routine='bitplot',numbits=6,yticks=7,psyms=1,colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,prefix+'0x257_FSW_SPP_*_SSR_ALLOC_STATUS',labels='0x257',colors='r',psym=-4
-  options,prefix+'0x257_FSW_REC_HK_ALLOC_ERR_SSR_SWEAP_FIELDS_WISPR_EPIHI_LO',labels=reverse(['SSR','SWEAP','FIELDS','WISPR','EPI_HI','EPI_LO']),tplot_routine='bitplot',numbits=6,yticks=7,psyms=1,colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
-  options,prefix+'0x254_HK_WHL*',labels=['WHL0','WHL1','WHL2','WHL3'],colors='kbgr',labflag=-1
+  options,default=default,prefix+'0x1c5_FSW_REC_ALLOC_USED_SWEAP_ddt',yrange=[-1e-5,4e-5],constant=0.,psym=0
+  options,default=default,prefix+'0x1c5_FSW_REC_ALLOC_GBITS',labels=['EPILO','EPIHI','WISPR','FIELDS','SWEAP','CDH_SSR_HK','CDH_RAM_HK'],colors='bcgmrkybcgmrky',labflag=-1,panel_size=2,yrange=[0,100]
+  options,default=default,prefix+'0x1df_FSW_SPP_SOLAR_DIST_RS',yticks=0,psym=-2 ;yticks=2 creates a much more pleasant looking plot, but sometimes fails (hsk_spp_2020064_01.ptp.gz): PLOT: Data range for axis has zero length.
+  options,default=default,prefix+'0x1df_FSW_SPP_*_SSR_ALLOC_STATUS',labels='0x1df',colors='b',psym=-2
+  options,default=default,prefix+'0x1df_FSW_SPP_FIELDS1_2_SWEAP_WISPR_EPIHI_LO_PWR_OFF_WARN',labels=reverse(['FIELDS1','FIELDS2','SWEAP','WISPR','EPI_HI','EPI_LO']),tplot_routine='bitplot',numbits=6,yticks=7,psyms=1,colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,default=default,prefix+'0x257_FSW_SPP_*_SSR_ALLOC_STATUS',labels='0x257',colors='r',psym=-4
+  options,default=default,prefix+'0x257_FSW_REC_HK_ALLOC_ERR_SSR_SWEAP_FIELDS_WISPR_EPIHI_LO',labels=reverse(['SSR','SWEAP','FIELDS','WISPR','EPI_HI','EPI_LO']),tplot_routine='bitplot',numbits=6,yticks=7,psyms=1,colors=[0,1,2,6],yticklen=1,ygridstyle=1,yminor=1
+  options,default=default,prefix+'0x254_HK_WHL*',labels=['WHL0','WHL1','WHL2','WHL3'],colors='kbgr',labflag=-1
   ;storing the below hybrid plots outside the ptp_files loop causes weird autoscale-in-time issues with tlimit!
   store_data,prefix+'FSW_SPP_SOLAR_DIST',data=prefix+['0x1df_FSW_SPP_SOLAR_DIST','0x254_FSW_GC_HK_HK_DIST_BODY_TO_SUN_QUANTIZED'],dlim={colors:'br',labels:['0x1df','0x254'],labflag:-1}
   store_data,prefix+'FSW_SPP_SWEAP_SSR_ALLOC_STATUS',data=prefix+['0x1df_FSW_SPP_SWEAP_SSR_ALLOC_STATUS','0x257_FSW_SPP_SWEAP_SSR_ALLOC_STATUS','0x1c5_FSW_REC_ALLOC_PERCENT_USED_SWEAP'],dlim={labflag:-1,panel_size:2,yrange:[0,100]}

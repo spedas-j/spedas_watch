@@ -1,27 +1,25 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-10-15 10:49:27 -0700 (Thu, 15 Oct 2020) $
-; $LastChangedRevision: 29255 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2021-08-30 15:16:49 -0700 (Mon, 30 Aug 2021) $
+; $LastChangedRevision: 30270 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/electron/spp_swp_spe_load.pro $
 ; Created by Davin Larson 2018
 ; Major updates by Phyllis Whittlesey 2019
 
-
-pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose,esteps=esteps,$
+pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_load=no_load,verbose=verbose,esteps=esteps,psteps=psteps,$
   alltypes=alltypes,allvars=allvars,hkp=hkp,save=save,level=level,file_prefix=file_prefix,no_update=no_update,no_server=no_server
 
   if ~keyword_set(level) then level='L3'
   if ~keyword_set(types) then types='sf0'
   vars = orderedhash()
-  if not keyword_set(file_prefix) then file_prefix='psp/data/sci/sweap/'
-  if not keyword_set(esteps) then esteps = [4,8,12]
+  if ~keyword_set(file_prefix) then file_prefix='psp/data/sci/sweap/'
+  if ~keyword_set(esteps) then esteps = [4,8,12]
+  if ~keyword_set(psteps) then psteps = [11,5,0]
   if level eq 'L3' then begin
     fileformat='spe/L3/SP?_TYP_pad/YYYY/MM/psp_swp_SP?_TYP_L3_pad_YYYYMMDD_v??.cdf'
     ;http://sprg.ssl.berkeley.edu/data/psp/data/sci/sweap/spe/L3/spb_sf0_pad/2018/11/psp_swp_spb_sf0_L3_pad_20181107_v00.cdf
-    if not keyword_set(spxs) then spxs= ['spe']
+    if ~keyword_set(spxs) then spxs= ['spe']
     vars['pad'] = '*'
     normpad =1
-;    varformat = 'EFLUX*'
-;    ext = '_pad'
   endif
   level=strupcase(level)
   if ~keyword_set(spxs) then spxs = ['spa','spb']
@@ -31,16 +29,13 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
     types=['hkp','fhkp']
     foreach type0,['s','a'] do foreach type1,['f','t'] do foreach type2,['0','1'] do types=[types,type0+type1+type2]
   endif
-  ext = ''
 
   dir='spe/'+level+'/SP?_TYP/YYYY/MM/'
-  if types eq 'hkp' then dir = 'SP?/'+level+'/SP?_TYP/YYYY/MM/'
-  if not keyword_set(fileformat) then fileformat=dir+'psp_swp_SP?_TYP_'+level+'*_YYYYMMDD_v??.cdf'
+  if types eq 'hkp' then dir = 'spe/'+level+'/SP?_TYP/YYYY/MM/'
+  if ~keyword_set(fileformat) then fileformat=dir+'psp_swp_SP?_TYP_'+level+'*_YYYYMMDD_v??.cdf'
 
   vars['hkp'] = '*TEMP* *_BITS *_FLAG* *CMD* *PEAK* *CNT*'
   if keyword_set(allvars) then varformat='*'
-
-
 
   tr = timerange(trange)
   foreach type,types do begin
@@ -56,11 +51,11 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         dummy = spp_data_product_hash(spx+'_'+type+'_'+level,vardata)
       endif
       if keyword_set(no_load) then continue
-      prefix = 'psp_swp_'+spx+'_'+type+'_'+level+ext+'_'
+      prefix = 'psp_swp_'+spx+'_'+type+'_'+level+'_'
       if keyword_set(varformat) then vfm = varformat else if vars.haskey(type) then vfm=vars[type] else vfm=[]
       if level eq 'L3' then begin
         varformat = '*'
-        if 1 && keyword_set(files) then begin
+        if keyword_set(files) then begin
           cdf = cdf_tools(files)
           time = cdf.vars['TIME'].data.array
           eflux_vs_pa_e = cdf.vars['EFLUX_VS_PA_E'].data.array
@@ -71,24 +66,38 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
           ebins = bytarr(32)
           ebins[esteps] = 1
           avg_eflux = average(/nan,eflux_vs_pa_e,2)
-          store_data,prefix+'AVG_EFLUX_VS_E',time,eflux_vs_energy,energy,dlim={ylog:1,bins:ebins,yrange:[1e4,1e10]}
+          store_data,prefix+'AVG_EFLUX_VS_E',time,eflux_vs_energy,energy,dlim={ylog:1,bins:ebins,yrange:[1e4,1e10],labels:strtrim(round(energy[0,*]),2)+' eV'}
           store_data,prefix+'EFLUX_VS_ENERGY',time,eflux_vs_energy,energy,dlim={spec:1,ylog:1,zlog:1,yrange:[1,1e4],ztitle:'[eV/cm2-s-ster-eV]',ysubtitle:'[eV]',ytickunits:'scientific'}
-          store_data,prefix+'QUALITY_FLAG',time,qf
+          if spx eq 'spe' then begin
+            store_data,prefix+'spa_QUALITY_FLAG',time,qf[*,0]
+            store_data,prefix+'spb_QUALITY_FLAG',time,qf[*,1]
+          endif else store_data,prefix+'QUALITY_FLAG',time,qf
           foreach e,esteps do begin
             enum = strtrim(e,2)
             eval = median(energy[*,e])
-            ytitle = 'psp!cswp!c'+spx+'!c'+type+'!c'+level+'!cElectron!cPAD!c'+ strtrim(round(eval),2)+' eV'
+            ytitle = 'psp!cswp!c'+spx+'!c'+type+'!c'+level+'!cElectron!cPAD!c'+strtrim(round(eval),2)+' eV'
             eflux_e = eflux_vs_pa_e[*,*,e]
-            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle,ysubtitle:'[Degrees]',ztitle:'[eV/cm2-s-ster-eV]'}
+            store_data,prefix+'EFLUX_VS_PA_E'+enum,time,eflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:3,zlog:1,ytitle:ytitle,ysubtitle:'[Degrees]',ztitle:'[eV/cm2-s-ster-eV]'}
             if spx eq 'spe' then begin
               SPX_VS_PA_E=cdf.vars['SPX_VS_PA_E'].data.array
               SPX_VS_PA = SPX_VS_PA_E[*,*,e]
-              store_data,prefix+'SPX_VS_PA_E'+enum,time,SPX_VS_PA,pitchangle, dlim={yrange:[0,180],spec:1,ystyle:1,ztitle:'SPA=1 SPB=2'}
+              store_data,prefix+'SPX_VS_PA_E'+enum,time,SPX_VS_PA,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:3,ztitle:'SPA=1 SPB=2'}
             endif
             if keyword_set(normpad) then begin
               npa = 12
               nflux_e = eflux_e / (avg_eflux[*,e] # replicate(1,npa) )
-              store_data,prefix+'NFLUX_VS_PA_E'+enum,time,nflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:1,zlog:1,ytitle:ytitle+'!cNormalized',zrange:[.1,10],ztitle:'Normalized',ysubtitle:'[Degrees]'}
+              store_data,prefix+'NFLUX_VS_PA_E'+enum,time,nflux_e,pitchangle,dlim={yrange:[0,180],spec:1,ystyle:3,zlog:1,ytitle:ytitle+'!cNormalized',zrange:[.1,10],ztitle:'Normalized',ysubtitle:'[Degrees]'}
+            endif
+          endforeach
+          foreach pa,psteps do begin
+            panum = strtrim(pa,2)
+            paval = median(pitchangle[*,pa])
+            ytitle = 'psp!cswp!c'+spx+'!c'+type+'!c'+level+'!cEFLUX!cVS!cENERGY!c'+strtrim(round(paval),2)+' Deg'
+            eflux_pa = reform(eflux_vs_pa_e[*,pa,*])
+            store_data,prefix+'EFLUX_VS_PA'+panum+'_E',time,eflux_pa[*,0:13],energy[*,0:13],dlim={spec:1,ystyle:3,ylog:1,zlog:1,yrange:[1e2,1e3],ytitle:ytitle,ysubtitle:'[eV]',ztitle:'[eV/cm2-s-ster-eV]',ytickunits:'scientific'}
+            if 0 && spx eq 'spe' then begin
+              SPX_VS_E = reform(SPX_VS_PA_E[*,pa,*])
+              store_data,prefix+'SPX_VS_PA'+panum+'_E',time,SPX_VS_E[*,0:13],energy[*,0:13],dlim={spec:1,ystyle:3,ylog:1,ztitle:'SPA=1 SPB=2'}
             endif
           endforeach
           mag_sc = cdf.vars['MAGF_SC'].data.array
@@ -105,18 +114,17 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
           dprint,dlevel=4,verbose=verbose,'Starting load into tplot'
           ;  Insert into tplot format
           cdf_info_to_tplot,cdfi,varnames2,all=all,prefix=prefix,midfix=midfix,midpos=midpos,suffix=suffix,newname=newname, $  ;bpif keyword_set(all) eq 0
-            verbose=verbose,  tplotnames=tplotnames,load_labels=load_labels          
+            verbose=verbose,  tplotnames=tplotnames,load_labels=load_labels
         endelse
-        
+
         if spx eq 'spa' || spx eq 'spb' then begin
           dprint,spx,dlevel=3
         endif
-        
-      endif else begin
-        cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose        
-      endelse
-      spp_swp_qf,prefix=prefix
 
+      endif else begin
+        cdf2tplot,files,prefix=prefix,varformat=vfm,verbose=verbose
+      endelse
+      spp_swp_qf,prefix=prefix+'*'
 
       if level eq 'L2' and (type eq 'sf0' or type eq 'af0') then begin ;; will need to change this in the future if sf0 isn't 3d spectra.
         ;; make a line here to get data from tplot
@@ -143,8 +151,8 @@ pro spp_swp_spe_load,spxs=spxs,types=types,varformat=varformat,trange=trange,no_
         ;;----------------------------------------------------------
         ;; Make an Anode Apec
         ;xpandEflux_anode = reform(span_eflux.y, nTimePoints[1], anode_bins, def_bins, nrg_bins)
-;        xpandPhi = reform(span_phi.y, nTimePoints[1], anode_bins, (def_Bins*nrg_bins))
-;        flatAnodeBins = xpandphi[*,*,0]
+        ;        xpandPhi = reform(span_phi.y, nTimePoints[1], anode_bins, (def_Bins*nrg_bins))
+        ;        flatAnodeBins = xpandphi[*,*,0]
         ;totalEflux_anode = total(total(xpandEflux_anode, 3),3)
         ;sum_anode_spec = {x: span_eflux.x,y: totalEflux_anode,v: flatAnodeBins }
         ;store_data, 'psp_swp_' + spx + prod_type + 'ANODE_SPEC_ql', data = sum_anode_spec

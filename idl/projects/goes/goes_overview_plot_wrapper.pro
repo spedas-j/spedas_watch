@@ -5,12 +5,14 @@
 ;
 ;PURPOSE:
 ;         Generates daily overview plots for GOES data - wrapper for goes_overview_plot
+;         If probes=16,17 then it runs goesr_overview_plot
 ;
 ;KEYWORDS:
-;         probes: array of goes probe numbers, if probe='' then probe=['10','11','12','13','14','15']
+;         probes: array of goes probe numbers, if probe='' then probe=['10','11','12','13','14','15','16,'17']
 ;         date_start: begin processing at this date (eg. '2013-12-19')
 ;         date_end: end processing at this date (eg. '2013-12-29')
 ;         base_dir: root dir for output plots (eg. /disks/themisdata/overplots/)
+;         makepng: generate png files
 ;         server_run: for a cron job this has to be set to '1' to avoid downloading files
 ;         themis_dir: server directory for themis (eg. '/disks/themisdata/')
 ;         goes_dir: server directory for goes (eg. '/disks/data/goes/qa/')
@@ -33,16 +35,16 @@
 ;                             server_run = '1', themis_dir ='/disks/themisdata/', goes_dir = '/disks/data/goes/qa/'
 ;
 ;HISTORY:
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-08-19 12:01:42 -0700 (Mon, 19 Aug 2019) $
-;$LastChangedRevision: 27617 $
+;$LastChangedBy: nikos $
+;$LastChangedDate: 2022-03-18 12:52:44 -0700 (Fri, 18 Mar 2022) $
+;$LastChangedRevision: 30691 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/goes/goes_overview_plot_wrapper.pro $
 ;----------
 
 function goes_url_callback, status, progress, data
   ; print the info msgs from the url object
   PRINT, status
-  
+
   ; return 1 to continue, return 0 to cancel
   RETURN, 1
 end
@@ -52,24 +54,24 @@ function check_goes_noaa_dir, base_dir, remote_http_dir
   CATCH, errorStatus
   IF (errorStatus NE 0) THEN BEGIN
     CATCH, /CANCEL
-    
+
     ; Display the error msg in a dialog and in the IDL output log
     ;r = DIALOG_MESSAGE(!ERROR_STATE.msg, TITLE='URL Error',   /ERROR)
     PRINT, !ERROR_STATE.msg
-    
+
     ; Get the properties that will tell us more about the error.
     oUrl->GetProperty, RESPONSE_CODE=rspCode, $
       RESPONSE_HEADER=rspHdr, RESPONSE_FILENAME=rspFn
     PRINT, 'rspCode = ', rspCode
     PRINT, 'rspHdr= ', rspHdr
     PRINT, 'rspFn= ', rspFn
-    
+
     ; Destroy the url object
     OBJ_DESTROY, oUrl
     RETURN, 0
   ENDIF
-  
-  oUrl = OBJ_NEW('IDLnetUrl')
+
+  oUrl = OBJ_NEW('IDLnetUrl', ssl_verify_host=0, ssl_verify_peer=0)
   oUrl->SetProperty, VERBOSE = 1
   oUrl->SetProperty, url_scheme = 'https'
   ;cd, base_dir
@@ -114,12 +116,12 @@ function goes_generate_datearray, date_start, date_end
 end
 
 pro goes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
-  date_mod = date_mod, probes = probes, base_dir = base_dir, $
+  date_mod = date_mod, probes = probes, base_dir = base_dir, makepng=makepng, $
   server_run = server_run, themis_dir = themis_dir, goes_dir = goes_dir
   compile_opt idl2
-  
+
   dprint, 'START GOES overview plot. Date: ' + SYSTIME()
-  
+
   ; for server cron job set the directories to server directories
   ; so that files will not have to be downloaded every time
   device = 'z'
@@ -130,8 +132,12 @@ pro goes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
     if FILE_TEST(goes_dir, /DIRECTORY) then !goes.local_data_dir = goes_dir
   endif
   if ~keyword_set(base_dir) then base_dir='/disks/themisdata/overplots/'
+  ; If directory doesn't exist, create it. 
+  if ~file_test(base_dir, /directory) then begin
+    file_mkdir, base_dir
+  endif
   lastdate_file = base_dir + 'goeslastdate.txt' ;this file holds the last day processed
-  if ~keyword_set(probes) || probes eq '' || probes eq 'all' then probes=['10','11','12','13','14','15']
+  if ~keyword_set(probes) || probes[0] eq '' || probes[0] eq 'all' then probes=['10','11','12','13','14','15', '16', '17']
   if ~keyword_set(date_start) then date_start = ''
   if strlen(date_start) ne 10 then date_start = ''
   if ~keyword_set(date_end) then date_end = ''
@@ -140,7 +146,7 @@ pro goes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
     CALDAT, systime(/julian), Month1, Day1, Year1
     date_end=STRTRIM(string(Year1),2)+'-'+STRTRIM(string(Month1, format='(I02)'),2)+'-'+STRTRIM(string(Day1, format='(I02)'),2)
   endif
-  
+
   if keyword_set(date_mod) then begin
     if  STRCMP(date_mod, 'continue', 8, /FOLD_CASE) then begin
       date_start = goes_read_lastdate(lastdate_file)
@@ -186,13 +192,13 @@ pro goes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
   endif else begin
     date_array = goes_generate_datearray(date_start, date_end)
   endelse
-  
+
   if date_array[0] eq '0' then return
-  
+
   CALDAT, date_array, Month1, Day1, Year1
   daten=STRTRIM(string(Year1),2)+'-'+STRTRIM(string(Month1, format='(I02)'),2)+'-'+STRTRIM(string(Day1, format='(I02)'),2)
   count_errors = 0
-  
+
   for i=0, n_elements(daten)-1 do begin
     date = daten[i]
     year03 = STRMID(date, 0, 4)
@@ -200,31 +206,44 @@ pro goes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
     day03 = STRMID(date, 8, 2)
     directory = base_dir + year03 + path_sep() + month03 + path_sep() + day03 + path_sep()
     remote_dir = 'satdat.ngdc.noaa.gov/sem/goes/data/avg/' + year03 + '/' + month03 + '/'
-    
+
     for j=0, n_elements(probes)-1 do begin
       probe = probes[j]
-      ; check if dir exists, eg: http://satdat.ngdc.noaa.gov/sem/goes/data/new_avg/2011/08/goes13/netcdf/
-      remote_http_dir = remote_dir + 'goes' + probe + '/netcdf/'
-      if check_goes_noaa_dir(base_dir, remote_http_dir) then begin
-        dprint, "====================================================="
-        msgstr = "GOES OVERVIEW PLOT: Probe= " + string(probe) + ", date= " + date
-        dprint, msgstr
-        store_data, delete=tnames()
-        heap_gc
-        goes_overview_plot, date = date, probe = probe, directory = directory, device = device, geopack_lshell = geopack_lshell, error=error
-        if ~keyword_set(error) then error=0
-        if error ne 1 then error=0
-        count_errors = count_errors + error
+      if probe le 15 then begin
+        ; GOES15 is up to 2020
+        if year03 gt 2020 then continue
+        ; check if dir exists, eg: http://satdat.ngdc.noaa.gov/sem/goes/data/new_avg/2011/08/goes13/netcdf/
+        remote_http_dir = remote_dir + 'goes' + probe + '/netcdf/'
+        if check_goes_noaa_dir(base_dir, remote_http_dir) then begin
+          dprint, "====================================================="
+          msgstr = "GOES OVERVIEW PLOT: Probe= " + string(probe) + ", date= " + date
+          dprint, msgstr
+          store_data, delete=tnames()
+          heap_gc
+          goes_overview_plot, date=date, probe=probe, directory=directory, device=device, geopack_lshell=geopack_lshell, error=error, makepng=makepng
+          if ~keyword_set(error) then error=0
+          if error ne 1 then error=0
+          count_errors = count_errors + error
+          goes_write_lastdate, lastdate_file, date
+        endif
+      endif else begin ; Goes-R, probes 16,17
+        ; GOES16,17 start in 2018
+        if year03 lt 2018 then continue
+        store_data, '*', /delete
+        error = 0
+        goesr_overview_plot, date=date, probe=probe, directory=directory, device=device, geopack_lshell=geopack_lshell, error=error, makepng=makepng
+        dprint, 'date: ', date, ', probe: ', probe, ', device: ', device, ', error: ', error
         goes_write_lastdate, lastdate_file, date
-      endif
+      endelse
+
     endfor
   endfor
-  
+
   ; if there are too many errors, report it
-  if (count_errors gt 5) && (server_run eq 1) then begin   
+  if (count_errors gt 5) && (server_run eq 1) then begin
     str_message = "GOES summary plot wrapper encounterred too many errors. Date start: " + daten[0] + ", Date end: " + daten[n_elements(daten)-1]
     thm_thmsoc_dblog, server_run=1, process_name='goes_overview_plot_wrapper', severity=2, str_message=str_message
   endif
-  
+
   dprint, 'END GOES overview plot. Date: ' + SYSTIME()
 end

@@ -1,11 +1,13 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-05-30 19:45:35 -0700 (Sun, 30 May 2021) $
-; $LastChangedRevision: 30010 $
+; $LastChangedDate: 2021-06-21 09:41:51 -0700 (Mon, 21 Jun 2021) $
+; $LastChangedRevision: 30071 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ssr_file_read.pro $
 ;
 ; This routine reads SSR files (series of CCSDS packets)
 
 pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_flag,no_init=no_init,finish=finish,kernels=kernels
+
+  if ~keyword_set(files) then return
 
   dummy = {cdf_tools}
 
@@ -17,7 +19,7 @@ pro spp_ssr_file_read,files,dwait=dwait,no_products=no_products,sort_flag=sort_f
   if n_elements(sort_flag) eq 0 then sort_flag=1
   spp_swp_apdat_init  ,no_products=no_products
   spp_apdat_info,save_flag=1,rt_flag=0
-  if ~ keyword_set(no_init) then begin
+  if ~keyword_set(no_init) then begin
     spp_apdat_info,/clear
     apdat_info['file_hash_list'].remove,/all
   endif

@@ -31,8 +31,8 @@
 ;
 ;
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2021-05-20 17:50:46 -0700 (Thu, 20 May 2021) $
-;$LastChangedRevision: 29980 $
+;$LastChangedDate: 2021-10-08 16:03:55 -0700 (Fri, 08 Oct 2021) $
+;$LastChangedRevision: 30344 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/cluster_science_archive/cl_load_csa.pro $
 ;-
 
@@ -169,13 +169,13 @@ end
 ;
 ;
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2021-05-20 17:50:46 -0700 (Thu, 20 May 2021) $
-;$LastChangedRevision: 29980 $
+;$LastChangedDate: 2021-10-08 16:03:55 -0700 (Fri, 08 Oct 2021) $
+;$LastChangedRevision: 30344 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/cluster_science_archive/cl_load_csa.pro $
 ;-
 
 pro cl_load_csa,trange=trange,probes=probes,datatypes=datatypes,valid_names=valid_names,get_support_data=get_support_data, $
-  verbose=verbose,use_tap=use_tap,nocleanup=nocleanup
+  verbose=verbose,nocleanup=nocleanup
   
 defsysv,'!spedas',exists=exists
 if not(keyword_set(exists)) then begin
@@ -206,7 +206,7 @@ master_datatypes=['CE_WBD_WAVEFORM_CDF','CP_AUX_POSGSE_1M','CP_CIS-CODIF_HS_H1_M
   
   ; Process arguments
   
-  if n_elements(valid_names) gt 0 then begin
+  if keyword_set(valid_names) then begin
      probes=master_probes
      datatypes=master_datatypes
      return
@@ -219,8 +219,10 @@ master_datatypes=['CE_WBD_WAVEFORM_CDF','CP_AUX_POSGSE_1M','CP_CIS-CODIF_HS_H1_M
  ; Create time range parameter strings, URL-encoding the ':'s, which are special characters in URLs
  ;  
   if size(trange,/type) eq 7 then begin
-    start_date=idlneturl.urlencode(trange[0])
-    end_date=idlneturl.urlencode(trange[1])
+    ; Time range has been passed as strings, but CSA service doesn't accept default time_string format.
+    ; Convert using time_double, then back to time_string ensuring RFC 1918 format.
+    start_date=idlneturl.urlencode(time_string(time_double(trange[0]),tformat="YYYY-MM-DDThh:mm:ssZ"))
+    end_date=idlneturl.urlencode(time_string(time_double(trange[1]),tformat="YYYY-MM-DDThh:mm:ssZ"))   
   endif else begin
     start_date=idlneturl.urlencode(time_string(trange[0],tformat="YYYY-MM-DDThh:mm:ssZ"))
     end_date=idlneturl.urlencode(time_string(trange[1],tformat="YYYY-MM-DDThh:mm:ssZ"))
@@ -256,15 +258,9 @@ delivery_interval='ALL'
 ; Make query string
 ; Base and query URLs
 
-if n_elements(use_tap) ge 1 then begin
-  ; newer TAP system
+; newer TAP system; CAIO method no longer supported JWL 2021-10-08
   base_url='https://csa.esac.esa.int/csa-sl-tap/data'
   query_string='retrieval_type=PRODUCT&START_DATE='+start_date+'&END_DATE='+end_date+'&DELIVERY_FORMAT='+delivery_format+'&DELIVERY_INTERVAL='+delivery_interval+'&NON_BROWSER'
-endif else begin
-  ;older CAIO system
-  base_url='http://csa.esac.esa.int/csa/aio/product-action'
-  query_string='START_DATE='+start_date+'&END_DATE='+end_date+'&DELIVERY_FORMAT='+delivery_format+'&DELIVERY_INTERVAL='+delivery_interval+'&NON_BROWSER'
-endelse
 
 for i=0,n_elements(my_probes)-1 do begin
    for j=0,n_elements(my_datatypes)-1 do begin

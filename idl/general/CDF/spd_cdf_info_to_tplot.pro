@@ -13,8 +13,8 @@
 ;   https://spdf.gsfc.nasa.gov/istp_guide/variables.html#Epoch
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2020-12-16 10:05:39 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29504 $
+; $LastChangedDate: 2021-06-18 22:43:05 -0700 (Fri, 18 Jun 2021) $
+; $LastChangedRevision: 30067 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_cdf_info_to_tplot.pro $
 ;-
 pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=non_record_varying, tt2000=tt2000,$
@@ -31,7 +31,7 @@ pro spd_cdf_info_to_tplot,cdfi,varnames,loadnames=loadnames, non_record_varying=
         load_labels=load_labels ;copy labels from labl_ptr_1 in attributes into dlimits
                                       ;resolve labels implemented as keyword to preserve backwards compatibility
 
-dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 29504 2020-12-16 18:05:39Z jwl $'
+dprint,verbose=verbose,dlevel=4,'$Id: spd_cdf_info_to_tplot.pro 30067 2021-06-19 05:43:05Z jwl $'
 tplotnames=''
 vbs = keyword_set(verbose) ? verbose : 0
 
@@ -192,8 +192,8 @@ for i=0,nv-1 do begin
    if ptr_valid(tvar.dataptr) and ptr_valid(v.dataptr) then begin
 
      if v.recvary eq 0 then begin
-       ; Note that v.numrec will likely be set to -1 here, by spd_mms_cdf_load_vars
-       ; This seems to happen for quite a few MMS variables.
+       ; Note that v.numrec will likely be set to -1 by spd_mms_cdf_load_vars if the variable is non-record-variant
+       ; This seems to happen for quite a few MMS and Cluster variables.
        dprint,dlevel=1,verbose=verbose,'Warning: Variable '+v.name+' is marked non-record-varying, but has a time variable. Record counts may be mismatched.'
      endif
 
@@ -208,13 +208,13 @@ for i=0,nv-1 do begin
       ;   Reform the data array to the expected dimensions in case a size-1 dimension gets dropped.  This can happen
       ;   if a CDF has a single sample for that variable, but is marked "non-record-variant".   Simply zeroing var_2
       ;   can result in a crash later in this routine.
-        
+
           current_dimens=size(*v.dataptr,/dimen)
-          time_count=n_elements(*tvar.dataptr)
-          dprint,verbose=verbose,dlevel=1,'Warning: unexpected data array dimensions for variable '+v.name
-          dprint,verbose=verbose,dlevel=1,'Expected '+string(v.ndimen) +' dimensions plus time'
-          dprint,verbose=verbose,dlevel=1,'Got dimensions of: ',current_dimens
+          time_count=n_elements(*tvar.dataptr)        
           if current_dimens[0] eq time_count then begin
+            dprint,verbose=verbose,dlevel=1,'Warning: unexpected data array dimensions for variable '+v.name
+            dprint,verbose=verbose,dlevel=1,'Expected '+string(v.ndimen) +' dimensions plus time'
+            dprint,verbose=verbose,dlevel=1,'Got '+string(n_elements(current_dimens))+' dimensions: ',current_dimens
             dprint,verbose=verbose,dlevel=1,'Time count matches leading data dimension, reforming to restore size 1 trailing dimension'
             ; It might be better to set new_dimens by looking at v.d
             new_dimens = [current_dimens, 1]

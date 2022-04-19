@@ -101,11 +101,14 @@
 ;  -Note that there may still be slight differences between the PGS moments and the official moments released by the team.
 ;     The official moments released by the team are the scientific
 ;     products you should use in your analysis.
+;  
+;  - Note: versions of this code between 28July2021 and 5Nov2021 automatically removed negative values 
+;          after photoelectron corrections; this functionality is now available by setting the keyword: /zero_negative_values
 ;
 ;
 ;$LastChangedBy: egrimes $
-;$LastChangedDate: 2019-02-27 14:01:22 -0800 (Wed, 27 Feb 2019) $
-;$LastChangedRevision: 26718 $
+;$LastChangedDate: 2021-11-05 09:19:11 -0700 (Fri, 05 Nov 2021) $
+;$LastChangedRevision: 30398 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_products.pro $
 ;-
 pro mms_part_products, $
@@ -154,6 +157,7 @@ pro mms_part_products, $
                      correct_photoelectrons=correct_photoelectrons, $ ; Apply both internal photoelectron corrections (Dan Gershman's model) and correct for S/C potential (should not be used with either of the bottom two)
                      internal_photoelectron_corrections=internal_photoelectron_corrections, $ ; Only apply Dan Gershman's model (i.e., don't correct for the S/C potential in moments_3d)
                      correct_sc_potential=correct_sc_potential, $ ; only correect for the S/C potential (disables Dan Gershman's model)
+                     zero_negative_values=zero_negative_values, $ ; keyword that tells mms_part_products to turn negative values to 0 after doing the photoelectron corrections (DES)
 
                      error=error,$ ;indicate error to calling routine 1=error,0=success
                      
@@ -166,7 +170,6 @@ pro mms_part_products, $
                      display_object=display_object, $ ;object allowing dprint to export output messages
 
                      silent=silent, $ ;suppress pop-up messages
-
                      _extra=ex ;TBD: consider implementing as _strict_extra 
 
 
@@ -447,7 +450,16 @@ pro mms_part_products, $
 
       ; now, the corrected distribution function is simply f_corrected = f-fphoto*nphoto
       ; note: transpose is to shuffle fphoto*nphoto to energy-azimuth-elevation, to match dist.data
-      dist.data = dist.data-transpose(reform(fphoto*nphoto), [2, 0, 1])
+      corrected_df = dist.data-transpose(reform(fphoto*nphoto), [2, 0, 1])
+      
+      if keyword_set(zero_negative_values) then begin
+        where_neg = where(corrected_df lt 0, neg_count)
+        if neg_count ne 0 then begin
+          corrected_df[where_neg] = 0d
+        endif
+      endif
+      
+      dist.data = corrected_df
     endif
 
     ;Sanitize Data.
@@ -644,7 +656,6 @@ pro mms_part_products, $
     ;phi range may be wrapped about phi=0, this keeps an invalid range from being passed to tplot
     phi_y_range = (undefined(start_angle) ? 0:start_angle) + [0,360]
     spd_pgs_make_tplot, tplot_prefix+'phi'+suffix, x=times, y=phi_y, z=phi_spec, yrange=phi_y_range,units=units_lc,datagap=datagap,tplotnames=tplotnames
-    spd_pgs_shift_phi_spec, names=tplot_prefix+'phi'+suffix, start_angle=start_angle
     options, tplot_prefix+'phi'+suffix, ysubtitle='[deg]'
   endif
   
@@ -663,7 +674,6 @@ pro mms_part_products, $
     ;gyro range may be wrapped about gyro=0, this keeps an invalid range from being passed to tplot
     gyro_y_range = (undefined(start_angle) ? 0:start_angle) + [0,360]
     spd_pgs_make_tplot, tplot_prefix+'gyro'+suffix, x=times, y=gyro_y, z=gyro_spec, yrange=gyro_y_range,units=units_lc,datagap=datagap,tplotnames=tplotnames
-    spd_pgs_shift_phi_spec, names=tplot_prefix+'gyro'+suffix, start_angle=start_angle
     options, tplot_prefix+'gyro'+suffix, ysubtitle='[deg]'
   endif
   

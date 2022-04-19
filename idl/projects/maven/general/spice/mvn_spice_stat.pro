@@ -39,16 +39,22 @@
 ;
 ;    SUMMARY:       Provides a concise summary.
 ;
+;    CHECK:         Set this keyword to a time array to test whether the loaded
+;                   kernels are sufficient to cover the entire time range.  The
+;                   time array can be in any format accepted by time_double.
+;                   If CHECK is set, then keyword SUMMARY will include success
+;                   flags (1 = sufficient coverage, 0 = insufficient coverage).
+;
 ;    SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-05-17 11:20:50 -0700 (Mon, 17 May 2021) $
-; $LastChangedRevision: 29965 $
+; $LastChangedDate: 2021-09-12 16:29:36 -0700 (Sun, 12 Sep 2021) $
+; $LastChangedRevision: 30291 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
 ;-
-pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=silent
+pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=check, silent=silent
 
   blab = ~keyword_set(silent)
 
@@ -65,15 +71,20 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
              ck_sc_ngaps   : 0       , $
              ck_app_exists : 0       , $
              ck_app_trange : [0D,0D] , $
-             ck_app_ngaps  : 0          }
+             ck_app_ngaps  : 0       , $
+             trange_check  : [0D,0D] , $
+             spk_check     : 0       , $
+             ck_sc_check   : 0       , $
+             ck_app_check  : 0       , $
+             all_check     : 0          }
 
   if (blab) then print,''
 
-  mk = spice_test('*')
+  mk = spice_test('*',verbose=(blab+1))
   indx = where(mk ne '', n_ker)
   if (n_ker eq 0) then begin
     if (blab) then begin
-      print,"  No kernels are loaded."
+      print,"  No SPICE kernels are loaded."
       print,''
     endif
     return
@@ -300,6 +311,20 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, silent=s
        summary.frames_exist + summary.spk_exists + summary.ck_sc_exists + $
        summary.ck_app_exists
   summary.all_exist = (ok eq 7)
+
+  if (n_elements(check) eq 0) then begin
+    tplot_options, get=topt
+    if (topt.trange_full[0] gt 0D) then check = topt.trange_full
+  endif
+  if (n_elements(check) gt 0) then begin
+    tmin = min(time_double(check), max=tmax)
+    summary.trange_check = [tmin,tmax]
+    summary.spk_check = ((summary.spk_trange[0] le tmin) and (summary.spk_trange[1] ge tmax))
+    summary.ck_sc_check = ((summary.ck_sc_trange[0] le tmin) and (summary.ck_sc_trange[1] ge tmax))
+    summary.ck_app_check = ((summary.ck_app_trange[0] le tmin) and (summary.ck_app_trange[1] ge tmax))
+    ok = summary.spk_check + summary.ck_sc_check + summary.ck_app_check
+    summary.all_check = (ok eq 3)
+  endif
 
   if (dobar) then begin
     indx = where(y eq 0, count)

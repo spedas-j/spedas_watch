@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2021-01-25 22:28:17 -0800 (Mon, 25 Jan 2021) $
-; $LastChangedRevision: 29622 $
+; $LastChangedDate: 2021-07-26 15:13:41 -0700 (Mon, 26 Jul 2021) $
+; $LastChangedRevision: 30144 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/psp_fld_load.pro $
 ;
 ;-
@@ -17,6 +17,7 @@ pro psp_fld_load, trange=trange, type = type, $
   level = level, $
   longterm_ephem = longterm_ephem, $
   get_support = get_support, $
+  no_load = no_load, $
   no_staging = no_staging, $
   use_staging = use_staging, $
   version = version
@@ -38,6 +39,7 @@ pro psp_fld_load, trange=trange, type = type, $
     level = level, $
     longterm_ephem = longterm_ephem, $
     get_support = get_support, $
+    no_load = no_load, $
     no_staging = no_staging, $
     use_staging = use_staging, $
     version = version

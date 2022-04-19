@@ -29,8 +29,8 @@
 ; 2019-12-23, egrimes, created based on mms_init
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2021-05-20 17:50:46 -0700 (Thu, 20 May 2021) $
-; $LastChangedRevision: 29980 $
+; $LastChangedDate: 2021-07-08 16:21:36 -0700 (Thu, 08 Jul 2021) $
+; $LastChangedRevision: 30111 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/cluster/cluster_science_archive/cl_csa_config.pro $
 ;
 ;-
@@ -97,9 +97,6 @@ PRO cl_csa_config, no_color_setup=no_color_setup, colortable=colortable
   endif ; no_color_setup
   
   ;===========  DEBUGGING OPTIONS
-
-  ;if !prompt eq 'IDL> ' then !prompt = 'MMS> '
-  if !prompt ne 'CLUSTER_CSA> ' then !prompt = 'CLUSTER_CSA> '
   
   ; The following calls set persistent flags in dprint that change subsequent output
   ;dprint,setdebug=3       ; set default debug level to value of 3

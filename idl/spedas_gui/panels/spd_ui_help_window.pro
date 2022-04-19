@@ -5,9 +5,9 @@
 ;PURPOSE:
 ; A widget to display the file 'spd_gui.txt' help
 ;
-;$LastChangedBy: nikos $
-;$LastChangedDate: 2016-10-20 14:45:33 -0700 (Thu, 20 Oct 2016) $
-;$LastChangedRevision: 22170 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2022-03-04 11:48:01 -0800 (Fri, 04 Mar 2022) $
+;$LastChangedRevision: 30648 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/panels/spd_ui_help_window.pro $
 ;
 ;-
@@ -42,7 +42,7 @@ Pro spd_ui_help_window_event, event
       spd_ui_open_url, 'http://spedas.org/wiki/'
     end
     'showhelp' : begin
-      spd_ui_open_url, 'ftp://apollo.ssl.berkeley.edu/pub/THEMIS/3%20Ground%20Systems/3.2%20Science%20Operations/Science%20Operations%20Documents/Software%20Users%20Guides/'
+      spd_ui_open_url, 'http://themis.ssl.berkeley.edu/socware/latest.html'
     end
   Endcase
   Return
@@ -82,15 +82,14 @@ Pro spd_ui_help_window, historyWin, gui_id
   helpid = widget_base(/col, title = 'Help Window',Group_Leader = gui_id, $
     /Modal, /Floating)
   helpdisplay = widget_text(helpid, uval = 'HELP_DISPLAY', val = help_arr, $
-    ;xsize = 80, ysize = 40, /scroll, frame = 5)
-    xsize = 140, ysize = 5, /scroll, frame = 5)
+    /scroll, frame = 5)
   ;a widget for buttons
   buttons = widget_base(helpid, /row, /align_center)
   exit_button = widget_base(buttons, /row, /align_center)
   
-  onButton = widget_button(exit_button, value = ' Open SPEDAS Wiki ', uvalue= 'showwiki', /align_center, scr_xsize = 200)
-  onlineButton = widget_button(exit_button, value = ' Open Online Documentation ', uvalue= 'showhelp', /align_center, scr_xsize = 200)
-  exitbut = widget_button(exit_button, val = ' Close ', uval = 'EXIT', /align_center, scr_xsize = 200)
+  onButton = widget_button(exit_button, value = ' Open SPEDAS Wiki ', uvalue= 'showwiki', /align_center)
+  onlineButton = widget_button(exit_button, value = ' Open Online Documentation ', uvalue= 'showhelp', /align_center)
+  exitbut = widget_button(exit_button, val = ' Close ', uval = 'EXIT', /align_center)
   state = {help:help_arr, historyWin:historyWin, gui_id:gui_id}
   
   CenterTLB, helpid

@@ -151,12 +151,15 @@
 ;                   an external monitor.  Use a smaller value for a laptop
 ;                   monitor.
 ;
+;       EVEC:       Plot the convection electric field direction.
+;                   Default = 1 (yes) if BCLK is among the data filters.
+;
 ;       PNG:        Set this keyword to the full filename (including path)
 ;                   for outputting a png plot.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-05-01 12:25:16 -0700 (Fri, 01 May 2020) $
-; $LastChangedRevision: 28657 $
+; $LastChangedDate: 2021-08-25 09:08:44 -0700 (Wed, 25 Aug 2021) $
+; $LastChangedRevision: 30248 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_plot.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -165,7 +168,7 @@
 pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
                       doplot=doplot, dosamp=dosamp, domom=domom, doall=doall, $
                       limits=ulimits, zlimits=zlimits, rlimits=rlimits, png=png, $
-                      wscale=wscale
+                      wscale=wscale, evec=evec
 
 ; Make sure inputs are reasonable
 
@@ -188,8 +191,9 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
 
   if not keyword_set(wscale) then wscale = 1.
 
-  xsize = 711.*wscale
-  ysize = 581.*wscale
+  xsize = 730.       ; x dimension in pixels
+  aspect1 = 1.17280  ; aspect ratio for 1x1 plot (x/y)
+  aspect2 = 1.24361  ; aspect ratio for 2x2 plot (x/y)
 
   dst = keyword_set(dst)
 
@@ -234,7 +238,13 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
 
     str_element, options, 'vbar', value, success=ok
     if (ok) then vbar = value
+
+    str_element, options, 'evec', value, success=ok
+    if (ok) then evec = value
   endif
+
+  if (size(evec,/type) eq 0) then evec = 1 else evec = keyword_set(evec)
+  if (strupcase(yvar) ne 'MSO_Z') then evec = 0
 
   if ((not keyword_set(xvar)) and (not keyword_set(yvar))) then begin
     print,"You must specify X and/or Y variable names."
@@ -476,6 +486,42 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
                  zmax = 90.
                  zrange = [zmin,zmax]
                  zt = 3
+                 zm = 0
+                 zlog = 0
+               end
+    'VORATIO' : begin
+                 zlab = 'V!dO!n / V!dO2!n'
+                 zmin = 0.
+                 zmax = 4.
+                 zrange = [zmin,zmax]
+                 zt = 4
+                 zm = 0
+                 zlog = 0
+               end
+    'EORATIO' : begin
+                 zlab = 'E!dO!n / E!dO2!n'
+                 zmin = 0.
+                 zmax = 4.
+                 zrange = [zmin,zmax]
+                 zt = 4
+                 zm = 0
+                 zlog = 0
+               end
+    'NORATIO' : begin
+                 zlab = 'N!dO!n / N!dO2!n'
+                 zmin = 0.
+                 zmax = 4.
+                 zrange = [zmin,zmax]
+                 zt = 4
+                 zm = 0
+                 zlog = 0
+               end
+    'FORATIO' : begin
+                 zlab = 'F!dO!n / F!dO2!n'
+                 zmin = 0.
+                 zmax = 4.
+                 zrange = [zmin,zmax]
+                 zt = 4
                  zm = 0
                  zlog = 0
                end
@@ -919,8 +965,8 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
 ; Set plot dimensions - make sure Mars is round
 
   if (strcmp(xvar, 'MS', 2, /fold) and strcmp(yvar, 'MS', 2, /fold)) then begin
-    ysize *= abs(ymax - ymin)/abs(xmax - xmin)
-  endif
+    yscl = abs(ymax - ymin)/abs(xmax - xmin)
+  endif else yscl = 1.
 
 ; Velocity vector overlay
 
@@ -1020,8 +1066,8 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
   if (yvar eq 'PARAM') then psym = 10 else psym = 0
 
   limits = {no_interp:1, xrange:xrange, yrange:yrange, zrange:zrange, xstyle:1, $
-            ystyle:1, xtitle:xlab, ytitle:ylab, ztitle:(mode+zlab), xlog:xlog, ylog:ylog, $
-            zlog:zlog, xticks:xt, yticks:yt, zticks:zt, xminor:xm, yminor:ym, $
+            ystyle:1, xtitle:xlab, ytitle:ylab, ztitle:zlab, xlog:xlog, $
+            ylog:ylog, zlog:zlog, xticks:xt, yticks:yt, zticks:zt, xminor:xm, yminor:ym, $
             zminor:zm, xmargin:[10,12], charsize:1.2, psym:psym}
 
 ; User defined plotting options (override defaults and/or add new options)
@@ -1159,24 +1205,32 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
   print,strcompress(msg),format='(a,/)'
 
   if (ngud eq 0L) then return                            ; nothing to plot
-  if (nbad gt 0L) then begin                             ; mask data with low sampling
-    if (pmode eq 2) then begin
-      str_element, data, 'valid', replicate(1, n_elements(data.x), n_elements(data.y)), /add
+
+; Mask data with low sampling
+
+  if (pmode eq 2) then begin
+    str_element, data, 'valid', replicate(1, n_elements(data.x), n_elements(data.y)), /add
+    if (nbad gt 0L) then begin
       data.valid[jndx] = 0
       data.z[jndx] = !values.f_nan
       data.med[jndx] = !values.f_nan
-    endif else begin
-      str_element, data, 'valid', replicate(1, n_elements(data.y)), /add
+    endif
+  endif else begin
+    str_element, data, 'valid', replicate(1, n_elements(data.y)), /add
+    if (nbad gt 0L) then begin
       data.valid[jndx] = 0
       data.y[jndx] = !values.f_nan
       data.med[jndx] = !values.f_nan
-    endelse
-  endif
+    endif
+  endelse
 
 ; Put up probability, sampling, and/or rms plots
 
   if keyword_set(doall) then begin
-    if (not execute('wset, doall',2,1)) then window, doall, xsize=(2.*xsize), ysize=(2.*ysize)
+    if (not execute('wset, doall',2,1)) then begin
+      scale = 2.*wscale
+      putwin, doall, 2, xsize=xsize, aspect=aspect2, scale=scale, /ycenter, dx=20, corner=1
+    endif
     !p.multi = [0,2,2,0,0]
     doall = 1
     doplot = 1
@@ -1190,12 +1244,16 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
   if keyword_set(doplot) then begin
 
     if (~doall) then begin
-      if (not execute('wset, doplot',2,1)) then window, doplot, xsize=xsize, ysize=ysize
+      if (not execute('wset, doplot',2,1)) then begin
+        scale = wscale
+        putwin, doplot, 1, xsize=xsize, aspect=aspect1, scale=scale, /ycenter, dx=20, corner=0
+      endif
     endif
 
     case pmode of
       0 : begin
             if (medflg) then y = data.med else y = data.y
+            limits.ytitle = mode + limits.ytitle
             if (tpflg) then begin
               store_data, pvar, data={x:data.x, y:y}
               ylim, pvar, limits.zrange, limits.zlog
@@ -1215,11 +1273,13 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
 
       1 : begin
             if (medflg) then y = data.med else y = data.y
+            limits.ytitle = mode + limits.ytitle
             plot, data.x, y, _extra=limits
           end
 
       2 : begin
             if (medflg) then z = data.med else z = data.z
+            limits.ztitle = mode + limits.ztitle
             if (tpflg) then begin
               store_data, pvar, data={x:data.x, y:z, v:data.y}
               ylim, pvar, limits.yrange, limits.ylog
@@ -1263,6 +1323,21 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
                 vbmag = strtrim(string(round(vbar[0])),2) + ' km/s'
                 xyouts, (x0 + x1)/2., (y0 - dy), vbmag, align=0.5, charsize=limits.charsize*0.8
               endif
+
+              str_element, *(*ptr).filter, 'bclk', bclk, success=ok
+              if (ok and evec) then begin
+                xspan = (xrange[1] - xrange[0])
+                yspan = (yrange[1] - yrange[0])
+                vlen = -yspan/10.                                             ; -U x B points south
+                if ((bclk[0] gt 270.) and (bclk[1] lt 90.)) then vlen *= -1.  ; -U x B points north
+                x0 = xrange[0] + xspan*0.85
+                y0 = yrange[0] + yspan*0.2 - vlen/2.
+                x1 = x0
+                y1 = y0 + vlen
+                arrow, x0, y0, x1, y1, /data, hsize=10, /solid, thick=2
+                csize = limits.charsize*wscale*1.2
+                xyouts, (x0 + dx/2.), (y0 + y1)/2., "E!dSW!n", charsize=csize
+              endif
             endelse
           end
     endcase
@@ -1272,7 +1347,10 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
   if keyword_set(dosamp) then begin
 
     if (~doall) then begin
-      if (not execute('wset, dosamp',2,1)) then window, dosamp, xsize=xsize, ysize=ysize
+      if (not execute('wset, dosamp',2,1)) then begin
+        scale = wscale
+        putwin, dosamp, 2, xsize=xsize, aspect=aspect1, scale=scale, /ycenter, dx=10, corner=1
+      endif
     endif
 
     z = data.npts
@@ -1378,7 +1456,10 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
   if keyword_set(domom) then begin
 
     if (~doall) then begin
-      if (not execute('wset, domom',2,1)) then window, domom, xsize=xsize, ysize=ysize
+      if (not execute('wset, domom',2,1)) then begin
+        scale = wscale
+        putwin, domom, 1, xsize=xsize, aspect=aspect1, scale=scale, /ycenter, dx=20, corner=0
+      endif
     endif
 
     if (pmode eq 2) then begin
@@ -1598,9 +1679,21 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
 
     xyouts, x[0], y, ('MINSAM = ' + strtrim(string(minsam),2)), charsize=limits.charsize
     y -= dy
-    cx = float(xmax - xmin)/float(xbins)
-    cy = float(ymax - ymin)/float(ybins)
-    cellsize = string(cx,cy,format='(f4.2,", ",f4.2)')
+    case pmode of
+      0 : begin
+            cx = float(xmax - xmin)/float(xbins)
+            cellsize = string(cx,format='(f4.2)')
+          end
+      1 : begin
+            cy = float(ymax - ymin)/float(ybins)
+            cellsize = string(cy,format='(f4.2)')
+          end
+      2 : begin
+            cx = float(xmax - xmin)/float(xbins)
+            cy = float(ymax - ymin)/float(ybins)
+            cellsize = string(cx,cy,format='(f4.2,", ",f4.2)')
+          end
+    endcase
     xyouts, x[0], y, ('CELLSIZE = ' + strtrim(string(cellsize),2)), charsize=limits.charsize
     y -= (2.*dy)
 

@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2021-06-14 10:41:21 -0700 (Mon, 14 Jun 2021) $
-; $LastChangedRevision: 30043 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2021-08-26 10:05:54 -0700 (Thu, 26 Aug 2021) $
+; $LastChangedRevision: 30255 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/COMMON/spp_swp_load.pro $
 ;
 pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=fld,trange=trange,types=types,level=level,varformat=varformat,save=save,fileprefix=fileprefix
@@ -62,6 +62,10 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
     foreach type,types do begin
       dir=spx+'/'+level+'/'+spx+'_'+type+'*/YYYY/MM/'
       if spx eq 'spc' then dir='spc2/'+level+'/'+spx+'_'+type+'/YYYY/MM/';spc folder is spc2
+      if (spx eq 'spa') ||  (spx eq 'spb') then begin
+        if level eq 'L3' then pad='_pad' else pad=''
+        dir='spe/'+level+'/'+spx+'_'+type+pad+'/YYYY/MM/';sp[ab] folder is spe
+      endif
       fileformat=dir+'psp_swp_'+spx+'_'+type+'_'+level+'*_YYYYMMDD_v??.cdf'
       if type.substring(0,2) eq 'wrp' then begin ;wrapper file names don't include swem_*
         dir=spx+'/'+level+'/'+type+'/YYYY/MM/'
@@ -87,14 +91,16 @@ pro spp_swp_load,ssr=ssr,all=all,spe=spe,spi=spi,spc=spc,spxs=spxs,mag=mag,fld=f
       if spx eq 'swem' && type eq 'event_log' then spp_swp_swem_events_tplot,prefix=prefix
       if spx eq 'swem' && type eq 'dig_hkp' then begin
         tn=prefix+'SW_SSR'+['WR','RD']+'ADDR'
+        options,/def,tn,ystyle=3
         deriv_data,tn
-        options,tn+'_ddt',yrange=[-.1,.5],constant=0.
+        options,/def,tn+'_ddt',yrange=[-.1,.5],constant=0.
         store_data,prefix+'SW_SSRADDR',data=tn,dlimits={labels:['WRITE','READ'],colors:'rb',labflag:-1}
         store_data,prefix+'SW_SSRADDR_ddt',data=tn+'_ddt',dlimits={labels:['WRITE','READ'],colors:'rb',labflag:-1,yrange:[-.1,.5],constant:0.}
       endif
     endforeach
-    if spx eq 'sc_hkp' then spp_sc_hk_tplot,prefix='psp_sc_hkp_'
+    if spx eq 'sc_hkp' then spp_sc_hk_tplot,prefix='psp_sc_hkp_',/default
   endforeach
+  options,'*',ystyle=3 ;rude but nice!
 
   dprint,'Finished in '+strtrim(systime(1)-t0,2)+' seconds on '+systime()
 end

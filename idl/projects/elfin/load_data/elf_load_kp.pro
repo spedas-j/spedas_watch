@@ -3,33 +3,39 @@
 ;         elf_load_kp
 ;
 ; PURPOSE:
-;         Load data from a csv file downloaded from a csv file stored on the 
-;         elfin server. 
+;         Load data from a csv file downloaded from a csv file stored on the
+;         elfin server and return all values in the time range
 ;         The original data was downloaded from the ftp site:
 ;            ftp://ftp.gfz-potsdam.de/pub/home/obs/kp-nowcast-archive/wdc/
-;            
+;
 ;
 ; KEYWORDS:
 ;         trange:       time range of interest [starttime, endtime] with the format
 ;                       ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
 ;                       ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
-;         no_download:  set this flag to search for the file on your local disk 
-;         day:          set this flag to return an array of values for the day
+;         no_download:  set this flag to search for the file on your local disk
+;         extend_time:  set this flag to return the two adjacent values - this is useful for very
+;                       small time frames
+;
+; NOTES:
+;         The kp values downloaded from potsdam are at 3 hour intervals. 01:30, 04:30, 07:30, ... 22:30.
+;         If you time range is less than 3 hours it's possible no values will be found. Use the extend_time
+;         keyword to return the prevoius and next values.
 ;
 ;-
-pro elf_load_kp, no_download=no_download, trange=trange, day=day
+pro elf_load_kp, trange=trange, extend_time=extend_time, no_download=no_download
 
   defsysv,'!elf',exists=exists
   if not keyword_set(exists) then elf_init
 
   if (~undefined(trange) && n_elements(trange) eq 2) && (time_double(trange[1]) lt time_double(trange[0])) then begin
-     dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
+    dprint, dlevel = 0, 'Error, endtime is before starttime; trange should be: [starttime, endtime]'
   endif
 
   if ~undefined(trange) && n_elements(trange) eq 2 then tr = timerange(trange) else tr = timerange()
 
   ; create file name
-;  ts=time_string(tr[0])
+  ;  ts=time_string(tr[0])
   kp_filename='elfin_kp.csv'
   remote_kp_dir=!elf.REMOTE_DATA_DIR+'/kp'
   local_kp_dir=!elf.LOCAL_DATA_DIR+'/kp'
@@ -42,78 +48,82 @@ pro elf_load_kp, no_download=no_download, trange=trange, day=day
   if keyword_set(no_download) then no_download=1 else no_download=0
 
   paths = ''
-  if no_download eq 0 then begin
+;  if no_download eq 0 then begin
     ; NOTE: directory is temporarily password protected. this will be
     ;       removed when data is made public.
-    if undefined(user) OR undefined(pw) then authorization = elf_get_authorization()
-    user=authorization.user_name
-    pw=authorization.password
-    ; only query user if authorization file not found
-    If user EQ '' OR pw EQ '' then begin
-      print, 'Please enter your ELFIN user name and password'
-      read,user,prompt='User Name: '
-      read,pw,prompt='Password: '
-    endif
+;    if undefined(user) OR undefined(pw) then authorization = elf_get_authorization()
+;    user=authorization.user_name
+;    pw=authorization.password
+;    ; only query user if authorization file not found
+;    If user EQ '' OR pw EQ '' then begin
+;      print, 'Please enter your ELFIN user name and password'
+;      read,user,prompt='User Name: '
+;      read,pw,prompt='Password: '
+;    endif
     if file_test(local_kp_dir,/dir) eq 0 then file_mkdir2, local_kp_dir
     dprint, dlevel=1, 'Downloading ' + remote_filename + ' to ' + local_kp_dir
-    paths = spd_download(remote_file=remote_filename, local_file=local_filename, $  
-      url_username=user, url_password=pw, ssl_verify_peer=1, ssl_verify_host=1)
+    paths = spd_download(remote_file=remote_filename, local_file=local_filename, $
+      ssl_verify_peer=1, ssl_verify_host=1)
     if undefined(paths) or paths EQ '' then $
       dprint, devel=1, 'Unable to download ' + local_filename
-  endif
-  
-  ; if file not found on server then 
-  if paths[0] EQ '' || no_download EQ 1 then begin  
+;  endif
+
+  ; if file not found on server then
+  if paths[0] EQ '' || no_download EQ 1 then begin
     ; check that there is a local file
     if file_test(local_filename) NE 1 then begin
       dprint, dlevel=1, 'Unable to find local file ' + local_filename
       return
-    endif 
+    endif
   endif
 
-  kp_values = read_csv(local_filename)
-  td=time_double(kp_values.field1)
+  ; read the kp csv file
+  kp_struct = read_csv(local_filename)
+  ;check that data exists
+  if size(kp_struct, /type) EQ 8 then begin
+    ; find all values that lie within the time frame
+    idx=where(time_double(kp_struct.field1) GE tr[0] AND time_double(kp_struct.field1) LE tr[1], ncnt)
+    if ncnt GT 0 then begin
+      ; temporarily store data
+      kp_time=time_double(kp_struct.field1[idx])
+      kp_value=round(kp_struct.field3[idx])
+    endif else begin
+      ; no data was found in this time frame
+      ; if extend time flag set then check for adjacent points
+      if keyword_set(extend_time) then begin
+        ; check for adjacent points
+        sidx=where(time_double(kp_struct.field1) LE tr[0], scnt)
+        eidx=where(time_double(kp_struct.field1) GE tr[1], ecnt)
+        if scnt GT 0 then begin
+          append_array, kp_time, time_double(kp_struct.field1[sidx[scnt-1]])
+          append_array, kp_value, round(kp_struct.field3[sidx[scnt-1]])
+        endif
+        if ecnt GT 0 then begin
+          append_array, kp_time, time_double(kp_struct.field1[eidx[0]])
+          append_array, kp_value, round(kp_struct.field3[eidx[0]])
+        endif
+      endif
+    endelse
+  endif
 
-  if ~keyword_set(day) then begin
-    ; find closest point to midpoint of this timerange 
-    tmid=tr[0]+(tr[1]-tr[0])/2.
-    tdiff=abs(td-tmid)
-    tclose=min(tdiff,tcidx)
-    kp_value=round(kp_values.field3[tcidx])
-    kp_time=td[tcidx]
-    ; check range if not between 0 and 8 then default to 2
-    if kp_value LT 0 or kp_value GT 8 then begin
-      kp_value=2
-      dprint, devel=1, 'Kp value was out of range. Defaulting to 2."
-      options, 'kp', labels=['']
-    endif
-  endif else begin
-    ; return all points for this day
-    idx = where(td GE tr[0]-10800. AND td LE tr[1]+10800., ncnt)
-    if ncnt GT 1 then begin
-      kp_value=round(kp_values.field3[idx])
-      kp_time=td[idx]
-    endif
-  endelse
-   
   if ~undefined(kp_time) && ~undefined(kp_value) then begin
-    dt=2700.    ; kp values are every 3 hours dt/2 is 45 min
-    kp={x:kp_time-dt, y:kp_value} 
-    store_data, 'kp', data=kp
-    options, 'kp', colors=65
-    options, 'kp', psym=10
-    options, 'kp', labels=['kp']
+    dt=5400.    ; kp values are every 3 hours dt/2 is 1.5 hrs
+    kp={x:kp_time-dt, y:kp_value}
+    store_data, 'elf_kp', data=kp
+    options, 'elf_kp', colors=65
+    options, 'elf_kp', psym=10
+    options, 'elf_kp', labels=['kp']
     max_kp=max(kp_value)
     if max_kp GT 4.3 then begin
       max_kp_range=max_kp + (max_kp*.1)
-      options, 'kp', yrange=[-0.5,max_kp_range] 
-    endif else begin 
-      options, 'kp', yrange=[-0.5,4.5]
+      options, 'elf_kp', yrange=[-0.5,max_kp_range]
+    endif else begin
+      options, 'elf_kp', yrange=[-0.5,4.5]
     endelse
-    options, 'kp', ystyle=1
+    options, 'elf_kp', ystyle=1
   endif else begin
-     dprint, dlevel=1, 'No KP data was loaded!'
-     options, 'kp', labels=['']
-  endelse 
+    dprint, dlevel=1, 'No KP data was loaded!'
+    options, 'kp', labels=['']
+  endelse
 
 end

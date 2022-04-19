@@ -34,9 +34,9 @@
 ;
 ; MODIFICATION HISTORY:
 ;
-;$LastChangedBy: nikos $
-;$LastChangedDate: 2018-06-01 11:07:18 -0700 (Fri, 01 Jun 2018) $
-;$LastChangedRevision: 25311 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2022-03-04 11:48:01 -0800 (Fri, 04 Mar 2022) $
+;$LastChangedRevision: 30648 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/panels/spd_ui_spdfcdawebchooser.pro $
 ;-
 
@@ -694,22 +694,32 @@ pro spd_ui_spdfcdawebchooser, historyWin=historyWin, GROUP_LEADER = groupLeaderW
   
   if ~keyword_set(!spedas) then spedas_init
   localdir = !spedas.TEMP_CDF_DIR
-    
-  if keyword_set(groupLeaderWidgetId) then begin
-  
-    tlb = widget_base(title='CDAWeb Data Chooser', /column, $
-      GROUP_LEADER=groupLeaderWidgetId, /Modal,  /TLB_KILL_REQUEST_EVENTS, tab_mode=1, TLB_Size_Events=1)
-    ;defaultSaveCdfOption = 1
+  spd_get_scroll_sizes,xfrac=0.6, yfrac=0.75,scroll_needed=scroll_needed,x_scroll_size=x_scroll_size,y_scroll_size=y_scroll_size
+   
+  if keyword_set(groupLeaderWidgetId) then begin 
+    if (scroll_needed) then begin
+       tlb = widget_base(title='CDAWeb Data Chooser', /column, $
+         GROUP_LEADER=groupLeaderWidgetId, /scroll,x_scroll_size=x_scroll_size,y_scroll_size=y_scroll_size,  /TLB_KILL_REQUEST_EVENTS, tab_mode=1, TLB_Size_Events=1)
+    endif else begin
+       tlb = widget_base(title='CDAWeb Data Chooser', /column, $
+          GROUP_LEADER=groupLeaderWidgetId,/TLB_KILL_REQUEST_EVENTS, tab_mode=1, TLB_Size_Events=1)
+    endelse
   endif else begin
-  
-    tlb = widget_base(title='CDAWeb Data Chooser', /column, TLB_Size_Events=1)
-    ;defaultSaveCdfOption = 0
-  endelse
+    if (scroll_needed) then begin
+      tlb = widget_base(title='CDAWeb Data Chooser', /column, $
+        /scroll,x_scroll_size=x_scroll_size,y_scroll_size=y_scroll_size,  /TLB_KILL_REQUEST_EVENTS, tab_mode=1, TLB_Size_Events=1)
+    endif else begin
+      tlb = widget_base(title='CDAWeb Data Chooser', /column, $
+        /TLB_KILL_REQUEST_EVENTS, tab_mode=1, TLB_Size_Events=1)
+     endelse
+ 
+   endelse
   
   defaultSaveCdfOption = 0
   cdas = $
     obj_new('SpdfCdas', $
     ;endpoint='http://cdaweb.gsfc.nasa.gov/WS/cdasr/1', $
+    sslVerifyPeer=0,$
     userAgent='CdawebChooser/1.0')
     
   dataviews = spd_spdfGetDataviews(cdas)

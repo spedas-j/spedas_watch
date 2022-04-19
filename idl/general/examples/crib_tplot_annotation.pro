@@ -25,9 +25,9 @@
 ;  2.  If you see any useful commands missing from these cribs, please let us know.
 ;   these cribs can help double as documentation for tplot.
 ;
-; $LastChangedBy: crussell $
-; $LastChangedDate: 2019-06-18 13:18:02 -0700 (Tue, 18 Jun 2019) $
-; $LastChangedRevision: 27357 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2022-03-28 12:12:14 -0700 (Mon, 28 Mar 2022) $
+; $LastChangedRevision: 30730 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/examples/crib_tplot_annotation.pro $
 ;-
 
@@ -312,7 +312,7 @@ options,'sta_SWEA_mom_flux',colors=[2,4,6]
 tplot
 
 
-print,'  "!p.color" and "!p.background" can change foreground & background colors
+print,'  "!p.color" and "!p.background" can change foreground & background colors'
 print,'Type ".c" to continue'
 stop
 
@@ -331,7 +331,7 @@ options,'sta_dist_re',ytitle="Dist(RE)"  ;ytitle is used to label variables
 tplot,var_label='sta_dist_re'
 
 
-print,'  "var_label" can be used to label the x-axis 
+print,'  "var_label" can be used to label the x-axis '
 print,'Type ".c" to continue'
 stop
 
@@ -347,7 +347,9 @@ options,'sta_pos_re_z',ytitle='Z Pos(RE)'
 
 tplot,var_label=['sta_pos_re_x','sta_pos_re_y','sta_pos_re_z']
 
-print,'Use an array of strings with var_label to create labels from multiple variables'
+print,'Use an array of strings with var_label to create labels from multiple variables.'
+print,'Note that the variable labels are inverted. That is, the last variable label is on top.'
+
 print,'Type ".c" to continue'
 stop
 
@@ -426,7 +428,7 @@ ssl_set_symbol, 5, /fill, size=2.5
 tplot
 
 print, ' Set the /fill keyword on "ssl_set_symbol" or "usersym" to fill the symbol'
-print, ' Set the SIZE opotion on "set_ssl_symbol" to change the size of the symbol (default=1.0) 
+print, ' Set the SIZE opotion on "set_ssl_symbol" to change the size of the symbol (default=1.0)'
 print, 'Type ".c" to continue' 
 stop
 
@@ -439,7 +441,7 @@ usersym, x, y, /fill
 
 tplot
 
-print, ' Any custom symbol may be made by passing a list of points to "usersym"
+print, ' Any custom symbol may be made by passing a list of points to "usersym"'
 print, 'Type ".c" to continue' 
 stop
 
@@ -471,10 +473,109 @@ print,'You can create custom annotations with the help from get_plot_pos'
 
 stop
 ;Change the x-axis left hand title using the vtitle option
+print, 'Change the x-axis left hand title using the vtitle option'
 tplot_options,'vtitle','hello!Cworld!'
 tplot
 
 stop
+
+;The vtitle option, inserted earlier using tplot_options has to be
+print, 'Remove the vtitle option, to reset to defaults'
+tplot_options, 'vtitle'
+
+tplot
+stop
+
+;Plot THEMIS FGM data, with GSE and GEI position as var_labels
+timespan, '2012-03-07'
+del_data, '*'
+thm_load_fgm, probe='a', level='l2', coord = 'gse'
+thm_load_state, probe='a', coord = 'gse',  suffix = '_gse'
+thm_load_state, probe='a', coord = 'gei',  suffix = '_gei'
+
+;Split up the vectors, and plot each separately
+split_vec, 'tha_state_pos_gse'
+split_vec, 'tha_state_pos_gei'
+;The ytitles show up on the left
+options, 'tha_state_pos_gse_x', 'ytitle', 'xgse'
+options, 'tha_state_pos_gse_y', 'ytitle', 'ygse'
+options, 'tha_state_pos_gse_z', 'ytitle', 'zgse'
+options, 'tha_state_pos_gei_x', 'ytitle', 'xgei'
+options, 'tha_state_pos_gei_y', 'ytitle', 'ygei'
+options, 'tha_state_pos_gei_z', 'ytitle', 'zgei'
+;different formats can be used for different variables,
+options, 'tha_state_pos_gse_?', 'format', '(1E7.0)'
+options, 'tha_state_pos_gei_?', 'format', '(1F8.1)'
+
+;first GSE only
+tplot, ['tha_fgs_gse', 'tha_fgs_btotal'], $
+  var_label = ['tha_state_pos_gse_x', $
+  'tha_state_pos_gse_y', $
+  'tha_state_pos_gse_z']
+print, 'Next test the double variable annotation option. '
+print, 'First plot THEMIS FGM data, with GSE and position as var_labels'
+stop
+
+tplot, ['tha_fgs_gse', 'tha_fgs_btotal'], $
+  var_label = ['tha_state_pos_gse_x[tha_state_pos_gei_x]', $
+  'tha_state_pos_gse_y[tha_state_pos_gei_y]', $
+  'tha_state_pos_gse_z[tha_state_pos_gei_z]']
+
+print, 'Invoke the double variable option by adding a second variable (GEI position)'
+print, 'in Square Brackets after the first, both will show up, with the appropriate formats.'
+stop
+
+;Vector variables can also be used, but the two variables must have
+;the same number of components. (Do not combine vector and scalar
+;variables, or pressure tensors with fields, etc...).
+;Note that array values for ytitle are used here, it is not
+;recommended to do this if the variables are
+;going to be plotted, but it will work here.
+;options, 'tha_state_pos_gse', 'format', '(1E7.0)' ;changed formats to fit
+;options, 'tha_state_pos_gei', 'format', '(1E7.0)'
+
+;options, 'tha_state_pos_gse', 'ytitle', ['x','y','z']+'gse'
+;options, 'tha_state_pos_gei', 'ytitle', ['x','y','z']+'gei'
+
+;note also that the var_label must be passed in as an array of
+;strings, even if there is only one pair of variables.
+;no globbing
+;tplot, ['tha_fgs_gse', 'tha_fgs_btotal'], $
+;  var_label = ['tha_state_pos_gse[tha_state_pos_gei]']
+
+;stop
+
+;All of the var_labels do not need to have to have two variables:
+options, 'tha_fgs_btotal', 'ytitle', 'fgs_btot'
+tplot, 'tha_fgs_gse', $
+       var_label = ['tha_fgs_btotal', $
+                    'tha_state_pos_gse_x[tha_state_pos_gei_x]', $
+                    'tha_state_pos_gse_y[tha_state_pos_gei_y]', $
+                    'tha_state_pos_gse_z[tha_state_pos_gei_z]']
+print, 'All of the var_labels do not have to have two variables: '
+print, 'here FGS_BTOTAL is moved from the plot to the label'
+stop
+;If the time range is less than 10 minutes, then the labels will be
+;shifted slightly downwards to avoid overlaps, set a short time range
+tlimit, '2012-03-07/14:00', '2012-03-07/14:08'
+tplot
+print, 'USE tlimit to set a short time range'
+print, 'If the time range is less than 10 minutes, then the labels will be'
+print, 'shifted slightly downwards to avoid overlaps'
+stop
+
+print, 'Reset the shift option FOR THIS PLOT by setting the keyword /no_vtitle_shift'
+tplot, /no_vtitle_shift
+stop
+
+print, 'The next tplot call will restore the shift.'
+tplot
+stop
+
+print, 'Reset the shift option FOR ALL PLOTS by using tplot_options to set no_vtitle_shift to 1'
+tplot_options, 'no_vtitle_shift', '1'
+tplot
+
 print,"We're done!"
 
 

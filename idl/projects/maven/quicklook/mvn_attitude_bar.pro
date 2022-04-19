@@ -17,21 +17,29 @@
 ;       none
 ;
 ;KEYWORDS:
-;       none
+;       FORCE:    Ignore the SPICE checks and forge ahead anyway.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-01-13 15:12:27 -0800 (Wed, 13 Jan 2021) $
-; $LastChangedRevision: 29597 $
+; $LastChangedDate: 2022-02-22 10:28:44 -0800 (Tue, 22 Feb 2022) $
+; $LastChangedRevision: 30602 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_attitude_bar.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
-pro mvn_attitude_bar
+pro mvn_attitude_bar, force=force
+
+  noguff = keyword_set(force)
 
 ; Determine when the HGA points to the Sun or Earth
 
-  mvn_sundir, frame='spacecraft', /pol
-  get_data,'Sun_PL_The',data=sth
+  mvn_sundir, frame='spacecraft', /pol, force=noguff, success=ok
+  if (~ok and ~noguff) then return
+
+  get_data, 'Sun_PL_The', data=sth, index=i
+  if (i eq 0) then begin
+    print, 'Missing tplot variable (Sun_PL_The): mvn_sundir not successful.'
+    return
+  endif
   npts = n_elements(sth.x)
   sun_th = sth.y
 
@@ -47,9 +55,10 @@ pro mvn_attitude_bar
   indx = where(abs(sun_th - earth_th) lt 0.5, count) ; HGA pointing at Earth
   if (count gt 0L) then y[indx,*] = 3.
 
-; Identify Fly+-Y and Fly-Z
+; Identify Fly+-Y and Fly+-Z
 
-  mvn_ramdir, minmax(sth.x) + [-10D, 10D], dt=1D, frame='spacecraft', pans=rampan
+  mvn_ramdir, minmax(sth.x) + [-10D, 10D], dt=1D, frame='spacecraft', pans=rampan, force=noguff, success=ok
+  if (~ok and ~noguff) then return
   get_data, rampan[0], data=ram, index=i
   if (i gt 0) then begin
     indx = where(ram.x ge min(sth.x) and ram.x le max(sth.x), count)

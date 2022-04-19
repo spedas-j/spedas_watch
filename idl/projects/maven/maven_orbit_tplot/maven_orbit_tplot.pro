@@ -113,9 +113,8 @@
 ;                   regime       index       color (table 43)
 ;                   -----------------------------------------
 ;                   sheath         4         green
-;                   pileup         5         yellow
-;                   opt wake       2         blue
-;                   euv wake       1         violet
+;                   pileup       199         orange
+;                   wake           2         blue
 ;                   -----------------------------------------
 ;
 ;       VARS:     Array of TPLOT variables created.
@@ -139,8 +138,8 @@
 ;                 save files are 8.7 GB in size.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-06-03 12:53:11 -0700 (Thu, 03 Jun 2021) $
-; $LastChangedRevision: 30017 $
+; $LastChangedDate: 2022-02-10 11:27:56 -0800 (Thu, 10 Feb 2022) $
+; $LastChangedRevision: 30576 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -228,11 +227,11 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
     return
   endif
 
-; Geodetic parameters for Mars (from the 2009 IAU Report)
-;   Archinal et al., Celest Mech Dyn Astr 109, Issue 2, 101-135, 2011
-;     DOI 10.1007/s10569-010-9320-4
-;   These are the values used by SPICE (pck00010.tpc).
-;   Last update: 2017-05-29.
+; Geodetic parameters for Mars from the IAU Report:
+;   Archinal et al., Celest Mech Dyn Astr 130, Article 22, 2018
+;     DOI 10.1007/s10569-017-9805-5
+;  These values are based on the MGS-MOLA Gridded Data Record, 
+;  which was published in 2003.
 
   R_equ = 3396.19D  ; +/- 0.1
   R_pol = 3376.20D  ; N pole = 3373.19 +/- 0.1 ; S pole = 3379.21 +/- 0.1
@@ -320,10 +319,10 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
   str_element, topt, 'title', ttitle, success=ok
   if (not ok) then ttitle = ''
 
-  if keyword_set(extended) then begin
+  if (size(extended,/type) gt 0) then begin
     case extended of
        0   : ; do nothing (don't use extended predict ephemeris)
-      else : begin
+       1   : begin
                mname = 'maven_spacecraft_mso_2021-2030_dsf2.5_210330.sav'
                gname = 'maven_spacecraft_geo_2021-2030_dsf2.5_210330.sav'
                timespan, ['2021-03-26','2030-12-30']
@@ -334,6 +333,39 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
                print,"  SPK = trj_orb_210326-260101_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
                print,"  SPK = trj_orb_260101-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
                ttitle = "trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
+             end
+       2   : begin
+               mname = 'maven_spacecraft_mso_2022-2032_dsf2.5_arm_prm_13.5ms_210908.sav'
+               gname = 'maven_spacecraft_geo_2022-2032_dsf2.5_arm_prm_13.5ms_210908.sav'
+               timespan, ['2022-01-01','2032-01-01']
+               treset = 1
+               nocrop = 1
+               timecrop = 0
+               print,"Using extended predict ephemeris."
+               print,"  SPK = trj_orb_220101-270101_dsf2.5_arm_prm_13.5ms_210908.bsp"
+               print,"  SPK = trj_orb_270101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp"
+               ttitle = "trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp"
+             end
+        3  : begin
+               mname = 'maven_spacecraft_mso_2022-2032_dsf2.5_arms_18ms_210930.sav'
+               gname = 'maven_spacecraft_geo_2022-2032_dsf2.5_arms_18ms_210930.sav'
+               timespan, ['2022-01-01','2032-01-01']
+               treset = 1
+               nocrop = 1
+               timecrop = 0
+               print,"Using extended predict ephemeris."
+               print,"  SPK = trj_orb_220101-270101_dsf2.5_arms_18ms_210930.bsp"
+               print,"  SPK = trj_orb_270101-320101_dsf2.5_arms_18ms_210930.bsp"
+               ttitle = "trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp"
+             end
+      else : begin
+               print,"Extended predict ephemeris options are: "
+               print,"  0 : Do not use an extended predict ephemeris (default)."
+               print,"  1 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
+               print,"  2 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp"
+               print,"  3 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp"
+               print,""
+               return
              end
     endcase
   endif else extended = 0
@@ -357,8 +389,8 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 
   if (sflg) then wake_col = 1 else wake_col = 2
   case n_elements(colors) of
-    0 : rcols = [4, 5, wake_col]
-    1 : rcols = [round(colors), 5, wake_col]
+    0 : rcols = [4, 199, 2]
+    1 : rcols = [round(colors), 199, wake_col]
     2 : rcols = [round(colors), wake_col]
     3 : rcols = round(colors)
     else : rcols = round(colors[0:2])
@@ -782,6 +814,7 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 ; Calculate statistics (orbit by orbit)
 
   alt = ss[*,4]
+  aalt = max(alt)
   palt = min(alt)
   gndx = where(alt lt 500.)
   di = gndx - shift(gndx,1)
@@ -795,6 +828,8 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
     tpileup = torb
     twake = torb
     period = torb
+    atime = torb
+    aalt = torb
     ptime = torb
     palt = torb
     plon = torb
@@ -827,7 +862,12 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
       j2 = gndx[j+gap[i+1L]]
       jndx = [-1L, 0L, 1L] + j2
       parabola_vertex, time[jndx], alt[jndx], t2, p2
-    
+
+      a1 = max(alt[j1:j2],j)
+      j3 = j1 + j
+      jndx = [-1L, 0L, 1L] + j3
+      parabola_vertex, time[jndx], alt[jndx], t3, a1
+
       dj = double(j2 - j1 + 1L)
 
       k = i - 1L
@@ -837,6 +877,8 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 
       ptime[k] = t1
       palt[k] = p1         ; minimum altitude, not geometric periapsis
+      atime[k] = t3
+      aalt[k] = a1
       plonx[k] = spl_interp(time, lonx, d2lonx, t1)
       plony[k] = spl_interp(time, lony, d2lony, t1)
       plat[k] = spl_interp(time, lat, d2lat, t1)
@@ -925,21 +967,23 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
 ;check for valid results, torb, etc... may not be defined, jmm,
 ;2018-12-17
   if n_elements(torb) Gt 0 then begin
-     stat = {time    : torb    , $ ; time (UTC)
-             twind   : twind   , $ ; fraction of time in solar wind
-             tsheath : tsheath , $ ; fraction of time in sheath
-             tpileup : tpileup , $ ; fraction of time in MPR
-             twake   : twake   , $ ; fraction of time in wake
-             hwind   : hwind   , $ ; hours in solar wind
-             hsheath : hsheath , $ ; hours in sheath
-             hpileup : hpileup , $ ; hours in MPR
-             hwake   : hwake   , $ ; hours in wake
-             period  : period  , $ ; orbit period
-             ptime   : ptime   , $ ; periapsis time
-             palt    : palt    , $ ; periapsis altitude
-             plon    : plon    , $ ; periapsis longitude
-             plat    : plat    , $ ; periapsis latitude
-             psza    : psza    , $ ; periapsis solar zenith angle
+     stat = {time    : torb    , $  ; time (UTC)
+             twind   : twind   , $  ; fraction of time in solar wind
+             tsheath : tsheath , $  ; fraction of time in sheath
+             tpileup : tpileup , $  ; fraction of time in MPR
+             twake   : twake   , $  ; fraction of time in wake
+             hwind   : hwind   , $  ; hours in solar wind
+             hsheath : hsheath , $  ; hours in sheath
+             hpileup : hpileup , $  ; hours in MPR
+             hwake   : hwake   , $  ; hours in wake
+             period  : period  , $  ; orbit period
+             atime   : atime   , $  ; apoapsis time
+             aalt    : aalt    , $  ; apoapsis altitude
+             ptime   : ptime   , $  ; periapsis time
+             palt    : palt    , $  ; periapsis altitude
+             plon    : plon    , $  ; periapsis longitude
+             plat    : plat    , $  ; periapsis latitude
+             psza    : psza    , $  ; periapsis solar zenith angle
              datum   : datum      } ; reference surface
 
      orbstat = stat             ; update the common block
@@ -970,6 +1014,10 @@ pro maven_orbit_tplot, stat=stat, domex=domex, swia=swia, ialt=ialt, result=resu
      options,'period','ytitle','Period'
      options,'period','panel_size',0.5
      options,'period','ynozero',1
+
+     store_data, 'aalt', data = {x:atime, y:aalt}
+     options,'aalt','ytitle','Apoapsis (km)!c' + strlowcase(datum)
+     options,'aalt','ynozero',1
 
      store_data, 'palt', data = {x:ptime, y:palt}
      options,'palt','ytitle','Periapsis (km)!c' + strlowcase(datum)

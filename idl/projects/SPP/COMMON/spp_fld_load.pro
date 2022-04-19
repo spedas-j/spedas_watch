@@ -89,11 +89,11 @@
 ;   For more examples, see SPP_FLD_EXAMPLES.
 ;
 ; CREATED BY:       Davin Larson December 2018
-;                   maintained by Marc Pulupa, 2019-2020
+;                   maintained by Marc Pulupa, 2019-2022
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2021-05-17 14:49:46 -0700 (Mon, 17 May 2021) $
-; $LastChangedRevision: 29967 $
+; $LastChangedDate: 2022-03-18 16:58:52 -0700 (Fri, 18 Mar 2022) $
+; $LastChangedRevision: 30694 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -136,7 +136,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
     'dfb_dc_bpf1', 'dfb_dc_bpf2', $
     'aeb1_hk', 'aeb2_hk', $
     'mago_survey', 'magi_survey', $
-    'dcb_analog_hk', $
+    'dcb_analog_hk', 'dcb_memory', $
     'dcb_ssr_telemetry', 'dcb_events', 'f1_100bps', 'dfb_hk']
 
   dummy = where(l1_types EQ type, l1_type_flag)
@@ -160,7 +160,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
   ; SCaM data is Level 3
 
-  if type EQ 'merged_scam_wf' then level = 3
+  if type EQ 'merged_scam_wf' or type EQ 'sqtn_rfs_V1V2' then level = 3
 
   ;
   ; If the type keyword is set to DFB AC or DC spectra or cross spectra,
@@ -169,7 +169,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   ;
   ; timespan, '2020-01-20'
   ;
-  ; spp_fld_load, type = 'dfb_ac_spec_dV34hg  ; Load dV34hg spectra only
+  ; spp_fld_load, type = 'dfb_ac_spec_dV34hg' ; Load dV34hg spectra only
   ; spp_fld_load, type = 'dfb_ac_spec'        ; Load all available AC spectra
   ;
 
@@ -188,8 +188,12 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
           'SCMdlflg','SCMelflg','SCMflflg', $
           'SCMmf', 'V5hg']
       endif else begin
-        spec_types = ['SCMdlfhg_SCMelfhg','SCMdlfhg_SCMflfhg','SCMelfhg_SCMflfhg', $
-          'SCMulfhg_SCMvlfhg','SCMulfhg_SCMwlfhg','SCMvlfhg_SCMwlfhg', $
+        spec_types = ['SCMdlfhg_SCMelfhg',$   ; cross spectral data types
+          'SCMdlfhg_SCMflfhg', $
+          'SCMelfhg_SCMflfhg', $
+          'SCMulfhg_SCMvlfhg', $
+          'SCMulfhg_SCMwlfhg', $
+          'SCMvlfhg_SCMwlfhg', $
           'dV12hg_dV34hg']
       endelse
 
@@ -234,8 +238,8 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
   ;
   ; timespan, '2020-01-20'
   ;
-  ; spp_fld_load, type = 'dfb_ac_bpf_dV34hg  ; Load dV34hg spectra only
-  ; spp_fld_load, type = 'dfb_ac_bpf'        ; Load all available AC spectra
+  ; spp_fld_load, type = 'dfb_ac_bpf_dV34hg'  ; Load dV34hg bandpass only
+  ; spp_fld_load, type = 'dfb_ac_bpf'         ; Load all available AC bandpass
   ;
 
   if type EQ 'dfb_dc_bpf' or type EQ 'dfb_ac_bpf' then begin
@@ -315,9 +319,20 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
   if not keyword_set(pathformat) then begin
     if level EQ 3 then begin
-      pathformat =  'TYPE/YYYY/MM/psp_fld_l3_TYPE_YYYYMMDDhh_v??.cdf'
-      resolution = 3600l * 6l ; hours
-      daily_names = 0
+      if type EQ 'rfs_lfr' or type EQ 'rfs_hfr' then begin
+        pathformat =  'TYPE/YYYY/MM/psp_fld_l3_TYPE_YYYYMMDD_v??.cdf'
+        resolution = 3600l * 24l ; hours
+        daily_names = 1
+      endif else if type EQ 'sqtn_rfs_V1V2' then begin
+        pathformat =  'TYPE/YYYY/MM/psp_fld_l3_TYPE_YYYYMMDD_v?.?.cdf'
+        resolution = 3600l * 24l ; hours
+        daily_names = 1
+        tname_prefix = 'psp_fld_l3_sqtn_rfs_V1V2_'
+      endif else begin
+        pathformat =  'TYPE/YYYY/MM/psp_fld_l3_TYPE_YYYYMMDDhh_v??.cdf'
+        resolution = 3600l * 6l ; hours
+        daily_names = 0
+      endelse
     endif else if level EQ 2 then begin
       pathformat =  'TYPE/YYYY/MM/psp_fld_l2_TYPE_YYYYMMDD_v??.cdf'
       if type EQ 'mag_SC' then begin
@@ -462,7 +477,7 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
 
   ;
   ; The routine can optionally download specific versions of the CDF files.
-  ; By default the latest version if loaded.
+  ; By default the latest version is loaded.
   ;
 
   if n_elements(version) EQ 1 then begin
@@ -618,8 +633,9 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
         options,'psp_fld_l3_merged_scam_wf_SC', 'ytitle', 'SCaM SC'
         options,'psp_fld_l3_merged_scam_wf_uvw', 'ytitle', 'SCaM uvw'
         options,'psp_fld_l3_merged_scam_wf_*', 'ysubtitle', '[nT]'
-        options,'psp_fld_l3_merged_scam_' + ['wf_*','scm_sample_rate','mag_offset_*'],colors='bgr' ,/default
-        options,'psp_fld_l3_merged_scam_rxn_whl',colors='bgrk' ,/default
+        options,'psp_fld_l3_merged_scam_' + $
+          ['wf_*','scm_sample_rate','mag_offset_*'], colors='bgr', /default
+        options,'psp_fld_l3_merged_scam_rxn_whl', colors='bgrk', /default
         options,'psp_fld_l3_merged_scam_wf_SC', 'max_points', 10000
         options,'psp_fld_l3_merged_scam_wf_SC', 'psym_lim', 300
 
@@ -634,6 +650,42 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
         options,'psp_fld_l3_merged_scam_mag_offset_SC', 'ytitle', 'SCaM!CMAG Off'
 
       end
+
+      if strmatch(type, 'aeb') then begin
+
+        aeb_tnames = tnames('psp_fld_l2_aeb*', n_aeb_tnames)
+
+        for i = 0, n_aeb_tnames - 1 do begin
+
+          ytitle = strupcase(((aeb_tnames[i]).SubString(11)))
+
+          options, aeb_tnames[i], 'ytitle', ytitle.Replace('_','!C')
+
+          options, aeb_tnames[i], 'datagap', 7200d
+
+          if strmatch(aeb_tnames[i], '*TEMP') EQ 0 then begin
+
+            options, aeb_tnames[i], 'tplot_routine', 'psp_fld_aeb_mplot'
+
+          endif
+
+        endfor
+
+        if tnames('psp_fld_l2_aeb1_PA1_TEMP') NE '' then begin
+          options, 'psp_fld_l2_aeb1_PA1_TEMP', 'colors', ['b']
+          options, 'psp_fld_l2_aeb1_PA2_TEMP', 'colors', ['g']
+          options, 'psp_fld_l2_aeb1_V1_*', 'colors', ['b']
+          options, 'psp_fld_l2_aeb1_V2_*', 'colors', ['g']
+        endif
+
+        if tnames('psp_fld_l2_aeb2_PA3_TEMP') NE '' then begin
+          options, 'psp_fld_l2_aeb2_PA3_TEMP', 'colors', ['r']
+          options, 'psp_fld_l2_aeb2_PA4_TEMP', 'colors', ['m']
+          options, 'psp_fld_l2_aeb2_V3_*', 'colors', ['r']
+          options, 'psp_fld_l2_aeb2_V4_*', 'colors', ['m']
+        endif
+
+      endif
 
       ;
       ; Quality flags
@@ -665,14 +717,17 @@ pro spp_fld_load, trange=trange, type=type, files=files, $
       if (tnames('psp_fld_l?_quality_flags'))[0] NE '' then begin
 
         options, 'psp_fld_l?_quality_flags', 'tplot_routine', 'bitplot'
-        options, 'psp_fld_l?_quality_flags', 'numbits', 8
-        options, 'psp_fld_l?_quality_flags', 'yticks', 9
-
         options, 'psp_fld_l?_quality_flags', 'psyms', [2]
 
         qf_labels = $
           ['BIAS_SWP','THRUSTER','SCM_CAL',$
-          'MAG_ROLL','MAG_CAL','SPC_EMODE','SLS_CAL','OFF_UMBRA']
+          'MAG_ROLL','MAG_CAL','SPC_EMODE','SLS_CAL','OFF_UMBRA', $
+          'HF_NOISE','ANT_RAILS']
+
+        options, 'psp_fld_l?_quality_flags', $
+          'numbits', n_elements(qf_labels)
+        options, 'psp_fld_l?_quality_flags', $
+          'yticks', n_elements(qf_labels) + 1
 
         options, 'psp_fld_l?_quality_flags', 'labels', $
           qf_labels

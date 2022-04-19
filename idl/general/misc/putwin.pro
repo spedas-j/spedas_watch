@@ -211,8 +211,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-08 12:43:45 -0800 (Mon, 08 Mar 2021) $
-; $LastChangedRevision: 29744 $
+; $LastChangedDate: 2022-03-14 11:59:41 -0700 (Mon, 14 Mar 2022) $
+; $LastChangedRevision: 30675 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/putwin.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -270,42 +270,46 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 ; Output the current monitor configuration.
 
   if (keyword_set(stat) or keyword_set(show)) then begin
-    if (windex ge 0) then begin
-      print,"Monitor configuration:"
-      j = sort(mgeom[1,0:maxmon])
-      for i=maxmon,0,-1 do begin
-        print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4," ",$)'
+    if (windex eq -1) then begin
+      print,"Putwin is disabled (acts like window).  Use 'putwin, /config' to enable."
+      return
+    endif
+
+    print,"Monitor configuration:"
+    j = sort(mgeom[1,0:maxmon])
+    for i=maxmon,0,-1 do begin
+      print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4," ",$)'
+      case i of
+        primarymon   : msg = "(primary)"
+        secondarymon : msg = "(secondary)"
+        else         : msg = ""
+      endcase
+      print, msg
+    endfor
+    print,""
+
+    if (keyword_set(show) and (windex gt -1)) then begin
+      j = -1
+      for i=0,maxmon do begin
+        xs = mgeom[2,i]/10.
+        ys = mgeom[3,i]/10.
+        putwin, /free, monitor=i, xsize=xs, ysize=ys, /center
+        xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
         case i of
           primarymon   : msg = "(primary)"
           secondarymon : msg = "(secondary)"
           else         : msg = ""
         endcase
-        print, msg
+        xyouts,0.5,0.1,msg,/norm,align=0.5,charsize=1.5,charthick=1,color=6
+        j = [j, !d.window]
       endfor
-      print,""
+      j = j[1:*]
+      wait, 3
+      for i=0,maxmon do wdelete, j[i]
+    endif
 
-      if keyword_set(show) then begin
-        j = -1
-        for i=0,maxmon do begin
-          xs = mgeom[2,i]/10.
-          ys = mgeom[3,i]/10.
-          putwin, 32, i, xsize=xs, ysize=ys, /center
-          xyouts,0.5,0.35,strtrim(string(i),2),/norm,align=0.5,charsize=4,charthick=3,color=6
-          case i of
-            primarymon   : msg = "(primary)"
-            secondarymon : msg = "(secondary)"
-            else         : msg = ""
-          endcase
-          xyouts,0.5,0.1,msg,/norm,align=0.5,charsize=1.5,charthick=1,color=6
-          j = [j, !d.window]
-        endfor
-        j = j[1:*]
-        wait, 3
-        for i=0,maxmon do wdelete, j[i]
-      endif
+    config = {config:mgeom, primarymon:primarymon, tbar:tbar}
 
-      config = {config:mgeom, primarymon:primarymon, tbar:tbar}
-    endif else print,"Monitor configuration undefined -> putwin acts like window"
     return
   endif
 
@@ -338,7 +342,6 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
     if (cfg eq 0) then begin
       windex = -1
-      putwin, /stat
       return
     endif
 
@@ -349,15 +352,15 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
     case maxmon of
        0   : windex = 0                        ; laptop only
-       1   : windex = 3                        ; laptop with single external
-       2   : if (cfg gt 1) then begin          ; laptop with double-wide external
+       1   : windex = 1                        ; laptop with 1 external
+       2   : if (cfg gt 1) then begin
                mgeom[0,1] = min(mgeom[0,1:2])
                mgeom[2,1] += mgeom[2,2]
                mgeom = mgeom[*,0:1]
                maxmon -= 1
                primarymon = 1
-               windex = 1
-             endif else windex = 2             ; laptop with two externals
+               windex = 3                      ; laptop with 1 double-wide external
+             endif else windex = 2             ; laptop with 2 externals
       else : windex = 5                        ; laptop with > 2 externals
     endcase
 
@@ -427,7 +430,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
 
   if (n_elements(xsize) eq 0) then begin
     xsize = xdim/2
-    if ((windex eq 1) and (monitor eq 1)) then xsize /= 2
+    if ((windex eq 3) and (monitor eq 1)) then xsize /= 2
   endif
   if (n_elements(ysize) eq 0) then ysize = ydim/2
   if (n_elements(scale) eq 0) then scale = 1.
@@ -557,6 +560,7 @@ pro putwin, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full,
     wnum = fix(!d.window)
   endif else begin
     window, wnum, xpos=x0, ypos=y0, xsize=xsize, ysize=ysize, _extra=extra
+    wnum = fix(!d.window)
   endelse
 
   return

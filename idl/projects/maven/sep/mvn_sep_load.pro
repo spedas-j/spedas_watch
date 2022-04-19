@@ -1,37 +1,34 @@
 ; Created by Davin Larson
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2019-08-22 13:02:27 -0700 (Thu, 22 Aug 2019) $
-; $LastChangedRevision: 27633 $
+; $LastChangedDate: 2022-04-01 10:51:37 -0700 (Fri, 01 Apr 2022) $
+; $LastChangedRevision: 30747 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sep/mvn_sep_load.pro $
-; $ID: $
 
 pro mvn_sep_load,pathnames=pathnames,trange=trange,files=files,RT=RT,download_only=download_only, $
   mag=mag,pfdpu=pfdpu,sep=sep,lpw=lpw,sta=sta,format=format,use_cache=use_cache,  $
-  source=source,verbose=verbose,L1=L1,L0=L0,L2=L2,ancillary=ancillary, anc_structure = anc_structure,$
-  pad = pad, eflux = eflux, lowres=lowres,arc=arc,units_name=units_name,basic_tags=basic_tags,full_tags=full_tags
+  source=source,verbose=verbose,L1=L1,L0=L0,L2=L2,ancillary=ancillary,anc_structure=anc_structure,$
+  pad=pads,eflux=eflux,lowres=lowres,arc=arc,units_name=units_name,basic_tags=basic_tags,full_tags=full_tags
 
   @mvn_sep_handler_commonblock.pro
 
   ; loading the ancillary data.
   if keyword_set(ancillary) then mvn_sep_anc_load,trange=trange,download_only=download_only,anc_structure=anc_structure
 
-  if keyword_set(pad) then begin
-    pad_format = 'maven/data/sci/sep/l2_pad/sav/YYYY/MM/mvn_sep_l2_pad_YYYYMMDD_v0?_r??.sav'
+  if keyword_set(pads) then begin
+    pad_format = 'maven/data/sci/sep/l3/pad/sav/YYYY/MM/mvn_sep_l3_pad_YYYYMMDD_v??_r??.sav'
     pad_files = mvn_pfp_file_retrieve(pad_format,/daily_names,trange=trange,/valid_only,/last_version)
-    if pad_files[0] eq '' then print, 'PAD files do not exist for this time range' else begin
-      restore, pad_files[0]
-      npadfiles = n_elements(pad_files)
-      pads = pad;rename the pad structure
-      if npadfiles gt 1 then begin
-        for J = 1, npadfiles-1 do begin
-          print,'Restoring '+pad_files[J]
-          restore, pad_files[J]
-          pads = [pads, pad]
-        endfor
-      endif
-      mvn_sep_pad_load_tplot,pads
-      pad = pads
-    endelse
+    pads=[]
+    if pad_files[0] eq '' then begin
+      dprint,pad_format
+      dprint, 'MAVEN/SEP PAD files do not exist for this time range. Returning...'
+      return
+    endif
+    foreach pad_file,pad_files do begin
+      dprint,'Restoring '+file_info_string(pad_file)
+      restore,pad_file
+      pads=[pads,pad]
+    endforeach
+    mvn_sep_pad_load_tplot,pads
     return
   endif
 
@@ -46,7 +43,7 @@ pro mvn_sep_load,pathnames=pathnames,trange=trange,files=files,RT=RT,download_on
     if keyword_set(use_cache) and keyword_set(source_filenames) then begin
       files = mvn_pfp_file_retrieve(/L0,/daily,trange=trange,source=source,verbose=verbose,RT=RT,files=files,pathnames)
       if array_equal(files,source_filenames) then begin
-        dprint,dlevel=2,'Using cached common block'
+        dprint,verbose=verbose,dlevel=2,'Using cached common block loaded from '+file_info_string(files)
         return
       endif
     endif
@@ -111,7 +108,7 @@ pro mvn_sep_load,pathnames=pathnames,trange=trange,files=files,RT=RT,download_on
 
   if keyword_set(use_cache) and keyword_set(source_filenames) then begin
     if array_equal(files,source_filenames) then begin
-      dprint,dlevel=2,'Using cached common block'
+      dprint,verbose=verbose,dlevel=2,'Using cached common block loaded from '+file_info_string(files)
       return
     endif
   endif

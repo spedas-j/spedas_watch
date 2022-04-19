@@ -136,9 +136,9 @@
 ; Side Effects:
 ;   Data is returned in pointer variables. Calling routine is responsible for freeing up heap memory - otherwise a memory leak will occur.
 ;
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2019-10-07 12:15:58 -0700 (Mon, 07 Oct 2019) $
-; $LastChangedRevision: 27825 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-08-11 17:16:37 -0700 (Wed, 11 Aug 2021) $
+; $LastChangedRevision: 30202 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/spd_mms_cdf_load_vars.pro $
 ;
 ;-
@@ -152,7 +152,7 @@ function spd_mms_cdf_load_vars,files,varnames=vars,varformat=vars_fmt,info=info,
 vb = keyword_set(verbose) ? verbose : 0
 vars=''
 info = 0
-dprint,dlevel=4,verbose=verbose,'$Id: spd_mms_cdf_load_vars.pro 27825 2019-10-07 19:15:58Z jimm $'
+dprint,dlevel=4,verbose=verbose,'$Id: spd_mms_cdf_load_vars.pro 30202 2021-08-12 00:16:37Z jwl $'
 ;Get cdf version, hacked from read_myCDF, jmm, 2019-10-07
 CDF_LIB_INFO, VERSION=V, RELEASE=R, COPYRIGHT=C, INCREMENT=I
 cdfversion = string(V, R, I, FORMAT='(I0,".",I0,".",I0,A)')
@@ -185,8 +185,17 @@ for fi=0,n_elements(files)-1 do begin
             for v=0,info.nv-1 do begin
                 vtypes[v] = cdf_var_atts(id,info.vars[v].num,zvar=info.vars[v].is_zvar,'VAR_TYPE',default='')
             endfor
-            w = strfilter(vtypes,var_type,delimiter=' ',count=count,/index)
-            if count ge 1 then vars= [vars, info.vars[w].name] else dprint,dlevel=1,verbose=verbose,'No VAR_TYPE matching: ',VAR_TYPE
+            w = strfilter(vtypes,var_type,delimiter=' ',count=count,/index, /fold_case)
+            if count ge 1 then vars= [vars, info.vars[w].name] else begin
+              dprint,dlevel=1,verbose=verbose,'No VAR_TYPE matching: ',VAR_TYPE,', trying PARAMETER_TYPE'
+              ptypes = strarr(info.nv)
+              for v=0,info.nv-1 do begin
+                ptypes[v] = cdf_var_atts(id,info.vars[v].num,zvar=info.vars[v].is_zvar,'PARAMETER_TYPE',default='')
+              endfor
+              w = strfilter(ptypes,var_type,delimiter=' ',count=count,/index,/fold_case)
+              if count ge 1 then vars= [vars, info.vars[w].name] else  dprint,dlevel=1,verbose=verbose,'No PARAMETER_TYPE matching: ',VAR_TYPE,', giving up.'
+
+            endelse
         endif
         vars = vars[uniq(vars,sort(vars))]
         if n_elements(vars) le 1 then begin

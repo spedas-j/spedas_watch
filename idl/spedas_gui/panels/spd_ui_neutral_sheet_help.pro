@@ -8,9 +8,9 @@
 ;
 ;
 ;
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2014-08-21 12:21:00 -0700 (Thu, 21 Aug 2014) $
-;$LastChangedRevision: 15698 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2022-03-04 11:48:01 -0800 (Fri, 04 Mar 2022) $
+;$LastChangedRevision: 30648 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/panels/spd_ui_neutral_sheet_help.pro $
 ;-
 ; Name:
@@ -124,7 +124,7 @@ pro spd_ui_neutral_sheet_help, state
 
   ;;;;;;;;;;;;;;;;;;;;; Model Name selection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   buttonBase = Widget_Base(bottomBase, /row, /align_right)
-  closeButton = Widget_Button(buttonBase, value='Close', uval='CLOSE', xsize=80, tooltip='Close this window')
+  closeButton = Widget_Button(buttonBase, value='Close', uval='CLOSE', tooltip='Close this window')
 
   helpstate = {tlb: tlb}
 

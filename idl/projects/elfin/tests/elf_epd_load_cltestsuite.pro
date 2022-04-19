@@ -209,7 +209,7 @@ spd_handle_error,err,t_name,++t_num
 tplot_names
 get_data, 'ela_pef_raw', data=d
 help, d
-print, d.v
+;print, d.v
 stop
 del_data,'*'
 

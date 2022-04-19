@@ -3,10 +3,10 @@
 ;
 ; Purpose: returns 1 if ts07 is supported (geopack version is 10.0 or higher)
 ;
-; $LastChangedBy: $
-; $LastChangedDate:  $
-; $LastChangedRevision: $
-; $URL: $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2021-07-28 18:16:15 -0700 (Wed, 28 Jul 2021) $
+; $LastChangedRevision: 30156 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta15/ta15_supported.pro $
 ;-
 
 function ta15_supported
