@@ -7,8 +7,8 @@
 ; 
 ; 
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-03-07 08:30:03 -0800 (Mon, 07 Mar 2022) $
-; $LastChangedRevision: 30654 $
+; $LastChangedDate: 2022-04-21 01:52:23 -0700 (Thu, 21 Apr 2022) $
+; $LastChangedRevision: 30778 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_crib.pro $
 ; $ID: $
 ;-
@@ -47,7 +47,7 @@ if ~isa(opts,'dictionary') || opts.refresh eq 1 then begin   ; set default optio
   !quiet = 1
   opts=dictionary()
   opts.root = root_data_dir()
-  opts.remote_data_dir = 'sprg.ssl,berkeley.edu/data/
+  opts.remote_data_dir = 'sprg.ssl.berkeley.edu/data/'
   ;opts.local_data_dir = root_data_dir()
   ;opts.reldir = 'swfo/data/stis/prelaunch/stis/realtime/'
   opts.reldir = 'swfo/data/sci/stis/prelaunch/realtime/
@@ -63,8 +63,12 @@ if ~isa(opts,'dictionary') || opts.refresh eq 1 then begin   ; set default optio
   opts.file_trange =  ['2021-08-23/4', '2021-08-24/02']   ; This time range includes some good sample data to test robustness of the code - includes a version change
   opts.file_trange = 2  ;   ; set a time range for the last N hours
   opts.file_trange = ['2021-10-18/14', '2021-10-18/16']   ; Temp margin test data
-  opts.file_trange = !null
-  opts.file_trange = ['2022-03-01','2022-03-02/01']
+  opts.file_trange = ['2022-4-17', '2022-4-21']   ; recent data
+  opts.file_trange = ['2022-4-17/23:00', '2022-4-18/01']   ; Example with 2 LPT's from ETU rev A   (channel 5 not working)
+  opts.file_trange = ['2022-4 21 2','2022 4 21 3']
+;  opts.file_trange = 2     ; download last 2 hours of data files and then open real time system
+  ;opts.file_trange = !null
+  ;opts.file_trange = ['2022-03-01','2022-03-02/01']
   ;opts.filenames=['socket_128.32.98.57.2028_20211216_004610.dat', 'socket_128.32.98.57.20484_20211216_005158.dat']
   opts.filenames = ''
   opts.stepbystep = 0               ; this flag allows a step by step progress through this crib sheet
@@ -196,8 +200,10 @@ if 1 then begin
     ; sci_l0b and sci_l0b_copy should be identical  
     ; Note that sci_l0b_copy might have more samples if it was produced after sci_l0b was generated
     
-  sci_l1a =   swfo_stis_sci_level_1(sci_l0b)   ; create l1a data from l0b data
-  swfo_ncdf_create,sci_l1a, file='test_sci_l1a.nc'     ; write data to a file.  still awaiting meta data.
+  if 0 then begin
+    sci_l1a =   swfo_stis_sci_level_1(sci_l0b)   ; create l1a data from l0b data
+    swfo_ncdf_create,sci_l1a, file='test_sci_l1a.nc'     ; write data to a file.  still awaiting meta data.
+  endif
 
 endif
 

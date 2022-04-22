@@ -59,7 +59,7 @@ pro swfo_gsemsg_lun_read,in_lun,out_lun,info=info
   ;printdat,in_lun
   while file_poll_input(in_lun,timeout=0) && ~eof(in_lun) do begin
     readu,in_lun,buf,transfer_count=nb
-    if debug(5) then begin
+    if debug(4) then begin
       dprint,nb,dlevel=3
       hexprint,buf
     endif
@@ -77,7 +77,10 @@ pro swfo_gsemsg_lun_read,in_lun,out_lun,info=info
     endif
     case msg_buf[3] of
       'c1'x: begin
-        if sz ne 'c'x then message,'Error'
+        if sz ne 'c'x then begin
+          dprint,'Invalid GSE message. word size: ',sz
+          message,'Error',/cont
+        endif
         buf = bytarr(sz*2)
         readu,in_lun,buf,transfer_count=nb
         nbytes += nb
@@ -94,7 +97,7 @@ pro swfo_gsemsg_lun_read,in_lun,out_lun,info=info
         buf = bytarr(sz*2)
         readu,in_lun,buf,transfer_count=nb
         nbytes += nb
-        if debug(5) then begin
+        if debug(3) then begin
           dprint,nb,dlevel=3
           hexprint,buf
         endif

@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2022-03-03 12:58:24 -0800 (Thu, 03 Mar 2022) $
-; $LastChangedRevision: 30647 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2022-04-21 01:52:23 -0700 (Thu, 21 Apr 2022) $
+; $LastChangedRevision: 30778 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -25,7 +25,9 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
       print,n_elements(ccsds_data)
     end
   endcase
-
+  
+  nbins = n_elements(scidata)
+  
 
   if n_elements(last_str) eq 0 || (abs(last_str.time-ccsds.time) gt 65) then lastdat = scidata
   lastdat = scidata
@@ -34,10 +36,17 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
 
   str1=swfo_stis_ccsds_header_decom(ccsds)
 
+  ; Force all structures to have exactly 672 elements. If the LUT is being used then only the first 256 will be used
   str2 = {$
-    counts:   scidata , $
+    nbins:    nbins,  $
+    counts:   uintarr(672) , $
     total:    total(scidata),$
     gap:ccsds.gap}
+    
+  ; sometime in the future the counts array should be changed to a ulong since a uint can not handle the full dynamic range. (19 bit accums)
+    
+  str2.counts = scidata
+  ;printdat,str2
 
   str=create_struct(str1,str2)
 
@@ -99,8 +108,16 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_
   if isa(self.level_1a,'dynamicarray') then begin
     struct_stis_sci_level_1a = swfo_stis_sci_level_1(sci_last)
     self.level_1a.append, struct_stis_sci_level_1a
-    if makefile then   self.ncdf_make_file,ddata=self.level_0b_all, trange=trange,type='L1A_'
+    if makefile then   self.ncdf_make_file,ddata=self.level_1a, trange=trange,type='L1A_'
   endif
+
+
+  if isa(self.level_1b,'dynamicarray') then begin
+    struct_stis_sci_level_1b = swfo_stis_sci_level_1b(sci_last)
+    self.level_1b.append, struct_stis_sci_level_1b
+    if makefile then   self.ncdf_make_file,ddata=self.level_1b, trange=trange,type='L1B_'
+  endif
+  
 end
 
 

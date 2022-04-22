@@ -186,14 +186,14 @@ function swfo_stis_create_lut,mapname,mapnum=mapnum
       ;BW32 = [4, 2, 1, 1, 1, 1, 2, 2, 3, 4, 5, 7, 9, 12, 16, 21, 27, 36, 47, 63, 82, 108, 143, 188, 248, 327, 430, 566, 746, 984, 9 ,1]
       ;       0  1  2  3  4  5  6  7  8  9  10 11 12 13  14  15  16  17  18  19  20   21   22   23   24   25   26   27   28   29 30 31
       ;BW16 = total(/preserve,reform(bw32,2,16),1)
-      
+
       edges = round(dgen(18,/log,[6,2.^12]))
       widths = edges - shift(edges,1)
       widths[0] = edges[0]
       dprint,total(/cumul,/preserve,widths)
-      
 
-  ;    if n_elements(widths) ne 32 then Message,'Wrong number of elements'
+
+      ;    if n_elements(widths) ne 32 then Message,'Wrong number of elements'
       if total(widths,/preserve) ne 4096 then message,'Bin error'
 
       startbin = 0
@@ -281,16 +281,16 @@ function swfo_stis_create_lut,mapname,mapnum=mapnum
       swfo_stis_fill_lut,lut,startbin,TID=1,fto=4,nbins=[60,80,87,10,1],binwidth=[1,40,5,40,1]
     end
     else: begin    ; Default (No Lookup table used)  computed steps
+      dprint,'Using STIS default compression code (No LUT in use)'
       lut = uintarr(2L^16)
       i = 0UL
+      for tid = 0,1 do begin
       for fto = 1,7 do begin
-        for tid = 0,1 do begin        
           for adcval = 0,4095 do begin
-            lut[i++] = (fto-1)*48 + swfo_stis_adc_compress(adcval)
+            lut[i++] = ((fto-1)*2+tid)*48 + swfo_stis_adc_compress(adcval)
           endfor
         endfor
       endfor
-      
     end
   endcase
   return,lut

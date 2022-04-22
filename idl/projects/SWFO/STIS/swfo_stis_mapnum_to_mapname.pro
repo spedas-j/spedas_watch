@@ -4,6 +4,7 @@ defmapname = 'fullstack1'
 defmapname = 'ATLO'
 defmapname = 'SEP-A-O-alpha'
 defmapname = 'SEP-B-O-alpha'
+if ~keyword_set(mapnum) then return,''
 if ~keyword_set(mapname) && keyword_set(mapnum) && size(/type,mapnum) le 3 then begin
    case mapnum of
    4:     mapname='ATLO'    ;used since launch (2014-11-18) until 2014-03-17/22:45 UTC
