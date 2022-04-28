@@ -32,6 +32,8 @@
 ;                       
 ;
 ; EXAMPLES:
+; 
+;
 ;   elf_phase_delay, probe='b', Echannels=[3,6,9,12], /pick_times
 ;
 ; NOTES:
@@ -1811,6 +1813,9 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   ;endelse
   ;newdat = CREATE_STRUCT(cols[0], tstarts, cols[1], tends, cols[2], dSectr2adds, cols[3], dPhAng2adds, cols[4], LatestMedianSectrs, cols[5], LatestMedianPhAngs, cols[6], badFlags)
   ;
+
+
+  print, !elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file
 
   write_csv, !elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file, newdat, header = cols
   ;temporary check
