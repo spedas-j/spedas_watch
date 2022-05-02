@@ -6,9 +6,9 @@
 ; These tools are not intended as a final product but can be used to create high level ouput.
 ; 
 ; 
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-04-21 01:52:23 -0700 (Thu, 21 Apr 2022) $
-; $LastChangedRevision: 30778 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2022-05-01 12:57:34 -0700 (Sun, 01 May 2022) $
+; $LastChangedRevision: 30793 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_crib.pro $
 ; $ID: $
 ;-
@@ -57,7 +57,7 @@ if ~isa(opts,'dictionary') || opts.refresh eq 1 then begin   ; set default optio
   opts.port = 2428
   opts.init_realtime = 1                 ; Set to 1 to start realtime stream widget
   opts.init_stis =1                      ; set to 1 to initialize the STIS APID definitions
-  opts.exec_text = ['tplot,verbose=0,trange=systime(1)+[-1.,.05]*600','timebar,systime(1)']                    ; commands to be run in exec widget
+  opts.exec_text = ['tplot,verbose=0,trange=systime(1)+[-5.,.5]*60','timebar,systime(1)']                    ; commands to be run in exec widget
   ;opts.exec_text = ['tplot,verbose=0,trange=systime(1)+[-1.,.05]*600','swfo_stis_plot_example','timebar,systime(1)']                    ; commands to be run in exec widget
   opts.file_trange = ['2021-10-10', '2021-10-19']   ; Temp margin test data
   opts.file_trange =  ['2021-08-23/4', '2021-08-24/02']   ; This time range includes some good sample data to test robustness of the code - includes a version change
@@ -67,7 +67,7 @@ if ~isa(opts,'dictionary') || opts.refresh eq 1 then begin   ; set default optio
   opts.file_trange = ['2022-4-17/23:00', '2022-4-18/01']   ; Example with 2 LPT's from ETU rev A   (channel 5 not working)
   opts.file_trange = ['2022-4 21 2','2022 4 21 3']
 ;  opts.file_trange = 2     ; download last 2 hours of data files and then open real time system
-  ;opts.file_trange = !null
+  opts.file_trange = !null
   ;opts.file_trange = ['2022-03-01','2022-03-02/01']
   ;opts.filenames=['socket_128.32.98.57.2028_20211216_004610.dat', 'socket_128.32.98.57.20484_20211216_005158.dat']
   opts.filenames = ''
@@ -142,7 +142,7 @@ endif
 
 if keyword_set(opts.exec_text) then begin
   dprint,'Create a generic widget that can execute a list of IDL commands at regular intervals.  These are defined by the user.'
-  exec, exec_text = opts.exec_text,title=opts.title+' EXEC',interval=7
+  exec, exec_text = opts.exec_text,title=opts.title+' EXEC',interval=3
 endif
 
 
@@ -176,7 +176,7 @@ if 0 then begin
 endif
 
 
-if 1 then begin
+if 0 then begin
   
   dprint,'Create Level 0B netcdf file for science packets:'
   

@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-04-21 01:52:23 -0700 (Thu, 21 Apr 2022) $
-; $LastChangedRevision: 30778 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2022-05-01 12:57:34 -0700 (Sun, 01 May 2022) $
+; $LastChangedRevision: 30793 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -25,28 +25,50 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
       print,n_elements(ccsds_data)
     end
   endcase
-  
+
   nbins = n_elements(scidata)
-  
+
 
   if n_elements(last_str) eq 0 || (abs(last_str.time-ccsds.time) gt 65) then lastdat = scidata
   lastdat = scidata
 
-;  if duration eq 0 then duration = 1u   ; cluge to fix lack of proper output in early version FPGA
+  ;  if duration eq 0 then duration = 1u   ; cluge to fix lack of proper output in early version FPGA
 
   str1=swfo_stis_ccsds_header_decom(ccsds)
 
   ; Force all structures to have exactly 672 elements. If the LUT is being used then only the first 256 will be used
+  total6=replicate(0u,6)
+  ftotid=replicate(0u,14)
   str2 = {$
     nbins:    nbins,  $
     counts:   uintarr(672) , $
     total:    total(scidata),$
+    total6: total6,$
+    total14: ftotid,$
     gap:ccsds.gap}
-    
+
   ; sometime in the future the counts array should be changed to a ulong since a uint can not handle the full dynamic range. (19 bit accums)
-    
+
+  if nbins eq 672 then begin
+
+    for fto=1,7 do begin
+      for tid=0,1 do begin
+        bin=(fto-1)*2+tid
+        ftotid[bin]=total(scidata[48*bin:48*bin+47])
+      endfor
+    endfor
+
+    foreach tid,[0,1] do begin
+      total6[0+tid*3]=ftotid[0+tid]+ftotid[4+tid]+ftotid[ 8+tid]+ftotid[12+tid]
+      total6[1+tid*3]=ftotid[2+tid]+ftotid[4+tid]+ftotid[10+tid]+ftotid[12+tid]
+      total6[2+tid*3]=ftotid[6+tid]+ftotid[8+tid]+ftotid[10+tid]+ftotid[12+tid]
+    endforeach
+
+  endif
+
   str2.counts = scidata
-  ;printdat,str2
+  str2.total14=ftotid
+  str2.total6=total6
 
   str=create_struct(str1,str2)
 
@@ -117,7 +139,7 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_
     self.level_1b.append, struct_stis_sci_level_1b
     if makefile then   self.ncdf_make_file,ddata=self.level_1b, trange=trange,type='L1B_'
   endif
-  
+
 end
 
 

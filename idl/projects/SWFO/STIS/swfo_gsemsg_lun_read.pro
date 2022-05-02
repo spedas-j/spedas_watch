@@ -1,3 +1,7 @@
+; $LastChangedBy: ali $
+; $LastChangedDate: 2022-05-01 12:57:34 -0700 (Sun, 01 May 2022) $
+; $LastChangedRevision: 30793 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_gsemsg_lun_read.pro $
 
 function swfo_gsemsg_header_struct,buf
   ;printdat,buf
@@ -42,7 +46,7 @@ pro swfo_gsemsg_lun_read,in_lun,out_lun,info=info
   source_dict = info.user_dict
   if ~source_dict.haskey('sync_ccsds_buf') then source_dict.sync_ccsds_buf = !null   ; this contains the contents of the buffer from the last call
 
-;printdat,source_dict.sync_ccsds_buf
+  ;printdat,source_dict.sync_ccsds_buf
 
   on_ioerror, nextfile
   time = systime(1)
@@ -120,7 +124,7 @@ pro swfo_gsemsg_lun_read,in_lun,out_lun,info=info
             break
           endif
           pkt_size = source_dict.sync_ccsds_buf[4+4] * 256u + source_dict.sync_ccsds_buf[5+4] + 7
- ;         dprint,dlevel=2,'pkt_size: ',pkt_size
+          ;dprint,dlevel=2,'pkt_size: ',pkt_size
           if nbuf lt pkt_size + 4 then begin
             dprint,dlevel=4,'Incomplete packet - wait for later'
             ;      source_dict.sync_ccsds_buf = sync_ccsds_buf
@@ -173,7 +177,7 @@ pro swfo_gsemsg_lun_read,in_lun,out_lun,info=info
       info.total_bytes = 0
     endelse
   endif
-  
+
   ddata = buf
   nb = n_elements(buf)
   ; if nb ne 0 then msg += string(/print,nb,(ddata)[0:(nb < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
