@@ -199,9 +199,8 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = cr
             file_copy,'Fitplots','Fitplots_'+filename,/OVERWRITE,/RECURSIVE
             
           endif
-          
-          print, file_path + filename + '.png'
-          
+          print, file_path
+          print, filename
         endfor
       endif
 

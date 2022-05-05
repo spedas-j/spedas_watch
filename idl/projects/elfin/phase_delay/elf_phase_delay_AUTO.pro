@@ -32,8 +32,6 @@
 ;                       
 ;
 ; EXAMPLES:
-; 
-;
 ;   elf_phase_delay, probe='b', Echannels=[3,6,9,12], /pick_times
 ;
 ; NOTES:
@@ -1322,7 +1320,8 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
       if finite(dTotAng2add[imincostFun]) eq 1 then begin
         icomplem=where(abs(dTotAng2add[imincostFun]-dTotAng2add) lt 185 and abs(dTotAng2add[imincostFun]-dTotAng2add) gt 175,jcomplem)
         case 1 of
-          (jcomplem ge 1) and (abs(dTotAng2add[imincostFun]) le 90): begin ; has complementary solution, and this one is the smaller angle
+          ;(jcomplem ge 1) and (abs(dTotAng2add[imincostFun]) le 90): begin ; has complementary solution, and this one is the smaller angle
+          (jcomplem ge 1) and (dTotAng2add[imincostFun] ge 0): begin ; has complementary solution, and this one is the smaller angle
             dSectr2add= PAdSectr[imincostFun]
             dPhAng2add= PAdPhAng[imincostFun]
             goto,skiptime
@@ -1561,52 +1560,38 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
     endif
   endif
   check3 = total(n_elements(dat.tstart))
-
+  
   ;;;CURRENT MEDIAN
-  int_end = time_double(tstart)
-  median_range = 14. ;it will go back 7 days to find a new median
-  int_start = int_end-3600.*24.*median_range
-  valid_items = where(starttimes ge int_start and starttimes le int_end and dat.badflag eq 0)
-  if valid_items[0] eq -1 then begin
-    print, 'The phase delay procedure has stopped because there is no entry within the median range. Please extend the range to continue.
-  endif
-  current_median = median(angles[valid_items])
-  placeholder_phase = current_median
-
-  if abs(current_median) gt angpersector*2.5 then begin
-    LatestMedianSectr=round(3*sign(current_median))
-    LatestMedianPhAng=current_median-3*angpersector*sign(current_median)
-  endif else if abs(current_median) gt angpersector*1.5 then begin
-    LatestMedianSectr=round(2*sign(current_median))
-    LatestMedianPhAng=current_median-2*angpersector*sign(current_median)
-  endif else if abs(current_median) gt angpersector*0.5 then begin
-    ;and abs(abs(current_median)-angpersector) le 11 then begin
-    LatestMedianSectr=round(1*sign(current_median))
-    LatestMedianPhAng=current_median-angpersector*sign(current_median)
-  endif else if abs(current_median) le angpersector*0.5 then begin
-    LatestMedianSectr = 0
-    LatestMedianPhAng = current_median
-    ;if abs(current_median) ge 11 or abs(abs(current_median)-angpersector) le 11 then begin
-    ;  LatestMedianSectr=round(1*sign(current_median))
-    ;  LatestMedianPhAng=current_median-angpersector*sign(current_median)
-    ;endif else if abs(current_median) gt 34 then begin
-    ;  LatestMedianSectr=round(2*sign(current_median))
-    ;  LatestMedianPhAng=current_median-2*angpersector*sign(current_median)
-    ;endif else if abs(current_median) gt 56.5 then begin
-    ;  LatestMedianSectr=round(3*sign(current_median))
-    ;  LatestMedianPhAng=current_median-3*angpersector*sign(current_median)
-    ;endif else if abs(current_median) le 11 then begin
-    ;  LatestMedianSectr = 0
-    ;  LatestMedianPhAng = current_median
+  if (probe eq 'a') and (time_double(tstart) gt time_double('2022-03-15/13:00:00')) and (time_double(tstart) lt time_double('2022-04-05/22:00:00')) then begin
+    print,'skip comparing with median value due to setting change between 2022-03-15/13:00:00 and 2022-04-05/22:00:00 for ela\n'
+    int_start = time_double('2022-03-15/13:00:00')
+    int_end = time_double(tstart)
+    valid_items = where(starttimes ge int_start and starttimes le int_end and dat.badflag eq 0)
+    if valid_items[0] eq -1 then begin
+      current_median = dSectr2add*angpersector+dPhAng2add
+      placeholder_phase = current_median
+    endif else begin
+      current_median = median(angles[valid_items])
+      placeholder_phase = current_median
+    endelse  
   endif else begin
-    print, 'no recognized median'
+    int_end = time_double(tstart)
+    median_range = 7. ;it will go back 7 days to find a new median
+    int_start = int_end-3600.*24.*median_range
+    valid_items = where(starttimes ge int_start and starttimes le int_end and dat.badflag eq 0)
+    if valid_items[0] eq -1 then begin
+      print, 'The phase delay procedure has stopped because there is no entry within the median range. Please extend the range to continue.
+    endif
+    current_median = median(angles[valid_items])
+    placeholder_phase = current_median
   endelse
+  
+  elf_phase_delay_SectrPhAng, current_median, angpersector, LatestMedianSectr=LatestMedianSectr, LatestMedianPhAng=LatestMedianPhAng
 
   print, current_median
   ;print, latestmedianPhAng
   print, latestmedianSectr
 
-  ;stop
 
   if ~finite(LatestMedianSectr) or ~finite(LatestMedianPhAng) then begin
     print, 'Median failed'
@@ -1813,9 +1798,6 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   ;endelse
   ;newdat = CREATE_STRUCT(cols[0], tstarts, cols[1], tends, cols[2], dSectr2adds, cols[3], dPhAng2adds, cols[4], LatestMedianSectrs, cols[5], LatestMedianPhAngs, cols[6], badFlags)
   ;
-
-
-  print, !elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file
 
   write_csv, !elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file, newdat, header = cols
   ;temporary check
