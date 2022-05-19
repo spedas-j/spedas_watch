@@ -17,8 +17,8 @@
 ;
 ;
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2022-02-13 13:20:48 -0800 (Sun, 13 Feb 2022) $
-;$LastChangedRevision: 30588 $
+;$LastChangedDate: 2022-05-17 21:26:56 -0700 (Tue, 17 May 2022) $
+;$LastChangedRevision: 30825 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/sosmag/sosmag_hapi_query.pro $
 ;-
 
@@ -87,6 +87,8 @@ function sosmag_get_auth_cookie, username, password
   oUrl->SetProperty, url_scheme = 'https'
   oUrl->SetProperty, ssl_verify_host = 0
   oUrl->SetProperty, ssl_verify_peer = 0
+  oUrl->SetProperty, connect_timeout = 4
+  oUrl->SetProperty, timeout = 4
   oUrl->SetProperty, url_host = 'sso.ssa.esa.int'
   oUrl->SetProperty, url_path = 'am/json/authenticate'
   oUrl->SetProperty, headers=["Content-Type: application/json", "X-OpenAM-Username: " + username, "X-OpenAM-Password: " + password]
@@ -128,6 +130,8 @@ function sosmag_get_session_cookie, auth_cookie
   hapi->SetProperty, url_scheme = 'https'
   hapi->SetProperty, ssl_verify_host = 0
   hapi->SetProperty, ssl_verify_peer = 0
+  hapi->SetProperty, connect_timeout = 4
+  hapi->SetProperty, timeout = 4
   hapi->SetProperty, url_host = 'swe.ssa.esa.int'
   hapi->SetProperty, url_path = 'hapi/capabilities'
   hapi->SetProperty, callback_function = 'url_callback_s'
@@ -160,6 +164,8 @@ function sosmag_get_session_cookie, auth_cookie
   consent->SetProperty, verbose = 1
   consent->SetProperty, ssl_verify_host = 0
   consent->SetProperty, ssl_verify_peer = 0
+  consent->SetProperty, connect_timeout = 4
+  consent->SetProperty, timeout = 4
   consent->SetProperty, url_scheme = 'https'
   consent->SetProperty, callback_function = 'url_callback_s'
   consent->SetProperty, url_host = 'swe.ssa.esa.int'
@@ -186,6 +192,8 @@ function sosmag_get_session_cookie, auth_cookie
   consent->SetProperty, verbose = 1
   consent->SetProperty, ssl_verify_host = 0
   consent->SetProperty, ssl_verify_peer = 0
+  consent->SetProperty, connect_timeout = 4
+  consent->SetProperty, timeout = 4
   consent->SetProperty, url_scheme = 'https'
   consent->SetProperty, callback_function = 'url_callback_s'
   consent->SetProperty, url_host = 'swe.ssa.esa.int'
@@ -272,6 +280,8 @@ pro sosmag_hapi_query, hquery=hquery, query_response=query_response
   hapi_query->SetProperty, verbose = 1
   hapi_query->SetProperty, ssl_verify_host = 0
   hapi_query->SetProperty, ssl_verify_peer = 0
+  hapi_query->SetProperty, connect_timeout = 4
+  hapi_query->SetProperty, timeout = 4
   hapi_query->SetProperty, url_scheme = 'https'
   hapi_query->SetProperty, callback_function = 'url_callback_s'
   hapi_query->SetProperty, url_host = 'swe.ssa.esa.int'
