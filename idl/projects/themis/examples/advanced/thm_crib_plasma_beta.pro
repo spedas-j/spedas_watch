@@ -10,7 +10,6 @@ thm_load_fgm, level = 'l2', probe = 'a'
 ;ions, use pressure = density*avgtemp
 calc, '"tha_pe?f_pressure" = "tha_pe?f_avgtemp"*"tha_pe?f_density"'
 
-
 ;Use calc to get magnetic pressure. Units of pressure in THEMIS data
 ;are eV/cm^3, magnetic pressure is B^2/2*Mu_0, where Mu_0 = 1.25664e-6
 ;in SI units (H/m), or 12.566 (4pi) in cgs units.
@@ -24,17 +23,14 @@ mu_0 = 4.0*!pi*1.602e-2
 ;cast the constant value into a string, to input to calc procedure
 mu_01 = strtrim(string(2.0*mu_0), 2)
 
-calc, '"tha_fgs_pressure" = "tha_fgs_btotal"^2/'+mu_01
+calc, '"tha_fgs_pressure" = "tha_fgs_btotal"^2/'+mu_01, interpolate='tha_peif_pressure'
 
-;Next interpolate to PEIF times
-tinterpol, 'tha_peef_pressure', 'tha_peif_pressure', newname = 'tha_peef_pressure_interp'
-tinterpol, 'tha_fgs_pressure', 'tha_peif_pressure', newname = 'tha_fgs_pressure_interp'
+;total electron plus ion pressure. The interp keyword will 
+;interpolate to the peif_pressure time array
+calc, '"tha_esa_pressure" = "tha_peif_pressure"+"tha_peef_pressure"', /interp
 
-;total electron plus ion pressure
-calc, '"tha_esa_pressure" = "tha_peif_pressure"+"tha_peef_pressure_interp"'
-
-;finally do the ratio
-calc, '"tha_esa_plasma_beta" = "tha_esa_pressure"/"tha_fgs_pressure_interp"'
+;finally do the ratio, interpolate again
+calc, '"tha_esa_plasma_beta" = "tha_esa_pressure"/"tha_fgs_pressure"', /interp
 
 ;Add options
 options, '*pressure*', ylog = 1
