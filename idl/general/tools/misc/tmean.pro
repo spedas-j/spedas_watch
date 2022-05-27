@@ -69,8 +69,8 @@
 ;       SILENT:  Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-05-16 09:18:55 -0700 (Mon, 16 May 2022) $
-; $LastChangedRevision: 30824 $
+; $LastChangedDate: 2022-05-26 14:59:42 -0700 (Thu, 26 May 2022) $
+; $LastChangedRevision: 30834 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/tmean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -332,7 +332,13 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       endif
     endfor
 
-    if (blab and core) then print,"Clusters divide at: ",ycut,format='(a,f,/)'
+    if (blab and core) then begin
+      msg = strtrim(string(ycut, format='(f14.2)'),2)
+      print,"Clusters divide at: ",msg,format='(a,a,/)'
+      frac = float(result[0].npts)/float(result[0].npts + result[1].npts)
+      msg = strtrim(string(frac,format='(f14.2)'),2)
+      print,"N(cluster 0)/N(total): ",msg,format='(a,a,/)'
+    endif
 
     if (hist) then begin
       if (core) then begin
