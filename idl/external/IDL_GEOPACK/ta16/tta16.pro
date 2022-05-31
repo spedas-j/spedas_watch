@@ -59,7 +59,7 @@
 ;         get_nperiod(optional): Return the number of periods used in the time interval
 ;
 ;         newname(optional):the name of the output variable.
-;              (default: pos_gsm_tvar+'_bta16') This option is ignored if  
+;              (default: pos_gsm_tvar+'_bta16') This option is ignored if
 ;              globbing is used.
 ;
 ;         error(optional): named variable in which to return the
@@ -114,8 +114,8 @@
 ;  The N-index calculation is implemented in omni2nindex.pro
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2022-05-29 14:31:21 -0700 (Sun, 29 May 2022) $
-; $LastChangedRevision: 30837 $
+; $LastChangedDate: 2022-05-30 13:08:22 -0700 (Mon, 30 May 2022) $
+; $LastChangedRevision: 30838 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/tta16.pro $
 ;-
 
@@ -181,8 +181,9 @@ pro tta16, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, symh=symh, symc=symc, $
       symc_dat = tsy_valid_param(symc, var_name)
       if(size(symc_dat, /n_dim) eq 0 && symc_dat[0] eq -1L) then return
     endif else if n_elements(symh) gt 0 then begin
-      symh_dat = tsy_valid_param(symh, var_name)
-      GEOPACK_GETSYMHC, symh_dat, pdyn_dat, symc_dat
+      symc=symh+'_c'
+      symh2symc, symh=symh, pdyn=pdyn, trange=trange, newname=symc
+      symc_dat = tsy_valid_param(symc, var_name)
       if(size(symc_dat, /n_dim) eq 0 && symc_dat[0] eq -1L) then return
     endif else begin
       symc_dat = par_temp[*,1]
@@ -191,8 +192,7 @@ pro tta16, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, symh=symh, symc=symc, $
   endif else begin
     ; the user didn't provide a parameter array (parmod), need to check
     ; the individual parameter keywords
-    if undefined(pdyn) || undefined(yimf) || $
-      (undefined(symc) && undefined(symh) ) || undefined(xind) then begin
+    if undefined(pdyn) || undefined(yimf) || (undefined(symc) && undefined(symh) ) || undefined(xind) then begin
       dprint, dlevel = 1, 'Error, missing one or more of the required model parameters'
       return
     endif
@@ -209,8 +209,10 @@ pro tta16, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, symh=symh, symc=symc, $
     if n_elements(symc) gt 0 then begin
       symc_dat = tsy_valid_param(symc, var_name)
     endif else if n_elements(symh) gt 0 then begin
-      symh_dat = tsy_valid_param(symh, var_name)
-      GEOPACK_GETSYMHC, symh_dat, pdyn_dat, symc_dat
+      symc=symh+'_c'
+      symh2symc, symh=symh, pdyn=pdyn, trange=trange, newname=symc
+      symc_dat = tsy_valid_param(symc, var_name)
+      if(size(symc_dat, /n_dim) eq 0 && symc_dat[0] eq -1L) then return
     endif
     if(size(symc_dat, /n_dim) eq 0 && symc_dat[0] eq -1L) then return
 
@@ -267,10 +269,11 @@ pro tta16, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, symh=symh, symc=symc, $
   else $
     d_out = {x:d.x, y:mag_array}
 
-  if keyword_set(newname) then $
-    store_data, newname, data = d_out, dlimits = dl, limits = l $
-  else $
+  if keyword_set(newname) then begin
+    store_data, newname, data = d_out, dlimits = dl, limits = l
+  endif else begin
     store_data, var_name +'_bta16', data = d_out, dlimits = dl, limits = l
+  endelse
 
   ;signal success
   error = 1
