@@ -27,7 +27,7 @@
 ;         PHASE DELAY PLOT AND CSV UPDATE.
 ;
 ; EXAMPLE:
-;         elf_phase_delay_wrap_AUTO,'2022-01-14'
+;         elf_phase_delay_wrap_AUTO,'2022-05-05'
 ;         elf_phase_delay_wrap_AUTO,/pickrange
 ;         2022-01-15/12:04:58
 ;         2022-01-15/12:24:56
@@ -37,13 +37,13 @@
 ;
 ;VERSION LAST EDITED: akroosnovo@gmail.com, jwu@epss.ucla.edu 02/27/2022
 
-pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = create_avai, update_avai = myupdate_avai, pickrange = mypickrange, update_phasedelay = myupdate_phasedelay
+pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = mycreate_avai, update_avai = myupdate_avai, pickrange = mypickrange, update_phasedelay = myupdate_phasedelay
 
   if ~keyword_set(myverbosefig) then verbosefig=0 else verbosefig=myverbosefig
   if ~keyword_set(myupdate_avai) then update_avai=0 else update_avai=myupdate_avai
   if ~keyword_set(mypickrange) then pickrange=0 else pickrange=mypickrange 
   if ~keyword_set(myupdate_phasedelay) then update_phasedelay=0 else update_phasedelay=myupdate_phasedelay
-
+  if ~keyword_set(mycreate_avai) then create_avai=0 else create_avai=mycreate_avai
 
   elf_init
   askprompt:
@@ -104,12 +104,13 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = cr
     if size(fileresult,/dimen) eq 0 then FILE_MKDIR,foldername
     cd,cwdirname+'/'+foldername
    
-    allszs = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/data_availability/el'+probe+'_epd_all.csv', n_table_header = 2)
+    allszs = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/data_availability/el'+probe+'_epd_data_availability.csv', n_table_header = 1)
     szs_inrange = where(time_double(allszs.field1) ge time_double(starttime) and time_double(allszs.field1) le time_double(endtime), count)
 
     if count eq 0 then begin
       print, probe+' Sci zone not found, try another one'
-      return
+      ; jwu when ela doesn't have sci zone but elb has, return has issue 
+      continue
     endif
     szs_st = allszs.field1[szs_inrange]
     szs_en = allszs.field2[szs_inrange]
@@ -199,8 +200,9 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = cr
             file_copy,'Fitplots','Fitplots_'+filename,/OVERWRITE,/RECURSIVE
             
           endif
-          print, file_path
-          print, filename
+          
+          print, file_path + filename + '.png'
+          
         endfor
       endif
 

@@ -153,6 +153,27 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   filedata = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file, header = cols, types = ['String', 'String', 'Float', 'Float','Float','Float','Float','Float'])
   dat = CREATE_STRUCT(cols[0], filedata.field1, cols[1], filedata.field2, cols[2], filedata.field3, cols[3],  filedata.field4, cols[4], filedata.field5, cols[5], filedata.field6, cols[6], filedata.field7, cols[7], filedata.field8)
   
+  
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;make a copy of previous existing phase delay file, with date noted (akr)
+
+  ;note current date
+  dateprev = time_string(systime(/seconds),format=2,precision=-3)
+  fileprev = 'el'+probe+'_epde_phase_delays_' + dateprev + '.csv'
+
+  ;create folder for old pdp copies
+  cwdirnametemp=!elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'
+  cd,cwdirnametemp
+  pdpprev_folder = 'pdpcsv_archive'
+  fileresult=file_search(pdpprev_folder)
+  if size(fileresult,/dimen) eq 0 then file_mkdir,pdpprev_folder
+
+  write_csv, !elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/pdpcsv_archive/'+ fileprev, filedata, header = cols
+  
+  ;return back to original directory
+  cd, cwdirname + '/' + finalfolder
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  
   timeduration=time_double(tend)-time_double(tstart)
   timespan,tstart,timeduration,/seconds
   pival=double(!PI)
@@ -1562,8 +1583,8 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   check3 = total(n_elements(dat.tstart))
   
   ;;;CURRENT MEDIAN
-  if (probe eq 'a') and (time_double(tstart) gt time_double('2022-03-15/13:00:00')) and (time_double(tstart) lt time_double('2022-04-05/22:00:00')) then begin
-    print,'skip comparing with median value due to setting change between 2022-03-15/13:00:00 and 2022-04-05/22:00:00 for ela\n'
+  if (probe eq 'a') and (time_double(tstart) gt time_double('2022-03-15/13:00:00')) and (time_double(tstart) lt time_double('2022-05-05/00:00:00')) then begin
+    print,'skip comparing with median value due to setting change between 2022-03-15/13:00:00 and 2022-05-05/00:00:00 for ela\n'
     int_start = time_double('2022-03-15/13:00:00')
     int_end = time_double(tstart)
     valid_items = where(starttimes ge int_start and starttimes le int_end and dat.badflag eq 0)
@@ -1575,15 +1596,30 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
       placeholder_phase = current_median
     endelse  
   endif else begin
-    int_end = time_double(tstart)
-    median_range = 7. ;it will go back 7 days to find a new median
-    int_start = int_end-3600.*24.*median_range
-    valid_items = where(starttimes ge int_start and starttimes le int_end and dat.badflag eq 0)
-    if valid_items[0] eq -1 then begin
-      print, 'The phase delay procedure has stopped because there is no entry within the median range. Please extend the range to continue.
-    endif
-    current_median = median(angles[valid_items])
-    placeholder_phase = current_median
+    if (probe eq 'a') and (time_double(tstart) gt time_double('2022-05-05/00:00:00')) and (time_double(tstart) lt time_double('2022-05-20/00:00:00')) then begin
+      int_start = time_double('2022-05-05/00:00:00')
+      int_end = time_double(tstart)
+      valid_items = where(starttimes ge int_start and starttimes le int_end and dat.badflag eq 0)
+      if valid_items[0] eq -1 then begin
+        current_median = dSectr2add*angpersector+dPhAng2add
+        placeholder_phase = current_median
+      endif else begin
+        current_median = median(angles[valid_items])
+        placeholder_phase = current_median
+      endelse    
+    endif else begin
+      int_end = time_double(tstart)
+      median_range = 14. ;it will go back 7 days to find a new median
+      int_start = int_end-3600.*24.*median_range
+      valid_items = where(starttimes ge int_start and starttimes le int_end and dat.badflag eq 0)
+      if valid_items[0] eq -1 then begin
+        print, 'The phase delay procedure has stopped because there is no entry within the median range. Will use current value as median.
+        current_median = dSectr2add*angpersector+dPhAng2add
+        placeholder_phase = current_median
+      endif
+      current_median = median(angles[valid_items])
+      placeholder_phase = current_median
+    endelse
   endelse
   
   elf_phase_delay_SectrPhAng, current_median, angpersector, LatestMedianSectr=LatestMedianSectr, LatestMedianPhAng=LatestMedianPhAng
@@ -1798,7 +1834,8 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   ;endelse
   ;newdat = CREATE_STRUCT(cols[0], tstarts, cols[1], tends, cols[2], dSectr2adds, cols[3], dPhAng2adds, cols[4], LatestMedianSectrs, cols[5], LatestMedianPhAngs, cols[6], badFlags)
   ;
-
+  print, !elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file
+  
   write_csv, !elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file, newdat, header = cols
   ;temporary check
   ;temp_dub = time_double(newdat.tstart[-5:n_elements(newdat.tstart)-1])
