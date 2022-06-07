@@ -282,12 +282,14 @@ function swfo_stis_create_lut,mapname,mapnum=mapnum
     end
     else: begin    ; Default (No Lookup table used)  computed steps
       dprint,'Using STIS default compression code (No LUT in use)'
-      lut = uintarr(2L^16)
+      lut = uintarr(2L^17)
       i = 0UL
-      for tid = 0,1 do begin
+      shift4coinc = [0,1,1,2,1,2,2,4]
       for fto = 1,7 do begin
-          for adcval = 0,4095 do begin
-            lut[i++] = ((fto-1)*2+tid)*48 + swfo_stis_adc_compress(adcval)
+        for tid = 0,1 do begin
+          for adcval = 0,(4096*2)-1 do begin
+            adcval_s = adcval / shift4conc[fto]
+            lut[i++] = ((fto-1)*2+tid)*48 + swfo_stis_adc_compress(adcval_s)
           endfor
         endfor
       endfor

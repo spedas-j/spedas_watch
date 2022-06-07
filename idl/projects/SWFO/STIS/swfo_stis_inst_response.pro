@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-03-07 08:30:03 -0800 (Mon, 07 Mar 2022) $
-; $LastChangedRevision: 30654 $
+; $LastChangedDate: 2022-06-06 17:39:59 -0700 (Mon, 06 Jun 2022) $
+; $LastChangedRevision: 30845 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
 ; $ID: $
 
@@ -746,7 +746,7 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
   noise_rms = noise_level * [[2.,3.,2.],[2.,3.,2.]]   ; noise O T F in kev
   adc_scale = swfo_stis_adc_calibration(sensornum)
   ;adc_scale = adc_scale[*,*,sensornum]
-  threshold = noise_rms * 5   ; 5 sigma threshold
+  threshold = noise_rms *   5   ; 5 sigma threshold
   shft = [0,1,1,2,1,2,2,4]      ; 2^(nbits-1)   nbits = number of bits that are set within an FTO pattern
 ;  shft[*] = 1    ; might want to consider eliminating this step in the FPGA
   if keyword_set(mapnum) then begin
@@ -1328,6 +1328,7 @@ if 0 then $
 ;testrun = 0
 ;testrun = '4pi_stis_run2'
 testrun = '4pi_stis_run3'
+testrun = '4pi_stis_run4'
 ;testrun = '4pi_stis'
 mapnum=10
 
@@ -1636,6 +1637,22 @@ case testrun of
     data_g = 0
     swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run03_seed03_gamma.dat',type=+1
   end
+
+  '4pi_stis_run4': begin
+    simstat_p = 0
+    data_p = 0
+    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run04_seed03_proton.dat',type=+1
+    simstat_e = 0
+    data_e = 0
+    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run04_seed03_e-.dat',type=+1
+    simstat_a = 0
+    data_a = 0
+    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run04_seed03_alpha.dat',type=+1
+    simstat_g = 0
+    data_g = 0
+    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run04_seed03_gamma.dat',type=+1
+  end
+
 
 
 
