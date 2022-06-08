@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-06-06 17:39:59 -0700 (Mon, 06 Jun 2022) $
-; $LastChangedRevision: 30845 $
+; $LastChangedDate: 2022-06-06 19:14:24 -0700 (Mon, 06 Jun 2022) $
+; $LastChangedRevision: 30846 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
 ; $ID: $
 
@@ -740,7 +740,7 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
   sensornum = simstat.sensornum
   if ~keyword_set(mapnum) then str_element,simstat,'mapnum',mapnum
   if ~keyword_set(noise_level) then str_element,simstat,'noise_level',noise_level
-  if n_elements(noise_level) ne 1 then noise_level=1.
+  if n_elements(noise_level) ne 1 then noise_level=  0. ;1.
   ;if n_elements(sensornum) ne 1 then sensornum=1
   ;if n_elements(mapnum) ne 1 then mapnum = 8
   noise_rms = noise_level * [[2.,3.,2.],[2.,3.,2.]]   ; noise O T F in kev
@@ -1641,16 +1641,16 @@ case testrun of
   '4pi_stis_run4': begin
     simstat_p = 0
     data_p = 0
-    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run04_seed03_proton.dat',type=+1
+    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run04_seed0?_proton.dat',type=+1
     simstat_e = 0
     data_e = 0
-    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run04_seed03_e-.dat',type=+1
+    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run04_seed0?_e-.dat',type=+1
     simstat_a = 0
     data_a = 0
-    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run04_seed03_alpha.dat',type=+1
+    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run04_seed0?_alpha.dat',type=+1
     simstat_g = 0
     data_g = 0
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run04_seed03_gamma.dat',type=+1
+    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run04_seed0?_gamma.dat',type=+1
   end
 
 
@@ -1691,12 +1691,16 @@ if 1 then begin
   mapnum= 10
   str_element,/add,simstat_p,'mapnum',mapnum
   str_element,/add,simstat_e,'mapnum',mapnum
+  str_element,/add,simstat_g,'mapnum',mapnum
+  str_element,/add,simstat_a,'mapnum',mapnum
 
   ;ok = swfo_stis_response_data_filter(simstat_e,data_e1,_extra=f,filter=f)
   win=1
   swfo_stis_response_plots,simstat_e,data_e,window=win,filter=f,response = resp_e
   win=11
   swfo_stis_response_plots,simstat_p,data_p,window=win,filter=f, response = resp_p
+  win=21
+  swfo_stis_response_plots,simstat_g,data_g,window=win,filter=f, response = resp_g
 
   ;swfo_stis_response_plots,simstat_p1,data_p1,window=win,filter=f
   ;swfo_stis_response_plots,simstat_g,data_g,window=win,filter=f
