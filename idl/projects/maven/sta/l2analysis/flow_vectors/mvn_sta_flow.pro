@@ -144,7 +144,7 @@ endelse
 ;Deal with trange keyword below, once common blocks have been dealt with
 if size(sc_cor_flag, /type) eq 0 then sc_cor_flag=2
 if size(sta_apid,/type) eq 0 then begin
-    proname, ": you must define sta_apid as eg 'ce', 'cf', 'd0' or 'd1'. Returning."
+    print, proname, ": you must define sta_apid as eg 'ce', 'cf', 'd0' or 'd1'. Returning."
     success=0
     return
 endif
