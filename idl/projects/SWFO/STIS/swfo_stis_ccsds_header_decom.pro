@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2022-04-22 10:41:29 -0700 (Fri, 22 Apr 2022) $
-; $LastChangedRevision: 30780 $
+; $LastChangedDate: 2022-06-14 15:34:18 -0700 (Tue, 14 Jun 2022) $
+; $LastChangedRevision: 30855 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_ccsds_header_decom.pro $
 
 
@@ -21,8 +21,8 @@ function swfo_stis_ccsds_header_decom,ccsds
     fpga_rev:               swfo_data_select(ccsds_data,(15)*8,   8),$
     lccs_bits:              swfo_data_select(ccsds_data,(16)*8,   4),$
     time_res:               swfo_data_select(ccsds_data,(16)*8+4,12),$
-    user_09:                swfo_data_select(ccsds_data,(18)*8,   8),$
-    user_0a:                swfo_data_select(ccsds_data,(19)*8,   8),$
+    user_0a:                swfo_data_select(ccsds_data,(18)*8,   8),$
+    user_09:                swfo_data_select(ccsds_data,(19)*8,   8),$
     pulser_bits:            swfo_data_select(ccsds_data,(20)*8,   8),$
     detector_bits:          swfo_data_select(ccsds_data,(21)*8,   8),$
     aaee_bits:              swfo_data_select(ccsds_data,(22)*8,   4),$
