@@ -84,8 +84,8 @@
 ;  The N-index calculation is implemented in omni2nindex.pro
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2022-05-29 14:31:21 -0700 (Sun, 29 May 2022) $
-; $LastChangedRevision: 30837 $
+; $LastChangedDate: 2022-06-15 12:14:26 -0700 (Wed, 15 Jun 2022) $
+; $LastChangedRevision: 30860 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/ta16.pro $
 ;-
 
@@ -96,7 +96,7 @@ function ta16,tarray,rgsm_array,pdyn,yimf,symc,xind, $
 
   COMPILE_OPT idl2
   if ta16_supported() eq 0 then return, -1L
-  
+
   ;sanity tests, setting defaults
   if undefined(geopack_2008) then geopack_2008=0
   if undefined(exact_tilt_times) then exact_tilt_times=0
@@ -334,9 +334,17 @@ function ta16,tarray,rgsm_array,pdyn,yimf,symc,xind, $
       endif
 
       ;calculate external contribution
-
-      geopack_ta16, parmod[id, *], rgsm_x, rgsm_y, rgsm_z, ta16_bx, ta16_by, ta16_bz, tilt=tilt
-
+      n_rgsm = n_elements(rgsm_x)
+      ta16_bx = make_array(n_rgsm, /DOUBLE, VALUE = !VALUES.D_NAN)
+      ta16_by = make_array(n_rgsm, /DOUBLE, VALUE = !VALUES.D_NAN)
+      ta16_bz = make_array(n_rgsm, /DOUBLE, VALUE = !VALUES.D_NAN)
+      for j=0, n_elements(rgsm_x)-1 do begin
+        geopack_ta16, parmod[id, *], rgsm_x[j], rgsm_y[j], rgsm_z[j], ta16_bx0, ta16_by0, ta16_bz0, tilt=tilt
+        ta16_bx[j] = ta16_bx0
+        ta16_by[j] = ta16_by0
+        ta16_bz[j] = ta16_bz0
+      endfor
+ 
       ;total field
       out_array[idx, 0] = igrf_bx + ta16_bx
       out_array[idx, 1] = igrf_by + ta16_by
