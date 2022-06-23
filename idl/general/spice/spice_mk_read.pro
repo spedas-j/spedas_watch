@@ -29,8 +29,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2022-06-17 10:14:04 -0700 (Fri, 17 Jun 2022) $
-; $LastChangedRevision: 30867 $
+; $LastChangedDate: 2022-06-22 12:14:15 -0700 (Wed, 22 Jun 2022) $
+; $LastChangedRevision: 30873 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/spice_mk_read.pro $
 ;
 ;-
@@ -74,7 +74,7 @@ FUNCTION spice_mk_read, file, remote_data_dir=rpath, verbose=verbose, kernels_tr
   ENDIF 
 
   IF undefined(tformat) THEN tformat = 'YYYYMMDD'
-  trange = HASH()
+  trange = ORDEREDHASH()
 
   FOR i=0, nfile-1 DO BEGIN
      fname = FILE_BASENAME(kernels[i])
