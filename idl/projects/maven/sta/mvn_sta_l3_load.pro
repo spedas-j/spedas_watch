@@ -23,6 +23,9 @@
 ;typically used for calibration and checks by the instrument team, and should not be needed for most users. It is recommended that you 
 ;contact the instrument team if you wish to use any parameters loaded using this keyword.
 ;
+;Set /flag to load a second set of ancillary data files that contain additional flag information, that was used to create the final flag variable
+;     mvn_sta_l3_density_quality_flag.
+;
 ;Set coltab as a float/integer to the desired color table, so that tplot variable labels can be colored correctly. If not set, the default
 ;     value of 43 is used, via loadct2, 43.
 ;
@@ -37,6 +40,9 @@
 ;If you set /leavecolors, the routine will not set any colors and will ignore the coltab and qualc keywords. Use this if you do not 
 ;     want this routine loading a new colortable. You can fix the tplot colors outside of this routine using 
 ;         options, 'tplotname', colors=[1,2,3,4,5]
+;
+;Set filesloaded to a variable that will contain the filenames of the tplot files loaded. This output will be in string format. Files are appended in the order loaded,
+;     so science, ancillary and flag filenames, if /anc and /flag are set. 
 ;
 ;
 ;OUTPUTS: 
@@ -130,27 +136,29 @@
 ;2021-08-18: CMF: edited code so science files are always downloaded, and anc files are only downloaded if requested. 
 ;2021-10-11: KGH: edited to fix naming conventions, temperature tplot colors and updated variable descriptions
 ;2021-10-12: CMF + KGH disabled anc keyword as still sorting through last bugs. Will reactive when ready - hopefully a few weeks.
-;
+;2021-11:11: KGH added workaround to fix problem with anc keyword -- recreate 'problem' tplot variables at the end of this code rather than storing them in the anc files. 
+;2022-06-27: CMF: added filesloaded keyword to output list of filenames loaded.
 ;-
 ;
 
 
-pro mvn_sta_l3_load, den=den, temp=temp, success=success, append=append, margin=margin, anc=anc, coltab=coltab, qualc=qualc, $
-                        leavecolors=leavecolors
+pro mvn_sta_l3_load, den=den, temp=temp, success=success, append=append, margin=margin, anc=anc, flag=flag, coltab=coltab, qualc=qualc, $
+                        leavecolors=leavecolors, filesloaded=filesloaded
 
 proname = 'mvn_sta_l3_load'
 sl = path_sep()
 success = 0  ;default if routine bails
 
 ;2021-10-12: CMF and KGH: anc keyword needs a bit of debugging when loading multiple files using tplot-restore append function.
-;Disable for now, and reactive when fixed:
-if keyword_set(anc) then begin
-  print, ""
-  print, proname, ": the anc keyword is currently disabled as we're sorting out final bugs."
-  print, "This should become active in a few weeks."
-  print, ""
-  anc=0
-endif
+;Disable for now, and reactive when fixed
+;2022-06-27 - this bug has been fixed (?) so reactivate anc keyword..?
+;if keyword_set(anc) then begin
+;  print, ""
+;  print, proname, ": the anc keyword is currently disabled as we're sorting out final bugs."
+;  print, "This should become active in a few weeks."
+;  print, ""
+;  anc=1
+;endif
 
 if keyword_set(den) then den=1 else den=0
 if keyword_set(temp) then temp=1 else temp=0
@@ -200,13 +208,15 @@ for tt = 0l, ndays-1l do begin
         fname2 = mvn_pfp_file_retrieve(fname1, user_pass = passwd, /valid_only)  ;jmm, 2015-02-05 to use mvn_pfp_file_retrieve, don't include the root_data_dir
               
         if fname2[0] ne '' then begin        
-            ;Find most recent version number:
-            fname3 = mvn_sta_l3_latest_file(fname2, /den, success=success1)
+            ;Find most recent version number: EDIT 2021-12-02: CMF: this is done in mvn_pfp_file_retrieve, so mvn_sta_l3_latest_file is not needed.
+            ;fname3 = mvn_sta_l3_latest_file(fname2, /den, success=success1)
+            fname3 = fname2
+            if size(filesloaded,/type) eq 0 then filesloaded = fname3 else filesloaded = [filesloaded, fname3] ;save files loaded.
             
             ;Load into tplot.
             if keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3[0], /append
             if not keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3[0]
-            if tt ge 1 then tplot_restore, filename=fname3[0], /append  ;append all subsequent days                  
+            if tt ge 1 then tplot_restore, filename=fname3[0], /append  ;append all subsequent days                                         
         endif
         
         ;ANC FILES, if requested:        
@@ -217,15 +227,35 @@ for tt = 0l, ndays-1l do begin
             
             if fname2a[0] ne '' then begin
                 ;Find most recent version number:
-                fname3a = mvn_sta_l3_latest_file(fname2a, /den, success=success1)
-  
+                ;fname3a = mvn_sta_l3_latest_file(fname2a, /den, success=success1)
+                fname3a = fname2a
+                if size(filesloaded,/type) eq 0 then filesloaded = fname3a else filesloaded = [filesloaded, fname3a] ;save files loaded.
+                
                 ;Load into tplot.
                 if keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3a[0], /append
                 if not keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3a[0]
                 if tt ge 1 then tplot_restore, filename=fname3a[0], /append  ;append all subsequent days          
             endif
-
          endif  ;anc files
+         
+         ;FLAG files if requested:
+         if keyword_set(flag) then begin
+            fname1a = 'maven'+sl+'data'+sl+'sci'+sl+'sta'+sl+'l3'+sl+'density'+sl+yr+sl+mm+sl+'mvn_sta_l3_den_'+dateTMP1+'_flags_v??.tplot'
+            If(sl ne '/') Then fname1a = strjoin(strsplit(fname1a, sl, /extract), '/')
+            fname2a = mvn_pfp_file_retrieve(fname1a, user_pass = passwd, /valid_only)
+            
+            if fname2a[0] ne '' then begin
+                ;Find most recent version number:
+                ;fname3a = mvn_sta_l3_latest_file(fname2a, /den, success=success1)
+                fname3a = fname2a
+                if size(filesloaded,/type) eq 0 then filesloaded = fname3a else filesloaded = [filesloaded, fname3a] ;save files loaded.
+  
+                ;Load into tplot.
+                if keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3a[0], /append
+                if not keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3a[0]
+                if tt ge 1 then tplot_restore, filename=fname3a[0], /append  ;append all subsequent days
+            endif
+         endif
         
     
     endif
@@ -239,7 +269,9 @@ for tt = 0l, ndays-1l do begin
         
         if fname2[0] ne '' then begin
             ;Find most recent version number:
-            fname3 = mvn_sta_l3_latest_file(fname2, /temp, success=success2)
+            ;fname3 = mvn_sta_l3_latest_file(fname2, /temp, success=success2)
+            fname3 = fname2
+            if size(filesloaded,/type) eq 0 then filesloaded = fname3 else filesloaded = [filesloaded, fname3] ;save files loaded.
             
             ;Load into tplot.
             if keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3[0], /append
@@ -255,8 +287,10 @@ for tt = 0l, ndays-1l do begin
   
             if fname2a[0] ne '' then begin
                 ;Find most recent version number:
-                fname3a = mvn_sta_l3_latest_file(fname2a, /temp, success=success2)
-    
+                ;fname3a = mvn_sta_l3_latest_file(fname2a, /temp, success=success2)
+                fname3a = fname2a
+                if size(filesloaded,/type) eq 0 then filesloaded = fname3a else filesloaded = [filesloaded, fname3a] ;save files loaded.
+                
                 ;Load into tplot.
                 if keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3a[0], /append
                 if not keyword_set(append) and tt eq 0 then tplot_restore, filename=fname3a[0]
@@ -268,6 +302,7 @@ for tt = 0l, ndays-1l do begin
     endif
 
 endfor  ;tt
+
 
 if keyword_set(margin) then tplot_options, 'xmargin', [16,8]
 
@@ -288,7 +323,6 @@ if not keyword_set(leavecolors) then begin  ;only fix colors if requested
         cols3 = [cols.blue, cols.red, cols.green]
     endelse
         
-    
     if keyword_set(den) then begin
         dvars = ['mvn_sta_l3_density', 'mvn_sta_l3_density_abs_uncertainty', 'mvn_sta_l3_density_perc_uncertainty', $
                     'mvn_sta_l3_density_quality_flag']
@@ -305,6 +339,56 @@ if not keyword_set(leavecolors) then begin  ;only fix colors if requested
     endif
     
 endif  ;leavecolors
+
+
+;;; added by KGH 11/9/21
+;; now recreate the array-of-strings tplot variables
+if keyword_set(anc) and keyword_set(temp) then begin
+  
+  ;; load the colors if they weren't loaded already
+  if keyword_set(leave_colors) then begin
+    if keyword_set(qualcolors) then begin
+      @'qualcolors'
+      cols = qualcolors  ;copy colortable variable
+      str_element, cols, 'cyan', cols.pink, /add ; this is terrible but I needed a field called cyan -- I can't add a new qualcolor, so I'll just make it pink. 
+      endif else begin
+       ;Not qualcolors:
+        if keyword_set(coltab) then ct = coltab else ct = 43 ;default if coltab not set
+        loadct2, ct
+        cols = get_colors() 
+        str_element, cols, 'orange', 200, /add ; best guess       
+      endelse     
+  endif else begin
+    if keyword_set(qualcolors) then str_element, cols, 'cyan', cols.pink, /add else str_element, cols, 'orange', 200, /add
+  endelse
+  badvars =  ['mvn_sta_temp_lpwcorr', 'tpar_w_corr', 'ana_dth_fwhm_compare', 'tperp_w_corr', 'modeatt']
+
+  store_data,'mvn_sta_temp_lpwcorr', data=['mvn_sta_c6_o2+_tparu','mvn_sta_c6_o2+_temp_nolpw']
+  ylim,'mvn_sta_temp_lpwcorr',0.01,10,1
+  options,'mvn_sta_temp_lpwcorr',colors=[cols.black,cols.cyan]
+
+  store_data, 'tpar_w_corr', data=['mvn_sta_c6_o2+_tparu', $
+    'mvn_sta_c6_o2+_temp', 'mvn_sta_c6_o2+_temp_ac' ]
+  options, 'tpar_w_corr', 'colors', [cols.blue, cols.cyan, cols.orange]
+  options, 'tpar_w_corr', 'labels', ['Uncorrected', $
+    'Corrected', 'Analyzer']
+  options, 'tpar_w_corr', 'labflag', -1
+  ylim, 'tpar_w_corr', 0.001, 10, 1
+
+  store_data,'ana_dth_fwhm_compare',data=['ana_dth_fwhm','ana_dth_fwhm_corr']
+  ylim,'ana_dth_fwhm_compare',1.,7.,1
+
+  store_data, 'tperp_w_corr', data=['mvn_sta_c8_tperpu', $
+    'mvn_sta_c8_temp', 'mvn_sta_c8_o2+_temp_ac' ]
+  options, 'tperp_w_corr', 'colors', [cols.blue, cols.cyan, cols.orange]
+  options, 'tperp_w_corr', 'labels', ['Uncorrected', $
+    'Corrected', 'Analyzer']
+  options, 'tperp_w_corr', 'labflag', -1
+  ylim, 'tperp_w_corr', 0.001, 10, 1
+
+  store_data, 'modeatt', data=['mvn_sta_c6_mode', 'mvn_sta_c6_att']
+  options,'modeatt','colors',[cols.black,cols.red]
+endif ;anc & temp
 
 success=1 
 
