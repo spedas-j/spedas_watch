@@ -1,38 +1,60 @@
-; $LastChangedBy:  $
-; $LastChangedDate:  $
-; $LastChangedRevision:  $
-; $URL:  $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2022-07-11 12:00:08 -0700 (Mon, 11 Jul 2022) $
+; $LastChangedRevision: 30920 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 
-function swfo_stis_sci_level_1b,strcts,format=format
+function swfo_stis_sci_level_1b,strcts,format=format,reset=reset,cal=cal
 
   output = !null
   nd = n_elements(strcts)
   for i=0l,nd-1 do begin
     str = strcts[i]
     
-    cal = swfo_stis_cal_params(str)
+    cal = swfo_stis_cal_params(str,reset=reset)
 
+    n_energy = 48
     duration = str.duration
 
-    period = .87  ; approximate period (in seconds) of Version 64 FPGA ; this should be put in the calibration structure
-    rate  = str.counts/(str.duration * period) 
+    period = cal.period   ; approximate period (in seconds) of Version 64 FPGA 
+    integration_time = str.duration * period
+    srate  = str.counts/integration_time          ; srate is the measure (actual) count rate
+    
+    ; Determine deadtime correctons here
+    rate14 = str.total14/ integration_time    ; this needs to be checked
+    Exrate = reform(replicate(1,n_energy) # rate14,n_energy * 14)
+    deadtime_correction = 1 / (1- exrate*cal.deadtime)
+    w = where(deadtime_correction gt 10. or deadtime_correction lt .5,/null)
+    deadtime_correction[w] = !values.f_nan
+    crate  = srate * deadtime_correction       ; crate is the count rate corrected for deadtime
 
-;    str_element,/add,str,'integration_time',duration * period
-;    str_element,/add,str,'rate',rate
-;    str_element,/add,str,'TID',cal.tid
-;    str_element,/add,str'FTO',cal.fto
-
-    flux = rate / cal.geom / cal.ewidth
+    bins = cal.prot_resp    
+    ion_flux = crate / bins.geom
+    ion_energy = bins.energy
+    w = where(bins.species eq 1,/null)
+    ion_flux = ion_flux[w]
+    ion_energy= ion_energy[w]
+    
+    bins = cal.elec_resp
+    elec_flux = crate / bins.geom
+    elec_energy = bins.energy
+    w = where(bins.species eq 0,/null,nw)
+    elec_flux = elec_flux[w]
+    elec_energy= elec_energy[w]
+     
     sci_ex = {  $
       integration_time : duration * period, $
-      rate : rate , $
-      TID:  cal.tid,  $
-      FTO:  cal.fto,  $
-      geom:  cal.geom,  $
-      ewidth: cal.ewidth,  $
-      energy: cal.energy,   $   ; midpoint energy
-      flux :   flux }
+      srate : srate , $
+      crate : crate , $
+      TID:  bins.tid,  $
+      FTO:  bins.fto,  $
+      geom:  bins.geom,  $
+      ewidth: bins.ewidth,  $
+      ion_energy: ion_energy,   $   ; midpoint energy
+      ion_flux :   ion_flux,  $
+      elec_energy:  elec_energy, $
+      elec_flux:  elec_flux, $
+      lut_id: 0 }
       
     sci = create_struct(str,sci_ex)
       

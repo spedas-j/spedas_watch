@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-06-06 19:14:24 -0700 (Mon, 06 Jun 2022) $
-; $LastChangedRevision: 30846 $
+; $LastChangedDate: 2022-07-11 00:24:47 -0700 (Mon, 11 Jul 2022) $
+; $LastChangedRevision: 30915 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
 ; $ID: $
 
@@ -740,7 +740,7 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
   sensornum = simstat.sensornum
   if ~keyword_set(mapnum) then str_element,simstat,'mapnum',mapnum
   if ~keyword_set(noise_level) then str_element,simstat,'noise_level',noise_level
-  if n_elements(noise_level) ne 1 then noise_level=  0. ;1.
+  if n_elements(noise_level) ne 1 then noise_level=  1.
   ;if n_elements(sensornum) ne 1 then sensornum=1
   ;if n_elements(mapnum) ne 1 then mapnum = 8
   noise_rms = noise_level * [[2.,3.,2.],[2.,3.,2.]]   ; noise O T F in kev
@@ -1641,16 +1641,16 @@ case testrun of
   '4pi_stis_run4': begin
     simstat_p = 0
     data_p = 0
-    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run04_seed0?_proton.dat',type=+1
+    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run04_seed04_proton.dat',type=+1
     simstat_e = 0
     data_e = 0
-    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run04_seed0?_e-.dat',type=+1
+    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run04_seed04_e-.dat',type=+1
     simstat_a = 0
     data_a = 0
-    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run04_seed0?_alpha.dat',type=+1
+    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run04_seed04_alpha.dat',type=+1
     simstat_g = 0
     data_g = 0
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run04_seed0?_gamma.dat',type=+1
+    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run04_seed04_gamma.dat',type=+1
   end
 
 
