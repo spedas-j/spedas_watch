@@ -257,8 +257,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-14 11:37:58 -0700 (Thu, 14 Jul 2022) $
-; $LastChangedRevision: 30929 $
+; $LastChangedDate: 2022-07-19 12:18:13 -0700 (Tue, 19 Jul 2022) $
+; $LastChangedRevision: 30946 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/win.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -273,6 +273,7 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
                   tcalib=tcalib, xpos=xpos, ypos=ypos, _extra=extra
 
   @putwin_common
+  @colors_com
 
 ; Query the operating system to get monitor information.
 ; Silently act like WINDOW until CONFIG is set.
@@ -382,6 +383,8 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
         print, msg
       endfor
       print,"Title bar width: ", strtrim(string(tbar),2)
+      if (n_elements(color_table) eq 0) then cstr = "not defined" else cstr = strtrim(string(color_table),2)
+      print,"Color table: ", cstr
       print,""
     endelse
 
