@@ -1,8 +1,11 @@
 ;+
-;;PROCEDURE LOADCSVCOLORBAR2.PRO
-;;commands to load a CSV color table file from a local directory,
-;;along with some colorbrewer qualitative colors in selected indices,
-;;as defined in qualcolors file
+;; PROCEDURE LOADCSVCOLORBAR2.PRO
+;; commands to load a CSV color table file from a local directory,
+;; along with some colorbrewer qualitative colors in selected indices,
+;; as defined in qualcolors file
+;;
+;; This version is modified to be compatible with tplot.  It is no
+;; longer intended to be called directly.  Use loadcsv instead.
 ;;
 ;; OPTIONAL:
 ;;
@@ -39,33 +42,34 @@
 ;; into the color table (e.g. to load only the lower half of the
 ;; colors in the file specify HIGH_QUANT=0.5)
 ;;
-;; WHITEBACK=: set IDL defaults to !p.color = black, !p.background = white
+;; WHITEBACK=: sets !p.color = black, !p.background = white
 ;;
-;; BLACKBACK=: set IDL defaults to !p.color = white, !p.background = black
+;; BLACKBACK=: sets !p.color = white, !p.background = black
 ;;
 ;
 ; Created by M. Chaffin
 ; Modified by D. Mitchell for compatibility with tplot
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-19 12:08:13 -0700 (Tue, 19 Jul 2022) $
-; $LastChangedRevision: 30945 $
+; $LastChangedDate: 2022-07-20 13:13:54 -0700 (Wed, 20 Jul 2022) $
+; $LastChangedRevision: 30950 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/CSV_Color_Tables/loadcsvcolorbar2.pro $
 ;-
 pro loadcsvcolorbar2, colortbl, $
-                     directory = directory, $
-                     silent = silent, $
-                     reverse = reverse, $
-                     noqual = noqual,  $
-                     rgb_table = rgb_table, $
-                     low_quant = low_quant, $
-                     high_quant = high_quant, $
-                     whiteback = whiteback, $
-                     blackback = blackback
+                      directory = directory, $
+                      silent = silent, $
+                      reverse = reverse, $
+                      noqual = noqual,  $
+                      rgb_table = rgb_table, $
+                      low_quant = low_quant, $
+                      high_quant = high_quant, $
+                      whiteback = whiteback, $
+                      blackback = blackback
   
 compile_opt strictarr ;;forces IDL to not make the insanely stupid choice to subscript the reverse flag instead of calling the reverse procedure when interpreting reverse(interpr) 
 
   common qualcolors_com, qualcolors
+  common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
 
   if keyword_set(directory) then begin
      ;;user-specified absolute directory
@@ -102,9 +106,6 @@ compile_opt strictarr ;;forces IDL to not make the insanely stupid choice to sub
      read, choice, prompt = "Select colorbar number: "
      colortbl = rgbdir+colorbarnames[choice]+".dat"
   endelse
-  
-  COMMON colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
-  ;;@colors_com
 
   ;;load the RGB values from file
   mytbl = read_csv(colortbl)
@@ -178,7 +179,6 @@ compile_opt strictarr ;;forces IDL to not make the insanely stupid choice to sub
   b = myb
   tvlct, r, g, b
 
-  
   ;;Important!  Update the colors common block.  
   r_curr = r
   g_curr = g
@@ -208,14 +208,17 @@ compile_opt strictarr ;;forces IDL to not make the insanely stupid choice to sub
 
   ;;tplot global options to make sure the colorbars don't use
   ;;the qualitative colors
-  if file_which('tplot_options.pro') NE "" then begin
-     if keyword_set(noqual) then begin
-        tplot_options, 'bottom', bottom_c+1
-        tplot_options, 'top', top_c
-     endif else begin
-        tplot_options, 'bottom', bottom_c
-        tplot_options, 'top', top_c
-     endelse
+  ;;No longer needed.
+  if (0) then begin
+    if file_which('tplot_options.pro') NE "" then begin
+       if keyword_set(noqual) then begin
+          tplot_options, 'bottom', bottom_c+1
+          tplot_options, 'top', top_c
+       endif else begin
+          tplot_options, 'bottom', bottom_c
+          tplot_options, 'top', top_c
+       endelse
+    endif
   endif
   
 end

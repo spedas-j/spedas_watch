@@ -2,13 +2,14 @@
 ;PROCEDURE:   loadcsv
 ;PURPOSE:
 ;  This is a wrapper/translator for loadcsvcolorbar that loads a CSV color table.
-;  Restrictions are imposed that make this routine compatible with tplot:
+;  It works the same way that 'loadct2' does.  Restrictions are imposed that make
+;  this routine compatible with tplot:
 ;
 ;    (1) Only eight fixed colors are allowed.  These are loaded into the first
 ;        seven color indices plus the last, with black = 0 and white = 255 (same
 ;        as loadct2).  Missing are the gray25, gray50, gray75, brown, and pink.
 ;        With this change, it is not necessary to manage the top and bottom
-;        colors (in most cases).
+;        colors.  Use 'get_qualcolors' to access the fixed color names and indices.
 ;
 ;    (2) To distinguish the CSV tables from the traditional loadct2 tables, 1000
 ;        is added to the CSV table number.  So 78 becomes 1078, etc.  When tplot 
@@ -19,16 +20,41 @@
 ;        out how to define a new table.
 ;
 ;    (4) The qualcolors structure is now initialized by this routine and stored
-;        in a common block, which loadcsvcolorbar uses.  The stand-alone config
+;        in a common block, which 'loadcsvcolorbar2' uses.  The stand-alone config
 ;        file 'qualcolors' is ignored, so changes there will have no effect.
-;        You can get a copy of the qualcolors structure with get_qualcolors.
+;        You can get a copy of the qualcolors structure with 'get_qualcolors'.
 ;
 ;    (5) !p.color and !p.background are no longer set by default.  Use keywords
 ;        BLACKBACK and WHITEBACK to choose a black or white background.  Also,
 ;        see 'revvid', which swaps the foreground and background colors.
 ;
+;  Using 'loadcsv' has the following advantages:
+;
+;    (1) No need to manage qualcolors, paths, or system variables.  You simply
+;        use 'loadcsv' the same way you use 'loadct2'.
+;
+;    (2) 'loadcsv' and 'loadct2' are aware of each other, so both can be used in
+;        the same session whenever you like, and tplot does not get confused.
+;
+;    (3) The 'tplot' interface is greatly simplified.  No need to manage the top
+;        and bottom colors when switching between CSV tables and the standard 
+;        tplot tables.  Color tables can be specified on a panel-by-panel basis, 
+;        with standard tables interspersed with CSV tables:
+;
+;          options, varname, 'color_table', N
+;          options, varname, 'reverse_color_table', {0|1}
+;
+;        with N < 1000 for standard tables and N >= 1000 for CSV tables.  As usual,
+;        varname can be an array of tplot variable names or indices to affect
+;        multiple panels with one command.  Variable names can contain wildcards
+;        for the same purpose.
+;
+;  If you are already using the original qualcolors and 'loadcsvcolortable', and
+;  you're happy with how that works, you can keep doing things that way.  This
+;  routine will not interfere.
+;
 ;USAGE:
-;  loadcv, colortbl
+;  loadcsv, colortbl
 ;
 ;INPUTS:
 ;       colortbl:    CSV table number + 1000.  Don't forget to add 1000!
@@ -49,17 +75,18 @@
 ;       CATALOG:     Display an image of the CSV color tables and return.
 ;                    Does not load a color table.
 ;
-;       Also passes all keywords accepted by loadcsvcolorbar.
+;       Also passes all keywords accepted by loadcsvcolorbar2.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-19 17:23:04 -0700 (Tue, 19 Jul 2022) $
-; $LastChangedRevision: 30949 $
+; $LastChangedDate: 2022-07-20 13:13:54 -0700 (Wed, 20 Jul 2022) $
+; $LastChangedRevision: 30950 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/CSV_Color_Tables/loadcsv.pro $
 ;
 ;CSV color table code: Mike Chaffin
 ;Tplot-compatible version: David L. Mitchell
 ;-
 pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, catalog=catalog, _EXTRA = ex
+
   @colors_com  ; allows loadcsv to communicate with loadct2
   common qualcolors_com, qualcolors
 
@@ -116,15 +143,15 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, catalog=catalog, _E
 
 ; Load the CSV table
 
-  ctab -= 1000                        ; internal table number for loadcsvcolorbar
-  qualcolors.colorindx = ctab
+  qualcolors.colorindx = ctab                ; external table number for tplot
+  ctab -= 1000                               ; internal table number for loadcsvcolorbar2
   loadcsvcolorbar2, ctab, _EXTRA = ex
-  qualcolors.colortbl = ctab          ; corresponding filename
+  qualcolors.colortbl = file_basename(ctab)  ; corresponding filename
 
 ; Tell tplot and loadct2 what happened
 
-  ctab = qualcolors.colorindx + 1000  ; external table number for tplot
+  ctab = qualcolors.colorindx
   if (n_elements(color_table) eq 0) then previous_ct = ctab else previous_ct = color_table
-  color_table = colortbl
+  color_table = ctab
 
 end
