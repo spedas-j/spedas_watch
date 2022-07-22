@@ -61,7 +61,11 @@
 ;                    If this input is missing, then keyword CATALOG is set.
 ;
 ;KEYWORDS:
-;       RESET:       Reset the qualcolors structure.
+;       RESET:       Reset the qualcolors structure and return.  Does not 
+;                    load a color table.  To initialize the qualcolors 
+;                    structure without doing anything else:
+;
+;                      loadcsv, 0, /reset
 ;
 ;       PREVIOUS_CT: Named variable to hold the previous color table number.
 ;                    Tplot needs this to swap color tables on the fly.
@@ -78,8 +82,8 @@
 ;       Also passes all keywords accepted by loadcsvcolorbar2.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-20 13:13:54 -0700 (Wed, 20 Jul 2022) $
-; $LastChangedRevision: 30950 $
+; $LastChangedDate: 2022-07-21 10:45:20 -0700 (Thu, 21 Jul 2022) $
+; $LastChangedRevision: 30951 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/CSV_Color_Tables/loadcsv.pro $
 ;
 ;CSV color table code: Mike Chaffin
@@ -105,19 +109,6 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, catalog=catalog, _E
     return
   endif
 
-; Make sure colortbl is reasonable
-
-  csize = size(colortbl,/type)
-  if ((csize lt 1) or (csize gt 5)) then begin
-    print,"You must specify a CSV table number."
-    return
-  endif
-  ctab = fix(colortbl[0])
-  if (ctab lt 1000) then begin
-    print,"You must add 1000 to the CSV table number."
-    return
-  endif
-
 ; Define a tplot-compatible version of the qualcolors structure
 
   if ((size(qualcolors,/type) ne 8) or keyword_set(reset)) then begin
@@ -139,6 +130,20 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, catalog=catalog, _E
                   qb         : [  0, 163, 184,  74,  51,   0,  28, 255 ], $
                   colorindx  : -1, $
                   colortbl   : ''   }
+    if keyword_set(reset) then return
+  endif
+
+; Make sure colortbl is reasonable
+
+  csize = size(colortbl,/type)
+  if ((csize lt 1) or (csize gt 5)) then begin
+    print,"You must specify a CSV table number."
+    return
+  endif
+  ctab = fix(colortbl[0])
+  if (ctab lt 1000) then begin
+    print,"You must add 1000 to the CSV table number."
+    return
   endif
 
 ; Load the CSV table
