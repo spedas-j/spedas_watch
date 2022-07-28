@@ -57,39 +57,43 @@
 ;  loadcsv, colortbl
 ;
 ;INPUTS:
-;       colortbl:    CSV table number + 1000.  Don't forget to add 1000!
-;                    If this input is missing, then keyword CATALOG is set.
+;       colortbl:     CSV table number + 1000.  Don't forget to add 1000!
+;                     If this input is missing, then keyword CATALOG is set.
 ;
 ;KEYWORDS:
-;       RESET:       Reset the qualcolors structure and return.  Does not 
-;                    load a color table.  To initialize the qualcolors 
-;                    structure without doing anything else:
+;       RESET:        Reset the qualcolors structure and return.  Does not 
+;                     load a color table.  To initialize the qualcolors 
+;                     structure without doing anything else:
 ;
-;                      loadcsv, 0, /reset
+;                       loadcsv, 0, /reset
 ;
-;       PREVIOUS_CT: Named variable to hold the previous color table number.
-;                    Tplot needs this to swap color tables on the fly.
+;       PREVIOUS_CT:  Named variable to hold the previous color table number.
+;                     Tplot needs this to swap color tables on the fly.
 ;
-;       BLACKBACK:   Set !p.color = white ; !p.background = black
-;                    Default is to leave these system variables unchanged.
+;       PREVIOUS_REV: Named variable to hold the previous color reverse.
+;                     Tplot needs this to swap color tables on the fly.
 ;
-;       WHITEBACK:   Set !p.color = black ; !p.backgorund = white
-;                    Default is to leave these system variables unchanged.
+;       BLACKBACK:    Set !p.color = white ; !p.background = black
+;                     Default is to leave these system variables unchanged.
 ;
-;       CATALOG:     Display an image of the CSV color tables and return.
-;                    Does not load a color table.
+;       WHITEBACK:    Set !p.color = black ; !p.backgorund = white
+;                     Default is to leave these system variables unchanged.
+;
+;       CATALOG:      Display an image of the CSV color tables and return.
+;                     Does not load a color table.
 ;
 ;       Also passes all keywords accepted by loadcsvcolorbar2.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-21 10:45:20 -0700 (Thu, 21 Jul 2022) $
-; $LastChangedRevision: 30951 $
+; $LastChangedDate: 2022-07-27 13:37:38 -0700 (Wed, 27 Jul 2022) $
+; $LastChangedRevision: 30970 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/CSV_Color_Tables/loadcsv.pro $
 ;
 ;CSV color table code: Mike Chaffin
 ;Tplot-compatible version: David L. Mitchell
 ;-
-pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, catalog=catalog, _EXTRA = ex
+pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, previous_rev=previous_rev, $
+                       reverse=crev, catalog=catalog, _EXTRA = ex
 
   @colors_com  ; allows loadcsv to communicate with loadct2
   common qualcolors_com, qualcolors
@@ -112,24 +116,25 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, catalog=catalog, _E
 ; Define a tplot-compatible version of the qualcolors structure
 
   if ((size(qualcolors,/type) ne 8) or keyword_set(reset)) then begin
-    qualcolors = {black      : 0, $
-                  purple     : 1, $ 
-                  blue       : 2, $
-                  green      : 3, $ 
-                  yellow     : 4, $
-                  orange     : 5, $
-                  red        : 6, $
-                  white      : !d.table_size-1, $
-                  nqual      : 8, $
-                  bottom_c   : 7, $
-                  top_c      : !d.table_size-2, $
-                  colornames : ['black','purple','blue','green','yellow','orange','red','white'], $
-                  qi         : [  0,   1,   2,   3,   4,   5,   6, !d.table_size-1 ], $ 
-                  qr         : [  0, 152,  55,  77, 255, 255, 228, 255 ], $
-                  qg         : [  0,  78, 126, 175, 255, 127,  26, 255 ], $
-                  qb         : [  0, 163, 184,  74,  51,   0,  28, 255 ], $
-                  colorindx  : -1, $
-                  colortbl   : ''   }
+    qualcolors = {black         : 0, $
+                  purple        : 1, $ 
+                  blue          : 2, $
+                  green         : 3, $ 
+                  yellow        : 4, $
+                  orange        : 5, $
+                  red           : 6, $
+                  white         : !d.table_size-1, $
+                  nqual         : 8, $
+                  bottom_c      : 7, $
+                  top_c         : !d.table_size-2, $
+                  colornames    : ['black','purple','blue','green','yellow','orange','red','white'], $
+                  qi            : [  0,   1,   2,   3,   4,   5,   6, !d.table_size-1 ], $ 
+                  qr            : [  0, 152,  55,  77, 255, 255, 228, 255 ], $
+                  qg            : [  0,  78, 126, 175, 255, 127,  26, 255 ], $
+                  qb            : [  0, 163, 184,  74,  51,   0,  28, 255 ], $
+                  table_name    : '', $
+                  color_table   : -1, $
+                  color_reverse :  0   }
     if keyword_set(reset) then return
   endif
 
@@ -148,15 +153,19 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, catalog=catalog, _E
 
 ; Load the CSV table
 
-  qualcolors.colorindx = ctab                ; external table number for tplot
-  ctab -= 1000                               ; internal table number for loadcsvcolorbar2
-  loadcsvcolorbar2, ctab, _EXTRA = ex
-  qualcolors.colortbl = file_basename(ctab)  ; corresponding filename
+  crev = keyword_set(crev)
+  qualcolors.color_table = ctab                ; external table number for tplot
+  qualcolors.color_reverse = crev              ; color reverse flag
+  ctab -= 1000                                 ; internal table number for loadcsvcolorbar2
+  loadcsvcolorbar2, ctab, reverse=crev, _EXTRA = ex
+  qualcolors.table_name = file_basename(ctab)  ; corresponding filename
 
 ; Tell tplot and loadct2 what happened
 
-  ctab = qualcolors.colorindx
+  ctab = qualcolors.color_table
   if (n_elements(color_table) eq 0) then previous_ct = ctab else previous_ct = color_table
   color_table = ctab
+  if (n_elements(color_reverse) eq 0) then previous_rev = crev else previous_rev = color_reverse
+  color_reverse = crev
 
 end
