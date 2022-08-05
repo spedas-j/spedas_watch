@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2022-06-14 15:34:18 -0700 (Tue, 14 Jun 2022) $
-; $LastChangedRevision: 30855 $
+; $LastChangedDate: 2022-08-04 15:42:57 -0700 (Thu, 04 Aug 2022) $
+; $LastChangedRevision: 30997 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_ccsds_header_decom.pro $
 
 
@@ -19,7 +19,7 @@ function swfo_stis_ccsds_header_decom,ccsds
     millisec:               swfo_data_select(ccsds_data,(9) *8,  32),$
     microsec:               swfo_data_select(ccsds_data,(13)*8,  16),$
     fpga_rev:               swfo_data_select(ccsds_data,(15)*8,   8),$
-    lccs_bits:              swfo_data_select(ccsds_data,(16)*8,   4),$
+    ptcu_bits:              swfo_data_select(ccsds_data,(16)*8,   4),$
     time_res:               swfo_data_select(ccsds_data,(16)*8+4,12),$
     user_0a:                swfo_data_select(ccsds_data,(18)*8,   8),$
     user_09:                swfo_data_select(ccsds_data,(19)*8,   8),$
@@ -36,6 +36,8 @@ function swfo_stis_ccsds_header_decom,ccsds
   str.noise_period=str.noise_bits and 255u
   str.noise_res=ishft(str.noise_bits,-8) and 7u
   str.pulser_frequency=1./(1e-5*str.noise_period)
+  
+  ;dprint,string(str.apid,format = '("0x",Z3)'),str.time-systime(1)
 
   return,str
 

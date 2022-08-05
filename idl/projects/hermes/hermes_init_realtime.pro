@@ -11,7 +11,7 @@ pro hermes_init_realtime,filenames=filenames,swfo=swfo , exec=exec0, opts=opts
       opts=dictionary()
       opts.root = root_data_dir()
       opts.reldir = 'hermes/data/prelaunch/gsedata/RT/'
-      opts.fileformat = 'YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
+      opts.fileformat = 'YYYY/MM/DD/hermes_swem_socket_YYYYMMDD_hh.dat.gz'
       opts.host = '128.32.98.70'
       opts.port = 2628
       opts.title = 'HERMES PTP'
