@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-07-11 12:00:08 -0700 (Mon, 11 Jul 2022) $
-; $LastChangedRevision: 30920 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2022-08-05 15:10:39 -0700 (Fri, 05 Aug 2022) $
+; $LastChangedRevision: 30999 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_cal_params.pro $
 
 ;This routine should return a structure that contains calibration parameters.
@@ -9,17 +9,17 @@
 function swfo_stis_cal_params,strct,reset=reset
 
   common swfo_stis_cal_params_com, stis_master
-  
+
   if keyword_set(reset) then stis_master = !null
   reset=0
 
   if ~isa(stis_master,'dictionary') then stis_master = dictionary()
 
   if strct.nbins ne 672 then begin
-    dprint, 'Not working with  LUT mode yet'
+    dprint, 'Not working with LUT mode yet'
     return,!null
   endif
-  
+
   if ~stis_master.haskey('cal') then begin
     dprint,'Creating calibration structure for non LUT. FPGA version: ' +strtrim(fix(strct.fpga_rev))  ;+ string(strct.fpga_rev,format='(X)')
     nan= !values.f_nan
@@ -27,8 +27,8 @@ function swfo_stis_cal_params,strct,reset=reset
       bin_resp= {geom:nan,energy:nan,ewidth:nan,tid:0,fto:0,adc_min:0, adc_max:0, species:-1}
       bin_resp= replicate(bin_resp,672)
     endif else     cal = dictionary()
-    kev_per_adc = 1.6   ; kev  approx
-    KEV_dead_layer = 10  ; kev  approx
+    kev_per_adc = 1.   ; kev  approx
+    KEV_dead_layer = 10.  ; kev  approx
     A1 = .2* .01
     A2 = .2* .99
     A3 = .2
@@ -57,6 +57,7 @@ function swfo_stis_cal_params,strct,reset=reset
     bin_resp.fto = fto
     cal = { $
       nbins:672, $
+      n_energy:48, $
       period: 1., $      ;   baseline period (1 second for SWFO;  .87 seconds for HERMES)
       kev_per_adc: kev_per_adc, $
       kev_dead_layer: kev_dead_layer, $
@@ -66,17 +67,15 @@ function swfo_stis_cal_params,strct,reset=reset
       alpha_resp:bin_resp, $
       gamma_resp:bin_resp $
     }
-    w = where(bin_resp.tid eq 1 and bin_resp.fto eq 1)   ; large area electron channel  
+    w = where(bin_resp.tid eq 1 and bin_resp.fto eq 1)   ; large area electron channel
     cal.elec_resp[w].species = 0
     w = where(bin_resp.tid eq 0 and bin_resp.fto eq 1)   ; large area ion channel
     cal.prot_resp[w].species = 1
     stis_master.cal  = cal
-    
+
   endif
-  
-  
-  
+
   return,stis_master.cal
-    
+
 end
 
