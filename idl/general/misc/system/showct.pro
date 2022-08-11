@@ -1,5 +1,5 @@
 ;+
-;PROCEDURE showct, n
+;PROCEDURE showct
 ;   Show the specified color table in a new window.  Does not alter the current
 ;   color table.
 ;
@@ -13,17 +13,19 @@
 ;
 ;SEE ALSO:
 ;   xpalette:  Shows the current color table in an interactive widget.  Provides
-;              much more functionality, but only for the current color table.
+;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-31 19:10:09 -0700 (Sun, 31 Jul 2022) $
-; $LastChangedRevision: 30982 $
+; $LastChangedDate: 2022-08-10 17:22:59 -0700 (Wed, 10 Aug 2022) $
+; $LastChangedRevision: 31010 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse
 
   cols = get_colors()
   crev = keyword_set(color_reverse)
+
+; Load the requested color table
 
   if (n_elements(color_table) gt 0) then begin
     ctab = fix(color_table[0])
@@ -41,6 +43,8 @@ pro showct, color_table, reverse=color_reverse
     endelse
   endelse
 
+; Plot the table in a grid of filled squares
+
   usersym,[-1,-1,1,1,-1],[-1,1,1,-1,-1],/fill
   win,/free,/secondary,xsize=600,ysize=600,dx=10,dy=-10
   plot,[-1],[-1],xrange=[0,4],yrange=[0.5,6.5],xstyle=5,ystyle=5,$
@@ -57,10 +61,32 @@ pro showct, color_table, reverse=color_reverse
   if (crev) then msg = msg + ' (reverse)'
   xyouts,2.0,6.25,msg,align=0.5,charsize=1.8
 
+; Show color indices along the left margin
+
   x = 0.23
   y = 5.97 - findgen(16)/3.
   nums = strtrim(string(16*indgen(16)),2)
   for i=0,15 do xyouts,x,y[i],nums[i],align=1.0,charsize=1.2
+
+; Identify the bottom and top colors
+
+  tvlct, r, g, b, /get
+
+  pen = !p.color
+    i = cols.bottom_c
+    !p.color = (median([r[i],g[i],b[i]]) gt 127B) ? '000000'xl : 'FFFFFF'xl
+    x = [float(cols.bottom_c mod 16)/4.5 + 0.35]
+    y = [5.95 - float(cols.bottom_c/16)/3.]
+    xyouts,x,y,"B",align=0.5,charsize=1.4
+
+    i = cols.top_c
+    !p.color = (median([r[i],g[i],b[i]]) gt 127B) ? '000000'xl : 'FFFFFF'xl
+    x = [float(cols.top_c mod 16)/4.5 + 0.35]
+    y = [5.95 - float(cols.top_c/16)/3.]
+    xyouts,x,y,"T",align=0.5,charsize=1.4
+  !p.color = pen
+
+; Restore the initial color table
 
   if (ctab ne pct || crev ne prev) then $
     if (pct lt 1000) then loadct2,pct,reverse=prev else loadcsv,pct,reverse=prev,/silent
