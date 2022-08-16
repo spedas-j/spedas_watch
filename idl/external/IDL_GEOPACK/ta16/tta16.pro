@@ -114,8 +114,8 @@
 ;  The N-index calculation is implemented in omni2nindex.pro
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2022-05-30 13:08:22 -0700 (Mon, 30 May 2022) $
-; $LastChangedRevision: 30838 $
+; $LastChangedDate: 2022-08-15 09:50:54 -0700 (Mon, 15 Aug 2022) $
+; $LastChangedRevision: 31014 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/tta16.pro $
 ;-
 
@@ -269,10 +269,17 @@ pro tta16, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, symh=symh, symc=symc, $
   else $
     d_out = {x:d.x, y:mag_array}
 
+  if ~keyword_set(geopack_2008) then geopack_2008 = 0
+  pd = 'External magnetic field in nT'
+  desc = 'B Field using Geopack model TA16' 
+  g_att = {input_var: pos_gsm_tvar, input_coord_sys: 'gsm', input_units: 'km', geopack_2008: geopack_2008}
+  data_att = {project:'GEOPACK_DLM', observatory:'B Field', instrument:'TA16', units:'nT', coord_sys:'gsm', description:pd}
+  dlg = {geopack:g_att, data_att: data_att, spec:0, log:0, colors: [2,4,6], labels: ['b_x','b_y','b_z'], ysubtitle: '[nT]', description: desc}
+
   if keyword_set(newname) then begin
-    store_data, newname, data = d_out, dlimits = dl, limits = l
+    store_data, newname, data = d_out, dlimits = dlg
   endif else begin
-    store_data, var_name +'_bta16', data = d_out, dlimits = dl, limits = l
+    store_data, var_name +'_bta16', data = d_out, dlimits = dlg
   endelse
 
   ;signal success

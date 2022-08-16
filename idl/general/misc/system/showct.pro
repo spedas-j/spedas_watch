@@ -16,14 +16,15 @@
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-08-10 17:22:59 -0700 (Wed, 10 Aug 2022) $
-; $LastChangedRevision: 31010 $
+; $LastChangedDate: 2022-08-15 10:27:26 -0700 (Mon, 15 Aug 2022) $
+; $LastChangedRevision: 31015 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse
 
   cols = get_colors()
   crev = keyword_set(color_reverse)
+  wnum = !d.window
 
 ; Load the requested color table
 
@@ -34,14 +35,19 @@ pro showct, color_table, reverse=color_reverse
   endif else begin
     ctab = cols.color_table
     pct = ctab
-    if (crev) then begin
-      if (ctab ge 0 and ctab lt 1000) then loadct2,ctab,previous_ct=pct,reverse=crev,previous_rev=prev
-      if (ctab ge 1000) then loadcsv,ctab,previous_ct=pct,reverse=crev,previous_rev=prev,/silent
+    if (crev && (ctab ge 0)) then begin
+      if (ctab lt 1000) then loadct2,ctab,previous_ct=pct,reverse=crev,previous_rev=prev $
+                        else loadcsv,ctab,previous_ct=pct,reverse=crev,previous_rev=prev,/silent
     endif else begin
       crev = cols.color_reverse
       prev = crev
     endelse
   endelse
+
+  if (ctab lt 0) then begin
+    print,"Color table not defined."
+    return
+  endif
 
 ; Plot the table in a grid of filled squares
 
@@ -88,6 +94,7 @@ pro showct, color_table, reverse=color_reverse
 
 ; Restore the initial color table
 
+  wset, wnum
   if (ctab ne pct || crev ne prev) then $
     if (pct lt 1000) then loadct2,pct,reverse=prev else loadcsv,pct,reverse=prev,/silent
 

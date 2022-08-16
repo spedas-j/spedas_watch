@@ -257,8 +257,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-19 12:18:13 -0700 (Tue, 19 Jul 2022) $
-; $LastChangedRevision: 30946 $
+; $LastChangedDate: 2022-08-15 10:27:57 -0700 (Mon, 15 Aug 2022) $
+; $LastChangedRevision: 31016 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/win.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -382,8 +382,10 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
         endcase
         print, msg
       endfor
-      print,"Title bar width: ", strtrim(string(tbar),2)
-      if (n_elements(color_table) eq 0) then cstr = "not defined" else cstr = strtrim(string(color_table),2)
+      if n_elements(color_table) then begin
+        cstr = strtrim(string(color_table),2)
+        if keyword_set(color_reverse) then cstr += " (reverse)"
+      endif else cstr = "not defined"
       print,"Color table: ", cstr
       print,""
     endelse
@@ -420,6 +422,8 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
     wdelete, w1
     wdelete, w2
     tbar = t2 - (p2[1] - p1[1])
+    print,"Title bar width: ", strtrim(string(tbar),2)
+    blab = 0
     exeunt = 1
   endif
 

@@ -22,8 +22,8 @@ pro hermes_init_realtime,filenames=filenames,swfo=swfo , exec=exec0, opts=opts
     d = opts
     directory = d.root + d.reldir
     case opts.file_type of
-      'ptp_file':   swfo_ptp_recorder,title=d.title,port=d.port, host=d.host, exec_proc='spp_ptp_lun_read',destination=d.fileformat,directory=directory,set_file_timeres=3600d
-      'gse_file':   swfo_recorder,title=d.title,port=2028, host=d.host, exec_proc='spp_gsemsg_lun_read',destination=d.fileformat,directory=directory,set_file_timeres=3600d
+      'ptp_file':   spp_ptp_recorder,title=d.title,port=d.port, host=d.host, exec_proc='spp_ptp_lun_read',destination=d.fileformat,directory=directory,set_file_timeres=3600d
+      'gse_file':   spp_recorder,title=d.title,port=2028, host=d.host, exec_proc='spp_gsemsg_lun_read',destination=d.fileformat,directory=directory,set_file_timeres=3600d
     endcase
   endif
 
