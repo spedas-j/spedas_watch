@@ -69,8 +69,8 @@
 ;       SILENT:  Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-05-26 14:59:42 -0700 (Thu, 26 May 2022) $
-; $LastChangedRevision: 30834 $
+; $LastChangedDate: 2022-08-23 10:52:19 -0700 (Tue, 23 Aug 2022) $
+; $LastChangedRevision: 31034 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/tmean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -142,10 +142,10 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
 
   if (hist) then begin
     twin = !d.window
-    putwin, /free, /secondary, xsize=800, ysize=600, dx=10
+    win, /free, /secondary, xsize=800, ysize=600, dx=10
     hwin = !d.window
     if (core) then begin
-      putwin, /free, relative=hwin, xsize=800, ysize=600, dx=10
+      win, /free, relative=hwin, xsize=800, ysize=600, dx=10
       vwin = !d.window
     endif
   endif

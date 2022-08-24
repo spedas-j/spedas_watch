@@ -257,8 +257,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-08-15 10:27:57 -0700 (Mon, 15 Aug 2022) $
-; $LastChangedRevision: 31016 $
+; $LastChangedDate: 2022-08-23 12:23:44 -0700 (Tue, 23 Aug 2022) $
+; $LastChangedRevision: 31037 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/win.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -387,6 +387,19 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
         if keyword_set(color_reverse) then cstr += " (reverse)"
       endif else cstr = "not defined"
       print,"Color table: ", cstr
+      if (stat gt 1) then begin
+        device, window_state=ws
+        owin = where(ws, count)
+        if (count gt 0L) then begin
+          print,"Open windows:"
+          wsave = !d.window
+          for k=0,(count-1) do begin
+            wset, owin[k]
+            print, owin[k], !d.x_size, !d.y_size, format='(2x,i2," : ",i4," x ",i4)'
+          endfor
+          wset, wsave
+        endif
+      endif
       print,""
     endelse
 
