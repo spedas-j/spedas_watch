@@ -5,7 +5,7 @@
 ; PURPOSE:
 ;         This routine converts full spin resolved fgm data from GEI coordinates to NDW
 ;         spherical coordinates (NDW: N=north (spherical -theta, positive North), D=radial down (spherical -r)
-;         W=west (spherical -phi
+;         W=west (spherical -phi)
 ;
 ; KEYWORDS:
 ;         trange:       time range of interest [starttime, endtime] with the format

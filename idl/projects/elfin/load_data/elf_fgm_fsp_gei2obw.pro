@@ -5,8 +5,8 @@
 ; PURPOSE:
 ;         This routine converts full spin resolved fgm data from GEI coordinates to OBW
 ;         coordinates system, where b is along model field,
-  ;                                 o is normal to b but outwards from Earth
-  ;                                 w is normal to b but westward: w = (rxb)/|rxb|, where r is satellite position
+;                                   o is normal to b but outwards from Earth
+;                                   w is normal to b but westward: w = (rxb)/|rxb|, where r is satellite position
 ; KEYWORDS:
 ;         trange:       time range of interest [starttime, endtime] with the format
 ;                       ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
