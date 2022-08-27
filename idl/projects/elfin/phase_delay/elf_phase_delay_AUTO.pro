@@ -1523,11 +1523,38 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   print, avg_nonmonotonic_frac
   ;if avg_nonmonotonic_frac gt 0 then stop
 
-  check2 = total(n_elements(dat.tstart))
+  ;check2 = total(n_elements(dat.tstart))
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;END OF FITS                                  ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   endoffits: print, 'fits ended'
+  
+  ;PHASE DELAY CSV FILE ARCHIVING
+  ; Read calibration (phase delay) file and store data
+  file = 'el'+probe+'_epde_phase_delays.csv'
+  filedata = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file, header = cols, types = ['String', 'String', 'Float', 'Float','Float','Float','Float','Float', 'String'])
+  dat = CREATE_STRUCT(cols[0], filedata.field1, cols[1], filedata.field2, cols[2], filedata.field3, cols[3],  filedata.field4, cols[4], filedata.field5, cols[5], filedata.field6, cols[6], filedata.field7, cols[7], filedata.field8, cols[8], filedata.field9)
+
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+  ;make a copy of previous existing phase delay file, with date noted (akr)
+
+  ;note current date
+  dateprev = time_string(systime(/seconds),format=2,precision=-3)
+  fileprev = 'el'+probe+'_epde_phase_delays_' + dateprev + '.csv'
+
+  ;create folder for old pdp copies
+  cwdirnametemp=!elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'
+  cd,cwdirnametemp
+  pdpprev_folder = 'pdpcsv_archive'
+  fileresult=file_search(pdpprev_folder)
+  if size(fileresult,/dimen) eq 0 then file_mkdir,pdpprev_folder
+
+  write_csv, !elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/pdpcsv_archive/'+ fileprev, filedata, header = cols
+
+  ;return back to original directory
+  cd, cwdirname + '/' + finalfolder
+  ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ;START OF MEDIAN CALCULATION                  ;
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1714,6 +1741,9 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
     dPhAng2add=LatestMedianPhAng
     ;stop
   endif
+
+  ;note time that this value has been processed (and updated in the csv)
+  timeofprocessing = time_string(systime(/seconds),format=0,precision=0)
   
   xyouts,  .1, .015, 'nspininsum = '+string(my_nspinsinsum2use[0],format='(I2)')+'  sectors = '+string(nspinsectors,format='(I2)'), /normal
   xyouts,  .55, .015, 'Created: '+systime()+ '   flag =' + string(badflag,FORMAT='(I2)'), /normal
@@ -1760,7 +1790,7 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   ;find index where starttime should be
   valid_items = where(starttimes le time_double(tstart)+5.*60.)
   newindex = valid_items[-1]
-  newentry = [string(time_string(tstart)), string(time_string(tend)), string(dSectr2add), string(dPhang2add), string(LatestMedianSectr), string(LatestMedianPhAng), string(badFlag), string(nspinsectors)]
+  newentry = [string(time_string(tstart)), string(time_string(tend)), string(dSectr2add), string(dPhang2add), string(LatestMedianSectr), string(LatestMedianPhAng), string(badFlag), string(nspinsectors), string(timeofprocessing)]
 
   ;figure out if this science zone is new. if not, it has to be appended in a different way.
   n = where(time_double(tstart) lt starttimes-60.*5, old)
@@ -1776,7 +1806,7 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
     for i = 0, n_elements(cols)-1 do begin
       dat.(i)[tbr] = newentry[i]
     endfor
-    newdat = CREATE_STRUCT(cols[0], dat.(0), cols[1], dat.(1), cols[2], dat.(2), cols[3], dat.(3), cols[4], dat.(4), cols[5], dat.(5), cols[6], dat.(6), cols[7], dat.(7))
+    newdat = CREATE_STRUCT(cols[0], dat.(0), cols[1], dat.(1), cols[2], dat.(2), cols[3], dat.(3), cols[4], dat.(4), cols[5], dat.(5), cols[6], dat.(6), cols[7], dat.(7), cols[8], dat.(8))
     print, 'classified as repeat'
 
   endif else begin
@@ -1788,8 +1818,10 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
     LatestMedianPhAngs = [dat.LatestMedianPhAng,newentry[5]]
     badFlags = [dat.badFlag, newentry[6]]
     SectNum = [dat.SectNum, newentry[7]]
-    newdat = CREATE_STRUCT(cols[0], tstarts, cols[1], tends, cols[2], dSectr2adds, cols[3], dPhAng2adds, cols[4], LatestMedianSectrs, cols[5], LatestMedianPhAngs, cols[6], badFlags, cols[7], SectNum)
-
+    proctimes = [dat.timeofprocessing, time_string(newentry[8])]
+    
+    newdat = CREATE_STRUCT(cols[0], tstarts, cols[1], tends, cols[2], dSectr2adds, cols[3], dPhAng2adds, cols[4], LatestMedianSectrs, cols[5], LatestMedianPhAngs, cols[6], badFlags, cols[7], SectNum, cols[8], proctimes)
+    
     sorting = sort(tstarts)
     ;sorting = uniq(tstarts, sort(tstarts))
 
