@@ -22,8 +22,8 @@
 ;                        
 ; NOTES:
 ;       This routine expects elfin elx_fgs_fsp_res_gei and elx_pos_gei data to be loaded in tplot 
-;       variables. If state data is not loaded the routine will load pos data. 
-;       Position data is interpolated so sz_start/end times are needed so data is not interploated 
+;       variables along with state data. 
+;       Position data is interpolated To sz_start/end times are needed so data is not interploated 
 ;       over gaps. 
 ;       Sz_start/end times are passed in from elf_load_fgm rather than determined in this routine.
 ;       This is because elf_fgm_fsp_gei2obw requires sz times also. This way the zone times are not
@@ -50,9 +50,9 @@ pro elf_fgm_fsp_gei2ndw, trange=trange, probe=probe, sz_starttimes=sz_starttimes
     return
   endif
 
-  ; will also need state data. check that is has been loaded
-  if ~spd_data_exists('el'+probe+'_pos_gei',tr[0],tr[1]) then $
-    elf_load_state, probe=probe, trange=tr, no_download=no_download
+  ; will also need state data. check that it's has been loaded
+;  if ~spd_data_exists('el'+probe+'_pos_gei',tr[0],tr[1]) then $
+;    elf_load_state, probe=probe, trange=tr, no_download=no_download
   ; verify that state data was loaded, if not print error and return
   if ~spd_data_exists('el'+probe+'_pos_gei',tr[0],tr[1]) then begin
     dprint, 'There is no data for el'+probe+'_pos_gei for '+ $
@@ -81,23 +81,23 @@ pro elf_fgm_fsp_gei2ndw, trange=trange, probe=probe, sz_starttimes=sz_starttimes
   ; Perform interpolation of position and attide data (then append values and store after loop)
   for i=0,n_elements(sz_starttimes)-1 do begin
     time_clip, 'elx_pos_gei', sz_starttimes[i], sz_endtimes[i], newname='elx_pos_gei_tclipped'
-    time_clip, 'elx_att_gei', sz_starttimes[i], sz_endtimes[i], newname='elx_att_gei_tclipped'
+;    time_clip, 'elx_att_gei', sz_starttimes[i], sz_endtimes[i], newname='elx_att_gei_tclipped'
     time_clip, 'elx_fgs_fsp_res_dmxl', sz_starttimes[i], sz_endtimes[i], newname='elx_fgs_fsp_res_dmxl_tclipped'    
     tinterpol_mxn,'elx_pos_gei_tclipped','elx_fgs_fsp_res_dmxl_tclipped',newname='elx_pos_gei_tclipped' ; get same times as for actual data
-    tinterpol_mxn,'elx_att_gei_tclipped','elx_fgs_fsp_res_dmxl_tclipped',newname='elx_att_gei_tclipped' ; get same times as for actual data
+;    tinterpol_mxn,'elx_att_gei_tclipped','elx_fgs_fsp_res_dmxl_tclipped',newname='elx_att_gei_tclipped' ; get same times as for actual data
     get_data, 'elx_pos_gei_tclipped', data=pos_tclip
-    get_data, 'elx_att_gei_tclipped', data=att_tclip
+;    get_data, 'elx_att_gei_tclipped', data=att_tclip
     append_array, post, pos_tclip.x
     append_array, posx, pos_tclip.y[*,0]
     append_array, posy, pos_tclip.y[*,1]
     append_array, posz, pos_tclip.y[*,2]
-    append_array, attt, att_tclip.x
-    append_array, attx, att_tclip.y[*,0]
-    append_array, atty, att_tclip.y[*,1]
-    append_array, attz, att_tclip.y[*,2]
+;    append_array, attt, att_tclip.x
+;    append_array, attx, att_tclip.y[*,0]
+;    append_array, atty, att_tclip.y[*,1]
+;    append_array, attz, att_tclip.y[*,2]
   endfor
-    store_data, 'elx_pos_gei', data={x:post, y:[[posx],[posy],[posz]]}, dlimits=dlpos, limits=lpos
-  store_data, 'elx_att_gei', data={x:attt, y:[[attx],[atty],[attz]]}, dlimits=dlpos, limits=lpos
+  store_data, 'elx_pos_gei', data={x:post, y:[[posx],[posy],[posz]]}, dlimits=dlpos, limits=lpos
+;  store_data, 'elx_att_gei', data={x:attt, y:[[attx],[atty],[attz]]}, dlimits=dlpos, limits=lpos
 
   ; Convert from GEI coordinates to SM  
   cotrans,'elx_pos_gei','elx_pos_gse',/GEI2GSE

@@ -22,7 +22,7 @@
 ;
 ; NOTES:
 ;       This routine expects elfin elx_fgs_fsp_res_gei and elx_pos_gei data to be loaded in tplot
-;       variables. If state data is not loaded the routine will load pos data.
+;       variables along with state data. 
 ;       Position data is interpolated so sz_start/end times are needed so data is not interploated
 ;       over gaps.
 ;       Sz_start/end times are passed in from elf_load_fgm rather than determined in this routine.
@@ -45,8 +45,8 @@ pro elf_fgm_fsp_gei2obw, trange=trange, probe=probe, sz_starttimes=sz_starttimes
   endif
 
   ; will also need state data. check that is has been loaded
-  if not spd_data_exists('el'+probe+'_pos_gei',tr[0],tr[1]) then $
-    elf_load_state, probe=probe, trange=tr, no_download=no_download
+;  if not spd_data_exists('el'+probe+'_pos_gei',tr[0],tr[1]) then $
+;    elf_load_state, probe=probe, trange=tr, no_download=no_download
   ; verify that state data was loaded, if not print error and return
   if not spd_data_exists('el'+probe+'_pos_gei',tr[0],tr[1]) then begin
     dprint, 'There is no data for el'+probe+'_pos_gei for '+ $
