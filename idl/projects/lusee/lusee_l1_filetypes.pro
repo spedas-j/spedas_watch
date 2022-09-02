@@ -4,13 +4,13 @@
 ;   lusee_l1_filetypes
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2022-08-30 09:41:59 -0700 (Tue, 30 Aug 2022) $
-; $LastChangedRevision: 31059 $
+; $LastChangedDate: 2022-08-31 22:07:53 -0700 (Wed, 31 Aug 2022) $
+; $LastChangedRevision: 31065 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/lusee/lusee_l1_filetypes.pro $
 ;
 ;-
 
-function lusee_l1_filetypes, match_string
+function lusee_l1_filetypes, match_string, tmlib = tmlib
 
   if n_elements(match_string) EQ 0 then match_string = '*'
 
@@ -70,11 +70,26 @@ function lusee_l1_filetypes, match_string
     'rfs_lfr_hires', $
     'rfs_rawspectra', $
     'rfs_waveform']
-    
-    match_ind = $
-      WHERE(STRMATCH(all_l1_filetypes, match_string, /FOLD) EQ 1, match_count)
 
-    if match_count GT 0 then return, all_l1_filetypes[match_ind] else $
-      return, []
+  match_ind = $
+    WHERE(STRMATCH(all_l1_filetypes, match_string, /FOLD) EQ 1, match_count)
+
+  if match_count GT 0 then match_types = all_l1_filetypes[match_ind] $
+  else return, []
+
+  if keyword_set(tmlib) then begin
+
+    match_tmlib_ind = stregex(match_types, '[0-9]+$')
+
+    for i = 0, n_elements(match_tmlib_ind)-1 do begin
+
+      if match_tmlib_ind[i] GT 0 then $
+        match_types[i] = (match_types[i]).Insert('_', match_tmlib_ind[i])
+
+    endfor
+
+  endif
+
+  return, match_types
 
 end
