@@ -113,9 +113,9 @@
 ;
 ;  The N-index calculation is implemented in omni2nindex.pro
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2022-08-15 09:50:54 -0700 (Mon, 15 Aug 2022) $
-; $LastChangedRevision: 31014 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2022-09-16 16:30:39 -0700 (Fri, 16 Sep 2022) $
+; $LastChangedRevision: 31098 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/tta16.pro $
 ;-
 
@@ -123,7 +123,7 @@ pro tta16, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, symh=symh, symc=symc, $
   xind=xind, parmod=parmod, period=period, $
   get_nperiod=get_nperiod, newname=newname, error=error, get_tilt=get_tilt, $
   set_tilt=set_tilt, add_tilt=add_tilt, geopack_2008=geopack_2008, $
-  exact_tilt_times=exact_tilt_times
+  exact_tilt_times=exact_tilt_times, skip_ta16_load=skip_ta16_load
 
   COMPILE_OPT idl2
   error = 0
@@ -238,17 +238,17 @@ pro tta16, pos_gsm_tvar, pdyn=pdyn, yimf=yimf, symh=symh, symc=symc, $
     mag_array = ta16(d.x, d.y/6371.2, pdyn_dat, yimf_dat, symc_dat, xind_dat, $
       period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat, set_tilt=set_tilt_dat, $
-      geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times)
+      geopack_2008=geopack_2008, exact_tilt_times=exact_tilt_times,skip_ta16_load=skip_ta16_load)
   endif else if n_elements(add_tilt) gt 0 then begin
     mag_array = ta16(d.x, d.y/6371.2, pdyn_dat, yimf_dat, symc_dat, xind_dat, $
       period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat, add_tilt=add_tilt_dat, $
-      exact_tilt_times=exact_tilt_times)
+      exact_tilt_times=exact_tilt_times,skip_ta16_load=skip_ta16_load)
   endif else begin
     mag_array = ta16(d.x, d.y/6371.2, pdyn_dat, yimf_dat, symc_dat, xind_dat, $
       period=period, get_nperiod=get_nperiod, $
       get_period_times=period_times_dat, get_tilt=tilt_dat,geopack_2008=geopack_2008, $
-      exact_tilt_times=exact_tilt_times)
+      exact_tilt_times=exact_tilt_times, skip_ta16_load=skip_ta16_load)
   endelse
 
   if size(mag_array, /n_dim) eq 0 && mag_array[0] eq -1L then begin

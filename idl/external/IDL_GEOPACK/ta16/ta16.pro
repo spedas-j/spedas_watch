@@ -83,16 +83,16 @@
 ;
 ;  The N-index calculation is implemented in omni2nindex.pro
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2022-06-15 12:14:26 -0700 (Wed, 15 Jun 2022) $
-; $LastChangedRevision: 30860 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2022-09-16 16:30:39 -0700 (Fri, 16 Sep 2022) $
+; $LastChangedRevision: 31098 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/ta16.pro $
 ;-
 
 function ta16,tarray,rgsm_array,pdyn,yimf,symc,xind, $
   period=period,add_tilt=add_tilt,get_tilt=get_tilt,set_tilt=set_tilt, $
   get_nperiod=get_nperiod,get_period_times=get_period_times,geopack_2008=geopack_2008, $
-  exact_tilt_times=exact_tilt_times
+  exact_tilt_times=exact_tilt_times, skip_ta16_load=skip_ta16_load
 
   COMPILE_OPT idl2
   if ta16_supported() eq 0 then return, -1L
@@ -100,10 +100,12 @@ function ta16,tarray,rgsm_array,pdyn,yimf,symc,xind, $
   ;sanity tests, setting defaults
   if undefined(geopack_2008) then geopack_2008=0
   if undefined(exact_tilt_times) then exact_tilt_times=0
+  if undefined(skip_ta16_load) then skip_ta16_load=0
   if igp_test(geopack_2008=geopack_2008) eq 0 then return, -1L
   if not keyword_set(period) then period = 600
 
-
+  if (skip_ta16_load eq 0) then ta16_setpath
+  
   if period le 0. then begin
     message, /continue, 'period must be positive'
     return, -1L

@@ -16,9 +16,9 @@
 ;Notes:
 ;       Requires GEOPACK 10.9 or higher
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2022-05-30 13:08:22 -0700 (Mon, 30 May 2022) $
-; $LastChangedRevision: 30838 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2022-09-15 18:51:58 -0700 (Thu, 15 Sep 2022) $
+; $LastChangedRevision: 31088 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/symh2symc.pro $
 ;-
 
@@ -67,7 +67,7 @@ pro symh2symc, symh=symh, pdyn=pdyn, trange=trange, newname=newname
   tinterpol_mxn,symh,ntimes,/ignore_nans,out=symh_interp
   tinterpol_mxn,pdyn,ntimes,/ignore_nans,out=pdyn_interp
 
-  if n_tags(symh_interp) eq 2 && n_tags(pdyn_interp) eq 2 then begin
+  if n_tags(symh_interp) ge 2 && n_tags(pdyn_interp) ge 2 then begin
     if n_elements(symh_interp.y) gt 0 && n_elements(symh_interp.y) eq n_elements(pdyn_interp.y) then begin
       symh_interpy = symh_interp.y
       pdyn_interpy = pdyn_interp.y

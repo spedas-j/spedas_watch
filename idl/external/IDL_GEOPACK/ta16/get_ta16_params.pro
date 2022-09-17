@@ -1,3 +1,4 @@
+
 ;+
 ;TODO
 ; PROCEDURE: get_ta16_params
@@ -56,9 +57,9 @@
 ;   TA15N: Ten-element array parmod: (1) Pdyn [nPa], (2) IMF By [nT], (3) IMF Bz [nT], (4) XIND
 ;   TA16: Ten-element array parmod: (1) Pdyn [nPa], (2) SymHc, (3) XIND, (4) IMF By [nT].
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2022-08-10 12:15:13 -0700 (Wed, 10 Aug 2022) $
-; $LastChangedRevision: 31007 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2022-09-16 16:28:36 -0700 (Fri, 16 Sep 2022) $
+; $LastChangedRevision: 31097 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/get_ta16_params.pro $
 ;-
 pro get_ta16_params,imf_tvar=imf_tvar,Np_tvar=Np_tvar,Vp_tvar=Vp_tvar,xind_tvar=xind_tvar, symh=symh, symc=symc,pressure_tvar=pressure_tvar, imf_yz=imf_yz, newname=newname,trange=trange,speed=speed,model=model
@@ -125,7 +126,11 @@ pro get_ta16_params,imf_tvar=imf_tvar,Np_tvar=Np_tvar,Vp_tvar=Vp_tvar,xind_tvar=
   endif else if (strlowcase(model) eq 'ta15b') && ((size(xind_tvar,/type) ne 7 )|| (tnames(xind_tvar) eq ''))  then begin
     den_flag = 1
     spd_flag = 1
-  endif else if (strlowcase(model) eq 'ta15n') && ((size(xind_tvar,/type) ne 7) || (tnames(xind_tvar) eq '')) then spd_flag = 1
+  endif else if (strlowcase(model) eq 'ta15n') && ((size(xind_tvar,/type) ne 7) || (tnames(xind_tvar) eq '')) then begin
+    spd_flag = 1
+  endif else if (strlowcase(model) eq 'ta16') && ((size(xind_tvar,/type) ne 7) || (tnames(xind_tvar) eq '')) then begin
+    spd_flag = 1
+  endif
 
 
   if den_flag then begin
@@ -203,9 +208,10 @@ pro get_ta16_params,imf_tvar=imf_tvar,Np_tvar=Np_tvar,Vp_tvar=Vp_tvar,xind_tvar=
   endelse
 
   ; If symc is provided, use it, otherwise compute it from symh
-  if n_elements(symc) gt 0 then begin
+  if ((size(symc,/type) eq 7) && (tnames(symc) ne '')) then begin
     symc_dat = symc
-  endif else if n_elements(symh) gt 0 then begin
+  endif else if ((size(symh,/type) eq 7) && (tnames(symh) ne '')) then begin
+    dprint,'SYM-HC variable not supplied, calculating from raw SYM-H and pressure'
     symcn=symh+'_cn'
     pres_var='pres_var'
     store_data, pres_var, data={x:ntimes, y:pram}
@@ -214,15 +220,16 @@ pro get_ta16_params,imf_tvar=imf_tvar,Np_tvar=Np_tvar,Vp_tvar=Vp_tvar,xind_tvar=
     symc = symcn
   endif
 
-  if(size(symc_dat, /n_dim) eq 0 && symc_dat[0] eq -1L) then begin
-    dprint, 'There is a problem with symc_dat'
-    sym_val = make_array(n_elements(ntimes), /double)
-  endif else begin
+; Removed some questionable validation logic here (appeared to be treating symc_dat as a numeric array?)
+; Perhaps there is a failure mode in symh2symc that still needs to be checked here.  JWL 2022-09-16
+
     get_data, symc_dat, data=ds
     sym_times = ds.x
     sym_y = ds.y
     sym_val = interpol(sym_y, sym_times, ntimes)
-  endelse
+
+;    
+;help,sym_val
 
   par = {x:ntimes,y:[[pram],[sym_val],[xind],[imf_y],[dblarr(n)],[dblarr(n)],[dblarr(n)],[dblarr(n)],[dblarr(n)],[dblarr(n)]]}
   if not keyword_set(newname) then begin

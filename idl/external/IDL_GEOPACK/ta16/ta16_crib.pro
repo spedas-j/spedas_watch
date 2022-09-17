@@ -5,9 +5,9 @@
 ;         Similar to ta15n_crib.pro.
 ;
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2022-08-10 12:18:03 -0700 (Wed, 10 Aug 2022) $
-; $LastChangedRevision: 31008 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2022-09-16 16:30:39 -0700 (Fri, 16 Sep 2022) $
+; $LastChangedRevision: 31098 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/ta16_crib.pro $
 ;-
 
@@ -81,19 +81,24 @@ pro ta16_crib
 
 
   ; Trace to equator
+  
+  ; The previous call to tta16 has already set the internal path to the GEOPACK TA16 parameter file.   The
+  ; skip_ta16_load=1 parameter avoids loading it again redundantly (although this is harmless).
 
   ttrace2equator,'tha_state_pos',trace_var_name='tha_state_pos_ta16_etrace', newname='tha_state_pos_ta16_trace_efoot',external_model=model, $
-    par='ta16_par',/km, error=trace_to_eq_error
+    par='ta16_par',/km, error=trace_to_eq_error, skip_ta16_load=1
 
   tplot,'tha_state_pos_ta16_trace_efoot'
 
   stop
 
   ; Trace to ionosphere using the calculated Pdyn with f_alpha=0.04, using the GEOPACK_2008 set of routines
-  ; Here we pass the previously calculated model parameters by keyword.
+  ; Here we pass the previously calculated model parameters by keyword.  We use skip_ta16_load=1 again because the
+  ; internal path to the parameter file is still correct.
 
   ttrace2iono,'tha_state_pos',trace_var_name='tha_state_pos_ta16_itrace', newname='tha_state_pos_ta16_trace_ifoot',external_model=model, $
-    pdyn='Pdyn_4pct',yimf='OMNI_HRO_5min_BY_GSM',zimf='OMNI_HRO_5min_BZ_GSM', symc=symc, xind='n_index',/km, error=trace_to_iono_error,/geopack_2008
+    pdyn='Pdyn_4pct',yimf='OMNI_HRO_5min_BY_GSM',zimf='OMNI_HRO_5min_BZ_GSM', symc=symc, xind='n_index',/km, error=trace_to_iono_error,$
+    skip_ta16_load=1,/geopack_2008
 
   tplot,'tha_state_pos_ta16_trace_ifoot'
 
