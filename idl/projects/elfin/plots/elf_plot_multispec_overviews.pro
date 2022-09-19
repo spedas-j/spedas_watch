@@ -50,6 +50,9 @@ pro elf_plot_multispec_overviews, date, dur=dur, probe=probe, no_download=no_dow
       no_download=no_download, sci_zone=sci_zone, quick_run=quick_run
     ; remove temporary science zone tplot vars
     del_data, 'el'+probe+'_*sz*'
+    epdi_plot_overviews, trange=[start_time, end_time], probe=probe, $
+      no_download=no_download, quick_run=quick_run
+    del_data, 'el'+probe+'_*sz*'
   endfor 
   
 end
