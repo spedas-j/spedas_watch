@@ -127,7 +127,7 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   FILE_MKDIR,finalfolder ; make new folder
   CD,finalfolder
 
-  if ~keyword_set(onlypng) then onlypng=0
+  if ~keyword_set(onlypng) then onlypng=1
   if ~keyword_set(outputplot) then outputplot=0
   
   if onlypng eq 1 then begin
@@ -151,7 +151,7 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   ; Read calibration (phase delay) file and store data
   file = 'el'+probe+'_epde_phase_delays.csv'
   filedata = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/calibration_files/'+file, header = cols, types = ['String', 'String', 'Float', 'Float','Float','Float','Float','Float'])
-  dat = CREATE_STRUCT(cols[0], filedata.field1, cols[1], filedata.field2, cols[2], filedata.field3, cols[3],  filedata.field4, cols[4], filedata.field5, cols[5], filedata.field6, cols[6], filedata.field7, cols[7], filedata.field8)
+  dat = CREATE_STRUCT(cols[0], filedata.field1, cols[1], filedata.field2, cols[2], filedata.field3, cols[3],  filedata.field4, cols[4], filedata.field5, cols[5], filedata.field6, cols[6], filedata.field7, cols[7], filedata.field8, cols[8], filedata.field9)
   
   
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
