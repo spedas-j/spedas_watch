@@ -379,11 +379,29 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     timespan, sz_tr[0], tdur, /sec
     this_tr=timerange()
 
+    ; get sector and phase delay for this zone
+    phase_delay = elf_find_phase_delay(trange=sz_tr, probe=probe, instrument='epde', no_download=no_download)
+    if finite(phase_delay.dsect2add[0]) then dsect2add=fix(phase_delay.dsect2add[0]) $
+    else dsect2add=phase_delay.dsect2add[0]
+    dphang2add=float(phase_delay.dphang2add[0])
+    badflag=fix(phase_delay.badflag)
+    if dphang2add LT 0 then dphang_string=strmid(strtrim(string(dphang2add),1),0,5) else $
+      dphang_string=strmid(strtrim(string(dphang2add),1),0,4)
+    if undefined(badflag) then badflag=2
+    if badflag NE 0 then badflag_str=', BadFlag set' else badflag_str=''
+    case badflag of
+      0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Good Fit' + epd_completeness_str
+      1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Bad Fit' + epd_completeness_str
+      2: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', No Fit' + epd_completeness_str
+      else: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Bad Fit' + epd_completeness_str
+    endcase
+
     foreach myspecies, ['e','i'] do begin
       elf_load_epd, probes=bird, datatype='p'+myspecies+'f', type='raw' ; DEFAULT UNITS ARE NFLUX
       get_data, 'el'+bird+'_p'+myspecies+'f_raw', data=tdata
       if size(tdata, /type) NE 8 then continue
-      elf_getspec,probe=bird,species=myspecies,type = 'raw'; default is [[0,2],[3,5],[6,8],[9,15]] == [[50,160],[160,345],[345,900],[>900]]
+;      elf_getspec,probe=bird,species=myspecies,type = 'raw'; default is [[0,2],[3,5],[6,8],[9,15]] == [[50,160],[160,345],[345,900],[>900]]
+      elf_getspec,probe=bird,species=myspecies,type = 'raw',dSect2add=dsect2add, dSpinPh2add=dphang2add; default is [[0,2],[3,5],[6,8],[9,15]] == [[50,160],[160,345],[345,900],[>900]]
       get_data,'el'+bird+'_p'+myspecies+'f_losscone',data=elx_pxf_losscone ; in order to determine down need to know hemisphere
       if median(elx_pxf_losscone.y) lt 90. then begin
         hemisphere = 'north'
@@ -405,7 +423,8 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       ;
       ; reload electron data in flux units
       elf_load_epd, probes=bird, datatype='p'+myspecies+'f', type='nflux' ; DEFAULT UNITS ARE NFLUX ANYWAY
-      elf_getspec,probe=bird,species=myspecies,type = 'nflux'; default is [[0,2],[3,5],[6,8],[9,15]] == [[50,160],[160,345],[345,900],[>900]]
+;      elf_getspec,probe=bird,species=myspecies,type = 'nflux'; default is [[0,2],[3,5],[6,8],[9,15]] == [[50,160],[160,345],[345,900],[>900]]
+      elf_getspec,probe=bird,species=myspecies,type = 'nflux',dSect2add=dsect2add, dSpinPh2add=dphang2add; default is [[0,2],[3,5],[6,8],[9,15]] == [[50,160],[160,345],[345,900],[>900]]
       ;
       ; Now calculate and plot the flux ratios for the prec-over-perp energy spectra
       copy_data,'el'+bird+'_p'+myspecies+'f_en_spec2plot_'+dnval,'elx_pxf_en_spec2plot_prec' ; prec(ipitating) means down-going
@@ -553,7 +572,7 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
 
     if spd_data_exists('el'+probe+'_pef_nflux',sz_tr[0],sz_tr[1]) then begin
       xyouts, .0085, .012, spin_str, /normal, charsize=.75
-;      xyouts, .0085, .001, phase_msg, /normal, charsize=.75
+      xyouts, .0085, .001, phase_msg, /normal, charsize=.75
     endif
 
     ; save for later
@@ -841,7 +860,7 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       tr=timerange()
 
       fd=file_dailynames(trange=tr[0], /unique, times=times)
-      tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+sz_plot_lbl
+      tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+plot_lbl[i]
       title=''
       title='PRELIMINARY ELFIN-'+strupcase(probe)+' EPDI, alt='+strmid(strtrim(alt,1),0,3)+'km, '+tstring
       xyouts, .175, .975, title, /normal, charsize=1.1
@@ -888,7 +907,7 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     
     tr=timerange()
     fd=file_dailynames(trange=tr[0], /unique, times=times)
-    tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+sz_plot_lbl
+    tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+plot_lbl[i]
     title=''
     title='PRELIMINARY ELFIN-'+strupcase(probe)+' EPDE/EPDI, alt='+strmid(strtrim(alt,1),0,3)+'km, '+tstring
     xyouts, .175, .975, title, /normal, charsize=1.1

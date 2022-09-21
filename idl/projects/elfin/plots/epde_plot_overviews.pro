@@ -772,7 +772,6 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
           'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
           'el'+probe+'_bt89_sm_NEDT'], $
            var_label=varstring
-stop
  ;     endif else begin        
  ;        tplot,['proxy_ae', $
  ;         'fgm_survey_bar', $

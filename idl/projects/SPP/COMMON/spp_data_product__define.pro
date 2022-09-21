@@ -1,9 +1,9 @@
 ;+
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
-; $LastChangedBy: orlando $
-; $LastChangedDate: 2022-09-16 13:48:19 -0700 (Fri, 16 Sep 2022) $
-; $LastChangedRevision: 31094 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2022-09-20 11:18:04 -0700 (Tue, 20 Sep 2022) $
+; $LastChangedRevision: 31107 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -135,7 +135,7 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
     endif else begin
       if n_elements(index) gt 1 && keyword_set(sum) then begin
         dprint,n_elements(index),verbose=verbose,dlevel=2
-        dats = sumdata(dats,trange=tr)
+        ;dats = sumdata(dats,trange=tr) ;bug! please fix before committing...
       endif else begin
         if isa(trange) then dprint,dlevel=3,verbose=verbose,'returning all values within range'
       endelse
