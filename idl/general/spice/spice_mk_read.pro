@@ -29,8 +29,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2022-06-22 12:14:15 -0700 (Wed, 22 Jun 2022) $
-; $LastChangedRevision: 30873 $
+; $LastChangedDate: 2022-09-21 15:55:35 -0700 (Wed, 21 Sep 2022) $
+; $LastChangedRevision: 31120 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/spice_mk_read.pro $
 ;
 ;-
@@ -65,6 +65,7 @@ FUNCTION spice_mk_read, file, remote_data_dir=rpath, verbose=verbose, kernels_tr
      w = WHERE(kernels.contains('$KERNELS') EQ 1, nfile)
      IF nfile GT 0 THEN kernels = kernels[w]
      kernels = kernels.compress()
+     kernels = kernels.extract("'+[[:alnum:][:punct:]]+'")
      kernels = kernels.substring(1, -2)
 
      IF undefined(rpath) THEN path = ((mk[0]).split('mk/'))[0] $

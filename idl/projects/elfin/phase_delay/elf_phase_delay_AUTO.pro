@@ -263,7 +263,7 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
     endif
   endif else begin
     tstartendtimes4pa2plot=time_double([tstart,tend]) ; do fits on full interval
-    tplot,['el'+probe+'_pef_'+mytype+'_orig','el'+probe+'_pef_sectnum'],title=time_string(tstartendtimes4pa2plot[0])+' - '+strmid(time_string(tstartendtimes4pa2plot[1]),11,8)+' UT    '+hemisp+' el'+probe
+    tplot,['el'+probe+'_pef_'+mytype+'_orig','el'+probe+'_pef_sectnum'],title=' EPD Electrons EL-'+strupcase(probe)+', '+time_string(tstartendtimes4pa2plot[0])+' - '+strmid(time_string(tstartendtimes4pa2plot[1]),11,8)+' UT, '+hemisp
     timebar,time_string(tstartendtimes4pa2plot)
     makepng,'pef_counts'
     ;stop
@@ -1169,8 +1169,8 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
   plotxy,[[reform(pa2plots_even[0,*])],[reform(pef2plots_even[0,*])]], $
     xrange=[-5.,185.],yrange=[miny,maxy],/ylog,/noisotropic, $
     xsize=800.,ysize=500.,psym=-2,colors=['r'], xmargin=[xmargin1,xmargin2],$
-    title=time_string(tstartendtimes4pa2plot[0])+' - '+strmid(time_string(tstartendtimes4pa2plot[1]),11,8)+ $
-    ' UT'+' el'+probe+'!c dSectr2add = '+strtrim(string(dSectr2add,format="(I7)"),1)+', dPhAng2add = '+strtrim(string(dPhAng2add,format="(f6.2)"),1)+'deg, dPA290_est='+string(deltaPA_est,format="(f6.1)")+'deg',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
+    title=' EPD Electrons EL-'+strupcase(probe)+', '+time_string(tstartendtimes4pa2plot[0])+' - '+strmid(time_string(tstartendtimes4pa2plot[1]),11,8)+ $
+    ' UT, !c dSectr2add = '+strtrim(string(dSectr2add,format="(I7)"),1)+', dPhAng2add = '+strtrim(string(dPhAng2add,format="(f6.2)"),1)+'deg, dPA290_est='+string(deltaPA_est,format="(f6.1)")+'deg',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
   plotxy,[[reform(pa2plots_odd[0,*])],[reform(pef2plots_odd[0,*])]],/over,psym=-1,colors=['b'],title=' ',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
   for jthspec=0,n_elements(ispeceven)-1 do plotxy,[[reform(pa2plots_even[jthspec,*])],[reform(pef2plots_even[jthspec,*])]],/over,psym=-1,colors=['r'],title=' ',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
   for jthspec=0,n_elements(ispeceven)-1 do plotxy,[[pafitminus90_even[jthspec]+90.,pafitminus90_even[jthspec]+90.],[0.2*maxy,maxy]],/over,colors=['r'],title=' ',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
@@ -1441,8 +1441,8 @@ pro elf_phase_delay_AUTO, pick_times=pick_times, new_config=new_config, probe=pr
     plotxy,[[reform(pa2plots_even[0,*])],[reform(pef2plots_even[0,*])]], $
       xrange=[-5.,185.],yrange=[miny,maxy],/ylog,/noisotropic, $
       xsize=800.,ysize=500.,psym=-2,colors=['r'], xmargin=[xmargin1,xmargin2],$
-      title=time_string(tstartendtimes4pa2plot[0])+' - '+strmid(time_string(tstartendtimes4pa2plot[1]),11,8)+ $
-      ' UT'+' el'+probe+'!c dSectr2add = '+strtrim(string(dSectr2add,format="(I7)"),1)+', dPhAng2add = '+strtrim(string(dPhAng2add,format="(f6.2)"),1)+'deg, dPA290_est='+string(deltaPA_est,format="(f6.1)")+'deg',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
+      title=' EPD Electrons EL-'+strupcase(probe)+', '+time_string(tstartendtimes4pa2plot[0])+' - '+strmid(time_string(tstartendtimes4pa2plot[1]),11,8)+ $
+      ' UT !c dSectr2add = '+strtrim(string(dSectr2add,format="(I7)"),1)+', dPhAng2add = '+strtrim(string(dPhAng2add,format="(f6.2)"),1)+'deg, dPA290_est='+string(deltaPA_est,format="(f6.1)")+'deg',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
     plotxy,[[reform(pa2plots_odd[0,*])],[reform(pef2plots_odd[0,*])]],/over,psym=-1,colors=['b'],title=' ',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
     for jthspec=0,n_elements(ispeceven)-1 do plotxy,[[reform(pa2plots_even[jthspec,*])],[reform(pef2plots_even[jthspec,*])]],/over,psym=-1,colors=['r'],title=' ',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
     for jthspec=0,n_elements(ispeceven)-1 do plotxy,[[pafitminus90_even[jthspec]+90.,pafitminus90_even[jthspec]+90.],[0.2*maxy,maxy]],/over,colors=['r'],title=' ',xtitle='PA [deg]',ytitle='nflux [#/(cm^2 s sr MeV)]'
