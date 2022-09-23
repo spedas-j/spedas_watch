@@ -69,6 +69,10 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = my
     if ~undefined(userprobe) then begin
       if probe ne userprobe then continue ; if userprobe defined 
     endif 
+    if probe EQ 'a' AND starttime GT time_double('2022-09-12/00:00:00') then begin
+      dprint, 'There is no valid orbit or EPD data past 2022-09-11.'
+      return
+    endif
 
     if keyword_set(create_avai) then begin
       days = (time_double(endtime) - time_double(starttime))/(60.*60.*24.)

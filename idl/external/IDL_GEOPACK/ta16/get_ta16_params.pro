@@ -54,15 +54,14 @@
 ;
 ; Notes:
 ;   Modified from get_ta15_params.
-;   TA15N: Ten-element array parmod: (1) Pdyn [nPa], (2) IMF By [nT], (3) IMF Bz [nT], (4) XIND
 ;   TA16: Ten-element array parmod: (1) Pdyn [nPa], (2) SymHc, (3) XIND, (4) IMF By [nT].
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2022-09-16 16:28:36 -0700 (Fri, 16 Sep 2022) $
-; $LastChangedRevision: 31097 $
+; $LastChangedDate: 2022-09-22 15:29:33 -0700 (Thu, 22 Sep 2022) $
+; $LastChangedRevision: 31124 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/get_ta16_params.pro $
 ;-
-pro get_ta16_params,imf_tvar=imf_tvar,Np_tvar=Np_tvar,Vp_tvar=Vp_tvar,xind_tvar=xind_tvar, symh=symh, symc=symc,pressure_tvar=pressure_tvar, imf_yz=imf_yz, newname=newname,trange=trange,speed=speed,model=model
+pro get_ta16_params,imf_tvar=imf_tvar,Np_tvar=Np_tvar,Vp_tvar=Vp_tvar,xind_tvar=xind_tvar, symh_tvar=symh_tvar, symc_tvar=symc_tvar,pressure_tvar=pressure_tvar, imf_yz=imf_yz, newname=newname,trange=trange,speed=speed,model=model
 
   COMPILE_OPT idl2
   model = 'ta16'
@@ -123,12 +122,7 @@ pro get_ta16_params,imf_tvar=imf_tvar,Np_tvar=Np_tvar,Vp_tvar=Vp_tvar,xind_tvar=
   if (size(pressure_tvar,/type) ne 7) || (tnames(pressure_tvar) eq '') then begin
     den_flag = 1
     spd_flag = 1
-  endif else if (strlowcase(model) eq 'ta15b') && ((size(xind_tvar,/type) ne 7 )|| (tnames(xind_tvar) eq ''))  then begin
-    den_flag = 1
-    spd_flag = 1
-  endif else if (strlowcase(model) eq 'ta15n') && ((size(xind_tvar,/type) ne 7) || (tnames(xind_tvar) eq '')) then begin
-    spd_flag = 1
-  endif else if (strlowcase(model) eq 'ta16') && ((size(xind_tvar,/type) ne 7) || (tnames(xind_tvar) eq '')) then begin
+  endif else if ((size(xind_tvar,/type) ne 7) || (tnames(xind_tvar) eq '')) then begin
     spd_flag = 1
   endif
 
@@ -197,25 +191,21 @@ pro get_ta16_params,imf_tvar=imf_tvar,Np_tvar=Np_tvar,Vp_tvar=Vp_tvar,xind_tvar=
 
     xind = interpol(xind_vals,xind_times,ntimes)
   endif else begin
-
     ; Calculate N-index
     ; No need to interpolate to ntimes, since the imf, den, and spd are already interpolated
-    if strlowcase(model) eq 'ta16' then begin
-      dprint,'N-index variable not supplied, calculating from IMF and speed'
-      xind = omni2nindex(yimf=imf_y, zimf=imf_z, V_p=spd)
-    endif else message,model+' not recognized as a TA16 model name.'
-
+    dprint,'N-index variable not supplied, calculating from IMF and speed'
+    xind = omni2nindex(yimf=imf_y, zimf=imf_z, V_p=spd)
   endelse
 
   ; If symc is provided, use it, otherwise compute it from symh
-  if ((size(symc,/type) eq 7) && (tnames(symc) ne '')) then begin
-    symc_dat = symc
-  endif else if ((size(symh,/type) eq 7) && (tnames(symh) ne '')) then begin
+  if ((size(symc_tvar,/type) eq 7) && (tnames(symc_tvar) ne '')) then begin
+    symc_dat = symc_tvar
+  endif else if ((size(symh_tvar,/type) eq 7) && (tnames(symh_tvar) ne '')) then begin
     dprint,'SYM-HC variable not supplied, calculating from raw SYM-H and pressure'
-    symcn=symh+'_cn'
+    symcn=symh_tvar+'_cn'
     pres_var='pres_var'
     store_data, pres_var, data={x:ntimes, y:pram}
-    symh2symc, symh=symh, pdyn=pres_var, trange=trange, newname=symcn
+    symh2symc, symh=symh_tvar, pdyn=pres_var, trange=trange, newname=symcn
     symc_dat = symcn
     symc = symcn
   endif

@@ -6,8 +6,8 @@
 ;
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2022-09-16 16:30:39 -0700 (Fri, 16 Sep 2022) $
-; $LastChangedRevision: 31098 $
+; $LastChangedDate: 2022-09-22 15:30:50 -0700 (Thu, 22 Sep 2022) $
+; $LastChangedRevision: 31125 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/ta16/ta16_crib.pro $
 ;-
 
@@ -77,7 +77,7 @@ pro ta16_crib
   ; Internal pressure calculation uses the default f_alpha of 0.04,
   ; get_tsy_params calls this routine internally if the 'ta15n' or 'ta15b' models are specified.
 
-  get_ta16_params,symh='OMNI_HRO_5min_SYM_H',symc=symc,imf_tvar='omni_imf',/imf_yz,Np_tvar= 'OMNI_HRO_5min_proton_density',Vp_tvar='OMNI_HRO_5min_flow_speed',/speed
+  get_ta16_params,symh_tvar='OMNI_HRO_5min_SYM_H',symc_tvar=symc,imf_tvar='omni_imf',/imf_yz,Np_tvar= 'OMNI_HRO_5min_proton_density',Vp_tvar='OMNI_HRO_5min_flow_speed',/speed
 
 
   ; Trace to equator
