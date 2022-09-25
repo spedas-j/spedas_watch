@@ -86,7 +86,9 @@ pro elf_fgm_fsp_gei2obw, trange=trange, probe=probe, sz_starttimes=sz_starttimes
 
   store_data, 'elx_pos_gei', data={x:post, y:[[posx],[posy],[posz]]}, dlimits=dlpos, limits=lpos
   store_data, 'elx_att_gei', data={x:attt, y:[[attx],[atty],[attz]]}, dlimits=dlpos, limits=lpos
-
+  
+  tinterpol_mxn,'elx_pos_gei','elx_fgs_fsp_igrf_dmxl',newname='elx_pos_gei' ; get same times as for actual data
+  tinterpol_mxn,'elx_att_gei','elx_fgs_fsp_igrf_dmxl',newname='elx_att_gei' ; get same times as for actual data
   ;
   ; Rotate to FAC (obw)
   ;   get b first by normalizing the model field (IGRF)
