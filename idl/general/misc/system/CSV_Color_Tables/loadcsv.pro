@@ -73,27 +73,39 @@
 ;       PREVIOUS_REV: Named variable to hold the previous color reverse.
 ;                     Tplot needs this to swap color tables on the fly.
 ;
-;       BLACKBACK:    Set !p.color = white ; !p.background = black
-;                     Default is to leave these system variables unchanged.
-;
-;       WHITEBACK:    Set !p.color = black ; !p.backgorund = white
-;                     Default is to leave these system variables unchanged.
-;
 ;       CATALOG:      Display an image of the CSV color tables and return.
 ;                     Does not load a color table.
+;
+;       MYCOLORS:     An array of structures defining up to 8 custom colors:
+;
+;                     {name  : color name (string)  , $
+;                      i     : integer from 0-255   , $
+;                      r     : red level (0-255)    , $
+;                      g     : green level (0-255)  , $
+;                      b     : blue level (0-255)      }
+;
+;                     The default color names and indices are:
+;
+;                     name = ['black','purple','blue','green','yellow','orange','red','white']
+;                     indx = [   0   ,   1    ,  2   ,   3   ,   4    ,   5    ,  6  ,  255  ]
+;
+;                     The indicies (i) specified in MYCOLORS will replace one or
+;                     more of these defaults.  You are not allowed to change
+;                     color indices 7-254, because those are reserved for the
+;                     color table.
 ;
 ;       Also passes all keywords accepted by loadcsvcolorbar2.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-27 13:37:38 -0700 (Wed, 27 Jul 2022) $
-; $LastChangedRevision: 30970 $
+; $LastChangedDate: 2022-12-09 13:11:11 -0800 (Fri, 09 Dec 2022) $
+; $LastChangedRevision: 31343 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/CSV_Color_Tables/loadcsv.pro $
 ;
 ;CSV color table code: Mike Chaffin
 ;Tplot-compatible version: David L. Mitchell
 ;-
 pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, previous_rev=previous_rev, $
-                       reverse=crev, catalog=catalog, _EXTRA = ex
+                       reverse=crev, catalog=catalog, mycolors=mycolors, _EXTRA = ex
 
   @colors_com  ; allows loadcsv to communicate with loadct2
   common qualcolors_com, qualcolors
@@ -113,9 +125,11 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, previous_rev=previo
     return
   endif
 
+  str_element, mycolors, 'g', g, success=newcols
+
 ; Define a tplot-compatible version of the qualcolors structure
 
-  if ((size(qualcolors,/type) ne 8) or keyword_set(reset)) then begin
+  if ((size(qualcolors,/type) ne 8) or keyword_set(reset) or newcols) then begin
     qualcolors = {black         : 0, $
                   purple        : 1, $ 
                   blue          : 2, $
@@ -135,6 +149,34 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, previous_rev=previo
                   table_name    : '', $
                   color_table   : -1, $
                   color_reverse :  0   }
+
+    ok = 0
+    str_element, mycolors, 'name', name, success=k
+    ok += k
+    str_element, mycolors, 'i', j, success=k
+    ok += k
+    str_element, mycolors, 'r', r, success=k
+    ok += k
+    str_element, mycolors, 'g', g, success=k
+    ok += k
+    str_element, mycolors, 'b', b, success=k
+    ok += k
+    if (ok eq 5) then begin
+      for i=0,(n_elements(name)-1) do begin
+        if ((j[i] lt 7) or (j[i] eq !d.table_size-1)) then begin
+          k = j[i] < 7
+          oldname = qualcolors.colornames[k]
+          qualcolors.colornames[k] = name[i]
+          qualcolors.qi[k] = j[i]
+          qualcolors.qr[k] = r[i]
+          qualcolors.qg[k] = g[i]
+          qualcolors.qb[k] = b[i]
+          str_element, qualcolors, name[i], j[i], /add_replace
+          if (oldname ne name[i]) then str_element, qualcolors, oldname, /delete
+        endif
+      endfor
+    endif
+    if ((ok gt 0) and (ok lt 5)) then print,"Cannot interpret MYCOLORS structure.  Using defaults."
     if keyword_set(reset) then return
   endif
 
