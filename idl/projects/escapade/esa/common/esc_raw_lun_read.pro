@@ -1,0 +1,147 @@
+
+FUNCTION esc_raw_header_struct,ptphdr
+
+   
+   raw_size = swap_endian(uint(ptphdr,0) ,/swap_if_little_endian )
+   ptp_code = ptphdr[2]
+   ptp_scid = swap_endian(/swap_if_little_endian, uint(ptphdr,3))
+
+   days  = swap_endian(/swap_if_little_endian, uint(ptphdr,5))
+   ms    = swap_endian(/swap_if_little_endian, ulong(ptphdr,7))
+   us    = swap_endian(/swap_if_little_endian, uint(ptphdr,11))
+   utime = (days-4383L) * 86400L + ms/1000d
+
+   ;; Correct for error in pre 2015-3-1 files
+   IF utime LT 1425168000 then utime += us/1d4   
+   ;; if keyword_set(time) then dt = utime-time  else dt = 0
+   source = ptphdr[13]
+   spare  = ptphdr[14]
+   path   = swap_endian(/swap_if_little_endian, uint(ptphdr,15))
+   ptp_header ={ptp_size:ptp_size, ptp_code:ptp_code, ptp_scid: ptp_scid, ptp_time:utime, ptp_source:source, ptp_spare:spare, ptp_path:path }
+   return,ptp_header
+
+END
+
+
+
+
+PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
+
+   ;; Size of RAW EESA_FRAMES
+   header_size = 6
+
+   ;; Initial buffer to search for SYNC
+   buf = bytarr(header_size)
+
+   ;;dwait = 10.
+   ;;printdat,info
+   IF isa(source_dict,'DICTIONARY') EQ 0 THEN source_dict = dictionary()
+   
+   on_ioerror, nextfile
+   time = systime(1)
+   info.time_received = time
+   msg = time_string(info.time_received,tformat='hh:mm:ss -',local=localtime)
+   ;;in_lun = info.hfp
+   out_lun = info.dfp
+   remainder = !null
+   nbytes = 0UL
+   run_proc = struct_value(info,'run_proc',default=1)
+   fst = fstat(in_lun)
+   esc_apdat_info,current_filename= fst.name
+   source_dict.source_info = info
+
+   WHILE file_poll_input(in_lun,timeout=0) && ~eof(in_lun) DO BEGIN
+
+      readu,in_lun,buf,transfer_count=nb
+      nbytes += nb
+      raw_buf = [remainder,buf]
+
+      ;; Lost Sync
+      ;; Read one byte at a time
+      IF (raw_buf[0] NE '54'x) || (raw_buf[1] NE '4D'x) THEN BEGIN
+         remainder = raw_buf[1:*]
+         print, 'hi'
+         CONTINUE  
+      ENDIF
+
+      ;; Message ID Contents 
+      index = esc_data_select(raw_buf,16, 9) 
+      tr    = esc_data_select(raw_buf,25, 2)
+      fh    = esc_data_select(raw_buf,27, 1)
+      
+      ;; Packet Size
+      size  = esc_data_select(raw_buf,32,16)
+
+      ;; Raw Header Structure
+      raw_header = {index:index, tr:tr, fh:fh, size:size}
+      source_dict.ptp_header = raw_header
+      
+      ;; Read in Data
+      dat_buf = bytarr(size - header_size)
+      readu, in_lun, dat_buf,transfer_count=nb
+      nbytes += nb
+
+      ;; Debugging
+      ;; fst = fstat(in_lun)
+      ;; IF debug(2) && fst.cur_ptr NE 0 && fst.size NE 0 then begin
+      ;;    dprint,dwait=dwait,dlevel=2,fst.compress ? '(Compressed) ' : '','File percentage: ' ,$
+      ;;           (fst.cur_ptr*100.)/fst.size
+      ;; ENDIF
+
+      ;; Check whether binary block was read correctly
+      IF nb NE size-header_size THEN BEGIN
+         fst = fstat(in_lun)
+         dprint,'File read error. Aborting @ ',fst.cur_ptr,' bytes'
+         BREAK
+      ENDIF
+
+      ;; Debugging
+      ;; IF debug(5) THEN BEGIN
+      ;;    hexprint,dlevel=3,ccsds_buf,nbytes=32
+      ;; ENDIF
+
+      ;; Load packet into apdat object
+      esc_raw_pkt_handler, dat_buf, source_dict=source_dict
+
+      ;; Reset buffer to header size
+      buf = bytarr(header_size)
+      remainder=!null
+
+   ENDWHILE
+
+   flush,out_lun
+
+   IF 0 THEN BEGIN
+      nextfile:
+      dprint,!error_state.msg
+      dprint,'Skipping file'
+   ENDIF
+
+   ;;IF ~keyword_set(no_sum) THEN BEGIN
+   ;;   if keyword_set(info.last_time) then begin
+   ;;      dt = time - info.last_time
+   ;;      info.total_bytes += nbytes
+   ;;      if dt gt .1 then begin
+   ;;         rate = info.total_bytes/dt
+   ;;         store_data,'PTP_DATA_RATE',append=1,time, rate,dlimit={psym:-4}
+   ;;         info.total_bytes =0
+   ;;         info.last_time = time
+   ;;      endif
+   ;;   endif else begin
+   ;;      info.last_time = time
+   ;;      info.total_bytes = 0
+   ;;   endelse
+   ;;endif
+
+   
+   ;;if nbytes ne 0 then msg += string(/print,nbytes,([ptp_buf,ccsds_buf])[0:(nbytes < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
+   ;;else msg+= ' No data available'
+
+   ;;dprint,dlevel=5,msg
+   ;;info.msg = msg
+
+   ;;dprint,dlevel=2,'Compression: ',float(fp)/fi.size
+   
+END
+
+
