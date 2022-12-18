@@ -23,6 +23,74 @@ FUNCTION esc_raw_header_struct,ptphdr
 END
 
 
+function esc_data_select, buff, loc, n
+  return, swfo_data_select(buff, loc, n)
+end
+
+
+pro esc_raw_data_decom, buf, source_dict=source_dict
+
+
+
+   dat = {  $
+       time:   0d, $
+       sync: 0u ,$
+       index :  0u  ,$
+       tr:      0b  ,$
+       fh:      0b  ,$
+       size: 0u , $
+       eanode:  uintarr(16),$
+       ianodeL: uintarr(16), $
+       ianodeH: uintarr(16), $
+       imh:     uintarr(16), $
+       ahkp:    0, $
+       dhkp:    0u,  $ 
+       tofraw:  uintarr(8), $ 
+       gap:  0   }
+       
+  
+     ;dprint,index,tr,fh,dlevel = 3
+
+  ;  dat.time = source_dict.time
+     dat.sync = esc_data_select(buf,0,16)
+     dat.index = esc_data_select(buf,16+7, 9)
+     dat.tr    = esc_data_select(buf,16+6, 1)  
+     dat.fh    = esc_data_select(buf,16+5, 1)  ; possibly not correct
+     dat.size  = esc_data_select(buf,32, 16)
+     dat.size  = dat.size < n_elements(buf)
+
+     ; print,index
+
+     data2 = uint(buf,6,(dat.size-6)/2 )
+     byteorder,data2,/swap_if_little_endian
+     dat.eanode = data2[0:15]
+     dat.ianodel = data2[16:31]
+     dat.ianodeh = data2[32:47]
+     dat.imh     = data2[48:63]
+     dat.ahkp    = fix(data2[64])
+     dat.dhkp    = data2[65]
+     dat.tofraw  = fix(data2[66:66+8-1])
+     
+    ; dat.size  = esc_data_select(buf,8 * 2,16)   ;; Packet Size
+    ; dat.eanode  = esc_data_select(buf,8*3 + 16*indgen(16),16)   
+    ; dat.ianodel  = esc_data_select(buf,8*3 + 1*16*8 + 16*indgen(16),16)   
+    ; dat.ianodeh  = esc_data_select(buf,8*3 + 2*16*8 * 16*indgen(16),16)  
+;     dat.eanode = esc_data_select(buf,
+     
+     if dat.index eq 0 then begin
+      printdat,dat
+      hexprint,buf
+     ; printdat,source_dict.time
+     endif
+       
+   
+
+
+
+
+end
+
+
 
 
 PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
@@ -47,7 +115,7 @@ PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
    nbytes = 0UL
    run_proc = struct_value(info,'run_proc',default=1)
    fst = fstat(in_lun)
-   esc_apdat_info,current_filename= fst.name
+  ; esc_apdat_info,current_filename= fst.name
    source_dict.source_info = info
 
    WHILE file_poll_input(in_lun,timeout=0) && ~eof(in_lun) DO BEGIN
@@ -60,26 +128,34 @@ PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
       ;; Read one byte at a time
       IF (raw_buf[0] NE '54'x) || (raw_buf[1] NE '4D'x) THEN BEGIN
          remainder = raw_buf[1:*]
-         print, 'hi'
+         dprint, 'hi',dlevel=2
          CONTINUE  
       ENDIF
 
+      
       ;; Message ID Contents 
-      index = esc_data_select(raw_buf,16, 9) 
-      tr    = esc_data_select(raw_buf,25, 2)
-      fh    = esc_data_select(raw_buf,27, 1)
+      index = esc_data_select(raw_buf,16+7, 9) 
+      tr    = esc_data_select(raw_buf,16+25, 2)  ; probably not correct
+      fh    = esc_data_select(raw_buf,16+27, 1)  ; probably not correct
+      dprint,index,tr,fh,dlevel = 3
+      
+     ; print,index
       
       ;; Packet Size
       size  = esc_data_select(raw_buf,32,16)
 
       ;; Raw Header Structure
       raw_header = {index:index, tr:tr, fh:fh, size:size}
-      source_dict.ptp_header = raw_header
+      source_dict.raw_header = raw_header
       
       ;; Read in Data
       dat_buf = bytarr(size - header_size)
       readu, in_lun, dat_buf,transfer_count=nb
       nbytes += nb
+
+      esc_raw_data_decom, [raw_buf, dat_buf]
+
+
 
       ;; Debugging
       ;; fst = fstat(in_lun)
@@ -101,7 +177,11 @@ PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
       ;; ENDIF
 
       ;; Load packet into apdat object
-      esc_raw_pkt_handler, dat_buf, source_dict=source_dict
+      ;esc_raw_pkt_handler, dat_buf, source_dict=source_dict
+      ;printdat,source_dict
+      
+      ;hexprint,dat_buf
+      
 
       ;; Reset buffer to header size
       buf = bytarr(header_size)
@@ -110,6 +190,16 @@ PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
    ENDWHILE
 
    flush,out_lun
+   
+   if 1 then begin
+   if nbytes ne 0 then msg += string(/print,nbytes,([raw_buf])[0:(nbytes < n_elements(raw_buf))-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
+   else msg+= ' No data available'
+
+   dprint,dlevel=5,msg
+   info.msg = msg
+   endif
+   
+   dprint,info,dlevel=3,phelp=2
 
    IF 0 THEN BEGIN
       nextfile:
