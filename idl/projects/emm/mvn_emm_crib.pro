@@ -1,3 +1,13 @@
+;=================================
+; MAVEN-EMM DATA SHARING AGREEMENT
+
+; Please note the following conditions for working with MAVEN and EMM
+;data jointly, if you are a team member of EITHER mission:
+;
+;- all press and communications (press releases, social media, interviews, etc...) must be approved by the PIs- Shannon Curry, Hessa Al Moutrishi
+;- co-authorship must be offered the the instrument teams, leads and PIs of any instrument dataset used
+;==================================
+
 ; This crib sheet gives examples of loading and examining MAVEN in
 ; situ particles and fields data and Emirates Mars Mission disk images
 ; together
@@ -34,7 +44,7 @@ emission = ['O I 130.4 triplet', 'O I 135.6 doublet']
 ; if you want to save JPEG's of the disk images or save files
 ; of the disk information, need to define an output directory
 Output_directory = '~/work/emm/emus/data/figures/'
-output_directory = '~/'
+;output_directory = '~/'
 
 ; The routine below MUST be run before anything else becaus
 ; the data from the EMUS data files and saves it into a structure

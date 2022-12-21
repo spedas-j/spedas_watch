@@ -6,20 +6,40 @@
 ; emm_emus_examine_disk. If this has already been run, you can provide
 ; this directly to save time.
 
-pro emm_emus_maven_ql, time_range, disk = disk
+pro emm_emus_maven_ql, time_range, disk = disk,load_only =load_only
 
   emissions = ['O I 130.4 triplet', 'O I 135.6 doublet']
 
   !p.background = 255
   !p.color = 0
   tplot_options,var_label= ['sza', 'orbnum']
-  window, 1, xsize = 1300, ysize = 770 
+  if not keyword_set (load_only) then window, 1, xsize = 1300, ysize = 770 
   brightness_range = [[2, 20], [1, 8]]
   zlog = [1, 0]
+  ;.r mvn_ql_pfp_tplot
   
+  mvn_ql_pfp_tplot, time_range, window = 1,/bcrust,sep = 0, sta = 0, euv = 0, $
+                    lpw = 0,/mag,/spacewe
+  
+  ;mvn_swe_load_l2, trange, /pad
+  ;stop
+; just make sure we have the solar wind moments
+  mvn_swia_load_l2_data, trange=time_range, /tplot,/Loadmom
 
-  mvn_ql_pfp_tplot, time_range, /pad, window = 1,/bcrust,sep = 0, sta = 0, euv = 0, $
-                    lpw = 0,/mag,/spacewe,/restore
+; calculate solar wind pressure
+  Get_data, 'mvn_swim_velocity_mso', data = vsw
+  get_data, 'mvn_swim_density', data = nsw
+  if size (nsw,/type) eq 8 then begin
+     Density = nsw.y
+     speed = sqrt ( total (vsw.y^2, 2))
+     pressure = 1e9*(1.67e-27*(density*1e6)*(speed*1e3)^ 2.0)
+     Store_data, 'mvn_swim_pressure_npa', data = {x:nsw.x, y: pressure}
+     options, 'mvn_swim_pressure_npa', 'ytitle', 'SW Pressure!c nPa'
+     ylim, 'mvn_swim_pressure_npa', 0.08, 3.0, 1
+     options, 'mvn_swim_pressure_npa', 'ystyle', 1
+  endif
+  
+  
 ; calculate cone and clock angles
   get_data, 'mvn_mag_bmso_1sec', data =  bmso
   if Size (bmso,/type) ne 8 then message, 'B-field data does not exist for this time range.'
@@ -52,8 +72,9 @@ pro emm_emus_maven_ql, time_range, disk = disk
                      brightness_range = brightness_range 
 
   !p.charsize = 1.2 
-  Tplot, ['mvn_swis_en_eflux', 'mvn_swe_etspec','mvn_mag_bamp', $
-          'mvn_mag_cone_clock', 'alt2',$
-          'emus_lt','emus_br','emus_O_1304'] 
+  if not keyword_set (load_only) then Tplot, $
+     ['mvn_swis_en_eflux', 'mvn_swe_etspec','mvn_mag_bamp', $
+      'mvn_mag_cone_clock', 'alt2',$
+      'emus_lt','emus_br','emus_O_1304'] 
 end
 
