@@ -27,7 +27,7 @@
 ;
 ;-
 
-pro thm_spinmodel::make_tplot_vars,prefix=prefix
+function thm_spinmodel::make_tplot_vars,prefix=prefix
 
   sp = self.segs_ptr
 
@@ -58,5 +58,9 @@ pro thm_spinmodel::make_tplot_vars,prefix=prefix
   store_data,prefix+'idpu_spinper',data={x:seg_times,y:seg_idpu_spinper}
   store_data,prefix+'initial_delta_phi',data={x:seg_times,y:seg_initial_delta_phi}
   store_data,prefix+'segflags',data={x:seg_times,y:seg_segflags}
+  
+  dqlist=['t1','t2','c1','c2','b','c','npts','maxgap','phaserr','idpu_spinper','initial_delta_phi','segflags']
+  return, prefix+dqlist
+  
  
 end
