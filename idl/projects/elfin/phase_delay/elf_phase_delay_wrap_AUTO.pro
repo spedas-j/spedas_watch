@@ -108,7 +108,7 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = my
     if size(fileresult,/dimen) eq 0 then FILE_MKDIR,foldername
     cd,cwdirname+'/'+foldername
    
-    allszs = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/data_availability/el'+probe+'_epd_data_availability.csv', n_table_header = 1)
+    allszs = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/data_availability/el'+probe+'_epde_data_availability.csv', n_table_header = 1)
     szs_inrange = where(time_double(allszs.field1) ge time_double(starttime) and time_double(allszs.field1) le time_double(endtime), count)
 
     if count eq 0 then begin
@@ -176,10 +176,6 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = my
       ; fix final tend from 24:30 to be 24:00
       tends[23]=tstarts[0]+86400.
 
-      print, time_string(tstarts)
-      print, time_string(tends)
-      ;stop
-
       ;create array of file labels
       file_lbl=strmid(time_string(tstarts),11,2)
 
@@ -196,25 +192,39 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = my
           file_path = !elf.LOCAL_DATA_DIR + 'el' +probe+ '/phasedelayplots' + '/' + strmid(filetime, 0, 4) + '/' + strmid(filetime, 4, 2) + '/' + strmid(filetime, 6, 2) + '/'
           file_mkdir, file_path
 
-          file_copy,'Fitplots/bestfit.png',file_path+filename+'.png',/OVERWRITE
-          if verbosefig eq 1 then begin
-            fileresult=FILE_SEARCH('Fitplots_'+filename)
-            if size(fileresult,/dimen) eq 1 then FILE_DELETE,'Fitplots_'+filename,/RECURSIVE ; delete old folder
-             
-            file_copy,'Fitplots','Fitplots_'+filename,/OVERWRITE,/RECURSIVE
-            
+          file_copy,'Fitplots/bestfit.png',filename+'.png',/OVERWRITE
+
+          sthr=strmid(tstart, 11, 2)
+          enhr=strmid(tend, 11, 2)
+          if sthr NE enhr then begin
+            if idx[k] LT 23 then begin
+              filename2='el'+probe+'_pdp_'+ filetime + '_' + file_lbl[idx[k]+1] + sz_name
+              file_copy,'Fitplots/bestfit.png',filename2+'.png',/OVERWRITE
+            endif
           endif
-          
-          print, file_path + filename + '.png'
-          
+          if verbosefig eq 0 then begin
+            fileresult=FILE_SEARCH('Fitplots_'+filename)
+            file_copy,'Fitplots','Fitplots_'+filename,/OVERWRITE,/RECURSIVE
+            if size(fileresult,/dimen) eq 1 then FILE_DELETE,'Fitplots_'+filename,/RECURSIVE ; delete old folder
+
+            if ~undefined(filename2) then begin              
+              fileresult2=FILE_SEARCH('Fitplots_'+filename2)
+              file_copy,'Fitplots','Fitplots_'+filename2,/OVERWRITE,/RECURSIVE
+              if size(fileresult2,/dimen) eq 1 then FILE_DELETE,'Fitplots_'+filename2,/RECURSIVE ; delete old folder
+            endif
+
+          endif
+
+          print, filename + '.png'
+          if ~undefined(filename2) then print, filename2 + '.png'
+
         endfor
       endif
 
     endfor
-    
-  endfor  ; end of probe loop
+
+  endfor ; end of probe loop
   ;FILE_DELETE,'Fitplots',/RECURSIVE ; delete old folder
   print, 'Done'
- 
  
 end
