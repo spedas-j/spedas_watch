@@ -26,8 +26,8 @@ function elf_get_eiscat_positions
   station_lat=[69.6, 69.6, 78.]
   station_lon=[18.9, 18.9, 16.]
 
-  eicsat_pos = {name:station_names, lat:station_lat, lon:station_lon}
+  eiscat_pos = {name:station_names, lat:station_lat, lon:station_lon}
   
-  return, eiscsat_pos
+  return, eiscat_pos
   
 end
