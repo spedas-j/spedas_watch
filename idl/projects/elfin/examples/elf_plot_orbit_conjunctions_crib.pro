@@ -32,4 +32,8 @@ pro elf_plot_orbit_conjunctions_crib
   
   print, 'Done'
   
+  ; if the user wants to specify a time duration they can use the trange keyword.
+  ; the conjunction plots only
+  elf_plot_orbit_conjunctions, '2021-01-01', trange=['2021-01-01/05:00:00','2021-01-01/09:00:00']
+
 end

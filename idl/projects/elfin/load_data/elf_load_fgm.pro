@@ -14,13 +14,14 @@
 ;         datatype:     valid datatypes include level 1 - ['fgf', 'fgs'] and 
 ;                       level 2 -['fgf_dsl','fgf_gei','fgf_mag','fgs_dsl','fgs_gei','fgs_mag']
 ;         data_rate:    instrument data rates include ['srvy', 'fast']. The default is 'srvy'.
+;         units:        units include ['ACD', 'nT'], the default is 'nT'
 ;         level:        indicates level of data processing. levels include 'l1' and 'l2'
 ;                       The default if no level is specified is 'l1' (l1 default needs to be confirmed)
 ;         local_data_dir: local directory to store the CDF files; should be set if
 ;                       you're on *nix or OSX, the default currently assumes Windows (c:\data\elfin\)
 ;         source:       specifies a different system variable. By default the elf mission system
 ;                       variable is !elf
-;         get_support_data: load support data (defined by support_data attribute in the CDF)
+;         get_support_data: load support data, state and IGRF data (defined by support_data attribute in the CDF)
 ;         tplotnames:   names for tplot variables
 ;         no_color_setup: don't setup graphics configuration; use this keyword when you're
 ;                       using this load routine from a terminal without an X server running
@@ -71,7 +72,7 @@
 pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   level = level, data_rate = data_rate, no_time_sort=no_time_sort, $
   local_data_dir = local_data_dir, source = source, no_download=no_download, $
-  get_support_data = get_support_data, no_cal=no_cal, $
+  get_support_data = get_support_data, no_cal=no_cal, units=units, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
   no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
   varformat = varformat, cdf_filenames = cdf_filenames, $
@@ -110,6 +111,13 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
     dprint, dlevel = 1, 'Invalid data type. Valid types are fgs. Please select again.'
     return
   endif
+  if undefined(units) then units='nT'
+  idx = where(units EQ 'nT', ncnt)
+  idx = where(units EQ 'ADC', adcnt)
+  if ncnt EQ 0 && adcnt EQ 0 then begin
+    dprint, dlevel = 1, 'Invalid unit. Valid units are nT or ACDC. Please select again.'
+    return
+  endif
 
   if undefined(suffix) then suffix = ''
   if undefined(data_rate) then data_rate = 'srvy' else data_rate=strlowcase(data_rate)
@@ -130,8 +138,8 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   ; Perform pseudo calibration for level 1 fgm
   tname_fgs='el'+probes+'_fgs'
   idx = where(tplotnames eq tname_fgs, ncnt)
-  if ncnt GT 0 and no_cal NE 1 then elf_cal_fgm, tplotnames[idx], level=level, error=error
-
+  if ncnt GT 0 and no_cal NE 1 then elf_cal_fgm, tplotnames[idx], level=level, error=error, units=units
+  
   ;set colors
   if  ~undefined(tplotnames) && tplotnames[0] ne '' then begin
     for i=0,n_elements(tplotnames)-1 do begin
@@ -175,23 +183,26 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   ; perform coordinate conversions from gei to NDW and OBW
   if  ~undefined(tplotnames) && tplotnames[0] ne '' then begin
     if size(fsp_res_dmxl, /type) EQ 8 then begin
-      tr=timerange()
+;      tr=timerange()
+;      stop
+      tr=time_double(trange)     
       ; will need position data for coordinate transforms
-      elf_load_state, probe=probes, trange=tr, no_download=no_download
+      elf_load_state, probe=probes, trange=tr, no_download=no_download, suffix='_fsp'
       ; verify that state data was loaded, if not print error and return
-      if ~spd_data_exists('el'+probes+'_pos_gei',tr[0],tr[1]) then begin
+      if ~spd_data_exists('el'+probes+'_pos_gei_fsp',tr[0],tr[1]) then begin
         dprint, 'There is no data for el'+probes+'_pos_gei for '+ $
           time_string(tr[0])+ ' to ' + time_string(tr[1])
         drpint, 'Unable to perform fgs_fsp_res_gei coordinate transforms to ndw and obw'
       endif else begin
         ; Transform data to ndw coordinates
+        tr=time_double(trange)
         elf_fgm_fsp_gei2ndw, trange=tr, probe=probes, sz_starttimes=sz_starttimes, sz_endtimes=sz_endtimes   
         ; Transform data to obw coordinates
         elf_fgm_fsp_gei2obw, trange=tr, probe=probes, sz_starttimes=sz_starttimes, sz_endtimes=sz_endtimes
       endelse
     endif
   endif
-
+  
   ; check whether user wants support data tplot vars
   if ~keyword_set(get_support_data) then begin
     idx=where(strpos(tplotnames,'igrf') GT 0, ncnt)
@@ -202,7 +213,20 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
     if ncnt GT 0 then begin
       del_data, '*fsp_res_dmxl_trend'
     endif
-  endif
- 
-
+    tn=tnames('*_fsp')
+    if tn[0] ne '' then begin
+      del_data, tn
+    endif
+  endif else begin
+    copy_data, 'el'+probes+'_pos_gei_fsp', 'el'+probes+'_fgs_fsp_pos_gei'
+    copy_data, 'el'+probes+'_vel_gei_fsp', 'el'+probes+'_fgs_fsp_vel_gei'
+    copy_data, 'el'+probes+'_att_gei_fsp', 'el'+probes+'_fgs_fsp_att_gei'
+    copy_data, 'el'+probes+'_att_solution_date_fsp', 'el'+probes+'_fgs_fsp_att_solution_date'
+    copy_data, 'el'+probes+'_att_flag_fsp', 'el'+probes+'_fgs_fsp_att_flag'
+    copy_data, 'el'+probes+'_att_spinper_fsp', 'el'+probes+'_fgs_fsp_att_spinper'
+    copy_data, 'el'+probes+'_spin_orbnorm_angle_fsp', 'el'+probes+'_fgs_fsp_spin_orbnorm_angle'
+    copy_data, 'el'+probes+'_spin_sun_angle_fsp', 'el'+probes+'_fgs_fsp_sun_angle'
+    del_data, '*_fsp'
+  endelse
+  tplot_names
 end
