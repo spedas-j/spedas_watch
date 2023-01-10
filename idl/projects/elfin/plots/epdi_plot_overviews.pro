@@ -87,6 +87,7 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   del_data, '*_fgs*'
   elf_load_fgm, probes=probe, trange=tr, datatype='fgs', no_download=no_download
   get_data, 'el'+probe+'_fgs', data=elx_fgs
+  copy_data, 'el'+probe+'_fgs_fsp_res_obw', 'el'+probe+'_fgs_fsp_res_obw_orig'
 
   ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
   ; GET KP and DST values
@@ -366,7 +367,8 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     endelse
   endif
 
-  ;  epd_times=get_elf_science_zone_start_end(trange=trange, probe=probe, instrument='epd')
+  epdi_sci_zones=get_elf_science_zone_start_end(trange=trange, probe=probe, instrument='epdi')
+  fgm_sci_zones=get_elf_science_zone_start_end(trange=trange, probe=probe, instrument='fgm')
   ;  if size(epd_times, /type) EQ 8 then begin
   ;     sz_starttimes=epd_times.starts
   ;     sz_endtimes=epd_times.ends
@@ -393,6 +395,22 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     timespan, sz_tr[0], tdur, /sec
     this_tr=timerange()
 
+;    med_nsect=median(nsect.y)
+    if size(epdi_sci_zones,/type) eq 8 then begin
+      idx=where(epdi_sci_zones.starts GT sz_tr[0]-20, scnt)
+      if scnt GT 0 then epdi_completeness_str=', EPDI completeness='+epdi_sci_zones.completeness[idx[0]] else $
+        epdi_completeness_str=', EPDI Completeness=not available'
+    endif else begin
+      epdi_completeness_str=', EPDI Completeness=not available'
+    endelse
+    if size(fgm_sci_zones,/type) eq 8 then begin
+      idx=where((fgm_sci_zones.starts GT sz_tr[0]-60), scnt)
+      if scnt GT 0 then fgm_completeness_str=', FGM completeness='+fgm_sci_zones.completeness[idx[0]] else $
+        fgm_completeness_str=', FGM Completeness=not available'
+    endif else begin
+      fgm_completeness_str=', FGM Completeness=None'
+    endelse
+
     ; get sector and phase delay for this zone
     phase_delay = elf_find_phase_delay(trange=sz_tr, probe=probe, instrument='epde', no_download=no_download)
     if finite(phase_delay.dsect2add[0]) then dsect2add=fix(phase_delay.dsect2add[0]) $
@@ -404,13 +422,14 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     if undefined(badflag) then badflag=2
     if badflag NE 0 then badflag_str=', BadFlag set' else badflag_str=''
     case badflag of
-      0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Good Fit' 
-      1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Bad Fit'
-      2: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', No Fit' 
-      else: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Bad Fit'
+      0: phase_msg = 'Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Good Fit' + epdi_completeness_str 
+      1: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Bad Fit' + epdi_completeness_str
+      2: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', No Fit' + epdi_completeness_str 
+      else: phase_msg = 'Median Phase delay values dSect2add='+strtrim(string(dsect2add),1) + ' and dPhAng2add=' + dphang_string + ', Bad Fit' + epdi_completeness_str
     endcase
 
     foreach myspecies, ['e','i'] do begin
+
       elf_load_epd, probes=bird, datatype='p'+myspecies+'f', type='raw' ; DEFAULT UNITS ARE NFLUX
       get_data, 'el'+bird+'_p'+myspecies+'f_raw', data=tdata
       if size(tdata, /type) NE 8 then continue
@@ -450,6 +469,7 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       quants2clean='elx_pxf_en_spec2plot_'+['precovrperp'] ; can add others here, only need this one, code appends 'gterr' to avoid over-writing
 
       foreach element, quants2clean do begin
+
         error2use=element+'_err'
         copy_data,element,'quant2clean'
         copy_data,error2use,'error2use'
@@ -487,7 +507,7 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     spinsum_med=fix(median(spinsum.y))
     spinsum_str=', nspinsinsum='+ strtrim(spinsum_med, 1)
     spin_str='Median Spin Period T: '+strmid(strtrim(string(spin_med), 1),0,4) + 's, sig=' +$
-        strmid(strtrim(string(spin_var), 1),0,4)+'% T'+nsect_str+spinsum_str;+fgm_completeness_str
+        strmid(strtrim(string(spin_var), 1),0,4)+'% T'+nsect_str+spinsum_str+fgm_completeness_str
 
     ; handle scaling of y axis
     if size(proxy_ae, /type) EQ 8 then begin
@@ -562,9 +582,35 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
     vars2plot=[vars2plot,['el'+probe+'_pef_en_spec2plot_'+['omni','precovrperp_gterr']]] ; electron energy spectra
     vars2plot=[vars2plot,['el'+probe+'_pif_en_spec2plot_'+['omni','prec','precovrperp_gterr']]]; ion energy spectra
     vars2plot=[vars2plot,['el'+bird+'_pif_pa_spec2plot_'+['ch0LC','ch1LC','ch2LC']]]
-    if spd_data_exists('el'+probe+'_fgs_fsp_res_obw',sz_tr[0],sz_tr[1]) then $
-       vars2plot=[vars2plot,['el'+probe+'_fgs_fsp_res_obw']] else $
-       vars2plot=[vars2plot,['el'+probe+'_bt89_sm_NEDT']]    
+
+    if spd_data_exists('el'+probe+'_fgs_fsp_res_obw_orig',sz_tr[0],sz_tr[1]) then begin
+      copy_data, 'el'+probe+'_fgs_fsp_res_obw_orig', 'el'+probe+'_fgs_fsp_res_obw'
+      get_data, 'el'+probe+'_fgs_fsp_res_obw', data=fsp_obw
+      idx=where(fsp_obw.x GE sz_tr[0] and fsp_obw.x LE sz_tr[1], ncnt)
+      if ncnt GT 0 then begin
+        yrng=minmax(fsp_obw.y[idx,*])
+        if abs(yrng[0]) LT 100. AND abs(yrng[1]) LT 100. then begin
+          ;idx=where(abs(fsp_obw.y[idx,*]) LT 100, tcnt)
+          ;if tcnt GT 0 then begin
+          ylim, 'el'+probe+'_fgs_fsp_res_obw', -100,100.
+        endif
+      endif
+;    if spd_data_exists('el'+probe+'_fgs_fsp_res_obw_orig',sz_tr[0],sz_tr[1]) then begin
+;      copy_data, 'el'+probe+'_fgs_fsp_res_obw_orig', 'el'+probe+'_fgs_fsp_res_obw'
+;      get_data, 'el'+probe+'_fgs_fsp_res_obw', data=fsp_obw
+;      idx=where(fsp_obw.x GE sz_tr[0] and fsp_obw.x LE sz_tr[1], ncnt)
+;      if ncnt GT 0 then begin
+;        idx=where(abs(fsp_obw.y[idx,*]) GE 100, tcnt)
+;        if tcnt GT 0 then begin
+;          ylim, 'el'+probe+'_fgs_fsp_res_obw', -100,100.
+;        endif
+;      endif
+      options,  'el'+probe+'_fgs_fsp_res_obw', ysubtitle='[nT]'
+      vars2plot=[vars2plot,['el'+probe+'_fgs_fsp_res_obw']]          
+    endif else begin
+       vars2plot=[vars2plot,['el'+probe+'_bt89_sm_NEDT']]   
+    endelse
+        
     if strlowcase(probe) eq 'a' then  $
       varstring=['ela_GLON','ela_MLAT_igrf[ela_MLAT_dip]', 'ela_MLT_igrf[ela_MLT_dip]', 'ela_L_igrf[ela_L_dip]'] else $
       varstring=['elb_GLON','elb_MLAT_igrf[elb_MLAT_dip]', 'elb_MLT_igrf[elb_MLT_dip]', 'elb_L_igrf[elb_L_dip]']
@@ -669,7 +715,7 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ch2LC_str=''
   lc_str=''
   alc_str=''
-  
+
   for n=1,num do begin ;append all science zone data
     omnie_str+=' el'+probe+'_pef_en_spec2plot_omni_sz'+strtrim(string(n),2)
     omnii_str+=' el'+probe+'_pif_en_spec2plot_omni_sz'+strtrim(string(n),2)
