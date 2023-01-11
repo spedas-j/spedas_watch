@@ -108,7 +108,7 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = my
     if size(fileresult,/dimen) eq 0 then FILE_MKDIR,foldername
     cd,cwdirname+'/'+foldername
    
-    allszs = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/data_availability/el'+probe+'_epde_data_availability.csv', n_table_header = 1)
+    allszs = read_csv(!elf.LOCAL_DATA_DIR + 'el' +probe+ '/data_availability/el'+probe+'_epd_data_availability.csv', n_table_header = 1)
     szs_inrange = where(time_double(allszs.field1) ge time_double(starttime) and time_double(allszs.field1) le time_double(endtime), count)
 
     if count eq 0 then begin
@@ -136,8 +136,8 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = my
       tstart = szs_st[i]
       tend = szs_en[i]
       probe = probes[i]
-      elf_phase_delay_AUTO, probe = probe, Echannels = Echannels, sstart = tstart, send = tend
-
+      elf_phase_delay_AUTO, probe = probe, Echannels = Echannels, sstart = tstart, send = tend, badflag = badflag
+      if badflag eq -99 then continue
       elf_mlt_l_lat,'el'+probe+'_pos_sm',MLT0=MLT0,L0=L0,lat0=lat0
       get_data, 'el'+probe+'_pos_sm', data=elfin_pos
       get_data, 'el'+probe+'_pef_nflux', data=pef_nflux
@@ -202,15 +202,15 @@ pro elf_phase_delay_wrap_AUTO, date, verbosefig = myverbosefig, create_avai = my
               file_copy,'Fitplots/bestfit.png',filename2+'.png',/OVERWRITE
             endif
           endif
-          if verbosefig eq 0 then begin
+          if verbosefig eq 1 then begin
             fileresult=FILE_SEARCH('Fitplots_'+filename)
-            file_copy,'Fitplots','Fitplots_'+filename,/OVERWRITE,/RECURSIVE
             if size(fileresult,/dimen) eq 1 then FILE_DELETE,'Fitplots_'+filename,/RECURSIVE ; delete old folder
+            file_copy,'Fitplots','Fitplots_'+filename,/OVERWRITE,/RECURSIVE
 
             if ~undefined(filename2) then begin              
               fileresult2=FILE_SEARCH('Fitplots_'+filename2)
-              file_copy,'Fitplots','Fitplots_'+filename2,/OVERWRITE,/RECURSIVE
               if size(fileresult2,/dimen) eq 1 then FILE_DELETE,'Fitplots_'+filename2,/RECURSIVE ; delete old folder
+              file_copy,'Fitplots','Fitplots_'+filename2,/OVERWRITE,/RECURSIVE
             endif
 
           endif
