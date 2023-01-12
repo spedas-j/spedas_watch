@@ -1,7 +1,7 @@
 ;+
 ; !!!!!  CAUTION   !!!!!
 ;This is a higly experimental release of the part_products libraries
-;for MEP-e and MEP-i data of the ERG (Arase) satellite. This includes
+;for XEP data of the ERG (Arase) satellite. This includes
 ;work in progress, experimental changes, and transitional functions
 ;that might or might not be present in the following experimental
 ;releases and the official release of the software in future. The
@@ -12,11 +12,11 @@
 ; !!!!!  CAUTION   !!!!!
 ;
 ;Procedure:
-;  erg_mep_part_products
+;  erg_xep_part_products
 ;
 ;Purpose:
 ;  A general routine to generate various kinds of particle
-;  spectrograms for MEP data. 
+;  spectrograms for LEPi data. 
 ;
 ;Data products (given to keyword "outputs"):
 ; 'energy' - energy spectrogram
@@ -27,12 +27,12 @@
 ; 'gyro' - gyrophase spectrogram
 ;
 ;Exmaple usage:
-; IDL> erg_mep_part_products, 'erg_mepi_l2_3dflux_FPDU', $
+; IDL> erg_xep_part_products, 'erg_xep_l2_FEDU', $
 ;        outputs='energy'
 ;
 ;Input arguments and keywords:
 ;  in_tvarname: a tplot variable of 3-D flux data. currently only
-;               erg_mep?_l2_3dflux_F?DU is acceptable.
+;               erg_lepi?_l2_3dflux_F?DU is acceptable.
 ;  species: a string of particle species name. currently the following
 ;          strings are acceptable: 'proton', 'oplus' 
 ;  trange: Two element time range [start, end]
@@ -68,16 +68,21 @@
 ;
 ;
 ;Author:
-;  Tomo Hori, ERG Science Center, Nagoya Univ.
-;  (E-mail tomo.hori _at_ nagoya-u.jp)
+;  Yoshi Miyoshi, ERG Science Center, Nagoya Univ.
+;  (E-mail miyoshi _at_ nagoya-u.jp)
 ;
 ;History:
-;  ver.0.0: The 1st experimental release 
-;  
-;$LastChangedDate: 2023-01-11 10:09:14 -0800 (Wed, 11 Jan 2023) $
-;$LastChangedRevision: 31399 $
+;  Sep. 2018: The 1st experimental release 
+; 
+; Copyright T. Hori, Nagoya Univ.  2018 All right reserved  
+; Please see LICENSE.txt attached for details. 
+;
+;$LastChangedBy: $
+;$LastChangedDate: $
+;$LastChangedRevision: $
+;$URL: $
 ;-
-pro erg_mep_part_products, $
+pro erg_xep_part_products, $
    in_tvarname, $
    species=species, $
    energy=energy, $
@@ -99,15 +104,16 @@ pro erg_mep_part_products, $
    start_angle=start_angle, $
    tplotnames=tplotnames, $
    silent=silent, $
-   relativistic=relativistic, $
    no_ang_weighting=no_ang_weighting, $
+   relativistic=relativistic, $
    debug=debug, $
    _extra=_extra
 
   compile_opt idl2
   
-  if undefined(debug) then debug=0
+  if undefined(debug) then debug = 0
   if undefined(no_ang_weighting) then no_ang_weighting = 0
+  
   
   twin = systime(/sec)
   error = 1
@@ -118,7 +124,7 @@ pro erg_mep_part_products, $
     return
   endif
   in_tvarname = tnames(in_tvarname[0])
-  instnm = (strsplit(/ext, in_tvarname, '_'))[1] ;; mepe or mepi 
+  instnm = (strsplit(/ext, in_tvarname, '_'))[1] ;; xep
   
   if undefined(outputs) then begin
     outputs = ['energy']  ;; by default
@@ -138,14 +144,17 @@ pro erg_mep_part_products, $
   endelse
 
   if undefined(datagap) then begin
-    datagap = 16.1 ;; by default
+    datagap = 15.0 ;; by default
   endif
+
+  ;; no_regrid is always on, otherwise QHULL hangs in gridding
+  no_regrid = 1
 
   ;; no_regrid is on if no_ang_weighting is set.
   if no_ang_weighting then no_regrid = 1
   
   if undefined(regrid) then begin
-    regrid = [32, 16] ;; default: 32 phi x 16 theta regrid
+    regrid = [16, 12] ;; default: 16 phi x 12 theta regrid
   endif
 
   if undefined(pitch) then begin
@@ -174,7 +183,7 @@ pro erg_mep_part_products, $
       dprint, 'ERROR: Gyro restrictions must have range no larger than 360 deg'
       return
     endif
-    gyro = spd_pgs_map_azimuth(gyro_in)
+    gyro = spd_pgs_map_azimuth(phi_in)
     if gyro[0] eq gyro[1] then gyro = [0., 360.]
   endelse
 
@@ -208,16 +217,12 @@ pro erg_mep_part_products, $
   ;;--------------------------------------------------------
  
   case instnm of
-    'mepe': begin
-      times = erg_mepe_get_dist(in_tvarname, /times, species=species, $
-                                units=input_units)
-    end
-    'mepi': begin
-      times = erg_mepi_get_dist(in_tvarname, /times, species=species, $
+    'xep': begin
+      times = erg_xep_get_dist(in_tvarname, /times, species=species, $
                                 units=input_units)
     end
     else: begin
-      dprint, 'ERROR: Cannot find "mepe" or "mepi" in the given tplot variable name: '+in_tvarname
+      dprint, 'ERROR: Cannot find "xep" in the given tplot variable name: '+in_tvarname
       return
     endelse
   endcase
@@ -253,22 +258,7 @@ pro erg_mep_part_products, $
   fac_outputs = ['pa','gyro','fac_energy', 'fac_moments']
   fac_requested = is_string(ssl_set_intersection(outputs_lc,fac_outputs))
   if fac_requested then begin
-
-    ;; Create magnetic field data with times shifted by half of spin
-    ;; periods
-    if undefined(mag_name) or (tnames(mag_name))[0] eq '' then begin
-      print, 'Cannot find the magnetic field data given by keyword mag_name! EXIT!'
-      return
-    endif
-    get_data, mag_name, data=d
-    dt = d.x[1:*]-d.x & dt = [ dt, dt[n_elements(dt)-1] ] ;; Note that the last value might not be correct.
-    mag_name_sftd = mag_name + '_shifted'
-    store_data, mag_name_sftd, data={x:d.x + dt/2, y:d.y }
-    ;;The time shift applied above assumes that the time labels of MGF
-    ;;data correspond to the spin start times. Otherwise this should
-    ;;be modified properly.
-    
-    erg_pgs_make_fac, times, mag_name_sftd, pos_name, fac_output=fac_matrix, fac_type=fac_type_lc, display_object=display_object
+    erg_pgs_make_fac,times,mag_name,pos_name,fac_output=fac_matrix,fac_type=fac_type_lc,display_object=display_object
     ;;remove FAC outputs if there was an error, return if no outputs remain
     if undefined(fac_matrix) then begin
       fac_requested = 0
@@ -288,25 +278,18 @@ pro erg_mep_part_products, $
     no_mag = undefined(mag_name)
     magnm = (tnames(mag_name))[0]
     if no_mag or magnm eq '' then begin
-
       dprint, 'the magnetic field data is not given!'
       no_mag_for_moments = 1
-      
     endif else begin
-      
-      ;; Create magnetic field data with times shifted by half of spin
-      ;; periods
-      get_data, magnm, data=d
-      dt = d.x[1:*]-d.x & dt = [ dt, dt[n_elements(dt)-1] ] ;; Note that the last value might not be correct.
-      magnm_sftd = magnm + '_shifted'
-      store_data, magnm_sftd, data={x:d.x + dt/2, y:d.y }
 
-      tinterpol_mxn, magnm_sftd, times, newname=magnm_sftd, /nan_extrapolate
-      get_data, magnm_sftd, 0, magf  ;; [ time, 3] nT
+      magtmp = magnm+'_pgs_temp'
+      copy_data, magnm, magtmp
+      tinterpol_mxn, magtmp, times, newname=magtmp, /nan_extrapolate
+      get_data, magtmp, 0, magf  ;; [ time, 3] nT
       if debug then dprint, 'magf array is prepared for coordinate transformation referring to the B-field'
-      
+
     endelse
-    
+
   endif
 
   ;;-------------------------------------------------
@@ -321,16 +304,12 @@ pro erg_mep_part_products, $
 
     ;; Get the data structure for this sample
     case instnm of
-      'mepe': begin
-        dist = erg_mepe_get_dist(in_tvarname, time_idx[i], /structure, $
-                                 species=species, units=input_units)
-      end
-      'mepi': begin
-        dist = erg_mepi_get_dist(in_tvarname, time_idx[i], /structure, $
+      'xep': begin
+        dist = erg_xep_get_dist(in_tvarname, time_idx[i], /structure, $
                                  species=species, units=input_units)
       end
       else: begin
-        dprint, 'ERROR: Cannot find "mepe" or "mepi" in the given tplot variable name: '+in_tvarname
+        dprint, 'ERROR: Cannot find "xep" in the given tplot variable name: '+in_tvarname
         return
       endelse
     endcase
@@ -342,8 +321,13 @@ pro erg_mep_part_products, $
     if ndimen(magf) eq 2 then magvec = reform( magf[ i, *] )
 
     erg_pgs_clean_data, dist, output=clean_data, units=units_lc, $
-      magf=magvec, relativistic=relativistic
-    
+                        magf=magvec, relativistic=relativistic, $
+                        debug=debug
+
+    if debug then begin
+      if keyword_set(relativistic) and (i mod 1000) eq 0 then dprint, 'relativistic ON'
+    endif
+
     
     if fac_requested then begin
       pre_limit_bins = clean_data.bins
@@ -352,21 +336,6 @@ pro erg_mep_part_products, $
     ;; Apply phi, theta, and energy limits
     erg_pgs_limit_range, clean_data, phi=phi, theta=theta, energy=energy, no_ang_weighting=no_ang_weighting
 
-    ;; Calculate moments
-    ;; -data must be in 'eflux' unit and the conversion is made internally
-    ;; by moments_3d() called in spd_pgs_moments.. 
-    if in_set(outputs_lc, 'moments') then begin
-      erg_convert_flux_units, clean_data, units='eflux', output=clean_data_eflux
-      magfarr = magf ;;& help,  magf
-      if n_elements(magf) eq 1 and magf[0] eq 0 then undefine, magfarr
-
-      spd_pgs_moments, clean_data_eflux, moments=moments, $
-                       sigma=mom_sigma, delta_times=delta_times, $
-                       get_error=get_error, $
-                       mag_data=magfarr, sc_pot_data=sc_pot_data, $
-                       index=i, _extra=_extra
-    endif
-    
     ;;Build theta spectrogram
     if in_set(outputs_lc, 'theta') then begin
       erg_pgs_make_theta_spec, clean_data, spec=theta_spec, yaxis=theta_y, no_ang_weighting=no_ang_weighting
@@ -426,24 +395,6 @@ pro erg_mep_part_products, $
     if in_set(outputs_lc, 'fac_energy') then begin
       spd_pgs_make_e_spec, clean_data, spec=fac_en_spec,  yaxis=fac_en_y
     endif
-    ;;;;;;help, clean_data
-    ;; Calculate FAC moments
-    ;; -data must be in 'eflux' unit and the conversion is made internally
-    ;; in moments_3d(). 
-    if in_set(outputs_lc, 'fac_moments') then begin
-      clean_data.theta = 90-clean_data.theta ;convert back to latitude for moments calc
-      ;;clean_data =  create_struct('charge', dist.charge, 'magf', [0, 0, 0.], $
-      ;;                            'species', dist.species, 'sc_pot', 0., $
-      ;;                           'units_name', units_lc, clean_data )
-      erg_convert_flux_units, clean_data, units='eflux', output=clean_data_eflux
-      ;;magfarr = magf ;;& help,  magf
-      if n_elements(magf) eq 1 and magf[0] eq 0 then undefine, magfarr
-      spd_pgs_moments, clean_data_eflux, moments=fac_moments, $
-                       sigma=mom_sigma, delta_times=delta_times, $
-                       get_error=get_error, $
-                       sc_pot_data=sc_pot_data, $
-                       index=i, _extra=_extra
-    endif
 
   endfor
 
@@ -464,7 +415,7 @@ pro erg_mep_part_products, $
     ;;Energy Spectrograms
   if ~undefined(en_spec) then begin
     erg_pgs_make_tplot, tplot_prefix+'energy'+suffix, x=times, y=en_y, z=en_spec, ylog=1, units=units_lc,datagap=datagap,tplotnames=tplotnames, $
-      ysubtitle=ysubtitle, relativistic=relativistic
+      relativistic=relativistic, ysubtitle=ysubtitle
   endif
  
   ;;Theta Spectrograms
@@ -502,21 +453,6 @@ pro erg_mep_part_products, $
   endif
 
   
-  ;Moments Variables
-  if ~undefined(moments) then begin
-    moments.time = times
-    if debug then dprint, 'erg_pgs_moments_tplot is just about to run now'
-    erg_pgs_moments_tplot, moments, prefix=tplot_prefix, suffix=suffix, tplotnames=tplotnames, no_mag=no_mag_for_moments
-  endif
-
-  ;FAC Moments Variables
-  if ~undefined(fac_moments) then begin
-    fac_moments.time = times
-    fac_mom_suffix = '_mag' + (undefined(suffix) ? '' : suffix)
-    erg_pgs_moments_tplot, fac_moments, /no_mag, prefix=tplot_prefix, suffix=fac_mom_suffix, tplotnames=tplotnames
-  endif  
-
-
 
   error = 0
   
