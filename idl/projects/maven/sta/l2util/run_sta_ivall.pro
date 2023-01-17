@@ -51,7 +51,7 @@ Pro run_sta_ivall
 ;All done
         spawn, '/bin/rm '+lock_file
      Endif
-  Endif
+  Endelse
 End
 
 
