@@ -19,8 +19,8 @@
 ;   these cribs can help double as documentation for tplot.
 ;
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-01-23 14:38:52 -0800 (Mon, 23 Jan 2023) $
-; $LastChangedRevision: 31419 $
+; $LastChangedDate: 2023-01-25 11:34:48 -0800 (Wed, 25 Jan 2023) $
+; $LastChangedRevision: 31426 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/examples/crib_tplot_oplot_contours.pro $
 ;-
 
@@ -32,12 +32,6 @@ timespan,'2021-03-24'
 
 ;load data
 thm_load_esa, level = 'l2', probe = 'a'
-
-;loading line plot data (stereo moments)
-st_part_moments, probe='a', /get_mom
-
-;set new color scheme (for aesthetics)
-init_crib_colors
 
 ;plot spectral data, add default contours, using 'options'
 options, 'tha_peif_en_eflux', 'overplot_contour', 1
