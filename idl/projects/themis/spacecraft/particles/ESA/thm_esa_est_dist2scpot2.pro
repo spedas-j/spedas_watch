@@ -1,4 +1,4 @@
-;Multiscale smoothing
+;Multiscale smoothing, used on particle distributions
 Function temp_multiscale_smooth, x, sm
   nsm = n_elements(sm)
   xout = x
@@ -62,33 +62,39 @@ End
 ; probe = a probe, e.g., 'c'
 ;OUTPUT:
 ; a tplot variable 'th'+probe+'_est_scpot' is created
-; If /random_dp is set, then date and probe are output 
+; If /random_dp is set, then date and probe are output
 ;KEYWORDS:
 ; trange = a time range
 ; no_init = if set, do not read in a new set of data
 ; random_dp = if set, the input date and probe are randomized, note
 ;             that this keyword is unused if no_init is set.
-; plot = if set, plot a comparison of the estimated sc_pot wht the
+; plot = if set, plot a comparison of the estimated sc_pot with the
 ;        value obtained from the esa L2 cdf (originally from
 ;        thm_load_esa_pot)
 ; esa_datatype = 'peef', 'peer', or 'peeb'; the default is 'peer'
 ; yellow = the limit (0-255) where above this value, we assume that
 ;          there are photo electrons in the scaled eflux
-;          spectrogram. This will give the potential; the default is 170.
+;          spectrogram. This will give the potential; the default is
+;          200.
+; lo_scpot = lower limit for the potential, default is to use the low
+;            energy limit of the data
+; hi_scpot = upper limit for the potential, default is 50 V
 ;HISTORY:
 ; 3-mar-2016, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2017-01-23 15:09:39 -0800 (Mon, 23 Jan 2017) $
-; $LastChangedRevision: 22649 $
+; $LastChangedDate: 2023-01-31 15:55:15 -0800 (Tue, 31 Jan 2023) $
+; $LastChangedRevision: 31446 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_esa_est_dist2scpot2.pro $
 ;-
 
 Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, yellow=yellow, $
                              no_init = no_init, random_dp = random_dp, $
                              plot = plot, esa_datatype = esa_datatype, $
-                             load_all_esa = load_all_esa, _extra=_extra
+                             lo_scpot = lo_scpot, hi_scpot = hi_scpot, $
+                             time_smooth_dt = time_smooth_dt, $
+                             hsk_test = hsk_test, _extra=_extra
 
-;The default is to Use peer data for this
+;The default is to use peer data for this, and a good idea in general
   If(is_string(esa_datatype)) Then Begin
      dtyp = strlowcase(strcompress(/remove_all, esa_datatype[0])) 
   Endif Else dtyp = 'peer'
@@ -138,6 +144,20 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, yellow=yellow, $
      Return
   Endif
 
+;Low and high limits
+  If(keyword_set(lo_scpot)) Then scplo = lo_scpot Else Begin
+     drv = dr.v
+     scplo = min(drv[where(finite(drv) And drv gt 0)])
+  Endelse
+  If(keyword_set(hi_scpot)) Then scphi = hi_scpot Else scphi = 50.0
+;If requested, use HSK data for FGM to determine where the sc_pot should be
+;set to scplo automatically
+  If(keyword_set(hsk_test)) Then Begin
+     thm_load_hsk, probe = sc
+     xy_test = data_cut(thx+'_hsk_ifgm_xy_raw', dr.x)
+     zr_test = data_cut(thx+'_hsk_ifgm_zr_raw', dr.x)
+     ss_hsk_test = (xy_test Lt hsk_test) And (zr_test Lt hsk_test)
+  Endif Else ss_hsk_test = bytarr(ntimes)
 ;bytescale in log space
   ok = where(finite(dr.y) And dr.y Gt 0, nok)
   If(nok Gt 0) Then vrange = minmax(dr.y[ok]) Else vrange = 0b
@@ -145,37 +165,52 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, yellow=yellow, $
   vv = rotate(dr.v, 7)
   nchan = n_elements(vv[0,*])
   ntimes = n_elements(dr.x)
-  scpot = fltarr(ntimes)+3.0 ;low limit
-  If(keyword_set(yellow)) Then ylw = yellow Else yellow = 200
+  scpot = fltarr(ntimes)+scplo ;low limit
+  If(keyword_set(yellow)) Then ylw = yellow Else ylw = 200
   For j = 0, ntimes-1 Do Begin
      i = 0
      maxv = max(yy[j,0:5], maxpt)
+     If(ss_hsk_test[j] Gt 0) Then continue ;Do not process this time
      do_this_j = 0b
      If(vv[j, 0] Lt 1.0) Then Begin ;fix for zero energy modes
-        If(yy[j, 1] Ge yellow) Then do_this_j = 1b
+        If(yy[j, 1] Ge ylw) Then do_this_j = 1b
      Endif Else Begin
-        If(yy[j, 0] Ge yellow) Then do_this_j = 1b
+        If(yy[j, 0] Ge ylw) Then do_this_j = 1b
      Endelse
      If(do_this_j) Then Begin
 ;interpolate to a higher resolution energy grid
-        yyy0 = temp_interp_hires(reform(yy[j,*]), alog(reform(vv[j,*])), vvv, _extra=_extra)
+        yyy0 = temp_interp_hires(reform(yy[j,*]), alog(reform(vv[j,*])), $
+                                 vvv, _extra=_extra)
         yyy = temp_multiscale_smooth(yyy0, [31, 21, 11])
         If(yyy[0] Ne -1) Then Begin
-           Repeat Begin
+           Repeat Begin ;either drop to yellow value or increase by 0.02
               i=i+1
               i1 = i+1
-              cc = yyy[i] lt yellow Or (yyy[i1] gt 1.1*yyy[i]) $
+              cc = yyy[i] lt ylw Or (yyy[i1] gt 1.02*yyy[i]) $
                    Or i1 Eq n_elements(yyy)-1
            Endrep Until cc
         Endif
-        scpot[j] = exp(vvv[i]) < 100.0
+        If(exp(vvv[i]) Gt scphi) Then Begin
+           scpot[j] = scplo
+        Endif Else Begin ;Require that yyy goes back above ylw+5 below 1000 V
+           ytmp = yyy[i:*] ;kind of a sanity check, for a double peak
+           vtmp = exp(vvv[i:*])
+           ss = where(vtmp Lt 1000.0)
+           If(ss[0] Ne -1) Then Begin
+              ok = where(ytmp Gt ylw+5)
+              If(ok[0] Ne -1) Then scpot[j] = exp(vvv[i])
+           Endif
+        Endelse
      Endif
 ;     if(j eq 1340) then stop
   Endfor
 
   dlim = {ysubtitle:'[Volts]', units:'volts'}
   store_data, thx+'_est_scpot', data = {x:dr.x, y:scpot}, dlimits = dlim
-  options, thx+'_est_scpot', 'yrange', [0.0, 100.0]
+  options, thx+'_est_scpot', 'yrange', [0.0, scphi]
+  If(keyword_set(time_smooth_dt)) Then Begin
+     tsmooth_in_time, thx+'_est_scpot', time_smooth_dt, newname = thx+'_est_scpot'
+  Endif
 
   If(keyword_set(plot) Or keyword_set(random_dp)) Then Begin
      thm_spec_lim4overplot, thx+'_'+dtyp+'_en_eflux', zlog = 1, ylog = 1, /overwrite, ymin = 2.0
