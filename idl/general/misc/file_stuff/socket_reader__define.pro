@@ -8,12 +8,12 @@
 ;   SET_FILE_TIMERES : defines how often the current output file will be closed and a new one will be opened
 ;   DIRECTORY:  string prepended to fileformat when opening an output file.
 ; Author:
-;    Davin Larson - April 2023
+;    Davin Larson - January 2023
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2016-09-28 22:56:26 -0700 (Wed, 28 Sep 2016) $
-; $LastChangedRevision: 21979 $
+; $LastChangedDate: ) $
+; $LastChangedRevision:  $
 ; $URL: $
 ;
 ;-
@@ -31,7 +31,7 @@ function socket_reader::read_nbytes,nb,source,pos=pos
     if n gt 0 then   buf = source[pos:pos+n-1]
     pos = pos+n
   endif else begin
-    source = self.hfp           ;
+    source = self.input_lun           ;
     if isa(source) and keyword_set(source) then begin                ; source should be a file LUN
       if file_poll_input(source,timeout=0) && ~eof(source)  then begin
         buf = bytarr(nb)
@@ -51,21 +51,21 @@ end
 
 
 pro socket_reader::write ,buffer
-  if keyword_set(self.dfp) then begin
+  if keyword_set(self.output_lun) then begin
     if self.file_timeres gt 0 then begin
       if self.time_received ge self.next_filechange then begin
         ; dprint,verbose=self.verbose,dlevel=2,time_string(self.time_received,prec=3)+ ' Time to change files.'
-        if self.dfp then begin
+        if self.output_lun then begin
           self.open_output
         endif
       endif
       self.next_filechange = self.file_timeres * ceil(self.time_received / self.file_timeres)
     endif
     if keyword_set(buffer) then begin
-      writeu,self.dfp, buffer
-    endif else flush,self.dfp
+      writeu,self.output_lun, buffer
+    endif else flush,self.output_lun
   endif
-  ; flush,self.dfp
+  ; flush,self.output_lun
 end
 
 
@@ -81,14 +81,14 @@ pro socket_reader::lun_read
 
   buffer = !null
   ;dprint,'entering lun_read
-  if self.hfp ne 0 then begin
+  if self.input_lun ne 0 then begin
     bufsize = 10240UL
     on_ioerror, stream_error
     eofile =0
     self.time_received = systime(1)
     buffer= bytarr(bufsize)
     b = bytarr(1)
-    in_lun = self.hfp
+    in_lun = self.input_lun
     nbytes = 0UL
     while file_poll_input(in_lun,timeout=0) && (~eofile) && (nbytes lt bufsize) do begin
       readu,in_lun,b,transfer_count=nb
@@ -139,12 +139,12 @@ end
 
 pro socket_reader::open_output,fileformat,time=time,close=close
 
-  dprint,verbose=self.verbose,dlevel=2,"Opening ouput for: ",self.name
+  dprint,verbose=self.verbose,dlevel=2,"Opening output for: "+self.name
 
-  if self.dfp gt 0 then begin   ; Close old file
-    dprint,verbose=self.verbose,dlevel=2,'Closing file: "',self.filename,'"'
-    free_lun,self.dfp
-    self.dfp = 0
+  if self.output_lun gt 0 then begin   ; Close old file
+    dprint,verbose=self.verbose,dlevel=2,'Closing file: "'+self.filename+'"'
+    free_lun,self.output_lun
+    self.output_lun = 0
   endif
   if isa(fileformat,/string) then  self.fileformat = fileformat
   if keyword_set(close) then return
@@ -152,9 +152,9 @@ pro socket_reader::open_output,fileformat,time=time,close=close
     if ~keyword_set(time) then time=systime(1)
     self.filename = time_string(time,tformat=self.fileformat)
     fullfilename = self.directory + self.filename
-    file_open,'u',fullfilename, unit=dfp,dlevel=4,compress=-1,file_mode='666'o,dir_mode='777'o
-    dprint,verbose=self.verbose,dlevel=2,'Opening file: "'+fullfilename+'" Unit:'+strtrim(dfp,2)+'  '+self.title_num
-    self.dfp = dfp
+    file_open,'u',fullfilename, unit=output_lun,dlevel=4,compress=-1  ;,file_mode='666'o,dir_mode='777'o
+    dprint,verbose=self.verbose,dlevel=2,'Opening file: "'+fullfilename+'" Unit:'+strtrim(output_lun,2)+' '+self.title_num
+    self.output_lun = output_lun
     self.filename= fullfilename
   endif else dprint,'Fileformat is not specified for "',self.title_num,'"'
 end
@@ -165,7 +165,7 @@ pro socket_reader::file_read,filenames
   for i= 0,n_elements(filenames)-1 do begin
     file = filenames[i]
     file_open,'r',file,unit=lun,compress=-1
-    if keyword_set(lun) then self.hfp = lun
+    if keyword_set(lun) then self.input_lun = lun
     self.lun_read
   endfor
 
@@ -194,12 +194,12 @@ end
 
 
 
-pro socket_reader::process_data,buffer
-  if self.run_proc then begin
-    dprint,self.msg
-    hexprint,buffer
-  endif
-end
+;pro socket_reader::process_data,buffer
+;  if self.run_proc then begin
+;    dprint,self.msg
+;    hexprint,buffer
+;  endif
+;end
 
 
 PRO socket_reader::SetProperty, _extra=ex
@@ -223,18 +223,18 @@ pro socket_reader::help , item
 end
 
 
-function socket_reader::struct
-  ;  strct = {socket_reader}
-  strct = create_struct(name=typename(self))
-  struct_assign , self, strct
-  return,strct
-END
+;function socket_reader::struct
+;  ;  strct = {socket_reader}
+;  strct = create_struct(name=typename(self))
+;  struct_assign , self, strct
+;  return,strct
+;END
 
-function socket_reader::proc_name
-  proc_name_id = widget_info(self.base,find_by_uname='PROC_NAME')
-  if keyword_set(proc_name_id) then widget_control,proc_name_id,get_value=proc_name   else proc_name = self.exec_proc
-  return, proc_name[0]
-end
+;function socket_reader::proc_name
+;  proc_name_id = widget_info(self.base,find_by_uname='PROC_NAME')
+;  if keyword_set(proc_name_id) then widget_control,proc_name_id,get_value=proc_name   else proc_name = self.exec_proc
+;  return, proc_name[0]
+;end
 
 
 
@@ -257,11 +257,9 @@ end
 
 pro socket_reader::timed_event
 
-  if self.hfp gt 0 then begin
+  if self.input_lun gt 0 then begin
 
     self.lun_read
-
-    ;self.write
 
     wids = *self.wids
     if isa(wids) then begin
@@ -303,7 +301,7 @@ pro socket_reader::host_button_event
       WIDGET_CONTROL, host_button_id, set_value = 'Connecting',sensitive=0
       WIDGET_CONTROL, host_text_id, sensitive=0
       WIDGET_CONTROL, host_port_id, sensitive=0
-      socket,hfp,/get_lun,server_name,fix(server_port),error=error ,/swap_if_little_endian,connect_timeout=10
+      socket,input_lun,/get_lun,server_name,fix(server_port),error=error ,/swap_if_little_endian,connect_timeout=10
       if keyword_set(error) then begin
         dprint,dlevel=self.dlevel-1,self.title_num+!error_state.msg,error   ;strmessage(error)
         widget_control, output_text_id, set_value=!error_state.msg
@@ -311,8 +309,8 @@ pro socket_reader::host_button_event
         WIDGET_CONTROL, host_text_id, sensitive=1
         WIDGET_CONTROL, host_port_id, sensitive=1
       endif else begin
-        dprint,dlevel=self.dlevel,self.title_num+'Connected to server: "'+server_n_port+'"  Unit: '+strtrim(hfp,2)
-        self.hfp = hfp
+        dprint,dlevel=self.dlevel,self.title_num+'Connected to server: "'+server_n_port+'"  Unit: '+strtrim(input_lun,2)
+        self.input_lun = input_lun
         WIDGET_CONTROL, self.base, TIMER=1    ;
         WIDGET_CONTROL, host_button_id, set_value = 'Disconnect',sensitive=1
       endelse
@@ -324,8 +322,8 @@ pro socket_reader::host_button_event
       msg = 'Disconnected from server: "'+server_n_port+'"'
       widget_control, output_text_id, set_value=msg
       dprint,dlevel=self.dlevel,self.title_num+msg
-      free_lun,self.hfp
-      self.hfp =0
+      free_lun,self.input_lun
+      self.input_lun =0
       wait,1
       WIDGET_CONTROL, host_button_id, set_value = 'Connect to',sensitive=1
     end
@@ -356,9 +354,9 @@ pro socket_reader::dest_button_event
   widget_control,dest_text_id, get_value=filename
   case status of
     'Write to': begin
-      if keyword_set(self.dfp) then begin
-        free_lun,self.dfp
-        self.dfp = 0
+      if keyword_set(self.output_lun) then begin
+        free_lun,self.output_lun
+        self.output_lun = 0
       endif
       WIDGET_CONTROL, dest_button_id      , set_value = 'Opening' ,sensitive=0
       widget_control, dest_text_id, get_value = fileformat,sensitive=0
@@ -372,9 +370,9 @@ pro socket_reader::dest_button_event
       self.filename = str_sub(filename,'{PORT}',strtrim(self.hostport,2) )               ; Substitute port number
       widget_control, dest_text_id, set_uvalue = fileformat,set_value=self.filename
       if keyword_set(self.filename) then begin
-        file_open,'u',self.directory+self.filename, unit=dfp,dlevel=4,compress=-1,file_mode='666'o,dir_mode='777'o
-        dprint,dlevel=dlevel,self.title_num+' Opened output file: '+self.directory+self.filename+'   Unit:'+strtrim(dfp)
-        self.dfp = dfp
+        file_open,'u',self.directory+self.filename, unit=output_lun,dlevel=4,compress=-1,file_mode='666'o,dir_mode='777'o
+        dprint,dlevel=dlevel,self.title_num+' Opened output file: '+self.directory+self.filename+'   Unit:'+strtrim(output_lun)
+        self.output_lun = output_lun
         self.filename= self.directory+self.filename
         widget_control, dest_flush_id, sensitive=1
       endif
@@ -385,9 +383,9 @@ pro socket_reader::dest_button_event
       WIDGET_CONTROL, dest_button_id,          set_value = 'Closing',sensitive=0
       widget_control, dest_flush_id, sensitive=0
       widget_control, dest_text_id ,get_uvalue= fileformat,get_value=filename
-      if self.dfp gt 0 then begin
-        free_lun,self.dfp
-        self.dfp =0
+      if self.output_lun gt 0 then begin
+        free_lun,self.output_lun
+        self.output_lun =0
       endif
       ;            wait,1
       widget_control, dest_text_id ,set_value= self.fileformat,sensitive=1
@@ -415,15 +413,15 @@ end
 
 
 pro socket_reader::destroy
-  if self.hfp gt 0 then begin
-    fs = fstat(self.hfp)
+  if self.input_lun gt 0 then begin
+    fs = fstat(self.input_lun)
     dprint,dlevel=self.dlevel-1,self.title_num+'Closing '+fs.name
-    free_lun,self.hfp
+    free_lun,self.input_lun
   endif
-  if self.dfp gt 0 then begin
-    fs = fstat(self.dfp)
+  if self.output_lun gt 0 then begin
+    fs = fstat(self.output_lun)
     dprint,dlevel=self.dlevel-1,self.title_num+'Closing '+fs.name
-    free_lun,self.dfp
+    free_lun,self.output_lun
   endif
   WIDGET_CONTROL, self.base, /DESTROY
   ; ptr_free,ptr_extract(self.struct())
@@ -523,7 +521,7 @@ END
 ;pro socket_reader::read_lun,lun
 ;on_ioerror, nextfile
 ;isasocket = self.isasocket
-;;lun = self.dfp
+;;lun = self.output_lun
 ;
 ;buf = bytarr(17)
 ;remainder = !null
@@ -580,18 +578,18 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
   if isa(verbose) then self.verbose = verbose else self.verbose = 2
 
   if not keyword_set(host) then host = ''
-  if not keyword_set(port) then port = '2028'
+  if not keyword_set(port) then port = '2000'
   if not keyword_set(title) then title = name+' Reader'
   if not keyword_set(set_file_timeres) then set_file_timeres=3600.d
   self.file_timeres =set_file_timeres
   port=strtrim(port,2)
-  if not keyword_set(fileformat) then fileformat = name+'/YYYY/MM/DD/'+name+'_YYYYMMDD_hhmm.dat'
+  if not keyword_set(fileformat) then fileformat = name+'/YYYY/MM/DD/'+name+'_YYYYMMDD_hh.dat'
   self.hostname = HOST
   self.hostport = port
   self.title = title
   self.fileformat = fileformat
   self.buffer_ptr = ptr_new(/allocate_heap)
-  self.buffersize = 2L^10
+  ;self.buffersize = 2L^10
   self.dlevel = 2
   self.isasocket=1
   self.run_proc = isa(run_proc) ? run_proc : 1    ; default to running proc
@@ -623,7 +621,6 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
 
       self.wids = ptr_new(ids)
 
-      ;    info.buffer_ptr = ptr_new( bytarr( info.buffersize ) )
       WIDGET_CONTROL, self.base, SET_UVALUE=self
       WIDGET_CONTROL, self.base, /REALIZE
       widget_control, self.base, base_set_title=self.title_num
@@ -640,8 +637,8 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
     if size(/type,host) eq 7 then  widget_control,ids.host_text,set_value=host
     if n_elements(port) eq 1 then  widget_control,ids.host_port,set_value=strtrim(port,2)
     if n_elements(pollinterval) ne 0 then widget_control,ids.poll_int,set_value=strtrim(pollinterval,2)
-    if n_elements(set_output)  eq 1 && (keyword_set(info.dfp) ne keyword_set(set_output )) then socket_reader_event, { id:ids.dest_button, top:ids.base }
-    if n_elements(set_connect) eq 1 && (keyword_set(info.hfp) ne keyword_set(set_connect)) then socket_reader_event, { id:ids.host_button, top:ids.base }
+    if n_elements(set_output)  eq 1 && (keyword_set(info.output_lun) ne keyword_set(set_output )) then socket_reader_event, { id:ids.dest_button, top:ids.base }
+    if n_elements(set_connect) eq 1 && (keyword_set(info.input_lun) ne keyword_set(set_connect)) then socket_reader_event, { id:ids.host_button, top:ids.base }
     if n_elements(set_procbutton) eq 1 then begin
       widget_control,ids.proc_button,set_button=set_procbutton
       socket_reader_event, { top:ids.base, id:ids.proc_button, select: keyword_set(set_procbutton) }
@@ -654,7 +651,7 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
     endif
     get_procbutton = widget_info(ids.proc_button,/button_set)
     ;widget_control,ids.dest_text,get_value=get_filename
-    get_filename = keyword_set(self.dfp) ? self.filename : ''
+    get_filename = keyword_set(self.output_lun) ? self.filename : ''
     widget_control, base, set_uvalue= self
     
   endif
@@ -677,16 +674,16 @@ pro socket_reader__define
     title: '', $
     title_num: '', $
     time_received: 0d,  $
-    file_timeres: 0d,   $   ; don't use - will be deprecated in future
+    file_timeres: 0d,   $   ; Defines time interval of each output file
     next_filechange: 0d, $ ; don't use - will be deprecated in future
-    isasocket:0,  $
-    hfp:0,  $               ; host file pointer (lun)
-    directory:'' ,  $
-    fileformat:'',  $
-    filename:'', $
-    dfp:0 , $               ; destination file pointer (lun)
+    isasocket:0,  $          
+    input_lun:0,  $               ; host input file pointer (lun)
+    output_lun:0 , $               ; destination output file pointer (lun)
+    directory:'' ,  $          ; output/input directory
+    fileformat:'',  $          ; output/input fileformat  - accepts time wild cards i.e.:  "file_YYYYMMDD_hh.dat"
+    filename:'', $             ; output filename
     msg: '', $
-    buffersize:0L, $
+    ;buffersize:0L, $
     buffer_ptr: ptr_new(),   $
     pollinterval:0., $
     source_dict: obj_new(),  $
@@ -696,8 +693,7 @@ pro socket_reader__define
     nreads: 0ul, $
  ;   brate: 0. , $ ; don't use - will be deprecated in future
  ;   prate: 0. , $ ; don't use - will be deprecated in future
-    output_filename:  '',   $
-    output_lun: 0,  $  
+ ;   output_filename:  '',   $
     procedure_name: '', $
     output_data: obj_new(), $
     run_proc:0 }

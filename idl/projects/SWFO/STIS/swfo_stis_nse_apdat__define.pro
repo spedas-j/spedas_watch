@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2022-09-16 13:04:38 -0700 (Fri, 16 Sep 2022) $
-; $LastChangedRevision: 31093 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2023-02-05 00:32:07 -0800 (Sun, 05 Feb 2023) $
+; $LastChangedRevision: 31471 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_nse_apdat__define.pro $
 
 
@@ -41,7 +41,7 @@ function swfo_stis_nse_apdat::decom,ccsds,source_dict=source_dict      ;,header,
   str4=swfo_stis_nse_level_1(str3)
   rate=str2.total/str1.duration
   rate6=str2.total6/str1.duration
-  str5={rate:rate,rate6:rate6,rate_div_three:rate/3.,rate6_times_two:rate6*2.,baseline:str4.baseline,sigma:str4.sigma}
+  str5={rate:rate,scaled_rate6:rate6/str1.pulser_frequency*2.,rate_div_three:rate/3.,baseline:str4.baseline,sigma:str4.sigma}
 
   str=create_struct(str3,str5)
 
@@ -61,7 +61,7 @@ pro swfo_stis_nse_apdat::handler2,strct,source_dict=source_dict
 
   ;printdat,self
   if ~obj_valid(self.level_1a) then begin
-    dprint,'help'
+    dprint,'Creating Level_1a'
     self.level_1a = dynamicarray(name='Noise_L1a')
   endif
   da =   self.level_1a

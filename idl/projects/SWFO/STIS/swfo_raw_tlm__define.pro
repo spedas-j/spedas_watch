@@ -155,7 +155,7 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=source_dict
             break
           endif
           ccsds_buf = source_dict.sync_ccsds_buf[4:pkt_size+4-1]  ; not robust!!!
-;          if self.run_proc then   swfo_ccsds_spkt_handler,ccsds_buf,source_dict=source_dict
+          if self.run_proc then   swfo_ccsds_spkt_handler,ccsds_buf,source_dict=source_dict
           if n_elements(source_dict.sync_ccsds_buf) eq pkt_size+4 then source_dict.sync_ccsds_buf = !null $
           else    source_dict.sync_ccsds_buf = source_dict.sync_ccsds_buf[pkt_size+4:*]
         endwhile

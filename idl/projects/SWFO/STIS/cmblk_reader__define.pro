@@ -11,7 +11,7 @@ COMPILE_OPT IDL2
 
 FUNCTION cmblk_reader::Init,name,_EXTRA=ex
   ; Call our superclass Initialization method.
-  if ~keyword_set(name) then name = 'CMBLK'
+  if ~keyword_set(name) then name = 'CmBlk'
   void = self->socket_reader::Init(name,_EXTRA = ex)
   ;self.dlevel = 2
   ;self.verbose = 2
@@ -75,8 +75,6 @@ pro cmblk_reader::lun_read    ;,nbytes
   if last_time eq 0 then last_time=!values.d_nan
   self.time_received = time
   self.msg = time_string(time,tformat='hh:mm:ss - ',local=localtime)
-  ;in_lun = self.hfp
-  ;buf = bytarr(32)
   remainder = !null
   nbytes = 0UL
   npkts  = 0UL
@@ -162,100 +160,17 @@ end
 
 
 
-pro cmblk_reader::lun_read_old    ;,nbytes
-
-  dwait = 10.
-  sync = swap_endian(ulong(byte('CMB1'),0,1),/swap_if_little_endian)
-
-  ; on_ioerror, nextfile
-  time = systime(1)
-  last_time = self.time_received
-  if last_time eq 0 then last_time=!values.d_nan
-  self.time_received = time
-  self.msg = time_string(time,tformat='hh:mm:ss - ',local=localtime)
-  in_lun = self.hfp
-  out_lun = self.dfp
-  buf = bytarr(32)
-  remainder = !null
-  nbytes = 0UL
-  npkts  = 0UL
-  eofile = 0
-
-  while file_poll_input(in_lun,timeout=0) && ~eofile do begin
-    readu,in_lun,buf,transfer_count=nb
-    if debug(4,self.verbose,msg='cmbhdr: ') then begin
-      ;dprint,nb,dlevel=4
-      hexprint,buf
-    endif
-    nbytes += nb
-    npkts  += 1
-    if keyword_set(out_lun) then begin
-      writeu,out_lun, buf
-    endif
-    msg_buf = [remainder,buf]
-    cmbhdr = self.header_struct(msg_buf)
-    if debug(3,self.verbose) then begin
-      print,'CMB: ',time_string(cmbhdr.time,prec=3),' ',cmbhdr.seqn,cmbhdr.size,'  ',cmbhdr.description
-    endif
-    if cmbhdr.sync ne sync || cmbhdr.size gt 30000 then begin
-      remainder = msg_buf[1:*]
-      buf = bytarr(1)
-      if debug(2) then begin
-        dprint,dlevel=1,'Lost sync:',dwait=dwait
-      endif
-      continue
-    endif
-
-    ;  read the payload
-    payload_buf = bytarr(cmbhdr.size)
-    readu,in_lun,payload_buf,transfer_count=nb
-    nbytes += nb
-
-    ; Write the data to file (if desired)
-    if keyword_set(out_lun) then writeu,out_lun, payload_buf
-
-    ; Decommutate data
-    handlers = self.handlers
-    descr_key = cmbhdr.description
-    if handlers.haskey( descr_key ) eq 0  then begin        ; establish new ones if not already defined
-      dprint,verbose=self.verbose,dlevel=1,'Found new description key: "', descr_key,'"'
-      handlers[descr_key] =  socket_reader(name=descr_key,title=descr_key,/no_widget,verbose=self.verbose)
-    endif
-    d = self.source_dict
-    d.cmbhdr = cmbhdr
-    handler =  handlers[descr_key]                     ; Get the proper handler object
-    handler.handle, payload_buf, source_dict=d         ; execute handler
-
-    ; decomutate data here!
-  endwhile
-  delta_time = time - last_time
-  self.nbytes += nbytes
-  self.npkts  += npkts
-  ;self.brate = nbytes / delta_time
-  ;self.prate = npkts / delta_time
-  self.msg += strtrim(nbytes,2)+ ' bytes'
-
-  if 0 then begin
-    nextfile:
-    dprint,verbose=self.verbose,dlevel=0,'File error? '
-  endif
-  dprint,verbose=self.verbose,dlevel=2,self.msg
-
-end
-
-
-
 
 
 pro cmblk_reader::add_handler,key,object
-    help,hds,object
+    ;help,hds,object
     if isa(key,'HASH') then begin
       self.handlers += key
     endif else begin
       self.handlers[key]= object      
     endelse
     dprint,'Added new handler: ',key,verbose=self.verbose,dlevel=1
-    help,self.handlers
+    ;help,self.handlers
 end
 
 
