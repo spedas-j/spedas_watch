@@ -8,9 +8,26 @@ Function Density_fraction, scp, _extra = _extra
   Endif Else Begin
      fraction = 0.0
   Endelse
-  If(tag_exist(_extra, 'dscale')) Then Begin
-     Return, fraction-_extra.dscale
-  Endif Else Return, fraction-1.0 ;Zero is the good answer here
+  Return, fraction-1.0          ;Zero is the good answer here
+End
+;Helper function to calculate electron/ion density for bisection
+;Uses n_3d_new.pro for density calculations
+Function Density_fraction_n3dnew, scp, _extra = _extra
+
+
+;for using n_3d_new, the scpot value has to be set in the input
+;structure
+  ee = _extra.edat & ee.sc_pot = scp
+  em0 = n_3d_new(ee)
+  ie = _extra.idat & ie.sc_pot = scp
+  im0 = n_3d_new(ie)
+
+  If(em0 Gt 0 And im0 Gt 0) Then Begin
+     fraction = em0/im0
+  Endif Else Begin
+     fraction = 0.0
+  Endelse
+  Return, fraction-1.0 ;Zero is the good answer here
 End
   
 ;+
@@ -73,16 +90,18 @@ End
 ;INPUT:
 ; edat = 3d data electron structure filled by themis routines get_th?_p???
 ; idat = 3d data ion structure filled by themis routines get_th?_p???
+; use_n3dnew = if set, use n_3d_new.pro to get densities
 ;KEYWORDS:
 ;HISTORY:
 ; 2023-02-01, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-02-01 14:01:31 -0800 (Wed, 01 Feb 2023) $
-; $LastChangedRevision: 31460 $
+; $LastChangedDate: 2023-02-06 15:08:13 -0800 (Mon, 06 Feb 2023) $
+; $LastChangedRevision: 31478 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_esa_dens2scpot.pro $
 ;
 ;-
-Function thm_esa_dens2scpot, edat, idat, _extra = _extra
+Function thm_esa_dens2scpot, edat, idat, use_n3dnew = use_n3dnew, $
+                             _extra = _extra
 
   If(~is_struct(edat) || edat.valid eq 0) Then Begin
      dprint, dlevel = 4, 'Invalid Electron Data'
@@ -98,14 +117,23 @@ Function thm_esa_dens2scpot, edat, idat, _extra = _extra
   scphi = 100.0
 ;If ion density is higher than electron density, then use the lower
 ;limit, or if we get a bad result
-  tmp_dens_lo = density_fraction(scplo, _extra = {edat:edat, idat:idat})
-  If(tmp_dens_lo Lt 0.0) Then Return, scplo
+  If(keyword_set(use_n3dnew)) Then Begin
+     tmp_dens_lo = density_fraction_n3dnew(scplo, _extra = {edat:edat, idat:idat})
+     If(tmp_dens_lo Lt 0.0) Then Return, scplo
 ;If Electron density is higher even at 100 V, then return scphi
-  tmp_dens_hi = density_fraction(scphi, _extra = {edat:edat, idat:idat})
-  If(tmp_dens_hi Ge 0.0) Then Return, scphi
+     tmp_dens_hi = density_fraction_n3dnew(scphi, _extra = {edat:edat, idat:idat})
+     If(tmp_dens_hi Ge 0.0) Then Return, scphi
 ;Bisect for sc_potential 
-  sc_pot_est = rtbis('density_fraction', scplo, scphi, _extra = {edat:edat, idat:idat})
-  
+     sc_pot_est = rtbis('density_fraction_n3dnew', scplo, scphi, _extra = {edat:edat, idat:idat})
+  Endif Else Begin
+     tmp_dens_lo = density_fraction(scplo, _extra = {edat:edat, idat:idat})
+     If(tmp_dens_lo Lt 0.0) Then Return, scplo
+;If Electron density is higher even at 100 V, then return scphi
+     tmp_dens_hi = density_fraction(scphi, _extra = {edat:edat, idat:idat})
+     If(tmp_dens_hi Ge 0.0) Then Return, scphi
+;Bisect for sc_potential 
+     sc_pot_est = rtbis('density_fraction', scplo, scphi, _extra = {edat:edat, idat:idat})
+  Endelse
 ;A bad value will be NaN, return scplo
   If(~finite(sc_pot_est)) Then sc_pot_est = scplo
   

@@ -21,11 +21,12 @@
 ; plot = if set, plot a comparison of the estimated sc_pot wht the
 ;        value obtained from the esa L2 cdf (originally from
 ;        thm_load_esa_pot)
+; use_n3dnew = if set, use n_3d_new.pro to get densities
 ;HISTORY:
 ; 1-feb-2023, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-02-01 14:01:31 -0800 (Wed, 01 Feb 2023) $
-; $LastChangedRevision: 31460 $
+; $LastChangedDate: 2023-02-06 15:08:13 -0800 (Mon, 06 Feb 2023) $
+; $LastChangedRevision: 31478 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_esa_est_dens2scpot.pro $
 ;-
 
@@ -33,6 +34,7 @@ Pro thm_esa_est_dens2scpot, date, probe, trange=trange, $
                             no_init = no_init, random_dp = random_dp, $
                             plot = plot, load_all_esa = load_all_esa, $
                             time_smooth_dt = time_smooth_dt, $
+                            use_n3dnew = use_n3dnew, $
                             _extra=_extra
   
 ;Use peer and peir data
@@ -97,7 +99,7 @@ Pro thm_esa_est_dens2scpot, date, probe, trange=trange, $
      edj = call_function(efuncj, t)
      ifuncj = 'get_'+thx+'_'+dtyp[1]
      idj = call_function(ifuncj, t)
-     scpot[j] = thm_esa_dens2scpot(edj, idj, _extra = _extra)
+     scpot[j] = thm_esa_dens2scpot(edj, idj, use_n3dnew = use_n3dnew, _extra = _extra)
   Endfor
 
   dlim = {ysubtitle:'[Volts]', units:'volts'}
