@@ -174,7 +174,7 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
 ; NOTE: the path below will work for anyone working on the SSL
 ; network. Others will need to clone the AWS directory mentioned the
 ; commented section above the code. A copy of this directory exists at LASP
-  if not keyword_set (local_path) then local_path = '/disks/hope/home/rlillis/emm/data/'
+  if not keyword_set (local_path) then local_path = '/disks/hope/home2/rlillis/emm/data/'
   
 ; retrieve the file names from the requested time range, as well as
 ; the indices for each image set within the returned array of
@@ -630,11 +630,11 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
                        stitched_brightness_map = stitched_brightness_map
      
 ; look at regions of interest
-     stop
+     ;stop
      
-     image = bytscl(reform (alog10 (mean_brightness_map [0,*,*, 0])),/nan, $
-                   min = 0, max = 2)
-     xroi, Image, statistics = roi
+     ;image = bytscl(reform (alog10 (mean_brightness_map [0,*,*, 0])),/nan, $
+     ;              min = 0, max = 2)
+     ;xroi, Image, statistics = roi
      
      
      for l = 0,n_swath-1 do begin

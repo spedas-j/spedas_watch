@@ -45,6 +45,104 @@
 ;   https://mdhkq4bfae.execute-api.eu-west-1.amazonaws.com/prod/science-files-metadata?".  
 ;   The default will work fine for people working on the UC Berkeley SSL network
 
+; the purpose of this routine is to take the full name of the file
+; including the directory structure, and return only the filename,
+; after the last forward slash
+
+Function filename_only, full_filename
+  ss = strsplit (full_filename, '/',/extract)
+  if n_elements (full_filename) eq 1 then begin
+      n_sub_strings = n_elements (ss)
+      return, ss[n_sub_strings -1]
+  endif else begin
+      output_string =' '        ; give falsefirst element
+      for J = 0, n_elements (full_filename)-1 do begin
+          n_sub_strings = n_elements(ss [J,*])
+          output_string = [output_string,ss[J,n_sub_strings-1]]
+      endfor
+      output_string = output_string [1:*] ; remove false first element
+      return, output_string
+  endelse
+end
+
+
+
+function get_file_name_string,  path,  identifier =  identifier,  $
+                                full_name =  full_name, $
+                                subdirectory = subdirectory
+  if not keyword_set (identifier) then identifier =  ' '
+    rmst =  'rm '+'./temp_list_file.txt'
+ 
+  spawn,  rmst
+  if not keyword_set (subdirectory) then list_string = 'ls ' +$
+     path + identifier + ' > '+ './temp_list_file.txt' else list_string = $
+     'ls -R ' +$
+     path + identifier + ' > '+ './temp_list_file.txt'
+  spawn,  list_string
+  close,/all
+  openr,  unit, './temp_list_file.txt', /get_lun
+  if eof(unit) eq 1 then return,  sqrt (-7.3)
+   names = strarr(25000)
+  i = 0
+  redflag = 0
+  
+  while redflag eq 0 do begin 
+    
+    kal = ' '
+    readf, unit, kal 
+    i = i+1
+    if eof(unit) eq 1 then redflag = 1
+    ;print, kal
+    ;print, redflag
+    ;names_split =  strsplit (kal, '/', /extract,  count =  count)
+   ; if not keyword_set (full_name) then names [i-1] =  $
+    ;  names_split [count -1] else 
+    names[i-1] = kal
+ endwhile
+  free_lun, Unit
+  names = names[0:i-1]
+  names = filename_only (names)
+; default is to shorten the string to exclude the path
+ 
+    
+  close, /all
+  rmst =  'rm ' +'./temp_list_file.txt'
+
+  spawn,  rmst
+  if keyword_set (full_name) then return,  path + $
+    names [0:i -1] else return,  names [0: i -1]
+end
+
+
+function numbered_filestring, i, digits = digits
+
+  ii = round (i)
+  if not keyword_set (digits) then digits = 4
+  ni = n_elements (i)
+  output = strarr (ni) 
+  
+  if digits eq 1 then begin
+     for k = 0, ni-1 do output [k] =  strcompress(string(ii[k] mod 10), /rem)
+  endif else if digits eq 2 then begin
+     for k = 0, ni-1 do output [k] = strcompress(string(ii[k]/10 mod 10), /rem)+$
+        strcompress(string(ii[k] mod 10), /rem)
+  endif else if digits eq 3 then begin
+     for k = 0, ni-1 do output [k] = $
+        strcompress(string((ii[k] - 1000*(ii[k]/1000))/100), /rem)+$
+        strcompress(string(ii[k]/10 mod 10), /rem)+$
+        strcompress(string(ii[k] mod 10), /rem)
+  endif else if digits eq 4 then begin
+     for k = 0, ni-1 do output [k] = strcompress(string(ii[k]/1000), /rem) +$
+        strcompress(string((ii[k] - 1000*(ii[k]/1000))/100), /rem)+$
+        strcompress(string(ii[k]/10 mod 10), /rem)+$
+        strcompress(string(ii[k] mod 10), /rem)
+  endif else begin 
+     message, 'digits keyword must be specified and must be between 1 and 4'
+  endelse
+  return, output
+end
+
+
 function emm_file_retrieve, time_range, level = level, mode = mode, $
                             local_path = local_path, $
                             instrument = instrument
@@ -64,18 +162,18 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
 
   if not keyword_set (mode) then message, 'need to specify mode'
 
-; make sure the start and end dates are full days at least one day
-; apart
+; make sure the start and end dates are full days at least 2 hours apart
   start_date = time_double (time_range [0])
-  end_date = Max ([time_double (time_range [1]), start_date +86400])
+  end_date = Max ([time_double (time_range [1]), start_date +7200])
 
-  Start_date = time_string (start_date, tformat = 'YYYY-MM-DD')
-  end_date = time_string (end_date, tformat = 'YYYY-MM-DD')
+  Start_date = time_string (start_date, tformat = 'YYYY-MM-DD-hh')
+  end_date = time_string (end_date, tformat = 'YYYY-MM-DD-hh')
 
 ; here's the location of the files on the UC Berkeley Space
 ; Sciences Lab network. Change if you want to use your local disk.
   if not keyword_set (local_path) then local_path = $
-     '/disks/hope/home/rlillis/emm/data/'
+     '/disks/hope/home2/rlillis/emm/data/'
+  
   
   start_time = time_double (start_date)
   End_time = time_double (end_date)
@@ -85,11 +183,13 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
   Start_year = round (float (start_split[0]))
   start_month = round (float (start_split[1]))
   start_day = round (float (start_split[2]))
+  Start_hour = round (float (start_split[3]))
   
   end_split = strsplit (end_date, '-',/extract)
   End_year = round (float (end_split[0]))
   end_month = round (float (end_split[1]))
   end_day = round (float (end_split[2]))
+  End_hour = round (float (end_split[3]))
   
 ; if everything is in the same year
   if start_year eq end_year then begin
@@ -104,30 +204,35 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
      year_strings = [replicate (start_split [0],ny1), $
                      replicate (end_split [0], ny2)]
      month_strings = [numbered_filestring (start_month + indgen (ny1), digits = 2), $
-                      numbered_filestring (findgen (ny2), digits = 2)]
+                      numbered_filestring (1+indgen (ny2), digits = 2)]
   endelse
 
 ; Now go through each directory
 ;emm_emu_l2b_20220331t212107_0191_os2_sw1of3_r_v01-04.fits.gz
 
-
   big_files = ''
   big_date_string = ''
   big_year_string = ''
   big_month_string = ''
+  big_directory = ''
 
   big_swath_number = 0b
   big_swaths_per_set = 0b
-
+  
+  
   for i = 0, nd-1 do begin
      directory = Local_path+instrument + '/' + level + '/' + $
                  mode + '/' + year_strings [i] + '/' + $
                  month_strings [i]+ '/'
+     
      files = $
         get_file_name_string (directory, identifier = 'emm_'+ instrument + '_' + $
-                              level + '_*_f_*.fits.gz')
+                              level + '_*.fits.gz')
+     if size (files,/type) ne 7 then continue
      nf = n_elements(files)
 
+     
+  
 ;now find the year and month directory string
      year_string = strarr (nf)
      month_string = year_string
@@ -144,7 +249,6 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
      this_set = indgen (3)
 
      for K = 0,nf-1 do begin 
-
         temp = strsplit(directory, '/',/Extract ) 
         year_string [k] = temp [-2] 
         month_string [k] = temp [-1] 
@@ -189,8 +293,10 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
         
      endfor
      
+
      big_date_string = [big_date_string, date_string]
      big_month_string = [big_month_string, month_string]
+     big_directory = [big_directory, replicate (directory, nf)]
      big_year_string = [big_year_string, year_string]
      big_files = [big_files, files]
      big_swath_number = [big_swath_number, swath_number]
@@ -204,6 +310,9 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
   big_date_string = big_date_string [1:*]
   big_month_string = big_month_string [1:*]
   big_year_string = big_year_string [1:*]
+  big_directory = big_directory [1:*]
+  big_swath_number = big_swath_number [1:*]
+  big_swaths_per_set = big_swaths_per_set [1:*]
   big_files = big_files [1:*]
 
 ; now get the right order
@@ -214,86 +323,45 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
   order_good = sort (UNIX_time[Good])
   order = good [order_good]
 
-  good_files = directory + big_year_string[order] +$
-                       '/' + big_month_string[order] + '/' + $
-                       big_files[order]
+  good_files = big_files[order]
 
   good_times = big_date_string [order]; strings
   good_UNIX_times = UNIX_time [order]; seconds since 1970
+  good_years = big_year_string [order]
+  good_months = big_month_string [order]
+  good_directory = big_directory [order]
+
+  
   
 ; now go through the files in order and set the file indices  
   ng = n_elements (good_files)
   File_indices = [-1, -1, -1]
   this_set = [-1, -1, -1]
-
   
-  for K = 0, ng-1 do begin
-     print,good_files [k]
-     this_set [big_swath_number [order[k]] -1] = k
-     if big_swath_number [order [k]] eq big_swaths_per_set [order [k]] then begin
-        set_count++
-        file_indices = [[file_indices], [this_set]]
+  for K = 0, ng-1 do begin & $
+     print,good_files [k]& $
+     this_set [big_swath_number [order[k]] -1] = k& $
+     if big_swath_number [order [k]] eq big_swaths_per_set [order [k]] then begin& $
+        set_count++& $
+        file_indices = [[file_indices], [this_set]]& $
         
-        print, 'set complete: ', this_set
-        this_set= [-1, -1, -1]
+        print, 'set complete: ', this_set& $
+        this_set= [-1, -1, -1]& $
       
-     endif
+     endif& $
   endfor
 
 ;go through the file list and keep only those with
   ;print, file_indices
 ; chop off the first row because it's just -1s
+  if n_elements (file_indices) eq 3 then return, 0
   file_indices = file_indices [*, 1:*]
 
-  output = {files: good_files, $
-            times: good_times, $
+  output = {directory: good_directory,files: good_files, $
+            Full_files: good_directory + good_files,times: good_times, $
             UNIX_times: good_UNIX_times, $
             file_indices: file_indices}
   return, output
 
 end
 
-
-function get_file_name_string,  path,  identifier =  identifier,  $
-                                full_name =  full_name, $
-                                subdirectory = subdirectory
-  if not keyword_set (identifier) then identifier =  ' '
-    rmst =  'rm '+'./temp_list_file.txt'
- 
-  spawn,  rmst
-  if not keyword_set (subdirectory) then list_string = 'ls ' +$
-     path + identifier + ' > '+ './temp_list_file.txt' else list_string = $
-     'ls -R ' +$
-     path + identifier + ' > '+ './temp_list_file.txt'
-  spawn,  list_string
-  openr,  unit, './temp_list_file.txt', /get_lun
-  if eof(unit) eq 1 then return,  sqrt (-7.3)
-   names = strarr(25000)
-  i = 0
-  redflag = 0
-  
-  while redflag eq 0 do begin 
-    
-    kal = ' '
-    readf, unit, kal 
-    i = i+1
-    if eof(unit) eq 1 then redflag = 1
-    ;print, kal
-    ;print, redflag
-    ;names_split =  strsplit (kal, '/', /extract,  count =  count)
-   ; if not keyword_set (full_name) then names [i-1] =  $
-    ;  names_split [count -1] else 
-    names[i-1] = kal
-  endwhile
-  names = names[0:i-1]
-  names = filename_only (names)
-; default is to shorten the string to exclude the path
- 
-    
-  close, /all
-  rmst =  'rm ' +'./temp_list_file.txt'
-
-  spawn,  rmst
-  if keyword_set (full_name) then return,  path + $
-    names [0:i -1] else return,  names [0: i -1]
-end
