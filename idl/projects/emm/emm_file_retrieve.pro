@@ -71,9 +71,10 @@ function get_file_name_string,  path,  identifier =  identifier,  $
                                 full_name =  full_name, $
                                 subdirectory = subdirectory
   if not keyword_set (identifier) then identifier =  ' '
-    rmst =  'rm '+'./temp_list_file.txt'
+  file_delete,'./temp_list_file.txt',/allow_nonexistent
+;  rmst =  'rm '+
  
-  spawn,  rmst
+ ; spawn,  rmst
   if not keyword_set (subdirectory) then list_string = 'ls ' +$
      path + identifier + ' > '+ './temp_list_file.txt' else list_string = $
      'ls -R ' +$
@@ -106,9 +107,10 @@ function get_file_name_string,  path,  identifier =  identifier,  $
  
     
   close, /all
-  rmst =  'rm ' +'./temp_list_file.txt'
+  file_delete,'./temp_list_file.txt',/allow_nonexistent
+;  rmst =  'rm ' +'./temp_list_file.txt'
 
-  spawn,  rmst
+ ; spawn,  rmst
   if keyword_set (full_name) then return,  path + $
     names [0:i -1] else return,  names [0: i -1]
 end

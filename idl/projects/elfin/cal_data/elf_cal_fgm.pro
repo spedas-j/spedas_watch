@@ -11,6 +11,7 @@
 ; KEYWORDS:
 ;         level:       processing level 
 ;         error:       1 indicates an error occurred, 0 indicates success
+;         units:       'nT' or 'ADC' default is 'nT'
 ;         
 ; EXAMPLES:
 ;         
@@ -26,7 +27,7 @@
 ;$LastChangedRevision: 25588 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elfin/elf_cal_fgm.pro $
 ;-
-pro elf_cal_fgm, tvars, probe=probe, level=level, error=error
+pro elf_cal_fgm, tvars, probe=probe, level=level, error=error, units=units
 
   ; check and initialize parameters
   error = 0
@@ -36,6 +37,7 @@ pro elf_cal_fgm, tvars, probe=probe, level=level, error=error
      return
   endif
   if undefined(level) then level = 'l1'
+  if undefined(units) then units = 'nT' else units=units
   
   ; calibration data 
   ; TO DO: this should be in a calibration file, for now it's hard coded
@@ -44,6 +46,7 @@ pro elf_cal_fgm, tvars, probe=probe, level=level, error=error
   ; get fgm data and calibrate it
   if level EQ 'l1' then begin
      for i=0,n_elements(tvars)-1 do begin
+       if units EQ 'nT' then begin
          probe = strmid(tvars[i],2,1)
          if probe eq 'a' then begin
            ax1_off=-251.
@@ -62,9 +65,9 @@ pro elf_cal_fgm, tvars, probe=probe, level=level, error=error
          endelse
          get_data, tvars[i], data=d, dlimits=dl, limits=l
          if is_struct(d) then begin
-            bx_nt = d.y[*,0]/ax1_scl - ax1_off
-            by_nt = d.y[*,1]/ax2_scl - ax2_off
-            bz_nt = d.y[*,2]/ax3_scl - ax3_off            
+            bx_nt = d.y[*,0]/ax1_scl + ax1_off   ; based off of report from Aysen and Kathryn
+            by_nt = d.y[*,1]/ax2_scl + ax2_off
+            bz_nt = d.y[*,2]/ax3_scl + ax3_off            
             b_nt = [[bx_nt], [by_nt], [bz_nt]]
             dl.ysubtitle='[nT]'
             cal_data = {x:d.x, y:b_nt}    
@@ -75,6 +78,11 @@ pro elf_cal_fgm, tvars, probe=probe, level=level, error=error
            error = 1
            return          
          endelse
+       endif else begin
+         get_data, tvars[i], data=d, dlimits=dl, limits=l
+         dl.ysubtitle='[ADC]'
+         store_data, tvars[i], data=d, dlimits=dl, limits=l        
+       endelse
      endfor
   endif
   
