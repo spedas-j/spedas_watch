@@ -23,6 +23,8 @@ COMPILE_OPT IDL2
 
 
 function socket_reader::read_nbytes,nb,source,pos=pos
+
+  on_ioerror, fixit
   buf = !null
 
   if ~isa(pos) then pos=0ul
@@ -40,10 +42,13 @@ function socket_reader::read_nbytes,nb,source,pos=pos
       endif
     endif
   endelse
-
   self.write,buf
-
   return,buf
+  fixit: 
+  dprint,'IO error'
+  stop
+  return,buf
+  
 end
 
 
@@ -162,11 +167,17 @@ end
 
 
 pro socket_reader::file_read,filenames
+  on_ioerror, keepgoing
   for i= 0,n_elements(filenames)-1 do begin
     file = filenames[i]
     file_open,'r',file,unit=lun,compress=-1
-    if keyword_set(lun) then self.input_lun = lun
-    self.lun_read
+    if keyword_set(lun) then begin
+      self.input_lun = lun
+      self.lun_read
+      free_lun,lun
+      keepgoing:
+      self.input_lun = 0
+    endif
   endfor
 
 end
@@ -593,6 +604,7 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
   self.dlevel = 2
   self.isasocket=1
   self.run_proc = isa(run_proc) ? run_proc : 1    ; default to running proc
+  self.dyndata = dynamicarray(name=name)
 
 
   if ~keyword_set(no_widget) then begin
@@ -695,7 +707,7 @@ pro socket_reader__define
  ;   prate: 0. , $ ; don't use - will be deprecated in future
  ;   output_filename:  '',   $
     procedure_name: '', $
-    output_data: obj_new(), $
+    dyndata: obj_new(), $
     run_proc:0 }
 
 end

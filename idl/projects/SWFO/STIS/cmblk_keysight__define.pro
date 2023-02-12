@@ -13,21 +13,27 @@ COMPILE_OPT IDL2
 pro cmblk_keysight::handle,payload,source_dict = source_dict
 
   dprint,dlevel=4,verbose=self.verbose,n_elements(payload),' Bytes for Handler: "',self.name,'"'
+  if self.verbose eq 3 then hexprint,payload
   self.nbytes += n_elements(payload)
   self.npkts  += 1
 
-
-  dprint,verbose=self.verbose,dlevel=4,n_elements(payload)
+  dprint,verbose=self.verbose,dlevel=4,n_elements(payload),string(payload)
   if self.run_proc then begin
     cmbhdr =  source_dict.cmbhdr
 
     fnan = !values.f_nan
     dnan = !values.d_nan
-    format={ $
+    sample={ $
       time:dnan, $
       dtime:fnan, $
       V: replicate(fnan,6), $
       I: replicate(fnan,6), $
+      v1: fnan, $
+      v2: fnan, $
+      v3: fnan, $
+      I1: fnan, $
+      I2: fnan, $
+      I3: fnan, $
       gap:0 $
       }
     
@@ -38,25 +44,34 @@ pro cmblk_keysight::handle,payload,source_dict = source_dict
     if n_elements(ss) eq 14 then begin
       time2 = time_double(ss[0]+' '+ss[1])
       vals = float(ss[2:*])
-      format.time = time1
-      format.dtime = time2-time1
-      format.V =vals[[ 0,2,4,6,8,10] ]
-      format.I =vals[[ 1,3,5,7,9,11] ]      
+      sample.time = time1
+      sample.dtime = time2-time1
+      sample.V =vals[[ 0,2,4,6,8,10] ]
+      sample.I =vals[[ 1,3,5,7,9,11] ]   
+      sample.v1 = vals[ 0 ]
+      sample.v2 = vals[ 4 ]   
+      sample.v3 = vals[ 8 ]
+      sample.i1 = vals[ 1 ]
+      sample.i2 = vals[ 5 ]
+      sample.i3 = vals[ 9 ]
     endif
     tname = 'KEYSIGHT'+strtrim(psnum,2)
-    store_data,/append,tname+'_',data=format,tagnames='DTIME V I',gap=format.gap
+    
+    store_data,/append,tname+'_',data=sample,tagnames='DTIME V I V? I?',gap=sample.gap
+
+;    firstsample = self.dyndata.size  eq 0
+;    self.dyndata.append,sample
+;    if firstsample then begin
+;      store_data,tname,data = self.dyndata,tagnames='DTIME V I V? I?',gap='GAP'
+;    endif
+    
 
     if debug(3,self.verbose,msg=self.name + ' handler') then begin
       ;print,strtrim(psnum) + '  '+string(str)
       ;printdat,vals
       print,vals
     endif
-
-
   endif
-
-
-
 end
 
 

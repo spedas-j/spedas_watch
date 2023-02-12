@@ -13,27 +13,27 @@ function swfo_raw_tlm::raw_tlm_struct,buf
 end
 
 
-function swfo_raw_tlm::read_nbytes,nb,source,pos=pos,output=output
-  buf = !null
-  
-  if ~isa(pos) then pos=0ul
-  if isa(source,/array) then begin          ; source should be a an array of bytes
-    n = nb < (n_elements(source) - pos)
-    if n gt 0 then   buf = source[pos:pos+n-1]
-    pos = pos+n
-  endif else begin
-    if isa(source) then begin                ; source should be a file LUN
-      if file_poll_input(source,timeout=0) && ~eof(source) then begin
-        buf = bytarr(nb)
-        readu,source,buf,transfer_count=n
-        pos = pos+n
-      endif      
-    endif
-  endelse
-  if keyword_set(output) && keyword_set(buf) then writeu,output,buf
-  
-  return,buf
-end
+;function swfo_raw_tlm::read_nbytes,nb,source,pos=pos,output=output
+;  buf = !null
+;  
+;  if ~isa(pos) then pos=0ul
+;  if isa(source,/array) then begin          ; source should be a an array of bytes
+;    n = nb < (n_elements(source) - pos)
+;    if n gt 0 then   buf = source[pos:pos+n-1]
+;    pos = pos+n
+;  endif else begin
+;    if isa(source) then begin                ; source should be a file LUN
+;      if file_poll_input(source,timeout=0) && ~eof(source) then begin
+;        buf = bytarr(nb)
+;        readu,source,buf,transfer_count=n
+;        pos = pos+n
+;      endif      
+;    endif
+;  endelse
+;  if keyword_set(output) && keyword_set(buf) then writeu,output,buf
+;  
+;  return,buf
+;end
 
 
 
@@ -44,24 +44,41 @@ end
 
 ;+
 ;  PROCEDURE SWFO_GSEMSG_Buffer_READ
-;  This procedure is only specific to SWFO in the "sync bytes" found in the PTP header.  Otherwise it could be considered generic
-;  It purpose is to read bytes from a previously opened PTP file OR stream.  It returns at the end of file (for files) or when
+;  This procedure is only specific to SWFO in the "sync bytes" found in the MSG header.  Otherwise it could be considered generic
+;  It purpose is to read bytes from a previously opened MSG file OR stream.  It returns at the end of file (for files) or when
 ;  no more bytes are available for reading from a stream.
-;  It should gracefully handle sync errors and find sync up on a PTP header.
-;  When a complete PTP header and its enclosed CCSDS packet are read in, it will execute the routine "swfo_ccsds_spkt_handler"
+;  It should gracefully handle sync errors and find sync up on a MSG header.
+;  When a complete MSG header and its enclosed CCSDS packet are read in, it will execute the routine "swfo_ccsds_spkt_handler"
 ;-
 
-pro swfo_raw_tlm::raw_tlm_read,source,source_dict=source_dict
+pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
 
   dwait = 10.
+  
+  if ~isa(parent_dict,'dictionary') then begin
+    parent_dict = dictionary()
+    dprint,dlevel=1,verbose=self.verbose,'Created new dictionary for: ', self.name   ; This should not be occurring !
+  endif else begin
+    if parent_dict.haskey('cmbhdr') then begin
+      header = parent_dict.cmbhdr
+   ;   dprint,dlevel=3,verbose=self.verbose,header.description,'  ',header.size
+    endif else begin
+      dprint,'No cmbhdr'
+      header = {time: !values.d_nan , gap:0 }
+    endelse
+    
+  endelse
+  
+  source_dict = self.source_dict
+  
+  
 
   if ~source_dict.haskey('sync_ccsds_buf') then source_dict.sync_ccsds_buf = !null   ; this contains the contents of the buffer from the last call
-  ;if source_dict.haskey('output_lun') then output_lun = source_dict.output_lun
   run_proc=1
 
   on_ioerror, nextfile
   time = systime(1)
-  source_dict.time_received = time
+  source_dict.time_received = header.time
   
   msg = time_string(source_dict.time_received,tformat='hh:mm:ss.fff -',local=localtime)
   
@@ -78,18 +95,20 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=source_dict
   ;buffer_size = n_elements(buffer)
   ;while file_poll_input(in_lun,timeout=0) && ~eof(in_lun) do begin
   nb = 6
-  while isa( (buf= self.read_nbytes(nb,source,pos=nbytes,output=output_lun) ) ) do begin
+  while isa( (buf= self.read_nbytes(nb,source,pos=nbytes) ) ) do begin
     ;readu,in_lun,buf,transfer_count=nb
     ;nb = 6 < (buffer_size - nbytes)         ; minimum of  6  and number of bytes left in buffer
     ;buf = buffer[nbytes:nbytes+nb-1]
     if n_elements(buf) ne nb then begin
-      dprint,'invalid length',dlevel=1
+      dprint,verbose=self.verbose,'Invalid length of GSE MSG header',dlevel=1
+      hexprint,buf
+      source_dict.remainder = buf
+      break
     endif
-    if debug(4) then begin
+    if debug(4,self.verbose,msg=strtrim(nb)) then begin
       dprint,nb,dlevel=3
       hexprint,buf
     endif
-    ;nbytes += nb
     msg_buf = [remainder,buf]
     sz = msg_buf[4]*256L + msg_buf[5]
     if (sz lt 4) || (msg_buf[0] ne 'A8'x) || (msg_buf[1] ne '29'x) || (msg_buf[2] ne '00'x) then  begin     ;; Lost sync - read one byte at a time
@@ -107,12 +126,10 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=source_dict
           dprint,'Invalid GSE message. word size: ',sz
           message,'Error',/cont
         endif
-        ;buf = bytarr(sz*2)
-        ;readu,in_lun,buf,transfer_count=nb
-        ;nbytes += nb
-        buf= self.read_nbytes(sz*2,source,pos=nbytes,output=output_lun)
+        nb2 = sz * 2
+        buf= self.read_nbytes(nb2,source,pos=nbytes)
 
-        if debug(3,msg='c1 packet') then begin
+        if debug(3,self.verbose,msg='c1 packet') then begin
           ;dprint,nb,dlevel=3
           hexprint,buf
         endif
@@ -125,7 +142,7 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=source_dict
         ;buf = bytarr(sz*2)
         ;readu,in_lun,buf,transfer_count=nb
         ;nbytes += nb
-        buf = self.read_nbytes(sz*2,source,pos=nbytes,output=output_lun)
+        buf = self.read_nbytes(sz*2,source,pos=nbytes)
         if debug(4) then begin
           dprint,sz*2,dlevel=3
           hexprint,buf
@@ -140,17 +157,17 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=source_dict
             nbuf = n_elements(source_dict.sync_ccsds_buf)
             skipped++
           endwhile
-          if skipped then dprint,dlevel=2,'Skipped ',skipped,' bytes to find sync word'
+          if skipped then dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word'
           nbuf = n_elements(source_dict.sync_ccsds_buf)
           if nbuf lt 10 then begin
-            dprint,dlevel=4,'Incomplete packet header - wait for later'
+            dprint,verbose=self.verbose,dlevel=4,'Incomplete packet header - wait for later'
             ;         source_dict.sync_ccsds_buf = sync_ccsds_buf
             break
           endif
           pkt_size = source_dict.sync_ccsds_buf[4+4] * 256u + source_dict.sync_ccsds_buf[5+4] + 7
           ;dprint,dlevel=2,'pkt_size: ',pkt_size
           if nbuf lt pkt_size + 4 then begin
-            dprint,dlevel=4,'Incomplete packet - wait for later'
+            dprint,verbose=self.verbose,dlevel=4,'Incomplete packet - wait for later'
             ;      source_dict.sync_ccsds_buf = sync_ccsds_buf
             break
           endif
@@ -163,29 +180,30 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=source_dict
       else:    message,'GSE raw_tlm error - unknown code'
     endcase
 
-    if ~isa(source,/array) then begin     ; source is a file pointer
-      fst = fstat(source)
-      if debug(3) && fst.cur_ptr ne 0 && fst.size ne 0 then begin
-        dprint,dwait=dwait,dlevel=2,fst.compress ? '(Compressed) ' : '','File percentage: ' ,(fst.cur_ptr*100.)/fst.size
-      endif
-      if n_elements(buf) ne  sz*2 then begin
-        fst = fstat(source)
-        dprint,'File read error. Aborting @ ',fst.cur_ptr,' bytes'
-        break
-      endif
-    endif
+;    if ~isa(source,/array) then begin     ; source is a file pointer
+;      fst = fstat(source)
+;      if debug(3) && fst.cur_ptr ne 0 && fst.size ne 0 then begin
+;        dprint,dwait=dwait,dlevel=2,fst.compress ? '(Compressed) ' : '','File percentage: ' ,(fst.cur_ptr*100.)/fst.size
+;      endif
+;      if n_elements(buf) ne  sz*2 then begin
+;        fst = fstat(source)
+;        dprint,'File read error. Aborting @ ',fst.cur_ptr,' bytes'
+;        break
+;      endif
+;    endif
 
     if debug(5) then begin
       hexprint,dlevel=3,ccsds_buf,nbytes=32
     endif
-    nb = 6     ; initializef for next gse message
+    nb = 6     ; initialize for next gse message
   endwhile
   
   if sync_errors then begin
-    dprint,dlevel=2,sync_errors,' sync errors'
+    dprint,dlevel=2,sync_errors,' sync errors at "'+time_string(source_dict.time_received)+'"'
     ;printdat,source
     ;hexprint,source
   endif
+  
   if isa(output_lun) then  flush,output_lun
 
   if 0 then begin
@@ -216,7 +234,7 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=source_dict
   if nbytes ne 0 then msg += string(/print,nbytes,format='(i6 ," bytes: ")')  $
   else msg+= ' No data available'
 
-  dprint,dlevel=3,msg
+  dprint,verbose=self.verbose,dlevel=3,msg
   source_dict.msg = msg
 
   ;    dprint,dlevel=2,'Compression: ',float(fp)/fi.size
