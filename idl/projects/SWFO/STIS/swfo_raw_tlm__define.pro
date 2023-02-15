@@ -242,6 +242,25 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
 end
 
 
+
+pro swfo_raw_tlm::read,buffer,source_dict=source_dict
+
+  dprint,dlevel=3,verbose=self.verbose,n_elements(buffer),' Bytes for Handler: "',self.name,'"'
+  self.nbytes += n_elements(buffer)
+  self.npkts  += 1
+
+  if self.run_proc then begin
+    self.raw_tlm_read,buffer,source_dict=source_dict
+
+    if debug(4,self.verbose,msg=self.name) then begin
+      hexprint,buffer
+    endif
+  endif
+
+end
+
+
+
 pro swfo_raw_tlm::handle,buffer,source_dict=source_dict
 
   dprint,dlevel=3,verbose=self.verbose,n_elements(buffer),' Bytes for Handler: "',self.name,'"'

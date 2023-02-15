@@ -1,5 +1,5 @@
 ;+
-;  cmblk_keysight
+;gse_keysight
 ;  This object works with the common block files to decommutate data from Keysight power supplies
 ; $LastChangedBy:  $
 ; $LastChangedDate:  $
@@ -10,7 +10,7 @@
 COMPILE_OPT IDL2
 
 
-pro cmblk_keysight::handle,payload,source_dict = source_dict
+pro gse_keysight::read,payload,source_dict = source_dict
 
   dprint,dlevel=4,verbose=self.verbose,n_elements(payload),' Bytes for Handler: "',self.name,'"'
   ;if self.verbose eq 5 then hexprint,payload
@@ -76,8 +76,8 @@ end
 
 
 
-PRO cmblk_keysight__define
-  void = {cmblk_keysight, $
+PRO gse_keysight__define
+  void = {gse_keysight, $
     inherits socket_reader, $    ; superclass
     ddata: obj_new(),  $
     powersupply_num:0    $           ; not actually used

@@ -20,11 +20,11 @@ FUNCTION cmblk_reader::Init,name,_EXTRA=ex
   self.sync  = 'CMB1'
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
-  
-  self.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)
-  self.add_handler, 'KEYSIGHTPS' ,  cmblk_keysight('Keysight',/no_widget)
 
-  
+  self.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)
+  self.add_handler, 'KEYSIGHTPS' ,  gse_keysight('Keysight',/no_widget)
+
+
   RETURN, 1
 END
 
@@ -44,7 +44,7 @@ function cmblk_reader::header_struct,buf
   cmb = {  $
     sync: 0ul, $
     size: 0ul, $
-    time: 0d,  $
+    time: !values.d_nan,  $
     seqn: 0u,  $
     user: 0u,  $
     source: 0u,$   ; byte stored as uint
@@ -52,6 +52,8 @@ function cmblk_reader::header_struct,buf
     ;   desc_array: bytarr(10) ,     $
     description:'', $
     gap:0}
+
+  if ~isa(buf) then return,cmb
 
   cmb.sync  = swap_endian(/swap_if_little_endian, ulong(buf,0,1) )
   cmb.size  = swap_endian(/swap_if_little_endian, ulong(buf,4,1) )
@@ -69,7 +71,12 @@ function cmblk_reader::header_struct,buf
 end
 
 
-pro cmblk_reader::lun_read    ;,nbytes
+pro cmblk_reader::read   , source_dict = source_dict
+
+  if isa(source_dict,'dictionary') then begin
+    dprint,'Recursive call not allowed yet.'
+  endif
+
 
   dwait = 10.
   sync = swap_endian(ulong(byte('CMB1'),0,1),/swap_if_little_endian)
@@ -86,10 +93,10 @@ pro cmblk_reader::lun_read    ;,nbytes
   sync_errors = 0UL
   eofile = 0
 
-  nb = 32   ; number of bytes to be read to get the full header
+  if ~self.source_dict.haskey('cmbhdr') then  self.source_dict.cmbhdr = self.header_struct()
 
+  nb = 32   ; number of bytes to be read to get the full header
   while isa( (buf = self.read_nbytes(nb,pos=nbytes) )   ) do begin
-    ;readu,in_lun,buf,transfer_count=nb
     if debug(4,self.verbose,msg='cmbhdr: ') then begin
       ;dprint,nb,dlevel=4
       hexprint,buf
@@ -105,19 +112,35 @@ pro cmblk_reader::lun_read    ;,nbytes
       ;if debug(2) then begin
       dprint,verbose=self.verbose,dlevel=1,'Lost sync:',dwait=dwait
       sync_errors++
-      ;endif
       continue
     endif
+    last_cmbhdr = self.source_dict.cmbhdr
+    self.source_dict.cmbhdr = cmbhdr
 
-    ;  read .skipthe payload bytes
+    ;  read the payload bytes
     payload_buf = self.read_nbytes(cmbhdr.size,pos=nbytes)
     npkts++
 
     ; decomutate data here!
-    self.source_dict.cmbhdr = cmbhdr
-    self.handle, payload_buf, source_dict=self.source_dict  ;, cmbhdr=cmbhdr
+    self.handle, payload_buf, source_dict=self.source_dict
 
+    cmbdata = { $
+      time:cmbhdr.time   ,$
+      seqn:cmbhdr.seqn   ,$
+      time_delta: cmbhdr.time-last_cmbhdr.time, $
+      seqn_delta: cmbhdr.seqn-last_cmbhdr.seqn, $
+      size: cmbhdr.size, $
+      user: cmbhdr.user, $
+      type: cmbhdr.type, $
+      source: cmbhdr.source,  $
+      desctype:  0u,  $
+      errors: sync_errors, $
+      gap:0b $
+    }
+    cmbdata.gap = cmbdata.seqn_delta ne 1
+    self.dyndata.append , cmbdata
   endwhile
+  
   if sync_errors then begin
     dprint,verbose=self.verbose,dlevel=0,'Encountered '+strtrim(sync_errors,2)+' Errors'
   endif
@@ -135,17 +158,6 @@ pro cmblk_reader::lun_read    ;,nbytes
     self.help
   endif
 
-  if 0 then begin
-    data_str = {  $
-      time:cmblk.time, $
-      time_delta: 0., $
-      seqn:     0u ,   $
-      seqn_delta:  0u, $
-      size:  cmblk.size, $
-      gap:0  $
-    }
-
-  endif
 
 
   dprint,verbose=self.verbose,dlevel=3,self.msg
@@ -172,7 +184,7 @@ pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
     d.cmbhdr = cmbhdr
     handler =  handlers[descr_key]                     ; Get the proper handler object
     if obj_valid(handler) then begin
-      handler.handle, payload, source_dict=d         ; execute handler
+      handler.read, payload, source_dict=d         ; execute handler
     endif else begin
       dprint,verbose=self.verbose,dlevel=1,'Invalid handle object for cmblk_key: "',descr_key,'"'
     endelse

@@ -33,11 +33,10 @@ function socket_reader::read_nbytes,nb,source,pos=pos
     if n gt 0 then   buf = source[pos:pos+n-1]
     pos = pos+n
   endif else begin
-    source = self.input_lun           ;
-    if isa(source) and keyword_set(source) then begin                ; source should be a file LUN
-      if file_poll_input(source,timeout=0) && ~eof(source)  then begin
+    if keyword_set(self.input_lun) then begin                ; self.input_lun should be a file LUN
+      if file_poll_input(self.input_lun,timeout=0) && ~eof(self.input_lun)  then begin
         buf = bytarr(nb)
-        readu,source,buf,transfer_count=n
+        readu,self.input_lun,buf,transfer_count=n
         pos = pos+n
       endif
     endif
@@ -46,12 +45,43 @@ function socket_reader::read_nbytes,nb,source,pos=pos
   return,buf
   fixit: 
   dprint,'IO error'
-  stop
+  ;stop
   return,buf
-  
 end
 
 
+function socket_reader::read_line,source,nbytes=nb,pos=pos     ; reads a line of ascii file (or buffer)
+  on_ioerror, fixit
+  buf = !null
+
+  if ~isa(pos) then pos=0ul
+  if isa(source,/array) then begin          ; source should be a an array of bytes
+    n = nb < (n_elements(source) - pos)
+    if n gt 0 then   buf = source[pos:pos+n-1]
+    pos = pos+n
+  endif else begin
+    if keyword_set(self.input_lun) then begin               
+      b = bytarr(1)
+      while file_poll_input(self.input_lun,timeout=0) && ~eof(self.input_lun)  do begin
+        readu,self.input_lun,b,transfer_count=n
+        if n ne 0 then begin
+          buf = [buf,b]
+          if b[0] eq 0x0a then break
+        endif else begin
+          dprint,verbose=self.verbose,dlevel=1,'End of file
+        endelse
+        pos = pos+n
+      endwhile
+    endif else dprint,dlevel=2,verbose=self.verbose,self.name +": Input file is not open."
+  end
+  
+  self.write,buf
+  return,buf
+  fixit:
+  dprint,'IO error'
+  ;stop
+  return,buf
+end
 
 
 
@@ -79,7 +109,7 @@ end
 
 
 
-pro socket_reader::lun_read
+pro socket_reader::read
   ; Read data from stream until EOF is encountered or no more data is available on the stream
   ; if the proc flag is set then it will process the data
   ; if the output lun is non zero then it will save the data.
@@ -135,11 +165,10 @@ pro socket_reader::lun_read
 
     endif
 
-
   endif
-
-
 end
+
+
 
 
 pro socket_reader::open_output,fileformat,time=time,close=close
@@ -173,7 +202,7 @@ pro socket_reader::file_read,filenames
     file_open,'r',file,unit=lun,compress=-1
     if keyword_set(lun) then begin
       self.input_lun = lun
-      self.lun_read
+      self.read
       free_lun,lun
       keepgoing:
       self.input_lun = 0
@@ -220,6 +249,12 @@ PRO socket_reader::SetProperty, _extra=ex
   endif
 END
 
+
+pro socket_reader::GetProperty,name=name,verbose=verbose,dyndata=dyndata
+if arg_present(name) then name=self.name
+if arg_present(dyndata) then dyndata=self.dyndata
+if arg_present(verbose) then verbose=self.verbose
+end
 
 pro socket_reader::help , item
   if keyword_set(self.base) then begin
@@ -270,7 +305,7 @@ pro socket_reader::timed_event
 
   if self.input_lun gt 0 then begin
 
-    self.lun_read
+    self.read
 
     wids = *self.wids
     if isa(wids) then begin
@@ -697,8 +732,8 @@ pro socket_reader__define
     msg: '', $
     ;buffersize:0L, $
     buffer_ptr: ptr_new(),   $
-    pollinterval:0., $
     source_dict: obj_new(),  $
+    dyndata: obj_new(), $
     name: '',  $
     nbytes: 0UL, $
     npkts:  0ul, $
@@ -706,8 +741,8 @@ pro socket_reader__define
  ;   brate: 0. , $ ; don't use - will be deprecated in future
  ;   prate: 0. , $ ; don't use - will be deprecated in future
  ;   output_filename:  '',   $
+    pollinterval:0., $
     procedure_name: '', $
-    dyndata: obj_new(), $
     run_proc:0 }
 
 end
