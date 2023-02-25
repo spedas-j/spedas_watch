@@ -11,12 +11,12 @@ COMPILE_OPT IDL2
 
 
 
-pro json_reader::lun_read,source,source_dict=source_dict
+pro json_reader::read,source,source_dict=source_dict
 
-  if ~isa(source_dict,'dictionary') then begin
+ ; if ~isa(source_dict,'dictionary') then begin
     
     
-  endif
+ ; endif
   
   nb = n_elements(source)
   nbytes = 0ul

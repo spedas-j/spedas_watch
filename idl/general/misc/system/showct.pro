@@ -11,16 +11,23 @@
 ;KEYWORDS:
 ;   REVERSE:   If set, then reverse the table order from bottom_c to top_c.
 ;
+;   LINE_CLRS: Show an alternate fixed color scheme.  See line_colors.pro.
+;
+;   MYCOLORS:  Structure of custom line colors.  See line_colors.pro.
+;
+;   INTENSITY: Show intensity in a separate window.
+;
 ;SEE ALSO:
 ;   xpalette:  Shows the current color table in an interactive widget.  Provides
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-08-15 10:27:26 -0700 (Mon, 15 Aug 2022) $
-; $LastChangedRevision: 31015 $
+; $LastChangedDate: 2023-02-24 15:45:27 -0800 (Fri, 24 Feb 2023) $
+; $LastChangedRevision: 31517 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
-pro showct, color_table, reverse=color_reverse
+pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
+                         intensity=intensity
 
   cols = get_colors()
   crev = keyword_set(color_reverse)
@@ -30,14 +37,12 @@ pro showct, color_table, reverse=color_reverse
 
   if (n_elements(color_table) gt 0) then begin
     ctab = fix(color_table[0])
-    if (ctab ge 0 and ctab lt 1000) then loadct2,ctab,previous_ct=pct,reverse=crev,previous_rev=prev
-    if (ctab ge 1000) then loadcsv,ctab,previous_ct=pct,reverse=crev,previous_rev=prev,/silent
+    initct,ctab,previous_ct=pct,reverse=crev,previous_rev=prev
   endif else begin
     ctab = cols.color_table
     pct = ctab
     if (crev && (ctab ge 0)) then begin
-      if (ctab lt 1000) then loadct2,ctab,previous_ct=pct,reverse=crev,previous_rev=prev $
-                        else loadcsv,ctab,previous_ct=pct,reverse=crev,previous_rev=prev,/silent
+      initct,ctab,previous_ct=pct,reverse=crev,previous_rev=prev
     endif else begin
       crev = cols.color_reverse
       prev = crev
@@ -49,10 +54,20 @@ pro showct, color_table, reverse=color_reverse
     return
   endif
 
+; Load the requested line colors
+
+  if ((n_elements(lines) gt 0) or (size(mycolors,/type) eq 8)) then begin
+    line_colors, lines, mycolors=mycolors, previous_lines=plines
+  endif else begin
+    lines = get_line_colors()
+    plines = lines
+  endelse
+
 ; Plot the table in a grid of filled squares
 
   usersym,[-1,-1,1,1,-1],[-1,1,1,-1,-1],/fill
-  win,/free,/secondary,xsize=600,ysize=600,dx=10,dy=-10
+  undefine, cwin
+  win,cwin,/secondary,xsize=600,ysize=600,dx=10,dy=-10
   plot,[-1],[-1],xrange=[0,4],yrange=[0.5,6.5],xstyle=5,ystyle=5,$
                  xmargin=[0.1,0.1],ymargin=[0.1,0.1]
   k = indgen(16)*16
@@ -79,23 +94,36 @@ pro showct, color_table, reverse=color_reverse
   tvlct, r, g, b, /get
 
   pen = !p.color
-    i = cols.bottom_c
-    !p.color = (median([r[i],g[i],b[i]]) gt 127B) ? '000000'xl : 'FFFFFF'xl
+    i = sqrt(float(r)^2. + float(g)^2. + float(b)^2.)
+    i_min = min(i, dark)
+    i_max = max(i, lite)
+    i_avg = sqrt(3.*(127.5*127.5))
+
+    !p.color = (i[cols.bottom_c] gt i_avg) ? dark : lite
     x = [float(cols.bottom_c mod 16)/4.5 + 0.35]
     y = [5.95 - float(cols.bottom_c/16)/3.]
     xyouts,x,y,"B",align=0.5,charsize=1.4
 
-    i = cols.top_c
-    !p.color = (median([r[i],g[i],b[i]]) gt 127B) ? '000000'xl : 'FFFFFF'xl
+    !p.color = (i[cols.top_c] gt i_avg) ? dark : lite
     x = [float(cols.top_c mod 16)/4.5 + 0.35]
     y = [5.95 - float(cols.top_c/16)/3.]
     xyouts,x,y,"T",align=0.5,charsize=1.4
   !p.color = pen
 
-; Restore the initial color table
+; Show intensity plot
+
+  if keyword_set(intensity) then begin
+    undefine, iwin
+    win,iwin,clone=cwin,relative=cwin,dx=10,/top
+    plot,findgen(256),i*100./sqrt(3.*(255.^2.)),psym=10,xrange=[0,256],/xsty,$
+         charsize=1.3, title=msg,ytitle='Intensity (%)',xtitle='Color Index',$
+         xticks=4,xminor=8
+  endif
+
+; Restore the initial color table and line colors
 
   wset, wnum
-  if (ctab ne pct || crev ne prev) then $
-    if (pct lt 1000) then loadct2,pct,reverse=prev else loadcsv,pct,reverse=prev,/silent
+  if (ctab ne pct || crev ne prev) then initct,pct,reverse=prev
+  if (max(abs(lines - plines)) gt 0) then line_colors, plines
 
 end

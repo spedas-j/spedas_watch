@@ -21,8 +21,10 @@ FUNCTION cmblk_reader::Init,name,_EXTRA=ex
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
 
+; The following lines are temporary to define read routines for different data
   self.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)
   self.add_handler, 'KEYSIGHTPS' ,  gse_keysight('Keysight',/no_widget)
+  self.add_handler, 'esc_esatm',  esc_esatm('Esc_ESAs',/no_widget)
 
 
   RETURN, 1
@@ -71,7 +73,7 @@ function cmblk_reader::header_struct,buf
 end
 
 
-pro cmblk_reader::read   , source_dict = source_dict
+pro cmblk_reader::read ,buffer  , source_dict = source_dict
 
   if isa(source_dict,'dictionary') then begin
     dprint,'Recursive call not allowed yet.'
@@ -96,15 +98,15 @@ pro cmblk_reader::read   , source_dict = source_dict
   if ~self.source_dict.haskey('cmbhdr') then  self.source_dict.cmbhdr = self.header_struct()
 
   nb = 32   ; number of bytes to be read to get the full header
-  while isa( (buf = self.read_nbytes(nb,pos=nbytes) )   ) do begin
-    if debug(4,self.verbose,msg='cmbhdr: ') then begin
+  while isa( (buf = self.read_nbytes(nb,buffer,pos=nbytes) )   ) do begin
+    if debug(5,self.verbose,msg='cmbhdr: ') then begin
       ;dprint,nb,dlevel=4
       hexprint,buf
     endif
     msg_buf = [remainder,buf]
     cmbhdr = self.header_struct(msg_buf)
-    if debug(3,self.verbose) then begin
-      dprint,'CMB: ',time_string(cmbhdr.time,prec=3),' ',cmbhdr.seqn,cmbhdr.size,'  ',cmbhdr.description
+    if debug(4,self.verbose) then begin
+      dprint,dlevel=4,verbose=self.verbose,'CMB: ',time_string(cmbhdr.time,prec=3),' ',cmbhdr.seqn,cmbhdr.size,'  ',cmbhdr.description
     endif
     if cmbhdr.sync ne sync || cmbhdr.size gt 30000 then begin
       remainder = msg_buf[1:*]
@@ -148,8 +150,6 @@ pro cmblk_reader::read   , source_dict = source_dict
   self.nbytes += nbytes
   self.npkts  += npkts
   self.nreads += 1
-  ;self.brate = nbytes / delta_time
-  ;self.prate = npkts / delta_time
   self.msg += strtrim(nbytes,2)+ ' bytes'
 
   if 0 then begin

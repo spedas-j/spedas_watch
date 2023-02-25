@@ -15,7 +15,7 @@ end
 
 ;function swfo_raw_tlm::read_nbytes,nb,source,pos=pos,output=output
 ;  buf = !null
-;  
+;
 ;  if ~isa(pos) then pos=0ul
 ;  if isa(source,/array) then begin          ; source should be a an array of bytes
 ;    n = nb < (n_elements(source) - pos)
@@ -27,11 +27,11 @@ end
 ;        buf = bytarr(nb)
 ;        readu,source,buf,transfer_count=n
 ;        pos = pos+n
-;      endif      
+;      endif
 ;    endif
 ;  endelse
 ;  if keyword_set(output) && keyword_set(buf) then writeu,output,buf
-;  
+;
 ;  return,buf
 ;end
 
@@ -54,51 +54,33 @@ end
 pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
 
   dwait = 10.
-  
-  if ~isa(parent_dict,'dictionary') then begin
-    parent_dict = dictionary()
-    dprint,dlevel=1,verbose=self.verbose,'Created new dictionary for: ', self.name   ; This should not be occurring !
+
+  if isa(parent_dict,'dictionary') &&  parent_dict.haskey('cmbhdr') then begin
+    header = parent_dict.cmbhdr
+    ;   dprint,dlevel=4,verbose=self.verbose,header.description,'  ',header.size
   endif else begin
-    if parent_dict.haskey('cmbhdr') then begin
-      header = parent_dict.cmbhdr
-   ;   dprint,dlevel=3,verbose=self.verbose,header.description,'  ',header.size
-    endif else begin
-      dprint,'No cmbhdr'
-      header = {time: !values.d_nan , gap:0 }
-    endelse
-    
+    dprint,verbose=self.verbose,dlevel=4,'No cmbhdr'
+    header = {time: !values.d_nan , gap:0 }
   endelse
-  
+
+  ;  endelse
+
   source_dict = self.source_dict
-  
-  
 
   if ~source_dict.haskey('sync_ccsds_buf') then source_dict.sync_ccsds_buf = !null   ; this contains the contents of the buffer from the last call
   run_proc=1
 
   on_ioerror, nextfile
   time = systime(1)
-  source_dict.time_received = header.time
-  
+  source_dict.time_received = time
+
   msg = time_string(source_dict.time_received,tformat='hh:mm:ss.fff -',local=localtime)
-  
-  ;    in_lun = info.hfp
-  ;out_lun = info.dfp
-  ;buf = bytarr(6)
+
   remainder = !null
   nbytes = 0UL
   sync_errors =0ul
-  ;run_proc = struct_value(info,'run_proc',default=1)
-  ;fst = fstat(in_lun)
-  ;    swfo_apdat_info,current_filename= fst.name
-  ;printdat,in_lun
-  ;buffer_size = n_elements(buffer)
-  ;while file_poll_input(in_lun,timeout=0) && ~eof(in_lun) do begin
   nb = 6
   while isa( (buf= self.read_nbytes(nb,source,pos=nbytes) ) ) do begin
-    ;readu,in_lun,buf,transfer_count=nb
-    ;nb = 6 < (buffer_size - nbytes)         ; minimum of  6  and number of bytes left in buffer
-    ;buf = buffer[nbytes:nbytes+nb-1]
     if n_elements(buf) ne nb then begin
       dprint,verbose=self.verbose,'Invalid length of GSE MSG header',dlevel=1
       hexprint,buf
@@ -180,30 +162,30 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
       else:    message,'GSE raw_tlm error - unknown code'
     endcase
 
-;    if ~isa(source,/array) then begin     ; source is a file pointer
-;      fst = fstat(source)
-;      if debug(3) && fst.cur_ptr ne 0 && fst.size ne 0 then begin
-;        dprint,dwait=dwait,dlevel=2,fst.compress ? '(Compressed) ' : '','File percentage: ' ,(fst.cur_ptr*100.)/fst.size
-;      endif
-;      if n_elements(buf) ne  sz*2 then begin
-;        fst = fstat(source)
-;        dprint,'File read error. Aborting @ ',fst.cur_ptr,' bytes'
-;        break
-;      endif
-;    endif
+    ;    if ~isa(source,/array) then begin     ; source is a file pointer
+    ;      fst = fstat(source)
+    ;      if debug(3) && fst.cur_ptr ne 0 && fst.size ne 0 then begin
+    ;        dprint,dwait=dwait,dlevel=2,fst.compress ? '(Compressed) ' : '','File percentage: ' ,(fst.cur_ptr*100.)/fst.size
+    ;      endif
+    ;      if n_elements(buf) ne  sz*2 then begin
+    ;        fst = fstat(source)
+    ;        dprint,'File read error. Aborting @ ',fst.cur_ptr,' bytes'
+    ;        break
+    ;      endif
+    ;    endif
 
     if debug(5) then begin
       hexprint,dlevel=3,ccsds_buf,nbytes=32
     endif
     nb = 6     ; initialize for next gse message
   endwhile
-  
+
   if sync_errors then begin
     dprint,dlevel=2,sync_errors,' sync errors at "'+time_string(source_dict.time_received)+'"'
     ;printdat,source
     ;hexprint,source
   endif
-  
+
   if isa(output_lun) then  flush,output_lun
 
   if 0 then begin
@@ -211,26 +193,26 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
     dprint,!error_state.msg
     dprint,'Skipping file'
   endif
-;
-;  if ~keyword_set(no_sum) then begin
-;    if keyword_set(info.last_time) then begin
-;      dt = time - info.last_time
-;      info.total_bytes += nbytes
-;      if dt gt .1 then begin
-;        rate = info.total_bytes/dt
-;        store_data,'GSE_DATA_RATE',append=1,time, rate,dlimit={psym:-4}
-;        info.total_bytes =0
-;        info.last_time = time
-;      endif
-;    endif else begin
-;      info.last_time = time
-;      info.total_bytes = 0
-;    endelse
-;  endif
-;
-;  ddata = buf
-;  nb = n_elements(buf)
-;  ; if nb ne 0 then msg += string(/print,nb,(ddata)[0:(nb < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
+  ;
+  ;  if ~keyword_set(no_sum) then begin
+  ;    if keyword_set(info.last_time) then begin
+  ;      dt = time - info.last_time
+  ;      info.total_bytes += nbytes
+  ;      if dt gt .1 then begin
+  ;        rate = info.total_bytes/dt
+  ;        store_data,'GSE_DATA_RATE',append=1,time, rate,dlimit={psym:-4}
+  ;        info.total_bytes =0
+  ;        info.last_time = time
+  ;      endif
+  ;    endif else begin
+  ;      info.last_time = time
+  ;      info.total_bytes = 0
+  ;    endelse
+  ;  endif
+  ;
+  ;  ddata = buf
+  ;  nb = n_elements(buf)
+  ;  ; if nb ne 0 then msg += string(/print,nb,(ddata)[0:(nb < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
   if nbytes ne 0 then msg += string(/print,nbytes,format='(i6 ," bytes: ")')  $
   else msg+= ' No data available'
 
@@ -269,7 +251,7 @@ pro swfo_raw_tlm::handle,buffer,source_dict=source_dict
 
   if self.run_proc then begin
     self.raw_tlm_read,buffer,source_dict=source_dict
-    
+
     if debug(4,self.verbose,msg=self.name) then begin
       hexprint,buffer
     endif

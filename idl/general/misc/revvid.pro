@@ -11,13 +11,18 @@
 ;   none:    A simple toggle.
 ;
 ;KEYWORDS:
-;   WHITE:   Make background white, pen color black.
+;   WHITE:   Make !p.background the lightest color (often white) and 
+;            !p.color the darkest color (often black).
 ;
-;   BLACK:   Make background black, pen color white.
+;   BLACK:   Make !p.background the darkest color (often black) and 
+;            !p.color the lightest color (often white).
+;
+;SEE ALSO:
+;   line_colors.pro to set custom line, background and foreground colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-06-15 11:17:23 -0700 (Wed, 15 Jun 2022) $
-; $LastChangedRevision: 30857 $
+; $LastChangedDate: 2023-02-24 15:38:23 -0800 (Fri, 24 Feb 2023) $
+; $LastChangedRevision: 31512 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/revvid.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -26,9 +31,20 @@ pro revvid, white=white, black=black
 
   foreground = !p.color
   background = !p.background
-  
-  if keyword_set(white) then foreground = max([!p.color,!p.background], min=background)
-  if keyword_set(black) then foreground = min([!p.color,!p.background], max=background)
+
+  tvlct, r, g, b, /get
+  i = sqrt(float(r)^2. + float(g)^2. + float(b)^2.)
+  i_min = min(i, dark)
+  i_max = max(i, lite)
+
+  if keyword_set(white) then begin
+    foreground = dark
+    background = lite
+  endif
+  if keyword_set(black) then begin
+    foreground = lite
+    background = dark
+  endif
   
   !p.color = background
   !p.background = foreground
