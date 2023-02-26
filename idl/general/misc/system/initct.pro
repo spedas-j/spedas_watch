@@ -39,11 +39,14 @@
 ;
 ;                     (2) Integer that selects a predefined color scheme:
 ;
-;                        0  : primary colors (colortbl < 1000)
-;                             Chaffin's CSV colors (colortbl >= 1000)
-;                       1-4 : four schemes suitable for colorblind vision
-;                        5  : primary colors, except orange replaces yellow
-;                        6  : Chaffin's CSV colors, suitable for colorblind vision
+;                         0  : primary colors
+;                        1-4 : four different schemes suitable for colorblind vision
+;                         5  : primary colors, except orange replaces yellow for better contrast on white
+;                         6  : primary colors, except gray replaces yellow for better contrast on white
+;                         7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
+;                         8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
+;                         9  : same as 8 but purmuted so vector defaults are blue, orange, reddish purple
+;                        10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
 ;       COLOR_NAMES:  String array of 8 line color names.  You must use line color
 ;                     names recognized by spd_get_color().  RGB values for unrecognized
@@ -88,8 +91,8 @@
 ;       SUPPRESS:     Suppress floating overflow error in first call to window.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-24 15:45:40 -0800 (Fri, 24 Feb 2023) $
-; $LastChangedRevision: 31518 $
+; $LastChangedDate: 2023-02-25 17:49:57 -0800 (Sat, 25 Feb 2023) $
+; $LastChangedRevision: 31524 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/initct.pro $
 ;
 ;Created by David L. Mitchell (February 2023)

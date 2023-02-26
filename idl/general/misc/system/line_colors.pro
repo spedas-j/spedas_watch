@@ -12,10 +12,14 @@
 ;
 ;   (2) Integer that selects a predefined color scheme:
 ;
-;          0  : primary colors (black, magenta, blue, cyan, green, yellow, red, white)
-;         1-4 : four different schemes suitable for colorblind vision
-;          5  : primary colors, except orange replaces yellow
-;          6  : Chaffin's CSV line colors, suitable for colorblind vision
+;           0  : primary colors
+;          1-4 : four different schemes suitable for colorblind vision
+;           5  : primary colors, except orange replaces yellow for better contrast on white
+;           6  : primary colors, except gray replaces yellow for better contrast on white
+;           7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
+;           8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
+;           9  : same as 8 but purmuted so vector defaults are blue, orange, reddish purple
+;          10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
 ;    To set custom line colors for any tplot panel:
 ;
@@ -76,8 +80,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-24 15:44:01 -0800 (Fri, 24 Feb 2023) $
-; $LastChangedRevision: 31516 $
+; $LastChangedDate: 2023-02-25 17:50:08 -0800 (Sat, 25 Feb 2023) $
+; $LastChangedRevision: 31525 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023
@@ -105,18 +109,18 @@ pro line_colors, lines, color_names=color_names, mycolors=mycolors, graybkg=gray
 
   indx = [indgen(7), 255]
 
-  if (n_elements(line_colors) ne 24) then begin
+  if (n_elements(line_colors_common) ne 24) then begin
     r[indx] = [0,1,0,0,0,1,1,1]*255
     g[indx] = [0,0,0,1,1,1,0,1]*255
     b[indx] = [0,1,1,1,0,0,0,1]*255
-    line_colors = fix([[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]])
+    line_colors_common = fix([[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]])
   endif else begin
-    r[indx] = line_colors[0,*]
-    g[indx] = line_colors[1,*]
-    b[indx] = line_colors[2,*]
+    r[indx] = line_colors_common[0,*]
+    g[indx] = line_colors_common[1,*]
+    b[indx] = line_colors_common[2,*]
   endelse
 
-  previous_lines = line_colors
+  previous_lines = line_colors_common
 
 ; Assert the new line colors
 
@@ -127,7 +131,7 @@ pro line_colors, lines, color_names=color_names, mycolors=mycolors, graybkg=gray
   b[indx] = new_lines[2,*]
 
   lines = new_lines
-  line_colors = new_lines
+  line_colors_common = new_lines
 
   tvlct,r,g,b
 

@@ -26,10 +26,14 @@
 ;
 ;   (2) Integer that selects one of six different predefined color schemes:
 ;
-;          0  : primary colors (black, magenta, blue, cyan, green, yellow, red, white)
-;         1-4 : four different schemes suitable for colorblind vision
-;          5  : primary colors, except orange replaces yellow
-;          6  : Chaffin's CSV line colors, suitable for colorblind vision
+;             0  : primary colors
+;            1-4 : four different schemes suitable for colorblind vision
+;             5  : primary colors, except orange replaces yellow for better contrast on white
+;             6  : primary colors, except gray replaces yellow for better contrast on white
+;             7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
+;             8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
+;             9  : same as 8 but purmuted so vector defaults are blue, orange, reddish purple
+;            10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
 ;   If there is no input and no keywords are set, this routine returns the current
 ;   line colors.
@@ -65,8 +69,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-24 15:43:49 -0800 (Fri, 24 Feb 2023) $
-; $LastChangedRevision: 31515 $
+; $LastChangedDate: 2023-02-25 17:41:53 -0800 (Sat, 25 Feb 2023) $
+; $LastChangedRevision: 31521 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/get_line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023
@@ -78,8 +82,8 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
 
 ; Initialize with the current or default line colors
 
-  if (n_elements(line_colors) ne 24) then $
-    line_colors = fix([[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]])
+  if (n_elements(line_colors_common) ne 24) then $
+    line_colors_common = fix([[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]])
 
 ; Three methods for setting the fixed line colors (0-6 and 255)
 
@@ -99,17 +103,26 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
   if n_elements(line_clrs) gt 0 then begin
     if n_elements(line_clrs) ne 24 then begin
       case fix(line_clrs[0]) of
+        ; Preset 0:  The standard SPEDAS colors (useful for resetting this option without doing a .full_reset_session)
+        0: line_clrs = [[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]]
         ; Presets 1-4: Line colors suitable for colorblind vision
-        1: line_clrs = [[0,0,0],[67,147,195],[33,102,172],[103,0,31],[178,24,43],[254,219,199],[244,165,130],[255,255,255]]
+        1: line_clrs = [[0,0,0],[67, 147, 195],[33, 102, 172],[103, 0, 31],[178,24,43],[254,219,199],[244,165,130],[255,255,255]]
         2: line_clrs = [[0,0,0],[253,224,239],[77,146,33],[161,215,106],[233,163,201],[230,245,208],[197,27,125],[255,255,255]]
         3: line_clrs = [[0,0,0],[216,179,101],[140,81,10],[246,232,195],[1,102,94],[199,234,229],[90,180,172],[255,255,255]]   
         4: line_clrs = [[0,0,0],[84,39,136],[153,142,195],[216,218,235],[241,163,64],[254,224,182],[179,88,6],[255,255,255]] 
-        ; Preset 5:  Primary colors, except substitute orange for yellow for better contrast on white background
+        ; Preset 5:  Similar to standard colors, but substitutes orange for yellow for better contrast on white background
         5: line_clrs = [[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,165,0],[255,0,0],[255,255,255]]
-        ; Preset 6:  Chaffin's CSV line colors (suitable for colorblind vision)
-        6: line_clrs = [[0,0,0],[152,78,163],[55,126,184],[77,175,74],[255,255,51],[255,127,0],[228,26,28],[255,255,255]]
-        ; Default:  Primary colors
-        else: line_clrs = [[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]]
+        ; Preset 6:  Similar to standard colors, but substitutes gray for yellow for better contrast on white background
+        6: line_clrs = [[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[141,141,141],[255,0,0],[255,255,255]]
+        ; Preset 7:  Color table suggested by https://www.nature.com/articles/nmeth.1618 except for reddish purple (Color 7 must be white for the background.)
+        7: line_clrs = [[0,0,0],[230,159,0],[86,180,233],[0,158,115],[240,228,66],[0,114,178],[213,94,0],[255,255,255]]
+        ; Preset 8:  Color table suggested by https://www.nature.com/articles/nmeth.1618 except for yellow (Color 7 must be white for the background.)
+        8: line_clrs = [[0,0,0],[230,159,0],[86,180,233],[0,158,115],[0,114,178],[213,94,0],[204,121,167],[255,255,255]]
+        ; Preset 9: Same as 8, except with the colors shifted around so that the default colors 
+        ; for vectors are: blue, orange, reddish purple
+        9: line_clrs = [[0,0,0],[86,180,233],[0,114,178],[0,158,115],[230,159,0],[213,94,0],[204,121,167],[255,255,255]]
+        10: line_clrs = [[0,0,0],[152,78,163],[55,126,184],[77,175,74],[255,255,51],[255,127,0],[228,26,28],[255,255,255]]
+        else: line_clrs = [[0,0,0],[67, 147, 195],[33, 102, 172],[103, 0, 31],[178,24,43],[254,219,199],[244,165,130],[255,255,255]]
       endcase
       line_clrs = fix(line_clrs)
     endif
@@ -118,7 +131,7 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
 ; Method 3: Define custom line color(s) by structure - will modify the above color settings
 
   if keyword_set(mycolors) then begin
-    if (n_elements(line_clrs) ne 24) then line_clrs = line_colors
+    if (n_elements(line_clrs) ne 24) then line_clrs = line_colors_common
     undefine, ind, rgb
     str_element, mycolors, 'ind', ind  &  ni = n_elements(ind)
     str_element, mycolors, 'rgb', rgb  &  nr = n_elements(rgb)
@@ -134,7 +147,7 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
     endelse
   endif
 
-  if (n_elements(line_clrs) ne 24) then line_clrs = line_colors
+  if (n_elements(line_clrs) ne 24) then line_clrs = line_colors_common
 
 ; Set color index 255 to gray (for backward compatibility)
 

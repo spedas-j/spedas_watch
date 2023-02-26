@@ -39,7 +39,7 @@
 ;       MINPTS:  If OUTLIER is set, this specifies the minimum number of 
 ;                points remaining after discarding outliers.  Default = 3.
 ;
-;       CORE:    Perform 1-D cluster analysis to separate the data into
+;       CLUSTER: Perform 1-D cluster analysis to separate the data into
 ;                two groups.  Disables OUTLIER.
 ;
 ;       MAXDZ:   Use largest break between clusters near minimum variance
@@ -48,6 +48,8 @@
 ;       RESULT:  Named variable to hold the result.
 ;
 ;       HIST:    Plot a histogram of the distribution in a separate window.
+;
+;       KEEP:    Keep the last histogram window open on exit.
 ;
 ;       NBINS:   If HIST is set, number of bins in the histogram.
 ;
@@ -60,24 +62,35 @@
 ;
 ;       T1:      Times in cluster 1.
 ;
-;       DIAG:    Return cluster analysis diagnostics:
-;                  minvar : minimum total variance
-;                  maxvar : maximum total variance
-;                  maxsep : separation between clusters
-;                  sepval : value of optimal separation
+;       DIAG:    Return outlier and cluster analysis diagnostics:
+;                  minvar : minimum total variance for both clusters
+;                  maxvar : maximum total variance for both clusters
+;                  maxsep : separation between the clusters
+;                  sepval : value of optimal separation between the clusters
+;                  ngud   : number of points in the main distribution
+;                  nbad   : number of outliers
+;                  delta  : separation* between the core and outliers in SDEV units -or-
+;                           separation# between the clusters in SDEV units
+;                  frac   : fraction of "bad" points (nbad/(nbad+ngud))
+;
+;                  * separation is the distance between the 2-sigma level of the core
+;                    distribution and the closest outlier
+;
+;                  # separation is the closest distance between the 2-sigma levels of the
+;                    clusters
 ;
 ;       SILENT:  Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-08-23 10:52:19 -0700 (Tue, 23 Aug 2022) $
-; $LastChangedRevision: 31034 $
+; $LastChangedDate: 2023-02-25 18:00:08 -0800 (Sat, 25 Feb 2023) $
+; $LastChangedRevision: 31527 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/tmean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
 pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hist=hist, $
-                nbins=nbins, npts=npts, silent=silent, minpts=minpts, dst=dst, core=core, $
-                t0=t0, t1=t1, maxdz=maxdz, diag=diag
+                nbins=nbins, npts=npts, silent=silent, minpts=minpts, dst=dst, cluster=cluster, $
+                t0=t0, t1=t1, maxdz=maxdz, diag=diag, keep=keep
 
   @swe_snap_common
 
@@ -86,7 +99,8 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
   if (n_elements(minpts) eq 0) then minpts = 3 else minpts = round(minpts)
   if (n_elements(nbins) eq 0) then nbins = 32 else bins = fix(nbins[0])
   hist = keyword_set(hist)
-  core = keyword_set(core)
+  keep = keyword_set(keep)
+  core = keyword_set(cluster)
   if (core) then oflg = 0  ; disable OUTLIER removal for cluster analysis
   dst = keyword_set(dst)
   if (dst) then undefine, result
@@ -96,9 +110,7 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
   t1 = 0D
   if (size(offset,/type) eq 0) then offset = 0. else offset = float(offset[0])
 
-  diag = {minvar:0., maxvar:0., maxsep:0., sepval:0.}
-
-  if (n_elements(trange) lt 2) then begin
+  if (n_elements(trange) lt 1) then begin
     if keyword_set(npts) then ctime, tsp, panel=p, npoints=1, prompt='Choose a variable/time' $
                          else ctime, tsp, panel=p, npoints=2, prompt='Choose a variable/time range'
     cursor,cx,cy,/norm,/up  ; make sure mouse button is released
@@ -140,8 +152,8 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
 
 ; Create plot window(s)
 
+  twin = !d.window
   if (hist) then begin
-    twin = !d.window
     win, /free, /secondary, xsize=800, ysize=600, dx=10
     hwin = !d.window
     if (core) then begin
@@ -156,6 +168,7 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
 
   while (keepgoing) do begin
     result = 0
+    diag = 0
 
     if keyword_set(npts) then begin
       i = nn2(dat.x, tsp[0])
@@ -175,8 +188,8 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       if (hist) then begin
         wdelete, hwin
         if (core) then wdelete, vwin
-        wset, twin
       endif
+      wset, twin
       return
     endif
     x = dat.x[indx]
@@ -188,14 +201,16 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       if (hist) then begin
         wdelete, hwin
         if (core) then wdelete, vwin
-        wset, twin
       endif
+      wset, twin
       return
     endif
     if (ntot gt 0L) then begin
       x = x[kndx]
       y = y[kndx]
     endif
+
+    if (hist) then timebar,[tmin,tmax],/transient,line=2
 
 ; Group the data into two clusters (Jenks natural breaks optimization)
 
@@ -221,15 +236,17 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       sign /= abs(sign)
       indx = where(sign lt 0., count) - 1L  ; local extrema (excludes endpoints)
       if (count eq 0L) then begin
-        print,"Cluster analysis found no local minimum in the variance."
-        if (hist) then begin
+        if (blab) then print,"Cluster analysis found no local minimum in the variance."
+        if (hist && ~keep) then begin
           wdelete, hwin
           if (core) then wdelete, vwin
           wset, twin
         endif
+        if (hist) then timebar,[tmin,tmax],/transient,line=2
         return
       endif
       minvar = min(v[indx], j)              ; deepest local minimum
+                                            ; test for global minimum????
       icut = indx[j]
 
       if (maxdz) then begin
@@ -243,10 +260,10 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       ycut = (z[icut] + z[icut+1])/2.
       nclusters = 2
 
-      diag = {minvar: minvar         , $
-              maxvar: max(var1+var2) , $
-              maxsep: mdz            , $
-              sepval: ycut              }
+      diag = {minvar: minvar , $
+              maxvar: max(v) , $
+              maxsep: mdz    , $
+              sepval: ycut      }
 
     endif else begin
       icut = ntot - 1
@@ -274,19 +291,39 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       rms  = sqrt(mom[1])
 
       if (oflg) then begin
+        xo = [-1D]
+        yo = [-1.]
         maxdev = float(outlier[0])*rms
-        jndx = where(abs(yc - avg) le maxdev, ngud, ncomplement=nbad)
+        jndx = where(abs(yc - avg) le maxdev, ngud, complement=kndx, ncomplement=nbad)
         while ((nbad gt 0) and (ngud ge minpts)) do begin
+          xo = [xo, xc[kndx]]
+          yo = [yo, yc[kndx]]
           xc = xc[jndx]
           yc = yc[jndx]
-          if (blab) then print,"Removing ",strtrim(string(nbad),2)," outliers."
           mom  = moment(yc, mdev=adev, /nan)
           avg  = mom[0]
           rms  = sqrt(mom[1])
           maxdev = float(outlier[0])*rms
-          jndx = where(abs(yc - avg) le maxdev, ngud, ncomplement=nbad)
+          jndx = where(abs(yc - avg) le maxdev, ngud, complement=kndx, ncomplement=nbad)
         endwhile
-      endif
+        nbad = n_elements(xo) - 1L
+        if (nbad ge 1L) then begin
+          xo = xo[1:*]
+          yo = yo[1:*]
+          delta = min((yo - avg)/rms, /abs)
+          frac = float(n_elements(xo))/float(npts)
+        endif else begin
+          delta = 0.
+          frac = 0.
+        endelse
+        t0 = xc
+        t1 = xo
+      endif else begin
+        t0 = xc
+        t1 = -1D
+        delta = 0.
+        frac = 0.
+      endelse
 
       skew = mom[2]
       kurt = mom[3]
@@ -332,18 +369,51 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       endif
     endfor
 
-    if (blab and core) then begin
-      msg = strtrim(string(ycut, format='(f14.2)'),2)
-      print,"Clusters divide at: ",msg,format='(a,a,/)'
-      frac = float(result[0].npts)/float(result[0].npts + result[1].npts)
-      msg = strtrim(string(frac,format='(f14.2)'),2)
-      print,"N(cluster 0)/N(total): ",msg,format='(a,a,/)'
+; More diagnostic information
+
+    if (core) then begin
+      str_element, diag, 'ngud', max(result.npts), /add
+      str_element, diag, 'nbad', min(result.npts), /add
+      z0 = result[0].mean + 2.*result[0].stddev
+      z1 = result[1].mean - 2.*result[1].stddev
+      delta = (z1 - z0)/result[1].stddev
+      str_element, diag, 'delta', delta, /add
+      frac = float(result[0].npts < result[1].npts)/float(result[0].npts + result[1].npts)
+      str_element, diag, 'frac', frac, /add
+      if (blab) then begin
+        msg = strtrim(string(ycut, format='(f14.2)'),2)
+        print,"Clusters divide at: ",msg,format='(a,a)'
+        msg = strtrim(string(diag.delta, format='(f14.2)'),2)
+        print,"Cluster separation: " + msg + " sigma"
+        msg = strtrim(string(diag.frac,format='(f14.2)'),2)
+        print,"N(cluster 0)/N(total): ",msg,format='(a,a,/)'
+      endif
     endif
+    if (oflg) then begin
+      str_element, diag, 'ngud', ngud, /add
+      str_element, diag, 'nbad', nbad, /add
+      str_element, diag, 'delta', delta, /add
+      str_element, diag, 'frac', frac, /add
+      if (blab) then begin
+        print,strtrim(string(diag.ngud,format='(i)'),2) + ' core points'
+        print,strtrim(string(diag.nbad,format='(i)'),2) + ' outliers'
+        msg = strtrim(string(diag.delta, format='(f14.2)'),2)
+        print,"Outlier separation: ", msg + " sigma"
+        msg = strtrim(string(diag.frac,format='(f14.2)'),2)
+        print,"N(outlier)/N(core): ",msg,format='(a,a,/)'
+      endif
+    endif
+
+; Plot the distribution
 
     if (hist) then begin
       if (core) then begin
         wset, vwin
-        plot,z,(var1+var2),psym=-4,ytitle='Total Variance',charsize=1.8
+        z0 = result[0].mean + 2.*result[0].stddev
+        z1 = result[1].mean - 2.*result[1].stddev
+        msg = strtrim(string((z1 - z0)/result[1].stddev, format='(f14.2)'),2)
+        vtitle = 'Cluster Separation: ' + msg + " !4r!1H"
+        plot,z,(var1+var2),psym=-4,ytitle='Total Variance',charsize=1.8,title=vtitle
         oplot,[ycut,ycut],[0.,2.*max(var1+var2)],line=2,color=6
       endif
       wset, hwin
@@ -362,6 +432,15 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
         oplot,[avg,avg]-(i*rms),[0,2.*max(h)],linestyle=1,color=4
       endfor
       ; oplot,[med,med],[0,2.*max(h)],linestyle=2,color=6
+
+      if (oflg) then begin
+        msg = strtrim(string(ngud,format='(i)'),2) + ' core points'
+        xyouts,0.18,0.88,/norm,msg,charsize=1.4
+        msg = strtrim(string(nbad,format='(i)'),2) + ' outliers'
+        xyouts,0.18,0.83,/norm,msg,charsize=1.4
+        msg = 'skew = ' + strtrim(string(result[0].skew,format='(f14.2)'),2)
+        xyouts,0.18,0.78,/norm,msg,charsize=1.4
+      endif
 
       if (core) then begin
         oplot,[ycut,ycut],[0,2.*max(h)],linestyle=2,color=6
@@ -398,21 +477,23 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       wset, twin    
     endif
 
-    if (n_elements(trange) lt 2) then begin
+; Get the next time range
+
+    if (n_elements(trange) lt 1) then begin
       if keyword_set(npts) then ctime, tsp, panel=p, npoints=1, prompt='Choose a variable/time' $
                            else ctime, tsp, panel=p, npoints=2, prompt='Choose a variable/time range'
       cursor,cx,cy,/norm,/up  ; make sure mouse button is released
       if (size(tsp,/type) ne 5) then keepgoing = 0
     endif else keepgoing = 0
 
+    if (hist) then timebar,[tmin,tmax],/transient,line=2
+
   endwhile
 
-  if (hist) then begin
+  if (hist && ~keep) then begin
     wdelete, hwin
     if (core) then wdelete, vwin
-    wset, twin
   endif
-
-  return
+  wset, twin
 
 end

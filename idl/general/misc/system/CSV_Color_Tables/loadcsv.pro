@@ -24,9 +24,9 @@
 ;        file 'qualcolors' is ignored, so changes there will have no effect.
 ;        You can get a copy of the qualcolors structure with 'get_qualcolors'.
 ;
-;    (5) !p.color and !p.background are no longer set by default.  Use keywords
-;        BLACKBACK and WHITEBACK to choose a black or white background.  Also,
-;        see 'revvid', which swaps the foreground and background colors.
+;    (5) !p.color and !p.background are no longer set by default, so you'll have
+;        to do this yourself (typically in your idl_startup).  See 'revvid', which
+;        swaps the values for !p.color and !p.background.
 ;
 ;  Using 'loadcsv' has the following advantages:
 ;
@@ -61,11 +61,8 @@
 ;                     If this input is missing, then keyword CATALOG is set.
 ;
 ;KEYWORDS:
-;       RESET:        Reset the qualcolors structure and return.  Does not 
-;                     load a color table.  To initialize the qualcolors 
-;                     structure without doing anything else:
-;
-;                       loadcsv, 0, /reset
+;       RESET:        Reset the qualcolors structure with the default fixed
+;                     line colors, then load colortbl.
 ;
 ;       PREVIOUS_CT:  Named variable to hold the previous color table number.
 ;                     Tplot needs this to swap color tables on the fly.
@@ -76,43 +73,87 @@
 ;       CATALOG:      Display an image of the CSV color tables and return.
 ;                     Does not load a color table.
 ;
-;       MYCOLORS:     An array of structures defining up to 8 custom colors:
+;       LINE_CLRS:    Defines custom line colors.  Can take one of two forms:
 ;
-;                     {name  : color name (string)  , $
-;                      i     : integer from 0-255   , $
-;                      r     : red level (0-255)    , $
-;                      g     : green level (0-255)  , $
-;                      b     : blue level (0-255)      }
+;                     Array of 24 (3x8 RGB colors) that define 8 fixed colors 
+;                     (the first 7 and the last) of the color table:
+;                       LINE_CLRS = [[R,G,B], [R,G,B], ...].
 ;
-;                     The default color names and indices are:
+;                     Integer from 0 to 10 that selects one of the predefined sets
+;                     of fixed line colors.  Except for primary colors, these
+;                     are suitable for colorblind vision.
 ;
-;                     name = ['black','purple','blue','green','yellow','orange','red','white']
-;                     indx = [   0   ,   1    ,  2   ,   3   ,   4    ,   5    ,  6  ,  255  ]
+;                       0  : primary colors
+;                      1-4 : four different schemes suitable for colorblind vision
+;                       5  : primary colors, except orange replaces yellow for better contrast on white
+;                       6  : primary colors, except gray replaces yellow for better contrast on white
+;                       7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
+;                       8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
+;                       9  : same as 8 but purmuted so vector defaults are blue, orange, reddish purple
+;                      10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
-;                     The indicies (i) specified in MYCOLORS will replace one or
-;                     more of these defaults.  You are not allowed to change
+;                     Default = 10.
+;
+;       LINE_COLOR_NAMES:  String array of 8 line color names.  You must use line color
+;                     names recognized by spd_get_color().  RGB values for unrecognized
+;                     color names are set to zero.  Not recommended, because named 
+;                     colors are approximated by the nearest RGB neighbors in the 
+;                     currently loaded color table.  This can work OK for rainbow color
+;                     tables, but for tables that primarily encode intensity, the 
+;                     actual colors can be quite different from the requested ones.
+;                     Included for backward compatibility.
+;
+;       COLOR_NAMES:  Synonym for LINE_COLOR_NAMES.  Allows better keyword minimum
+;                     matching.  Both keywords are accepted for backward compatibility.
+;
+;       MYCOLORS:     A structure defining up to 8 custom colors.  These are 
+;                     fixed colors used to draw colored lines (1-6) and to define
+;                     the background (0) and foreground (255) colors.
+;
+;                     { ind    : up to 8 integers (0-6 or 255)              , $
+;                       rgb    : up to 8 RGB levels [[R,G,B], [R,G,B], ...]    }
+;
+;                     The indicies (ind) specified in MYCOLORS will replace one or
+;                     more of the default colors.  You are not allowed to change
 ;                     color indices 7-254, because those are reserved for the
-;                     color table.
+;                     color table.  Indices 0 and 255 allow you to define custom
+;                     background and foreground colors.
+;
+;                     Changes made with LINE_CLRS and MYCOLORS are persistent, so
+;                     you can change the color table (indices 7-254) while keeping
+;                     the same fixed line colors.  Use line_colors.pro to do the 
+;                     reverse: change the line colors while keeping the color table.
+;
+;       GRAYBKG:      Set color index 255 to gray [211,211,211] instead of white.
+;                     See keyword MYCOLORS for a general method of setting any line 
+;                     color to any RGB value.  For example, GRAYBKG=1 is equivalent 
+;                     to MYCOLORS={ind:255, rgb:[211,211,211]}.
+;
+;                     To actually use this color for the background, you must set 
+;                     !p.background=255 (normally combined with !p.color=0).
 ;
 ;       Also passes all keywords accepted by loadcsvcolorbar2.
 ;
+;See also:
+;   "initct","line_colors","get_line_colors","loadcsv","get_colors","colors_com","bytescale"
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-12-09 13:11:11 -0800 (Fri, 09 Dec 2022) $
-; $LastChangedRevision: 31343 $
+; $LastChangedDate: 2023-02-25 17:49:23 -0800 (Sat, 25 Feb 2023) $
+; $LastChangedRevision: 31523 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/CSV_Color_Tables/loadcsv.pro $
 ;
 ;CSV color table code: Mike Chaffin
 ;Tplot-compatible version: David L. Mitchell
 ;-
 pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, previous_rev=previous_rev, $
-                       reverse=crev, catalog=catalog, mycolors=mycolors, _EXTRA = ex
+                       reverse=crev, catalog=catalog, mycolors=mycolors, line_clrs=line_clrs, $
+                       line_color_names=line_color_names, color_names=color_names, graybkg=graybkg, $
+                       _EXTRA = ex
 
   @colors_com  ; allows loadcsv to communicate with loadct2
   common qualcolors_com, qualcolors
 
 ; Put up an image of the CSV color tables
-
-  if (n_elements(colortbl) eq 0) then catalog = 1
 
   if keyword_set(catalog) then begin
     wnum = !d.window
@@ -125,11 +166,112 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, previous_rev=previo
     return
   endif
 
-  str_element, mycolors, 'g', g, success=newcols
+; Make sure colortbl is reasonable
+
+  csize = size(colortbl,/type)
+  if ((csize lt 1) or (csize gt 5)) then begin
+    print,"You must specify a CSV table number."
+    return
+  endif
+  ctab = fix(colortbl[0])
+  if (ctab lt 1000) then begin
+    print,"You must add 1000 to the CSV table number."
+    return
+  endif
+
+; Get the current or default line colors
+
+  if (n_elements(line_colors_common) ne 24) then $
+    line_colors_common = fix([[0,0,0],[152,78,163],[55,126,184],[77,175,74],[255,255,51],[255,127,0],[228,26,28],[255,255,255]])
+
+  ni = 8
+  j = [indgen(7), 255]
+  r = reform(line_colors_common[0,*])
+  g = reform(line_colors_common[1,*])
+  b = reform(line_colors_common[2,*])
+
+; Set color index 255 to gray (for backward compatibility)
+
+  if keyword_set(graybkg) then begin
+    r[7] = 211
+    g[7] = 211
+    b[7] = 211
+    if n_elements(graybkg) eq 3 then begin
+      r[7] = graybkg[0]
+      g[7] = graybkg[1]
+      b[7] = graybkg[2]
+    endif
+  endif
+
+; Custom colors from LINE_COLOR_NAMES
+
+  if keyword_set(color_names) then line_color_names = color_names
+  if keyword_set(line_color_names) then begin
+    if ((n_elements(line_color_names) ne 8) or (size(line_color_names,/type) ne 7)) then begin
+      dprint,'line_color_names must be an 8-element string array'
+      return
+    endif
+    line_clrs=transpose(spd_get_color(line_color_names,/rgb))
+    ; then fall through to the line_clrs processing
+  endif
+
+; Custom colors from LINE_CLRS
+
+  if n_elements(line_clrs) gt 0 then begin
+    if n_elements(line_clrs) ne 24 then begin
+      case fix(line_clrs[0]) of
+        ; Preset 0:  The standard SPEDAS colors (useful for resetting this option without doing a .full_reset_session)
+        0: line_clrs = [[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]]
+        ; Presets 1-4: Line colors suitable for colorblind vision
+        1: line_clrs = [[0,0,0],[67, 147, 195],[33, 102, 172],[103, 0, 31],[178,24,43],[254,219,199],[244,165,130],[255,255,255]]
+        2: line_clrs = [[0,0,0],[253,224,239],[77,146,33],[161,215,106],[233,163,201],[230,245,208],[197,27,125],[255,255,255]]
+        3: line_clrs = [[0,0,0],[216,179,101],[140,81,10],[246,232,195],[1,102,94],[199,234,229],[90,180,172],[255,255,255]]   
+        4: line_clrs = [[0,0,0],[84,39,136],[153,142,195],[216,218,235],[241,163,64],[254,224,182],[179,88,6],[255,255,255]] 
+        ; Preset 5:  Similar to standard colors, but substitutes orange for yellow for better contrast on white background
+        5: line_clrs = [[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,165,0],[255,0,0],[255,255,255]]
+        ; Preset 6:  Similar to standard colors, but substitutes gray for yellow for better contrast on white background
+        6: line_clrs = [[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[141,141,141],[255,0,0],[255,255,255]]
+        ; Preset 7:  Color table suggested by https://www.nature.com/articles/nmeth.1618 except for reddish purple (Color 7 must be white for the background.)
+        7: line_clrs = [[0,0,0],[230,159,0],[86,180,233],[0,158,115],[240,228,66],[0,114,178],[213,94,0],[255,255,255]]
+        ; Preset 8:  Color table suggested by https://www.nature.com/articles/nmeth.1618 except for yellow (Color 7 must be white for the background.)
+        8: line_clrs = [[0,0,0],[230,159,0],[86,180,233],[0,158,115],[0,114,178],[213,94,0],[204,121,167],[255,255,255]]
+        ; Preset 9: Same as 8, except with the colors shifted around so that the default colors 
+        ; for vectors are: blue, orange, reddish purple
+        9: line_clrs = [[0,0,0],[86,180,233],[0,114,178],[0,158,115],[230,159,0],[213,94,0],[204,121,167],[255,255,255]]
+        10: line_clrs = [[0,0,0],[152,78,163],[55,126,184],[77,175,74],[255,255,51],[255,127,0],[228,26,28],[255,255,255]]
+        else: line_clrs = [[0,0,0],[152,78,163],[55,126,184],[77,175,74],[255,255,51],[255,127,0],[228,26,28],[255,255,255]]
+      endcase
+    endif else line_clrs = reform(line_clrs,3,8)
+    line_clrs = fix(line_clrs)
+    r = reform(line_clrs[0,*])
+    g = reform(line_clrs[1,*])
+    b = reform(line_clrs[2,*])
+  endif
+
+; Custom colors from MYCOLORS
+
+  if keyword_set(mycolors) then begin
+    undefine, ind, rgb
+    str_element, mycolors, 'ind', ind  &  ni = n_elements(ind)
+    str_element, mycolors, 'rgb', rgb  &  nr = n_elements(rgb)
+
+    if (nr eq ni*3L) then begin
+      for i=0,(ni-1) do begin
+        if ((ind[i] le 6) or (ind[i] eq 255)) then begin
+          r[ind[i]<7] = rgb[0,i]
+          g[ind[i]<7] = rgb[1,i]
+          b[ind[i]<7] = rgb[2,i]
+        endif else print,"Cannot alter color index: ",ind[i]
+      endfor
+    endif else begin
+      print,"Cannot interpret MYCOLORS structure."
+      return
+    endelse
+  endif
 
 ; Define a tplot-compatible version of the qualcolors structure
 
-  if ((size(qualcolors,/type) ne 8) or keyword_set(reset) or newcols) then begin
+  if ((size(qualcolors,/type) ne 8) or keyword_set(reset)) then begin
     qualcolors = {black         : 0, $
                   purple        : 1, $ 
                   blue          : 2, $
@@ -149,49 +291,18 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, previous_rev=previo
                   table_name    : '', $
                   color_table   : -1, $
                   color_reverse :  0   }
-
-    ok = 0
-    str_element, mycolors, 'name', name, success=k
-    ok += k
-    str_element, mycolors, 'i', j, success=k
-    ok += k
-    str_element, mycolors, 'r', r, success=k
-    ok += k
-    str_element, mycolors, 'g', g, success=k
-    ok += k
-    str_element, mycolors, 'b', b, success=k
-    ok += k
-    if (ok eq 5) then begin
-      for i=0,(n_elements(name)-1) do begin
-        if ((j[i] lt 7) or (j[i] eq !d.table_size-1)) then begin
-          k = j[i] < 7
-          oldname = qualcolors.colornames[k]
-          qualcolors.colornames[k] = name[i]
-          qualcolors.qi[k] = j[i]
-          qualcolors.qr[k] = r[i]
-          qualcolors.qg[k] = g[i]
-          qualcolors.qb[k] = b[i]
-          str_element, qualcolors, name[i], j[i], /add_replace
-          if (oldname ne name[i]) then str_element, qualcolors, oldname, /delete
-        endif
-      endfor
-    endif
-    if ((ok gt 0) and (ok lt 5)) then print,"Cannot interpret MYCOLORS structure.  Using defaults."
-    if keyword_set(reset) then return
   endif
 
-; Make sure colortbl is reasonable
+; Poke custom colors into the qualcolors structure and update line_colors_common
 
-  csize = size(colortbl,/type)
-  if ((csize lt 1) or (csize gt 5)) then begin
-    print,"You must specify a CSV table number."
-    return
-  endif
-  ctab = fix(colortbl[0])
-  if (ctab lt 1000) then begin
-    print,"You must add 1000 to the CSV table number."
-    return
-  endif
+  qualcolors.qi = j
+  qualcolors.qr = r
+  qualcolors.qg = g
+  qualcolors.qb = b
+
+  line_colors_common[0,*] = qualcolors.qr
+  line_colors_common[1,*] = qualcolors.qg
+  line_colors_common[2,*] = qualcolors.qb
 
 ; Load the CSV table
 
@@ -204,6 +315,8 @@ pro loadcsv, colortbl, reset=reset, previous_ct=previous_ct, previous_rev=previo
 
 ; Tell tplot and loadct2 what happened
 
+  bottom_c = qualcolors.bottom_c
+  top_c = qualcolors.top_c
   ctab = qualcolors.color_table
   if (n_elements(color_table) eq 0) then previous_ct = ctab else previous_ct = color_table
   color_table = ctab
