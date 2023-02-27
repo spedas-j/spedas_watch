@@ -45,8 +45,11 @@
 ;                         6  : primary colors, except gray replaces yellow for better contrast on white
 ;                         7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
 ;                         8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
-;                         9  : same as 8 but purmuted so vector defaults are blue, orange, reddish purple
+;                         9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;                        10  : Chaffin's CSV line colors, suitable for colorblind vision
+;
+;                         See get_line_colors() for RGB values of predefined schemes.
+;                         The most recent color schemes may not be documented here.
 ;
 ;       COLOR_NAMES:  String array of 8 line color names.  You must use line color
 ;                     names recognized by spd_get_color().  RGB values for unrecognized
@@ -91,8 +94,8 @@
 ;       SUPPRESS:     Suppress floating overflow error in first call to window.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-25 17:49:57 -0800 (Sat, 25 Feb 2023) $
-; $LastChangedRevision: 31524 $
+; $LastChangedDate: 2023-02-26 12:47:34 -0800 (Sun, 26 Feb 2023) $
+; $LastChangedRevision: 31532 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/initct.pro $
 ;
 ;Created by David L. Mitchell (February 2023)

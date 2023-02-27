@@ -1,14 +1,14 @@
 ;+
 ;FUNCTION get_line_colors
-;   Gets the current line colors and optionally makes modifications by keyword.
-;   Returns the result as an array of 24 (3x8) RBG colors: [[R,G,B], [R,G,B], ...].
+;   Get the current line colors, or line colors specified by input and/or keyword.
+;   Returns the result as an array of 24 (3x8) RGB colors: [[R,G,B], [R,G,B], ...].
 ;   This DOES NOT alter the color table or assert any new line colors.  To do that
 ;   you would pass the result of this routine to line_colors.pro or as an option
 ;   for a tplot variable.
 ;
 ;   To set custom line colors for any tplot panel do one of the following:
 ;
-;       lines = n  ; where 0 <= n <= 6
+;       lines = n  ; where 0 <= n <= 10
 ;       options, varname, 'line_colors', lines
 ;
 ;       lines = get_line_colors(line_clrs, KEYWORD=value, ...)
@@ -26,14 +26,14 @@
 ;
 ;   (2) Integer that selects one of six different predefined color schemes:
 ;
-;             0  : primary colors
-;            1-4 : four different schemes suitable for colorblind vision
-;             5  : primary colors, except orange replaces yellow for better contrast on white
-;             6  : primary colors, except gray replaces yellow for better contrast on white
-;             7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
-;             8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
-;             9  : same as 8 but purmuted so vector defaults are blue, orange, reddish purple
-;            10  : Chaffin's CSV line colors, suitable for colorblind vision
+;           0  : primary colors
+;          1-4 : four different schemes suitable for colorblind vision
+;           5  : primary colors, except orange replaces yellow for better contrast on white
+;           6  : primary colors, except gray replaces yellow for better contrast on white
+;           7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
+;           8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
+;           9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
+;          10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
 ;   If there is no input and no keywords are set, this routine returns the current
 ;   line colors.
@@ -69,8 +69,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-25 17:41:53 -0800 (Sat, 25 Feb 2023) $
-; $LastChangedRevision: 31521 $
+; $LastChangedDate: 2023-02-26 12:47:20 -0800 (Sun, 26 Feb 2023) $
+; $LastChangedRevision: 31531 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/get_line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023
@@ -82,8 +82,8 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
 
 ; Initialize with the current or default line colors
 
-  if (n_elements(line_colors_common) ne 24) then $
-    line_colors_common = fix([[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]])
+  default = fix([[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]])
+  if (n_elements(line_colors_common) eq 24) then default = line_colors_common
 
 ; Three methods for setting the fixed line colors (0-6 and 255)
 
@@ -131,7 +131,7 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
 ; Method 3: Define custom line color(s) by structure - will modify the above color settings
 
   if keyword_set(mycolors) then begin
-    if (n_elements(line_clrs) ne 24) then line_clrs = line_colors_common
+    if (n_elements(line_clrs) ne 24) then line_clrs = default
     undefine, ind, rgb
     str_element, mycolors, 'ind', ind  &  ni = n_elements(ind)
     str_element, mycolors, 'rgb', rgb  &  nr = n_elements(rgb)
@@ -147,7 +147,7 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
     endelse
   endif
 
-  if (n_elements(line_clrs) ne 24) then line_clrs = line_colors_common
+  if (n_elements(line_clrs) ne 24) then line_clrs = default
 
 ; Set color index 255 to gray (for backward compatibility)
 

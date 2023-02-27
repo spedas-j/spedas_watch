@@ -5,7 +5,7 @@
 ;   and foreground (255) colors.
 ;
 ;INPUTS:
-;   lines : Can take one of two forms:
+;   line_clrs : Can take one of two forms:
 ;
 ;   (1) Integer array of 24 (3x8) RGB colors: [[R,G,B], [R,G,B], ...] that defines
 ;       the RGB values of the first 7 colors (0-6) and the last (255).
@@ -16,9 +16,9 @@
 ;          1-4 : four different schemes suitable for colorblind vision
 ;           5  : primary colors, except orange replaces yellow for better contrast on white
 ;           6  : primary colors, except gray replaces yellow for better contrast on white
-;           7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
-;           8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
-;           9  : same as 8 but purmuted so vector defaults are blue, orange, reddish purple
+;           7  : https://www.nature.com/articles/nmeth.1618, except no reddish purple
+;           8  : https://www.nature.com/articles/nmeth.1618, except no yellow
+;           9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;          10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
 ;    To set custom line colors for any tplot panel:
@@ -80,58 +80,29 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-25 17:50:08 -0800 (Sat, 25 Feb 2023) $
-; $LastChangedRevision: 31525 $
+; $LastChangedDate: 2023-02-26 12:46:42 -0800 (Sun, 26 Feb 2023) $
+; $LastChangedRevision: 31530 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023
 ;-
 
-pro line_colors, lines, color_names=color_names, mycolors=mycolors, graybkg=graybkg, $
+pro line_colors, line_clrs, color_names=color_names, mycolors=mycolors, graybkg=graybkg, $
                         previous_lines=previous_lines
 
   common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
   @colors_com
 
-  case (size(lines,/type)) of
-     0   : begin
-             print,"You must specify one or more line colors."
-             return
-           end
-     7   : color_names = lines
-     8   : mycolors = lines
-    else : line_clrs = lines
-  endcase
-
   tvlct,r,g,b,/get
 
-; Initialize with the current or default line colors
-
-  indx = [indgen(7), 255]
-
-  if (n_elements(line_colors_common) ne 24) then begin
-    r[indx] = [0,1,0,0,0,1,1,1]*255
-    g[indx] = [0,0,0,1,1,1,0,1]*255
-    b[indx] = [0,1,1,1,0,0,0,1]*255
-    line_colors_common = fix([[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]])
-  endif else begin
-    r[indx] = line_colors_common[0,*]
-    g[indx] = line_colors_common[1,*]
-    b[indx] = line_colors_common[2,*]
-  endelse
-
-  previous_lines = line_colors_common
-
-; Assert the new line colors
-
+  previous_lines = n_elements(line_colors_common) eq 24 ? line_colors_common : -1
   new_lines = get_line_colors(line_clrs, color_names=color_names, mycolors=mycolors, graybkg=graybkg)
-
-  r[indx] = new_lines[0,*]
-  g[indx] = new_lines[1,*]
-  b[indx] = new_lines[2,*]
-
-  lines = new_lines
   line_colors_common = new_lines
+
+  cols = [indgen(7), 255]
+  r[cols] = new_lines[0,*]
+  g[cols] = new_lines[1,*]
+  b[cols] = new_lines[2,*]
 
   tvlct,r,g,b
 
