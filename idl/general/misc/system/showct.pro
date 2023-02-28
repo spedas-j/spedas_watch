@@ -11,9 +11,13 @@
 ;KEYWORDS:
 ;   REVERSE:   If set, then reverse the table order from bottom_c to top_c.
 ;
-;   LINE_CLRS: Show an alternate fixed color scheme.  See line_colors.pro.
+;   LINE_CLRS: Show an alternate fixed colors.  See line_colors.pro.
+;
+;   COLOR_NAMES: Names of custom line colors.  See line_colors.pro.
 ;
 ;   MYCOLORS:  Structure of custom line colors.  See line_colors.pro.
+;
+;   GRAYBKG:   Set background color to gray.  See line_colors.pro.
 ;
 ;   INTENSITY: Show intensity in a separate window.
 ;
@@ -22,12 +26,12 @@
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-24 15:45:27 -0800 (Fri, 24 Feb 2023) $
-; $LastChangedRevision: 31517 $
+; $LastChangedDate: 2023-02-26 21:36:31 -0800 (Sun, 26 Feb 2023) $
+; $LastChangedRevision: 31538 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
-                         intensity=intensity
+                         color_names=color_names, graybkg=graybkg, intensity=intensity
 
   cols = get_colors()
   crev = keyword_set(color_reverse)
@@ -56,8 +60,9 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 
 ; Load the requested line colors
 
-  if ((n_elements(lines) gt 0) or (size(mycolors,/type) eq 8)) then begin
-    line_colors, lines, mycolors=mycolors, previous_lines=plines
+  if ((n_elements(lines) gt 0) or (size(mycolors,/type) eq 8) or $
+      (size(color_names,/type) eq 7) or keyword_set(graybkg)) then begin
+    line_colors, lines, color_names=color_names, mycolors=mycolors, graybkg=graybkg, previous_lines=plines
   endif else begin
     lines = get_line_colors()
     plines = lines

@@ -21,8 +21,8 @@
 ;   line_colors.pro to set custom line, background and foreground colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-24 15:38:23 -0800 (Fri, 24 Feb 2023) $
-; $LastChangedRevision: 31512 $
+; $LastChangedDate: 2023-02-27 09:26:55 -0800 (Mon, 27 Feb 2023) $
+; $LastChangedRevision: 31556 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/revvid.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -32,20 +32,25 @@ pro revvid, white=white, black=black
   foreground = !p.color
   background = !p.background
 
-  tvlct, r, g, b, /get
-  i = sqrt(float(r)^2. + float(g)^2. + float(b)^2.)
-  i_min = min(i, dark)
-  i_max = max(i, lite)
+  white = keyword_set(white)
+  black = keyword_set(black)
 
-  if keyword_set(white) then begin
-    foreground = dark
-    background = lite
+  if (white || black) then begin
+    tvlct, r, g, b, /get
+    cols = [0,255]  ; foreground and background colors assumed to be at the ends
+    i = sqrt(float(r[cols])^2. + float(g[cols])^2. + float(b[cols])^2.)
+    i_min = min(i, dark)
+    i_max = max(i, lite)
+
+    if (white) then begin
+      foreground = cols[lite]
+      background = cols[dark]
+    endif else begin
+      foreground = cols[dark]
+      background = cols[lite]
+    endelse
   endif
-  if keyword_set(black) then begin
-    foreground = lite
-    background = dark
-  endif
-  
+
   !p.color = background
   !p.background = foreground
 
