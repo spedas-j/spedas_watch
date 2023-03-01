@@ -43,7 +43,7 @@ function socket_reader::read_nbytes,nb,source,pos=pos
   endelse
   self.write,buf
   return,buf
-  fixit: 
+  fixit:
   dprint,'IO error'
   ;stop
   return,buf
@@ -56,11 +56,12 @@ function socket_reader::read_line,source,nbytes=nb,pos=pos     ; reads a line of
 
   if ~isa(pos) then pos=0ul
   if isa(source,/array) then begin          ; source should be a an array of bytes
+    dprint,dlevel=2,verbose=self.verbose,'Not tested yet...'
     n = nb < (n_elements(source) - pos)
     if n gt 0 then   buf = source[pos:pos+n-1]
     pos = pos+n
   endif else begin
-    if keyword_set(self.input_lun) then begin               
+    if keyword_set(self.input_lun) then begin
       b = bytarr(1)
       while file_poll_input(self.input_lun,timeout=0) && ~eof(self.input_lun)  do begin
         readu,self.input_lun,b,transfer_count=n
@@ -74,7 +75,7 @@ function socket_reader::read_line,source,nbytes=nb,pos=pos     ; reads a line of
       endwhile
     endif else dprint,dlevel=2,verbose=self.verbose,self.name +": Input file is not open."
   end
-  
+
   self.write,buf
   return,buf
   fixit:
@@ -109,7 +110,7 @@ end
 
 
 
-pro socket_reader::read
+pro socket_reader::read_old, buffer, source_dict=source_dict
   ; Read data from stream until EOF is encountered or no more data is available on the stream
   ; if the proc flag is set then it will process the data
   ; if the output lun is non zero then it will save the data.
@@ -169,6 +170,55 @@ pro socket_reader::read
 end
 
 
+pro socket_reader::read, buffer, source_dict=source_dict
+  ; Read data from stream until EOF is encountered or no more data is available on the stream
+  ; if the proc flag is set then it will process the data
+  ; if the output lun is non zero then it will save the data.
+
+  self.time_received = systime(1)
+
+  nb = 102400
+  ; should repeat until done.
+  eofile = 0
+  while ~eofile do begin
+    if self.eol then begin
+      buf = self.read_line(buffer,nbytes = nb,pos=pos)
+    endif else begin
+      buf = self.read_nbytes(nb,buffer,pos=pos)
+    endelse
+    
+    nbytes = n_elements(buf)
+
+    if eofile eq 1 then begin
+      stream_error:
+      dprint,dlevel=self.dlevel-1,self.title_num+'File error: '+self.hostname+':'+self.hostport+' broken. ',i
+      dprint,dlevel=self.dlevel,!error_state.msg
+    endif
+
+    if nbytes gt 0 then begin                      ;; process data
+      ;dprint,'Hello 3
+      ;buffer = buffer[0:nbytes-1]
+      ;*self.buffer_ptr = buffer
+      msg = string(/print,nbytes,buf[0:(nbytes < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')
+      self.msg = time_string(self.time_received,tformat='hh:mm:ss - ',local=localtime) + msg
+    endif else begin
+      ;*self.buffer_ptr = !null
+      self.msg =time_string(self.time_received,tformat='hh:mm:ss - No data available',local=localtime)
+      break
+    endelse
+
+    self.handle,buf
+
+    dprint,verbose=self.verbose,dlevel=3,self.msg,/no_check
+    eofile = eof(self.input_lun)
+
+  endwhile
+
+end
+
+
+
+
 
 
 pro socket_reader::open_output,fileformat,time=time,close=close
@@ -219,7 +269,7 @@ pro socket_reader::handle, buffer, source_dict=source_dict
   self.nbytes += n_elements(buffer)
   self.npkts  += 1
 
-  if self.run_proc then begin
+  if self.run_proc then begin 
     if self.procedure_name then begin
       call_procedure,self.procedure_name,buffer ,source_dict=self.source_dict
     endif else begin
@@ -251,16 +301,16 @@ END
 
 
 pro socket_reader::GetProperty,name=name,verbose=verbose,dyndata=dyndata
-if arg_present(name) then name=self.name
-if arg_present(dyndata) then dyndata=self.dyndata
-if arg_present(verbose) then verbose=self.verbose
+  if arg_present(name) then name=self.name
+  if arg_present(dyndata) then dyndata=self.dyndata
+  if arg_present(verbose) then verbose=self.verbose
 end
 
 pro socket_reader::help , item
   if keyword_set(self.base) then begin
     msg = string('Base ID is: ',self.base)
     output_text_id = widget_info(self.base,find_by_uname='OUTPUT_TEXT')
-    widget_control, output_text_id, set_value=msg    
+    widget_control, output_text_id, set_value=msg
   endif
   help,self
   help,self.getattr(item)
@@ -343,20 +393,22 @@ pro socket_reader::host_button_event
   self.hostport = server_port
   case status of
     'Connect to': begin
-      *self.buffer_ptr = !null                                  ; Get rid of previous buffer contents cache
+     ; *self.buffer_ptr = !null                                  ; Get rid of previous buffer contents cache
       WIDGET_CONTROL, host_button_id, set_value = 'Connecting',sensitive=0
       WIDGET_CONTROL, host_text_id, sensitive=0
       WIDGET_CONTROL, host_port_id, sensitive=0
       socket,input_lun,/get_lun,server_name,fix(server_port),error=error ,/swap_if_little_endian,connect_timeout=10
       if keyword_set(error) then begin
-        dprint,dlevel=self.dlevel-1,self.title_num+!error_state.msg,error   ;strmessage(error)
+        dprint,verbose=self.verbose,dlevel=1,self.title_num+!error_state.msg,error   ;strmessage(error)
+        self.isasocket = 0
         widget_control, output_text_id, set_value=!error_state.msg
         WIDGET_CONTROL, host_button_id, set_value = 'Failed:',sensitive=1
         WIDGET_CONTROL, host_text_id, sensitive=1
         WIDGET_CONTROL, host_port_id, sensitive=1
       endif else begin
-        dprint,dlevel=self.dlevel,self.title_num+'Connected to server: "'+server_n_port+'"  Unit: '+strtrim(input_lun,2)
+        dprint,verbose=self.verbose,dlevel=2,self.title_num+'Connected to server: "'+server_n_port+'"  Unit: '+strtrim(input_lun,2)
         self.input_lun = input_lun
+        self.isasocket = 1
         WIDGET_CONTROL, self.base, TIMER=1    ;
         WIDGET_CONTROL, host_button_id, set_value = 'Disconnect',sensitive=1
       endelse
@@ -370,6 +422,7 @@ pro socket_reader::host_button_event
       dprint,dlevel=self.dlevel,self.title_num+msg
       free_lun,self.input_lun
       self.input_lun =0
+      self.isasocket = 0
       wait,1
       WIDGET_CONTROL, host_button_id, set_value = 'Connect to',sensitive=1
     end
@@ -543,24 +596,6 @@ END
 ;end
 
 
-;
-;function spp_ptp_header_struct,ptphdr
-;  ptp_size = swap_endian(uint(ptphdr,0) ,/swap_if_little_endian )
-;  ptp_code = ptphdr[2]
-;  ptp_scid = swap_endian(/swap_if_little_endian, uint(ptphdr,3))
-;  days  = swap_endian(/swap_if_little_endian, uint(ptphdr,5))
-;  ms    = swap_endian(/swap_if_little_endian, ulong(ptphdr,7))
-;  us    = swap_endian(/swap_if_little_endian, uint(ptphdr,11))
-;  utime = (days-4383L) * 86400L + ms/1000d
-;  if utime lt   1425168000 then utime += us/1d4   ;  correct for error in pre 2015-3-1 files
-;  ;      if keyword_set(time) then dt = utime-time  else dt = 0
-;  source   =    ptphdr[13]
-;  spare    =    ptphdr[14]
-;  path  = swap_endian(/swap_if_little_endian, uint(ptphdr,15))
-;  ptp_header ={ptp_size:ptp_size, ptp_code:ptp_code, ptp_scid: ptp_scid, ptp_time:utime, ptp_source:source, ptp_spare:spare, ptp_path:path }
-;  return,ptp_header
-;end
-
 
 ;
 ;
@@ -634,10 +669,10 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
   self.hostport = port
   self.title = title
   self.fileformat = fileformat
-  self.buffer_ptr = ptr_new(/allocate_heap)
-  ;self.buffersize = 2L^10
+  self.buffersize = 1024L
+  ;self.buffer_ptr = ptr_new(/allocate_heap)
   self.dlevel = 2
-  self.isasocket=1
+  ;self.isasocket=1
   self.run_proc = isa(run_proc) ? run_proc : 1    ; default to running proc
   self.dyndata = dynamicarray(name=name)
 
@@ -663,7 +698,7 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
       ids = create_struct(ids,'proc_button', widget_button(ids.proc_base2,uname='PROC_BUTTON',value='Procedure:'))
       ids = create_struct(ids,'proc_name',   widget_text(ids.proc_base,xsize=35, uname='PROC_NAME', value = keyword_set(exec_proc) ? exec_proc :'socket_reader_proc',/editable, /no_newline))
       ids = create_struct(ids,'done',        WIDGET_BUTTON(ids.proc_base, VALUE='Done', UNAME='DONE'))
-      
+
       self.title_num  = self.title+' ('+strtrim(ids.base,2)+'): '
 
       self.wids = ptr_new(ids)
@@ -700,7 +735,7 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
     ;widget_control,ids.dest_text,get_value=get_filename
     get_filename = keyword_set(self.output_lun) ? self.filename : ''
     widget_control, base, set_uvalue= self
-    
+
   endif
 
   return,1
@@ -723,24 +758,25 @@ pro socket_reader__define
     time_received: 0d,  $
     file_timeres: 0d,   $   ; Defines time interval of each output file
     next_filechange: 0d, $ ; don't use - will be deprecated in future
-    isasocket:0,  $          
+    isasocket:0,  $
+    eol:0b ,$                  ; character used to define End Of Line  typically 0x0A
     input_lun:0,  $               ; host input file pointer (lun)
     output_lun:0 , $               ; destination output file pointer (lun)
     directory:'' ,  $          ; output/input directory
     fileformat:'',  $          ; output/input fileformat  - accepts time wild cards i.e.:  "file_YYYYMMDD_hh.dat"
     filename:'', $             ; output filename
     msg: '', $
-    ;buffersize:0L, $
-    buffer_ptr: ptr_new(),   $
+    buffersize:0L, $
+    ;buffer_ptr: ptr_new(),   $
     source_dict: obj_new(),  $
     dyndata: obj_new(), $
     name: '',  $
     nbytes: 0UL, $
     npkts:  0ul, $
     nreads: 0ul, $
- ;   brate: 0. , $ ; don't use - will be deprecated in future
- ;   prate: 0. , $ ; don't use - will be deprecated in future
- ;   output_filename:  '',   $
+    ;   brate: 0. , $ ; don't use - will be deprecated in future
+    ;   prate: 0. , $ ; don't use - will be deprecated in future
+    ;   output_filename:  '',   $
     pollinterval:0., $
     procedure_name: '', $
     run_proc:0 }

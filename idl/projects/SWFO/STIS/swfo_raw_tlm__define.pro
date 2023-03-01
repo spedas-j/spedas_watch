@@ -98,7 +98,7 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
       nb = 1
       sync_errors += 1
       if debug(2) then begin
-        dprint,dlevel=1,'Lost sync:' ,dwait=2
+        dprint,dlevel=3,'Lost sync:' ,dwait=2
       endif
       continue
     endif
