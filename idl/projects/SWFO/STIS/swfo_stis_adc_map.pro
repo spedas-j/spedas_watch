@@ -23,7 +23,7 @@ function swfo_stis_adc_map, data_sample=data_sample
   
   lut_map        = struct_value(data_sample,'lut_map',default=6)
   lut_mode       = struct_value(data_sample,'xxxx',default=1)
-  linear_mode    = struct_value(data_sample,'SCI_NONLUT_MODE',default=0) ne 0
+  linear_mode    = struct_value(data_sample,'SCI_NONLUT_MODE',default=1) ne 0
   resolution     = fix(struct_value(data_sample,'SCI_RESOLUTION',default=3))
   translate      = fix(struct_value(data_sample,'SCI_TRANSLATE',default=0))
   
@@ -33,7 +33,7 @@ function swfo_stis_adc_map, data_sample=data_sample
 
   adcmap.codes = codes
   
-  dprint,'Generating new ADC map'
+  dprint,'Generating new ADC map: ',codes
 
   ftoi_n = intarr(48,14)
   adc0_n = lonarr(48,14)
@@ -63,7 +63,6 @@ function swfo_stis_adc_map, data_sample=data_sample
 ;    conv[wh[k]]
 ;  endforeach
   
-
   for n= 0,13 do begin
     if linear_mode then begin
       adc0 =[ 0,  ( (lindgen(47)+1) * 2L ^ resolution ) + translate  < 2L^15 , 2L^15 ]
@@ -71,10 +70,10 @@ function swfo_stis_adc_map, data_sample=data_sample
       adc0 = adc0[0:47]
       d_adc0 = d_adc0[0:47]
     endif else begin
-      adc0 =  float(clog_17_6)           ; low adc threshold
+      adc0 =  (clog_17_6)  * 4         ; low adc threshold
       d_adc0 = shift(adc0 ,-1) - adc0
-      adc0 = adc0[0:47] * 8              ; this might be incorrect for some pattern
-      d_adc0 = d_adc0[0:47] * 8
+      adc0 = adc0[0:47]               ; this might be incorrect for some pattern
+      d_adc0 = d_adc0[0:47] 
     endelse
     
     ftoi_n[*,n] = n+2
@@ -95,11 +94,11 @@ function swfo_stis_adc_map, data_sample=data_sample
   adcmap.ftoi = ftoi_n
   adcmap.adc0 = adc0_n
   adcmap.dadc = dadc_n
-  adcmap_adcm = adc0_n + dadc_n/2.
+  adcmap.adc  = adc0_n + dadc_n/2.
   adcmap.nrg  = (adc0_n + dadc_n/2.) * conv_n
   adcmap.dnrg = dadc_n * conv_n
   
-  if min(adcmap.dnrg) lt 0 then message,'coding error'
+  if min(adcmap.dnrg) lt 0 then message,'coding error',/cont
   
   return,adcmap
   
