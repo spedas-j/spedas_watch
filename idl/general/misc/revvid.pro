@@ -1,8 +1,8 @@
 ;+
 ;PROCEDURE:   revvid
 ;PURPOSE:
-;  Reverses video for graphics windows by swapping !p.color and
-;  !p.background.
+;  Swaps !p.color and !p.background to switch between a light and
+;  dark background.
 ;
 ;USAGE:
 ;  revvid
@@ -11,18 +11,18 @@
 ;   none:    A simple toggle.
 ;
 ;KEYWORDS:
-;   WHITE:   Make !p.background the lightest color (often white) and 
-;            !p.color the darkest color (often black).
+;   WHITE:   Make !p.background the lighter color (often white) and 
+;            !p.color the darker color (often black).
 ;
-;   BLACK:   Make !p.background the darkest color (often black) and 
-;            !p.color the lightest color (often white).
+;   BLACK:   Make !p.background the darker color (often black) and 
+;            !p.color the lighter color (often white).
 ;
 ;SEE ALSO:
 ;   line_colors.pro to set custom line, background and foreground colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-27 09:26:55 -0800 (Mon, 27 Feb 2023) $
-; $LastChangedRevision: 31556 $
+; $LastChangedDate: 2023-03-02 10:48:15 -0800 (Thu, 02 Mar 2023) $
+; $LastChangedRevision: 31569 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/revvid.pro $
 ;
 ;CREATED BY:    David L. Mitchell

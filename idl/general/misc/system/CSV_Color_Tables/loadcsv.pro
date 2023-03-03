@@ -75,7 +75,7 @@
 ;
 ;       LINE_CLRS:    Defines custom line colors.  Can take one of two forms:
 ;
-;                     Array of 24 (3x8 RGB colors) that define 8 fixed colors 
+;                     Array of 24 (3x8) RGB values that define 8 fixed colors 
 ;                     (the first 7 and the last) of the color table:
 ;                       LINE_CLRS = [[R,G,B], [R,G,B], ...].
 ;
@@ -138,8 +138,8 @@
 ;   "initct","line_colors","get_line_colors","loadcsv","get_colors","colors_com","bytescale"
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-26 12:48:04 -0800 (Sun, 26 Feb 2023) $
-; $LastChangedRevision: 31533 $
+; $LastChangedDate: 2023-03-02 11:09:56 -0800 (Thu, 02 Mar 2023) $
+; $LastChangedRevision: 31575 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/CSV_Color_Tables/loadcsv.pro $
 ;
 ;CSV color table code: Mike Chaffin

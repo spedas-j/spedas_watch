@@ -7,8 +7,8 @@
 ;INPUTS:
 ;   line_clrs : Can take one of two forms:
 ;
-;   (1) Integer array of 24 (3x8) RGB colors: [[R,G,B], [R,G,B], ...] that defines
-;       the RGB values of the first 7 colors (0-6) and the last (255).
+;   (1) Integer array of 24 (3x8) RGB values: [[R,G,B], [R,G,B], ...] that defines
+;       the first 7 colors (0-6) and the last (255).
 ;
 ;   (2) Integer that selects a predefined color scheme:
 ;
@@ -80,8 +80,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-26 12:46:42 -0800 (Sun, 26 Feb 2023) $
-; $LastChangedRevision: 31530 $
+; $LastChangedDate: 2023-03-02 11:06:58 -0800 (Thu, 02 Mar 2023) $
+; $LastChangedRevision: 31571 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023

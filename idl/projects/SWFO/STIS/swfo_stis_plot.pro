@@ -63,9 +63,9 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
    
     l1a = swfo_stis_sci_level_1a(samples)
     h= [l1a.hash,0]   ; get the uniq segments
-    up =   uniq(u)       
+    up =   uniq(h)       
     u0= [0,up]
-    u = h.uniq(/no_sort)
+    u = l1a.hash.uniq()
     box,lim
     for i=0,n_elements(u)-1 do begin
       w = where(l1a.hash eq u[i],/null,nw)

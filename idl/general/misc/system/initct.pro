@@ -4,11 +4,26 @@
 ;  Wrapper for loadct2 and loadcsv.  Calls the appropriate color table 
 ;  routine based on the requested table number:
 ;
-;      table number < 1000  : use loadct2
-;      table number >= 1000 : use loadcsv
+;      table numbers < 1000  (currently 0-74)      : use loadct2
+;      table numbers >= 1000 (currently 1000-1118) : use loadcsv
 ;
-;  Keywords are provided to define custom fixed colors that are used for
-;  lines (1-6), and the background (0) and foreground (255) colors.
+;  There is substantial overlap between the standard and CSV tables:
+;
+;      Standard Tables      CSV Tables       Note
+;    ----------------------------------------------------------------
+;          0 - 40           1000 - 1040      identical or nearly so
+;         41 - 43           1041 - 1043      different
+;         44 - 74           1044 - 1074      identical
+;           N/A             1075 - 1118      unique to CSV
+;    ----------------------------------------------------------------
+;
+;  When tables are "nearly identical", only a few colors are different.
+;  The nearly identical tables are: [24, 29, 30, 38, 39, 40] <-> 
+;  [1024, 1029, 1030, 1038, 1039, 1040].  So, apart from a few slight 
+;  differences, there are 122 unique tables.
+;
+;  Keywords are provided to define fixed colors that are used for lines
+;  (1-6), and the background and foreground colors (0,255).
 ;  ** Once set, these fixed colors are persistent until explicitly changed.
 ;
 ;  Use line_colors.pro to change the fixed colors without affecting the rest
@@ -20,7 +35,7 @@
 ;  for details.
 ;
 ;USAGE:
-;  initct, colortbl
+;  initct, colortbl [, KEYWORD=value, ...]
 ;
 ;INPUTS:
 ;       colortbl:     Color table number.  If less than 1000, call loadct2
@@ -33,18 +48,18 @@
 ;
 ;       LINE_CLRS:    Defines custom line colors.  Can take one of two forms:
 ;
-;                     (1) Array of 24 (3x8 RGB colors) that define 8 fixed colors 
+;                     (1) Array of 24 (3x8) RGB values that define 8 fixed colors 
 ;                         (the first 7 and the last) of the color table:
 ;                         LINE_CLRS = [[R,G,B], [R,G,B], ...].
 ;
 ;                     (2) Integer that selects a predefined color scheme:
 ;
-;                         0  : primary colors
+;                         0  : primary and secondary colors
 ;                        1-4 : four different schemes suitable for colorblind vision
-;                         5  : primary colors, except orange replaces yellow for better contrast on white
-;                         6  : primary colors, except gray replaces yellow for better contrast on white
-;                         7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
-;                         8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
+;                         5  : same as 0, except orange replaces yellow for better contrast on white
+;                         6  : same as 0, except gray replaces yellow for better contrast on white
+;                         7  : https://www.nature.com/articles/nmeth.1618 except no reddish purple
+;                         8  : https://www.nature.com/articles/nmeth.1618 except no yellow
 ;                         9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;                        10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
@@ -80,22 +95,25 @@
 ;
 ;                     To actually use this color for the background, you must set 
 ;                     !p.background=255 (normally combined with !p.color=0).
+;                     A quick way to do this:  revvid, /white
 ;
 ;       PREVIOUS_CT:  Named variable to hold the previous color table number.
 ;                     Use this to temporarily change the color table and then return
-;                     to the previous one.
+;                     to the previous one.  Tplot needs this to change color tables
+;                     on the fly.
 ;
 ;       PREVIOUS_REV: Named variable to hold the previous color reverse.
 ;                     Use this to temporarily change the color table and then return
-;                     to the previous one.
+;                     to the previous one.  Tplot needs this to change color tables
+;                     on the fly.
 ;
 ;       SHOW:         Show the color table in a separate window after loading.
 ;
 ;       SUPPRESS:     Suppress floating overflow error in first call to window.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-26 12:47:34 -0800 (Sun, 26 Feb 2023) $
-; $LastChangedRevision: 31532 $
+; $LastChangedDate: 2023-03-02 11:08:00 -0800 (Thu, 02 Mar 2023) $
+; $LastChangedRevision: 31572 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/initct.pro $
 ;
 ;Created by David L. Mitchell (February 2023)

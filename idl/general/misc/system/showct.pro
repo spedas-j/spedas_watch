@@ -11,7 +11,7 @@
 ;KEYWORDS:
 ;   REVERSE:   If set, then reverse the table order from bottom_c to top_c.
 ;
-;   LINE_CLRS: Show an alternate fixed colors.  See line_colors.pro.
+;   LINE_CLRS: Show an alternate line scheme.  See line_colors.pro.
 ;
 ;   COLOR_NAMES: Names of custom line colors.  See line_colors.pro.
 ;
@@ -21,21 +21,32 @@
 ;
 ;   INTENSITY: Show intensity in a separate window.
 ;
+;   KEY:       Structure of win options.
+;
+;   CWIN:      Returns the window number chosen for the plot.
+;
 ;SEE ALSO:
 ;   xpalette:  Shows the current color table in an interactive widget.  Provides
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-26 21:36:31 -0800 (Sun, 26 Feb 2023) $
-; $LastChangedRevision: 31538 $
+; $LastChangedDate: 2023-03-02 10:49:24 -0800 (Thu, 02 Mar 2023) $
+; $LastChangedRevision: 31570 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
-                         color_names=color_names, graybkg=graybkg, intensity=intensity
+                         color_names=color_names, graybkg=graybkg, intensity=intensity, $
+                         key=key, cwin=cwin
 
   cols = get_colors()
   crev = keyword_set(color_reverse)
   wnum = !d.window
+
+  winkey = {secondary:1, xsize:600, ysize:600, dx:10, dy:-10}
+  if (size(key,/type) eq 8) then begin
+    ktag = tag_names(key)
+    for j=0,(n_elements(ktag)-1) do str_element, winkey, ktag[j], key.(j), /add
+  endif
 
 ; Load the requested color table
 
@@ -72,7 +83,7 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 
   usersym,[-1,-1,1,1,-1],[-1,1,1,-1,-1],/fill
   undefine, cwin
-  win,cwin,/secondary,xsize=600,ysize=600,dx=10,dy=-10
+  win,cwin,key=winkey
   plot,[-1],[-1],xrange=[0,4],yrange=[0.5,6.5],xstyle=5,ystyle=5,$
                  xmargin=[0.1,0.1],ymargin=[0.1,0.1]
   k = indgen(16)*16

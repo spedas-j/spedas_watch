@@ -3,29 +3,68 @@
 ;
 ;ROUTINES:
 ;   initct : Wrapper for loadct2 and loadcsv.  Works the same way as loadct2 and loadcsv,
-;            but provides access to both sets of color tables (more than 160 in all!).
-;            Provides keywords for setting line colors.  The previous routines still exist
-;            and can still be called as before, so there's no need to rewrite any code
-;            unless you want to.
+;            but provides access to both sets of color tables.  Provides keywords for 
+;            setting line colors.  The previous routines still exist and can still be 
+;            called as before, so there's no need to modify any code unless you want to.
 ;   showct : Display the current color table or any color table with any line color scheme.
-;   revvid : swaps the values of !p.background and !p.color
-;   line_colors : Choose one of ten predefined line color schemes, or define a completely
-;                 custom scheme.
+;   revvid : Swaps the values of !p.background and !p.color.
+;   line_colors : Choose one of ten predefined line color schemes, or define a custom scheme.
 ;   get_line_colors : Returns a 3x8 array of the current line colors [[R,G,B],[R,G,B], ...].
 ;                     Can also return the 3x8 array for any line color scheme.
 ;
 ;   See the headers of these routines for more details.
 ;
-;   The CSV catalog has table numbers from 0 to 118.  This range overlaps the legacy color
-;   table range, so we need some way to separate them.  I chose to add 1000 to the CSV table
-;   numbers, so CSV table 78 becomes 1078, etc.
+;   Tplot assumes that there are 256 RGB colors, organized as follows:
+;
+;       Color           Purpose                             Modify With
+;      --------------------------------------------------------------------------
+;         0             black (or any dark color)           initct, line_colors
+;        1-6            fixed line colors                   initct, line_colors
+;        7-254          color table (bottom_c to top_c)     initct
+;        255            white (or any light color)          initct, line_colors
+;      --------------------------------------------------------------------------
+;
+;   Colors 0 and 255 are usually associated with !p.background and !p.color.  For a light
+;   background, set !p.background = 255 and !p.color = 0.  Do the opposite for a dark
+;   background.  Use revvid to toggle between these options.
+;
+;   The standard catalog has table numbers from 0 to 74, while the CSV catalog has table 
+;   numbers from 0 to 118.  These ranges overlap, so we need some way to separate them.  
+;   I chose to add 1000 to the CSV table numbers, so CSV table 78 becomes 1078, etc.
+;   There is also substantial overlap in the tables themselves:
+;
+;        Standard Tables      CSV Tables       Note
+;      ----------------------------------------------------------------
+;            0 - 40           1000 - 1040      identical or nearly so
+;           41 - 43           1041 - 1043      different
+;           44 - 74           1044 - 1074      identical
+;             N/A             1075 - 1118      unique to CSV
+;      ----------------------------------------------------------------
+;
+;   When tables are "nearly identical", only a few colors are different.  The nearly identical
+;   tables are: [24, 29, 30, 38, 39, 40] <-> [1024, 1029, 1030, 1038, 1039, 1040].  So, apart
+;   from a few slight differences, there are 122 unique tables.
+;
+;   As of this writing, there are 11 predefined line color schemes:
+;
+;        0  : primary and secondary colors [black, magenta, blue, cyan, green, yellow, red, white]
+;       1-4 : four different schemes suitable for colorblind vision
+;        5  : same as 0, except orange replaces yellow for better contrast on white
+;        6  : same as 0, except gray replaces yellow for better contrast on white
+;        7  : https://www.nature.com/articles/nmeth.1618, except no reddish purple
+;        8  : https://www.nature.com/articles/nmeth.1618, except no yellow
+;        9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
+;       10  : Chaffin's CSV line colors, suitable for colorblind vision
+;
+;   More schemes can be added by including them in the case statement of get_line_colors().  It's
+;   helpful if you can add a note about your scheme.
 ;
 ;   Tplot has been modified to use initct and line_colors, so you can set custom color tables
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-26 18:36:44 -0800 (Sun, 26 Feb 2023) $
-; $LastChangedRevision: 31536 $
+; $LastChangedDate: 2023-03-02 11:09:31 -0800 (Thu, 02 Mar 2023) $
+; $LastChangedRevision: 31574 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
