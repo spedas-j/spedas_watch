@@ -76,10 +76,21 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
         ch = channels[c]
         str_element,dat,ch.name,y
         str_element,dat,ch.name+'_nrg',x
+        ;str_element,dat,ch.name+'_adc',x
         oplot,x,y > ymin/10.,color=ch.color,psym=ch.psym
       endfor
     endfor
         
   endif
+  
+  if isa(param,'dictionary') then begin
+    if ~param.haskey('lim') then param.lim=lim
+    if ~param.haskey('routine_name') then param.routine_name = 'swfo_stis_plot'
+    if ~param.haskey('window') then param.window= wind
+    if ~param.haskey('range') then param.range = range
+  endif
+
+  
+  
   ;  store_data,'mem',systime(1),memory(/cur)/(2.^6),/append
 end

@@ -70,7 +70,7 @@ function swfo_stis_adc_map, data_sample=data_sample
       adc0 = adc0[0:47]
       d_adc0 = d_adc0[0:47]
     endif else begin
-      adc0 =  (clog_17_6)  * 4         ; low adc threshold
+      adc0 = [0, (clog_17_6[1:*])  * 4  + translate < 2L^15 , 2L^15 ]      ; low adc threshold
       d_adc0 = shift(adc0 ,-1) - adc0
       adc0 = adc0[0:47]               ; this might be incorrect for some pattern
       d_adc0 = d_adc0[0:47] 

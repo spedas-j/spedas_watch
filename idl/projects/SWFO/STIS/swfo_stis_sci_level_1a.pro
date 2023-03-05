@@ -31,7 +31,7 @@ function swfo_stis_sci_level_1a,strcts  ;,format=format,reset=reset,cal=cal
     str = strcts[i]
 
     mapd = swfo_stis_adc_map(data_sample=str)
-    cal = swfo_stis_cal_params(str,reset=reset)
+  ;  cal = swfo_stis_cal_params(str,reset=reset)
     counts = str.counts
     nrg  = mapd.nrg
     dnrg = mapd.dnrg
@@ -42,60 +42,9 @@ function swfo_stis_sci_level_1a,strcts  ;,format=format,reset=reset,cal=cal
       str_element,/add,out,'spec_'+key,counts[w] / dnrg[w] / str.duration
       str_element,/add,out,'spec_'+key+'_nrg',nrg[w]
       str_element,/add,out,'spec_'+key+'_dnrg',dnrg[w]
-      str_element,/add,out,'spec_'+key+'_adc',mapd.adc[w]
-      
+      str_element,/add,out,'spec_'+key+'_adc',mapd.adc[w]    
     endforeach
     str_element,/add,out,'gap',0
-    
-
-    if 0 then begin
-      
-    
-    n_energy = cal.n_energy
-    duration = str.duration
-
-    period = cal.period   ; approximate period (in seconds) of Version 64 FPGA
-    integration_time = str.duration * period
-    srate  = str.counts/integration_time          ; srate is the measured (actual) count rate
-
-    ; Determine deadtime correctons here
-    rate14 = str.total14/ integration_time    ; this needs to be checked
-    Exrate = reform(replicate(1,n_energy) # rate14,n_energy * 14)
-    deadtime_correction = 1 / (1- exrate*cal.deadtime)
-    w = where(deadtime_correction gt 10. or deadtime_correction lt .5,/null)
-    deadtime_correction[w] = !values.f_nan
-    crate  = srate * deadtime_correction       ; crate is the count rate corrected for deadtime
-
-    bins = cal.prot_resp
-    ion_flux = crate / bins.geom
-    ion_energy = bins.energy
-    w = where(bins.species eq 1,/null)
-    ion_flux = ion_flux[w]
-    ion_energy= ion_energy[w]
-
-    bins = cal.elec_resp
-    elec_flux = crate / bins.geom
-    elec_energy = bins.energy
-    w = where(bins.species eq 0,/null,nw)
-    elec_flux = elec_flux[w]
-    elec_energy= elec_energy[w]
-
-    sci_ex = {  $
-      integration_time : duration * period, $
-      srate : srate , $
-      crate : crate , $
-      TID:  bins.tid,  $
-      FTO:  bins.fto,  $
-      geom:  bins.geom,  $
-      ewidth: bins.ewidth,  $
-      ion_energy: ion_energy,   $   ; midpoint energy
-      ion_flux :   ion_flux,  $
-      elec_energy:  elec_energy, $
-      elec_flux:  elec_flux, $
-      lut_id: 0 }
-
-    sci = create_struct(str,sci_ex)
-    endif
     
     if nd eq 1 then   return, out
     if i  eq 0 then   output = replicate(out,nd) else output[i] = out
