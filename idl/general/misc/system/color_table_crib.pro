@@ -8,13 +8,16 @@
 ;            called as before, so there's no need to modify any code unless you want to.
 ;   showct : Display the current color table or any color table with any line color scheme.
 ;   revvid : Swaps the values of !p.background and !p.color.
-;   line_colors : Choose one of ten predefined line color schemes, or define a custom scheme.
+;   line_colors : Choose one of 11 predefined line color schemes, or define a custom scheme.
 ;   get_line_colors : Returns a 3x8 array of the current line colors [[R,G,B],[R,G,B], ...].
 ;                     Can also return the 3x8 array for any line color scheme.
 ;
 ;   See the headers of these routines for more details.
 ;
-;   Tplot assumes that there are 256 RGB colors, organized as follows:
+;OVERVIEW:
+;
+;   Tplot and many associated routines assume that there are 256 RGB colors, organized as
+;   follows:
 ;
 ;       Color           Purpose                             Modify With
 ;      --------------------------------------------------------------------------
@@ -56,15 +59,18 @@
 ;        9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;       10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
-;   More schemes can be added by including them in the case statement of get_line_colors().  It's
-;   helpful if you can add a note about your scheme.
+;   More schemes can be added by including them in the case statement of get_line_colors().  Always
+;   add new schemes at the end of the list (immediately above the "else" statement), so you don't 
+;   break anyone else's code.  It's helpful if you can add a note about your scheme.
+;
+;   Use showct to preview any color table with any line color scheme.
 ;
 ;   Tplot has been modified to use initct and line_colors, so you can set custom color tables
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-02 11:09:31 -0800 (Thu, 02 Mar 2023) $
-; $LastChangedRevision: 31574 $
+; $LastChangedDate: 2023-03-05 09:48:51 -0800 (Sun, 05 Mar 2023) $
+; $LastChangedRevision: 31583 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
@@ -77,17 +83,22 @@ pro color_table_crib
 
 ; Place the following lines in your idl_startup.pro to initialize your device and color
 ; table.  Of course, you can choose any of >100 color tables (reversed if desired), any of
-; ten predefined line color schemes, or completely custom line colors.  This example
-; sets a dark background, but many people prefer a light background.
+; predefined line color schemes, or completely custom line colors.  This example sets a
+; dark background, but many people prefer a light background.
 
 device,decompose=0,retain=2   ; specific to MacOS (settings for other OS's might be different)
 initct,1074,line=5,/rev,/sup  ; define color table and fixed line colors (suppress error message)
 !p.background = 0             ; use tplot fixed color for background (0 = black by default)
 !p.color = 255                ; use tplot fixed color for foreground (255 = white by default)
 
-; Set a new color table and line colors at the command line.
+; Change the color table at the command line.  This does not alter the line color scheme, 
+; which is persistent until you explicitly change it.
 
-initct, 43, line=5
+inict, 1091
+
+; Select a new color table and line color scheme at the command line.
+
+initct, 43, line=2
 
 ; Change line colors without otherwise modifying the color table.
 
@@ -111,13 +122,13 @@ line_colors, 5, mycolors={ind:255, rgb:[198,198,198]}
 
 line_colors, mycolors={ind:[1,4], rgb:[[198,83,44],[18,211,61]]}
 
-; Use a fancy rainbow-like CSV color table with line colors suitable for color blind people
+; Use a fancy rainbow-like CSV color table with line colors suitable for color blind people.
 ; CSV color tables encode intensity first and color second, which is closer to how humans
 ; perceive colors.  Reverse the table, so that blue is low and red is high.
 
 initct, 1074, /reverse, line=8
 
-; See a catalog of the many CSV color tables (Note: loadcsv is not usually called directly.)
+; See a catalog of the many CSV color tables. (Note: loadcsv is not usually called directly.)
 ; Remember that you have to add 1000 to CSV color table numbers.
 
 loadcsv, /catalog
@@ -126,29 +137,30 @@ loadcsv, /catalog
 
 showct, /i
 
-; Display any color table with custom line colors -- DOES NOT modify the current color table.
+; Display any color table with any line color scheme -- DOES NOT modify the current color table.
 
-showct, 1078, /i, line=8
+showct, 1078, line=8, /i
+showct, 1091, line=5, /reverse, /graybkg, /i
 
-; Set a custom color table and custom line colors for any tplot variable.  This allows you
+; Set a custom color table and line color scheme for any tplot variable.  This allows you
 ; to use multiple color tables and/or line color schemes within a single multi-panel plot.
 
-options, varname1, 'color_table', 1074
-options, varname1, 'reverse_color_table', 1
-options, varname1, 'line_colors', 10
+options, var1, 'color_table', 1074
+options, var1, 'reverse_color_table', 1
+options, var1, 'line_colors', 10
 
-options, varname2, 'color_table', 1078
-options, varname2, 'reverse_color_table', 0
-options, varname2, 'line_colors', 5
+options, var2, 'color_table', 1078
+options, var2, 'reverse_color_table', 0
+options, var2, 'line_colors', 5
 
 ; Set a custom line color scheme for a tplot variable.
 
 mylines = get_line_colors(5, /graybkg, mycolors={ind:3, rgb:[211,0,211]})
-options, varname1, 'line_colors', mylines
+options, var1, 'line_colors', mylines
 
 ; Disable custom color tables and line colors for a tplot variable.
 
-options, varname1, 'color_table', -1
-options, varname1, 'line_colors', -1
+options, var1, 'color_table', -1
+options, var1, 'line_colors', -1
 
 end ; of crib

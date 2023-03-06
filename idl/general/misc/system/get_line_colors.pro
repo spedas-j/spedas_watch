@@ -3,8 +3,8 @@
 ;   Get the current line colors, or line colors specified by input and/or keyword.
 ;   Returns the result as an array of 24 (3x8) RGB colors: [[R,G,B], [R,G,B], ...].
 ;   This DOES NOT alter the color table or assert any new line colors.  To do that
-;   you would pass the result of this routine to line_colors.pro or as an option
-;   for a tplot variable.
+;   you would pass the result of this routine to line_colors, initct, or as an
+;   option for a tplot variable.
 ;
 ;   To set custom line colors for any tplot panel do one of the following:
 ;
@@ -17,6 +17,9 @@
 ;   To disable custom line colors for a tplot variable:
 ;
 ;       options, varname, 'line_colors', -1
+;
+;USAGE:
+;   mycolors = get_line_colors([line_clrs] [, KEYWORD=value, ...])
 ;
 ;INPUTS:
 ;   line_clrs : This input is optional.  Can take one of two forms:
@@ -59,7 +62,7 @@
 ;       colors can be quite different from the requested ones.
 ;
 ;   MYCOLORS: A structure defining up to 8 custom colors.  This provides an alternate 
-;       method of poking individual custom colors into color indices (0-6 and 255).
+;       method of poking individual custom colors into color indices 0-6 and 255.
 ;
 ;              { ind    : up to 8 integers (0-6 or 255)              , $
 ;                rgb    : up to 8 RGB levels [[R,G,B], [R,G,B], ...]    }
@@ -81,8 +84,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-02 11:08:28 -0800 (Thu, 02 Mar 2023) $
-; $LastChangedRevision: 31573 $
+; $LastChangedDate: 2023-03-05 09:48:09 -0800 (Sun, 05 Mar 2023) $
+; $LastChangedRevision: 31581 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/get_line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023
@@ -137,8 +140,8 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
         ; Otherwise: Same as 1
         else: line_clrs = [[0,0,0],[67,147,195],[33,102,172],[103,0,31],[178,24,43],[254,219,199],[244,165,130],[255,255,255]]
       endcase
-      line_clrs = fix(line_clrs)
     endif
+    line_clrs = fix(line_clrs)
   endif
 
 ; Method 3: Define custom line color(s) by structure - will modify the above color settings

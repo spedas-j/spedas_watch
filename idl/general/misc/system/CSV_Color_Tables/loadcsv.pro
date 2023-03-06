@@ -54,7 +54,7 @@
 ;  routine will not interfere.
 ;
 ;USAGE:
-;  loadcsv, colortbl
+;  loadcsv, colortbl [, KEYWORD=value, ...]
 ;
 ;INPUTS:
 ;       colortbl:     CSV table number + 1000.  Don't forget to add 1000!
@@ -138,8 +138,8 @@
 ;   "initct","line_colors","get_line_colors","loadcsv","get_colors","colors_com","bytescale"
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-02 11:09:56 -0800 (Thu, 02 Mar 2023) $
-; $LastChangedRevision: 31575 $
+; $LastChangedDate: 2023-03-05 09:49:05 -0800 (Sun, 05 Mar 2023) $
+; $LastChangedRevision: 31584 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/CSV_Color_Tables/loadcsv.pro $
 ;
 ;CSV color table code: Mike Chaffin

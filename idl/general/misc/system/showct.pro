@@ -3,9 +3,12 @@
 ;   Show the specified color table in a new window.  Does not alter the current
 ;   color table.
 ;
+;USAGE:
+;   showct [, n] [, KEYWORD=value, ...]
+;
 ;INPUTS:
 ;   n:         Color table number.  Standard tables have n < 1000.  CSV tables
-;              have n >= 1000.  See 'loadcsv' for details.  If n is not provided,
+;              have n >= 1000.  See 'initct' for details.  If n is not provided,
 ;              show the current color table.
 ;
 ;KEYWORDS:
@@ -30,8 +33,8 @@
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-02 10:49:24 -0800 (Thu, 02 Mar 2023) $
-; $LastChangedRevision: 31570 $
+; $LastChangedDate: 2023-03-05 10:10:48 -0800 (Sun, 05 Mar 2023) $
+; $LastChangedRevision: 31587 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
@@ -83,7 +86,7 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 
   usersym,[-1,-1,1,1,-1],[-1,1,1,-1,-1],/fill
   undefine, cwin
-  win,cwin,key=winkey
+  win,cwin,/free,key=winkey
   plot,[-1],[-1],xrange=[0,4],yrange=[0.5,6.5],xstyle=5,ystyle=5,$
                  xmargin=[0.1,0.1],ymargin=[0.1,0.1]
   k = indgen(16)*16
@@ -130,10 +133,10 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 
   if keyword_set(intensity) then begin
     undefine, iwin
-    win,iwin,clone=cwin,relative=cwin,dx=10,/top
-    plot,findgen(256),i*100./sqrt(3.*(255.^2.)),psym=10,xrange=[0,256],/xsty,$
-         charsize=1.3, title=msg,ytitle='Intensity (%)',xtitle='Color Index',$
-         xticks=4,xminor=8
+    win,iwin,/free,xsize=winkey.xsize,ysize=winkey.ysize,relative=cwin,dx=10,/top
+    plot,[-1.],[-1.],xrange=[0,256],/xsty,yrange=[0,100],/ysty,charsize=1.3, $
+         title=msg,ytitle='Intensity (%)',xtitle='Color Index',xticks=4,xminor=8
+    oplot,findgen(256),i*100./sqrt(3.*(255.^2.)),psym=10,color=4
   endif
 
 ; Restore the initial color table and line colors

@@ -4,6 +4,9 @@
 ;   the color table.  This includes the line colors (1-6) and the background (0) 
 ;   and foreground (255) colors.
 ;
+;USAGE:
+;  line_colors [, line_clrs] [, KEYWORD=value, ...]
+;
 ;INPUTS:
 ;   line_clrs : Can take one of two forms:
 ;
@@ -21,11 +24,8 @@
 ;           9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;          10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
-;    To set custom line colors for any tplot panel:
-;
-;       options, varname, 'line_colors', lines
-;
-;    where the value of lines is one of the formats above.
+;    If not specified, use the current (or default) line color scheme and use keywords to
+;    make modifications.
 ;
 ;KEYWORDS:
 ;    COLOR_NAMES:  String array of 8 line color names.  You must use line color
@@ -70,8 +70,8 @@
 ;SEE ALSO:
 ;    get_line_colors() : Works like this routine, but returns a 24 element array
 ;                  instead of asserting the new line colors.  Allows you to define
-;                  a custom set of line colors in a format that you can use with
-;                  tplot options.
+;                  a custom set of line colors in a format that you can use as an
+;                  option for a tplot variable.
 ;    initct :      Loads a color table without changing the line colors, except by
 ;                  keyword.
 ;
@@ -80,8 +80,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-02 11:06:58 -0800 (Thu, 02 Mar 2023) $
-; $LastChangedRevision: 31571 $
+; $LastChangedDate: 2023-03-05 09:48:33 -0800 (Sun, 05 Mar 2023) $
+; $LastChangedRevision: 31582 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023

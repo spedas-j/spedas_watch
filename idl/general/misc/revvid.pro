@@ -5,7 +5,7 @@
 ;  dark background.
 ;
 ;USAGE:
-;  revvid
+;  revvid [, KEYWORD=value]
 ;
 ;INPUTS:
 ;   none:    A simple toggle.
@@ -18,11 +18,11 @@
 ;            !p.color the lighter color (often white).
 ;
 ;SEE ALSO:
-;   line_colors.pro to set custom line, background and foreground colors.
+;   line_colors to set custom line, background and foreground colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-02 10:48:15 -0800 (Thu, 02 Mar 2023) $
-; $LastChangedRevision: 31569 $
+; $LastChangedDate: 2023-03-05 09:49:26 -0800 (Sun, 05 Mar 2023) $
+; $LastChangedRevision: 31585 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/revvid.pro $
 ;
 ;CREATED BY:    David L. Mitchell
