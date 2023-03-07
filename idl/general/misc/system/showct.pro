@@ -26,30 +26,41 @@
 ;
 ;   KEY:       Structure of win options.
 ;
-;   CWIN:      Returns the window number chosen for the plot.
+;   CNUM:      Returns the window number chosen for the color table plot.
+;
+;   TNUM:      Returns the window number chosen for the intensity plot.
 ;
 ;SEE ALSO:
 ;   xpalette:  Shows the current color table in an interactive widget.  Provides
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-05 10:10:48 -0800 (Sun, 05 Mar 2023) $
-; $LastChangedRevision: 31587 $
+; $LastChangedDate: 2023-03-06 10:50:49 -0800 (Mon, 06 Mar 2023) $
+; $LastChangedRevision: 31589 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
                          color_names=color_names, graybkg=graybkg, intensity=intensity, $
-                         key=key, cwin=cwin
+                         key=key, cnum=cnum2, tnum=tnum2
+
+  common showct_com, cnum, tnum
 
   cols = get_colors()
   crev = keyword_set(color_reverse)
   wnum = !d.window
 
-  winkey = {secondary:1, xsize:600, ysize:600, dx:10, dy:-10}
+  cwinkey = {secondary:1, xsize:600, ysize:600, dx:10, dy:-10}
   if (size(key,/type) eq 8) then begin
     ktag = tag_names(key)
-    for j=0,(n_elements(ktag)-1) do str_element, winkey, ktag[j], key.(j), /add
+    for j=0,(n_elements(ktag)-1) do str_element, cwinkey, ktag[j], key.(j), /add
   endif
+  twinkey = {xsize:cwinkey.xsize, ysize:cwinkey.ysize, dx:10, top:1}
+
+; If previous window(s) have been deleted, then forget them
+
+  device, window_state=wstate
+  if (size(cnum,/type) ne 0) then if ~wstate[cnum] then undefine, cnum
+  if (size(tnum,/type) ne 0) then if ~wstate[tnum] then undefine, tnum
 
 ; Load the requested color table
 
@@ -84,12 +95,12 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 
 ; Plot the table in a grid of filled squares
 
-  usersym,[-1,-1,1,1,-1],[-1,1,1,-1,-1],/fill
-  undefine, cwin
-  win,cwin,/free,key=winkey
-  plot,[-1],[-1],xrange=[0,4],yrange=[0.5,6.5],xstyle=5,ystyle=5,$
-                 xmargin=[0.1,0.1],ymargin=[0.1,0.1]
+  if (size(cnum,/type) eq 0) then win,cnum,/free,key=cwinkey else wset,cnum
+  cnum = !d.window & cnum2 = cnum
+  plot,[-1],[-1],xrange=[0,4],yrange=[0.5,6.5],xstyle=5,ystyle=5,xmargin=[0.1,0.1],ymargin=[0.1,0.1]
   k = indgen(16)*16
+
+  usersym,[-1,-1,1,1,-1],[-1,1,1,-1,-1],/fill
   for j=0,15 do for i=k[j],k[j]+15 do oplot,[float(i mod 16)/4.5 + 0.35],[6. - float(j)/3.],$
                                             psym=8,color=i,symsize=4
 
@@ -132,8 +143,8 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 ; Show intensity plot
 
   if keyword_set(intensity) then begin
-    undefine, iwin
-    win,iwin,/free,xsize=winkey.xsize,ysize=winkey.ysize,relative=cwin,dx=10,/top
+    if (size(tnum,/type) eq 0) then win,tnum,/free,relative=cnum,key=twinkey else wset,tnum
+    tnum = !d.window & tnum2 = tnum
     plot,[-1.],[-1.],xrange=[0,256],/xsty,yrange=[0,100],/ysty,charsize=1.3, $
          title=msg,ytitle='Intensity (%)',xtitle='Color Index',xticks=4,xminor=8
     oplot,findgen(256),i*100./sqrt(3.*(255.^2.)),psym=10,color=4

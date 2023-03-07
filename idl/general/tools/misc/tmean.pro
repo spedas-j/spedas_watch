@@ -82,8 +82,8 @@
 ;       SILENT:  Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-25 18:00:08 -0800 (Sat, 25 Feb 2023) $
-; $LastChangedRevision: 31527 $
+; $LastChangedDate: 2023-03-06 10:59:08 -0800 (Mon, 06 Mar 2023) $
+; $LastChangedRevision: 31590 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/tmean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -307,11 +307,12 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
           jndx = where(abs(yc - avg) le maxdev, ngud, complement=kndx, ncomplement=nbad)
         endwhile
         nbad = n_elements(xo) - 1L
+        ngud = n_elements(xc)
         if (nbad ge 1L) then begin
           xo = xo[1:*]
           yo = yo[1:*]
           delta = min((yo - avg)/rms, /abs)
-          frac = float(n_elements(xo))/float(npts)
+          frac = float(n_elements(xo))/float(ngud+nbad)
         endif else begin
           delta = 0.
           frac = 0.
