@@ -1,10 +1,10 @@
 ;+
 ;PROCEDURE:   tmean
 ;PURPOSE:
-;  Calculate the mean, median, and standard deviation of a 1-D tplot
-;  variable over a specified time range.  The variable and time range
-;  are selected with the cursor or via keyword.  Skew and kurtosis
-;  are also calculated:
+;  Calculate the mean, median, and standard deviation of a 1-D or 2-D
+;  tplot variable over a specified time range.  The variable and time range
+;  are selected with the cursor or via keyword.  Skew and kurtosis are also
+;  calculated:
 ;
 ;    skewness: = 0 -> distribution is symmetric about the maximum
 ;              < 0 -> distribution is skewed to the left
@@ -14,21 +14,38 @@
 ;              < 0 -> distribution is less peaked than a Gaussian
 ;              > 0 -> distribution is more peaked than a Gaussian
 ;
-;  This routine can optionally perform 1-D cluster analysis to divide
-;  the data into two groups (Jenks natural breaks optimization).
-;  Statistics are given for each group separately.
+;  This routine can optionally perform cluster analysis to divide the data
+;  into two groups (Jenks natural breaks optimization).  Statistics are given
+;  for each group separately.
 ;
 ;USAGE:
 ;  tmean, var
 ;
 ;INPUTS:
 ;       var:     Tplot variable name or number.  If not specified, determine
-;                based on which panel the mouse is in when clicked.  Currently,
-;                this routine only works with 1-D data.
+;                based on which panel the mouse is in when clicked.
+;
+;                If the variable has two dimensions in y (time and some other
+;                parameter), then you must specify which indices of the second
+;                dimension to calculate statistics for.  Data can be either 
+;                summed or averaged over the second dimension.  See keywords
+;                IND and AVG.
+;
+;                The variable cannot be compound (list of variables to plot
+;                in the same panel).  You must specify which variable in the 
+;                list you are interested in.
 ;
 ;KEYWORDS:
 ;       TRANGE:  Use this time range instead of getting it interactively
 ;                with the cursor.  In this case, you must specify var.
+;
+;       IND:     If y has two dimensions (time and some other parameter), this
+;                keyword specifies the indices of the second dimension to
+;                calculate statistics for.  No default.
+;
+;       AVG:     If IND is set and this keyword is also set, then average over
+;                the second dimension.  Otherwise, sum over the second dimension.
+;                NaN's are treated as missing data (see MEAN and TOTAL).
 ;
 ;       OFFSET:  Value to subtract from the data before calculating statistics.
 ;                Default = 0.
@@ -39,8 +56,10 @@
 ;       MINPTS:  If OUTLIER is set, this specifies the minimum number of 
 ;                points remaining after discarding outliers.  Default = 3.
 ;
-;       CLUSTER: Perform 1-D cluster analysis to separate the data into
-;                two groups.  Disables OUTLIER.
+;       CLUSTER: Perform 1-D cluster analysis to separate the data into two
+;                groups.  Statistics are calculated for each cluster separately.
+;                Diagnostics of the quality of the cluster separation are also
+;                provided (see keyword DIAG).  Disables OUTLIER.
 ;
 ;       MAXDZ:   Use largest break between clusters near minimum variance
 ;                to divide the clusters.  Default = 1.
@@ -53,7 +72,9 @@
 ;
 ;       NBINS:   If HIST is set, number of bins in the histogram.
 ;
-;       NPTS:    Number of points surrounding the selected point.
+;       NPTS:    If this is set, then statistics are calculated for NPTS centered
+;                on the time nearest the cursor when clicked (as opposed to 
+;                selecting a time range with two clicks).
 ;
 ;       DST:     Retain the distribution.  Does not allow compiling multiple
 ;                results.
@@ -69,7 +90,8 @@
 ;                  sepval : value of optimal separation between the clusters
 ;                  ngud   : number of points in the main distribution
 ;                  nbad   : number of outliers
-;                  delta  : separation* between the core and outliers in SDEV units -or-
+;                  delta  : separation* between the core and outliers in SDEV units
+;                                             -or-
 ;                           separation# between the clusters in SDEV units
 ;                  frac   : fraction of "bad" points (nbad/(nbad+ngud))
 ;
@@ -82,33 +104,32 @@
 ;       SILENT:  Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-06 10:59:08 -0800 (Mon, 06 Mar 2023) $
-; $LastChangedRevision: 31590 $
+; $LastChangedDate: 2023-03-09 14:39:45 -0800 (Thu, 09 Mar 2023) $
+; $LastChangedRevision: 31615 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/tmean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
 pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hist=hist, $
                 nbins=nbins, npts=npts, silent=silent, minpts=minpts, dst=dst, cluster=cluster, $
-                t0=t0, t1=t1, maxdz=maxdz, diag=diag, keep=keep
+                t0=t0, t1=t1, maxdz=maxdz, diag=diag, keep=keep, ind=dndx, avg=doavg
 
   @swe_snap_common
 
   oflg = keyword_set(outlier)
   blab = ~keyword_set(silent)
-  if (n_elements(minpts) eq 0) then minpts = 3 else minpts = round(minpts)
-  if (n_elements(nbins) eq 0) then nbins = 32 else bins = fix(nbins[0])
+  minpts = (n_elements(minpts) eq 0) ? 3 : round(minpts)
+  nbins = (n_elements(nbins) eq 0) ? 32 : fix(nbins[0])
   hist = keyword_set(hist)
   keep = keyword_set(keep)
   core = keyword_set(cluster)
   if (core) then oflg = 0  ; disable OUTLIER removal for cluster analysis
   dst = keyword_set(dst)
   if (dst) then undefine, result
-  if (size(maxdz,/type) eq 0) then maxdz = 1
-  maxdz = keyword_set(maxdz)
+  maxdz = (size(maxdz,/type) eq 0) ? 1 : keyword_set(maxdz)
+  offset = (size(offset,/type) eq 0) ? 0. : float(offset[0])
   t0 = 0D
   t1 = 0D
-  if (size(offset,/type) eq 0) then offset = 0. else offset = float(offset[0])
 
   if (n_elements(trange) lt 1) then begin
     if keyword_set(npts) then ctime, tsp, panel=p, npoints=1, prompt='Choose a variable/time' $
@@ -128,11 +149,16 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
     var = topt.varnames[p[0]]
   endif
 
-; Make sure variable exists and can be interpreted properly
+; Make sure variable exists and can be interpreted
 
   get_data, var, data=dat, alim=lim, index=i
   if (i eq 0) then begin
     print,'Variable not defined: ',var
+    return
+  endif
+  if (size(dat,/type) eq 7) then begin
+    print,'Variable "',var,'" is compound: ',dat
+    print,'You must specify a single variable.'
     return
   endif
   str_element, dat, 'x', success=ok
@@ -145,10 +171,23 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
     print,'Cannot interpret variable: ',var
     return
   endif
-  if ((size(dat.y))[0] gt 1) then begin
-    print,'Only works for 1-D variables: ',var
+  ydim = size(dat.y)
+  if (ydim[0] gt 2) then begin
+    print,'Y has more than 2 dimensions.  Abort!'
     return
   endif
+  if (ydim[0] eq 2) then begin
+    if (n_elements(dndx) eq 0) then begin
+      print,'You must specify indices to sum for the second dimension.'
+      return
+    endif
+    if ((min(dndx) lt 0) || (max(dndx) ge ydim[2])) then begin
+      print,'Indices for the second dimension are out of bounds!'
+      return
+    endif
+    dimsum = 1
+  endif else dimsum = 0
+  doavg = keyword_set(doavg)
 
 ; Create plot window(s)
 
@@ -192,8 +231,16 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       wset, twin
       return
     endif
+
     x = dat.x[indx]
-    y = dat.y[indx] - offset
+    y = dat.y[indx,*]
+    if (dimsum) then begin
+      if (n_elements(dndx) gt 1) then begin
+        if (doavg) then y = mean(y[*,dndx], dim=2, /nan) $
+                   else y = total(y[*,dndx], 2, /nan)
+      endif else y = y[*,dndx]
+    endif
+    y -= offset
 
     kndx = where(finite(y), ntot)
     if (ntot lt minpts) then begin
