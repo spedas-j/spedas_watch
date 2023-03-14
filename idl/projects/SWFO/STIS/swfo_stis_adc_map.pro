@@ -11,6 +11,36 @@
 
 ;
 
+function integration_width_matrix,x_edges,bin_centers,bin_widths   ; not finished yet
+  ns = n_elements(x_edges)
+  nb = n_elements(bin_centers)
+  matrix = dblarr(nb,ns)
+  xmid = (x_edges[0:-2] + x_edges[1:-1])/2d    ; size ns-1
+  ;xmid = [x_edges[0], xmid, x_edges[-1] ]      ; size ns+1
+  xwid = [0, abs(xmid[1:-1] - xmid[0:-2] ) ]               ; size ns
+  for b=0,nb-1 do begin
+    center = bin_centers[b]
+    width  = bin_widths[b]
+    bmin = center-width/2.d
+    bmax = center+width/2.d
+    ;r = x_edges ge bmin and x_edges le bmax
+    indf = interp(dindgen(ns),x_edges,[bmin,bmax],index=i)
+    
+    w = where( x_edge  ,nw,/null)
+    printdat,indf,i,xmid
+    
+    ;matrix[b,*] = r * xwid      ; 
+  ;  i1 = interp(dindgen(ns-1), xsample[0:-2], r )
+  ;  i2 = interp(dindgen(ns-1), xsample[1:-1], r )
+  endfor
+
+  return,reform(matrix)
+end
+
+
+
+
+
 
 function swfo_stis_adc_map, data_sample=data_sample
 
@@ -23,9 +53,9 @@ function swfo_stis_adc_map, data_sample=data_sample
   
   lut_map        = struct_value(data_sample,'lut_map',default=6)
   lut_mode       = struct_value(data_sample,'xxxx',default=1)
-  linear_mode    = struct_value(data_sample,'SCI_NONLUT_MODE',default=1) ne 0
+  linear_mode    = struct_value(data_sample,'SCI_NONLUT_MODE',default=0) ne 0
   resolution     = fix(struct_value(data_sample,'SCI_RESOLUTION',default=3))
-  translate      = fix(struct_value(data_sample,'SCI_TRANSLATE',default=0))
+  translate      = fix(struct_value(data_sample,'SCI_TRANSLATE',default=32))
   
   codes = [translate,resolution,linear_mode,lut_mode,lut_map]
   
@@ -56,8 +86,11 @@ function swfo_stis_adc_map, data_sample=data_sample
   ;channel = orderedhash('o1',1,'o2',2,'o3',3,'f1',4,'f2',5,'f3',6)
   kev_per_adc = 59.5 / ( [25.12, 22.58, 25.65, 25.48, 23.61,  24.7 ] *8)
   kev_per_adc = [!values.f_nan,kev_per_adc]
+  geomfactor  = .1  * [.01,1,1,.01,1,1]
+  geomfactor  = [!values.f_nan,geomfactor]
   channel_n = [1,4,2,5,0,0,3,6,0,0,0,0,0,0]
   conv_n = replicate(!values.f_nan,48,14)
+  geom_n = replicate(!values.f_nan,48,14)
 
 ;  foreach c, channel, k do begin
 ;    conv[wh[k]]
@@ -81,6 +114,7 @@ function swfo_stis_adc_map, data_sample=data_sample
     dadc_n[*,n] = d_adc0
     
     conv_n[*,n] = kev_per_adc[ channel_n[n] ] 
+    geom_n[*,n] = geomfactor[ channel_n[n] ]
 
   endfor
 
@@ -88,17 +122,19 @@ function swfo_stis_adc_map, data_sample=data_sample
     wh[k] = where(ftoi_n eq p,/null)
   endforeach
 
+  adc_n  = adc0_n + dadc_n/2.
 
-  ;kev_per_adc = 1/8.
+
   adcmap.wh   = wh
   adcmap.ftoi = ftoi_n
   adcmap.adc0 = adc0_n
   adcmap.dadc = dadc_n
-  adcmap.adc  = adc0_n + dadc_n/2.
-  adcmap.nrg  = (adc0_n + dadc_n/2.) * conv_n
+  adcmap.adc  = adc_n
+  adcmap.nrg  = adc_n * conv_n
   adcmap.dnrg = dadc_n * conv_n
+  adcmap.geom = geom_n
   
-  if min(adcmap.dnrg) lt 0 then message,'coding error',/cont
+  if min(adcmap.dnrg) le 0 then message,'coding error',/cont
   
   return,adcmap
   

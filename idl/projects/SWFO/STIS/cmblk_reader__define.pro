@@ -24,7 +24,7 @@ FUNCTION cmblk_reader::Init,name,_EXTRA=ex
 ; The following lines are temporary to define read routines for different data
   self.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)
   self.add_handler, 'KEYSIGHTPS' ,  gse_keysight('Keysight',/no_widget)
-  self.add_handler, 'esc_esatm',  esc_esatm('Esc_ESAs',/no_widget)
+;  self.add_handler, 'esc_esatm',  esc_esatm('Esc_ESAs',/no_widget)
 
 
   RETURN, 1

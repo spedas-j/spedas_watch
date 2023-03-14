@@ -22,30 +22,64 @@ COMPILE_OPT IDL2
 
 
 
-function socket_reader::read_nbytes,nb,source,pos=pos
+function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
 
   on_ioerror, fixit
-  buf = !null
 
+  buf = !null
   if ~isa(pos) then pos=0ul
-  if isa(source,/array) then begin          ; source should be a an array of bytes
-    n = nb < (n_elements(source) - pos)
+  if isa(source,/array) then begin          ; source should be an array of bytes
+    buf = !null
+    n = nbytes < (n_elements(source) - pos)
     if n gt 0 then   buf = source[pos:pos+n-1]
     pos = pos+n
   endif else begin
     if keyword_set(self.input_lun) then begin                ; self.input_lun should be a file LUN
-      if file_poll_input(self.input_lun,timeout=0) && ~eof(self.input_lun)  then begin
-        buf = bytarr(nb)
+      if self.isasocket then begin
+        pos = 0L
+        if ~keyword_set(nbytes) then begin
+          nbytes =  self.buffersize        ; get up to this many bytes
+          nb = 1                  ; get bytes one at a time
+        endif else begin
+          nb = nbytes              ; if size is known, get them all at once
+        endelse
+        b = bytarr(nb)
+        buf = bytarr(nbytes)
+        while( file_poll_input(self.input_lun,timeout=0) && pos lt nbytes ) do begin
+          readu,self.input_lun,b,transfer_count=n
+          buf[pos:pos+n-1]  = b
+          pos = pos+n
+        endwhile
+        if pos eq 0 then buf = !null else buf = buf[0:pos-1]
+        eofile=1
+      endif else begin   ; read from real file
+        pos = 0L
+        if ~keyword_set(nbytes) then begin
+          nbytes =  self.buffersize        ; get up to this many bytes
+          nb = 1                  ; get bytes one at a time
+        endif else begin
+          nb = nbytes              ; if size is known, get them all at once
+        endelse
+        buf = bytarr(nbytes)
         readu,self.input_lun,buf,transfer_count=n
-        pos = pos+n
-      endif
+        if n ne nbytes then begin
+          buf = n eq 0 ? !null : buf[0:n-1]
+        endif
+        eofile = eof(self.input_lun)
+      endelse
     endif
   endelse
   self.write,buf
   return,buf
+  
   fixit:
-  dprint,'IO error'
-  ;stop
+  fs = fstat(self.input_lun)
+  n = fs.transfer_count           ; for some reason n is not set correctly on eof error
+  if n eq 0 then buf = !null else  buf = buf[0:n-1]
+  pos = pos + n
+  self.write,buf
+  dprint,verbose=self.verbose,dlevel=1,'IO warning: '+ !error_state.msg   
+  eofile = eof(self.input_lun)
   return,buf
 end
 
@@ -67,7 +101,7 @@ function socket_reader::read_line,source,nbytes=nb,pos=pos     ; reads a line of
         readu,self.input_lun,b,transfer_count=n
         if n ne 0 then begin
           buf = [buf,b]
-          if b[0] eq 0x0a then break
+          if b[0] eq self.eol then break
         endif else begin
           dprint,verbose=self.verbose,dlevel=1,'End of file
         endelse
@@ -177,23 +211,27 @@ pro socket_reader::read, buffer, source_dict=source_dict
 
   self.time_received = systime(1)
 
-  nb = 102400
+  nb = 2L^12   ; max number to read - might return fewer
   ; should repeat until done.
   eofile = 0
+  total_bytes = 0L
   while ~eofile do begin
-    if self.eol then begin
-      buf = self.read_line(buffer,nbytes = nb,pos=pos)
+    nb=0
+    if self.eol ge 0 then begin
+      buf = self.read_line(buffer,nbytes = nb,pos=pos,eofile=eofile)
     endif else begin
-      buf = self.read_nbytes(nb,buffer,pos=pos)
+      buf = self.read_nbytes(nb,buffer,pos=pos,eofile=eofile)
     endelse
     
     nbytes = n_elements(buf)
+    total_bytes += nbytes
 
-    if eofile eq 1 then begin
-      stream_error:
-      dprint,dlevel=self.dlevel-1,self.title_num+'File error: '+self.hostname+':'+self.hostport+' broken. ',i
-      dprint,dlevel=self.dlevel,!error_state.msg
-    endif
+;    if eofile  then begin
+;      stream_error:
+;      dprint,dlevel=self.dlevel-1,self.title_num+'File error: '+self.hostname+':'+self.hostport+' broken. ',i
+;      dprint,dlevel=self.dlevel,!error_state.msg
+;      ;break
+;    endif
 
     if nbytes gt 0 then begin                      ;; process data
       ;dprint,'Hello 3
@@ -209,10 +247,14 @@ pro socket_reader::read, buffer, source_dict=source_dict
 
     self.handle,buf
 
-    dprint,verbose=self.verbose,dlevel=3,self.msg,/no_check
-    eofile = eof(self.input_lun)
+    dprint,verbose=self.verbose,dlevel=4,self.msg,/no_check
+    ;eofile = eof(self.input_lun)
 
   endwhile
+  msg = string(/print,total_bytes,format='(i6 ," bytes ")')
+
+  self.msg = time_string(self.time_received,tformat='hh:mm:ss - ',local=localtime) + msg
+  dprint,verbose=self.verbose,dlevel=3,self.msg
 
 end
 
@@ -265,16 +307,16 @@ end
 
 pro socket_reader::handle, buffer, source_dict=source_dict
 
-  dprint,dlevel=3,verbose=self.verbose,n_elements(buffer),' Bytes for Handler: "',self.name,'"'
+  dprint,dlevel=4,verbose=self.verbose,n_elements(buffer),' Bytes for Handler: "',self.name,'"'
   self.nbytes += n_elements(buffer)
   self.npkts  += 1
 
-  if self.run_proc then begin 
+  if self.run_proc then begin
     if self.procedure_name then begin
       call_procedure,self.procedure_name,buffer ,source_dict=self.source_dict
     endif else begin
-      if debug(3,self.verbose,msg=self.name) then begin
-        hexprint,buffer
+      if debug(2,self.verbose,msg=self.name+' '+self.msg) then begin
+        if debug(3,self.verbose) then      hexprint,buffer
       endif
     endelse
   endif
@@ -668,12 +710,13 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
   self.hostname = HOST
   self.hostport = port
   self.title = title
+  self.eol   = -1
   self.fileformat = fileformat
-  self.buffersize = 1024L
+  self.buffersize = 2L^20    ; megabyte should be enough
   ;self.buffer_ptr = ptr_new(/allocate_heap)
   self.dlevel = 2
   ;self.isasocket=1
-  self.run_proc = isa(run_proc) ? run_proc : 1    ; default to running proc
+  self.run_proc = isa(run_proc) ? run_proc : 1    ; default to not running proc
   self.dyndata = dynamicarray(name=name)
 
 
@@ -759,7 +802,7 @@ pro socket_reader__define
     file_timeres: 0d,   $   ; Defines time interval of each output file
     next_filechange: 0d, $ ; don't use - will be deprecated in future
     isasocket:0,  $
-    eol:0b ,$                  ; character used to define End Of Line  typically 0x0A
+    eol:-1 ,$                  ; character used to define End Of Line  typically 0x0A;   use negative integer to ignore
     input_lun:0,  $               ; host input file pointer (lun)
     output_lun:0 , $               ; destination output file pointer (lun)
     directory:'' ,  $          ; output/input directory
@@ -769,7 +812,7 @@ pro socket_reader__define
     buffersize:0L, $
     ;buffer_ptr: ptr_new(),   $
     source_dict: obj_new(),  $
-    dyndata: obj_new(), $
+    dyndata: obj_new(), $        ; dynamicarray object to save all the data in
     name: '',  $
     nbytes: 0UL, $
     npkts:  0ul, $

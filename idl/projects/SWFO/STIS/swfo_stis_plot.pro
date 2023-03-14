@@ -14,6 +14,16 @@
 ; sample plotting procedure
 
 
+pro  swfo_stis_oplot_err,x,y,dx=dx,dy=dy,color=color,psym=psym
+  if isa(psym) then oplot,color=color,psym=psym,x,y
+  for i= 0, n_elements(x)-1 do begin
+    if isa(dx)  then oplot,x[i]+[-dx[i],dx[i]],[y[i],y[i]],color=color
+    if isa(dy)  then oplot,[x[i],x[i]]  , y[i]+ [-dy[i],dy[i]], color=color
+    
+  endfor
+end
+
+
 
 
 
@@ -21,6 +31,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
 
   range = struct_value(param,'range',default=[-.5,.5]*30)
   lim   = struct_value(param,'lim',default=lim)
+  xval  = struct_value(param,'xval',default= 'NRG')
   wind  = struct_value(param,'window',default=1)
   if isa(t) then begin
     trange = t + range
@@ -47,7 +58,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
 
   if ~keyword_set(lim) then begin
     xlim,lim,5,10000,1
-    ylim,lim,.00001,1e5,1
+    ylim,lim,.0001,1e4,1
   endif
   
   ymin = min( struct_value(lim,'yrange',default=0.))
@@ -58,37 +69,59 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
   channels.name = names
   channels.color = [2,4,6,1,3,0]
 
+  old_window = !d.window
   if isa(samples) then begin
     wi,wind
    
     l1a = swfo_stis_sci_level_1a(samples)
-    h= [l1a.hash,0]   ; get the uniq segments
-    up =   uniq(h)       
-    u0= [0,up]
-    u = l1a.hash.uniq()
+    ;h= [l1a.hash,0]   ; get the uniq segments
+    ;up =   uniq(h)       
+    ;u0= [0,up]
+    
+    h = l1a.hash
+    h[-1] = 0    ; ignore the last one
+    dh = h - shift(h,-1)   ; ignore any spectrum in which the following hkp changes
+         
+    u = h.uniq()
+    
     box,lim
+    if 1 then begin
+      xv = dgen()
+      flux_min = 2.48e2 * xv ^ (-1.6) 
+      flux_max = 1.01e7 * xv ^ (-1.6)
+      oplot, xv, flux_min
+      oplot, xv, flux_max
+    endif
+    
     for i=0,n_elements(u)-1 do begin
-      w = where(l1a.hash eq u[i],/null,nw)
+      w = where(h eq u[i] and dh eq 0,/null,nw)
+      if nw eq 0 then continue
       datw=l1a[w]
       dat = average(datw)
       nc = n_elements(channels)
       for c = 0,nc-1 do begin
         ch = channels[c]
         str_element,dat,ch.name,y
+        str_element,dat,ch.name+'_err',dy
         str_element,dat,ch.name+'_nrg',x
+        str_element,dat,ch.name+'_dnrg',dx
         ;str_element,dat,ch.name+'_adc',x
-        oplot,x,y > ymin/10.,color=ch.color,psym=ch.psym
+        y = y > ymin/10.
+        ;swfo_stis_oplot_err,x,y,color=ch.color,psym=ch.psym
+        oplot,x,y ,color=ch.color,psym=ch.psym
       endfor
     endfor
         
   endif
   
   if isa(param,'dictionary') then begin
-    if ~param.haskey('lim') then param.lim=lim
+    if ~param.haskey('lim') then param.lim=dictionary(lim)
     if ~param.haskey('routine_name') then param.routine_name = 'swfo_stis_plot'
     if ~param.haskey('window') then param.window= wind
     if ~param.haskey('range') then param.range = range
   endif
+
+
 
   
   

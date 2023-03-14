@@ -30,18 +30,20 @@
 ;
 ;   TNUM:      Returns the window number chosen for the intensity plot.
 ;
+;   RESET:     Forgets any window numbers.
+;
 ;SEE ALSO:
 ;   xpalette:  Shows the current color table in an interactive widget.  Provides
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-06 10:50:49 -0800 (Mon, 06 Mar 2023) $
-; $LastChangedRevision: 31589 $
+; $LastChangedDate: 2023-03-13 13:23:02 -0700 (Mon, 13 Mar 2023) $
+; $LastChangedRevision: 31624 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
                          color_names=color_names, graybkg=graybkg, intensity=intensity, $
-                         key=key, cnum=cnum2, tnum=tnum2
+                         key=key, cnum=cnum2, tnum=tnum2, reset=reset
 
   common showct_com, cnum, tnum
 
@@ -58,9 +60,14 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 
 ; If previous window(s) have been deleted, then forget them
 
-  device, window_state=wstate
-  if (size(cnum,/type) ne 0) then if ~wstate[cnum] then undefine, cnum
-  if (size(tnum,/type) ne 0) then if ~wstate[tnum] then undefine, tnum
+  if keyword_set(reset) then begin
+    undefine, cnum
+    undefine, tnum
+  endif else begin
+    device, window_state=wstate
+    if (size(cnum,/type) ne 0) then if ~wstate[cnum] then undefine, cnum
+    if (size(tnum,/type) ne 0) then if ~wstate[tnum] then undefine, tnum
+  endelse
 
 ; Load the requested color table
 

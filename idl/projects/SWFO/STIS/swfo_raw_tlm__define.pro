@@ -98,7 +98,7 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
       nb = 1
       sync_errors += 1
       if debug(2) then begin
-        dprint,dlevel=3,'Lost sync:' ,dwait=2
+        dprint,verbose=self.verbose,dlevel=3,'Lost sync:' ,dwait=2
       endif
       continue
     endif
@@ -139,7 +139,7 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
             nbuf = n_elements(source_dict.sync_ccsds_buf)
             skipped++
           endwhile
-          if skipped then dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word'
+          if skipped ne 0 then dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word'
           nbuf = n_elements(source_dict.sync_ccsds_buf)
           if nbuf lt 10 then begin
             dprint,verbose=self.verbose,dlevel=4,'Incomplete packet header - wait for later'
@@ -227,17 +227,10 @@ end
 
 pro swfo_raw_tlm::read,buffer,source_dict=source_dict
 
-  dprint,dlevel=3,verbose=self.verbose,n_elements(buffer),' Bytes for Handler: "',self.name,'"'
-  self.nbytes += n_elements(buffer)
-  self.npkts  += 1
 
-  if self.run_proc then begin
-    self.raw_tlm_read,buffer,source_dict=source_dict
+  
+   self.raw_tlm_read,buffer,source_dict=source_dict
 
-    if debug(4,self.verbose,msg=self.name) then begin
-      hexprint,buffer
-    endif
-  endif
 
 end
 

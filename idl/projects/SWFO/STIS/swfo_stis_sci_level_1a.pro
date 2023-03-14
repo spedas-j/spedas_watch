@@ -39,7 +39,7 @@ function swfo_stis_sci_level_1a,strcts  ;,format=format,reset=reset,cal=cal
     str_element,/add,out,'hash',mapd.codes.hashcode()
     str_element,/add,out,'duration',str.duration 
     foreach w,mapd.wh,key do begin
-      str_element,/add,out,'spec_'+key,counts[w] / dnrg[w] / str.duration
+      str_element,/add,out,'spec_'+key,counts[w] / dnrg[w] / mapd.geom[w] / str.duration
       str_element,/add,out,'spec_'+key+'_nrg',nrg[w]
       str_element,/add,out,'spec_'+key+'_dnrg',dnrg[w]
       str_element,/add,out,'spec_'+key+'_adc',mapd.adc[w]    
