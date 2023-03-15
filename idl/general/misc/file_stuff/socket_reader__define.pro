@@ -121,6 +121,11 @@ end
 
 
 pro socket_reader::write ,buffer
+
+  nb = n_elements(buffer)
+  self.sum1_bytes += nb
+  self.sum2_bytes += nb
+
   if keyword_set(self.output_lun) then begin
     if self.file_timeres gt 0 then begin
       if self.time_received ge self.next_filechange then begin
@@ -143,65 +148,6 @@ end
 
 
 
-
-pro socket_reader::read_old, buffer, source_dict=source_dict
-  ; Read data from stream until EOF is encountered or no more data is available on the stream
-  ; if the proc flag is set then it will process the data
-  ; if the output lun is non zero then it will save the data.
-
-  buffer = !null
-  ;dprint,'entering lun_read
-  if self.input_lun ne 0 then begin
-    bufsize = 10240UL
-    on_ioerror, stream_error
-    eofile =0
-    self.time_received = systime(1)
-    buffer= bytarr(bufsize)
-    b = bytarr(1)
-    in_lun = self.input_lun
-    nbytes = 0UL
-    while file_poll_input(in_lun,timeout=0) && (~eofile) && (nbytes lt bufsize) do begin
-      readu,in_lun,b,transfer_count=nb
-      if nb gt 0 then  buffer[nbytes++] = b
-    endwhile
-    eofile = eof(in_lun)
-
-    if eofile eq 1 then begin
-      stream_error:
-      dprint,dlevel=self.dlevel-1,self.title_num+'File error: '+self.hostname+':'+self.hostport+' broken. ',i
-      dprint,dlevel=self.dlevel,!error_state.msg
-    endif
-
-    if nbytes gt 0 then begin                      ;; process data
-      ;dprint,'Hello 3
-      buffer = buffer[0:nbytes-1]
-      *self.buffer_ptr = buffer
-      msg = string(/print,nbytes,buffer[0:(nbytes < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')
-      self.msg = time_string(self.time_received,tformat='hh:mm:ss - ',local=localtime) + msg
-    endif else begin
-      *self.buffer_ptr = !null
-      self.msg =time_string(self.time_received,tformat='hh:mm:ss - No data available',local=localtime)
-    endelse
-
-    self.process_data
-
-    if 0 then begin
-      handler = self.handler_obj
-      ;buffer = self.read_func()
-      ; while( isa(buffer) ) do begin
-      self.write,buffer
-      if self.run_proc && obj_valid(handler) then handler.decommutate, buffer
-      msg = self.msg
-
-      ;   buffer = self.read_lun()
-      ;endwhile
-
-      dprint,verbose=self.verbose,dlevel=3,self.msg,/no_check
-
-    endif
-
-  endif
-end
 
 
 pro socket_reader::read, buffer, source_dict=source_dict
@@ -342,10 +288,11 @@ PRO socket_reader::SetProperty, _extra=ex
 END
 
 
-pro socket_reader::GetProperty,name=name,verbose=verbose,dyndata=dyndata
+pro socket_reader::GetProperty,name=name,verbose=verbose,dyndata=dyndata,time_received=time_received
   if arg_present(name) then name=self.name
   if arg_present(dyndata) then dyndata=self.dyndata
   if arg_present(verbose) then verbose=self.verbose
+  if arg_present(time_received) then time_received=self.time_received
 end
 
 pro socket_reader::help , item
@@ -396,12 +343,15 @@ end
 pro socket_reader::timed_event
 
   if self.input_lun gt 0 then begin
-
+    
+    self.sum1_bytes = 0
     self.read
+
+    msg = time_string(systime(1),tformat='hh:mm:ss - ',local=localtime) +' '+ strtrim(self.sum1_bytes,2)+' Bytes'
 
     wids = *self.wids
     if isa(wids) then begin
-      widget_control,wids.output_text,set_value=self.msg
+      widget_control,wids.output_text,set_value=msg
       widget_control,wids.poll_int,get_value = poll_int
       poll_int = float(poll_int)
       if poll_int le 0 then poll_int = 1
@@ -415,6 +365,8 @@ pro socket_reader::timed_event
 
     endif
   endif
+  self.time_received = systime(1)
+
 
 end
 
@@ -815,6 +767,8 @@ pro socket_reader__define
     dyndata: obj_new(), $        ; dynamicarray object to save all the data in
     name: '',  $
     nbytes: 0UL, $
+    sum1_bytes: 0UL, $
+    sum2_bytes: 0UL, $
     npkts:  0ul, $
     nreads: 0ul, $
     ;   brate: 0. , $ ; don't use - will be deprecated in future

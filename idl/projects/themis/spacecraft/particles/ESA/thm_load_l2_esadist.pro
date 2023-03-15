@@ -3,7 +3,7 @@ Function thm_load_l2_esadist_relpath, probe = probe, filetype = ft, $
                                trange=trange, _extra=_extra
 
   relpath = 'th'+probe+'/l2/esd/'
-  prefix = 'th'+probe+'_l2_'+ft+'_'
+  prefix = 'th'+probe+'_l2_esa_'+ft+'_'
   dir = 'YYYY/'
   ending = '_v01.cdf'
 
@@ -27,7 +27,7 @@ Pro thm_load_l2_esadist_type, probe, type, trange = trange, $
   filex = file_search(filex)
   If(~is_string(filex)) Then Begin
      dprint, 'No files found for time range and type:'+type
-     dprint, '!themis.local_data_dir: '+themis.local_data_dir
+     dprint, '!themis.local_data_dir: '+!themis.local_data_dir
      dprint, 'relpathname: '+relpathnames
      Return
   Endif
@@ -48,6 +48,19 @@ Pro thm_load_l2_esadist_type, probe, type, trange = trange, $
         Else dat = thm_esa_cmn_l2concat(temporary(dat), temporary(datj))
      Endif
   Endfor
+;Here load magf and sc_pot, from L2 file
+  ntimes = n_elements(dat.time)
+  thm_load_esa, probe = probe[0], level ='l2', datatype = '*'+type+['*magf', '*sc_pot'], /no_time_clip, trange = tr0
+  get_data, 'th'+probe[0]+'_'+type+'_sc_pot', data = p
+  If(is_struct(p) && n_elements(p.x) Eq ntimes) Then Begin
+     dp = p.y
+  Endif Else dp = fltarr(ntimes)
+  str_element, dat, 'sc_pot', dp, /add_replace
+  get_data, 'th'+probe[0]+'_'+type+'_magf', data = b
+  If(is_struct(b) && n_elements(b.x) Eq ntimes) Then Begin
+     db = b.y
+  Endif Else dp = fltarr(ntimes, 3)
+  str_element, dat, 'magf', db, /add_replace
 ;Check time range
   If(~keyword_set(no_time_clip)) Then Begin
      If(is_struct(dat)) Then dat = thm_esa_cmn_l2tclip(dat, tr0) $
@@ -219,8 +232,8 @@ End
 ;HISTORY:
 ; 7-nov-2022, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2022-11-21 12:28:21 -0800 (Mon, 21 Nov 2022) $
-; $LastChangedRevision: 31290 $
+; $LastChangedDate: 2023-03-14 13:02:11 -0700 (Tue, 14 Mar 2023) $
+; $LastChangedRevision: 31629 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_load_l2_esadist.pro $
 ;-
 Pro thm_load_l2_esadist, probe = probe, datatype = datatype, $
@@ -243,7 +256,7 @@ Pro thm_load_l2_esadist, probe = probe, datatype = datatype, $
   For k = 0, n_elements(probe)-1 Do Begin
      For j = 0, n_elements(datatype)-1 Do Begin
         thm_load_l2_esadist_type, probe[k], datatype[j], $
-        trange = trange, no_time_clip = no_time_clip, _extra = _extra
+           trange = trange, no_time_clip = no_time_clip, _extra = _extra
      Endfor
   Endfor
   Return

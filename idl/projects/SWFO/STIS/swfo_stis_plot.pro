@@ -33,6 +33,18 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
   lim   = struct_value(param,'lim',default=lim)
   xval  = struct_value(param,'xval',default= 'NRG')
   wind  = struct_value(param,'window',default=1)
+  nsamples  = struct_value(param,'window',default=20)
+  units = struct_value(param,'units',default='Eflux')
+  read_object = struct_value(param,'read_object')
+  
+  if isa(read_object,'socket_reader') then begin
+    trec = systime(1)
+    if trec gt read_object.getattr('time_received') +10 then begin
+      dprint,dlevel = 2, "Forced timed socket read. Don't forget to exit ctime!"
+      read_object.timed_event
+    endif
+  endif
+  
   if isa(t) then begin
     trange = t + range
   endif
@@ -50,15 +62,16 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
     ;tmid = average(trange)
     ;hkp_samples = hkp_data.sample(range=tmid,nearest=tmid,tagname='time')
   endif else begin
-    if ~keyword_set(nsamples) then nsamples = 20
+    ;if ~keyword_set(nsamples) then nsamples = 20
     index = [size-nsamples:size-1]    ; get indices of last N samples
     samples=da.slice(index)           ; extract the last N samples
     ;hkp_samples= hkp.data.slice(/last)
   endelse
 
   if ~keyword_set(lim) then begin
-    xlim,lim,5,10000,1
+    xlim,lim,5,20000.,1
     ylim,lim,.0001,1e4,1
+    options,lim,units=units,ytitle=units,xtitle='Energy (keV)'
   endif
   
   ymin = min( struct_value(lim,'yrange',default=0.))
@@ -89,8 +102,9 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
       xv = dgen()
       flux_min = 2.48e2 * xv ^ (-1.6) 
       flux_max = 1.01e7 * xv ^ (-1.6)
-      oplot, xv, flux_min
-      oplot, xv, flux_max
+      if strupcase(units) eq 'EFLUX' then  scale = xv /1000 else scale = 1
+      oplot, xv, flux_min * scale
+      oplot, xv, flux_max * scale
     endif
     
     for i=0,n_elements(u)-1 do begin
@@ -106,6 +120,8 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
         str_element,dat,ch.name+'_nrg',x
         str_element,dat,ch.name+'_dnrg',dx
         ;str_element,dat,ch.name+'_adc',x
+        if strupcase(units) eq 'EFLUX' then  scale = x /1000 else scale = 1
+        y = y * scale
         y = y > ymin/10.
         ;swfo_stis_oplot_err,x,y,color=ch.color,psym=ch.psym
         oplot,x,y ,color=ch.color,psym=ch.psym

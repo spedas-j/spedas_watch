@@ -39,6 +39,16 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host , trange=trange
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S1/gsemsg/'
         opts.fileformat = 'YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
       end
+      'S1/ccsds': begin
+        opts.port =  2129
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S1/ccsds/'
+        opts.fileformat = 'YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
+      end
+      'S1/sccsds': begin
+        opts.port =  2127
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S1/sccsds/'
+        opts.fileformat = 'YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
+      end
       else: begin
         dprint,'Undefined: '+file_type
         return
@@ -122,6 +132,26 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host , trange=trange
         tplot_options,title='Real Time (CMBLK)'
 
       end
+      'ccsds': begin
+        rdr  = swfo_ccsds(port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
+        opts.rdr = rdr
+
+        if opts.haskey('filenames') then begin
+          rdr.file_read, opts.filenames        ; Load in the files
+        endif
+        swfo_apdat_info,/all,/create_tplot_vars
+        tplot_options,title='Real Time (CCSDS)'
+
+      end
+      'ccsds': begin
+        rdr  = swfo_ccsds(port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
+        opts.rdr = rdr
+        if opts.haskey('filenames') then begin
+          rdr.file_read, opts.filenames        ; Load in the files
+        endif
+        swfo_apdat_info,/all,/create_tplot_vars
+        tplot_options,title='Real Time (Sync CCSDS)'
+      end
       else:  dprint,'Unknown file format'
     endcase
 
@@ -133,6 +163,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host , trange=trange
     
     swfo_stis_tplot,/set,'dl3'
     !except=0
+    opts.plotparam=dictionary('routine_name','swfo_stis_plot')
 
   endif
 
