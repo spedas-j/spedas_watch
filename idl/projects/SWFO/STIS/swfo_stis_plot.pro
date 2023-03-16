@@ -33,9 +33,11 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
   lim   = struct_value(param,'lim',default=lim)
   xval  = struct_value(param,'xval',default= 'NRG')
   wind  = struct_value(param,'window',default=1)
-  nsamples  = struct_value(param,'window',default=20)
+  nsamples  = struct_value(param,'nsamples',default=5)
   units = struct_value(param,'units',default='Eflux')
   read_object = struct_value(param,'read_object')
+  
+  
   
   if isa(read_object,'socket_reader') then begin
     trec = systime(1)

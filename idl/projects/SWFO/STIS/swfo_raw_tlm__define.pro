@@ -63,8 +63,7 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
     header = {time: !values.d_nan , gap:0 }
   endelse
 
-  ;  endelse
-
+;printdat,source,/hex
   source_dict = self.source_dict
 
   if ~source_dict.haskey('sync_ccsds_buf') then source_dict.sync_ccsds_buf = !null   ; this contains the contents of the buffer from the last call
@@ -79,6 +78,7 @@ pro swfo_raw_tlm::raw_tlm_read,source,source_dict=parent_dict
   remainder = !null
   nbytes = 0UL
   sync_errors =0ul
+  total_bytes = 0L
   nb = 6
   while isa( (buf= self.read_nbytes(nb,source,pos=nbytes) ) ) do begin
     if n_elements(buf) ne nb then begin

@@ -1,10 +1,12 @@
-
-
+;$LastChangedBy: davin-mac $
+;$LastChangedDate: 2023-03-15 09:46:13 -0700 (Wed, 15 Mar 2023) $
+;$LastChangedRevision: 31636 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host , trange=trange,opts=opts
 
   if ~keyword_set(trange) then trange=2   ; default to last 2 hours
-  if ~keyword_set(file_type) then file_type = 'gsemsg'
+  if ~keyword_set(file_type) then file_type = 'ccsds'
   if ~keyword_set(station) then station='S1'
 
   if ~isa(opts,'dictionary') then   opts=dictionary()
@@ -62,7 +64,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host , trange=trange
 
     if keyword_set(offline) then opts.url=''
 
-    opts.exec_text =  ['tplot,verbose=0,trange=systime(1)+[-1.,.05]*600','timebar,systime(1)']
+    opts.exec_text =  ['tplot,verbose=0,trange=systime(1)+[-1.,.05]*600','timebar,systime(1)','swfo_stis_plot']
     ;    opts.file_trange = 3
 
 
@@ -133,7 +135,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host , trange=trange
 
       end
       'ccsds': begin
-        rdr  = swfo_ccsds(port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
+        rdr  = ccsds_reader('CCSDS',port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
         opts.rdr = rdr
 
         if opts.haskey('filenames') then begin
@@ -143,8 +145,9 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host , trange=trange
         tplot_options,title='Real Time (CCSDS)'
 
       end
-      'ccsds': begin
-        rdr  = swfo_ccsds(port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
+      'sccsds': begin
+        sync = byte(['1a'x,'cf'x,'fc'x,'1d'x])
+        rdr  = ccsds_reader('Sync_CCSDS',sync=sync,port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files
@@ -164,6 +167,9 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host , trange=trange
     swfo_stis_tplot,/set,'dl3'
     !except=0
     opts.plotparam=dictionary('routine_name','swfo_stis_plot')
+    opts.plotparam.read_object = rdr
+    dprint,'For visualization, run:'
+    print,'ctime,/silent,t,routine_param=opts.plotparam'
 
   endif
 
