@@ -1,14 +1,14 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-03-16 01:51:24 -0700 (Thu, 16 Mar 2023) $
-;$LastChangedRevision: 31637 $
+;$LastChangedDate: 2023-03-20 01:52:33 -0700 (Mon, 20 Mar 2023) $
+;$LastChangedRevision: 31640 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
-pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , trange=trange,opts=opts,make_ncdf=make_ncdf, debug=debug
+pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , trange=trange,opts=opts,make_ncdf=make_ncdf, debug=debug,run_proc=run_proc
 
   if keyword_set(debug) then stop
-  if ~keyword_set(trange) then trange=2   ; default to last 2 hours
-  if ~keyword_set(file_type) then file_type = 'ccsds'
-  if ~keyword_set(station) then station='S1'
+  if n_elements(trange) eq 0 then trange=2   ; default to last 2 hours
+  if ~keyword_set(file_type) then file_type = 'gsemsg'
+  if ~keyword_set(station) then station='S0'
   if ~keyword_set(ncdf_resolution) then ncdf_resolution = 1800
   
   if ~isa(opts,'dictionary') then   opts=dictionary()
@@ -24,38 +24,64 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
   ncdf_directory = root_data_dir() + 'swfo/data/sci/stis/prelaunch/realtime/'+station+'/ncdf/'
 
   if keyword_set(stis) then begin
+    ;opts.host = 'swifgse1.ssl.berkeley.edu'
+    opts.root_dir = root_data_dir()
+    opts.url = 'http://research.ssl.berkeley.edu/data/'
+    opts.title = 'SWFO'
+    
+    case opts.station of
+      'S0':     opts.host = 'swifgse1.ssl.berkeley.edu'
+      'S1':     opts.host = 'swifgse1.ssl.berkeley.edu'
+      'S2':     opts.host = 'hermroute3.ssl.berkeley.edu'
+    endcase
+    
 
     ss_type = opts.station+'/'+opts.file_type
     case ss_type of
       'S0/cmblk': begin
         opts.port       = 2432
-        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S0/cmblk/'
-        opts.fileformat = 'YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S0/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
       end
       'S1/cmblk': begin
         opts.port       = 2433
-        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S1/cmblk/'
-        opts.fileformat = 'YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S1/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
+      end
+      'S2/cmblk': begin
+        opts.port       = 2225
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S2/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
       end
       'S0/gsemsg': begin
         opts.port       =   2028
-        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S0/gsemsg/'
-        opts.fileformat = 'YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S0/gsemsg/YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
       end
       'S1/gsemsg': begin
         opts.port =        2128
-        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S1/gsemsg/'
-        opts.fileformat = 'YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S1/gsemsg/YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
+      end
+      'S0/ccsds': begin
+        opts.port =        2029
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S0/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
+      end
+      'S0/sccsds': begin
+        opts.port =       2027
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S0/sccsds/YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
       end
       'S1/ccsds': begin
         opts.port =        2129
-        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S1/ccsds/'
-        opts.fileformat = 'YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S1/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
       end
       'S1/sccsds': begin
-        opts.port =  2127
-        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/S1/sccsds/'
-        opts.fileformat = 'YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
+        opts.port =         2127
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S1/sccsds/YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
       end
       'S1/ncdf': begin
         opts.port = 0
@@ -88,10 +114,6 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       opts.fileformat = str_sub(opts.fileformat,'$RES$', res)
     endif
 
-    opts.host = 'swifgse1.ssl.berkeley.edu'
-    opts.root_dir = root_data_dir()
-    opts.url = 'http://research.ssl.berkeley.edu/data/'
-    opts.title = 'SWFO'
 
     if keyword_set(offline) then opts.url=''
 
@@ -143,7 +165,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         swfo_ptp_recorder,title=opts.title,port=opts.port, host=opts.host, exec_proc='swfo_ptp_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
       end
       'gsemsg': begin
-        rdr = swfo_raw_tlm('gsemsg',port=opts.port,host=opts.host)
+        rdr = swfo_raw_tlm('gsemsg',_extra= opts.tostruct())
         opts.rdr = rdr
         if keyword_set(makencdf) then begin
 
@@ -175,7 +197,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         tplot_options,title='Real Time (CMBLK)'
       end
       'ccsds': begin
-        rdr  = ccsds_reader('CCSDS',port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
+        rdr  = ccsds_reader(port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files

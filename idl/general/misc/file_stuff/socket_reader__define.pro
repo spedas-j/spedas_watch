@@ -21,6 +21,12 @@
 COMPILE_OPT IDL2
 
 
+pro socket_reader::handleTimerEvent,id,data
+    self.timer_id = id
+    dprint,verbose=self.verbose,dlevel=2,id
+    printdat,self.msg,data
+end
+
 
 function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
 
@@ -33,6 +39,7 @@ function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
     n = nbytes < (n_elements(source) - pos)
     if n gt 0 then   buf = source[pos:pos+n-1]
     pos = pos+n
+    if pos ge n_elements(source) then eofile = 1    ;  Signal that all bytes have been read
   endif else begin
     if keyword_set(self.input_lun) then begin                ; self.input_lun should be a file LUN
       if self.isasocket then begin
@@ -84,20 +91,33 @@ function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
 end
 
 
-function socket_reader::read_line,source,nbytes=nb,pos=pos     ; reads a line of ascii file (or buffer)
+function socket_reader::read_line,source,pos=pos ,eofile=eofile ;,nbytes=nb    ; reads a line of ascii file (or buffer)
   on_ioerror, fixit
-  buf = !null
+  ;buf = !null
 
   if ~isa(pos) then pos=0ul
+  eofile = 0
+  
   if isa(source,/array) then begin          ; source should be a an array of bytes
-    dprint,dlevel=2,verbose=self.verbose,'Not tested yet...'
-    n = nb < (n_elements(source) - pos)
-    if n gt 0 then   buf = source[pos:pos+n-1]
-    pos = pos+n
+    dprint,dlevel=3,verbose=self.verbose,'Not tested yet...'
+    ns = n_elements(source)
+    n =0UL
+    eol = self.eol
+    startpos = pos
+    while pos lt ns  do begin
+      b = source[pos]
+      n++
+      pos++
+      if b eq eol then break
+    endwhile
+    if n eq 0 then buf =  !null  else buf =  source[startpos:pos-1]
+    if pos ge ns then eofile=1
   endif else begin
+    buf = !null    
     if keyword_set(self.input_lun) then begin
       b = bytarr(1)
-      while file_poll_input(self.input_lun,timeout=0) && ~eof(self.input_lun)  do begin
+      ; read from file or socket one character at a time looking for EOL
+      while file_poll_input(self.input_lun,timeout=0) && ~eofile  do begin  
         readu,self.input_lun,b,transfer_count=n
         if n ne 0 then begin
           buf = [buf,b]
@@ -106,6 +126,7 @@ function socket_reader::read_line,source,nbytes=nb,pos=pos     ; reads a line of
           dprint,verbose=self.verbose,dlevel=1,'End of file
         endelse
         pos = pos+n
+        if ~self.issocket then eofile = eof(self.input_lun)
       endwhile
     endif else dprint,dlevel=2,verbose=self.verbose,self.name +": Input file is not open."
   end
@@ -115,6 +136,7 @@ function socket_reader::read_line,source,nbytes=nb,pos=pos     ; reads a line of
   fixit:
   dprint,'IO error'
   ;stop
+  self.write,buf
   return,buf
 end
 
@@ -162,27 +184,17 @@ pro socket_reader::read, buffer, source_dict=source_dict
   eofile = 0
   total_bytes = 0L
   while ~eofile do begin
-    nb=0
+    ;nb=0
     if self.eol ge 0 then begin
-      buf = self.read_line(buffer,nbytes = nb,pos=pos,eofile=eofile)
+      buf = self.read_line(buffer,pos=pos,eofile=eofile)
     endif else begin
       buf = self.read_nbytes(nb,buffer,pos=pos,eofile=eofile)
     endelse
-    
+
     nbytes = n_elements(buf)
     total_bytes += nbytes
 
-;    if eofile  then begin
-;      stream_error:
-;      dprint,dlevel=self.dlevel-1,self.title_num+'File error: '+self.hostname+':'+self.hostport+' broken. ',i
-;      dprint,dlevel=self.dlevel,!error_state.msg
-;      ;break
-;    endif
-
     if nbytes gt 0 then begin                      ;; process data
-      ;dprint,'Hello 3
-      ;buffer = buffer[0:nbytes-1]
-      ;*self.buffer_ptr = buffer
       msg = string(/print,nbytes,buf[0:(nbytes < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')
       self.msg = time_string(self.time_received,tformat='hh:mm:ss - ',local=localtime) + msg
     endif else begin
@@ -646,7 +658,7 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
   get_procbutton = get_procbutton,set_procbutton=set_procbutton,directory=directory, $
   get_filename=get_filename,info=info,no_widget=no_widget,verbose=verbose
 
-  if ~keyword_set(name) then name='generic'
+  if ~keyword_set(name) then name=typename(self)
   self.name  =name
 
   self.source_dict = dictionary()
@@ -654,7 +666,7 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
 
   if not keyword_set(host) then host = ''
   if not keyword_set(port) then port = '2000'
-  if not keyword_set(title) then title = name+' Reader'
+  if not keyword_set(title) then title = name
   if not keyword_set(set_file_timeres) then set_file_timeres=3600.d
   self.file_timeres =set_file_timeres
   port=strtrim(port,2)
@@ -717,6 +729,7 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
     if n_elements(set_output)  eq 1 && (keyword_set(info.output_lun) ne keyword_set(set_output )) then socket_reader_event, { id:ids.dest_button, top:ids.base }
     if n_elements(set_connect) eq 1 && (keyword_set(info.input_lun) ne keyword_set(set_connect)) then socket_reader_event, { id:ids.host_button, top:ids.base }
     if n_elements(set_procbutton) eq 1 then begin
+      self.run_proc = set_procbutton
       widget_control,ids.proc_button,set_button=set_procbutton
       socket_reader_event, { top:ids.base, id:ids.proc_button, select: keyword_set(set_procbutton) }
     endif
@@ -744,6 +757,7 @@ END
 pro socket_reader__define
   dummy = {socket_reader, $
     inherits generic_object, $
+    timer_id: 0u, $
     base:0L ,$
     wids:ptr_new(), $
     hostname:'',$

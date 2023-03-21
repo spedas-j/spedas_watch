@@ -10,13 +10,44 @@
 COMPILE_OPT IDL2
 
 
+function json_reader::translate,buf
+
+  if (~KEYWORD_SET(dbg)) then begin
+    ;ON_ERROR, 2
+    ; Catch errors from our method and fake the call stack.
+    CATCH, iErr
+    if (iErr ne 0) then begin
+      CATCH, /CANCEL
+      MESSAGE, !ERROR_STATE.msg, /cont
+      dprint,string(buf)
+      return,!null
+    endif
+  endif
+
+  if isa(buf,'byte') then result = string(buf) else result=buf
+
+  result = str_sub(result,',',',"')   ;  CLUGE  - Inserting missing quites. - Delete line after Tony fixes ion gun code
+  if debug(4,self.verbose,msg='test') then begin
+    print,string(buf)
+    print,result
+    ;result= '{"TIME":"2023-03-18T00:01:41.401Z","GUN_I":0.10,"GUN_V":1e-4}'  ; remove after ion gun testing
+  endif
+  result = json_parse(string(result),/fold_case,/debug)
+  if self.convert_to_float then begin
+    keys = result.keys()
+    foreach val,result,k do begin
+      if isa(val,'double') then result[k] = float(val)
+    endforeach
+  endif
+  if result.haskey('TIME') && isa(result['TIME'],/string) then result['TIME'] = time_double(result['TIME'])
+  if self.convert_to_struct then result = result.tostruct()
+  return,result
+end
+
+
 
 pro json_reader::read,source,source_dict=source_dict
 
- ; if ~isa(source_dict,'dictionary') then begin
-    
-    
- ; endif
   
   nb = n_elements(source)
   nbytes = 0ul
@@ -25,27 +56,39 @@ pro json_reader::read,source,source_dict=source_dict
   firstsample = self.dyndata.size eq 0
   
   while isa( (buf = self.read_line(source,pos=nbytes) )   ) do begin
-    dprint,verbose=self.verbose,dlevel=3,nbytes,string(buf)
-    if debug(3,self.verbose,msg='Hex: '+strtrim(n_elements(buf))) then begin
+    dprint,verbose=self.verbose,dlevel=4,nbytes,string(buf)
+    if debug(4,self.verbose,msg='Hex: '+strtrim(n_elements(buf))) then begin
       hexprint,buf      
     endif
-    strct = json_parse(buf,/tostruct)
-    str_element,/add_replace,strct,'time',time_double(strct.time)
-    if isa(self.dyndata,'dynamicarray') then self.dyndata.append, strct
+    if self.run_proc then begin
+      result = self.translate(buf)
+      if debug(4,self.verbose,MSG='test: ') then printdat,result
+      if isa(self.dyndata,'dynamicarray') then self.dyndata.append, result      
+    endif
     nbytes += n_elements(buf)
     npkts += 1
   endwhile
-  ;printdat,strct
   self.npkts += npkts
   self.nbytes += nbytes
   if self.isasocket then begin
     self.msg = time_string(systime(1),tformat='hh:mm:ss ')+strtrim(nbytes,2)+' bytes'
   endif
-  if keyword_set(firstsample) && self.dyndata.size gt 0 then store_data, self.name,data=self.dyndata,tagnames='*',time_tag='time'
+
+  if keyword_set(firstsample) && self.dyndata.size gt 0 then store_data, self.name,data=self.dyndata,tagnames=self.tplot_tagnames,time_tag='time'
 
 end
 
 
+function json_reader::init,name,_extra=ex
+  dprint,'hello'
+  void = self.socket_reader::init(name,_extra=ex)
+  self.convert_to_struct = 1
+  self.convert_to_float = 1
+  self.tplot_tagnames = '*'
+  self.eol=byte(10)
+  return,1
+
+end
 
 
 
@@ -55,7 +98,9 @@ PRO json_reader__define
     inherits socket_reader, $    ; superclass
     ;ddata: obj_new(),  $
     ;powersupply_num:0    $           ; not actually used
-    dummy: 0  $
+    tplot_tagnames: '', $
+    convert_to_struct:0,  $
+    convert_to_float:0  $
   }
 END
 

@@ -36,7 +36,7 @@ pro ccsds_reader::read,source,source_dict=parent_dict
   source_dict = self.source_dict
 
   if ~source_dict.haskey('sync_ccsds_buf') then source_dict.sync_ccsds_buf = !null   ; this contains the contents of the buffer from the last call
-  run_proc=1
+  ;run_proc=1
 
   on_ioerror, nextfile
   time = systime(1)
