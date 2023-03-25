@@ -47,6 +47,8 @@
 ;                the second dimension.  Otherwise, sum over the second dimension.
 ;                NaN's are treated as missing data (see MEAN and TOTAL).
 ;
+;       ZERO:    Treat NaN's as zeroes.  This affects the mean but not the sum.
+;
 ;       OFFSET:  Value to subtract from the data before calculating statistics.
 ;                Default = 0.
 ;
@@ -104,15 +106,15 @@
 ;       SILENT:  Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-09 14:39:45 -0800 (Thu, 09 Mar 2023) $
-; $LastChangedRevision: 31615 $
+; $LastChangedDate: 2023-03-24 07:38:27 -0700 (Fri, 24 Mar 2023) $
+; $LastChangedRevision: 31659 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/tmean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
 pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hist=hist, $
                 nbins=nbins, npts=npts, silent=silent, minpts=minpts, dst=dst, cluster=cluster, $
-                t0=t0, t1=t1, maxdz=maxdz, diag=diag, keep=keep, ind=dndx, avg=doavg
+                t0=t0, t1=t1, maxdz=maxdz, diag=diag, keep=keep, ind=dndx, avg=doavg, zero=zero
 
   @swe_snap_common
 
@@ -188,6 +190,11 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
     dimsum = 1
   endif else dimsum = 0
   doavg = keyword_set(doavg)
+
+  if keyword_set(zero) then begin
+    zndx = where(~finite(dat.y), count)
+    if (count gt 0L) then dat.y[zndx] = 0.
+  endif
 
 ; Create plot window(s)
 

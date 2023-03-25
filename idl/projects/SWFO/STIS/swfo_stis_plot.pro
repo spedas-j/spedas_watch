@@ -119,9 +119,13 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
         ch = channels[c]
         str_element,dat,ch.name,y
         str_element,dat,ch.name+'_err',dy
-        str_element,dat,ch.name+'_nrg',x
-        str_element,dat,ch.name+'_dnrg',dx
-        ;str_element,dat,ch.name+'_adc',x
+        if 1 then begin
+          str_element,dat,ch.name+'_nrg',x
+          str_element,dat,ch.name+'_dnrg',dx         
+        endif else begin
+          str_element,dat,ch.name+'_adc',x
+          str_element,dat,ch.name+'_dadc',dx
+        endelse
         if strupcase(units) eq 'EFLUX' then  scale = x /1000 else scale = 1
         y = y * scale
         y = y > ymin/10.

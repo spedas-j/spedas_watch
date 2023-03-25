@@ -24,7 +24,8 @@
 ;
 ;   INTENSITY: Show intensity in a separate window.
 ;
-;   KEY:       Structure of win options.
+;   KEY:       Structure of win options.  Window dimensions of 600x600
+;              cannot be overridden.
 ;
 ;   CNUM:      Returns the window number chosen for the color table plot.
 ;
@@ -37,8 +38,8 @@
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-13 13:23:02 -0700 (Mon, 13 Mar 2023) $
-; $LastChangedRevision: 31624 $
+; $LastChangedDate: 2023-03-24 07:34:01 -0700 (Fri, 24 Mar 2023) $
+; $LastChangedRevision: 31657 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
@@ -51,22 +52,32 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
   crev = keyword_set(color_reverse)
   wnum = !d.window
 
-  cwinkey = {secondary:1, xsize:600, ysize:600, dx:10, dy:-10}
+  cwinkey = {secondary:1, dx:10, dy:-10}
   if (size(key,/type) eq 8) then begin
     ktag = tag_names(key)
     for j=0,(n_elements(ktag)-1) do str_element, cwinkey, ktag[j], key.(j), /add
   endif
-  twinkey = {xsize:cwinkey.xsize, ysize:cwinkey.ysize, dx:10, top:1}
+  str_element, cwinkey, 'xsize', 600, /add
+  str_element, cwinkey, 'ysize', 600, /add
+  twinkey = {xsize:600, ysize:600, dx:10, top:1}
 
-; If previous window(s) have been deleted, then forget them
+; If previous window(s) have been deleted or resized, then forget them
 
   if keyword_set(reset) then begin
     undefine, cnum
     undefine, tnum
   endif else begin
     device, window_state=wstate
-    if (size(cnum,/type) ne 0) then if ~wstate[cnum] then undefine, cnum
-    if (size(tnum,/type) ne 0) then if ~wstate[tnum] then undefine, tnum
+    if (size(cnum,/type) ne 0) then if wstate[cnum] then begin
+        wset, cnum
+        if ((!d.x_size ne 600) || (!d.y_size ne 600)) then undefine, cnum
+        wset, wnum
+      endif else undefine, cnum
+    if (size(tnum,/type) ne 0) then if wstate[tnum] then begin
+        wset, tnum
+        if ((!d.x_size ne 600) || (!d.y_size ne 600)) then undefine, tnum
+        wset, wnum
+      endif else undefine, tnum
   endelse
 
 ; Load the requested color table
@@ -150,11 +161,19 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 ; Show intensity plot
 
   if keyword_set(intensity) then begin
+    line_colors, 5
+    x = findgen(256)
+    n = 100./sqrt(3.*(255.^2.))
+    bot = cols.bottom_c
+    top = cols.top_c
     if (size(tnum,/type) eq 0) then win,tnum,/free,relative=cnum,key=twinkey else wset,tnum
     tnum = !d.window & tnum2 = tnum
-    plot,[-1.],[-1.],xrange=[0,256],/xsty,yrange=[0,100],/ysty,charsize=1.3, $
+    plot,[-1.],[-1.],xrange=[0,256],/xsty,yrange=[0,100],/ysty,charsize=1.4, $
          title=msg,ytitle='Intensity (%)',xtitle='Color Index',xticks=4,xminor=8
-    oplot,findgen(256),i*100./sqrt(3.*(255.^2.)),psym=10,color=4
+    oplot,x,i*n,psym=10
+    oplot,x[bot:top],float(r[bot:top])*n,psym=10,color=6
+    oplot,x[bot:top],float(g[bot:top])*n,psym=10,color=4
+    oplot,x[bot:top],float(b[bot:top])*n,psym=10,color=2
   endif
 
 ; Restore the initial color table and line colors

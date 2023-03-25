@@ -1,9 +1,12 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-03-20 01:52:33 -0700 (Mon, 20 Mar 2023) $
-;$LastChangedRevision: 31640 $
+;$LastChangedDate: 2023-03-24 08:24:19 -0700 (Fri, 24 Mar 2023) $
+;$LastChangedRevision: 31661 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
-pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , trange=trange,opts=opts,make_ncdf=make_ncdf, debug=debug,run_proc=run_proc
+pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
+  trange=trange,opts=opts,make_ncdf=make_ncdf, debug=debug,run_proc=run_proc, $
+  offline=offline
+  
 
   if keyword_set(debug) then stop
   if n_elements(trange) eq 0 then trange=2   ; default to last 2 hours
@@ -39,12 +42,12 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
     ss_type = opts.station+'/'+opts.file_type
     case ss_type of
       'S0/cmblk': begin
-        opts.port       = 2432
+        opts.port       = 2025
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S0/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
       end
       'S1/cmblk': begin
-        opts.port       = 2433
+        opts.port       = 2125
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S1/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
       end
@@ -54,7 +57,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         opts.fileformat = 'S2/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
       end
       'S0/gsemsg': begin
-        opts.port       =   2028
+        opts.port       = 2028
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S0/gsemsg/YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
       end
@@ -68,18 +71,18 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S0/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
       end
-      'S0/sccsds': begin
-        opts.port =       2027
-        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
-        opts.fileformat = 'S0/sccsds/YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
-      end
       'S1/ccsds': begin
         opts.port =        2129
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S1/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
       end
+      'S0/sccsds': begin
+        opts.port =       2027
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S0/sccsds/YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
+      end
       'S1/sccsds': begin
-        opts.port =         2127
+        opts.port =       2127
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S1/sccsds/YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
       end
@@ -188,7 +191,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'cmblk': begin
         rdr  = cmblk_reader(port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
         rdr.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)
-        rdr.add_handler, 'KEYSIGHTPS' ,  cmblk_keysight('Keysight',/no_widget)
+        rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight('Keysight',/no_widget)
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files
@@ -217,8 +220,10 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         tplot_options,title='Real Time (Sync CCSDS)'
       end
       'ncdf': begin
+        prefix = 'ncdf_'+level+'_'
+        ;prefix = 'swfo_'
         ncdf_data = swfo_ncdf_read(filenames=filenames)
-        store_data,'ncdf_'+name+'_'+level+'_',data=ncdf_data,tagnames = '*'
+        store_data,prefix+name+'sci_',data=ncdf_data,tagnames = '*'
       end
       else:  dprint,'Unknown file format'
     endcase

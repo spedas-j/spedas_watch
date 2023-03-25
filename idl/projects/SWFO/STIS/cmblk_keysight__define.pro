@@ -68,11 +68,19 @@ pro cmblk_keysight::handle,payload,source_dict = source_dict
 
     if debug(4,self.verbose,msg=self.name + ' handler') then begin
       ;print,strtrim(psnum) + '  '+string(str)
+      printdat,vals
       ;printdat,vals
-      print,vals
     endif
   endif
 end
+
+
+function cmblk_keysight::init,name,_extra=ex
+  ret = self.socket_reader::init(name,_extra=ex)
+  self.eol=10
+  return,ret
+end
+
 
 
 

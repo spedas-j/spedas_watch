@@ -203,7 +203,7 @@ pro socket_reader::read, buffer, source_dict=source_dict
       break
     endelse
 
-    self.handle,buf
+    self.handle,buf,source_dict=source_dict
 
     dprint,verbose=self.verbose,dlevel=4,self.msg,/no_check
     ;eofile = eof(self.input_lun)

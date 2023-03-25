@@ -16,8 +16,11 @@
 ;
 ;OVERVIEW:
 ;
-;   Tplot and many associated routines assume that there are 256 RGB colors, organized as
-;   follows:
+;   Chances are you have a TrueColor display that can produce 256^3 = 16,777,216 colors by
+;   adding red, green and blue levels, each from 0 to 255.  Tplot and many associated 
+;   routines use a color table, which is a 3x256 array consisting of a small subset of the
+;   possible colors.  Tplot reserves eight colors: one for the foreground color, one for the
+;   background color, and six for drawing lines.  The rest make up the color table:
 ;
 ;       Color           Purpose                             Modify With
 ;      --------------------------------------------------------------------------
@@ -31,10 +34,11 @@
 ;   background, set !p.background = 255 and !p.color = 0.  Do the opposite for a dark
 ;   background.  Use revvid to toggle between these options.
 ;
-;   The standard catalog has table numbers from 0 to 74, while the CSV catalog has table 
-;   numbers from 0 to 118.  These ranges overlap, so we need some way to separate them.  
-;   I chose to add 1000 to the CSV table numbers, so CSV table 78 becomes 1078, etc.
-;   There is also substantial overlap in the tables themselves:
+;   There are many possible color tables, because each table uses only 248 out of more than
+;   16 million available colors.  The standard catalog has table numbers from 0 to 74, while
+;   the CSV catalog has table numbers from 0 to 118.  These ranges overlap, so we need some
+;   way to separate them.  I chose to add 1000 to the CSV table numbers, so CSV table 78
+;   becomes 1078, etc.  There is also substantial overlap in the tables themselves:
 ;
 ;        Standard Tables      CSV Tables       Note
 ;      ----------------------------------------------------------------
@@ -69,24 +73,25 @@
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-05 09:48:51 -0800 (Sun, 05 Mar 2023) $
-; $LastChangedRevision: 31583 $
+; $LastChangedDate: 2023-03-24 07:36:37 -0700 (Fri, 24 Mar 2023) $
+; $LastChangedRevision: 31658 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
-;-
 
 pro color_table_crib
 
-  print, "This crib is not intended as a procedure.  Read the contents instead."
+  print, 'This routine is not intended to be a procedure.  Read the contents instead.'
   return
 
 ; Place the following lines in your idl_startup.pro to initialize your device and color
 ; table.  Of course, you can choose any of >100 color tables (reversed if desired), any of
-; predefined line color schemes, or completely custom line colors.  This example sets a
+; the predefined line color schemes, or completely custom line colors.  This example sets a
 ; dark background, but many people prefer a light background.
 
 device,decompose=0,retain=2   ; specific to MacOS (settings for other OS's might be different)
+                              ;   decompose=0 --> use color table with TrueColor display
+                              ;   retain=2 --> IDL provides backing store (safest option)
 initct,1074,line=5,/rev,/sup  ; define color table and fixed line colors (suppress error message)
 !p.background = 0             ; use tplot fixed color for background (0 = black by default)
 !p.color = 255                ; use tplot fixed color for foreground (255 = white by default)
@@ -109,6 +114,7 @@ line_colors, 6
 revvid
 
 ; Use gray instead of white for the background, which looks better in some situations.
+; The default gray level is [211,211,211].
 
 revvid, /white  ; if needed
 line_colors, 5, /graybkg
@@ -116,7 +122,7 @@ line_colors, 5, /graybkg
 ; Use a custom gray level for the background.
 
 revvid, /white  ; if needed
-line_colors, 5, mycolors={ind:255, rgb:[198,198,198]}
+line_colors, 5, graybkg=[198,198,198]
 
 ; Poke arbitrary RGB colors into indices 1 and 4 of the current line color scheme.
 
@@ -164,3 +170,4 @@ options, var1, 'color_table', -1
 options, var1, 'line_colors', -1
 
 end ; of crib
+;-

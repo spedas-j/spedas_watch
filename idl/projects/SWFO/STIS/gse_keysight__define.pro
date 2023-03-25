@@ -41,7 +41,7 @@ pro gse_keysight::read,payload,source_dict = source_dict
     time1 = cmbhdr.time
     psnum = fix(cmbhdr.source)
     ss = strsplit(/extract,str,' ')
-    if n_elements(ss) eq 14 then begin
+    if n_elements(ss) eq 13 then begin
       time2 = time_double(ss[0]+' '+ss[1])
       vals = float(ss[2:*])
       sample.time = time1
@@ -68,8 +68,8 @@ pro gse_keysight::read,payload,source_dict = source_dict
 
     if debug(4,self.verbose,msg=self.name + ' handler') then begin
       ;print,strtrim(psnum) + '  '+string(str)
-      ;printdat,vals
-      print,vals
+      printdat,vals
+      ;print,vals
     endif
   endif
 end
