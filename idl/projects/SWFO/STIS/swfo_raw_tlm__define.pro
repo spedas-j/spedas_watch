@@ -6,8 +6,34 @@
 
 
 function swfo_raw_tlm::raw_tlm_struct,buf
-  ;printdat,buf
-  gse_pkt = {time:0d,gap:0}
+  dprint,dlevel=4,verbose=self.verbose,buf ;,dwait=1
+  words = fix(buf,0,12)
+  byteorder,words,/swap_if_little_endian
+  days =   swfo_data_select(buf,0,24)
+  msec =   swfo_data_select(buf,24,32)
+  usec =   swfo_data_select(buf,24+32,16)
+  tbd  =   swfo_data_select(buf,9*8, 8)
+  rev  =   swfo_data_select(buf,10*8,8)
+  flags =  swfo_data_select(buf,11*8,24)
+  rate =   swfo_data_select(buf,14*8,16)
+  active=  swfo_data_select(buf,16*8,8)
+  TBD2  =   swfo_data_select(buf,8*17,8)
+  TBDs  =   swfo_data_select(buf,16*9+indgen(3),16)
+;  tbd9   =  swfo_data_select(buf,9*16,16)  ;
+;  tbd10  =  swfo_data_select(buf,10*16,16)
+;  tbd11  =  swfo_data_select(buf11*16,16)
+;  tbd12  =  swfo_data_select(buf,12*16,16)
+  
+  days = days- (365*12L+3)
+  time = days * 3600d*24+msec/1000d 
+  gse_pkt = {time:time, $
+    rev:  rev, $
+    flag_bits:  flags, $
+    rate:  rate, $
+    active: active,  $
+    tbd2  : tbd2, $
+    tbds  : tbds, $
+     gap:0}
   return,gse_pkt
 
 end
@@ -67,7 +93,7 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
   source_dict = self.source_dict
 
   if ~source_dict.haskey('sync_ccsds_buf') then source_dict.sync_ccsds_buf = !null   ; this contains the contents of the buffer from the last call
-  run_proc=1
+  ;run_proc=1
 
   on_ioerror, nextfile
   time = systime(1)
@@ -116,6 +142,7 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
           hexprint,buf
         endif
         raw_tlm_header = self.raw_tlm_struct(buf)
+        if isa(self.dyndata,'dynamicarray') then self.dyndata.append,raw_tlm_header
         source_dict.gse_header  = raw_tlm_header
       end
       'c3'x: begin
@@ -155,6 +182,17 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
           endif
           ccsds_buf = source_dict.sync_ccsds_buf[4:pkt_size+4-1]  ; not robust!!!
           if self.run_proc then   swfo_ccsds_spkt_handler,ccsds_buf,source_dict=source_dict
+          if source_dict.haskey('ccsds_writer') && obj_valid(source_dict.ccsds_writer) then begin   ; hook to generate ccsds files 
+            ccsds_writer = source_dict.ccsds_writer
+            ccsds_writer.directory = self.directory
+            ccsds_writer.time_received = source_dict.gse_header.time
+            if ccsds_writer.getattr('output_lun') eq 0 then begin
+               dprint,'Are you sure about this?  
+               ccsds_writer.output_lun = -1
+               ;stop
+            endif
+            ccsds_writer.write,ccsds_buf
+          endif
           if n_elements(source_dict.sync_ccsds_buf) eq pkt_size+4 then source_dict.sync_ccsds_buf = !null $
           else    source_dict.sync_ccsds_buf = source_dict.sync_ccsds_buf[pkt_size+4:*]
         endwhile

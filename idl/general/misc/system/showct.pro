@@ -38,8 +38,8 @@
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-24 07:34:01 -0700 (Fri, 24 Mar 2023) $
-; $LastChangedRevision: 31657 $
+; $LastChangedDate: 2023-03-25 15:25:34 -0700 (Sat, 25 Mar 2023) $
+; $LastChangedRevision: 31666 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
@@ -161,7 +161,8 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 ; Show intensity plot
 
   if keyword_set(intensity) then begin
-    line_colors, 5
+    lines = 5
+    line_colors, lines
     x = findgen(256)
     n = 100./sqrt(3.*(255.^2.))
     bot = cols.bottom_c

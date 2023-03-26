@@ -1,15 +1,15 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-03-24 08:24:19 -0700 (Fri, 24 Mar 2023) $
-;$LastChangedRevision: 31661 $
+;$LastChangedDate: 2023-03-25 13:53:18 -0700 (Sat, 25 Mar 2023) $
+;$LastChangedRevision: 31665 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
-  trange=trange,opts=opts,make_ncdf=make_ncdf, debug=debug,run_proc=run_proc, $
+  trange=trange,opts=opts,make_ncdf=make_ncdf,make_ccsds=make_ccsds, debug=debug,run_proc=run_proc, $
   offline=offline
   
 
   if keyword_set(debug) then stop
-  if n_elements(trange) eq 0 then trange=2   ; default to last 2 hours
+  if n_elements(trange) eq 0 then trange=2.   ; default to last 2 hours
   if ~keyword_set(file_type) then file_type = 'gsemsg'
   if ~keyword_set(station) then station='S0'
   if ~keyword_set(ncdf_resolution) then ncdf_resolution = 1800
@@ -168,16 +168,25 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         swfo_ptp_recorder,title=opts.title,port=opts.port, host=opts.host, exec_proc='swfo_ptp_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
       end
       'gsemsg': begin
-        rdr = swfo_raw_tlm('gsemsg',_extra= opts.tostruct())
+        rdr = swfo_raw_tlm('gsemsg',_extra= opts.tostruct(),directory=directory)
         opts.rdr = rdr
-        if keyword_set(makencdf) then begin
-
+        if keyword_set(make_ccsds) then begin   ; this is a special hook to create ccsds files from gsemsg files
+          ccsds_writer = ccsds_reader(directory=directory,fileformat = station+'/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat',run_proc=0)
+          rdr.source_dict.ccsds_writer = ccsds_writer
+          dprint,'Are you sure about this?'
+          ;stop  ; Are you sure about this?
         endif
+
+
+        ;if keyword_set(makencdf) then begin
+        ; ccsds_rdr = ccsds_reader(directory='swfo/data/sci/stis/prelaunch/realtime/',fileformat='S0/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat')
+        ;endif
         if opts.haskey('filenames') then begin
           rdr.file_read,opts.filenames
         endif
         swfo_apdat_info,/all,/print
         swfo_apdat_info,/all,/create_tplot_vars
+        
       end
       'ptp': begin
         dprint,dlevel=0, 'Warning:  This file type is Obsolete and the code is not tested;

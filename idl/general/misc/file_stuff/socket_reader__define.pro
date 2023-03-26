@@ -5,7 +5,7 @@
 ; Widget tool that opens a socket and reads streaming data from a server (host) and can save it to a file
 ; or send to a user specified routine. This tool runs in the background.
 ; Keywords:
-;   SET_FILE_TIMERES : defines how often the current output file will be closed and a new one will be opened
+;   file_timeres : defines how often the current output file will be closed and a new one will be opened
 ;   DIRECTORY:  string prepended to fileformat when opening an output file.
 ; Author:
 ;    Davin Larson - January 2023
@@ -148,21 +148,20 @@ pro socket_reader::write ,buffer
   self.sum1_bytes += nb
   self.sum2_bytes += nb
 
-  if keyword_set(self.output_lun) then begin
+  if self.output_lun ne 0 then begin
     if self.file_timeres gt 0 then begin
       if self.time_received ge self.next_filechange then begin
         ; dprint,verbose=self.verbose,dlevel=2,time_string(self.time_received,prec=3)+ ' Time to change files.'
-        if self.output_lun then begin
-          self.open_output
+        if self.output_lun ne 0 then begin
+          self.open_output,time = self.time_received
         endif
       endif
       self.next_filechange = self.file_timeres * ceil(self.time_received / self.file_timeres)
     endif
-    if keyword_set(buffer) then begin
+    if keyword_set(buffer) && self.output_lun gt 0 then begin
       writeu,self.output_lun, buffer
-    endif else flush,self.output_lun
+    endif    ;else flush,self.output_lun
   endif
-  ; flush,self.output_lun
 end
 
 
@@ -223,7 +222,7 @@ end
 
 pro socket_reader::open_output,fileformat,time=time,close=close
 
-  dprint,verbose=self.verbose,dlevel=2,"Opening output for: "+self.name
+  dprint,verbose=self.verbose,dlevel=3,"Opening output for: "+self.name
 
   if self.output_lun gt 0 then begin   ; Close old file
     dprint,verbose=self.verbose,dlevel=2,'Closing file: "'+self.filename+'"'
@@ -300,11 +299,12 @@ PRO socket_reader::SetProperty, _extra=ex
 END
 
 
-pro socket_reader::GetProperty,name=name,verbose=verbose,dyndata=dyndata,time_received=time_received
+pro socket_reader::GetProperty,name=name,verbose=verbose,dyndata=dyndata,time_received=time_received,source_dict=source_dict
   if arg_present(name) then name=self.name
   if arg_present(dyndata) then dyndata=self.dyndata
   if arg_present(verbose) then verbose=self.verbose
   if arg_present(time_received) then time_received=self.time_received
+  if arg_present(source_dict) then source_dict=self.source_dict
 end
 
 pro socket_reader::help , item
@@ -654,9 +654,9 @@ END
 
 
 function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=port,fileformat=fileformat,exec_proc=exec_proc, $
-  set_connect=set_connect, set_output=set_output, pollinterval=pollinterval, set_file_timeres=set_file_timeres ,$
-  get_procbutton = get_procbutton,set_procbutton=set_procbutton,directory=directory, $
-  get_filename=get_filename,info=info,no_widget=no_widget,verbose=verbose
+  set_connect=set_connect, set_output=set_output, pollinterval=pollinterval, file_timeres=file_timeres ,$
+  run_proc=run_proc,directory=directory, $
+  no_widget=no_widget,verbose=verbose
 
   if ~keyword_set(name) then name=typename(self)
   self.name  =name
@@ -667,8 +667,8 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
   if not keyword_set(host) then host = ''
   if not keyword_set(port) then port = '2000'
   if not keyword_set(title) then title = name
-  if not keyword_set(set_file_timeres) then set_file_timeres=3600.d
-  self.file_timeres =set_file_timeres
+  if not keyword_set(file_timeres) then file_timeres=3600.d
+  self.file_timeres =file_timeres
   port=strtrim(port,2)
   if not keyword_set(fileformat) then fileformat = name+'/YYYY/MM/DD/'+name+'_YYYYMMDD_hh.dat'
   self.hostname = HOST
@@ -728,13 +728,13 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
     if n_elements(pollinterval) ne 0 then widget_control,ids.poll_int,set_value=strtrim(pollinterval,2)
     if n_elements(set_output)  eq 1 && (keyword_set(info.output_lun) ne keyword_set(set_output )) then socket_reader_event, { id:ids.dest_button, top:ids.base }
     if n_elements(set_connect) eq 1 && (keyword_set(info.input_lun) ne keyword_set(set_connect)) then socket_reader_event, { id:ids.host_button, top:ids.base }
-    if n_elements(set_procbutton) eq 1 then begin
-      self.run_proc = set_procbutton
-      widget_control,ids.proc_button,set_button=set_procbutton
-      socket_reader_event, { top:ids.base, id:ids.proc_button, select: keyword_set(set_procbutton) }
+    if n_elements(run_proc) eq 1 then begin
+      self.run_proc = run_proc
+      widget_control,ids.proc_button,set_button=run_proc
+      socket_reader_event, { top:ids.base, id:ids.proc_button, select: keyword_set(run_proc) }
     endif
-    if n_elements(set_file_timeres) then begin
-      self.file_timeres = set_file_timeres
+    if n_elements(file_timeres) then begin
+      self.file_timeres = file_timeres
     endif
     if n_elements(directory) then begin
       self.directory = directory
