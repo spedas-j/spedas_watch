@@ -79,12 +79,13 @@ pro json_reader::read,source,source_dict=source_dict
 end
 
 
-function json_reader::init,name,_extra=ex
-  dprint,'hello'
-  void = self.socket_reader::init(name,_extra=ex)
+function json_reader::init,_extra=ex,tplot_tagnames = tplot_tagnames
+  ;dprint,'hello'
+  void = self.socket_reader::init(_extra=ex)
+  if ~isa(tplot_tagnames,'string') then tplot_tagnames='*'
   self.convert_to_struct = 1
   self.convert_to_float = 1
-  self.tplot_tagnames = '*'
+  self.tplot_tagnames = tplot_tagnames
   self.eol=byte(10)
   return,1
 

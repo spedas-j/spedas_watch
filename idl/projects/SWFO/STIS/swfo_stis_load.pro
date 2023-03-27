@@ -1,11 +1,11 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-03-25 13:53:18 -0700 (Sat, 25 Mar 2023) $
-;$LastChangedRevision: 31665 $
+;$LastChangedDate: 2023-03-25 23:26:21 -0700 (Sat, 25 Mar 2023) $
+;$LastChangedRevision: 31667 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
   trange=trange,opts=opts,make_ncdf=make_ncdf,make_ccsds=make_ccsds, debug=debug,run_proc=run_proc, $
-  offline=offline
+  offline=offline,no_exec=no_exec
   
 
   if keyword_set(debug) then stop
@@ -20,6 +20,8 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
   if ~opts.haskey('station') then opts.station = station
   if ~opts.haskey('file_type') then opts.file_type = file_type
 
+  if isa(run_proc) then opts.run_proc = run_proc
+
   stis = 1
 
   opts.file_resolution = 3600     ; default file resolution for L0 files stored at Berkeley/ssl
@@ -30,7 +32,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
     ;opts.host = 'swifgse1.ssl.berkeley.edu'
     opts.root_dir = root_data_dir()
     opts.url = 'http://research.ssl.berkeley.edu/data/'
-    opts.title = 'SWFO'
+    ;opts.title = 'SWFO'
     
     case opts.station of
       'S0':     opts.host = 'swifgse1.ssl.berkeley.edu'
@@ -159,28 +161,25 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
 
 
 
-    directory = opts.root_dir + opts.reldir
+    opts.directory = opts.root_dir + opts.reldir
     file_type = opts.file_type
     rdr = 0
     case file_type of
       'ptp_file': begin   ; obsolete - Do not use
         message,"Obsolete - Don't use this",/cont
-        swfo_ptp_recorder,title=opts.title,port=opts.port, host=opts.host, exec_proc='swfo_ptp_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
+        swfo_ptp_recorder,_extra=opts.tostruct(), exec_proc='swfo_ptp_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
       end
       'gsemsg': begin
-        rdr = swfo_raw_tlm('gsemsg',_extra= opts.tostruct(),directory=directory)
+        rdr = swfo_raw_tlm(_extra= opts.tostruct())
         opts.rdr = rdr
+        
         if keyword_set(make_ccsds) then begin   ; this is a special hook to create ccsds files from gsemsg files
-          ccsds_writer = ccsds_reader(directory=directory,fileformat = station+'/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat',run_proc=0)
+          ccsds_writer = ccsds_reader(directory=opts.directory,fileformat = station+'/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat',run_proc=0)
           rdr.source_dict.ccsds_writer = ccsds_writer
           dprint,'Are you sure about this?'
           ;stop  ; Are you sure about this?
         endif
 
-
-        ;if keyword_set(makencdf) then begin
-        ; ccsds_rdr = ccsds_reader(directory='swfo/data/sci/stis/prelaunch/realtime/',fileformat='S0/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat')
-        ;endif
         if opts.haskey('filenames') then begin
           rdr.file_read,opts.filenames
         endif
@@ -195,12 +194,12 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         endif
         swfo_apdat_info,/all,/rt_flag
         swfo_apdat_info,/all,/print
-        swfo_recorder,title=opts.title,port=opts.port, host=opts.host, exec_proc='swfo_gsemsg_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
+        swfo_recorder,port=opts.port, host=opts.host, exec_proc='swfo_gsemsg_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
       end
       'cmblk': begin
-        rdr  = cmblk_reader(port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
-        rdr.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)
-        rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight('Keysight',/no_widget)
+        rdr  = cmblk_reader( _extra = opts.tostruct())
+        rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)
+        rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight(name='Keysight',/no_widget)
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files
@@ -209,7 +208,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         tplot_options,title='Real Time (CMBLK)'
       end
       'ccsds': begin
-        rdr  = ccsds_reader(port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
+        rdr  = ccsds_reader(_extra = opts.tostruct() )
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files
@@ -220,7 +219,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'sccsds': begin
         dprint,'Warning - this code segment has not been tested.'
         sync = byte(['1a'x,'cf'x,'fc'x,'1d'x])
-        rdr  = ccsds_reader('Sync_CCSDS',sync=sync,port=opts.port, host=opts.host,directory=directory,fileformat=opts.fileformat)
+        rdr  = ccsds_reader('Sync_CCSDS',sync=sync, _extra=opts.toStruct())
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files
@@ -237,10 +236,9 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       else:  dprint,'Unknown file format'
     endcase
 
-
     str_element,opts,'exec_text',exec_text
-    if keyword_set(exec_text) then begin
-      exec, exec_text = exec_text,title=opts.title
+    if ~keyword_set(no_exec) && keyword_set(exec_text) then begin
+      exec, exec_text = exec_text;,title=opts.title
     endif
 
     swfo_stis_tplot,/set,'dl3'

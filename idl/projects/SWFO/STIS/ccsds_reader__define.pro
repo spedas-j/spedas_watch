@@ -11,12 +11,10 @@
 
 
 ;+
-;  PROCEDURE SWFO_ccsds
-;  This procedure is only specific to SWFO in the "sync bytes" found in the MSG header.  Otherwise it could be considered generic
-;  It purpose is to read bytes from a previously opened MSG file OR stream.  It returns at the end of file (for files) or when
-;  no more bytes are available for reading from a stream.
-;  It should gracefully handle sync errors and find sync up on a MSG header.
-;  When a complete MSG header and its enclosed CCSDS packet are read in, it will execute the routine "swfo_ccsds_spkt_handler"
+;  PROCEDURE ccsds_reader
+;  This object is a collecton of routines to process socket stream and files that have CCSDS packets
+;  is only specific to SWFO in the default decom_procedure on initialization.
+;  When a complete ccsds packet is read in  it will execute the routine "swfo_ccsds_spkt_handler"
 ;-
 
 pro ccsds_reader::read,source,source_dict=parent_dict
@@ -31,12 +29,9 @@ pro ccsds_reader::read,source,source_dict=parent_dict
     header = {time: !values.d_nan , gap:0 }
   endelse
 
-  ;  endelse
-
   source_dict = self.source_dict
 
   if ~source_dict.haskey('sync_ccsds_buf') then source_dict.sync_ccsds_buf = !null   ; this contains the contents of the buffer from the last call
-  ;run_proc=1
 
   on_ioerror, nextfile
   time = systime(1)
@@ -76,7 +71,7 @@ pro ccsds_reader::read,source,source_dict=parent_dict
     buf = self.read_nbytes(pkt_size,source,pos=nbytes)
     ccsds_buf = [msg_buf,buf]
 
-    if  self.run_proc then   swfo_ccsds_spkt_handler,ccsds_buf,source_dict=source_dict
+    if  self.run_proc then  call_procedure,self.decom_procedure,ccsds_buf,source_dict=source_dict
     ;if n_elements(source_dict.sync_ccsds_buf) eq pkt_size+4 then source_dict.sync_ccsds_buf = !null $
     ;else    source_dict.sync_ccsds_buf = source_dict.sync_ccsds_buf[pkt_size+4:*]
 
@@ -111,28 +106,23 @@ pro ccsds_reader::read,source,source_dict=parent_dict
 
 end
 
-;pro ccsds_reader::handle,buffer,source_dict=source_dict
-;
-;  dprint,dlevel=3,verbose=self.verbose,n_elements(buffer),' Bytes for Handler: "',self.name,'"'
-;  self.nbytes += n_elements(buffer)
-;  self.npkts  += 1
-;
-;  if self.run_proc then begin
-;    self.raw_tlm_read,buffer,source_dict=source_dict
-;
-;    if debug(4,self.verbose,msg=self.name) then begin
-;      hexprint,buffer
-;    endif
-;  endif
-;
-;end
 
 
+
+function ccsds_reader::init,sync=sync,decom_procedure = decom_procedure,_extra=ex
+  ret=self.socket_reader::init(_extra=ex)
+
+  if keyword_set(decom_procedure) then  self.decom_procedure = decom_procedure else self.decom_procedure ='swfo_ccsds_spkt_handler'
+  self.nsync = n_elements(sync)
+  if self.nsync ne 0 then self.sync = sync 
+
+  return,1
+end
 
 PRO ccsds_reader__define
   void = {ccsds_reader, $
     inherits socket_reader, $    ; superclass
-    decom_procedure_name: '',  $
+    decom_procedure: '',  $
     sync:  bytarr(4),  $
     nsync:  0  $
   }

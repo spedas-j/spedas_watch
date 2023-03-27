@@ -653,7 +653,7 @@ END
 
 
 
-function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=port,fileformat=fileformat,exec_proc=exec_proc, $
+function socket_reader::init,name=name,title=title,ids=ids,host=host,port=port,fileformat=fileformat,exec_proc=exec_proc, $
   set_connect=set_connect, set_output=set_output, pollinterval=pollinterval, file_timeres=file_timeres ,$
   run_proc=run_proc,directory=directory, $
   no_widget=no_widget,verbose=verbose
@@ -714,7 +714,7 @@ function socket_reader::init,name,base=base,title=title,ids=ids,host=host,port=p
       WIDGET_CONTROL, self.base, /REALIZE
       widget_control, self.base, base_set_title=self.title_num
       XMANAGER, 'socket_reader', self.base,/no_block
-      dprint,dlevel=dlevel,self.title_num+'Widget started'
+      dprint,dlevel=1,verbose=self.verbose,self.title_num+'Widget started'
       base = self.base
     endif else begin
       widget_control, base, get_uvalue= info   ; get all widget ID's

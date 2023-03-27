@@ -39,29 +39,6 @@ function swfo_raw_tlm::raw_tlm_struct,buf
 end
 
 
-;function swfo_raw_tlm::read_nbytes,nb,source,pos=pos,output=output
-;  buf = !null
-;
-;  if ~isa(pos) then pos=0ul
-;  if isa(source,/array) then begin          ; source should be a an array of bytes
-;    n = nb < (n_elements(source) - pos)
-;    if n gt 0 then   buf = source[pos:pos+n-1]
-;    pos = pos+n
-;  endif else begin
-;    if isa(source) then begin                ; source should be a file LUN
-;      if file_poll_input(source,timeout=0) && ~eof(source) then begin
-;        buf = bytarr(nb)
-;        readu,source,buf,transfer_count=n
-;        pos = pos+n
-;      endif
-;    endif
-;  endelse
-;  if keyword_set(output) && keyword_set(buf) then writeu,output,buf
-;
-;  return,buf
-;end
-
-
 
 
 
