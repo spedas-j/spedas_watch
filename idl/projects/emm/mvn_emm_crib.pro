@@ -35,7 +35,7 @@ time_range = [start_time, finish_time]
 ;      install the EMUS data on your local machine
 
 ; This is where the files are kept on the SSL Berkeley network
-local_path = '/disks/hope/home/rlillis/emm/data/'
+local_path = '/disks/hope/home2/rlillis/emm/data/'
 
 ; choose the emission features you'd like to examine. A full
 ; list of them is found in the source code emm_emus_examine_disk.pro

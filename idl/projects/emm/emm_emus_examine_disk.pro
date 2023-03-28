@@ -644,6 +644,7 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
      
 ; If you additionally want to make perspective maps with the hammer or
 ; satellite projections
+     
      If keyword_set (hammer) or keyword_set (satellite)  then begin
         emm_emu_map_disk, Disk [p, *], bands_wanted = indgen(nb), zrange = $
                           brightness_range,zlog=zlog, $
