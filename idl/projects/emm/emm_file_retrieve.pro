@@ -200,13 +200,28 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
      month_strings =  numbered_filestring (start_month + indgen (nd), digits = 2)
      
   endif else begin 
-     ny1 = 13 - start_month
-     ny2 = end_month
-     nd = 13 + end_month - start_month
-     year_strings = [replicate (start_split [0],ny1), $
-                     replicate (end_split [0], ny2)]
-     month_strings = [numbered_filestring (start_month + indgen (ny1), digits = 2), $
-                      numbered_filestring (1+indgen (ny2), digits = 2)]
+     ny = 1+end_year - start_year;# years
+     nm = intarr (ny);# months
+     nm[0] = 13 - start_month;# months year 1
+     year_strings = replicate (start_split [0],nm[0])
+     month_strings = numbered_filestring (start_month + indgen (nm [0]), $
+                                          digits = 2)
+     for k = 1, ny-1 do begin        
+        if k lt ny -1 then begin
+           nm [k] = 12 
+           year_strings = [year_strings, replicate (roundst (start_year + k), 12)]
+           month_strings = [month_strings, $
+                            numbered_filestring (1+indgen (12), digits = 2)]
+        endif else begin
+           nm [k] = end_month
+           year_strings = [year_strings,replicate (end_split [0], nm[k])]
+           month_strings = [month_strings, $
+                            numbered_filestring (1+indgen (nm[k]), digits = 2)]
+        endelse
+        
+     endfor
+     nd = total (nm)
+                      
   endelse
 
 ; Now go through each directory
