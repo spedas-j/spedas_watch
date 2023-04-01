@@ -63,7 +63,7 @@ function swfo_stis_adc_map, data_sample=data_sample
 
   adcmap.codes = codes
   
-  dprint,'Generating new ADC map: ',codes
+  dprint,'Generating new ADC map: ',codes,dlevel=3
 
   ftoi_n = intarr(48,14)
   adc0_n = lonarr(48,14)
@@ -85,6 +85,7 @@ function swfo_stis_adc_map, data_sample=data_sample
   
   ;channel = orderedhash('o1',1,'o2',2,'o3',3,'f1',4,'f2',5,'f3',6)
   kev_per_adc = 59.5 / ( [25.12, 22.58, 25.65, 25.48, 23.61,  24.7 ] *8)
+  ;kev_per_adc = 5500. / ( [5500.,5500.,5500.,5500.,5500.,5500.] * 4)
   kev_per_adc = [!values.f_nan,kev_per_adc]
   geomfactor  = .1  * [.01,1,1,.01,1,1]
   geomfactor  = [!values.f_nan,geomfactor]

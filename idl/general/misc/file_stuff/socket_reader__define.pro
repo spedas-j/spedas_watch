@@ -160,7 +160,7 @@ pro socket_reader::write ,buffer
     endif
     if keyword_set(buffer) && self.output_lun gt 0 then begin
       writeu,self.output_lun, buffer
-    endif    ;else flush,self.output_lun
+    endif    else flush,self.output_lun
   endif
 end
 
