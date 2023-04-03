@@ -123,7 +123,7 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
                            output_directory = output_directory, $
                            disk = disk, buffer = buffer, jpeg = jpeg, $
                            dlat_output = dlat_output, l3 = l3, l2b =l2b,$
-                           roi = roi, save = save
+                           roi = roi, save = save, record_by_hand = record_by_hand
 
   if keyword_set (wv_range) and keyword_set (emission) then message, $
      'must choose either wavelength ranges or emission features, NOT BOTH'
@@ -193,7 +193,6 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
   osr = emm_file_retrieve (time_range,level = level, mode = 'osr', local_path = $
                            local_path)
                                 ;print, 'OSr complete'
-
 
 
   
@@ -396,10 +395,14 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
   endif
 
 ; we want to look at these in time order
-  order = sort (UNIX_times[file_indices[0,*]])
-  file_indices = file_indices [*, order]
-
-  
+  if set_count eq 1 then begin
+     order = sort (UNIX_times [file_indices]) 
+     file_indices = file_indices [order]
+  endif else begin 
+     order = sort (UNIX_times[file_indices[0,*]])
+     file_indices = file_indices [*, order]
+  endelse
+    
   for p = 0, set_count-1 do begin
 ; because -1 is used for times when there is no second or third swath
      n_swath = n_elements (where (file_indices [*, p] ge 0))

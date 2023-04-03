@@ -41,11 +41,14 @@ pro gse_keysight::read,payload,source_dict = source_dict
     time1 = cmbhdr.time
     psnum = fix(cmbhdr.source)
     ss = strsplit(/extract,str,' ')
+;printdat,str
     if n_elements(ss) eq 13 then begin
-      time2 = time_double(ss[0]+' '+ss[1])
-      vals = float(ss[2:*])
+      time2 = time_double(ss[0])
+      vals = float(ss[1:*])
+;print,vals
       sample.time = time1
-      sample.dtime = time2-time1
+      sample.dtime = time2-time1  + 7 *3600d   ; correct this after time is corrected
+ ;     dprint,sample.dtime
       sample.V =vals[[ 0,2,4,6,8,10] ]
       sample.I =vals[[ 1,3,5,7,9,11] ]   
       sample.v1 = vals[ 0 ]
