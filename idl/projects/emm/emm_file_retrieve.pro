@@ -165,21 +165,18 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
   if not keyword_set (mode) then message, 'need to specify mode'
 
 ; make sure the start and end dates are full days at least 2 hours apart
-  start_date = time_double (time_range [0])
-  end_date = Max ([time_double (time_range [1]), start_date +7200])
+  start_time = time_double (time_range [0])
+  end_time = Max ([time_double (time_range [1]), start_time +3600])
+  ;end_date = time_double (time_range [1])
 
-  Start_date = time_string (start_date, tformat = 'YYYY-MM-DD-hh')
-  end_date = time_string (end_date, tformat = 'YYYY-MM-DD-hh')
+  Start_date = time_string (start_time, tformat = 'YYYY-MM-DD-hh')
+  end_date = time_string (end_time, tformat = 'YYYY-MM-DD-hh')
 
 ; here's the location of the files on the UC Berkeley Space
 ; Sciences Lab network. Change if you want to use your local disk.
   if not keyword_set (local_path) then local_path = $
      '/disks/hope/home2/rlillis/emm/data/'
   
-  
-  start_time = time_double (start_date)
-  End_time = time_double (end_date)
-   
 ; need to figure out how many directories to check
   start_split = strsplit (start_date, '-',/extract)
   Start_year = round (float (start_split[0]))
@@ -336,6 +333,7 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
   UNIX_time = round (time_double (big_date_string, tformat = 'YYYYMMDDthhmmss'))
   good = where (UNIX_time gt 1e9 and UNIX_time gt start_time and $
                 UNIX_time lt end_time)
+  
   if good [0] eq -1 then return, 0
   order_good = sort (UNIX_time[Good])
   order = good [order_good]

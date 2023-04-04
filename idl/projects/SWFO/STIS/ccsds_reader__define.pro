@@ -42,7 +42,10 @@ pro ccsds_reader::read,source,source_dict=parent_dict
   remainder = !null
   nbytes = 0UL
   sync_errors =0ul
-  nb = 6
+  ns = self.nsync
+  sync_pattern = ns eq 0 ? !null : self.sync[0:ns-1]
+  source_dict.sync_pattern = sync_pattern
+  nb = ns + 6   ; length of sync bytes plus 6 byte ccsds header
   while isa( (buf= self.read_nbytes(nb,source,pos=nbytes) ) ) do begin
     if n_elements(buf) ne nb then begin
       dprint,verbose=self.verbose,'Invalid length of CCSDS header',dlevel=1
@@ -55,8 +58,9 @@ pro ccsds_reader::read,source,source_dict=parent_dict
       hexprint,buf
     endif
     msg_buf = [remainder,buf]
-    sz = msg_buf[4]*256L + msg_buf[5]
-    if (sz lt 10) || (sz gt 1100)  then  begin     ;; Lost sync - read one byte at a time
+    sz = msg_buf[4+ns]*256L + msg_buf[5+ns]
+    bad_sync = (ns gt 0) && ~array_equal(sync_pattern,msg_buf[0:ns-1] )
+    if bad_sync || (sz lt self.minsize) || (sz gt self.maxsize)  then  begin     ;; Lost sync - read one byte at a time
       remainder = msg_buf[1:*]
       nb = 1
       sync_errors += 1
@@ -66,10 +70,9 @@ pro ccsds_reader::read,source,source_dict=parent_dict
       continue
     endif
 
-    source_dict.sync_pattern = sync_pattern
     pkt_size = sz +1
     buf = self.read_nbytes(pkt_size,source,pos=nbytes)
-    ccsds_buf = [msg_buf,buf]
+    ccsds_buf = [msg_buf[ns:ns+5],buf]    ;   ccsds header and payload  (remove sync)
 
     if  self.run_proc then  call_procedure,self.decom_procedure,ccsds_buf,source_dict=source_dict
     ;if n_elements(source_dict.sync_ccsds_buf) eq pkt_size+4 then source_dict.sync_ccsds_buf = !null $
@@ -79,7 +82,7 @@ pro ccsds_reader::read,source,source_dict=parent_dict
     if debug(3,self.verbose,msg=strtrim(n_elements(ccsds_buf))) then begin
       hexprint,dlevel=3,ccsds_buf    ;,nbytes=32
     endif
-    nb = 6     ; initialize for next gse message
+    nb = ns+6     ; initialize for next read
   endwhile
 
   if sync_errors then begin
@@ -111,9 +114,16 @@ end
 
 function ccsds_reader::init,sync=sync,decom_procedure = decom_procedure,_extra=ex
   ret=self.socket_reader::init(_extra=ex)
-
+  if ret eq 0 then return,0
+  
   if keyword_set(decom_procedure) then  self.decom_procedure = decom_procedure else self.decom_procedure ='swfo_ccsds_spkt_handler'
   self.nsync = n_elements(sync)
+  self.maxsize = 4100
+  self.minsize = 10
+  if self.nsync gt 4 then begin
+    dprint,'Number of sync bytes must be <= 4'
+    return, 0
+  endif
   if self.nsync ne 0 then self.sync = sync 
 
   return,1
@@ -123,6 +133,8 @@ PRO ccsds_reader__define
   void = {ccsds_reader, $
     inherits socket_reader, $    ; superclass
     decom_procedure: '',  $
+    minsize: 0UL,  $
+    maxsize: 0UL,  $
     sync:  bytarr(4),  $
     nsync:  0  $
   }

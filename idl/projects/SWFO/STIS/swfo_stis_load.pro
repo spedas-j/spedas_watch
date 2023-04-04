@@ -1,11 +1,11 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-03-25 23:26:21 -0700 (Sat, 25 Mar 2023) $
-;$LastChangedRevision: 31667 $
+;$LastChangedDate: 2023-04-02 21:08:28 -0700 (Sun, 02 Apr 2023) $
+;$LastChangedRevision: 31695 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
   trange=trange,opts=opts,make_ncdf=make_ncdf,make_ccsds=make_ccsds, debug=debug,run_proc=run_proc, $
-  offline=offline,no_exec=no_exec
+  offline=offline,no_exec=no_exec,reader_object=rdr
   
 
   if keyword_set(debug) then stop
@@ -219,7 +219,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'sccsds': begin
         dprint,'Warning - this code segment has not been tested.'
         sync = byte(['1a'x,'cf'x,'fc'x,'1d'x])
-        rdr  = ccsds_reader('Sync_CCSDS',sync=sync, _extra=opts.toStruct())
+        rdr  = ccsds_reader(sync=sync, _extra=opts.toStruct())
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files
@@ -243,10 +243,13 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
 
     swfo_stis_tplot,/set,'dl3'
     !except=0
-    opts.plotparam=dictionary('routine_name','swfo_stis_plot')
-    opts.plotparam.read_object = rdr
+    
+    ; Setup plotting routine
+    param=dictionary('routine_name','swfo_stis_plot')
+    param.read_object = rdr
+    swfo_stis_plot,param=param
     dprint,'For visualization, run:'
-    print,'ctime,/silent,t,routine_param=opts.plotparam'
+    print,'ctime,/silent,t,routine_name="swfo_stis_plot"'
 
   endif
 

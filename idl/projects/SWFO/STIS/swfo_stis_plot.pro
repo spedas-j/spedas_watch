@@ -54,12 +54,9 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
   if ~param.haskey('ddata') then begin
     if (sci = swfo_apdat('stis_sci'))  then begin ; First look for data from the L0 data stream
       param.ddata = sci.data   ; L0 data
-      ;da = sci.data    ; the dynamic array that contains all the data collected  (it gets bigger with time)
-      ;size= da.size    ;  Current size of the data  (it gets bigger with time)
-     ; param.data
     endif else begin        ;   Look for data from the L0 or L1 tplot variables
       get_data,'swfo_stis_sci_COUNTS',ptr_str = tplot_data, time
-      if isa(tplot_data) then begin
+      if isa(tplot_data,'dynamicarray') then begin
         param.ddata = tplot_data.ddata        
       endif else begin
         dprint,dlevel=2,'No data source available.'
@@ -137,7 +134,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
     u = h.uniq()
 
     
-    if param.lim.xunits eq 'ADC' then param.lim.xtitle = 'ADC units'
+    if param.lim.xunits eq 'ADC' then param.lim.xtitle = 'ADC units' else param.lim.xtitle = 'Energy (keV)
     box,param.lim
     if 1 then begin
       xv = dgen()
