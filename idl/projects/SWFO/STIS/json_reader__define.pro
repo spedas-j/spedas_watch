@@ -26,8 +26,8 @@ function json_reader::translate,buf
 
   if isa(buf,'byte') then result = string(buf) else result=buf
 
-  result = str_sub(result,',',',"')   ;  CLUGE  - Inserting missing quites. - Delete line after Tony fixes ion gun code
-  if debug(4,self.verbose,msg='test') then begin
+  ;result = str_sub(result,',',',"')   ;  CLUGE  - Inserting missing quites. - Delete line after Tony fixes ion gun code
+  if debug(3,self.verbose,msg='test') then begin
     print,string(buf)
     print,result
     ;result= '{"TIME":"2023-03-18T00:01:41.401Z","GUN_I":0.10,"GUN_V":1e-4}'  ; remove after ion gun testing

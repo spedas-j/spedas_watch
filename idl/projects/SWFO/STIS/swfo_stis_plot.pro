@@ -113,7 +113,8 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
   ymin = min( struct_value(param.lim,'yrange',default=0.))
   
   names='SPEC_' + ['O1','O2','O3','F1','F2','F3']
-  format = {name:'',color:0,linestye:0,psym:-4,linethick:2,geomfactor:1.}
+  nans = replicate(!values.f_nan,48)
+  format = {name:'',color:0,linestye:0,psym:-4,linethick:2,geomfactor:1.,x:nans,y:nans,dx:nans,dy:nans,xunits:'',yunits:'',lim:obj_new()}
   channels = replicate(format,n_elements(names))
   channels.name = names
   channels.color = [2,4,6,1,3,0]
@@ -135,15 +136,12 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
 
     
     if param.lim.xunits eq 'ADC' then param.lim.xtitle = 'ADC units' else param.lim.xtitle = 'Energy (keV)
-    box,param.lim
-    if 1 then begin
-      xv = dgen()
-      flux_min = 2.48e2 * xv ^ (-1.6) 
-      flux_max = 1.01e7 * xv ^ (-1.6)
-      if strupcase(param.lim.units) eq 'EFLUX' then  scale = xv /1000 else scale = 1
-      oplot, xv, flux_min * scale
-      oplot, xv, flux_max * scale
-    endif
+
+    lim = param.lim
+    ;box,lim
+    ;init=0
+    lim.title = trange_str(minmax(samples.time))
+    
     
     for i=0,n_elements(u)-1 do begin
       w = where(h eq u[i] and dh eq 0,/null,nw)
@@ -154,6 +152,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
       for c = 0,nc-1 do begin
         ch = channels[c]
         str_element,dat,ch.name,y
+        dy  = y*0.
         str_element,dat,ch.name+'_err',dy
         if param.lim.xunits eq 'ADC'  then begin
           str_element,dat,ch.name+'_adc',x
@@ -166,9 +165,30 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
         y = y * scale
         y = y > ymin/10.
         ;swfo_stis_oplot_err,x,y,color=ch.color,psym=ch.psym
+        if ~keyword_set(newlim) then begin
+          newlim =lim.tostruct()
+          if ~lim.haskey('yrange') || (lim.yrange[0] eq lim.yrange[1]) then newlim.yrange=minmax(/positive,y)
+          box,newlim
+         ; init = 1
+        endif
+        ch.x = x
+        ch.y = y
+        ch.dx = dx
+        ch.dy = dy
+        ch.lim = lim
+        channels[c] = ch
         oplot,x,y ,color=ch.color,psym=ch.psym
       endfor
     endfor
+
+    if 1 then begin
+      xv = dgen()
+      flux_min = 2.48e2 * xv ^ (-1.6)
+      flux_max = 1.01e7 * xv ^ (-1.6)
+      if strupcase(param.lim.units) eq 'EFLUX' then  scale = xv /1000 else scale = 1
+      oplot, xv, flux_min * scale
+      oplot, xv, flux_max * scale
+    endif
         
   endif
   

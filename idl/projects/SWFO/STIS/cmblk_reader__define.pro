@@ -173,7 +173,7 @@ pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
   handlers = self.handlers
   if handlers.haskey( descr_key ) eq 0  then begin        ; establish new ones if not already defined
     dprint,verbose=self.verbose,dlevel=1,'Found new description key: "', descr_key,'"'
-    new_obj =  socket_reader(descr_key,title=descr_key,/no_widget,verbose=self.verbose)
+    new_obj =  socket_reader(title=descr_key,/no_widget,verbose=self.verbose)
     handlers[descr_key] = new_obj
   endif
 

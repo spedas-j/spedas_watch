@@ -1,6 +1,6 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-04-02 21:08:28 -0700 (Sun, 02 Apr 2023) $
-;$LastChangedRevision: 31695 $
+;$LastChangedDate: 2023-04-06 17:33:45 -0700 (Thu, 06 Apr 2023) $
+;$LastChangedRevision: 31711 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -67,6 +67,11 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         opts.port =        2128
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S1/gsemsg/YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
+      end
+      'S2/gsemsg': begin
+        opts.port =        2228
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S2/gsemsg/YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
       end
       'S0/ccsds': begin
         opts.port =        2029
@@ -200,6 +205,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         rdr  = cmblk_reader( _extra = opts.tostruct())
         rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)
         rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight(name='Keysight',/no_widget)
+        rdr.add_handler,'IONGUN1',  json_reader(name='IonGun1',no_widget=0)
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files

@@ -35,6 +35,7 @@ function swfo_stis_sci_level_1a,strcts  ;,format=format,reset=reset,cal=cal
     counts = str.counts
     nrg  = mapd.nrg
     dnrg = mapd.dnrg
+    dadc = mapd.dadc
     out = {time:str.time}
     str_element,/add,out,'hash',mapd.codes.hashcode()
     str_element,/add,out,'duration',str.duration 
@@ -43,6 +44,7 @@ function swfo_stis_sci_level_1a,strcts  ;,format=format,reset=reset,cal=cal
       str_element,/add,out,'spec_'+key+'_nrg',nrg[w]
       str_element,/add,out,'spec_'+key+'_dnrg',dnrg[w]
       str_element,/add,out,'spec_'+key+'_adc',mapd.adc[w]    
+      str_element,/add,out,'spec_'+key+'_dadc',mapd.dadc[w]
     endforeach
     str_element,/add,out,'gap',0
     
