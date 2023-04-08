@@ -194,25 +194,29 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
                            local_path)
                                 ;print, 'OSr complete'
 
-
   
 ; collate the three different kinds of scans together
   all_files = ''
   file_indices = replicate (-1, 3, 1)
+  ;file = {indices: file_indices}
+  ;temp = file; need this for once below
   times = ''
   UNIX_times = ''
   mode = ''
 
-  
+ 
 ; NOTE: the order of the next three if statements matters!
   if size (os1,/type) eq 8 then begin
      all_files = [all_files,os1.directory +os1.files]
-     file_indices = [[file_indices],[os1.file_indices]] 
+     nos1= n_elements (os1.times)
+     file_indices = [[file_indices], [os1.file_indices]]
      times = [times, os1.times]
      UNIX_times = [UNIX_times, OS1.UNIX_times]
-     nos1= n_elements (os1.times)
      mode = [mode, replicate ('os1',nos1)]
-  endif
+  endif else begin
+     nos1 = 0
+  endelse
+
   
   if size (os2,/type) eq 8 then begin
      nos2= n_elements (os2.times)
@@ -224,12 +228,14 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
      tmp_file_indices = OS2.file_indices
      Good = where (tmp_file_indices ge 0)
      TMP_file_indices [good] += add
+     ;file = [file, replicate (temp, nos2)]
+    ; file [1+nos1:*].indices = TMP_file_indices
      file_indices = [[file_indices],[TMP_file_indices]]
      times = [times, os2.times]
      UNIX_times = [UNIX_times, OS2.UNIX_times]
      mode = [mode, replicate ('os2',nos2)]
   endif
-  
+
   if size (osr,/type) eq 8 then begin
      nosr= n_elements (osr.times)
      all_files = [all_files,osr.directory +osr.files]
@@ -257,8 +263,10 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
   mode = mode[1:*]
   times = times[1:*]
   UNIX_times = UNIX_times [1:*]
-  
-  
+
+; Need to make sure file_indices has two dimensions
+  ndim = size (file_indices,/n_dimension)
+  If ndim eq 1 then file_indices = reform (file_indices, 3, 1)
 ; keep track of every pixel separately
 ;# of photon integrations as slit moves across the disk
   nint_Max = 260              
@@ -395,17 +403,19 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
   endif
 
 ; we want to look at these in time order
-  if set_count eq 1 then begin
-     order = sort (UNIX_times [file_indices]) 
-     file_indices = file_indices [order]
-  endif else begin 
-     order = sort (UNIX_times[file_indices[0,*]])
-     file_indices = file_indices [*, order]
-  endelse
-    
+  
+  order = sort (UNIX_times[file_indices[0,*]])
+  file_indices = file_indices [*, order]
+
+
+; Need to make sure file_indices has two dimensions
+  ndim = size (file_indices,/n_dimension)
+  If ndim eq 1 then file_indices = reform (file_indices, 3, 1)
+
+  
   for p = 0, set_count-1 do begin
 ; because -1 is used for times when there is no second or third swath
-     n_swath = n_elements (where (file_indices [*, p] ge 0))
+     n_swath = 3;n_elements (where (file_indices [*, p] ge 0))
      for l = 0,n_swath-1 do begin
         if file_indices [l,p] eq -1 then continue
         if not file_test (all_files [file_indices [l, p]]) then continue
@@ -416,11 +426,12 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
      endfor
   endfor
   
+  
 ; loop through each of the observation sets
   for p = 0, set_count-1 do begin
      Print, p
      !p.charsize = 2.5
-     n_swath = n_elements (where (file_indices [*, p] ge 0))
+     n_swath = 3;n_elements (where (file_indices [*, p] ge 0))
      for l = 0,n_swath-1 do begin
         print, l
         if file_indices [l,p] eq -1 then continue
@@ -440,7 +451,10 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
         if keyword_set (emission) then begin
            emiss = mrdfits (all_files [file_indices [l,p]], 'EMISS')
            emission_indices = intarr (nb)
-           for k = 0, nb-1 do emission_indices [k] = where (emiss.name eq emission [k])
+           for k = 0, nb-1 do begin
+              emission_indices [k] = where (emiss.name eq emission [k])
+              if emission_indices [k] eq -1 then message, 'Emission keyword must consist of a string or string array from the list of emissions shown in the comments at the top of this routine source code.'
+           Endfor
         endif else begin
            wv = mrdfits(all_files [file_indices[l,p]],'WAVELENGTH')
            nw = n_elements (wv.wavelength_l2a [*, 0])
