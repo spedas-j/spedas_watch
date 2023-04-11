@@ -16,6 +16,7 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
     self.handlers = handlers 
   endif else  self.handlers = orderedhash()
   self.sync  = 'CMB1'
+  self.desctypes = orderedhash()
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
   ;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
 
@@ -116,6 +117,7 @@ pro cmblk_reader::read ,buffer  , source_dict = source_dict
     endif
     last_cmbhdr = self.source_dict.cmbhdr
     self.source_dict.cmbhdr = cmbhdr
+    ;dprint,dlevel=3,verbose=self.verbose,cmbhdr.size,cmbhdr.seqn,'  ',cmbhdr.description
 
     ;  read the payload bytes
     payload_buf = self.read_nbytes(cmbhdr.size,pos=nbytes)
@@ -123,6 +125,8 @@ pro cmblk_reader::read ,buffer  , source_dict = source_dict
 
     ; decomutate data here!
     self.handle, payload_buf, source_dict=self.source_dict
+
+    mem_current = memory(/current) / 2.^20
 
     cmbdata = { $
       time:cmbhdr.time   ,$
@@ -135,10 +139,12 @@ pro cmblk_reader::read ,buffer  , source_dict = source_dict
       source: cmbhdr.source,  $
       desctype:  0u,  $
       errors: sync_errors, $
+      memory: mem_current, $
       gap:0b $
     }
     cmbdata.gap = cmbdata.seqn_delta ne 1
     self.dyndata.append , cmbdata
+    nb = 32      ; Get ready for next packet
   endwhile
   
   if sync_errors then begin
@@ -148,15 +154,13 @@ pro cmblk_reader::read ,buffer  , source_dict = source_dict
   self.nbytes += nbytes
   self.npkts  += npkts
   self.nreads += 1
-  self.msg += strtrim(nbytes,2)+ ' bytes'
+  self.msg += strtrim(self.sum1_bytes,2)+ ' bytes'
 
   if 0 then begin
     nextfile:
     dprint,verbose=self.verbose,dlevel=0,'File error? '
     self.help
   endif
-
-
 
   dprint,verbose=self.verbose,dlevel=3,self.msg
 
@@ -176,10 +180,12 @@ pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
     new_obj =  socket_reader(title=descr_key,/no_widget,verbose=self.verbose)
     handlers[descr_key] = new_obj
   endif
+  
+  ;if ~self.desctypes.haskey(descr_key) then self.desctypes[descr_key] = n_elements(self.desctypes)
 
   if self.run_proc then begin
     d = self.source_dict
-    d.cmbhdr = cmbhdr
+    d.cmbhdr = cmbhdr            ; this line is redundant!
     handler =  handlers[descr_key]                     ; Get the proper handler object
     if obj_valid(handler) then begin
       handler.read, payload, source_dict=d         ; execute handler
@@ -191,6 +197,11 @@ end
 
 
 
+pro cmblk_reader::print_status,no_header=no_header
+  self.socket_reader::print_status,no_header=no_header
+  foreach h , self.handlers do   h.print_status,/no_header
+end
+
 
 
 
@@ -201,6 +212,7 @@ pro cmblk_reader::add_handler,key,object
     self.handlers += key
   endif else begin
     self.handlers[key]= object
+    object.apid = key
   endelse
   dprint,'Added new handler: ',key,verbose=self.verbose,dlevel=1
   ;help,self.handlers
@@ -223,6 +235,7 @@ end
 PRO cmblk_reader__define
   void = {cmblk_reader, $
     inherits socket_reader, $    ; superclass
+    desctypes:        obj_new(), $
     handlers:     obj_new(),  $
     sync:  'CMB1'     $         ;
   }

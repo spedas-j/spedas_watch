@@ -1,6 +1,6 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-04-06 17:33:45 -0700 (Thu, 06 Apr 2023) $
-;$LastChangedRevision: 31711 $
+;$LastChangedDate: 2023-04-10 15:10:34 -0700 (Mon, 10 Apr 2023) $
+;$LastChangedRevision: 31720 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -133,6 +133,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
 
     ;    trange = struct_value(opts,'file_trange',default=!null)
     if keyword_set(trange) then begin
+      timespan,trange
       ;trange = opts.file_trange
       pathformat = opts.reldir + opts.fileformat
       ;filenames = file_retrieve(pathformat,trange=trange,/hourly_,remote_data_dir=opts.remote_data_dir,local_data_dir= opts.local_data_dir)
@@ -201,11 +202,14 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         swfo_apdat_info,/all,/print
         swfo_recorder,port=opts.port, host=opts.host, exec_proc='swfo_gsemsg_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
       end
-      'cmblk': begin
-        rdr  = cmblk_reader( _extra = opts.tostruct())
+      'cmblk': begin        
+        rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_cmblk')
         rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)
-        rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight(name='Keysight',/no_widget)
-        rdr.add_handler,'IONGUN1',  json_reader(name='IonGun1',no_widget=0)
+        rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight(name='Keysight',/no_widget,tplot_tagnames='*')
+        rdr.add_handler,'IONGUN1',  json_reader(name='IonGun1',no_widget=1,tplot_tagnames='*')
+        kpa_object = gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
+        rdr.add_handler,'KEITHLEYPA', kpa_object   ; gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
+        rdr.add_handler,'GSE_KPA',    kpa_object   ; gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files

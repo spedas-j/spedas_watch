@@ -10,7 +10,7 @@
 COMPILE_OPT IDL2
 
 
-function json_reader::translate,buf
+function json_reader::translate,buf,source_dict=source_dict
 
   if (~KEYWORD_SET(dbg)) then begin
     ;ON_ERROR, 2
@@ -18,28 +18,38 @@ function json_reader::translate,buf
     CATCH, iErr
     if (iErr ne 0) then begin
       CATCH, /CANCEL
-      MESSAGE, !ERROR_STATE.msg, /cont
-      dprint,string(buf)
+      ;MESSAGE, !ERROR_STATE.msg, /cont
+      dprint,verbose=self.verbose,dlevel=2,"'"+string(buf)+"'"
+      dprint,verbose=self.verbose,dlevel=2,!error_state.msg
       return,!null
     endif
   endif
+  ;hexprint,buf
 
   if isa(buf,'byte') then result = string(buf) else result=buf
 
   ;result = str_sub(result,',',',"')   ;  CLUGE  - Inserting missing quites. - Delete line after Tony fixes ion gun code
+  result = str_sub(result,':+',': ')    ; cluge - remove when the + sign gets removed.
   if debug(3,self.verbose,msg='test') then begin
     print,string(buf)
     print,result
-    ;result= '{"TIME":"2023-03-18T00:01:41.401Z","GUN_I":0.10,"GUN_V":1e-4}'  ; remove after ion gun testing
   endif
   result = json_parse(string(result),/fold_case,/debug)
   if self.convert_to_float then begin
     keys = result.keys()
     foreach val,result,k do begin
+      if strupcase(k) eq 'TIME' then continue
       if isa(val,'double') then result[k] = float(val)
     endforeach
   endif
   if result.haskey('TIME') && isa(result['TIME'],/string) then result['TIME'] = time_double(result['TIME'])
+  ;printdat,source_dict
+  add_DTIME = 1
+  if keyword_set(add_DTIME) && isa(source_dict,'dictionary') && source_dict.haskey('CMBHDR')  then begin
+    result['DTIME'] = 0.d
+
+  endif
+
   if self.convert_to_struct then result = result.tostruct()
   return,result
 end
@@ -48,20 +58,17 @@ end
 
 pro json_reader::read,source,source_dict=source_dict
 
-  
   nb = n_elements(source)
   nbytes = 0ul
   npkts = 0ul
-  
-  firstsample = self.dyndata.size eq 0
-  
+    
   while isa( (buf = self.read_line(source,pos=nbytes) )   ) do begin
     dprint,verbose=self.verbose,dlevel=4,nbytes,string(buf)
     if debug(4,self.verbose,msg='Hex: '+strtrim(n_elements(buf))) then begin
       hexprint,buf      
     endif
     if self.run_proc then begin
-      result = self.translate(buf)
+      result = self.translate(buf,source_dict=source_dict)
       if debug(4,self.verbose,MSG='test: ') then printdat,result
       if isa(self.dyndata,'dynamicarray') then self.dyndata.append, result      
     endif
@@ -74,18 +81,15 @@ pro json_reader::read,source,source_dict=source_dict
     self.msg = time_string(systime(1),tformat='hh:mm:ss ')+strtrim(nbytes,2)+' bytes'
   endif
 
-  if keyword_set(firstsample) && self.dyndata.size gt 0 then store_data, self.name,data=self.dyndata,tagnames=self.tplot_tagnames,time_tag='time'
-
 end
 
 
-function json_reader::init,_extra=ex,tplot_tagnames = tplot_tagnames
+function json_reader::init,_extra=ex  
   ;dprint,'hello'
   void = self.socket_reader::init(_extra=ex)
   if ~isa(tplot_tagnames,'string') then tplot_tagnames='*'
   self.convert_to_struct = 1
   self.convert_to_float = 1
-  self.tplot_tagnames = tplot_tagnames
   self.eol=byte(10)
   return,1
 

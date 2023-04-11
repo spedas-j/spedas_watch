@@ -61,16 +61,16 @@ function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
         eofile=1
       endif else begin   ; read from real file
         pos = 0L
-        if ~keyword_set(nbytes) then begin
-          nbytes =  self.buffersize        ; get up to this many bytes
-          nb = 1                  ; get bytes one at a time
+        if nbytes eq 0  then begin    ; no payload
+          buf = !null
+          n = 0                  ; 
         endif else begin
           nb = nbytes              ; if size is known, get them all at once
+          buf = bytarr(nbytes)
+          readu,self.input_lun,buf,transfer_count=n
         endelse
-        buf = bytarr(nbytes)
-        readu,self.input_lun,buf,transfer_count=n
         if n ne nbytes then begin
-          buf = n eq 0 ? !null : buf[0:n-1]
+          buf = (n eq 0) ? !null : buf[0:n-1]
         endif
         eofile = eof(self.input_lun)
       endelse
@@ -85,7 +85,7 @@ function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
   if n eq 0 then buf = !null else  buf = buf[0:n-1]
   pos = pos + n
   self.write,buf
-  dprint,verbose=self.verbose,dlevel=1,'IO warning: '+ !error_state.msg   
+  dprint,verbose=self.verbose,dlevel=1,'IO warning: '+ !error_state.msg  +strtrim(n_elements(buf)) 
   eofile = eof(self.input_lun)
   return,buf
 end
@@ -99,7 +99,7 @@ function socket_reader::read_line,source,pos=pos ,eofile=eofile ;,nbytes=nb    ;
   eofile = 0
   
   if isa(source,/array) then begin          ; source should be a an array of bytes
-    dprint,dlevel=3,verbose=self.verbose,'Not tested yet...'
+    ;dprint,dlevel=3,verbose=self.verbose,'Not tested yet...'
     ns = n_elements(source)
     n =0UL
     eol = self.eol
@@ -126,7 +126,7 @@ function socket_reader::read_line,source,pos=pos ,eofile=eofile ;,nbytes=nb    ;
           dprint,verbose=self.verbose,dlevel=1,'End of file
         endelse
         pos = pos+n
-        if ~self.issocket then eofile = eof(self.input_lun)
+        if ~self.isasocket then eofile = eof(self.input_lun)
       endwhile
     endif else dprint,dlevel=2,verbose=self.verbose,self.name +": Input file is not open."
   end
@@ -272,7 +272,7 @@ pro socket_reader::handle, buffer, source_dict=source_dict
     if self.procedure_name then begin
       call_procedure,self.procedure_name,buffer ,source_dict=self.source_dict
     endif else begin
-      if debug(2,self.verbose,msg=self.name+' '+self.msg) then begin
+      if debug(3,self.verbose,msg=self.name+' '+self.msg) then begin
         if debug(3,self.verbose) then      hexprint,buffer
       endif
     endelse
@@ -317,6 +317,21 @@ pro socket_reader::help , item
   help,self.getattr(item)
   ;  help,self,/obj,output=output
   ;  for i=0,n_elements(output)-1 do print,output[i]
+end
+
+
+
+
+pro socket_reader::print_status,no_header=no_header
+   format1 = '(a12,a18,a14,i3,i10,i12,i10,i10,i10,i10,i10,i10)'
+   format2 = str_sub(format1,',i',',a')
+   if ~keyword_set(no_header) then $
+     print,'APID','Name','type','S','sum1','sum2','npkts','nreads','Size',format=format2
+   print,self.apid,self.name,typename(self),self.isasocket,self.sum1_bytes,self.sum2_bytes,self.npkts,self.nreads,self.dyndata.size,format=format1
+   if ~keyword_set(no_header) then $
+     print,'-----','-----','--','----','----','----','----','-------',format=format2
+
+
 end
 
 
@@ -655,6 +670,8 @@ END
 
 function socket_reader::init,name=name,title=title,ids=ids,host=host,port=port,fileformat=fileformat,exec_proc=exec_proc, $
   set_connect=set_connect, set_output=set_output, pollinterval=pollinterval, file_timeres=file_timeres ,$
+  tplot_tagnames=tplot_tagnames, $
+  apid = apid,  $
   run_proc=run_proc,directory=directory, $
   no_widget=no_widget,verbose=verbose
 
@@ -681,7 +698,7 @@ function socket_reader::init,name=name,title=title,ids=ids,host=host,port=port,f
   self.dlevel = 2
   ;self.isasocket=1
   self.run_proc = isa(run_proc) ? run_proc : 1    ; default to not running proc
-  self.dyndata = dynamicarray(name=name)
+  self.dyndata = dynamicarray(name=name,tplot_tagnames=tplot_tagnames)
 
 
   if ~keyword_set(no_widget) then begin
@@ -779,6 +796,7 @@ pro socket_reader__define
     ;buffer_ptr: ptr_new(),   $
     source_dict: obj_new(),  $
     dyndata: obj_new(), $        ; dynamicarray object to save all the data in
+    apid: '',  $                 ; APID name used in common block
     name: '',  $
     nbytes: 0UL, $
     sum1_bytes: 0UL, $
