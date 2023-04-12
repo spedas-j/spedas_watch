@@ -46,7 +46,7 @@ function json_reader::translate,buf,source_dict=source_dict
   ;printdat,source_dict
   add_DTIME = 1
   if keyword_set(add_DTIME) && isa(source_dict,'dictionary') && source_dict.haskey('CMBHDR')  then begin
-    result['DTIME'] = 0.d
+    result['DTIME'] = 0.d  ; float(source_dict.cmbhdr.time - result['TIME'])
 
   endif
 
