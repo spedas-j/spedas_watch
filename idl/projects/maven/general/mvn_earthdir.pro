@@ -3,7 +3,8 @@
 ;PURPOSE:
 ;  Determines the direction of Earth as viewed from Mars in any coordinate
 ;  frame recognized by SPICE.  See mvn_frame_name for a list.  The default
-;  is MAVEN_SPACECRAFT.
+;  is MAVEN_SPACECRAFT.  If you sit on the spacecraft and look in this
+;  direction, you will see Earth.
 ;
 ;  You must have SPICE installed for this routine to work.  This routine will
 ;  check to make sure SPICE has been initialized and that the loaded kernels
@@ -61,6 +62,12 @@
 ;                    Phi = atan(y,x)*!radeg  ; [  0, 360]
 ;                    The = asin(z)*!radeg    ; [-90, +90]
 ;
+;       PH_180:   If set, the range for Phi is -180 to +180 degrees.
+;
+;       REVERSE:  Reverse the sense to be the anti-Earth direction.  If you sit on
+;                 the spacecraft and look in this direction you will have turned 
+;                 your back on Earth.  You're a Martian now.
+;
 ;       PANS:     Named variable to hold the tplot variables created.  For the
 ;                 default frame, this would be 'Earth_MAVEN_SPACECRAFT'.
 ;
@@ -69,19 +76,21 @@
 ;       SUCCESS:  Returns 1 on normal completion, 0 otherwise.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-02-22 10:27:48 -0800 (Tue, 22 Feb 2022) $
-; $LastChangedRevision: 30601 $
+; $LastChangedDate: 2023-04-11 20:59:57 -0700 (Tue, 11 Apr 2023) $
+; $LastChangedRevision: 31732 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_earthdir.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
 pro mvn_earthdir, trange, dt=dt, pans=pans, abcorr=abcorr, frame=frame, polar=polar, $
-                          force=force, success=success
+                          reverse=reverse, ph_180=ph_180, force=force, success=success
 
   success = 0
   dopol = keyword_set(polar)
   noguff = keyword_set(force)
   if not keyword_set(dt) then dt = 1D else dt = double(dt[0])
+  ph_360 = ~keyword_set(ph_180)
+  sign = keyword_set(reverse) ? -1. : 1.
 
   if (size(frame,/type) ne 7) then frame = 'MAVEN_SPACECRAFT'
   frame = mvn_frame_name(frame, success=i)
@@ -157,7 +166,7 @@ pro mvn_earthdir, trange, dt=dt, pans=pans, abcorr=abcorr, frame=frame, polar=po
                    spoint, trgepc, srfvec
     earth[i,*] = spoint
   endfor
-  earth /= (sqrt(total(earth*earth,2)) # replicate(1D,3))  ; unit vector
+  earth /= sign*(sqrt(total(earth*earth,2)) # replicate(1D,3))  ; unit vector
 
   vroot = 'Earth'
   vname = vroot
@@ -171,7 +180,7 @@ pro mvn_earthdir, trange, dt=dt, pans=pans, abcorr=abcorr, frame=frame, polar=po
 
   if (dopol) then begin
     get_data, vname, data=earth
-    xyz_to_polar, earth, theta=the, phi=phi, /ph_0_360
+    xyz_to_polar, earth, theta=the, phi=phi, ph_0_360=ph_360
 
     the_name = vname + '_The'
     store_data,the_name,data=the
@@ -221,7 +230,7 @@ pro mvn_earthdir, trange, dt=dt, pans=pans, abcorr=abcorr, frame=frame, polar=po
 
     if (dopol) then begin
       get_data, pname, data=sun
-      xyz_to_polar, sun, theta=the, phi=phi, /ph_0_360
+      xyz_to_polar, sun, theta=the, phi=phi, ph_0_360=ph_360
 
       the_name = 'Earth_' + fname + '_The'
       store_data,the_name,data=the

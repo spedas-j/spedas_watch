@@ -73,8 +73,8 @@
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-24 07:36:37 -0700 (Fri, 24 Mar 2023) $
-; $LastChangedRevision: 31658 $
+; $LastChangedDate: 2023-04-11 18:47:14 -0700 (Tue, 11 Apr 2023) $
+; $LastChangedRevision: 31727 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
@@ -95,6 +95,11 @@ device,decompose=0,retain=2   ; specific to MacOS (settings for other OS's might
 initct,1074,line=5,/rev,/sup  ; define color table and fixed line colors (suppress error message)
 !p.background = 0             ; use tplot fixed color for background (0 = black by default)
 !p.color = 255                ; use tplot fixed color for foreground (255 = white by default)
+
+; To use color tables with the Z buffer, do the following:
+
+set_plot, 'z'                            ; switch to virtual graphics device
+device, set_pixel_depth=24, decompose=0  ; allow the Z buffer to use color tables
 
 ; Change the color table at the command line.  This does not alter the line color scheme, 
 ; which is persistent until you explicitly change it.

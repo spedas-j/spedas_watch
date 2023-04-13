@@ -24,13 +24,13 @@
 ;  Current device should have readable pixels (ie. 'x' or 'z')
 ;
 ;Created by:  Davin Larson
-; $LastChangedBy: ali $
-; $LastChangedDate: 2021-05-30 19:48:04 -0700 (Sun, 30 May 2021) $
-; $LastChangedRevision: 30012 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2023-04-12 11:07:59 -0700 (Wed, 12 Apr 2023) $
+; $LastChangedRevision: 31736 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/makepng.pro $
 ;-
 pro makepng,filename,multiple=multiple,close=close,ct=ct,no_expose=no_expose,  $
-    mkdir=mkdir,window=window,suffix=suffix,timetag=timetag,verbose=verbose
+    mkdir=mkdir,window=window,suffix=suffix,timetag=timetag,verbose=verbose,transparent=transparent
     ;if keyword_set(close) then begin
     ;   write_gif,/close
     ;   return
@@ -61,7 +61,13 @@ pro makepng,filename,multiple=multiple,close=close,ct=ct,no_expose=no_expose,  $
         file_mkdir,file_dirname(filename)
     endif
     tvlct,r,g,b,/get
-    if !d.name ne 'Z' then device,get_visual_name=vname else vname = ' '
+    if !d.name ne 'Z' then device,get_visual_name=vname else begin
+;allow TrueColor in Z buffer, jimm, 2023-04-12
+       device, get_pixel_depth = npix ;TrueColor wil have npix=24, dc = 0
+       device, get_decomposed = dc
+       if npix Eq 24 and dc Eq 0 then vname = 'TrueColor' $
+       else vname = ' '
+    endelse
     if vname eq 'TrueColor' then begin
         dim =1
         im1=tvrd(true=dim)
@@ -81,6 +87,16 @@ pro makepng,filename,multiple=multiple,close=close,ct=ct,no_expose=no_expose,  $
     if !version.release eq '5.3' then begin
         write_png,pngfile,rotate(im,7),r,g,b
     endif else if !version.release ge '5.4' then begin
+        if keyword_set(transparent) then begin
+          red = reform(im[0,*,*])
+          grn = reform(im[1,*,*])
+          blu = reform(im[2,*,*])
+          whiteIndices = Where((red eq 255) and (grn eq 255) and (blu eq 255), count)
+          s = Size(im, /DIMENSIONS)
+          alpha = BytArr(s[1],s[2]) + 255B
+          IF count GT 0 THEN alpha[whiteIndices] = 0 
+          im = transpose([[[transpose(red)]], [[transpose(grn)]], [[transpose(blu)]],[[transpose(alpha)]]])
+        endif  
         write_png,pngfile,im,r,g,b
     endif
     ;if !version.release ne '5.4' then $
