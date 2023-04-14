@@ -83,7 +83,7 @@ pro elf_cdf2tplot,files,files=files2,prefix=prefix,midfix=midfix,midpos=midpos,s
         get_data, tn[i], data=dhs, dlimits=dl, limits=l
         store_data, tn[i], data={x:dhs.x, y:dhs.y, v:des.y}, dlimits=dl, limits=l
       endfor
-      del_data, tn2
+;      del_data, tn2
     endif
     tn=tnames('*pef_fs_Epat*')
     tn2=tnames('*pef_fs_epa_spec')
@@ -92,9 +92,9 @@ pro elf_cdf2tplot,files,files=files2,prefix=prefix,midfix=midfix,midpos=midpos,s
       for i=0,2 do begin
         get_data, tn[i], data=dhs, dlimits=dl, limits=l
          store_data, tn[i], data={x:dhs.x, y:dhs.y, v:des.y}, dlimits=dl, limits=l
-        del_data, tn2
+;        del_data, tn2
       endfor
-      del_data, tn2
+;      del_data, tn2
     endif
   endif 
 
