@@ -188,33 +188,36 @@ pro epdi_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
   ;;;;;;;;;;;;;;;;;;;;
   ; MLT IGRF
   ;;;;;;;;;;;;;;;;;;;;
-  sclet = probe
-  ;;trace to equator to get L, MLAT, and MLT in IGRF
-  if keyword_set(quick_run) then begin
-    get_data, 'el'+probe+'_pos_gsm', data=datgsm, dlimits=dl, limits=l
-    store_data, 'el'+probe+'_pos_gsm_mins', data={x: datgsm.x[0:*:60], y: datgsm.y[0:*:60,*]}, dlimits=dl, limits=l
-    ttrace2equator,'el'+sclet+'_pos_gsm_mins',external_model='none',internal_model='igrf',/km,in_coord='gsm',out_coord='gsm',rlim=100.*Re
-    ; interpolate the minute-by-minute data back to the full array
-    get_data,'el'+probe+'_pos_gsm_mins_foot',data=gsm_mins, dlimits=dl, limits=l
-    store_data,'el'+probe+'_pos_gsm_foot',data={x: datgsm.x, y: interp(gsm_mins.y[*,*], gsm_mins.x, datgsm.x)},dlimits=dl, limits=l
-    ; clean up the temporary data
-    del_data, '*_mins'
-  endif else begin
-    ttrace2equator,'el'+sclet+'_pos_gsm',external_model='none',internal_model='igrf',/km,in_coord='gsm',out_coord='gsm',rlim=100.*Re
-    ;    tt89,'el'+probe+'_pos_gsm',/igrf_only,newname='el'+probe+'_bt89_gsm',period=1.
-  endelse
+  sclet=probe
+  pival=!PI
+  Rem=6371.0 ; Earth mean radius in km
+  cotrans,'el'+sclet+'_pos_gei','elx_pos_gse',/GEI2GSE
+  cotrans,'elx_pos_gse','elx_pos_gsm',/GSE2GSM
+  get_data, 'elx_pos_gsm',data=datgsm, dlimits=datgsmdl, limits=datgsml
+  store_data, 'elx_pos_gsm_mins', data={x: datgsm.x[0:*:60], y: datgsm.y[0:*:60,*]}, dlimits=datgsmdl, limits=datgsml
+  tt89,'elx_pos_gsm_mins',/igrf_only,newname='elx_bigrf_gsm_mins',period=0.1; gets IGRF field at ELF location
+  ; find igrf coordinates for satellite, same as for footpoint: Ligrf, MLATigrf, MLTigrf
+  ttrace2equator,'elx_pos_gsm_mins',external_model='none',internal_model='igrf',/km,in_coord='gsm',out_coord='gsm',rlim=100.*Rem ; native is gsm
+  cotrans,'elx_pos_gsm_mins_foot','elx_pos_sm_mins_foot',/GSM2SM ; now in SM
+  get_data,'elx_pos_sm_mins_foot',data=elx_pos_sm_foot
+  xyz_to_polar,'elx_pos_sm_mins_foot',/co_latitude ; get position in rthphi (polar) coords
+  calc," 'Ligrf'=('elx_pos_sm_mins_foot_mag'/Rem)/(sin('elx_pos_sm_mins_foot_th'*pival/180.))^2 " ; uses 1Rem (mean E-radius, the units of L) NOT 1Rem+100km!
+  tdotp,'elx_bigrf_gsm_mins','elx_pos_gsm_mins',newname='elx_br_tmp'
+  get_data,'elx_br_tmp',data=Br_tmp
+  hemisphere=sign(-Br_tmp.y)
+  r_ift_dip = (1.+100./Rem)
+  calc," 'MLAT' = (180./pival)*arccos(sqrt(Rem*r_ift_dip/'elx_pos_sm_mins_foot_mag')*sin('elx_pos_sm_mins_foot_th'*pival/180.))*hemisphere " ; at footpoint
+  ; interpolate the minute-by-minute data back to the full array
+  get_data,'MLAT',data=MLAT_mins  
+  store_data,'el'+probe+'_MLAT_igrf',data={x: datgsm.x, y: interp(MLAT_mins.y, MLAT_mins.x, datgsm.x)}
 
-  ;ttrace2equator,'el'+sclet+'_pos_gsm',external_model='none',internal_model='igrf',/km,in_coord='gsm',out_coord='gsm',rlim=100.*Re
-  cotrans,'el'+sclet+'_pos_gsm_foot','el'+sclet+'_pos_sm_foot',/GSM2SM
-  get_data,'el'+sclet+'_pos_gsm_foot',data=elx_pos_eq
+  get_data,'elx_pos_gsm_mins_foot',data=elx_pos_eq
   L1=sqrt(total(elx_pos_eq.y^2.0,2,/nan))/Re
-  store_data,'el'+sclet+'_L_igrf',data={x:elx_pos_eq.x,y:L1}
-  get_data,'el'+sclet+'_pos_gsm',data=elx_pos
-  rnew=sqrt(elx_pos.y[*,0]^2.0+elx_pos.y[*,1]^2.0+(elx_pos.y[*,2]-elx_pos_eq.y[*,2])^2.0)
-  lat3=asin((elx_pos.y[*,2]-elx_pos_eq.y[*,2])/rnew)/!dtor
-  store_data,'el'+sclet+'_MLAT_igrf',data={x:elx_pos_eq.x,y:lat3};;did not pass the validation
-  elf_mlt_l_lat,'el'+sclet+'_pos_sm_foot',MLT0=MLT0,L0=L0,lat0=lat0
-  store_data,'el'+sclet+'_MLT_igrf',data={x:elx_pos_eq.x,y:MLT0}
+  store_data,'el'+probe+'_L_igrf',data={x: datgsm.x, y: interp(L1, elx_pos_eq.x, datgsm.x)}
+  elf_mlt_l_lat,'elx_pos_sm_mins_foot',MLT0=MLT0,L0=L0,lat0=lat0
+  get_data, 'elx_pos_sm_mins_foot', data=sm_mins
+  store_data,'el'+probe+'_MLT_igrf',data={x: datgsm.x, y: interp(MLT0, sm_mins.x, datgsm.x)}
+  del_data, '*_mins'
 
   options,'el'+probe+'_L_igrf',ytitle='L-igrf'
   options,'el'+probe+'_L_igrf',charsize=.7
