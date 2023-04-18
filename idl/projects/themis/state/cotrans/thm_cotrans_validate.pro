@@ -61,6 +61,8 @@ pro thm_cotrans_validate
     
     sse2sel,'tha_state_pos_sse','slp_sun_pos','slp_lun_pos','slp_lun_att_x','slp_lun_att_z','tha_state_pos_sel'
     sse2sel,'tha_state_vel_sse','slp_sun_pos','slp_lun_pos','slp_lun_att_x','slp_lun_att_z','tha_state_vel_sel'
+    sse2sel,'tha_fgs_sse','slp_sun_pos','slp_lun_pos','slp_lun_att_x','slp_lun_att_z','tha_fgs_sel'
+    
     ; Inverse transformations
     gse2sse,'tha_state_pos_sse','slp_sun_pos','slp_lun_pos','tha_state_pos_gse_sse_gse',/sse2gse
     gse2sse,'tha_state_vel_sse','slp_sun_pos','slp_lun_pos','tha_state_vel_gse_sse_gse',/sse2gse
@@ -78,8 +80,8 @@ pro thm_cotrans_validate
       'basis_x_dsl2ssl','basis_y_dsl2ssl','basis_z_dsl2ssl',$
       'tha_state_pos_gse','tha_state_vel_gse','tha_state_pos_sse','tha_state_vel_sse',$
       'tha_state_pos_gse_sse_gse','tha_state_vel_gse_sse_gse',$
-      'tha_state_pos_sel','tha_state_vel_sel','tha_state_pos_gse_sel_sse','tha_state_vel_gse_sel_sse',$
-      'sse_mat_cotrans','tha_fgs_gse','tha_fgs_sse','tha_fgs_gse_sse_gse','tha_state_pos_sse_rotate_only',$
+      'tha_state_pos_sel','tha_state_pos_gse_sel_sse',$
+      'sse_mat_cotrans','sel_mat_cotrans','sel_x_gei','sel_x_gse','sel_x_sse','sel_y_sse','sel_z_sse','tha_fgs_gse','tha_fgs_sse','tha_fgs_sel','tha_fgs_gse_sse_gse','tha_state_pos_sse_rotate_only',$
       'tha_state_vel_sse_rotate_only','tha_state_pos_gse_sse_gse_rotate_only','tha_state_vel_gse_sse_gse_rotate_only']
      ;tplot_save,filename='group1',['basis_x','basis_y','basis_z','basis_x_gei2gse','basis_y_gei2gse','basis_z_gei2gse']
      ;tplot_save,filename='group2',['basis_x_gse2gei','basis_y_gse2gei','basis_z_gse2gei','basis_x_dsl2gse','basis_y_dsl2gse','basis_z_dsl2gse']

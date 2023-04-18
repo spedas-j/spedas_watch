@@ -97,7 +97,7 @@
 ;                  ephemeris values and interpolates across the 
 ;                  gap.)
 ;                    Coverage:
-;                      Stereo A: 2006-10-26 to 2021-09-28
+;                      Stereo A: 2006-10-26 to 2023-01-25
 ;                      Stereo B: 2006-10-26 to 2014-09-28
 ;
 ;       SORB:      Plot the location of Solar Orbiter.  Includes a
@@ -169,9 +169,11 @@
 ;       FULL:      Show everything: planets, all spacecraft, Parker
 ;                  spiral, and all labels.
 ;
+;       BLACK:     Use a black background for the orbit snapshot.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-14 11:37:10 -0700 (Thu, 14 Jul 2022) $
-; $LastChangedRevision: 30928 $
+; $LastChangedDate: 2023-04-17 08:45:11 -0700 (Mon, 17 Apr 2023) $
+; $LastChangedRevision: 31755 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -182,7 +184,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   xyrange=range, planet=planet2, sorb=sorb2, psp=psp2, sall=sall, $
                   verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor, $
                   window=window, png=png, varnames=varnames, plabel=plabel, slabel=slabel, $
-                  key=key
+                  black=black, key=key
 
   common planetorb, planet, sta, stb, sorb, psp, orrkey
   @putwin_common
@@ -196,7 +198,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   tlist = ['NOPLOT','NOBOX','LABEL','SCALE','EPH','SPIRAL','VSW','SROT','MOVIE', $
            'STEREO','KEEPWIN','TPLOT','RELOAD','OUTER','XYRANGE','PLANET2','SORB2', $
            'PSP2','SALL','VERBOSE','FULL','FIXPLANET','MONITOR','WINDOW','PNG', $
-           'VARNAMES','PLABEL','SLABEL']
+           'VARNAMES','PLABEL','SLABEL','BLACK']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
@@ -963,6 +965,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   endif
 
   if (mflg) then begin
+    if (keyword_set(black) and (!p.background ne 0L)) then begin
+      revvid
+      vswap = 1
+    endif else vswap = 0
+
     win, /free, monitor=mnum, xsize=xsize, ysize=ysize, dx=10, dy=10, scale=scale
     Owin = !d.window
     zscl = 1.
@@ -1266,7 +1273,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       endif else ok = 0
 
     endwhile
-    
+
+    if (vswap) then revvid
     if (not kflg) then wdelete, Owin
     wset,Twin
 
