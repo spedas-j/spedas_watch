@@ -392,6 +392,25 @@ endif ;anc & temp
 
 success=1 
 
+;Print blurb at end with links to STATIC papers for caveats etc:
+print, ""
+print, "****************************************"
+print, "A note from the MAVEN-STATIC instrument team: thanks for using the L3 data!"
+print, "Please see the following publications for more information about how the L3"
+print, "products are created, and descriptions of the most common caveats to be aware of:"
+print, ""
+print, "Hanley+ (2021), In situ measurements of thermal ion temperature in the Martian ionosphere."
+print, "Journal of Geophysical Research: Space Physics."
+print, ""
+print, "Fowler+ (2022), In‐situ measurements of ion density in the Martian ionosphere: Underlying"
+print, "structure and variability observed by the MAVEN‐STATIC instrument."
+print, "Journal of Geophysical Research: Space Physics"
+print, ""
+print, "McFadden+ (2015), MAVEN suprathermal and thermal ion composition (STATIC) instrument."
+print, "Space Science Reviews."
+print, "****************************************"
+print, ""
+
 end
 
 
