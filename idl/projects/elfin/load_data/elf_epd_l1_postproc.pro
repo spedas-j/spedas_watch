@@ -1,3 +1,29 @@
+;+
+; PROCEDURE:
+;         elf_epd_l1_postproc
+;
+; PURPOSE:
+;         Routine calibrates data and sets dlimits and limits
+;
+; KEYWORDS:
+;         trange:       time range of interest [starttime, endtime] with the format
+;                       ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
+;                       ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
+;         tplotnames:   list of tplot names
+;         unit:         units of the data
+;         no_spec:      flag to set tplot options to linear rather than the default of spec
+;         suffix:       appends a suffix to the end of the tplot variable name. this is useful for
+;                       preserving original tplot variable.
+;         no_download:  specify this keyword to load only data available on the local disk
+;         mynspinsinsum: number of spins in sum which is needed by the calibration routine 
+;
+; NOTES:  This routine is called when loading epd level 1 data
+;
+;
+;$LastChangedBy: clrussell $
+;$LastChangedDate: 2018-12-06 11:58:25 -0700 (Mon, 06 Aug 2018) $
+;$LastChangedRevision: 25588 $
+;-
 pro elf_epd_l1_postproc, tplotnames, trange=trange, type=type, suffix=suffix, $
     my_nspinsinsum=my_nspinsinsum, unit=unit, no_spec=no_spec, no_download=no_download
 

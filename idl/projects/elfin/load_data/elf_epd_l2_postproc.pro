@@ -1,3 +1,20 @@
+;+
+; PROCEDURE:
+;         elf_epd_l2_postproc
+;
+; PURPOSE:
+;         This routines sets the limits and data limits
+;
+; KEYWORDS:
+;         probes:       probe name 'a' or 'b', default is 'a'
+;         tplotnames:   list of tplot names
+;
+; NOTES:  This routine is called when loading epd level 2 data
+;
+;$LastChangedBy: clrussell $
+;$LastChangedDate: 2018-12-06 11:58:25 -0700 (Mon, 06 Aug 2018) $
+;$LastChangedRevision: 25588 $
+;-
 pro elf_epd_l2_postproc, tplotnames, probes=probes
 
   sclet='el'+probes
