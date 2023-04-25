@@ -1,3 +1,21 @@
+;+
+; FUNCTION:
+;          
+;
+; PURPOSE:
+;         elf_phase_delay_SectrPhAng
+;         
+; KEYWORDS:
+;         current_median = current median value 
+;         angpersector = current angle per sector.
+;
+; OUTPUT:
+;         latestmediansectr = latest median sector to add
+;         latestmedianphang = latest median phase angle to add
+;
+;
+;VERSION LAST EDITED: akroosnovo@gmail.com, jwu@epss.ucla.edu 02/27/2022
+
 ; function to determine Sectr and PhAng for phase delay 
 pro elf_phase_delay_SectrPhAng, current_median, angpersector, LatestMedianSectr=LatestMedianSectr, LatestMedianPhAng=LatestMedianPhAng
   case 1 of

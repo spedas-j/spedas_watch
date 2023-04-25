@@ -1,5 +1,5 @@
 
-FUNCTION esc_esatm::esc_raw_header_struct,ptphdr
+FUNCTION esc_esatm_reader::esc_raw_header_struct,ptphdr
 
 
   raw_size = swap_endian(uint(ptphdr,0) ,/swap_if_little_endian )
@@ -23,88 +23,156 @@ FUNCTION esc_esatm::esc_raw_header_struct,ptphdr
 END
 
 
-function esc_esatm::esc_data_select, buff, loc, n
+function esc_esatm_reader::esc_data_select, buff, loc, n
   return, swfo_data_select(buff, loc, n)
 end
 
 
 
-pro esc_esatm::read, buffer, source_dict=source_dict
+pro esc_esatm_reader::read, buffer, source_dict=parent_dict   ; this routine needs a lot of work - but it will work for common block files
+
+
+  if n_elements(buffer) eq 202 then begin   
+    if 0 then begin
+      esc_raw_pkt_handler, buffer, source_dict=parent_dict
+    endif else begin
+      dprint,dwait = 5,dlevel=3,verbose=self.verbose,n_elements(buffer)
+    endelse
+  endif else begin
+    dprint,'Wrong size',dwait=10.
+    return
+  endelse
+  
+  self.decom_esctm,buffer,source_dict=parent_dict
+end
+
+
+
+
+
+pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
+  
+  
+  if isa(parent_dict,'dictionary') && parent_dict.haskey('cmbhdr') then time = parent_dict.cmbhdr.time  else time=0d
+  
+  ;printdat,time_string(time)
+  ;return
 
   dat = {  $
     time:   0d, $
     sync: 0u ,$
     index :  0u  ,$
-    tr:      0b  ,$
-    fh:      0b  ,$
+    tbd:     0b,  $
+    boardid: 0b,  $
+    fasthkp: 0b,  $
+    ion_optional : 0b, $
     size: 0u , $
     eanode:  uintarr(16),$
-    ianodeL: uintarr(16), $
-    ianodeH: uintarr(16), $
-    imh:     uintarr(16), $
+    ianode0: uintarr(16), $
+    ianode1: uintarr(16), $
+    ianode2: uintarr(16), $
+    ianode3: uintarr(16), $
+    mass_hist: uintarr(16), $
     ahkp:    0, $
     dhkp:    0u,  $
-    tofraw:  uintarr(8), $
+    rates :  uintarr(18), $
     gap:  0   }
     
-    
+  
   nsamples = 64
     
   dat_accum = { $   
     time: 0d,  $  
     eanode:  uintarr(16,nsamples), $
-    ianodeL: uintarr(16,nsamples), $
-    ianodeH: uintarr(16,nsamples), $
-    imh:     uintarr(16,nsamples), $
+    ianode0: uintarr(16,nsamples), $
+    ianode1: uintarr(16,nsamples), $
+    ianode2: uintarr(16,nsamples), $
+    ianode3: uintarr(16,nsamples), $
+    mass_hist: uintarr(16,nsamples), $
     ahkp:    intarr(nsamples), $
     dhkp:    uintarr(nsamples),  $
-    tofraw:  uintarr(8,nsamples), $
+    rates :  uintarr(18,nsamples), $
+    
     gap: 0  }
     
 
+  index = self.esc_data_select(buffer,16+7, 9)
+  
+  if index eq 0 then begin
+    time0 = time                      ; Kludge until time is decommed
+    self.source_dict.time0 = time
+  endif 
+  
+  
+  if ~self.source_dict.haskey('TIME0') then begin
+;    self.source_dict.time0 = time
+    return
+  endif else begin
+    time0 = self.source_dict.time0
+  endelse
+
+  time = time0 + index * 8.d/512
+
+  dat_accum.time = time
 
   ;dprint,index,tr,fh,dlevel = 3
 
-  ;  dat.time = source_dict.time
-  dat.sync = self.esc_data_select(buf,0,16)
-  dat.index = self.esc_data_select(buf,16+7, 9)
-  dat.tr    = self.esc_data_select(buf,16+6, 1)
-  dat.fh    = self.esc_data_select(buf,16+5, 1)  ; possibly not correct
-  dat.size  = self.esc_data_select(buf,32, 16)
-  dat.size  = dat.size < n_elements(buf)
+  dat.time =  time     ;   source_dict.time
+  dat.sync     =        self.esc_data_select(buffer,0,16)
+  dat.tbd             = self.esc_data_select(buffer,16,   2)
+  dat.boardid         = self.esc_data_select(buffer,16+2, 2)
+  dat.fasthkp         = self.esc_data_select(buffer,16+4, 1)
+  dat.ion_optional    = self.esc_data_select(buffer,16+5, 2) 
+  dat.index           = index
+  dat.size  = self.esc_data_select(buffer,32, 16)
+  
+ 
 
    ;print,dat.index
 
-  data2 = uint(buf,6,(dat.size-6)/2 )
+  data2 = uint(buffer,6,(dat.size-6)/2 )
   byteorder,data2,/swap_if_little_endian
   dat.eanode = data2[0:15]
-  dat.ianodel = data2[16:31]
-  dat.ianodeh = data2[32:47]
-  dat.imh     = data2[48:63]
-  dat.ahkp    = fix(data2[64])
-  dat.dhkp    = data2[65]
-  dat.tofraw  = fix(data2[66:66+8-1])
+  dat.ianode0 = data2[16:31]
+  dat.ianode1 = data2[32:47]
+  dat.ianode2 = data2[48:63]
+  dat.ianode3  = data2[64:79]
+  dat.mass_hist = data2[80:95]
+  dat.ahkp     = fix(data2[96])
+  dat.dhkp     = data2[97]
+  if dat.size gt 202 then begin
+    dprint,dwait=7.,'size = ',dat.size
+  endif
+  
 
-  ; dat.size  = esc_data_select(buf,8 * 2,16)   ;; Packet Size
-  ; dat.eanode  = esc_data_select(buf,8*3 + 16*indgen(16),16)
-  ; dat.ianodel  = esc_data_select(buf,8*3 + 1*16*8 + 16*indgen(16),16)
-  ; dat.ianodeh  = esc_data_select(buf,8*3 + 2*16*8 * 16*indgen(16),16)
-  ;     dat.eanode = esc_data_select(buf,
+  ; dat.size  = esc_data_select(buffer,8 * 2,16)   ;; Packet Size
+  ; dat.eanode  = esc_data_select(buffer,8*3 + 16*indgen(16),16)
+  ; dat.ianodel  = esc_data_select(buffer,8*3 + 1*16*8 + 16*indgen(16),16)
+  ; dat.ianodeh  = esc_data_select(buffer,8*3 + 2*16*8 * 16*indgen(16),16)
+  ;     dat.eanode = esc_data_select(buffer,
 
  ; store_data,'esc_raw_',data=dat,/append,tagnames='*',time_tag='time',verbose=0
+
+  if isa(self.dyndata,'dynamicarray') then self.dyndata.append, dat
+
 
   if dat.index eq -1 then begin
     ;if 
     
   endif
 
-  if dat.index eq 1000 then begin
+  if debug(3,self.verbose) && dat.index eq 23 then begin
+    printdat,source_dict
     printdat,dat
-    hexprint,buf
+    hexprint,buffer
     ;printdat,source_dict
     dprint
   ;  store_data,'esc_raw_',data=dat,/append,tagnames='*',time_tag='time',verbose=2
     ; printdat,source_dict.time
+  endif
+  
+  if debug(4,self.verbose) then begin
+    hexprint,buffer
   endif
 
 end
@@ -112,7 +180,12 @@ end
 
 
 
-PRO esc_esatm::esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
+
+
+
+
+
+PRO esc_esatm_reader::esc_raw_lun_read, buffer, source_dict=source_dict
 
   ;; Size of RAW EESA_FRAMES
   header_size = 6
@@ -122,11 +195,11 @@ PRO esc_esatm::esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_
 
   ;;dwait = 10.
   ;;printdat,info
-  IF isa(source_dict,'DICTIONARY') EQ 0 THEN begin
-    dprint,dlevel=3,'Creating source_dict'
-    ;printdat,info
-    source_dict = dictionary()
-  ENDIF
+;  IF isa(source_dict,'DICTIONARY') EQ 0 THEN begin
+;    dprint,dlevel=3,'Creating source_dict'
+;    ;printdat,info
+;    source_dict = dictionary()
+;  ENDIF
 
   on_ioerror, nextfile
   time = systime(1)
@@ -258,8 +331,12 @@ PRO esc_esatm::esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_
 
 END
 
-pro esc_esatm__define
-  void = {esc_esatm, $
+
+
+
+
+pro esc_esatm_reader__define
+  void = {esc_esatm_reader, $
     inherits socket_reader, $    ; superclass
     flag: 0  $
   }

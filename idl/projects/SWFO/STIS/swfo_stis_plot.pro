@@ -43,7 +43,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
   ;if ~param.haskey('xunits') then param.xunits = 'NRG'
   if ~param.haskey('lim') then begin
     param.lim = dictionary()
-    xlim,param.lim,5,25000.,1
+    xlim,param.lim,5,40000.,1
     ;xlim,param.lim,10000,32000.,0
     ylim,param.lim,.0001,1e4,1
     units = 'Eflux'

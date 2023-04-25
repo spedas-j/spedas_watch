@@ -66,6 +66,7 @@ pro gse_keithley::read,payload,source_dict = source_dict
     if debug(4,self.verbose,msg=self.name + ' handler') then begin
       ;print,strtrim(psnum) + '  '+string(str)
       printdat,vals
+      printdat,source_dict
       ;print,vals
     endif
   endif

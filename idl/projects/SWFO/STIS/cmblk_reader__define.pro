@@ -19,11 +19,13 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
   self.desctypes = orderedhash()
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
   ;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
+  
+  self.add_handler, 'MANIP', json_reader(name='Manip',/no_widget)
 
 ; The following lines are temporary to define read routines for different data
 ;  self.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)
 ;  self.add_handler, 'KEYSIGHTPS' ,  gse_keysight('Keysight',/no_widget)
-;  self.add_handler, 'esc_esatm',  esc_esatm('Esc_ESAs',/no_widget)
+  self.add_handler, 'ESC_ESATM',  esc_esatm_reader(name='Esc_ESAs',/no_widget)
 
 
   RETURN, 1
@@ -179,6 +181,7 @@ pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
     dprint,verbose=self.verbose,dlevel=1,'Found new description key: "', descr_key,'"'
     new_obj =  socket_reader(title=descr_key,/no_widget,verbose=self.verbose)
     handlers[descr_key] = new_obj
+    new_obj.apid = descr_key
   endif
   
   ;if ~self.desctypes.haskey(descr_key) then self.desctypes[descr_key] = n_elements(self.desctypes)

@@ -57,7 +57,7 @@ pro cmblk_keysight::handle,payload,source_dict = source_dict
     endif
     tname = 'KEYSIGHT'+strtrim(psnum,2)
     
-    store_data,/append,tname+'_',data=sample,tagnames='DTIME V I V? I?',gap=sample.gap
+    store_data,/append,tname,data=sample,tagnames='DTIME V I V? I?',gap=sample.gap
 
 ;    firstsample = self.dyndata.size  eq 0
 ;    self.dyndata.append,sample

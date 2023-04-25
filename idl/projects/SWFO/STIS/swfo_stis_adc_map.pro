@@ -135,7 +135,10 @@ function swfo_stis_adc_map, data_sample=data_sample
   adcmap.dnrg = dadc_n * conv_n
   adcmap.geom = geom_n
   
-  if min(adcmap.dnrg) le 0 then message,'coding error',/cont
+  if min(adcmap.dnrg) le 0 then begin
+    print, min(adcmap.dnrg)
+    message,'coding error',/cont
+  endif
   
   return,adcmap
   

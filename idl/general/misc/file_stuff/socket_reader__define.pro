@@ -323,10 +323,10 @@ end
 
 
 pro socket_reader::print_status,no_header=no_header
-   format1 = '(a12,a18,a14,i3,i10,i12,i10,i10,i10,i10,i10,i10)'
+   format1 = '(a12,a18,a18,i3,i10,i12,i10,i10,i10,i10,i10,i10)'
    format2 = str_sub(format1,',i',',a')
    if ~keyword_set(no_header) then $
-     print,'APID','Name','type','S','sum1','sum2','npkts','nreads','Size',format=format2
+     print,'APID','Name','Object','S','sum1','sum2','npkts','nreads','Size',format=format2
    print,self.apid,self.name,typename(self),self.isasocket,self.sum1_bytes,self.sum2_bytes,self.npkts,self.nreads,self.dyndata.size,format=format1
    if ~keyword_set(no_header) then $
      print,'-----','-----','--','----','----','----','----','-------',format=format2
