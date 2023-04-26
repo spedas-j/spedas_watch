@@ -2,8 +2,8 @@
 ;  ESC_GEN_RAWDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2023-02-27 12:58:20 -0800 (Mon, 27 Feb 2023) $
-; $LastChangedRevision: 31558 $
+; $LastChangedDate: 2023-04-25 10:05:01 -0700 (Tue, 25 Apr 2023) $
+; $LastChangedRevision: 31795 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/common/esc_gen_rawdat__define.pro $
 ;-
 
@@ -47,30 +47,42 @@ FUNCTION esc_gen_rawdat::Init, _EXTRA=ex
    self.ahkp_poly[[24,26,28,30],5] = -1.1790E-15
    
    ;; Analog Housekeeping
-   self.ahkp_empty = ptr_new($
-                     {imcpv:nan,   idef1v:nan,    emcpv:nan,    edef1v:nan, imcpi:nan,     $
-                      idef2v:nan,  emcpi:nan,     edef2v:nan,   irawv:nan,  ispoilerv:nan, $
-                      erawv:nan,   espoilerv:nan, irawi:nan,    ihemiv:nan, erawi:nan,     $
-                      ehemiv:nan,  iaccelv:nan,   p8v:nan,      p1_5v:nan,  p5vi:nan,      $
-                      iacceli:nan, p5v:nan,       p1_5vi:nan,   n5vi:nan,   ianalt:nan,    $
-                      n5v:nan,     digitalt:nan,  p8vi:nan,     eanalt:nan, n8v:nan,       $
-                      eanodet:nan, n8vi:nan,      $
-                      time:nan, gap:0})
+   str_ahkp = {imcpv:nan,   idef1v:nan,    emcpv:nan,    edef1v:nan, imcpi:nan,     $
+               idef2v:nan,  emcpi:nan,     edef2v:nan,   irawv:nan,  ispoilerv:nan, $
+               erawv:nan,   espoilerv:nan, irawi:nan,    ihemiv:nan, erawi:nan,     $
+               ehemiv:nan,  iaccelv:nan,   p8v:nan,      p1_5v:nan,  p5vi:nan,      $
+               iacceli:nan, p5v:nan,       p1_5vi:nan,   n5vi:nan,   ianalt:nan,    $
+               n5v:nan,     digitalt:nan,  p8vi:nan,     eanalt:nan, n8v:nan,       $
+               eanodet:nan, n8vi:nan,      $
+               time:0.D, gap:0}
 
-   self.ahkp_tags = tag_names(*self.ahkp_empty)
-   self.ahkp_last = self.ahkp_empty
+   self.ahkp_empty = ptr_new(str_ahkp)
+   self.ahkp_last  = ptr_new(str_ahkp)
+   self.ahkp_tags  = tag_names(str_ahkp)
    self.ahkp = dynamicarray(!null, name = 'Analog_Housekeeping')
+   self.ahkp_tplot = 0
    
    ;; Digital Housekeeping
-   nan = uint(0)
 
-   ;; Digital HKP Index
-   ;;self.dhkp_ind = [] 
-   
-   self.dhkp_empty = ptr_new({$
+   self.dhkp_trans = [indgen(1)   +  0, nan, $
+                      indgen(2)   +  3, nan, $
+                      indgen(27)  +  9, nan, nan, $
+                      indgen(1)   + 47, nan, nan, $
+                      indgen(21)  + 55, nan, $
+                      indgen(3)   + 79, nan, nan, $
+                      indgen(102) + 89, nan, $
+                      indgen(52)  +195, nan, $
+                      indgen(2)   +249, $
+                      nan, nan, nan, nan, nan, $
+                      indgen(4)   +268]
+
+   nan = ulong(0)
+      
+   str_dhkp = {$ 
                      cmds_received:nan,    cmd_errors:nan,      cmd_known:nan, $
                      fgpa_rev:nan,         mode_id:nan,         i_hv_mode:nan, $
-                     e_hv_mode:nan,        hv_key_enabled:nan,  board_id:nan, $
+                     e_hv_mode:nan,        hv_key_enabled:nan,  hv_enabled:nan,$
+                     board_id:nan, $
                      reset_cnt:nan,        ihemi_cdi:nan,       ispoiler_cdi:nan, $
                      idef1_cdi:nan,        idef2_cdi:nan,       imcp:nan, $
                      iraw_hv:nan,          iaccel:nan,          ehemi_cdi:nan,$
@@ -87,40 +99,97 @@ FUNCTION esc_gen_rawdat::Init, _EXTRA=ex
                      act_close_stat:nan,   ecover_stat:nan,     icover_stat:nan, $
                      last_actuation:nan,   act_err:nan,         act_override:nan, $
                      act_timeout_cvr:nan,  act_timeout_atn:nan, actuation_time:nan, $
-                     active_time:nan,      act_cooltime:nan,    ch_offset:replicate(nan,16), $
+                     active_time:nan,      act_cooltime:nan, $
+
+                     ch_offset_0:nan,ch_offset_1:nan,ch_offset_2:nan,ch_offset_3:nan,$
+                     ch_offset_4:nan,ch_offset_5:nan,ch_offset_6:nan,ch_offset_7:nan,$
+                     ch_offset_8:nan,ch_offset_9:nan,ch_offset_10:nan,ch_offset_11:nan,$
+                     ch_offset_12:nan,ch_offset_13:nan,ch_offset_14:nan,ch_offset_15:nan,$
+                     
                      raw_events_ena:nan,   raw_events_mode:nan, raw_events_chan:nan, $
                      raw_channel_mask:nan, raw_min_tof_val:nan, mhist_chan_mask:nan, $
                      tof_hist_ena:nan,     accum_rates_ena:nan, accum_rates1:nan, $
                      accum_rates2:nan,     accum_rates3:nan,    fast_hkp_ena:nan, $
-                     fast_hkp_chan:nan,    valid:replicate(nan,16), non_valid:replicate(nan,16),$
-                     start_no_stop:replicate(nan,16), stop_no_start:replicate(nan,16), $
-                     start:replicate(nan,11), stop:replicate(nan,16), $
+                     fast_hkp_chan:nan, $
+
+                     valid_0:nan, valid_1:nan, valid_2:nan, valid_3:nan,$
+                     valid_4:nan, valid_5:nan, valid_6:nan, valid_7:nan,$
+                     valid_8:nan, valid_9:nan, valid_10:nan,valid_11:nan,$
+                     valid_12:nan,valid_13:nan,valid_14:nan,valid_15:nan,$
+
+                     non_valid_0:nan, non_valid_1:nan, non_valid_2:nan, non_valid_3:nan,$
+                     non_valid_4:nan, non_valid_5:nan, non_valid_6:nan, non_valid_7:nan,$
+                     non_valid_8:nan, non_valid_9:nan, non_valid_10:nan,non_valid_11:nan,$
+                     non_valid_12:nan,non_valid_13:nan,non_valid_14:nan,non_valid_15:nan,$
+
+                     start_no_stop_0_1:nan, start_no_stop_2_3:nan, start_no_stop_4_5:nan, start_no_stop_6_7:nan,$
+                     start_no_stop_8_9:nan, start_no_stop_10:nan,start_no_stop_11:nan,$
+                     start_no_stop_12:nan,  start_no_stop_13:nan,start_no_stop_14:nan,start_no_stop_15:nan,$
+
+                     emptyrate1:nan, $
+                     
+                     stop_no_start_0:nan, stop_no_start_1:nan, stop_no_start_2:nan, stop_no_start_3:nan,$
+                     stop_no_start_4:nan, stop_no_start_5:nan, stop_no_start_6:nan, stop_no_start_7:nan,$
+                     stop_no_start_8:nan, stop_no_start_9:nan, stop_no_start_10:nan,stop_no_start_11:nan,$
+                     stop_no_start_12:nan,stop_no_start_13:nan,stop_no_start_14:nan,stop_no_start_15:nan,$
+                     
+                     start_0_1:nan, start_2_3:nan, start_4_5:nan, start_6_7:nan,$
+                     start_8_9:nan, start_10:nan,  start_11:nan,$
+                     start_12:nan,  start_13:nan,  start_14:nan,start_15:nan,$
+
+                     stop_0:nan, stop_1:nan, stop_2:nan, stop_3:nan,$
+                     stop_4:nan, stop_5:nan, stop_6:nan, stop_7:nan,$
+                     stop_8:nan, stop_9:nan, stop_10:nan,stop_11:nan,$
+                     stop_12:nan,stop_13:nan,stop_14:nan,stop_15:nan,$
+
+                     emptyrate2:nan, $
+                     
                      ihemi_checksum:nan,   ispoiler_checksum:nan, idef1_checksum:nan, $
                      idef2_checksum:nan,   ehemi_checksum:nan,  espoiler_checksum:nan, $
                      edef1_checksum:nan,   edef2_checksum:nan,  mlut_checksum:nan, $
                      mlimit_checksum:nan,  cmded_checksum:nan,  thist_chan_mask:nan, $
                      thist_stepmin:nan,    thist_stepmax:nan,   cal_disable:nan, $
                      read_nonVE:nan,       cal_clk_period:nan,  compress_tof:nan, $
-                     cal_clk_pause:nan,    mram_write_addr:nan, sweep_count:nan, $
+                     cal_clk_pause:nan,    $
+                     mram_write_addr_hi:nan, mram_write_addr_lo:nan, $
+                     sweep_count:nan, $
                      pps_count:nan,        last_command:nan,    last_command_data:nan, $
-                     sweep_utc:nan,        cfd_setting:replicate(nan,27), $
-                     easic_ch:replicate(nan, 16), ehemi_delta:nan, ehemi_deadtime:nan, $
-                     easic_stim:nan,       iesa_tp_hv_step:nan, $
+                     sweep_utc_hi:nan, sweep_utc_lo:nan, $
+                     cfd_setting_0:nan, cfd_setting_1:nan, cfd_setting_2:nan, cfd_setting_3:nan,$
+                     cfd_setting_4:nan, cfd_setting_5:nan, cfd_setting_6:nan, cfd_setting_7:nan,$
+                     cfd_setting_8:nan, cfd_setting_9:nan, cfd_setting_10:nan,cfd_setting_11:nan,$
+                     cfd_setting_12:nan,cfd_setting_13:nan,cfd_setting_14:nan,cfd_setting_15:nan,$
+                     cfd_setting_16:nan, cfd_setting_17:nan, cfd_setting_18:nan, cfd_setting_19:nan,$
+                     cfd_setting_20:nan, cfd_setting_21:nan, cfd_setting_22:nan, cfd_setting_23:nan,$
+                     cfd_setting_24:nan, cfd_setting_25:nan, cfd_setting_26:nan,$
+
+                     easic_ch_0:nan, easic_ch_1:nan, easic_ch_2:nan, easic_ch_3:nan,$
+                     easic_ch_4:nan, easic_ch_5:nan, easic_ch_6:nan, easic_ch_7:nan,$
+                     easic_ch_8:nan, easic_ch_9:nan, easic_ch_10:nan,easic_ch_11:nan,$
+                     easic_ch_12:nan,easic_ch_13:nan,easic_ch_14:nan,easic_ch_15:nan,$
+
+                     ehemi_delta:nan,   ehemi_deadtime:nan,  $
+                     easic_stim:nan,    iesa_tp_hv_step:nan, $
                      eidpu_fsm_err:nan, mram_fsm_err:nan,      tof_fsm_err:nan,   tlm_fsm_err:nan, $
                      hv_fsm_err:nan,    actuator_fsm_err:nan,  rates_fsm_err:nan, raw_fsm_err:nan, $
                      adc_fsm_err:nan,   cfd_fsm_err:nan,       ions_fsm_err:nan,  $
                      tof_mem_err:nan,   icounters_mem_err:nan, mlut_mem_err:nan, rates_mem_err:nan, $
                      raw_mem_err:nan,   mhist_mem_err:nan,     eesa_retrace_timeout:nan, $
-                     tof_offset:nan,    iesa_test_val:nan,     eesa_test_val:nan})
-                     
-                     
+                     tof_offset:nan,    iesa_test_val:nan,     eesa_test_val:nan,$
+
+                     mram_write_addr:0.D, time:0.d};;!VALUES.D_NAN}
    
-    ;;self.dhkp = dynamicarray(self.dhkp_empty, name = 'Digital_Housekeeping')
-    
-    ;;IF keyword_set(ex) THEN dprint,ex,phelp=2,dlevel=self.dlevel
-    ;;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
-    
-    RETURN, 1
+   
+   self.dhkp_tags = tag_names(str_dhkp)
+   self.dhkp_empty = ptr_new(str_dhkp)
+   self.dhkp_last = ptr_new(str_dhkp)
+   self.dhkp = dynamicarray(!null, name = 'Digital_Housekeeping')
+   self.dhkp_tplot = 0
+   
+   ;;IF keyword_set(ex) THEN dprint,ex,phelp=2,dlevel=self.dlevel
+   ;;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
+   
+   RETURN, 1
    
 END
 
@@ -145,6 +214,7 @@ END
 
 
 PRO esc_gen_rawdat::Cleanup
+
    stop
    
    COMPILE_OPT IDL2
@@ -176,44 +246,73 @@ END
 
 
 
-PRO esc_gen_rawdat::handler, raw_pkt , source_dict=source_dict
+PRO esc_gen_rawdat::handler, raw_pkt ;;, source_dict=source_dict
 
+   ;; Common Block
+   COMMON esc_raw_pkt, initialized, raw_data, source_dict
+   
    ;; Print raw binary content
    IF debug(self.dlevel+3,msg='handler') THEN BEGIN
       hexprint,*raw_pkt.pdata
    ENDIF
 
-   ;; Decommutate the RAW Packet
-   IF NOT self.ignore_flag THEN strct = self.decom(raw_pkt, source_dict=source_dict)
+   ;;####################################
+   ;;### Append Data to Final Product ###
+   ;;####################################
 
-   ;; Insert data into pointer
-   ;;IF keyword_set(strct) THEN  *self.last_data_p = strct
+   ;; 
 
-   ;;###################
-   ;;### Append Data ###
-   ;;###################
-   ;;IF self.save_flag && keyword_set(strct) THEN BEGIN
-   IF keyword_set(strct) THEN BEGIN
+   
+   ;; Digital Housekeeping
+   IF source_dict.index EQ 0 THEN BEGIN
 
-      self.data.append,  strct
+      ;;Add new structure
+      self.dhkp.append, *self.dhkp_last
       
-      ;; Append to Analog Housekeeping
-      IF (strct.h_index MOD 32) EQ 0 THEN BEGIN
+      ;; Clear Structure
+      *self.dhkp_last = *self.dhkp_empty
 
-         ;; Add Timestamp
-         time = source_dict.date + (8D*source_dict.jj) + (strct.h_index/512D*8D)
-         (*(self.ahkp_last)).time = time
-         
-         ;;Add new structure
-         self.ahkp.append, *self.ahkp_last
+      ;; Create tplot structure
+      IF self.dhkp_tplot EQ 0 THEN BEGIN
+         store_data, 'esc_dhkp', data=self.dhkp, tagnames='*', verbose=0, /silent
+         self.dhkp_tplot = 1
+      ENDIF
+      
+   ENDIF
+      
+   ;; Analog Housekeeping
+   IF (source_dict.index MOD 32) EQ 0 THEN BEGIN
 
-         ;; Clear Structure
-         self.ahkp_last = self.ahkp_empty
+      ;; Add Timestamp to Analog Housekeeping
+      IF self.dhkp.array ne !null THEN BEGIN
+         p1 = n_elements(self.dhkp.array)
+         IF p1 GE 3 THEN BEGIN
+            (*self.ahkp_last).time = self.dhkp.array[p1-2].time + $
+                                     source_dict.index/512.*8.
+         ENDIF
+      ENDIF
 
+      ;; Add new structure
+      self.ahkp.append, *self.ahkp_last
+      
+      ;; Clear Structure
+      *self.ahkp_last = *self.ahkp_empty
+
+      ;; Create tplot structure
+      IF self.ahkp_tplot EQ 0 THEN BEGIN
+         store_data, 'esc_ahkp', data=self.ahkp, tagnames='*', verbose=0, /silent
+         options,'esc_ahkp'+'*',/ynozero,ystyle=3
+         self.ahkp_tplot = 1
       ENDIF
 
    ENDIF
 
+   ;; Decommutate the RAW Packet
+   IF NOT self.ignore_flag THEN strct = self.decom(raw_pkt, source_dict=source_dict)
+
+   ;; Append Full EESA Message
+   self.data.append,  strct
+      
    ;; Create / Append tplot variable
    IF self.rt_flag && keyword_set(strct) THEN BEGIN
       IF ccsds.gap EQ 1 THEN strct = [fill_nan(strct[0]),strct]
@@ -228,7 +327,8 @@ END
 PRO esc_gen_rawdat::finish,ttags=ttags
 
    ;; Store Analog Housekeeping into tplot
-   store_data, 'esc_ahkp_', data=self.ahkp.array, tagnames='*'
+   ;;store_data, 'esc_ahkp_', data=self.ahkp.array, tagnames='*', verbose=0;;, /append
+   ;;store_data, 'esc_dhkp_', data=self.dhkp.array, tagnames='*', verbose=0, /append
    options,'esc_ahkp_'+'*',/ynozero,ystyle=3
    
 END
@@ -236,10 +336,10 @@ END
 
 
 PRO esc_gen_rawdat::GetProperty,data=data, array=array, npkts=npkts,lost_pkts=lost_pkts, $
-                               apid=apid, name=name, typename=typename, $
-                               nsamples=nsamples, nbytes=nbytes, strct=strct, ccsds_last=ccsds_last,$
-                               tname=tname, dlevel=dlevel, ttags=ttags, last_data=last_data, $
-                               window=window, cdf_pathname=cdf_pathname, ahkp=ahkp
+                                apid=apid, name=name, typename=typename, $
+                                nsamples=nsamples, nbytes=nbytes, strct=strct, ccsds_last=ccsds_last,$
+                                tname=tname, dlevel=dlevel, ttags=ttags, last_data=last_data, $
+                                window=window, cdf_pathname=cdf_pathname, ahkp=ahkp
    COMPILE_OPT IDL2
    IF (ARG_PRESENT(nbytes))    THEN nbytes = self.nbytes
    IF (ARG_PRESENT(name))      THEN name = self.name
@@ -289,17 +389,27 @@ PRO esc_gen_rawdat__define
            window_obj: obj_new(), $
            output_lun: 0, $
 
-           dhkp:obj_new(), $
            ahkp:obj_new(), $
+           dhkp:obj_new(), $
 
-           dhkp_last:ptr_new(),$
            ahkp_last:ptr_new(),$
-   
+           dhkp_last:ptr_new(),$
+           
            ahkp_poly:fltarr(32,6), $
+           dhkp_poly:fltarr(32,6), $
+           
            ahkp_tags:strarr(34),   $
+           dhkp_tags:strarr(277),   $
+
+           ahkp_empty:ptr_new(),   $
            dhkp_empty:ptr_new(),   $
-           dhkp_ind:uintarr(229),  $
-           ahkp_empty:ptr_new()    $
+
+           ahkp_tplot:0,$
+           dhkp_tplot:0,$
+           
+           dhkp_trans:intarr(231), $
+           
+           dhkp_ind:uintarr(229)  $
            
           }
 

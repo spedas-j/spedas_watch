@@ -11,10 +11,10 @@
 ;    Davin Larson - January 2023
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: ) $
-; $LastChangedRevision:  $
-; $URL: $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2023-04-25 16:12:02 -0700 (Tue, 25 Apr 2023) $
+; $LastChangedRevision: 31800 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
 
@@ -225,7 +225,7 @@ pro socket_reader::open_output,fileformat,time=time,close=close
   dprint,verbose=self.verbose,dlevel=3,"Opening output for: "+self.name
 
   if self.output_lun gt 0 then begin   ; Close old file
-    dprint,verbose=self.verbose,dlevel=2,'Closing file: "'+self.filename+'"'
+    dprint,verbose=self.verbose,dlevel=2,'Closing file: '+file_info_string(self.filename)
     free_lun,self.output_lun
     self.output_lun = 0
   endif
@@ -510,7 +510,7 @@ pro socket_reader::dest_button_event
       ;            wait,1
       widget_control, dest_text_id ,set_value= self.fileformat,sensitive=1
       WIDGET_CONTROL, dest_button_id, set_value = 'Write to',sensitive=1
-      dprint,dlevel=self.dlevel,self.title_num+'Closed output file: '+self.filename,no_check_events=1
+      dprint,dlevel=self.dlevel,self.title_num+'Closed output file: '+file_info_string(self.filename),no_check_events=1
     end
     else: begin
       dprint,self.title_num+'Invalid State'

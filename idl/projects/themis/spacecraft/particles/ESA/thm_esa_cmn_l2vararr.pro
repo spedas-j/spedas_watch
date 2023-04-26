@@ -18,8 +18,8 @@
 ;HISTORY:
 ; 24-Oct-2022, jmm, Hacked from fa_esa_cmn_l2vararr
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-03-14 12:57:53 -0700 (Tue, 14 Mar 2023) $
-; $LastChangedRevision: 31628 $
+; $LastChangedDate: 2023-04-25 12:46:34 -0700 (Tue, 25 Apr 2023) $
+; $LastChangedRevision: 31798 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_esa_cmn_l2vararr.pro $
 ;-
 Function thm_esa_cmn_l2vararr, data_name
@@ -67,9 +67,8 @@ Function thm_esa_cmn_l2vararr, data_name
           ['DEAD', 'DEAD', 'N'], $
           ['MASS', 'MASS', 'N'], $
           ['CHARGE', 'CHARGE', 'N'], $
-;          ['SC_POT', 'SC_POT', 'Y'], $ Not included, so will be
-;          needed to be input later
-;          ['MAGF', 'MAGF', 'Y'], $
+          ['SC_POT', 'SC_POT', 'Y'], $ ;Not included, so will be needed to be input later
+          ['MAGF', 'MAGF', 'Y'], $
           ['BKG_PSE', 'BKG_PSE', 'Y'], $
           ['BKG_PEI', 'BKG_PEI', 'Y'], $
           ['BKG', 'BKG', 'Y'], $

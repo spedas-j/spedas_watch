@@ -1,10 +1,10 @@
 
 
 
-PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
+PRO esc_raw_lun_read, in_lun, out_lun, info=info;;, source_dict=source_dict
 
    ;; Common Block
-   COMMON esc_raw_pkt, initialized, raw_data
+   COMMON esc_raw_pkt, initialized, raw_data, source_dict
    
    ;; Size of RAW EESA_FRAMES Header in Bytes (8 Bits)
    hsize = 6
@@ -13,7 +13,8 @@ PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
    buf = bytarr(hsize)
 
    ;; Initialize Source Dictionary
-   IF isa(source_dict,'DICTIONARY') EQ 0 THEN begin
+   ;;IF isa(source_dict,'DICTIONARY') EQ 0 THEN begin
+   IF ~keyword_set(initialized) THEN BEGIN
       dprint,dlevel=3,'Creating source_dict'
       source_dict = dictionary()
    ENDIF
@@ -34,12 +35,6 @@ PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
    ;; esc_apdat_info,current_filename= fst.name
    source_dict.source_info = info
 
-   ;; Insert Start Time
-   tmp1 = strsplit(fst.name,/extract,'/')
-   date = strsplit(tmp1[(size(tmp1))[1]-2], '_',/extract)
-   source_dict.date = time_double(strmid(date[0],0,4) + '-' + strmid(date[0],4,2) + '-' + strmid(date[0],6,2) + $
-                                  '/'+strmid(date[1],0,2)+':'+strmid(date[1],2,2)+':'+strmid(date[1],4,2))
-
    WHILE file_poll_input(in_lun,timeout=0) && ~eof(in_lun) DO BEGIN
 
       ;; Read 6 Bytes corresponding to 3 Header Words
@@ -57,12 +52,15 @@ PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
       ENDIF
 
       ;; --- SYNC FOUND ---
-      
+
       ;; Generate Header Words (3 x 16bits)
       hw = swap_endian(uint(raw_buf,0,3),/swap_IF_little_endian)
 
       ;; Packet Size - 3rd Word
       size = hw[2]
+
+      ;; Packet MSG Index
+      source_dict.index = hw[1] AND '1ff'x
 
       ;; Read in Data
       dat_buf = bytarr(size - hsize)
@@ -77,21 +75,21 @@ PRO esc_raw_lun_read, in_lun, out_lun, info=info, source_dict=source_dict
       ENDIF
 
       ;; Send data to handler
-      esc_raw_pkt_handler, [raw_buf, dat_buf], source_dict=source_dict
+      esc_raw_pkt_handler, [raw_buf, dat_buf]
 
       ;; Reset buffer to header size
       buf = bytarr(hsize)
       remainder=!null
 
       ;; File read status every 10%
-      IF (1D*nbytes / fst.size * 100D) GT file_percentage THEN BEGIN
-         print, 'Loaded '+string(1D*nbytes / fst.size * 100D,format='(I2)')+'% of file.' 
-         file_percentage += 10
-      ENDIF
+      ;;IF (1D*nbytes / fst.size * 100D) GT file_percentage THEN BEGIN
+      ;;   print, 'Loaded '+string(1D*nbytes / fst.size * 100D,format='(I2)')+'% of file.' 
+      ;;   file_percentage += 10
+      ;;ENDIF
       
    ENDWHILE
 
-   raw_data.finish
+   ;;raw_data.finish
    
    flush,out_lun
 
@@ -216,7 +214,7 @@ END
 ;;   endif
 
 ;;   if dat.index eq 1000 then begin
-;;      printdat,dat
+;;      Printdat,dat
 ;;      hexprint,buf
 ;;      ;;printdat,source_dict
 ;;      dprint

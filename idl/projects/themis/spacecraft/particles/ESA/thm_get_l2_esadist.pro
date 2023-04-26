@@ -66,8 +66,8 @@
 ;HISTORY:
 ; 2022-11-14, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2022-11-21 12:28:21 -0800 (Mon, 21 Nov 2022) $
-; $LastChangedRevision: 31290 $
+; $LastChangedDate: 2023-04-25 12:48:39 -0700 (Tue, 25 Apr 2023) $
+; $LastChangedRevision: 31799 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_get_l2_esadist.pro $
 Function thm_get_l2_esadist, time, probe0, datatype0, $
                              START=st,EN=en,ADVANCE=adv,$
@@ -336,7 +336,7 @@ Function thm_get_l2_esadist, time, probe0, datatype0, $
      gf = reform(all_dat.gf[0:nenergy-1,0:nbins-1,an_ind])
      dt_arr = reform(all_dat.dt_arr[0:nenergy-1,0:nbins-1,an_ind])
      bkg = reform(all_dat.bkg_arr[0:nenergy-1,0:nbins-1,an_ind])*all_dat.bkg[ind]
-     eflux = reform(all_dat.eflux[ind, *, *])
+     eflux = reform(all_dat.eflux[ind, 0:nenergy-1, 0:nbins-1])
      valid = all_dat.valid[ind]
      dat = {project_name: all_dat.project_name, $
             spacecraft: all_dat.spacecraft, $
@@ -427,11 +427,3 @@ Function thm_get_l2_esadist, time, probe0, datatype0, $
   Endelse
   Return, dat
 End
-
-     
-     
-
-         
-                                            
-                                            
-     

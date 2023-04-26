@@ -3,31 +3,23 @@
 ; Written by Davin Larson
 ;
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2023-02-27 13:07:22 -0800 (Mon, 27 Feb 2023) $
-; $LastChangedRevision: 31559 $
+; $LastChangedDate: 2023-04-25 09:31:15 -0700 (Tue, 25 Apr 2023) $
+; $LastChangedRevision: 31792 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/common/esc_raw_pkt_handler.pro $
 ;-
 
-PRO esc_raw_pkt_handler, raw_buf, source_dict=source_dict
+PRO esc_raw_pkt_handler, raw_buf
 
    ;; Common Block
-   COMMON esc_raw_pkt, initialized, raw_data
+   COMMON esc_raw_pkt, initialized, raw_data, source_dict
 
    ;; Initialize if this is the first time being called
    IF ~keyword_set(initialized) THEN BEGIN
       initialized = 1
       raw_data = obj_new('esc_raw_pkt', source_dict=source_dict)
-      source_dict.ii = 0.
-      source_dict.jj = 0.
    ENDIF
 
-   raw_data.handler, raw_buf, source_dict=source_dict
-
-   IF source_dict.index EQ 511 THEN BEGIN 
-      source_dict.jj = source_dict.jj +1
-   ENDIF
-
-   source_dict.ii = source_dict.ii + 1
+   raw_data.handler, raw_buf
 
 END
 
