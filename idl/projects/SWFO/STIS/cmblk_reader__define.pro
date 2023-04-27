@@ -11,7 +11,7 @@ COMPILE_OPT IDL2
 
 FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
   ; Call our superclass Initialization method.
-  void = self->socket_reader::Init(_EXTRA = ex)
+  void = self.socket_reader::Init(_EXTRA = ex)
   if isa(handlers,'hash') then begin
     self.handlers = handlers 
   endif else  self.handlers = orderedhash()
@@ -20,7 +20,7 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
   ;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   
-  self.add_handler, 'MANIP', json_reader(name='Manip',/no_widget)
+;  self.add_handler, 'MANIP', json_reader(name='Manip',/no_widget)
 
 ; The following lines are temporary to define read routines for different data
 ;  self.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)

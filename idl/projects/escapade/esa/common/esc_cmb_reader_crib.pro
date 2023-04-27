@@ -6,6 +6,8 @@
 ; 
 
 
+stop
+
 cmb = cmblk_reader(host = 'abiad-sw',port=5004,directory='ESC_TEST/')
 
 
@@ -49,15 +51,6 @@ tplot,'Esc*',trange=systime(1) + [-1,.05] * 60 *5
 ;Manipulator data:
 manip = cmb.get_handlers('MANIP')
 store_data,'Manip',data=manip.dyndata,tagnames='*'
-
-
-
-
-
-
-
-
-
 
 
 
