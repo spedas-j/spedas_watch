@@ -20,7 +20,7 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
   ;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   
-;  self.add_handler, 'MANIP', json_reader(name='Manip',/no_widget)
+  self.add_handler, 'MANIP', json_reader(name='Manip',/no_widget,tplot_tagnames='*')
 
 ; The following lines are temporary to define read routines for different data
 ;  self.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)

@@ -19,10 +19,9 @@ function json_reader::translate,buf,source_dict=source_dict
     if (iErr ne 0) then begin
       CATCH, /CANCEL
       ;MESSAGE, !ERROR_STATE.msg, /cont
-      dprint,verbose=self.verbose,dlevel=2,"'"+string(buf)+"'"
-      dprint,verbose=self.verbose,dlevel=2,"'"+result+"'"
-      
-      dprint,verbose=self.verbose,dlevel=2,!error_state.msg
+      ;dprint,verbose=self.verbose,dlevel=3,"'"+string(buf)+"'"
+      dprint,verbose=self.verbose,dlevel=3,"'"+result+"'"     
+      dprint,verbose=self.verbose,dlevel=3,!error_state.msg
       return,!null
     endif
   endif
@@ -31,9 +30,9 @@ function json_reader::translate,buf,source_dict=source_dict
   if isa(buf,'byte') then result = string(buf) else result=buf
 
   ;result = str_sub(result,',',',"')   ;  CLUGE  - Inserting missing quotes. - Delete line after Tony fixes ion gun code
-  result = str_sub(result,':+',': ')    ; cluge - remove when the + sign gets removed.
-  pos = strpos(result,'}{')
-  if pos gt 0 then result = strmid(result,0,pos+1)
+  ;result = str_sub(result,':+',': ')    ; cluge - remove when the + sign gets removed.
+  ;pos = strpos(result,'}{')
+  ;if pos gt 0 then result = strmid(result,0,pos+1)
   ;  result = str_sub(result,'}{','},{')
   if debug(3,self.verbose,msg='test') then begin
     print,string(buf)

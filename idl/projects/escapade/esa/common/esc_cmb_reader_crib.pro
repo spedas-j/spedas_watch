@@ -1,7 +1,9 @@
 ; esc_cmb_reader_crib
 ; 
 ; 
-; 
+
+
+
 ; 
 ; 
 
@@ -9,7 +11,8 @@
 stop
 
 cmb = cmblk_reader(host = 'abiad-sw',port=5004,directory='ESC_TEST/')
-
+file = '/Users/phyllisw/Desktop/eesa.cmb'
+cmb.file_read,file
 
 ; Then click on open button
 

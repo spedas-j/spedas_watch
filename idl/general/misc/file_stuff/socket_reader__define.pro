@@ -11,9 +11,9 @@
 ;    Davin Larson - January 2023
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
-; $LastChangedBy: ali $
-; $LastChangedDate: 2023-04-25 16:12:02 -0700 (Tue, 25 Apr 2023) $
-; $LastChangedRevision: 31800 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2023-04-28 10:40:06 -0700 (Fri, 28 Apr 2023) $
+; $LastChangedRevision: 31809 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -329,7 +329,7 @@ pro socket_reader::print_status,no_header=no_header
      print,'APID','Name','Object','S','sum1','sum2','npkts','nreads','Size',format=format2
    print,self.apid,self.name,typename(self),self.isasocket,self.sum1_bytes,self.sum2_bytes,self.npkts,self.nreads,self.dyndata.size,format=format1
    if ~keyword_set(no_header) then $
-     print,'-----','-----','--','----','----','----','----','-------',format=format2
+     print,'-----','-----','-----','--','----','----','----','----','-------',format=format2
 
 
 end

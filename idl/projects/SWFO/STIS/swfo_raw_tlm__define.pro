@@ -143,7 +143,9 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
             nbuf = n_elements(source_dict.sync_ccsds_buf)
             skipped++
           endwhile
-          if skipped ne 0 then dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word'
+          if skipped ne 0 then begin
+            dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word'
+          endif
           nbuf = n_elements(source_dict.sync_ccsds_buf)
           if nbuf lt 10 then begin
             dprint,verbose=self.verbose,dlevel=4,'Incomplete packet header - wait for later'
