@@ -38,8 +38,8 @@ pro esc_esatm_reader::read, buffer, source_dict=parent_dict ; this routine needs
          dprint,dwait = 5,dlevel=3,verbose=self.verbose,n_elements(buffer)
       endelse
    endif else begin
-      dprint,'Wrong size'+ string(n_elements(buffer)),dwait=10.
-      return
+      ;dprint,'Wrong size', n_elements(buffer),dwait=10.
+      ;return
    endelse
    
    self.decom_esctm,buffer,source_dict=parent_dict
@@ -52,7 +52,12 @@ end
 pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    
    
-   if isa(parent_dict,'dictionary') && parent_dict.haskey('cmbhdr') then time = parent_dict.cmbhdr.time  else time=0d
+   if isa(parent_dict,'dictionary') && parent_dict.haskey('cmbhdr') then begin
+    cmbhdr = parent_dict.cmbhdr
+    time = cmbhdr.time 
+    ;size = cmbhdr.size  
+    
+   endif else time=0d
    
                                 ;printdat,time_string(time)
                                 ;return
@@ -112,6 +117,8 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    dat.index           = index
    dat.size  = self.esc_data_select(buffer,32, 16)
    
+   if dat.size ne cmbhdr.size then dprint,'Size error: ',dat.size
+   
    
 
    ;; print,dat.index
@@ -140,7 +147,19 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    ;; Append Full Message
    self.dat_da.append,  dat
     
-  
+    
+    
+   ;; Electron Science Products
+   if (index eq 0) and n_elements(self.dat_da.array) gt 511 then begin
+    
+    nn = n_elements(self.dat_da.array)
+    dat_espec = self.decom_espec(self.dat_da.array[nn-513:nn-2].eanode)
+    dat_espec.time = time
+    self.espec_da.append, dat_espec
+    
+   endif
+
+
 
    ;; Fast Housekeeping
    nan = 0u
@@ -264,6 +283,19 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
 
 end
 
+function esc_esatm_reader::decom_espec, arr
+
+   
+   arr = reform(temporary(arr),16,8,64)
+   str_espec = {ANO_SPEC:total(total(arr,2),2), $
+                NRG_SPEC:total(total(arr,1),1), $
+                DEF_SPEC:total(total(arr,1),2), $
+                time:0.D, gap:0}
+      
+   return, str_espec
+
+end
+
 
 FUNCTION esc_esatm_reader::decom_fhkp, arr
 
@@ -326,7 +358,7 @@ END
 
 FUNCTION esc_esatm_reader::decom_dhkp, arr
 
-   ;; Check that int_arr is the correct size
+   ;; Check that arr is the correct size
    IF n_elements(arr) NE 512 OR n_elements(arr) NE 1024 THEN $
     stop, 'Wrong dhkp packet size.'   
 

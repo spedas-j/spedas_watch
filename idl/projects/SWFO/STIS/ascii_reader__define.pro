@@ -1,5 +1,5 @@
 ;+
-;  json_reader
+;  ascii_reader
 ;  This object works with the common block files to decommutate data from Keysight power supplies
 ; $LastChangedBy:  $
 ; $LastChangedDate:  $
@@ -10,18 +10,17 @@
 COMPILE_OPT IDL2
 
 
-function json_reader::translate,buf,source_dict=source_dict
+function ascii_reader::translate,buf,source_dict=source_dict
 
+  dbg = 1
   if (~KEYWORD_SET(dbg)) then begin
-    ;ON_ERROR, 2
-    ; Catch errors from our method and fake the call stack.
     CATCH, iErr
     if (iErr ne 0) then begin
       CATCH, /CANCEL
       ;MESSAGE, !ERROR_STATE.msg, /cont
       ;dprint,verbose=self.verbose,dlevel=3,"'"+string(buf)+"'"
-      dprint,verbose=self.verbose,dlevel=3,"'"+result+"'"     
-      dprint,verbose=self.verbose,dlevel=3,!error_state.msg
+      dprint,verbose=self.verbose,dlevel=2,"'"+result+"'"     
+      dprint,verbose=self.verbose,dlevel=2,!error_state.msg
       return,!null
     endif
   endif
@@ -29,38 +28,49 @@ function json_reader::translate,buf,source_dict=source_dict
 
   if isa(buf,'byte') then result = string(buf) else result=buf
 
-  ;result = str_sub(result,',',',"')   ;  CLUGE  - Inserting missing quotes. - Delete line after Tony fixes ion gun code
-  result = str_sub(result,':+',': ')    ; cluge - remove when the + sign gets removed.
-  ;pos = strpos(result,'}{')
-  ;if pos gt 0 then result = strmid(result,0,pos+1)
-  ;  result = str_sub(result,'}{','},{')
   if debug(3,self.verbose,msg='test') then begin
     print,string(buf)
     print,result
   endif
-  result = json_parse(string(result),/fold_case,/debug)
-  if self.convert_to_float then begin
-    keys = result.keys()
-    foreach val,result,k do begin
-      if strupcase(k) eq 'TIME' then continue
-      if isa(val,'double') then result[k] = float(val)
-    endforeach
-  endif
-  if result.haskey('TIME') && isa(result['TIME'],/string) then result['TIME'] = time_double(result['TIME'])
-  ;printdat,source_dict
-  add_DTIME = 1
-  if keyword_set(add_DTIME) && isa(source_dict,'dictionary') && source_dict.haskey('CMBHDR')  then begin
-    result['DTIME'] = 0.d  ; float(source_dict.cmbhdr.time - result['TIME'])
+  ss = strsplit(result,/extract,' ')
+  n = n_elements(ss)
+  time = time_double(ss[0])
+  if ~self.source_dict.haskey('format') then begin
+    nan = !values.f_nan
+    format = {time:time}
+    for i=1,n-1 do format= create_struct(format,'f'+strtrim(i,2),nan)
+    printdat,format   
+    self.source_dict.format = format
+  endif  
+  
+  f= self.source_dict.format
+  f.time = time
+  for i = 1,n-1 do begin
+    f.(i)  = ss[i]
+  endfor
+  
+;  if self.convert_to_float then begin
+;    keys = result.keys()
+;    foreach val,result,k do begin
+;      if strupcase(k) eq 'TIME' then continue
+;      if isa(val,'double') then result[k] = float(val)
+;    endforeach
+;  endif
+;  if result.haskey('TIME') && isa(result['TIME'],/string) then result['TIME'] = time_double(result['TIME'])
+;  ;printdat,source_dict
+;  add_DTIME = 1
+;  if keyword_set(add_DTIME) && isa(source_dict,'dictionary') && source_dict.haskey('CMBHDR')  then begin
+;    result['DTIME'] = 0.d  ; float(source_dict.cmbhdr.time - result['TIME'])
+;  endif
 
-  endif
-
-  if self.convert_to_struct then result = result.tostruct()
-  return,result
+  ;if self.convert_to_struct then result = result.tostruct()
+  return,f
+  
 end
 
 
 
-pro json_reader::read,source,source_dict=source_dict
+pro ascii_reader::read,source,source_dict=source_dict
 
   nb = n_elements(source)
   nbytes = 0ul
@@ -88,9 +98,10 @@ pro json_reader::read,source,source_dict=source_dict
 end
 
 
-function json_reader::init,_extra=ex  
+function ascii_reader::init,_extra=ex  ,format=format
   ;dprint,'hello'
   void = self.socket_reader::init(_extra=ex)
+  if keyword_set(format) then self.source_dict.format = format
   if ~isa(tplot_tagnames,'string') then tplot_tagnames='*'
   self.convert_to_struct = 1
   self.convert_to_float = 1
@@ -102,8 +113,8 @@ end
 
 
 
-PRO json_reader__define
-  void = {json_reader, $
+PRO ascii_reader__define
+  void = {ascii_reader, $
     inherits socket_reader, $    ; superclass
     ;ddata: obj_new(),  $
     ;powersupply_num:0    $           ; not actually used

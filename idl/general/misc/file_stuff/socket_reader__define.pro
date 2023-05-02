@@ -12,8 +12,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-04-28 10:40:06 -0700 (Fri, 28 Apr 2023) $
-; $LastChangedRevision: 31809 $
+; $LastChangedDate: 2023-05-01 13:47:45 -0700 (Mon, 01 May 2023) $
+; $LastChangedRevision: 31815 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -322,12 +322,14 @@ end
 
 
 
-pro socket_reader::print_status,no_header=no_header
+pro socket_reader::print_status,no_header=no_header,apid = apid
    format1 = '(a12,a18,a18,i3,i10,i12,i10,i10,i10,i10,i10,i10)'
    format2 = str_sub(format1,',i',',a')
+   if ~isa(apid,'string') then apid =''
+   ;printdat,apid
    if ~keyword_set(no_header) then $
      print,'APID','Name','Object','S','sum1','sum2','npkts','nreads','Size',format=format2
-   print,self.apid,self.name,typename(self),self.isasocket,self.sum1_bytes,self.sum2_bytes,self.npkts,self.nreads,self.dyndata.size,format=format1
+   print,apid,self.name,typename(self),self.isasocket,self.sum1_bytes,self.sum2_bytes,self.npkts,self.nreads,self.dyndata.size,format=format1
    if ~keyword_set(no_header) then $
      print,'-----','-----','-----','--','----','----','----','----','-------',format=format2
 
@@ -671,7 +673,8 @@ END
 function socket_reader::init,name=name,title=title,ids=ids,host=host,port=port,fileformat=fileformat,exec_proc=exec_proc, $
   set_connect=set_connect, set_output=set_output, pollinterval=pollinterval, file_timeres=file_timeres ,$
   tplot_tagnames=tplot_tagnames, $
-  apid = apid,  $
+  ;apid = apid,  $
+  eol = eol,  $
   run_proc=run_proc,directory=directory, $
   no_widget=no_widget,verbose=verbose
 

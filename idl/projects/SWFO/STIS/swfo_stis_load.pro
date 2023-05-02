@@ -1,6 +1,6 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-04-10 15:10:34 -0700 (Mon, 10 Apr 2023) $
-;$LastChangedRevision: 31720 $
+;$LastChangedDate: 2023-05-01 13:47:45 -0700 (Mon, 01 May 2023) $
+;$LastChangedRevision: 31815 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -205,11 +205,12 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'cmblk': begin        
         rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_cmblk')
         rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)
-        rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight(name='Keysight',/no_widget,tplot_tagnames='*')
-        rdr.add_handler,'IONGUN1',  json_reader(name='IonGun1',no_widget=1,tplot_tagnames='*')
-        kpa_object = gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
-        rdr.add_handler,'KEITHLEYPA', kpa_object   ; gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
-        rdr.add_handler,'GSE_KPA',    kpa_object   ; gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
+     ;   rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight(name='Keysight',/no_widget,tplot_tagnames='*')
+     ;   rdr.add_handler,'IONGUN1',  json_reader(name='IonGun1',no_widget=1,tplot_tagnames='*')
+     ;   rdr.add_handler,'IONGUN',  json_reader(name='IonGun',no_widget=1,tplot_tagnames='*')
+     ;   kpa_object = gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
+     ;   rdr.add_handler,'KEITHLEYPA', kpa_object   ; gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
+     ;   rdr.add_handler,'GSE_KPA',    kpa_object   ; gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
           rdr.file_read, opts.filenames        ; Load in the files

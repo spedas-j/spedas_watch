@@ -20,12 +20,15 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
   ;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   
-  self.add_handler, 'MANIP', json_reader(name='Manip',/no_widget,tplot_tagnames='*')
+;  self.add_handler, 'MANIP', json_reader(name='Manip',/no_widget,tplot_tagnames='*')
 
 ; The following lines are temporary to define read routines for different data
 ;  self.add_handler, 'raw_tlm',  swfo_raw_tlm('SWFO_raw_telem',/no_widget)
 ;  self.add_handler, 'KEYSIGHTPS' ,  gse_keysight('Keysight',/no_widget)
-  self.add_handler, 'ESC_ESATM',  esc_esatm_reader(name='Esc_ESAs',/no_widget)
+
+;
+;  
+;  self.add_handler, 'ESC_ESATM',  esc_esatm_reader(name='Esc_ESAs',/no_widget)
 
 
   RETURN, 1
@@ -177,12 +180,32 @@ pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
   cmbhdr = source_dict.cmbhdr
   descr_key = cmbhdr.description
   handlers = self.handlers
+  if cmbhdr.source ne 0 then   source_str = '-'+strtrim(cmbhdr.source,2) else source_str=''
+  descr_key = descr_key + source_str
+  
   if handlers.haskey( descr_key ) eq 0  then begin        ; establish new ones if not already defined
     dprint,verbose=self.verbose,dlevel=1,'Found new description key: "', descr_key,'"'
-    new_obj =  socket_reader(title=descr_key,/no_widget,verbose=self.verbose)
+    n = n_elements(payload)
+    eol = payload[n-1]
+    dprint,'Payload:',dlevel=2,verbose=self.verbose
+    hexprint,payload
+    descr_key_lower = strlowcase(descr_key)
+    tagnames='*'
+    if n gt 10 && (eol eq 10 || eol eq 13)  then begin 
+      dprint,verbose=self.verbose,dlevel=2, "EOL = ",eol
+      if  array_equal(payload[[0,n-2]] , [123b,125b]) then begin
+        dprint,verbose=self.verbose,dlevel=2,'Identified as JSON'
+        new_obj = json_reader(name=descr_key_lower,/no_widget,eol=eol,tplot_tagnames=tagnames)
+      endif else begin
+        new_obj =  ascii_reader(name=descr_key_lower,/no_widget,eol=eol,tplot_tagnames=tagnames)        
+      endelse
+    endif else begin
+      new_obj =  socket_reader(name=descr_key_lower,/no_widget)      
+    endelse
     handlers[descr_key] = new_obj
     new_obj.apid = descr_key
   endif
+  
   
   ;if ~self.desctypes.haskey(descr_key) then self.desctypes[descr_key] = n_elements(self.desctypes)
 
@@ -202,7 +225,7 @@ end
 
 pro cmblk_reader::print_status,no_header=no_header
   self.socket_reader::print_status,no_header=no_header
-  foreach h , self.handlers do   h.print_status,/no_header
+  foreach h , self.handlers,apid do   h.print_status,/no_header,apid=apid
 end
 
 

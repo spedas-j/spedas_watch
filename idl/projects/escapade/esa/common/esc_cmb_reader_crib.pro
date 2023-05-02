@@ -11,10 +11,17 @@
 stop
 
 cmb = cmblk_reader(host = 'abiad-sw',port=5004,directory='ESC_TEST/')
+cmb.add_handler,'ESC_ESATM',esc_esatm_reader(/no_widget)
+
 file = '/Users/phyllisw/Desktop/eesa.cmb'
 cmb.file_read,file
 
+
 ; Then click on open button
+
+; Configure trange
+txt = ['tplot,verbose=0,trange=systime(1)+[-1,.05]*3600*.1','timebar, systime(1)']
+exec, exec_text = txt
 
 
 ; view what has been read in:
@@ -22,6 +29,7 @@ cmb.print_status
 
 ; get object related to Escapade:
 esc = cmb.get_handlers('ESC_ESATM')
+
 
 
 ; Display help on esc data:

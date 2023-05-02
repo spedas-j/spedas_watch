@@ -7,8 +7,8 @@
 
 function swfo_raw_tlm::raw_tlm_struct,buf
   dprint,dlevel=4,verbose=self.verbose,buf ;,dwait=1
-  words = fix(buf,0,12)
-  byteorder,words,/swap_if_little_endian
+  ;words = fix(buf,0,12)
+  ;byteorder,words,/swap_if_little_endian
   days =   swfo_data_select(buf,0,24)
   msec =   swfo_data_select(buf,24,32)
   usec =   swfo_data_select(buf,24+32,16)
