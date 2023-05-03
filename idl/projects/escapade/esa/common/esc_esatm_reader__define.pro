@@ -104,10 +104,6 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
 
    time = time0 + index * 8.d/512
 
-                                ;dat_accum.time = time
-
-                                ;dprint,index,tr,fh,dlevel = 3
-
    dat.time =  time             ;   source_dict.time
    dat.sync     =        self.esc_data_select(buffer,0,16)
    dat.tbd             = self.esc_data_select(buffer,16,   2)
@@ -118,10 +114,6 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    dat.size  = self.esc_data_select(buffer,32, 16)
    
    if dat.size ne cmbhdr.size then dprint,'Size error: ',dat.size
-   
-   
-
-   ;; print,dat.index
 
    data2 = uint(buffer,6,(dat.size-6)/2 )
    byteorder,data2,/swap_if_little_endian
@@ -144,89 +136,109 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    source_dict = self.source_dict
 
 
-   ;; Append Full Message
+   ;; ------------------------------------------- ;;
+   ;; ---------------- Full Message ------------- ;;
+   ;; ------------------------------------------- ;;
    self.dat_da.append,  dat
     
     
     
-   ;; Electron Science Products
-   if (index eq 0) and n_elements(self.dat_da.array) gt 511 then begin
+   ;; ------------------------------------------- ;;
+   ;; ---------- Electron Spectrogram ----------- ;;
+   ;; ------------------------------------------- ;;
+   n_espec = 512
+   if source_dict.haskey('dat_espec') then begin
+     dat_espec = source_dict.dat_espec
+   endif else begin
+     dat_espec = { $
+       time: 0.d, $
+       espec_raw:uintarr(16,n_espec), $
+       gap:0 }
+   endelse
+   
+   dat_espec.espec_raw[*,index] = dat.eanode
+   source_dict.dat_espec = dat_espec
+   
+   ;; Append Electron Spectrograms
+   if index eq 511 then begin
     
-    nn = n_elements(self.dat_da.array)
-    dat_espec = self.decom_espec(self.dat_da.array[nn-513:nn-2].eanode)
-    dat_espec.time = time
-    self.espec_da.append, dat_espec
-    
+     espec = self.decom_espec(dat_espec.espec_raw)
+     espec.time = time
+     self.espec_da.append, espec
+
    endif
 
 
 
-   ;; Fast Housekeeping
-   nan = 0u
+   ;; ------------------------------------------- ;;
+   ;; -------------- Fast Housekeeping ---------- ;;
+   ;; ------------------------------------------- ;;
    n_fhkp = 512
    if source_dict.haskey('dat_fhkp') then begin
-     dat_fhkp=source_dict.dat_fhkp
+     dat_fhkp = source_dict.dat_fhkp
    endif else begin
      dat_fhkp = { $
        time: 0.d, $
        fhkp_raw:uintarr(n_fhkp), $
        gap:0 }
    endelse
-
-
    
-   ;; Analog Housekeeping   
-   nan = !values.f_nan
+   ;; Fill temporary variable if FHKP is enabled
+   if dat.fasthkp eq 1 then begin
+     dat_fhkp.fhkp_raw[index] = dat.ahkp
+     source_dict.dat_fhkp = dat_fhkp
+     
+     ;; Append FHKP
+     if index mod 511 eq 0 then BEGIN
+       dat_fhkp = self.decom_fhkp(dat_fhkp.fhkp_raw)
+       dat_fhkp.time = time
+       self.fhkp_da.append,  dat_fhkp
+     endif
+   endif
+
+
+
+   ;; ------------------------------------------- ;;
+   ;; ------------- Analog Housekeeping --------- ;;
+   ;; ------------------------------------------- ;;   
    n_ahkp = 32
    if source_dict.haskey('dat_ahkp') then begin
       dat_ahkp=source_dict.dat_ahkp 
    endif else begin
       dat_ahkp = { $
                  time: 0d, $
-                 ahkp_raw: replicate(nan,n_ahkp), $
+                 ahkp_raw: replicate(!values.f_nan,n_ahkp), $
                  gap: 0  }  
       
    endelse
    
-   ;; If Fast Housekeeping is Disabled then HKP loops every 32
+   ;; Fill temporary variable if AHKP is enabled
    if dat.fasthkp eq 0 then begin
 
      dat_ahkp.ahkp_raw[index mod n_ahkp] = dat.ahkp
      source_dict.dat_ahkp = dat_ahkp
-    
+   
+     ;; Append AHKP 
      if (index mod n_ahkp) eq n_ahkp-1 then BEGIN
-       dat_ahkp = self.decom_ahkp(dat_ahkp.ahkp_raw)
-       dat_ahkp.time = time
-       self.ahkp_da.append,  dat_ahkp
+       ahkp = self.decom_ahkp(dat_ahkp.ahkp_raw)
+       ahkp.time = time
+       self.ahkp_da.append,  ahkp
      endif
    
    endif
+
    
-   ;; If Fast Housekeeping is Enabled then HKP loops every 512
-   if dat.fasthkp eq 1 then begin
-
-     print, index
-     dat_fhkp.fhkp_raw[index] = dat.ahkp
-     source_dict.dat_fhkp = dat_fhkp
-     
-     if index mod 511 eq 0 then BEGIN
-       dat_fhkp = self.decom_fhkp(dat_fhkp.fhkp_raw)
-       dat_fhkp.time = time
-       self.fhkp_da.append,  dat_fhkp
-     endif
-
-   endif
     
-   
-   ;; Digital Housekeeping
-   nan = long(0) ;;!values.f_nan
+   ;; ------------------------------------------- ;;
+   ;; ------------ Digital Housekeeping --------- ;;
+   ;; ------------------------------------------- ;;
    n_dhkp = 512
    if source_dict.haskey('dat_dhkp') then begin
       dat_dhkp=source_dict.dat_dhkp
    endif else begin
       dat_dhkp = { $
                  time: 0d, $
-                 dhkp_raw: replicate(nan,n_dhkp), $
+                 dhkp_raw: replicate(long(0),n_dhkp), $
                  gap: 0  }
 
    endelse
@@ -242,19 +254,18 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
 
 
    nsamples = 64
-
    dat_accum = { $
                time: 0d,  $
-               eanode:  uintarr(16,nsamples), $
-               ianode0: uintarr(16,nsamples), $
-               ianode1: uintarr(16,nsamples), $
-               ianode2: uintarr(16,nsamples), $
-               ianode3: uintarr(16,nsamples), $
+               eanode:    uintarr(16,nsamples), $
+               ianode0:   uintarr(16,nsamples), $
+               ianode1:   uintarr(16,nsamples), $
+               ianode2:   uintarr(16,nsamples), $
+               ianode3:   uintarr(16,nsamples), $
                mass_hist: uintarr(16,nsamples), $
-               ahkp:    intarr(nsamples), $
-               dhkp:    uintarr(nsamples),  $
-               fhkp:    uintarr(nsamples),  $
-               rates :  uintarr(18,nsamples), $
+               ahkp:      uintarr(nsamples), $
+               dhkp:      uintarr(nsamples),  $
+               fhkp:      uintarr(nsamples),  $
+               rates :    uintarr(18,nsamples), $
                gap: 0  }
 
 
@@ -285,14 +296,13 @@ end
 
 function esc_esatm_reader::decom_espec, arr
 
-   
-   arr = reform(temporary(arr),16,8,64)
-   str_espec = {ANO_SPEC:total(total(arr,2),2), $
-                NRG_SPEC:total(total(arr,1),1), $
-                DEF_SPEC:total(total(arr,1),2), $
-                time:0.D, gap:0}
+   arr = reform(arr,16,8,64)
+   espec = {ANO_SPEC:total(total(arr,2),2), $
+            NRG_SPEC:total(total(arr,1),1), $
+            DEF_SPEC:total(total(arr,1),2), $
+            time:0.D, gap:0}
       
-   return, str_espec
+   return, espec
 
 end
 
