@@ -324,6 +324,11 @@ FUNCTION esc_esatm_reader::decom_ahkp, arr
    ;; Check that int_arr is the correct size
    IF n_elements(arr) NE 32 THEN stop, 'Wrong ahkp packet size.' 
    
+   ;; Polynomial Constants
+   
+   ;; Temperature 6 polynomial constants
+   pc = [137.01, -0.15828, 0.00011978, -5.4877e-8, 1.2712e-11, -1.179e-15]
+   
    ;; Analog Housekeeping
    str_ahkp = {imcpv:wd[0]      * 4*1000./(0.787+0.392)/4095.,  $
                idef1v:wd[1]     * 4*1001./4095.,                $
@@ -344,19 +349,31 @@ FUNCTION esc_esatm_reader::decom_ahkp, arr
                iaccelv:wd[16]   * 4*10000./(1.3+1.37)/4095.,    $
                p8v:wd[17]       * 4*3./4095.,                   $
                p1_5v:wd[18]     * 4/4095.,                      $ 
-               p5vi:wd[19]      * 4/(4096*0.00801),             $
+               p5vi:wd[19]      * 4/(4096*0.00801)+(-3.72/8.01),$
                iacceli:wd[20]   * 4./4095./0.13,                $
                p5v:wd[21]       * 4*2/4095.,                    $
                p1_5vi:wd[22]    * 4/(4095*0.001),               $
-               n5vi:wd[23]      * 4/(4096*0.00801),             $
-               ianalt:wd[24]    * (-0.15828),                   $
-               n5v:wd[25]       * 4*2/4095.,                    $
-               digitalt:wd[26]  * (-0.15828),                   $
-               p8vi:wd[27]      * 4/(4095*0.005),               $
-               eanalt:wd[28]    * (-0.15828),                   $
-               n8v:wd[29]       * (4*20/6.8)/4095,              $
-               eanodet:wd[30]   * (-0.15828),                   $
-               n8vi:wd[31]      * 1.221,                        $ 
+               n5vi:wd[23]      * 4/(4096*0.00801)+(-3.72/8.01),$
+               ianalt: pc[0] + $
+                       pc[1] * wd[24]   + pc[2] * wd[24]^2 +  $
+                       pc[3] * wd[24]^3 + pc[4] * wd[24]^4 +  $
+                       pc[5] * wd[24]^5,                      $
+               n5v:wd[25]       * 4*2/4095.,                  $
+               digitalt:pc[0] + $
+                        pc[1] * wd[26]   + pc[2] * wd[26]^2 + $
+                        pc[3] * wd[26]^3 + pc[4] * wd[26]^4 + $
+                        pc[5] * wd[26]^5,                     $
+               p8vi:wd[27]      * 4/(4095*0.005),             $
+               eanalt:pc[0] + $
+                      pc[1] * wd[28]   + pc[2] * wd[28]^2 +   $
+                      pc[3] * wd[28]^3 + pc[4] * wd[28]^4 +   $
+                      pc[5] * wd[28]^5,                       $
+               n8v:wd[29]       * (4*20/6.8)/4095,            $
+               eanodet:pc[0] + $
+                       pc[1] * wd[30]   + pc[2] * wd[30]^2 +  $
+                       pc[3] * wd[30]^3 + pc[4] * wd[30]^4 +  $
+                       pc[5] * wd[30]^5,                      $
+               n8vi:wd[31]      * 1.221,                      $ 
                time:0.D,$
                gap:0}
 
