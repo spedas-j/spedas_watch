@@ -10,6 +10,10 @@ COMPILE_OPT IDL2
 
 
 FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
+
+  txt = ['tplot,verbose=0,trange=systime(1)+[-1,.05]*3600*.1','timebar, systime(1)']
+  exec, exec_text = txt
+
   ; Call our superclass Initialization method.
   void = self.socket_reader::Init(_EXTRA = ex)
   if isa(handlers,'hash') then begin
@@ -28,7 +32,7 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
 
 ;
 ;  
-;  self.add_handler, 'ESC_ESATM',  esc_esatm_reader(name='Esc_ESAs',/no_widget)
+  self.add_handler, 'ESC_ESATM',  esc_esatm_reader(name='Esc_ESAs',/no_widget)
 
 
   RETURN, 1
