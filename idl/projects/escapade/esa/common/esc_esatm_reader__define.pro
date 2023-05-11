@@ -73,6 +73,8 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
          ianode1:    uintarr(16), $
          ianode2:    uintarr(16), $
          ianode3:    uintarr(16), $
+         ianode:     uintarr(16), $
+         icnts:      long(0),     $
          mass_hist:  uintarr(16), $
          tof_hist:   uintarr(8),  $
          raw_events: uintarr(8),  $
@@ -121,6 +123,11 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    dat.ianode1   = data2[32:47]
    dat.ianode2   = data2[48:63]
    dat.ianode3   = data2[64:79]
+   dat.ianode    = dat.ianode0 + $
+                   dat.ianode1 + $
+                   dat.ianode2 + $
+                   dat.ianode3
+   dat.icnts     = total(dat.ianode)
    dat.mass_hist = data2[80:95]
    dat.ahkp      = fix(data2[96])
    dat.dhkp      = data2[97]
@@ -191,6 +198,7 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    dat_ispec.ispec_raw1[*,index] = dat.ianode1
    dat_ispec.ispec_raw2[*,index] = dat.ianode2
    dat_ispec.ispec_raw3[*,index] = dat.ianode3
+
    source_dict.dat_ispec = dat_ispec
 
    ;; Append Ion Spectrograms
@@ -270,7 +278,7 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    endif else begin
       dat_dhkp = { $
                  time: 0d, $
-                 dhkp_raw: replicate(long(0),n_dhkp), $
+                 dhkp_raw: uintarr(n_dhkp), $
                  gap: 0  }
 
    endelse
@@ -425,7 +433,7 @@ function esc_esatm_reader::decom_ispec, str
   m3  = reform(str.ispec_raw2,16,8,64)
   m4  = reform(str.ispec_raw3,16,8,64)
   tot = m1+m2+m3+m4
-    
+  
   ispec = { $
            
            ;; Mass 1
@@ -573,7 +581,7 @@ FUNCTION esc_esatm_reader::decom_dhkp, arr
    ;; If there are 1024 elements then it's a byte array
    IF n_elements(arr) EQ 1024 THEN BEGIN
       ;; Word Array
-      wd = ulong(swap_endian(byte_arr, /swap_IF_little_endian), 0, 512)
+      wd = uint(swap_endian(arr, /swap_IF_little_endian), 0, 512)
       ;; Byte Array
       bt = arr
    ENDIF 
@@ -583,20 +591,20 @@ FUNCTION esc_esatm_reader::decom_dhkp, arr
       ;; Word Array
       wd = arr
       ;; Byte Array
-      bt = uint(swap_endian(arr,/swap_IF_little_endian),0,1024)
+      bt = byte(swap_endian(arr,/swap_IF_little_endian),0,1024)
    ENDIF 
    
 
    ;; Digital Housekeeping
    str_dhkp = {cmds_received:  wd[0], $
-               cmd_errors:     self.esc_data_select(bt[0],0,8),  $
-               cmd_unknown:    self.esc_data_select(bt[1],0,8), $
+               cmd_errors:     bt[2], $
+               cmd_unknown:    bt[3], $
                fgpa_rev:       wd[2], $
                mode_id:        wd[3], $
-               i_hv_mode:      self.esc_data_select(bt[4],0,4),   $
-               e_hv_mode:      self.esc_data_select(bt[4],4,4),   $
-               hv_key_enabled: self.esc_data_select(bt[5],0,1),   $
-               hv_enabled:     self.esc_data_select(bt[5],1,1),   $
+               i_hv_mode:      self.esc_data_select(bt[8],4,4),   $
+               e_hv_mode:      self.esc_data_select(bt[8],0,4),   $
+               hv_key_enabled: self.esc_data_select(bt[9],7,1),   $
+               hv_enabled:     self.esc_data_select(bt[9],6,1),   $
                board_id:       wd[5], $
 
                reset_cnt:wd[6],        ihemi_cdi:wd[7],       ispoiler_cdi:wd[8], $
@@ -624,14 +632,14 @@ FUNCTION esc_esatm_reader::decom_dhkp, arr
 
                easic_dout:wd[34],$
 
-               ;act_open_stat:  self.esc_data_select(bt[70],0,1),$
-               ;act_close_stat: self.esc_data_select(bt[70],1,1),$
-               ;ecover_stat:    self.esc_data_select(bt[70],2,1),$
-               ;icover_stat:    self.esc_data_select(bt[70],3,1),$
-               ;last_actuation: self.esc_data_select(bt[71],0,3),$
-               ;act_err:        ishft(self.esc_data_select(bt[71],3,5),5) AND $
-               ;                      self.esc_data_select(bt[72],0,3),$
-               ;act_override:   self.esc_data_select(bt[72],3,4),$
+               act_open_stat:  self.esc_data_select(bt[70],3,1),$
+               act_close_stat: self.esc_data_select(bt[70],7,1),$
+               ecover_stat:    self.esc_data_select(bt[71],3,1),$
+               icover_stat:    self.esc_data_select(bt[71],7,1),$
+               last_actuation: self.esc_data_select(bt[71],5,3),$
+               act_err:        ishft(self.esc_data_select(bt[71],3,5),5) AND $
+                                     self.esc_data_select(bt[72],0,3),$
+               act_override:   self.esc_data_select(bt[72],3,4),$
 
                act_timeout_cvr:wd[37],  act_timeout_atn:wd[38], actuation_time:wd[39], $
                active_time:wd[40],      act_cooltime:wd[41], $
