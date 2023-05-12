@@ -90,6 +90,7 @@
 ;                  maxvar : maximum total variance for both clusters
 ;                  maxsep : separation between the clusters
 ;                  sepval : value of optimal separation between the clusters
+;                  edge   : distance between sepval and the edge of the distribution
 ;                  ngud   : number of points in the main distribution
 ;                  nbad   : number of outliers
 ;                  delta  : separation* between the core and outliers in SDEV units
@@ -106,8 +107,8 @@
 ;       SILENT:  Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-24 07:38:27 -0700 (Fri, 24 Mar 2023) $
-; $LastChangedRevision: 31659 $
+; $LastChangedDate: 2023-05-11 10:12:49 -0700 (Thu, 11 May 2023) $
+; $LastChangedRevision: 31855 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/tmean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -270,11 +271,12 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
 
     if (core) then begin
       z = y[sort(y)]
+      nz = n_elements(z)
       avg1 = replicate(!values.f_nan,ntot)
       avg2 = avg1
       var1 = avg1
       var2 = avg1
-      for i=2,(ntot-4) do begin
+      for i=2,(ntot-4) do begin            ; minimum of 3 points per cluster
         mom  = moment(z[0:i], maxmoment=2, /nan)
         avg1[i]  = mom[0]
         var1[i]  = mom[1]
@@ -290,6 +292,12 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       sign /= abs(sign)
       indx = where(sign lt 0., count) - 1L  ; local extrema (excludes endpoints)
       if (count eq 0L) then begin
+        diag = {minvar: min(v), $
+                maxvar: max(v), $
+                maxsep: 0.    , $
+                sepval: max(z), $
+                edge  : 0        }
+
         if (blab) then print,"Cluster analysis found no local minimum in the variance."
         if (hist && ~keep) then begin
           wdelete, hwin
@@ -300,11 +308,9 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
         return
       endif
       minvar = min(v[indx], j)              ; deepest local minimum
-                                            ; test for global minimum????
       icut = indx[j]
 
       if (maxdz) then begin
-        nz = n_elements(z)
         dz = z - shift(z,1)
         dz[[0,(nz-1)]] = !values.f_nan
         nj = (nz - icut)/4 > 3
@@ -312,17 +318,21 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
         icut += (jcut - 1)
       endif
       ycut = (z[icut] + z[icut+1])/2.
+      edge = min([icut-1, nz-icut-4])
       nclusters = 2
 
       diag = {minvar: minvar , $
               maxvar: max(v) , $
               maxsep: mdz    , $
-              sepval: ycut      }
+              sepval: ycut   , $
+              edge  : edge      }
 
     endif else begin
-      icut = ntot - 1
+      icut = ntot - 1  ; put all points into cluster 0
       ycut = max(y)
       nclusters = 1
+
+      if (oflg) then diag = {outlier:outlier[0], minpts:minpts} else diag = {outlier:1000.}
     endelse
 
 ; Calculate the mean and standard deviation within requested time range
@@ -374,8 +384,6 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
         t0 = xc
         t1 = xo
       endif else begin
-        t0 = xc
-        t1 = -1D
         delta = 0.
         frac = 0.
       endelse
@@ -427,31 +435,35 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
 ; More diagnostic information
 
     if (core) then begin
-      str_element, diag, 'ngud', max(result.npts), /add
-      str_element, diag, 'nbad', min(result.npts), /add
+      str_element, diag, 'npts0', result[0].npts, /add
+      str_element, diag, 'npts1', result[1].npts, /add
       z0 = result[0].mean + 2.*result[0].stddev
       z1 = result[1].mean - 2.*result[1].stddev
-      delta = (z1 - z0)/result[1].stddev
+      delta = (z1 - z0)/max(result.stddev)
       str_element, diag, 'delta', delta, /add
-      frac = float(result[0].npts < result[1].npts)/float(result[0].npts + result[1].npts)
+      frac = float(result[0].npts)/float(result[0].npts + result[1].npts)
       str_element, diag, 'frac', frac, /add
       if (blab) then begin
         msg = strtrim(string(ycut, format='(f14.2)'),2)
         print,"Clusters divide at: ",msg,format='(a,a)'
+        msg = strtrim(string(diag.edge, format='(i14)'),2)
+        print,"Distance from edge: ",msg,format='(a,a)'
         msg = strtrim(string(diag.delta, format='(f14.2)'),2)
         print,"Cluster separation: " + msg + " sigma"
+        msg = strtrim(string(diag.minvar/diag.maxvar, format='(f14.2)'),2)
+        print,"Variance improvement: " + msg
         msg = strtrim(string(diag.frac,format='(f14.2)'),2)
         print,"N(cluster 0)/N(total): ",msg,format='(a,a,/)'
       endif
     endif
     if (oflg) then begin
-      str_element, diag, 'ngud', ngud, /add
-      str_element, diag, 'nbad', nbad, /add
-      str_element, diag, 'delta', delta, /add
+      str_element, diag, 'npts0', ngud, /add   ; core points -> npts0
+      str_element, diag, 'npts1', nbad, /add   ; outliers -> npts1
+      str_element, diag, 'delta', delta, /add  ; delta is signed
       str_element, diag, 'frac', frac, /add
       if (blab) then begin
-        print,strtrim(string(diag.ngud,format='(i)'),2) + ' core points'
-        print,strtrim(string(diag.nbad,format='(i)'),2) + ' outliers'
+        print,strtrim(string(diag.npts0,format='(i)'),2) + ' core points'
+        print,strtrim(string(diag.npts1,format='(i)'),2) + ' outliers'
         msg = strtrim(string(diag.delta, format='(f14.2)'),2)
         print,"Outlier separation: ", msg + " sigma"
         msg = strtrim(string(diag.frac,format='(f14.2)'),2)
@@ -468,7 +480,7 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
         z1 = result[1].mean - 2.*result[1].stddev
         msg = strtrim(string((z1 - z0)/result[1].stddev, format='(f14.2)'),2)
         vtitle = 'Cluster Separation: ' + msg + " !4r!1H"
-        plot,z,(var1+var2),psym=-4,ytitle='Total Variance',charsize=1.8,title=vtitle
+        plot,z,(var1+var2),psym=-4,xtitle=var,ytitle='Total Variance',charsize=1.8,title=vtitle
         oplot,[ycut,ycut],[0.,2.*max(var1+var2)],line=2,color=6
       endif
       wset, hwin
@@ -508,6 +520,8 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
         f = exp(-(x - avg)^2./(2.*rms*rms))/sqrt(2.*!pi*rms*rms)
         s = 10.*total(h[j])/total(f) ; equal areas
         oplot,x,s*f,color=fcol,thick=2
+        msg = strtrim(string(1.-diag.frac,format='(f14.2)'),2)
+        xyouts,(avg+rms/2.),max(s*f)*0.95,msg,color=fcol,charsize=1.5
 
         fcol = 4  ; color for cluster 0
         avg = result[0].mean
@@ -518,6 +532,8 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
         f = exp(-(x - avg)^2./(2.*rms*rms))/sqrt(2.*!pi*rms*rms)
         s = 10.*total(h[j])/total(f) ; equal areas
         oplot,x,s*f,color=fcol,thick=2
+        msg = strtrim(string(diag.frac,format='(f14.2)'),2)
+        xyouts,(avg+rms/2.),max(s*f)*0.95,msg,color=fcol,charsize=1.5
       endif else begin
         fcol = 1
         avg = result[0].mean
