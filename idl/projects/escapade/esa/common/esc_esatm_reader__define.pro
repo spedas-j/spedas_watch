@@ -75,10 +75,10 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
          ianode3:    uintarr(16), $
          ianode:     uintarr(16), $
          icnts:      long(0),     $
-         mass_hist:  uintarr(16), $
-         tof_hist:   uintarr(8),  $
+         mspec:      uintarr(16), $
+         thist:      uintarr(8),  $
          raw_events: uintarr(8),  $
-         fast_rates: uintarr(9),  $
+         frates:     bytarr(18),  $
          ahkp:    0, $
          dhkp:    0, $
          user1:   0, $
@@ -128,7 +128,7 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
                    dat.ianode2 + $
                    dat.ianode3
    dat.icnts     = total(dat.ianode)
-   dat.mass_hist = data2[80:95]
+   dat.mspec     = data2[80:95]
    dat.ahkp      = fix(data2[96])
    dat.dhkp      = data2[97]
    dat.user1     = data2[98]
@@ -136,9 +136,9 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
 
    ;; Diagnostic Words (TOF/RAW/RATES)
    case dat.ion_diag of
-     1:dat.fast_rates = data[100:108]
-     2:dat.tof_hist   = data[100:107]
-     3:dat.raw_events = data[100:107]
+     1:dat.frates     = byte(data2[98:106],0,18)
+     2:dat.thist      = data2[98:105]
+     3:dat.raw_events = data2[98:105]
      else: break
    endcase 
 
@@ -289,32 +289,36 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
       dhkp = self.decom_dhkp(dat_dhkp.dhkp_raw)
       dhkp.time = time
       self.dhkp_da.append,  dhkp
+      ;;source_dict.dat_frates.ano[0] = dhkp.accum_rates1
+      ;;source_dict.dat_frates.ano[1] = dhkp.accum_rates2  
+      ;;source_dict.dat_frates.ano[2] = dhkp.accum_rates3
+      
    endif
 
 
 
    ;; ------------------------------------------- ;;
-   ;; --------------- Mass Histogram ------------ ;;
+   ;; ------------- Mass Spectrogram ------------ ;;
    ;; ------------------------------------------- ;;
-   if source_dict.haskey('dat_mhist') then begin
-     dat_mhist = source_dict.dat_mhist
+   if source_dict.haskey('dat_mspec') then begin
+     dat_mspec = source_dict.dat_mspec
    endif else begin
-     dat_mhist = { $
+     dat_mspec = { $
        time: 0d, $
-       mhist_raw: uintarr(16,512), $
+       mspec_raw: uintarr(16,512), $
        gap: 0  }
    endelse
 
 
-   dat_mhist.mhist_raw[*,index] = dat.mass_hist
-   source_dict.dat_mhist = dat_mhist
+   dat_mspec.mspec_raw[*,index] = dat.mspec
+   source_dict.dat_mspec = dat_mspec
 
    ;; Append Mass Histogram
    if index eq 3 then BEGIN
 
-     mhist = self.decom_mhist(dat_mhist.mhist_raw)
-     mhist.time = time
-     self.mhist_da.append,  mhist
+     mspec = self.decom_mspec(dat_mspec.mspec_raw)
+     mspec.time = time
+     self.mspec_da.append,  mspec
 
    endif
    
@@ -330,22 +334,29 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
      endif else begin
        dat_frates = { $
          time: 0d, $
-         frates_raw: uintarr(9,512), $
+         frates_raw: bytarr(18), $
+         ano:bytarr(3),$
          gap: 0  }
      endelse
-
-   
-     dat_frates.frates_raw[*,index] = dat.fast_rates
-     source_dict.dat_frates = dat_frates
-
-     ;; Append Fast Rates Diagnostic Product
-     if index eq 511 then BEGIN
-
-       frates = self.decom_mhist(dat_frates.frates_raw)
-       frates.time = time
-       ;;self.frates_da.append,  frates
-
+     
+     dat_frates.frates_raw = dat.frates
+     
+     if keyword_set(dhkp) then begin
+      
+      dat_frates.ano[0] = dhkp.accum_rates1
+      dat_frates.ano[1] = dhkp.accum_rates2
+      dat_frates.ano[2] = dhkp.accum_rates3
+      
      endif
+     
+     source_dict.dat_frates = dat_frates
+     
+     ;; Append Fast Rates Diagnostic Product
+     frates = self.decom_frates(dat_frates.frates_raw, $
+      dat_frates.ano[0], dat_frates.ano[1], dat_frates.ano[2])
+      
+     frates.time = time
+     self.frates_da.append,  frates
      
    endif
    
@@ -355,25 +366,25 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    ;; ------------------------------------------- ;;
    if dat.ion_diag eq 2 then begin
 
-     if source_dict.haskey('dat_tof_hist') then begin
-       dat_tof_hist = source_dict.dat_tof_hist
+     if source_dict.haskey('dat_thist') then begin
+       dat_thist = source_dict.dat_thist
      endif else begin
-       dat_tof_hist = { $
+       dat_thist = { $
          time: 0d, $
-         tof_hist_raw: uintarr(8,32), $
+         thist_raw: uintarr(8,32), $
          gap: 0  }
      endelse
   
-  
-     dat_tof_hist.tof_hist_raw[*,index] = dat.tof_hist
-     ;;source_dict.dat_tof_hist = dat_tof_hist
+     ind = index mod 32
+     dat_thist.thist_raw[*,ind] = dat.thist
+     source_dict.dat_thist = dat_thist
   
      ;; Append Fast Rates Diagnostic Product
-     if index eq 31  and dat.ion_diag eq 2 then BEGIN
+     if ind eq 31 and dat.ion_diag eq 2 then BEGIN
   
-       thist = self.decom_thist(dat_tof_hist.tof_hist_raw)
+       thist = self.decom_thist(dat_thist.thist_raw)
        thist.time = time
-       ;;self.tof_hist_da.append,  thist
+       self.thist_da.append,  thist
   
      endif   
    
@@ -483,14 +494,14 @@ end
 
 
 
-function esc_esatm_reader::decom_mhist, arr
+function esc_esatm_reader::decom_mspec, arr
 
   arr = total(reform(reform(arr,16,4,128),64,64,2),3)
-  mhist = {M_SPEC:total(arr,2), $
-           E_SPEC:total(arr,1), $
+  mspec = {M_MSPEC:total(arr,2), $
+           E_MSPEC:total(arr,1), $
            time:0.D, gap:0}
 
-  return, mhist
+  return, mspec
 
 end
 
@@ -655,14 +666,13 @@ FUNCTION esc_esatm_reader::decom_dhkp, arr
                
                raw_channel_mask:wd[59], raw_min_tof_val:wd[60], mhist_chan_mask:wd[61], $
 
-               ;tof_hist_ena:   self.esc_data_select(bt[124],0,1),$
-               ;accum_rates_ena:self.esc_data_select(bt[124],1,1),$
-               ;accum_rates1:   self.esc_data_select(bt[124],2,4),$
-               ;accum_rates2:   ishft(self.esc_data_select(bt[124],6,2),2) AND $
-               ;                      self.esc_data_select(bt[125],0,2), $
-               ;accum_rates3:   self.esc_data_select(bt[125],2,4),$
-               ;fast_hkp_ena:   self.esc_data_select(bt[126],0,1),$
-               ;fast_hkp_chan:  self.esc_data_select(bt[126],1,5),$
+               tof_hist_ena:   self.esc_data_select(bt[124],2,1),$
+               accum_rates_ena:self.esc_data_select(bt[124],3,1),$
+               accum_rates1:   self.esc_data_select(bt[124],4,4),$
+               accum_rates2:   self.esc_data_select(bt[125],0,4),$
+               accum_rates3:   self.esc_data_select(bt[125],4,4),$
+               fast_hkp_ena:   self.esc_data_select(bt[127],2,1),$
+               fast_hkp_chan:  self.esc_data_select(bt[127],3,5),$
                
                valids:wd[64:79],$
                valids_hz:wd[64:79]/8.,$
@@ -780,10 +790,11 @@ END
 
 
 
-function esc_esatm_reader::decom_tof_hist, arr
+function esc_esatm_reader::decom_thist, arr
 
-  thist = {TOF_HIST:arr, $
-           time:0.D, gap:0}
+  thist = {THIST:reform(arr,256), $
+           time:0.D, $
+           gap:0}
 
   return, thist
 
@@ -791,154 +802,28 @@ end
 
 
 
-PRO esc_esatm_reader::esc_raw_lun_read, buffer, source_dict=source_dict
+function esc_esatm_reader::decom_frates, arr, ano1, ano2, ano3
 
-   ;; Size of RAW EESA_FRAMES
-   header_size = 6
+  full_anodes = intarr(16,6)
+  
+  ;; Insert Into Anodes
+  full_anodes[ano1,*] = arr[ 0: 5]
+  full_anodes[ano2,*] = arr[ 6:11]
+  full_anodes[ano3,*] = arr[12:17]
+        
+  frates = {FRATES_STARTS:        reform(full_anodes[*,0]), $
+            FRATES_STOPS:         reform(full_anodes[*,1]), $
+            FRATES_START_NO_STOPS:reform(full_anodes[*,2]), $
+            FRATES_STOP_NO_STARTS:reform(full_anodes[*,3]), $
+            FRATES_VALIDS:        reform(full_anodes[*,4]), $
+            FRATES_NONVALIDS:     reform(full_anodes[*,5]), $
+            time:0.D, $
+            gap:0}
 
-   ;; Initial buffer to search for SYNC
-   buf = bytarr(header_size)
+  return, frates
 
-   ;;dwait = 10.
-   ;;printdat,info
-;  IF isa(source_dict,'DICTIONARY') EQ 0 THEN begin
-;    dprint,dlevel=3,'Creating source_dict'
-;    ;printdat,info
-;    source_dict = dictionary()
-;  ENDIF
+end
 
-   on_ioerror, nextfile
-   time = systime(1)
-   info.time_received = time
-   msg = time_string(info.time_received,tformat='hh:mm:ss -',local=localtime)
-   ;;in_lun = info.hfp
-   out_lun = info.dfp
-   remainder = !null
-   nbytes = 0UL
-   run_proc = struct_value(info,'run_proc',default=1)
-   fst = fstat(in_lun)
-   ;; esc_apdat_info,current_filename= fst.name
-   source_dict.source_info = info
-
-   WHILE file_poll_input(in_lun,timeout=0) && ~eof(in_lun) DO BEGIN
-
-      readu,in_lun,buf,transfer_count=nb
-      nbytes += nb
-      raw_buf = [remainder,buf]
-
-      ;; Lost Sync
-      ;; Read one byte at a time
-      IF (raw_buf[0] NE '54'x) || (raw_buf[1] NE '4D'x) THEN BEGIN
-         remainder = raw_buf[1:*]
-         dprint, 'sync error',dlevel=2,dwait = 5.
-         CONTINUE
-      ENDIF
-
-
-      ;; Message ID Contents
-      index = self.esc_data_select(raw_buf,16+7, 9)
-      tr    = self.esc_data_select(raw_buf,16+25, 2) ; probably not correct
-      fh    = self.esc_data_select(raw_buf,16+27, 1) ; probably not correct
-      dprint,index,tr,fh,dlevel = 3
-
-                                ; print,index
-
-      ;; Packet Size
-      size  = self.esc_data_select(raw_buf,32,16)
-
-      ;; Raw Header Structure
-      raw_header = {index:index, tr:tr, fh:fh, size:size}
-      source_dict.raw_header = raw_header
-
-      ;; Read in Data
-      dat_buf = bytarr(size - header_size)
-      readu, in_lun, dat_buf,transfer_count=nb
-      nbytes += nb
-
-      ;; Original version
-      ;;esc_raw_data_decom, [raw_buf, dat_buf], source_dict=source_dict
-
-      ;; Kludged new version
-      stop
-      esc_raw_pkt_handler, [raw_buf, dat_buf]
-
-      ;; Debugging
-      ;; fst = fstat(in_lun)
-      ;; IF debug(2) && fst.cur_ptr NE 0 && fst.size NE 0 then begin
-      ;;    dprint,dwait=dwait,dlevel=2,fst.compress ? '(Compressed) ' : '','File percentage: ' ,$
-      ;;           (fst.cur_ptr*100.)/fst.size
-      ;; ENDIF
-
-      ;; Check whether binary block was read correctly
-      IF nb NE size-header_size THEN BEGIN
-         fst = fstat(in_lun)
-         dprint,'File read error. Aborting @ ',fst.cur_ptr,' bytes'
-         BREAK
-      ENDIF
-
-      ;; Debugging
-      ;; IF debug(5) THEN BEGIN
-      ;;    hexprint,dlevel=3,ccsds_buf,nbytes=32
-      ;; ENDIF
-
-      ;; Load packet into apdat object
-                                ;esc_raw_pkt_handler, dat_buf, source_dict=source_dict
-                                ;printdat,source_dict
-
-                                ;hexprint,dat_buf
-
-
-      ;; Reset buffer to header size
-      buf = bytarr(header_size)
-      remainder=!null
-
-   ENDWHILE
-
-   flush,out_lun
-
-   if 1 then begin
-      
-      if nbytes ne 0 then msg += string(/print,nbytes,([raw_buf])[0:(nbytes < n_elements(raw_buf))-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
-      else msg+= ' No data available'
-
-      dprint,dlevel=3,msg
-      info.msg = msg
-   endif
-
-   dprint,info,dlevel=3,phelp=2
-
-   IF 0 THEN BEGIN
-      nextfile:
-      dprint,!error_state.msg
-      dprint,'Skipping file'
-   ENDIF
-
-   ;;IF ~keyword_set(no_sum) THEN BEGIN
-   ;;   if keyword_set(info.last_time) then begin
-   ;;      dt = time - info.last_time
-   ;;      info.total_bytes += nbytes
-   ;;      if dt gt .1 then begin
-   ;;         rate = info.total_bytes/dt
-   ;;         store_data,'PTP_DATA_RATE',append=1,time, rate,dlimit={psym:-4}
-   ;;         info.total_bytes =0
-   ;;         info.last_time = time
-   ;;      endif
-   ;;   endif else begin
-   ;;      info.last_time = time
-   ;;      info.total_bytes = 0
-   ;;   endelse
-   ;;endif
-
-
-   ;;if nbytes ne 0 then msg += string(/print,nbytes,([ptp_buf,ccsds_buf])[0:(nbytes < 32)-1],format='(i6 ," bytes: ", 128(" ",Z02))')  $
-   ;;else msg+= ' No data available'
-
-   ;;dprint,dlevel=5,msg
-   ;;info.msg = msg
-
-   ;;dprint,dlevel=2,'Compression: ',float(fp)/fi.size
-
-END
 
 
 
@@ -951,8 +836,10 @@ function esc_esatm_reader::init,_extra=ex,tplot_tagnames=tplot_tagnames
    self.fhkp_da   = dynamicarray(name='esc_fhkp',tplot_tagnames=tplot_tagnames)
    self.espec_da  = dynamicarray(name='esc_espec',tplot_tagnames=tplot_tagnames)
    self.ispec_da  = dynamicarray(name='esc_ispec',tplot_tagnames=tplot_tagnames)
-   self.mhist_da  = dynamicarray(name='esc_mhist',tplot_tagnames=tplot_tagnames)
+   self.frates_da = dynamicarray(name='esc_frates',tplot_tagnames=tplot_tagnames)
    self.thspec_da = dynamicarray(name='esc_thspec',tplot_tagnames=tplot_tagnames)
+   self.thist_da  = dynamicarray(name='esc_thist',tplot_tagnames=tplot_tagnames)
+   self.mspec_da  = dynamicarray(name='esc_mspec',tplot_tagnames=tplot_tagnames)
    return,1
 end
 
@@ -967,34 +854,14 @@ pro esc_esatm_reader__define
            fhkp_da: obj_new(),   $    ; dynamicarray for fast HKP
            espec_da:  obj_new(), $
            ispec_da:  obj_new(), $
-           mhist_da:  obj_new(), $
            thspec_da: obj_new(), $
+           thist_da:  obj_new(), $
+           mspec_da:  obj_new(), $
+           frates_da: obj_new(), $
            flag: 0  $
           }
 end
 
 
-
-
-
-
-
-
-;; old code
-;;nsamples = 64
-;;dat_accum = { $
-;;            time: 0d,  $
-;;            eanode:    uintarr(16,nsamples), $
-;;            ianode0:   uintarr(16,nsamples), $
-;;            ianode1:   uintarr(16,nsamples), $
-;;            ianode2:   uintarr(16,nsamples), $
-;;            ianode3:   uintarr(16,nsamples), $
-;;            mass_hist: uintarr(16,nsamples), $
-;;            ahkp:      uintarr(nsamples), $
-;;            dhkp:      uintarr(nsamples),  $
-;;            fhkp:      uintarr(nsamples),  $
-;;            rates :    uintarr(18,nsamples), $
-;;            gap: 0  }
-;;if isa(self.dyndata,'dynamicarray') then self.dyndata.append, dat
 
 
