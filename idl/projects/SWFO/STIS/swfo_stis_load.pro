@@ -1,6 +1,6 @@
-;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-05-01 13:47:45 -0700 (Mon, 01 May 2023) $
-;$LastChangedRevision: 31815 $
+;$LastChangedBy: ali $
+;$LastChangedDate: 2023-06-07 15:47:19 -0700 (Wed, 07 Jun 2023) $
+;$LastChangedRevision: 31890 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -38,6 +38,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'S0':     opts.host = 'swifgse1.ssl.berkeley.edu'
       'S1':     opts.host = 'swifgse1.ssl.berkeley.edu'
       'S2':     opts.host = 'hermroute3.ssl.berkeley.edu'
+      'S3':     opts.host = 'swifroute2.ssl.berkeley.edu'
     endcase
     
 
@@ -58,6 +59,11 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S2/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
       end
+      'S3/cmblk': begin
+        opts.port       = 2025
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S3/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
+      end
       'S0/gsemsg': begin
         opts.port       = 2028
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
@@ -73,6 +79,11 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S2/gsemsg/YYYY/MM/DD/swfo_stis_socket_YYYYMMDD_hh.dat.gz'
       end
+      'S3/gsemsg': begin
+        opts.port       = 2028
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S3/gsemsg/YYYY/MM/DD/swfo_stis_gsemsg_YYYYMMDD_hh.dat.gz'
+      end
       'S0/ccsds': begin
         opts.port =        2029
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
@@ -83,6 +94,16 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S1/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
       end
+      'S2/ccsds': begin
+        opts.port =        2229
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S2/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
+      end
+      'S3/ccsds': begin
+        opts.port =        2029
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S3/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat'
+      end
       'S0/sccsds': begin
         opts.port =       2027
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
@@ -92,6 +113,16 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         opts.port =       2127
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'S1/sccsds/YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
+      end
+      'S2/sccsds': begin
+        opts.port =       2227
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S2/sccsds/YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
+      end
+      'S3/sccsds': begin
+        opts.port =       2027
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'S3/sccsds/YYYY/MM/DD/swfo_stis_sccsds_YYYYMMDD_hh.dat'
       end
       'S1/ncdf': begin
         opts.port = 0
@@ -133,11 +164,11 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
 
     ;    trange = struct_value(opts,'file_trange',default=!null)
     if keyword_set(trange) then begin
-      timespan,trange
       ;trange = opts.file_trange
       pathformat = opts.reldir + opts.fileformat
       ;filenames = file_retrieve(pathformat,trange=trange,/hourly_,remote_data_dir=opts.remote_data_dir,local_data_dir= opts.local_data_dir)
-      if n_elements(trange eq 1)  then trange = systime(1) + [-trange[0],0]*3600.
+      if n_elements(trange eq 1)  then trange = systime(1) + [-trange[0],0.1]*3600.
+      timespan,trange
       dprint,dlevel=2,'Download raw telemetry files...'
       if 1 then begin
         filenames = file_retrieve(pathformat,trange=trange,remote=opts.url,local=opts.root_dir,resolution=opts.file_resolution)
