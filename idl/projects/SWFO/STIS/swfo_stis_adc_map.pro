@@ -50,6 +50,7 @@ function swfo_stis_adc_map, data_sample=data_sample
     adcmap = dictionary()
     adcmap.codes = 0
   endif
+  adcmap.codes = 0
   
   lut_map        = struct_value(data_sample,'lut_map',default=6)
   lut_mode       = struct_value(data_sample,'xxxx',default=1)
@@ -83,9 +84,13 @@ function swfo_stis_adc_map, data_sample=data_sample
   ftoi['f3'] =9
   wh = orderedhash()
   
+  center_adc_bins = [    234.06952     ,  228.35745    ,  231.78710     ,  232.06377      ,  232.78850      ,  231.65691    ]  
+
+  
   ;channel = orderedhash('o1',1,'o2',2,'o3',3,'f1',4,'f2',5,'f3',6)
-  kev_per_adc = 59.5 / ( [25.12, 22.58, 25.65, 25.48, 23.61,  24.7 ] *8)
+  ;kev_per_adc = 59.5 / ( [25.12, 22.58, 25.65, 25.48, 23.61,  24.7 ] *8)
   ;kev_per_adc = 5500. / ( [5500.,5500.,5500.,5500.,5500.,5500.] * 4)
+  kev_per_adc = 59.5 / center_adc_bins
   kev_per_adc = [!values.f_nan,kev_per_adc]
   geomfactor  = .1  * [.01,1,1,.01,1,1]
   geomfactor  = [!values.f_nan,geomfactor]

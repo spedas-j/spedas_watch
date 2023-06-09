@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2023-06-07 12:07:26 -0700 (Wed, 07 Jun 2023) $
-; $LastChangedRevision: 31887 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2023-06-08 09:43:07 -0700 (Thu, 08 Jun 2023) $
+; $LastChangedRevision: 31891 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -9,13 +9,13 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,powerlim=powerlim
 
   
   if keyword_set(ionlim) then begin
-    store_data,'IG_GUN_I',data='IonGun1_GUN_I*'
-    store_data,'IG_GUN_V',data='IonGun1_GUN_V*'
-    store_data,'IG_STEERER',data='IonGun1_STEERER*'
-    store_data,'IG_EXB',data='IonGun1_EXB*'
-    store_data,'IG_LENS',data='IonGun1_LENS*'
-    store_data,'IG_HDEF',data='IonGun1_HDEF*'
-    options,'IonGun1_*_CTL_V' , colors = 'r'
+    store_data,'IG_GUN_I',data='iongun_GUN_I*'
+    store_data,'IG_GUN_V',data='iongun_GUN_V*'
+    store_data,'IG_STEERER',data='iongun_STEERER*'
+    store_data,'IG_EXB',data='iongun_EXB*'
+    store_data,'IG_LENS',data='iongun_LENS*'
+    store_data,'IG_HDEF',data='iongun_HDEF*'
+    options,'iongun_*_CTL_V' , colors = 'r'
   endif
 
   if keyword_set(powerlim) then begin

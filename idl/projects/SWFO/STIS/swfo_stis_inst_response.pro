@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-07-11 00:24:47 -0700 (Mon, 11 Jul 2022) $
-; $LastChangedRevision: 30915 $
+; $LastChangedDate: 2023-06-08 09:43:07 -0700 (Thu, 08 Jun 2023) $
+; $LastChangedRevision: 31891 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
 ; $ID: $
 
@@ -71,7 +71,7 @@ pro swfo_stis_read_mult_sim_files,simstat,data,desc=desc,pathnames=pathnames,typ
 
   fmt = {event:0L,einc:0.,pos:[0.,0.,0.],dir:[0.,0.,0.],edep:[[0.,0.,0.],[0.,0.,0.]],E_tot:0.}   ; [F T O] order in these files
   ;#    Event  |  (keV)  |  Pos_x     Pos_y     Pos_z    |  Dir_x     Dir_y     Dir_z    |     Open1        Open2       open3       Foil1     Foil2     Foil3     Total
-  npart=0
+  npart=0LL
   data=0
   ;e_inc_num=0.
   ;if keyword_set(xbinsize) then begin
@@ -747,20 +747,27 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
   adc_scale = swfo_stis_adc_calibration(sensornum)
   ;adc_scale = adc_scale[*,*,sensornum]
   threshold = noise_rms *   5   ; 5 sigma threshold
-  shft = [0,1,1,2,1,2,2,4]      ; 2^(nbits-1)   nbits = number of bits that are set within an FTO pattern
-;  shft[*] = 1    ; might want to consider eliminating this step in the FPGA
+  one_n = replicate(1,n)
+  str_element,/add,data,'fto',bytarr(2,n)
+  str_element,/add,data,'em',fltarr(2,n)
+  str_element,/add,data,'bin',intarr(2,n)
   if keyword_set(mapnum) then begin
+    shft = [0,1,1,2,1,2,2,4]      ; 2^(nbits-1)   nbits = number of bits that are set within an FTO pattern
+    ;  shft[*] = 1    ; might want to consider eliminating this step in the FPGA
     lut = swfo_stis_create_lut(mapnum=mapnum)
     mapname = swfo_stis_mapnum_to_mapname(mapnum)
     bmap = swfo_stis_lut2map(lut=lut,sensor=sensornum)
     lut = fix( reform(lut,4096,2,8) )    ;   order is: [ADCval, TID,  FTOpattern ]
     lut[*,*,0] = 256                 ;  not triggered (not detected)  these are FTO=0 (non) events
     ;   lut[*,*,5] = 257                 ;  FO event     changed for SWFO
-  endif else stop
-  one_n = replicate(1,n)
-  str_element,/add,data,'fto',bytarr(2,n)
-  str_element,/add,data,'em',fltarr(2,n)
-  str_element,/add,data,'bin',intarr(2,n)
+  endif else begin
+    dprint , 'Non-LUT setup
+    lut = uintarr(2^15, 2, 8 )
+    
+    
+    
+    stop   ; not finished  map requireed here
+  endelse
   for side=0,1 do begin
     ;   slabel = side ? 'B' : 'A'
     ;   ec3 = side ? data.b : data.a                          ; collected (deposited) energy in each of 3 detectors
@@ -1329,8 +1336,9 @@ if 0 then $
 ;testrun = '4pi_stis_run2'
 testrun = '4pi_stis_run3'
 testrun = '4pi_stis_run4'
+testrun = '4pi_stis_run12'
 ;testrun = '4pi_stis'
-mapnum=10
+mapnum=0
 
 if not keyword_set(testrun) then testrun = 'run04_sep2'
 undefine,resp_e0,resp_p0,resp_g0,resp_e1,resp_p1,resp_g1,bmap
@@ -1654,6 +1662,22 @@ case testrun of
   end
 
 
+  '4pi_stis_run12': begin
+    simstat_p = 0
+    data_p = 0
+    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run12_seed0?_proton.dat',type=+1
+    simstat_e = 0
+    data_e = 0
+    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run12_seed0?_e-.dat',type=+1
+    simstat_a = 0
+    data_a = 0
+    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run12_seed0?_alpha.dat',type=+1
+    simstat_g = 0
+    data_g = 0
+    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run12_seed0?_gamma.dat',type=+1
+  end
+
+
 
 
 endcase
@@ -1688,7 +1712,7 @@ if 1 then begin
   ; swfo_stis_inst_bin_response,simstat_g,data_g,mapnum=mapnum,noise_level=noise_level
   ;printdat,data_p1,simstat_p
 
-  mapnum= 10
+  mapnum= 0
   str_element,/add,simstat_p,'mapnum',mapnum
   str_element,/add,simstat_e,'mapnum',mapnum
   str_element,/add,simstat_g,'mapnum',mapnum

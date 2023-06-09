@@ -24,10 +24,25 @@ pro  swfo_stis_oplot_err,x,y,dx=dx,dy=dy,color=color,psym=psym
 end
 
 
+function swfo_stis_plot_fit_peak,x,y,verbose=verbose
+  par = mgauss(numg=1)
+  mx = max(y * (x gt 150),maxbin)
+  n = 3
+  bins = [-n:n] + maxbin
+  par.g.x0 = x[maxbin]
+  par.g.s=5
+  par.g.a = y[maxbin] * par.g.s * 2
+  ;print,x[maxbin],y[maxbin]
+  fit,verbose=verbose,x[bins],y[bins],param=par,names='G',result=res;,/logfit
+  pf,par
+  return,par
+end
 
 
 
-pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim    ; This is very simple sample routine to demonstrate how to plot recently collecte spectra
+
+
+pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fit=par    ; This is very simple sample routine to demonstrate how to plot recently collecte spectra
 
   common swfo_stis_plot_com, def_param
   
@@ -141,6 +156,13 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
     ;box,lim
     ;init=0
     lim.title = trange_str(minmax(samples.time))
+    if 1 then begin
+      par = mgauss(numg=1)
+    endif
+    
+    
+    
+    
     
     
     for i=0,n_elements(u)-1 do begin
@@ -161,7 +183,17 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
           str_element,dat,ch.name+'_nrg',x
           str_element,dat,ch.name+'_dnrg',dx
         endelse
-        if strupcase(param.lim.units) eq 'EFLUX' then  scale = x /1000 else scale = 1
+        case strupcase(param.lim.units) of
+          "EFLUX": begin 
+            scale = x /1000 
+            param.lim.ytitle = 'Energy Flux'
+            end
+          'ERATE': begin
+            scale = 1
+            param.lim.ytitle = 'Rate  (#/sec/adc)'
+            end
+        endcase
+       
         y = y * scale
         y = y > ymin/10.
         ;swfo_stis_oplot_err,x,y,color=ch.color,psym=ch.psym
@@ -178,6 +210,18 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
         ch.lim = lim
         channels[c] = ch
         oplot,x,y ,color=ch.color,psym=ch.psym
+        if 1 && c ge 0 && i eq n_elements(u)-1 then begin
+          ;printdat,u
+          ;savetomain,x
+          ;savetomain,y
+          ;print,x,y
+          par = swfo_stis_plot_fit_peak(x,y,verbose=0)
+          pf,par,color=ch.color
+          if c ge 0  then          print,par.g[0]
+          if c eq 5 then print
+        endif
+        
+        
       endfor
     endfor
 
@@ -198,6 +242,24 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim   
 ;    if ~param.haskey('window') then param.window= wind
 ;    if ~param.haskey('range') then param.range = range
 ;  endif
+
+
+
+;{        3152.9827       239.47570       6.0271145}   EM DAP / FM Detector
+;{        6168.1520       240.70090       16.162878}
+;{        3550.5448       240.11675       10.268422}
+;{        3980.8447       239.29993       6.1326823}
+;{        6657.8149       240.89125       15.161478}
+;{        3966.9739       239.54395       9.2053748}
+
+
+
+;{        2870.7481       226.52453       5.2746233}   EM DAP / EM Detector
+;{        3886.7794       205.31196       10.490959}
+;{        3997.6211       289.59776       11.638202}
+;{        3843.9637       215.74410       5.5227683}
+;{        7470.5782       233.91078       25.323929}
+;{        4220.7271       228.81207       8.7603103}
 
 
 
