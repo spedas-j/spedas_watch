@@ -29,12 +29,12 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2022-09-21 15:55:35 -0700 (Wed, 21 Sep 2022) $
-; $LastChangedRevision: 31120 $
+; $LastChangedDate: 2023-06-09 15:27:54 -0700 (Fri, 09 Jun 2023) $
+; $LastChangedRevision: 31892 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/spice_mk_read.pro $
 ;
 ;-
-FUNCTION spice_mk_read, file, remote_data_dir=rpath, verbose=verbose, kernels_trange=trange, tformat=tformat, $
+FUNCTION spice_mk_read, file, local_data_dir=lpath, remote_data_dir=rpath, verbose=verbose, kernels_trange=trange, tformat=tformat, $
                         last_version=last_version, source=source, no_download=no_download, no_server=noserver, success=success
 
   success = 1
@@ -48,7 +48,8 @@ FUNCTION spice_mk_read, file, remote_data_dir=rpath, verbose=verbose, kernels_tr
   naif = spice_file_source(last_version=last_version)
   IF undefined(source) THEN source = naif
   IF KEYWORD_SET(no_download) OR KEYWORD_SET(no_server) THEN source.no_server = 1
-
+  IF ~undefined(lpath) THEN source.local_data_dir = lpath
+  
   IF ~undefined(rpath) THEN BEGIN
      source.remote_data_dir = rpath
 
