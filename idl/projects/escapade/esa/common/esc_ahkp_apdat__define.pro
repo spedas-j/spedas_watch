@@ -1,92 +1,35 @@
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2023-01-31 16:39:12 -0800 (Tue, 31 Jan 2023) $
-; $LastChangedRevision: 31449 $
+; $LastChangedDate: 2023-06-10 00:23:31 -0700 (Sat, 10 Jun 2023) $
+; $LastChangedRevision: 31893 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/common/esc_ahkp_apdat__define.pro $
 
+
+;;
+
+
+
 ;; Analog Housekeeping
-FUNCTION esc_ahkp_apdat::decom, ccsds , source_dict=source_dict
 
-  if n_params() eq 0 then begin
-    dprint,'Not working yet.'
-    return,!null
-  endif
-
-  ccsds_data = spp_swp_ccsds_data(ccsds)
-  b = ccsds_data
-
-  ; printdat,apdat
-  ; if ptr_valid(apdat.last_ccsds) && keyword_set(*(apdat.last_ccsds)) then  last_ccsds = *(apdat.last_ccsds) else last_ccsds = 0
-
-  ; if keyword_set(last_ccsds) then begin
-  ;  dseqn = (ccsds.seqn - last_ccsds.seq_cntr) and '3fff'xu
-  ;  dtime = ccsds.time - last_ccsds.time
-  ; endif else begin
-  ;   dseq_cntr =  1u
-  ;   dtime = !values.d_nan
-  ; endelse
-
-  REVNUMBER      =       b[12]
-  if REVNUMBER ne '9e'x then begin
-    dprint, dlevel=2, 'Bad Revnumber: ',REVNUMBER
-  endif
-
-  ;;------------------
-  ;; Housekeeping Size
-  psize = 136
-
-  ;;------------------
-  ;; Size Check
-  if n_elements(b) eq 96 then begin
-    ccsds_data = [ccsds_data,bytarr(136-96)]
-    b = ccsds_data
-  endif
+;; Receive a packet consisting of an array of 512 Words (Word = 2 Bytes)
+;; that correspond to the accumulated Analog Housekeeping words. The words
+;; come directly from the eesa raw telemetry packet.
 
 
-  if n_elements(b) ne psize then begin
-    dprint,dlevel=1, 'Size error ',  psize,ccsds.pkt_size,n_elements(b),ccsds.apid
-    return,0
-  endif
 
-  sf0 = ccsds_data[11] and 3
-  if sf0 ne 0 then dprint, 'Odd time at: ',time_string(ccsds.time)
+FUNCTION esc_ahkp_apdat::decom, pkt
 
+   ;; Insert binary packet into b variable
+   b = pkt
 
-  if debug(5)  then begin   ; compression test
-    ;  common spp_hkp_decom_data, data_delta_last
-    ;  if not keyword_set(data_delta_last) then data_delta_last = b *0
-    b_last = keyword_set(last_ccsds) ? last_ccsds.data : b* 0b
-    ;  b_last =  b* 0b
-    data_delta = b- b_last
-    ;  data_ddelta = data_delta - data_delta_last
-    ;  data_delta_last = data_delta
-    ind = where(data_delta ne 0)
-    dprint,total( data_delta ne 0)
-    hexprint,data_delta
-    printdat,ind
-    printdat,ind-shift(ind,1)
-    printdat,data_delta[ind]  ;+4b
-    ;  printdat,total(data_ddelta ne 0)
-    ;  hexprint,data_ddelta
-  endif
+   ;; Size Check
+   if n_elements(b) ne 512 then stop
 
-  n=0
+   ;; Decommutator
 
-  temp_par = spp_swp_therm_temp()
-
-  temp_par_8bit       = temp_par
-  temp_par_8bit.xmax  = 255
-  temp_par_10bit      = temp_par
-  temp_par_10bit.xmax = 1023
-  temp_par_12bit      = temp_par
-  temp_par_12bit.xmax = 4095
-
-  ;;-----------------------------------------------------------
-  ;; Decommutator
-
-  MON_LVPS_TEMP =   func((spp_swp_word_decom(b,20) and '3ff'x) *1., param = temp_par_10bit)
-  MON_ANAL_TEMP =   func((spp_swp_word_decom(b,38) and '3ff'x) * 1., param = temp_par_10bit)
-  MON_TDC_TEMP=     func((spp_swp_word_decom(b,62 ) and 'fff'x)  * 1. ,param = temp_par_12bit)
-  MON_FPGA_TEMP=    func((spp_swp_word_decom(b,66 ) and 'fff'x)  * 1. ,param = temp_par_12bit)
+   MON_LVPS_TEMP =   func((spp_swp_word_decom(b,20) and '3ff'x) *1., param = temp_par_10bit)
+   MON_ANAL_TEMP =   func((spp_swp_word_decom(b,38) and '3ff'x) * 1., param = temp_par_10bit)
+   MON_TDC_TEMP=     func((spp_swp_word_decom(b,62 ) and 'fff'x)  * 1. ,param = temp_par_12bit)
+   MON_FPGA_TEMP=    func((spp_swp_word_decom(b,66 ) and 'fff'x)  * 1. ,param = temp_par_12bit)
 
   TEMPS = float([mon_lvps_temp,mon_anal_temp,mon_TDC_TEMP,mon_FPGA_TEMP])
 

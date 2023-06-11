@@ -1,7 +1,24 @@
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2023-04-25 09:31:15 -0700 (Tue, 25 Apr 2023) $
-; $LastChangedRevision: 31792 $
+; $LastChangedDate: 2023-06-10 00:23:31 -0700 (Sat, 10 Jun 2023) $
+; $LastChangedRevision: 31893 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/common/esc_raw_pkt__define.pro $
+
+
+;; Analog Housekeeping
+PRO esc_raw_pkt::e_sci_decom, index, eanode
+
+   ;; --- Insert into structure
+
+   ;; Energy Spectra
+   ;;(*self.e_sci_last).(0) =  
+
+   ;; Anode Spectra
+   ;;(*self.e_sci_last).(1)
+
+   ;; Deflector Spectra
+   ;;(*self.e_sci_last).(2)
+   tmp = 0
+END
 
 ;; Analog Housekeeping
 PRO esc_raw_pkt::ahkp_decom, index, word
@@ -187,15 +204,29 @@ FUNCTION esc_raw_pkt::decom, raw_buf, source_dict=source_dict
            iAnode_m2:dw[35:50],$
            iAnode_m3:dw[51:66],$
            iAnode_m4:dw[67:82],$
-           mhist:dw[83:98],$
-           ahkp:dw[99],$
-           dhkp:dw[100]} ;;,$
-   ;;idiag:dw[101]}
-   ;;idiag:dw[101:109]}
+           mhist:dw[83:98]};;,$
+           ;;ahkp:dw[99],$
+           ;;dhkp:dw[100]} ;;,$
+           ;;idiag:dw[101]}
+           ;;idiag:dw[101:109]}
 
+   ;; Analog Housekeeping
    self.ahkp_decom, h_index, dw[99]
+
+   ;; Digital Housekeeping
    self.dhkp_decom, h_index, dw[100]
 
+   ;; Appen Electron Science Counts
+   ;;self.eanode.append, strct
+
+   ;; Ion Science Counts
+   ;;self.ianode.append, strct
+   
+   ;; Diagnostics
+   ;;self.fhkp_decom, strct
+   ;;self.mass_hist_decom, strct
+   ;;self.fast_rates_decome, strct
+   
    return, strct
 
 END

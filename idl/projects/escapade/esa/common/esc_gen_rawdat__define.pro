@@ -2,8 +2,8 @@
 ;  ESC_GEN_RAWDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2023-04-25 10:05:01 -0700 (Tue, 25 Apr 2023) $
-; $LastChangedRevision: 31795 $
+; $LastChangedDate: 2023-06-10 00:23:31 -0700 (Sat, 10 Jun 2023) $
+; $LastChangedRevision: 31893 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/common/esc_gen_rawdat__define.pro $
 ;-
 
@@ -45,7 +45,18 @@ FUNCTION esc_gen_rawdat::Init, _EXTRA=ex
    self.ahkp_poly[[24,26,28,30],3] = -5.4877E-8
    self.ahkp_poly[[24,26,28,30],4] =  1.2712E-11
    self.ahkp_poly[[24,26,28,30],5] = -1.1790E-15
-   
+
+   ;; Electron Science Products
+   e_sci = {nrg_spec:intarr(64), ano_spec:intarr(16), def_spec:intarr(16)}
+
+   self.e_sci_empty = ptr_new(e_sci)
+   self.e_sci_last  = ptr_new(e_sci)
+   self.e_sci_tags  = tag_names(e_sci)
+   self.e_sci = dynamicarray(!null, name = 'Electron_Science_Products')
+   self.e_sci_tplot = 0
+
+
+
    ;; Analog Housekeeping
    str_ahkp = {imcpv:nan,   idef1v:nan,    emcpv:nan,    edef1v:nan, imcpi:nan,     $
                idef2v:nan,  emcpi:nan,     edef2v:nan,   irawv:nan,  ispoilerv:nan, $
@@ -61,9 +72,10 @@ FUNCTION esc_gen_rawdat::Init, _EXTRA=ex
    self.ahkp_tags  = tag_names(str_ahkp)
    self.ahkp = dynamicarray(!null, name = 'Analog_Housekeeping')
    self.ahkp_tplot = 0
+
+
    
    ;; Digital Housekeeping
-
    self.dhkp_trans = [indgen(1)   +  0, nan, $
                       indgen(2)   +  3, nan, $
                       indgen(27)  +  9, nan, nan, $
@@ -186,9 +198,6 @@ FUNCTION esc_gen_rawdat::Init, _EXTRA=ex
    self.dhkp = dynamicarray(!null, name = 'Digital_Housekeeping')
    self.dhkp_tplot = 0
    
-   ;;IF keyword_set(ex) THEN dprint,ex,phelp=2,dlevel=self.dlevel
-   ;;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
-   
    RETURN, 1
    
 END
@@ -260,13 +269,30 @@ PRO esc_gen_rawdat::handler, raw_pkt ;;, source_dict=source_dict
    ;;### Append Data to Final Product ###
    ;;####################################
 
-   ;; 
+   ;; Electron Science Products
+   IF source_dict.index EQ 0 THEN BEGIN
+      GOTO, skip
+      ;; Add new structure
+      self.e_sci.append, *self.e_sci_last
+      
+      ;; Clear Structure
+      *self.e_sci_last = *self.e_sci_empty
 
+      ;; Create tplot structure
+      IF self.e_sci_tplot EQ 0 THEN BEGIN
+         store_data, 'esc_e_sci', data=self.e_sci, tagnames='*', verbose=0, /silent
+         self.e_sci_tplot = 1
+      ENDIF
+      skip:
+      
+   ENDIF
+
+   
    
    ;; Digital Housekeeping
    IF source_dict.index EQ 0 THEN BEGIN
 
-      ;;Add new structure
+      ;; Add new structure
       self.dhkp.append, *self.dhkp_last
       
       ;; Clear Structure
@@ -279,7 +305,9 @@ PRO esc_gen_rawdat::handler, raw_pkt ;;, source_dict=source_dict
       ENDIF
       
    ENDIF
-      
+
+
+   
    ;; Analog Housekeeping
    IF (source_dict.index MOD 32) EQ 0 THEN BEGIN
 
@@ -391,21 +419,26 @@ PRO esc_gen_rawdat__define
 
            ahkp:obj_new(), $
            dhkp:obj_new(), $
+           e_sci:obj_new(),$
 
            ahkp_last:ptr_new(),$
            dhkp_last:ptr_new(),$
+           e_sci_last:ptr_new(),$
            
            ahkp_poly:fltarr(32,6), $
            dhkp_poly:fltarr(32,6), $
            
            ahkp_tags:strarr(34),   $
-           dhkp_tags:strarr(277),   $
+           dhkp_tags:strarr(277),  $
+           e_sci_tags:strarr(3),   $
 
            ahkp_empty:ptr_new(),   $
            dhkp_empty:ptr_new(),   $
+           e_sci_empty:ptr_new(),  $
 
            ahkp_tplot:0,$
            dhkp_tplot:0,$
+           e_sci_tplot:0,$
            
            dhkp_trans:intarr(231), $
            

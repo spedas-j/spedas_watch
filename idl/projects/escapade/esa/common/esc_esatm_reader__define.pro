@@ -81,8 +81,8 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
          frates:     bytarr(18),  $
          ahkp:    0, $
          dhkp:    0, $
-         user1:   0, $
-         user2:   0, $
+         user1:   uint(0), $
+         user2:   uint(0), $
          gap:     0}
    
    
@@ -131,15 +131,19 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    dat.mspec     = data2[80:95]
    dat.ahkp      = fix(data2[96])
    dat.dhkp      = data2[97]
-   dat.user1     = data2[98]
-   dat.user2     = data2[99]
+   dat.user1     = 0u
+   dat.user2     = 0u
+
 
    ;; Diagnostic Words (TOF/RAW/RATES)
    case dat.ion_diag of
      1:dat.frates     = byte(data2[98:106],0,18)
      2:dat.thist      = data2[98:105]
      3:dat.raw_events = data2[98:105]
-     else: break
+     else: begin
+       dat.user1     = data2[98]
+       dat.user2     = data2[99]
+       end
    endcase 
 
 
@@ -289,9 +293,6 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
       dhkp = self.decom_dhkp(dat_dhkp.dhkp_raw)
       dhkp.time = time
       self.dhkp_da.append,  dhkp
-      ;;source_dict.dat_frates.ano[0] = dhkp.accum_rates1
-      ;;source_dict.dat_frates.ano[1] = dhkp.accum_rates2  
-      ;;source_dict.dat_frates.ano[2] = dhkp.accum_rates3
       
    endif
 
@@ -313,8 +314,10 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    dat_mspec.mspec_raw[*,index] = dat.mspec
    source_dict.dat_mspec = dat_mspec
 
+   mhist_index = index+1 MOD 512
+   
    ;; Append Mass Histogram
-   if index eq 3 then BEGIN
+   if mhist_index eq 3 then BEGIN
 
      mspec = self.decom_mspec(dat_mspec.mspec_raw)
      mspec.time = time
@@ -366,6 +369,8 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    ;; ------------------------------------------- ;;
    if dat.ion_diag eq 2 then begin
 
+     thist_index = index+1 MOD 512
+      
      if source_dict.haskey('dat_thist') then begin
        dat_thist = source_dict.dat_thist
      endif else begin
@@ -375,7 +380,7 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
          gap: 0  }
      endelse
   
-     ind = index mod 32
+     ind = thist_index mod 32
      dat_thist.thist_raw[*,ind] = dat.thist
      source_dict.dat_thist = dat_thist
   
@@ -674,23 +679,23 @@ FUNCTION esc_esatm_reader::decom_dhkp, arr
                fast_hkp_ena:   self.esc_data_select(bt[127],2,1),$
                fast_hkp_chan:  self.esc_data_select(bt[127],3,5),$
                
-               valids:wd[64:79],$
-               valids_hz:wd[64:79]/8.,$
+               valids:self.log_decomp_24_16(wd[64:79]),$
+               valids_hz:self.log_decomp_24_16(wd[64:79])/8.,$
                 
                ;valid_0:wd[64], valid_1:wd[65], valid_2:wd[66], valid_3:wd[67],$
                ;valid_4:wd[68], valid_5:wd[69], valid_6:wd[70], valid_7:wd[71],$
                ;valid_8:wd[72], valid_9:wd[73], valid_10:wd[74],valid_11:wd[75],$
                ;valid_12:wd[76],valid_13:wd[77],valid_14:wd[78],valid_15:wd[79],$
 
-               non_valids:wd[80:95],$
-               non_valids_hz:wd[80:95]/8.,$
+               non_valids:self.log_decomp_24_16(wd[80:95]),$
+               non_valids_hz:self.log_decomp_24_16(wd[80:95])/8.,$
                ;non_valid_0:wd[80], non_valid_1:wd[81], non_valid_2:wd[82], non_valid_3:wd[83],$
                ;non_valid_4:wd[84], non_valid_5:wd[85], non_valid_6:wd[86], non_valid_7:wd[87],$
                ;non_valid_8:wd[88], non_valid_9:wd[89], non_valid_10:wd[90],non_valid_11:wd[91],$
                ;non_valid_12:wd[92],non_valid_13:wd[93],non_valid_14:wd[94],non_valid_15:wd[95],$
                
-               start_no_stops:wd[[96,96,97,97,98,98,99,99,100,100,[101:106]]], $
-               start_no_stops_hz:wd[[96,96,97,97,98,98,99,99,100,100,[101:106]]]/8.,$ 
+               start_no_stops:self.log_decomp_24_16(wd[[96,96,97,97,98,98,99,99,100,100,[101:106]]]), $
+               start_no_stops_hz:self.log_decomp_24_16(wd[[96,96,97,97,98,98,99,99,100,100,[101:106]]])/8.,$ 
                 
                ;start_no_stop_0_1:wd[96], start_no_stop_2_3:wd[97], start_no_stop_4_5:wd[98], start_no_stop_6_7:wd[99],$
                ;start_no_stop_8_9:wd[100], start_no_stop_10:wd[101],start_no_stop_11:wd[102],$
@@ -698,23 +703,23 @@ FUNCTION esc_esatm_reader::decom_dhkp, arr
                
                emptyrate1:wd[107], $
                
-               stop_no_starts:wd[108:123],$
-               stop_no_starts_hz:wd[108:123]/8.,$ 
+               stop_no_starts:self.log_decomp_24_16(wd[108:123]),$
+               stop_no_starts_hz:self.log_decomp_24_16(wd[108:123])/8.,$ 
                 
                ;stop_no_start_0:wd[108], stop_no_start_1:wd[109], stop_no_start_2:wd[110], stop_no_start_3:wd[111],$
                ;stop_no_start_4:wd[112], stop_no_start_5:wd[113], stop_no_start_6:wd[114], stop_no_start_7:wd[115],$
                ;stop_no_start_8:wd[116], stop_no_start_9:wd[117], stop_no_start_10:wd[118],stop_no_start_11:wd[119],$
                ;stop_no_start_12:wd[120],stop_no_start_13:wd[121],stop_no_start_14:wd[122],stop_no_start_15:wd[123],$
                
-               starts:wd[[124,124,125,125,126,126,127,127,128,128,[129:134]]], $
-               starts_hz:wd[[124,124,125,125,126,126,127,127,128,128,[129:134]]]/8., $
+               starts:self.log_decomp_24_16(wd[[124,124,125,125,126,126,127,127,128,128,[129:134]]]), $
+               starts_hz:self.log_decomp_24_16(wd[[124,124,125,125,126,126,127,127,128,128,[129:134]]])/8., $
                 
                ;start_0_1:wd[124], start_2_3:wd[125], start_4_5:wd[126], start_6_7:wd[127],$
                ;start_8_9:wd[128], start_10:wd[129],  start_11:wd[130],$
                ;start_12:wd[131],  start_13:wd[132],  start_14:wd[133],start_15:wd[134],$
                
-               stops:wd[135:150],$
-               stops_hz:wd[135:150]/8.,$ 
+               stops:self.log_decomp_24_16(wd[135:150]),$
+               stops_hz:self.log_decomp_24_16(wd[135:150])/8.,$ 
                 
                ;stop_0:wd[135], stop_1:wd[136], stop_2:wd[137], stop_3:wd[138],$
                ;stop_4:wd[139], stop_5:wd[140], stop_6:wd[141], stop_7:wd[142],$
@@ -804,19 +809,32 @@ end
 
 function esc_esatm_reader::decom_frates, arr, ano1, ano2, ano3
 
-  full_anodes = intarr(16,6)
+  full_anodes = uintarr(16,6)
   
   ;; Insert Into Anodes
-  full_anodes[ano1,*] = arr[ 0: 5]
-  full_anodes[ano2,*] = arr[ 6:11]
-  full_anodes[ano3,*] = arr[12:17]
-        
-  frates = {FRATES_STARTS:        reform(full_anodes[*,0]), $
-            FRATES_STOPS:         reform(full_anodes[*,1]), $
-            FRATES_START_NO_STOPS:reform(full_anodes[*,2]), $
-            FRATES_STOP_NO_STARTS:reform(full_anodes[*,3]), $
-            FRATES_VALIDS:        reform(full_anodes[*,4]), $
-            FRATES_NONVALIDS:     reform(full_anodes[*,5]), $
+  full_anodes[ano1,*] = self.log_decomp_19_8(arr[ 0: 5])
+  full_anodes[ano2,*] = self.log_decomp_19_8(arr[ 6:11])
+  full_anodes[ano3,*] = self.log_decomp_19_8(arr[12:17])
+  rate=8./512.        
+  
+  frates = {NON_VALIDS:     reform(full_anodes[*,0]), $
+            VALIDS:         reform(full_anodes[*,1]), $
+            STOPS:          reform(full_anodes[*,2]), $
+            START_NO_STOPS: reform(full_anodes[*,3]), $
+            STOP_NOSTARTS:  reform(full_anodes[*,4]), $
+            STARTS:         reform(full_anodes[*,5]), $
+            NON_VALIDS_HZ:    reform(full_anodes[*,0])/rate, $
+            VALIDS_HZ:        reform(full_anodes[*,1])/rate, $
+            STOPS_HZ:         reform(full_anodes[*,2])/rate, $
+            START_NO_STOPS_HZ:reform(full_anodes[*,3])/rate, $
+            STOP_NO_STARTS_HZ:reform(full_anodes[*,4])/rate, $
+            STARTS_HZ:        reform(full_anodes[*,5])/rate, $
+            ;;FRATES_STARTS:        reform(full_anodes[*,0]), $ 
+            ;;FRATES_STOPS:         reform(full_anodes[*,1]), $
+            ;;FRATES_START_NO_STOPS:reform(full_anodes[*,2]), $
+            ;;FRATES_STOP_NO_STARTS:reform(full_anodes[*,3]), $
+            ;;FRATES_VALIDS:        reform(full_anodes[*,4]), $
+            ;;FRATES_NONVALIDS:     reform(full_anodes[*,5]), $
             time:0.D, $
             gap:0}
 
@@ -825,6 +843,75 @@ function esc_esatm_reader::decom_frates, arr, ano1, ano2, ano3
 end
 
 
+function esc_esatm_reader::log_decomp_24_16, bdata
+  
+  bdata = ulong(temporary(bdata))
+  
+  p1  = where(bdata ge '4000'x and bdata lt '6000'x, c1)
+  p2  = where(bdata ge '6000'x and bdata lt '8000'x, c2)
+  p3  = where(bdata ge '8000'x and bdata lt '9000'x, c3)
+  p4  = where(bdata ge '9000'x and bdata lt 'A000'x, c4)
+  p5  = where(bdata ge 'A000'x and bdata lt 'B000'x, c5)
+  p6  = where(bdata ge 'B000'x and bdata lt 'C000'x, c6)
+  p7  = where(bdata ge 'C000'x and bdata lt 'D000'x, c7)
+  p8  = where(bdata ge 'D000'x and bdata lt 'E000'x, c8)
+  p9  = where(bdata ge 'E000'x and bdata lt 'F000'x, c9)
+  p10 = where(bdata ge 'F000'x,c10)
+                    
+  if  c1 then bdata[ p1] = ishft(bdata[ p1]-'2000'x,1)
+  if  c2 then bdata[ p2] = ishft(bdata[ p2]-'4000'x,1)
+  if  c3 then bdata[ p3] = ishft(bdata[ p3]-'7000'x,1)  
+  if  c4 then bdata[ p4] = ishft(bdata[ p4]-'8000'x,1)
+  if  c5 then bdata[ p5] = ishft(bdata[ p5]-'9000'x,1)
+  if  c6 then bdata[ p6] = ishft(bdata[ p6]-'a000'x,1)
+  if  c7 then bdata[ p7] = ishft(bdata[ p7]-'b000'x,1)
+  if  c8 then bdata[ p8] = ishft(bdata[ p8]-'c000'x,1)
+  if  c9 then bdata[ p9] = ishft(bdata[ p9]-'d000'x,1)
+  if c10 then bdata[p10] = ishft(bdata[p10]-'e000'x,1)
+  
+  return, bdata
+  
+end
+
+function esc_esatm_reader::log_decomp_19_8, bdata
+
+  clog_19_8=[ $
+    0,       1,      2,      3,      4,      5,      6,      7,  $
+    8,       9,     10,     11,     12,     13,     14,     15,  $
+    16,     17,     18,     19,     20,     21,     22,     23,  $
+    24,     25,     26,     27,     28,     29,     30,     31,  $
+    32,     34,     36,     38,     40,     42,     44,     46,  $
+    48,     50,     52,     54,     56,     58,     60,     62,  $
+    64,     68,     72,     76,     80,     84,     88,     92,  $
+    96,    100,    104,    108,    112,    116,    120,    124,  $
+    128,    136,    144,    152,    160,    168,    176,    184,  $
+    192,    200,    208,    216,    224,    232,    240,    248,  $
+    256,    272,    288,    304,    320,    336,    352,    368,  $
+    384,    400,    416,    432,    448,    464,    480,    496,  $
+    512,    544,    576,    608,    640,    672,    704,    736,  $
+    768,    800,    832,    864,    896,    928,    960,    992,  $
+    1024,   1088,   1152,   1216,   1280,   1344,   1408,   1472,  $
+    1536,   1600,   1664,   1728,   1792,   1856,   1920,   1984,  $
+    2048,   2176,   2304,   2432,   2560,   2688,   2816,   2944,  $
+    3072,   3200,   3328,   3456,   3584,   3712,   3840,   3968,  $
+    4096,   4352,   4608,   4864,   5120,   5376,   5632,   5888,  $
+    6144,   6400,   6656,   6912,   7168,   7424,   7680,   7936,  $
+    8192,   8704,   9216,   9728,  10240,  10752,  11264,  11776,  $
+    12288,  12800,  13312,  13824,  14336,  14848,  15360,  15872,  $
+    16384,  17408,  18432,  19456,  20480,  21504,  22528,  23552,  $
+    24576,  25600,  26624,  27648,  28672,  29696,  30720,  31744,  $
+    32768,  34816,  36864,  38912,  40960,  43008,  45056,  47104,  $
+    49152,  51200,  53248,  55296,  57344,  59392,  61440,  63488,  $
+    65536,  69632,  73728,  77824,  81920,  86016,  90112,  94208,  $
+    98304, 102400, 106496, 110592, 114688, 118784, 122880, 126976,  $
+    131072, 139264, 147456, 155648, 163840, 172032, 180224, 188416,  $
+    196608, 204800, 212992, 221184, 229376, 237568, 245760, 253952,  $
+    262144, 278528, 294912, 311296, 327680, 344064, 360448, 376832,  $
+    393216, 409600, 425984, 442368, 458752, 475136, 491520, 507904]
+
+  return, clog_19_8[byte(bdata)]
+
+end
 
 
 function esc_esatm_reader::init,_extra=ex,tplot_tagnames=tplot_tagnames
