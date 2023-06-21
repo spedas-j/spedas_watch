@@ -12,8 +12,8 @@
 ;       Yuki Harada on 2017-05-03
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2023-06-16 00:29:30 -0700 (Fri, 16 Jun 2023) $
-; $LastChangedRevision: 31897 $
+; $LastChangedDate: 2023-06-20 01:30:32 -0700 (Tue, 20 Jun 2023) $
+; $LastChangedRevision: 31900 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/marsis/mex_marsis_load.pro $
 ;-
 
@@ -475,7 +475,14 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
                      data1_p:make_array(value=!values.f_nan,512), $
                      data2_m:make_array(value=!values.f_nan,512), $
                      data2_z:make_array(value=!values.f_nan,512), $
-                     data2_p:make_array(value=!values.f_nan,512) }, ntime )
+                     data2_p:make_array(value=!values.f_nan,512), $
+                     phase1_m:make_array(value=!values.f_nan,512), $
+                     phase1_z:make_array(value=!values.f_nan,512), $
+                     phase1_p:make_array(value=!values.f_nan,512), $
+                     phase2_m:make_array(value=!values.f_nan,512), $
+                     phase2_z:make_array(value=!values.f_nan,512), $
+                     phase2_p:make_array(value=!values.f_nan,512) $
+                    }, ntime )
 
    dprint,'reading in '+f
    openr,unit,f,/get_lun
@@ -525,7 +532,12 @@ for orbnum=orbnumr[0],orbnumr[1] do begin
       dat[itime].data2_m = ECHO_MODULUS_MINUS1_F2_DIP
       dat[itime].data2_z = ECHO_MODULUS_ZERO_F2_DIP
       dat[itime].data2_p = ECHO_MODULUS_PLUS1_F2_DIP
-
+      dat[itime].phase1_m = ECHO_PHASE_MINUS1_F1_DIP
+      dat[itime].phase1_z = ECHO_PHASE_ZERO_F1_DIP
+      dat[itime].phase1_p = ECHO_PHASE_PLUS1_F1_DIP
+      dat[itime].phase2_m = ECHO_PHASE_MINUS1_F2_DIP
+      dat[itime].phase2_z = ECHO_PHASE_ZERO_F2_DIP
+      dat[itime].phase2_p = ECHO_PHASE_PLUS1_F2_DIP
    endfor
    free_lun,unit
 

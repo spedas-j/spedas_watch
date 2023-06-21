@@ -3,8 +3,8 @@
 ; ESC_IESA_SWEEP_TABLE
 ;
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2023-06-10 00:32:50 -0700 (Sat, 10 Jun 2023) $
-; $LastChangedRevision: 31895 $
+; $LastChangedDate: 2023-06-19 23:10:31 -0700 (Mon, 19 Jun 2023) $
+; $LastChangedRevision: 31899 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sweep_table.pro $
 ;
 ;-
@@ -106,7 +106,7 @@ FUNCTION esc_iesa_sweep_table_write, table, mram=mram
 
    ;; Set all keywords
    b1024_dac = 1
-   b1024 = 1
+   b1024 = 0
    b512 = 0
    
    IF keyword_set(b1024) THEN BEGIN
@@ -117,22 +117,24 @@ FUNCTION esc_iesa_sweep_table_write, table, mram=mram
       printf, 1, '# '+table.note
       printf, 1, '# '
       printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sweep_table.pro'
-      printf, 1, '# Date:     $LastChangedDate: 2023-06-10 00:32:50 -0700 (Sat, 10 Jun 2023) $'
-      printf, 1, '# Revision: $LastChangedRevision: 31895 $'
+      printf, 1, '# Date:     $LastChangedDate: 2023-06-19 23:10:31 -0700 (Mon, 19 Jun 2023) $'
+      printf, 1, '# Revision: $LastChangedRevision: 31899 $'
       printf, 1, '# '
       printf, 1, '# --- Sweep Parameters ---'
-      printf, 1, format='(A19, F7.1, A5)',  '# Energy Min:      ', table.const.emin, ' [eV]'
-      printf, 1, format='(A19, F7.1, A5)',  '# Energy Max:      ', table.const.emax, ' [eV]'
-      printf, 1, format='(A19, I7,A10,I2)', '# Total Bins:      ', table.const.tot_bins
-      printf, 1, format='(A19, I7,A10,I2)', '# Microsteps:      ', table.const.mbins
-      printf, 1, format='(A19, I7,A10,I2)', '# Energy Steps:    ', table.const.nenr
-      printf, 1, format='(A19, I7,A10,I2)', '# Deflector Steps: ', table.const.nang
+      printf, 1, format='(A21, F7.1, A5)', '# Energy Min:         ', table.const.emin, ' [eV]'
+      printf, 1, format='(A21, F7.1, A5)', '# Energy Max:         ', table.const.emax, ' [eV]'
+      printf, 1, format='(A21, I7)',       '# Total Bins:         ', table.const.tot_bins
+      printf, 1, format='(A21, I7)',       '# Microsteps:         ', table.const.mbins
+      printf, 1, format='(A21, I7)',       '# Energy Steps:       ', table.const.nenr
+      printf, 1, format='(A21, I7)',       '# Deflector Steps:    ', table.const.nang
+      printf, 1, format='(A21, F7.2)',     '# Spoiler Ratio:      ', table.const.spl_ratio
+      printf, 1, format='(A21, I7, I5)',   '# Spoiler Max Energy: ', table.const.spl_max_en, ' [eV]'
       printf, 1, '# '
       printf, 1, '# --- Instrument Characteristics ---'
-      printf, 1, format='(A19, F7.2)',      '# K-Factor:        ', table.const.k
-      printf, 1, format='(A19, F7.2)',      '# Hemisphere Gain: ', table.const.hv_gain
-      printf, 1, format='(A19, F7.2)',      '# Deflector Gain:  ', table.const.def_gain
-      printf, 1, format='(A19, F7.2)',      '# Spoiler Gain:    ', table.const.spl_gain
+      printf, 1, format='(A21, F7.2)',      '# K-Factor:          ', table.const.k
+      printf, 1, format='(A21, F7.2)',      '# Hemisphere Gain:   ', table.const.hv_gain
+      printf, 1, format='(A21, F7.2)',      '# Deflector Gain:    ', table.const.def_gain
+      printf, 1, format='(A21, F7.2)',      '# Spoiler Gain:      ', table.const.spl_gain
       printf, 1, '# '
       printf, 1, '# ID_Msg_Bin', $
               'ENERGY [eV]', 'DEF1 [DEG]','DEF2 [DEG]','SPOILER', $
@@ -161,19 +163,25 @@ FUNCTION esc_iesa_sweep_table_write, table, mram=mram
       printf, 1, '# '
       printf, 1, '# '+table.note
       printf, 1, '# '
+      printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sweep_table.pro'
+      printf, 1, '# Date:     $LastChangedDate: 2023-06-19 23:10:31 -0700 (Mon, 19 Jun 2023) $'
+      printf, 1, '# Revision: $LastChangedRevision: 31899 $'
+      printf, 1, '# '
       printf, 1, '# --- Sweep Parameters ---'
-      printf, 1, format='(A19, F7.1, A5)',  '# Energy Min:      ', table.const.emin, ' [eV]'
-      printf, 1, format='(A19, F7.1, A5)',  '# Energy Max:      ', table.const.emax, ' [eV]'
-      printf, 1, format='(A19, I7,A10,I2)', '# Total Bins:      ', table.const.tot_bins
-      printf, 1, format='(A19, I7,A10,I2)', '# Microsteps:      ', table.const.mbins
-      printf, 1, format='(A19, I7,A10,I2)', '# Energy Steps:    ', table.const.nenr
-      printf, 1, format='(A19, I7,A10,I2)', '# Deflector Steps: ', table.const.nang
+      printf, 1, format='(A21, F7.1, A5)', '# Energy Min:         ', table.const.emin, ' [eV]'
+      printf, 1, format='(A21, F7.1, A5)', '# Energy Max:         ', table.const.emax, ' [eV]'
+      printf, 1, format='(A21, I7)',       '# Total Bins:         ', table.const.tot_bins
+      printf, 1, format='(A21, I7)',       '# Microsteps:         ', table.const.mbins
+      printf, 1, format='(A21, I7)',       '# Energy Steps:       ', table.const.nenr
+      printf, 1, format='(A21, I7)',       '# Deflector Steps:    ', table.const.nang
+      printf, 1, format='(A21, F7.2)',     '# Spoiler Ratio:      ', table.const.spl_ratio
+      printf, 1, format='(A21, I7, A5)',   '# Spoiler Max Energy: ', table.const.spl_max_en, ' [eV]'
       printf, 1, '# '
       printf, 1, '# --- Instrument Characteristics ---'
-      printf, 1, format='(A19, F7.2)',      '# K-Factor:        ', table.const.k
-      printf, 1, format='(A19, F7.2)',      '# Hemisphere Gain: ', table.const.hv_gain
-      printf, 1, format='(A19, F7.2)',      '# Deflector Gain:  ', table.const.def_gain
-      printf, 1, format='(A19, F7.2)',      '# Spoiler Gain:    ', table.const.spl_gain
+      printf, 1, format='(A21, F7.2)',     '# K-Factor:           ', table.const.k
+      printf, 1, format='(A21, F7.2)',     '# Hemisphere Gain:    ', table.const.hv_gain
+      printf, 1, format='(A21, F7.2)',     '# Deflector Gain:     ', table.const.def_gain
+      printf, 1, format='(A21, F7.2)',     '# Spoiler Gain:       ', table.const.spl_gain
       printf, 1, '# '
       printf, 1, '# ','HEM_DAC', 'DEF1_DAC','DEF2_DAC','SPOILER_DAC', format='(A2,A12,3A14)'
       printf, 1, '# '+strjoin(replicate('-',14*4-2))
@@ -182,7 +190,8 @@ FUNCTION esc_iesa_sweep_table_write, table, mram=mram
                  format='(4i14)'
       ENDFOR
 
-      close, 1            
+      close, 1
+      
    ENDIF
 
 
@@ -194,19 +203,25 @@ FUNCTION esc_iesa_sweep_table_write, table, mram=mram
       printf, 1, '# '
       printf, 1, '# '+table.note
       printf, 1, '# '
+      printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sweep_table.pro'
+      printf, 1, '# Date:     $LastChangedDate: 2023-06-19 23:10:31 -0700 (Mon, 19 Jun 2023) $'
+      printf, 1, '# Revision: $LastChangedRevision: 31899 $'
+      printf, 1, '# '
       printf, 1, '# --- Sweep Parameters ---'
-      printf, 1, format='(A19, F7.1, A5)',  '# Energy Min:      ', table.const.emin, ' [eV]'
-      printf, 1, format='(A19, F7.1, A5)',  '# Energy Max:      ', table.const.emax, ' [eV]'
-      printf, 1, format='(A19, I7,A10,I2)', '# Total Bins:      ', table.const.tot_bins
-      printf, 1, format='(A19, I7,A10,I2)', '# Microsteps:      ', table.const.mbins
-      printf, 1, format='(A19, I7,A10,I2)', '# Energy Steps:    ', table.const.nenr
-      printf, 1, format='(A19, I7,A10,I2)', '# Deflector Steps: ', table.const.nang
+      printf, 1, format='(A21, F7.1, A5)', '# Energy Min:         ', table.const.emin, ' [eV]'
+      printf, 1, format='(A21, F7.1, A5)', '# Energy Max:         ', table.const.emax, ' [eV]'
+      printf, 1, format='(A21, I7)',       '# Total Bins:         ', table.const.tot_bins
+      printf, 1, format='(A21, I7)',       '# Microsteps:         ', table.const.mbins
+      printf, 1, format='(A21, I7)',       '# Energy Steps:       ', table.const.nenr
+      printf, 1, format='(A21, I7)',       '# Deflector Steps:    ', table.const.nang
+      printf, 1, format='(A21, F7.2)',     '# Spoiler Ratio:      ', table.const.spl_ratio
+      printf, 1, format='(A21, I7, A5)',   '# Spoiler Max Energy: ', table.const.spl_max_en, ' [eV]'
       printf, 1, '# '
       printf, 1, '# --- Instrument Characteristics ---'
-      printf, 1, format='(A19, F7.2)',      '# K-Factor:        ', table.const.k
-      printf, 1, format='(A19, F7.2)',      '# Hemisphere Gain: ', table.const.hv_gain
-      printf, 1, format='(A19, F7.2)',      '# Deflector Gain:  ', table.const.def_gain
-      printf, 1, format='(A19, F7.2)',      '# Spoiler Gain:    ', table.const.spl_gain
+      printf, 1, format='(A21, F7.2)',      '# K-Factor:          ', table.const.k
+      printf, 1, format='(A21, F7.2)',      '# Hemisphere Gain:   ', table.const.hv_gain
+      printf, 1, format='(A21, F7.2)',      '# Deflector Gain:    ', table.const.def_gain
+      printf, 1, format='(A21, F7.2)',      '# Spoiler Gain:      ', table.const.spl_gain
       printf, 1, '# '
       printf, 1, '# ','Science Bin', $
               'Energy Bin', 'ENERGY [eV]', 'dEnergy',$
@@ -464,11 +479,11 @@ PRO esc_iesa_sweep_table_generate, table, emin=emin, emax=emax, title=title, not
            }
 
    ;; Write Table to CSV
-   write_csv = 0
+   write_csv = 1
    IF keyword_set(write_csv) THEN tmp = esc_iesa_sweep_table_write(table)
 
    ;; Plot table contents
-   pplot = 1
+   pplot = 0
    IF keyword_set(pplot) THEN plot_res = esc_iesa_sweep_table_plot(table)
 
 END
@@ -519,16 +534,16 @@ PRO esc_iesa_sweep_table
    dmin = -15.
    dmax =  15.
    title = 'esc_iesa_cal_table_1'
-   note = 'Calibration Table 2: 500eV +-20%'
+   note = 'Calibration Table 2: 400eV to 600eV'
    esc_iesa_sweep_table_generate, emin=emin,emax=emax,dmin=dmin,dmax=dmax,title=title,note=note
 
-   ;; EESA-i Calibration Table 2 --- Energies 0.5eV - 100eV --- Deflections -15 to +15 
+   ;; EESA-i Calibration Table 2 --- Energies 0.5eV - 60eV --- Deflections -15 to +15 
    emin = 0.5
-   emax = 100.
+   emax = 60.
    dmin = -15.
    dmax =  15.
    title = 'esc_iesa_cal_table_2'
-   note = 'Calibration Table 2: 0.5eV - 100eV - -15 to 15'
+   note = 'Calibration Table 2: 0.5eV - 60eV - -15 to 15'
    esc_iesa_sweep_table_generate, emin=emin,emax=emax,dmin=dmin,dmax=dmax,title=title,note=note
 
    ;; EESA-i Calibration Table 3 - 800eV - 1200eV
