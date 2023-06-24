@@ -32,22 +32,28 @@
 ;       HIRES:         Returns 0 for normal resolution (2-sec) data; returns 1 for
 ;                      high resolution (0.03-sec) data.
 ;
+;       QLEVEL:        Minimum quality level to load (0-2, default=0):
+;                        2B = good
+;                        1B = uncertain
+;                        0B = affected by low-energy anomaly
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2020-12-15 13:03:48 -0800 (Tue, 15 Dec 2020) $
-; $LastChangedRevision: 29495 $
+; $LastChangedDate: 2023-06-23 12:34:13 -0700 (Fri, 23 Jun 2023) $
+; $LastChangedRevision: 31909 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
 ;FILE: mvn_swe_getpad.pro
 ;-
 function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, burst=burst, $
-                         shiftpot=shiftpot, hires=hires
+                         shiftpot=shiftpot, hires=hires, qlevel=qlevel
 
   @mvn_swe_com
 
   delta_t = 1.95D/2D  ; PAD start time to center time
   if keyword_set(burst) then archive = 1
   hires = 0
+  qlevel = (n_elements(qlevel) gt 0L) ? byte(qlevel[0]) : 0B
 
   if (size(time,/type) eq 0) then begin
     if not keyword_set(all) then begin
@@ -226,14 +232,14 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
     pad = replicate(swe_pad_struct, npts)
     pad.data_name = "SWEA PAD Archive"
     pad.apid = 'A3'XB
-    
+
     aflg = 1
   endif else begin
     if (size(a2,/type) ne 8) then begin
       print,"No PAD survey data."
       return, 0
     endif
-    
+ 
     if keyword_set(all) then begin
       tmin = min(time, max=tmax, /nan)
       indx = where((a2.time ge tmin) and (a2.time le tmax), npts)
@@ -439,9 +445,19 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
       print,"data gap: ",msg," sec"
     endif
 
-    pad[n].valid = 1B                          ; Yep, it's valid.
+    pad[n].valid = replicate(1B, 64, 16)       ; Yep, it's valid.
+
+; Quality flag
+
+    str_element, pkt, 'quality', quality, success=ok
+    if (ok) then pad[n].quality = quality
 
   endfor
+
+; Filter the quality
+
+  indx = where(pad.quality ge qlevel, npts)
+  if (npts gt 0L) then pad = pad[indx] else return, 0
 
 ; Apply cross calibration factor.  A new factor is calculated after each 
 ; MCP bias adjustment. See mvn_swe_config for these times.  Polynomial
@@ -458,7 +474,7 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
 ; "blurred" by a changing magnetic field direction, so summing only makes 
 ; sense for short intervals.
 
-  if keyword_set(sum) then pad = mvn_swe_padsum(pad)
+  if keyword_set(sum) then pad = mvn_swe_padsum(pad, qlevel=qlevel)
 
 ; Convert units
 

@@ -107,8 +107,8 @@
 ;       SILENT:  Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-05-11 10:12:49 -0700 (Thu, 11 May 2023) $
-; $LastChangedRevision: 31855 $
+; $LastChangedDate: 2023-06-23 12:31:08 -0700 (Fri, 23 Jun 2023) $
+; $LastChangedRevision: 31906 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/tmean.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -354,7 +354,7 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
       avg  = mom[0]
       rms  = sqrt(mom[1])
 
-      if (oflg) then begin
+      if (oflg) then begin                  ; remove outliers (only for nclusters = 1)
         xo = [-1D]
         yo = [-1.]
         maxdev = float(outlier[0])*rms
@@ -390,8 +390,8 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
 
       skew = mom[2]
       kurt = mom[3]
-      med  = median(yc)
-      lim = minmax(yc)
+      med  = median([yc])
+      lim = minmax([yc])
 
 ; Report the result
 
@@ -450,6 +450,8 @@ pro tmean, var, trange=trange, offset=offset, outlier=outlier, result=result, hi
         print,"Distance from edge: ",msg,format='(a,a)'
         msg = strtrim(string(diag.delta, format='(f14.2)'),2)
         print,"Cluster separation: " + msg + " sigma"
+        msg = strtrim(string(result[0].mean/result[1].mean, format='(f14.2)'),2)
+        print,"Cluster center ratio: " + msg
         msg = strtrim(string(diag.minvar/diag.maxvar, format='(f14.2)'),2)
         print,"Variance improvement: " + msg
         msg = strtrim(string(diag.frac,format='(f14.2)'),2)

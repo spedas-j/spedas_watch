@@ -27,16 +27,21 @@
 ;
 ;       YRANGE:        Returns the data range, excluding zero counts.
 ;
+;       QLEVEL:        Minimum quality level to load (0-2, default=0):
+;                        2B = good
+;                        1B = uncertain
+;                        0B = affected by low-energy anomaly
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2017-08-31 11:31:33 -0700 (Thu, 31 Aug 2017) $
-; $LastChangedRevision: 23867 $
+; $LastChangedDate: 2023-06-23 12:34:13 -0700 (Fri, 23 Jun 2023) $
+; $LastChangedRevision: 31909 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getspec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
 ;FILE: mvn_swe_getspec.pro
 ;-
 function mvn_swe_getspec, time, archive=archive, sum=sum, units=units, yrange=yrange, burst=burst, $
-                          shiftpot=shiftpot
+                          shiftpot=shiftpot, qlevel=qlevel
 
   @mvn_swe_com  
 
@@ -48,6 +53,7 @@ function mvn_swe_getspec, time, archive=archive, sum=sum, units=units, yrange=yr
   npts = n_elements(time)
   tmin = min(time_double(time), max=tmax)
   if keyword_set(burst) then archive = 1
+  qlevel = n_elements(qlevel) gt 0L ? byte(qlevel[0]) < 2B : 0B
 
   if keyword_set(archive) then begin
     if (size(mvn_swe_engy_arc, /type) ne 8) then begin
@@ -94,6 +100,11 @@ function mvn_swe_getspec, time, archive=archive, sum=sum, units=units, yrange=yr
     endif
     spec = mvn_swe_engy[iref]
   endelse
+
+; Quality check
+
+  indx = where(spec.quality ge qlevel, ngud, ncomplement=nbad)
+  if (ngud gt 0L) then spec = spec[indx] else return, 0
 
 ; Sum the data
 
