@@ -17,8 +17,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2020-10-15 14:28:20 -0700 (Thu, 15 Oct 2020) $
-; $LastChangedRevision: 29257 $
+; $LastChangedDate: 2023-06-25 13:35:37 -0700 (Sun, 25 Jun 2023) $
+; $LastChangedRevision: 31910 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_load.pro $
 ;
 ;-
@@ -178,8 +178,10 @@ PRO vex_asp_els_read, trange, verbose=verbose, time=stime, counts=counts, mode=m
   ELSE BEGIN
      IF (nflg) THEN $
         IF (N_ELEMENTS(file) EQ N_ELEMENTS(remote_file)) AND $
-        (compare_struct(FILE_BASENAME(file[SORT(file)]), FILE_BASENAME(remote_file[SORT(remote_file)])) EQ 1) THEN $
+        (((FILE_BASENAME(file)).sort()).equals( (FILE_BASENAME(remote_file)).sort() )) THEN $
            rflg = 0 ELSE rflg = 1 ELSE rflg = 0
+;        (compare_struct(FILE_BASENAME(file[SORT(file)]), FILE_BASENAME(remote_file[SORT(remote_file)])) EQ 1) THEN $
+;           rflg = 0 ELSE rflg = 1 ELSE rflg = 0
   ENDELSE 
   
   IF (rflg) THEN BEGIN
@@ -378,7 +380,8 @@ PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server, ns
         lfile = lfile[SORT(lfile)]
         rfile = FILE_BASENAME(remote_file)
         rfile = rfile[SORT(rfile)]
-        IF (compare_struct(rfile, lfile) EQ 1) THEN sflg = 0 ELSE sflg = 1
+        IF lfile.equals(rfile) THEN sflg = 0 ELSE sflg = 1
+        ;IF (compare_struct(rfile, lfile) EQ 1) THEN sflg = 0 ELSE sflg = 1
      ENDIF ELSE sflg = 0
   ENDIF ELSE sflg = 1
 
