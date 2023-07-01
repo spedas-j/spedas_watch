@@ -13,12 +13,14 @@
 ;
 ; NO_SERVER:      If set, prevents any contact with the remote server.
 ;
+;     UNITS:      Specifies the units to convert the data structure.
+;
 ;CREATED BY:      Takuya Hara on 2017-04-15 -> 2018-04-16.
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2023-06-25 13:35:37 -0700 (Sun, 25 Jun 2023) $
-; $LastChangedRevision: 31910 $
+; $LastChangedDate: 2023-06-30 10:35:20 -0700 (Fri, 30 Jun 2023) $
+; $LastChangedRevision: 31917 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_load.pro $
 ;
 ;-
@@ -130,7 +132,7 @@ PRO vex_asp_els_com, time, counts, energy, mode=mode, verbose=verbose, $
   etime = REFORM(time[*, 1])
   
   dformat = {units_name: units, time: 0.d0, end_time: 0.d0, energy: DBLARR(128, 16), $
-             nenergy: 0, data: FLTARR(128, 16), mode: 0, nsweep: 0} ;, gf: DBLARR(128, 16)}
+             nenergy: 0, data: FLTARR(128, 16), mode: 0, nsweep: 0, gf: DBLARR(128, 16)}
 
   ndat = N_ELEMENTS(stime)
   asp_els_dat = REPLICATE(dformat, ndat)
@@ -149,9 +151,9 @@ PRO vex_asp_els_com, time, counts, energy, mode=mode, verbose=verbose, $
      asp_els_dat = asp_els_dat[w]
   ENDIF 
 
-  vex_asp_els = asp_els_dat
-  ;vex_asp_els_gf, gf, verbose=verbose
-  ;asp_els_dat.gf = gf
+  vex_asp_els_gf, gf
+  asp_els_dat.gf = TRANSPOSE(gf[asp_els_dat.mode].toarray(), [2, 1, 0])
+
   vex_asp_els = asp_els_dat
   RETURN
 END
@@ -340,7 +342,7 @@ PRO vex_asp_els_fill_nan, stime, counts, energy, mode=mode, nenergy=nenergy
   RETURN
 END
 
-PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server, nsweep=isweep
+PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server, nsweep=isweep, units=units
   COMMON vex_asp_dat, vex_asp_ima, vex_asp_els
   undefine, vex_asp_els
   t0 = SYSTIME(/sec)
@@ -425,6 +427,8 @@ PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server, ns
      RETURN
   ENDIF ELSE BEGIN
      vex_asp_els_com, [ [stime], [etime] ], counts, energy, mode=mode, nenergy=nenergy, data=els, trange=trange, nsweep=nsweep
+
+     IF ~undefined(units) THEN vex_asp_els_convert_units, els, units, verbose=verbose
      time = time[w]
      cnt = els.data
      ene = els.energy
@@ -436,8 +440,20 @@ PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server, ns
                     ytickunits: 'scientific', ztickunits: 'scientific'}
 
   ylim, 'vex_asp_els_espec', 1., 20.e3, 1, /def
-  zlim, 'vex_asp_els_espec', 1., 1.e3, 1, /def
-  options, 'vex_asp_els_espec', ztitle='Counts [#]', /def
+  options, 'vex_asp_els_espec', ztitle=(els[0].units_name).toupper(), /def
+
+  CASE (els[0].units_name).toupper() OF
+     'COUNTS' : zr = [1., 1.e3]
+     'RATE'   : zr = [1.e1, 1.e4]
+     'FLUX'   : zr = [1.e3, 1.e8]
+     'EFLUX'  : zr = [1.e6, 1.e9]
+     'DF'     : zr = [1.e-18, 1.e-8]
+     ELSE     : zr = [0., 0.]
+  ENDCASE 
+  zlim, 'vex_asp_els_espec', zr[0], zr[1], 1, /def
+  
+  ;zlim, 'vex_asp_els_espec', 1., 1.e3, 1, /def
+  ;options, 'vex_asp_els_espec', ztitle='Counts [#]', /def
 
   IF KEYWORD_SET(isweep) THEN $
      store_data, 'vex_asp_els_nsweep', data={x: time, y: ALOG2(nsw)}, $
