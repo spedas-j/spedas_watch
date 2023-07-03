@@ -26,8 +26,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2023-06-30 10:34:40 -0700 (Fri, 30 Jun 2023) $
-; $LastChangedRevision: 31916 $
+; $LastChangedDate: 2023-07-02 16:49:00 -0700 (Sun, 02 Jul 2023) $
+; $LastChangedRevision: 31925 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_convert_units.pro $
 ;
 ;-
@@ -44,37 +44,52 @@ PRO vex_asp_els_convert_units, data, units, scale=scale, verbose=verbose
 
   ; Get information from input structure
   energy  = data.energy         ; [eV]
-  aa      = 0.87                ; the active anode area ratio
+  aa      = 0.87d0              ; the active anode area ratio
   gf      = data.gf * aa        ; energy/angle dependent G-factor [cm2-ster-eV/eV]
-  dt      = 3.6 / 128.          ; accumulation time [sec] per energy/angle bin (unsummed)
-
+  dt      = 3.6d0 / 128.d0      ; accumulation time [sec] per energy/angle bin (unsummed)
+  
+  cnts    = data.cnts
+  
   ; Calculate the conversion factors
-  CASE (data[0].units_name).toupper() OF
-     'COUNTS' : scale = 1D                                ; Raw counts			
-     'RATE'   : scale = 1D * dt                           ; Raw counts/sec
-     'EFLUX'  : scale = 1D * dt * gf                      ; eV/cm^2-sec-sr-eV
-     'FLUX'   : scale = 1D * dt * gf * energy             ; 1/cm^2-sec-sr-eV
-     'DF'     : scale = 1D * dt * gf * energy^2. * m_conv ; 1/(cm^3-(km/s)^3)
-     ELSE     : BEGIN
-        dprint, dlevel=2, verbose=verbose, 'Unknown starting units: ', data[0].units_name
-        RETURN
-     END 
-  ENDCASE 
-
   CASE units.toupper() OF
-     'COUNTS' : scale = scale * 1D
-     'RATE'   : scale = scale * 1D / (dt)
-     'EFLUX'  : scale = scale * 1D / (dt * gf)
-     'FLUX'   : scale = scale * 1D / (dt * gf * energy)
-     'DF'     : scale = scale * 1D / (dt * gf * energy^2 * m_conv)
+     'COUNTS' : scale = 1D                                 ; Raw counts
+     'RATE'   : scale = 1D / (dt)                          ; Raw counts/sec
+     'EFLUX'  : scale = 1D / (dt * gf)                     ; eV/cm^2-sec-sr-eV
+     'FLUX'   : scale = 1D / (dt * gf * energy)            ;  1/cm^2-sec-sr-eV
+     'DF'     : scale = 1D / (dt * gf * energy^2 * m_conv) ;  1/(cm^3-(km/s)^3)
      ELSE     : BEGIN
         dprint, dlevel=2, verbose=verbose, 'Unknown units: ', units
         RETURN
      END
-  ENDCASE 
+  ENDCASE
+
+;  CASE (data[0].units_name).toupper() OF
+;     'COUNTS' : scale = 1D                                ; Raw counts			
+;     'RATE'   : scale = 1D * dt                           ; Raw counts/sec
+;     'EFLUX'  : scale = 1D * dt * gf                      ; eV/cm^2-sec-sr-eV
+;     'FLUX'   : scale = 1D * dt * gf * energy             ; 1/cm^2-sec-sr-eV
+;     'DF'     : scale = 1D * dt * gf * energy^2. * m_conv ; 1/(cm^3-(km/s)^3)
+;     ELSE     : BEGIN
+;        dprint, dlevel=2, verbose=verbose, 'Unknown starting units: ', data[0].units_name
+;        RETURN
+;     END 
+;  ENDCASE 
+
+;  CASE units.toupper() OF
+;     'COUNTS' : scale = scale * 1D
+;     'RATE'   : scale = scale * 1D / (dt)
+;     'EFLUX'  : scale = scale * 1D / (dt * gf)
+;     'FLUX'   : scale = scale * 1D / (dt * gf * energy)
+;     'DF'     : scale = scale * 1D / (dt * gf * energy^2 * m_conv)
+;     ELSE     : BEGIN
+;        dprint, dlevel=2, verbose=verbose, 'Unknown units: ', units
+;        RETURN
+;     END
+;  ENDCASE 
 
   ; Scale to new units
   data.units_name = units
-  data.data = data.data * scale
+  data.data = (cnts - data.bkg) * scale > 0.
+  ;data.data = data.data * scale
   RETURN
 END 

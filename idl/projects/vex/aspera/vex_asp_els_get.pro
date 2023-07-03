@@ -18,8 +18,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2023-06-30 17:41:47 -0700 (Fri, 30 Jun 2023) $
-; $LastChangedRevision: 31922 $
+; $LastChangedDate: 2023-07-02 16:49:00 -0700 (Sun, 02 Jul 2023) $
+; $LastChangedRevision: 31925 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_get.pro $
 ;
 ;-
@@ -54,7 +54,7 @@ FUNCTION vex_asp_els_get, itime, index=index, units=units, verbose=verbose, time
   els = {project_name: 'VEX', data_name: 'ASPERA-4/ELS', units_procedure: 'vex_asp_els_convert_units'}
 
   extract_tags, els, vex_asp_els[n], tags=['units_name', 'time', 'end_time']
-  str_element, els, 'integ_t', 3.6/128.d0, /add
+  str_element, els, 'integ_t', 3.6d0/128.d0, /add
 
   extract_tags, els, vex_asp_els[n], tags=['mode', 'nsweep', 'nenergy']
   str_element, els, 'nbins', 16, /add
@@ -67,9 +67,14 @@ FUNCTION vex_asp_els_get, itime, index=index, units=units, verbose=verbose, time
   str_element, els, 'eff', 0.87, /add
   extract_tags, els, vex_asp_els[n], tags=['gf', 'energy', 'data']
 
-  bkg = els.data
-  bkg[*] = 0.
+  IF tag_exist(vex_asp_els[n], 'bkg', /quiet) THEN bkg = vex_asp_els[n].bkg $
+  ELSE BEGIN
+     bkg = els.data
+     bkg[*] = 0.
+  ENDELSE 
   str_element, els, 'bkg', bkg, /add
+  str_element, els, 'cnts', vex_asp_els[n].cnts, /add
+  
   IF ~undefined(units) THEN vex_asp_els_convert_units, els, units, verbose=verbose
 
   ;;;els = CREATE_STRUCT(name='vex_asp_els', TEMPORARY(els))
