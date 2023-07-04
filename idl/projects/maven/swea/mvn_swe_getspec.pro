@@ -33,8 +33,8 @@
 ;                        0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-06-28 16:29:30 -0700 (Wed, 28 Jun 2023) $
-; $LastChangedRevision: 31914 $
+; $LastChangedDate: 2023-07-03 10:47:05 -0700 (Mon, 03 Jul 2023) $
+; $LastChangedRevision: 31927 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getspec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -107,7 +107,7 @@ function mvn_swe_getspec, time, archive=archive, sum=sum, units=units, yrange=yr
   if (ok) then begin
     indx = where(quality ge qlevel, npts)
     if (npts gt 0L) then spec = spec[indx] else return, 0
-  endif print,"Quality level not yet defined for L2 data."
+  endif else print,"Quality level not yet defined for L2 data."
 
 ; Sum the data
 

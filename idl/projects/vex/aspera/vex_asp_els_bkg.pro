@@ -14,8 +14,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2023-07-02 16:37:17 -0700 (Sun, 02 Jul 2023) $
-; $LastChangedRevision: 31923 $
+; $LastChangedDate: 2023-07-03 11:35:09 -0700 (Mon, 03 Jul 2023) $
+; $LastChangedRevision: 31928 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_bkg.pro $
 ;
 ;-
@@ -200,7 +200,7 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
   vex_asp_els_bkg_load, trange, lists=lists, files=files, verbose=verbose
 
   param = ['counts', 'thres', 'dflux', 'energy']
-
+  ;time = DICTIONARY()
   FOR p=0, N_ELEMENTS(param)-1 DO BEGIN
      file = files[param[p]]
      file = file.sort()
@@ -211,6 +211,7 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
      utime = ftime[w]
      
      data  = LIST()
+     ;time[param[p]] = DICTIONARY('stime', LIST(), 'etime', LIST())
      IF param[p] EQ 'counts' THEN BEGIN
         stime = LIST()
         etime = LIST()
@@ -238,7 +239,13 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
                  stime.add, time_double(info[p0, 0], tformat='YYYY-DOYThh:mm:ss.fff')
                  etime.add, time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
               ENDIF ELSE etime[-1] = time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
-           ENDIF 
+           ENDIF
+
+           ;IF j EQ 0 THEN BEGIN
+           ;   (time[param[p], 'stime']).add, time_double(info[p0, 0], tformat='YYYY-DOYThh:mm:ss.fff')
+           ;   (time[param[p], 'etime']).add, time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
+           ;ENDIF ELSE time[param[p], 'etime', -1] = time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
+
            dat.add, d.toarray()
            undefine, d, info
         ENDFOR
@@ -259,9 +266,10 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
   mode    = LIST()
   FOR i=0, N_ELEMENTS(energy)-1 DO BEGIN
      ene = REFORM(data[i])
+     IF ndimen(ene) EQ 3 THEN ene = REFORM(ene[0, *, *])
      energy[i] = TRANSPOSE(REBIN(ene, dimen1(ene), dimen2(ene), dimen1(energy[i]), /sample), [2, 0, 1])
      nenergy.add, REPLICATE(dimen2(ene), dimen1(energy[i]))
-     IF dimen2(ene) GT 100 THEN mode.add, REPLICATE(0, dimen1(energy[i])) ELSE mode.add, REPLICATE(1, dimen1(energy[i]))
+     IF dimen1(TRANSPOSE(ene)) GT 100 THEN mode.add, REPLICATE(0, dimen1(energy[i])) ELSE mode.add, REPLICATE(1, dimen1(energy[i]))
      undefine, ene
   ENDFOR 
 
