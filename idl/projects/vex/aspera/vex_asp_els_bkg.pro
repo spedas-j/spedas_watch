@@ -14,8 +14,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2023-07-03 11:35:09 -0700 (Mon, 03 Jul 2023) $
-; $LastChangedRevision: 31928 $
+; $LastChangedDate: 2023-07-03 23:22:46 -0700 (Mon, 03 Jul 2023) $
+; $LastChangedRevision: 31932 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_bkg.pro $
 ;
 ;-
@@ -137,10 +137,10 @@ PRO vex_asp_els_bkg_load, trange, lists=lists, files=files, verbose=verbose
   prefix = 'ELS' + ['05BK', '*RBCNF', '*RTHR', '*RCNTS', '*RSTPS']
   ldirs = ['bcnf', 'thrs', 'cnts', 'engy']
 
-  efile = ORDEREDHASH('remote', LIST(), 'local', LIST())
-  cfile = ORDEREDHASH('remote', LIST(), 'local', LIST())
-  tfile = ORDEREDHASH('remote', LIST(), 'local', LIST())
-  dfile = ORDEREDHASH('remote', LIST(), 'local', LIST())
+  efile = ORDEREDHASH('remote', LIST(), 'local', LIST(), 'n', 0)
+  cfile = ORDEREDHASH('remote', LIST(), 'local', LIST(), 'n', 0)
+  tfile = ORDEREDHASH('remote', LIST(), 'local', LIST(), 'n', 0)
+  dfile = ORDEREDHASH('remote', LIST(), 'local', LIST(), 'n', 0)
   FOR i=0, N_ELEMENTS(date)-1 DO BEGIN
      w = WHERE( STRMATCH(lists['data_eng', pdirs[i], mdirs[i], 'file'], prefix[-1] + time_string(date[i], tformat='_YYYYDOY') + '*') EQ 1, nw)
      IF nw GT 0 THEN BEGIN
@@ -148,6 +148,7 @@ PRO vex_asp_els_bkg_load, trange, lists=lists, files=files, verbose=verbose
         efile['remote'].add, sdirs[-1] + '/' + pdirs[i] + '/' + mdirs[i] + '/' + lists['data_eng', pdirs[i], mdirs[i], 'file', w], /extract
         efile['local'].add, ldir + ldirs[-1] + time_string(date[i], tformat='/YYYY/MM/') + lists['data_eng', pdirs[i], mdirs[i], 'file', w], /extract
      ENDIF
+     efile['n'] += nw
 
      w = WHERE( STRMATCH(lists['data_raw', pdirs[i], mdirs[i], 'file'], prefix[-2] + time_string(date[i], tformat='_YYYYDOY') + '*') EQ 1, nw)
      IF nw GT 0 THEN BEGIN
@@ -155,37 +156,42 @@ PRO vex_asp_els_bkg_load, trange, lists=lists, files=files, verbose=verbose
         cfile['remote'].add, sdirs[-2] + '/' + pdirs[i] + '/' + mdirs[i] + '/' + lists['data_raw', pdirs[i], mdirs[i], 'file', w], /extract
         cfile['local'].add, ldir + ldirs[-2] + time_string(date[i], tformat='/YYYY/MM/') + lists['data_raw', pdirs[i], mdirs[i], 'file', w], /extract
      ENDIF 
-
+     cfile['n'] += nw
+     
      w = WHERE( STRMATCH(lists['data_derived', pdirs[i], mdirs[i], 'file'], prefix[-3] + time_string(date[i], tformat='_YYYYDOY') + '*') EQ 1, nw)
      IF nw GT 0 THEN BEGIN
         ;tfile['time'].add, lists['data_derived', pdirs[i], mdirs[i], 'time', w], /extract
         tfile['remote'].add, sdirs[-3] + '/' + pdirs[i] + '/' + mdirs[i] + '/' + lists['data_derived', pdirs[i], mdirs[i], 'file', w], /extract
         tfile['local'].add, ldir + ldirs[-3] + time_string(date[i], tformat='/YYYY/MM/') + lists['data_derived', pdirs[i], mdirs[i], 'file', w], /extract
      ENDIF 
-
+     tfile['n'] += nw
+     
      w = WHERE( STRMATCH(lists['data_derived', pdirs[i], mdirs[i], 'file'], prefix[-4] + time_string(date[i], tformat='_YYYYDOY') + '*') EQ 1, nw)
      IF nw GT 0 THEN BEGIN
         ;dfile['time'].add, lists['data_derived', pdirs[i], mdirs[i], 'time', w], /extract
         dfile['remote'].add, sdirs[-3] + '/' + pdirs[i] + '/' + mdirs[i] + '/' + lists['data_derived', pdirs[i], mdirs[i], 'file', w], /extract
         dfile['local'].add, ldir + ldirs[-4] + time_string(date[i], tformat='/YYYY/MM/') + lists['data_derived', pdirs[i], mdirs[i], 'file', w], /extract
-     ENDIF 
+     ENDIF
+     dfile['n'] += nw
   ENDFOR 
 
-  energy = spd_download(remote_file=rpath + efile['remote'].toarray(), local_file=efile['local'].toarray())
-  counts = spd_download(remote_file=rpath + cfile['remote'].toarray(), local_file=cfile['local'].toarray())
-  thres  = spd_download(remote_file=rpath + tfile['remote'].toarray(), local_file=tfile['local'].toarray())
-  dflux  = spd_download(remote_file=rpath + dfile['remote'].toarray(), local_file=dfile['local'].toarray())
+  IF efile['n'] GT 0 THEN energy = spd_download(remote_file=rpath + efile['remote'].toarray(), local_file=efile['local'].toarray())
+  IF cfile['n'] GT 0 THEN counts = spd_download(remote_file=rpath + cfile['remote'].toarray(), local_file=cfile['local'].toarray())
+  IF tfile['n'] GT 0 THEN thres  = spd_download(remote_file=rpath + tfile['remote'].toarray(), local_file=tfile['local'].toarray())
+  IF dfile['n'] GT 0 THEN dflux  = spd_download(remote_file=rpath + dfile['remote'].toarray(), local_file=dfile['local'].toarray())
 
-  files = ORDEREDHASH('energy', energy, 'counts', counts, 'thres', thres, 'dflux', dflux)
+  nfile = MAX([ efile['n'], cfile['n'], tfile['n'], dfile['n'] ])
+  IF nfile GT 0 THEN files = ORDEREDHASH('energy', energy, 'counts', counts, 'thres', thres, 'dflux', dflux, 'nfile', nfile) ELSE files = ORDEREDHASH('nfile', nfile)
   RETURN
 END
 
 PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update, $
                      stime=stime, etime=etime, energy=energy, counts=counts, gfactor=gfactor, bkg=bkg, $
-                     nenergy=nenergy, mode=mode, dflux=dflux, thres=thres, fill_nan=fill_nan
+                     nenergy=nenergy, mode=mode, dflux=dflux, thres=thres, fill_nan=fill_nan, status=success
 
   tnow = SYSTIME(/sec)
   oneday = 86400.d0
+  success = 1
   
   IF undefined(itime) THEN get_timespan, trange $
   ELSE BEGIN
@@ -199,8 +205,13 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
   vex_asp_els_bkg_list, lists, verbose=verbose, update=update
   vex_asp_els_bkg_load, trange, lists=lists, files=files, verbose=verbose
 
+  IF files['nfile'] EQ 0 THEN BEGIN
+     dprint, 'No file found.', dlevel=2, verbose=verbose
+     success = 0
+     RETURN
+  ENDIF 
+  
   param = ['counts', 'thres', 'dflux', 'energy']
-  ;time = DICTIONARY()
   FOR p=0, N_ELEMENTS(param)-1 DO BEGIN
      file = files[param[p]]
      file = file.sort()
@@ -211,7 +222,6 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
      utime = ftime[w]
      
      data  = LIST()
-     ;time[param[p]] = DICTIONARY('stime', LIST(), 'etime', LIST())
      IF param[p] EQ 'counts' THEN BEGIN
         stime = LIST()
         etime = LIST()
@@ -221,6 +231,7 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
         IF nw EQ 0 THEN CONTINUE
 
         dat = LIST()
+        time = DICTIONARY('stime', LIST(), 'etime', LIST())
         FOR j=0, nw-1 DO BEGIN
            d = LIST()
            dprint, dlevel=2, verbose=verbose, 'Reading ' + file[w[j]]
@@ -231,26 +242,75 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
            
            p0 = WHERE(info.matches('ELS-00') EQ 1, nscan)
            info = STRSPLIT(info, ',', /extract)
+
+           nbin = info.map('n_elements')
+           nbin = nbin.toarray()
+           IF N_ELEMENTS(spd_uniq(nbin)) GT 1 THEN BEGIN
+              dprint, dlevel=2, verbose=verbose, 'Warning: Number of data array is different in a single file.'
+              v = WHERE(nbin LT MAX(nbin), nv)
+              FOR iv=0L, nv-1 DO BEGIN
+                 tmp = REPLICATE('nan', MAX(nbin))
+                 tmp[0:nbin[v[iv]]-1] = info[v[iv]]
+                 info[v[iv]] = TEMPORARY(tmp)
+              ENDFOR 
+           ENDIF 
+           undefine, nbin
+           
            info = info.toarray()
            FOR s=0, nscan-1 DO d.add, DOUBLE(info[p0[s]:p0[s]+15, 5:*])
 
-           IF param[p] EQ 'counts' THEN BEGIN
-              IF j EQ 0 THEN BEGIN
-                 stime.add, time_double(info[p0, 0], tformat='YYYY-DOYThh:mm:ss.fff')
-                 etime.add, time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
-              ENDIF ELSE etime[-1] = time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
-           ENDIF
-
-           ;IF j EQ 0 THEN BEGIN
-           ;   (time[param[p], 'stime']).add, time_double(info[p0, 0], tformat='YYYY-DOYThh:mm:ss.fff')
-           ;   (time[param[p], 'etime']).add, time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
-           ;ENDIF ELSE time[param[p], 'etime', -1] = time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
+           time.stime.add, time_double(info[p0, 0], tformat='YYYY-DOYThh:mm:ss.fff')
+           time.etime.add, time_double(info[p0, 1], tformat='YYYY-DOYThh:mm:ss.fff')
 
            dat.add, d.toarray()
            undefine, d, info
         ENDFOR
+
+        IF nw EQ 2 THEN BEGIN
+           nh = N_ELEMENTS(time['etime', 0])
+           nl = N_ELEMENTS(time['stime', 1])
+           IF nh NE nl THEN BEGIN
+              IF param[p] EQ 'counts' THEN dprint, dlevel=2, verbose=verbose, 'Warning: Total number of elements is different between HR and LR data.'
+              IF nh GT nl THEN BEGIN
+                 tmp = DBLARR(nh, 16, dimen1(TRANSPOSE(dat[1])))
+                 tmp[*] = !values.d_nan
+                 
+                 n = nn2(time['etime', 0], time['stime', 1])
+                 tmp[n, *, *] = dat[1]
+                 dat[1] = TEMPORARY(tmp)
+
+                 tmp = time['etime', 1]
+                 time['etime', 1] = time['etime', 0]
+                 time['etime', 1, n] = TEMPORARY(tmp)
+              ENDIF ELSE BEGIN
+                 ; nl > nh
+                 tmp = DBLARR(nl, 16, dimen1(TRANSPOSE(dat[0])))
+                 tmp[*] = !values.d_nan
+
+                 n = nn2(time['stime', 1], time['etime', 0])
+                 tmp[n, *, *] = dat[0]
+                 dat[0] = TEMPORARY(tmp)
+
+                 tmp = time['stime', 0]
+                 time['stime', 0] = time['stime', 1]
+                 time['stime', 0, n] = TEMPORARY(tmp)
+              ENDELSE 
+           ENDIF
+           undefine, nh, nl
+        ENDIF 
+
+        IF param[p] EQ 'counts' THEN BEGIN
+           IF nw EQ 1 THEN BEGIN
+              stime.add, time['stime', 0]
+              etime.add, time['etime', 0]
+           ENDIF ELSE BEGIN
+              stime.add, time['stime', 0]
+              etime.add, time['etime', 1]
+           ENDELSE 
+        ENDIF 
+                
         data.add, dat.toarray(dim=3)
-        undefine, dat
+        undefine, dat, time
      ENDFOR
 
      IF param[p] NE 'energy' THEN BEGIN
@@ -266,7 +326,7 @@ PRO vex_asp_els_bkg, itime, verbose=verbose, no_server=no_server, update=update,
   mode    = LIST()
   FOR i=0, N_ELEMENTS(energy)-1 DO BEGIN
      ene = REFORM(data[i])
-     IF ndimen(ene) EQ 3 THEN ene = REFORM(ene[0, *, *])
+     IF ndimen(ene) EQ 3 THEN ene = MEAN(ene, /dim, /nan)
      energy[i] = TRANSPOSE(REBIN(ene, dimen1(ene), dimen2(ene), dimen1(energy[i]), /sample), [2, 0, 1])
      nenergy.add, REPLICATE(dimen2(ene), dimen1(energy[i]))
      IF dimen1(TRANSPOSE(ene)) GT 100 THEN mode.add, REPLICATE(0, dimen1(energy[i])) ELSE mode.add, REPLICATE(1, dimen1(energy[i]))

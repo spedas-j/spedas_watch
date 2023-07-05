@@ -21,8 +21,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2023-07-02 16:44:55 -0700 (Sun, 02 Jul 2023) $
-; $LastChangedRevision: 31924 $
+; $LastChangedDate: 2023-07-03 20:30:35 -0700 (Mon, 03 Jul 2023) $
+; $LastChangedRevision: 31931 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/vex/aspera/vex_asp_els_load.pro $
 ;
 ;-
@@ -369,8 +369,8 @@ PRO vex_asp_els_load, itime, verbose=verbose, save=save, no_server=no_server, ns
 
   IF KEYWORD_SET(pds) THEN BEGIN
      vex_asp_els_bkg, trange, verbose=verbose, stime=stime, etime=etime, counts=counts, energy=energy, $
-                      nenergy=nenergy, mode=mode, gfactor=gfactor, bkg=bkg, /fill_nan
-     GOTO, toarray
+                      nenergy=nenergy, mode=mode, gfactor=gfactor, bkg=bkg, /fill_nan, status=success
+     IF (success) THEN GOTO, toarray ELSE RETURN
   ENDIF 
   
   IF (nflg) THEN BEGIN

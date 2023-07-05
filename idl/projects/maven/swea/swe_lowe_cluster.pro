@@ -70,8 +70,8 @@
 ;       QUIET:    Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-06-23 12:33:15 -0700 (Fri, 23 Jun 2023) $
-; $LastChangedRevision: 31908 $
+; $LastChangedDate: 2023-07-04 13:39:04 -0700 (Tue, 04 Jul 2023) $
+; $LastChangedRevision: 31933 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_lowe_cluster.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -478,30 +478,32 @@ pro swe_lowe_cluster, width=width, npts=npts, lambda=lambda, frac=frac, diag=dia
     mvn_swe_engy[i].quality = quality.flag[j]
     print,"Setting quality flag for SPEC data."
 
+    delta_t = 1.95D/2D  ; start time to center time for PAD and 3D packets
+
     if (size(a2,/type) eq 8) then begin
       str_element, a2, 'quality', replicate(1B,n_elements(a2.time)), /add
-      i = nn2(a2.time + (1.95D/2D), quality.time, maxdt=0.6D, /valid, vindex=j, badindex=k)
+      i = nn2(a2.time + delta_t, quality.time, maxdt=0.6D, /valid, vindex=j, badindex=k)
       a2[i].quality = quality.flag[j]
       print,"Setting quality flag for PAD survey data."
     endif else print,"No PAD survey data.  Cannot set quality flag."
 
     if (size(a3,/type) eq 8) then begin
       str_element, a3, 'quality', replicate(1B,n_elements(a3.time)), /add
-      i = nn2(a3.time + (1.95D/2D), quality.time, maxdt=0.6D, /valid, vindex=j, badindex=k)
+      i = nn2(a3.time + delta_t, quality.time, maxdt=0.6D, /valid, vindex=j, badindex=k)
       a3[i].quality = quality.flag[j]
       print,"Setting quality flag for PAD archive data."
     endif else print,"No PAD archive data.  Cannot set quality flag."
 
     if (size(swe_3d,/type) eq 8) then begin
       str_element, swe_3d, 'quality', replicate(1B,n_elements(swe_3d.time)), /add
-      i = nn2(swe_3d.time, quality.time, maxdt=0.6D, /valid, vindex=j, badindex=k)
+      i = nn2(swe_3d.time + delta_t, quality.time, maxdt=0.6D, /valid, vindex=j, badindex=k)
       swe_3d[i].quality = quality.flag[j]
       print,"Setting quality flag for 3D survey data."
     endif else print,"No 3D survey data.  Cannot set quality flag."
 
     if (size(swe_3d_arc,/type) eq 8) then begin
       str_element, swe_3d_arc, 'quality', replicate(1B,n_elements(swe_3d_arc.time)), /add
-      i = nn2(swe_3d_arc.time, quality.time, maxdt=0.6D, /valid, vindex=j, badindex=k)
+      i = nn2(swe_3d_arc.time + delta_t, quality.time, maxdt=0.6D, /valid, vindex=j, badindex=k)
       swe_3d_arc[i].quality = quality.flag[j]
       print,"Setting quality flag for 3D archive data."
     endif else print,"No 3D archive data.  Cannot set quality flag."
