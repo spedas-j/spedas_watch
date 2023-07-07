@@ -69,6 +69,7 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
          ion_diag: 0u, $
          size:     0u, $
          eanode:     uintarr(16), $
+         eanode_rates:fltarr(16), $
          ianode0:    uintarr(16), $
          ianode1:    uintarr(16), $
          ianode2:    uintarr(16), $
@@ -119,6 +120,7 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    data2 = uint(buffer,6,(dat.size-6)/2 )
    byteorder,data2,/swap_if_little_endian
    dat.eanode    = data2[ 0:15]
+   dat.eanode_rates = float(data2[0:15])*64.
    dat.ianode0   = data2[16:31]
    dat.ianode1   = data2[32:47]
    dat.ianode2   = data2[48:63]
@@ -489,6 +491,7 @@ function esc_esatm_reader::decom_espec, arr
 
    arr = reform(arr,16,8,64)
    espec = {ANO_SPEC:total(total(arr,2),2), $
+            ANO_RATES:total(total(arr,2),2) / 8., $
             NRG_SPEC:total(total(arr,1),1), $
             DEF_SPEC:total(total(arr,1),2), $
             time:0.D, gap:0}
