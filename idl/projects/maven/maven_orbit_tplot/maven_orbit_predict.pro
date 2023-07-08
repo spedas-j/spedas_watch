@@ -33,8 +33,8 @@
 ;                 some calculated values.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-04-17 12:37:10 -0700 (Mon, 17 Apr 2023) $
-; $LastChangedRevision: 31758 $
+; $LastChangedDate: 2023-07-07 10:51:28 -0700 (Fri, 07 Jul 2023) $
+; $LastChangedRevision: 31945 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_predict.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -86,7 +86,7 @@ pro maven_orbit_predict, extended=extended, eph=eph
   indx = where((dat.hgt lt 300.) and (~finite(wake.y)) and (Rthe gt 3.), count)
   if (count gt 0L) then flag[indx,*] = 6
 
-; flag = 6 -> red bar -> bad for charging in Sun-V
+; flag = 6 -> red bar -> bad for charging in Sun-V or Fly+Z
 
   bname = 'cbar'
   store_data,bname,data={x:wake.x, y:flag, v:[0,1]}
@@ -199,7 +199,18 @@ pro maven_orbit_predict, extended=extended, eph=eph
   get_data,'palt',data=palt
   get_data,'lst',data=lst,index=i
   if (i eq 0) then begin
-    mvn_mars_localtime
+    str_element, eph, 'lst', success=ok
+    if (ok) then begin
+      store_data,'lst',data={x:eph.time, y:eph.lst}
+      ylim,'lst',0,24,0
+      options,'lst','yticks',4
+      options,'lst','yminor',6
+      options,'lst','psym',3
+      options,'lst','ytitle','LST (hrs)'
+  
+      store_data,'Lss',data={x:eph.time, y:eph.slat}
+      options,'Lss','ytitle','Sub-solar!CLat (deg)'
+    endif else mvn_mars_localtime
     get_data,'lst',data=lst,index=i
   endif
   if (i gt 0) then begin
@@ -261,7 +272,7 @@ pro maven_orbit_predict, extended=extended, eph=eph
   store_data,bname,data=['dustbar','mvn_flyz_bar','calbar']
   ylim,bname,0.7,5.3,0
   options,bname,'line_colors',5
-  options,bname,'colors',[5,4,6]
+  options,bname,'colors',[5,4,6]  ; [orange, green, red]
   options,bname,'labels',['DUST','FLY+Z','FLY Y/Z']
   options,bname,'labflag',2
   options,bname,'xstyle',5
