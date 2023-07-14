@@ -26,13 +26,14 @@ end
 
 function swfo_stis_plot_fit_peak,x,y,verbose=verbose
   par = mgauss(numg=1)
-  mx = max(y * (x gt 150),maxbin)
+  mx = max(y * (x gt 50),maxbin)
   n = 3
   bins = [-n:n] + maxbin
   par.g.x0 = x[maxbin]
-  par.g.s=5
+  par.g.s=10
   par.g.a = y[maxbin] * par.g.s * 2
   ;print,x[maxbin],y[maxbin]
+  ;pf,par
   fit,verbose=verbose,x[bins],y[bins],param=par,names='G',result=res;,/logfit
   pf,par
   return,par
@@ -58,9 +59,9 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
   ;if ~param.haskey('xunits') then param.xunits = 'NRG'
   if ~param.haskey('lim') then begin
     param.lim = dictionary()
-    xlim,param.lim,5,40000.,1
+    xlim,param.lim,1,1e5,1
     ;xlim,param.lim,10000,32000.,0
-    ylim,param.lim,.0001,1e4,1
+    ylim,param.lim,.001,1e7,1
     units = 'Eflux'
     options,param.lim,units=units,ytitle=units,xtitle='Energy (keV)',xunits='ADC'
   endif
@@ -103,7 +104,9 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
   endif
   
   if isa(t) then begin
-    trange = t + param.range * [-.5,.5]
+    
+    ;    if param.range eq 0 then trange=t else  trange = t+param.range*[-.5,.5]
+    trange = t+param.range*[-.5,.5]
   endif
   
 
@@ -112,8 +115,10 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
 
 
   if keyword_set(trange) then begin
-    samples=param.ddata.sample(range=trange,tagname='time')
+    nearest = trange[0] eq trange[1]
+    samples=param.ddata.sample(range=trange,tagname='time' ,nearest=nearest)  
     nsamples = n_elements(samples)
+    dprint,nsamples,trange-t
     ;tmid = average(trange)
     ;hkp_samples = hkp_data.sample(range=tmid,nearest=tmid,tagname='time')
   endif else begin
@@ -144,13 +149,13 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     ;u0= [0,up]
     
     h = l1a.hash
-    h[-1] = 0    ; ignore the last one
+    if nsamples gt 1 then   h[-1] = 0    ; ignore the last one
     dh = h - shift(h,-1)   ; ignore any spectrum in which the following hkp changes
          
     u = h.uniq()
 
     
-    if param.lim.xunits eq 'ADC' then param.lim.xtitle = 'ADC units' else param.lim.xtitle = 'Energy (keV)
+    if param.lim.xunits eq 'ADC' then param.lim.xtitle = 'ADC units' else param.lim.xtitle = 'Deposited Energy (keV)
 
     lim = param.lim
     ;box,lim
@@ -185,8 +190,8 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         endelse
         case strupcase(param.lim.units) of
           "EFLUX": begin 
-            scale = x /1000 
-            param.lim.ytitle = 'Energy Flux'
+            scale = x 
+            param.lim.ytitle = 'Energy Flux (#/cm2/ster/s)'
             end
           'ERATE': begin
             scale = 1
@@ -210,12 +215,12 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         ch.lim = lim
         channels[c] = ch
         oplot,x,y ,color=ch.color,psym=ch.psym
-        if 1 && c ge 0 && i eq n_elements(u)-1 then begin
+        if param.haskey('dofit')  && (c ge 0) && i eq n_elements(u)-1 then begin
           ;printdat,u
           ;savetomain,x
           ;savetomain,y
           ;print,x,y
-          par = swfo_stis_plot_fit_peak(x,y,verbose=0)
+          par = swfo_stis_plot_fit_peak(x,y,verbose=param.haskey('verbose'))
           pf,par,color=ch.color
           if c ge 0  then          print,par.g[0]
           if c eq 5 then print
@@ -225,13 +230,53 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
       endfor
     endfor
 
-    if 1 then begin
+    if 0 then begin
       xv = dgen()
-      flux_min = 2.48e2 * xv ^ (-1.6)
+      
+      flux_min = 2.48e2 * xv ^ (-1.6)  ; #/sec/cm2/ster/keV
       flux_max = 1.01e7 * xv ^ (-1.6)
-      if strupcase(param.lim.units) eq 'EFLUX' then  scale = xv /1000 else scale = 1
+      if strupcase(param.lim.units) eq 'EFLUX' then  scale = xv else scale = 1
       oplot, xv, flux_min * scale
       oplot, xv, flux_max * scale
+      if 1 then begin
+        ;stop
+        w = where(x ge 30 and x lt 2000)
+        flux_min = 2.48e2 * x ^ (-1.6)
+        eflux_min  = x * flux_min
+        dt = 30.
+        counts = flux_min * .2 * dt * dx
+        flux = counts /.2 / dt / dx
+        dflux = sqrt(counts+1.) / .2/dt/dx
+        oplot,x,flux * x, color = 2,psym=10
+        oplot,x,(flux+dflux) * x, color = 2,psym=10
+        oplot,x,(flux-dflux) * x, color = 2,psym=10
+        ;print,total(counts[w])/dt
+        ;print,max(dflux/flux)
+        ;print,dx/x
+        ;print,x
+        ;print,dx
+
+      endif
+      
+      if 0 then begin
+        w = where(x ge 10 and x lt 8000)
+        flux_max = 1.01e7 * x ^ (-1.6)
+        eflux_max  = x * flux_max
+        dt = 2.
+        geom = .002
+        counts = flux_max * geom * dt * dx
+        flux = counts /geom / dt / dx
+        dflux = sqrt(counts+1.) / geom/dt/dx
+        oplot,x,flux * x, color = 6,psym=10
+        oplot,x,(flux+dflux) * x, color = 6,psym=10
+        oplot,x,(flux-dflux) * x, color = 6,psym=10
+        ;print,total(counts[w])/dt
+        ;print,max(dflux/flux)
+        ;print,dx/x
+        
+      endif
+      
+      
     endif
         
   endif

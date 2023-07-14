@@ -6,7 +6,7 @@
 
 
 function swfo_raw_tlm::raw_tlm_struct,buf
-  dprint,dlevel=4,verbose=self.verbose,buf ;,dwait=1
+  dprint,dlevel=5,verbose=self.verbose,buf ;,dwait=1
   ;words = fix(buf,0,12)
   ;byteorder,words,/swap_if_little_endian
   days =   swfo_data_select(buf,0,24)
@@ -60,17 +60,24 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
 
   if isa(parent_dict,'dictionary') &&  parent_dict.haskey('cmbhdr') then begin
     header = parent_dict.cmbhdr
-    ;   dprint,dlevel=4,verbose=self.verbose,header.description,'  ',header.size
+    dprint,dlevel=3,verbose=self.verbose,header.description,'  ',header.size
   endif else begin
-    dprint,verbose=self.verbose,dlevel=4,'No cmbhdr'
+    dprint,verbose=self.verbose,dlevel=3,'No cmbhdr'
     header = {time: !values.d_nan , gap:0 }
   endelse
 
 ;printdat,source,/hex
   source_dict = self.source_dict
+  
 
   if ~source_dict.haskey('sync_ccsds_buf') then source_dict.sync_ccsds_buf = !null   ; this contains the contents of the buffer from the last call
   ;run_proc=1
+
+  if debug(4,self.verbose,msg='test') then begin
+    ;printdat,source_dict
+    print,n_elements(source_dict.sync_ccsds_buf),n_elements(source)
+    hexprint,source
+  endif
 
   on_ioerror, nextfile
   time = systime(1)
@@ -78,37 +85,47 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
 
   msg = time_string(source_dict.time_received,tformat='hh:mm:ss.fff -',local=localtime)
 
+  ;remainder = source_dict.sync_ccsds_bu
   remainder = !null
   nbytes = 0UL
   sync_errors =0ul
   total_bytes = 0L
   nb = 6
   while isa( (buf= self.read_nbytes(nb,source,pos=nbytes) ) ) do begin
-    if n_elements(buf) ne nb then begin
-      dprint,verbose=self.verbose,'Invalid length of GSE MSG header',dlevel=1
+    if debug(5,self.verbose,msg='buf ') then begin
       hexprint,buf
+    endif
+    if n_elements(buf) ne nb then begin
+      if debug(2,self.verbose,msg='Invalid length of GSE MSG header') then begin
+        hexprint,buf        
+      endif
       source_dict.remainder = buf
       break
     endif
-    if debug(4,self.verbose,msg=strtrim(nb)) then begin
-      dprint,nb,dlevel=3
-      hexprint,buf
-    endif
+;    if debug(4,self.verbose,msg=strtrim(nb)) then begin
+;      dprint,nb,dlevel=3
+;      hexprint,buf
+;    endif
     msg_buf = [remainder,buf]
     sz = msg_buf[4]*256L + msg_buf[5]
     if (sz lt 4) || (msg_buf[0] ne 'A8'x) || (msg_buf[1] ne '29'x) || (msg_buf[2] ne '00'x) then  begin     ;; Lost sync - read one byte at a time
       remainder = msg_buf[1:*]
       nb = 1
       sync_errors += 1
-      if debug(2) then begin
-        dprint,verbose=self.verbose,dlevel=3,'Lost sync:' ,dwait=2
+      if debug(2,self.verbose) then begin
+        dprint,verbose=self.verbose,dlevel=2,'Lost GSEMSG sync:' ;,dwait=2
       endif
       continue
     endif
+    if sync_errors ne 0 then begin
+      dprint,verbose=self.verbose,dlevel=2,sync_errors,'GSEMSG sync errors at "'+time_string(source_dict.time_received)+'"'
+
+    endif
+    
     case msg_buf[3] of
       'c1'x: begin
         if sz ne 'c'x then begin
-          dprint,'Invalid GSE message. word size: ',sz
+          dprint,dlevel=1,verbose=self.verbose,'Invalid GSE message. word size: ',sz
           message,'Error',/cont
         endif
         nb2 = sz * 2
@@ -129,8 +146,8 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
         ;readu,in_lun,buf,transfer_count=nb
         ;nbytes += nb
         buf = self.read_nbytes(sz*2,source,pos=nbytes)
-        if debug(4) then begin
-          dprint,sz*2,dlevel=3
+        if debug(4,self.verbose) then begin
+          dprint,sz*2,dlevel=4,verbose=self.verbose
           hexprint,buf
         endif
         source_dict.sync_ccsds_buf = [source_dict.sync_ccsds_buf, buf]
@@ -138,7 +155,7 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
           nbuf = n_elements(source_dict.sync_ccsds_buf)
           skipped = 0UL
           while (nbuf ge 4) && (array_equal(source_dict.sync_ccsds_buf[0:3] ,sync_pattern) eq 0) do begin
-            dprint,dlevel=4, 'searching for sync pattern: ',nbuf
+            dprint,dlevel=5,verbose=self.verbose, 'searching for sync pattern: ',nbuf
             source_dict.sync_ccsds_buf = source_dict.sync_ccsds_buf[1:*]    ; increment one byte at a time looking for sync pattern
             nbuf = n_elements(source_dict.sync_ccsds_buf)
             skipped++
@@ -155,12 +172,14 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
           pkt_size = source_dict.sync_ccsds_buf[4+4] * 256u + source_dict.sync_ccsds_buf[5+4] + 7
           ;dprint,dlevel=2,'pkt_size: ',pkt_size
           if nbuf lt pkt_size + 4 then begin
-            dprint,verbose=self.verbose,dlevel=4,'Incomplete packet - wait for later'
+            dprint,verbose=self.verbose,dlevel=4,'Incomplete packet - wait for later',nbuf, ' of ',pkt_size
             ;      source_dict.sync_ccsds_buf = sync_ccsds_buf
             break
           endif
           ccsds_buf = source_dict.sync_ccsds_buf[4:pkt_size+4-1]  ; not robust!!!
-          if self.run_proc then   swfo_ccsds_spkt_handler,ccsds_buf,source_dict=source_dict
+          if self.run_proc then  begin
+            swfo_ccsds_spkt_handler,ccsds_buf,source_dict=source_dict
+          endif
           if source_dict.haskey('ccsds_writer') && obj_valid(source_dict.ccsds_writer) then begin   ; hook to generate ccsds files 
             ccsds_writer = source_dict.ccsds_writer
             ccsds_writer.directory = self.directory
@@ -198,7 +217,7 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
   endwhile
 
   if sync_errors then begin
-    dprint,dlevel=2,sync_errors,' sync errors at "'+time_string(source_dict.time_received)+'"'
+    dprint,verbose=self.verbose,dlevel=2,sync_errors,'GSEMSG sync errors at "'+time_string(source_dict.time_received)+'"'
     ;printdat,source
     ;hexprint,source
   endif

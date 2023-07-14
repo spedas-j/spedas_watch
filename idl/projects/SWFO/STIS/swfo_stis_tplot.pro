@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-06-08 09:43:07 -0700 (Thu, 08 Jun 2023) $
-; $LastChangedRevision: 31891 $
+; $LastChangedDate: 2023-07-13 10:47:29 -0700 (Thu, 13 Jul 2023) $
+; $LastChangedRevision: 31952 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -15,7 +15,14 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,powerlim=powerlim
     store_data,'IG_EXB',data='iongun_EXB*'
     store_data,'IG_LENS',data='iongun_LENS*'
     store_data,'IG_HDEF',data='iongun_HDEF*'
+    store_data,'Vac_Pressure',data='gp37_vg_???',dlim={yrange:[1e-7,1e-3],ylog:1}
+    store_data,'Beam_Current',data='gse_kpa-?_F1',dlimit={yrange:[1e-13,1e-7],ylog:1,ystyle:3,neg_colors:'r'}
+    options,'gp37_vg_??1',colors='b'
+    options,'gp37_vg_??2',colors='r'
     options,'iongun_*_CTL_V' , colors = 'r'
+    options,'gse_kpa-?_F1',/default,neg_colors='r',/ylog,yrange=[1e-13,1e-6],ystyle=3
+    options,'gse_kpa-1_F1',/default,colors='b'
+    options,'gp37_vg_IG?',max_value=1000.,/ylog
   endif
 
   if keyword_set(powerlim) then begin
@@ -114,7 +121,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,powerlim=powerlim
     'DL4':  tplot,add=add,'*sci_RATE6 *hkp2_*BIAS* stis_l1a_SPEC_?? *nse_SIGMA *nse_BASELINE swfo_stis_hkp1_CMDS_EXECUTED'
     'LPT':  tplot,add=add,'*sci_RATE6 *hkp?_DAC_VALUES *sci*COUNTS *hkp3*REMAIN* *hkp1*REMAIN*'
     'SCIHKP': tplot,add=add,'*hkp2*SCI_*'
-    'IONGUN': tplot,add=add,'pico_I IG_*'
+    'IONGUN': tplot,add=add,'Vac_Pressure gse_kpa-?_F1 IG_*'
     'PS':tplot,add=add,'PS_*'
     
     else: dprint,'Unknown code: '+strtrim(name,2)

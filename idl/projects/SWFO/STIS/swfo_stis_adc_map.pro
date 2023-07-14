@@ -92,7 +92,7 @@ function swfo_stis_adc_map, data_sample=data_sample
   ;kev_per_adc = 5500. / ( [5500.,5500.,5500.,5500.,5500.,5500.] * 4)
   kev_per_adc = 59.5 / center_adc_bins
   kev_per_adc = [!values.f_nan,kev_per_adc]
-  geomfactor  = .1  * [.01,1,1,.01,1,1]
+  geomfactor  = .2  * [.01,1,1,.01,1,1]
   geomfactor  = [!values.f_nan,geomfactor]
   channel_n = [1,4,2,5,0,0,3,6,0,0,0,0,0,0]
   conv_n = replicate(!values.f_nan,48,14)
@@ -141,8 +141,7 @@ function swfo_stis_adc_map, data_sample=data_sample
   adcmap.geom = geom_n
   
   if min(adcmap.dnrg) le 0 then begin
-    print, min(adcmap.dnrg)
-    message,'coding error',/cont
+    dprint,dlevel=2,'Coding error', min(adcmap.dnrg)
   endif
   
   return,adcmap
