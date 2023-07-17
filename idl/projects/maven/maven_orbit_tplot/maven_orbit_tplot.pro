@@ -142,13 +142,20 @@
 ;       RESTORE:  Restore tplot variables and the common block from a save file.
 ;
 ;       MISSION:  Restore save files that span from Mars orbit insertion to the 
-;                 present.  These files are updated periodically.  Together, the
-;                 save files are 13.7 GB in size (as of March 2023), so this 
+;                 present.  These files are refreshed periodically.  Together, 
+;                 the save files are 15 GB in size (as of July 2023), so this 
 ;                 keyword is only useful for computers with sufficient memory.
 ;
+;                   Latest refresh: 2023-07-15
+;                   Ephemeris start date: 2014-09-21
+;                   Ephemeris end date: 2023-11-17
+;
+;                 Using the where command, you can identify times that meet an
+;                 arbitrary set of ephemeris conditions.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-07-07 10:49:30 -0700 (Fri, 07 Jul 2023) $
-; $LastChangedRevision: 31943 $
+; $LastChangedDate: 2023-07-15 18:17:50 -0700 (Sat, 15 Jul 2023) $
+; $LastChangedRevision: 31954 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -236,20 +243,8 @@ pro maven_orbit_tplot, stat=stat, swia=swia, ialt=ialt, result=result, extended=
     nfiles = n_elements(file)
     if (nfiles eq 1) then tplot_restore, file=file else print,"File not found: " + fname
 
-    fname = 'maven_eph_20140921_*.sav'
-    file = mvn_pfp_file_retrieve(rootdir+fname,last_version=0,source=ssrc,verbose=2)
-    nfiles = n_elements(file)
-    if (nfiles eq 1) then begin
-      restore, file
-      hgt = eph.alt
-      lon = eph.lon
-      lat = eph.lat
-      lst = eph.lst
-      slon = eph.slon
-      slat = eph.slat
-    endif else print,"File not found: " + fname
-
     timefit, var='alt'
+    options, 'alt2', 'datagap', 2D*86400D
     return
   endif
 
