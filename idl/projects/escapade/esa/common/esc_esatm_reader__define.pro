@@ -1,3 +1,17 @@
+PRO esc_esatm_reader::GetProperty, dat=dat, ahkp=ahkp, dhkp=dhkp, fhkp=fhkp, espec=espec, ispec=ispec
+
+   IF Arg_Present(dat)    THEN dat    = self.dat_da.array
+   IF Arg_Present(ahkp)   THEN ahkp   = self.ahkp_da.array
+   IF Arg_Present(dhkp)   THEN dhkp   = self.dhkp_da.array
+   IF Arg_Present(fhkp)   THEN fhkp   = self.fhkp_da.array
+   IF Arg_Present(espec)  THEN espec  = self.espec_da.array
+   IF Arg_Present(ispec)  THEN ispec  = self.ispec_da.array
+   IF Arg_Present(thist)  THEN thist  = self.thist_da.array
+   IF Arg_Present(frates) THEN frates = self.frates_da.array
+   
+END
+
+
 
 FUNCTION esc_esatm_reader::esc_raw_header_struct,ptphdr
 
@@ -416,13 +430,13 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
      ;;source_dict.dat_raw_events = dat_raw_events
   
      ;; Append Fast Rates Diagnostic Product
-     if index eq 511  and dat.ion_diag eq 3 then BEGIN
-  
-       raw_events = self.decom_mhist(dat_raw_events.raw_events_raw)
-       raw_events.time = time
-       ;;self.raw_events_da.append,  raw_events
-  
-     endif
+     ;;if index eq 511 and dat.ion_diag eq 3 then BEGIN
+     ;;
+     ;;  raw_events = self.decom_mhist(dat_raw_events.raw_events_raw)
+     ;;  raw_events.time = time
+     ;;  ;;self.raw_events_da.append,  raw_events
+     ;;
+     ;;endif
    
    endif
 
@@ -446,11 +460,21 @@ end
 
 function esc_esatm_reader::decom_ispec, str
 
-  m1  = reform(str.ispec_raw0,16,8,64)
-  m2  = reform(str.ispec_raw1,16,8,64)
-  m3  = reform(str.ispec_raw2,16,8,64)
-  m4  = reform(str.ispec_raw3,16,8,64)
-  tot = m1+m2+m3+m4
+  m1  = reform(str.ispec_raw0,16,512);;8,64)
+  m2  = reform(str.ispec_raw1,16,512);;8,64)
+  m3  = reform(str.ispec_raw2,16,512);;8,64)
+  m4  = reform(str.ispec_raw3,16,512);;8,64)
+
+  ;; Adjust to account for deflector sweeping
+  r1_ind = (indgen(8,64))[*,indgen(32)*2]
+  r2_ind = reverse((indgen(8,64))[*,indgen(32)*2+1],1)
+  ind = reform([r1_ind,r2_ind],512)
+
+  m1 = reform(m1[*,ind],16,8,64)
+  m2 = reform(m2[*,ind],16,8,64)
+  m3 = reform(m3[*,ind],16,8,64)
+  m4 = reform(m4[*,ind],16,8,64)
+  tot = m1+m2+m3+m4  
   
   ispec = { $
            
@@ -798,15 +822,19 @@ END
 
 
 
-function esc_esatm_reader::decom_thist, arr
+FUNCTION esc_esatm_reader::decom_thist, arr
 
-  thist = {THIST:reform(arr,256), $
-           time:0.D, $
-           gap:0}
+   COMMON esc_iesa_par, iesa_par, iesa_dict
 
-  return, thist
-
-end
+   t1 = reform(arr,256)
+   thist = {raw:t1, $
+            decom:t1/iesa_par.tof.tof256_fact,$
+            time:0.D, $
+            gap:0}
+   
+   return, thist
+   
+END
 
 
 
@@ -918,9 +946,15 @@ end
 
 
 function esc_esatm_reader::init,_extra=ex,tplot_tagnames=tplot_tagnames
+
+   ;; Load HERMES SPAN-I Instrument Parameters
+   ;; Common Block: esc_iesa_par
+   esc_iesa_flight_par
+
+   ;; Configure Dynamic Arrays
    void = self.socket_reader::init(_extra=ex)
    if ~isa(tplot_tagnames,'string') then tplot_tagnames='*'
-   self.dat_da   = dynamicarray(name='esc_dat',tplot_tagnames=tplot_tagnames)
+   self.dat_da    = dynamicarray(name='esc_dat',tplot_tagnames=tplot_tagnames)
    self.ahkp_da   = dynamicarray(name='esc_ahkp',tplot_tagnames=tplot_tagnames)
    self.dhkp_da   = dynamicarray(name='esc_dhkp',tplot_tagnames=tplot_tagnames)
    self.fhkp_da   = dynamicarray(name='esc_fhkp',tplot_tagnames=tplot_tagnames)
@@ -931,6 +965,7 @@ function esc_esatm_reader::init,_extra=ex,tplot_tagnames=tplot_tagnames
    self.thist_da  = dynamicarray(name='esc_thist',tplot_tagnames=tplot_tagnames)
    self.mspec_da  = dynamicarray(name='esc_mspec',tplot_tagnames=tplot_tagnames)
    return,1
+
 end
 
 
