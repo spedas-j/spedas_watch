@@ -19,11 +19,15 @@ pro elf_epd_l2_postproc, tplotnames, probes=probes
 
   sclet='el'+probes
   
+  energies = [63.2455,97.9796,138.564,183.303,238.118,305.205,385.162,520.48, $
+              752.994,1081.67,1529.71,2121.32,2893.96,3728.61,4906.12,6500.0]
+
   ; Et_nflux
   get_data, sclet+'_pef_Et_nflux', data=d, dlimits=dl, limits=l
+  newd={x:d.x, y:d.y, v:energies}
   l = {ylog: 1, spec: 0, labflag: 1, yrange: [1., 1.], ystyle: 0}
   dl = {spec: 0, log: 0, ysubtitle: '#/(scm!U2!NstrMeV)'}
-  store_data, sclet+'_pef_Et_nflux', data=d, dlimits=dl, limits=l
+  store_data, sclet+'_pef_Et_nflux', data=newd, dlimits=dl, limits=l
   options, sclet+'_pef_Et_nflux', charsize=.9
   options, sclet+'_pef_Et_nflux', 'ztitle','nflux'
   zlim, sclet+'_pef_Et_nflux', 1.e1, 2.e7
@@ -32,9 +36,10 @@ pro elf_epd_l2_postproc, tplotnames, probes=probes
   
   ; Et_eflux
   get_data, sclet+'_pef_Et_eflux', data=d, dlimits=dl, limits=l
+  newd={x:d.x, y:d.y, v:energies}
   l = {ylog: 1, spec: 0, labflag:1, yrange: [1., 1.], ystyle: 0}
   dl = {spec: 0, log: 0, ysubtitle: 'keV/(scm!U2!NstrMeV)'}
-  store_data, sclet+'_pef_Et_eflux', data=d, dlimits=dl, limits=l
+  store_data, sclet+'_pef_Et_eflux', data=newd, dlimits=dl, limits=l
   options, sclet+'_pef_Et_eflux', charsize=.9
   options, sclet+'_pef_Et_eflux', 'ztitle','eflux'
   zlim, sclet+'_pef_Et_eflux', 1.e1, 2.e7
@@ -43,9 +48,10 @@ pro elf_epd_l2_postproc, tplotnames, probes=probes
 
   ; Et_dforf
   get_data, sclet+'_pef_Et_dfovf', data=d, dlimits=dl, limits=l
+  newd={x:d.x, y:d.y, v:energies}
   l = {ylog: 1, spec: 1, labflag:1, ystyle: 0}
   dl = {spec: 0, log: 0, labels: 'total', colors: 0}
-  store_data, sclet+'_pef_Et_dfovf', data=d, dlimits=dl, limits=l
+  store_data, sclet+'_pef_Et_dfovf', data=newd, dlimits=dl, limits=l
 
   ; pef_pa
   get_data, sclet+'_pef_pa', data=d, dlimits=dl, limits=l
@@ -139,24 +145,5 @@ pro elf_epd_l2_postproc, tplotnames, probes=probes
   store_data, sclet+'_pef_fs_Epat_dfovf', data=d, limits=l
   options, sclet+'_pef_hs_Epat_dfovf', charsize=.9
 
-  ; ***** check on dlimits for eflux
-  ; Define the original structure
-;  original_struct = {name:'John', age:25}
-
-  ; Use TAG_NAMES to get the current tag names
-;  current_tags = TAG_NAMES(original_struct)
-
-  ; Use TAG_STRUCT to get the current tag values
-;  current_values = TAG_STRUCT(original_struct)
-
-  ; Add a new tag to the structure
-;  new_tag_name = 'city'
-;  new_tag_value = 'New York'
-;  new_tags = [current_tags, new_tag_name]
-;  new_values = [current_values, new_tag_value]
-;  new_struct = STRUCT_ASSIGN(original_struct, new_tags, new_values)
-
-  ; Print the new structure
-;  PRINT, new_struct
 
 end

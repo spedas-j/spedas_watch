@@ -158,7 +158,8 @@ pro elf_create_l2_epd_cdf, probe=probe, trange=trange, species=species, file_out
     copy_data, 'el'+sclet+'_p'+species+'f_pa_fulspn_spec2plot_full_err', 'el'+sclet+'_p'+species+'f_fs_Epat_dfovf'
 
     ; these are the variables to be stored in the cdf
-    variables2store='el'+sclet+'_p'+species+'f_'+['Et_nflux','Et_eflux','Et_dfovf',$ ; this is timeseries flux information and err
+    variables2store='el'+sclet+'_p'+species+'f_'+['Et_nflux','Et_eflux','Et_dfovf', $ ; this is timeseries flux information and err
+      'energies_mean','energies_min','energies_max', $
       'pa','spinphase','tspin','sectnum','nspinsinsum','nsectors','spinph2add','sect2add', $ ; this is ancillary timeseries data
       'hs_Epat_nflux','hs_Epat_eflux','hs_Epat_dfovf',$ ; this is 2D half-spin resolution spectra
       'fs_Epat_nflux','fs_Epat_eflux','fs_Epat_dfovf',$
@@ -168,42 +169,45 @@ pro elf_create_l2_epd_cdf, probe=probe, trange=trange, species=species, file_out
     ; Science zones need to be run one at a time. This section appends each science zone to be used when ready to write to CDF
     get_data, variables2store[0], data=dat, dlimits=dldat, limits=ldat
     append_array, et_time_arr, dat.x
-    append_array, et_nflux_arr, dat.y
+    append_array, et_nflux_arr_y, dat.y
+    et_nflux_arr_v=dat.v
     get_data, variables2store[1], data=dat, dlimits=dldat, limits=ldat
-    append_array, et_eflux_arr, dat.y
+    append_array, et_eflux_arr_y, dat.y
+    et_eflux_arr_v=dat.v
     get_data, variables2store[2], data=dat, dlimits=dldat, limits=ldat
-    append_array, et_dfovf_arr, dat.y
-    get_data, variables2store[3], data=dat, dlimits=dldat, limits=ldat
-    append_array, pa_arr, dat.y
-    get_data, variables2store[4], data=dat, dlimits=dldat, limits=ldat
-    append_array, spinphase_arr, dat.y
-    get_data, variables2store[5], data=dat, dlimits=dldat, limits=ldat
-    append_array, tspin_arr, dat.y
+    append_array, et_dfovf_arr_y, dat.y
+    et_dfovf_arr_v=dat.v    
     get_data, variables2store[6], data=dat, dlimits=dldat, limits=ldat
-    append_array, sectnum_arr, dat.y
+    append_array, pa_arr, dat.y
     get_data, variables2store[7], data=dat, dlimits=dldat, limits=ldat
-    append_array, nspinsinsum_arr, dat.y
+    append_array, spinphase_arr, dat.y
     get_data, variables2store[8], data=dat, dlimits=dldat, limits=ldat
-    append_array, nsectors_arr, dat.y
+    append_array, tspin_arr, dat.y
     get_data, variables2store[9], data=dat, dlimits=dldat, limits=ldat
-    append_array, spinph2add_arr, dat.y
+    append_array, sectnum_arr, dat.y
     get_data, variables2store[10], data=dat, dlimits=dldat, limits=ldat
-    append_array, sect2add_arr, dat.y
+    append_array, nspinsinsum_arr, dat.y
     get_data, variables2store[11], data=dat, dlimits=dldat, limits=ldat
+    append_array, nsectors_arr, dat.y
+    get_data, variables2store[12], data=dat, dlimits=dldat, limits=ldat
+    append_array, spinph2add_arr, dat.y
+    get_data, variables2store[13], data=dat, dlimits=dldat, limits=ldat
+    append_array, sect2add_arr, dat.y
+    get_data, variables2store[14], data=dat, dlimits=dldat, limits=ldat
     append_array, hs_time_arr, dat.x
     append_array, hs_nflux_arr, dat.y
     append_array, hs_epa_spec_arr, dat.v
-    get_data, variables2store[12], data=dat, dlimits=dldat, limits=ldat
+    get_data, variables2store[15], data=dat, dlimits=dldat, limits=ldat
     append_array, hs_eflux_arr, dat.y
-    get_data, variables2store[13], data=dat, dlimits=dldat, limits=ldat
+    get_data, variables2store[16], data=dat, dlimits=dldat, limits=ldat
     append_array, hs_dfovf_arr, dat.y
-    get_data, variables2store[14], data=dat, dlimits=dldat, limits=ldat
+    get_data, variables2store[17], data=dat, dlimits=dldat, limits=ldat
     append_array, fs_time_arr, dat.x
     append_array, fs_nflux_arr, dat.y
     append_array, fs_epa_spec_arr, dat.v
-    get_data, variables2store[15], data=dat, dlimits=dldat, limits=ldat
+    get_data, variables2store[18], data=dat, dlimits=dldat, limits=ldat
     append_array, fs_eflux_arr, dat.y
-    get_data, variables2store[16], data=dat, dlimits=dldat, limits=ldat
+    get_data, variables2store[19], data=dat, dlimits=dldat, limits=ldat
     append_array, fs_dfovf_arr, dat.y
 
   endfor
@@ -220,11 +224,13 @@ pro elf_create_l2_epd_cdf, probe=probe, trange=trange, species=species, file_out
   year=strmid(daily_names, 0,4)
   local_cdf_file=!elf.local_data_dir+'\el'+sclet+'\l2\epd\fast\'+subdir+'\'+year+'\el'+sclet+'_l2_epd'+species+'f_'+daily_names+'_v01.cdf'
   mastercdf_file=!elf.local_data_dir+'\el'+sclet+'\el'+sclet+'_l2_epd'+species+'f_00000000_v01.cdf'
+
   ; if there is already a cdf file delete it (cdf can't overwrite)
   fileresult=FILE_SEARCH(local_cdf_file)
   if size(fileresult,/dimen) eq 1 then FILE_DELETE,local_cdf_file ; delete old folder
  
   ; get mastercdf struc
+  mastercdf_file=FILE_SEARCH(mastercdf_file)
   epd_cdf_struc=cdf_load_vars(mastercdf_file, /all)
   mastertags=epd_cdf_struc.vars.name
   epd_vars=variables2store
@@ -245,44 +251,50 @@ pro elf_create_l2_epd_cdf, probe=probe, trange=trange, species=species, file_out
   
 ; set pointer to science data
   index=where(epd_vars[0] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(et_nflux_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(et_nflux_arr_y)
   index=where(epd_vars[1] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(et_eflux_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(et_eflux_arr_y)
   index=where(epd_vars[2] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(et_dfovf_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(et_dfovf_arr_y)
   index=where(epd_vars[3] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(pa_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(et_nflux_arr_v)
   index=where(epd_vars[4] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(spinphase_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(et_eflux_arr_v)
   index=where(epd_vars[5] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(tspin_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(et_dfovf_arr_v)
   index=where(epd_vars[6] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(sectnum_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(pa_arr)
   index=where(epd_vars[7] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(nspinsinsum_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(spinphase_arr)
   index=where(epd_vars[8] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(nsectors_arr)
-  index=where(epd_vars[9] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(spinph2add_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(tspin_arr)
+  index=where(epd_vars[9] eq mastertags)  
+  epd_cdf_struc.vars[index].dataptr=ptr_new(sectnum_arr)
   index=where(epd_vars[10] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(sect2add_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(nspinsinsum_arr)
   index=where(epd_vars[11] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(hs_nflux_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(nsectors_arr)
   index=where(epd_vars[12] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(hs_eflux_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(spinph2add_arr)
   index=where(epd_vars[13] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(hs_dfovf_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(sect2add_arr)
   index=where(epd_vars[14] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(fs_nflux_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(hs_nflux_arr)
   index=where(epd_vars[15] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(fs_eflux_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(hs_eflux_arr)
   index=where(epd_vars[16] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(fs_dfovf_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(hs_dfovf_arr)
   index=where(epd_vars[17] eq mastertags)
-  epd_cdf_struc.vars[index].dataptr=ptr_new(hs_epa_spec_arr)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(fs_nflux_arr)
   index=where(epd_vars[18] eq mastertags)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(fs_eflux_arr)
+  index=where(epd_vars[19] eq mastertags)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(fs_dfovf_arr)
+  index=where(epd_vars[20] eq mastertags)
+  epd_cdf_struc.vars[index].dataptr=ptr_new(hs_epa_spec_arr)
+  index=where(epd_vars[21] eq mastertags)
   epd_cdf_struc.vars[index].dataptr=ptr_new(fs_epa_spec_arr)
- 
+
   epd_cdf_struc.g_attributes.generation_date=systime() 
   dummy=cdf_save_vars2(epd_cdf_struc, local_cdf_file)
   print, 'L2 EPDE CDF file written! Filename: ', local_cdf_file
