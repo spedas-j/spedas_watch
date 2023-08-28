@@ -45,8 +45,8 @@
 ;          1-4 : four different schemes suitable for colorblind vision
 ;           5  : same as 0, except orange replaces yellow for better contrast on white
 ;           6  : same as 0, except gray replaces yellow for better contrast on white
-;           7  : see https://www.nature.com/articles/nmeth.1618 except no reddish purple
-;           8  : see https://www.nature.com/articles/nmeth.1618 except no yellow
+;           7  : see https://www.nature.com/articles/nmeth.1618, except no reddish purple
+;           8  : see https://www.nature.com/articles/nmeth.1618, except no yellow
 ;           9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;          10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
@@ -84,8 +84,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-05 09:48:09 -0800 (Sun, 05 Mar 2023) $
-; $LastChangedRevision: 31581 $
+; $LastChangedDate: 2023-08-27 13:07:02 -0700 (Sun, 27 Aug 2023) $
+; $LastChangedRevision: 32067 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/get_line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023

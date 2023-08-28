@@ -119,18 +119,29 @@
 ;       NOLOAD:   Don't load or refresh the ephemeris information.  Just fill in any
 ;                 keywords and exit.
 ;
-;       COLORS:   An array with up to 3 elements to specify the color indices for 
-;                 the plasma regimes: [sheath, pileup, wake].  The defaults are:
 ;
-;                   regime       index       color (table 43)
+;       LINE_COLORS: Line color scheme for altitude panel.  This can be an integer [0-10]
+;                 to select one of 11 pre-defined line color schemes.  It can also be array
+;                 of 24 (3x8) RGB values: [[R,G,B], [R,G,B], ...] that defines the first 7
+;                 colors (0-6) and the last (255).  For details, see line_colors.pro and 
+;                 color_table_crib.pro.  Default = 5.
+;
+;       COLORS:   An array with up to 3 elements to specify color indices for the
+;                 plasma regimes: [sheath, pileup, wake].  Passed to maven_orbit_tplot.
+;                 Defaults are:
+;
+;                   regime       index       LINE_COLORS=5
 ;                   -----------------------------------------
 ;                   sheath         4         green
-;                   pileup       199         orange
+;                   pileup         5         orange
 ;                   wake           2         blue
 ;                   -----------------------------------------
 ;
-;                 The colors you get depend on your color table.  The solar wind is
-;                 always displayed in the foreground color (usually white or black).
+;                 The colors you get depend on your line color scheme.  The solar wind
+;                 is always displayed in the foreground color (usually white or black).
+;
+;                 Note: Setting LINE_COLORS and COLORS here is local to this routine and
+;                       affects only the altitude panel.
 ;
 ;       VARS:     Array of TPLOT variables created.
 ;
@@ -164,8 +175,8 @@
 ;                 arbitrary set of ephemeris conditions.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-24 16:56:50 -0700 (Thu, 24 Aug 2023) $
-; $LastChangedRevision: 32061 $
+; $LastChangedDate: 2023-08-27 13:10:15 -0700 (Sun, 27 Aug 2023) $
+; $LastChangedRevision: 32068 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -175,13 +186,14 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                        vars=vars, hires=hires, now=now, colors=colors, reset_trange=reset_trange, $
                        spk=spk, segments=segments, shadow=shadow, datum=datum2, noload=noload, $
                        pds=pds, verbose=verbose, clear=clear, success=success, save=save, $
-                       restore=restore, mission=mission, timecrop=timecrop, nocrop=nocrop
+                       restore=restore, mission=mission, timecrop=timecrop, nocrop=nocrop, $
+                       line_colors=lcol
 
   @maven_orbit_common
 
   rootdir = 'maven/anc/spice/sav/'
   ssrc = mvn_file_source(archive_ext='')  ; don't archive old files
-  moi = time_double('2014-09-22/02:24')
+  moi = time_double('2014-09-22/02:24')   ; Mars orbit insertion
   oneday = 86400D
 
 ; Clear the common block and return
@@ -278,7 +290,8 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
   ktag = tag_names(key)
   active = ['STAT','SWIA','IALT','RESULT','EXTENDED','EPH','LOADONLY','VARS', $
            'TRANGE','NOW','COLORS','SPK','SEGMENTS','SHADOW','DATUM2','NOLOAD', $
-           'PDS','VERBOSE','CLEAR','SUCCESS','SAVE','RESTORE','MISSION']
+           'PDS','VERBOSE','CLEAR','SUCCESS','SAVE','RESTORE','MISSION', $
+           'LINE_COLORS']
   obsolete = ['TIMECROP','NOCROP','RESET_TRANGE','HIRES','CURRENT']
   tlist = [active, obsolete]
   for j=0,(n_elements(ktag)-1) do begin
@@ -316,6 +329,13 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
            end
   endcase
 
+; Determine if extended predict ephemeris is requested
+
+  if (n_elements(extended) gt 0) then begin
+    extended = fix(extended[0])
+    extflg = (extended ge 1) or (extended le 6)
+  endif else extflg = 0B
+
 ; Get the time range
 
   treset = 0
@@ -323,7 +343,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
       0  : begin
              tplot_options, get=topt
              str_element, topt, 'trange_full', tspan
-             if (tspan[1] eq 0D) then begin
+             if ((tspan[1] eq 0D) and ~extflg) then begin
                timespan
                tplot_options, get=topt
                str_element, topt, 'trange_full', tspan
@@ -449,9 +469,15 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
     endcase
   endif else extended = 0
 
-  blue = 2
-  green = 4
-  orange = 5
+; Set the color scheme for the altitude panel (assumes line color scheme 5):
+;   colors 1-6 = [magenta, blue, cyan, green, orange, red]
+
+  lcol = (n_elements(lcol) gt 0) ? fix(lcol[0]) : 5
+
+              ; wind is shown in the foreground color (!p.color)
+  blue = 2    ; shadow
+  green = 4   ; sheath
+  orange = 5  ; pileup
   case n_elements(colors) of
     0 : rcols = [green, orange, blue]
     1 : rcols = [round(colors), orange, blue]
@@ -460,7 +486,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
     else : rcols = round(colors[0:2])
   endcase
   if keyword_set(now) then donow = 1 else donow = 0
-  
+
 ; Restore the MSO state vectors
 
   file = mvn_pfp_file_retrieve(rootdir+mname,last_version=0,source=ssrc,verbose=verbose)
@@ -487,14 +513,14 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
       print,"No ephemeris coverage before ",time_string(date[0])
       return
     endif
-  endif
 
-  i = max(where(date lt tspan[0], icnt))
-  if (icnt eq 0) then i = 0
-  j = min(where(date gt tspan[1], jcnt))
-  if (jcnt eq 0) then j = nfiles - 1
-  file = file[i:j]
-  nfiles = n_elements(file)
+    i = max(where(date lt tspan[0], icnt))
+    if (icnt eq 0) then i = 0
+    j = min(where(date gt tspan[1], jcnt))
+    if (jcnt eq 0) then j = nfiles - 1
+    file = file[i:j]
+    nfiles = n_elements(file)
+  endif
 
   state = [{t:0D, x:0D, y:0D, z:0D, vx:0D, vy:0D, vz:0D}]
   for i=0,(nfiles-1) do begin
@@ -548,14 +574,14 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
       print,"No ephemeris coverage before ",time_string(date[0])
       return
     endif
+
+    i = max(where(date lt tspan[0], icnt))
+    if (icnt eq 0) then i = 0
+    j = min(where(date gt tspan[1], jcnt))
+    if (jcnt eq 0) then j = nfiles - 1
+    file = file[i:j]
+    nfiles = n_elements(file)
   endif
-    
-  i = max(where(date lt tspan[0], icnt))
-  if (icnt eq 0) then i = 0
-  j = min(where(date gt tspan[1], jcnt))
-  if (jcnt eq 0) then j = nfiles - 1
-  file = file[i:j]
-  nfiles = n_elements(file)
 
   state = [{t:0D, x:0D, y:0D, z:0D, vx:0D, vy:0D, vz:0D}]
   for i=0,(nfiles-1) do begin
@@ -580,20 +606,22 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
 
   maven_g = 0
 
-; Trim the data to requested time range
+; Trim ephemeris to the requested time range
 
-  indx = where((time ge tspan[0]) and (time le tspan[1]), npts)
+  if (extended eq 0) then begin
+    indx = where((time ge tspan[0]) and (time le tspan[1]), npts)
 
-  if (npts gt 0L) then begin
-    time = temporary(time[indx])
-    mso_x = temporary(mso_x[indx,*])
-    mso_v = temporary(mso_v[indx,*])
-    geo_x = temporary(geo_x[indx,*])
-    geo_v = temporary(geo_v[indx,*])
-  endif else begin
-    print,"No ephemeris data within requested range: ",time_string(tspan)
-    print,"Retaining all ephemeris data."
-  endelse
+    if (npts gt 0L) then begin
+      time = temporary(time[indx])
+      mso_x = temporary(mso_x[indx,*])
+      mso_v = temporary(mso_v[indx,*])
+      geo_x = temporary(geo_x[indx,*])
+      geo_v = temporary(geo_v[indx,*])
+    endif else begin
+      print,"No ephemeris data within requested range: ",time_string(tspan)
+      print,"Retaining all ephemeris data."
+    endelse
+  endif
 
 ; Combined state vector for MSO and GEO frames --> common block
 
@@ -852,10 +880,10 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
   store_data,'wind',data={x:time, y:wind[*,4]}
 
   store_data,'iono',data={x:[tmin,tmax], y:[ialt,ialt]}
-  options,'iono','color',6
+  options,'iono','color',6  ; hard-coded to red in line color scheme 5
   options,'iono','linestyle',2
   options,'iono','thick',2
-  
+
   store_data,'alt_lab',data={x:minmax(time), y:replicate(-1.,2,4), v:indgen(4)}
   options,'alt_lab','labels',[stype+' SHD','PILEUP','SHEATH','WIND']
   options,'alt_lab','colors',[reverse(rcols),!p.color]
@@ -863,6 +891,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
 
   store_data,'alt2',data=['alt_lab','alt','sheath','pileup','wake','wind','iono']
   ylim, 'alt2', 0, 1000*ceil(max(hgt)/1000.), 0
+  options,'alt2','line_colors',lcol
   options,'alt2','ytitle','Altitude (km)!c' + strlowcase(datum)
 
 ; 6200-km apoapsis: options,'alt2','constant',[500,1200,4970,5270]
