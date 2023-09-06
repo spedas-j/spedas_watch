@@ -17,9 +17,9 @@
 ;
 ;
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2022-05-17 21:26:56 -0700 (Tue, 17 May 2022) $
-;$LastChangedRevision: 30825 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/sosmag/sosmag_hapi_query.pro $
+;$LastChangedDate: 2023-09-05 16:26:53 -0700 (Tue, 05 Sep 2023) $
+;$LastChangedRevision: 32080 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/sosmag/hapi/sosmag_hapi_query.pro $
 ;-
 
 function sosmag_get_status_filename

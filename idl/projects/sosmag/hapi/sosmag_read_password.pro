@@ -17,9 +17,9 @@
 ;
 ;
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2021-12-15 12:01:37 -0800 (Wed, 15 Dec 2021) $
-;$LastChangedRevision: 30470 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/sosmag/sosmag_read_password.pro $
+;$LastChangedDate: 2023-09-05 16:26:53 -0700 (Tue, 05 Sep 2023) $
+;$LastChangedRevision: 32080 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/sosmag/hapi/sosmag_read_password.pro $
 ;-
 
 pro sosmag_read_password, username=username, password=password

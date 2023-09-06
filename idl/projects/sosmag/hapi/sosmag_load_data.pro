@@ -17,9 +17,9 @@
 ;
 ;
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2021-12-13 16:22:55 -0800 (Mon, 13 Dec 2021) $
-;$LastChangedRevision: 30466 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/sosmag/sosmag_load_data.pro $
+;$LastChangedDate: 2023-09-05 16:26:53 -0700 (Tue, 05 Sep 2023) $
+;$LastChangedRevision: 32080 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/sosmag/hapi/sosmag_load_data.pro $
 ;-
 
 
