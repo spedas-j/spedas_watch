@@ -30,11 +30,11 @@
 ;
 ;   See also:
 ;     sosmag_csv_to_tplot.pro
-;
-; $LastChangedBy: $
-; $LastChangedDate: $
-; $LastChangedRevision: $
-; $URL: $
+; 
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2023-09-07 09:09:32 -0700 (Thu, 07 Sep 2023) $
+; $LastChangedRevision: 32087 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/sosmag/sosmag_load_csv.pro $
 ;-
 
 pro sosmag_load_csv, filename, tformat=tformat, desc=desc, prefix=prefix, suffix=suffix
