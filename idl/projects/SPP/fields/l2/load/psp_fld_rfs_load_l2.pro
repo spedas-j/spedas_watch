@@ -1,8 +1,8 @@
 ;+
 ;
-; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2023-08-16 16:54:57 -0700 (Wed, 16 Aug 2023) $
-; $LastChangedRevision: 32007 $
+; $LastChangedBy: pulupa $
+; $LastChangedDate: 2023-09-11 16:52:08 -0700 (Mon, 11 Sep 2023) $
+; $LastChangedRevision: 32092 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/l2/load/psp_fld_rfs_load_l2.pro $
 ;
 ;-
@@ -236,7 +236,7 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only, $
               options, var, 'ztitle', '[V2/Hz]' 
             endif else begin
               src = split[-2]
-              options, var, 'ztitle', '[W/m2/Hz]''
+              ;options, var, 'ztitle', '[W/m^2/Hz]''
             endelse
           endif
 
@@ -378,7 +378,7 @@ pro psp_fld_rfs_load_l2, files, hfr_only = hfr_only, lfr_only = lfr_only, $
 
     endforeach
 
-    l3_temp_tnames = tnames('psp_fld_l3_rfs_' + strlowcase(rec) + '_temperature*')
+    l3_temp_tnames = tnames('psp_fld_l3_rfs_' + strlowcase(rec) + '_temperature_*')
 
     foreach name, l3_temp_tnames, l3_temp_tnames_i do begin
 

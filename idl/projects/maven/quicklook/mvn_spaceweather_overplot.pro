@@ -33,8 +33,8 @@
 ;HISTORY:
 ; 2023-09-05, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-09-06 16:06:50 -0700 (Wed, 06 Sep 2023) $
-; $LastChangedRevision: 32086 $
+; $LastChangedDate: 2023-09-11 14:39:44 -0700 (Mon, 11 Sep 2023) $
+; $LastChangedRevision: 32091 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_spaceweather_overplot.pro $
 ;-
 Pro mvn_spaceweather_overplot, date = date, time_range = time_range, $
@@ -55,11 +55,20 @@ Pro mvn_spaceweather_overplot, date = date, time_range = time_range, $
   one_day = 86400.0d0
   If(keyword_set(time_range)) Then Begin
      tr0 = time_double(time_range)
+; No plots prior to 2014-10-14, as all of the data may not exist
+     If(time_double(tr0[0]) Lt time_double('2014-10-12T12:00:00')) Then Begin
+        dprint, 'Date too early: '+time_string(tr0[0])
+        Return
+     Endif
      timespan, tr0[0], tr0[1]-tr0[0], /seconds
      mvn_spaceweather, /tplot, /rtn, /overplot, tavg=300.d0
   Endif Else If(keyword_set(date)) Then Begin
      If(keyword_set(makepng)) Then Begin
         tr0 = time_double(date)+[0.0d0, 7*one_day]
+        If(time_double(tr0[0]) Lt time_double('2014-10-12T12:00:00')) Then Begin
+           dprint, 'Date too early: '+time_string(tr0[0])
+           Return
+        Endif
         tr3 = time_double(date)+[0.0d0, 3*one_day]
         tr1 = time_double(date)+[0.0d0, one_day]
 ;do 7 day plot
@@ -73,6 +82,7 @@ Pro mvn_spaceweather_overplot, date = date, time_range = time_range, $
         Endif
         suffix7 = time_string(tr0[0], tformat='_YYYYMMDD_') + '7d'
         fullfile7 = pdir7+'mvn_spaceweather'+suffix7
+        makepng, fullfile7
 ;do 3 day plot
         tlimit, tr3[0], tr3[1]
         makepng, fullfile3
@@ -97,18 +107,16 @@ Pro mvn_spaceweather_overplot, date = date, time_range = time_range, $
         makepng, fullfile1
      Endif Else Begin
         tr0 = time_double(date)+[0.0d0, one_day]
+        If(time_double(tr0[0]) Lt time_double('2014-10-12T12:00:00')) Then Begin
+           dprint, 'Date too early: '+time_string(tr0[0])
+           Return
+        Endif
         timespan, date, 1
         mvn_spaceweather, /tplot, /rtn, /overplot, tavg=300.d0
-     Endif Else Begin
-     dprint, 'Need time_range input keywords set'
+     Endelse
+  Endif Else Begin
+     dprint, 'Need time_range or date input keywords set'
      Return
   Endelse
-; No plots prior to 2014-10-14, as all of the data may not exist
-  If(time_double(tr0[0]) Lt time_double('2014-10-12T12:00:00')) Then Begin
-     dprint, 'Date too early: '+time_string(tr0[0])
-     Return
-  Endif
-
-
-  Return
+     
 End

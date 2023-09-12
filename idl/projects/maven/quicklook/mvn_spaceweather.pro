@@ -25,9 +25,9 @@
 ;CREATED BY:      Takuya Hara on 2022-11-04.
 ;
 ;LAST MODIFICATION:
-; $LastChangedBy: hara $
-; $LastChangedDate: 2023-08-30 11:06:05 -0700 (Wed, 30 Aug 2023) $
-; $LastChangedRevision: 32074 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2023-09-11 14:39:44 -0700 (Mon, 11 Sep 2023) $
+; $LastChangedRevision: 32091 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_spaceweather.pro $
 ;
 ;-
@@ -536,11 +536,15 @@ PRO mvn_spaceweather, itime, reset=reset, verbose=verbose, path=path, tplot=tplo
         IF ~(kernels.all_check) THEN mk = mvn_spice_kernels(/all, /clear, /load, trange=minmax(trange), verbose=verbose, no_download=no_download)
 
         options, 'mvn_mag_imf_mso_avg', spice_frame='MAVEN_MSO'
-        spice_vector_rotate_tplot, 'mvn_mag_imf_mso_avg', 'MAVEN_SUN_RTN';, check_obj=['MAVEN_SPACECRAFT', 'MAVEN_MSO', 'MAVEN_SUN_RTN']
-        store_data, 'mvn_mag_imf_mso_avg_MAVEN_SUN_RTN', newname='mvn_mag_imf_rtn_avg'
+;check for no data here, jmm, 2023-09-07
+        get_data, 'mvn_mag_imf_mso_avg', data = ddd
+        If(is_struct(ddd) && ddd.x[0] Gt 0) Then Begin
+           spice_vector_rotate_tplot, 'mvn_mag_imf_mso_avg', 'MAVEN_SUN_RTN' ;, check_obj=['MAVEN_SPACECRAFT', 'MAVEN_MSO', 'MAVEN_SUN_RTN']
+           store_data, 'mvn_mag_imf_mso_avg_MAVEN_SUN_RTN', newname='mvn_mag_imf_rtn_avg'
         
-        options, 'mvn_mag_imf_rtn_avg', ysubtitle='IMF B!DRTN!N [nT]', labels=['R', 'T', 'N']
-        swind_name[3] = 'mvn_mag_imf_rtn_avg'
+           options, 'mvn_mag_imf_rtn_avg', ysubtitle='IMF B!DRTN!N [nT]', labels=['R', 'T', 'N']
+           swind_name[3] = 'mvn_mag_imf_rtn_avg'
+        Endif Else dprint, dlevel = 0, 'Bad SPICE rotation data'
      ENDIF
 
      all_tplot = tnames('*', create_time=ctime)
@@ -569,8 +573,10 @@ PRO mvn_spaceweather, itime, reset=reset, verbose=verbose, path=path, tplot=tplo
         options, swind_name[1], y2axis=swind_name[1], colors=2
         get_data, swind_name[-1], data=bmso, alim=blim
         get_data, swind_name[-2], data=btot
-        store_data, 'mvn_mag_imf_avg', data={x: bmso.x, y: [ [bmso.y], [btot.y] ]}, dlim=blim
-        options, 'mvn_mag_imf_avg', labels=[blim.labels, '|B|'], colors='bgrx', /def
+        if is_struct(bmso) && is_struct(btot) then begin
+           store_data, 'mvn_mag_imf_avg', data={x: bmso.x, y: [ [bmso.y], [btot.y] ]}, dlim=blim
+           options, 'mvn_mag_imf_avg', labels=[blim.labels, '|B|'], colors='bgrx', /def
+        endif
      ENDIF 
   ENDIF
   
