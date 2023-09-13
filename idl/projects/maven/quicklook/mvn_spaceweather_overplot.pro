@@ -33,8 +33,8 @@
 ;HISTORY:
 ; 2023-09-05, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-09-11 14:39:44 -0700 (Mon, 11 Sep 2023) $
-; $LastChangedRevision: 32091 $
+; $LastChangedDate: 2023-09-12 14:07:12 -0700 (Tue, 12 Sep 2023) $
+; $LastChangedRevision: 32094 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_spaceweather_overplot.pro $
 ;-
 Pro mvn_spaceweather_overplot, date = date, time_range = time_range, $
@@ -47,7 +47,8 @@ Pro mvn_spaceweather_overplot, date = date, time_range = time_range, $
 ;Delete all data
   del_data, '*'
 ;Options
-  tplot_options, 'charsize', 1.3
+  tplot_options, 'charsize', 1.0
+  tplot_options, 'ygap', 0.5
   time_stamp, /off
   initct, 1074, /reverse
 
