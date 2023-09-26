@@ -6,8 +6,8 @@
 ; Kept around for backward compatibility with some old routines.
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2023-09-23 00:00:59 -0700 (Sat, 23 Sep 2023) $
-; $LastChangedRevision: 32116 $
+; $LastChangedDate: 2023-09-25 14:01:58 -0700 (Mon, 25 Sep 2023) $
+; $LastChangedRevision: 32125 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/spp_fld_make_or_retrieve_cdf.pro $
 ;
 ;-
@@ -16,11 +16,14 @@ pro spp_fld_make_or_retrieve_cdf, $
   apid_name, $
   make = make, $
   load = load, $
-  filenames = filenames
+  filenames = filenames, $
+  lusee = lusee
   compile_opt idl2
 
   if keyword_set(make) then begin
-    if (getenv('HOSTNAME')).Contains('lucem') then lusee = 1 else lusee = 0
+    if ~keyword_set(lusee) then begin
+      if (getenv('HOSTNAME')).Contains('lucem') then lusee = 1 else lusee = 0
+    endif
     spp_fld_make_cdf_l1, apid_name, load = load, lusee = lusee
   endif else if getenv('HOSTNAME') eq 'spfdata2' then begin
     spp_fld_load, type = apid_name
