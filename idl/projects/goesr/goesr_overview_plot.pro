@@ -24,8 +24,8 @@
 ;
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2023-09-24 11:35:44 -0700 (Sun, 24 Sep 2023) $
-; $LastChangedRevision: 32118 $
+; $LastChangedDate: 2023-09-25 22:41:22 -0700 (Mon, 25 Sep 2023) $
+; $LastChangedRevision: 32131 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/goesr/goesr_overview_plot.pro $
 ;-
 
@@ -53,6 +53,7 @@ pro goesr_overview_plot, date = date, probe = probe_in, directory = directory, d
   if undefined(date) then overviewdate = '2021-02-01' else overviewdate = time_string(date)
   if undefined(duration) then duration = 1 ; days
   if undefined(oplot_calls) then suffix = '' else suffix = strcompress('_op'+string(oplot_calls[0]), /rem)
+  createpngfiles = 1
 
   timespan, overviewdate, duration, /day
   time = time_struct(overviewdate)
@@ -142,15 +143,17 @@ pro goesr_overview_plot, date = date, probe = probe_in, directory = directory, d
 
     sphere_to_cart,d_loc.y[*, 2]/1000., d_loc.y[*, 0],d_loc.y[*, 1], x, y, z,vec = vec0
     store_data, goesgeo, data={x:d_loc.x, y:[vec0]}, dl=dl_loc
-    options, goesgeo, 'ysubtitle', "[km]", /def
-    options, goesgeo, "data_att.units", "km", /def
-    options, goesgeo, "data_att.COORD_SYS", "geo", /def
+    options, goesgeo, 'ysubtitle', '[km]', /def
+    options, goesgeo, 'data_att.units', 'km', /def
+    options, goesgeo, 'data_att.COORD_SYS', 'geo', /def
     cotrans, goesgeo, goesgei, /GEO2GEI
     cotrans, goesgei, goesgse, /GEI2GSE
     cotrans, goesgse, goesgsm, /GSE2GSM
     cotrans, goesgsm, goessm, /GSM2SM
-  endif
-
+  endif else begin
+    dprint, 'No lacation data found. No png files will be created.'
+    createpngfiles=0  ; if there is no location data, do not create png files
+  endelse
 
   if tnames(goesgsm) ne '' && igp_test() eq 1 then begin
 
@@ -381,7 +384,9 @@ pro goesr_overview_plot, date = date, probe = probe_in, directory = directory, d
       window, 1, xsize=window_xsize, ysize=window_ysize
       tplot, all_panels, window=1, var_label=outnamesi
     endelse
-    if keyword_set(makepng) then begin
+    if createpngfiles eq 1  and keyword_set(makepng) then begin
+      ; Does not create png files if there is no location data loaded
+      ; This prevents the creation of empty summary plot files
       thm_gen_multipngplot, 'goes_goes'+probe, overviewdate, directory = dir, /mkdir
     endif
   endif else begin

@@ -25,8 +25,8 @@
 ;HISTORY:
 ; 2014-05-14, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2021-11-18 10:53:23 -0800 (Thu, 18 Nov 2021) $
-; $LastChangedRevision: 30430 $
+; $LastChangedDate: 2023-09-26 15:58:41 -0700 (Tue, 26 Sep 2023) $
+; $LastChangedRevision: 32135 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_l2gen.pro $
 ;-
 Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
@@ -274,10 +274,13 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
         mvn_sta_dead_load, /make_common, /test
         If(is_struct(dat_dead)) Then Begin
            deadfile = dir_dead+'mvn_sta_dead_'+yyyy+mmmm+dddd+'.sav'
-           save, dat_dead, file = deadfile
-                                ;permission
-           file_chmod, deadfile, '664'o
-           If(!version.os Eq 'linux') Then spawn, 'chgrp maven '+deadfile
+           If(~is_string(file_search(deadfile))) Then Begin
+              save, dat_dead, file = deadfile
+;permission,  but only if file didn't exist
+;              file_chmod, deadfile, '664'o
+              spawn, 'chmod g+w '+deadfile
+              spawn, 'chgrp maven '+deadfile
+           Endif Else save, dat_dead, file = deadfile
            message, /info, 'Saved: '+deadfile
         Endif
         mvn_sta_bkg_load                
