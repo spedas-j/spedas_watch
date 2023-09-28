@@ -25,8 +25,8 @@
 ;HISTORY:
 ; 2014-05-14, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-09-26 15:58:41 -0700 (Tue, 26 Sep 2023) $
-; $LastChangedRevision: 32135 $
+; $LastChangedDate: 2023-09-27 13:24:11 -0700 (Wed, 27 Sep 2023) $
+; $LastChangedRevision: 32139 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_l2gen.pro $
 ;-
 Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
@@ -259,6 +259,7 @@ Pro mvn_sta_l2gen, date = date, l0_input_file = l0_input_file, $
 
 ;load l0 data, or L2 data, or IV data from previous process
   If(keyword_set(iv_level)) Then Begin
+     mk = mvn_spice_kernels(/all,/load,trange=timerange())
      If(iv_level Eq 1) Then Begin
 ;use no_time_clip to get all data, mvn_sta_l2_load will fill all of
 ;the common blocks
@@ -429,6 +430,8 @@ skip_ephemeris_l0:
   mvn_sta_cmn_l2gen, mvn_d4_dat, directory = dir_out, iv_level = iv_level, _extra = _extra
   skip_d4:
   print, 'All App_ids finished'
+;clear spice kernels
+  mvn_spc_clear_spice_kernels
   help, /memory
 ;Manage htaccess here
 ;  mvn_manage_l2access, 'sta'

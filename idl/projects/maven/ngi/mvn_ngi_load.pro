@@ -33,9 +33,9 @@
 ;       Requires IDL 7.1 or later to read in .csv files
 ;       Use 'mvn_ngi_read_csv' to load ql data
 ;
-; $LastChangedBy: haraday $
-; $LastChangedDate: 2020-01-15 17:13:48 -0800 (Wed, 15 Jan 2020) $
-; $LastChangedRevision: 28192 $
+; $LastChangedBy: hara $
+; $LastChangedDate: 2023-09-27 17:03:06 -0700 (Wed, 27 Sep 2023) $
+; $LastChangedRevision: 32140 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/ngi/mvn_ngi_load.pro $
 ;-
 
@@ -94,14 +94,33 @@ pro mvn_ngi_load, mspec=mspec, trange=trange, filetype=filetype, verbose=verbose
      ;;; read in files and store data into structures
      for i_file=0,n_elements(f)-1 do begin
         dprint,dlevel=1,verbose=verbose,'reading in '+f[i_file]
-        if i_file eq 0 then d = read_csv(f[i_file],header=dh) else begin
-           dold = d
-           dnew = read_csv(f[i_file],header=dh)
-           tagnames = tag_names(d)
-           for i_c = 0,n_elements(dh)-1 do str_element, d, tagnames[i_c], [dold.(i_c),dnew.(i_c)],/add
-        endelse
+        if float(!version.release) lt 8. then begin
+           if i_file eq 0 then d = read_csv(f[i_file],header=dh) else begin
+              dold = d
+              dnew = read_csv(f[i_file],header=dh)
+              tagnames = tag_names(d)
+              for i_c = 0,n_elements(dh)-1 do str_element, d, tagnames[i_c], [dold.(i_c),dnew.(i_c)],/add
+           endelse
+        endif else begin
+           if i_file eq 0 then begin
+              d = read_csv(f[i_file], header=dh)
+              d = orderedhash(d)
+              keys = d.keys()
+              for i_c = 0, n_elements(keys)-1 do d[keys[i_c]] = list(d[keys[i_c]])
+           endif else begin
+              dnew = read_csv(f[i_file], header=dh)
+              dnew = orderedhash(dnew)
+              for i_c = 0, n_elements(keys)-1 do d[keys[i_c]].add, dnew[keys[i_c]]
+              undefine, dnew
+           endelse
+        endelse 
      endfor
-
+     if size(d, /type) ne 8 then begin
+        for i_c = 0, n_elements(keys)-1 do d[keys[i_c]] = d[keys[i_c]].toarray(/dim)
+        d = d.tostruct()
+        tagnames = tag_names(d)
+     endif 
+     
      ;;; check time
      idx = where(strmatch(dh,'t_unix'),idx_cnt)
      if idx_cnt ne 1 then begin

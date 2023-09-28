@@ -84,8 +84,8 @@
 ;       SUCCESS:  Returns 1 on normal operation, 0 otherwise.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-04-09 19:18:49 -0700 (Sun, 09 Apr 2023) $
-; $LastChangedRevision: 31717 $
+; $LastChangedDate: 2023-09-27 12:13:01 -0700 (Wed, 27 Sep 2023) $
+; $LastChangedRevision: 32138 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_ramdir.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -189,7 +189,7 @@ pro mvn_ramdir, trange, dt=dt, pans=pans, frame=frame, mso=mso, polar=polar, res
   for i=0,(nframes-1) do begin
     fnum = strtrim(string(i,format='(i)'),2)
     to_frame = strupcase(frame[indx[i]])
-    spice_vector_rotate_tplot,'V_sc',to_frame,trange=minmax(ut)
+    spice_vector_rotate_tplot,'V_sc',to_frame,trange=minmax(ut),check='MAVEN_SPACECRAFT'
 
     labels = ['X','Y','Z']
     fname = strmid(to_frame, strpos(to_frame,'_')+1)
