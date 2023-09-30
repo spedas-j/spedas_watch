@@ -126,7 +126,9 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   if ~undefined(trange) then begin
     dur=time_double(trange[1])-time_double(trange[0])
     timespan, trange[0],dur,/sec
-  endif
+  endif else begin
+    trange=timerange()
+  endelse
 
   elf_load_data, trange = trange, probes = probes, level = level, instrument = 'fgm', $
     data_rate = data_rate, local_data_dir = local_data_dir, source = source, $

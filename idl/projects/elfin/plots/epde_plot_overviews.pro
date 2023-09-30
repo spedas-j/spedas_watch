@@ -528,33 +528,33 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
       varstring=['ela_GLON','ela_MLAT_igrf[ela_MLAT_dip]', 'ela_MLT_igrf[ela_MLT_dip]', 'ela_L_igrf[ela_L_dip]'] else $
       varstring=['elb_GLON','elb_MLAT_igrf[elb_MLAT_dip]', 'elb_MLT_igrf[elb_MLT_dip]', 'elb_L_igrf[elb_L_dip]']
 
-    if spd_data_exists('el'+probe+'_fgs_fsp_res_obw_orig',sz_tr[0],sz_tr[1]) then begin
-      copy_data, 'el'+probe+'_fgs_fsp_res_obw_orig', 'el'+probe+'_fgs_fsp_res_obw'
-      get_data, 'el'+probe+'_fgs_fsp_res_obw', data=fsp_obw
-      idx=where(fsp_obw.x GE sz_tr[0] and fsp_obw.x LE sz_tr[1], ncnt)
-      if ncnt GT 0 then begin
-        yrng=minmax(fsp_obw.y[idx,*])
-        if abs(yrng[0]) LT 100. AND abs(yrng[1]) LT 100. then begin
-          ;idx=where(abs(fsp_obw.y[idx,*]) LT 100, tcnt)
-          ;if tcnt GT 0 then begin
-          ylim, 'el'+probe+'_fgs_fsp_res_obw', -100,100.
-        endif
-      endif
-      options,  'el'+probe+'_fgs_fsp_res_obw', ysubtitle='[nT]'
-      tplot,['proxy_ae', $
-        'fgm_survey_bar', $
-        'epdi_fast_bar', $
-        'epde_fast_bar', $
-        'sunlight_bar', $
-        'el'+probe+'_pef_en_spec2plot_omni', $
-        'el'+probe+'_pef_en_spec2plot_anti', $
-        'el'+probe+'_pef_en_spec2plot_perp', $
-        'el'+probe+'_pef_en_spec2plot_para', $
-        'el'+probe+'_pef_pa_spec2plot_ch[0,1]LC', $
-        'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
-        'el'+probe+'_fgs_fsp_res_obw'], $
-        var_label=varstring     ;'el'+probe+'_'+['LAT','MLT','L_dip','MLT_igrf','L_igrf']
-    endif else begin
+    ;if spd_data_exists('el'+probe+'_fgs_fsp_res_obw_orig',sz_tr[0],sz_tr[1]) then begin
+    ;  copy_data, 'el'+probe+'_fgs_fsp_res_obw_orig', 'el'+probe+'_fgs_fsp_res_obw'
+    ;  get_data, 'el'+probe+'_fgs_fsp_res_obw', data=fsp_obw
+    ;  idx=where(fsp_obw.x GE sz_tr[0] and fsp_obw.x LE sz_tr[1], ncnt)
+    ;  if ncnt GT 0 then begin
+    ;    yrng=minmax(fsp_obw.y[idx,*])
+    ;    if abs(yrng[0]) LT 100. AND abs(yrng[1]) LT 100. then begin
+    ;      ;idx=where(abs(fsp_obw.y[idx,*]) LT 100, tcnt)
+    ;      ;if tcnt GT 0 then begin
+    ;      ylim, 'el'+probe+'_fgs_fsp_res_obw', -100,100.
+    ;    endif
+    ;  endif
+    ;  options,  'el'+probe+'_fgs_fsp_res_obw', ysubtitle='[nT]'
+    ;  tplot,['proxy_ae', $
+    ;    'fgm_survey_bar', $
+    ;    'epdi_fast_bar', $
+    ;    'epde_fast_bar', $
+    ;    'sunlight_bar', $
+    ;    'el'+probe+'_pef_en_spec2plot_omni', $
+    ;    'el'+probe+'_pef_en_spec2plot_anti', $
+    ;    'el'+probe+'_pef_en_spec2plot_perp', $
+    ;    'el'+probe+'_pef_en_spec2plot_para', $
+    ;    'el'+probe+'_pef_pa_spec2plot_ch[0,1]LC', $
+    ;    'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
+    ;    'el'+probe+'_fgs_fsp_res_obw'], $
+    ;    var_label=varstring     ;'el'+probe+'_'+['LAT','MLT','L_dip','MLT_igrf','L_igrf']
+    ;endif else begin
       tplot,['proxy_ae', $
        'fgm_survey_bar', $
         'epdi_fast_bar', $
@@ -568,7 +568,7 @@ pro epde_plot_overviews, trange=trange, probe=probe, no_download=no_download, $
         'el'+probe+'_pef_pa_spec2plot_ch[2,3]LC', $
         'el'+probe+'_bt89_sm_NEDT'], $
         var_label=varstring
-    endelse
+    ;endelse
     tr=timerange()
     fd=file_dailynames(trange=tr[0], /unique, times=times)
     tstring=strmid(fd,0,4)+'-'+strmid(fd,4,2)+'-'+strmid(fd,6,2)+sz_plot_lbl

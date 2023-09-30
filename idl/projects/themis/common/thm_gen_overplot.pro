@@ -43,9 +43,9 @@
 ;HISTORY:
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
-;$LastChangedBy: jimm $
-;$LastChangedDate: 2023-09-25 13:55:05 -0700 (Mon, 25 Sep 2023) $
-;$LastChangedRevision: 32123 $
+;$LastChangedBy: nikos $
+;$LastChangedDate: 2023-09-29 13:31:54 -0700 (Fri, 29 Sep 2023) $
+;$LastChangedRevision: 32158 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -586,7 +586,6 @@ no_npot:
 ;data, and EESa data
     IF(sc Eq 'e' AND time_double(date) Gt time_double('2022-09-22')) THEN BEGIN
        thm_scpot2dens_opt_n, probe = sc, datatype_esa = 'peem'
-       stop
     ENDIF ELSE BEGIN
 ;Npot calculation, 2009-10-12, jmm
        thm_scpot2dens_opt_n, probe = sc, /no_data_load, datatype_esa = 'pee'+mtyp[j]
