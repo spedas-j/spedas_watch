@@ -134,20 +134,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   ; clear CDF filenames, so we're not appending to an existing array
   undefine, cdf_filenames
 
-;  if keyword_set(spdf) then begin
-;    https://spdf.gsfc.nasa.gov/pub/data/elf/
-;    ;elf_load_data_spdf, probes = probes, datatype = datatypes, instrument = instrument, $
-;    ;  trange = trange, source = source, level = level, tplotnames = tplotnames, $
-;    ;  remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, $
-;    ;  attitude_data = attitude_data, no_download = no_download, $
-;    ;  no_server = no_server, data_rate = data_rates, get_support_data = get_support_data, $
-;    ;  varformat = varformat, center_measurement=center_measurement, cdf_filenames = cdf_filenames, $
-;    ;  cdf_records = cdf_records, min_version = min_version, cdf_version = cdf_version, $
-;    ;  latest_version = latest_version, time_clip = time_clip, suffix = suffix, versions = versions
-;    ;return
-;    ;dprint, dlevel=1, 'ELFIN data is not yet avaialabe from the SPDF'
-;  endif
-
   total_size = 0d ; for counting total download size when requesting /available
 
   ;loop over probe, rate, level
@@ -238,11 +224,12 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
               this_local_path=local_path +  '/' + yeardir
               this_local_path = spd_addslash(this_local_path)
               this_remote_path=remote_path + yeardir
-              paths = '' 
-              
+              paths = ''           
               ; download data as long as no flags are set or if spdf is set
               if ~undefined(spdf) && spdf EQ 1 then no_download=0
+            
               if no_download eq 0 then begin
+           
                 if file_test(this_local_path,/dir) eq 0 then file_mkdir2, this_local_path
                 dprint, dlevel=1, 'Downloading ' + fnames[file_idx] + ' to ' + local_path                    
                 if ~undefined(spdf) && spdf EQ 1 then begin
@@ -255,7 +242,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                       subdir=''
                     endif
                     if instrument EQ 'epd' then begin
-                      if datatype eq 'pef' then subdir='ephemeris/epdef/'+strmid(daily_names, 0, 4)+'/'
+                      if datatype eq 'pef' then subdir='l1/fast/electron/'+strmid(daily_names, 0, 4)+'/'
                       if datatype eq 'pif' then subdir='l1/fast/ion/'+strmid(daily_names, 0, 4)+'/'
                     endif                 
 ;                    relpath= 'elfin' + strcompress(string(probes[probe_idx]), /rem) +'/'+'ephemeris/'+subdir + '/' + yeardir
