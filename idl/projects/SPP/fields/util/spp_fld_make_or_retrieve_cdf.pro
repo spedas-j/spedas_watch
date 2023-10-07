@@ -6,8 +6,8 @@
 ; Kept around for backward compatibility with some old routines.
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2023-10-04 14:19:36 -0700 (Wed, 04 Oct 2023) $
-; $LastChangedRevision: 32171 $
+; $LastChangedDate: 2023-10-06 16:57:03 -0700 (Fri, 06 Oct 2023) $
+; $LastChangedRevision: 32174 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/spp_fld_make_or_retrieve_cdf.pro $
 ;
 ;-
@@ -26,7 +26,7 @@ pro spp_fld_make_or_retrieve_cdf, $
     endif
     spp_fld_make_cdf_l1, apid_name, load = load, lusee = lusee
   endif else if getenv('HOSTNAME') eq 'spfdata2' then begin
-    spp_fld_load, type = apid_name
+    spp_fld_load, type = apid_name, level = 1
   endif else begin
     remote_site = 'http://sprg.ssl.berkeley.edu/data/spp/data/sci/fields/staging/l1/'
 
