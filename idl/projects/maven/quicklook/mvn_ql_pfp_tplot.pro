@@ -63,9 +63,9 @@
 ;CREATED BY:      Takuya Hara on 2015-04-09.
 ;
 ;LAST MODIFICATION:
-; $LastChangedBy: hara $
-; $LastChangedDate: 2021-02-01 11:22:49 -0800 (Mon, 01 Feb 2021) $
-; $LastChangedRevision: 29638 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2023-10-09 15:39:51 -0700 (Mon, 09 Oct 2023) $
+; $LastChangedRevision: 32181 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_ql_pfp_tplot.pro $
 ;
 ;-
@@ -567,7 +567,10 @@ PRO mvn_ql_pfp_tplot, var, orbit=orbit, verbose=verbose, no_delete=no_delete, no
 
   ; Ephemeris
   IF (oflg) THEN BEGIN
-     maven_orbit_tplot, /current, /load, timecrop=[-2.d0, 2.d0]*oneday + trange ; +/- 2 day is buffer.
+;current and timecrop keywords are now obsolete, but trange is needed
+;for input, jmm, 2023-10-09
+     maven_orbit_tplot, trange = trange, /load
+;     maven_orbit_tplot, /current, /load, timecrop=[-2.d0, 2.d0]*oneday + trange ; +/- 2 day is buffer.
      options, 'alt2', panel_size=2./3., ytitle='Alt. [km]'
      IF KEYWORD_SET(spw) THEN BEGIN
         options, ['twake', 'tpileup', 'tsheath', 'twind'], 'color'
