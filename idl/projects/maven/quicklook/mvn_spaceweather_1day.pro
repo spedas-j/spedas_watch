@@ -1,23 +1,22 @@
 ;+
 ;NAME:
-;mvn_pfpl2_1day
+;mvn_spaceweather_1day
 ;PURPOSE:
 ;reads in a start and end date, and reprocesses all of the days in
 ;the interval. This is a main program, designed to be called from a
 ;shell script. Processes 1 day at a time
 ;CALLING SEQUENCE:
-; .run mvn_pfpl2_1day
+; .run mvn_spaceweather_1day
 ;INPUT:
 ;start_time, end_time are input from files
-;mvn_pfpl2_1day_start_time.txt and
-;mvn_pfpl2_1day_end_time.txt.
+;mvn_spaceweather_1day_start_time.txt and
+;mvn_spaceweather_1day_end_time.txt.
 ;OUTPUT:
-;PLots, so far pfpl2 1 -day and orbit plots
+;PLots, spaceweather 1,3 and 7-day
 ;HISTORY:
-; 2015-04-24, jmm, jimm@ssl.berkeley.edu
-; 2023-10-11, jmm, Calls mvn_call_pfpl2plot instead of mvn_over_shell
+; 2023-10-11, jmm, jimm@ssl.berkeley.edu
 ;-
-this_file = 'mvn_pfpl2_1day'
+this_file = 'mvn_spaceweather_1day'
 spawn, 'touch '+this_file+'_lock'
 ;Apparently you cannot compile code in the way we're calling this, so
 st_file = this_file+'_start_time.txt'
@@ -36,9 +35,7 @@ free_lun, unit
 tend = time_double(en_time[0])
 If(tstart Ge tend) Then exit
 ;do the process one day at a time, in the local working directory
-;mvn_over_shell, date = time_string(tstart), instr='pfpl2',
-;/multipngplot
-mvn_call_pfpl2plot, days_in = time_string(tstart, precision = -3), instr = 'pfpl2', /no_proc_mail
+mvn_call_spaceweatherplot, days_in = time_string(tstart, precision = -3), instr = 'spaceweather', /no_proc_mail
 ;Add a day and reset start time file
 tstart_new = tstart+86400.0d0
 openw, unit, this_file+'_start_time.txt', /get_lun
