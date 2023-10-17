@@ -11,7 +11,8 @@
 ;OUTPUT:
 ; Plots, on the screen or in 3 png files
 ;KEYWORDS:
-; date = If set, a plot for the input date. If /makepng is set, then 3 plots
+; date = If set, a plot for the input date. If /makepng is set, then 3
+;        plots, date input now refers to the end time
 ; time_range = If set, plot this time range, note that this supercedes
 ;              the date keyword, if both are set, the time range is
 ;              attempted, and this will plot a single plot, not for 3
@@ -32,9 +33,10 @@
 ;             created in subdirectories /1day, /3day, /7day
 ;HISTORY:
 ; 2023-09-05, jmm, jimm@ssl.berkeley.edu
+; 2023-10-11, jmm, Input date is now the end time?
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-09-19 10:23:42 -0700 (Tue, 19 Sep 2023) $
-; $LastChangedRevision: 32105 $
+; $LastChangedDate: 2023-10-16 11:30:50 -0700 (Mon, 16 Oct 2023) $
+; $LastChangedRevision: 32187 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_spaceweather_overplot.pro $
 ;-
 Pro mvn_spaceweather_overplot, date = date, time_range = time_range, $
@@ -66,13 +68,13 @@ Pro mvn_spaceweather_overplot, date = date, time_range = time_range, $
      mvn_spaceweather, /tplot, /rtn, /overplot, tavg=300.d0
   Endif Else If(keyword_set(date)) Then Begin
      If(keyword_set(makepng)) Then Begin
-        tr0 = time_double(date)+[0.0d0, 7*one_day]
+        tr0 = time_double(date)+[-7.*one_day, 0.0d0]
         If(time_double(tr0[0]) Lt time_double('2014-10-12T12:00:00')) Then Begin
            dprint, 'Date too early: '+time_string(tr0[0])
            Return
         Endif
-        tr3 = time_double(date)+[0.0d0, 3*one_day]
-        tr1 = time_double(date)+[0.0d0, one_day]
+        tr3 = time_double(date)+[-3.*one_day, 0.0d0]
+        tr1 = time_double(date)+[-1.*one_day, 0.0d0]
 ;do 7 day plot
         timespan, tr0[0], 7, /days
         mvn_spaceweather, /tplot, /rtn, /overplot, tavg=300.d0
