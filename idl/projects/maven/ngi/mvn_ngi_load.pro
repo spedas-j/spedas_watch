@@ -33,9 +33,9 @@
 ;       Requires IDL 7.1 or later to read in .csv files
 ;       Use 'mvn_ngi_read_csv' to load ql data
 ;
-; $LastChangedBy: hara $
-; $LastChangedDate: 2023-09-27 17:03:06 -0700 (Wed, 27 Sep 2023) $
-; $LastChangedRevision: 32140 $
+; $LastChangedBy: haraday $
+; $LastChangedDate: 2023-10-17 05:39:32 -0700 (Tue, 17 Oct 2023) $
+; $LastChangedRevision: 32191 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/ngi/mvn_ngi_load.pro $
 ;-
 
@@ -53,10 +53,12 @@ pro mvn_ngi_load, mspec=mspec, trange=trange, filetype=filetype, verbose=verbose
      if level eq 'l3' then quant_mass = ['temperature']
   endif
   if keyword_set(cps_dt) then quant_mass = [quant_mass,'cps_dt']
+  latest_flg = 0
   if ~keyword_set(nolatest) and ~keyword_set(version) and ~keyword_set(revision) then latest_flg = 1
   if ~keyword_set(version) then version = '??'   ;- to be overwritten by latest version unless /nolatest is set
   if ~keyword_set(revision) then revision = '??' ;- to be overwritten by latest revision unless /nolatest is set
-
+  if keyword_set(nolatest) then if nolatest eq -1 then latest_flg = 2 ;- experimental mode, latest version for each meas.
+  
   for i_filetype=0,n_elements(filetype)-1 do begin ;- loop through filetypes
 
     ;remove any remote-index.html files so that multiple days in a given month will load jmm, 2019-04-09
@@ -71,7 +73,22 @@ pro mvn_ngi_load, mspec=mspec, trange=trange, filetype=filetype, verbose=verbose
      ;;; retrieve files
      if ~keyword_set(files) then begin
         if keyword_set(latest_flg) then urls = mvn_ngi_remote_list(trange=trange,filetype=filetype[i_filetype],latestversion=version,latestrevision=revision,_extra=_extra,verbose=verbose,level=level) ;- check latest version and revision numbers
-        if strlen(version) eq 2 then begin
+        if latest_flg eq 2 and total(strlen(urls)) gt 0 then begin ;- experimental mode, latest version for each meas.
+           meas_number = replicate('',n_elements(urls))
+           for i=0,n_elements(urls)-1 do meas_number[i] = $
+              strmid( file_basename(urls[i]) , strpos(file_basename(urls[i]),'abund-')+6, $
+                      strpos(file_basename(urls[i]),'_20')-strpos(file_basename(urls[i]),'abund-')-6 )
+           uniq_meas_number = meas_number[uniq(meas_number)]
+           for imeas=0,n_elements(uniq_meas_number)-1 do begin
+              files_now = file_basename(urls[where(strmatch(urls,'*abund-'+uniq_meas_number[imeas]+'*'))])
+              vvv_rrr = replicate('',n_elements(files_now))
+              for i=0,n_elements(files_now)-1 do vvv_rrr[i] = strmid( files_now[i] , strpos(files_now[i],'_v') , 8 )
+              sort_vvv_rrr = sort(vvv_rrr)
+              latest_file = files_now[sort_vvv_rrr[-1]]
+              pformat = 'maven/data/sci/ngi/'+level+'/YYYY/MM/'+latest_file
+              append_array, f, mvn_pfp_file_retrieve(pformat,/daily_names,/last_version,/valid_only,trange=trange,verbose=verbose, _extra=_extra)
+           endfor
+        endif else if strlen(version) eq 2 then begin
            pformat = 'maven/data/sci/ngi/'+level+'/YYYY/MM/mvn_ngi_'+level+'_'+filetype[i_filetype]+'-*_YYYYMMDDThh????_v'+version+'_r'+revision+'.csv'
            f = mvn_pfp_file_retrieve(pformat,/hourly_names,/last_version,/valid_only,trange=trange,verbose=verbose, _extra=_extra)
         endif else f = ''
