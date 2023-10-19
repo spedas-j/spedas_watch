@@ -34,8 +34,8 @@
 ;       Use 'mvn_ngi_read_csv' to load ql data
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2023-10-17 05:39:32 -0700 (Tue, 17 Oct 2023) $
-; $LastChangedRevision: 32191 $
+; $LastChangedDate: 2023-10-17 19:55:36 -0700 (Tue, 17 Oct 2023) $
+; $LastChangedRevision: 32200 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/ngi/mvn_ngi_load.pro $
 ;-
 
@@ -74,6 +74,7 @@ pro mvn_ngi_load, mspec=mspec, trange=trange, filetype=filetype, verbose=verbose
      if ~keyword_set(files) then begin
         if keyword_set(latest_flg) then urls = mvn_ngi_remote_list(trange=trange,filetype=filetype[i_filetype],latestversion=version,latestrevision=revision,_extra=_extra,verbose=verbose,level=level) ;- check latest version and revision numbers
         if latest_flg eq 2 and total(strlen(urls)) gt 0 then begin ;- experimental mode, latest version for each meas.
+           undefine,f
            meas_number = replicate('',n_elements(urls))
            for i=0,n_elements(urls)-1 do meas_number[i] = $
               strmid( file_basename(urls[i]) , strpos(file_basename(urls[i]),'abund-')+6, $
@@ -86,8 +87,11 @@ pro mvn_ngi_load, mspec=mspec, trange=trange, filetype=filetype, verbose=verbose
               sort_vvv_rrr = sort(vvv_rrr)
               latest_file = files_now[sort_vvv_rrr[-1]]
               pformat = 'maven/data/sci/ngi/'+level+'/YYYY/MM/'+latest_file
-              append_array, f, mvn_pfp_file_retrieve(pformat,/daily_names,/last_version,/valid_only,trange=trange,verbose=verbose, _extra=_extra)
+              YYYYMMDD_now = strmid( latest_file , strpos(latest_file,'_20')+1 , 8 )
+              trange_now = time_double(YYYYMMDD_now,tf='YYYYMMDD')+[0,86400d]
+              append_array, f, mvn_pfp_file_retrieve(pformat,/daily_names,/last_version,/valid_only,trange=trange_now,verbose=verbose, _extra=_extra)
            endfor
+           if size(f,/type) eq 0 then f = ''
         endif else if strlen(version) eq 2 then begin
            pformat = 'maven/data/sci/ngi/'+level+'/YYYY/MM/mvn_ngi_'+level+'_'+filetype[i_filetype]+'-*_YYYYMMDDThh????_v'+version+'_r'+revision+'.csv'
            f = mvn_pfp_file_retrieve(pformat,/hourly_names,/last_version,/valid_only,trange=trange,verbose=verbose, _extra=_extra)
