@@ -9,8 +9,8 @@
 ;
 ; Author: Davin Larson and Roberto Livi
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2023-07-09 19:44:14 -0700 (Sun, 09 Jul 2023) $
-; $LastChangedRevision: 31948 $
+; $LastChangedDate: 2023-10-21 18:50:42 -0700 (Sat, 21 Oct 2023) $
+; $LastChangedRevision: 32205 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/mag/mvn_mag_load.pro $
 ;-
 
@@ -144,12 +144,13 @@ pro mvn_mag_load,format,trange=trange,files=files,download_only=download_only,tp
       endif
 
       if keyword_set(tplot_flag) then store_data,'mvn_B_'+res,str_all.time,transpose(str_all.vec),dlimit={spice_frame:frame}
-      options,/def,'mvn_B_'+res,sclk_ver=sclk_ver,level=level,labflag=-1,labels=['Bx','By','Bz'],colors='bgr',ysubtitle=level+' [nT]'
+      options,/def,'mvn_B_'+res,sclk_ver=sclk_ver,level=level,labflag=-1,labels=['Bx','By','Bz'],colors='bgr',ysubtitle=level+' '+mprod+' '+mag_frame+' [nT]'
       if (size(spice_frame,/type) eq 7) then begin
         from_frame = frame
         to_frame   = mvn_frame_name(spice_frame[0], success=ok)
         if (ok) then begin
-          utc=time_string(str_all.time)
+          ;utc=time_string(str_all.time)
+          utc=str_all.time
           new_vec=spice_vector_rotate(str_all.vec,utc,from_frame,to_frame,check_objects='MAVEN_SPACECRAFT')
           store_data,'mvn_B_'+res+'_'+to_frame,str_all.time,transpose(new_vec),dlimit={spice_frame:to_frame}
           options,/def,'mvn_B_'+res+'_'+to_frame,sclk_ver=sclk_ver,level=level,labflag=-1,labels=['Bx','By','Bz'],colors='bgr',ysubtitle=level+' [nT]'
