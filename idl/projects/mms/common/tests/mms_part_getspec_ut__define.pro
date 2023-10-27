@@ -6,9 +6,9 @@
 ;     IDL> mgunit, 'mms_part_getspec_ut'
 ;
 ;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2019-04-10 09:35:35 -0700 (Wed, 10 Apr 2019) $
-; $LastChangedRevision: 26987 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2023-10-26 15:20:30 -0700 (Thu, 26 Oct 2023) $
+; $LastChangedRevision: 32208 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_part_getspec_ut__define.pro $
 ;-
 
@@ -25,6 +25,7 @@ end
 
 ; the following produce validation plots that compare DIS and HPCA spectra
 function mms_part_getspec_ut::test_dis_hpca_cold
+  assert,(!d.name ne "Z"),"Graphics not available",/skip
   mms_part_getspec, energy=[0, 300], suffix='_cold', instrument='hpca', trange=['2017-08-12/23', '2017-08-12/24'], output=['energy', 'pa', 'gyro', 'phi', 'theta'], probe=3
   mms_part_getspec, energy=[0, 300], suffix='_cold', species='i', instrument='fpi', trange=['2017-08-12/23', '2017-08-12/24'], output=['energy','phi','theta','pa','gyro'], probe=3
   tplot, ['mms3_dis_dist_fast_pa_cold', 'mms3_hpca_hplus_phase_space_density_pa_cold']
@@ -39,6 +40,7 @@ function mms_part_getspec_ut::test_dis_hpca_cold
 end
 
 function mms_part_getspec_ut::test_dis_hpca_full
+  assert,(!d.name ne "Z"),"Graphics not available",/skip
   mms_part_getspec, suffix='_full', instrument='hpca', trange=['2017-08-12/23', '2017-08-12/24'], output=['energy', 'pa', 'gyro', 'phi', 'theta'], probe=3
   mms_part_getspec, suffix='_full', species='i', instrument='fpi', trange=['2017-08-12/23', '2017-08-12/24'], output=['energy','phi','theta','pa','gyro'], probe=3
   tplot, ['mms3_dis_dist_fast_pa_full', 'mms3_hpca_hplus_phase_space_density_pa_full']
