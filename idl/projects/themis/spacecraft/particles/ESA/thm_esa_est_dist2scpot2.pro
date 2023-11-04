@@ -90,8 +90,8 @@ End
 ;HISTORY:
 ; 3-mar-2016, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2023-02-07 12:43:23 -0800 (Tue, 07 Feb 2023) $
-; $LastChangedRevision: 31480 $
+; $LastChangedDate: 2023-11-03 13:14:18 -0700 (Fri, 03 Nov 2023) $
+; $LastChangedRevision: 32215 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_esa_est_dist2scpot2.pro $
 ;-
 
@@ -226,7 +226,7 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, yellow=yellow, $
                  scpot[j] = scpot_dens
               Endif
            Endif
-; One last sanity check, calculate the density, using momenst_3d.pro
+; One last sanity check, calculate the density, using moments_3d.pro
            If(keyword_set(densmatch) && (scpot[j] Ne scpot_dens)) Then Begin
               If(edj.valid Ne 0) Then Begin
                  em0 = moments_3d(edj,sc_pot=scpot[j],/dens_only)
@@ -240,7 +240,7 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, yellow=yellow, $
               Endif Else dim0 = 0.0
               If(dem0 Gt 0 And dim0 Gt 0) Then Begin
                  fraction = dem0/dim0
-                 If(fraction Gt 2.0 Or fraction Lt 0.5) Then $
+                 If(fraction Gt 10.0 Or fraction Lt 0.10) Then $
                     scpot[j] = scpot_dens
               Endif Else scpot[j] = scplo
            Endif
@@ -248,7 +248,7 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, yellow=yellow, $
      Endif
 ;     if(j eq 1340) then stop
   Endfor
-
+  scpot = scpot < scphi
   dlim = {ysubtitle:'[Volts]', units:'volts'}
   store_data, thx+'_est_scpot', data = {x:dr.x, y:scpot}, dlimits = dlim
   options, thx+'_est_scpot', 'yrange', [0.0, scphi]
