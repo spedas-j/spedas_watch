@@ -54,9 +54,9 @@
 ;                     text : brief descriptions of configuration changes
 ;                     type : types of configuration changes (see above)
 ;
-; $LastChangedBy: xussui_lap $
-; $LastChangedDate: 2023-05-12 11:26:22 -0700 (Fri, 12 May 2023) $
-; $LastChangedRevision: 31858 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2023-11-07 16:01:35 -0800 (Tue, 07 Nov 2023) $
+; $LastChangedRevision: 32218 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_config.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -191,10 +191,15 @@ pro mvn_swe_config, list=list, timebar=tbar
   t_swp = [t_swp, time_double('2022-04-22/00:00:00')]
   m_swp = [m_swp, 'sweep table 9 upload (32-Hz, 125 eV)']
 
-  t_mcp = [t_mcp, time_double('2023-02-10/00:00:00')]
+; 2022-10-01/00:00                                     ; beginning of EM-5
+
+  t_mcp = [t_mcp, time_double('2023-09-21/18:50:41')]
+  m_mcp = [m_mcp, 'MCP bias adjustment (2875 -> 2925 V)']
+
+  t_mcp = [t_mcp, time_double('2023-10-24/00:00:00')]
   m_mcp = [m_mcp, 'last SWE-SWI cross calibration']
 
-; 2022-10-01/00:00                                     ; beginning of EM-5
+; 2025-10-01/00:00                                     ; beginning of EM-6
 
 ; Gather configuration changes into one variable.
 

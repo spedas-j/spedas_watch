@@ -61,9 +61,9 @@
 ;
 ;       TEST:         Returns calibration used.  For testing.
 ;
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-06-30 14:37:17 -0700 (Fri, 30 Jun 2023) $
-; $LastChangedRevision: 31920 $
+; $LastChangedBy: xussui_lap $
+; $LastChangedDate: 2023-11-07 16:25:19 -0800 (Tue, 07 Nov 2023) $
+; $LastChangedRevision: 32220 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_flatfield.pro $
 ;
 ;CREATED BY:    David L. Mitchell  2016-09-28
@@ -78,7 +78,7 @@ function mvn_swe_flatfield, time, nominal=nominal, off=off, set=set, silent=sile
 ; Initialize the common block, if necessary
 
   if ((size(cc_t,/type) eq 0) or (keyword_set(init))) then begin
-    kmax = 14
+    kmax = 15
     swe_ff = replicate(1.,96,kmax+1)
 
 ;   Solar wind calibration period 1  (2014-10-27 to 2015-03-14).
@@ -304,7 +304,26 @@ function mvn_swe_flatfield, time, nominal=nominal, off=off, set=set, silent=sile
                      0.977189 , 0.972475 , 0.904273 , 0.891102 , 0.896324 , 0.871563 , $
                      1.049923 , 1.021530 , 1.010078 , 1.037852 , 0.777153 , 0.840176 ]
 
-;   Centers of solar wind calibration periods 1-19
+;   Solar wind calibration period 21 (2023-09-30 to 2023-10-30)
+
+    swe_ff[*, 15] = [1.000000 , 1.000000 , 1.000000 , 1.000000 , 0.896273 , 0.886541 , $
+                     1.081345 , 1.064313 , 0.895131 , 0.850151 , 1.040655 , 0.973815 , $
+                     1.077251 , 1.034949 , 1.000000 , 1.000000 , 1.000000 , 1.000000 , $
+                     1.000000 , 1.020625 , 0.938726 , 1.325265 , 1.346617 , 1.323238 , $
+                     1.225638 , 1.348874 , 1.440571 , 1.473647 , 1.557898 , 1.493899 , $
+                     1.189180 , 1.000000 , 0.780972 , 1.033496 , 1.265799 , 1.416662 , $
+                     1.394891 , 1.331487 , 1.283056 , 1.266376 , 1.206718 , 1.331746 , $
+                     1.428071 , 1.413332 , 1.506012 , 1.454307 , 1.385432 , 1.240536 , $
+                     0.705763 , 1.120554 , 1.184745 , 1.198814 , 1.170128 , 1.199803 , $
+                     1.187047 , 1.182468 , 1.092150 , 1.214096 , 1.290974 , 1.290581 , $
+                     1.361703 , 1.321161 , 1.226761 , 1.159629 , 0.620061 , 0.915397 , $
+                     0.969908 , 1.099432 , 1.058324 , 1.021515 , 1.008483 , 1.093832 , $
+                     0.968724 , 1.020124 , 1.117098 , 1.171770 , 1.174616 , 1.088552 , $
+                     1.029517 , 1.037867 , 0.725988 , 0.734716 , 1.067887 , 1.066734 , $
+                     0.907256 , 0.924691 , 0.882955 , 0.889861 , 0.840278 , 0.816307 , $
+                     0.946400 , 0.922229 , 0.965200 , 0.956521 , 0.828224 , 0.851105]
+
+;   Centers of solar wind calibration periods 1-21
 
     tt = time_double(['2014-12-22', $    ; Solar Wind 1
                       '2015-08-02', $    ; Solar Wind 2
@@ -319,7 +338,8 @@ function mvn_swe_flatfield, time, nominal=nominal, off=off, set=set, silent=sile
                       '2019-11-22', $    ; Solar Wind 11
                       '2020-09-01', $    ; Solar Wind 13
                       '2021-11-30', $    ; Solar Wind 16
-                      '2023-01-01'  $    ; Solar Wind 19
+                      '2023-01-01', $    ; Solar Wind 19
+                      '2023-10-15'  $    ; Solar Wind 21
                       ])  
 
     cc_t = mvn_swe_crosscal(tt,/silent)
@@ -387,7 +407,7 @@ function mvn_swe_flatfield, time, nominal=nominal, off=off, set=set, silent=sile
       test = frac + 7.
     endif
 
-;   Solar Wind 9 through first month of Solar Wind 11.
+;   Solar Wind 9 through first month of Solar Wind 21.
 
     if (t ge t_mcp[8]) then begin
       frac = (((cc - cc_t[8])/(cc_t[13] - cc_t[8])) > 0.) < 1.
@@ -395,6 +415,14 @@ function mvn_swe_flatfield, time, nominal=nominal, off=off, set=set, silent=sile
       test = frac + 9.
     endif
 
+;   Solar Wind 21 onward.
+
+    if (t ge t_mcp[9]) then begin
+        frac = 1;(((cc - cc_t[8])/(cc_t[14] - cc_t[8])) > 0.) < 1. ;because of the first cal under the new MCP
+        swe_ogf = swe_ff[*,15]*(1. - frac) + swe_ff[*,15]*frac
+        test = frac + 10.;9.
+    endif
+    
 ;   Override this with a specific calibration, if requested --> for testing
 
     if keyword_set(calnum) then swe_ogf = swe_ff[*,(calnum > 0) < kmax]
