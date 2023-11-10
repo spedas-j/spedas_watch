@@ -7,8 +7,8 @@
 ;
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2023-10-26 15:20:30 -0700 (Thu, 26 Oct 2023) $
-; $LastChangedRevision: 32208 $
+; $LastChangedDate: 2023-11-09 10:31:32 -0800 (Thu, 09 Nov 2023) $
+; $LastChangedRevision: 32226 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/common/tests/mms_part_getspec_ut__define.pro $
 ;-
 
@@ -30,10 +30,10 @@ function mms_part_getspec_ut::test_dis_hpca_cold
   mms_part_getspec, energy=[0, 300], suffix='_cold', species='i', instrument='fpi', trange=['2017-08-12/23', '2017-08-12/24'], output=['energy','phi','theta','pa','gyro'], probe=3
   tplot, ['mms3_dis_dist_fast_pa_cold', 'mms3_hpca_hplus_phase_space_density_pa_cold']
   makepng, 'dis-vs-hpca-pa-cold'
-  window, 1, retain=2
+  if (!d.name ne "Z") then window, 1, retain=2
   tplot, window=1, ['mms3_dis_dist_fast_gyro_cold', 'mms3_hpca_hplus_phase_space_density_gyro_cold']
   makepng, 'dis-vs-hpca-gyro-cold'
-  window, 2, retain=2
+  if (!d.name ne "Z") then window, 2, retain=2
   tplot, window=2, ['mms3_dis_dist_fast_energy_cold', 'mms3_hpca_hplus_phase_space_density_energy_cold']
   makepng, 'dis-vs-hpca-energy-cold'
   return, 1
@@ -46,11 +46,11 @@ function mms_part_getspec_ut::test_dis_hpca_full
   tplot, ['mms3_dis_dist_fast_pa_full', 'mms3_hpca_hplus_phase_space_density_pa_full']
   makepng, 'dis-vs-hpca-pa-full'
   flatten_spectra, /ylog, time='2017-08-12/23:35:12', /png
-  window, 1, retain=2
+  if (!d.name ne "Z") then window, 1, retain=2
   tplot, window=1, ['mms3_dis_dist_fast_gyro_full', 'mms3_hpca_hplus_phase_space_density_gyro_full']
   makepng, 'dis-vs-hpca-gyro-full'
   flatten_spectra, /ylog, time='2017-08-12/23:35:12', /png
-  window, 2, retain=2
+  if (!d.name ne "Z") then window, 2, retain=2
   tplot, window=2, ['mms3_dis_dist_fast_energy_full', 'mms3_hpca_hplus_phase_space_density_energy_full']
   makepng, 'dis-vs-hpca-energy-full'
   flatten_spectra, /ylog, time='2017-08-12/23:35:12', /png

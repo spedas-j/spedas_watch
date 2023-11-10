@@ -18,14 +18,14 @@
 ;CREATED BY:      Takuya Hara on 2015-04-04.
 ;
 ;LAST MODIFICATION:
-; $LastChangedBy: haraday $
-; $LastChangedDate: 2022-06-30 22:38:06 -0700 (Thu, 30 Jun 2022) $
-; $LastChangedRevision: 30896 $
+; $LastChangedBy: hara $
+; $LastChangedDate: 2023-11-09 16:59:57 -0800 (Thu, 09 Nov 2023) $
+; $LastChangedRevision: 32228 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/spice/mex_spice_load.pro $
 ;
 ;-
-PRO mex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
-                    download_only=download_only, verbose=verbose, resolution=resolution, deg=deg, store=store
+PRO mex_spice_load, trange=time, kernels=kernels, pos=pos, notplot=notplot, _extra=extra, $
+                    download_only=download_only, verbose=verbose, resolution=resolution, deg=deg, store=store, clear=clear
 
   IF SIZE(time, /type) EQ 0 THEN get_timespan, trange $
   ELSE BEGIN
@@ -34,8 +34,11 @@ PRO mex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
      trange = minmax(trange)
   ENDELSE
 
-  kernels = mex_spice_kernels(/all, /clear, /load, trange=trange, verbose=verbose, _extra=extra)
+  IF undefined(clear) THEN cflg = 1 ELSE cflg = FIX(clear)
+  kernels = mex_spice_kernels(/all, clear=cflg, /load, trange=trange, verbose=verbose, _extra=extra)
 
+  IF KEYWORD_SET(download_only) THEN RETURN
+  
   IF SIZE(resolution, /type) EQ 0 THEN res = 60d ELSE res = DOUBLE(resolution)  
   times = dgen(range=timerange(trange), res=res) ; 60 second time resolution is default.
   
@@ -91,7 +94,7 @@ PRO mex_spice_load, trange=time, kernels=kernels, pos=pos, _extra=extra, $
      mex_eph.sza  = pos.sza
   ENDIF 
 
-  IF KEYWORD_SET(download_only) THEN RETURN
+  IF KEYWORD_SET(notplot) THEN RETURN
   
   lon *= !RADEG
   lat *= !RADEG
