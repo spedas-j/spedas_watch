@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-04-10 00:22:25 -0700 (Mon, 10 Apr 2023) $
-; $LastChangedRevision: 31719 $
+; $LastChangedDate: 2023-11-10 22:27:01 -0800 (Fri, 10 Nov 2023) $
+; $LastChangedRevision: 32230 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -151,7 +151,7 @@ pro DynamicArray::append, a1, error = error,replace=replace
       *a0 = [a1]
       dim0 = size(/dimension,*a0)
       self.size = dim0[0]
-      if self.dict.haskey('tplot_tagnames') then begin   ; This feature may be disabled in the future  - DON"T use
+      if self.dict.haskey('tplot_tagnames') then begin   ; This feature may be disabled in the future  - DON'T use
         tags = self.dict.tplot_tagnames
         dprint,dlevel=2,verbose=self.verbose,'Creating TPLOT variables: '+self.name+'_['+strjoin(tags,',')+']'
         store_data,verbose=0,self.name,data= self ,tagnames=tags,/silent  ;,separator = '_'
@@ -279,7 +279,7 @@ function DynamicArray::sample,nearest=nearest,range=range,tagname=tagname
     tag_num = where(/null,tag_names(*self.ptr_array) eq strupcase(tagname))
     if isa(tag_num) then begin
       vals= ((*self.ptr_array).(tag_num))[0:self.size-1,*,*,*]
-      if isa(nearest) then begin
+      if keyword_set(nearest) then begin
         w = interp(dindgen(self.size),vals,nearest,/last_value)
         ;printdat,w,vals[w],vals[w]-nearest
         vals = (*self.ptr_array)[w,*,*,*]  

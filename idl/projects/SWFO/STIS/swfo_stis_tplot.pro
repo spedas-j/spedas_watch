@@ -1,11 +1,11 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-07-13 10:47:29 -0700 (Thu, 13 Jul 2023) $
-; $LastChangedRevision: 31952 $
+; $LastChangedDate: 2023-11-10 22:13:51 -0800 (Fri, 10 Nov 2023) $
+; $LastChangedRevision: 32229 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
 
-pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,powerlim=powerlim
+pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,powerlim=powerlim
 
   
   if keyword_set(ionlim) then begin
@@ -23,7 +23,19 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,powerlim=powerlim
     options,'gse_kpa-?_F1',/default,neg_colors='r',/ylog,yrange=[1e-13,1e-6],ystyle=3
     options,'gse_kpa-1_F1',/default,colors='b'
     options,'gp37_vg_IG?',max_value=1000.,/ylog
+    options,'gse_cntr_FREQ',yrange=[1.,1.],/ylog,max_value=1e10
   endif
+
+  if keyword_set(eleclim) then begin
+    store_data,'Vac_Pressure',data='gp37_vg_???',dlim={yrange:[1e-6,1e-4],ylog:1}
+    options,'gp37_vg_??1',colors='b'
+    options,'gp37_vg_??2',colors='r'
+    options,'gp37_vg_IG?',max_value=1000.,/ylog
+    options,'hvs_5_VOLTAGE',neg_colors='r',yrange=[0,42000.]
+    options,'hvs_5_CURRENT',yrange = [1e-7,1e-4],/ylog
+    options,'stis_l1a_SPEC_??',yrange=[0,100],ylog=0
+  endif
+
 
   if keyword_set(powerlim) then begin
     store_data,'PS_Current',data= 'KEYSIGHT2__I[23]
@@ -102,7 +114,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,powerlim=powerlim
     tplot_options,'wshow',0
   endif
 
-  if ~keyword_set(name) then name = 'sum2'
+  if ~keyword_set(name) then name = 'none'
   plot_name = strupcase(strtrim(name,2))
   case plot_name of
     'SUM1': tplot,add=add,'*hkp1_USER_0A *hkp1_STATE_MACHINE_ERRORS swfo_stis_DURATION *hkp1_PPS_* *hkp?_DAC_* *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp1_CMDS_RECEIVED *hkp1_CMDS_BAD *hkp1_*REMAIN* *hkp1_*BITS *hkp1_*CYCLES *hkp1_TEST_PULSE_WIDTH_1US *hkp1_COINCIDENCE_WINDOW* *hkp1_BIAS_CLOCK_PERIOD_2US *hkp1_ADC_*'
@@ -121,7 +133,9 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,powerlim=powerlim
     'DL4':  tplot,add=add,'*sci_RATE6 *hkp2_*BIAS* stis_l1a_SPEC_?? *nse_SIGMA *nse_BASELINE swfo_stis_hkp1_CMDS_EXECUTED'
     'LPT':  tplot,add=add,'*sci_RATE6 *hkp?_DAC_VALUES *sci*COUNTS *hkp3*REMAIN* *hkp1*REMAIN*'
     'SCIHKP': tplot,add=add,'*hkp2*SCI_*'
-    'IONGUN': tplot,add=add,'Vac_Pressure gse_kpa-?_F1 IG_*'
+    'IONGUN': tplot,add=add,'Vac_Pressure gse_kpa-?_F1 IG_* stis_l1a_SPEC_O[13]'
+    'EGUN' : tplot,add=add,'Vac_Pressure hvs_5*_VOLTAGE hvs_5*_CURRENT swfo_stis_sci_RATE6 stis_l1a_SPEC_F[13] manip_YAW
+    'TV' : tplot,add=add,'swfo_stis_hkp2_ADC_TEMPS *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6
     'PS':tplot,add=add,'PS_*'
     
     else: dprint,'Unknown code: '+strtrim(name,2)
