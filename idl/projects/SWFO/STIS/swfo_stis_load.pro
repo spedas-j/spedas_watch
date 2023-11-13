@@ -1,6 +1,6 @@
-;$LastChangedBy: ali $
-;$LastChangedDate: 2023-06-07 15:47:19 -0700 (Wed, 07 Jun 2023) $
-;$LastChangedRevision: 31890 $
+;$LastChangedBy: davin-mac $
+;$LastChangedDate: 2023-11-12 03:37:26 -0800 (Sun, 12 Nov 2023) $
+;$LastChangedRevision: 32234 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -235,7 +235,11 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       end
       'cmblk': begin        
         rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_cmblk')
-        rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)
+        if 1 then begin  ;new method
+          rdr.add_handler, 'raw_tlm',  gsemsg_reader(name='SWFO_reader',/no_widget)          
+        endif else begin
+          rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)          
+        endelse
      ;   rdr.add_handler, 'KEYSIGHTPS' ,  gse_keysight(name='Keysight',/no_widget,tplot_tagnames='*')
      ;   rdr.add_handler,'IONGUN1',  json_reader(name='IonGun1',no_widget=1,tplot_tagnames='*')
      ;   rdr.add_handler,'IONGUN',  json_reader(name='IonGun',no_widget=1,tplot_tagnames='*')
