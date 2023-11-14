@@ -1,15 +1,22 @@
-; $LastChangedBy:  $
-; $LastChangedDate: 2022-05-01 12:57:34 -0700 (Sun, 01 May 2022) $
-; $LastChangedRevision: 30793 $
-; $URL: svn+ssh://thmsvg_lun_read.pro $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2023-11-13 07:46:41 -0800 (Mon, 13 Nov 2023) $
+; $LastChangedRevision: 32242 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/packet_reader__define.pro $
 
 
 
 function packet_reader::header_struct,buf
   dprint,dlevel=5,verbose=self.verbose,buf ;,dwait=1
-  if n_elements(buf) lt self.header_size then return,!null
   
-  hdr_struct = {  time:0d,  size:0L }  
+  if n_elements(buf) lt self.header_size then return,!null
+  sync = self.source_dict.sync_pattern
+  nsync = n_elements(sync)
+  if nsync ne 0 && array_equal(buf,sync) eq 0 then return, !null
+  pkt_size = buf[nsync+4] * 256u + buf[nsync+5] + 7u         ; valid for CCSDS
+  seqn = ( buf[nsynq+2] *256u + buf[nsync+3] ) and '3F'xu
+  
+  hdr_struct = {  time:0d, apid:0u,   psize:psize, seqn:seqn }  
+  
  
    return,hdr_struct
 
@@ -46,11 +53,11 @@ pro packet_reader::read,source  ,source_dict=parent_dict
 
   ;printdat,source,/hex
   source_dict = self.source_dict
-  srcd = self.source_dict
+  dict = self.source_dict
 
   if ~source_dict.haskey('fifo') then begin
-    srcd.fifo = !null    ; this contains the unused bytes from a previous call
-    srcd.flag = 1
+    dict.fifo = !null    ; this contains the unused bytes from a previous call
+    dict.flag = 1
     ;self.verbose=3
   endif
 
@@ -68,7 +75,7 @@ pro packet_reader::read,source  ,source_dict=parent_dict
     if abs(fix(header.seqn - 3625)) lt 6  || ( header.size ne 134 && header.size ne 30 && header.size ne 268) then begin    ; trap to find problem
       dprint,header
       dprint
-      srcd.flag = 1
+      dict.flag = 1
     endif
 
   endif
@@ -96,12 +103,12 @@ pro packet_reader::read,source  ,source_dict=parent_dict
   endofdata = 0
   while ~endofdata do begin
 
-    if srcd.fifo eq !null then begin
-      srcd.n2read = 6
-      srcd.header_is_valid = 0
-      srcd.packet_is_valid = 0
+    if dict.fifo eq !null then begin
+      dict.n2read = 6
+      dict.header_is_valid = 0
+      dict.packet_is_valid = 0
     endif
-    nb = srcd.n2read
+    nb = dict.n2read
 
     buf= self.read_nbytes(nb,source,pos=nbytes)
     nbuf = n_elements(buf)
@@ -113,34 +120,34 @@ pro packet_reader::read,source  ,source_dict=parent_dict
 
     bytes_missing = nb - nbuf   ; the number of missing bytes in the read
 
-    srcd.fifo = [srcd.fifo,buf]
-    nfifo = n_elements(srcd.fifo)
+    dict.fifo = [dict.fifo,buf]
+    nfifo = n_elements(dict.fifo)
 
     if bytes_missing ne 0 then begin
-      srcd.n2read = bytes_missing
+      dict.n2read = bytes_missing
       if ~isa(buf) then endofdata =1
       continue
     endif
 
-    if srcd.header_is_valid eq 0 then begin
+    if dict.header_is_valid eq 0 then begin
       sync_pattern = ['A8'xb,'29'xb,'0'xb]
 
-      if (nfifo lt 6) || array_equal(srcd.fifo[0:2],sync_pattern) eq 0 then begin
-        srcd.fifo = srcd.fifo[1:*]
-        srcd.n2read = 1
+      if (nfifo lt 6) || array_equal(dict.fifo[0:2],sync_pattern) eq 0 then begin
+        dict.fifo = dict.fifo[1:*]
+        dict.n2read = 1
         nb = 1
         sync_errors += 1
         continue      ; read one byte at a time until sync is found
       endif
-      srcd.header_is_valid = 1
-      srcd.packet_is_valid = 0
+      dict.header_is_valid = 1
+      dict.packet_is_valid = 0
     endif
 
-    if ~srcd.packet_is_valid then begin
-      sz = srcd.fifo[4]*256L + srcd.fifo[5]
+    if ~dict.packet_is_valid then begin
+      sz = dict.fifo[4]*256L + dict.fifo[5]
       nb = sz * 2
-      srcd.n2read = nb
-      srcd.packet_is_valid = 1
+      dict.n2read = nb
+      dict.packet_is_valid = 1
       continue            ; continue to read the rest of the packet
     endif
 
@@ -151,24 +158,24 @@ pro packet_reader::read,source  ,source_dict=parent_dict
 
     ; if it reaches this point then a valid message header+payload has been read in
 
-    gsehdr  =  srcd.fifo[0:5]
-    payload =  srcd.fifo[6: nb+6 - 1]
+    gsehdr  =  dict.fifo[0:5]
+    payload =  dict.fifo[6: nb+6 - 1]
     
-    self.handle,srcd.fifo    ; process each packet
+    self.handle,dict.fifo    ; process each packet
 
 
-    if keyword_set(srcd.flag) && debug(3,self.verbose,msg='status') then begin
+    if keyword_set(dict.flag) && debug(3,self.verbose,msg='status') then begin
       dprint,verbose=self.verbose,dlevel=3,header
       ;dprint,'gsehdr: ',n_elements(gsehdr)
       ;hexprint,gsehdr
       ;dprint,'payload: ',n_elements(payload)
       ;hexprint,payload
-      dprint,'fifo: ', n_elements(srcd.fifo)
-      ;hexprint,srcd.fifo
+      dprint,'fifo: ', n_elements(dict.fifo)
+      ;hexprint,dict.fifo
       dprint
     endif
 
-    srcd.fifo = !null
+    dict.fifo = !null
 
   endwhile
 
@@ -292,6 +299,7 @@ PRO packet_reader__define
     inherits socket_reader, $    ; superclass
     ;ccsds_reader:   obj_new(), $         ; user definable object  not used
     ;gsemsg_reader:  obj_new(),  $
+    sync_size:  0 , $
     header_size:  0  $
 }
 END

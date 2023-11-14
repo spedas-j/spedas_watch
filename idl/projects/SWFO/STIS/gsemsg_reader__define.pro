@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-12 03:37:26 -0800 (Sun, 12 Nov 2023) $
-; $LastChangedRevision: 32234 $
+; $LastChangedDate: 2023-11-13 07:38:58 -0800 (Mon, 13 Nov 2023) $
+; $LastChangedRevision: 32239 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/gsemsg_reader__define.pro $
 
 
@@ -267,7 +267,14 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
           skipped++
         endwhile
         if skipped ne 0 then begin
-          dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word'
+          if source_dict.haskey('gse_header') then time= source_dict.gse_header.time else time=0d
+          dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word at '+time_string(time,prec=3)
+          if 1 then begin
+            ccsds_dict.last_ccsds_buf = !null                           ; Kill previous packet if sync was lost
+          endif
+;          if debug(2) then begin
+;            hexprint,msg_buf
+;          endif
         endif
         nbuf = n_elements(ccsds_dict.sync_ccsds_buf)
         if nbuf lt 10 then begin
@@ -282,9 +289,16 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
           ;      ccsds_dict.sync_ccsds_buf = sync_ccsds_buf
           break
         endif
-        ccsds_buf = ccsds_dict.sync_ccsds_buf[4:pkt_size+4-1]  ; not robust!!!
+        ccsds_buf = ccsds_dict.sync_ccsds_buf[4:pkt_size+4-1]  ; get rid of the syncword. not robust!!!
         if self.run_proc then  begin
-          swfo_ccsds_spkt_handler,ccsds_buf,source_dict=ccsds_dict
+          if 1 then begin                          ; This correction will attempt to throw out packets that were incomplete or corrupted
+            if ccsds_dict.haskey('last_ccsds_buf') && isa( ccsds_dict.last_ccsds_buf) then begin
+              swfo_ccsds_spkt_handler,ccsds_dict.last_ccsds_buf,source_dict=ccsds_dict         ; Process the previos complete packet
+            endif
+            ccsds_dict.last_ccsds_buf = ccsds_buf             ; Save the current packet and process later  
+          endif else begin
+            swfo_ccsds_spkt_handler,ccsds_buf,source_dict=ccsds_dict         ; Process the complete packet            
+          endelse
         endif
         if ccsds_dict.haskey('ccsds_writer') && obj_valid(ccsds_dict.ccsds_writer) then begin   ; hook to generate ccsds files
           ccsds_writer = ccsds_dict.ccsds_writer
@@ -302,10 +316,12 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
         endif else begin
           ccsds_dict.sync_ccsds_buf = ccsds_dict.sync_ccsds_buf[pkt_size+4:*]
         endelse
+        dprint,verbose=self.verbose,dlevel=4,'Endwhile'
       endwhile
     end
     else:    message,'GSE raw_tlm error - unknown code'
   endcase
+  dprint,verbose=self.verbose,dlevel=4,'End of handler'
 
 
 end
