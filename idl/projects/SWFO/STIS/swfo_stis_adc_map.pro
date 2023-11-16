@@ -2,8 +2,8 @@
 ;
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-13 07:46:41 -0800 (Mon, 13 Nov 2023) $
-; $LastChangedRevision: 32242 $
+; $LastChangedDate: 2023-11-15 10:49:27 -0800 (Wed, 15 Nov 2023) $
+; $LastChangedRevision: 32243 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_adc_map.pro $
 ; $ID: $
 ;-
@@ -141,7 +141,7 @@ function swfo_stis_adc_map, data_sample=data_sample
   adcmap.geom = geom_n
   
   if min(adcmap.dnrg) le 0 then begin
-    dprint,dlevel=2,'Coding error', min(adcmap.dnrg)
+    dprint,dlevel=3,'Coding error', min(adcmap.dnrg)
   endif
   
   return,adcmap
