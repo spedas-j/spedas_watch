@@ -1,6 +1,6 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-11-12 03:37:26 -0800 (Sun, 12 Nov 2023) $
-;$LastChangedRevision: 32234 $
+;$LastChangedDate: 2023-11-16 02:11:17 -0800 (Thu, 16 Nov 2023) $
+;$LastChangedRevision: 32245 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -207,7 +207,11 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         swfo_ptp_recorder,_extra=opts.tostruct(), exec_proc='swfo_ptp_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
       end
       'gsemsg': begin
-        rdr = swfo_raw_tlm(_extra= opts.tostruct())
+        if 1 then begin
+          rdr = gsemsg_reader(_extra= opts.tostruct())          
+        endif else begin
+          rdr = swfo_raw_tlm(_extra= opts.tostruct())
+        endelse
         opts.rdr = rdr
         
         if keyword_set(make_ccsds) then begin   ; this is a special hook to create ccsds files from gsemsg files

@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-13 07:38:58 -0800 (Mon, 13 Nov 2023) $
-; $LastChangedRevision: 32239 $
+; $LastChangedDate: 2023-11-16 02:11:17 -0800 (Thu, 16 Nov 2023) $
+; $LastChangedRevision: 32245 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/gsemsg_reader__define.pro $
 
 
@@ -68,6 +68,9 @@ end
 
 pro gsemsg_reader::read,source ,source_dict=parent_dict
 
+  ;dprint,n_elements(source)
+  ;hexprint,source
+  
   self.header_size = 6   ; this should be in the init function
   ;dwait = 10.
 
@@ -164,14 +167,22 @@ pro gsemsg_reader::read,source ,source_dict=parent_dict
     if ~srcd.packet_is_valid then begin
       sz = srcd.fifo[4]*256L + srcd.fifo[5]
       nb = sz * 2
-      srcd.n2read = nb
-      srcd.packet_is_valid = 1
+      if nb eq 0 then begin
+        dprint,verbose = self.verbose,dlevel=2,'Invalid GSEMSG: Packet length with zero length'
+        srcd.fifo = !null
+        ;nb = 1
+        ;srcd.packet_is_valid=0
+        ;srcd.header_is_valid=0
+      endif else begin
+        srcd.packet_is_valid =1        
+        srcd.n2read = nb
+      endelse
       continue            ; continue to read the rest of the packet
     endif
 
 
     if sync_errors ne 0 then begin
-      dprint,verbose=self.verbose,dlevel=3,sync_errors,' sync errors'
+      dprint,verbose=self.verbose,dlevel=2,sync_errors,' GSEMSG sync errors',dwait =4.
     endif
 
     ; if it reaches this point then a valid message header+payload has been read in
@@ -188,8 +199,8 @@ pro gsemsg_reader::read,source ,source_dict=parent_dict
       ;hexprint,gsehdr
       ;dprint,'payload: ',n_elements(payload)
       ;hexprint,payload
-      dprint,'fifo: ', n_elements(srcd.fifo)
-      ;hexprint,srcd.fifo
+      dprint,'fifo: ', n_elements(srcd.fifo)  ;,'   ',time_string(gsemsg.time)
+      hexprint,srcd.fifo
       dprint
     endif
 
@@ -227,6 +238,8 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
   msg_buf = buffer
   source_dict = self.source_dict
   buf = msg_buf[6:*]
+  ;dprint
+  
 
   case msg_buf[3] of
     'c1'x: begin
@@ -269,7 +282,8 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
         if skipped ne 0 then begin
           if source_dict.haskey('gse_header') then time= source_dict.gse_header.time else time=0d
           dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word at '+time_string(time,prec=3)
-          if 1 then begin
+          if 0 then begin
+            if ccsds_dict.haskey('last_ccsds_buf') && isa(ccsds_dict.last_ccsds_buf) then dprint,verbose=self.verbose,dlevel=2,'Killing previous packet because sync word was not detected'
             ccsds_dict.last_ccsds_buf = !null                           ; Kill previous packet if sync was lost
           endif
 ;          if debug(2) then begin
@@ -291,7 +305,7 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
         endif
         ccsds_buf = ccsds_dict.sync_ccsds_buf[4:pkt_size+4-1]  ; get rid of the syncword. not robust!!!
         if self.run_proc then  begin
-          if 1 then begin                          ; This correction will attempt to throw out packets that were incomplete or corrupted
+          if 0 then begin                          ; This correction will attempt to throw out packets that were incomplete or corrupted
             if ccsds_dict.haskey('last_ccsds_buf') && isa( ccsds_dict.last_ccsds_buf) then begin
               swfo_ccsds_spkt_handler,ccsds_dict.last_ccsds_buf,source_dict=ccsds_dict         ; Process the previos complete packet
             endif
