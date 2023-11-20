@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-13 07:41:52 -0800 (Mon, 13 Nov 2023) $
-; $LastChangedRevision: 32240 $
+; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
+; $LastChangedRevision: 32252 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_raw_tlm__define.pro $
 
 
@@ -59,6 +59,7 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
   dwait = 10.
   
   
+  ;dprint,n_elements(source)
   ;if n_elements(source) eq 0 then stop
 
  ; if n_elements(source gt 150) then begin
@@ -122,7 +123,7 @@ pro swfo_raw_tlm::read,source,source_dict=parent_dict
   endelse
   ;rsource = source
   while isa( (buf= self.read_nbytes(nb,source,pos=nbytes) ) ) do begin
-    if debug(5,self.verbose,msg='buf ') then begin
+    if debug(2,self.verbose,msg='buf ') then begin
       hexprint,buf
     endif
     if n_elements(buf) ne nb then begin

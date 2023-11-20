@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-10 22:13:51 -0800 (Fri, 10 Nov 2023) $
-; $LastChangedRevision: 32229 $
+; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
+; $LastChangedRevision: 32252 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -135,7 +135,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'SCIHKP': tplot,add=add,'*hkp2*SCI_*'
     'IONGUN': tplot,add=add,'Vac_Pressure gse_kpa-?_F1 IG_* stis_l1a_SPEC_O[13]'
     'EGUN' : tplot,add=add,'Vac_Pressure hvs_5*_VOLTAGE hvs_5*_CURRENT swfo_stis_sci_RATE6 stis_l1a_SPEC_F[13] manip_YAW
-    'TV' : tplot,add=add,'swfo_stis_hkp2_ADC_TEMPS *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6
+    'TV' : tplot,add=add,'swfo_stis_hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *nse_*RATE6 *sci_RATE6
     'PS':tplot,add=add,'PS_*'
     
     else: dprint,'Unknown code: '+strtrim(name,2)

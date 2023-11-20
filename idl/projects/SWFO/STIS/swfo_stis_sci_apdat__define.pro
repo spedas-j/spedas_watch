@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2023-05-09 19:58:43 -0700 (Tue, 09 May 2023) $
-; $LastChangedRevision: 31848 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
+; $LastChangedRevision: 32252 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -60,6 +60,7 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
     rate14:   total14,$
     sigma14:  total14,$
     avgbin14: total14,$
+    valid: 1, $
     gap:ccsds.gap}
 
   p=replicate(swfo_stis_nse_find_peak(),14)

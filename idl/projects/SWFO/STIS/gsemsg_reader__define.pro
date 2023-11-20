@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-16 02:11:17 -0800 (Thu, 16 Nov 2023) $
-; $LastChangedRevision: 32245 $
+; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
+; $LastChangedRevision: 32252 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/gsemsg_reader__define.pro $
 
 
@@ -66,14 +66,16 @@ end
 ;  When a complete MSG header and its enclosed CCSDS packet are read in, it will execute the routine "swfo_ccsds_spkt_handler"
 ;-
 
-pro gsemsg_reader::read,source ,source_dict=parent_dict
+pro gsemsg_reader::read,source     ; ,source_dict=parent_dict
 
   ;dprint,n_elements(source)
   ;hexprint,source
   
   self.header_size = 6   ; this should be in the init function
   ;dwait = 10.
-
+  dict = self.source_dict
+  if dict.haskey('parent_dict') then parent_dict = dict.parent_dict
+  
   if isa(parent_dict,'dictionary') &&  parent_dict.haskey('cmbhdr') then begin
     header = parent_dict.cmbhdr
     dprint,dlevel=4,verbose=self.verbose,header.description,'  ',header.size
@@ -83,12 +85,12 @@ pro gsemsg_reader::read,source ,source_dict=parent_dict
   endelse
 
 
-  source_dict = self.source_dict
-  srcd = self.source_dict
+  ;source_dict = self.source_dict
+  ;dict = self.source_dict
 
-  if ~source_dict.haskey('fifo') then begin
-    srcd.fifo = !null    ; this contains the unused bytes from a previous call
-    srcd.flag = 0
+  if ~dict.haskey('fifo') then begin
+    dict.fifo = !null    ; this contains the unused bytes from a previous call
+    dict.flag = 0
     ;self.verbose=3
   endif
 
@@ -96,40 +98,40 @@ pro gsemsg_reader::read,source ,source_dict=parent_dict
     if abs(fix(header.seqn - 3625)) lt 6  || ( header.size ne 134 && header.size ne 30 && header.size ne 268) then begin    ; trap to find problem
       dprint,header
       dprint
-      srcd.flag = 1
-    endif else srcd.flag = 0
+      dict.flag = 1
+    endif else dict.flag = 0
 
   endif
 
 
 
   if debug(4,self.verbose,msg='test') then begin
-    ;printdat,source_dict
-    print,n_elements(source_dict.sync_ccsds_buf),n_elements(source)
+    ;printdat,dict
+    print,n_elements(dict.sync_ccsds_buf),n_elements(source)
     hexprint,source
   endif
 
   on_ioerror, nextfile
   time = systime(1)
-  source_dict.time_received = time
+  dict.time_received = time
 
-  msg = time_string(source_dict.time_received,tformat='hh:mm:ss.fff -',local=localtime)
+  msg =''; time_string(dict.time_received,tformat='hh:mm:ss.fff -',local=localtime)
 
   ;remainder = !null
-  ;remainder = source_dict.remainder_gsemsg
-  ;source_dict.remainder_gsemsg = !null
+  ;remainder = dict.remainder_gsemsg
+  ;dict.remainder_gsemsg = !null
   nbytes = 0UL
   sync_errors =0ul
   total_bytes = 0L
   endofdata = 0
   while ~endofdata do begin
 
-    if srcd.fifo eq !null then begin
-      srcd.n2read = 6
-      srcd.header_is_valid = 0
-      srcd.packet_is_valid = 0
+    if dict.fifo eq !null then begin
+      dict.n2read = 6
+      dict.header_is_valid = 0
+      dict.packet_is_valid = 0
     endif
-    nb = srcd.n2read
+    nb = dict.n2read
 
     buf= self.read_nbytes(nb,source,pos=nbytes)
     nbuf = n_elements(buf)
@@ -141,41 +143,41 @@ pro gsemsg_reader::read,source ,source_dict=parent_dict
 
     bytes_missing = nb - nbuf   ; the number of missing bytes in the read
 
-    srcd.fifo = [srcd.fifo,buf]
-    nfifo = n_elements(srcd.fifo)
+    dict.fifo = [dict.fifo,buf]
+    nfifo = n_elements(dict.fifo)
 
     if bytes_missing ne 0 then begin
-      srcd.n2read = bytes_missing
+      dict.n2read = bytes_missing
       if ~isa(buf) then endofdata =1
       continue
     endif
 
-    if srcd.header_is_valid eq 0 then begin
+    if dict.header_is_valid eq 0 then begin
       sync_pattern = ['A8'xb,'29'xb,'0'xb]
 
-      if (nfifo lt 6) || array_equal(srcd.fifo[0:2],sync_pattern) eq 0 then begin
-        srcd.fifo = srcd.fifo[1:*]
-        srcd.n2read = 1
+      if (nfifo lt 6) || array_equal(dict.fifo[0:2],sync_pattern) eq 0 then begin
+        dict.fifo = dict.fifo[1:*]
+        dict.n2read = 1
         nb = 1
         sync_errors += 1
         continue      ; read one byte at a time until sync is found
       endif
-      srcd.header_is_valid = 1
-      srcd.packet_is_valid = 0
+      dict.header_is_valid = 1
+      dict.packet_is_valid = 0
     endif
 
-    if ~srcd.packet_is_valid then begin
-      sz = srcd.fifo[4]*256L + srcd.fifo[5]
+    if ~dict.packet_is_valid then begin
+      sz = dict.fifo[4]*256L + dict.fifo[5]
       nb = sz * 2
       if nb eq 0 then begin
         dprint,verbose = self.verbose,dlevel=2,'Invalid GSEMSG: Packet length with zero length'
-        srcd.fifo = !null
+        dict.fifo = !null
         ;nb = 1
-        ;srcd.packet_is_valid=0
-        ;srcd.header_is_valid=0
+        ;dict.packet_is_valid=0
+        ;dict.header_is_valid=0
       endif else begin
-        srcd.packet_is_valid =1        
-        srcd.n2read = nb
+        dict.packet_is_valid =1        
+        dict.n2read = nb
       endelse
       continue            ; continue to read the rest of the packet
     endif
@@ -187,29 +189,29 @@ pro gsemsg_reader::read,source ,source_dict=parent_dict
 
     ; if it reaches this point then a valid message header+payload has been read in
 
-    ;gsehdr  =  srcd.fifo[0:5]
-    ;payload =  srcd.fifo[6: nb+6 - 1]
+    ;gsehdr  =  dict.fifo[0:5]
+    ;payload =  dict.fifo[6: nb+6 - 1]
     
-    self.handle,srcd.fifo    ; process each packet
+    self.handle,dict.fifo    ; process each packet
 
 
-    if keyword_set(srcd.flag) && debug(2,self.verbose,msg='status') then begin
+    if keyword_set(dict.flag) && debug(2,self.verbose,msg='status') then begin
       dprint,verbose=self.verbose,dlevel=3,header
       ;dprint,'gsehdr: ',n_elements(gsehdr)
       ;hexprint,gsehdr
       ;dprint,'payload: ',n_elements(payload)
       ;hexprint,payload
-      dprint,'fifo: ', n_elements(srcd.fifo)  ;,'   ',time_string(gsemsg.time)
-      hexprint,srcd.fifo
+      dprint,'fifo: ', n_elements(dict.fifo)  ;,'   ',time_string(gsemsg.time)
+      hexprint,dict.fifo
       dprint
     endif
 
-    srcd.fifo = !null
+    dict.fifo = !null
 
   endwhile
 
   if sync_errors ne 0 then begin
-    dprint,verbose=self.verbose,dlevel=2,sync_errors,' GSEMSG sync errors at "'+time_string(source_dict.time_received)+'"'
+    dprint,verbose=self.verbose,dlevel=2,sync_errors,' GSEMSG sync errors at "'+time_string(dict.time_received)+'"'
     ;printdat,source
     ;hexprint,source
   endif
@@ -225,7 +227,7 @@ pro gsemsg_reader::read,source ,source_dict=parent_dict
   else msg+= ' No data available'
 
   dprint,verbose=self.verbose,dlevel=3,msg
-  source_dict.msg = msg
+  dict.msg = msg
 
   ;    dprint,dlevel=2,'Compression: ',float(fp)/fi.size
 
@@ -236,7 +238,7 @@ end
 pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
 
   msg_buf = buffer
-  source_dict = self.source_dict
+  dict = self.source_dict
   buf = msg_buf[6:*]
   ;dprint
   
@@ -253,22 +255,26 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
       endif
       raw_tlm_header = self.c1msg_struct(buf)
       if isa(self.dyndata,'dynamicarray') then self.dyndata.append,raw_tlm_header
-      source_dict.gse_header  = raw_tlm_header
+      dict.gse_header  = raw_tlm_header
     end
     'c3'x: begin
+      if 1 then begin
+        self.ccsds_reader.read,buf        
+      endif else begin
+         
       ;sync_pattern = ['1a'x,  'cf'x ,'fc'x, '1d'x ]
-      ;source_dict.sync_pattern = sync_pattern
+      ;dict.sync_pattern = sync_pattern
       if debug(4,self.verbose) then begin
         dprint,sz*2,dlevel=4,verbose=self.verbose
         hexprint,buf
       endif
-      if ~source_dict.haskey('ccsds_dict') then begin
-        source_dict.ccsds_dict =  dictionary()
-        ccsds_dict = source_dict.ccsds_dict
+      if ~dict.haskey('ccsds_dict') then begin
+        dict.ccsds_dict =  dictionary()
+        ccsds_dict = dict.ccsds_dict
         ccsds_dict.sync_ccsds_buf = !null
         ccsds_dict.sync_pattern = byte(['1a'x,  'cf'x ,'fc'x, '1d'x ])
       endif
-      ccsds_dict = source_dict.ccsds_dict
+      ccsds_dict = dict.ccsds_dict
       ccsds_dict.sync_ccsds_buf = [ccsds_dict.sync_ccsds_buf, buf]
       while 1 do begin ; start processing packet stream
         nbuf = n_elements(ccsds_dict.sync_ccsds_buf)
@@ -280,7 +286,7 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
           skipped++
         endwhile
         if skipped ne 0 then begin
-          if source_dict.haskey('gse_header') then time= source_dict.gse_header.time else time=0d
+          if dict.haskey('gse_header') then time= dict.gse_header.time else time=0d
           dprint,verbose=self.verbose,dlevel=2,'Skipped ',skipped,' bytes to find sync word at '+time_string(time,prec=3)
           if 0 then begin
             if ccsds_dict.haskey('last_ccsds_buf') && isa(ccsds_dict.last_ccsds_buf) then dprint,verbose=self.verbose,dlevel=2,'Killing previous packet because sync word was not detected'
@@ -332,6 +338,7 @@ pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
         endelse
         dprint,verbose=self.verbose,dlevel=4,'Endwhile'
       endwhile
+      endelse
     end
     else:    message,'GSE raw_tlm error - unknown code'
   endcase
@@ -342,9 +349,38 @@ end
 
 
 
+
+
+
+function gsemsg_reader::init,sync_pattern=sync_pattern,decom_procedure = decom_procedure,mission=mission,_extra=ex
+  ret=self.socket_reader::init(_extra=ex)
+  if ret eq 0 then return,0
+
+  if isa(mission,'string') && mission eq 'SWFO' then begin
+    sync_pattern = ['A8'xb,  '29'xb ]
+    decom_procedure = 'swfo_ccsds_spkt_handler'
+  endif
+  self.sync_size = n_elements(sync_pattern)
+  self.ccsds_reader = ccsds_reader(mission=mission,/no_widget)
+ ; self.maxsize = 4100
+ ; self.minsize = 10
+  if self.sync_size gt 4 then begin
+    dprint,'Number of sync bytes must be <= 4'
+    return, 0
+  endif
+  if self.sync_size ne 0 then self.sync_pattern = sync_pattern
+  self.header_size = 6
+
+  return,1
+end
+
+
+
+
+
 PRO gsemsg_reader__define
   void = {gsemsg_reader, $
-    inherits packet_reader, $    ; superclass
+    inherits socket_reader, $    ; superclass
     ccsds_reader:   obj_new(), $         ; user definable object  not used
     gsemsg_reader:  obj_new()  $
 }

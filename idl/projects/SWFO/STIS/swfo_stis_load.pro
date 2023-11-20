@@ -1,6 +1,6 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-11-16 02:11:17 -0800 (Thu, 16 Nov 2023) $
-;$LastChangedRevision: 32245 $
+;$LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
+;$LastChangedRevision: 32252 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -208,7 +208,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       end
       'gsemsg': begin
         if 1 then begin
-          rdr = gsemsg_reader(_extra= opts.tostruct())          
+          rdr = gsemsg_reader(_extra= opts.tostruct(),mission='SWFO')          
         endif else begin
           rdr = swfo_raw_tlm(_extra= opts.tostruct())
         endelse
@@ -240,7 +240,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'cmblk': begin        
         rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_cmblk')
         if 1 then begin  ;new method
-          rdr.add_handler, 'raw_tlm',  gsemsg_reader(name='SWFO_reader',/no_widget)          
+          rdr.add_handler, 'raw_tlm',  gsemsg_reader(name='SWFO_reader',/no_widget,mission='SWFO')          
         endif else begin
           rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)          
         endelse
@@ -252,6 +252,13 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
      ;   rdr.add_handler,'GSE_KPA',    kpa_object   ; gse_keithley(name='pico',/no_widget,tplot_tagnames='*')
         opts.rdr = rdr
         if opts.haskey('filenames') then begin
+          if keyword_set(test) then begin
+            hs = rdr.get_handlers()
+            foreach h , hs do begin
+              h.exec_proc=0
+            endforeach
+          endif
+            
           rdr.file_read, opts.filenames        ; Load in the files
         endif
         swfo_apdat_info,/all,/create_tplot_vars

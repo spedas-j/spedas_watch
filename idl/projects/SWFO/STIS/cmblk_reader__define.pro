@@ -2,8 +2,8 @@
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-13 07:46:41 -0800 (Mon, 13 Nov 2023) $
-; $LastChangedRevision: 32242 $
+; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
+; $LastChangedRevision: 32252 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -20,7 +20,7 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
     self.handlers = handlers 
   endif else  self.handlers = orderedhash()
   self.sync  = 'CMB1'
-  self.desctypes = orderedhash()
+;  self.desctypes = orderedhash()
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
   ;IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   
@@ -32,7 +32,8 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
 
 ;
 ;  
-  self.add_handler, 'ESC_ESATM',  esc_esatm_reader(name='Esc_ESAs',/no_widget)
+
+;  self.add_handler, 'ESC_ESATM',  esc_esatm_reader(name='Esc_ESAs',/no_widget)
 
 
   RETURN, 1
@@ -47,6 +48,7 @@ PRO cmblk_reader::Cleanup
   dprint,"killing object:", self.name
   self->socket_reader::Cleanup
 END
+
 
 
 function cmblk_reader::header_struct,buf
@@ -81,7 +83,7 @@ function cmblk_reader::header_struct,buf
 end
 
 
-pro cmblk_reader::read ,buffer  , source_dict = source_dict
+pro cmblk_reader::read ,buffer      ;, source_dict = source_dict
 
   if isa(source_dict,'dictionary') then begin
     dprint,'Recursive call not allowed yet.'
@@ -96,7 +98,7 @@ pro cmblk_reader::read ,buffer  , source_dict = source_dict
   last_time = self.time_received
   if last_time eq 0 then last_time=!values.d_nan
   self.time_received = time
-  self.msg = time_string(time,tformat='hh:mm:ss - ',local=localtime)
+  self.msg =''   ; time_string(time,tformat='hh:mm:ss - ',local=localtime)
   remainder = !null
   nbytes = 0UL
   npkts  = 0UL
@@ -133,7 +135,7 @@ pro cmblk_reader::read ,buffer  , source_dict = source_dict
     npkts++
 
     ; decomutate data here!
-    self.handle, payload_buf, source_dict=self.source_dict
+    self.handle, payload_buf    ;, source_dict=self.source_dict
 
     mem_current = memory(/current) / 2.^20
 
@@ -178,9 +180,10 @@ end
 
 
 
-pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
+pro cmblk_reader::handle,payload    ;, source_dict=source_dict   ; , cmbhdr= cmbhdr
 
   ; Decommutate data
+  source_dict = self.source_dict
   cmbhdr = source_dict.cmbhdr
   descr_key = cmbhdr.description
   handlers = self.handlers
@@ -195,7 +198,7 @@ pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
     hexprint,payload
     descr_key_lower = strlowcase(descr_key)
     tagnames='*'
-    if n gt 10 && (eol eq 10 || eol eq 13)  then begin 
+    if n gt 10 && (eol eq 10 || eol eq 13)  then begin      ; most likely ascii payload
       dprint,verbose=self.verbose,dlevel=2, "EOL = ",eol
       if  array_equal(payload[[0,n-2]] , [123b,125b]) then begin
         dprint,verbose=self.verbose,dlevel=2,'Identified as JSON'
@@ -206,6 +209,7 @@ pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
     endif else begin
       new_obj =  socket_reader(name=descr_key_lower,/no_widget)      
     endelse
+    ;new_obj.source_dict.parent_dict = self.source_dict
     handlers[descr_key] = new_obj
     new_obj.apid = descr_key
   endif
@@ -214,11 +218,12 @@ pro cmblk_reader::handle,payload, source_dict=source_dict   ; , cmbhdr= cmbhdr
   ;if ~self.desctypes.haskey(descr_key) then self.desctypes[descr_key] = n_elements(self.desctypes)
 
   if self.run_proc then begin
-    d = self.source_dict
-    d.cmbhdr = cmbhdr            ; this line is redundant!
+    dict = self.source_dict
+    dict.cmbhdr = cmbhdr            ; this line is redundant!
     handler =  handlers[descr_key]                     ; Get the proper handler object
     if obj_valid(handler) then begin
-      handler.read, payload, source_dict=d         ; execute handler
+      handler.source_dict.parent_dict = dict
+      handler.read, payload     ;, source_dict=dict         ; execute handler
     endif else begin
       dprint,verbose=self.verbose,dlevel=1,'Invalid handle object for cmblk_key: "',descr_key,'"'
     endelse
@@ -265,8 +270,8 @@ end
 PRO cmblk_reader__define
   void = {cmblk_reader, $
     inherits socket_reader, $    ; superclass
-    desctypes:        obj_new(), $
-    handlers:     obj_new(),  $
+;    desctypes:        obj_new(), $
+    handlers:     obj_new(),  $   ; This will contain an ordered hash of other handlers
     sync:  'CMB1'     $         ;
   }
 END

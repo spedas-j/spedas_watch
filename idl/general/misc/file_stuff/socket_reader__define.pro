@@ -12,8 +12,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-05-01 13:47:45 -0700 (Mon, 01 May 2023) $
-; $LastChangedRevision: 31815 $
+; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
+; $LastChangedRevision: 32252 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -25,6 +25,27 @@ pro socket_reader::handleTimerEvent,id,data
     self.timer_id = id
     dprint,verbose=self.verbose,dlevel=2,id
     printdat,self.msg,data
+end
+
+
+pro socket_reader::check_connection,nbytes
+  if self.isasocket then begin
+    if self.input_lun then begin
+      period = self.pollinterval+30 > self.reconnect_period
+      if nbytes eq 0 then begin
+        if self.reconnect && current_time gt self.reconnect_time then begin
+          ;  try to reconnect
+          dprint,dlevel=1,verbose=self.verbose,'Attempting reconnection to HOST: '+self.host+':'+self.port
+          self.host_button_event  ; close
+          ;wait,2.   ; 
+          self.host_button_event  ; reopen
+        endif
+
+      endif
+      self.reconnect_time = systime(1) + period
+    endif
+  endif
+
 end
 
 
@@ -85,7 +106,7 @@ function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
   if n eq 0 then buf = !null else  buf = buf[0:n-1]
   pos = pos + n
   self.write,buf
-  dprint,verbose=self.verbose,dlevel=1,'IO warning: '+ !error_state.msg  +strtrim(n_elements(buf)) 
+  dprint,verbose=self.verbose,dlevel=2,'IO warning: '+ !error_state.msg  +strtrim(n_elements(buf)) 
   eofile = eof(self.input_lun)
   return,buf
 end
@@ -244,11 +265,29 @@ end
 
 
 
-pro socket_reader::file_read,filenames
+pro socket_reader::file_read,filenames,trange=trange
+  if keyword_set(trange) and keyword_set(self.fileformat) then begin
+    pathformat = self.fileformat
+    ;filenames = file_retrieve(pathformat,trange=trange,/hourly_,remote_data_dir=opts.remote_data_dir,local_data_dir= opts.local_data_dir)
+    if n_elements(trange eq 1)  then trange = systime(1) + [-trange[0],0.1]*3600.
+    timespan,trange
+    if 0 then begin
+      filenames = time_string(self.fileformat)
+    endif else begin
+      ;remote_url = ''   ; don't download files if writing locally
+      dprint,dlevel=2,'Download raw telemetry files...'
+      filenames = file_retrieve(pathformat,trange=trange,remote=remote_url,local=self.directory,resolution=self.file_timeres)
+    endelse 
+    dprint,dlevel=2, "Files to be loaded:"
+    dprint,dlevel=2,file_info_string(filenames)
+  endif
+
+
+
   on_ioerror, keepgoing
   for i= 0,n_elements(filenames)-1 do begin
     file = filenames[i]
-    file_open,'r',file,unit=lun,compress=-1
+    file_open,'r',file,unit=lun,compress=-1,verbose=2
     if keyword_set(lun) then begin
       self.input_lun = lun
       self.read
@@ -332,9 +371,9 @@ pro socket_reader::print_status,no_header=no_header,apid = apid
    print,apid,self.name,typename(self),self.isasocket,self.sum1_bytes,self.sum2_bytes,self.npkts,self.nreads,self.dyndata.size,format=format1
    if ~keyword_set(no_header) then $
      print,'-----','-----','-----','--','----','----','----','----','-------',format=format2
-
-
 end
+
+
 
 
 ;function socket_reader::struct
@@ -368,7 +407,6 @@ end
 
 
 
-
 pro socket_reader::timed_event
 
   if self.input_lun gt 0 then begin
@@ -395,6 +433,17 @@ pro socket_reader::timed_event
     endif
   endif
   self.time_received = systime(1)
+end
+
+
+
+
+
+pro socket_reader::open_socket,host,port       ; not finished yet - use widget button
+  if isa(host,/string) then begin
+    
+  endif
+
 
 
 end
@@ -788,6 +837,9 @@ pro socket_reader__define
     file_timeres: 0d,   $   ; Defines time interval of each output file
     next_filechange: 0d, $ ; don't use - will be deprecated in future
     isasocket:0,  $
+    reconnect:  0 ,  $          ;  set flag to attempt reconnect if data has dropped 
+    reconnect_time:  0d,  $        ; 
+    reconnect_period: 0d, $       ;
     eol:-1 ,$                  ; character used to define End Of Line  typically 0x0A;   use negative integer to ignore
     input_lun:0,  $               ; host input file pointer (lun)
     output_lun:0 , $               ; destination output file pointer (lun)
@@ -796,6 +848,9 @@ pro socket_reader__define
     filename:'', $             ; output filename
     msg: '', $
     buffersize:0L, $
+    header_size:0, $
+    sync_pattern:  bytarr(4),  $
+    sync_size:  0,  $
     ;buffer_ptr: ptr_new(),   $
     source_dict: obj_new(),  $
     dyndata: obj_new(), $        ; dynamicarray object to save all the data in
