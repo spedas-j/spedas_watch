@@ -12,8 +12,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
-; $LastChangedRevision: 32252 $
+; $LastChangedDate: 2023-11-20 17:44:34 -0800 (Mon, 20 Nov 2023) $
+; $LastChangedRevision: 32254 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -223,7 +223,7 @@ pro socket_reader::read, buffer, source_dict=source_dict
       break
     endelse
 
-    self.handle,buf,source_dict=source_dict
+    self.handle,buf  ;,source_dict=source_dict
 
     dprint,verbose=self.verbose,dlevel=4,self.msg,/no_check
     ;eofile = eof(self.input_lun)

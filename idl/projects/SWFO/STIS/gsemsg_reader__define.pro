@@ -1,11 +1,16 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
-; $LastChangedRevision: 32252 $
+; $LastChangedDate: 2023-11-20 17:44:34 -0800 (Mon, 20 Nov 2023) $
+; $LastChangedRevision: 32254 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/gsemsg_reader__define.pro $
 
 
 
-function gsemsg_reader::c1msg_struct,buf
+function gsemsg_reader::c1msg_struct,header_payload
+
+  type = header_payload[2]*256u + header_payload[3]
+  psize = (header_payload[4]*256ul + header_payload[5]) * 2
+  
+  buf = header_payload[self.header_size:*]
   dprint,dlevel=5,verbose=self.verbose,buf ;,dwait=1
   ;words = fix(buf,0,12)
   ;byteorder,words,/swap_if_little_endian
@@ -27,7 +32,8 @@ function gsemsg_reader::c1msg_struct,buf
   days = days- (365*12L+3)
   time = days * 3600d*24+msec/1000d
   gse_pkt = {time:time, $
-    size: 0L, $
+    psize: psize, $
+    type: type,  $
     rev:  rev, $
     flag_bits:  flags, $
     rate:  rate, $
@@ -43,9 +49,9 @@ end
 function gsemsg_reader::header_struct,buf
   if n_elements(buf) lt self.header_size || buf[0] ne 'a8'xb || buf[1] ne '29'xb then return,!null
   
-  strct = {  time: !values.d_nan,  size: 0 , type:0u ,valid:0, gap:0}
+  strct = {  time: !values.d_nan,  psize: 0ul , type:0u ,valid:0, gap:0}
     strct.type = buf[2]*256u + buf[3]
-    strct.size = (buf[4]*256u + buf[5]) * 2
+    strct.psize = (buf[4]*256ul + buf[5]) * 2
     return,strct
 
 end
@@ -66,7 +72,7 @@ end
 ;  When a complete MSG header and its enclosed CCSDS packet are read in, it will execute the routine "swfo_ccsds_spkt_handler"
 ;-
 
-pro gsemsg_reader::read,source     ; ,source_dict=parent_dict
+pro gsemsg_reader::read_old,source     ; ,source_dict=parent_dict
 
   ;dprint,n_elements(source)
   ;hexprint,source
@@ -235,7 +241,7 @@ end
 
 
 
-pro gsemsg_reader::handle,buffer   ;,source_dict=source_dict
+pro gsemsg_reader::handle_old,buffer   ;,source_dict=source_dict
 
   msg_buf = buffer
   dict = self.source_dict
@@ -350,6 +356,40 @@ end
 
 
 
+pro gsemsg_reader::handle,header_payload   ;,source_dict=source_dict
+
+  ;msg_buf = header_payload
+  dict = self.source_dict
+  payload = header_payload[self.header_size:*]
+  ;dprint
+
+
+  case header_payload[3] of
+    'c1'x: begin
+      if debug(3,self.verbose,msg='c1 packet') then begin
+        ;dprint,nb,dlevel=3
+        hexprint,payload
+      endif
+      gsemsg_struct = self.c1msg_struct(header_payload)
+      if isa(self.dyndata,'dynamicarray') then self.dyndata.append,gsemsg_struct
+      dict.gsemsg_struct  = gsemsg_struct
+    end
+    'c3'x: begin
+        ccsds = self.ccsds_reader
+        ccsds.source_dict.parent_dict = dict
+        ccsds.read,payload
+    end
+    else:    message,'GSE raw_tlm error - unknown code'
+  endcase
+
+  dprint,verbose=self.verbose,dlevel=4,'End of handler'
+
+
+end
+
+
+
+
 
 
 function gsemsg_reader::init,sync_pattern=sync_pattern,decom_procedure = decom_procedure,mission=mission,_extra=ex
@@ -380,7 +420,7 @@ end
 
 PRO gsemsg_reader__define
   void = {gsemsg_reader, $
-    inherits socket_reader, $    ; superclass
+    inherits cmblk_reader, $    ; superclass
     ccsds_reader:   obj_new(), $         ; user definable object  not used
     gsemsg_reader:  obj_new()  $
 }

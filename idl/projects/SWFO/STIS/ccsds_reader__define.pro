@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
-; $LastChangedRevision: 32252 $
+; $LastChangedDate: 2023-11-20 17:44:34 -0800 (Mon, 20 Nov 2023) $
+; $LastChangedRevision: 32254 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
 
 
@@ -39,7 +39,7 @@ end
 
 
 
-pro ccsds_reader::read,source   ;,source_dict=parent_dict
+pro ccsds_reader::read_old,source   ;,source_dict=parent_dict
 
   ;dwait = 10.
   
@@ -111,7 +111,6 @@ pro ccsds_reader::read,source   ;,source_dict=parent_dict
         sync_errors += 1
         continue      ; read one byte at a time until sync is found
       endif
-      ;dict.header_is_valid = 1
       dict.packet_is_valid = 0
     endif
 
@@ -217,9 +216,9 @@ end
 
 PRO ccsds_reader__define
   void = {ccsds_reader, $
-    inherits socket_reader, $    ; superclass
+    inherits cmblk_reader, $    ; superclass
     decom_procedure: '',  $
-    minsize: 0UL,  $
+    minsize: 0UL , $
     maxsize: 0UL  $
   }
 END
