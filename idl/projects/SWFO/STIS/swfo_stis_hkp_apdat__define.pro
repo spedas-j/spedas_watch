@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2023-05-08 19:36:16 -0700 (Mon, 08 May 2023) $
-; $LastChangedRevision: 31842 $
+; $LastChangedDate: 2023-11-26 19:30:16 -0800 (Sun, 26 Nov 2023) $
+; $LastChangedRevision: 32255 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hkp_apdat__define.pro $
 
 
@@ -52,6 +52,7 @@ function swfo_stis_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,
   voltages=[1.5,3.3,5,5.6,-5.6]
   d=24 ;header bytes (6 CCSDS header + 18 STIS header)
   hkp_size=ccsds.pkt_size-d
+  if str1.fpga_rev gt 209 then hkp_size-=2 ;checksum bytes at the end of each packet
   ana_size=2*16 ;analog hkp bytes
   dig_size=hkp_size-ana_size ;digital hkp bytes
   fifo_size=8190 ;bytes

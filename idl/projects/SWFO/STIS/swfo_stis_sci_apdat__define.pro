@@ -1,12 +1,14 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
-; $LastChangedRevision: 32252 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2023-11-26 19:30:16 -0800 (Sun, 26 Nov 2023) $
+; $LastChangedRevision: 32255 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
 function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
   common swfo_stis_sci_com4, lastdat, last_str
   ccsds_data = swfo_ccsds_data(ccsds)
+  str1=swfo_stis_ccsds_header_decom(ccsds)
+  if str1.fpga_rev gt 209 then ccsds_data=ccsds_data[0:-3]
 
   hkp = swfo_apdat('stis_hkp2')
   hkp_sample = hkp.last_data       ; retrieve last hkp packet
@@ -40,7 +42,6 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
 
   ;  if duration eq 0 then duration = 1u   ; cluge to fix lack of proper output in early version FPGA
 
-  str1=swfo_stis_ccsds_header_decom(ccsds)
 
 
   ; Force all structures to have exactly 672 elements. If the LUT is being used then only the first 256 will be used
