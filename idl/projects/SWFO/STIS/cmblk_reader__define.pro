@@ -2,8 +2,8 @@
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-20 17:44:34 -0800 (Mon, 20 Nov 2023) $
-; $LastChangedRevision: 32254 $
+; $LastChangedDate: 2023-12-02 00:13:47 -0800 (Sat, 02 Dec 2023) $
+; $LastChangedRevision: 32263 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -123,7 +123,7 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
   msg = '' ;time_string(dict.time_received,tformat='hh:mm:ss.fff -',local=localtime)
 
   nbytes = 0UL
-  sync_errors =0ul
+  ;sync_errors =0ul
   total_bytes = 0L
   endofdata = 0
   while ~endofdata do begin
@@ -131,7 +131,8 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
     if dict.fifo eq !null then begin
       dict.n2read = self.header_size
       dict.headerstr = !null
-      dict.packet_is_valid = 0
+      dict.sync_errors = 0
+      dict.packet_is_complete = 0
     endif
     nb = dict.n2read
 
@@ -161,27 +162,27 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
         dict.fifo = dict.fifo[1:*]
         dict.n2read = 1
         nb = 1
-        sync_errors += 1
+        dict.sync_errors += 1
         continue      ; read one byte at a time until sync is found
       endif
-      dict.packet_is_valid = 0
+      dict.packet_is_complete = 0
     endif
 
-    if ~dict.packet_is_valid then begin
+    if ~dict.packet_is_complete then begin
       nb = dict.headerstr.psize
       if nb eq 0 then begin
         dprint,verbose = self.verbose,dlevel=2,self.name+'; Packet length with zero length'
         dict.fifo = !null
       endif else begin
-        dict.packet_is_valid =1
+        dict.packet_is_complete =1
         dict.n2read = nb
       endelse
       continue            ; continue to read the rest of the packet
     endif
 
 
-    if sync_errors ne 0 then begin
-      dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(sync_errors,2)+' sync errors';,dwait =4.
+    if dict.sync_errors ne 0 then begin
+      dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(dict.sync_errors,2)+' sync errors';,dwait =4.
     endif
 
     ; if it reaches this point then a valid message header+payload has been read in
@@ -203,8 +204,8 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
 
   endwhile
 
-  if sync_errors ne 0 then begin
-    dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(sync_errors,1)+' sync errors at "'+time_string(dict.time_received)+'"'
+  if dict.sync_errors ne 0 then begin
+    dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(dict.sync_errors,1)+' sync errors at "'+time_string(dict.time_received)+'"'
     ;printdat,source
     ;hexprint,source
   endif

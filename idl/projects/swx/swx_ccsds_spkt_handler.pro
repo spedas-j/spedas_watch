@@ -5,15 +5,15 @@
 ; Written by Davin Larson
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:12:52 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32262 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_spkt_handler.pro $
+; $LastChangedDate: 2023-12-02 00:05:21 -0800 (Sat, 02 Dec 2023) $
+; $LastChangedRevision: 32261 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/swx/swx_ccsds_spkt_handler.pro $
 ;
 ;-
 
-pro swfo_ccsds_spkt_handler,dbuffer, source_dict = source_dict , wrap_ccsds=wrap_ccsds
+pro swx_ccsds_spkt_handler,dbuffer, source_dict = source_dict , wrap_ccsds=wrap_ccsds
 
-  ccsds = swfo_ccsds_decom(dbuffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,dlevel=2)
+  ccsds = swx_ccsds_decom(dbuffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,dlevel=2)
   if ~keyword_set(ccsds) then begin
     if debug(2) then begin
       dprint,dlevel=3,'Invalid CCSDS'
@@ -22,7 +22,7 @@ pro swfo_ccsds_spkt_handler,dbuffer, source_dict = source_dict , wrap_ccsds=wrap
   endif
 
 ;  get object handler for the given apid:
-  apdat = swfo_apdat(ccsds.apid)
+  apdat = swx_apdat(ccsds.apid)
   
   if keyword_set( *apdat.ccsds_last) then begin
     ccsds_last = *apdat.ccsds_last
@@ -46,7 +46,7 @@ pro swfo_ccsds_spkt_handler,dbuffer, source_dict = source_dict , wrap_ccsds=wrap
   apdat.increment_counters, ccsds
   
   ;Update the overall packet counter:
-  stats = swfo_apdat(0)    ; Handler object for all packets
+  stats = swx_apdat(0)    ; Handler object for all packets
   stats.increment_counters, ccsds, source_dict = source_dict
 
 end
