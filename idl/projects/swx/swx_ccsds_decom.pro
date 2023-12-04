@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:05:21 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32261 $
+; $LastChangedDate: 2023-12-03 13:51:45 -0800 (Sun, 03 Dec 2023) $
+; $LastChangedRevision: 32268 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/swx/swx_ccsds_decom.pro $
 
 ;
@@ -35,8 +35,8 @@ function swx_ccsds_decom_mettime,buffer,spc=spc,span=span,subsec=subsec
     
   endif
 
-  met = ((buffer[6]*256ul+buffer[7])*256u+buffer[7])*256u+buffer[8]
-  met += (buffer[9]*256ul+buffer[10]) / 2d^16
+  met = ((buffer[6]*256ul+buffer[7])*256u+buffer[8])*256u+buffer[9]
+  met += (buffer[10]*256ul+buffer[11]) / 2d^16
   return,met
 
 
