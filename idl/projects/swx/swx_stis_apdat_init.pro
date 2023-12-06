@@ -1,13 +1,16 @@
 ;+
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:05:21 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32261 $
+; $LastChangedDate: 2023-12-05 10:42:55 -0800 (Tue, 05 Dec 2023) $
+; $LastChangedRevision: 32270 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/swx/swx_stis_apdat_init.pro $
 ;-
 
-pro swx_stis_apdat_init,reset=reset, save_flag = save_flag, swem=swem, $
+pro swx_stis_apdat_init,reset=reset, save_flag = save_flag, swem=swem, spane=spane, $
   rt_flag= rt_Flag, $
   clear = clear, no_products =no_products
+
+  spane=1
+  swem = 1
 
   common swx_stis_apdat_init, initialized
   if keyword_set(reset) then initialized = 0
@@ -43,6 +46,10 @@ pro swx_stis_apdat_init,reset=reset, save_flag = save_flag, swem=swem, $
     swx_apdat_info,'34f'x,name='wrp_P8',  apid_obj='swx_swem_wrapper_apdat',tname='swx_wrp_34F_P8',  ttags='*',save_flag=save_flag,rt_flag=rt_flag
 
   endif
+  
+
+  
+  
 
 
   ;;################
@@ -53,6 +60,63 @@ pro swx_stis_apdat_init,reset=reset, save_flag = save_flag, swem=swem, $
   swx_apdat_info,'35d'x,name='stis_mem', apid_obj='swfo_stis_memdump_apdat', tname='swx_stis_memdump',ttags='*',save_flag=save_flag,rt_flag=rt_flag
   swx_apdat_info,'35E'x,name='stis_hkp1', apid_obj='swfo_stis_hkp_apdat', tname='swx_stis_hkp1',ttags='*',save_flag=save_flag,rt_flag=rt_flag
   swx_apdat_info,'35F'x,name='stis_hkp2', apid_obj='swfo_stis_hkp_apdat', tname='swx_stis_hkp2',ttags='*',    save_flag=save_flag,rt_flag=rt_flag
+
+
+  if keyword_set(spane) then begin
+
+    ;;##################
+    ;;#  SPAN-Ae & SPAN-B APID  #
+    ;;##################
+    spe_hkp_tags = 'RIO_???* ADC_*_* *_FLAG MRAM* CLKS_PER_NYS ALL_ADC EASIC_DAC *CMD_* PEAK*'
+    spe_hkp_tags = '*'
+    ;decom_routine = 'spp_swp_spane_product_decom2' ;; DEPRECATED ;;
+    decom_routine_obj = 'spp_swp_spe_prod_apdat'
+    ;ttags = '*'
+
+    ;;----------------------------------------------------------------------------------------------------------------------------------
+    ;; Product Decommutators
+    ;;----------------------------------------------------------------------------------------------------------------------------------
+    spp_apdat_info,'360'x,name='spa_af0' ,apid_obj=decom_routine_obj,tname='spp_spa_AF0', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'370'x,name='spb_af0' ,apid_obj=decom_routine_obj,tname='spp_spb_AF0', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'361'x,name='spa_af1' ,apid_obj=decom_routine_obj,tname='spp_spa_AF1', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'371'x,name='spb_af1' ,apid_obj=decom_routine_obj,tname='spp_spb_AF1', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'362'x,name='spa_at0' ,apid_obj=decom_routine_obj,tname='spp_spa_AT0', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'372'x,name='spb_at0' ,apid_obj=decom_routine_obj,tname='spp_spb_AT0', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'363'x,name='spa_at1' ,apid_obj=decom_routine_obj,tname='spp_spa_AT1', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'373'x,name='spb_at1' ,apid_obj=decom_routine_obj,tname='spp_spb_AT1', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+
+    spp_apdat_info,'364'x,name='spa_sf0' ,apid_obj=decom_routine_obj,tname='spp_spa_SF0', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'374'x,name='spb_sf0' ,apid_obj=decom_routine_obj,tname='spp_spb_SF0', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'365'x,name='spa_sf1' ,apid_obj=decom_routine_obj,tname='spp_spa_SF1', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'375'x,name='spb_sf1' ,apid_obj=decom_routine_obj,tname='spp_spb_SF1', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'366'x,name='spa_st0' ,apid_obj=decom_routine_obj,tname='spp_spa_ST0', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'376'x,name='spb_st0' ,apid_obj=decom_routine_obj,tname='spp_spb_ST0', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'367'x,name='spa_st1' ,apid_obj=decom_routine_obj,tname='spp_spa_ST1', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'377'x,name='spb_st1' ,apid_obj=decom_routine_obj,tname='spp_spb_ST1', ttags=ttags, save_flag=save_flag,rt_flag=rt_flag
+
+
+    ;;----------------------------------------------------------------------------------------------------------------------------------------
+    ;; Memory Dump
+    ;;----------------------------------------------------------------------------------------------------------------------------------------
+    spp_apdat_info,'36d'x,name='spa_memdump',apid_obj='spp_swp_memdump_apdat',tname='spp_spa_memdump',ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'37d'x,name='spb_memdump',apid_obj='spp_swp_memdump_apdat',tname='spp_spb_memdump',ttags='SEQN*',save_flag=save_flag,rt_flag=rt_flag
+
+    ;;----------------------------------------------------------------------------------------------------------------------------------------
+    ;; Slow Housekeeping
+    ;;----------------------------------------------------------------------------------------------------------------------------------------
+    spp_apdat_info,'36e'x, name='spa_hkp',apid_obj='spp_swp_spe_hkp_apdat',tname='spp_spa_hkp',ttags=spe_hkp_tags, save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'37e'x ,name='spb_hkp',apid_obj='spp_swp_spe_hkp_apdat',tname='spp_spb_hkp',ttags=spe_hkp_tags, save_flag=save_flag,rt_flag=rt_flag
+
+    ;;-----------------------------------------------------------------------------------------------------------------------------------------
+    ;; Fast Housekeeping
+    ;;-----------------------------------------------------------------------------------------------------------------------------------------
+    spp_apdat_info,'36f'x, name='spa_fhkp' ,routine='spp_swp_spane_fast_hkp_decom',tname='spp_spa_fhkp', ttags='*', save_flag=save_flag,rt_flag=rt_flag
+    spp_apdat_info,'37f'x, name='spb_fhkp' ,routine='spp_swp_spane_fast_hkp_decom',tname='spp_spb_fhkp', ttags='*', save_flag=save_flag,rt_flag=rt_flag
+
+    
+  endif
+
+
 
 
 

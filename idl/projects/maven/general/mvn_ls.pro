@@ -16,8 +16,8 @@
 ;       TPLOT: make a tplot variable of Ls
 ;
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2023-04-16 15:08:05 -0700 (Sun, 16 Apr 2023) $
-; $LastChangedRevision: 31754 $
+; $LastChangedDate: 2023-12-05 16:37:25 -0800 (Tue, 05 Dec 2023) $
+; $LastChangedRevision: 32274 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_ls.pro $
 ;
 ;CREATED BY:	Robert J. Lillis 2017-10-09
@@ -42,8 +42,13 @@ PRO mvn_ls_bar, data=data, limits=lim, _extra=extra
   xrange = INTERPOL(data.y, data.x, lim.xrange)
 
   str_element, lim, 'xaxis', value=xaxis
-  IF undefined(xaxis) THEN xaxis = {xtickinterval: 90., xminor: 3}
-
+  IF undefined(xaxis) THEN BEGIN
+     IF xrange[1]-xrange[0] LT 30. THEN xaxis = {xtickinterval: 5., xminor: 5} $
+     ELSE IF xrange[1]-xrange[0] LT 90. THEN xaxis = {xtickinterval: 10., xminor: 5} $
+     ELSE IF xrange[1]-xrange[0] LT 360. THEN xaxis = {xtickinterval: 30., xminor: 3} $
+     ELSE xaxis = {xtickinterval: 90., xminor: 3}
+  ENDIF
+  
   IF is_struct(xaxis) THEN BEGIN
      extract_tags, aopt, xaxis, /axis
      extract_tags, aopt, xaxis, tags=['xtickinterval']
