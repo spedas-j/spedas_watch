@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2023-11-26 19:30:16 -0800 (Sun, 26 Nov 2023) $
-; $LastChangedRevision: 32255 $
+; $LastChangedDate: 2023-12-06 17:06:52 -0800 (Wed, 06 Dec 2023) $
+; $LastChangedRevision: 32277 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -29,12 +29,16 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
     hs+512:  scidata = ulong(swap_endian( uint(ccsds_data,hs,256) ,/swap_if_little_endian))
     hs+1344: scidata = ulong(swap_endian( uint(ccsds_data,hs,672) ,/swap_if_little_endian))
     else :  begin
-      scidata = ccsds_data[hs:*]
-      print,n_elements(ccsds_data)
+      scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:*]))
+      dprint,'Unknown science packet size:',n_elements(ccsds_data)
     end
   endcase
 
   nbins = n_elements(scidata)
+  if nbins gt 672 then begin
+    dprint,'Science array size larger than 672:',nbins,'Chopping off the rest of the array.'
+    scidata=scidata[0:671]
+  endif
 
 
   if n_elements(last_str) eq 0 || (abs(last_str.time-ccsds.time) gt 65) then lastdat = scidata

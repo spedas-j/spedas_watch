@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2023-04-24 16:21:20 -0700 (Mon, 24 Apr 2023) $
-; $LastChangedRevision: 31787 $
+; $LastChangedDate: 2023-12-06 17:06:52 -0800 (Wed, 06 Dec 2023) $
+; $LastChangedRevision: 32277 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_ccsds_header_decom.pro $
 
 
@@ -30,14 +30,22 @@ function swfo_stis_ccsds_header_decom,ccsds
     noise_period:0b,$
     noise_res:0b,$
     duration:0,$
-    pulser_frequency:[0.,0.]$
+    pulser_frequency:[0.,0.],$
+    packet_checksum_reported:0u,$
+    packet_checksum_calculated:0u,$
+    packet_checksum_match:2b $
   }
   str.duration=1+str.time_res
   str.noise_period=str.noise_bits and 255u
   str.noise_res=ishft(str.noise_bits,-8) and 7u
   if str.fpga_rev lt 'CC'x then timer_period=10 else timer_period=2.5 ;microseconds
   str.pulser_frequency=[1.,.5]/(1e-6*timer_period*str.noise_period) ;[pulser,noise]
-  
+  if str.fpga_rev gt 'd1'x then begin
+    str.packet_checksum_reported=256u*ccsds_data[-2]+ccsds_data[-1]
+    str.packet_checksum_calculated=total(uint([['1a'x,'cf'x,'fc'x,'1d'x],ccsds_data[0:-3]]),/preserve)
+    str.packet_checksum_match=str.packet_checksum_calculated eq str.packet_checksum_reported
+  endif
+
   ;dprint,string(str.apid,format = '("0x",Z3)'),str.time-systime(1)
 
   return,str
