@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 03:16:59 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32266 $
+; $LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $
+; $LastChangedRevision: 32278 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hkp_apdat__define.pro $
 
 
@@ -22,8 +22,8 @@ function swfo_stis_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,
   endif
 
   if ccsds.time lt time_double('2021-1-1') then begin
-    dprint,'Invalid CCSDS time. Ignoring Packet'
-    return,!null
+    dprint,'Invalid CCSDS time.  should be Ignoring Packet', dwait = 1.
+    ;return,!null
   endif
 
 
@@ -57,18 +57,22 @@ function swfo_stis_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,
   dig_size=hkp_size-ana_size ;digital hkp bytes
   fifo_size=8190 ;bytes
   
-  fpga_rev = str1.fpga_rev
-  swx_flag = fpga_rev lt '7f'x
+  fpga_rev = str1.fpga_rev  
+  swx_flag = fpga_rev and 'f0'x  eq '50'x
+  emu_flag = fpga_rev and 'f0'x  eq 0
   if swx_flag then begin
     fpga_rev += ('c0'x - '50'x)
     dig_size = 128
     d = 20
   endif else begin
+    dig_size = 128
     d = 24
   endelse
 
+  fpga_rev = 'ff'x  
+
   if fpga_rev ge '99'x then begin
-    dig_size = 128
+;    dig_size = 128
     ana_hkp={$
     adc_bias_voltage:         swfo_data_select(ccsds_data,(d+dig_size)*8,16,/signed)*(2.67+.402+49.9+49.9)/2.67*flt,$
     temp_dap:                 swfo_therm_temp(swfo_data_select(ccsds_data,(d+dig_size+1*2)*8,16,/signed),param=temp_par_16bit),$

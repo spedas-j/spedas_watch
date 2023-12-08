@@ -2,8 +2,8 @@
 ;  swfo_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:12:52 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32262 $
+; $LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $
+; $LastChangedRevision: 32278 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -212,8 +212,9 @@ pro swfo_gen_apdat::handler,ccsds,source_dict=source_dict ;,header,source_info=s
 
   self.drate = ccsds.pkt_size/ccsds.time_delta
   
+  tbad =0. ; time_double('2020-1-1')
   ;  This is where a generic CCSDS packet is decommutated into an APID specific structure
-  if ccsds.time ge time_double('2020-1-1') then begin
+  if 1 || ccsds.time ge tbad then begin
     if not self.ignore_flag then strct = self.decom(ccsds,source_dict=source_dict)    
   endif else begin
     dprint,verbose=self.verbose,dlevel=1, 'Invalid time.  CCSDS Packet ignored'
@@ -298,8 +299,8 @@ function swfo_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2023-12-02 00:12:52 -0800 (Sat, 02 Dec 2023) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 32262 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 32278 $'
 
     return,sw_hash
 end
@@ -336,8 +337,8 @@ function swfo_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2023-12-02 00:12:52 -0800 (Sat, 02 Dec 2023) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32262 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32278 $'
 
   return,global_att
 end

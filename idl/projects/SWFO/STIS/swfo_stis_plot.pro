@@ -3,9 +3,9 @@
 ; Run using:
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
-; $LastChangedBy: ali $
-; $LastChangedDate: 2023-08-17 18:53:31 -0700 (Thu, 17 Aug 2023) $
-; $LastChangedRevision: 32024 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $
+; $LastChangedRevision: 32278 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -230,7 +230,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
       endfor
     endfor
 
-    if 0 then begin
+    if 1 then begin
       xv = dgen()
       
       flux_min = 2.48e2 * xv ^ (-1.6)  ; #/sec/cm2/ster/keV

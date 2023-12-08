@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-03 13:51:45 -0800 (Sun, 03 Dec 2023) $
-; $LastChangedRevision: 32268 $
+; $LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $
+; $LastChangedRevision: 32278 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/swx/swx_ccsds_decom.pro $
 
 ;
@@ -31,6 +31,7 @@
 function swx_ccsds_decom_mettime,buffer,spc=spc,span=span,subsec=subsec
   if size(buffer,/type) gt 1 then message, 'code error'
   if buffer[6] eq 0 && buffer[7] eq 0 then begin
+    if systime(1) gt 1.7018208e+09 then dprint,'Fix the time code in the SWX FPGA!!!!!  Then you can delete this message.',dwait=10.
     return, swx_ccsds_decom_mettime(buffer[3:*])   ; cluge to fix temporary problem in swx fpga
     
   endif
@@ -76,7 +77,7 @@ function swx_ccsds_decom,buffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,of
   d_nan = !values.d_nan
   f_nan = !values.f_nan
 
-  ccsds = { swx_ccsds_format, $
+  ccsds = { ccsds_format, $
     time:         d_nan,  $             ; unixtime
     MET:          d_nan,  $
     apid:         0u , $
