@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2023-12-06 17:06:52 -0800 (Wed, 06 Dec 2023) $
-; $LastChangedRevision: 32277 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
+; $LastChangedRevision: 32281 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -8,7 +8,7 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
   common swfo_stis_sci_com4, lastdat, last_str
   ccsds_data = swfo_ccsds_data(ccsds)
   str1=swfo_stis_ccsds_header_decom(ccsds)
-  if str1.fpga_rev gt 209 then ccsds_data=ccsds_data[0:-3]
+  ;if str1.fpga_rev gt 209 then ccsds_data=ccsds_data[0:-3]
 
   hkp = swfo_apdat('stis_hkp2')
   hkp_sample = hkp.last_data       ; retrieve last hkp packet
@@ -24,10 +24,12 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
 
   hs = 24
   case n_elements(ccsds_data) of
-    hs+256:  scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:*]))
-    hs+672:  scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:*]))
-    hs+512:  scidata = ulong(swap_endian( uint(ccsds_data,hs,256) ,/swap_if_little_endian))
-    hs+1344: scidata = ulong(swap_endian( uint(ccsds_data,hs,672) ,/swap_if_little_endian))
+    hs+256:   scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:hs+256-1]))
+    hs+256+2: scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:hs+256-1]))
+    hs+672:   scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:hs+672-1]))
+    hs+672+2: scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:hs+672-1]))
+    hs+512:   scidata = ulong(swap_endian( uint(ccsds_data,hs,256) ,/swap_if_little_endian))
+    hs+1344:  scidata = ulong(swap_endian( uint(ccsds_data,hs,672) ,/swap_if_little_endian))
     else :  begin
       scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:*]))
       dprint,'Unknown science packet size:',n_elements(ccsds_data)

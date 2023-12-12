@@ -2,8 +2,8 @@
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:13:47 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32263 $
+; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
+; $LastChangedRevision: 32281 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -383,9 +383,9 @@ end
 
 
 
-pro cmblk_reader::print_status,no_header=no_header
+pro cmblk_reader::print_status,no_header=no_header    ;,   apid=apid
   self.socket_reader::print_status,no_header=no_header
-  foreach h , self.handlers,apid do   h.print_status,/no_header,apid=apid
+  foreach h , self.handlers,apid do   h.print_status,/no_header   ;,apid=apid
 end
 
 

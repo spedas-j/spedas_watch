@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 03:15:48 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32265 $
+; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
+; $LastChangedRevision: 32281 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ptp_reader__define.pro $
 
 
@@ -95,12 +95,12 @@ function ptp_reader::init,sync_pattern=sync_pattern,decom_procedure = decom_proc
   if ret eq 0 then return,0
 
   if ~isa(sync_pattern) then sync_pattern = ['03'xb,  '00'xb ,'bb'xb ]
-  if isa(mission,'string') && mission eq 'SWFO' then begin
+  if isa(mission,'string') && mission eq 'SWFO' then begin      ; This keyword is tempporary and WILL be removed
     self.decom_procedure = 'swfo_ccsds_spkt_handler'
   endif
-  if isa(mission,'string') && mission eq 'SWX' then begin
+  if isa(mission,'string') && mission eq 'SWX' then begin     ; This keyword is tempporary and WILL be removed
     self.decom_procedure = 'swx_ccsds_spkt_handler'
-    swx_stis_apdat_init,/save,/swem
+    swx_apdat_init,/save,/swem
   endif
   self.sync_size = n_elements(sync_pattern)
   self.maxsize = 4100

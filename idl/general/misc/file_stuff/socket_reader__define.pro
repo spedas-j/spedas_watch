@@ -12,8 +12,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-20 17:44:34 -0800 (Mon, 20 Nov 2023) $
-; $LastChangedRevision: 32254 $
+; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
+; $LastChangedRevision: 32281 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -361,10 +361,11 @@ end
 
 
 
-pro socket_reader::print_status,no_header=no_header,apid = apid
+pro socket_reader::print_status,no_header=no_header  ;,apid = apid
    format1 = '(a12,a18,a18,i3,i10,i12,i10,i10,i10,i10,i10,i10)'
    format2 = str_sub(format1,',i',',a')
-   if ~isa(apid,'string') then apid =''
+   ;if ~isa(apid,'string') then apid =''
+   apid = self.apid
    ;printdat,apid
    if ~keyword_set(no_header) then $
      print,'APID','Name','Object','S','sum1','sum2','npkts','nreads','Size',format=format2
@@ -727,7 +728,7 @@ function socket_reader::init,name=name,title=title,ids=ids,host=host,port=port,f
   run_proc=run_proc,directory=directory, $
   no_widget=no_widget,verbose=verbose
 
-  if ~keyword_set(name) then name=typename(self)
+  if ~keyword_set(name) then name=strlowcase(typename(self))
   self.name  =name
 
   self.source_dict = dictionary()

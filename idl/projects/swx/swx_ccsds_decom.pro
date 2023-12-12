@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $
-; $LastChangedRevision: 32278 $
+; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
+; $LastChangedRevision: 32281 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/swx/swx_ccsds_decom.pro $
 
 ;
@@ -77,7 +77,7 @@ function swx_ccsds_decom,buffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,of
   d_nan = !values.d_nan
   f_nan = !values.f_nan
 
-  ccsds = { ccsds_format, $
+  ccsds = { swx_ccsds_format, $
     time:         d_nan,  $             ; unixtime
     MET:          d_nan,  $
     apid:         0u , $
