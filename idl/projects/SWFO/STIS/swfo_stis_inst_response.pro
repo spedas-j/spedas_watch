@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-06-08 09:43:07 -0700 (Thu, 08 Jun 2023) $
-; $LastChangedRevision: 31891 $
+; $LastChangedDate: 2023-12-12 13:14:57 -0800 (Tue, 12 Dec 2023) $
+; $LastChangedRevision: 32283 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
 ; $ID: $
 
@@ -563,35 +563,36 @@ end
 
 ; ADC bin Response  MATRIX (transposed)
 pro swfo_stis_response_bin_matrix_plot,r,window=win,face=face,transpose=transpose,overplot=overplot,energy_range=ei_range,zlog=zlog,limit=lim
+  nbins = r.nbins
   if n_elements(zlog) eq 0 then zlog=1
   if ~keyword_set(ei_range) then ei_range = minmax(r.e_inc)
-  bin_range = [-2,260]
+  bin_range = [-2,nbins+5]
   if n_elements(face) eq 0 then face=0
   face_str = (['Aft','Both','Front'])[face+1]
   atten_str = (['Open','Closed'])[r.attenuator]
   SEP  = (['???','STIS1','STIS2'])[r.sensornum]
   title= r.desc+' '+r.particle_name+' ('+r.mapname+' '+atten_str+' '+sep+') '+face_str
-  resp_matrix = float(r.bin3[*,*,0:255] )   * (r.sim_area /100 / r.nd * 3.14)
+  resp_matrix = float(r.bin3[*,*,0:r.nbins-1] )   * (r.sim_area /100 / r.nd * 3.14)
   zrange = minmax(resp_matrix ,/pos)
   if keyword_set(face) then z = reform( resp_matrix[*, face lt 0, *] ) else z = total(/pres,resp_matrix,2)
   str_element,r,'fdesc',subtitle
   if keyword_set(transpose) then begin
     options,lim,ylog=1,xrange=bin_range,yrange=ei_range,/xstyle,/ystyle,xmargin=[10,10],zlog=zlog,zrange=zrange,/no_interp,ytitle='Incident Energy (keV)',xtitle='Bin Number',title=title
     if keyword_set(win) then     wi,win,wsize=[1200,500] ;,/show,icon=0
-    x = indgen(256)
+    x = indgen(nbins)
     y = r.e_inc
     z = transpose(z)
   endif else begin
     options,lim,xlog=1,xrange=ei_range,yrange=bin_range,/xstyle,/ystyle,xmargin=[10,10],zlog=zlog,zrange=zrange,/no_interp,xtitle='Incident Energy (keV)',ytitle='Bin Number',title=title,subtitle=subtitle
     if keyword_set(win) then     wi,win,wsize=[500,800] ;,/show,icon=0
-    y = indgen(256)
+    y = indgen(nbins)
     x = r.e_inc
   endelse
   ;if not keyword_set(ok1) then ok1 = 1
   specplot,x,y,z,limit=lim
   overplot=get_plot_state()
-  bmap = swfo_stis_get_bmap(r.mapnum,r.sensornum)
-  ;bmap = r.bmap
+  ;bmap = swfo_stis_get_bmap(r.mapnum,r.sensornum)
+  bmap = r.bmap
   labpos1 = 5.
   labpos2 = 8.
   for tid=0,1 do begin
@@ -720,6 +721,128 @@ function swfo_stis_adc_calibration,sensornum
 end
 
 
+function swfo_stis_cal_adc2nrg,adc,tid,fto
+   adc_scales = 237./59.5
+   return, adc / adc_scales
+  
+end
+
+
+
+function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
+
+  nbins = max(lut)+1   ; don't use this now
+  ;if nbins gt 256 then message,"Don't use this code"
+
+  ;if keyword_set(mapname) or not keyword_set(lut) then lut = swfo_stis_create_lut(mapname,mapnum=mapnum)
+  mapsize = (max(lut)+1) > 672
+  if mapsize gt 256  then dprint,'Default MAP in use'
+
+  psym = [7,4]
+  colors = [0,2,4,6,3,1,5]
+  colors = [0,2,4,6,3,1,0,6]
+  nan = !values.f_nan
+  bmap =  {sens:0, bin:0, name:'', fto:0, det:0 , tid:0, ADC:[0,0L],  num:0,  ok:0, $
+    color:0 ,psym:0, type:0 , $
+    ;                    x:0., y:0., dx:0. ,dy:0., $
+    FACE:0,  overflow:0b,  $
+    nw:0,  $
+    adcm: 0L, $
+    adc_avg:nan         ,  adc_delta:nan  , $
+    nrg_meas_avg:nan    , nrg_meas_delta:nan, $
+    nrg_proton_avg:nan  , nrg_proton_delta:nan, $
+    nrg_electron_avg:nan, nrg_electron_delta:nan }
+  bmaps = replicate(bmap,nbins)
+  ;remap = indgen(16)
+  ;remap[[0,1,10,11]] = 0    ; allow
+  ;remap[[0,1]] = 0                  ; Non events  'x'
+  det =    [0,1,2,4,3,5,6,7,0]                                 ; det number
+  adcm =   [0,1,1,1,2,2,2,4,0]    ; multiplier
+  ;names = strsplit('X O T OT F FO FT FTO Mixed',/extract)
+  ;names = strsplit('X 1 2 1-2 3 1-3 2-3 1-2-3 Total',/extract)
+  names = strsplit('X 1 2 12 3 13 23 123 Mixed',/extract)
+
+  ;names = reform( transpose( [['A-'+names],['B-'+names]]))
+  names = reform( transpose( [['O-'+names],['F-'+names]]))
+  ;realfto = remap[lindgen(2L^15) / 2L^12]
+  b=0
+  ;lut[*,*,0] =674
+  for fto=1,7 do begin
+    for tid=0,1 do begin
+      ;lut0 =  reform( lut[*,tid,fto-1])
+      for esteps = 0,48-1 do begin
+        ;if fto[0] eq fto[1] then fto = fto[0] else fto = 8   ;  the value of 8 signifies a bin with mixed types
+        bmap.name = names[tid,fto]
+        bmap.fto = fto
+        bmap.bin = b
+        bmap.det = det[fto]
+        bmap.color = colors[bmap.det]
+        bmap.tid = tid
+        bmap.psym = psym[bmap.tid]
+        w = where(/null,lut eq b  , nw)
+        if nw eq 0 then   message,'Error'
+        adcvals = w mod 2L^15
+        adc = minmax( adcvals  )+ [0,1]
+        bmap.adc = adc
+        bmap.num = adc[1] - adc[0]
+        bmap.nw = nw
+        bmap.ok = (bmap.num eq nw) and bmap.fto ne 8
+        bmap.adcm = adcm[bmap.det]
+        bmap.adc *= adcm[bmap.det]    ; OT and FT are doubled,  FTO is quadrupled
+        bmap.num = bmap.adc[1] - bmap.adc[0]
+        bmap.overflow = max(adc) ge 2L^15
+       ; bmap.face = (fix((bmap.fto and 1) ne 0) - fix((bmap.fto and 4) ne 0)) * (bmap.tid ? 1 : -1)
+        bmaps[b++] = bmap
+       
+        
+      endfor
+    endfor
+      
+  endfor
+
+  ;bmaps.x = (bmaps.adc[1] + bmaps.adc[0])/2.
+  ;bmaps.dx = bmaps.adc[1] - bmaps.adc[0]
+
+  bmaps.adc_avg = (bmaps.adc[1] + bmaps.adc[0])/2.
+  bmaps.adc_delta = bmaps.adc[1] - bmaps.adc[0]
+
+  dprint,'Warning this section of code should be calling: swfo_stis_adc_calibration'
+
+  ;The following cal data should be modified to originate from mvn_sep_det_cal
+  cbin59_5 =[[[ 1. , 43.77, 38.49, 41.13,  41.,41.,41.] ,  $  ;1A     ; O T F
+    [ 1. , 41.97, 40.29, 42.28,  41.,41.,41. ]] ,  $  ;1B
+    [[ 1. , 40.25, 44.08, 43.90,  41.,41.,41. ] ,  $  ;2A
+    [ 1. , 43.22, 43.97, 41.96,  41.,41.,41. ]]]   ;  2B
+
+  ;  Default calibration for STIS
+  cbin59_5 =[[[ 1. , 43.77, 38.49, 41.13,  41.,41.,41., 41. ] ,  $  ;1  - Open side     ; O T F   ;  1 3 2
+    [ 1. , 41.97, 40.29, 42.28,  41.,41.,41. , 41.]] ,  $  ;1  - Foil side
+    [[ 1. , 40.25, 44.08, 43.90,  41.,41.,41., 41. ] ,  $  ;2A
+    [ 1. , 43.22, 43.97, 41.96,  41.,41.,41., 41. ]]]   ;  2B
+
+
+  if keyword_set(sensor) then begin
+    adc_scale = 237./59.5
+    adc_scales = replicate(adc_scale,8)
+    bmaps.sens = sensor
+    erange = fltarr(2,nbins)
+    for i=0,nbins-1 do   erange[*,i] = swfo_stis_cal_adc2nrg(bmaps[i].adc,bmaps[i].tid,bmaps[i].fto)
+    
+    ; 59.5 / cbin59_5[bmaps[i].det,bmaps[i].tid,sensor-1] * bmaps[i].adc
+    bmaps.nrg_meas_avg    = average(erange,1)
+
+    bmaps.nrg_meas_delta   = reform(erange[1,*]-erange[0,*])  ;/2
+    w = where(bmaps.overflow)
+    overflow_fudge = .3  ;   This value is arbitrary - but at least better than the default
+    bmaps[w].nrg_meas_delta = bmaps[w].nrg_meas_avg * overflow_fudge
+    bmaps[w].nrg_meas_avg += bmaps[w].nrg_meas_delta / 2
+  endif else dprint,'Please supply sensor number'
+
+  return,bmaps
+end
+
+
+
 
 
 
@@ -760,43 +883,85 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
     lut = fix( reform(lut,4096,2,8) )    ;   order is: [ADCval, TID,  FTOpattern ]
     lut[*,*,0] = 256                 ;  not triggered (not detected)  these are FTO=0 (non) events
     ;   lut[*,*,5] = 257                 ;  FO event     changed for SWFO
+    for side=0,1 do begin
+      ;   slabel = side ? 'B' : 'A'
+      ;   ec3 = side ? data.b : data.a                          ; collected (deposited) energy in each of 3 detectors
+      ec3 = data.edep[*,side]                                     ; energy deposited in each of 3 detectors for that side
+      noise3 =  (noise_rms[*,side] # one_n) * randomn(seed,3,n)     ; generate noise in kev
+      em3 = ec3 + noise3
+      fto3 = em3 gt (threshold[*,side] # one_n)           ; determine FTO pattern  based on # above  threshold
+      em3 = em3 * fto3                                             ; clear untriggered channels
+      em  = total(em3,1)                                           ; total energy in all 3 triggered channels
+      scl3 = (adc_scale[*,side] # one_n)
+      adc3 = long(em3 * scl3)  <  4095
+      ftocode = reform(fto3 ## [1,2,4])                        ; This does  properly account for FO events!!
+      adc = total(/pres,adc3,1) / shft[ftocode]    ; FT and OT  adc values are divided by 2,  FTO are divided by 4
+      adc_bin = lut[adc,side * one_n,ftocode]       ; determine ADC bin
+      data.fto[side] = ftocode
+      data.em[side] = em
+      data.bin[side] = adc_bin
+      ;   if keyword_set(add) then begin
+      ;     str_element,/add,data,slabel+'_em',em
+      ;     str_element,/add,data,slabel+'_fto',ftocode
+      ;     str_element,/add,data,slabel+'_adc',adc
+      ;     str_element,/add,data,slabel+'_bin',adc_bin
+      ;   endif
+    endfor
   endif else begin
     dprint , 'Non-LUT setup
-    lut = uintarr(2^15, 2, 8 )
+    lut = uintarr(2L^15, 2, 8 )   + 680
+    map = swfo_stis_adc_map()
+    bin = 0
+    for fto = 1,7 do begin
+      for tid=0,1 do begin
+        ch = (fto-1)*2 + tid
+        for e=0,47 do begin
+          a0= map.adc0[e,ch]
+          a1= a0 + map.dadc[e,ch] -1
+          lut[a0:a1,tid,fto] = bin
+          bin++   
+        endfor
+      endfor
+    endfor
     
-    
-    
-    stop   ; not finished  map requireed here
+    shft = [0,1,1,2,1,2,2,4]      ; 2^(nbits-1)   nbits = number of bits that are set within an FTO pattern
+    adc_scale = replicate(237./59.5,3,2)
+; stop   ; not finished  map required here
+
+    for side=0,1 do begin
+      ;   slabel = side ? 'B' : 'A'
+      ;   ec3 = side ? data.b : data.a                          ; collected (deposited) energy in each of 3 detectors
+      ec3 = data.edep[*,side]                                     ; energy deposited in each of 3 detectors for that side
+      noise3 =  (noise_rms[*,side] # one_n) * randomn(seed,3,n)     ; generate noise in kev
+      em3 = ec3 + noise3
+      fto3 = em3 gt (threshold[*,side] # one_n)           ; determine FTO pattern  based on # above  threshold
+      em3 = em3 * fto3                                             ; clear untriggered channels
+      em  = total(em3,1)                                           ; total energy in all 3 triggered channels
+      scl3 = (adc_scale[*,side] # one_n)
+      adc3 = long(em3 * scl3)  <  (2L ^15 -1)
+      ftocode = reform(fto3 ## [1,2,4])                        ; This does  properly account for FO events!!
+      adc = total(/pres,adc3,1) / shft[ftocode]    ; FT and OT  adc values are divided by 2,  FTO are divided by 4
+      adc_bin = lut[adc,side * one_n,ftocode]       ; determine ADC bin
+      data.fto[side] = ftocode
+      data.em[side] = em
+      data.bin[side] = adc_bin
+      ;   if keyword_set(add) then begin
+      ;     str_element,/add,data,slabel+'_em',em
+      ;     str_element,/add,data,slabel+'_fto',ftocode
+      ;     str_element,/add,data,slabel+'_adc',adc
+      ;     str_element,/add,data,slabel+'_bin',adc_bin
+      ;   endif
+    endfor
+    mapname = 'Non-LUT'
+
+    bmap = swfo_stis_nonlut2map(lut=lut,sensor=sensornum)
+
   endelse
-  for side=0,1 do begin
-    ;   slabel = side ? 'B' : 'A'
-    ;   ec3 = side ? data.b : data.a                          ; collected (deposited) energy in each of 3 detectors
-    ec3 = data.edep[*,side]                                     ; energy deposited in each of 3 detectors for that side
-    noise3 =  (noise_rms[*,side] # one_n) * randomn(seed,3,n)     ; generate noise in kev
-    em3 = ec3 + noise3
-    fto3 = em3 gt (threshold[*,side] # one_n)           ; determine FTO pattern  based on # above  threshold
-    em3 = em3 * fto3                                             ; clear untriggered channels
-    em  = total(em3,1)                                           ; total energy in all 3 triggered channels
-    scl3 = (adc_scale[*,side] # one_n)
-    adc3 = long(em3 * scl3)  <  4095
-    ftocode = reform(fto3 ## [1,2,4])                        ; This does  properly account for FO events!!
-    adc = total(/pres,adc3,1) / shft[ftocode]    ; FT and OT  adc values are divided by 2,  FTO are divided by 4
-    adc_bin = lut[adc,side * one_n,ftocode]       ; determine ADC bin
-    data.fto[side] = ftocode
-    data.em[side] = em
-    data.bin[side] = adc_bin
-    ;   if keyword_set(add) then begin
-    ;     str_element,/add,data,slabel+'_em',em
-    ;     str_element,/add,data,slabel+'_fto',ftocode
-    ;     str_element,/add,data,slabel+'_adc',adc
-    ;     str_element,/add,data,slabel+'_bin',adc_bin
-    ;   endif
-  endfor
   str_element,/add,simstat,'noise_level',noise_level
   str_element,/add,simstat,'mapnum',mapnum
   str_element,/add,simstat,'mapname',mapname
-  ;str_element,/add,simstat,'lut',lut
-  ;str_element,/add,simstat,'bmap',bmap
+  str_element,/add,simstat,'lut',lut
+  str_element,/add,simstat,'bmap',bmap
 
 end
 
@@ -934,6 +1099,7 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   endif
 
   swfo_stis_inst_bin_response,simstat,data0,mapnum=mapnum,noise_level=noise_level  ,bmap=bmap
+  nbins = n_elements(bmap)
 
   w= where( swfo_stis_response_data_filter(simstat,data0,_extra=filter,filter=out_filter),nw)
   if nw le 1 then begin
@@ -980,7 +1146,7 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   ny_emeas= long((ylog ? alog10(ybinrange[1]/ybinrange[0]) : ybinrange[1]-ybinrange[0]) / ybinsize)
   xs0 = xlog ? alog(xbinrange[0]) : xbinrange[0]
   ys0 = ylog ? alog(ybinrange[0]) : ybinrange[0]
-  ny_bins = 258L   ; max(lut)+1
+  ny_bins = nbins+2   ; max(lut)+1
   if ~keyword_set(n_omega) then n_omega = 2L
   G4=fltarr(nx_einc,ny_emeas,8,2)
   adcbin_hist = lonarr(nx_einc,n_omega,ny_bins)
@@ -1032,7 +1198,7 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   str_element,/add,response,'e_inc',ei_val
   str_element,/add,response,'e_meas',em_val
   str_element,/add,response,'G4',g4
-  str_element,/add,response,'nbins',256
+  str_element,/add,response,'nbins',nbins
   str_element,/add,response,'bin3',adcbin_hist
   str_element,/add,response,'GB3' , adcbin_hist *  (response.sim_area /100 / response.nd * 3.14)
   str_element,/add,response,'bin_val',bin_val
@@ -1209,6 +1375,7 @@ end
 
 pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=overplot  ;,energy=energy,flux=flux
   resp = flux_func.inst_response
+  nbins = resp.nbins
   g = total(resp.gb3,2)   ; sum over both faces
   bmap = resp.bmap
   resp_nrg = resp.e_inc
@@ -1216,7 +1383,7 @@ pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=ov
   resp_flux = func(resp_nrg,param = flux_func)    ; interpolate the flux to the reponse matrix sampling
   resp_rate =  (transpose(g) # resp_flux ) > 1e-5
   if arg_present(win) && n_elements(win) eq 1 then wi,win++,wsize = [1200,400]
-  options,lim,/ylog,psym=-1,yrange=[1e-4,3e6],xrange=[-2,260],xmargin=[10,10],/xstyle,/ystyle,ytitle='Count Rate (Hz)'
+  options,lim,/ylog,psym=-1,yrange=[1e-4,3e6],xrange=[-2,nbins+5],xmargin=[10,10],/xstyle,/ystyle,ytitle='Count Rate (Hz)'
   plot,noerase=overplot,resp_rate,  _extra=lim   ;,/ylog,psym=-1,yrange=[1e-4,3e6],xrange=[-2,260],xmargin=[10,10],/xstyle,/ystyle
   deadtime = 8.0e-6
   if 0 then begin
@@ -1663,20 +1830,25 @@ case testrun of
 
 
   '4pi_stis_run12': begin
-    simstat_p = 0
-    data_p = 0
-    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run12_seed0?_proton.dat',type=+1
-    simstat_e = 0
-    data_e = 0
-    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run12_seed0?_e-.dat',type=+1
-    simstat_a = 0
-    data_a = 0
-    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run12_seed0?_alpha.dat',type=+1
-    simstat_g = 0
-    data_g = 0
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run12_seed0?_gamma.dat',type=+1
+    filename = testrun  ; + '.sav'
+    if file_test(filename) then begin
+      restore,filename,/verbose
+    endif else begin
+      simstat_p = 0
+      data_p = 0
+      swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run12_seed0?_proton.dat',type=+1
+      simstat_e = 0
+      data_e = 0
+      swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run12_seed0?_e-.dat',type=+1
+      simstat_a = 0
+      data_a = 0
+      swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run12_seed0?_alpha.dat',type=+1
+      simstat_g = 0
+      data_g = 0
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run12_seed0?_gamma.dat',type=+1
+      save,simstat_p,data_p,simstat_e,data_e,simstat_a,data_a,simstat_g,data_g,file=filename,/verbose      
+    endelse
   end
-
 
 
 
