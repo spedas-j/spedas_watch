@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-12 13:14:57 -0800 (Tue, 12 Dec 2023) $
-; $LastChangedRevision: 32283 $
+; $LastChangedDate: 2023-12-13 10:18:56 -0800 (Wed, 13 Dec 2023) $
+; $LastChangedRevision: 32286 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
 ; $ID: $
 
@@ -398,7 +398,7 @@ end
 
 ;  Multiple matrix plots
 pro swfo_stis_response_matrix_plots,r,window=win,single=single
-  if keyword_set(win) then     wi,win,wsize=[1100,850] ;,/show
+  if keyword_set(win) then     wi,win,wsize=[900,800] ;,/show
   ;labels = strsplit('XXX O T OT F FO FT FTO Total',/extract)
   labels = strsplit('XXX 1 2 12 3 13 23 123 Total',/extract)
   zrange = minmax(r.g4,/pos)
@@ -408,13 +408,13 @@ pro swfo_stis_response_matrix_plots,r,window=win,single=single
   if not keyword_set(single) then !p.multi = [0,4,4]
   if not keyword_set(ok1) then ok1 = 1
   wnum=0
-  atten = (['Open','Closed'])[r.attenuator]
-  SEP  = (['???','SEP1','SEP2'])[r.sensornum]
+  atten = ''  ;(['Open','Closed'])[r.attenuator]
+  SEP  = 'STIS' ; (['???','SEP1','SEP2'])[r.sensornum]
   title = r.desc+' '+r.particle_name+' '+SEP+' '+atten+' '
 
   for side =0,1 do begin
     ;slabel = side ? 'B' : 'A'
-    slabel = side ? 'O' : 'F'
+    slabel = side ? 'F' : 'O'
     for fto = 1,8 do begin
       if fto eq 8 then G2 = total(r.g4[*,*,1:7,side],3) $
       else G2 = r.g4[*,*,fto,side]
@@ -425,7 +425,8 @@ pro swfo_stis_response_matrix_plots,r,window=win,single=single
         if side ne 0 then continue
       endif
       specplot,r.e_inc,r.e_meas,G2,limit=lim
-      oplot,dgen(),dgen(),linestyle=1
+      oplot,dgen(),dgen();,linestyle=1
+      oplot,dgen()+12,dgen() ;, color = 6 ;,linestyle=1
     endfor
   endfor
   !p.multi=0
@@ -568,9 +569,9 @@ pro swfo_stis_response_bin_matrix_plot,r,window=win,face=face,transpose=transpos
   if ~keyword_set(ei_range) then ei_range = minmax(r.e_inc)
   bin_range = [-2,nbins+5]
   if n_elements(face) eq 0 then face=0
-  face_str = (['Aft','Both','Front'])[face+1]
-  atten_str = (['Open','Closed'])[r.attenuator]
-  SEP  = (['???','STIS1','STIS2'])[r.sensornum]
+  face_str = ''  ;(['Aft','Both','Front'])[face+1]
+  atten_str = '' ;(['Open','Closed'])[r.attenuator]
+  SEP  =  (['???','STIS1','STIS2'])[r.sensornum]
   title= r.desc+' '+r.particle_name+' ('+r.mapname+' '+atten_str+' '+sep+') '+face_str
   resp_matrix = float(r.bin3[*,*,0:r.nbins-1] )   * (r.sim_area /100 / r.nd * 3.14)
   zrange = minmax(resp_matrix ,/pos)
@@ -583,7 +584,7 @@ pro swfo_stis_response_bin_matrix_plot,r,window=win,face=face,transpose=transpos
     y = r.e_inc
     z = transpose(z)
   endif else begin
-    options,lim,xlog=1,xrange=ei_range,yrange=bin_range,/xstyle,/ystyle,xmargin=[10,10],zlog=zlog,zrange=zrange,/no_interp,xtitle='Incident Energy (keV)',ytitle='Bin Number',title=title,subtitle=subtitle
+    options,lim,xlog=1,xrange=ei_range,yrange=bin_range,/xstyle,/ystyle,xmargin=[10,10],zlog=zlog,zrange=zrange,/no_interp,xtitle='Incident Energy (keV)',ytitle='Bin Number',title=title;,subtitle=subtitle
     if keyword_set(win) then     wi,win,wsize=[500,800] ;,/show,icon=0
     y = indgen(nbins)
     x = r.e_inc
@@ -744,6 +745,8 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
   nan = !values.f_nan
   bmap =  {sens:0, bin:0, name:'', fto:0, det:0 , tid:0, ADC:[0,0L],  num:0,  ok:0, $
     color:0 ,psym:0, type:0 , $
+    geom: 0., $ 
+    rate:0.,counts:0., flux:0. , $   ; dummy place holders for convienience
     ;                    x:0., y:0., dx:0. ,dy:0., $
     FACE:0,  overflow:0b,  $
     nw:0,  $
@@ -757,6 +760,8 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
   ;remap[[0,1,10,11]] = 0    ; allow
   ;remap[[0,1]] = 0                  ; Non events  'x'
   det =    [0,1,2,4,3,5,6,7,0]                                 ; det number
+  geom = [!values.f_nan,.001,.1]
+  geoms = geom [  [0,1,2,1,2,1,2,1 ]  ]
   adcm =   [0,1,1,1,2,2,2,4,0]    ; multiplier
   ;names = strsplit('X O T OT F FO FT FTO Mixed',/extract)
   ;names = strsplit('X 1 2 1-2 3 1-3 2-3 1-2-3 Total',/extract)
@@ -779,6 +784,7 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
         bmap.color = colors[bmap.det]
         bmap.tid = tid
         bmap.psym = psym[bmap.tid]
+        bmap.geom = geoms[fto]
         w = where(/null,lut eq b  , nw)
         if nw eq 0 then   message,'Error'
         adcvals = w mod 2L^15
@@ -830,8 +836,10 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
     
     ; 59.5 / cbin59_5[bmaps[i].det,bmaps[i].tid,sensor-1] * bmaps[i].adc
     bmaps.nrg_meas_avg    = average(erange,1)
+    bmaps.nrg_proton_avg  = bmaps.nrg_meas_avg + 12.   ; approximate correction
 
-    bmaps.nrg_meas_delta   = reform(erange[1,*]-erange[0,*])  ;/2
+    bmaps.nrg_meas_delta   = reform(erange[1,*]-erange[0,*])  
+    bmaps.nrg_proton_delta = bmaps.nrg_meas_delta
     w = where(bmaps.overflow)
     overflow_fudge = .3  ;   This value is arbitrary - but at least better than the default
     bmaps[w].nrg_meas_delta = bmaps[w].nrg_meas_avg * overflow_fudge
@@ -866,10 +874,10 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
   if n_elements(noise_level) ne 1 then noise_level=  1.
   ;if n_elements(sensornum) ne 1 then sensornum=1
   ;if n_elements(mapnum) ne 1 then mapnum = 8
-  noise_rms = noise_level * [[2.,3.,2.],[2.,3.,2.]]   ; noise O T F in kev
+  noise_rms = noise_level * [[1.5,4.,2.5],[1.5,4.,2.5]]   ; noise O T F in kev
   adc_scale = swfo_stis_adc_calibration(sensornum)
   ;adc_scale = adc_scale[*,*,sensornum]
-  threshold = noise_rms *   5   ; 5 sigma threshold
+  threshold = noise_rms *    5 ;sigma threshold
   one_n = replicate(1,n)
   str_element,/add,data,'fto',bytarr(2,n)
   str_element,/add,data,'em',fltarr(2,n)
@@ -1306,7 +1314,7 @@ pro swfo_stis_response_aperture_plot,window=win,data,_extra=ex,filter=filter,bin
   ;printdat,ex,filter
   xrange = minmax(data.pos[1])
   yrange = minmax(data.pos[2])
-  options,lim,xtitle='Y position (mm)',ytitle='Z position (mm)',title=title,xmargin=[10,10],/isotropic,xrange=xrange,yrange=yrange,/xstyle,/ystyle,subtitle=subtitle
+  options,lim,xtitle='Y position (mm)',ytitle='Z position (mm)',title=title,xmargin=[10,10],/isotropic,xrange=xrange,yrange=yrange,/xstyle,/ystyle;,subtitle=subtitle
   plot,_extra=lim,[0,1],/nodata
   if nw eq 0 then begin
     dprint, 'No selected data!'
@@ -1373,7 +1381,7 @@ end
 
 
 
-pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=overplot  ;,energy=energy,flux=flux
+pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=overplot,result=result  ;,energy=energy,flux=flux
   resp = flux_func.inst_response
   nbins = resp.nbins
   g = total(resp.gb3,2)   ; sum over both faces
@@ -1411,7 +1419,9 @@ pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=ov
   oplot,lim.xrange,[1,1]/60.,linestyle =1   , color=2
   oplot,lim.xrange,[1,1]*2.,linestyle =1   , color=2
   
-  oplot,resp_rate * swfo_stis_rate_correction(total_rates,deadtime=deadtime),color=2
+  resp_rate_cor = resp_rate * swfo_stis_rate_correction(total_rates,deadtime=deadtime)
+  oplot,resp_rate_cor,color=2
+  result = {resp:resp,rate:resp_rate, rate_dtcor: resp_rate_cor}
 end
 
 
@@ -1423,9 +1433,9 @@ pro swfo_stis_response_plots,simstat,data,filter=f,window=win ,response=resp    
   if ~ keyword_set(simstat) || ~ keyword_set(data) then return
   if not keyword_set(win) then win=1
   binscale=3
-  swfo_stis_response_aperture_plot,data,simstat=simstat,window= win++,_extra=f ,binscale=binscale
-  swfo_stis_response_omega_plot,data,simstat=simstat,window=win++,_extra=f ,binscale=binscale, /posflag
-  swfo_stis_response_omega_plot,data,simstat=simstat,window=win++,_extra=f ,binscale=binscale
+  ;swfo_stis_response_aperture_plot,data,simstat=simstat,window= win++,_extra=f ,binscale=binscale
+  ;swfo_stis_response_omega_plot,data,simstat=simstat,window=win++,_extra=f ,binscale=binscale, /posflag
+  ;swfo_stis_response_omega_plot,data,simstat=simstat,window=win++,_extra=f ,binscale=binscale
 
   ;we= where( swfo_stis_response_data_filter(simstat,data,_extra=f,filter=f2),nwe)
   resp = swfo_stis_inst_response(simstat,data,filter=f)
@@ -1433,9 +1443,10 @@ pro swfo_stis_response_plots,simstat,data,filter=f,window=win ,response=resp    
   if ~keyword_set(resp) then stop
 
   transpose=1
+  ;transpose=0
   swfo_stis_response_matrix_plots,resp,window=win++
   swfo_stis_response_matrix_plots,resp,window=win++,single=4
-;  swfo_stis_response_bin_matrix_plot,resp,window=win++,transpose=transpose ,face=0         ; both faces
+  swfo_stis_response_bin_matrix_plot,resp,window=win++,transpose=transpose ,face=0         ; both faces
 ;  swfo_stis_response_bin_matrix_plot,resp,window=win++,transpose=transpose ,face=-1
 ;  swfo_stis_response_bin_matrix_plot,resp,window=win++,transpose=transpose ,face=+1
   swfo_stis_response_plot_gf,resp,window=win++,/ylog;,xrange=[1e2,1e6]
@@ -1444,44 +1455,56 @@ pro swfo_stis_response_plots,simstat,data,filter=f,window=win ,response=resp    
 
   energy = dgen(/log,range=[1.,1e6],6*4+1)
   flux = 1e7 * energy^ (-1.6)
-  w = where(energy le 1000e9)
-  ;flux[w] = flux[w] / (1e7 / 2.5e2)
+  flux = 2.5e2 * energy^ (-1.6)
+  flux = 2.5e4 * energy^ (-1.6)
+  w = where(energy gt 6000.)
+  ;flux[w] = flux[w] * 10000
   pwlin =1
   
   func_elec = spline_fit3(!null,energy,flux,/xlog,/ylog,pwlin=pwlin)
   str_element,/add,func_elec,'inst_response',resp
 
+  if 1 then begin
+    dprint
+    swfo_stis_inst_response_matmult_plot,func_elec,window=win++
+  endif else begin  
+    wi,win++,wsize = [1400,800],/show
+    erase
+    lim2=0
+    options,lim2,noerase=1
+    opts={xmargin:[10,10] }
+    pos = plot_positions(xsizes = [1,2], ysizes=[3,2],xgap=10,ygap=4,options=opts )
+    str_element,lim2,'position',pos[*,1],/add
 
-  wi,win++,wsize = [1400,800],/show
-  erase
-  lim2=0
-  options,lim2,noerase=1
-  opts={xmargin:[10,10] }
-  pos = plot_positions(xsizes = [1,2], ysizes=[3,2],xgap=10,ygap=4,options=opts )
-  str_element,lim2,'position',pos[*,1],/add
+    swfo_stis_response_bin_matrix_plot,resp,transpose=transpose ,limit=lim2,face=0  ;  ,window=win++      ; both faces
+    lim3 = lim2
+    lim3.position= pos[*,3]
+    lim3.title=''
 
-  swfo_stis_response_bin_matrix_plot,resp,transpose=transpose ,limit=lim2,face=0  ;  ,window=win++      ; both faces
-  lim3 = lim2
-  lim3.position= pos[*,3]
-  lim3.title=''
+    swfo_stis_response_plot_simflux,func_elec,limit=lim3   ;, energy=energy,flux=flux ; ,window=win
 
-  swfo_stis_response_plot_simflux,func_elec,limit=lim3   ;, energy=energy,flux=flux ; ,window=win
-
-  lim0=lim2
-  lim0.position = pos[*,0]
-  options,lim0,xrange = [1e7,1e-2]
-  options,lim0,/xlog,/xstyle,xtitle = 'Differential Particle Flux',title=''
-  box,lim0
-  oplot,flux,energy,psym=-1
+    lim0=lim2
+    lim0.position = pos[*,0]
+    options,lim0,xrange = [1e7,1e-2]
+    options,lim0,/xlog,/xstyle,xtitle = 'Differential Particle Flux',title=''
+    box,lim0
+    oplot,flux,energy,psym=-1
+    
+  endelse
   
   
   dprint
 end
 
 
+pro swfo_stis_swap_det2_det3,data
+    for tid=0,1 do begin
+      temp = data.edep[2,tid]
+      data.edep[2,tid] = data.edep[1,tid]
+      data.edep[1,tid] = temp
+    endfor
 
-
-
+end
 
 ; Begin program here
 
@@ -1512,347 +1535,354 @@ undefine,resp_e0,resp_p0,resp_g0,resp_e1,resp_p1,resp_g1,bmap
 
 if ~keyword_set(ltestrun) || ltestrun ne testrun then begin
   undefine,  simstat_e,  simstat_p ,  simstat_g ,  simstat_Ox
-endif
-ltestrun =testrun
-case testrun of
+  case testrun of
 
-  'run1': begin
-    if ~keyword_set(data_e1) then mapnum_last=0
-    swfo_stis_response_simulation1_load,-1,data=data_e1,simstat=simstat_e  ; load electrons (but only if data_e1 is not defined
-    swfo_stis_response_simulation1_load, 1,data=data_p1,simstat=simstat_p   ; load ions
-  end
+    'run1': begin
+      if ~keyword_set(data_e1) then mapnum_last=0
+      swfo_stis_response_simulation1_load,-1,data=data_e1,simstat=simstat_e  ; load electrons (but only if data_e1 is not defined
+      swfo_stis_response_simulation1_load, 1,data=data_p1,simstat=simstat_p   ; load ions
+    end
 
-  'run1b': begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames=['results/swfo_stis_e-_AF.dat','results/swfo_stis_e-_AO.dat'],type=-1,/dosymm
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames=['results/swfo_stis_proton_AF.dat','results/swfo_stis_proton_AO.dat'],type=+1,/dosymm
-    options,simstat_e,xbinsize=0.05
-    options,simstat_p,xbinsize=0.05
-  end
+    'run1b': begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames=['results/swfo_stis_e-_AF.dat','results/swfo_stis_e-_AO.dat'],type=-1,/dosymm
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames=['results/swfo_stis_proton_AF.dat','results/swfo_stis_proton_AO.dat'],type=+1,/dosymm
+      options,simstat_e,xbinsize=0.05
+      options,simstat_p,xbinsize=0.05
+    end
 
 
-  '4pi_sim': begin
-    swfo_stis_response_simdata_rand,-1,data=data_e1,simstat=simstat_e,seed=seed  ;,window=win
-  end
+    '4pi_sim': begin
+      swfo_stis_response_simdata_rand,-1,data=data_e1,simstat=simstat_e,seed=seed  ;,window=win
+    end
 
-  'high_dens_detectors': begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/KoreaDetector/run01/mvn_sep2_e-_seed01_open_AF.dat',type=-1
-    ;swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/KoreaDetector/run01/mvn_sep2_e-_seed01_open_AO.dat',type=-1
-    ;swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/KoreaDetector/run01/mvn_sep2_proton_seed01_open_AF.dat',type=-1
-    ;swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/KoreaDetector/run01/mvn_sep2_proton_seed01_open_AO.dat',type=-1
-  end
-
-
-  'Geom1_front': begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/swfo_stis_proton_.dat',type=+1
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_open_.dat',type=0
-    options,simstat_e,xbinsize=0.1
-    options,simstat_p,xbinsize=0.1
-    options,simstat_g,xbinsize=0.1
-  end
-
-  'Geom1_back': begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_back_side_open_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/swfo_stis_proton_back_side_open_.dat',type=+1
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_back_side_open_.dat',type=0
-    options,simstat_e,xbinsize=0.1
-    options,simstat_p,xbinsize=0.1
-    options,simstat_g,xbinsize=0.1
-  end
-
-  'Geom1_both': begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/'+['swfo_stis_e-_.dat','swfo_stis_e-_back_side_open_.dat'],type=-1
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/'+['swfo_stis_proton_.dat','swfo_stis_proton_back_side_open_.dat'],type=+1
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/'+['swfo_stis_gamma_open_.dat','swfo_stis_gamma_back_side_open_.dat'],type=0
-    options,simstat_e,xbinsize=0.1
-    options,simstat_p,xbinsize=0.1
-    options,simstat_g,xbinsize=0.1
-  end
-
-  'closed_back': begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_back_side_closed_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/swfo_stis_proton_back_side_closed_.dat',type=+1
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_back_side_closed_.dat',type=0
-    options,simstat_e,xbinsize=0.1
-    options,simstat_p,xbinsize=0.1
-    options,simstat_g,xbinsize=0.1
-  end
-
-  'closed_front': begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_closed_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/swfo_stis_proton_closed_.dat',type=+1
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_closed_.dat',type=0
-    options,simstat_e,xbinsize=0.1
-    options,simstat_p,xbinsize=0.1
-    options,simstat_g,xbinsize=0.1
-  end
-
-  'run2_iso':begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/run2_isotropic/swfo_stis_e-_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/run2_isotropic/swfo_stis_proton_.dat',type=+1
-    options,simstat_e,xbinsize=1.d/5
-    options,simstat_p,xbinsize=1.d/5
-  end
-
-  '4pi_open':begin
-    ;swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/4PI/run01/swfo_stis_e-_all.dat',type=-1
-    ;swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/4PI/run01/swfo_stis_e-_successful.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/4PI/run01/swfo_stis_e-_seed??_open.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/4PI/run01/swfo_stis_proton_seed??_open.dat',type=+1
-    swfo_stis_read_mult_sim_files,simstat_g,data_g ,pathnames='results2/results/4PI/run01/swfo_stis_gamma_seed??_open.dat',type=0
-
-    ;swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/run2_isotropic/swfo_stis_proton_.dat',type=+1
-    options,simstat_e,xbinsize=1.d/10
-    options,simstat_p,xbinsize=1.d/10
-    options,simstat_g,xbinsize=1.d/10
-  end
-
-  '4pi_magcorrect':begin
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/run2_isotropic/swfo_stis_e-magneticfield_corrected_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/run2_isotropic/swfo_stis_protonmagneticfield_corrected_.dat',type=+1
-    options,simstat_e,xbinsize=1.d/5
-    options,simstat_p,xbinsize=1.d/5
-  end
-
-  'oxygen':begin  ;
-    swfo_stis_read_mult_sim_files,simstat_Ox,data_Ox,pathnames='results2/results/oxygen/swfo_stis_oxygen_.dat',type=2,dosymm=1
-    str_element,/add,simstat_Ox,'desc','Oxygen Sim'   ; Needs checking!
-    str_element,/add,simstat_Ox,'sensornum',2   ; Needs checking!
-    str_element,/add,simstat_Ox,'sim_energy_log',1
-    str_element,/add,simstat_Ox,'sim_energy_range',[10.,1e7]
-    resp_O0 = swfo_stis_inst_response(simstat_Ox,data_Ox,mapnum=mapnum,bmap=bmap)
-  end
-
-  'oxygen_dir':begin  ;
-    swfo_stis_read_mult_sim_files,simstat_Ox,data_Ox,pathnames='results2/results/oxygen/swfo_stis_oxygen_randomDir_.dat',type=2,dosymm=1
-    str_element,/add,simstat_Ox,'desc','Ox GEOM'   ; Needs checking!
-    str_element,/add,simstat_Ox,'particle_name','Oxygen'   ; Needs checking!
-    str_element,/add,simstat_Ox,'desc','GEOM'   ; Needs checking!
-    str_element,/add,simstat_Ox,'sensornum',2   ; Needs checking!
-    str_element,/add,simstat_Ox,'sim_energy_log',1
-    str_element,/add,simstat_Ox,'sim_energy_range',[10.,1e7]
-    if simstat_ox.sim_area eq 0 then simstat_ox.sim_area= 2 * !pi * 15. ^2   ;  2 circles
-    resp_O0 = swfo_stis_inst_response(simstat_Ox,data_Ox,mapnum=mapnum,bmap=bmap)
-  end
-
-  'geom1_all_elec':begin  ;
-    swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_allEvents_.dat',type=-1
-  end
-
-  'gamma':begin  ;
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_back_side_open_.dat',type=0
-  end
+    'high_dens_detectors': begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/KoreaDetector/run01/mvn_sep2_e-_seed01_open_AF.dat',type=-1
+      ;swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/KoreaDetector/run01/mvn_sep2_e-_seed01_open_AO.dat',type=-1
+      ;swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/KoreaDetector/run01/mvn_sep2_proton_seed01_open_AF.dat',type=-1
+      ;swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/KoreaDetector/run01/mvn_sep2_proton_seed01_open_AO.dat',type=-1
+    end
 
 
-  'run03_sep1':begin
-    swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run03/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
-    swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run03/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
-    swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run03/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
-    resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-    resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-    resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-    swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run03/mvn_sep1_e-_atten1_seed??_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run03/mvn_sep1_proton_atten1_seed??_.dat',type=+1
-    swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run03/mvn_sep1_gamma_atten1_seed??_.dat',type=0
-    resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-    resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-    resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-  end
+    'Geom1_front': begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/swfo_stis_proton_.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_open_.dat',type=0
+      options,simstat_e,xbinsize=0.1
+      options,simstat_p,xbinsize=0.1
+      options,simstat_g,xbinsize=0.1
+    end
+
+    'Geom1_back': begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_back_side_open_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/swfo_stis_proton_back_side_open_.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_back_side_open_.dat',type=0
+      options,simstat_e,xbinsize=0.1
+      options,simstat_p,xbinsize=0.1
+      options,simstat_g,xbinsize=0.1
+    end
+
+    'Geom1_both': begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/'+['swfo_stis_e-_.dat','swfo_stis_e-_back_side_open_.dat'],type=-1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/'+['swfo_stis_proton_.dat','swfo_stis_proton_back_side_open_.dat'],type=+1
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/'+['swfo_stis_gamma_open_.dat','swfo_stis_gamma_back_side_open_.dat'],type=0
+      options,simstat_e,xbinsize=0.1
+      options,simstat_p,xbinsize=0.1
+      options,simstat_g,xbinsize=0.1
+    end
+
+    'closed_back': begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_back_side_closed_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/swfo_stis_proton_back_side_closed_.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_back_side_closed_.dat',type=0
+      options,simstat_e,xbinsize=0.1
+      options,simstat_p,xbinsize=0.1
+      options,simstat_g,xbinsize=0.1
+    end
+
+    'closed_front': begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_closed_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/geometric_factor/swfo_stis_proton_closed_.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_closed_.dat',type=0
+      options,simstat_e,xbinsize=0.1
+      options,simstat_p,xbinsize=0.1
+      options,simstat_g,xbinsize=0.1
+    end
+
+    'run2_iso':begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/run2_isotropic/swfo_stis_e-_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/run2_isotropic/swfo_stis_proton_.dat',type=+1
+      options,simstat_e,xbinsize=1.d/5
+      options,simstat_p,xbinsize=1.d/5
+    end
+
+    '4pi_open':begin
+      ;swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/4PI/run01/swfo_stis_e-_all.dat',type=-1
+      ;swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/4PI/run01/swfo_stis_e-_successful.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/4PI/run01/swfo_stis_e-_seed??_open.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/4PI/run01/swfo_stis_proton_seed??_open.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_g,data_g ,pathnames='results2/results/4PI/run01/swfo_stis_gamma_seed??_open.dat',type=0
+
+      ;swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/run2_isotropic/swfo_stis_proton_.dat',type=+1
+      options,simstat_e,xbinsize=1.d/10
+      options,simstat_p,xbinsize=1.d/10
+      options,simstat_g,xbinsize=1.d/10
+    end
+
+    '4pi_magcorrect':begin
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/run2_isotropic/swfo_stis_e-magneticfield_corrected_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p1,pathnames='results2/results/run2_isotropic/swfo_stis_protonmagneticfield_corrected_.dat',type=+1
+      options,simstat_e,xbinsize=1.d/5
+      options,simstat_p,xbinsize=1.d/5
+    end
+
+    'oxygen':begin  ;
+      swfo_stis_read_mult_sim_files,simstat_Ox,data_Ox,pathnames='results2/results/oxygen/swfo_stis_oxygen_.dat',type=2,dosymm=1
+      str_element,/add,simstat_Ox,'desc','Oxygen Sim'   ; Needs checking!
+      str_element,/add,simstat_Ox,'sensornum',2   ; Needs checking!
+      str_element,/add,simstat_Ox,'sim_energy_log',1
+      str_element,/add,simstat_Ox,'sim_energy_range',[10.,1e7]
+      resp_O0 = swfo_stis_inst_response(simstat_Ox,data_Ox,mapnum=mapnum,bmap=bmap)
+    end
+
+    'oxygen_dir':begin  ;
+      swfo_stis_read_mult_sim_files,simstat_Ox,data_Ox,pathnames='results2/results/oxygen/swfo_stis_oxygen_randomDir_.dat',type=2,dosymm=1
+      str_element,/add,simstat_Ox,'desc','Ox GEOM'   ; Needs checking!
+      str_element,/add,simstat_Ox,'particle_name','Oxygen'   ; Needs checking!
+      str_element,/add,simstat_Ox,'desc','GEOM'   ; Needs checking!
+      str_element,/add,simstat_Ox,'sensornum',2   ; Needs checking!
+      str_element,/add,simstat_Ox,'sim_energy_log',1
+      str_element,/add,simstat_Ox,'sim_energy_range',[10.,1e7]
+      if simstat_ox.sim_area eq 0 then simstat_ox.sim_area= 2 * !pi * 15. ^2   ;  2 circles
+      resp_O0 = swfo_stis_inst_response(simstat_Ox,data_Ox,mapnum=mapnum,bmap=bmap)
+    end
+
+    'geom1_all_elec':begin  ;
+      swfo_stis_read_mult_sim_files,simstat_e,data_e1,pathnames='results2/results/geometric_factor/swfo_stis_e-_allEvents_.dat',type=-1
+    end
+
+    'gamma':begin  ;
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_back_side_open_.dat',type=0
+    end
 
 
-  'run03_sep2':begin
-    swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run03/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
-    swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run03/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
-    swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run03/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
-    resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-    resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-    resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-    swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run03/mvn_sep2_e-_atten1_seed??_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run03/mvn_sep2_proton_atten1_seed??_.dat',type=+1
-    swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run03/mvn_sep2_gamma_atten1_seed??_.dat',type=0
-    resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-    resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-    resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-  end
+    'run03_sep1':begin
+      swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run03/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
+      swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run03/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
+      swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run03/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
+      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
+      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
+      resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
+      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run03/mvn_sep1_e-_atten1_seed??_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run03/mvn_sep1_proton_atten1_seed??_.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run03/mvn_sep1_gamma_atten1_seed??_.dat',type=0
+      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
+      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
+      resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
+    end
 
 
-  'run04_sep1':begin
-    swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run04/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
-    swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run04/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
-    ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run04/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
-    resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-    resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-    ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-    swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run04/mvn_sep1_e-_atten1_seed??_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run04/mvn_sep1_proton_atten1_seed??_.dat',type=+1
-    ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run04/mvn_sep1_gamma_atten1_seed??_.dat',type=0
-    resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-    resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-    ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-  end
+    'run03_sep2':begin
+      swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run03/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
+      swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run03/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
+      swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run03/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
+      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
+      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
+      resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
+      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run03/mvn_sep2_e-_atten1_seed??_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run03/mvn_sep2_proton_atten1_seed??_.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run03/mvn_sep2_gamma_atten1_seed??_.dat',type=0
+      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
+      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
+      resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
+    end
+
+
+    'run04_sep1':begin
+      swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run04/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
+      swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run04/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
+      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run04/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
+      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
+      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
+      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
+      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run04/mvn_sep1_e-_atten1_seed??_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run04/mvn_sep1_proton_atten1_seed??_.dat',type=+1
+      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run04/mvn_sep1_gamma_atten1_seed??_.dat',type=0
+      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
+      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
+      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
+    end
 
 
 
-  'run04_sep2':begin
-    swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run04/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
-    swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run04/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
-    ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run04/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
-    resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-    resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-    ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-    swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run04/mvn_sep2_e-_atten1_seed??_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run04/mvn_sep2_proton_atten1_seed??_.dat',type=+1
-    ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run04/mvn_sep2_gamma_atten1_seed??_.dat',type=0
-    resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-    resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-    ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-  end
+    'run04_sep2':begin
+      swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run04/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
+      swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run04/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
+      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run04/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
+      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
+      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
+      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
+      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run04/mvn_sep2_e-_atten1_seed??_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run04/mvn_sep2_proton_atten1_seed??_.dat',type=+1
+      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run04/mvn_sep2_gamma_atten1_seed??_.dat',type=0
+      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
+      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
+      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
+    end
 
 
-  'run02B_sep1':begin
-    swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/sep/results/run02/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
-    swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/sep/results/run02/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
-    ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/sep/results/run02/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
-    resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-    resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-    ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-    swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/sep/results/run02/mvn_sep1_e-_atten1_seed??_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/sep/results/run02/mvn_sep1_proton_atten1_seed??_.dat',type=+1
-    ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/sep/results/run02/mvn_sep1_gamma_atten1_seed??_.dat',type=0
-    resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-    resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-    ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-  end
+    'run02B_sep1':begin
+      swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/sep/results/run02/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
+      swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/sep/results/run02/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
+      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/sep/results/run02/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
+      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
+      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
+      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
+      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/sep/results/run02/mvn_sep1_e-_atten1_seed??_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/sep/results/run02/mvn_sep1_proton_atten1_seed??_.dat',type=+1
+      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/sep/results/run02/mvn_sep1_gamma_atten1_seed??_.dat',type=0
+      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
+      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
+      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
+    end
 
-  'run02B_sep2':begin
-    swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/sep/results/run02/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
-    swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/sep/results/run02/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
-    ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/sep/results/run02/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
-    resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-    resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-    ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-    swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/sep/results/run02/mvn_sep2_e-_atten1_seed??_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/sep/results/run02/mvn_sep2_proton_atten1_seed??_.dat',type=+1
-    ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/sep/results/run02/mvn_sep2_gamma_atten1_seed??_.dat',type=0
-    resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-    resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-    ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-  end
-
-
-  '4pi_run05_sep1':begin
-    swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
-    swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
-    ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
-    str_element,/add,simstat_e,'desc','4Pi'
-    str_element,/add,simstat_p,'desc','4Pi'
-    ;  str_element,/add,simstat_g1,'desc','4Pi'
-    resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-    resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-    ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-    swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_e-_atten1_seed??_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_proton_atten1_seed??_.dat',type=+1
-    ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_gamma_atten1_seed??_.dat',type=0
-    str_element,/add,simstat_e1,'desc','4Pi'
-    str_element,/add,simstat_p1,'desc','4Pi'
-    ;  str_element,/add,simstat_g1,'desc','4Pi'
-    resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-    resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-    ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-  end
-
-  '4pi_run05_sep2':begin
-    swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
-    swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
-    ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
-    str_element,/add,simstat_e,'desc','4Pi'
-    str_element,/add,simstat_p,'desc','4Pi'
-    resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-    resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-    ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-    swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_e-_atten1_seed??_.dat',type=-1
-    swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_proton_atten1_seed??_.dat',type=+1
-    str_element,/add,simstat_e1,'desc','4Pi'
-    str_element,/add,simstat_p1,'desc','4Pi'
-    ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_gamma_atten1_seed??_.dat',type=0
-    resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-    resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-    ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-  end
-
-  '4pi_stis': begin
-    simstat_p = 0
-    data_p = 0
-    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_proton_seed03.dat',type=+1
-    simstat_e = 0
-    data_e = 0
-    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_e-_seed03.dat',type=+1
-  end
-
-  '4pi_stis_run2': begin
-    simstat_p = 0
-    data_p = 0
-    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run02_seed03_proton.dat',type=+1
-    simstat_e = 0
-    data_e = 0
-    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run02_seed03_e-.dat',type=+1
-  end
-
-  '4pi_stis_run3': begin
-    simstat_p = 0
-    data_p = 0
-    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run03_seed03_proton.dat',type=+1
-    simstat_e = 0
-    data_e = 0
-    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run03_seed03_e-.dat',type=+1
-    simstat_a = 0
-    data_a = 0
-    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run03_seed03_alpha.dat',type=+1
-    simstat_g = 0
-    data_g = 0
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run03_seed03_gamma.dat',type=+1
-  end
-
-  '4pi_stis_run4': begin
-    simstat_p = 0
-    data_p = 0
-    swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run04_seed04_proton.dat',type=+1
-    simstat_e = 0
-    data_e = 0
-    swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run04_seed04_e-.dat',type=+1
-    simstat_a = 0
-    data_a = 0
-    swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run04_seed04_alpha.dat',type=+1
-    simstat_g = 0
-    data_g = 0
-    swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run04_seed04_gamma.dat',type=+1
-  end
+    'run02B_sep2':begin
+      swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/sep/results/run02/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
+      swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/sep/results/run02/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
+      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/sep/results/run02/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
+      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
+      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
+      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
+      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/sep/results/run02/mvn_sep2_e-_atten1_seed??_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/sep/results/run02/mvn_sep2_proton_atten1_seed??_.dat',type=+1
+      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/sep/results/run02/mvn_sep2_gamma_atten1_seed??_.dat',type=0
+      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
+      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
+      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
+    end
 
 
-  '4pi_stis_run12': begin
-    filename = testrun  ; + '.sav'
-    if file_test(filename) then begin
-      restore,filename,/verbose
-    endif else begin
+    '4pi_run05_sep1':begin
+      swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
+      swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
+      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
+      str_element,/add,simstat_e,'desc','4Pi'
+      str_element,/add,simstat_p,'desc','4Pi'
+      ;  str_element,/add,simstat_g1,'desc','4Pi'
+      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
+      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
+      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
+      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_e-_atten1_seed??_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_proton_atten1_seed??_.dat',type=+1
+      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_gamma_atten1_seed??_.dat',type=0
+      str_element,/add,simstat_e1,'desc','4Pi'
+      str_element,/add,simstat_p1,'desc','4Pi'
+      ;  str_element,/add,simstat_g1,'desc','4Pi'
+      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
+      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
+      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
+    end
+
+    '4pi_run05_sep2':begin
+      swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
+      swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
+      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
+      str_element,/add,simstat_e,'desc','4Pi'
+      str_element,/add,simstat_p,'desc','4Pi'
+      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
+      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
+      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
+      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_e-_atten1_seed??_.dat',type=-1
+      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_proton_atten1_seed??_.dat',type=+1
+      str_element,/add,simstat_e1,'desc','4Pi'
+      str_element,/add,simstat_p1,'desc','4Pi'
+      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_gamma_atten1_seed??_.dat',type=0
+      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
+      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
+      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
+    end
+
+    '4pi_stis': begin
       simstat_p = 0
       data_p = 0
-      swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run12_seed0?_proton.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_proton_seed03.dat',type=+1
       simstat_e = 0
       data_e = 0
-      swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run12_seed0?_e-.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_e-_seed03.dat',type=+1
+    end
+
+    '4pi_stis_run2': begin
+      simstat_p = 0
+      data_p = 0
+      swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run02_seed03_proton.dat',type=+1
+      simstat_e = 0
+      data_e = 0
+      swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run02_seed03_e-.dat',type=+1
+    end
+
+    '4pi_stis_run3': begin
+      simstat_p = 0
+      data_p = 0
+      swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run03_seed03_proton.dat',type=+1
+      simstat_e = 0
+      data_e = 0
+      swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run03_seed03_e-.dat',type=+1
       simstat_a = 0
       data_a = 0
-      swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run12_seed0?_alpha.dat',type=+1
+      swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run03_seed03_alpha.dat',type=+1
       simstat_g = 0
       data_g = 0
-      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run12_seed0?_gamma.dat',type=+1
-      save,simstat_p,data_p,simstat_e,data_e,simstat_a,data_a,simstat_g,data_g,file=filename,/verbose      
-    endelse
-  end
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run03_seed03_gamma.dat',type=+1
+    end
+
+    '4pi_stis_run4': begin
+      simstat_p = 0
+      data_p = 0
+      swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run04_seed04_proton.dat',type=+1
+      simstat_e = 0
+      data_e = 0
+      swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run04_seed04_e-.dat',type=+1
+      simstat_a = 0
+      data_a = 0
+      swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run04_seed04_alpha.dat',type=+1
+      simstat_g = 0
+      data_g = 0
+      swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run04_seed04_gamma.dat',type=+1
+    end
 
 
+    '4pi_stis_run12': begin
+      filename = testrun   + '.sav'
+      if file_test(filename) then begin
+        restore,filename,/verbose
+      endif else begin
+        simstat_p = 0
+        data_p = 0
+        swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run12_seed0?_proton.dat',type=+1
+        simstat_e = 0
+        data_e = 0
+        swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run12_seed0?_e-.dat',type=+1
+        simstat_a = 0
+        data_a = 0
+        swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run12_seed0?_alpha.dat',type=+1
+        simstat_g = 0
+        data_g = 0
+        swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run12_seed0?_gamma.dat',type=+1
 
-endcase
+        swfo_stis_swap_det2_det3,data_p
+        swfo_stis_swap_det2_det3,data_e
+        swfo_stis_swap_det2_det3,data_a
+        swfo_stis_swap_det2_det3,data_g
+
+        save,simstat_p,data_p,simstat_e,data_e,simstat_a,data_a,simstat_g,data_g,file=filename,/verbose
+      endelse
+    end
+
+  endcase
+endif
+
+ltestrun =testrun
+
+
 
 ;filename = testrun+'_response-map-'+strtrim(mapnum,2)+'.sav'
 ;save,file=filename,resp_e0,resp_p0,resp_g0,resp_e1,resp_p1,resp_g1,resp_O0,bmap,mapnum
@@ -1890,13 +1920,14 @@ if 1 then begin
   str_element,/add,simstat_g,'mapnum',mapnum
   str_element,/add,simstat_a,'mapnum',mapnum
 
+  !p.charsize=1.6
   ;ok = swfo_stis_response_data_filter(simstat_e,data_e1,_extra=f,filter=f)
   win=1
+  ;swfo_stis_response_plots,simstat_p,data_p,window=win,filter=f, response = resp_p
+  ;win=11
   swfo_stis_response_plots,simstat_e,data_e,window=win,filter=f,response = resp_e
-  win=11
-  swfo_stis_response_plots,simstat_p,data_p,window=win,filter=f, response = resp_p
-  win=21
-  swfo_stis_response_plots,simstat_g,data_g,window=win,filter=f, response = resp_g
+  ;win=21
+  ;swfo_stis_response_plots,simstat_g,data_g,window=win,filter=f, response = resp_g
 
   ;swfo_stis_response_plots,simstat_p1,data_p1,window=win,filter=f
   ;swfo_stis_response_plots,simstat_g,data_g,window=win,filter=f

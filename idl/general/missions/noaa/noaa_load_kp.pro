@@ -24,9 +24,9 @@
 ;HISTORY:
 ;     egrimes, 3/20/2018: updated to use spd_download, and download the file from NOAA NGDC
 ;
-;$LastChangedBy: jwl $
-;$LastChangedDate: 2022-07-26 20:38:15 -0700 (Tue, 26 Jul 2022) $
-;$LastChangedRevision: 30960 $
+;$LastChangedBy: nikos $
+;$LastChangedDate: 2023-12-13 07:55:43 -0800 (Wed, 13 Dec 2023) $
+;$LastChangedRevision: 32285 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/noaa/noaa_load_kp.pro $
 ;-
 
@@ -39,6 +39,14 @@ end
 pro noaa_load_kp, trange = trange, kp_mirror = kp_mirror, remote_kp_dir=remote_kp_dir,$
                   local_kp_dir = local_kp_dir, datatype = datatype, gfz=gfz
     if ~keyword_set(trange) then get_timespan, trange
+    starttime = time_struct(trange[0])
+    endtime = time_struct(trange[1])
+    if endtime.year ge 2018 then begin
+      ; data on the NOAA ftp site stops on 2018-04-30
+      gfz=1 
+      dprint, "Endtime is on or after 2018. Data will be loaded from ftp.gfz-potsdam.de"
+    endif
+    
     ;if ~keyword_set(kp_mirror) then kp_mirror = 'http://themis-data.igpp.ucla.edu/'
     if keyword_set(gfz) then kp_mirror = 'ftp://ftp.gfz-potsdam.de/'
     if ~keyword_set(kp_mirror) then kp_mirror = 'ftp://ftp.ngdc.noaa.gov/'
@@ -54,8 +62,7 @@ pro noaa_load_kp, trange = trange, kp_mirror = kp_mirror, remote_kp_dir=remote_k
     ;if ~keyword_set(remote_kp_dir) then remote_kp_dir = 'thg/mirrors/kp/noaa/'
     if keyword_set(gfz) then remote_kp_dir = 'pub/home/obs/kp-ap/wdc/yearly/'
     if ~keyword_set(remote_kp_dir) then remote_kp_dir = 'STP/GEOMAGNETIC_DATA/INDICES/KP_AP/'
-    starttime = time_struct(trange[0])
-    endtime = time_struct(trange[1])
+
     
     years = starttime.year+indgen(endtime.year-starttime.year+1)
     nyears = n_elements(years)
