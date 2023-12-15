@@ -69,7 +69,7 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
     rate = result.rate[0:671]
     bmap.rate = rate
     
-    bmap.rate *= bmap.nrg_meas_avg /80   ; should make this correction outside this routine
+   ; bmap.rate *= bmap.nrg_meas_avg /80   ; should make this correction outside this routine
     
     bmap.flux = bmap.rate / bmap.geom  / bmap.nrg_meas_delta   ;* bmap.nrg_proton_avg / 80   
     

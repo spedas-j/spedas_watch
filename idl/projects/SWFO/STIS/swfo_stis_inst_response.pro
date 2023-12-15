@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-13 10:18:56 -0800 (Wed, 13 Dec 2023) $
-; $LastChangedRevision: 32286 $
+; $LastChangedDate: 2023-12-14 00:09:24 -0800 (Thu, 14 Dec 2023) $
+; $LastChangedRevision: 32287 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
 ; $ID: $
 
@@ -1185,12 +1185,18 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
           continue
         endif
         G2 = histbins2d(einc[w],em[w],ei_val2,em_val2,xbinsize=xbinsize,ybinsize=ybinsize,xrange=xbinrange,yrange=ybinrange,xlog=xlog,ylog=ylog)
-        G2 = G2/ND * area_cm2 ;*!dpi; *2* 4 ; normalize to area  (cm^2) * 4pi ster
+        G2 = G2/ND * area_cm2   ;*!dpi; *2* 4 ; normalize to area  (cm^2) * 4pi ster
         if ~keyword_set(g4) then G4 = replicate(0.,[size(/dimen,G2),8,2] )
         G4[*,*,fto,side] = g2
       endfor
     endfor
   endif
+
+  ; The following is only true for simlog = 1
+  ;ND = npart * xbinsize / (srange[1] - srange[0])   ; number of particles per incident energy bin
+  M = adcbin_hist * (area_cm2 / nd) 
+  dE = xbinsize * alog(10.) * ( ei_val # replicate(1.,ny_bins)  )  ; energy width
+  Mde = total(M,2) * dE    ; include energy width in matrix
 
 
   response= simstat
@@ -1209,6 +1215,7 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   str_element,/add,response,'nbins',nbins
   str_element,/add,response,'bin3',adcbin_hist
   str_element,/add,response,'GB3' , adcbin_hist *  (response.sim_area /100 / response.nd * 3.14)
+  str_element,/add,response,'mde', Mde
   str_element,/add,response,'bin_val',bin_val
   peakeinc = swfo_stis_inst_response_peakeinc(response,width=10)
   str_element,/add,response,'peakeinc',peakeinc
@@ -1389,7 +1396,8 @@ pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=ov
   resp_nrg = resp.e_inc
   ;resp_flux = interp(xlog=1,ylog=1,flux,energy,resp_nrg)
   resp_flux = func(resp_nrg,param = flux_func)    ; interpolate the flux to the reponse matrix sampling
-  resp_rate =  (transpose(g) # resp_flux ) > 1e-5
+  ;resp_rate =  (transpose(g) # resp_flux ) > 1e-5
+  resp_rate =  (transpose(resp.Mde) # resp_flux ) > 1e-5
   if arg_present(win) && n_elements(win) eq 1 then wi,win++,wsize = [1200,400]
   options,lim,/ylog,psym=-1,yrange=[1e-4,3e6],xrange=[-2,nbins+5],xmargin=[10,10],/xstyle,/ystyle,ytitle='Count Rate (Hz)'
   plot,noerase=overplot,resp_rate,  _extra=lim   ;,/ylog,psym=-1,yrange=[1e-4,3e6],xrange=[-2,260],xmargin=[10,10],/xstyle,/ystyle
@@ -1429,6 +1437,10 @@ end
 ;end
 
 
+;function swfo_stis_response_dict,s
+
+
+
 pro swfo_stis_response_plots,simstat,data,filter=f,window=win ,response=resp            ;,mapnum=mapnum,noise_level=noise_level,seed=seed
   if ~ keyword_set(simstat) || ~ keyword_set(data) then return
   if not keyword_set(win) then win=1
@@ -1455,10 +1467,10 @@ pro swfo_stis_response_plots,simstat,data,filter=f,window=win ,response=resp    
 
   energy = dgen(/log,range=[1.,1e6],6*4+1)
   flux = 1e7 * energy^ (-1.6)
-  flux = 2.5e2 * energy^ (-1.6)
-  flux = 2.5e4 * energy^ (-1.6)
-  w = where(energy gt 6000.)
-  ;flux[w] = flux[w] * 10000
+  ;flux = 2.5e2 * energy^ (-1.6)
+  ;flux = 2.5e4 * energy^ (-1.6)
+  w = where(energy gt 600.)
+  flux[w] = flux[w] * 10
   pwlin =1
   
   func_elec = spline_fit3(!null,energy,flux,/xlog,/ylog,pwlin=pwlin)
@@ -1923,9 +1935,9 @@ if 1 then begin
   !p.charsize=1.6
   ;ok = swfo_stis_response_data_filter(simstat_e,data_e1,_extra=f,filter=f)
   win=1
-  ;swfo_stis_response_plots,simstat_p,data_p,window=win,filter=f, response = resp_p
+  swfo_stis_response_plots,simstat_p,data_p,window=win,filter=f, response = resp_p
   ;win=11
-  swfo_stis_response_plots,simstat_e,data_e,window=win,filter=f,response = resp_e
+  ;swfo_stis_response_plots,simstat_e,data_e,window=win,filter=f,response = resp_e
   ;win=21
   ;swfo_stis_response_plots,simstat_g,data_g,window=win,filter=f, response = resp_g
 
