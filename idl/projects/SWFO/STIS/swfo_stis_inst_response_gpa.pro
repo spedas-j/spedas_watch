@@ -1,6 +1,6 @@
 
 
-pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
+pro swfo_stis_inst_response_gpa,spec_func,window=win
 
   transpose = 0
   
@@ -32,7 +32,7 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
     oplot,flux,energy,psym=-1
     
   endif else begin
-    if keyword_set(win) then wi,win,wsize = [1400,900] , show=show
+    if keyword_set(win) then wi,win,wsize = [1400,900],/show
     erase
     lim2=0
     options,lim2,noerase=1
@@ -75,13 +75,13 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
     
     w1 = where(bmap.fto eq 1 and bmap.tid eq 0)
     b1 = bmap[w1]
-    energy = b1.nrg_inc
+    energy = b1.nrg_proton_avg
     flux  = b1.flux
     oplot,energy,flux,psym= 4,color = 2
     
     w3 = where(bmap.fto eq 4 and bmap.tid eq 0)
     b3 = bmap[w3]
-    energy = b3.nrg_inc
+    energy = b3.nrg_proton_avg
     flux  = b3.flux
     oplot,energy,flux,psym= 4,color = 6
 
@@ -103,10 +103,10 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
     
     box,lim4
     oplot, dgen(), dgen() *0+1 , color=4
-    nrg1 = b1.nrg_inc
+    nrg1 = b1.nrg_proton_avg
     f1_f = b1.flux / func(nrg1,param=spec_func)
     oplot,nrg1,f1_f, color=2, psym = 4
-    nrg3 = b3.nrg_inc
+    nrg3 = b3.nrg_proton_avg
     f3_f = b3.flux / func(nrg3,param=spec_func)
     oplot,nrg1,f3_f, color=6, psym = 4
     if 1 then begin
@@ -126,8 +126,8 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
     df1_f = 1/ sqrt(delta_time * b1.rate + .1)
     df3_f = 1/ sqrt(delta_time * b3.rate + .1)
     box,lim4
-    oplot,b1.nrg_inc,df1_f * 100, color=2
-    oplot,b3.nrg_inc,df3_f * 100, color=6
+    oplot,b1.nrg_proton_avg,df1_f * 100, color=2
+    oplot,b3.nrg_proton_avg,df3_f * 100, color=6
   endif
 
 
