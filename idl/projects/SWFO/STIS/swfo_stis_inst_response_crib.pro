@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-16 11:12:08 -0800 (Sat, 16 Dec 2023) $
-; $LastChangedRevision: 32294 $
+; $LastChangedDate: 2023-12-17 15:01:15 -0800 (Sun, 17 Dec 2023) $
+; $LastChangedRevision: 32298 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_crib.pro $
 ; $ID: $
 
@@ -395,44 +395,6 @@ end
 ;return,elec_flux
 ;end
 ;
-
-;  Multiple matrix plots
-pro swfo_stis_response_matrix_plots,r,window=win,single=single
-  if keyword_set(win) then     wi,win,wsize=[1000,1000] ;,/show
-  ;labels = strsplit('XXX O T OT F FO FT FTO Total',/extract)
-  labels = strsplit('XXX 1 2 12 3 13 23 123 Total',/extract)
-  zrange = minmax(r.g4,/pos)
-  xrange = r.xbinrange
-  yrange = r.ybinrange
-  options,lim,xlog=1,/ylog,xrange=xrange,/ystyle,/xstyle,yrange=yrange,xmargin=[10,10],/zlog,zrange=zrange,/no_interp,xtitle='Energy incident (keV)',ytitle='Enery Deposited (keV)'
-  if not keyword_set(single) then !p.multi = [0,4,4]
-  if not keyword_set(ok1) then ok1 = 1
-  wnum=0
-  atten = ''  ;(['Open','Closed'])[r.attenuator]
-  SEP  = 'STIS' ; (['???','SEP1','SEP2'])[r.sensornum]
-  title = r.desc+' '+r.particle_name+' '+SEP+' '+atten+' '
-
-  for side =0,1 do begin
-    ;slabel = side ? 'B' : 'A'
-    slabel = side ? 'F' : 'O'
-    for fto = 1,8 do begin
-      if fto eq 8 then G2 = total(r.g4[*,*,1:7,side],3) $
-      else G2 = r.g4[*,*,fto,side]
-      dprint,dlevel=3,side,fto,total(g2)
-      options,lim,title = title+slabel+'_'+labels[fto]
-      if keyword_set(single) then begin
-        if single ne fto then continue
-        if side ne 0 then continue
-      endif
-      specplot,r.e_inc,r.e_meas,G2,limit=lim
-      oplot,dgen(),dgen();,linestyle=1
-      oplot,dgen()+12,dgen() ;, color = 6 ;,linestyle=1
-    endfor
-  endfor
-  !p.multi=0
-end
-
-
 ;  Multiple matrix plots
 pro swfo_stis_response_matrix_plots_lin,r,window=win,single=single
   if keyword_set(win) then     wi,win,/show,wsize=[1100,850]
@@ -561,59 +523,6 @@ pro swfo_stis_response_bin_matrix_plot_old,r,window=win,face=face
 
 end
 
-
-; ADC bin Response  MATRIX (transposed)
-pro swfo_stis_response_bin_matrix_plot,r,window=win,face=face,transpose=transpose,overplot=overplot,energy_range=ei_range,zlog=zlog,limit=lim
-  nbins = r.nbins
-  if n_elements(zlog) eq 0 then zlog=1
-  if ~keyword_set(ei_range) then ei_range = minmax(r.e_inc)
-  bin_range = [-10,nbins+10]
-  if n_elements(face) eq 0 then face=0
-  face_str = ''  ;(['Aft','Both','Front'])[face+1]
-  atten_str = '' ;(['Open','Closed'])[r.attenuator]
-  SEP  =  (['???','STIS1','STIS2'])[r.sensornum]
-  title= r.desc+' '+r.particle_name+' ('+r.mapname+' '+atten_str+' '+sep+') '+face_str
-  resp_matrix = float(r.bin3[*,*,0:r.nbins-1] )   * (r.sim_area /100 / r.nd * 3.14)
-  zrange = minmax(resp_matrix ,/pos)
-  if keyword_set(face) then z = reform( resp_matrix[*, face lt 0, *] ) else z = total(/pres,resp_matrix,2)
-  str_element,r,'fdesc',subtitle
-  if keyword_set(transpose) then begin
-    options,lim,ylog=1,xrange=bin_range,yrange=ei_range,/xstyle,/ystyle,xmargin=[10,10],zlog=zlog,zrange=zrange,/no_interp,ytitle='Incident Energy (keV)',xtitle='Bin Number',title=title
-    if keyword_set(win) then     wi,win,wsize=[1200,500] ;,/show,icon=0
-    x = indgen(nbins)
-    y = r.e_inc
-    z = transpose(z)
-  endif else begin
-    options,lim,xlog=1,xrange=ei_range,yrange=bin_range,/xstyle,/ystyle,xmargin=[10,10],zlog=zlog,zrange=zrange,/no_interp,xtitle='Incident Energy (keV)',ytitle='Bin Number',title=title;,subtitle=subtitle
-    if keyword_set(win) then     wi,win,wsize=[500,800] ;,/show,icon=0
-    y = indgen(nbins)
-    x = r.e_inc
-  endelse
-  ;if not keyword_set(ok1) then ok1 = 1
-  specplot,x,y,z,limit=lim
-  overplot=get_plot_state()
-  ;bmap = swfo_stis_get_bmap(r.mapnum,r.sensornum)
-  bmap = r.bmap
-  labpos1 = 5.
-  labpos2 = 8.
-  for tid=0,1 do begin
-    for fto=1,7 do begin
-      w = where(bmap.tid eq tid and bmap.fto eq fto,nw)
-      if nw gt 0 then begin
-        b = bmap[w].bin
-        bmap0 = bmap[w[0]]
-        if keyword_set(transpose) then begin
-          oplot,b,b*0.+ labpos1,psym=bmap0.psym,symsize=.5,color=bmap0.color
-          xyouts,average(b),labpos2,' '+bmap0.name,color=bmap0.color  ,align=.5
-        endif else begin
-          oplot,b*0.+ ei_range[0]*1.5,b,psym=bmap0.psym,symsize=.5,color=bmap0.color
-          xyouts,ei_range[0]*1.5,average(b),' '+bmap0.name,color=bmap0.color
-        endelse
-      endif
-    endfor
-  endfor
-
-end
 
 
 pro swfo_stis_response_each_bin,r,bins=bins0,window=win,ylog=ylog,omega=omega
@@ -945,76 +854,6 @@ end
 
 ;function swfo_stis_response_dict,s
 
-
-
-pro swfo_stis_response_plots,simstat,data,filter=f,window=win ,response=resp            ;,mapnum=mapnum,noise_level=noise_level,seed=seed
-  if ~ keyword_set(simstat) || ~ keyword_set(data) then return
-  if not keyword_set(win) then win=1
-  binscale=3
-  ;swfo_stis_response_aperture_plot,data,simstat=simstat,window= win++,_extra=f ,binscale=binscale
-  ;swfo_stis_response_omega_plot,data,simstat=simstat,window=win++,_extra=f ,binscale=binscale, /posflag
-  ;swfo_stis_response_omega_plot,data,simstat=simstat,window=win++,_extra=f ,binscale=binscale
-
-  ;we= where( swfo_stis_response_data_filter(simstat,data,_extra=f,filter=f2),nwe)
-  resp = swfo_stis_inst_response(simstat,data,filter=f)
-  ;printdat,resp
-  if ~keyword_set(resp) then stop
-
-  transpose=1
-  ;transpose=0
-  swfo_stis_response_matrix_plots,resp,window=win++
-  swfo_stis_response_matrix_plots,resp,window=win++,single=4
-  swfo_stis_response_bin_matrix_plot,resp,window=win++,transpose=transpose ,face=0         ; both faces
-;  swfo_stis_response_bin_matrix_plot,resp,window=win++,transpose=transpose ,face=-1
-;  swfo_stis_response_bin_matrix_plot,resp,window=win++,transpose=transpose ,face=+1
-  swfo_stis_response_plot_gf,resp,window=win++,/ylog;,xrange=[1e2,1e6]
-
-
-
-  energy = dgen(/log,range=[1.,1e6],6*4+1)
-  flux = 1e7 * energy^ (-1.6)
-  flux = 2.5e2 * energy^ (-1.6)
-  flux = 2.5e4 * energy^ (-1.6)
-  w = where(energy gt 2000.)
-  flux[w] = flux[w] * 100
-  pwlin =1
-  
-  func_elec = spline_fit3(!null,energy,flux,/xlog,/ylog,pwlin=pwlin)
-  str_element,/add,func_elec,'inst_response',resp
-
-  if 1 then begin
-    dprint
-    swfo_stis_inst_response_matmult_plot,func_elec,window=win++
-  endif else begin  
-    wi,win++,wsize = [1400,800],/show
-    erase
-    lim2=0
-    options,lim2,noerase=1
-    opts={xmargin:[10,10] }
-    pos = plot_positions(xsizes = [1,2], ysizes=[3,2],xgap=10,ygap=4,options=opts )
-    str_element,lim2,'position',pos[*,1],/add
-
-    swfo_stis_response_bin_matrix_plot,resp,transpose=transpose ,limit=lim2,face=0  ;  ,window=win++      ; both faces
-    lim3 = lim2
-    lim3.position= pos[*,3]
-    lim3.title=''
-
-    swfo_stis_response_plot_simflux,func_elec,limit=lim3   ;, energy=energy,flux=flux ; ,window=win
-
-    lim0=lim2
-    lim0.position = pos[*,0]
-    options,lim0,xrange = [1e7,1e-2]
-    options,lim0,/xlog,/xstyle,xtitle = 'Differential Particle Flux',title=''
-    box,lim0
-    oplot,flux,energy,psym=-1
-    
-  endelse
-  
-  
-  dprint
-end
-
-
 pro swfo_stis_response_plot1,bmap,rate,overplot=over,lim=lim,name_match = name_match
    ;if ~keyword_set(lim) then lim= dictionary('xrange',[1,1e5],'xlog',1,'yrange',[1e-6,1e4],'ylog',1,'ystyle',1)
    
@@ -1204,143 +1043,6 @@ if ~keyword_set(ltestrun) || ltestrun ne testrun then begin
       swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='results2/results/geometric_factor/swfo_stis_gamma_back_side_open_.dat',type=0
     end
 
-
-    'run03_sep1':begin
-      swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run03/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
-      swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run03/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
-      swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run03/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
-      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-      resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run03/mvn_sep1_e-_atten1_seed??_.dat',type=-1
-      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run03/mvn_sep1_proton_atten1_seed??_.dat',type=+1
-      swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run03/mvn_sep1_gamma_atten1_seed??_.dat',type=0
-      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-      resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-    end
-
-
-    'run03_sep2':begin
-      swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run03/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
-      swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run03/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
-      swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run03/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
-      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-      resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run03/mvn_sep2_e-_atten1_seed??_.dat',type=-1
-      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run03/mvn_sep2_proton_atten1_seed??_.dat',type=+1
-      swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run03/mvn_sep2_gamma_atten1_seed??_.dat',type=0
-      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-      resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-    end
-
-
-    'run04_sep1':begin
-      swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run04/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
-      swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run04/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
-      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run04/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
-      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run04/mvn_sep1_e-_atten1_seed??_.dat',type=-1
-      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run04/mvn_sep1_proton_atten1_seed??_.dat',type=+1
-      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run04/mvn_sep1_gamma_atten1_seed??_.dat',type=0
-      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-    end
-
-
-
-    'run04_sep2':begin
-      swfo_stis_read_mult_sim_files,simstat_e,pathnames='results2/results/4PI/run04/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
-      swfo_stis_read_mult_sim_files,simstat_p,pathnames='results2/results/4PI/run04/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
-      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='results2/results/4PI/run04/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
-      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='results2/results/4PI/run04/mvn_sep2_e-_atten1_seed??_.dat',type=-1
-      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='results2/results/4PI/run04/mvn_sep2_proton_atten1_seed??_.dat',type=+1
-      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='results2/results/4PI/run04/mvn_sep2_gamma_atten1_seed??_.dat',type=0
-      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-    end
-
-
-    'run02B_sep1':begin
-      swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/sep/results/run02/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
-      swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/sep/results/run02/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
-      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/sep/results/run02/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
-      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/sep/results/run02/mvn_sep1_e-_atten1_seed??_.dat',type=-1
-      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/sep/results/run02/mvn_sep1_proton_atten1_seed??_.dat',type=+1
-      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/sep/results/run02/mvn_sep1_gamma_atten1_seed??_.dat',type=0
-      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-    end
-
-    'run02B_sep2':begin
-      swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/sep/results/run02/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
-      swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/sep/results/run02/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
-      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/sep/results/run02/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
-      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/sep/results/run02/mvn_sep2_e-_atten1_seed??_.dat',type=-1
-      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/sep/results/run02/mvn_sep2_proton_atten1_seed??_.dat',type=+1
-      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/sep/results/run02/mvn_sep2_gamma_atten1_seed??_.dat',type=0
-      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-    end
-
-
-    '4pi_run05_sep1':begin
-      swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_e-_atten0_seed??_.dat',type=-1,data_e
-      swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_proton_atten0_seed??_.dat',type=+1,data_p
-      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_gamma_atten0_seed??_.dat',type=0,data_g
-      str_element,/add,simstat_e,'desc','4Pi'
-      str_element,/add,simstat_p,'desc','4Pi'
-      ;  str_element,/add,simstat_g1,'desc','4Pi'
-      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_e-_atten1_seed??_.dat',type=-1
-      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_proton_atten1_seed??_.dat',type=+1
-      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep1_gamma_atten1_seed??_.dat',type=0
-      str_element,/add,simstat_e1,'desc','4Pi'
-      str_element,/add,simstat_p1,'desc','4Pi'
-      ;  str_element,/add,simstat_g1,'desc','4Pi'
-      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-    end
-
-    '4pi_run05_sep2':begin
-      swfo_stis_read_mult_sim_files,simstat_e,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_e-_atten0_seed??_.dat',type=-1,data_e
-      swfo_stis_read_mult_sim_files,simstat_p,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_proton_atten0_seed??_.dat',type=+1,data_p
-      ;swfo_stis_read_mult_sim_files,simstat_g,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_gamma_atten0_seed??_.dat',type=0,data_g
-      str_element,/add,simstat_e,'desc','4Pi'
-      str_element,/add,simstat_p,'desc','4Pi'
-      resp_e0 = swfo_stis_inst_response(simstat_e,data_e,mapnum=mapnum,bmap=bmap)
-      resp_p0 = swfo_stis_inst_response(simstat_p,data_p,mapnum=mapnum,bmap=bmap)
-      ;resp_g0 = swfo_stis_inst_response(simstat_g,data_g,mapnum=mapnum,bmap=bmap)
-      swfo_stis_read_mult_sim_files,simstat_e1,data_e1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_e-_atten1_seed??_.dat',type=-1
-      swfo_stis_read_mult_sim_files,simstat_p1,data_p1,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_proton_atten1_seed??_.dat',type=+1
-      str_element,/add,simstat_e1,'desc','4Pi'
-      str_element,/add,simstat_p1,'desc','4Pi'
-      ;swfo_stis_read_mult_sim_files,simstat_g1,data_g1 ,pathnames='g4work/davinMaven/results/4PI/run05/mvn_sep2_gamma_atten1_seed??_.dat',type=0
-      resp_e1 = swfo_stis_inst_response(simstat_e1,data_e1,mapnum=mapnum,bmap=bmap)
-      resp_p1 = swfo_stis_inst_response(simstat_p1,data_p1,mapnum=mapnum,bmap=bmap)
-      ;resp_g1 = swfo_stis_inst_response(simstat_g1,data_g1,mapnum=mapnum,bmap=bmap)
-    end
-
     '4pi_stis': begin
       simstat_p = 0
       data_p = 0
@@ -1391,7 +1093,7 @@ if ~keyword_set(ltestrun) || ltestrun ne testrun then begin
 
 
     '4pi_stis_run12': begin
-      filename = testrun   + '.sav'
+      filename = testrun   + '-temp.sav'
       if file_test(filename) then begin
         restore,filename,/verbose
       endif else begin
@@ -1459,6 +1161,7 @@ str_element,/add,simstat_a,'mapnum',mapnum
 
 
 
+
 if 0 then begin
   ;swfo_stis_inst_bin_response,simstat_e,data_e,mapnum=mapnum,noise_level=noise_level
   ;swfo_stis_inst_bin_response,simstat_p,data_p,mapnum=mapnum,noise_level=noise_level
@@ -1489,36 +1192,6 @@ endif
 
 
 
-if 0 then begin
-  resp=resp_p0
-  bmap =resp.bmap
-  omega=0
-  over=0
-  bins0 = where(strmatch(bmap.name,'B-O'))
-  ;swfo_stis_response_each_bin,resp_p0,bins=bins0,window=20,ylog=1,omega=omega
-  swfo_stis_response_each_bin_GF,resp_p0,bins=bins0,window=20,ylog=1,omega=omega,over=over
-endif
-
-
-if testrun eq 'oxygen_dir' then begin
-  swfo_stis_inst_bin_response,simstat_Ox,data_Ox,mapnum=mapnum,noise_level=noise_level
-  win=0
-  swfo_stis_response_plots,simstat_Ox,data_Ox,window=win,filter=f
-
-endif
-
-
-
-if 0 then begin
-  erange=[0,0]
-  w = where(data_e1.einc lt 1e4 and data_e1.fto[0] eq 7)
-  plot,[1,1],/nodata,xrange=[1,1e4],yrange=[1,1e4],/xlog,/ylog
-  ;oplot,data_e1[w].edep[0,0],data_e1[w].edep[1,0],psym=3
-  color = bytescale(data_e1[w].einc,range=[500,1e4],/log)
-  plots,data_e1[w].edep[2,0],data_e1[w].edep[1,0],psym=4,color=color,symsize=.3
-endif
-
-
 
 if 1 then begin
   
@@ -1547,7 +1220,7 @@ if 1 then begin
     ;flux = 2.5e2 * energy^ pow
     flux = 2.5e4 * energy^ pow
     w = where(energy ge 8e3)
-    flux[w] = flux[w] / 10.
+    ;flux[w] = flux[w] / 10.
     pwlin =1 
   endif
   

@@ -1,29 +1,10 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-16 11:15:41 -0800 (Sat, 16 Dec 2023) $
-; $LastChangedRevision: 32295 $
+; $LastChangedDate: 2023-12-17 12:08:31 -0800 (Sun, 17 Dec 2023) $
+; $LastChangedRevision: 32296 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_calval.pro $
-; $Id: swfo_stis_inst_response_calval.pro 32295 2023-12-16 19:15:41Z davin-mac $
+; $Id: swfo_stis_inst_response_calval.pro 32296 2023-12-17 20:08:31Z davin-mac $
 
 
-;
-;
-;function swfo_stis_adc_calibration,sensornum
-;  ;message,'obsolete.  Contained within swfo_stis_lut2map.pro'
-;  adc_scale =  [[[ 43.77, 38.49, 41.13 ] ,  $  ;1A          O T F
-;    [ 41.97, 40.29, 42.28 ]] ,  $  ;1B
-;    [[ 40.25, 44.08, 43.90 ] ,  $  ;2A
-;    [ 43.22, 43.97, 41.96 ]]]   ;  2B
-;  adc_scale = adc_scale[*,*,sensornum] / 59.5
-;  return,adc_scale
-;end
-;
-;
-;function swfo_stis_cal_adc2nrg,adc,tid,fto
-;   adc_scales = 237./59.5
-;   return, adc / adc_scales
-;
-;end
-;
 
 function swfo_stis_inst_response_calval,reset=reset
 
@@ -42,7 +23,7 @@ function swfo_stis_inst_response_calval,reset=reset
     nan = !values.f_nan
     names_fto = strsplit('1 2 12 3 13 23 123',/extract)
     names_fto = reform( transpose( [['O-'+names_fto],['F-'+names_fto]]))
-    geom_raw   = .13 * [nan, .01,  1 , .99]
+    geom_raw   = .13 * [nan, .01,  1 , .99]  
     det_adc_scales = [234.1  , 228.4 , 232.4, 233.4, 232.7,  232.5]/ 59.5    ; for conversion from nrg to adc units 
     det2fto = [0, 1, 2, 1, 3,  1, 3, 1   ]
     det2fto = [1, 2, 1, 3,  1, 3, 1   ]
@@ -54,7 +35,7 @@ fto2detmap  = [ [1,4], [2,5],  [1,4],  [3,6],  [3,6], [3,6], [3,6]]
       nrg_scales[i,*] = [ s[0,i]  , s[1,i] , average( s[[0,1],i] )  , s[2,i], average( s[[2,0],i] ),  average( s[[2,1],i] ), average( s[[0,1,2],i] )  ]
     
     
-    
+    calval.instrument_name  = 'SWFO-STIS'
     calval.names_fto        = names_fto
     calval.geoms         = reform( geom_raw[[1,2,3,1,2,3]] , dim )
     calval.geoms_tid_fto = [1,1] #  geom_raw[det2fto] 
@@ -67,7 +48,28 @@ fto2detmap  = [ [1,4], [2,5],  [1,4],  [3,6],  [3,6], [3,6], [3,6]]
     calval.proton_O_dl  = 12.  ;  keV
     calval.proton_F_dl  = 300.  ; kev
     calval.electron_F_dl = 10.  ; keV
-    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 32295 2023-12-16 19:15:41Z davin-mac $'
+    
+;    cal_functions = orderedhash()
+    calval.nrglost_vs_nrgmeas = orderedhash()
+    
+    EINC    = [3.5572231, 9.5011850, 19.054607, 51.946412, 170.25940, 581.35906, 1791.9807, 6245.3324]
+    ELOST   = [0.75692672, 5.0485519, 11.489006, 15.762845, 12.833813, 7.9859661, 3.8584909, 1.1063090]
+    Emeas    = [1.3318166, 8.2329514, 26.984297, 67.781489, 196.48678, 1214.6312, 5194.6412, 69894.733]
+    ELOST   = [3.8584909, 9.8085852, 13.671814, 14.796677, 11.672128, 4.9693458, 1.4024602, 0.23119755]
+    calval.nrglost_vs_nrgmeas['Proton-O-3'] = spline_fit3(!null,emeas,elost,/xlog,/ylog)
+    calval.nrglost_vs_nrgmeas['Proton-O-1'] = calval.nrglost_vs_nrgmeas['Proton-O-3']
+
+    Emeas    = [2.4111388, 21.544347, 94.044485, 419.00791, 5873.3907, 44554.225]
+    ELOST = [266.69694, 255.38404, 234.17752, 151.81073, 26.237311, 5.8814151]
+    calval.nrglost_vs_nrgmeas['Proton-F-3'] =  spline_fit3(!null,emeas,ELOST,/xlog,/ylog)
+    calval.nrglost_vs_nrgmeas['Proton-F-1'] =  calval.nrglost_vs_nrgmeas['Proton-F-3']
+    
+    NRGMEAS = [1.3048349, 4.4554224, 19.448624, 138.74656, 427.67229]
+    NRGLOST = [19.218670, 12.035385, 4.2277243, 0.74616804, 0.13914896]
+    calval.nrglost_vs_nrgmeas['Electron-F-3'] =  spline_fit3(!null,NRGMEAS,NRGLOST,/xlog,/ylog)
+    calval.nrglost_vs_nrgmeas['Electron-F-1'] =  calval.nrglost_vs_nrgmeas['Electron-F-3']
+    
+    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 32296 2023-12-17 20:08:31Z davin-mac $'
     swfo_stis_inst_response_calval_dict  = calval
     dprint,'Using Revision: '+calval.rev_date
   endif

@@ -1,8 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-16 11:12:08 -0800 (Sat, 16 Dec 2023) $
-; $LastChangedRevision: 32294 $
+; $LastChangedDate: 2023-12-17 15:01:15 -0800 (Sun, 17 Dec 2023) $
+; $LastChangedRevision: 32298 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
-; $Id: swfo_stis_inst_response.pro 32294 2023-12-16 19:12:08Z davin-mac $
+; $Id: swfo_stis_inst_response.pro 32298 2023-12-17 23:01:15Z davin-mac $
 
 
 
@@ -101,24 +101,8 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
   bmaps.adc_avg = (bmaps.adc[1] + bmaps.adc[0])/2.
   bmaps.adc_delta = bmaps.adc[1] - bmaps.adc[0]
 
-  dprint,'Warning this section of code should be calling: swfo_stis_adc_calibration'
-
-;  ;The following cal data should be modified to originate from mvn_sep_det_cal
-;  cbin59_5 =[[[ 1. , 43.77, 38.49, 41.13,  41.,41.,41.] ,  $  ;1A     ; O T F
-;    [ 1. , 41.97, 40.29, 42.28,  41.,41.,41. ]] ,  $  ;1B
-;    [[ 1. , 40.25, 44.08, 43.90,  41.,41.,41. ] ,  $  ;2A
-;    [ 1. , 43.22, 43.97, 41.96,  41.,41.,41. ]]]   ;  2B
-;
-;  ;  Default calibration for STIS
-;  cbin59_5 =[[[ 1. , 43.77, 38.49, 41.13,  41.,41.,41., 41. ] ,  $  ;1  - Open side     ; O T F   ;  1 3 2
-;    [ 1. , 41.97, 40.29, 42.28,  41.,41.,41. , 41.]] ,  $  ;1  - Foil side
-;    [[ 1. , 40.25, 44.08, 43.90,  41.,41.,41., 41. ] ,  $  ;2A
-;    [ 1. , 43.22, 43.97, 41.96,  41.,41.,41., 41. ]]]   ;  2B
-
 
   if keyword_set(sensor) then begin
-    ;adc_scale = 237./59.5
-    ;adc_scales = replicate(adc_scale,8)
     adc_scales = calval.adc_scales
     bmaps.sens = sensor
     erange = fltarr(2,nbins)
@@ -176,10 +160,8 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
   if n_elements(noise_level) ne 1 then noise_level=  1.
   ;if n_elements(sensornum) ne 1 then sensornum=1
   ;if n_elements(mapnum) ne 1 then mapnum = 8
-  noise_rms = noise_level *   calval.nrg_sigmas      ;   [[1.5,4.,2.5],[1.5,4.,2.5]]   ; noise O T F in kev
-  ;adc_scale = swfo_stis_adc_calibration(sensornum)
-  ;adc_scale = adc_scale[*,*,sensornum]
-  thresholds =    calval.nrg_thresholds      ; noise_rms *    5 ;sigma threshold
+  noise_rms =   calval.nrg_sigmas    * noise_level        ; noise O T F in kev
+  thresholds =    calval.nrg_thresholds   * noise_level   ; noise_rms *    5 ;sigma threshold
   one_n = replicate(1,n)
   str_element,/add,data,'fto',bytarr(2,n)
   str_element,/add,data,'em',fltarr(2,n)
@@ -285,11 +267,13 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
     dprint,'Must have at least 2 successful events'
     return,0
   endif
+  
+  response= simstat
 
-  swfo_stis_inst_bin_response,simstat,data0,mapnum=mapnum,noise_level=noise_level  ,bmap=bmap
+  swfo_stis_inst_bin_response,response,data0,mapnum=mapnum,noise_level=noise_level  ,bmap=bmap
   nbins = n_elements(bmap)
 
-  w= where( swfo_stis_response_data_filter(simstat,data0,_extra=filter,filter=out_filter),nw)
+  w= where( swfo_stis_response_data_filter(response,data0,_extra=filter,filter=out_filter),nw)
   if nw le 1 then begin
     dprint,'Filter leaves no data. Must have at least 2 successful events'
     ;   return,0
@@ -298,6 +282,10 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
     dprint,'Very few samples.',nw
   endif
   if nw ne 0 then data=data0[w]
+  
+  if nw ne n_elements(data0) then begin
+    dprint,'Filter: ',nw,' removed out of',n_elements(data0)
+  endif
 
   ;str_element,simstat,'nsuccess',nw
   ;str_element,simstat,'type',type
@@ -318,7 +306,7 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   ;if n_elements(noise_level) ne 1 then noise_level=1.
   ;if n_elements(sensornum) ne 1 then sensornum=0
   ;if n_elements(type) ne 1 then type=0               ;  -1: electrons,  1:protons,   2:???
-  if ~keyword_set(xbinsize) then xbinsize=  .0125       ;
+  if ~keyword_set(xbinsize) then xbinsize=   1/40. ; .0125       ;
   if ~keyword_set(ybinsize) then ybinsize= xbinsize
 
   srange =  simlog ? alog10(simrange) : simrange
@@ -379,7 +367,6 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   Mde = total(M,2) * dE    ; include energy width in matrix
 
 
-  response= simstat
   str_element,/add,response,'bmap',bmap
   str_element,/add,response,'ndata',ndata
   str_element,/add,response,'nd',nd

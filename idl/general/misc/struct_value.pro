@@ -11,7 +11,7 @@ function struct_value,str,name,default=default,index=index
 index = -1
 if n_elements(default) ne 0 then value = default
 if n_elements(value)     eq 0 then value = !null
-if isa(str,'dictionary') then begin
+if isa(str,'hash') then begin
   if str.haskey(name) then return, str[name] else return,value
 endif
 
