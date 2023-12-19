@@ -45,16 +45,18 @@
 ;                   If CHECK is set, then keyword SUMMARY will include success
 ;                   flags (1 = sufficient coverage, 0 = insufficient coverage).
 ;
+;    KEY:           Print out the color key and return.
+;
 ;    SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-05-26 15:01:20 -0700 (Thu, 26 May 2022) $
-; $LastChangedRevision: 30835 $
+; $LastChangedDate: 2023-12-18 16:14:29 -0800 (Mon, 18 Dec 2023) $
+; $LastChangedRevision: 32306 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
 ;-
-pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=check, silent=silent
+pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=check, silent=silent, key=key
 
   blab = ~keyword_set(silent)
 
@@ -89,6 +91,8 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=ch
     endif
     return
   endif
+
+  if keyword_set(key) then goto, printkey
 
   loadlist = ['']
   for i=0,(n_ker-1) do loadlist = [loadlist, file_basename(mk[i])]
@@ -352,9 +356,24 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=ch
     options,bname,'no_interp',1
     options,bname,'xstyle',4
     options,bname,'ystyle',4
+    options,bname,'color_table',43
     options,bname,'no_color_scale',1
+
+    goto, printkey
   endif
 
   return
+
+; Print out the color key
+
+printkey:
+
+  print,''
+  print,'Spice status bar color key:'
+  print,'  green  = all kernels available'
+  print,'  yellow = missing APP ck'
+  print,'  red    = missing APP ck and S/C ck'
+  print,'  blank  = no geometry at all'
+  print,''
 
 end

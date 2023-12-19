@@ -13,12 +13,12 @@
 ;       Yuki Harada on 2017-05-11
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-04-06 01:38:33 -0700 (Fri, 06 Apr 2018) $
-; $LastChangedRevision: 25009 $
+; $LastChangedDate: 2023-12-17 20:37:02 -0800 (Sun, 17 Dec 2023) $
+; $LastChangedRevision: 32299 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/marsis/mex_marsis_snap.pro $
 ;-
 
-pro mex_marsis_snap, window=window, keepwin=keepwin, time=t0, _extra=_ex, nowindow=nowindow, noaalt=noaalt, symsize=symsize, noinv=noinv, nochfit=nochfit
+pro mex_marsis_snap, window=window, keepwin=keepwin, time=t0, _extra=_ex, nowindow=nowindow, noaalt=noaalt, symsize=symsize, noinv=noinv, nochfit=nochfit, csv_save=csv_save
 
 @mex_marsis_com
 
@@ -90,6 +90,23 @@ while (ok) do begin
       axis,yaxis=1,ystyle=1,ytitle='Apparent Alt. [km]',yticklen=-.01, $
            yrange=alt+[-0.1499*max(marsis_delay_times),0.]
 
+   if keyword_set(csv_save) then begin
+      csv_filename = 'iono_'+time_string(time,tf='YYYYMMDD_hhmmss')+'.csv'
+      aalt = alt -0.1499*marsis_delay_times
+      openw,unit,csv_filename,/get_lun
+      line = 'aalt [km] (column) / freq [MHz] (row)'
+      for ifreq=0,n_elements(freq)-1 do line += ', '+string(freq[ifreq],f='(f9.3)')
+      printf,unit,line
+      for iaalt=0,n_elements(aalt)-1 do begin
+         line = string(aalt[iaalt],f='(f9.2)')
+         for ifreq=0,n_elements(freq)-1 do begin
+            line += ', '+string(sdens[ifreq,iaalt],f='(e9.2)')
+         endfor
+         printf,unit,line
+      endfor
+      free_lun,unit
+   endif
+   
    ;;; plots plasma line harmonics and electron cyclotron echoes
    if size(marsis_eledens_bmag,/type) eq 8 then begin
       tmp = min( abs(marsis_eledens_bmag.time - time) , inow )
