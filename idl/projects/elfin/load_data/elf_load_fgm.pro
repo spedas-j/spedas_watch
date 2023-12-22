@@ -198,7 +198,7 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
       if ~spd_data_exists('el'+probes+'_pos_gei_fsp',tr[0],tr[1]) then begin
         dprint, 'There is no data for el'+probes+'_pos_gei for '+ $
           time_string(tr[0])+ ' to ' + time_string(tr[1])
-        drpint, 'Unable to perform fgs_fsp_res_gei coordinate transforms to ndw and obw'
+        dprint, 'Unable to perform fgs_fsp_res_gei coordinate transforms to ndw and obw'
       endif else begin
         ; Transform data to ndw coordinates
         tr=time_double(trange)
