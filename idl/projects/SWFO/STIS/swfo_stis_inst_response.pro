@@ -1,8 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-17 15:01:15 -0800 (Sun, 17 Dec 2023) $
-; $LastChangedRevision: 32298 $
+; $LastChangedDate: 2023-12-25 13:20:29 -0800 (Mon, 25 Dec 2023) $
+; $LastChangedRevision: 32322 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
-; $Id: swfo_stis_inst_response.pro 32298 2023-12-17 23:01:15Z davin-mac $
+; $Id: swfo_stis_inst_response.pro 32322 2023-12-25 21:20:29Z davin-mac $
 
 
 
@@ -10,6 +10,17 @@
 
 
 function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
+
+  calval = swfo_stis_inst_response_calval()
+  ;  particle = resp.particle_name
+  ;  ;  dprint, 'Energy lost calc for', simstat.particle_name
+  ;  if ~keyword_set(tid) then tid = 0
+  ;  if ~keyword_set(fto) then fto = 4
+  ;  ifto_type = calval.names_fto[tid,fto-1]
+  ;  particle_fto = particle+'-'+ifto_type
+  ;  dprint,particle_fto
+
+
 
   nbins = max(lut)+1   ; don't use this now
   ;if nbins gt 256 then message,"Don't use this code"
@@ -22,27 +33,29 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
   colors = [0,2,4,6,3,1,5]
   colors = [0,2,4,6,3,1,0,6]
   nan = !values.f_nan
-  bmap =  {sens:0, bin:0, name:'', fto:0, det:0 , tid:0, ADC:[0,0L],  num:0,  ok:0, $
+  bmap =  {sens:0, bin:0, name:'',enum:0, fto:0, det:0 , tid:0, ADC:[0,0L],  num:0,  ok:0, $
     color:0 ,psym:0, type:0 , $
-    geom: 0., $ 
-    ;                    x:0., y:0., dx:0. ,dy:0., $
-    FACE:0,  overflow:0b,  $
+    geom: nan, $
+    ;  FACE:0, $
+    overflow:0b,  $
     nw:0,  $
     adcm: 0L, $
     adc_avg:nan         ,  adc_delta:nan  , $
     nrg_meas:nan    , nrg_meas_delta:nan, $
     nrg_inc :nan  , nrg_inc_delta:nan, $
     nrg_lost: nan , $
-     ; dummy place holders for convienience
+    gde: nan, $
+    e0_inc: nan, $
+    e0_inc_delta:nan,  $
+    ; dummy place holders for convienience
     rate: nan,  $
-    counts: nan,  $    
+    counts: nan,  $
     flux: nan,  $
     valid: 1 }
-    
+
   bmaps = replicate(bmap,nbins)
-  
-  calval = swfo_stis_inst_response_calval()
-  
+
+
   ;remap = indgen(16)
   ;remap[[0,1,10,11]] = 0    ; allow
   ;remap[[0,1]] = 0                  ; Non events  'x'
@@ -85,14 +98,13 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
         bmap.ok = (bmap.num eq nw) and bmap.fto ne 8
         bmap.adcm = adcm[fto]
         bmap.adc *= bmap.adcm    ; OT and FT are doubled,  FTO is quadrupled
-     ;   bmap.num = bmap.adc[1] - bmap.adc[0]
         bmap.overflow = max(adc) ge 2L^15
-       ; bmap.face = (fix((bmap.fto and 1) ne 0) - fix((bmap.fto and 4) ne 0)) * (bmap.tid ? 1 : -1)
+        ; bmap.face = (fix((bmap.fto and 1) ne 0) - fix((bmap.fto and 4) ne 0)) * (bmap.tid ? 1 : -1)
         bmaps[b++] = bmap
-            
+
       endfor
     endfor
-      
+
   endfor
 
   ;bmaps.x = (bmaps.adc[1] + bmaps.adc[0])/2.
@@ -111,19 +123,24 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
       erange[*,i] = bmaps[i].adc * dac2nrg[bmaps.tid,bmaps[i].fto-1]
       ;erange[*,i] = swfo_stis_cal_adc2nrg(bmaps[i].adc,bmaps[i].tid,bmaps[i].fto)
     endfor
-    
+
     bmaps.nrg_meas    = average(erange,1)
 
     bmaps.nrg_lost = 0.
     w = where(bmaps.name eq 'O-1' or bmaps.name eq 'O-3', nw,/null)
     bmaps[w].nrg_lost = calval.proton_O_dl
+    func = struct_value(calval.NRGLOST_VS_NRGMEAS,'Proton-O-3')
+    if isa(func) then   bmaps[w].nrg_lost = func(param = func, bmaps[w].nrg_meas)   ; overwrite with better values
+
     w = where(bmaps.name eq 'F-1' or bmaps.name eq 'F-3', nw,/null)
     bmaps[w].nrg_lost = calval.electron_F_dl
+    func = struct_value(calval.NRGLOST_VS_NRGMEAS,'Electron-F-3')
+    if isa(func) then   bmaps[w].nrg_lost = func(param = func, bmaps[w].nrg_meas)   ; overwrite with better values
 
     bmaps.nrg_inc  = bmaps.nrg_meas + bmaps.nrg_lost   ; approximate correction
 
 
-    bmaps.nrg_meas_delta   = reform(erange[1,*]-erange[0,*])  
+    bmaps.nrg_meas_delta   = reform(erange[1,*]-erange[0,*])
     bmaps.nrg_inc_delta = bmaps.nrg_meas_delta
     w = where(bmaps.overflow)
     overflow_fudge = .3  ;   This value is arbitrary - but at least better than the default
@@ -138,8 +155,9 @@ end
 
 
 
-
-pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise_level,mapnum=mapnum,bmap=bmap
+;  This routine modifies the big "data" array to include a few new elements:  FTO[2] EM[2] and BIN[2]    Each TID is treated separately
+;  any event that triggers both TIDs will be counted as two separate events.
+pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise_level,mapnum=mapnum,bmap=bmap,data_sample=data_sample
   ;common swfo_stis_inst_bin_response_com , seed
   calval = swfo_stis_inst_response_calval()
   if size(/type,simstat) ne 8  then begin
@@ -205,7 +223,7 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
   endif else begin
     dprint , 'Non-LUT setup
     lut = uintarr(2L^15, 2, 8 )   + 680
-    map = swfo_stis_adc_map()
+    map = swfo_stis_adc_map(data_sample=data_sample)
     bin = 0
     for fto = 1,7 do begin
       for tid=0,1 do begin
@@ -214,14 +232,14 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
           a0= map.adc0[e,ch]
           a1= a0 + map.dadc[e,ch] -1
           lut[a0:a1,tid,fto] = bin
-          bin++   
+          bin++
         endfor
       endfor
     endfor
-    
+
     shft = [0,1,1,2,1,2,2,4]      ; 2^(nbits-1)   nbits = number of bits that are set within an FTO pattern
     adc_scales = calval.adc_scales       ;   replicate(237./59.5,3,2)
-; stop   ; not finished  map required here
+    ; stop   ; not finished  map required here
 
     for side=0,1 do begin
       ;   slabel = side ? 'B' : 'A'
@@ -262,12 +280,16 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
 end
 
 
+
+
+
+
 function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_level,filter=filter ,bmap=bmap
   if n_elements(data0) le 1 then begin
     dprint,'Must have at least 2 successful events'
     return,0
   endif
-  
+
   response= simstat
 
   swfo_stis_inst_bin_response,response,data0,mapnum=mapnum,noise_level=noise_level  ,bmap=bmap
@@ -282,7 +304,7 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
     dprint,'Very few samples.',nw
   endif
   if nw ne 0 then data=data0[w]
-  
+
   if nw ne n_elements(data0) then begin
     dprint,'Filter: ',nw,' removed out of',n_elements(data0)
   endif
@@ -306,8 +328,10 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   ;if n_elements(noise_level) ne 1 then noise_level=1.
   ;if n_elements(sensornum) ne 1 then sensornum=0
   ;if n_elements(type) ne 1 then type=0               ;  -1: electrons,  1:protons,   2:???
-  if ~keyword_set(xbinsize) then xbinsize=   1/40. ; .0125       ;
+  if ~keyword_set(xbinsize) then xbinsize=   1/40. ; .025       ;
   if ~keyword_set(ybinsize) then ybinsize= xbinsize
+
+  if ~keyword_set(simlog) then message,'This code is not yet configured for linear sampling. Only logrithmic sampling is defined'
 
   srange =  simlog ? alog10(simrange) : simrange
   brange=  minmax([1.,simrange] )        ;[1.,100e3]
@@ -317,19 +341,24 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   xbinrange = brange
   ybinrange = brange
   ndata = n_elements(data)
-  ND = npart * xbinsize / (srange[1] - srange[0])
+  ;ND = npart * xbinsize / (srange[1] - srange[0])
   nx_einc = long((xlog ? alog10(xbinrange[1]/xbinrange[0]) : xbinrange[1]-xbinrange[0]) / xbinsize)
   ny_emeas= long((ylog ? alog10(ybinrange[1]/ybinrange[0]) : ybinrange[1]-ybinrange[0]) / ybinsize)
   xs0 = xlog ? alog(xbinrange[0]) : xbinrange[0]
   ys0 = ylog ? alog(ybinrange[0]) : ybinrange[0]
-  ny_bins = nbins   ;+2   ; max(lut)+1
+  ND = double(npart) / nx_einc                          ; number of particles per E-incident step (this assumes proper statistics) 
   if ~keyword_set(n_omega) then n_omega = 2L
   G4=fltarr(nx_einc,ny_emeas,8,2)
+  ny_bins = nbins  
   adcbin_hist = lonarr(nx_einc,n_omega,ny_bins)
   adcbin_index= lindgen(nx_einc,n_omega,ny_bins)
   bin_val = indgen(ny_bins)
   ei_val = ( (indgen(nx_einc)+.5d) *xbinsize) + xs0
-  if xlog then ei_val = 10.d^ ei_val
+  if xlog then begin
+    ei_val = 10.d^ ei_val
+    de_inc = ei_val * xbinsize  * alog(10.)   ; close approximation
+  endif
+  
   em_val = ( (indgen(ny_emeas)+.5d) *ybinsize) + ys0
   if ylog then em_val = 10.d^ em_val
   if ndata ne 0 then begin
@@ -353,16 +382,16 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
           continue
         endif
         G2 = histbins2d(einc[w],em[w],ei_val2,em_val2,xbinsize=xbinsize,ybinsize=ybinsize,xrange=xbinrange,yrange=ybinrange,xlog=xlog,ylog=ylog)
-        G2 = G2/ND * area_cm2   ;*!dpi; *2* 4 ; normalize to area  (cm^2) * 4pi ster
+        G2 = G2/ND * area_cm2   *!dpi  ; *2* 4 ; normalize to area  (cm^2) * 4pi ster
         if ~keyword_set(g4) then G4 = replicate(0.,[size(/dimen,G2),8,2] )
         G4[*,*,fto,side] = g2
       endfor
     endfor
   endif
 
-  ; The following is only true for simlog = 1
+  ; The following is only true for simlog == 1
   ;ND = npart * xbinsize / (srange[1] - srange[0])   ; number of particles per incident energy bin
-  M = adcbin_hist * (area_cm2 / nd) 
+  M = adcbin_hist * (area_cm2 / nd) * !pi
   dE = xbinsize * alog(10.) * ( ei_val # replicate(1.,ny_bins)  )  ; energy width
   Mde = total(M,2) * dE    ; include energy width in matrix
 
@@ -377,6 +406,7 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   str_element,/add,response,'xbinrange',xbinrange
   str_element,/add,response,'ybinrange',ybinrange
   str_element,/add,response,'e_inc',ei_val
+  str_element,/add,response,'de_inc',de_inc
   str_element,/add,response,'e_meas',em_val
   str_element,/add,response,'G4',g4
   str_element,/add,response,'nbins',nbins
@@ -384,14 +414,14 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   str_element,/add,response,'GB3' , adcbin_hist *  (response.sim_area /100 / response.nd * 3.14)
   str_element,/add,response,'mde', Mde
   str_element,/add,response,'bin_val',bin_val
-  peakeinc = swfo_stis_inst_response_peakeinc(response,width=10)
-  str_element,/add,response,'peakeinc',peakeinc
+  ;peakeinc = swfo_stis_inst_response_peakeinc(response,width=10)
+  ;str_element,/add,response,'peakeinc',peakeinc
   str_element,/add,response,'fdesc',fdesc
   str_element,/add,response,'filter',out_filter
 
   return,response
 end
 
- 
+
 
 

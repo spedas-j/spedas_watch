@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $
-; $LastChangedRevision: 32278 $
+; $LastChangedDate: 2023-12-25 13:22:06 -0800 (Mon, 25 Dec 2023) $
+; $LastChangedRevision: 32323 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -229,6 +229,20 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         
       endfor
     endfor
+    
+    if 1 then begin
+      print_names = struct_value(param,'print_names')
+      s=!null
+      for i=0,n_elements(print_names)-1 do begin
+        name = print_names[i]
+        v = tsample(name,trange,/average)
+        v = reform(v)
+        s = [s,  name+ ' = '+strjoin(strtrim(v,2),',  ')]
+      endfor
+      ;dprint,s
+      xyouts,.15,.85,strjoin(s,'!c'),/normal
+    endif
+    
 
     if 1 then begin
       xv = dgen()
@@ -238,7 +252,8 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
       if strupcase(param.lim.units) eq 'EFLUX' then  scale = xv else scale = 1
       oplot, xv, flux_min * scale
       oplot, xv, flux_max * scale
-      if 1 then begin
+      
+      if 0 then begin
         ;stop
         w = where(x ge 30 and x lt 2000)
         flux_min = 2.48e2 * x ^ (-1.6)

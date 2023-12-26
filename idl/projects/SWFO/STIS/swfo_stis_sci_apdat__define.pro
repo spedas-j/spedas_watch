@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
-; $LastChangedRevision: 32281 $
+; $LastChangedDate: 2023-12-25 09:34:31 -0800 (Mon, 25 Dec 2023) $
+; $LastChangedRevision: 32321 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -29,7 +29,9 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
     hs+672:   scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:hs+672-1]))
     hs+672+2: scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:hs+672-1]))
     hs+512:   scidata = ulong(swap_endian( uint(ccsds_data,hs,256) ,/swap_if_little_endian))
+    hs+512+2:   scidata = ulong(swap_endian( uint(ccsds_data,hs,256) ,/swap_if_little_endian))
     hs+1344:  scidata = ulong(swap_endian( uint(ccsds_data,hs,672) ,/swap_if_little_endian))
+    hs+1344+2:  scidata = ulong(swap_endian( uint(ccsds_data,hs,672) ,/swap_if_little_endian))
     else :  begin
       scidata = ulong(swfo_stis_log_decomp(ccsds_data[hs:*]))
       dprint,'Unknown science packet size:',n_elements(ccsds_data)
@@ -62,8 +64,10 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
     total14:  total14,$
     rate:     0.,$
     rate2:    0.,$
-    rate6:    total6,$
+  ;  rate6_raw:    total6,$
+    rate6    :    total6, $
     scaled_rate6:total6,$
+  ;  rate14_raw:   total14,$
     rate14:   total14,$
     sigma14:  total14,$
     avgbin14: total14,$
@@ -81,7 +85,30 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
     ;    endfor
 
     d=reform(scidata,[48,14])
+
+    
+    dec = str1.DECIMATION_FACTOR_BITS
+    if dec ne 0 then begin
+      dec6 = [0,dec,ishft(dec,-2),0,ishft(dec,-4),ishft(dec,-6)]  and 3
+      scale6 = 2. ^ dec6
+      ;                      1     2    3      4     5      6      7
+      ;                     C1    C2   C12    C3    C13    C23   C123
+      scale14 = scale6[  [ 0,3,  1,4,  1,4,   2,5,   2,5,   2,5,   2,5    ]                       ]   ; Note :  still need to work on coincident decimation
+      dprint,verbose=self.verbose,dlevel=2,'Decimation is on! ',scale6
+      dprint,verbose=self.verbose,dlevel=2, scale14
+      for ch = 0,13 do begin
+        d[*,ch]  *= scale14[ch]
+      endfor
+
+    endif
+    
+
+
     total14=total(d,1)
+
+
+    
+    
     foreach tid,[0,1] do begin
       total6[0+tid*3]=total14[0+tid]+total14[4+tid]+total14[ 8+tid]+total14[12+tid]
       total6[1+tid*3]=total14[2+tid]+total14[4+tid]+total14[10+tid]+total14[12+tid]
@@ -93,7 +120,11 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
       p[j]=swfo_stis_nse_find_peak(d[*,j])
     endfor
 
-  endif
+  endif else begin
+    dprint,'mode not allowed'
+  endelse
+
+
 
   str2.counts=scidata
   str2.total6=total6

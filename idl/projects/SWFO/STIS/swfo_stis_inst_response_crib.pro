@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-17 15:01:15 -0800 (Sun, 17 Dec 2023) $
-; $LastChangedRevision: 32298 $
+; $LastChangedDate: 2023-12-25 13:20:29 -0800 (Mon, 25 Dec 2023) $
+; $LastChangedRevision: 32322 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_crib.pro $
 ; $ID: $
 
@@ -47,7 +47,7 @@ function swfo_stis_inst_response_retrieve,pathnames,age_limit=age_limit
 end
 
 
-pro swfo_stis_read_mult_sim_files,simstat,data,desc=desc,pathnames=pathnames,type=type,dosymm=dosymm
+pro swfo_stis_read_mult_sim_files,simstat,data,testrun=testrun,desc=desc,pathnames=pathnames,type=type,dosymm=dosymm
   last_pathname=''
   str_element,simstat,'pathnames',last_pathname
   if array_equal(pathnames,last_pathname) then begin
@@ -61,7 +61,7 @@ pro swfo_stis_read_mult_sim_files,simstat,data,desc=desc,pathnames=pathnames,typ
 
   files = swfo_stis_inst_response_retrieve(pathnames)
   ;files = pathnames
-  SIM_Energy_range = [1e1,1e5]
+  ;SIM_Energy_range = [1e1,1e5]
   if ~keyword_set(desc) then desc='4Pi'
   str_element,/add,simstat,'SIM_Energy_range',sim_energy_range
   str_element,/add,simstat,'desc',desc
@@ -115,6 +115,7 @@ pro swfo_stis_read_mult_sim_files,simstat,data,desc=desc,pathnames=pathnames,typ
     simstat.npart *=2
   endif
 
+  str_element,/add,simstat,'testrun',testrun
   ;str_element,/add,simstat,'data',data
 end
 
@@ -1093,24 +1094,24 @@ if ~keyword_set(ltestrun) || ltestrun ne testrun then begin
 
 
     '4pi_stis_run12': begin
-      filename = testrun   + '-temp.sav'
+      filename = testrun   + '_v3.sav'
       if file_test(filename) then begin
         restore,filename,/verbose
       endif else begin
         simstat_p = 0
         data_p = 0
-        swfo_stis_read_mult_sim_files,simstat_p,data_p,pathnames='simulation_results_run12_seed0?_proton.dat',type=+1
+        swfo_stis_read_mult_sim_files,testrun=testrun,simstat_p,data_p,pathnames='simulation_results_run12_seed0?_proton.dat',type=+1
         simstat_e = 0
         data_e = 0
-        swfo_stis_read_mult_sim_files,simstat_e,data_e,pathnames='simulation_results_run12_seed0?_e-.dat',type=+1
+        swfo_stis_read_mult_sim_files,testrun=testrun,simstat_e,data_e,pathnames='simulation_results_run12_seed0?_e-.dat',type=+1
         simstat_a = 0
         data_a = 0
-        swfo_stis_read_mult_sim_files,simstat_a,data_a,pathnames='simulation_results_run12_seed0?_alpha.dat',type=+1
+        swfo_stis_read_mult_sim_files,testrun=testrun,simstat_a,data_a,pathnames='simulation_results_run12_seed0?_alpha.dat',type=+1
         str_element,/add,simstat_a,'particle_name', 'Alpha'   ; missing from data file
         str_element,/add,simstat_a,'particle_type', 4         ; missing from data file
         simstat_g = 0
         data_g = 0
-        swfo_stis_read_mult_sim_files,simstat_g,data_g,pathnames='simulation_results_run12_seed0?_gamma.dat',type=+1
+        swfo_stis_read_mult_sim_files,testrun=testrun,simstat_g,data_g,pathnames='simulation_results_run12_seed0?_gamma.dat',type=+1
 
         swfo_stis_swap_det2_det3,data_p
         swfo_stis_swap_det2_det3,data_e
@@ -1124,7 +1125,7 @@ if ~keyword_set(ltestrun) || ltestrun ne testrun then begin
   endcase
 endif
 
-ltestrun =testrun
+ltestrun = testrun
 
 
 
@@ -1152,12 +1153,12 @@ printdat,f,output=s,/val
 fdesc = strjoin(strcompress(s,/remove_all),', ')
 dprint,fdesc ;,/val
 
-mapnum= 0
+;mapnum= 0
 
-str_element,/add,simstat_p,'mapnum',mapnum
-str_element,/add,simstat_e,'mapnum',mapnum
-str_element,/add,simstat_g,'mapnum',mapnum
-str_element,/add,simstat_a,'mapnum',mapnum
+;str_element,/add,simstat_p,'mapnum',mapnum
+;str_element,/add,simstat_e,'mapnum',mapnum
+;str_element,/add,simstat_g,'mapnum',mapnum
+;str_element,/add,simstat_a,'mapnum',mapnum
 
 
 
@@ -1190,7 +1191,7 @@ if 0 then begin
   swfo_stis_response_plot_simflux,window=win,resp_e
 endif
 
-
+calval=swfo_stis_inst_response_calval()
 
 
 if 1 then begin
@@ -1199,15 +1200,18 @@ if 1 then begin
   if ~keyword_set(p_resp) then begin
     ;p_resp = swfo_stis_inst_response(simstat_p,data_p,filter=f)
     swfo_stis_response_plots,simstat_p,data_p,window=win,filter=f, response = p_resp
+    dprint,'Calculated p_resp'
+    calval.responses['Proton'] = p_resp
   endif
 
   if ~keyword_set(e_resp) then begin
     ;e_resp = swfo_stis_inst_response(simstat_e,data_e,filter=f)
     swfo_stis_response_plots,simstat_e,data_e,window=win,filter=f, response = e_resp
-    dprint,'Calculated e_resp
+    dprint,'Calculated e_resp'
+    calval.responses['Electron'] = e_resp
   endif
 
-  if ~keyword_set(a_resp) then begin
+  if 0 && ~keyword_set(a_resp) then begin
     ;a_resp = swfo_stis_inst_response(simstat_a,data_a,filter=f)
     swfo_stis_response_plots,simstat_a,data_a,window=win,filter=f, response = a_resp
   endif
@@ -1226,28 +1230,67 @@ if 1 then begin
   
   
   p_flux = flux
-  e_flux = flux  /5
+  e_flux = flux   /2
   a_flux = e_flux /40
-  
-  ;;;;;
   
   
   p_func = spline_fit3(!null,energy,p_flux,/xlog,/ylog,pwlin=pwlin)
   e_func = spline_fit3(!null,energy,e_flux,/xlog,/ylog,pwlin=pwlin)
   a_func = spline_fit3(!null,energy,a_flux,/xlog,/ylog,pwlin=pwlin)
+
+  flux_func = swfo_stis_response_func(eflux_func = e_func,pflux_func=p_func)
+
+
+  if 1 then begin
+    str_element,/add,p_func,'inst_response',p_resp
+    str_element,/add,e_func,'inst_response',e_resp
+    str_element,/add,a_func,'inst_response',a_resp
+
+    swfo_stis_inst_response_matmult_plot,p_func,window=win++
+    swfo_stis_inst_response_matmult_plot,e_func,window=win++    
+  endif
+
+
+  p_rate = func(param=flux_func,0,choice=1)
+  e_rate = func(param=flux_func,0,choice=2)
+  t_rate = func(param=flux_func,0,choice=3)
   
-  str_element,/add,p_func,'inst_response',p_resp
-  str_element,/add,e_func,'inst_response',e_resp
-  str_element,/add,a_func,'inst_response',a_resp
+  
+  p_bmap = p_resp.bmap
+  e_bmap = p_resp.bmap
+  t_bmap = p_bmap
+  
+wi,win++
+plot,t_rate,/ylog
+oplot,p_rate,color=6
+oplot,e_rate,color=2
+
+  test = 0
+  pks = swfo_stis_inst_response_peakeinc(p_resp,pk2s=pk2s,test=test)
+ 
+  ;  method = 1
+  swfo_stis_response_rate2flux,p_rate,p_bmap,method=method
+  swfo_stis_response_rate2flux,e_rate,e_bmap,method=method
+  swfo_stis_response_rate2flux,t_rate,t_bmap,method=method
+  
+  wi,win++,/show
+  
+  swfo_stis_response_simflux_plot,flux_func = flux_func
+  swfo_stis_response_simflux_plot,bmap = t_bmap,   /over, name = 'O-3',color=0
+  swfo_stis_response_simflux_plot,bmap = p_bmap,   /over, name = 'O-3',color=6
+  swfo_stis_response_simflux_plot,bmap = e_bmap,   /over, name = 'O-3',color=2
+  ;swfo_stis_response_simflux_plot,flux_func = flux_func
   
   
-  swfo_stis_inst_response_matmult_plot,p_func,window=win++
-  swfo_stis_inst_response_matmult_plot,e_func,window=win++
+  
+  ;stop
+  
   
   
   p_rate = transpose(p_resp.mde) # func(p_resp.e_inc,param=p_func) 
   e_rate = transpose(e_resp.mde) # func(e_resp.e_inc,param=e_func)
-  a_rate = transpose(a_resp.mde) # func(a_resp.e_inc,param=a_func)
+  ;a_rate = transpose(a_resp.mde) # func(a_resp.e_inc,param=a_func)
+ 
   
   if 0 then begin
     wi,win++
@@ -1255,7 +1298,6 @@ if 1 then begin
     xlim,plim, -5,690
     ylim,plim, .0001,1e6, 1
     box,plim
-
 
     ;oplot,p_rate+e_rate+a_rate
     ;plots,findgen(681),p_rate ,color = p_resp.bmap.color

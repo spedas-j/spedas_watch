@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $
-; $LastChangedRevision: 32278 $
+; $LastChangedDate: 2023-12-25 09:33:18 -0800 (Mon, 25 Dec 2023) $
+; $LastChangedRevision: 32320 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -24,7 +24,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,'gse_kpa-1_F1',/default,colors='b'
     options,'gp37_vg_IG?',max_value=1000.,/ylog
     options,'gse_cntr_FREQ',yrange=[1.,1.],/ylog,max_value=1e10
-    ylim,'stis_???_SPEC_??',0,60,0
+    ylim,'stis_???_SPEC_??',0,100,0
   endif
 
   if keyword_set(eleclim) then begin
@@ -57,6 +57,8 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
       options,'SWFO*L1_BASELINE',constant=0.,colors='bgrmcd'
       options,'SWFO*L1_SIGMA',constant=0.,colors='bgrmcd'
       options,'SWFO*L1_NOISE_RES',yrange=[0,7]
+      options,'*DECIMATION_FACTOR_BITS',panel_size=.5
+      options,'*SPEC_??',panel_size=1.5
       tplot,'SWFO*L1*',/add
     endif
 
@@ -135,6 +137,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'LPT':  tplot,add=add,'*sci_RATE6 *hkp?_DAC_VALUES *sci*COUNTS *hkp3*REMAIN* *hkp1*REMAIN*'
     'SCIHKP': tplot,add=add,'*hkp2*SCI_*'
     'IONGUN': tplot,add=add,'Vac_Pressure gse_kpa-?_F1 IG_* stis_l1a_SPEC_O[13]'
+    'IONGUN1': tplot,add=add,'*sci_RATE6 IG_GUN_V stis_l1a_SPEC_O[13]'
     'EGUN' : tplot,add=add,'Vac_Pressure hvs_5*_VOLTAGE hvs_5*_CURRENT swfo_stis_sci_RATE6 stis_l1a_SPEC_F[13] manip_YAW
     'TV' : tplot,add=add,'swfo_stis_hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *sci_RATE6 *hkp2*EXECUTED2
     'PS':tplot,add=add,'PS_*'

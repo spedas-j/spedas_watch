@@ -1,8 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-17 12:08:31 -0800 (Sun, 17 Dec 2023) $
-; $LastChangedRevision: 32296 $
+; $LastChangedDate: 2023-12-25 13:20:29 -0800 (Mon, 25 Dec 2023) $
+; $LastChangedRevision: 32322 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_calval.pro $
-; $Id: swfo_stis_inst_response_calval.pro 32296 2023-12-17 20:08:31Z davin-mac $
+; $Id: swfo_stis_inst_response_calval.pro 32322 2023-12-25 21:20:29Z davin-mac $
 
 
 
@@ -19,6 +19,7 @@ function swfo_stis_inst_response_calval,reset=reset
   endelse
   
   if calval.isempty() then begin
+    calval.instrument_name  = 'SWFO-STIS'
     dim = [3,2]
     nan = !values.f_nan
     names_fto = strsplit('1 2 12 3 13 23 123',/extract)
@@ -27,7 +28,7 @@ function swfo_stis_inst_response_calval,reset=reset
     det_adc_scales = [234.1  , 228.4 , 232.4, 233.4, 232.7,  232.5]/ 59.5    ; for conversion from nrg to adc units 
     det2fto = [0, 1, 2, 1, 3,  1, 3, 1   ]
     det2fto = [1, 2, 1, 3,  1, 3, 1   ]
-fto2detmap  = [ [1,4], [2,5],  [1,4],  [3,6],  [3,6], [3,6], [3,6]] 
+    fto2detmap  = [ [1,4], [2,5],  [1,4],  [3,6],  [3,6], [3,6], [3,6]] 
 
     s = 1/ reform(det_adc_scales,dim)
     nrg_scales = fltarr(2,7)
@@ -35,7 +36,6 @@ fto2detmap  = [ [1,4], [2,5],  [1,4],  [3,6],  [3,6], [3,6], [3,6]]
       nrg_scales[i,*] = [ s[0,i]  , s[1,i] , average( s[[0,1],i] )  , s[2,i], average( s[[2,0],i] ),  average( s[[2,1],i] ), average( s[[0,1,2],i] )  ]
     
     
-    calval.instrument_name  = 'SWFO-STIS'
     calval.names_fto        = names_fto
     calval.geoms         = reform( geom_raw[[1,2,3,1,2,3]] , dim )
     calval.geoms_tid_fto = [1,1] #  geom_raw[det2fto] 
@@ -69,7 +69,8 @@ fto2detmap  = [ [1,4], [2,5],  [1,4],  [3,6],  [3,6], [3,6], [3,6]]
     calval.nrglost_vs_nrgmeas['Electron-F-3'] =  spline_fit3(!null,NRGMEAS,NRGLOST,/xlog,/ylog)
     calval.nrglost_vs_nrgmeas['Electron-F-1'] =  calval.nrglost_vs_nrgmeas['Electron-F-3']
     
-    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 32296 2023-12-17 20:08:31Z davin-mac $'
+    calval.responses = orderedhash()
+    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 32322 2023-12-25 21:20:29Z davin-mac $'
     swfo_stis_inst_response_calval_dict  = calval
     dprint,'Using Revision: '+calval.rev_date
   endif
