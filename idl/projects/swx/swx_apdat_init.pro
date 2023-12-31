@@ -1,7 +1,7 @@
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2023-12-10 20:10:23 -0800 (Sun, 10 Dec 2023) $
-; $LastChangedRevision: 32279 $
+; $LastChangedDate: 2023-12-29 18:52:02 -0800 (Fri, 29 Dec 2023) $
+; $LastChangedRevision: 32325 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/swx/swx_apdat_init.pro $
 ;-
 
@@ -55,11 +55,11 @@ pro swx_apdat_init,reset=reset, save_flag = save_flag, swem=swem, spane=spane, $
   ;;################
   ;;#   STIS APIDs  #
   ;;################
-  swx_apdat_info,'350'x,name='stis_sci', apid_obj='swfo_stis_sci_apdat',         tname='swx_stis_sci',ttags='*',save_flag=save_flag,rt_flag=rt_flag
-  swx_apdat_info,'351'x,name='stis_nse', apid_obj='swfo_stis_nse_apdat',    tname='swx_stis_nse',ttags='*',save_flag=save_flag,rt_flag=rt_flag
-  swx_apdat_info,'35d'x,name='stis_mem', apid_obj='swfo_stis_memdump_apdat', tname='swx_stis_memdump',ttags='*',save_flag=save_flag,rt_flag=rt_flag
-  swx_apdat_info,'35E'x,name='stis_hkp1', apid_obj='swfo_stis_hkp_apdat', tname='swx_stis_hkp1',ttags='*',save_flag=save_flag,rt_flag=rt_flag
-  swx_apdat_info,'35F'x,name='stis_hkp2', apid_obj='swfo_stis_hkp_apdat', tname='swx_stis_hkp2',ttags='*',    save_flag=save_flag,rt_flag=rt_flag
+  swx_apdat_info,'350'x,name='stis_sci', apid_obj='swfo_stis_sci_apdat',         tname='swx_sst_sci',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+  swx_apdat_info,'351'x,name='stis_nse', apid_obj='swfo_stis_nse_apdat',    tname='swx_sst_nse',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+  swx_apdat_info,'35d'x,name='stis_mem', apid_obj='swfo_stis_memdump_apdat', tname='swx_sst_memdump',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+  swx_apdat_info,'35E'x,name='stis_hkp1', apid_obj='swfo_stis_hkp_apdat', tname='swx_sst_hkp1',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+  swx_apdat_info,'35F'x,name='stis_hkp2', apid_obj='swfo_stis_hkp_apdat', tname='swx_sst_hkp2',ttags='*',    save_flag=save_flag,rt_flag=rt_flag
 
 
   if keyword_set(spane) then begin
