@@ -34,8 +34,8 @@
 ;       Use 'mvn_ngi_read_csv' to load ql data
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2023-10-17 19:55:36 -0700 (Tue, 17 Oct 2023) $
-; $LastChangedRevision: 32200 $
+; $LastChangedDate: 2024-01-03 16:19:22 -0800 (Wed, 03 Jan 2024) $
+; $LastChangedRevision: 32331 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/ngi/mvn_ngi_load.pro $
 ;-
 
@@ -72,6 +72,7 @@ pro mvn_ngi_load, mspec=mspec, trange=trange, filetype=filetype, verbose=verbose
 
      ;;; retrieve files
      if ~keyword_set(files) then begin
+        urls = ''
         if keyword_set(latest_flg) then urls = mvn_ngi_remote_list(trange=trange,filetype=filetype[i_filetype],latestversion=version,latestrevision=revision,_extra=_extra,verbose=verbose,level=level) ;- check latest version and revision numbers
         if latest_flg eq 2 and total(strlen(urls)) gt 0 then begin ;- experimental mode, latest version for each meas.
            undefine,f

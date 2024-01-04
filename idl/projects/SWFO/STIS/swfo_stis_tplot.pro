@@ -1,13 +1,13 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-25 09:33:18 -0800 (Mon, 25 Dec 2023) $
-; $LastChangedRevision: 32320 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2024-01-02 20:36:11 -0800 (Tue, 02 Jan 2024) $
+; $LastChangedRevision: 32330 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
 
 pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,powerlim=powerlim
 
-  
+
   if keyword_set(ionlim) then begin
     store_data,'IG_GUN_I',data='iongun_GUN_I*'
     store_data,'IG_GUN_V',data='iongun_GUN_V*'
@@ -63,12 +63,12 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     endif
 
     ylim,'stis_l1a_SPEC*',10,20000.,1
-    duration=tnames('swfo_stis_*_DURATION')
-    cmds_bad='swfo_stis_hkp1_CMDS_'+['IGNORED','INVALID','UNKNOWN']
-    store_data,'swfo_stis_DURATION',data=duration,dlim={labels:duration.substring(10,13),labflag:-1,colors:'rgbk',psym:-1}
-    store_data,'swfo_stis_hkp1_CMDS_BAD',data=cmds_bad,dlim={labels:cmds_bad.substring(20),labflag:-1,colors:'rgb',psym:-1}
-    store_data,'swfo_stis_RATES_PULSFREQ',data='swfo_stis_'+['sci_RATE6','nse_RATE_DIV_SIX','hkp1_'+['VALID_RATES_PPS','PULSER_FREQUENCY']],dlim={panel_size:3,yrange:[.5,7e5],ylog:1}
-    store_data,'swfo_stis_RATES_TOTAL',data='swfo_stis_'+['hkp2_SCIENCE_EVENTS','hkp2_VALID_RATES_TOTAL','sci_TOTAL','sci_RATE2'],dlim={labflag:-1}
+    duration=tnames('*_DURATION')
+    cmds_bad=['IGNORED','INVALID','UNKNOWN']
+    store_data,'swfo_stis_DURATION_ALL',data=duration,dlim={labels:duration.substring(-13,-10),labflag:-1,colors:'rgbk',psym:-1}
+    store_data,'swfo_stis_hkp1_CMDS_BAD',data=tnames('*hkp1_CMDS_'+cmds_bad),dlim={labels:cmds_bad,labflag:-1,colors:'rgb',psym:-1}
+    store_data,'swfo_stis_RATES_PULSFREQ',data=tnames(['*sci_RATE6','*nse_RATE_DIV_SIX','*hkp1_'+['VALID_RATES_PPS','PULSER_FREQUENCY']]),dlim={panel_size:3,yrange:[.5,7e5],ylog:1}
+    store_data,'swfo_stis_RATES_TOTAL',data=tnames(['*hkp2_SCIENCE_EVENTS','*hkp2_VALID_RATES_TOTAL','*sci_TOTAL','*sci_RATE2']),dlim={labflag:-1}
     store_data,'swfo_stis_hkp1_RATES_ALL',data=tnames('*hkp1*RATES'),dlim={yrange:[1,7e5],ylog:1}
     store_data,'swfo_stis_hkp2_RATES_ALL',data=tnames('*hkp2*RATES'),dlim={yrange:[1,7e5],ylog:1}
     options,/def,'*_BITS *USER_0A',tplot_routine='bitplot'
@@ -113,14 +113,14 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*NOISE_BITS',numbits=12,labels=reverse(['ENABLE','RES2','RES1','RES0','PERIOD7','PERIOD6','PERIOD5','PERIOD4','PERIOD3','PERIOD2','PERIOD1','PERIOD0']),psyms=1,colors=[0,1,2,6]
     ;options,/def,'*USER_0A',labels=['BASELINE_OFFSET','NOISE_RES','NOISE_PERIOD','THRESHOLD','PULSER_HEIGHT','BIAS_PERIOD','BIAS_VOLTAGE','DIGITAL_FILTER']+'_SWEEP',psyms=1,colors=[0,1,2,6]
 
-    options,'swfo_stis_*',ystyle=3
+    options,'*',ystyle=3 ;sorry for being rude!
     tplot_options,'wshow',0
   endif
 
   if ~keyword_set(name) then name = 'none'
   plot_name = strupcase(strtrim(name,2))
   case plot_name of
-    'SUM1': tplot,add=add,'*hkp1_USER_0A *hkp1_STATE_MACHINE_ERRORS swfo_stis_DURATION *hkp1_PPS_* *hkp?_DAC_* *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp1_CMDS_RECEIVED *hkp1_CMDS_BAD *hkp1_*REMAIN* *hkp1_*BITS *hkp1_*CYCLES *hkp1_TEST_PULSE_WIDTH_1US *hkp1_COINCIDENCE_WINDOW* *hkp1_BIAS_CLOCK_PERIOD_2US *hkp1_ADC_*'
+    'SUM1': tplot,add=add,'*hkp1_USER_0A *hkp1_STATE_MACHINE_ERRORS *DURATION_ALL *hkp1_PPS_* *hkp?_DAC_* *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp1_CMDS_RECEIVED *hkp1_CMDS_BAD *hkp1_*REMAIN* *hkp1_*BITS *hkp1_*CYCLES *hkp1_TEST_PULSE_WIDTH_1US *hkp1_COINCIDENCE_WINDOW* *hkp1_BIAS_CLOCK_PERIOD_2US *hkp1_ADC_*'
     'SUM2': tplot,add=add,'*hkp2_STATE_MACHINE_ERRORS *hkp?_DAC_* swfo_stis_RATES_TOTAL *hkp2_*RATES *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp2_CMDS_RECEIVED *hkp2_*BITS *hkp2_*CYCLES *hkp2_TEST_PULSE_WIDTH_1US *hkp2_COINCIDENCE_WINDOW* *hkp2_BIAS_CLOCK_PERIOD_2US *hkp2_ADC_*'
     'SUM3': tplot,add=add,'*hkp2_*CYCLES *hkp2_BIAS_CLOCK_PERIOD_2US *sci_DECI* *sci_USER_09 *hkp2_COINCIDENCE_WINDOW* *hkp2_TIMEOUTS_2US *hkp?_DAC_* swfo_stis_RATES_TOTAL *hkp2*RATES *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp2_CMDS_EXECUTED2 *hkp2_CMD_PACKETS_RECEIVED
     'NOISE': tplot,add=add,'*nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6'
@@ -130,18 +130,18 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'RATES' : tplot,add=add,'*hkp2_?????_RATES'
     'CMD'   : tplot,add=add,'*hkp1_CMDS_*'
     'WAIT'  : tplot,add=add,'*hkp1*REMAIN*'
-    'DL1':  tplot,add=add,'*sci*COUNTS *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE swfo_stis_hkp1_CMDS_REMAINING swfo_stis_hkp1_CMDS_EXECUTED'
-    'DL2':  tplot,add=add,'*sci_RATE6 *sci*COUNTS *nse_SIGMA *nse_BASELINE swfo_stis_hkp1_CMDS_EXECUTED'
-    'DL3':  tplot,add=add,'*sci_RATE6 *sci_SCI_* stis_l1a_SPEC_?? *nse_SIGMA *nse_BASELINE swfo_stis_hkp1_CMDS_EXECUTED'
-    'DL4':  tplot,add=add,'*sci_RATE6 *hkp2_*BIAS* stis_l1a_SPEC_?? *nse_SIGMA *nse_BASELINE swfo_stis_hkp1_CMDS_EXECUTED'
+    'DL1':  tplot,add=add,'*sci*COUNTS *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_REMAINING *hkp1_CMDS_EXECUTED'
+    'DL2':  tplot,add=add,'*sci_RATE6 *sci*COUNTS *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
+    'DL3':  tplot,add=add,'*sci_RATE6 *sci_SCI_* stis_l1a_SPEC_?? *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
+    'DL4':  tplot,add=add,'*sci_RATE6 *hkp2_*BIAS* stis_l1a_SPEC_?? *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     'LPT':  tplot,add=add,'*sci_RATE6 *hkp?_DAC_VALUES *sci*COUNTS *hkp3*REMAIN* *hkp1*REMAIN*'
     'SCIHKP': tplot,add=add,'*hkp2*SCI_*'
     'IONGUN': tplot,add=add,'Vac_Pressure gse_kpa-?_F1 IG_* stis_l1a_SPEC_O[13]'
     'IONGUN1': tplot,add=add,'*sci_RATE6 IG_GUN_V stis_l1a_SPEC_O[13]'
-    'EGUN' : tplot,add=add,'Vac_Pressure hvs_5*_VOLTAGE hvs_5*_CURRENT swfo_stis_sci_RATE6 stis_l1a_SPEC_F[13] manip_YAW
-    'TV' : tplot,add=add,'swfo_stis_hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *sci_RATE6 *hkp2*EXECUTED2
+    'EGUN' : tplot,add=add,'Vac_Pressure hvs_5*_VOLTAGE hvs_5*_CURRENT *sci_RATE6 stis_l1a_SPEC_F[13] manip_YAW
+    'TV' : tplot,add=add,'*hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *sci_RATE6 *hkp2*EXECUTED2
     'PS':tplot,add=add,'PS_*'
-    
+    'CPT':tplot,add=add,'*_DAC* *FREQ *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*EXECUTED2
     else: dprint,'Unknown code: '+strtrim(name,2)
   endcase
 
