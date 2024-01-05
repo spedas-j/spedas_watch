@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
-; $LastChangedRevision: 32281 $
+; $LastChangedDate: 2024-01-03 22:36:00 -0800 (Wed, 03 Jan 2024) $
+; $LastChangedRevision: 32332 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ptp_reader__define.pro $
 
 
@@ -77,7 +77,7 @@ pro ptp_reader::handle,buffer
       endif
       call_procedure,self.decom_procedure,payload,source_dict=self.source_dict         ; Process the complete packet
     endif else begin
-      if debug(2,self.verbose) then begin
+      if debug(3,self.verbose) then begin
         dprint,self.name,time_string(hdr.time,prec=3) +'  '+strtrim(hdr.psize),verbose=self.verbose,dlevel=2
         hexprint,payload        
       endif

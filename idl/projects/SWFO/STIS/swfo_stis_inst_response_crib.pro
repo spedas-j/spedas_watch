@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-25 13:20:29 -0800 (Mon, 25 Dec 2023) $
-; $LastChangedRevision: 32322 $
+; $LastChangedDate: 2024-01-03 22:37:44 -0800 (Wed, 03 Jan 2024) $
+; $LastChangedRevision: 32333 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_crib.pro $
 ; $ID: $
 
@@ -636,7 +636,7 @@ end
 ;   message,'Obsolete.'
 ;   adc_scales = 237./59.5
 ;   return, adc / adc_scales
-;  
+;
 ;end
 ;
 
@@ -804,7 +804,14 @@ end
 
 
 pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=overplot,result=result  ;,energy=energy,flux=flux
-  resp = flux_func.inst_response
+
+  if 1 then begin
+    calval = swfo_stis_inst_response_calval()
+    resp = calval.responses[flux_func.name]
+  endif else begin
+    resp = flux_func.inst_response
+  endelse
+
   nbins = resp.nbins
   g = total(resp.gb3,2)   ; sum over both faces
   bmap = resp.bmap
@@ -816,14 +823,14 @@ pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=ov
   if arg_present(win) && n_elements(win) eq 1 then wi,win++,wsize = [1200,400]
   options,lim,/ylog,yrange=[1e-4,3e6],xrange=[-2,nbins+5],xmargin=[10,10],/xstyle,/ystyle,ytitle='Count Rate (Hz)'
   xbins = findgen(n_elements(resp_rate))
-  plot,noerase=overplot,xbins,resp_rate,  _extra=lim  
+  plot,noerase=overplot,xbins,resp_rate,  _extra=lim
   deadtime = 8.0e-6
   if 0 then begin
     oplot,resp_rate * swfo_stis_rate_correction(resp_rate,deadtime = deadtime),color=6
     rtot = total(resp_rate)
     corr = swfo_stis_rate_correction(rtot,deadtime=deadtime)
     oplot,resp_rate * corr , color = 4
-    printdat,rtot    
+    printdat,rtot
   endif
 
   total_rates = fltarr(n_elements(bmap))
@@ -842,7 +849,7 @@ pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=ov
   oplot,lim.xrange,[1,1]/deadtime,linestyle =1   , color=2
   oplot,lim.xrange,[1,1]/60.,linestyle =1   , color=2
   oplot,lim.xrange,[1,1]*2.,linestyle =1   , color=2
-  
+
   resp_rate_cor = resp_rate * swfo_stis_rate_correction(total_rates,deadtime=deadtime)
   oplot,resp_rate_cor,color=2
   result = {resp:resp,rate:resp_rate, rate_dtcor: resp_rate_cor}
@@ -853,36 +860,13 @@ end
 ;end
 
 
-;function swfo_stis_response_dict,s
-
-pro swfo_stis_response_plot1,bmap,rate,overplot=over,lim=lim,name_match = name_match
-   ;if ~keyword_set(lim) then lim= dictionary('xrange',[1,1e5],'xlog',1,'yrange',[1e-6,1e4],'ylog',1,'ystyle',1)
-   
-   if keyword_set(lim) then box,lim
-   ind = indgen(48,14)
-   b = bmap[ind]
-   r = rate[ind]
-   ;names = reform(b[ind[0,*]].name)
-   for i=0,14-1 do begin
-      name = b[0,i].name
-      if isa(name_match,'string') && strmatch(name,name_match) eq 0 then continue
-      nrg = b[*,i].nrg_inc
-      f   = r[*,i] / b[*,i].nrg_meas_delta / b[*,i].geom
-      oplot,nrg,f  > 1e-10 , color=b[0,i].color, psym = -b[0,i].psym
-   endfor
-
-
-end
-
-
-
 
 pro swfo_stis_swap_det2_det3,data
-    for tid=0,1 do begin
-      temp = data.edep[2,tid]
-      data.edep[2,tid] = data.edep[1,tid]
-      data.edep[1,tid] = temp
-    endfor
+  for tid=0,1 do begin
+    temp = data.edep[2,tid]
+    data.edep[2,tid] = data.edep[1,tid]
+    data.edep[1,tid] = temp
+  endfor
 
 end
 
@@ -1185,145 +1169,235 @@ endif
 
 
 
-if 0 then begin
-  win = 20
-  swfo_stis_response_plot_simflux,window=win,resp_p
-  swfo_stis_response_plot_simflux,window=win,resp_e
-endif
-
 calval=swfo_stis_inst_response_calval()
 
 
-if 1 then begin
-  
-  win=1
-  if ~keyword_set(p_resp) then begin
-    ;p_resp = swfo_stis_inst_response(simstat_p,data_p,filter=f)
-    swfo_stis_response_plots,simstat_p,data_p,window=win,filter=f, response = p_resp
-    dprint,'Calculated p_resp'
-    calval.responses['Proton'] = p_resp
-  endif
+if ~keyword_set(p_resp) then begin
+  p_resp = swfo_stis_inst_response(simstat_p,data_p,filter=f)
+  calval.responses['Proton'] = p_resp
+  dprint,'Calculated p_resp'
+endif
 
-  if ~keyword_set(e_resp) then begin
-    ;e_resp = swfo_stis_inst_response(simstat_e,data_e,filter=f)
-    swfo_stis_response_plots,simstat_e,data_e,window=win,filter=f, response = e_resp
-    dprint,'Calculated e_resp'
-    calval.responses['Electron'] = e_resp
-  endif
+if ~keyword_set(e_resp) then begin
+  e_resp = swfo_stis_inst_response(simstat_e,data_e,filter=f)
+  dprint,'Calculated e_resp'
+  calval.responses['Electron'] = e_resp
+endif
 
-  if 0 && ~keyword_set(a_resp) then begin
-    ;a_resp = swfo_stis_inst_response(simstat_a,data_a,filter=f)
-    swfo_stis_response_plots,simstat_a,data_a,window=win,filter=f, response = a_resp
-  endif
-
-  if ~keyword_set(energy) || 1 then begin
-    energy = dgen(/log,range=[1.,1e6],6*4+1)
-
-    pow = -1.6
-    flux = 1e7 * energy^ pow
-    ;flux = 2.5e2 * energy^ pow
-    flux = 2.5e4 * energy^ pow
-    w = where(energy ge 8e3)
-    ;flux[w] = flux[w] / 10.
-    pwlin =1 
-  endif
-  
-  
-  p_flux = flux
-  e_flux = flux   /2
-  a_flux = e_flux /40
-  
-  
-  p_func = spline_fit3(!null,energy,p_flux,/xlog,/ylog,pwlin=pwlin)
-  e_func = spline_fit3(!null,energy,e_flux,/xlog,/ylog,pwlin=pwlin)
-  a_func = spline_fit3(!null,energy,a_flux,/xlog,/ylog,pwlin=pwlin)
-
-  flux_func = swfo_stis_response_func(eflux_func = e_func,pflux_func=p_func)
+if 0 && ~keyword_set(a_resp) then begin
+  a_resp = swfo_stis_inst_response(simstat_a,data_a,filter=f)
+  calval.responses[a_resp.particle_name] = a_resp
+endif
 
 
-  if 1 then begin
-    str_element,/add,p_func,'inst_response',p_resp
-    str_element,/add,e_func,'inst_response',e_resp
-    str_element,/add,a_func,'inst_response',a_resp
 
-    swfo_stis_inst_response_matmult_plot,p_func,window=win++
-    swfo_stis_inst_response_matmult_plot,e_func,window=win++    
-  endif
+win=1
 
 
-  p_rate = func(param=flux_func,0,choice=1)
-  e_rate = func(param=flux_func,0,choice=2)
-  t_rate = func(param=flux_func,0,choice=3)
-  
-  
-  p_bmap = p_resp.bmap
-  e_bmap = p_resp.bmap
-  t_bmap = p_bmap
-  
-wi,win++
-plot,t_rate,/ylog
-oplot,p_rate,color=6
-oplot,e_rate,color=2
-
+if 0 then begin
   test = 0
-  pks = swfo_stis_inst_response_peakeinc(p_resp,pk2s=pk2s,test=test)
- 
-  ;  method = 1
-  swfo_stis_response_rate2flux,p_rate,p_bmap,method=method
-  swfo_stis_response_rate2flux,e_rate,e_bmap,method=method
-  swfo_stis_response_rate2flux,t_rate,t_bmap,method=method
-  
-  wi,win++,/show
-  
-  swfo_stis_response_simflux_plot,flux_func = flux_func
-  swfo_stis_response_simflux_plot,bmap = t_bmap,   /over, name = 'O-3',color=0
-  swfo_stis_response_simflux_plot,bmap = p_bmap,   /over, name = 'O-3',color=6
-  swfo_stis_response_simflux_plot,bmap = e_bmap,   /over, name = 'O-3',color=2
-  ;swfo_stis_response_simflux_plot,flux_func = flux_func
-  
-  
-  
-  ;stop
-  
-  
-  
-  p_rate = transpose(p_resp.mde) # func(p_resp.e_inc,param=p_func) 
-  e_rate = transpose(e_resp.mde) # func(e_resp.e_inc,param=e_func)
-  ;a_rate = transpose(a_resp.mde) # func(a_resp.e_inc,param=a_func)
- 
-  
-  if 0 then begin
-    wi,win++
-    if ~isa(plim,'dictionary') then plim = dictionary()
-    xlim,plim, -5,690
-    ylim,plim, .0001,1e6, 1
-    box,plim
-
-    ;oplot,p_rate+e_rate+a_rate
-    ;plots,findgen(681),p_rate ,color = p_resp.bmap.color
-    plots,findgen(681),e_rate ,color = e_resp.bmap.color,noclip=0
-    ;oplot,e_rate ,color = 2
-    ;oplot,a_rate ,color = 4
-
-  endif    
-
-  wi,win++
-  if ~keyword_set(flim) then flim= dictionary('xrange',[1,1e6],'xlog',1,'yrange',[1e-6,1e4],'ylog',1,'ystyle',1)
-  box,flim
-;  nrg = dgen()
-  test = 3
-  if (test and 1) ne 0 then begin
-    pf, p_func, color = 5, thick=6
-    swfo_stis_response_plot1,p_resp.bmap,p_rate, name=p_names,/overplot
-  endif
-
-  if (test and 2) ne 0 then begin
-    pf, e_func ,color =5,thick=6
-    swfo_stis_response_plot1,e_resp.bmap,e_rate , name=e_names,/overplot
-  endif  
+  p_pks = swfo_stis_inst_response_peakeinc(p_resp,pk2s=p_pk2s,test=test)
+  e_pks = swfo_stis_inst_response_peakeinc(e_resp,pk2s=e_pk2s,test=test)
 
 endif
 
+
+peak = mgauss()
+peak.g.a = 10000.
+peak.g.x0 = 500
+peak.g.s= 300
+
+
+if ~keyword_set(energy) || 1 then begin
+  energy = dgen(/log,range=[1.,1e6],6*4+1)
+
+  pow = -1.6
+  ;pow = -2
+  flux = 1e7 * energy^ pow
+
+  ;flux = 2.5e2 * energy^ pow
+  flux = 2.5e4 * energy^ pow
+  w = where(energy ge 5e3)
+  flux[w] = flux[w] / 10.
+  pwlin =1
+endif
+
+
+
+p_flux = flux
+e_flux = flux   /10000
+a_flux = p_flux /40
+
+
+p_func_true = spline_fit3(!null,energy,p_flux,/xlog,/ylog,pwlin=pwlin)
+;p_func = peak
+str_element,/add,p_func_true,'name','Proton'
+e_func_true = spline_fit3(!null,energy,e_flux,/xlog,/ylog,pwlin=pwlin)
+str_element,/add,e_func_true,'name','Electron'
+a_func_true = spline_fit3(!null,energy,a_flux,/xlog,/ylog,pwlin=pwlin)
+str_element,/add,a_func_true,'name','Alpha'
+
+;str_element,/add,p_func,'inst_response',p_resp
+;str_element,/add,e_func,'inst_response',e_resp
+;str_element,/add,a_func,'inst_response',a_resp
+
+flux_func_true = swfo_stis_response_func(eflux_func = e_func_true,pflux_func=p_func_true)
+
+
+if 1 then begin
+  swfo_stis_inst_response_matmult_plot,p_func_true,window=win++
+  swfo_stis_inst_response_matmult_plot,e_func_true,window=win++
+endif
+
+
+p_rate_true = func(param=flux_func_true,0,choice=1)
+e_rate_true = func(param=flux_func_true,0,choice=2)
+t_rate_true = func(param=flux_func_true,0,choice=3)
+
+
+;p_bmap = p_resp.bmap
+;e_bmap = p_resp.bmap
+;t_bmap = p_bmap
+
+wi,win++
+ylim,rlim,1e-5,1e5,1
+xlim,rlim,-10,700
+box,rlim
+
+oplot,t_rate_true
+oplot,p_rate_true,color=6
+oplot,e_rate_true,color=2
+
+
+;  method = 1
+;swfo_stis_response_rate2flux,p_rate,p_resp,method=method
+;swfo_stis_response_rate2flux,e_rate,p_resp,method=method
+;swfo_stis_response_rate2flux,t_rate,p_resp,method=method
+
+wi,win++,/show
+
+swfo_stis_response_simflux_plot,flux_func = flux_func_true
+swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',color=0
+;swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
+;swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
+
+swfo_stis_response_simflux_plot,e_resp,rate=t_rate_true,   /over, name = 'F-3',color=0
+;swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6
+;swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2
+
+
+w_p = where(/null,p_resp.bmap.name eq 'O-3' and finite(p_resp.bmap.E0_inc) )
+p_energy_recon = p_resp.bmap[w_p].e0_inc
+p_energy_recon = [25.,45.,70,100,200,500,1000,5000]
+p_energy_recon = [p_energy_recon, 2e4,2e5]
+
+p_func_recon = spline_fit3(!null,p_energy_recon, 1d4 * p_energy_recon ^ (-2)  ,/xlog,/ylog,pwlin=1)   ; initial guess
+
+
+
+;w_e = where(/null,e_resp.bmap.name eq 'F-3' and finite(e_resp.bmap.E0_inc))
+;energy_e = e_resp.bmap[w].e0_inc
+;flux_e  = 1e4 * energy_e ^ (-2)
+;e_flux_func_recon = s
+
+e_energy_recon = [30.,100.,1000.,3000.,10000.]
+e_func_recon = spline_fit3(!null,e_energy_recon, .1 * e_energy_recon ^ (-2)  ,/xlog,/ylog,pwlin=1)   ; initial guess
+
+flux_func_recon = swfo_stis_response_func(eflux_func = e_func_recon,pflux_func=p_func_recon)
+
+swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
+
+
+
+
+wi,win++,/show
+
+box,rlim
+oplot,t_rate_true
+oplot,p_rate_true ,color=6
+oplot,e_rate_true,color=2
+
+t_rate_recon = func(param=flux_func_recon,0)
+oplot,t_rate_recon > 1e-5,color = 4
+
+
+
+fit,0,rate_t ,param = flux_func_recon,/logfit,names = 'pflux.ys[1,2,3]
+
+t_rate_recon = func(param=flux_func_recon,0)
+oplot,t_rate_recon > 1e-5,color = 3
+
+
+wi,win++,/show
+
+swfo_stis_response_simflux_plot,flux_func = flux_func_true
+swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',color=0
+;swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
+;swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
+
+;swfo_stis_response_simflux_plot,e_resp,rate=t_rate_true,   /over, name = 'F-3',color=0
+;swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6
+;swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2
+
+swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
+
+
+
+;stop
+
+
+
+;p_rate = transpose(p_resp.mde) # func(p_resp.e_inc,param=p_func)
+;e_rate = transpose(e_resp.mde) # func(e_resp.e_inc,param=e_func)
+;a_rate = transpose(a_resp.mde) # func(a_resp.e_inc,param=a_func)
+
+
+if 0 then begin
+  wi,win++
+  if ~isa(plim,'dictionary') then plim = dictionary()
+  xlim,plim, -5,690
+  ylim,plim, .0001,1e6, 1
+  box,plim
+
+  ;oplot,p_rate+e_rate+a_rate
+  ;plots,findgen(681),p_rate ,color = p_resp.bmap.color
+  plots,findgen(681),e_rate ,color = e_resp.bmap.color,noclip=0
+  ;oplot,e_rate ,color = 2
+  ;oplot,a_rate ,color = 4
+
+endif
+
+if 0 then begin
+  wi,win++,/show
+  if ~keyword_set(flim) then begin
+    flim= dictionary('xrange',[1,1e6],'xlog',1,'yrange',[1e-4,1e6],'ylog',1,'ystyle',1)
+    flim.xtitle = 'Measured Energy (keV)
+    flim.ytitle = 'Count Rate (1/s)
+  endif
+  ; box,flim
+  ;  nrg = dgen()
+  test = 3
+  if (test and 1) ne 0 then begin
+    ;pf, p_func, color = 5, thick=6
+    swfo_stis_response_rate_plot,p_resp.bmap,p_rate,lim=flim, name=p_names,/overplot
+  endif
+
+  wi,win++,/show
+  if (test and 2) ne 0 then begin
+    ;pf, e_func ,color =5,thick=6
+    swfo_stis_response_rate_plot,e_resp.bmap,e_rate,lim=flim , name=e_names,/overplot
+  endif
+endif
+
+
+
+if 0 then begin
+
+  swfo_stis_response_plots,     p_resp  ,window=win   ;    simstat_e,data_e,filter=f, response = e_resp
+  swfo_stis_response_plots,     e_resp  ,window=win   ;    simstat_e,data_e,filter=f, response = e_resp
+  swfo_stis_response_plots,     a_resp  ,window=win   ;    simstat_e,data_e,filter=f, response = e_resp
+
+endif
 
 
 

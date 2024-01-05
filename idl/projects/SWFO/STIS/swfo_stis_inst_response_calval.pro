@@ -1,8 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-25 13:20:29 -0800 (Mon, 25 Dec 2023) $
-; $LastChangedRevision: 32322 $
+; $LastChangedDate: 2024-01-03 22:37:44 -0800 (Wed, 03 Jan 2024) $
+; $LastChangedRevision: 32333 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_calval.pro $
-; $Id: swfo_stis_inst_response_calval.pro 32322 2023-12-25 21:20:29Z davin-mac $
+; $Id: swfo_stis_inst_response_calval.pro 32333 2024-01-04 06:37:44Z davin-mac $
 
 
 
@@ -24,7 +24,7 @@ function swfo_stis_inst_response_calval,reset=reset
     nan = !values.f_nan
     names_fto = strsplit('1 2 12 3 13 23 123',/extract)
     names_fto = reform( transpose( [['O-'+names_fto],['F-'+names_fto]]))
-    geom_raw   = .13 * [nan, .01,  1 , .99]  
+    geom_raw   = .13 * [nan, .01,  1 , .99]   * !pi
     det_adc_scales = [234.1  , 228.4 , 232.4, 233.4, 232.7,  232.5]/ 59.5    ; for conversion from nrg to adc units 
     det2fto = [0, 1, 2, 1, 3,  1, 3, 1   ]
     det2fto = [1, 2, 1, 3,  1, 3, 1   ]
@@ -70,7 +70,7 @@ function swfo_stis_inst_response_calval,reset=reset
     calval.nrglost_vs_nrgmeas['Electron-F-1'] =  calval.nrglost_vs_nrgmeas['Electron-F-3']
     
     calval.responses = orderedhash()
-    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 32322 2023-12-25 21:20:29Z davin-mac $'
+    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 32333 2024-01-04 06:37:44Z davin-mac $'
     swfo_stis_inst_response_calval_dict  = calval
     dprint,'Using Revision: '+calval.rev_date
   endif

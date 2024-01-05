@@ -18,9 +18,13 @@
 ;
 ;     IDL> wi_waves_load, 'rad1_l3_df'
 ;
+;   Load Level 3 dust impact data:
+;
+;     IDL> wi_waves_load, 'dust_impact_l3'
+;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2023-12-15 15:08:41 -0800 (Fri, 15 Dec 2023) $
-; $LastChangedRevision: 32291 $
+; $LastChangedDate: 2024-01-04 16:21:16 -0800 (Thu, 04 Jan 2024) $
+; $LastChangedRevision: 32334 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/wind/wi_waves_load.pro $
 ;
 ;-
@@ -35,6 +39,10 @@ pro wi_waves_load, type, files = files, trange = trange, $
     istp_init
     source_options = !istp
     source_options.min_age_limit = 3600
+  endif
+
+  if keyword_set(type) then begin
+    if type.contains('l3') then level = 3
   endif
 
   if not keyword_set(level) then level = 2

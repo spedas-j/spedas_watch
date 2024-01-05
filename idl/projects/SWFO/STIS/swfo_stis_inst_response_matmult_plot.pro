@@ -4,9 +4,15 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
 
   transpose = 0
   
-  resp = spec_func.inst_response
-  energy = spec_func.xlog ? 10^spec_func.xs  : spec_func.xs
-  flux   = spec_func.ylog ? 10^spec_func.ys  : spec_func.ys
+  calval = swfo_stis_inst_response_calval()
+  if 1 then begin
+    resp = calval.responses[ spec_func.name ]
+  endif else begin
+    resp = spec_func.inst_response    
+  endelse
+  
+;  energy = spec_func.xlog ? 10^spec_func.xs  : spec_func.xs
+;  flux   = spec_func.ylog ? 10^spec_func.ys  : spec_func.ys
   
   einc_range = [1,1e6]
   flux_range = [1e-2,1e6]

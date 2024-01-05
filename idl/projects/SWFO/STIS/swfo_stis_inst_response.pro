@@ -1,8 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-25 13:20:29 -0800 (Mon, 25 Dec 2023) $
-; $LastChangedRevision: 32322 $
+; $LastChangedDate: 2024-01-03 22:37:44 -0800 (Wed, 03 Jan 2024) $
+; $LastChangedRevision: 32333 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
-; $Id: swfo_stis_inst_response.pro 32322 2023-12-25 21:20:29Z davin-mac $
+; $Id: swfo_stis_inst_response.pro 32333 2024-01-04 06:37:44Z davin-mac $
 
 
 
@@ -284,15 +284,15 @@ end
 
 
 
-function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_level,filter=filter ,bmap=bmap
+function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_level,filter=filter , data_sample=data_sample,bmap=bmap
   if n_elements(data0) le 1 then begin
     dprint,'Must have at least 2 successful events'
     return,0
   endif
 
-  response= simstat
+  response = simstat
 
-  swfo_stis_inst_bin_response,response,data0,mapnum=mapnum,noise_level=noise_level  ,bmap=bmap
+  swfo_stis_inst_bin_response,response,data0,mapnum=mapnum,noise_level=noise_level , data_sample=data_sample ,bmap=bmap
   nbins = n_elements(bmap)
 
   w= where( swfo_stis_response_data_filter(response,data0,_extra=filter,filter=out_filter),nw)
@@ -418,6 +418,10 @@ function swfo_stis_inst_response,simstat,data0,mapnum=mapnum ,noise_level=noise_
   ;str_element,/add,response,'peakeinc',peakeinc
   str_element,/add,response,'fdesc',fdesc
   str_element,/add,response,'filter',out_filter
+  
+  
+  p_pks = swfo_stis_inst_response_peakeinc(response,pk2s=p_pk2s,test=test)   ; this will fill the e0_inc and gde elements of the bmap array
+
 
   return,response
 end
