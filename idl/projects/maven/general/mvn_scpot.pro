@@ -57,7 +57,8 @@
 ;                 method          : -1          }
 ;
 ;              The methods are: -1 (invalid), 0 (manually set), 
-;              1 (SWE/LPW), 2 (SWE+), 3 (SWE-), 4 (STA-), 5 (SWEPAD).
+;              1 (SWE/LPW), 2 (SWE+), 3 (SWE-), 4 (STA-), 5 (SWEPAD),
+;              6 (interpolated).
 ;
 ;              The optimal value depends on the plasma environment.
 ;
@@ -121,6 +122,10 @@
 ;
 ;                Default = 1.
 ;
+;   QINTERP:   Interpolate the potential for small gaps caused by the 
+;              sporadic low-energy anomaly.  Set this keyword to the largest
+;              gap (in seconds) to interpolate across.
+;
 ;   SUCCESS:   Returns exit status.
 ;
 ;OUTPUTS:
@@ -130,15 +135,16 @@
 ;          the five unmerged methods in one panel.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-20 17:05:27 -0700 (Sun, 20 Aug 2023) $
-; $LastChangedRevision: 32039 $
+; $LastChangedDate: 2024-01-08 16:17:52 -0800 (Mon, 08 Jan 2024) $
+; $LastChangedRevision: 32346 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_scpot.pro $
 ;
 ;-
 
 pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
                stapot=stapot, lpwpot=lpwpot, shapot=shapot, composite=composite, $
-               pans=pans, nocalc=nocalc, bias=bias, qlevel=qlevel, success=success
+               pans=pans, nocalc=nocalc, bias=bias, qlevel=qlevel, qinterp=qinterp, $
+               success=success
 
   compile_opt idl2
 
@@ -151,6 +157,7 @@ pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
   qlevel = (n_elements(qlevel) gt 0) ? byte(qlevel[0]) : 1B
 
   if (size(Espan,/type) eq 0) then mvn_scpot_defaults
+
   tmin = min(timerange(), max=tmax)
 
 ; Set processing flags
@@ -426,7 +433,7 @@ pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
     mvn_sc_pot.potential += float(bias[0])
   endif
 
-; Finish up
+; Mask missing data
 
   if (finite(badval)) then begin
     indx = where(mvn_sc_pot.method lt 1, count)
@@ -435,6 +442,21 @@ pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
       mvn_sc_pot[indx].method = 0
     endif
   endif
+
+; Interpolate potential for anomalous spectra
+
+  if keyword_set(qinterp) then begin
+    bndx = where(mvn_swe_engy.quality eq 0, nbad)
+    pndx = where(mvn_sc_pot.method ge 1, npot)
+    if ((nbad gt 0L) and (npot gt 0L)) then begin
+      i = nn2(mvn_sc_pot[pndx].time, mvn_swe_engy[bndx].time, maxdt=qinterp, /valid, vindex=vndx)
+      qpot = interpol(mvn_sc_pot[pndx].potential, mvn_sc_pot[pndx].time, mvn_swe_engy[bndx[vndx]].time)
+      mvn_sc_pot[bndx[vndx]].potential = qpot
+      mvn_sc_pot[bndx[vndx]].method = 6
+    endif
+  endif
+
+; Finish
 
   pot = mvn_sc_pot
   success = 1

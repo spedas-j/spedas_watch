@@ -175,9 +175,6 @@ end
 ;
 ;                        {e0:e0, s0:s0, e1:e1, s1:s1, scl:scl}
 ;
-;                      The first four are for the Andreone method, the last is for the
-;                      Evans method.
-;
 ;       NORAW:         If SEC is set, do not plot the uncorrected or secondary spectra;
 ;                      just plot the corrected spectrum.
 ;
@@ -248,8 +245,8 @@ end
 ;                             for "good" spectra.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-06-23 12:34:13 -0700 (Fri, 23 Jun 2023) $
-; $LastChangedRevision: 31909 $
+; $LastChangedDate: 2024-01-08 16:02:56 -0800 (Mon, 08 Jan 2024) $
+; $LastChangedRevision: 32338 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -336,12 +333,6 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
   doraw = ~keyword_set(noraw) or ~dosec
   qlevel = (n_elements(qlevel) gt 0) ? byte(qlevel[0]) < 2B : 0B
 
-  str_element, sconfig, 'scl', value, success=ok
-  if (ok) then sscale = double(value) else sscale = 5D
-  mvn_swe_secondary, config=sconfig, param=dconfig
-  sconfig = dconfig
-  str_element, sconfig, 'scl', sscale, /add
-  
   spflg = keyword_set(shiftpot)
   if (n_elements(xrange) ne 2) then xrange = [1.,1.e4]
   if not keyword_set(wscale) then wscale = 1.
@@ -723,7 +714,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
 ; Method 1: Adapted from Andreone
 
       if (sec eq 1) then begin
-        mvn_swe_secondary, spec, config=sconfig
+        mvn_swe_secondary, spec, config=sconfig, scale=fscale
         x = spec.energy
         y = spec.data
         dy = sqrt(spec.var)
@@ -1062,6 +1053,8 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
         xyouts,xs,ys,string(p.e0, format='("E0 = ",f5.2)'),charsize=csize1,color=cols.blue,/norm
         ys -= dys
         xyouts,xs,ys,string(p.s1, format='("S1 = ",f5.2)'),charsize=csize1,color=cols.blue,/norm
+        ys -= dys
+        xyouts,xs,ys,string(fscale, format='("SCL = ",f5.2)'),charsize=csize1,color=cols.blue,/norm
         ys -= dys
       endif else begin
         ys -= dys

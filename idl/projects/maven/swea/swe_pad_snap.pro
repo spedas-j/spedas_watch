@@ -48,6 +48,10 @@
 ;
 ;       SEC:           Remove secondary electrons.
 ;
+;       SCONFIG:       Structure of parameters for the secondary electron models.
+;
+;                        {e0:e0, s0:s0, e1:e1, s1:s1, scl:scl}
+;
 ;       LABEL:         Label the anode and deflection bin numbers (label=1) or the
 ;                      solid angle bin numbers (label=2).
 ;
@@ -184,8 +188,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-06-23 12:34:13 -0700 (Fri, 23 Jun 2023) $
-; $LastChangedRevision: 31909 $
+; $LastChangedDate: 2024-01-08 16:01:43 -0800 (Mon, 08 Jan 2024) $
+; $LastChangedRevision: 32337 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -202,9 +206,9 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
                   xrange=xrange, error_bars=error_bars, yrange=yrange, trange=trange2, $
                   note=note, mincounts=mincounts, maxrerr=maxrerr, tsmo=tsmo, $
                   sundir=sundir, wscale=wscale, cscale=cscale, fscale=fscale, $
-                  result=result, vdis=vdis, padmap=padmap, sec=sec, color_table=color_table, $
-                  reverse_color_table=reverse_color_table, line_colors=line_colors, $
-                  pyrange=pyrange, qlevel=qlevel
+                  result=result, vdis=vdis, padmap=padmap, sec=sec, sconfig=sconfig, $
+                  color_table=color_table, reverse_color_table=reverse_color_table, $
+                  line_colors=line_colors, pyrange=pyrange, qlevel=qlevel, _extra=_extra
 
   @mvn_swe_com
   @putwin_common
@@ -235,7 +239,7 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
            'ERROR_BARS','YRANGE','TRANGE2','NOTE','MINCOUNTS','MAXRERR', $
            'TSMO','SUNDIR','WSCALE','CSCALE','FSCALE','RESULT','VDIS', $
            'PADMAP','COLOR_TABLE','REVERSE_COLOR_TABLE','LINE_COLORS', $
-           'PYRANGE','QLEVEL']
+           'PYRANGE','QLEVEL','SCONFIG']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
@@ -1341,11 +1345,11 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         
         plot_oo, [0.1,0.1], drange, xrange=xrange, yrange=drange, /xsty, /ysty, $
           xtitle='Energy (eV)', ytitle=ytitle, title=time_string(pad.time), $
-          charsize=1.4*cscale, xmargin=[10,3]
+          charsize=1.4*cscale, xmargin=[10,3], _extra=_extra
 
-        oplot, x1, Fp, psym=10, color=6
-        oplot, x2, Fm, psym=10, color=2
-        if (domid) then oplot, x, Fz, psym=10, color=4
+        oplot, x1, Fp, psym=10, color=6, _extra=_extra
+        oplot, x2, Fm, psym=10, color=2, _extra=_extra
+        if (domid) then oplot, x, Fz, psym=10, color=4, _extra=_extra
 
         if (ebar) then begin
           errplot, x1*0.999, (Fp-Fp_err)>tiny, Fp+Fp_err, color=6, width=0

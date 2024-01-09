@@ -3,28 +3,30 @@
 ;PURPOSE:
 ;  Specialized version of maven_orbit_tplot that makes predict ephemeris
 ;  plots suitable for long-range planning, including identification of Fly-Y/Z
-;  calibration opportunities.  This routine can reset the SPICE loadlist, so
-;  use with caution.
+;  calibration opportunities, conjunction periods, and dust storm seasons.
+;
+;  Warning: This routine can reset the SPICE loadlist.
 ;
 ;  Warning: This routine will reset timespan to cover the specified extended
 ;  ephemeris, overwriting any existing timespan.  This will affect any routines
 ;  that use timespan for determining what data to process.
 ;
 ;USAGE:
-;  maven_orbit_tplot, extended=1, eph=eph
+;  maven_orbit_predict, extended=1, eph=eph
 ;
 ;INPUTS:
 ;
 ;KEYWORDS:
-;       EXTENDED: If set, load one of six long-term predict ephemerides.  All but one
-;                 have a density scale factor (DSF) of 2.5, which is a weighted average
-;                 over several Mars years.  They differ in the number and timing of
-;                 apoapsis, periapsis, and inclination maneuvers (arm, prm, inc) and total
-;                 fuel usage (meters per second, or ms).  The date when the ephemeris was
-;                 generated is given at the end of the filename (YYMMDD).  More recent
-;                 dates better reflect current mission goals.  When in doubt, use the
-;                 most recent.
+;       EXTENDED: If set to a value from 1 to 6, loads one of six long-term predict
+;                 ephemerides.  All but one have a density scale factor (DSF) of 2.5,
+;                 which is a weighted average over several Mars years.  They differ
+;                 in the number and timing of apoapsis, periapsis, and inclination 
+;                 maneuvers (arm, prm, inc) and total fuel usage (meters per second, 
+;                 or ms).  The date when the ephemeris was generated is given at the 
+;                 end of the filename (YYMMDD).  More recent dates better reflect 
+;                 current mission goals.  When in doubt, use the most recent.
 ;
+;                   0 : use timerange() to load short-term predicts
 ;                   1 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
 ;                   2 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
 ;                   3 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
@@ -32,7 +34,13 @@
 ;                   5 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
 ;                   6 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
 ;
-;                 Default = 1 (most recent).
+;                 Default = 1 (most recent long-term predict).
+;
+;                 You can set this keyword to zero, so that none of the extended predicts
+;                 is used.  In that case, the routine will attempt to load ephemeris data
+;                 based on the value of timerange().  This can be used to load the short-
+;                 term predict ephemeris, which provides a more accurate estimate of how
+;                 the orbit will evolve over the next 3-4 months.
 ;
 ;       EPH:      Named variable to hold the MSO and GEO state vectors along with 
 ;                 some calculated values.
@@ -60,8 +68,8 @@
 ;                       affects only the altitude panel.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-27 13:10:57 -0700 (Sun, 27 Aug 2023) $
-; $LastChangedRevision: 32069 $
+; $LastChangedDate: 2024-01-08 16:11:26 -0800 (Mon, 08 Jan 2024) $
+; $LastChangedRevision: 32343 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_predict.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -237,6 +245,7 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
   
       store_data,'Lss',data={x:eph.time, y:eph.slat}
       options,'Lss','ytitle','Sub-solar!CLat (deg)'
+      options,'Lss','thick',2
     endif else mvn_mars_localtime
     get_data,'lst',data=lst,index=i
   endif
