@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-07 08:21:42 -0800 (Thu, 07 Dec 2023) $
-; $LastChangedRevision: 32278 $
+; $LastChangedDate: 2024-01-10 13:32:56 -0800 (Wed, 10 Jan 2024) $
+; $LastChangedRevision: 32357 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_decom.pro $
 
 ;
@@ -13,14 +13,23 @@ function swfo_ccsds_decom_mettime,header,day=day,millisec=millisec,microsec=micr
   n = n_elements(header)
   if n lt 5 then return, !values.d_nan
 
-  if header[6] ne 0 then begin
-    dprint,'Time out of range, header[6]= ',header[6],dwait=2.
+  if header[6] eq 0 then begin
+    dprint,'Time out of range, header[6]= ',header[6],dwait=20.
+    ;hexprint,header
   endif
   ;header[6] = 0
   
-  day = ((header[6]*256UL+header[7])*256)+header[8]
-  millisec = ((header[9]*256UL+header[10])*256+header[11])*256+header[12]
-  microsec = header[13] *256u + header[14]
+  if 1 then begin
+    day = ((header[6]*256UL+header[7]))
+    millisec = ((header[8]*256UL+header[9])*256+header[10])*256+header[11]
+    microsec = header[12] *256u + header[13]    
+  endif else begin
+    day = ((header[6]*256UL+header[7])*256)+header[8]
+    millisec = ((header[9]*256UL+header[10])*256+header[11])*256+header[12]
+    microsec = header[13] *256u + header[14]
+  endelse
+
+
   MET = day*24d*3600d + millisec/1000d + microsec/1d6
   ;MET = (header[3]*2UL^16 + header[4] + (header[5] and 'fffc'x)  / 2d^16) +   ( (header[5] ) mod 4) * 2d^15/150000              ; SPANS
   return,met

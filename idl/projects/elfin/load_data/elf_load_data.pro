@@ -191,7 +191,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           if instrument EQ 'state' then begin
             if pred then subdir='pred/' else subdir='defn/'  
             ; **** Temporary fix for new state CDF with v02         
-            if subdir EQ 'defn/' then for dn=0, n_elements(daily_names)-1 do fnames[dn] = probe + '_' + level + '_' + ftypes + '_' + daily_names[dn] + '_v02.cdf'
+            if subdir EQ 'defn/' then for dn=0, n_elements(daily_names)-1 do fnames[dn] = probe + '_' + level + '_' + ftypes + '_' + daily_names[dn] + '_' + cdf_version +'.cdf'
           endif
           if instrument EQ 'epd' then begin
              Case datatype of 
@@ -248,6 +248,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 ;                    relpath= 'elfin' + strcompress(string(probes[probe_idx]), /rem) +'/'+'ephemeris/'+subdir + '/' + yeardir
                     remote_path=remote_path+subdir
 ;                    relpathname=relpath + fnames[file_idx]
+
                     paths = spd_download(remote_file=fnames[file_idx], remote_path=remote_path[0], $
                       local_file=fnames[file_idx], local_path=this_local_path, ssl_verify_peer=0, ssl_verify_host=0)
                   endif  else begin
@@ -292,6 +293,11 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
           if ~undefined(files) then begin
             unique_files = files[uniq(files, sort(files))]
+            if n_elements(unique_files) GT 1 then begin
+              sidx = strpos(unique_files, cdf_version)
+              fidx = where(sidx NE -1, ncnt)
+              if ncnt GT 0 then unique_files = unique_files[fidx]
+            endif
             if instrument eq 'epd' and level eq 'l2' then begin
               elf_cdf2tplot, unique_files, tplotnames = loaded_tnames, varformat=varformat, $
                 suffix = suffix, get_support_data = get_support_data, /load_labels, $

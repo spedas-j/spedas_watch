@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-25 13:22:06 -0800 (Mon, 25 Dec 2023) $
-; $LastChangedRevision: 32323 $
+; $LastChangedDate: 2024-01-10 12:04:32 -0800 (Wed, 10 Jan 2024) $
+; $LastChangedRevision: 32354 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -232,7 +232,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     
     if 1 then begin
       print_names = struct_value(param,'print_names')
-      s=!null
+      s=''   ;!null
       for i=0,n_elements(print_names)-1 do begin
         name = print_names[i]
         v = tsample(name,trange,/average)

@@ -23,8 +23,8 @@
 ;     IDL> wi_waves_load, 'dust_impact_l3'
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2024-01-04 16:21:16 -0800 (Thu, 04 Jan 2024) $
-; $LastChangedRevision: 32334 $
+; $LastChangedDate: 2024-01-10 11:13:42 -0800 (Wed, 10 Jan 2024) $
+; $LastChangedRevision: 32350 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/wind/wi_waves_load.pro $
 ;
 ;-
@@ -115,6 +115,43 @@ pro wi_waves_load, type, files = files, trange = trange, $
         'Wind' + '!C' + strupcase(strmid(tname, 10, 4)) + ' ' + $
         strmid(tname, 22)
     endforeach
+
+    ; Calibrated values for conversion of V^2/Hz to flux and sfu are
+    ; from Krupar et al. (in prep., 2023)
+
+    ; For RAD1: PSD_FLUX = PSD_V2_Z * 5.3027412e-4
+    ; For RAD2 below 2,500 kHz: PSD_FLUX = PSD_V2_Z * 7.2450814e-4
+    ; For RAD2 above 2,500 kHz: PSD_FLUX = PSD_V2_Z * 7.2450814e-4 * exp(1.39e-4 * (f - 2500))
+
+    ; Additionally, PSD_SFU should be calculated as: PSD_SFU = 1e22 * PSD_FLUX.
+
+    get_data, prefix + 'PSD_V2_Z', data = d_psd_z, lim = lim
+
+    if size(/type, d_psd_z) eq 8 then begin
+      v2 = d_psd_z.y
+
+      if prefix eq 'wi_l2_wav_rad1_' then begin
+        flux = v2 * 5.3027412e-4
+      endif else begin
+        flux = v2 * 7.2450814e-4
+        for i = 0, n_elements(d_psd_z.v) - 1 do begin
+          if d_psd_z.v[i] gt 2.5d6 then begin
+            flux[*, i] *= exp(1.39e-4 * (d_psd_z.v[i] / 1e3 - 2.5e3))
+          endif
+        endfor
+      endelse
+      sfu = flux * 1e22
+      store_data, prefix + 'PSD_FLUX', data = {x: d_psd_z.x, y: flux, v: d_psd_z.v}, lim = lim
+      options, prefix + 'PSD_FLUX', 'ztitle', '[W/m^2/Hz]'
+      options, prefix + 'PSD_FLUX', 'ytitle', 'Wind!C' + strupcase(strmid(prefix, 10, 4)) + ' FLUX'
+      store_data, prefix + 'PSD_SFU', data = {x: d_psd_z.x, y: sfu, v: d_psd_z.v}, lim = lim
+      options, prefix + 'PSD_SFU', 'ztitle', '[sfu]'
+      options, prefix + 'PSD_SFU', 'ytitle', 'Wind!C' + strupcase(strmid(prefix, 10, 4)) + ' SFU'
+
+      options, prefix + ['PSD_FLUX', 'PSD_SFU'], 'spec', 1, /default
+      options, prefix + ['PSD_FLUX', 'PSD_SFU'], 'ylog', 1
+      options, prefix + ['PSD_FLUX', 'PSD_SFU'], 'zlog', 1
+    endif
   endif else begin
 
   endelse

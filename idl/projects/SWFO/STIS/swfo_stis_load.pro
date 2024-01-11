@@ -1,6 +1,6 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2023-11-19 11:43:23 -0800 (Sun, 19 Nov 2023) $
-;$LastChangedRevision: 32252 $
+;$LastChangedDate: 2024-01-10 12:20:24 -0800 (Wed, 10 Jan 2024) $
+;$LastChangedRevision: 32356 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -39,11 +39,28 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'S1':     opts.host = 'swifgse1.ssl.berkeley.edu'
       'S2':     opts.host = 'hermroute3.ssl.berkeley.edu'
       'S3':     opts.host = 'swifroute2.ssl.berkeley.edu'
+      'Ball-BAT' :  opts.host = '136.152.31.185'
+      'Ball' :  opts.host = '136.152.17.167'
     endcase
     
 
     ss_type = opts.station+'/'+opts.file_type
     case ss_type of
+      'Ball-BAT/cmblk': begin
+        opts.port       = 2225
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'Ball-BAT/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
+      end
+      'Ball/cmblk': begin
+        opts.port       = 2125
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'Ball/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
+      end
+      'Ball/ccsds': begin
+        opts.port       = 2125
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'Ball/ccsds/YYYY/MM/DD/swfo_stis_ccsds_YYYYMMDD_hh.dat.gz'
+      end
       'S0/cmblk': begin
         opts.port       = 2025
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
@@ -238,9 +255,10 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         swfo_recorder,port=opts.port, host=opts.host, exec_proc='swfo_gsemsg_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
       end
       'cmblk': begin        
-        rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_cmblk')
+        rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_Ball_cmblk')
         if 1 then begin  ;new method
-          rdr.add_handler, 'raw_tlm',  gsemsg_reader(name='SWFO_reader',/no_widget,mission='SWFO')          
+          rdr.add_handler, 'raw_tlm',  gsemsg_reader(name='SWFO_reader',/no_widget,mission='SWFO')   
+          rdr.add_handler, 'raw_ball', ccsds_reader(/no_widget,name='BALL_reader', _extra = opts.tostruct() , sync_pattern = ['2b'xb,  'ad'xb ,'ca'xb, 'fe'xb] )  
         endif else begin
           rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)          
         endelse

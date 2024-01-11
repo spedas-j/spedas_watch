@@ -75,7 +75,7 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   get_support_data = get_support_data, no_cal=no_cal, units=units, $
   tplotnames = tplotnames, no_color_setup = no_color_setup, $
   no_time_clip = no_time_clip, no_update = no_update, suffix = suffix, $
-  varformat = varformat, cdf_filenames = cdf_filenames, $
+  varformat = varformat, cdf_filenames = cdf_filenames, no_conversion=no_conversion, $
   cdf_version = cdf_version, latest_version = latest_version, $
   min_version = min_version, cdf_records = cdf_records, $
   spdf = spdf, available = available, versions = versions, $
@@ -187,6 +187,8 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
   endif
 
   ; perform coordinate conversions from gei to NDW and OBW
+  if ~keyword_set(no_conversion) then begin
+
   if  ~undefined(tplotnames) && tplotnames[0] ne '' then begin
     if size(fsp_res_dmxl, /type) EQ 8 then begin
       tr=timerange()
@@ -207,6 +209,7 @@ pro elf_load_fgm, trange = trange, probes = probes, datatype = datatype, $
         elf_fgm_fsp_gei2obw, trange=tr, probe=probes, sz_starttimes=sz_starttimes, sz_endtimes=sz_endtimes
       endelse
     endif
+  endif
   endif
   
   ; check whether user wants support data tplot vars
