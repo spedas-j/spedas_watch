@@ -1,14 +1,14 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-01-10 13:32:56 -0800 (Wed, 10 Jan 2024) $
-; $LastChangedRevision: 32357 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2024-01-10 19:12:00 -0800 (Wed, 10 Jan 2024) $
+; $LastChangedRevision: 32359 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_decom.pro $
 
 ;
 ;  This routine still needs to be modified to conform to the SWFO standard.
 
-function swfo_ccsds_decom_mettime,header,day=day,millisec=millisec,microsec=microsec
+function swfo_ccsds_decom_mettime,header,apid,day=day,millisec=millisec,microsec=microsec
   ; header assumed to be bytes at this point
   n = n_elements(header)
   if n lt 5 then return, !values.d_nan
@@ -19,11 +19,11 @@ function swfo_ccsds_decom_mettime,header,day=day,millisec=millisec,microsec=micr
   endif
   ;header[6] = 0
   
-  if 1 then begin
+  if apid lt '350'x then begin ;spacecraft packets
     day = ((header[6]*256UL+header[7]))
     millisec = ((header[8]*256UL+header[9])*256+header[10])*256+header[11]
     microsec = header[12] *256u + header[13]    
-  endif else begin
+  endif else begin ;instrument packets
     day = ((header[6]*256UL+header[7])*256)+header[8]
     millisec = ((header[9]*256UL+header[10])*256+header[11])*256+header[12]
     microsec = header[13] *256u + header[14]
@@ -92,7 +92,7 @@ function swfo_ccsds_decom,buffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,o
 
   apid = ccsds.apid
 
-  MET = swfo_ccsds_decom_mettime(buffer[offset+0:offset+15],day=day,millisec=millisec,microsec=microsec)
+  MET = swfo_ccsds_decom_mettime(buffer[offset+0:offset+15],apid,day=day,millisec=millisec,microsec=microsec)
   ccsds.met = met
   ccsds.day = day
   ccsds.millisec = millisec

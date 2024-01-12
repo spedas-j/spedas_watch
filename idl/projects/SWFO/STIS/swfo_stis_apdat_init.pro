@@ -1,13 +1,11 @@
 ;+
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:12:52 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32262 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2024-01-10 19:12:00 -0800 (Wed, 10 Jan 2024) $
+; $LastChangedRevision: 32359 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_apdat_init.pro $
 ;-
 
-pro swfo_stis_apdat_init,reset=reset, save_flag = save_flag, swem=swem, $
-  rt_flag= rt_Flag, $
-  clear = clear, no_products =no_products
+pro swfo_stis_apdat_init,reset=reset, save_flag=save_flag,swem=swem,rt_flag=rt_flag,clear=clear,no_products=no_products
 
   common swfo_stis_apdat_init, initialized
   if keyword_set(reset) then initialized = 0
@@ -17,6 +15,12 @@ pro swfo_stis_apdat_init,reset=reset, save_flag = save_flag, swem=swem, $
 
   ;; special case to accumulate statistics
   swfo_apdat_info, 0 ,name='Stats',apid_obj='swfo_gen_apdat_stats',tname='APIDS', ttags=ttags,save_flag=save_flag,rt_flag=rt_flag
+  
+  spp_apdat_info,100,name='sc_100',apid_obj ='swfo_sc_100_apdat',tname='swfo_sc_100',save_flag=save_flag,ttags='*',rt_flag=rt_flag
+  spp_apdat_info,120,name='sc_120',apid_obj ='swfo_sc_120_apdat',tname='swfo_sc_120',save_flag=save_flag,ttags='*',rt_flag=rt_flag
+  spp_apdat_info,130,name='sc_130',apid_obj ='swfo_sc_130_apdat',tname='swfo_sc_130',save_flag=save_flag,ttags='*',rt_flag=rt_flag
+  spp_apdat_info,170,name='sc_170',apid_obj ='swfo_sc_170_apdat',tname='swfo_sc_170',save_flag=save_flag,ttags='*',rt_flag=rt_flag
+
 
   ;;#################
   ;; SETUP SWEM APIDs
@@ -48,11 +52,11 @@ pro swfo_stis_apdat_init,reset=reset, save_flag = save_flag, swem=swem, $
   ;;################
   ;;#   STIS APIDs  #
   ;;################
-  swfo_apdat_info,'350'x,name='stis_sci', apid_obj='swfo_stis_sci_apdat',         tname='swfo_stis_sci',ttags='*',save_flag=save_flag,rt_flag=rt_flag
-  swfo_apdat_info,'351'x,name='stis_nse', apid_obj='swfo_stis_nse_apdat',    tname='swfo_stis_nse',ttags='*',save_flag=save_flag,rt_flag=rt_flag
-  swfo_apdat_info,'35d'x,name='stis_mem', apid_obj='swfo_stis_memdump_apdat', tname='swfo_stis_memdump',ttags='*',save_flag=save_flag,rt_flag=rt_flag
-  swfo_apdat_info,'35E'x,name='stis_hkp1', apid_obj='swfo_stis_hkp_apdat', tname='swfo_stis_hkp1',ttags='*',save_flag=save_flag,rt_flag=rt_flag
-  swfo_apdat_info,'35F'x,name='stis_hkp2', apid_obj='swfo_stis_hkp_apdat', tname='swfo_stis_hkp2',ttags='*',    save_flag=save_flag,rt_flag=rt_flag
+  swfo_apdat_info,'350'x,name='stis_sci', apid_obj='swfo_stis_sci_apdat',    tname='swfo_stis_sci',    ttags='*',save_flag=save_flag,rt_flag=rt_flag
+  swfo_apdat_info,'351'x,name='stis_nse', apid_obj='swfo_stis_nse_apdat',    tname='swfo_stis_nse',    ttags='*',save_flag=save_flag,rt_flag=rt_flag
+  swfo_apdat_info,'35d'x,name='stis_mem', apid_obj='swfo_stis_memdump_apdat',tname='swfo_stis_memdump',ttags='*',save_flag=save_flag,rt_flag=rt_flag
+  swfo_apdat_info,'35E'x,name='stis_hkp1',apid_obj='swfo_stis_hkp_apdat',    tname='swfo_stis_hkp1',   ttags='*',save_flag=save_flag,rt_flag=rt_flag
+  swfo_apdat_info,'35F'x,name='stis_hkp2',apid_obj='swfo_stis_hkp_apdat',    tname='swfo_stis_hkp2',   ttags='*',save_flag=save_flag,rt_flag=rt_flag
 
 
 

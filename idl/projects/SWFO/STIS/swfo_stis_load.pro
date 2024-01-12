@@ -1,6 +1,6 @@
-;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2024-01-10 12:20:24 -0800 (Wed, 10 Jan 2024) $
-;$LastChangedRevision: 32356 $
+;$LastChangedBy: ali $
+;$LastChangedDate: 2024-01-10 19:12:00 -0800 (Wed, 10 Jan 2024) $
+;$LastChangedRevision: 32359 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -40,7 +40,8 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'S2':     opts.host = 'hermroute3.ssl.berkeley.edu'
       'S3':     opts.host = 'swifroute2.ssl.berkeley.edu'
       'Ball-BAT' :  opts.host = '136.152.31.185'
-      'Ball' :  opts.host = '136.152.17.167'
+      ;'Ball' :  opts.host = '136.152.17.167'
+      'Ball' :  opts.host = '136.152.31.195'
     endcase
     
 
