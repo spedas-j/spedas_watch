@@ -4,6 +4,8 @@
 ;  Reads in MAVEN Level 2 telemetry files (CDF format).  Data are stored in 
 ;  a common block (mvn_swe_com).
 ;
+;  This routine can load Versions 4 and 5 of the L2 files.
+;
 ;  SWEA data structures are:
 ;
 ;    3D Distributions:  mvn_swe_3d
@@ -62,12 +64,12 @@
 ;       NOSPICE:       Do not initialize SPICE.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2017-08-14 11:10:46 -0700 (Mon, 14 Aug 2017) $
-; $LastChangedRevision: 23783 $
+; $LastChangedDate: 2024-01-14 17:10:01 -0800 (Sun, 14 Jan 2024) $
+; $LastChangedRevision: 32362 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_load_l2.pro $
 ;
 ;CREATED BY:    David L. Mitchell  02-02-15
-;FILE: mvn_swe_load_l2.pro
+;FILE: mvn_swe_load_l2a.pro
 ;-
 pro mvn_swe_load_l2, trange, filename=filename, latest=latest, spec=spec, pad=pad, ddd=ddd, $
                      sumplot=sumplot, status=status, orbit=orbit, loadonly=loadonly, $

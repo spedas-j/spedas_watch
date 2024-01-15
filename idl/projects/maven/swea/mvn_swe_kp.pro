@@ -4,6 +4,8 @@
 ;PURPOSE:
 ;	Calculates SWEA key parameters.  The result is stored in tplot variables,
 ;   and as a save file.
+;   This routine has been updated to use Version 5 of the CDF files.
+;
 ;AUTHOR: 
 ;	David L. Mitchell
 ;CALLING SEQUENCE: 
@@ -41,7 +43,31 @@
 ;
 ;   L2ONLY:    Only process data using L2 MAG data.
 ;
-;   ALLBAD:    Assume all data are affected by low-energy anomaly.
+;   QLEVEL:    Minimum quality level for calculations.  Filters out the vast
+;              majority of spectra affected by the sporadic low energy
+;              anomaly below 28 eV.  The validity levels are:
+;
+;                0B = Data are affected by the low-energy anomaly.  There
+;                     are significant systematic errors below 28 eV.
+;                1B = Unknown because: (1) the variability is too large to 
+;                     confidently identify anomalous spectra, as in the 
+;                     sheath, or (2) secondary electrons mask the anomaly,
+;                     as in the sheath just downstream of the bow shock.
+;                2B = Data are not affected by the low-energy anomaly.
+;                     Caveat: There is increased noise around 23 eV, even 
+;                     for "good" spectra.
+;
+;              Default for this procedure is 1B.
+;
+;   QINTERP:   Interpolate the potential for small gaps caused by the 
+;              sporadic low-energy anomaly.  Set this keyword to the largest
+;              gap (in seconds) to interpolate across.
+;
+;   SECONDARY: Estimate and remove secondary electrons.  This makes greatly
+;              improves moments in the sheath.  Default is 1 (yes).
+;              To disable, set this keyword to zero.
+;
+;   BIAS:      Bias to add to SWEPOS potential estimates.
 ;
 ;   OUTPUT_PATH: An output_path for testing, the save file will be put into 
 ;                OUTPUT_PATH/yyyy/mm/.  Directories are created as needed.
@@ -50,15 +76,16 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-18 10:50:29 -0700 (Fri, 18 Aug 2023) $
-; $LastChangedRevision: 32032 $
+; $LastChangedDate: 2024-01-14 17:46:05 -0800 (Sun, 14 Jan 2024) $
+; $LastChangedRevision: 32367 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_kp.pro $
 ;
 ;-
 
 pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
                 mask_sc=mask_sc, mom=mom, l2only=l2only, output_path=output_path, $
-                allbad=allbad, trange=trange
+                trange=trange, qlevel=qlevel, qinterp=qinterp, bias=bias, $
+                secondary=secondary
 
   compile_opt idl2
 
@@ -70,7 +97,9 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 
   if (size(ddd,/type) eq 0) then ddd = 0
   if (size(mom,/type) eq 0) then mom = 1
-  allbad = keyword_set(allbad)
+  qlevel = (n_elements(qlevel) gt 0) ? byte(qlevel[0]) < 2B : 1B
+  dosec = (n_elements(secondary) gt 0) ? keyword_set(dosec) : 1
+  bias = (n_elements(bias) gt 0) ? float(bias[0]) : 0.5
 
 ; Make sure all needed data are available
 
@@ -139,8 +168,13 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 ; Don't calculate the density for negative potentials.  These
 ; occur mainly in the EUV shadow and the ionosphere -- in both
 ; cases SWEA is not measuring the bulk of the distribution.
+;
+; Use QLEVEL and QINTERP to filter out anomalous spectra from
+; the SWEPOS estimation and interpolate missing values from nearby
+; reliable measurements.
 
-  mvn_scpot, composite=0, lpwpot=1, pospot=1, negpot=0, stapot=0
+  mvn_scpot, comp=0, lpw=0, pospot=1, negpot=0, stapot=0, shapot=0, bias=bias, $
+             qlevel=qlevel, qinterp=qinterp
 
   indx = where(swe_sc_pot.potential lt 0., count)
   if (count gt 0L) then begin
@@ -150,7 +184,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 
 ; Calculate the density and temperature
     
-  mvn_swe_n1d, mom=mom, pans=more_pans
+  mvn_swe_n1d, mom=mom, pans=more_pans, qlevel=qlevel, secondary=secondary
 
   pans = [pans, more_pans]
 
@@ -215,7 +249,8 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
       if (count gt 0L) then pad.data[*,indx] = !values.f_nan
 
       cnts = pad.data
-      sig2 = pad.var   ; variance with digitization noise
+      sig2 = pad.var      ; variance with digitization noise
+      qual = pad.quality  ; quality flag
      
       mvn_swe_convert_units, pad, 'eflux'
 
@@ -243,26 +278,40 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
         var_neg = NaNs
       endelse
 
-      eflux_pos_lo[i] = average(eflux_pos[endx_lo],/nan)
-      eflux_pos_md[i] = average(eflux_pos[endx_md],/nan)
-      eflux_pos_hi[i] = average(eflux_pos[endx_hi],/nan)
-      cnts_pos_lo[i] = total(cnts_pos[endx_lo],/nan)
-      cnts_pos_md[i] = total(cnts_pos[endx_md],/nan)
-      cnts_pos_hi[i] = total(cnts_pos[endx_hi],/nan)
-      var_pos_lo[i] = total(var_pos[endx_lo],/nan)
-      var_pos_md[i] = total(var_pos[endx_md],/nan)
-      var_pos_hi[i] = total(var_pos[endx_hi],/nan)
+      if (qual ge qlevel) then begin
+        eflux_pos_lo[i] = average(eflux_pos[endx_lo],/nan)
+        cnts_pos_lo[i] = total(cnts_pos[endx_lo],/nan)
+        var_pos_lo[i] = total(var_pos[endx_lo],/nan)
 
-      eflux_neg_lo[i] = average(eflux_neg[endx_lo],/nan)
+        eflux_neg_lo[i] = average(eflux_neg[endx_lo],/nan)
+        cnts_neg_lo[i] = total(cnts_neg[endx_lo],/nan)
+        var_neg_lo[i] = total(var_neg[endx_lo],/nan)
+      endif else begin
+        eflux_pos_lo[i] = !values.f_nan
+        cnts_pos_lo[i] = !values.f_nan
+        var_pos_lo[i] = !values.f_nan
+
+        eflux_neg_lo[i] = !values.f_nan
+        cnts_neg_lo[i] = !values.f_nan
+        var_neg_lo[i] = !values.f_nan
+      endelse
+
+      eflux_pos_md[i] = average(eflux_pos[endx_md],/nan)
+      cnts_pos_md[i] = total(cnts_pos[endx_md],/nan)
+      var_pos_md[i] = total(var_pos[endx_md],/nan)
+
       eflux_neg_md[i] = average(eflux_neg[endx_md],/nan)
       eflux_neg_hi[i] = average(eflux_neg[endx_hi],/nan)
-      cnts_neg_lo[i] = total(cnts_neg[endx_lo],/nan)
       cnts_neg_md[i] = total(cnts_neg[endx_md],/nan)
+
+      eflux_pos_hi[i] = average(eflux_pos[endx_hi],/nan)
+      cnts_pos_hi[i] = total(cnts_pos[endx_hi],/nan)
+      var_pos_hi[i] = total(var_pos[endx_hi],/nan)
+
       cnts_neg_hi[i] = total(cnts_neg[endx_hi],/nan)
-      var_neg_lo[i] = total(var_neg[endx_lo],/nan)
       var_neg_md[i] = total(var_neg[endx_md],/nan)
       var_neg_hi[i] = total(var_neg[endx_hi],/nan)
-   endfor
+    endfor
 
     sdev_pos_lo = eflux_pos_lo * (sqrt(var_pos_lo)/cnts_pos_lo)
     sdev_pos_md = eflux_pos_md * (sqrt(var_pos_md)/cnts_pos_md)
@@ -315,15 +364,6 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
   pans = [pans, 'mvn_swe_efpos_5_100', 'mvn_swe_efpos_100_500', 'mvn_swe_efpos_500_1000', $
                 'mvn_swe_efneg_5_100', 'mvn_swe_efneg_100_500', 'mvn_swe_efneg_500_1000'   ]
 
-; Mask data for sporadic low energy suppression
-
-  mpans = 'mvn_swe_' + ['shape_par','spec_dens','spec_temp','efpos_5_100','efneg_5_100']
-  for i=0,4 do begin
-    get_data, mpans[i], data=dat
-    mvn_swe_lowe_mask, dat, allbad=allbad
-    store_data, mpans[i], data=dat
-  endfor
-
 ; Create TPLOT variables for display only
 
   eflux_lo = fltarr(npts,2)
@@ -334,7 +374,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
   ylim,vname,0,0,1
   options,vname,'labels',['pos','neg']
   options,vname,'labflag',1
-  
+
   eflux_md = fltarr(npts,2)
   eflux_md[*,0] = eflux_pos_md
   eflux_md[*,1] = eflux_neg_md

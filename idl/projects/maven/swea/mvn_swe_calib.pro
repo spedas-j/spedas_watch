@@ -91,8 +91,8 @@
 ;       LIST:         List the current calibration constants.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-27 08:20:14 -0800 (Mon, 27 Feb 2023) $
-; $LastChangedRevision: 31553 $
+; $LastChangedDate: 2024-01-14 17:10:38 -0800 (Sun, 14 Jan 2024) $
+; $LastChangedRevision: 32363 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_calib.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -104,7 +104,7 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default,
 
 ; Set the SWEA Ground Software Version
 
-    mvn_swe_version = 4
+  mvn_swe_version = 5  ; DLM, 2024-01-09
 
 ; Initialize
 

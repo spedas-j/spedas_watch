@@ -3,10 +3,16 @@
 ;PURPOSE:
 ;  Calculates the spacecraft orbital velocity relative to the body-fixed
 ;  rotating Mars frame (IAU_MARS).  If you sit on the spacecraft and look
-;  in this direction, the flow will be in your face.
+;  in this direction, the flow will be in your face.  The default is to 
+;  calculate this direction in the MAVEN_SPACECRAFT frame.
 ;
-;  This vector can be rotated into any coordinate frame recognized by
-;  SPICE.  See mvn_frame_name for a list.  The default is MAVEN_SPACECRAFT.
+;  Careful!  Some people consider the opposite of the spacecraft velocity
+;  to be the RAM direction.  Watch for sign errors.
+;
+;  This vector can be rotated into the APP frame or any of the instrument
+;  frames.  See mvn_frame_name for a list.  This is a pure rotation, so
+;  don't try to rotate into the MSO frame, since the result would still be 
+;  in a frame that rotates with the planet.  Instead, use the MSO keyword.
 ;
 ;  The co-rotation velocity in the IAU_MARS frame as a function of altitude
 ;  (h) and latitude (lat) is:
@@ -41,12 +47,13 @@
 ;       DT:       Time resolution (sec).  Default is 10 sec.
 ;
 ;       FRAME:    String or string array for specifying one or more frames
-;                 to transform the ram direction into.  Any frame recognized
+;                 to rotate the ram direction into.  Any frame recognized
 ;                 by SPICE is allowed.  The default is 'MAVEN_SPACECRAFT'.
 ;                 Other possibilities are: 'MAVEN_APP', 'MAVEN_STATIC', etc.
 ;                 Type 'mvn_frame_name(/list)' to see a full list of frames.
 ;                 Minimum matching name fragments (e.g., 'sta', 'swe') are
-;                 allowed -- see mvn_frame_name for details.
+;                 allowed -- see mvn_frame_name for details.  This is a pure
+;                 rotation!
 ;
 ;       POLAR:    If set, convert the direction to polar coordinates and
 ;                 store as additional tplot variables.
@@ -84,8 +91,8 @@
 ;       SUCCESS:  Returns 1 on normal operation, 0 otherwise.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-09-27 12:13:01 -0700 (Wed, 27 Sep 2023) $
-; $LastChangedRevision: 32138 $
+; $LastChangedDate: 2024-01-14 17:42:11 -0800 (Sun, 14 Jan 2024) $
+; $LastChangedRevision: 32365 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_ramdir.pro $
 ;
 ;CREATED BY:    David L. Mitchell
