@@ -245,8 +245,8 @@ end
 ;                             for "good" spectra.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-08 16:02:56 -0800 (Mon, 08 Jan 2024) $
-; $LastChangedRevision: 32338 $
+; $LastChangedDate: 2024-01-15 12:13:51 -0800 (Mon, 15 Jan 2024) $
+; $LastChangedRevision: 32368 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -900,7 +900,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
       endif
     endif
     
-    if (mb) then begin
+    if (mb and (spec.quality ne 255B)) then begin
       mvn_swe_convert_units, spec, 'eflux'
       E1 = spec.energy
       dE = spec.denergy
@@ -1019,7 +1019,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
       endif
     endif
 
-    if (mom) then begin
+    if (mom and (spec.quality ne 255B)) then begin
       dcol = 1
 
       smom = specmom(spec, erange=erange)
@@ -1046,7 +1046,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
       ys -= dys
     endif
 
-    if (dosec) then begin
+    if (dosec and (spec.quality ne 255B)) then begin
       if (sec eq 1) then begin
         mvn_swe_secondary, param=p
         ys -= dys

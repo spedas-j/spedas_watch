@@ -68,8 +68,8 @@
 ;       BURST:        Plot a color bar showing PAD burst coverage.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-08 16:04:25 -0800 (Mon, 08 Jan 2024) $
-; $LastChangedRevision: 32339 $
+; $LastChangedDate: 2024-01-15 16:04:05 -0800 (Mon, 15 Jan 2024) $
+; $LastChangedRevision: 32372 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sumplot.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -830,6 +830,22 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
     if (plotap[3]) then pans = [pans,pname,mname]
 
   endif
+
+; Quality flag
+
+  vname = 'quality'
+  store_data,vname,data={x:mvn_swe_engy.time, y:mvn_swe_engy.quality}
+  options,vname,'panel_size',0.25
+  options,vname,'ytitle','Quality'
+  ylim,vname,-0.5,2.5,0
+  options,vname,'ystyle',1
+  options,vname,'yticks',4
+  options,vname,'ytickv',[0,1,2]
+  options,vname,'yticknames',['0','1','2']
+  options,vname,'linestyle',0
+  options,vname,'psym',4
+  options,vname,'colors',[4]
+  pans = [pans,vname]
 
 ; Energy Spectra, Survey (APID A4)
 

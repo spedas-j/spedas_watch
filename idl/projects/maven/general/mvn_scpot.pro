@@ -82,8 +82,13 @@
 ;              will determine the potential from SWEA and STATIC.
 ;              Default = 1 (yes).
 ;
-;   POSPOT:    Calculate positive potentials with mvn_swe_sc_pot.
+;   POSPOT:    Calculate positive potentials with mvn_swe_sc_pot (SWE+).
 ;              Default = 1 (yes).
+;
+;   BIAS:      Bias to add to SWE+ estimate.  This corrects for the common
+;              situation in which the maximum slope that is used to locate
+;              the photoelectron line does not quite match the optimal value
+;              of the potential.  Default = 0.5 V.
 ;
 ;   NEGPOT:    Calculate negative potentials with mvn_swe_sc_negpot.
 ;              Default = 1 (yes).
@@ -103,11 +108,6 @@
 ;              Default = 1 (yes).
 ;
 ;   PANS:      Named varible to hold the tplot panels created.
-;
-;   BIAS:      Bias to add to SWE+ estimate.  This corrects for the situation
-;              in which the maximum slope that marks the position of the 
-;              photoelectron line does not quite match the optimal value of
-;              the potential.  Typical value is +0.5 V.  Default = 0.
 ;
 ;   QLEVEL:    Minimum quality level for SWEA data.  Filters out the vast
 ;              majority of spectra affected by the sporadic low energy
@@ -138,8 +138,8 @@
 ;          the five unmerged methods in one panel.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-14 17:42:53 -0800 (Sun, 14 Jan 2024) $
-; $LastChangedRevision: 32366 $
+; $LastChangedDate: 2024-01-15 12:15:25 -0800 (Mon, 15 Jan 2024) $
+; $LastChangedRevision: 32370 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_scpot.pro $
 ;
 ;-
@@ -158,7 +158,7 @@ pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
   success = 0
   NaN = !values.f_nan
   qlevel = (n_elements(qlevel) gt 0) ? byte(qlevel[0]) : 1B
-  bias = (n_elements(bias) gt 0) ? float(bias[0]) : 0.  ; applies only to SWE+ method
+  bias = (n_elements(bias) gt 0) ? float(bias[0]) : 0.5  ; applies only to SWE+ method
 
   if (size(Espan,/type) eq 0) then mvn_scpot_defaults
 

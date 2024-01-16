@@ -24,19 +24,23 @@
 ;       DOPLOT:        If set, makes an energy spectrogram (SPEC) tplot panel
 ;                      with an 'x' marking anomalous spectra (quality = 0).
 ;
+;       NOFILE:        Returns 1 if a quality save file cannot be located for
+;                      the time range in question.
+;
 ;       SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-22 13:45:08 -0700 (Tue, 22 Aug 2023) $
-; $LastChangedRevision: 32054 $
+; $LastChangedDate: 2024-01-15 12:14:17 -0800 (Mon, 15 Jan 2024) $
+; $LastChangedRevision: 32369 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_set_quality.pro $
 ;
 ;CREATED BY:  David Mitchell - August 2023
 ;-
-pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=silent
+pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=silent, nofile=nofile
 
   @mvn_swe_com
 
+  nofile = 0
   missing = replicate(0L,5)
   doplot = keyword_set(doplot) and (find_handle('swe_a4') gt 0)
   blab = ~keyword_set(silent)
@@ -68,6 +72,7 @@ pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=s
   if (nfiles eq 0L) then begin
     tstr = time_string(trange)
     print,"% mvn_swe_set_quality: no quality flags found: ",tstr[0]," to ",tstr[1]
+    nofile = 1
     return
   endif
   file = file[i]
