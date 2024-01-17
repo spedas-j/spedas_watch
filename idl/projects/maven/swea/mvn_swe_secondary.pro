@@ -78,8 +78,8 @@
 ;       TPLOT:        Create a tplot variable.  (Only works for SPEC data.)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-08 16:05:43 -0800 (Mon, 08 Jan 2024) $
-; $LastChangedRevision: 32340 $
+; $LastChangedDate: 2024-01-16 15:15:28 -0800 (Tue, 16 Jan 2024) $
+; $LastChangedRevision: 32383 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_secondary.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -213,6 +213,28 @@ pro mvn_swe_secondary, data, config=config, param=param, default=default, tplot=
 ; Convert back to the original units
 
   mvn_swe_convert_units, data, ounits
+
+; Average the secondary distribution based on the group parameter
+
+  str_element, data, 'group', group, success=ok
+  if (ok) then begin
+    n_e = data[0].nenergy
+    n_b = data[0].nbins
+
+    indx = where(group eq 1, count)
+    if (count gt 0) then begin
+      bkg = reform(data[indx].bkg, n_e, n_b*count)
+      for i=0,62,2 do bkg[i:i+1,*] = replicate(1.,2) # mean(bkg[i:i+1,*], dim=1)
+      data[indx].bkg = reform(bkg, n_e, n_b, count)
+    endif
+    
+    indx = where(group eq 2, count)
+    if (count gt 0) then begin
+      bkg = reform(data[indx].bkg, n_e, n_b*count)
+      for i=0,60,4 do bkg[i:i+3,*] = replicate(1.,4) # mean(bkg[i:i+3,*], dim=1)
+      data[indx].bkg = reform(bkg, n_e, n_b, count)
+    endif
+  endif
 
 ; Make a tplot variable for SPEC data
 

@@ -24,24 +24,39 @@
 ;       DOPLOT:        If set, makes an energy spectrogram (SPEC) tplot panel
 ;                      with an 'x' marking anomalous spectra (quality = 0).
 ;
-;       NOFILE:        Returns 1 if a quality save file cannot be located for
-;                      the time range in question.
+;       REFRESH:       Action to take if a quality save file is not found.
+;                      This keyword can have one of three integer values:
+;
+;                        0 : Do nothing.  Just fill the quality flag array
+;                            with 1's (unknown) for all times covered by the
+;                            missing file.  Default.
+;
+;                        1 : Attempt to create the missing file, then try to 
+;                            load it.
+;
+;                        2 : Create or recreate file, overwriting any existing
+;                            file.
+;
+;                      *** This keyword only works for authorized users! ***
 ;
 ;       SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-15 12:14:17 -0800 (Mon, 15 Jan 2024) $
-; $LastChangedRevision: 32369 $
+; $LastChangedDate: 2024-01-16 13:48:11 -0800 (Tue, 16 Jan 2024) $
+; $LastChangedRevision: 32378 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_set_quality.pro $
 ;
 ;CREATED BY:  David Mitchell - August 2023
 ;-
-pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=silent, nofile=nofile
+pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=silent, refresh=refresh
 
   @mvn_swe_com
+  
+  uinfo = get_login_info()
+  user = uinfo.user_name
+  authorized = (user eq 'mitchell') or (user eq 'shaosui.xu') or (user eq 'muser')
+  refresh = (n_elements(refresh) gt 0L) and authorized ? fix(refresh[0]) > 0 < 2 : 0
 
-  nofile = 0
-  missing = replicate(0L,5)
   doplot = keyword_set(doplot) and (find_handle('swe_a4') gt 0)
   blab = ~keyword_set(silent)
 
@@ -63,19 +78,79 @@ pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=s
     trange = minmax(trange[1:*])
   endif else trange = minmax(time_double(trange))
 
-; Restore quality flags
+  missing = replicate(0L,5)
+  missing[0] = n_elements(swe_3d)
+  missing[1] = n_elements(swe_3d_arc)
+  missing[2] = n_elements(a2)
+  missing[3] = n_elements(a3)
+  missing[4] = n_elements(a4)
+
+; Determine if quality file(s) exist.  Authorized users can generate missing
+; files and/or update existing ones.
 
   rootdir='maven/data/sci/swe/anc/quality/YYYY/MM/'
   fname = 'mvn_swe_quality_YYYYMMDD.sav'
-  file = mvn_pfp_file_retrieve(rootdir+fname,trange=trange,/daily_names,/valid)
-  i = where(file ne '', nfiles)
-  if (nfiles eq 0L) then begin
-    tstr = time_string(trange)
-    print,"% mvn_swe_set_quality: no quality flags found: ",tstr[0]," to ",tstr[1]
-    nofile = 1
+  file = mvn_pfp_file_retrieve(rootdir+fname,trange=trange,/daily_names,verbose=0)
+  nfiles = n_elements(file)
+  finfo = file_info(file)
+  k = where(~finfo.exists, count)
+  case (refresh) of
+    0 : begin
+          for i=0,(count-1) do begin
+            print, "Quality file not found : ", file[k[i]]
+          endfor
+          if (count gt 0) then print,"Missing quality flags set to 1 (unknown)."
+        end
+    1 : begin
+          for i=0,(count-1) do begin
+            print, "Quality file not found : ", file[k[i]]
+            yyyy = strmid(file[k[i]],11,4,/reverse)
+            mm = strmid(file[k[i]],7,2,/reverse)
+            dd = strmid(file[k[i]],5,2,/reverse)
+            date = yyyy + '-' + mm + '-' + dd
+            print, "  Generating missing file ... "
+            mvn_swe_quality_daily, date, /noload
+          endfor
+        end
+    2 : begin
+          for i=0,(nfiles-1) do begin
+            yyyy = strmid(file[k[i]],11,4,/reverse)
+            mm = strmid(file[k[i]],7,2,/reverse)
+            dd = strmid(file[k[i]],5,2,/reverse)
+            date = yyyy + '-' + mm + '-' + dd
+            print, "(Re)generating quality file: ", file[i]
+            mvn_swe_quality_daily, date, /noload
+          endfor
+        end
+    else : begin
+             print, "% mvn_swe_set_quality: this should be impossible!"
+             return
+           end
+  endcase
+
+; Get the names of valid quality save files.  If no files are found, fill the
+; quality arrays with 1 and return early.
+
+  file = mvn_pfp_file_retrieve(rootdir+fname,trange=trange,/daily_names,verbose=0)
+  finfo = file_info(file)
+  k = where(finfo.exists, nfiles)
+  if (nfiles eq 0) then begin
+    print, "No quality save files found!  Setting all quality flags to 1 (unknown)."
+    if (size(mvn_swe_engy,/type) eq 8) then $
+      str_element, mvn_swe_engy, 'quality', replicate(1B,n_elements(mvn_swe_engy.time)), /add
+    if (size(a2,/type) eq 8) then $
+      str_element, a2, 'quality', replicate(1B,n_elements(a2.time)), /add
+    if (size(a3,/type) eq 8) then $
+      str_element, a3, 'quality', replicate(1B,n_elements(a3.time)), /add
+    if (size(swe_3d,/type) eq 8) then $
+      str_element, swe_3d, 'quality', replicate(1B,n_elements(swe_3d.time)), /add
+    if (size(swe_3d_arc,/type) eq 8) then $
+      str_element, swe_3d_arc, 'quality', replicate(1B,n_elements(swe_3d_arc.time)), /add
     return
   endif
-  file = file[i]
+  file = file[k]  ; only valid files
+
+; Restore the quality flags
 
   restore,filename=file[0]
   qtime = quality.time
@@ -134,7 +209,7 @@ pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=s
 
 ; Make the enery spectrogram with 'x' overlay marking anomalous spectra
 
-  if doplot then begin
+  if (doplot) then begin
     get_data, 'swe_a4', data=dat, index=k
     if (k gt 0) then begin
       flag = replicate(1B, n_elements(dat.x))

@@ -62,8 +62,8 @@
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-14 17:14:23 -0800 (Sun, 14 Jan 2024) $
-; $LastChangedRevision: 32364 $
+; $LastChangedDate: 2024-01-16 13:46:49 -0800 (Tue, 16 Jan 2024) $
+; $LastChangedRevision: 32377 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, $
@@ -159,10 +159,9 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, $
   if (size(swe_mag1,/type) eq 8) then maglev = swe_mag1[0].level else maglev = 0B
   if (l2only and (maglev lt 2B)) then dopad = 0
 
-; Determine quality flags
+; Set quality flags (restore existing quality file or generate new one if necessary)
 
-  mvn_swe_quality_daily, t0, /noload
-  mvn_swe_set_quality, missing=missing, /silent
+  mvn_swe_set_quality, refresh=1, /silent
 
 ; Create CDF files (up to 6 of them)
 

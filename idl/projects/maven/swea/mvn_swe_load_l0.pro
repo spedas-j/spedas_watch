@@ -94,8 +94,8 @@
 ;                      to a higher number to see more diagnostic messages.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-22 13:44:21 -0700 (Tue, 22 Aug 2023) $
-; $LastChangedRevision: 32053 $
+; $LastChangedDate: 2024-01-16 13:48:44 -0800 (Tue, 16 Jan 2024) $
+; $LastChangedRevision: 32379 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_load_l0.pro $
 ;
 ;CREATED BY:    David L. Mitchell  04-25-13
@@ -368,9 +368,9 @@ pro mvn_swe_load_l0, trange, filename=filename, latest=latest, maxbytes=maxbytes
 
   mvn_swe_makespec
 
-; Set the quality flag
+; Set the quality flag (do not attempt to generate missing flags)
 
-  mvn_swe_set_quality, /doplot
+  mvn_swe_set_quality, refresh=0, /doplot, /silent
 
 ; Report status of data loaded
 
