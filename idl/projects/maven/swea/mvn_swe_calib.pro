@@ -91,8 +91,8 @@
 ;       LIST:         List the current calibration constants.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-14 17:10:38 -0800 (Sun, 14 Jan 2024) $
-; $LastChangedRevision: 32363 $
+; $LastChangedDate: 2024-01-17 08:46:14 -0800 (Wed, 17 Jan 2024) $
+; $LastChangedRevision: 32384 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_calib.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -115,9 +115,11 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default,
     swe_Ka       = 6.17       ; analyzer constant (1.4% variation around azim)
     swe_G        = 0.009/16.  ; nominal geometric factor per anode (IRAP)
     swe_Ke       = 2.80       ; nominal value, see mvn_swe_esuppress.pro
-    swe_dead     = 1.0e-6     ; deadtime for one MCP-Anode-Preamp chain (IRAP)
+    swe_dead     = 1.0e-6     ; deadtime for one MCP-Anode-Preamp chain (in-flight)
     swe_min_dtc  = 0.25       ; max 4x deadtime correction
     swe_paralyze = 0          ; use non-paralyzable deadtime model
+
+    swe_G *= 0.7              ; SWIA recalibration released 2022-03-30
   endif
 
 ; Process SETCAL structure
