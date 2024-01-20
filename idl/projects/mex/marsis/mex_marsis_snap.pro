@@ -13,12 +13,12 @@
 ;       Yuki Harada on 2017-05-11
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2023-12-17 20:37:02 -0800 (Sun, 17 Dec 2023) $
-; $LastChangedRevision: 32299 $
+; $LastChangedDate: 2024-01-18 20:41:56 -0800 (Thu, 18 Jan 2024) $
+; $LastChangedRevision: 32387 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/marsis/mex_marsis_snap.pro $
 ;-
 
-pro mex_marsis_snap, window=window, keepwin=keepwin, time=t0, _extra=_ex, nowindow=nowindow, noaalt=noaalt, symsize=symsize, noinv=noinv, nochfit=nochfit, csv_save=csv_save
+pro mex_marsis_snap, window=window, keepwin=keepwin, time=t0, _extra=_ex, nowindow=nowindow, noaalt=noaalt, symsize=symsize, noinv=noinv, nochfit=nochfit, csv_save=csv_save, aalt_return=aalt, td_return=td
 
 @mex_marsis_com
 
@@ -86,9 +86,11 @@ while (ok) do begin
            +time_string(time,tf='YYYY-MM-DD/hh:mm:ss.fff')+geom_str}
    extract_tags,dlim,_ex
    specplot,freq,marsis_delay_times/1e3,sdens,lim=dlim
-   if altflag then $
+   if altflag then begin
+      aalt = alt-0.1499*marsis_delay_times
       axis,yaxis=1,ystyle=1,ytitle='Apparent Alt. [km]',yticklen=-.01, $
            yrange=alt+[-0.1499*max(marsis_delay_times),0.]
+   endif
 
    if keyword_set(csv_save) then begin
       csv_filename = 'iono_'+time_string(time,tf='YYYYMMDD_hhmmss')+'.csv'
