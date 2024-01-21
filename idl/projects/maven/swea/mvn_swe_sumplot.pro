@@ -68,8 +68,8 @@
 ;       BURST:        Plot a color bar showing PAD burst coverage.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-15 16:04:05 -0800 (Mon, 15 Jan 2024) $
-; $LastChangedRevision: 32372 $
+; $LastChangedDate: 2024-01-20 12:16:17 -0800 (Sat, 20 Jan 2024) $
+; $LastChangedRevision: 32390 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sumplot.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -833,10 +833,10 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
 
 ; Quality flag
 
-  vname = 'quality'
+  vname = 'swe_quality'
   store_data,vname,data={x:mvn_swe_engy.time, y:mvn_swe_engy.quality}
   options,vname,'panel_size',0.25
-  options,vname,'ytitle','Quality'
+  options,vname,'ytitle','SWEA!cQuality'
   ylim,vname,-0.5,2.5,0
   options,vname,'ystyle',1
   options,vname,'yticks',4
@@ -909,8 +909,11 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
       TClab[5] = 'A4'
     endif
 
+; Overlay a small "x" on every spectrum with quality=0 (disabled)
+; This is superceded by a separate small panel showing the quality flag
+
     str_element, mvn_swe_engy, 'quality', flag
-    if (min(flag) eq 0B) then begin
+    if (0 and min(flag) eq 0B) then begin
       y = replicate(!values.f_nan, n_elements(x))
       i = where(flag eq 0B, count)
       if (count gt 0L) then y[i] = 4.4

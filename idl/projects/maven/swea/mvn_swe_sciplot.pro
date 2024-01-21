@@ -78,8 +78,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-25 08:37:09 -0700 (Fri, 25 Aug 2023) $
-; $LastChangedRevision: 32063 $
+; $LastChangedDate: 2024-01-20 12:16:35 -0800 (Sat, 20 Jan 2024) $
+; $LastChangedRevision: 32391 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sciplot.pro $
 ;
 ;-
@@ -281,12 +281,17 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
   i = find_handle('swe_a3_bar', verbose=-1)
   if (i gt 0) then bst_pan = 'swe_a3_bar' else bst_pan = ''
 
+; Quality flag, if available
+
+  i = find_handle('swe_quality', verbose=-1)
+  if (i gt 0) then q_pan = 'swe_quality' else q_pan = ''
+
 ; Assemble the panels and plot
 
   pans = [ram_pan, ndr_pan, sun_pan, alt_pan, $
           euv_pan, swi_pan, sta_pan, mag_pan, $
           sep_pan, lpw_pan, pad_pan, pot_pan, $
-          bst_pan, shape_pan, engy_pan]
+          bst_pan, shape_pan, q_pan, engy_pan]
 
   indx = where(pans ne '', npans)
   if (npans gt 0) then begin

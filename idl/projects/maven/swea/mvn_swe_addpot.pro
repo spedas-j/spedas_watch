@@ -14,8 +14,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-22 13:47:16 -0700 (Tue, 22 Aug 2023) $
-; $LastChangedRevision: 32056 $
+; $LastChangedDate: 2024-01-20 12:17:43 -0800 (Sat, 20 Jan 2024) $
+; $LastChangedRevision: 32392 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_addpot.pro $
 ;
 ;-
@@ -73,7 +73,9 @@ pro mvn_swe_addpot
 
   get_data,'swe_a4_mask',index=i
   if (i gt 0) then begin
-    store_data,'swe_a4_mask',data=['swe_a4','flag','swe_pot_overlay']
+    get_data,'swe_flag',index=j
+    if (j gt 0) then store_data,'swe_a4_mask',data=['swe_a4','swe_flag','swe_pot_overlay'] $
+                else store_data,'swe_a4_mask',data=['swe_a4','swe_pot_overlay']
     ylim,'swe_a4_mask',3,5000,1
 
     tplot_options, get=topt

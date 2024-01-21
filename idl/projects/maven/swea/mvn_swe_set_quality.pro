@@ -23,6 +23,8 @@
 ;
 ;       DOPLOT:        If set, makes an energy spectrogram (SPEC) tplot panel
 ;                      with an 'x' marking anomalous spectra (quality = 0).
+;                      Not recommended -- better to use the swe_quality tplot
+;                      variable instead.
 ;
 ;       REFRESH:       Action to take if a quality save file is not found.
 ;                      This keyword can have one of three integer values:
@@ -34,16 +36,16 @@
 ;                        1 : Attempt to create the missing file, then try to 
 ;                            load it.
 ;
-;                        2 : Create or recreate file, overwriting any existing
-;                            file.
+;                        2 : Create or recreate all files, overwriting any
+;                            existing file(s).
 ;
 ;                      *** This keyword only works for authorized users! ***
 ;
 ;       SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-16 13:48:11 -0800 (Tue, 16 Jan 2024) $
-; $LastChangedRevision: 32378 $
+; $LastChangedDate: 2024-01-20 12:15:15 -0800 (Sat, 20 Jan 2024) $
+; $LastChangedRevision: 32389 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_set_quality.pro $
 ;
 ;CREATED BY:  David Mitchell - August 2023
@@ -51,9 +53,8 @@
 pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=silent, refresh=refresh
 
   @mvn_swe_com
-  
-  uinfo = get_login_info()
-  user = uinfo.user_name
+
+  user = (get_login_info()).user_name
   authorized = (user eq 'mitchell') or (user eq 'shaosui.xu') or (user eq 'muser')
   refresh = (n_elements(refresh) gt 0L) and authorized ? fix(refresh[0]) > 0 < 2 : 0
 
@@ -96,9 +97,7 @@ pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=s
   k = where(~finfo.exists, count)
   case (refresh) of
     0 : begin
-          for i=0,(count-1) do begin
-            print, "Quality file not found : ", file[k[i]]
-          endfor
+          for i=0,(count-1) do print, "Quality file not found : ", file[k[i]]
           if (count gt 0) then print,"Missing quality flags set to 1 (unknown)."
         end
     1 : begin
@@ -220,11 +219,11 @@ pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=s
       i = where(flag eq 0B, count)
       if (count gt 0L) then y[i] = 4.4
 
-      store_data,'flag',data={x:dat.x, y:y}
-      options,'flag','psym',7
-      options,'flag','colors',0
-      options,'flag','symsize',0.6
-      store_data,'swe_a4_mask',data=['swe_a4','flag']
+      store_data,'swe_flag',data={x:dat.x, y:y}
+      options,'swe_flag','psym',7
+      options,'swe_flag','colors',0
+      options,'swe_flag','symsize',0.6
+      store_data,'swe_a4_mask',data=['swe_a4','swe_flag']
       ylim,'swe_a4_mask',3,4627.5,1
     endif
   endif
