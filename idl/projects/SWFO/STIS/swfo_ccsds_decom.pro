@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-01-10 19:12:00 -0800 (Wed, 10 Jan 2024) $
-; $LastChangedRevision: 32359 $
+; $LastChangedDate: 2024-01-21 13:16:37 -0800 (Sun, 21 Jan 2024) $
+; $LastChangedRevision: 32394 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_decom.pro $
 
 ;
@@ -13,17 +13,16 @@ function swfo_ccsds_decom_mettime,header,apid,day=day,millisec=millisec,microsec
   n = n_elements(header)
   if n lt 5 then return, !values.d_nan
 
-  if header[6] eq 0 then begin
-    dprint,'Time out of range, header[6]= ',header[6],dwait=20.
-    ;hexprint,header
-  endif
-  ;header[6] = 0
-  
   if apid lt '350'x then begin ;spacecraft packets
     day = ((header[6]*256UL+header[7]))
     millisec = ((header[8]*256UL+header[9])*256+header[10])*256+header[11]
     microsec = header[12] *256u + header[13]    
   endif else begin ;instrument packets
+    if header[6] ne 0 then begin
+      dprint,'Time out of range, header[6]= ',header[6],dwait=2.
+      ;hexprint,header
+    endif
+    ;header[6] = 0
     day = ((header[6]*256UL+header[7])*256)+header[8]
     millisec = ((header[9]*256UL+header[10])*256+header[11])*256+header[12]
     microsec = header[13] *256u + header[14]
