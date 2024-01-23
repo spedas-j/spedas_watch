@@ -76,8 +76,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-14 17:46:05 -0800 (Sun, 14 Jan 2024) $
-; $LastChangedRevision: 32367 $
+; $LastChangedDate: 2024-01-22 12:53:51 -0800 (Mon, 22 Jan 2024) $
+; $LastChangedRevision: 32396 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_kp.pro $
 ;
 ;-
@@ -206,192 +206,195 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 
   atime = a2.time + delta_t
   indx = where((atime ge t0) and (atime le t1), npts)
-  atime = atime[indx]
 
-  t = dblarr(npts)
-  eflux_pos_lo = fltarr(npts)
-  eflux_pos_md = eflux_pos_lo
-  eflux_pos_hi = eflux_pos_lo
-  eflux_neg_lo = eflux_pos_lo
-  eflux_neg_md = eflux_pos_lo
-  eflux_neg_hi = eflux_pos_lo
+  if (npts gt 0L) then begin
+    atime = atime[indx]
 
-  cnts_pos_lo = eflux_pos_lo
-  cnts_pos_md = eflux_pos_lo
-  cnts_pos_hi = eflux_pos_lo
-  cnts_neg_lo = eflux_pos_lo
-  cnts_neg_md = eflux_pos_lo
-  cnts_neg_hi = eflux_pos_lo
+    t = dblarr(npts)
+    eflux_pos_lo = fltarr(npts)
+    eflux_pos_md = eflux_pos_lo
+    eflux_pos_hi = eflux_pos_lo
+    eflux_neg_lo = eflux_pos_lo
+    eflux_neg_md = eflux_pos_lo
+    eflux_neg_hi = eflux_pos_lo
 
-  var_pos_lo = eflux_pos_lo
-  var_pos_md = eflux_pos_lo
-  var_pos_hi = eflux_pos_lo
-  var_neg_lo = eflux_pos_lo
-  var_neg_md = eflux_pos_lo
-  var_neg_hi = eflux_pos_lo
+    cnts_pos_lo = eflux_pos_lo
+    cnts_pos_md = eflux_pos_lo
+    cnts_pos_hi = eflux_pos_lo
+    cnts_neg_lo = eflux_pos_lo
+    cnts_neg_md = eflux_pos_lo
+    cnts_neg_hi = eflux_pos_lo
 
-  pad = mvn_swe_getpad(atime[0])
-  energy = pad.energy[*,0]
+    var_pos_lo = eflux_pos_lo
+    var_pos_md = eflux_pos_lo
+    var_pos_hi = eflux_pos_lo
+    var_neg_lo = eflux_pos_lo
+    var_neg_md = eflux_pos_lo
+    var_neg_hi = eflux_pos_lo
 
-  endx_lo = where((energy ge   5.) and (energy lt  100.), nlo)
-  endx_md = where((energy ge 100.) and (energy lt  500.), nmd)
-  endx_hi = where((energy ge 500.) and (energy lt 1000.), nhi)
+    pad = mvn_swe_getpad(atime[0])
+    energy = pad.energy[*,0]
 
-  midpa = !pi/2.
-  NaNs = replicate(!values.f_nan,64)
+    endx_lo = where((energy ge   5.) and (energy lt  100.), nlo)
+    endx_md = where((energy ge 100.) and (energy lt  500.), nmd)
+    endx_hi = where((energy ge 500.) and (energy lt 1000.), nhi)
+
+    midpa = !pi/2.
+    NaNs = replicate(!values.f_nan,64)
   
-  if (ok) then begin
-    for i=0L,(npts-1L) do begin
-      pad = mvn_swe_getpad(atime[i], units='counts')
+    if (ok) then begin
+      for i=0L,(npts-1L) do begin
+        pad = mvn_swe_getpad(atime[i], units='counts')
 
-      if (pad.time gt t_mtx[2]) then boom = 1 else boom = 0
-      indx = where(obins[pad.k3d,boom] eq 0B, count)
-      if (count gt 0L) then pad.data[*,indx] = !values.f_nan
+        if (pad.time gt t_mtx[2]) then boom = 1 else boom = 0
+        indx = where(obins[pad.k3d,boom] eq 0B, count)
+        if (count gt 0L) then pad.data[*,indx] = !values.f_nan
 
-      cnts = pad.data
-      sig2 = pad.var      ; variance with digitization noise
-      qual = pad.quality  ; quality flag
+        cnts = pad.data
+        sig2 = pad.var      ; variance with digitization noise
+        qual = pad.quality  ; quality flag
      
-      mvn_swe_convert_units, pad, 'eflux'
+        mvn_swe_convert_units, pad, 'eflux'
 
-      t[i] = pad.time
-    
-      ipos = where(pad.pa_max[63,*] lt midpa, npos)
-      if (npos gt 0L) then begin
-        eflux_pos = average(pad.data[*,ipos],2,/nan)
-        cnts_pos = total(reform(cnts[*,ipos],64,npos),2,/nan)
-        var_pos = total(reform(sig2[*,ipos],64,npos),2,/nan)
-      endif else begin
-        eflux_pos = NaNs
-        cnts_pos = NaNs
-        var_pos = NaNs
-      endelse
+        t[i] = pad.time
 
-      ineg = where(pad.pa_min[63,*] gt midpa, nneg)
-      if (nneg gt 0L) then begin
-        eflux_neg = average(pad.data[*,ineg],2,/nan)
-        cnts_neg = total(reform(cnts[*,ineg],64,nneg),2,/nan)
-        var_neg = total(reform(sig2[*,ineg],64,nneg),2,/nan)
-      endif else begin
-        eflux_neg = NaNs
-        cnts_neg = NaNs
-        var_neg = NaNs
-      endelse
+        ipos = where(pad.pa_max[63,*] lt midpa, npos)
+        if (npos gt 0L) then begin
+          eflux_pos = average(pad.data[*,ipos],2,/nan)
+          cnts_pos = total(reform(cnts[*,ipos],64,npos),2,/nan)
+          var_pos = total(reform(sig2[*,ipos],64,npos),2,/nan)
+        endif else begin
+          eflux_pos = NaNs
+          cnts_pos = NaNs
+          var_pos = NaNs
+        endelse
 
-      if (qual ge qlevel) then begin
-        eflux_pos_lo[i] = average(eflux_pos[endx_lo],/nan)
-        cnts_pos_lo[i] = total(cnts_pos[endx_lo],/nan)
-        var_pos_lo[i] = total(var_pos[endx_lo],/nan)
+        ineg = where(pad.pa_min[63,*] gt midpa, nneg)
+        if (nneg gt 0L) then begin
+          eflux_neg = average(pad.data[*,ineg],2,/nan)
+          cnts_neg = total(reform(cnts[*,ineg],64,nneg),2,/nan)
+          var_neg = total(reform(sig2[*,ineg],64,nneg),2,/nan)
+        endif else begin
+          eflux_neg = NaNs
+          cnts_neg = NaNs
+          var_neg = NaNs
+        endelse
 
-        eflux_neg_lo[i] = average(eflux_neg[endx_lo],/nan)
-        cnts_neg_lo[i] = total(cnts_neg[endx_lo],/nan)
-        var_neg_lo[i] = total(var_neg[endx_lo],/nan)
-      endif else begin
-        eflux_pos_lo[i] = !values.f_nan
-        cnts_pos_lo[i] = !values.f_nan
-        var_pos_lo[i] = !values.f_nan
+        if (qual ge qlevel) then begin
+          eflux_pos_lo[i] = average(eflux_pos[endx_lo],/nan)
+          cnts_pos_lo[i] = total(cnts_pos[endx_lo],/nan)
+          var_pos_lo[i] = total(var_pos[endx_lo],/nan)
 
-        eflux_neg_lo[i] = !values.f_nan
-        cnts_neg_lo[i] = !values.f_nan
-        var_neg_lo[i] = !values.f_nan
-      endelse
+          eflux_neg_lo[i] = average(eflux_neg[endx_lo],/nan)
+          cnts_neg_lo[i] = total(cnts_neg[endx_lo],/nan)
+          var_neg_lo[i] = total(var_neg[endx_lo],/nan)
+        endif else begin
+          eflux_pos_lo[i] = !values.f_nan
+          cnts_pos_lo[i] = !values.f_nan
+          var_pos_lo[i] = !values.f_nan
 
-      eflux_pos_md[i] = average(eflux_pos[endx_md],/nan)
-      cnts_pos_md[i] = total(cnts_pos[endx_md],/nan)
-      var_pos_md[i] = total(var_pos[endx_md],/nan)
+          eflux_neg_lo[i] = !values.f_nan
+          cnts_neg_lo[i] = !values.f_nan
+          var_neg_lo[i] = !values.f_nan
+        endelse
 
-      eflux_neg_md[i] = average(eflux_neg[endx_md],/nan)
-      eflux_neg_hi[i] = average(eflux_neg[endx_hi],/nan)
-      cnts_neg_md[i] = total(cnts_neg[endx_md],/nan)
+        eflux_pos_md[i] = average(eflux_pos[endx_md],/nan)
+        cnts_pos_md[i] = total(cnts_pos[endx_md],/nan)
+        var_pos_md[i] = total(var_pos[endx_md],/nan)
 
-      eflux_pos_hi[i] = average(eflux_pos[endx_hi],/nan)
-      cnts_pos_hi[i] = total(cnts_pos[endx_hi],/nan)
-      var_pos_hi[i] = total(var_pos[endx_hi],/nan)
+        eflux_neg_md[i] = average(eflux_neg[endx_md],/nan)
+        eflux_neg_hi[i] = average(eflux_neg[endx_hi],/nan)
+        cnts_neg_md[i] = total(cnts_neg[endx_md],/nan)
 
-      cnts_neg_hi[i] = total(cnts_neg[endx_hi],/nan)
-      var_neg_md[i] = total(var_neg[endx_md],/nan)
-      var_neg_hi[i] = total(var_neg[endx_hi],/nan)
-    endfor
+        eflux_pos_hi[i] = average(eflux_pos[endx_hi],/nan)
+        cnts_pos_hi[i] = total(cnts_pos[endx_hi],/nan)
+        var_pos_hi[i] = total(var_pos[endx_hi],/nan)
 
-    sdev_pos_lo = eflux_pos_lo * (sqrt(var_pos_lo)/cnts_pos_lo)
-    sdev_pos_md = eflux_pos_md * (sqrt(var_pos_md)/cnts_pos_md)
-    sdev_pos_hi = eflux_pos_hi * (sqrt(var_pos_hi)/cnts_pos_hi)
-    sdev_neg_lo = eflux_neg_lo * (sqrt(var_neg_lo)/cnts_neg_lo)
-    sdev_neg_md = eflux_neg_md * (sqrt(var_neg_md)/cnts_neg_md)
-    sdev_neg_hi = eflux_neg_hi * (sqrt(var_neg_hi)/cnts_neg_hi)
+        cnts_neg_hi[i] = total(cnts_neg[endx_hi],/nan)
+        var_neg_md[i] = total(var_neg[endx_md],/nan)
+        var_neg_hi[i] = total(var_neg[endx_hi],/nan)
+      endfor
+
+      sdev_pos_lo = eflux_pos_lo * (sqrt(var_pos_lo)/cnts_pos_lo)
+      sdev_pos_md = eflux_pos_md * (sqrt(var_pos_md)/cnts_pos_md)
+      sdev_pos_hi = eflux_pos_hi * (sqrt(var_pos_hi)/cnts_pos_hi)
+      sdev_neg_lo = eflux_neg_lo * (sqrt(var_neg_lo)/cnts_neg_lo)
+      sdev_neg_md = eflux_neg_md * (sqrt(var_neg_md)/cnts_neg_md)
+      sdev_neg_hi = eflux_neg_hi * (sqrt(var_neg_hi)/cnts_neg_hi)
 
 ; Filter out poor solutions
 
-    indx = where(finite(eflux_pos_lo) and ~finite(sdev_pos_lo), count)
-    if (count gt 0L) then eflux_pos_lo[indx] = !values.f_nan
-    indx = where(finite(eflux_pos_md) and ~finite(sdev_pos_md), count)
-    if (count gt 0L) then eflux_pos_md[indx] = !values.f_nan
-    indx = where(finite(eflux_pos_hi) and ~finite(sdev_pos_hi), count)
-    if (count gt 0L) then eflux_pos_hi[indx] = !values.f_nan
+      indx = where(finite(eflux_pos_lo) and ~finite(sdev_pos_lo), count)
+      if (count gt 0L) then eflux_pos_lo[indx] = !values.f_nan
+      indx = where(finite(eflux_pos_md) and ~finite(sdev_pos_md), count)
+      if (count gt 0L) then eflux_pos_md[indx] = !values.f_nan
+      indx = where(finite(eflux_pos_hi) and ~finite(sdev_pos_hi), count)
+      if (count gt 0L) then eflux_pos_hi[indx] = !values.f_nan
 
-    indx = where(finite(eflux_neg_lo) and ~finite(sdev_neg_lo), count)
-    if (count gt 0L) then eflux_neg_lo[indx] = !values.f_nan
-    indx = where(finite(eflux_neg_md) and ~finite(sdev_neg_md), count)
-    if (count gt 0L) then eflux_neg_md[indx] = !values.f_nan
-    indx = where(finite(eflux_neg_hi) and ~finite(sdev_neg_hi), count)
-    if (count gt 0L) then eflux_neg_hi[indx] = !values.f_nan
-  endif else begin
-    t = a2.time + (1.95D/2D)  ; center times
-    eflux_pos_lo[*] = !values.f_nan
-    eflux_pos_md[*] = !values.f_nan
-    eflux_pos_hi[*] = !values.f_nan
-    eflux_neg_lo[*] = !values.f_nan
-    eflux_neg_md[*] = !values.f_nan
-    eflux_neg_hi[*] = !values.f_nan
-    sdev_pos_lo = eflux_pos_lo
-    sdev_pos_md = eflux_pos_md
-    sdev_pos_hi = eflux_pos_hi
-    sdev_neg_lo = eflux_neg_lo
-    sdev_neg_md = eflux_neg_md
-    sdev_neg_hi = eflux_neg_hi
-  endelse
+      indx = where(finite(eflux_neg_lo) and ~finite(sdev_neg_lo), count)
+      if (count gt 0L) then eflux_neg_lo[indx] = !values.f_nan
+      indx = where(finite(eflux_neg_md) and ~finite(sdev_neg_md), count)
+      if (count gt 0L) then eflux_neg_md[indx] = !values.f_nan
+      indx = where(finite(eflux_neg_hi) and ~finite(sdev_neg_hi), count)
+      if (count gt 0L) then eflux_neg_hi[indx] = !values.f_nan
+    endif else begin
+      t = a2.time + (1.95D/2D)  ; center times
+      eflux_pos_lo[*] = !values.f_nan
+      eflux_pos_md[*] = !values.f_nan
+      eflux_pos_hi[*] = !values.f_nan
+      eflux_neg_lo[*] = !values.f_nan
+      eflux_neg_md[*] = !values.f_nan
+      eflux_neg_hi[*] = !values.f_nan
+      sdev_pos_lo = eflux_pos_lo
+      sdev_pos_md = eflux_pos_md
+      sdev_pos_hi = eflux_pos_hi
+      sdev_neg_lo = eflux_neg_lo
+      sdev_neg_md = eflux_neg_md
+      sdev_neg_hi = eflux_neg_hi
+    endelse
 
 ; Create TPLOT variables for save/restore file
 
-  store_data,'mvn_swe_efpos_5_100',data={x:t, y:eflux_pos_lo, dy:sdev_pos_lo}
-  store_data,'mvn_swe_efpos_100_500',data={x:t, y:eflux_pos_md, dy:sdev_pos_md}
-  store_data,'mvn_swe_efpos_500_1000',data={x:t, y:eflux_pos_hi, dy:sdev_pos_hi}
+    store_data,'mvn_swe_efpos_5_100',data={x:t, y:eflux_pos_lo, dy:sdev_pos_lo}
+    store_data,'mvn_swe_efpos_100_500',data={x:t, y:eflux_pos_md, dy:sdev_pos_md}
+    store_data,'mvn_swe_efpos_500_1000',data={x:t, y:eflux_pos_hi, dy:sdev_pos_hi}
 
-  store_data,'mvn_swe_efneg_5_100',data={x:t, y:eflux_neg_lo, dy:sdev_neg_lo}
-  store_data,'mvn_swe_efneg_100_500',data={x:t, y:eflux_neg_md, dy:sdev_neg_md}
-  store_data,'mvn_swe_efneg_500_1000',data={x:t, y:eflux_neg_hi, dy:sdev_neg_hi}
+    store_data,'mvn_swe_efneg_5_100',data={x:t, y:eflux_neg_lo, dy:sdev_neg_lo}
+    store_data,'mvn_swe_efneg_100_500',data={x:t, y:eflux_neg_md, dy:sdev_neg_md}
+    store_data,'mvn_swe_efneg_500_1000',data={x:t, y:eflux_neg_hi, dy:sdev_neg_hi}
   
-  pans = [pans, 'mvn_swe_efpos_5_100', 'mvn_swe_efpos_100_500', 'mvn_swe_efpos_500_1000', $
-                'mvn_swe_efneg_5_100', 'mvn_swe_efneg_100_500', 'mvn_swe_efneg_500_1000'   ]
+    pans = [pans, 'mvn_swe_efpos_5_100', 'mvn_swe_efpos_100_500', 'mvn_swe_efpos_500_1000', $
+                  'mvn_swe_efneg_5_100', 'mvn_swe_efneg_100_500', 'mvn_swe_efneg_500_1000'   ]
 
 ; Create TPLOT variables for display only
 
-  eflux_lo = fltarr(npts,2)
-  eflux_lo[*,0] = eflux_pos_lo
-  eflux_lo[*,1] = eflux_neg_lo
-  vname = 'mvn_swe_ef_5_100'
-  store_data,vname,data={x:t, y:eflux_lo, v:[0,1]}
-  ylim,vname,0,0,1
-  options,vname,'labels',['pos','neg']
-  options,vname,'labflag',1
+    eflux_lo = fltarr(npts,2)
+    eflux_lo[*,0] = eflux_pos_lo
+    eflux_lo[*,1] = eflux_neg_lo
+    vname = 'mvn_swe_ef_5_100'
+    store_data,vname,data={x:t, y:eflux_lo, v:[0,1]}
+    ylim,vname,0,0,1
+    options,vname,'labels',['pos','neg']
+    options,vname,'labflag',1
 
-  eflux_md = fltarr(npts,2)
-  eflux_md[*,0] = eflux_pos_md
-  eflux_md[*,1] = eflux_neg_md
-  vname = 'mvn_swe_ef_100_500'
-  store_data,vname,data={x:t, y:eflux_md, v:[0,1]}
-  ylim,vname,0,0,1  
-  options,vname,'labels',['pos','neg']
-  options,vname,'labflag',1
+    eflux_md = fltarr(npts,2)
+    eflux_md[*,0] = eflux_pos_md
+    eflux_md[*,1] = eflux_neg_md
+    vname = 'mvn_swe_ef_100_500'
+    store_data,vname,data={x:t, y:eflux_md, v:[0,1]}
+    ylim,vname,0,0,1  
+    options,vname,'labels',['pos','neg']
+    options,vname,'labflag',1
   
-  eflux_hi = fltarr(npts,2)
-  eflux_hi[*,0] = eflux_pos_hi
-  eflux_hi[*,1] = eflux_neg_hi
-  vname = 'mvn_swe_ef_500_1000'
-  store_data,vname,data={x:t, y:eflux_hi, v:[0,1]}
-  ylim,vname,0,0,1  
-  options,vname,'labels',['pos','neg']
-  options,vname,'labflag',1
+    eflux_hi = fltarr(npts,2)
+    eflux_hi[*,0] = eflux_pos_hi
+    eflux_hi[*,1] = eflux_neg_hi
+    vname = 'mvn_swe_ef_500_1000'
+    store_data,vname,data={x:t, y:eflux_hi, v:[0,1]}
+    ylim,vname,0,0,1  
+    options,vname,'labels',['pos','neg']
+    options,vname,'labflag',1
+  endif
 
 ; Store the results in tplot save/restore file(s)
 
