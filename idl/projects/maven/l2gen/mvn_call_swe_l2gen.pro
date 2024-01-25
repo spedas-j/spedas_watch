@@ -41,11 +41,12 @@
 ;                ctime values are inadvertently changed. If more files
 ;                than this limit are tried, an error email will be sent.
 ; allbad = if set, mark all data as affected by the low-energy anomaly.
+;          Permanently set to zero.  This will never be done again.
 ;HISTORY:
 ;Hacked from mvn_call_sta_l2gen, 17-Apr-2014, jmm
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-07-11 15:53:37 -0700 (Tue, 11 Jul 2023) $
-; $LastChangedRevision: 31949 $
+; $LastChangedDate: 2024-01-24 11:37:14 -0800 (Wed, 24 Jan 2024) $
+; $LastChangedRevision: 32400 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_call_swe_l2gen.pro $
 ;-
 Pro mvn_call_swe_l2gen, time_in = time_in, $
@@ -66,13 +67,13 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
 
   uinfo = get_login_info()
   case uinfo.user_name of
-    'mitchell'   : mailto = 'mitchell@ssl.berkeley.edu'
+    'mitchell'   : mailto = 'davem@berkeley.edu'
     'shaosui.xu' : mailto = 'shaosui.xu@berkeley.edu'
     else         : mailto = 'jimm@ssl.berkeley.edu'
   endcase
 
-  allbad = keyword_set(allbad)
-  
+  allbad = 0  ; disabled for Version 5 of the SWEA L2 products, DLM 2024-01-24
+
   einit = 0
   catch, error_status
 ;Do not process more than maxfiles L0 files
@@ -95,7 +96,7 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
         Endif Else printf, eunit, 'Date unavailable'
         free_lun, eunit
         file_chmod, efile, '664'o
-;mail it to jimm@ssl.berkeley.edu, and delete
+;mail it to <mailto> and delete
         subj = 'Problem with SWE L2 process on ' + uinfo.machine_name
         cmd_rq = 'mailx -s "' + subj + '" ' + mailto + ' < '+efile
         spawn, cmd_rq
@@ -256,9 +257,9 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
            message, /info, 'PROCESSING: '+instrk+' FOR: '+timei
            Case instrk Of
               'swe': mvn_swe_l2gen, date = timei, directory = filei_dir, $
-                                    l2only = l2only, allbad = allbad, _extra=_extra
+                                    l2only = l2only, _extra=_extra
               Else: mvn_swe_l2gen, date = timei, directory = filei_dir, $
-                                    l2only = l2only, allbad = allbad, _extra=_extra
+                                    l2only = l2only, _extra=_extra
            Endcase
            SKIP_FILE: 
            del_data, '*'
