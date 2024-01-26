@@ -21,8 +21,8 @@
 ;                     incomplete or not available.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-21 09:27:24 -0800 (Sun, 21 Jan 2024) $
-; $LastChangedRevision: 32393 $
+; $LastChangedDate: 2024-01-25 09:06:24 -0800 (Thu, 25 Jan 2024) $
+; $LastChangedRevision: 32412 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_resample_pad_daily.pro $
 ;
 ;CREATED BY:    David L. Mitchell

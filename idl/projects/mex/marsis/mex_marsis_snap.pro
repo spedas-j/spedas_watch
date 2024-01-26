@@ -13,12 +13,12 @@
 ;       Yuki Harada on 2017-05-11
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2024-01-18 20:41:56 -0800 (Thu, 18 Jan 2024) $
-; $LastChangedRevision: 32387 $
+; $LastChangedDate: 2024-01-24 23:36:07 -0800 (Wed, 24 Jan 2024) $
+; $LastChangedRevision: 32408 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mex/marsis/mex_marsis_snap.pro $
 ;-
 
-pro mex_marsis_snap, window=window, keepwin=keepwin, time=t0, _extra=_ex, nowindow=nowindow, noaalt=noaalt, symsize=symsize, noinv=noinv, nochfit=nochfit, csv_save=csv_save, aalt_return=aalt, td_return=td
+pro mex_marsis_snap, window=window, keepwin=keepwin, time=t0, _extra=_ex, nowindow=nowindow, noaalt=noaalt, symsize=symsize, noinv=noinv, nochfit=nochfit, csv_save=csv_save, aalt_return=aalt, td_return=td, freq_return=freq, sdens_return=sdens, psym_thld=psym_thld
 
 @mex_marsis_com
 
@@ -29,6 +29,7 @@ endif
 
 if ~keyword_set(noinv) and size(marsis_inv,/type) ne 0 then inv=1 else inv=0
 if ~keyword_set(symsize) then symsize = .5
+if keyword_set(psym_thld) then if psym_thld eq 1 then psym_thld = 1e-15 ;- default threshold
 
 tplot_options, get_opt=topt
 str_element, topt, 'window', value=Twin, success=ok
@@ -90,8 +91,19 @@ while (ok) do begin
       aalt = alt-0.1499*marsis_delay_times
       axis,yaxis=1,ystyle=1,ytitle='Apparent Alt. [km]',yticklen=-.01, $
            yrange=alt+[-0.1499*max(marsis_delay_times),0.]
-   endif
+   endif else aalt = marsis_delay_times * !values.f_nan
 
+   if keyword_set(psym_thld) then begin
+      w = where(sdens gt psym_thld , nw)
+      if nw gt 0 then begin
+         nx = n_elements(freq)
+         ny = n_elements(marsis_delay_times)
+         xx = rebin(freq,nx,ny)
+         yy = transpose(rebin(marsis_delay_times/1e3,ny,nx))
+         plots,xx[w],yy[w],psym=1,color=1,symsize=.5
+      endif
+   endif
+   
    if keyword_set(csv_save) then begin
       csv_filename = 'iono_'+time_string(time,tf='YYYYMMDD_hhmmss')+'.csv'
       aalt = alt -0.1499*marsis_delay_times
