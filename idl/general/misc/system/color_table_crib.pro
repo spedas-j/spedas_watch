@@ -63,9 +63,9 @@
 ;        9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;       10  : Chaffin's CSV line colors, suitable for colorblind vision
 ;
-;   More schemes can be added by including them in the case statement of get_line_colors().  Always
-;   add new schemes at the end of the list (immediately above the "else" statement), so you don't 
-;   break anyone else's code.  It's helpful if you can add a note about your scheme.
+;   More schemes can be added by including them in the initialization block of get_line_colors.pro.
+;   Always add new schemes at the end of the list, so you don't break anyone else's code.  It's 
+;   helpful if you can add a note about your scheme.
 ;
 ;   Use showct to preview any color table with any line color scheme.
 ;
@@ -73,8 +73,8 @@
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-04-11 18:47:14 -0700 (Tue, 11 Apr 2023) $
-; $LastChangedRevision: 31727 $
+; $LastChangedDate: 2024-01-26 15:19:00 -0800 (Fri, 26 Jan 2024) $
+; $LastChangedRevision: 32418 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023

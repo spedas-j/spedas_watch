@@ -57,18 +57,33 @@
 ;
 ;              Default for this procedure is 1B.
 ;
+;   REFRESH:   Action to take if a quality save file is not found.
+;              This keyword can have one of three integer values:
+;
+;                0 : Do nothing.  Just fill the quality flag array
+;                    with 1's (unknown) for all times covered by the
+;                    missing file.
+;
+;                1 : Attempt to create the missing file, then try to 
+;                    load it.  Default.
+;
+;                2 : Create or recreate all files, overwriting any
+;                    existing file(s).
+;
+;              *** This keyword only works for authorized users! ***
+;
 ;HISTORY:
 ; Hacked from Matt F's crib_l0_to_l2.txt, 2014-11-14: jmm
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-16 13:46:49 -0800 (Tue, 16 Jan 2024) $
-; $LastChangedRevision: 32377 $
+; $LastChangedDate: 2024-01-26 10:41:39 -0800 (Fri, 26 Jan 2024) $
+; $LastChangedRevision: 32415 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
-pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, $
-                   nol2=nol2, abins=abins, dbins=dbins, obins=obsin, mask_sc=mask_sc, $
-                   kp_qlev=kp_qlev, dospec=dospec, dopad=dopad, do3d=do3d, _extra=_extra
+pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol2=nol2, $
+                   abins=abins, dbins=dbins, obins=obsin, mask_sc=mask_sc, kp_qlev=kp_qlev, $
+                   dospec=dospec, dopad=dopad, do3d=do3d, refresh=refresh, _extra=_extra
 
   @mvn_swe_com
 
@@ -78,6 +93,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, $
   dopad = (n_elements(dopad) gt 0) ? keyword_set(dopad) : 1
   do3d = (n_elements(do3d) gt 0) ? keyword_set(do3d) : 1
   dokp = (n_elements(dokp) gt 0) ? keyword_set(dokp) : 1
+  refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 1
   if keyword_set(nol2) then begin
     dospec = 0
     dopad = 0
@@ -161,7 +177,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, $
 
 ; Set quality flags (restore existing quality file or generate new one if necessary)
 
-  mvn_swe_set_quality, refresh=1, /silent
+  mvn_swe_set_quality, refresh=refresh, /silent
 
 ; Create CDF files (up to 6 of them)
 
