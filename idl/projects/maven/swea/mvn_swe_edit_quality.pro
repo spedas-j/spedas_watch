@@ -5,6 +5,13 @@
 ;  number keys.  Useful for editing a few quality flags.  Use at
 ;  your own risk!
 ;
+;  To edit flags, SPEC data (APID A4) must be loaded, and you must
+;  have an energy spectrogram (swe_a4) visible in the tplot window.
+;  It can be part of a compound variable.
+;
+;  Changes to quality flags are propagated to all SWEA data types
+;  (PAD and 3D, survey and archive) that are loaded.
+;
 ;USAGE:
 ;  mvn_swe_edit_quality
 ;
@@ -12,14 +19,11 @@
 ;       None
 ;
 ;KEYWORDS:
-;       VAR:   By default, this routine will check to make sure you
-;              have an energy spectrogram (swe_a4) visible.  You can
-;              choose a different tplot variable name or number with
-;              this keyword.
+;       None
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-23 16:36:33 -0800 (Tue, 23 Jan 2024) $
-; $LastChangedRevision: 32399 $
+; $LastChangedDate: 2024-01-27 11:40:18 -0800 (Sat, 27 Jan 2024) $
+; $LastChangedRevision: 32419 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_edit_quality.pro $
 ;
 ;CREATED BY:  David Mitchell - January 2024
@@ -41,35 +45,17 @@ pro mvn_swe_edit_quality
   str_element, mvn_swe_engy, 'quality', success=ok
   if (not ok) then str_element, mvn_swe_engy, replicate(1B, n_elements(mvn_swe_engy)), /add
 
-; Check whether an energy spectrogram is visible
+; Make sure an energy spectrogram exists and is visible
+
+  i = find_handle('swe_a4')
+  if (i eq 0) then mvn_swe_makespec, /tplot
 
   tplot_options, get=topt
+  j = where(strmatch(topt.varnames, '*swe_a4*') eq 1, count)
+  if (count eq 0) then tplot, 'swe_a4', add=100  ; display spectrogram at the bottom
 
-  if (n_elements(var) gt 0) then begin
-    var = var[0]
-    i = find_handle(var)
-    if (i eq 0) then begin
-      print, "Tplot variable not found: ", var
-      return
-    endif
-
-    j = where(topt.varnames eq var, count)
-    if (count eq 0) then tplot, var, add=100  ; display variable at the bottom
-  endif else begin
-    i = find_handle('swe_a4')
-    if (i eq 0) then begin
-      print, "  It is highly recommended that you edit flags with an energy"
-      print, "  spectrogram (such as 'swe_a4') visible."
-      yn = 'N'
-      read, yn, prompt="Are you sure (y|n) ? "
-      if (strupcase(yn) ne 'Y') then return
-
-      j = where(strmatch(topt.varnames, '*swe_a4*') eq 1, count)
-      if (count eq 0) then tplot, 'swe_a4', add=100  ; display spectrogram at the bottom
-    endif
-  endelse
-
-; Select points and edit the quality flag until the right mouse button is pressed.
+; First choose a quality level (0-2), then using the cursor, select one or more
+; spectra to apply the new quality level.  Repeat as needed.
 
   qtime = [0D]
   qflag = [1B]
@@ -77,7 +63,7 @@ pro mvn_swe_edit_quality
 
   while (keepgoing) do begin
     char = ''
-    read, char, prompt="  Choose quality level (0-2): "
+    read, char, prompt="  Choose quality level (0-2) or return to exit: "
     q = byte(char[0]) - 48B
     if ((q ge 0) and (q le 2)) then begin
       print, newline, q, format='(a,"  Select times to set quality level to ",i1,":")'
@@ -176,7 +162,10 @@ pro mvn_swe_edit_quality
 
     j = where(strmatch(topt.varnames, '*swe_a4*') eq 1)
     k = where(strmatch(topt.varnames, 'swe_quality') eq 1, count)
-    if (count eq 0L) then tplot, vname, add=j+1
+    if (count eq 0L) then begin
+      tplot, vname, add=j+1
+      return
+    endif
   endif
 
 ; Refresh the tplot window
