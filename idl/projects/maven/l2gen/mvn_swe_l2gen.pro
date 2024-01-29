@@ -65,10 +65,10 @@
 ;                    missing file.
 ;
 ;                1 : Attempt to create the missing file, then try to 
-;                    load it.  Default.
+;                    load it.
 ;
 ;                2 : Create or recreate all files, overwriting any
-;                    existing file(s).
+;                    existing file(s).  Default.
 ;
 ;              *** This keyword only works for authorized users! ***
 ;
@@ -77,8 +77,8 @@
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-26 10:41:39 -0800 (Fri, 26 Jan 2024) $
-; $LastChangedRevision: 32415 $
+; $LastChangedDate: 2024-01-28 10:03:02 -0800 (Sun, 28 Jan 2024) $
+; $LastChangedRevision: 32421 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol2=nol2, $
@@ -93,7 +93,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
   dopad = (n_elements(dopad) gt 0) ? keyword_set(dopad) : 1
   do3d = (n_elements(do3d) gt 0) ? keyword_set(do3d) : 1
   dokp = (n_elements(dokp) gt 0) ? keyword_set(dokp) : 1
-  refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 1
+  refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 2
   if keyword_set(nol2) then begin
     dospec = 0
     dopad = 0

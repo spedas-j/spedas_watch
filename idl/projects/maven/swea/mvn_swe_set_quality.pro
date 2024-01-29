@@ -44,8 +44,8 @@
 ;       SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-20 12:15:15 -0800 (Sat, 20 Jan 2024) $
-; $LastChangedRevision: 32389 $
+; $LastChangedDate: 2024-01-28 14:06:57 -0800 (Sun, 28 Jan 2024) $
+; $LastChangedRevision: 32422 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_set_quality.pro $
 ;
 ;CREATED BY:  David Mitchell - August 2023
@@ -113,9 +113,9 @@ pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=s
         end
     2 : begin
           for i=0,(nfiles-1) do begin
-            yyyy = strmid(file[k[i]],11,4,/reverse)
-            mm = strmid(file[k[i]],7,2,/reverse)
-            dd = strmid(file[k[i]],5,2,/reverse)
+            yyyy = strmid(file[i],11,4,/reverse)
+            mm = strmid(file[i],7,2,/reverse)
+            dd = strmid(file[i],5,2,/reverse)
             date = yyyy + '-' + mm + '-' + dd
             print, "(Re)generating quality file: ", file[i]
             mvn_swe_quality_daily, date, /noload

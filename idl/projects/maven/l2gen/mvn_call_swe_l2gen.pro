@@ -43,13 +43,14 @@
 ; allbad = if set, mark all data as affected by the low-energy anomaly.
 ;          Permanently set to zero.  This will never be done again.
 ; refresh = action to take if quality save file is not found: 0 = do nothing,
-;           1 = create only if missing (default), 2 = create and overwrite
-;           any existing file
+;           1 = create only if missing, 2 = create/overwrite any existing file
+;           Default = 2, because muser is processing the latest data, and the
+;           coverage can change with each revision.
 ;HISTORY:
 ;Hacked from mvn_call_sta_l2gen, 17-Apr-2014, jmm
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-26 10:41:39 -0800 (Fri, 26 Jan 2024) $
-; $LastChangedRevision: 32415 $
+; $LastChangedDate: 2024-01-28 09:46:04 -0800 (Sun, 28 Jan 2024) $
+; $LastChangedRevision: 32420 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_call_swe_l2gen.pro $
 ;-
 Pro mvn_call_swe_l2gen, time_in = time_in, $
@@ -76,7 +77,7 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
     else         : mailto = 'jimm@ssl.berkeley.edu'
   endcase
 
-  refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 1
+  refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 2
 
   allbad = 0  ; disabled for Version 5 of the SWEA L2 products, DLM 2024-01-24
 
