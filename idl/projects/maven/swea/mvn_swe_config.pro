@@ -55,8 +55,8 @@
 ;                     type : types of configuration changes (see above)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-11-07 16:01:35 -0800 (Tue, 07 Nov 2023) $
-; $LastChangedRevision: 32218 $
+; $LastChangedDate: 2024-01-29 12:19:36 -0800 (Mon, 29 Jan 2024) $
+; $LastChangedRevision: 32428 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_config.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -73,6 +73,8 @@ pro mvn_swe_config, list=list, timebar=tbar
 ; Sweep table update.  Replace tables 1 and 2 with tables 3 and 4, respectively.
 ; Tables 3 and 4 are used for all cruise data from March 19 to the MOI moratorium.
 ; See mvn_swe_sweep for definitions of all sweep tables.
+
+; ----- CRUISE DATA BEGIN: 2014-03-19 -----
 
   t_swp = time_double('2014-03-19/14:00:00')
   m_swp = 'sweep tables 3 and 4 upload'
@@ -110,6 +112,10 @@ pro mvn_swe_config, list=list, timebar=tbar
   t_mtx = [t_mtx, time_double('2014-06-30/17:09:19')]
   m_mtx = [m_mtx, 'stowed boom matrix upload #2 (correct MICD)']
 
+; ----- CRUISE DATA END: 2014-07-16 -----
+
+; ----- MOI MORATORIUM -----
+
 ; ----- MARS ORBIT INSERTION: 2014-09-22/02:24 (end of burn) -----
 
 ; EEPROM load executed on 2014-09-22.  For SWEA this included:
@@ -120,7 +126,11 @@ pro mvn_swe_config, list=list, timebar=tbar
   t_swp = [t_swp, time_double('2014-09-22')]
   m_swp = [m_swp, 'sweep tables 5 and 6 upload']
 
-; ----- First SWEA turn-on in orbit (2014-10-06/22:58:28) -----
+; First SWEA turn-on in orbit
+;   - Power on:         2014-10-06/22:58:28
+;   - MCP ramp begins:  2014-10-06/23:13:22
+;   - MCP ramp ends:    2014-10-07/00:00:30 (2500 V)
+;   - Sweep enabled:    2014-10-07/00:10:26 (first science data, center time)
 
   t_dsf = [t_dsf, time_double('2014-10-06/22:58:28')]
   m_dsf = [m_dsf, 'deflection scale factor update #3 (cosine elevation)']
@@ -141,12 +151,18 @@ pro mvn_swe_config, list=list, timebar=tbar
   t_mcp = [t_mcp, time_double('2014-10-17/02:26:41')]
   m_mcp = [m_mcp, 'MCP bias adjustment (2500 -> 2600 V)']
 
+; Comet Siding Spring encounter with Mars: 2014-10-19
+;  - ESA HV off (hunker down): 2014-10-19/16:41:36
+;  - ESA HV on: 2014-10-19/22:04:00
+;  - SWEA science data resume: 2014-10-19/23:01:40
+
   t_mcp = [t_mcp, time_double('2014-11-12/00:00:00')]
   m_mcp = [m_mcp, 'MCP bias = 2600 V (beginning of poly fit)']
 
 ; ----- SCIENCE PHASE BEGINS (2014-11-15) -----
 
 ; 2015-11-15/00:00                                     ; beginning of EM-1
+
   t_mcp = [t_mcp, time_double('2015-12-18/23:39:09')]
   m_mcp = [m_mcp, 'MCP bias adjustment (2600 -> 2700 V)']
 
@@ -164,6 +180,7 @@ pro mvn_swe_config, list=list, timebar=tbar
                                                        ; (patch reapplied on data restart)
 
 ; 2016-10-01/00:00                                     ; beginning of EM-2
+
   t_mcp = [t_mcp, time_double('2016-10-25/21:52:45')]
   m_mcp = [m_mcp, 'MCP bias adjustment (2700 -> 2750 V)']
 

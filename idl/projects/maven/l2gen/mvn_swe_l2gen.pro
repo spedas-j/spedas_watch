@@ -77,8 +77,8 @@
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-28 10:03:02 -0800 (Sun, 28 Jan 2024) $
-; $LastChangedRevision: 32421 $
+; $LastChangedDate: 2024-01-29 11:03:58 -0800 (Mon, 29 Jan 2024) $
+; $LastChangedRevision: 32427 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol2=nol2, $
@@ -149,10 +149,17 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
   tp1 = t0 + oneday
 
 ; Added to assure that pre-orbit files are not processed
-  If(t0 Lt time_double('2014-10-13')) Then Begin
-     dprint, 'Old File Date: '+time_string(d0)
-     Return
-  Endif
+;   First SWEA power-on in orbit: 2014-10-06/22:58:28
+;   First SWEA science data in orbit: 2014-10-07/00:10:26 (center time)
+;   Only instrument leads should process pre-orbit data.
+
+  user = (get_login_info()).user_name
+  authorized = (user eq 'mitchell') or (user eq 'shaosui.xu')
+
+  if ((not authorized) and (t0 lt time_double('2014-10-07'))) then begin
+    dprint, 'You are not authorized to process pre-orbit data: '+time_string(t0)
+    return
+  endif
 
   message, /info, 'PROCESSING: '+time_string(t0)
   timespan, [tm1,tp1]
