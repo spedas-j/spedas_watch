@@ -35,8 +35,8 @@
 ;    L2ONLY:        Insist on loading L2 data.  (Useful for generating PDS data.)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-03-22 16:52:00 -0700 (Mon, 22 Mar 2021) $
-; $LastChangedRevision: 29802 $
+; $LastChangedDate: 2024-01-30 09:20:12 -0800 (Tue, 30 Jan 2024) $
+; $LastChangedRevision: 32429 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_addmag.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03/18/14
@@ -98,8 +98,7 @@ pro mvn_swe_addmag, full=full, usepadmag=usepadmag, l2only=l2only
   if (maglev gt 0) then begin
     print, string(maglev,format='("Using MAG L",i1," data.")')
 
-    indx = where((mag1.x gt t_mtx[0]) and (mag1.x lt t_mtx[2]), nstow, $
-                  complement=jndx, ncomplement=ndeploy)
+    indx = where(mag1.x lt t_mtx[2], nstow, complement=jndx, ncomplement=ndeploy)
 
     if (nstow gt 0L) then begin
       print,"Using stowed boom rotation matrix for MAG1"
