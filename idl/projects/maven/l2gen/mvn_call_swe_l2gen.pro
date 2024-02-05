@@ -46,11 +46,16 @@
 ;           1 = create only if missing, 2 = create/overwrite any existing file
 ;           Default = 2, because muser is processing the latest data, and the
 ;           coverage can change with each revision.
+; kp_comp = controls processing of spacecraft potentials when calculating key
+;           parameters.  0 = ignore composite potential and use the SWE+ method,
+;           1=try to use the composite potential first; if that fails use the
+;           SWE+ method.  Default = 1.
+;
 ;HISTORY:
 ;Hacked from mvn_call_sta_l2gen, 17-Apr-2014, jmm
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-28 09:46:04 -0800 (Sun, 28 Jan 2024) $
-; $LastChangedRevision: 32420 $
+; $LastChangedDate: 2024-02-04 15:09:01 -0800 (Sun, 04 Feb 2024) $
+; $LastChangedRevision: 32437 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_call_swe_l2gen.pro $
 ;-
 Pro mvn_call_swe_l2gen, time_in = time_in, $
@@ -64,6 +69,7 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
                         no_reset_time = no_reset_time, $
                         allbad = allbad, $
                         refresh = refresh, $
+                        kp_comp=kp_comp, $
                         _extra = _extra
   
   common temp_call_swe_l2gen, load_position
@@ -78,6 +84,7 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
   endcase
 
   refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 2
+  kp_comp = (n_elements(kp_comp) gt 0) ? keyword_set(kp_comp) : 1
 
   allbad = 0  ; disabled for Version 5 of the SWEA L2 products, DLM 2024-01-24
 
@@ -265,10 +272,10 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
            Case instrk Of
               'swe': mvn_swe_l2gen, date = timei, directory = filei_dir, $
                                     l2only = l2only, refresh = refresh, $
-                                    _extra=_extra
+                                    kp_comp=kp_comp, _extra=_extra
               Else: mvn_swe_l2gen, date = timei, directory = filei_dir, $
                                     l2only = l2only, refresh = refresh, $
-                                    _extra=_extra
+                                    kp_comp=kp_comp, _extra=_extra
            Endcase
            SKIP_FILE: 
            del_data, '*'

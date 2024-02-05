@@ -57,6 +57,8 @@
 ;
 ;              Default for this procedure is 1B.
 ;
+;   KP_COMP:   Value for COMPOSITE keyword for mvn_swe_kp.
+;
 ;   REFRESH:   Action to take if a quality save file is not found.
 ;              This keyword can have one of three integer values:
 ;
@@ -77,18 +79,20 @@
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-02-01 12:17:10 -0800 (Thu, 01 Feb 2024) $
-; $LastChangedRevision: 32431 $
+; $LastChangedDate: 2024-02-04 14:55:20 -0800 (Sun, 04 Feb 2024) $
+; $LastChangedRevision: 32435 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol2=nol2, $
                    abins=abins, dbins=dbins, obins=obsin, mask_sc=mask_sc, kp_qlev=kp_qlev, $
-                   dospec=dospec, dopad=dopad, do3d=do3d, refresh=refresh, _extra=_extra
+                   dospec=dospec, dopad=dopad, do3d=do3d, refresh=refresh, kp_comp=kp_comp, $
+                   _extra=_extra
 
   @mvn_swe_com
 
   l2only = keyword_set(l2only)
   kp_qlev = (n_elements(kp_qlev) gt 0) ? byte(kp_qlev[0]) < 2B : 1B
+  kp_comp = (n_elements(kp_comp) gt 0) ? keyword_set(kp_comp) : 1
   dospec = (n_elements(dospec) gt 0) ? keyword_set(dospec) : 1
   dopad = (n_elements(dopad) gt 0) ? keyword_set(dopad) : 1
   do3d = (n_elements(do3d) gt 0) ? keyword_set(do3d) : 1
@@ -105,6 +109,8 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
     print,'Nothing to do.'
     return
   endif
+
+  master_timer = systime(/sec)
 
 ; Construct FOV masking arrays
 ;   96 solid angles X 2 boom states
@@ -293,7 +299,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
   if (dokp) then begin
     timer_start = systime(/sec)
     print,"Generating Key Parameters"
-    mvn_swe_kp, trange=[t0,tp1], l2only=l2only, qlevel=kp_qlev
+    mvn_swe_kp, trange=[t0,tp1], l2only=l2only, qlevel=kp_qlev, composite=kp_comp
     dt = systime(/sec) - timer_start
     print,dt/60D,format='("Time to process (min): ",f6.2)'
     print,""
@@ -301,7 +307,10 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
 
 ; Clean up
 
-  store_data, '*', /delete 
+  store_data, '*', /delete
+
+  dt = systime(/sec) - master_timer
+  print,dt/60D,format='(/,"Total time to process (min): ",f6.2)'
 
   return
 

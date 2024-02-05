@@ -69,6 +69,12 @@
 ;
 ;   BIAS:      Bias to add to SWEPOS potential estimates.
 ;
+;   COMPOSITE: Try to use the composite spacecraft potential first.  If that
+;              fails, then try the SWE+ method.  Default = 1 (yes).
+;
+;              Set this keyword to zero to ignore the composite potential and
+;              force a SWE+ calculation.
+;
 ;   OUTPUT_PATH: An output_path for testing, the save file will be put into 
 ;                OUTPUT_PATH/yyyy/mm/.  Directories are created as needed.
 ;                Default = root_data_dir() + 'maven/data/sci/swe/kp'.
@@ -76,8 +82,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-22 12:53:51 -0800 (Mon, 22 Jan 2024) $
-; $LastChangedRevision: 32396 $
+; $LastChangedDate: 2024-02-04 14:56:01 -0800 (Sun, 04 Feb 2024) $
+; $LastChangedRevision: 32436 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_kp.pro $
 ;
 ;-
@@ -85,13 +91,14 @@
 pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
                 mask_sc=mask_sc, mom=mom, l2only=l2only, output_path=output_path, $
                 trange=trange, qlevel=qlevel, qinterp=qinterp, bias=bias, $
-                secondary=secondary
+                composite=composite, secondary=secondary
 
   compile_opt idl2
 
   @mvn_swe_com
 
   delta_t = 1.95D/2D
+  pans = ['']
 
 ; Process inputs
 
@@ -100,6 +107,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
   qlevel = (n_elements(qlevel) gt 0) ? byte(qlevel[0]) < 2B : 1B
   dosec = (n_elements(secondary) gt 0) ? keyword_set(dosec) : 1
   bias = (n_elements(bias) gt 0) ? float(bias[0]) : 0.5
+  docomp = (n_elements(composite) gt 0) ? keyword_set(composite) : 1
 
 ; Make sure all needed data are available
 
@@ -131,6 +139,8 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
     t1 = max(mvn_swe_engy.time) > max(a2.time + delta_t)
   endif else t0 = min(time_double(trange), max=t1)
 
+  inorbit = t0 gt time_double('2014-09-22')
+
 ; Set FOV masking
 
   if (n_elements(abins) ne 16) then abins = replicate(1B, 16)
@@ -158,11 +168,14 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 
 ; Load spacecraft ephemeris (used for filtering data)
 
-  maven_orbit_tplot, /loadonly, /shadow
+  if (inorbit) then maven_orbit_tplot, /loadonly, /shadow
 
 ; Calculate the energy shape parameter
 
-  mvn_swe_shape_par, pans=pans
+  if (inorbit) then begin
+    mvn_swe_shape_par, pans=more_pans
+    pans = [pans, more_pans]
+  endif
 
 ; Calculate the spacecraft potential (LPW/SWE and SWE+ only)
 ; Don't calculate the density for negative potentials.  These
@@ -173,8 +186,17 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 ; the SWEPOS estimation and interpolate missing values from nearby
 ; reliable measurements.
 
-  mvn_scpot, comp=0, lpw=0, pospot=1, negpot=0, stapot=0, shapot=0, bias=bias, $
-             qlevel=qlevel, qinterp=qinterp
+  if (inorbit) then begin
+    ok = 0
+    if (docomp) then mvn_scpot, comp=1, nocalc=1, success=ok
+    if (not ok) then mvn_scpot, comp=0, lpw=0, pospot=1, negpot=0, stapot=0, shapot=0, $
+                                bias=bias, qlevel=qlevel, qinterp=qinterp
+  endif else begin
+    mvn_swe_sc_pot, erange=[5.5,20], potential=phi, qlevel=0
+    phi.potential += bias
+    swe_sc_pot = phi
+    mvn_swe_engy.sc_pot = swe_sc_pot.potential
+  endelse
 
   indx = where(swe_sc_pot.potential lt 0., count)
   if (count gt 0L) then begin
@@ -418,6 +440,13 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 ; If the file already exists, then try to overwrite it;
 ; otherwise, create the file, change the group to maven,
 ; and make it group writable.
+
+  indx = where(pans ne '', count)
+  if (count eq 0) then begin
+    print, "No tplot panels to save."
+    return
+  endif
+  pans = pans[indx]
 
   if (finfo.exists) then begin
     if (~file_test(fname,/write)) then begin
