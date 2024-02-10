@@ -42,9 +42,9 @@
 ;
 ;       PANS:      Returns the names of any tplot variables created.
 ;
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-07-07 10:50:18 -0700 (Fri, 07 Jul 2023) $
-; $LastChangedRevision: 31944 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2024-02-09 13:38:58 -0800 (Fri, 09 Feb 2024) $
+; $LastChangedRevision: 32442 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mvn_mars_localtime.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -54,6 +54,7 @@ pro mvn_mars_localtime, t, l, result=result, pans=pans
   @maven_orbit_common
 
 ; Get the time(s) and longitude(s) when/where local time is desired
+time = t
 
   nt = n_elements(t)
   nl = n_elements(l)
