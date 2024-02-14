@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-01-10 12:03:50 -0800 (Wed, 10 Jan 2024) $
-; $LastChangedRevision: 32353 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2024-02-13 18:05:22 -0800 (Tue, 13 Feb 2024) $
+; $LastChangedRevision: 32446 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -102,7 +102,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*hkp?_BUS_TIMEOUT_COUNTERS',colors='bgrk',labels=['memfill','telemetry','event','noise'],labflag=-1
     options,/def,'*hkp?_ADC_BASELINES',colors='bgrmcd',labels=channels,labflag=-1
     options,/def,'*hkp?_ADC_VOLTAGES',colors='bgrmc',labels=['1.5VD','3.3VD','5VD','+5.6VA','-5.6VA'],labflag=-1,constant=[0,1.5,3.3,5,-5]
-    options,/def,'*hkp?_ADC_TEMPS',colors='bgr',labels=['DAP','S1','S2'],labflag=-1
+    options,/def,'*hkp?_ADC_TEMPS',colors='bgr',labels=['DAP','Sensor 1','Sensor 2'],labflag=-1
     dacs=['CH1 thresh','CH2 thresh','CH3 thresh','Baseline','CH4 thresh','CH5 thresh','CH6 thresh','AUX2','CH1-4 pulse height','CH2-5 pulse height','CH3-6 pulse height','Bias Voltage Control']
     options,/def,'*hkp?_DAC_VALUES',panel_size=2,yrange=[0,'ffff'x],colors='bgrmmcdcbgrk',labels=dacs,labflag=-1
     options,/def,'*hkp2_DAC_VALUES',yrange=[0,300]
@@ -116,6 +116,10 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*hkp?_PULSER_DELAY_CLOCK_CYCLES',colors='bgr',labels=['0x17 Pulser1','0x18 Pulser2','0x19 Pulser3'],labflag=1
     options,/def,'*hkp?_TIMEOUTS_*US',colors='bgr',labels=['0x1D Event','0x1E Valid','0x1F Nopeak'],labflag=-1
     options,/def,'*NOISE_BITS',numbits=12,labels=reverse(['ENABLE','RES2','RES1','RES0','PERIOD7','PERIOD6','PERIOD5','PERIOD4','PERIOD3','PERIOD2','PERIOD1','PERIOD0']),psyms=1,colors=[0,1,2,6]
+    options,/def,'swfo_sc_120_INSTRUMENT_*',colors='bgrk',labels=['STIS','CCOR','MAG','SWiPS'],labflag=-1
+    options,/def,'swfo_sc_120_????_POWER_BITS',numbits=5,labels=reverse(['Power','OC Trip','OC Enable','SH Power','SH OC Trip']),psyms=1,colors=[0,1,2,6]
+    options,/def,'swfo_sc_120_MAG_POWER_BITS swfo_sc_120_SWIPS_POWER_BITS',numbits=6,labels=reverse(['Arm Power','Power','OC Trip','OC Enable','SH Power','SH OC Trip']),psyms=1,colors=[0,1,2,6]
+    options,/def,'swfo_sc_130_STIS_TEMPS',colors='br',labels=['TEMP 1','TEMP 2'],labflag=-1
     ;options,/def,'*USER_0A',labels=['BASELINE_OFFSET','NOISE_RES','NOISE_PERIOD','THRESHOLD','PULSER_HEIGHT','BIAS_PERIOD','BIAS_VOLTAGE','DIGITAL_FILTER']+'_SWEEP',psyms=1,colors=[0,1,2,6]
 
     options,'swfo_stis_*',ystyle=3
