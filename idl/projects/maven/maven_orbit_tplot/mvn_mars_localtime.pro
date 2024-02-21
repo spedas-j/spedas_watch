@@ -42,9 +42,9 @@
 ;
 ;       PANS:      Returns the names of any tplot variables created.
 ;
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2024-02-09 13:38:58 -0800 (Fri, 09 Feb 2024) $
-; $LastChangedRevision: 32442 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2024-02-20 11:27:29 -0800 (Tue, 20 Feb 2024) $
+; $LastChangedRevision: 32448 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mvn_mars_localtime.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -54,7 +54,9 @@ pro mvn_mars_localtime, t, l, result=result, pans=pans
   @maven_orbit_common
 
 ; Get the time(s) and longitude(s) when/where local time is desired
-time = t
+
+; time = t --> disabled because this can overwrite time in the common
+;              block with an unknown or undefined value
 
   nt = n_elements(t)
   nl = n_elements(l)
@@ -65,7 +67,9 @@ time = t
     return
   endif
 
-  if ((nt + nl) eq 0) then begin
+; Get times and longitudes from the maven_orbit_tplot common block
+
+  if (nt eq 0) then begin
     nt = n_elements(time)
     if (nt eq 0) then begin
       print,"You must provide time and lon arrays, or run maven_orbit_tplot first."
@@ -75,6 +79,8 @@ time = t
     tt = time
     l = lon
   endif else tt = time_double(t)
+
+; From this point on, use copies of the time (tt) and longitude (l) arrays
 
 ; Get ready to use SPICE
 
@@ -106,14 +112,14 @@ time = t
   lst = (l - slon)*(12D/180D) - 12D  ; 0 = midnight, 12 = noon
   lst -= 24D*double(floor(lst/24D))  ; wrap to 0-24 range
 
-  store_data,'lst',data={x:time, y:lst}
+  store_data,'lst',data={x:tt, y:lst}
   ylim,'lst',0,24,0
   options,'lst','yticks',4
   options,'lst','yminor',6
   options,'lst','psym',3
   options,'lst','ytitle','LST (hrs)'
   
-  store_data,'Lss',data={x:time, y:slat}
+  store_data,'Lss',data={x:tt, y:slat}
   options,'Lss','ytitle','Sub-solar!CLat (deg)'
 
   pans = ['lst', 'Lss']
