@@ -137,9 +137,9 @@
 ;          are created: one with a single merged potential and one showing
 ;          the five unmerged methods in one panel.
 ;
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-15 12:15:25 -0800 (Mon, 15 Jan 2024) $
-; $LastChangedRevision: 32370 $
+; $LastChangedBy: hara $
+; $LastChangedDate: 2024-02-23 14:47:10 -0800 (Fri, 23 Feb 2024) $
+; $LastChangedRevision: 32458 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_scpot.pro $
 ;
 ;-
@@ -147,7 +147,7 @@
 pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
                stapot=stapot, lpwpot=lpwpot, shapot=shapot, composite=composite, $
                pans=pans, nocalc=nocalc, bias=bias, qlevel=qlevel, qinterp=qinterp, $
-               success=success
+               success=success, no_server=no_server
 
   compile_opt idl2
 
@@ -178,7 +178,7 @@ pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
 
   if (size(setval,/type) ne 0) then begin
     if (size(mvn_sc_pot,/type) ne 8) then begin
-      mvn_scpot_restore, result=comp, success=ok
+        mvn_scpot_restore, result=comp, success=ok, no_server=no_server
       if (ok) then begin
         mvn_sc_pot = replicate(mvn_pot_struct, n_elements(comp.time))
         mvn_sc_pot.time = comp.time
@@ -207,7 +207,7 @@ pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
 ; Get pre-calculated composite potentials (this is the default)
 
   if (composite) then begin
-    mvn_scpot_restore, result=comp, /tplot, success=ok
+    mvn_scpot_restore, result=comp, /tplot, success=ok, no_server=no_server
     if (ok) then begin
       print,"Using SWE/LPW/STA composite potential."
       indx = where(comp.method eq -1, count)
