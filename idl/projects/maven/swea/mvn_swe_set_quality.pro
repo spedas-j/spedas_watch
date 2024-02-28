@@ -6,6 +6,18 @@
 ;  quality flags from IDL save/restore files.  Fills in QUALITY information
 ;  in the data structures.
 ;
+;  Quality flag definitions:
+;
+;      0B = Data are affected by the low-energy anomaly.  There
+;           are significant systematic errors below 28 eV.
+;      1B = Unknown because: (1) the variability is too large to 
+;           confidently identify anomalous spectra, as in the 
+;           sheath, or (2) secondary electrons mask the anomaly,
+;           as in the sheath just downstream of the bow shock.
+;      2B = Data are not affected by the low-energy anomaly.
+;           Caveat: There is increased noise around 23 eV, even 
+;           for "good" spectra.
+;
 ;USAGE:
 ;  mvn_swe_set_quality
 ;
@@ -44,8 +56,8 @@
 ;       SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-28 14:06:57 -0800 (Sun, 28 Jan 2024) $
-; $LastChangedRevision: 32422 $
+; $LastChangedDate: 2024-02-27 11:56:33 -0800 (Tue, 27 Feb 2024) $
+; $LastChangedRevision: 32460 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_set_quality.pro $
 ;
 ;CREATED BY:  David Mitchell - August 2023

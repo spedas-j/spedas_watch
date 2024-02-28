@@ -12,6 +12,18 @@
 ;  Changes to quality flags are propagated to all SWEA data types
 ;  (PAD and 3D, survey and archive) that are loaded.
 ;
+;   Quality flag definitions:
+;
+;      0B = Data are affected by the low-energy anomaly.  There
+;           are significant systematic errors below 28 eV.
+;      1B = Unknown because: (1) the variability is too large to 
+;           confidently identify anomalous spectra, as in the 
+;           sheath, or (2) secondary electrons mask the anomaly,
+;           as in the sheath just downstream of the bow shock.
+;      2B = Data are not affected by the low-energy anomaly.
+;           Caveat: There is increased noise around 23 eV, even 
+;           for "good" spectra.
+;
 ;USAGE:
 ;  mvn_swe_edit_quality
 ;
@@ -22,8 +34,8 @@
 ;       None
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-27 11:40:18 -0800 (Sat, 27 Jan 2024) $
-; $LastChangedRevision: 32419 $
+; $LastChangedDate: 2024-02-27 11:56:33 -0800 (Tue, 27 Feb 2024) $
+; $LastChangedRevision: 32460 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_edit_quality.pro $
 ;
 ;CREATED BY:  David Mitchell - January 2024
