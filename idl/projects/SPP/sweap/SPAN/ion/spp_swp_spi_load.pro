@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-01-21 21:13:42 -0800 (Sun, 21 Jan 2024) $
-; $LastChangedRevision: 32395 $
+; $LastChangedDate: 2024-02-27 18:48:49 -0800 (Tue, 27 Feb 2024) $
+; $LastChangedRevision: 32463 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/SPAN/ion/spp_swp_spi_load.pro $
 ; Created by Davin Larson 2018
 
@@ -212,24 +212,43 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
       store_data,prefix+'QUAT_SC2_TO_RTN',time,quat_sc2_to_rtn,dlim={SPICE_FRAME:'SPP_SC2',colors:'dbgr',constant:0.,labels:['Q_W','Q_X','Q_Y','Q_Z'],labflag:-1}
       store_data,prefix+'QUAT_SC2_TO_RTN_Euler_angles',time,180/!pi*quaternion_to_euler_angles(quat_sc2_to_rtn),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
       store_data,prefix+'QUAT_RTN_TO_SC2_Euler_angles',time,180/!pi*quaternion_to_euler_angles(qconj(quat_sc2_to_rtn)),dlimit={colors:'bgr',constant:0.,labels:['Roll','Pitch','Yaw'],labflag:-1,spice_frame:'SPP_SPACECRAFT'}
-      tplot_quaternion_rotate,prefix+'VEL_SC','SPP_SPACECRAFT_QROT_SPP_RTN',newname=prefix+'VEL_RTN'
-      add_data,prefix+'VEL_RTN','SPP_VEL_RTN_SUN',newname=prefix+'VEL_RTN_SUN1',/copy_dlimits
+      ;tplot_quaternion_rotate,prefix+'VEL_SC','SPP_SPACECRAFT_QROT_SPP_RTN',newname=prefix+'VEL_RTN'
+      ;add_data,prefix+'VEL_RTN','SPP_VEL_RTN_SUN',newname=prefix+'VEL_RTN_SUN1',/copy_dlimits
       vel_rtn=quaternion_rotation(vel_sc,quat_sc_to_rtn)
       store_data,prefix+'VEL_RTN',time,vel_rtn,dlim={labels:['V_R','V_T','V_N'],labflag:-1,constant:0.,colors:'bgr'}
       add_data,prefix+'VEL_RTN',prefix+'SC_VEL_RTN_SUN',newname=prefix+'VEL_RTN_SUN2',/copy_dlimits
       get_data,prefix+'SC_VEL_RTN_SUN',time,sc_vel_rtn_sun
       sc_vel_sc_sun=quaternion_rotation(sc_vel_rtn_sun,quat_rtn_to_sc)
+      sw_vel_sc_sun=quaternion_rotation([400.,0,0],quat_rtn_to_sc)
+      sw_vel_inst_sun=quaternion_rotation(sw_vel_sc_sun,quat_sc_to_inst)
       sc_vel_inst_sun=quaternion_rotation(sc_vel_sc_sun,quat_sc_to_inst)
       store_data,prefix+'SC_VEL_SC_SUN',time,sc_vel_sc_sun,dlimit={colors:'bgr',labels:['Vx','Vy','Vz'],labflag:-1,constant:0.}
       store_data,prefix+'SC_VEL_INST_SUN',time,sc_vel_inst_sun,dlimit={colors:'bgr',labels:['Vx','Vy','Vz'],labflag:-1,constant:0.}
       store_data,prefix+'SUN_VEL_INST_SC',time,-sc_vel_inst_sun,dlimit={colors:'bgr',labels:['Vx','Vy','Vz'],labflag:-1,constant:0.}
+      store_data,prefix+'SW_VEL_INST_SUN',time,sw_vel_inst_sun,dlimit={colors:'bgr',labels:['Vx','Vy','Vz'],labflag:-1,constant:0.}
+      store_data,prefix+'SW_VEL_INST_SC',time,-sc_vel_inst_sun+sw_vel_inst_sun,dlimit={colors:'bgr',labels:['Vx','Vy','Vz'],labflag:-1,constant:0.}
+      xyz_to_polar,prefix+'VEL_RTN_SUN'
+      xyz_to_polar,prefix+'SW_VEL_INST_SC',/ph_0_360
+      options,prefix+'VEL_RTN_SUN_*',colors='r'
+      options,prefix+'SW_VEL_INST_SC_*',colors='b'
+      if keyword_set(overlay) then begin
+        get_data,prefix+'VEL_RTN_SUN_mag',time,vel_rtn_sun
+        get_data,prefix+'SW_VEL_INST_SC_mag',time,sw_vel_mag
+        store_data,prefix+'NRG1',time,velocity(vel_rtn_sun,mass,/inverse),dlim={colors:'r'}
+        store_data,prefix+'NRG2',time,velocity(sw_vel_mag,mass,/inverse),dlim={colors:'b'}
+        vname_nrg = prefix+['EFLUX_VS_ENERGY','NRG0','NRG1','NRG2','NRG3']
+        vname_th  = prefix+['EFLUX_VS_THETA','VEL_INST_th','VENUS_VEL_INST_SC_th','SC_POS_INST_SUN_th','SW_VEL_INST_SC_th']
+        vname_phi = prefix+['EFLUX_VS_PHI','VEL_INST_phi','VENUS_VEL_INST_SC_phi','SC_POS_INST_SUN_phi','SW_VEL_INST_SC_phi']
+        store_data,prefix+'EFLUX_VS_ENERGY_OVL1',data = vname_nrg,dlimit={yrange:[1.,20000.],ylog:1,zlog:1,ystyle:3}
+        store_data,prefix+'EFLUX_VS_THETA_OVL1',data =vname_th ,dlimit={yrange:[-60,60],ylog:0,zlog:1,ystyle:3}
+        store_data,prefix+'EFLUX_VS_PHI_OVL1',data = vname_phi,dlimit={yrange:[-90,190],ylog:0,zlog:1,ystyle:3}
+      end
 
       if rtn_frame gt 1 then begin ;alfven speed
         if ~keyword_set(magname) then magname=prefix+'MAGF_SC'
         if keyword_set(f2_100bps) then magname='PSP_FLD_L2_F2_100bps_MAGi_Average_B_SC_nT'
-        xyz_to_polar,prefix+'VEL_SC'
-        xyz_to_polar,prefix+'VEL_SC2'
-        xyz_to_polar,prefix+'VEL_RTN_SUN'
+        ;xyz_to_polar,prefix+'VEL_SC'
+        ;xyz_to_polar,prefix+'VEL_SC2'
         xyz_to_polar,magname
         store_data,magname+'_OVL',data=magname+['_mag','']
         get_data,magname+'_mag',dat=magf
@@ -246,28 +265,31 @@ pro spp_swp_spi_load,types=types,level=level,trange=trange,no_load=no_load,tname
         options,/def,vspi_valfven[0]+'/'+vspi_valfven[1],constant=1.,yrange=[.1,10],ytitle='Alfven!CMach!CNumber',ylog=1
       endif
 
-      if rtn_frame gt 2 then begin ;venus stuff
-        spice_qrot_to_tplot,'SPP_SPACECRAFT','SPP_VSO'
-        tplot_quaternion_rotate,prefix+'VEL_SC','SPP_SPACECRAFT_QROT_SPP_VSO'
-        spice_position_to_tplot,'SPP','VENUS',frame='SPP_VSO'
-        add_data,prefix+'VEL_SC_VSO','SPP_VEL_(VENUS-SPP_VSO)',newname=prefix+'VEL_VSO_VENUS',/copy_dlimits
-        spice_qrot_to_tplot,'SPP_VSO','SPP_SPACECRAFT'
+      if rtn_frame gt 2 then begin ;venus and sun fov
+        ;spp_swp_spice,/load,/merge,/pos,/quat,/recon
+        body='SPP_SPACECRAFT'
+        spice_qrot_to_tplot,body,'SPP_VSO',check_objects=body,/force_objects,res=60.,error=.01
+        spice_qrot_to_tplot,'SPP_VSO',body,check_objects=body,/force_objects,res=60.,error=.01
+        spice_position_to_tplot,'SPP','VENUS',frame='SPP_VSO',/force_objects,res=60.
+        spice_position_to_tplot,'SPP','SUN',frame=body,check_objects=body,/force_objects,res=60.
         tplot_quaternion_rotate,'SPP_VEL_(VENUS-SPP_VSO)','SPP_VSO_QROT_SPP_SPACECRAFT'
+        tplot_quaternion_rotate,prefix+'VEL_SC','SPP_SPACECRAFT_QROT_SPP_VSO'
+        add_data,prefix+'VEL_SC_VSO','SPP_VEL_(VENUS-SPP_VSO)',newname=prefix+'VEL_VSO_VENUS',/copy_dlimits
         get_data,'SPP_VEL_(VENUS-SPP_VSO)_SPACECRAFT',time,sc_vel_sc_venus
+        get_data,'SPP_POS_(SUN-SPP_SPACECRAFT)',time,sc_pos_sc_sun
         sc_vel_inst_venus=quaternion_rotation(sc_vel_sc_venus,quat_sc_to_inst)
+        sc_pos_inst_sun=quaternion_rotation(sc_pos_sc_sun,quat_sc_to_inst)
         store_data,prefix+'SC_VEL_INST_VENUS',time,sc_vel_inst_venus,dlimit={colors:'bgr',labels:['Vx','Vy','Vz'],labflag:-1,constant:0.}
         store_data,prefix+'VENUS_VEL_INST_SC',time,-sc_vel_inst_venus,dlimit={colors:'bgr',labels:['Vx','Vy','Vz'],labflag:-1,constant:0.}
+        store_data,prefix+'SC_POS_INST_SUN',time,sc_pos_inst_sun,dlimit={colors:'bgr',labels:['X','Y','Z'],labflag:-1,constant:0.}
+        ;store_data,prefix+'SUN_POS_INST_SC',time,-sc_pos_inst_sun,dlimit={colors:'bgr',labels:['X','Y','Z'],labflag:-1,constant:0.}
         if keyword_set(overlay) then begin
           xyz_to_polar,prefix+'VENUS_VEL_INST_SC'
+          xyz_to_polar,prefix+'SC_POS_INST_SUN',/ph_0_360
           options,prefix+'VENUS_VEL_INST_SC_*',colors='r'
+          options,prefix+'SC_POS_INST_SUN_*',colors='g'
           get_data,prefix+'VENUS_VEL_INST_SC_mag',time,venus_vel_mag
-          store_data,prefix+'NRG1',time,velocity(venus_vel_mag,mass,/inverse),dlim={colors:'r'}
-          vname_nrg = prefix+['EFLUX_VS_ENERGY','NRG0','NRG1']
-          vname_th  = prefix+['EFLUX_VS_THETA','VEL_INST_th','VENUS_VEL_INST_SC_th']
-          vname_phi = prefix+['EFLUX_VS_PHI','VEL_INST_phi','VENUS_VEL_INST_SC_phi']
-          store_data,prefix+'EFLUX_VS_ENERGY_OVL1',data = vname_nrg,dlimit={yrange:[1.,20000.],ylog:1,zlog:1,ystyle:3}
-          store_data,prefix+'EFLUX_VS_THETA_OVL1',data =vname_th ,dlimit={yrange:[-60,60],ylog:0,zlog:1,ystyle:3}
-          store_data,prefix+'EFLUX_VS_PHI_OVL1',data = vname_phi,dlimit={yrange:[-90,190],ylog:0,zlog:1,ystyle:3}
+          store_data,prefix+'NRG3',time,velocity(venus_vel_mag,mass,/inverse),dlim={colors:'r'}
         endif
       endif
     endif
