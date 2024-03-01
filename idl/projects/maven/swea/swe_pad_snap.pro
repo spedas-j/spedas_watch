@@ -20,6 +20,8 @@
 ;       LASTPAD:       Named variable to hold a PAD structure at the last time
 ;                      selected.
 ;
+;       RESULT:        Named variable to hold the data used in the various plots.
+;
 ;       DDD:           If set, compare with the nearest 3D spectrum.
 ;
 ;       CENTER:        Specify the center azimuth for 3D plots.  Only works when DDD
@@ -56,6 +58,9 @@
 ;                      solid angle bin numbers (label=2).
 ;
 ;       KEEPWINS:      If set, then don't close the snapshot window(s) on exit.
+;
+;       KILLWINS:      If set, then close the snapshot window(s) on exit no matter what.
+;                      Takes precedence over KEEPWINS.
 ;
 ;       MONITOR:       Put snapshot windows in this monitor.  Monitors are numbered
 ;                      from 0 to N-1, where N is the number of monitors recognized
@@ -188,13 +193,13 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-08 16:01:43 -0800 (Mon, 08 Jan 2024) $
-; $LastChangedRevision: 32337 $
+; $LastChangedDate: 2024-02-29 15:23:31 -0800 (Thu, 29 Feb 2024) $
+; $LastChangedRevision: 32468 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
 ;-
-pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
+pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=energy, $
                   units=units, lastpad=pad, ddd=ddd, zrange=zrange, sum=sum, $
                   label=label, smo=smo, dir=dir, mask_sc=mask_sc, $
                   abins=abins, dbins=dbins, obins=obins, burst=burst, $
@@ -231,8 +236,8 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 
   swe_snap_options, get=key, /silent
   ktag = tag_names(key)
-  tlist = ['KEEPWINS','ARCHIVE','ENERGY','UNITS','DDD','ZRANGE','SUM', $
-           'LABEL','SMO','DIR','MASK_SC','ABINS','DBINS','OBINS','BURST', $
+  tlist = ['KEEPWINS','KILLWINS','ARCHIVE','ENERGY','UNITS','DDD','ZRANGE', $
+           'SUM','LABEL','SMO','DIR','MASK_SC','ABINS','DBINS','OBINS','BURST', $
            'POT','SCP','SPEC','PLOTLIMS','NORM','CENTER','PEP','RESAMPLE', $
            'HIRES','FBDATA','MONITOR','ADIABATIC','NOMID','UNCERTAINTY', $
            'NOSPEC90','SHIFTPOT','POPEN','INDSPEC','TWOPOT','XRANGE',$
@@ -256,14 +261,15 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
 ; Process keywords
 
   if (size(note,/type) ne 7) then note = ''
-  if keyword_set(archive) then aflg = 1 else aflg = 0
+  aflg = keyword_set(archive)
   if keyword_set(burst) then aflg = 1
   if (size(units,/type) ne 7) then units = 'eflux'
-  if keyword_set(energy) then sflg = 1 else sflg = 0
-  if keyword_set(keepwins) then kflg = 0 else kflg = 1
+  sflg = keyword_set(energy)
+  killwins = keyword_set(killwins)
+  kflg = ~keyword_set(keepwins) or killwins
   if not keyword_set(zrange) then zrange = 0
-  if keyword_set(ddd) then dflg = 1 else dflg = 0
-  if keyword_set(resample) then rflg = 1 else rflg = 0
+  dflg = keyword_set(ddd)
+  rflg = keyword_set(resample)
   if not keyword_set(wscale) then wscale = 1.
   if not keyword_set(cscale) then cscale = wscale
   if not keyword_set(fscale) then fscale = 1.
@@ -280,12 +286,12 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
        1 : begin
              trange2 = time_double(trange2)
              tflg = 1
-             kflg = 0
+             if (~killwins) then kflg = 0
            end
     else : begin
              trange2 = minmax(time_double(trange2))
              tflg = 1
-             kflg = 0
+             if (~killwins) then kflg = 0
            end
   endcase
 
@@ -1129,6 +1135,16 @@ pro swe_pad_snap, keepwins=keepwins, archive=archive, energy=energy, $
         zmean = mean(z[i,*],/nan)
         zi = z[i,*]/zmean
         dzi = dz[i,*]/zmean
+
+        pad_cut = {x      : reform(y[i,*])    , $
+                   dx     : abs(yhi - ylo)/2. , $
+                   y      : zi                , $
+                   dy     : dzi               , $
+                   time   : tstring           , $
+                   energy : penergy           , $
+                   units  : 'normalized'         }
+
+        str_element, result, 'pad_cut', pad_cut, /add
 
         col = [replicate(2,8), replicate(6,8)]
 ;       col = replicate(!p.color,16)
