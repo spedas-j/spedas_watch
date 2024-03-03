@@ -26,8 +26,8 @@
 ;       NOLUT:    Do not recalculate the LUT.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-05-05 13:01:49 -0700 (Thu, 05 May 2022) $
-; $LastChangedRevision: 30803 $
+; $LastChangedDate: 2024-03-02 16:18:23 -0800 (Sat, 02 Mar 2024) $
+; $LastChangedRevision: 32473 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makespec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -145,6 +145,10 @@ pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, n
     scale = replicate(1., 64) # cc
 
     mvn_swe_engy.gf /= scale
+
+; Insert the secondary electron estimate
+
+    if (max(mvn_swe_engy.bkg) lt 1e-30) then mvn_swe_secondary, mvn_swe_engy
 
 ; Electron rest mass [eV/(km/s)^2]
 
@@ -292,6 +296,10 @@ pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, n
 
   indx = where(mvn_swe_engy_arc.lut gt 6B, count)
   if (count gt 0L) then mvn_swe_engy_arc[indx].data = !values.f_nan
+
+; Insert the secondary electron estimate
+
+    mvn_swe_secondary, mvn_swe_engy_arc
 
 ; Electron rest mass [eV/(km/s)^2]
 

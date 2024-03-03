@@ -34,8 +34,8 @@
 ;                        0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-02 11:14:38 -0700 (Wed, 02 Aug 2023) $
-; $LastChangedRevision: 31975 $
+; $LastChangedDate: 2024-03-02 16:17:45 -0800 (Sat, 02 Mar 2024) $
+; $LastChangedRevision: 32472 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_get3d.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -452,6 +452,10 @@ function mvn_swe_get3d, time, archive=archive, all=all, sum=sum, units=units, bu
   scale = reform((replicate(1., 64*96) # cc), 64, 96, npts)
   
   ddd.gf /= scale
+
+; Insert an estimate for the secondary contamination
+
+  if (max(ddd.bkg) lt 1.e-30) then mvn_swe_secondary, ddd
 
 ; Sum the data.  This is done by summing raw counts corrected by deadtime
 ; and then setting dtc to unity.  Also, note that summed 3D's can be 

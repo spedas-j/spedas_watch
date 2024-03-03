@@ -33,8 +33,8 @@
 ;                        0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-02 11:14:38 -0700 (Wed, 02 Aug 2023) $
-; $LastChangedRevision: 31975 $
+; $LastChangedDate: 2024-03-02 16:17:45 -0800 (Sat, 02 Mar 2024) $
+; $LastChangedRevision: 32472 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getspec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -121,6 +121,10 @@ function mvn_swe_getspec, time, archive=archive, sum=sum, units=units, yrange=yr
   endif
 
   mvn_swe_convert_units, spec, units
+
+; Insert an estimate for secondary electron contamination
+
+  if (max(spec.bkg) lt 1.e-30) then mvn_swe_secondary, spec
 
 ; Convenient plot limits (returned via keyword)
 
