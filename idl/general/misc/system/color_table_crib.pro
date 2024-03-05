@@ -73,8 +73,8 @@
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-26 15:19:00 -0800 (Fri, 26 Jan 2024) $
-; $LastChangedRevision: 32418 $
+; $LastChangedDate: 2024-03-04 14:35:11 -0800 (Mon, 04 Mar 2024) $
+; $LastChangedRevision: 32476 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
@@ -173,6 +173,13 @@ options, var1, 'line_colors', mylines
 
 options, var1, 'color_table', -1
 options, var1, 'line_colors', -1
+
+; Set color and line style for constants.  If there are fewer colors than values, then
+; the colors are cycled as needed.  There can be only one line style per variable.
+
+options, var1, 'constant', [value0, value1, ...]
+options, var1, 'const_color', [color0, color1, ...]
+options, var1, 'const_line', linestyle
 
 end ; of crib
 ;-
