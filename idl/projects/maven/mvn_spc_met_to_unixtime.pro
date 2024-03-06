@@ -5,9 +5,9 @@
 ;see also:  "mvn_spc_unixtime_to_met" for the reverse conversion
 ; This routine is in the process of being modified to use SPICE Kernels to correct for clock drift as needed.
 ; Author: Davin Larson
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-02-27 18:54:14 -0800 (Tue, 27 Feb 2024) $
-; $LastChangedRevision: 32465 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2024-03-05 14:36:55 -0800 (Tue, 05 Mar 2024) $
+; $LastChangedRevision: 32478 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/mvn_spc_met_to_unixtime.pro $
 ;-
 function mvn_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=correct_clockdrift   ,reset=reset   ;,prelaunch = prelaunch
@@ -28,7 +28,11 @@ function mvn_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=correc
         ;tls  = mvn_spice_kernels('LSK',/load)  ; getting only the LSK file
         sclk = mvn_spice_kernels(['LSK','SCK'],/load)
         if keyword_set(sclk)  then begin
-          kernel_verified = 1
+           kernel_verified = 1
+           if n_elements(sclk) eq 2 then begin ;be sure that both tls and sclk are defined, jmm, 2024-03-05
+              tls = sclk[0]
+              sclk = sclk[1]
+           endif
         endif else begin
           kernel_verified = 0
           dprint,dlevel=2,'ICY is not installed.'
