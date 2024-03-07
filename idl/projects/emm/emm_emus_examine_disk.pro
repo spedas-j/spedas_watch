@@ -123,7 +123,8 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
                            output_directory = output_directory, $
                            disk = disk, buffer = buffer, jpeg = jpeg, $
                            dlat_output = dlat_output, l3 = l3, l2b =l2b,$
-                           roi = roi, save = save, record_by_hand = record_by_hand
+                           roi = roi, save = save, record_by_hand = record_by_hand, $
+                           mode = mode
 
   if keyword_set (wv_range) and keyword_set (emission) then message, $
      'must choose either wavelength ranges or emission features, NOT BOTH'
@@ -183,7 +184,8 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
   if keyword_set (l2b) then level = 'l2b'
   if keyword_set (l3) then level = 'l3disk'
 
-  
+;  if not keyword_set (mode)
+
   os2 = emm_file_retrieve (time_range,level = level, mode = 'os2', local_path = $
                            local_path)
 ;  print, 'OS2 complete'
@@ -192,8 +194,11 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
                                 ; print, 'OS1 complete'
   osr = emm_file_retrieve (time_range,level = level, mode = 'osr', local_path = $
                            local_path)
+  osp = emm_file_retrieve (time_range,level = level, mode = 'osp', local_path = $
+                           local_path)
                                 ;print, 'OSr complete'
-
+  staring = emm_file_retrieve (time_range,level = level, mode = 'EMU042', local_path = $
+                           local_path)
   
 ; collate the three different kinds of scans together
   all_files = ''
@@ -206,6 +211,7 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
 
  
 ; NOTE: the order of the next three if statements matters!
+; NOTE: ADD OSP!!!
   if size (os1,/type) eq 8 then begin
      all_files = [all_files,os1.directory +os1.files]
      nos1= n_elements (os1.times)
@@ -250,6 +256,39 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
      mode = [mode, replicate ('osr',nosr)]
   endif
   
+  If size (staring,/type) eq 8 then begin
+; NOTE: for now, let's not include the staring observations
+ ; if 3 eq 5 then begin
+     nstaring= n_elements (staring.times)
+     all_files = [all_files,staring.directory +staring.files]
+     add  = max (file_indices) +1
+; do the same for STARING as we did above for OS2
+     tmp_file_indices = Staring.file_indices
+     Good = where (tmp_file_indices ge 0)
+     TMP_file_indices [good] += add
+     file_indices = [[file_indices],[TMP_file_indices]]
+     times = [times, staring.times]
+     UNIX_times = [UNIX_times, Staring.UNIX_times]
+     mode = [mode, replicate ('staring',nstaring)]
+  endif
+
+  
+  If size (osp,/type) eq 8 then begin
+; NOTE: for now, let's not include the osp observations
+ ; if 3 eq 5 then begin
+     nosp= n_elements (osp.times)
+     all_files = [all_files,osp.directory +osp.files]
+     add  = max (file_indices) +1
+; do the same for OSP as we did above for OS2
+     tmp_file_indices = Osp.file_indices
+     Good = where (tmp_file_indices ge 0)
+     TMP_file_indices [good] += add
+     file_indices = [[file_indices],[TMP_file_indices]]
+     times = [times, osp.times]
+     UNIX_times = [UNIX_times, Osp.UNIX_times]
+     mode = [mode, replicate ('osp',nosp)]
+  endif
+
   if n_elements (all_files) eq 1 then begin
      print, 'No valid files for this time range!'
      return
