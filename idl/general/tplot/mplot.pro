@@ -27,6 +27,7 @@
 ;    OVERPLOT: If non-zero then data is plotted over last plot.
 ;    NOXLAB:   if non-zero then xlabel tick marks are supressed.
 ;    COLORS:   array of colors used for each curve.
+;    median_filter:  N : applies an median filter of size N prior to plotting. 
 ;    NEG_COLORS  array of colors (or string)  If defined then data is plotted twice - once with 
 ;      positive values and second time with negative values. This is useful on log plots
 ;    NOCOLOR:  do not use color when creating plot.
@@ -37,9 +38,9 @@
 ;
 ;CREATED BY:	Davin Larson
 ;FILE:  mplot.pro
-; $LastChangedBy: hara $
-; $LastChangedDate: 2023-05-17 16:09:59 -0700 (Wed, 17 May 2023) $
-; $LastChangedRevision: 31866 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-03-09 21:45:39 -0800 (Sat, 09 Mar 2024) $
+; $LastChangedRevision: 32485 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/mplot.pro $
 ;
 ;-
@@ -110,6 +111,7 @@ str_element,stuff,'charsize',value=charsize
 str_element,stuff,'charthick',value=charthick
 str_element,stuff,'axis',value=axis
 str_element,stuff,'reverse_order',rev_order
+str_element,stuff,'median_filter',median_filter
 
 extract_tags,plotstuff,stuff,/plot
 ;plotstuff = stuff
@@ -316,6 +318,7 @@ for n_=0,n_ind-1 do begin
     if n_linestyles ne 0 then linestyle = linestyles[n mod n_linestyles]
     xt = x[*,i]
     yt = y[*,n]
+    if (keyword_set(median_filter) && median_filter lt n_elements(yt)) then yt = median(yt,median_filter)
     if (keyword_set(nsmooth) && (nsmooth lt n_elements(yt))) then yt = smooth(yt,nsmooth,edge_truncate=0)
     oplot,xt,yt,color=c,nsum=nsum,linest=linestyle,_EXTRA = oplotstuff
     if isa(neg_colors) then begin

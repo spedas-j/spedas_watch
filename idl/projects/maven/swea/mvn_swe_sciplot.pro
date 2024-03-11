@@ -78,8 +78,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-20 12:16:35 -0800 (Sat, 20 Jan 2024) $
-; $LastChangedRevision: 32391 $
+; $LastChangedDate: 2024-03-10 16:31:22 -0700 (Sun, 10 Mar 2024) $
+; $LastChangedRevision: 32488 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sciplot.pro $
 ;
 ;-
@@ -168,11 +168,16 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
     endif
     zlim,pad_pan,0,2,0
     options,pad_pan,'zticks',2
+    options,pad_pan,'x_no_interp',1
+    options,pad_pan,'y_no_interp',1
+    options,pad_pad,'datagap',129D
   endif else pad_pan = 'swe_a2_280'
 
 ; Spacecraft orientation
 
   alt_pan = 'alt2'
+  mvn_attitude_bar
+  att_pan = 'mvn_att_bar'
 
   if keyword_set(sun) then begin
     mvn_sundir, frame='swe', /polar
@@ -288,10 +293,10 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
 
 ; Assemble the panels and plot
 
-  pans = [ram_pan, ndr_pan, sun_pan, alt_pan, $
-          euv_pan, swi_pan, sta_pan, mag_pan, $
-          sep_pan, lpw_pan, pad_pan, pot_pan, $
-          bst_pan, shape_pan, q_pan, engy_pan]
+  pans = [ram_pan, ndr_pan, sun_pan, alt_pan, att_pan, $
+          euv_pan, swi_pan, sta_pan, mag_pan, sep_pan, $
+          lpw_pan, pad_pan, pot_pan, bst_pan, shape_pan, $
+          q_pan, engy_pan]
 
   indx = where(pans ne '', npans)
   if (npans gt 0) then begin

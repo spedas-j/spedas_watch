@@ -146,9 +146,12 @@
 ;       ARANGE:   Altitude range (km) for plotting orbit segments.  Both inbound 
 ;                 and outbound segments are plotted.
 ;
+;       BLACK:    Force a black background for the orbit projection plots so it's
+;                 easier to see the colors.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-07-16 13:22:52 -0700 (Sun, 16 Jul 2023) $
-; $LastChangedRevision: 31955 $
+; $LastChangedDate: 2024-03-10 16:30:17 -0700 (Sun, 10 Mar 2024) $
+; $LastChangedRevision: 32487 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -272,7 +275,21 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     sites[*,8] = [ 77.500,  18.400]  ; Perserverence Rover (2021-)
     sites[*,9] = [110.318,  24.748]  ; Zhurong Rover (Tianwen-1, Jun 2021)
     if (size(slab,/type) gt 0) then dolab = keyword_set(slab) else dolab = 1
-    if (dolab) then slab = ['V1','V2','Pa','S','O','Ph','C','I','Pe','Z'] else slab = 0
+    if (dolab) then begin
+      slab = ['V1','V2','Pa','S','O','Ph','C','I','Pe','Z']
+      print,"Lander Key:"
+      print,"  V1 = Viking 1"
+      print,"  V2 = Viking 2"
+      print,"  Pa = Pathfinder"
+      print,"  S  = Spirit"
+      print,"  O  = Opportunity"
+      print,"  Ph = Phoenix"
+      print,"  C  = Curiosity"
+      print,"  I  = InSight"
+      print,"  Pe = Perserverence"
+      print,"  Z  = Zhurong"
+      print,""
+    endif else slab = 0
   endif
   ncol = n_elements(scol)
   if (ncol eq 1) then defcol = scol else defcol = 6

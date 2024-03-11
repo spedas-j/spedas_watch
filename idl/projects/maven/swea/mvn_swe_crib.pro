@@ -5,8 +5,8 @@
 ; displayed using doc_library.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-02-27 11:59:10 -0800 (Tue, 27 Feb 2024) $
-; $LastChangedRevision: 32461 $
+; $LastChangedDate: 2024-03-10 16:32:08 -0700 (Sun, 10 Mar 2024) $
+; $LastChangedRevision: 32489 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_crib.pro $
 ;--------------------------------------------------------------------
 ;
@@ -28,7 +28,7 @@ timespan, ['yyyy-mm-dd/hh:mm:ss', 'yyyy-mm-dd/hh:mm:ss']
 ;           There is more than one way to do this.  The standard
 ;           method is to use mvn_spice_kernels and/or spice_kernel_load.
 ;           I wrote a wrapper for those routines that also checks for
-;           and report any coverage gaps.
+;           and reports any coverage gaps.
 
 mvn_swe_spice_init
 
@@ -45,7 +45,7 @@ maven_orbit_tplot, /loadonly
 mvn_attitude_bar
 
 ;           After this, you can plot snapshots of the orbit in three orthogonal
-;           MSO planes.  Optionally plot the orbit in cylintrical coordinates 
+;           MSO planes.  Optionally plot the orbit in cylindrical coordinates 
 ;           (/CYL),  IAU_MARS coordinates (MARS=1 or MARS=2), etc.  Use 
 ;           doc_library to see all the options.  (Each keyword opens a separate
 ;           window.)  Press and hold the left mouse button and drag for a movie 
@@ -101,8 +101,8 @@ mvn_swe_sciplot
 mvn_scpot
 
 ;   Step 7+: Work with the data as you wish.  When you want to go to
-;            a different time span, you must repeat step 4, and possibly
-;            steps 1-3.
+;            a different time span, you must repeat steps 4-6, and
+;            possibly steps 1-3.
 
 ; ESA-SPECIFIC INFORMATION:
 
@@ -358,14 +358,15 @@ swe_snap_options, {wscale:1.4, energy:120, resample:1, norm:1, maxrerr:0.9, spec
 
 ; You can put this line into your idl_startup.pro.
 
-;
+; I WANT NUMBERS NOT PLOTS!  HOW DO I GET NUMBERS?
+
 ; Get 3D, PAD, or SPEC data at a specified time or array of times.
 ;   Use keyword ALL to get all 3D/PAD distributions bounded by
 ;   the input time array.  Use keyword SUM to average all
 ;   distributions bounded by the input time array.  Set the BURST
 ;   keyword to get burst data instead of survey data.  (You have
 ;   to load burst data first.  See above.)  Filter out known
-;   anomalous spectra.
+;   anomalous spectra using keyword QLEVEL.
 
 ddd = mvn_swe_get3d(time, units='eflux', qlevel=1)
 pad = mvn_swe_getpad(time, qlevel=1)
