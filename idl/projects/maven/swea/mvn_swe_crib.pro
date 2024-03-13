@@ -5,8 +5,8 @@
 ; displayed using doc_library.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-10 16:32:08 -0700 (Sun, 10 Mar 2024) $
-; $LastChangedRevision: 32489 $
+; $LastChangedDate: 2024-03-12 15:37:25 -0700 (Tue, 12 Mar 2024) $
+; $LastChangedRevision: 32491 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_crib.pro $
 ;--------------------------------------------------------------------
 ;
@@ -107,7 +107,9 @@ mvn_scpot
 ; ESA-SPECIFIC INFORMATION:
 
 ; Every time you work with ESA data (SWEA, SWIA, STATIC), you should ask
-; yourself: "Am I missing an important part of the distribution function?"
+; yourself:
+;
+;    AM I MISSING AN IMPORTANT PART OF THE DISTRIBUTION FUNCTION?
 ;
 ; The ESA's have blind spots in both angle and energy, so they can't
 ; measure the entire electron or ion distribution function.  The ESA's
@@ -236,9 +238,20 @@ mvn_swe_load_l2, smaller_trange, apid=['a2','a3'], /noerase ; PAD survey and bur
 ; anomaly.  This quality flag should be used as a guide, not as a definitive 
 ; indicator.  The accuracy is high enough in the solar wind and ionosphere that 
 ; routines that use quality filtering can be used to perform automated calculations 
-; with good accuracy.  For detailed work on individual events, the end user will 
-; have to exercise judgement.
+; with good accuracy.
 ;
+; For detailed work on individual events, you will have to exercise judgement.  
+; With experience, you may discover that you can identify anomalous spectra better
+; than the automated algorithm can.  You can edit quality flags with:
+
+mvn_swe_edit_quality
+
+; This is an interactive program that allows you change the quality level for 
+; individual spectra by clicking on them in a tplot window.  After this, filtering
+; will be more effective.  Use caution!  Sometimes even humans have trouble
+; confidently identifying anomalous spectra.  (Your edits will NOT be saved into 
+; the quality database.)
+
 ; As of Version 5, the SWEA L2 data include quality flags.  Quality flags are also
 ; provided when loading data from L0.  The SWEA code has been updated to recognize 
 ; and use the quality flags.  You can set the minimum quality level for processing 
@@ -274,7 +287,7 @@ mvn_ramdir, pans=pans
 ; a Maxwell-Boltzmann distribution and taking a moment over energies
 ; above the core to estimate the contribution from the halo.  Remove
 ; secondary electrons before fitting.  Filter out known anomalous
-; spectra (QUALITY = 0).
+; spectra (QLEVEL=1).
 
 mvn_swe_n1d, /mb, pans=pans, /secondary, qlevel=1
 
@@ -337,17 +350,53 @@ mvn_swe_pad_resample, nbins=128., erange=[100., 150.], /norm, /mask, $
 
 mvn_swe_pad_restore
 
-; Snapshots selected by the cursor in the tplot window
-;   Return data by keyword (ddd, pad, spec) at the last place clicked
-;   Use keyword SUM to sum data between two clicks.  (Careful with
-;   changing magnetic field.)  The structure element "var" (variance)
+; SNAPSHOTS SELECTED BY THE MOUSE IN THE TPLOT WINDOW
+
+;   Tplot variables with two independent variables (time and some other
+;   parameter) are often displayed as color spectrograms, where the Y
+;   axis is the second independent variable and color represents the
+;   dependent variable (Z).  Sometimes, the color scale does not 
+;   accurately portray the variation in Z, or it is difficult to tell
+;   whether a color gradient is significant.  For SWEA, energy spectra
+;   and pitch angle distributions are often shown in this way.
+;
+;   If you want to have a better sense of the significance of color
+;   variations, then you can use SWEA snapshot programs that display
+;   data at a particular time (or time range) as line plots with error
+;   bars.  Time averaging helps to shrink the error bars, but this
+;   comes at the cost of reduced time resolution.  For PAD data, you
+;   should be careful to average over times when the magnetic field
+;   direction remains roughly constant, to avoid pitch angle smearing.
+;
+;   IF YOU ARE GOING TO INTERPRET SOME COLOR GRADIENT IN A SPECTROGRAM,
+;   BE SURE TO LOOK AT SNAPSHOTS TO CONFIRM THE FEATURE IS SIGNIFICANT.
+;   THIS IS PARTICULARLY IMPORTANT FOR PAD SPECTROGRAMS.
+;
+;   You can return data by keyword (ddd, pad, spec) at the last place
+;   clicked.  Use keyword SUM to sum data between two clicks.  (Careful
+;   with changing magnetic field.)  The structure element var (variance)
 ;   keeps track of counting statistics, including digitization noise.
+;   Remove secondary electron contamination with keyword SECONDARY.
 ;   Set the BURST keyword to show burst data instead of survey data.
-;   Filter out known anomalous spectra.
+;   Filter out known anomalous spectra with keyword QLEVEL.
 
 swe_engy_snap, /mom, /fixy, /secondary, spec=spec, qlevel=1
 swe_pad_snap, energy=120, /secondary, pad=pad, qlevel=1
 swe_3d_snap, /spec, /symdir, energy=120, ddd=ddd, smo=[5,1,1], qlevel=1
+
+; For the PAD snapshots, setting keyword ENERGY produces a cut of the 
+; energy-pitch angle data at the specified energy.  You will see two 
+; groups of "plus" symbols, where the horizontal error bar shows the 
+; pitch angle range spanned by the bin, and the vertical error bar shows
+; the statistical uncertainty.  There are two groups of symbols because
+; SWEA measures the 0-180-deg pitch angle distribution twice, once for 
+; each half of the detector.  This way you can check for the statistical
+; significance of pitch angle features, and you can verify gyrotropy.  For
+; electrons, angular distributions in the plasma frame are nearly always
+; gyrotropic, meaning that the flux is constant as a function of 
+; gyro-phase.  If you think you've discovered non-gyrotropic electrons or
+; some never-before-seen pitch angle distribution, then you're probably 
+; looking at an instrumental effect.  Please contact us (see below).
 
 ; Tired of remembering and setting all of the keywords for the SWEA
 ; snapshot programs?  You can set defaults that remain active for
@@ -356,7 +405,14 @@ swe_3d_snap, /spec, /symdir, energy=120, ddd=ddd, smo=[5,1,1], qlevel=1
 swe_snap_options, {wscale:1.4, energy:120, resample:1, norm:1, maxrerr:0.9, spec:45, dir:1}, $
    /replace, /silent
 
-; You can put this line into your idl_startup.pro.
+; You can put this line into your idl_startup.pro to set up custom defaults
+; for yourself.
+
+; There is a generic tplot snapshot program with less functionality, but it
+; works on any tplot variable with two independent variables (time and some 
+; other parameter) and one dependent variable.
+
+tsnap, var, [keyword=value, ...]
 
 ; I WANT NUMBERS NOT PLOTS!  HOW DO I GET NUMBERS?
 
@@ -399,20 +455,21 @@ swe_pad_snap, energy=130, /secondary, pad=pad, /shiftpot, qlevel=1
 swe_3d_snap, /spec, /symdir, energy=130, ddd=ddd, smo=[5,1,1], /shiftpot, qlevel=1
 
 ;
-; Visualizing the orbit and spacecraft location over the mission.
+; VISUALIZING THE ORBIT AND SPACECRAFT LOCATION OVER THE MISSION.
 ;
 ; Load the spacecraft ephemeris from MOI to the current date plus
 ; a few weeks into the future.  Uses reconstructed ephemeris data
 ; as much as possible, then predicts as far as NAIF provides them.
 ; Use the LOADONLY keyword to load the ephemeris into TPLOT without
-; resetting the time range.
+; resetting the time range.  Warning: this routine will reinitialize
+; SPICE, so you should do it in a separate instance of IDL.
 ;
 ; Ephemeris data are updated daily at 3:30 am Pacific.
 
 maven_orbit_tplot, /mission, /loadonly
 
 ;
-; Visualizing the orbit far into the future.
+; VISUALIZING THE ORBIT FAR INTO THE FUTURE.
 ;
 ; Ephemeris predicts are available that extend to the nominal end
 ; of mission at the end of 2031.  This is useful for long-range
@@ -429,3 +486,26 @@ maven_orbit_predict
 ; orbit maintainence maneuvers that may or may not occur as planned.
 ; Inability to predict the atmospheric density is the main source
 ; of uncertainty.
+
+;
+; I HAVE QUESTIONS AND/OR I NEED HELP WITH ....
+;
+; If you have questions about the instrument or how to work with and
+; interpret SWEA data, please contact us:
+;
+;   Dave Mitchell - SWEA Lead        - davem@berkeley.edu
+;   Shaosui Xu    - SWEA Deputy Lead - shaosui.xu@berkeley.edu
+;
+; Before contacting us, please read over this crib sheet first.  Answers
+; to some questions about SWEA IDL software can be found using doc_library,
+; as described above.  If you're still stuck, send us an email.  If you're
+; at SSL, feel free to stop by.
+
+; If any of the SWEA IDL code crashes or otherwise causes problems, then 
+; send us an email.  It is very helpful to cut and paste details of the 
+; IDL session into your email -- the commands that lead up to the problem,
+; along with any output and error messages that result.  It's ideal if you
+; can recreate the problem from a fresh instance of IDL.  If we can 
+; reproduce the problem, we are much more likely to be able to fix it.
+; If we can't reproduce the problem, that points to a configuration issue.
+; Either way, we get to the bottom of your issue faster.

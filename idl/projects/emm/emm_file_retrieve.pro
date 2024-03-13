@@ -232,8 +232,7 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
 
   big_swath_number = 0b
   big_swaths_per_set = 0b
-  
-  
+
   for i = 0, nd-1 do begin
      directory = Local_path+instrument + '/' + level + '/' + $
                  mode + '/' + year_strings [i] + '/' + $
@@ -270,7 +269,7 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
         date_string[k] = temp [3]
         swath_string [k] = temp [6]
 ; these two types of OS always have just one swath
-        if mode eq 'osr' or mode eq 'EMU035' then begin
+        if mode eq 'osr' or mode eq 'EMU035' or mode eq 'EMU042' or mode eq 'osp' then begin
            swath_number [k] = 1 
            swaths_per_set [k] = 1
 ; other types of OS have more than one swath
@@ -345,8 +344,6 @@ function emm_file_retrieve, time_range, level = level, mode = mode, $
   good_years = big_year_string [order]
   good_months = big_month_string [order]
   good_directory = big_directory [order]
-
-  
   
 ; now go through the files in order and set the file indices  
   ng = n_elements (good_files)

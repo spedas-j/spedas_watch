@@ -1,10 +1,22 @@
 ;+
 ;PROCEDURE:   tsnap
 ;PURPOSE:
-;  Plots snapshots of a 2-D tplot variable across the second dimension
-;  at the selected time.  Unless keyword SUM is set, you can hold down
-;  the left mouse button and drag for a movie effect.  Click the right
-;  mouse button at any time to exit.
+;  Tplot variables with two independent variables (time and some other
+;  parameter) are often displayed as color spectrograms, where the Y
+;  axis is the second independent variable and color represents the
+;  dependent variable (Z).  Sometimes, the color scale does not 
+;  accurately portray the variation in Z, or it is difficult to tell
+;  whether a color gradient is significant.
+;
+;  This routine plots cuts of color spectrograms across the second
+;  independent variable at time(s) selected by the mouse.  You can plot
+;  error bars if DY is provided as a tag in the tplot variable structure.
+;  This procedure can average in time (and propagate errors) to improve
+;  statistics.
+;
+;  Unless keyword SUM is set, you can hold down the left mouse button 
+;  and drag for a movie effect.  Click the right mouse button at any time
+;  to exit.
 ;
 ;USAGE:
 ;  tsnap, var
@@ -13,10 +25,10 @@
 ;       var:    Tplot variable name or number.  If not specified, determine
 ;               based on which panel the mouse is in when clicked.
 ;
-;               If specified, this must be a 2-D variable (time and some 
-;               other parameter).  This cannot be a compound variable 
-;               (list of variables to be plotted in the same panel).  You 
-;               must specify which variable within the list.
+;               If specified, this must have two independent variables
+;               (time and some other parameter).  This cannot be a compound
+;               variable (list of variables to be plotted in the same panel).
+;               You must specify which variable within the list.
 ;
 ;KEYWORDS:
 ;       NAVG:   Number of times to average centered on the selected time.
@@ -49,13 +61,13 @@
 ;
 ;                      {KEYWORD: value, KEYWORD: value, ...}
 ;
-;               This allows you to gather keywords into a single variable and
+;               This allows you to gather keywords into a single structure and
 ;               use them multiple times without a lot of typing.  In case of 
 ;               conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-10 16:28:15 -0700 (Sun, 10 Mar 2024) $
-; $LastChangedRevision: 32486 $
+; $LastChangedDate: 2024-03-12 15:41:13 -0700 (Tue, 12 Mar 2024) $
+; $LastChangedRevision: 32492 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/tsnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -205,9 +217,7 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
       if (err) then dy = reform(dat.dy[min(i):max(i),*])
     endelse
 
-    ysz = size(y)
-    if (ysz[0] eq 2) then begin
-      n = (size(y))[1]
+    if ((size(y))[0] eq 2) then begin
       nrm = y
       nrm[*] = 1.
       bndx = where(~finite(y), count)
