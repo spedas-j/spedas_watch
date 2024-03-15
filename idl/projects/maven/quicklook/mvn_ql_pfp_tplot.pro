@@ -64,8 +64,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-03-13 11:38:28 -0700 (Wed, 13 Mar 2024) $
-; $LastChangedRevision: 32493 $
+; $LastChangedDate: 2024-03-14 13:06:27 -0700 (Thu, 14 Mar 2024) $
+; $LastChangedRevision: 32496 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/quicklook/mvn_ql_pfp_tplot.pro $
 ;
 ;-
@@ -149,7 +149,7 @@ PRO mvn_ql_pfp_tplot, var, orbit=orbit, verbose=verbose, no_delete=no_delete, no
 
   ; SWEA
   IF (eflg) THEN BEGIN
-     mvn_swe_load_l2, trange, prod=['svypad','svyspec'] 
+     mvn_swe_load_l2, trange, prod=['svypad','svyspec'], spiceinit=1 ;jmm, 2024-03-14
      status = EXECUTE("mvn_swe_engy = SCOPE_VARFETCH('mvn_swe_engy', common='swe_dat')")
      IF (SIZE(mvn_swe_engy, /type) NE 8) THEN BEGIN
         dprint, 'No SWEA data found.', verbose=verbose, dlevel=2

@@ -78,8 +78,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-10 16:31:22 -0700 (Sun, 10 Mar 2024) $
-; $LastChangedRevision: 32488 $
+; $LastChangedDate: 2024-03-14 08:00:09 -0700 (Thu, 14 Mar 2024) $
+; $LastChangedRevision: 32494 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sciplot.pro $
 ;
 ;-
@@ -170,7 +170,7 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
     options,pad_pan,'zticks',2
     options,pad_pan,'x_no_interp',1
     options,pad_pan,'y_no_interp',1
-    options,pad_pad,'datagap',129D
+    options,pad_pan,'datagap',129D
   endif else pad_pan = 'swe_a2_280'
 
 ; Spacecraft orientation
