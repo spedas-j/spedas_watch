@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-02-13 18:05:22 -0800 (Tue, 13 Feb 2024) $
-; $LastChangedRevision: 32446 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+; $LastChangedRevision: 32498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -151,6 +151,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'TV' : tplot,add=add,'*hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *sci_RATE6 *hkp2*EXECUTED2
     'PS':tplot,add=add,'PS_*'
     'CPT':tplot,add=add,'*_DAC* *FREQ *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*EXECUTED2
+    'SC':tplot,add=add,'swfo_sc_130_STIS_INTERFACE_TEMP swfo_sc_130_STIS_TEMPS swfo_sc_120_STIS_POWER_BITS swfo_sc_120_CCOR_POWER_BITS swfo_sc_120_MAG_POWER_BITS swfo_sc_120_SWIPS_POWER_BITS swfo_sc_100_SEQN swfo_sc_120_INSTRUMENT_CURRENT_AMPS'
     else: dprint,'Unknown code: '+strtrim(name,2)
   endcase
 

@@ -1,8 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-01-03 22:37:44 -0800 (Wed, 03 Jan 2024) $
-; $LastChangedRevision: 32333 $
+; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+; $LastChangedRevision: 32498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_response_simflux_plot.pro $
-; $Id: swfo_stis_response_simflux_plot.pro 32333 2024-01-04 06:37:44Z davin-mac $
+; $Id: swfo_stis_response_simflux_plot.pro 32498 2024-03-20 17:09:28Z davin-mac $
 
 
 
@@ -14,7 +14,8 @@ pro swfo_stis_response_simflux_plot,resp,rate=rate,overplot=over,lim=lim,name_ma
 
   calval = swfo_stis_inst_response_calval()
 
-  lim= dictionary('xrange',[1,1e6],'xlog',1,'yrange',[1e-6,1e4],'ylog',1,'ystyle',1)
+;  lim= dictionary('xrange',[1,1e10],'xlog',1,'yrange',[1e-10,1e4],'ylog',1,'ystyle',1,'xstyle',1)
+  lim= dictionary('xrange',[1,1e8],'xlog',1,'yrange',[1e-10,1e4],'ylog',1,'ystyle',1,'xstyle',1)
   
   minflux = lim.yrange[0] *1.5
   

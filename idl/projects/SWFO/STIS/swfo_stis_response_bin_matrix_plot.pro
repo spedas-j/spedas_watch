@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-17 15:01:15 -0800 (Sun, 17 Dec 2023) $
-; $LastChangedRevision: 32298 $
+; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+; $LastChangedRevision: 32498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_response_bin_matrix_plot.pro $
 ; $ID: $
 
@@ -26,7 +26,7 @@ pro swfo_stis_response_bin_matrix_plot,r,window=win,face=face,transpose=transpos
   str_element,r,'fdesc',subtitle
   if keyword_set(transpose) then begin
     options,lim,ylog=1,xrange=bin_range,yrange=ei_range,/xstyle,/ystyle,xmargin=[10,10],zlog=zlog,zrange=zrange,/no_interp,ytitle='Incident Energy (keV)',xtitle='Bin Number',title=title
-    if keyword_set(win) then     wi,win,wsize=[1200,500] ;,/show,icon=0
+    if keyword_set(win) then     wi,win,wsize=[1100,500] ;,/show,icon=0
     x = indgen(nbins)
     y = r.e_inc
     z = transpose(z)

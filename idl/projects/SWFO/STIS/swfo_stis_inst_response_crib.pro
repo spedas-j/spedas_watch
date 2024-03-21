@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-01-03 22:37:44 -0800 (Wed, 03 Jan 2024) $
-; $LastChangedRevision: 32333 $
+; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+; $LastChangedRevision: 32498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_crib.pro $
 ; $ID: $
 
@@ -1210,23 +1210,38 @@ peak.g.s= 300
 
 if ~keyword_set(energy) || 1 then begin
   energy = dgen(/log,range=[1.,1e6],6*4+1)
+  energy = dgen(/log,range=[1.,1e14],14*4+1)
 
   pow = -1.6
   ;pow = -2
-  flux = 1e7 * energy^ pow
+  flux_max = 1.01e7 * energy^ pow
 
-  ;flux = 2.5e2 * energy^ pow
-  flux = 2.5e4 * energy^ pow
-  w = where(energy ge 5e3)
-  flux[w] = flux[w] / 10.
+  flux_min = 2.48e2 * energy^ pow
+  flux_mid = 5.e4 * energy^ pow
+  ;flux = 2.5e4 * energy^ pow
+  w = where(energy gt 1e4)
+  ;flux[w] = flux[w] * 100.
   pwlin =1
+  flux = flux_mid
 endif
 
 
 
-p_flux = flux
-e_flux = flux   /10000
+if 1 then begin
+  flux_cosmicray =  10^1.5 *( (energy/1e7) ^ (-2.667)  )   ;(m2 -st -s Gev)-1
+  flux_cosmicray = flux_cosmicray < 10^ 3.2
+  flux_cosmicray    /=  1e10   ; (cm2 -st -s kev)-1
+  cray_cutoff = 1e5
+  flux_cosmicray[ where(energy lt cray_cutoff) ] = 0
+  
+endif
+
+
+
+p_flux = flux   + flux_cosmicray
+e_flux = flux   /1.5
 a_flux = p_flux /40
+;cr_flux = flux_cosmicray
 
 
 p_func_true = spline_fit3(!null,energy,p_flux,/xlog,/ylog,pwlin=pwlin)
@@ -1274,16 +1289,19 @@ oplot,e_rate_true,color=2
 ;swfo_stis_response_rate2flux,e_rate,p_resp,method=method
 ;swfo_stis_response_rate2flux,t_rate,p_resp,method=method
 
-wi,win++,/show
+wi,win++ ,/show
 
 swfo_stis_response_simflux_plot,flux_func = flux_func_true
 swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',color=0
-;swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
-;swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
+swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
+swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
 
-swfo_stis_response_simflux_plot,e_resp,rate=t_rate_true,   /over, name = 'F-3',color=0
-;swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6
-;swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2
+swfo_stis_response_simflux_plot,e_resp,rate=t_rate_true,   /over, name = 'F-3',color=0;,psym=2
+swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6;,psym=2
+swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2;,psym=2
+
+oplot,energy,flux_min
+oplot,energy,flux_max
 
 
 w_p = where(/null,p_resp.bmap.name eq 'O-3' and finite(p_resp.bmap.E0_inc) )
@@ -1305,7 +1323,7 @@ e_func_recon = spline_fit3(!null,e_energy_recon, .1 * e_energy_recon ^ (-2)  ,/x
 
 flux_func_recon = swfo_stis_response_func(eflux_func = e_func_recon,pflux_func=p_func_recon)
 
-swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
+;swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
 
 
 
@@ -1317,16 +1335,18 @@ oplot,t_rate_true
 oplot,p_rate_true ,color=6
 oplot,e_rate_true,color=2
 
-t_rate_recon = func(param=flux_func_recon,0)
-oplot,t_rate_recon > 1e-5,color = 4
+if 0 then begin
+  
+  t_rate_recon = func(param=flux_func_recon,0)
+  oplot,t_rate_recon > 1e-5,color = 4
 
 
 
-fit,0,rate_t ,param = flux_func_recon,/logfit,names = 'pflux.ys[1,2,3]
+  fit,0,rate_t ,param = flux_func_recon,/logfit,names = 'pflux.ys[1,2,3]
 
-t_rate_recon = func(param=flux_func_recon,0)
-oplot,t_rate_recon > 1e-5,color = 3
-
+  t_rate_recon = func(param=flux_func_recon,0)
+  oplot,t_rate_recon > 1e-5,color = 3
+endif
 
 wi,win++,/show
 
@@ -1339,7 +1359,7 @@ swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',c
 ;swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6
 ;swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2
 
-swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
+;swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
 
 
 
@@ -1397,6 +1417,19 @@ if 0 then begin
   swfo_stis_response_plots,     e_resp  ,window=win   ;    simstat_e,data_e,filter=f, response = e_resp
   swfo_stis_response_plots,     a_resp  ,window=win   ;    simstat_e,data_e,filter=f, response = e_resp
 
+endif
+
+
+if 0 then begin
+  ;mi = calval.responses['Proton'].mde
+  ;me = calval.responses['Electron'].mde
+  wi,win++,/wshow
+  ei = p_resp.e_inc
+  b = p_resp.bin_val
+  p_mde = p_resp.mde+.1
+  e_mde = e_resp.mde+.1
+  limit={xlog:1,zlog:1,xmargin:[20,20],zrange:[1e-4,1e4],yrange:[0,680],ystyle:1}
+  specplot,ei,b,e_mde/p_mde,limit=limit
 endif
 
 

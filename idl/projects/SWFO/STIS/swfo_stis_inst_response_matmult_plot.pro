@@ -101,7 +101,7 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
   dprint
   test = 1
   if test eq 1 then begin
-    delta_time = 30
+    delta_time = 300
     lim4 = lim0
     ylim,lim4,.1,1000,1
     options,lim4,ytitle = 'Error ',title='Error (dT = '+strtrim(delta_time,2)+' Seconds)'

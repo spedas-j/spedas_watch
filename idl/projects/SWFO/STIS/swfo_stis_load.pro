@@ -1,6 +1,6 @@
-;$LastChangedBy: ali $
-;$LastChangedDate: 2024-01-10 19:12:00 -0800 (Wed, 10 Jan 2024) $
-;$LastChangedRevision: 32359 $
+;$LastChangedBy: davin-mac $
+;$LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+;$LastChangedRevision: 32498 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -39,6 +39,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'S1':     opts.host = 'swifgse1.ssl.berkeley.edu'
       'S2':     opts.host = 'hermroute3.ssl.berkeley.edu'
       'S3':     opts.host = 'swifroute2.ssl.berkeley.edu'
+      'cleantent': opts.host = 'snout2router.ssl.berkeley.edu'
       'Ball-BAT' :  opts.host = '136.152.31.185'
       ;'Ball' :  opts.host = '136.152.17.167'
       'Ball' :  opts.host = '136.152.31.195'
@@ -46,7 +47,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
     
 
     ss_type = opts.station+'/'+opts.file_type
-    case ss_type of
+    case ss_type of 
       'Ball-BAT/cmblk': begin
         opts.port       = 2225
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
@@ -160,6 +161,11 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         res = strtrim(fix(ncdf_resolution),2)   ; '1800'
         level = 'L0B'
       end
+      'cleantent/ptp': begin
+      opts.port =       22628
+      opts.reldir     = 'swx/s\st/prelaunch/realtime/'
+      opts.fileformat = 'cleantent/ptp_reader/YYYY/MM/DD/ptp_reader_YYYYMMDD_hh.dat'
+      end
       else: begin
         dprint,'Undefined: '+ss_type
         opts.port = 0
@@ -247,13 +253,33 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         
       end
       'ptp': begin
-        dprint,dlevel=0, 'Warning:  This file type is Obsolete and the code is not tested;
-        if opts.haskey('filenames') then begin
-          swfo_ptp_file_read,opts.filenames,file_type=opts.file_type  ;,/no_clear
-        endif
-        swfo_apdat_info,/all,/rt_flag
-        swfo_apdat_info,/all,/print
-        swfo_recorder,port=opts.port, host=opts.host, exec_proc='swfo_gsemsg_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d
+        
+        if 0 then begin
+          rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_Ball_cmblk')
+          opts.rdr = rdr
+          if opts.haskey('filenames') then begin
+            if keyword_set(test) then begin
+              hs = rdr.get_handlers()
+              foreach h , hs do begin
+                h.exec_proc=0
+              endforeach
+            endif
+
+            rdr.file_read, opts.filenames        ; Load in the files
+          endif
+          swfo_apdat_info,/all,/create_tplot_vars
+          tplot_options,title='Real Time (PTP)'
+          
+        endif else begin
+          dprint,dlevel=0, 'Warning:  This file type is Obsolete and the code is not tested;
+          if opts.haskey('filenames') then begin
+            opts.file_type = 'ptp_file'
+            swfo_ptp_file_read,opts.filenames,file_type=opts.file_type  ;,/no_clear
+          endif
+          swfo_apdat_info,/all,/rt_flag
+          swfo_apdat_info,/all,/print
+          swfo_recorder,port=opts.port, host=opts.host, exec_proc='swfo_gsemsg_lun_read',destination=opts.fileformat,directory=directory,set_file_timeres=3600d          
+        endelse
       end
       'cmblk': begin        
         rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_Ball_cmblk')

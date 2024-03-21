@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-10 22:27:01 -0800 (Fri, 10 Nov 2023) $
-; $LastChangedRevision: 32230 $
+; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+; $LastChangedRevision: 32498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -293,6 +293,28 @@ function DynamicArray::sample,nearest=nearest,range=range,tagname=tagname
   endif else vals = (*self.ptr_array)[0:self.size-1,*,*,*]
   return,vals
 end
+
+
+
+pro DynamicArray::sort   , tagname       ; Use with caution
+  if isa(tagname,/string) && isa(*self.ptr_array,/struct) then begin
+    if strlowcase(tagname) ne 'time' then message,'Can only sort on time for now.'
+
+    ;v = ((*self.ptr_array)[0: self.size-1] ).time
+    v = (*self.ptr_array).time
+    v = v[0:self.size-1]
+
+  endif else begin
+    v = (*self.ptr_array)[0: self.size-1] 
+  endelse
+  s= sort( v )
+  *self.ptr_array[0:self.size-1]  = (*self.ptr_array)[s]
+
+
+end
+
+
+
 
 
 PRO DynamicArray::GetProperty, array=array, size=size, ptr=ptr, name=name  ,  typestring=typestring, dictionary=dict

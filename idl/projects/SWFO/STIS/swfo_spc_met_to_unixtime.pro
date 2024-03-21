@@ -8,8 +8,8 @@
 ; This routine is in the process of being modified to use SPICE Kernels to correct for clock drift as needed.
 ; Author: Davin Larson
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2022-01-08 18:24:07 -0800 (Sat, 08 Jan 2022) $
-; $LastChangedRevision: 30508 $
+; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+; $LastChangedRevision: 32498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_spc_met_to_unixtime.pro $
 ;-
 function swfo_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=correct_clockdrift,reset=reset,ephemeris_time=et,kernels=kernels  ;,prelaunch = prelaunch
@@ -67,6 +67,7 @@ function swfo_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=corre
     if ~keyword_set(cor_clkdrift)  then begin
       ut = time_double(unixtime)
       met = ut - epoch 
+;      printdat,time_string(met)
       return,met
     endif else begin
       dprint,'Using cspice',dlevel=3
@@ -83,6 +84,8 @@ function swfo_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=corre
     message   ; this should never occur
     return,met
   endif
+  
+  ;dprint,'hello
 
   met = input
   last_met = met
@@ -103,6 +106,7 @@ function swfo_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=corre
   endelse
 
 ;  kernels=[tls,sclk]
+;dprint,time_string(unixtime)
   return,unixtime
 end
 

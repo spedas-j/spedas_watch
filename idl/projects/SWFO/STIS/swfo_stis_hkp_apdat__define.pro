@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-01-11 15:08:16 -0800 (Thu, 11 Jan 2024) $
-; $LastChangedRevision: 32360 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+; $LastChangedRevision: 32498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hkp_apdat__define.pro $
 
 
@@ -22,7 +22,7 @@ function swfo_stis_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,
   endif
 
   if ccsds.time lt time_double('2021-1-1') then begin
-    dprint,'Invalid CCSDS time.  should be Ignoring Packet', dwait = 1.
+    dprint,'Invalid CCSDS time.  should be Ignoring Packet', dwait = 20.
     ;return,!null
   endif
 

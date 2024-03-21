@@ -1,22 +1,28 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2022-08-05 15:10:39 -0700 (Fri, 05 Aug 2022) $
-; $LastChangedRevision: 30999 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
+; $LastChangedRevision: 32498 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_create.pro $
 ; $ID: $
 
 
-pro swfo_ncdf_create,dat,filename=ncdf_filename,verbose=verbose
+pro swfo_ncdf_create,dat,filename=ncdf_filename,verbose=verbose,global_atts=global_atts
+
+  if keyword_set(global_atts) then begin
+    gkeys = global_atts.keys()
+  endif
 
   if ~isa(dat,'struct') then begin
     dprint,dlevel=1,verbose=verbose,'No data structure provided to save into file: '+ncdf_filename
     return
-  endif
+  endif else begin
+    dat0=dat[0]
+    tags = tag_names(dat0)
+  endelse
 
   file_mkdir2,file_dirname(ncdf_filename)
   id =  ncdf_create(ncdf_filename,/clobber,/netcdf4_format)  ;,/netcdf4_format
 
   tid = ncdf_dimdef(id, 'DIM_TIME', /unlimited)
-  dat0=dat[0]
   types = hash()
   types[1] = 'byte'
   types[2] = 'short'
@@ -35,7 +41,6 @@ pro swfo_ncdf_create,dat,filename=ncdf_filename,verbose=verbose
     types[15] = 'int64'
   endif
 
-  tags = tag_names(dat0)
   for i=0,n_elements(tags)-1 do begin
     dd = size(/struct,dat0.(i) )
     type_struct=create_struct(types[dd.type],1)
