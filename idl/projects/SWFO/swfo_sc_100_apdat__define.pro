@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-02-13 18:05:22 -0800 (Tue, 13 Feb 2024) $
-; $LastChangedRevision: 32446 $
+; $LastChangedDate: 2024-03-25 18:21:29 -0700 (Mon, 25 Mar 2024) $
+; $LastChangedRevision: 32505 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_100_apdat__define.pro $
 
 
@@ -30,6 +30,15 @@ function swfo_sc_100_apdat::decom,ccsds,source_dict=source_dict
     tmon_234_enabled_armed_triggered: swfo_data_select(ccsds_data,366*8+2, 3),$
     tmon_235_enabled_armed_triggered: swfo_data_select(ccsds_data,366*8+5, 3),$
     tmon_236_enabled_armed_triggered: swfo_data_select(ccsds_data,367*8  , 3),$
+    sband_downlink_rate:              swfo_data_select(ccsds_data,405*8  ,32),$
+    fsw_power_management_bits:        swfo_data_select(ccsds_data,245*8  , 6),$
+    battery_current_amps:             double(reverse(swfo_data_select(ccsds_data,(246+indgen(8))*8  ,8)),0),$
+    battery_temperature_c:            double(reverse(swfo_data_select(ccsds_data,(254+indgen(8))*8  ,8)),0),$
+    battery_voltage_v:                double(reverse(swfo_data_select(ccsds_data,(262+indgen(8))*8  ,8)),0),$
+    reaction_wheel_overspeed_fault_bits:swfo_data_select(ccsds_data,384*8  , 8),$
+    reaction_wheel_torque_command:    reverse(double(reverse(swfo_data_select(ccsds_data,[45+indgen(8*3),376+indgen(8)]*8,8)),0,4)),$
+    reaction_wheel_speed_rpm:         9.5493*reverse(double(reverse(swfo_data_select(ccsds_data,(429+indgen(8*4))*8,8)),0,4)),$
+    ;reaction_wheel_speed_raw:         swfo_data_select(ccsds_data,[429,437,445,453]*8  ,64),$
     gap:ccsds.gap }
 
   return,datastr
