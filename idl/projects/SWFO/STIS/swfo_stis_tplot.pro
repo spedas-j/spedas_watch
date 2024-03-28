@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-03-25 18:21:40 -0700 (Mon, 25 Mar 2024) $
-; $LastChangedRevision: 32506 $
+; $LastChangedDate: 2024-03-26 19:02:16 -0700 (Tue, 26 Mar 2024) $
+; $LastChangedRevision: 32509 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -118,12 +118,16 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*NOISE_BITS',numbits=12,labels=reverse(['ENABLE','RES2','RES1','RES0','PERIOD7','PERIOD6','PERIOD5','PERIOD4','PERIOD3','PERIOD2','PERIOD1','PERIOD0']),colors=[0,1,2,6]
     options,/def,'swfo_sc_120_INSTRUMENT_*',colors='bgrk',labels=['STIS','CCOR','MAG','SWiPS'],labflag=-1
     options,/def,'swfo_sc_1?0_REACTION_WHEEL_*',colors='bgrk',labels=['1','2','3','4'],labflag=-1
+    options,/def,'swfo_sc_100_REACTION_WHEEL_OVERSPEED_FAULT_BITS',colors='krgb',labels=reverse(['O1','O2','O3','O4','F1','F2','F3','F4'])
+    options,/def,'swfo_sc_120_REACTION_WHEEL_POWER_BITS',numbits=4
+    options,/def,'swfo_sc_100_FSW_POWER_MANAGEMENT_BITS',colors='rgb',labels=reverse(['Battery OverTemp Enable','OverVoltage Enable','UnderVoltage Enable','Battery OverTemp Latched','Overvoltage Latched','UnderVoltage Latched']),numbits=6
+    options,/def,'swfo_sc_120_SUBSYSTEM_POWER_BITS',numbits=6,labels=reverse(['Gimbal Control Electronics','S-Band Transmitter','TWTA','X-Band Modulator','Star Tracker Electronics','IRU']),colors=[0,1,2,6]
     options,/def,'swfo_sc_120_????_POWER_BITS',numbits=5,labels=reverse(['Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
     options,/def,'swfo_sc_120_MAG_POWER_BITS swfo_sc_120_SWIPS_POWER_BITS',numbits=6,labels=reverse(['Arm Power','Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
     options,/def,'swfo_sc_130_STIS_TEMPS',colors='br',labels=['Sensor','SEB'],labflag=-1
     ;options,/def,'*USER_0A',labels=['BASELINE_OFFSET','NOISE_RES','NOISE_PERIOD','THRESHOLD','PULSER_HEIGHT','BIAS_PERIOD','BIAS_VOLTAGE','DIGITAL_FILTER']+'_SWEEP',colors=[0,1,2,6]
 
-    options,'swfo_stis_*',ystyle=3
+    options,'swfo_*',ystyle=3
     tplot_options,'wshow',0
   endif
 

@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-03-25 18:21:40 -0700 (Mon, 25 Mar 2024) $
-; $LastChangedRevision: 32506 $
+; $LastChangedDate: 2024-03-26 19:02:16 -0700 (Tue, 26 Mar 2024) $
+; $LastChangedRevision: 32509 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_120_apdat__define.pro $
 
 
@@ -72,14 +72,13 @@ function swfo_sc_120_apdat::decom,ccsds,source_dict=source_dict
     instrument_current_amps:-.02727+.002447*swfo_data_select(ccsds_data,[93,99,109,111]*8+7,12),$
     instrument_survival_heater_current_amps:.000357*swfo_data_select(ccsds_data,[207*8+6,[214,254]*8+2,244*8+4],12),$
     instrument_survival_heater_oc_setpoint_amps:.000357*swfo_data_select(ccsds_data,[209*8+3,[215,255]*8+7,246*8+1],12),$
-    reaction_wheel_current_amps:[-.02727+.002447*swfo_data_select(ccsds_data,90 *8+1,12),$
-    .00357*swfo_data_select(ccsds_data,[185*8+3,241*8+2],12),$
-    -.02727+.002447*swfo_data_select(ccsds_data,92 *8  ,12)],$
+    reaction_wheel_current_amps:[-.02727+.002447*swfo_data_select(ccsds_data,90 *8+1,12),.00357*swfo_data_select(ccsds_data,[185*8+3,241*8+2],12),-.02727+.002447*swfo_data_select(ccsds_data,92 *8,12)],$
     stis_power_bits:(((stis_power*2b+stis_overcurrent_trip)*2b+stis_overcurrent_enable_status)*2b+stis_survival_heater_power)*2b+stis_survival_heater_oc_trip,$
     ccor_power_bits:(((ccor_power*2b+ccor_overcurrent_trip)*2b+ccor_overcurrent_enable_status)*2b+ccor_survival_heater_power)*2b+ccor_survival_heater_oc_trip,$
     mag_power_bits:((((mag_arm_power*2b+mag_power)*2b+mag_overcurrent_trip)*2b+mag_overcurrent_enable_status)*2b+mag_survival_heater_power)*2b+mag_survival_heater_oc_trip,$
     swips_power_bits:((((swips_arm_power*2b+swips_power)*2b+swips_overcurrent_trip)*2b+swips_overcurrent_enable_status)*2b+swips_survival_heater_power)*2b+swips_survival_heater_oc_trip,$
     reaction_wheel_power_bits:((reaction_wheel4_power*2b+reaction_wheel3_power)*2b+reaction_wheel2_power)*2b+reaction_wheel1_power,$
+    subsystem_power_bits:((((swfo_data_select(ccsds_data,86*8+2,1)*2b+swfo_data_select(ccsds_data,95*8+6,1))*2b+swfo_data_select(ccsds_data,97*8+6,1))*2b+swfo_data_select(ccsds_data,105*8+6,1))*2b+swfo_data_select(ccsds_data,107*8+6,1))*2b+swfo_data_select(ccsds_data,172*8+2,1),$
     gap:ccsds.gap }
 
   return,datastr
