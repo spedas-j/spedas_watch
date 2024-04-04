@@ -1,6 +1,6 @@
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2023-10-26 10:01:31 -0700 (Thu, 26 Oct 2023) $
-; $LastChangedRevision: 32207 $
+; $LastChangedDate: 2024-04-03 11:56:56 -0700 (Wed, 03 Apr 2024) $
+; $LastChangedRevision: 32517 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/sweap/decom/common/spp_swp_newmanip_decom.pro $
 
 function spp_swp_newmanip_decom,ccsds, source_dict=source_dict  ;ptp_header=ptp_header   ,apdat=apdat
@@ -41,7 +41,7 @@ function spp_swp_newmanip_decom,ccsds, source_dict=source_dict  ;ptp_header=ptp_
     ;             sync:       spp_swp_word_decom(b,10), $
     ;             length:     spp_swp_word_decom(b,12), $
     lincnts:      swap_endian(/swap_if_big_endian, ishft(long(b[14]), 24) +  ishft(long(b[15]), 16) + $
-    ishft(long(b[16]), 8) + long(b[17])) *0.00000326571428571426
+                              ishft(long(b[16]), 8) + long(b[17])) *0.00000326571428571426, $
     ;;/ ((25400/0.03) /15.24) / 5.51182, $; /12598.432, $ old units conversion
     yawcnts:      swap_endian(/swap_if_big_endian, ishft(long(b[18]), 24) +  ishft(long(b[19]), 16) + $
     ishft(long(b[20]), 8) + long(b[21])) * (0.29/3600.), $; /111.11111, $ old units conversion in comment
