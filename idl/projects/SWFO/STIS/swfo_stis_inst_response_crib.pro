@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
-; $LastChangedRevision: 32498 $
+; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
+; $LastChangedRevision: 32519 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_crib.pro $
 ; $ID: $
 
@@ -845,7 +845,9 @@ pro swfo_stis_response_plot_simflux,flux_func,window=win,limits=lim ,overplot=ov
     endfor
   endfor
   ;dprint,total_rates
-  oplot,total_rates,color=2
+  if 0 then begin
+    oplot,total_rates,color=2    
+  endif
   oplot,lim.xrange,[1,1]/deadtime,linestyle =1   , color=2
   oplot,lim.xrange,[1,1]/60.,linestyle =1   , color=2
   oplot,lim.xrange,[1,1]*2.,linestyle =1   , color=2
@@ -891,6 +893,7 @@ if 0 then $
 testrun = '4pi_stis_run3'
 testrun = '4pi_stis_run4'
 testrun = '4pi_stis_run12'
+testrun = '4pi_stis_run13'
 ;testrun = '4pi_stis'
 mapnum=0
 
@@ -1106,6 +1109,39 @@ if ~keyword_set(ltestrun) || ltestrun ne testrun then begin
       endelse
     end
 
+
+    '4pi_stis_run13': begin
+      filename = testrun   + '_v1.sav'
+      if file_test(filename) then begin
+        restore,filename,/verbose
+      endif else begin
+        simstat_p = 0
+        data_p = 0
+        swfo_stis_read_mult_sim_files,testrun=testrun,simstat_p,data_p,pathnames='simulation_results_run12_seed0?_proton.dat',type=+1
+        simstat_e = 0
+        data_e = 0
+        swfo_stis_read_mult_sim_files,testrun=testrun,simstat_e,data_e,pathnames='simulation_results_run13_seed0?_e-.dat',type=+1
+        simstat_a = 0
+        data_a = 0
+        swfo_stis_read_mult_sim_files,testrun=testrun,simstat_a,data_a,pathnames='simulation_results_run12_seed0?_alpha.dat',type=+1
+        str_element,/add,simstat_a,'particle_name', 'Alpha'   ; missing from data file
+        str_element,/add,simstat_a,'particle_type', 4         ; missing from data file
+        simstat_g = 0
+        data_g = 0
+        swfo_stis_read_mult_sim_files,testrun=testrun,simstat_g,data_g,pathnames='simulation_results_run12_seed0?_gamma.dat',type=+1
+
+        swfo_stis_swap_det2_det3,data_p
+        swfo_stis_swap_det2_det3,data_e
+        swfo_stis_swap_det2_det3,data_a
+        swfo_stis_swap_det2_det3,data_g
+
+        save,simstat_p,data_p,simstat_e,data_e,simstat_a,data_a,simstat_g,data_g,file=filename,/verbose
+      endelse
+    end
+
+
+
+
   endcase
 endif
 
@@ -1210,7 +1246,8 @@ peak.g.s= 300
 
 if ~keyword_set(energy) || 1 then begin
   energy = dgen(/log,range=[1.,1e6],6*4+1)
-  energy = dgen(/log,range=[1.,1e14],14*4+1)
+;  energy = dgen(/log,range=[1.,1e14],14*4+1)
+;  energy = dgen(/log,range=[1.,1e7],7*4+1)
 
   pow = -1.6
   ;pow = -2
@@ -1219,11 +1256,23 @@ if ~keyword_set(energy) || 1 then begin
   flux_min = 2.48e2 * energy^ pow
   flux_mid = 5.e4 * energy^ pow
   ;flux = 2.5e4 * energy^ pow
-  w = where(energy gt 1e4)
-  ;flux[w] = flux[w] * 100.
+  w = where(energy gt 1e3)
+  ;flux[w] = flux[w] / 100000.
   pwlin =1
-  flux = flux_mid
+  flux = flux_mid;n / 100 ;_mid / 100.
 endif
+
+if 1 then begin
+  pow_p = -1.6
+  flux =  20000. * (energy/50.) ^ pow_p
+  w = where(energy gt 5000)
+  flux = flux/100
+  ;flux = flux_min
+  flux[w] = flux[w] / 100.
+
+  
+endif
+
 
 
 
@@ -1239,7 +1288,7 @@ endif
 
 
 p_flux = flux   + flux_cosmicray
-e_flux = flux   /1.5
+e_flux = flux   /3
 a_flux = p_flux /40
 ;cr_flux = flux_cosmicray
 
@@ -1261,7 +1310,9 @@ flux_func_true = swfo_stis_response_func(eflux_func = e_func_true,pflux_func=p_f
 
 if 1 then begin
   swfo_stis_inst_response_matmult_plot,p_func_true,window=win++
+  makepng,'swfo_stis_proton_response_matrix'
   swfo_stis_inst_response_matmult_plot,e_func_true,window=win++
+  makepng,'swfo_stis_electron_response_matrix
 endif
 
 
@@ -1294,10 +1345,10 @@ wi,win++ ,/show
 swfo_stis_response_simflux_plot,flux_func = flux_func_true
 swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',color=0
 swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
-swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
+;swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
 
 swfo_stis_response_simflux_plot,e_resp,rate=t_rate_true,   /over, name = 'F-3',color=0;,psym=2
-swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6;,psym=2
+;swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6;,psym=2
 swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2;,psym=2
 
 oplot,energy,flux_min
@@ -1335,6 +1386,66 @@ oplot,t_rate_true
 oplot,p_rate_true ,color=6
 oplot,e_rate_true,color=2
 
+
+
+
+if ~isa(flux_window,'GRAPHICSWIN') || ~isa(flux_plot,'PLOT') then begin
+  dummydat = [1,1]
+  flux_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-4,1e6],xrange=[5,2e6],/xlog,/xstyle,dimensions=[800,800] $
+     ,xtitle='Incident Energy (keV)',Ytitle='Flux (#/s/ster/cm^2/keV',title='Flux vs Energy' $
+     ,font_size=15,window_title='Flux Plot')
+  flux_plot.uvalue = dictionary()
+  dummy = plot(energy,flux_min,':',/over)
+  dummy = plot(energy,flux_max,':',/over)
+  dummy = plot(energy,flux_mid,':',/over)
+  dummy = plot([50,50.],[1.,1e4],/over,':')
+  dummy = plot([2000.,2000.],[.002,5e1],':',/over)
+  p_flux_plot=plot(dummydat, /overplot ,'-r6',transparency=90,name='Proton flux')
+  flux_plot.uvalue.p_flux_plot = p_flux_plot
+  e_flux_plot=plot(dummydat, /overplot ,'-b6',transparency=90,name='Electron flux')
+  flux_plot.uvalue.e_flux_plot = e_flux_plot
+  ;t_flux_plot=plot(dummydat, /overplot ,'-',name='Electron rate')
+  tt = strsplit('O_1 F_1 O_2 F_2 O_12 F_12 O_3 F_3 O_13 F_13 O_23 F_23 O_123 F_123',/extract)
+  i = indgen(n_elements(tt))
+  colors = ['red','blue'] ;,'cyan','magenta']
+  ncolors = n_elements(colors)
+;  ttt = text(i*48+24,1e5+i,tt,/data,alignment=0.5, color = colors[i mod ncolors], font_size=8)
+
+  flux_window = flux_plot.window
+  ;flux_window.window_title = 'Rate Plot'
+
+endif
+
+p_flux_plot.setdata,  energy, p_flux
+e_flux_plot.setdata,  energy, e_flux
+
+
+
+if ~isa(rate_window,'GRAPHICSWIN') || ~isa(rate_plot,'PLOT') then begin
+  dummydat = [1,1]
+  rate_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-4,1e6],xrange=[-10,685],/xstyle,dimensions=[1600,500] $
+    ,xtitle='Bin Number',Ytitle='Count Rate',title='Raw Rates vs Bin #',window_title='Rate Plot',font_size=15)
+  rate_plot.uvalue = dictionary()
+  p_plot=plot(dummydat, /overplot ,' .r',sym_size=3,name='Proton rate')
+  rate_plot.uvalue.p_plot = p_plot
+  e_plot=plot(dummydat, /overplot ,' .b',sym_size=3,name='Electron rate')
+  rate_plot.uvalue.e_plot = e_plot
+  t_plot=plot(dummydat, /overplot ,'-',name='Total rate')
+  rate_plot.uvalue.t_plot = t_plot
+  tt = strsplit('O_1 F_1 O_2 F_2 O_12 F_12 O_3 F_3 O_13 F_13 O_23 F_23 O_123 F_123',/extract)
+  i = indgen(n_elements(tt))
+  colors = ['red','blue'] ;,'cyan','magenta']
+  ncolors = n_elements(colors) 
+  ttt = text(i*48+24,1e5+i,tt,/data,alignment=0.5, color = colors[i mod ncolors], font_size=8)
+ 
+  rate_window = rate_plot.window
+  rate_plot.window_title = 'Rate Plot'
+endif
+
+e_plot.setdata, e_rate_true
+p_plot.setdata, p_rate_true
+t_plot.setdata, t_rate_true
+
 if 0 then begin
   
   t_rate_recon = func(param=flux_func_recon,0)
@@ -1342,16 +1453,36 @@ if 0 then begin
 
 
 
-  fit,0,rate_t ,param = flux_func_recon,/logfit,names = 'pflux.ys[1,2,3]
+;  fit,0,rate_t ,param = flux_func_recon,/logfit,names = 'pflux.ys[1,2,3]
 
   t_rate_recon = func(param=flux_func_recon,0)
   oplot,t_rate_recon > 1e-5,color = 3
 endif
 
+
 wi,win++,/show
 
 swfo_stis_response_simflux_plot,flux_func = flux_func_true
-swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',color=0
+;swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over , name = 'O-3',color=1
+oplot,energy,flux_min
+oplot,energy,flux_max
+oplot,energy,flux_mid
+
+;flux_plot = plot()
+;flux_plot = get_plot_state()
+
+flux_window.show
+
+;p = plot(energy,flux,'r5',transparency=90,/over)
+
+
+
+
+
+func_recon = swfo_stis_response_correct_flux(t_rate_true,rate_plot=rate_plot,flux_plot=flux_plot)   ;,flux_plot=flux_plot)
+
+
+
 ;swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
 ;swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
 
@@ -1360,7 +1491,8 @@ swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',c
 ;swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2
 
 ;swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
-
+oplot,energy,flux_min
+oplot,energy,flux_max
 
 
 ;stop

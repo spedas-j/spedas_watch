@@ -66,30 +66,55 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
     box,lim0
     xv =dgen()
     yv = func(xv,param=spec_func)
-    oplot,xv,yv,color = 4
+    color = 4
+    oplot,xv,yv,color = color,thick=3
+    
+    oplot,xv, 1e7 *xv^(-1.6)
+    oplot,xv, 2.48e2 *xv^(-1.6)
 
    ; oplot,energy,flux,color=6;,psym=-1,color = 6
     
-    bmap = result.resp.bmap[0:671]    
-    rate = result.rate_dtcor[0:671]
-    rate = result.rate[0:671]
-    bmap.rate = rate
-    
-   ; bmap.rate *= bmap.nrg_meas_avg /80   ; should make this correction outside this routine
-    
-    bmap.flux = bmap.rate / bmap.geom  / bmap.nrg_meas_delta   ;* bmap.nrg_proton_avg / 80   
-    
-    w1 = where(bmap.fto eq 1 and bmap.tid eq 0)
-    b1 = bmap[w1]
-    energy = b1.nrg_inc
-    flux  = b1.flux
-    oplot,energy,flux,psym= 4,color = 2
-    
-    w3 = where(bmap.fto eq 4 and bmap.tid eq 0)
-    b3 = bmap[w3]
-    energy = b3.nrg_inc
-    flux  = b3.flux
-    oplot,energy,flux,psym= 4,color = 6
+      bmap = result.resp.bmap[0:671]
+      rate = result.rate_dtcor[0:671]
+      rate = result.rate[0:671]
+      bmap.rate = rate
+    if 0 then begin
+
+      ; bmap.rate *= bmap.nrg_meas_avg /80   ; should make this correction outside this routine
+
+      bmap.flux = bmap.rate / bmap.geom  / bmap.nrg_meas_delta   ;* bmap.nrg_proton_avg / 80
+
+      w1 = where(bmap.fto eq 1 and bmap.tid eq 0)
+      b1 = bmap[w1]
+      energy = b1.nrg_inc
+      flux  = b1.flux
+      oplot,energy,flux,psym= 4,color = 2
+
+      w3 = where(bmap.fto eq 4 and bmap.tid eq 0)
+      b3 = bmap[w3]
+      energy = b3.nrg_inc
+      flux  = b3.flux
+      oplot,energy,flux,psym= 4,color = 6
+      
+    endif
+    if 1 then begin
+      
+      swfo_stis_response_rate2flux,rate,resp,method=method  
+
+      names = ['O-3','O-1']
+      
+      for i=0,n_elements(names)-1 do begin
+        name = names[i]
+        w = where( resp.bmap.name eq name and finite(resp.bmap.flux) and (resp.bmap.e0_inc lt 6000.) and (resp.bmap.nrg_meas gt 25.) ,/null)
+        if keyword_set(w) then begin
+          bmap =resp.bmap[w]
+          oplot,bmap.e0_inc , bmap.flux, psym= bmap[0].psym, color = bmap[0].color
+
+        endif
+        
+      endfor
+      
+    endif
 
         
     
@@ -99,7 +124,8 @@ pro swfo_stis_inst_response_matmult_plot,spec_func,window=win
 
 
   dprint
-  test = 1
+  test = 0
+  ;test = 2
   if test eq 1 then begin
     delta_time = 300
     lim4 = lim0

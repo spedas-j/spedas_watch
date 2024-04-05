@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-01-21 13:16:37 -0800 (Sun, 21 Jan 2024) $
-; $LastChangedRevision: 32394 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
+; $LastChangedRevision: 32519 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_decom.pro $
 
 ;
@@ -49,6 +49,8 @@ function swfo_ccsds_decom,buffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,o
   ccsds = { swfo_ccsds_format, $
     time:         d_nan,  $             ; unixtime
     MET:          d_nan,  $
+    GRtime:       d_nan,  $
+    delaytime:    d_nan,  $
     apid:         0u , $
     seqn:         0u , $
     seqn_delta:   0u,  $
@@ -97,6 +99,14 @@ function swfo_ccsds_decom,buffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,o
   ccsds.millisec = millisec
   ccsds.microsec = microsec
   ccsds.time = swfo_spc_met_to_unixtime(ccsds.MET)
+
+  if isa(source_dict) && source_dict.haskey('parent_dict') then begin
+    grtime = source_dict.parent_dict.headerstr.time
+    ;printdat,time_string(grtime)
+    ;printdat,ccsds
+    ccsds.grtime = GRtime
+    ccsds.delaytime = grtime- ccsds.time
+  endif
 
   ccsds.pkt_size = header[2] + 7
 

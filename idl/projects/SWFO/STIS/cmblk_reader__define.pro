@@ -2,8 +2,8 @@
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
-; $LastChangedRevision: 32281 $
+; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
+; $LastChangedRevision: 32519 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -86,6 +86,7 @@ function cmblk_reader::header_struct,header
   w = where(desc_array gt 48b,/null)                  ; why this?????
   payload_key = desc_array[w]
   if isa(payload_key ) then  cmb.description = string(payload_key)
+;  print,time_string(cmb.time)
   return,cmb
 end
 

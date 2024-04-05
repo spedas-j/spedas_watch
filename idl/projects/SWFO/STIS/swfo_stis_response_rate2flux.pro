@@ -1,8 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-01-03 22:37:44 -0800 (Wed, 03 Jan 2024) $
-; $LastChangedRevision: 32333 $
+; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
+; $LastChangedRevision: 32519 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_response_rate2flux.pro $
-; $Id: swfo_stis_response_rate2flux.pro 32333 2024-01-04 06:37:44Z davin-mac $
+; $Id: swfo_stis_response_rate2flux.pro 32519 2024-04-04 15:02:24Z davin-mac $
 
 
 
@@ -82,7 +82,7 @@
 
 
 ; This should only be useful for O-1, O-3,  and partially for F-3 and F-1
-pro swfo_stis_response_rate2flux,rate,resp,method=method
+pro swfo_stis_response_rate2flux,rate,resp,method=method,wh = w
 
   ;  bmap = p_resp.bmap
   w = !null
@@ -98,9 +98,13 @@ pro swfo_stis_response_rate2flux,rate,resp,method=method
     resp.bmap[w].flux = rate[w] / resp.bmap[w].nrg_meas_delta / resp.bmap[w].geom
     resp.bmap[w].nrg_inc = reslp.bmap[w].nrg_meas + resp.bmap[w].nrg_lost    
   endif else begin
+    dt = 300.
     resp.bmap[w].rate = rate[w]
     resp.bmap[w].flux = rate[w] / resp.bmap[w].gde
-    resp.bmap[w].nrg_inc = resp.bmap[w].e0_inc  
+    resp.bmap[w].nrg_inc = resp.bmap[w].e0_inc
+    c =   rate[w] * dt
+    resp.bmap[w].d_flux = resp.bmap[w].flux / sqrt(c+.5)
+    resp.bmap[w].df_f  = 1/sqrt(c+.5)
   endelse
  ; p_resp.bmap = p_bmap
 

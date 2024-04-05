@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
-; $LastChangedRevision: 32498 $
+; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
+; $LastChangedRevision: 32519 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -297,18 +297,19 @@ end
 
 
 pro DynamicArray::sort   , tagname       ; Use with caution
+  nsize = self.size
   if isa(tagname,/string) && isa(*self.ptr_array,/struct) then begin
     if strlowcase(tagname) ne 'time' then message,'Can only sort on time for now.'
 
     ;v = ((*self.ptr_array)[0: self.size-1] ).time
     v = (*self.ptr_array).time
-    v = v[0:self.size-1]
+    v = v[0:nsize-1]
 
   endif else begin
-    v = (*self.ptr_array)[0: self.size-1] 
+    v = (*self.ptr_array)[0: nsize-1] 
   endelse
-  s= sort( v )
-  *self.ptr_array[0:self.size-1]  = (*self.ptr_array)[s]
+  s= sort( v.time )
+  (*self.ptr_array)[0:nsize-1]  = (*self.ptr_array)[s]
 
 
 end

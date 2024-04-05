@@ -1,6 +1,6 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
-;$LastChangedRevision: 32498 $
+;$LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
+;$LastChangedRevision: 32519 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -42,7 +42,8 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       'cleantent': opts.host = 'snout2router.ssl.berkeley.edu'
       'Ball-BAT' :  opts.host = '136.152.31.185'
       ;'Ball' :  opts.host = '136.152.17.167'
-      'Ball' :  opts.host = '136.152.31.195'
+      'Ball' :  opts.host =  '10.136.128.47';'136.152.28.121' ; '136.152.31.195'
+      'STIS' :  opts.host =  'swifgse1.ssl.berkeley.edu'
     endcase
     
 
@@ -55,6 +56,11 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
       end
       'Ball/cmblk': begin
         opts.port       = 2125
+        opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
+        opts.fileformat = 'Ball/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
+      end
+      'STIS/cmblk': begin
+        opts.port       = 2228
         opts.reldir     = 'swfo/data/sci/stis/prelaunch/realtime/'
         opts.fileformat = 'Ball/cmblk/YYYY/MM/DD/swfo_stis_cmblk_YYYYMMDD_hh.dat.gz'
       end

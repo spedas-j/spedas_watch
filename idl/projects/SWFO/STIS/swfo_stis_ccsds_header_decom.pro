@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2023-12-29 18:52:02 -0800 (Fri, 29 Dec 2023) $
-; $LastChangedRevision: 32325 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
+; $LastChangedRevision: 32519 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_ccsds_header_decom.pro $
 
 
@@ -11,6 +11,8 @@ function swfo_stis_ccsds_header_decom,ccsds
     time:ccsds.time,  $
     time_delta:ccsds.time_delta, $
     met:ccsds.met,   $
+    grtime: ccsds.grtime,  $
+    delaytime: ccsds.delaytime, $
     apid:ccsds.apid,  $
     seqn:ccsds.seqn,$
     seqn_delta:ccsds.seqn_delta,$

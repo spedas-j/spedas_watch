@@ -1,8 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-01-03 22:37:44 -0800 (Wed, 03 Jan 2024) $
-; $LastChangedRevision: 32333 $
+; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
+; $LastChangedRevision: 32519 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
-; $Id: swfo_stis_inst_response.pro 32333 2024-01-04 06:37:44Z davin-mac $
+; $Id: swfo_stis_inst_response.pro 32519 2024-04-04 15:02:24Z davin-mac $
 
 
 
@@ -51,6 +51,8 @@ function swfo_stis_nonlut2map,mapname=mapname,lut=lut ,  sensor=sensor
     rate: nan,  $
     counts: nan,  $
     flux: nan,  $
+    d_flux: nan, $
+    df_f: nan, $
     valid: 1 }
 
   bmaps = replicate(bmap,nbins)
