@@ -2,7 +2,7 @@
 Pro fa_despun_e_load_type, type, trange = trange, orbit = orbit, $
                            no_time_clip = no_time_clip, _extra = _extra
 
-  common fa_esa_saved_tranges, tr0_esv, tr0_e4k, tr0_e16k
+  common fa_esa_saved_tranges, tr0_esv, tr0_e4k, tr0_e16k, tr0_esv_long
 ;Keep track of software versioning here
   sw_vsn = 0
   vxx = 'v'+string(sw_vsn, format='(i2.2)')
@@ -35,6 +35,9 @@ Pro fa_despun_e_load_type, type, trange = trange, orbit = orbit, $
      'e16k' : Begin
         If(n_elements(tr0_e16k) Eq 2) Then tr0_test = tr0_e16k
      End
+     'esv_long' : Begin
+        If(n_elements(tr0_esv_long) Eq 2) Then tr0_test = tr0_esv_long
+     End
      Else: Begin
         dprint, 'Bad Input Data Type, Returning'
         Return
@@ -47,6 +50,7 @@ Pro fa_despun_e_load_type, type, trange = trange, orbit = orbit, $
         'esv' : tr0_esv = tr0
         'e4k' : tr0_e4k = tr0
         'e16k' : tr0_e16k = tr0
+        'esv_long' : tr0_esv_long = tr0
      Endcase
      orbits = indgen(end_orbit-start_orbit+1)+start_orbit
      orbits_str = strcompress(string(orbits,format='(i05)'), /remove_all)
@@ -117,7 +121,7 @@ Pro fa_despun_e_load, datatype = datatype, type = type, $
   If(keyword_set(datatype)) Then Begin
      type = datatype
   Endif Else Begin
-     If(~keyword_set(type)) then type=['esv','e4k','e16k']
+     If(~keyword_set(type)) then type=['esv','e4k','e16k','esv_long']
   Endelse
 ;call for different types, 
   For j = 0, n_elements(type)-1 Do fa_despun_e_load_type, type[j], $
