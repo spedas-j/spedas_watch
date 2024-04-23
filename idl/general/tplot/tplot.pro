@@ -106,8 +106,8 @@
 ;   Send e-mail to:  tplot@ssl.berkeley.edu    someone might answer!
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-02-25 18:01:04 -0800 (Sat, 25 Feb 2023) $
-; $LastChangedRevision: 31528 $
+; $LastChangedDate: 2024-04-19 08:25:51 -0700 (Fri, 19 Apr 2024) $
+; $LastChangedRevision: 32526 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot.pro $
 ;-
 
@@ -474,7 +474,7 @@ for i=0,nd-1 do begin
      if fill_intv eq 1 then tplot_fill_time_intv, routine, data, newlim, time_offset
 
      if (color_table ne pct || rev_color_table ne prev) then initct,pct,rev=prev
-     if (abs(max(lcolors - pline)) gt 0) then line_colors,pline
+     if (max(abs(lcolors - pline)) gt 0) then line_colors,pline
 
      ;get offset into color array (for pseudo vars)
      if keyword_set(colors_set) then begin
