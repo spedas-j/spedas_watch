@@ -1,16 +1,16 @@
-PRO esc_esatm_reader::GetProperty, dat=dat, ahkp=ahkp, dhkp=dhkp, fhkp=fhkp, espec=espec, ispec=ispec
-
-   IF Arg_Present(dat)    THEN dat    = self.dat_da.array
-   IF Arg_Present(ahkp)   THEN ahkp   = self.ahkp_da.array
-   IF Arg_Present(dhkp)   THEN dhkp   = self.dhkp_da.array
-   IF Arg_Present(fhkp)   THEN fhkp   = self.fhkp_da.array
-   IF Arg_Present(espec)  THEN espec  = self.espec_da.array
-   IF Arg_Present(ispec)  THEN ispec  = self.ispec_da.array
-   IF Arg_Present(thist)  THEN thist  = self.thist_da.array
-   IF Arg_Present(frates) THEN frates = self.frates_da.array
-   
-END
-
+;PRO esc_esatm_reader::GetProperty, dat=dat, ahkp=ahkp, dhkp=dhkp, fhkp=fhkp, espec=espec, ispec=ispec
+;
+;   IF Arg_Present(dat)    THEN dat    = self.dat_da.array
+;   IF Arg_Present(ahkp)   THEN ahkp   = self.ahkp_da.array
+;   IF Arg_Present(dhkp)   THEN dhkp   = self.dhkp_da.array
+;   IF Arg_Present(fhkp)   THEN fhkp   = self.fhkp_da.array
+;   IF Arg_Present(espec)  THEN espec  = self.espec_da.array
+;   IF Arg_Present(ispec)  THEN ispec  = self.ispec_da.array
+;   IF Arg_Present(thist)  THEN thist  = self.thist_da.array
+;   IF Arg_Present(frates) THEN frates = self.frates_da.array
+;   
+;END
+;
 
 
 FUNCTION esc_esatm_reader::esc_raw_header_struct,ptphdr
@@ -43,7 +43,7 @@ end
 
 
 
-pro esc_esatm_reader::read, buffer, source_dict=parent_dict ; this routine needs a lot of work - but it will work for common block files
+pro esc_esatm_reader::read, buffer    ;, source_dict=parent_dict ; this routine needs a lot of work - but it will work for common block files
 
    if n_elements(buffer) eq 206 then begin   
       if 0 then begin
@@ -56,21 +56,22 @@ pro esc_esatm_reader::read, buffer, source_dict=parent_dict ; this routine needs
       ;return
    endelse
    
-   self.decom_esctm,buffer,source_dict=parent_dict
+   self.decom_esctm,buffer  ;,source_dict=parent_dict
 end
 
 
 
 
 
-pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
+pro esc_esatm_reader::decom_esctm, buffer ; , source_dict=parent_dict
    
    
-   if isa(parent_dict,'dictionary') && parent_dict.haskey('cmbhdr') then begin
-     cmbhdr = parent_dict.cmbhdr
+   source_dict = self.source_dict
+   if isa(source_dict,'dictionary') && source_dict.haskey('parent_dict') && source_dict.parent_dict.haskey('headerstr') then begin
+     cmbhdr = source_dict.parent_dict.headerstr
      time   = cmbhdr.time 
      ;;size = cmbhdr.size  
-   endif else time=0d
+   endif else time=0d   ; this needs a real alternative
    
 
    dat = {  $
@@ -129,7 +130,7 @@ pro esc_esatm_reader::decom_esctm, buffer, source_dict=parent_dict
    dat.index    = index
    dat.size     = self.esc_data_select(buffer,32, 16)
       
-   if dat.size ne cmbhdr.size then dprint,'Size error: ',dat.size
+   if dat.size ne cmbhdr.psize then dprint,'Size error: ',dat.size
 
    data2 = uint(buffer,6,(dat.size-6)/2 )
    byteorder,data2,/swap_if_little_endian
