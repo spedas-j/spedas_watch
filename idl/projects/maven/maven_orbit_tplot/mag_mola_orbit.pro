@@ -34,6 +34,10 @@
 ;       DBR:        Use a 1000x500 dBr/dt image.
 ;                   (Note: dBr/dt is approx. the same as dBr/dlat.)
 ;
+;       BAZEL:      If set to an magnetic field azimuth and elevation, 
+;                   plot a magnetic field whisker with the origin at
+;                   the spacecraft location.
+;
 ;       TERMINATOR: Overlay the terminator at the time specified by this
 ;                   keyword.
 ;
@@ -51,8 +55,8 @@
 ;       SCOL:       Color for each of the sites.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2022-07-14 11:39:13 -0700 (Thu, 14 Jul 2022) $
-; $LastChangedRevision: 30931 $
+; $LastChangedDate: 2024-04-26 18:28:48 -0700 (Fri, 26 Apr 2024) $
+; $LastChangedRevision: 32538 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mag_mola_orbit.pro $
 ;
 ;CREATED BY:	David L. Mitchell  04-02-03
@@ -60,7 +64,8 @@
 pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
                     reset=reset, big=big, noerase=noerase, title=title, $
                     terminator=ttime, shadow=shadow, alt=alt, sites=sites, $
-                    slab=slab, scol=scol, dbr=dbr, rwin=rwin, nosym=nosym
+                    slab=slab, scol=scol, dbr=dbr, rwin=rwin, nosym=nosym, $
+                    bazel=bazel
 
   common magmola_orb_com, img, ppos
   @putwin_common
@@ -77,6 +82,7 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
   if not keyword_set(noerase) then eflg = 1 else eflg = 0
   if keyword_set(ttime) then doterm = 1 else doterm = 0
   if keyword_set(shadow) then sflg = shadow else sflg = 0
+  if (n_elements(bazel) eq 3L*n_elements(lon)) then doazel = 1 else doazel = 0
   sz = size(sites)
   nsites = 0
   if ((sz[0] eq 1) and (sz[1] ge 2)) then nsites = 1
@@ -153,6 +159,15 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
   endelse
 
   if (dosym) then oplot,[lon],[lat],psym=psym,color=color,linestyle=lstyle,thick=2,symsize=1.4
+  if (doazel) then begin
+    bscl = 7. ; whisker scale factor in degrees
+    azim = atan(bazel[*,1],bazel[*,0])
+    lon1 = lon + bscl*cos(azim)
+    lat1 = lat + bscl*sin(azim)
+    cwhisk = round(((-bazel[*,2] + 1.)/2.)*(254. - 7.) + 7.)  ; red = down, blue = up
+    nwhisk = n_elements(lon)
+    for i=0,(nwhisk-1) do oplot,[lon[i],lon1[i]],[lat[i],lat1[i]],color=cwhisk[i],thick=2
+  endif
   if keyword_set(alt) then xyouts,[lon]+2,[lat]+2,string(round(alt),format='(i4)'),color=color,charsize=1.2
 
   wset,twin

@@ -102,6 +102,9 @@
 ;
 ;       BCLIP:    Maximum amplitude for plotting B whisker.
 ;
+;       BAZEL:    Show the azimuth of the magnetic field vector at the spacecraft
+;                 location on the Mars topography-crustal magnetic field plot.
+;
 ;       MSCALE:   To change the scale/length of magnetic field lines, the default
 ;                 value is set to 0.05
 ;
@@ -150,8 +153,8 @@
 ;                 easier to see the colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-10 16:30:17 -0700 (Sun, 10 Mar 2024) $
-; $LastChangedRevision: 32487 $
+; $LastChangedDate: 2024-04-26 18:29:13 -0700 (Fri, 26 Apr 2024) $
+; $LastChangedRevision: 32539 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -162,7 +165,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
     alt=alt2, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab, $
     scol=scol, tcolors=tcolors, noorb=noorb, monitor=monitor, wscale=wscale, ssize=ssize, $
-    black=black, iono=iono, arange=arange
+    black=black, iono=iono, arange=arange, bazel=bazel
 
   @maven_orbit_common
   @putwin_common
@@ -194,7 +197,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
            'COLOR','RESET','CYL','TIMES','NODOT','TERMINATOR','THICK','BDIR', $
            'MSCALE','SCSYM','MAGNIFY','BCLIP','VDIR','VCLIP','VSCALE','VRANGE', $
            'ALT2','PSNAME','NOLABEL','XY','YZ','LANDERS','SLAB','SCOL','TCOLORS', $
-           'NOORB','MONITOR','WSCALE','BLACK','ARANGE']
+           'NOORB','MONITOR','WSCALE','BLACK','ARANGE','BAZEL']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
@@ -223,6 +226,23 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if keyword_set(reset) then reset = 1 else reset = 0
   if keyword_set(nodot) then dodot = 0 else dodot = 1
   if keyword_set(noorb) then doorb = 0 else doorb = 1
+  doazel = 0
+  if keyword_set(bazel) then begin
+    get_data,'mvn_mag_azel',data=dat,index=i
+    if (i gt 0) then begin
+      bt = dat.x
+      baz = dat.y[*,1]*!dtor
+      bel = (dat.y[*,0]/2. - 90.)*!dtor
+      bx = cos(baz)*cos(bel)
+      by = sin(baz)*cos(bel)
+      bz = sin(bel)
+      d2bx = spl_init(bt,bx,/double)
+      d2by = spl_init(bt,by,/double)
+      d2bz = spl_init(bt,bz,/double)
+      dat = 0
+      doazel = 1
+    endif
+  endif
   if (size(terminator,/type) gt 0) then doterm = fix(round(terminator)) < 3 else doterm = 0
   if keyword_set(wscale) then begin
     wscale = float(wscale[0])
@@ -1277,9 +1297,18 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
 ;     if (ntimes gt 0) then j = tcolors[k]
       if (doterm gt 0) then ttime = trange[0] else ttime = 0
       if (doalt) then sc_alt = hgt[i] else sc_alt = 0
+      if (doazel) then begin
+        bxi = spl_interp(bt,bx,d2bx,tref,/double)
+        byi = spl_interp(bt,by,d2by,tref,/double)
+        bzi = spl_interp(bt,bz,d2bz,tref,/double)
+        bazel = dblarr(n_elements(tref),3)
+        bazel[*,0] = bxi
+        bazel[*,1] = byi
+        bazel[*,2] = bzi
+      endif else bazel = 0
       mag_mola_orbit, lon[i], lat[i], big=mbig, noerase=noerase, title=title, color=j, $
                       terminator=ttime, psym=scsym, shadow=(doterm - 1), alt=sc_alt, $
-                      sites=sites, slab=slab, scol=scol, dbr=dbr
+                      sites=sites, slab=slab, scol=scol, dbr=dbr, bazel=bazel
     endif
 
 ; Put up Mars North polar plot
