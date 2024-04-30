@@ -56,12 +56,16 @@
 ;                      LATEST days leading up to the current date.
 ;
 ;       APID:          String array specifying which APID's to load.  Default is to
-;                      load all APID's: ['a0','a1','a2','a3','a4'].
+;                      load all APID's: ['a0','a1','a2','a3','a4'].  Loading APID a4
+;                      (svyspec) is required, so you will always get it, even if you
+;                      don't request it.
 ;
 ;       PROD:          Alternate method for specifying which data types to load.
 ;                      String array specifying which data products to load.
 ;                      Default is to load all products:
 ;                          ['svy3d','arc3d','svypad','arcpad','svyspec'].
+;
+;                      The svyspec product is required (see above).
 ;
 ;       STATUS:        Return the status of what was actually loaded: APIDs,
 ;                      product names, numbers of packets, and time coverages.
@@ -86,8 +90,8 @@
 ;       SILENT:        Shhhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-02-20 15:11:48 -0800 (Tue, 20 Feb 2024) $
-; $LastChangedRevision: 32450 $
+; $LastChangedDate: 2024-04-29 16:43:27 -0700 (Mon, 29 Apr 2024) $
+; $LastChangedRevision: 32540 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_load_l2.pro $
 ;
 ;CREATED BY:    David L. Mitchell  02-02-15
@@ -192,6 +196,7 @@ pro mvn_swe_load_l2, trange, filename=filename, latest=latest, apid=apid, prod=p
         else : print, "Unrecognized APID: ", apid[i]
       endcase
     endfor
+    doprod[4] = 1  ; Loading APID a4 is required.
   endif
 
   if (size(prod,/type) eq 7) then begin
@@ -206,6 +211,7 @@ pro mvn_swe_load_l2, trange, filename=filename, latest=latest, apid=apid, prod=p
         else : print, "Unrecognized product: ", prod[i]
       endcase
     endfor
+    doprod[4] = 1  ; Loading APID a4 is required.
   endif
 
 ; Get file names associated with trange or from one or more named
