@@ -2,8 +2,8 @@
 ;  SPP_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2021-06-21 09:41:51 -0700 (Mon, 21 Jun 2021) $
-; $LastChangedRevision: 30071 $
+; $LastChangedDate: 2024-04-30 13:09:09 -0700 (Tue, 30 Apr 2024) $
+; $LastChangedRevision: 32541 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -245,8 +245,8 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2021-06-21 09:41:51 -0700 (Mon, 21 Jun 2021) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 30071 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2024-04-30 13:09:09 -0700 (Tue, 30 Apr 2024) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 32541 $'
 
   return,sw_hash
 end
@@ -288,8 +288,8 @@ function spp_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: ali $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2021-06-21 09:41:51 -0700 (Mon, 21 Jun 2021) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 30071 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-04-30 13:09:09 -0700 (Tue, 30 Apr 2024) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32541 $'
 
   return,global_att
 end
@@ -431,7 +431,10 @@ pro spp_gen_apdat::sav_makefile,sav_file=sav_file,parents=parents,verbose=verbos
     if ~keyword_set(sav_format) then message,'sav pathname not defined!'
     fileformat=time_string(trange[0],tformat=sav_format)
     filename=root_data_dir()+str_sub(fileformat,'$NAME$',self.name)+sav_file
-    if (trange[1] lt day0[0]) || (trange[0] gt day0[1]) then message,'Skipping: out of bound data for "'+filename
+    if (trange[1] lt day0[0]) || (trange[0] gt day0[1]) then begin
+      dprint,'Skipping: out of bound data for "'+filename
+      continue
+    endif
     w=where((datarray.time ge trange[0]) and (datarray.time lt trange[1]),/null,nw)
     if nw eq 0 then begin
       dprint,dlevel=2,'Skipping: No data found for "'+filename
@@ -441,7 +444,7 @@ pro spp_gen_apdat::sav_makefile,sav_file=sav_file,parents=parents,verbose=verbos
     self.data.name=self.name ;in case spp_swp_apdat_init updated the object name (e.g., from wrp_P5 to wrp_P5P7)
     file_mkdir2,file_dirname(filename),add_link=root_data_dir()+self.cdf_linkname,/add_parent_link
     dprint,dlevel=3,'Saving '+filename
-    save,file=filename,self,parents,verbose=verbose,/compress
+    ;save,file=filename,self,parents,verbose=verbose,/compress
     dprint,dlevel=1,'Saved '+file_info_string(filename)
   endfor
   self.data.array=datarray ;returning self to its original
