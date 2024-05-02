@@ -66,7 +66,6 @@ Pro fa_despun_e_load_type, type, trange = trange, orbit = orbit, $
 ;Only unique files here
      filex_u = filex[bsort(filex)]
      filex = filex_u[uniq(filex_u)]
-;Ok, load the files
      cdf2tplot, files = filex, varformat = '*', tplotnames = tvars
      If(~is_string(tnames(tvars))) Then Begin
         dprint, 'No Variables Loaded'
