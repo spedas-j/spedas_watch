@@ -18,8 +18,8 @@
 ;    SILENT:        Shhhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-03-15 12:46:42 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26820 $
+; $LastChangedDate: 2024-05-04 14:48:57 -0700 (Sat, 04 May 2024) $
+; $LastChangedRevision: 32549 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -28,7 +28,7 @@ pro mvn_swe_stat, npkt=npkt, full=full, silent=silent
 
   @mvn_swe_com
 
-  npkt = replicate(0,8)
+  npkt = replicate(0L,8)
 
   if (size(swe_hsk,/type) ne 8) then begin
     print,""
@@ -75,6 +75,33 @@ pro mvn_swe_stat, npkt=npkt, full=full, silent=silent
     print,n_a5," ENGY Spectra (burst)"
     print,swe_active_tabnum,format='("Sweep Table: ",i2)'
     print,""
+
+    first = 1
+    if (n_a0 gt 0L) then begin
+      tsp = minmax(a0.time)
+      first = 0
+    endif
+    if (n_a1 gt 0L) then begin
+      tsp = first ? minmax(a1.time) : minmax([tsp, a1.time])
+      first = 0
+    endif
+    if (n_a2 gt 0L) then begin
+      tsp = first ? minmax(a2.time) : minmax([tsp, a2.time])
+      first = 0
+    endif
+    if (n_a3 gt 0L) then begin
+      tsp = first ? minmax(a3.time) : minmax([tsp, a3.time])
+      first = 0
+    endif
+    if (n_a4 gt 0L) then begin
+      tsp = first ? minmax(a4.time) : minmax([tsp, a4.time])
+      first = 0
+    endif
+    if (n_a5 gt 0L) then begin
+      tsp = first ? minmax(a5.time) : minmax([tsp, a5.time])
+      first = 0
+    endif
+    if ~first then print,"Packet time range: ",time_string(tsp[0])," - ",time_string(tsp[1])
 
     if (n_elements(swe_hsk) ne 2) then begin
       if (swe_cc_switch) then print,"SWE-SWI cross calibration enabled" $

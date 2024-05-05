@@ -49,8 +49,8 @@
 ;       SILENT:       Don't print any warnings or messages.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-11-07 16:01:35 -0800 (Tue, 07 Nov 2023) $
-; $LastChangedRevision: 32218 $
+; $LastChangedDate: 2024-05-04 14:46:33 -0700 (Sat, 04 May 2024) $
+; $LastChangedRevision: 32547 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_crosscal.pro $
 ;
 ;CREATED BY:    David L. Mitchell  05-04-16
@@ -64,13 +64,13 @@ function mvn_swe_crosscal, time, on=on, off=off, refresh=refresh, extrap=extrap,
   if ((size(tc,/type) eq 0) or keyword_set(refresh)) then begin
     tc = time_double(['2014-03-22','2014-11-12','2015-12-20','2016-10-25','2017-08-12','2018-11-13','2023-09-21'])
     ac = dblarr(4, n_elements(tc))
-    ac[*,0] = [2.6D   ,  0.0D     ,  0.0D     ,  0.0D     ]  ; MCPHV = 2500 V
-    ac[*,1] = [2.3368D, -9.9426d-4,  2.6014d-5,  0.0D     ]  ; MCPHV = 2600 V
-    ac[*,2] = [2.2143D,  7.9280d-4,  1.4300d-5,  0.0D     ]  ; MCPHV = 2700 V
-    ac[*,3] = [2.0027D,  7.2892d-3, -1.1918d-5,  0.0D     ]  ; MCPHV = 2750 V
-    ac[*,4] = [2.2929D,  6.0841d-3, -2.0345d-5,  3.0202d-8]  ; MCPHV = 2800 V
-    ac[*,5] = [2.1723D,  1.0986d-3, -3.8089d-7,  0.0D     ]  ; MCPHV = 2875 V
-    ac[*,6] = [2.9621D,  0.0D     ,  0.0D     ,  0.0D     ]  ; MCPHV = 2925 V
+    ac[*,0] = [2.6D   ,  0.0D     ,  0.0D     ,  0.0D      ]  ; MCPHV = 2500 V
+    ac[*,1] = [2.3368D, -9.9426d-4,  2.6014d-5,  0.0D      ]  ; MCPHV = 2600 V
+    ac[*,2] = [2.2143D,  7.9280d-4,  1.4300d-5,  0.0D      ]  ; MCPHV = 2700 V
+    ac[*,3] = [2.0027D,  7.2892d-3, -1.1918d-5,  0.0D      ]  ; MCPHV = 2750 V
+    ac[*,4] = [2.2929D,  6.0841d-3, -2.0345d-5,  3.0202d-8 ]  ; MCPHV = 2800 V
+    ac[*,5] = [2.0304D,  1.7992d-3, -1.2476d-6,  3.0578d-10]  ; MCPHV = 2875 V
+    ac[*,6] = [2.0700D,  0.0D     ,  0.0D     ,  0.0D      ]  ; MCPHV = 2925 V
     eflg = 0                                                 ; 0 -> extrapolate using last known value
                                                              ; 1 -> extrapolate using last polynomial
   endif
@@ -106,6 +106,8 @@ function mvn_swe_crosscal, time, on=on, off=off, refresh=refresh, extrap=extrap,
 
   indx = where((t ge t_mcp[1]) and (t lt t_mcp[2]), count)  ; MCPHV = 2600 V
   if (count gt 0L) then cc[indx] = ac[0,1]
+
+; Polynomial fits to SWE-SWI cross calibration data
   
   indx = where((t ge t_mcp[2]) and (t lt t_mcp[3]), count)  ; MCPHV = 2600 V
   if (count gt 0L) then begin
@@ -163,20 +165,19 @@ function mvn_swe_crosscal, time, on=on, off=off, refresh=refresh, extrap=extrap,
     cc[indx] = ac[0,i] + day*(ac[1,i] + day*(ac[2,i] + day*ac[3,i]))
   endif
 
+; Extrapolate past last known SWE-SWI cross calibration
+
   indx = where(t ge t_mcp[10], count)
   if (count gt 0L) then begin
     i = 6
     if (eflg) then tt = t[indx] else tt = t_mcp[10]
     day = (tt - tc[i])/86400D
     cc[indx] = ac[0,i] + day*(ac[1,i] + day*(ac[2,i] + day*ac[3,i]))
-  endif
 
-  if (domsg) then begin
-    indx = where(t gt t_mcp[9], count)
-    if (count gt 0L) then begin
+    if (domsg) then begin
       msg = "Warning: SWE-SWI cross calibration factor "
-      if (eflg) then print,msg,"extrapolated after ",time_string(t_mcp[9],prec=-3) $
-                else print,msg,"fixed after ",time_string(t_mcp[9],prec=-3)
+      if (eflg) then print,msg,"extrapolated after ",time_string(t_mcp[10],prec=-3) $
+                else print,msg,"fixed after ",time_string(t_mcp[10],prec=-3)
     endif
   endif
 
