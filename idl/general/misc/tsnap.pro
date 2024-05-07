@@ -66,8 +66,8 @@
 ;               conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-12 15:41:13 -0700 (Tue, 12 Mar 2024) $
-; $LastChangedRevision: 32492 $
+; $LastChangedDate: 2024-05-05 19:11:56 -0700 (Sun, 05 May 2024) $
+; $LastChangedRevision: 32550 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/tsnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -158,8 +158,7 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
   str_element, dat, 'x', success=ok
   if (ok) then str_element, dat, 'y', success=ok
   if (ok) then begin
-    ysz = size(dat.y)
-    if (ysz[0] ne 2) then begin
+    if ((size(dat.y))[0] ne 2) then begin
       print,"Not a 2-D tplot variable: ",var
       return
     endif

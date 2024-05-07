@@ -137,6 +137,8 @@
 ;                  Set this keyword to a number N > 5 to display the small
 ;                  windows for N seconds.
 ;
+;       LIST:      List the existing windows and their dimensions.
+;
 ;       MONITOR:   Put window in this monitor.  If no monitor is set by
 ;                  input or keyword, then the new window is placed in
 ;                  the primary monitor.
@@ -257,8 +259,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-09-05 08:51:31 -0700 (Tue, 05 Sep 2023) $
-; $LastChangedRevision: 32076 $
+; $LastChangedDate: 2024-05-05 19:12:17 -0700 (Sun, 05 May 2024) $
+; $LastChangedRevision: 32551 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/win.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -270,7 +272,7 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
                   yfull=yfull, aspect=aspect, show=show, secondary=secondary, $
                   relative=relative, top=top, bottom=bottom, right=right, left=left, $
                   middle=middle, clone=clone, setprime=setprime, silent=silent, $
-                  tcalib=tcalib, xpos=xpos, ypos=ypos, _extra=extra
+                  tcalib=tcalib, xpos=xpos, ypos=ypos, list=list, _extra=extra
 
   @putwin_common
   @colors_com
@@ -408,6 +410,26 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
 
     config = {geom:mgeom, primon:primarymon, secmon:secondarymon, tbar:tbar}
 
+    return
+  endif
+
+; List the currently existing windows.
+
+  if keyword_set(list) then begin
+    device, window_state=ws
+    indx = where(ws eq 1, nwin)
+    wsave = !d.window
+    print,'   #   Xsize   Ysize   Monitor'
+    for i=0,(nwin-1) do begin
+      wset,indx[i]
+      device, get_window_position=wpos
+      xok = (wpos[0] ge mgeom[0,*]) and (wpos[0] le mgeom[0,*]+mgeom[2,*])
+      yok = (wpos[1] ge mgeom[1,*]) and (wpos[1] le mgeom[1,*]+mgeom[3,*])
+      j = where(xok and yok)
+      print,indx[i],!d.x_size,!d.y_size,j,format='(2x,i2,3x,i5,3x,i5,5x,i2)'
+    endfor
+    print,''
+    wset,wsave
     return
   endif
 

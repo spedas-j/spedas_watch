@@ -26,8 +26,8 @@
 ;       NOLUT:    Do not recalculate the LUT.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-02 16:18:23 -0800 (Sat, 02 Mar 2024) $
-; $LastChangedRevision: 32473 $
+; $LastChangedDate: 2024-05-06 14:50:53 -0700 (Mon, 06 May 2024) $
+; $LastChangedRevision: 32557 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makespec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -103,7 +103,7 @@ pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, n
         mvn_swe_engy[j0+j].var = a4[i].var[*,j]                     ; variance
       endfor
     endfor
-    
+
     mvn_swe_engy.units_name = 'counts'                              ; initial units = raw counts
 
 ; The measurement cadence can change while a 16-sample packet is being assembled.
@@ -127,6 +127,9 @@ pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, n
         if ((n gt 0) and (n lt 16)) then begin
           dt_fix = (dt2 - dt1)*(dindgen(16-n) + 1D)
           mvn_swe_engy[(m+n):(m+15L)].time += dt_fix
+          mvn_swe_engy[(m+n):(m+15L)].met += dt_fix
+          mvn_swe_engy[(m+n):(m+15L)].delta_t = dt2
+          mvn_swe_engy[(m+n):(m+15L)].end_time = mvn_swe_engy[(m+n):(m+15L)].time + dt2/2D
         endif
       endif
     endfor
@@ -274,6 +277,9 @@ pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, n
         if ((n gt 0) and (n lt 16)) then begin
           dt_fix = (dt2 - dt1)*(dindgen(16-n) + 1D)
           mvn_swe_engy_arc[(m+n):(m+15L)].time += dt_fix
+          mvn_swe_engy_arc[(m+n):(m+15L)].met += dt_fix
+          mvn_swe_engy_arc[(m+n):(m+15L)].delta_t = dt2
+          mvn_swe_engy_arc[(m+n):(m+15L)].end_time = mvn_swe_engy_arc[(m+n):(m+15L)].time + dt2/2D
         endif
       endif
     endfor
