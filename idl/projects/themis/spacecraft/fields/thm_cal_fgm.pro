@@ -79,8 +79,8 @@
 ;
 ;Written by Hannes Schwarzl.
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-05-06 11:58:17 -0700 (Mon, 06 May 2024) $
-; $LastChangedRevision: 32553 $
+; $LastChangedDate: 2024-05-07 15:55:45 -0700 (Tue, 07 May 2024) $
+; $LastChangedRevision: 32562 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/fields/thm_cal_fgm.pro $
 ;Changes by Edita Georgescu
 ;eg 6/3/2007     - matrix multiplication
@@ -443,33 +443,29 @@ utcStr=strarr(ncal)
 ;THEMIS E has two extra columns as of 2024-04-24
 bz_slope_intercept = dblarr(ncal, 2)
 
-for i=0,ncal-1 DO BEGIN
+for i=0,ncal-1 do begin
     split_result = strsplit(calstr[i], COUNT=lct, /EXTRACT)
-    if probe_letter eq 'e' then Begin
-       if lct ne 16 then begin
-          if lct ne 14 then begin ;allows for old cal file.
-             msg = 'Error in FGM cal file. Line: ' + string(i) + ", File: " + pathfile
-             dprint, dlevel=1, msg
-             continue
-          endif
-       endif
-    endif else begin   
-       if lct ne 14 then begin
-          msg = 'Error in FGM cal file. Line: ' + string(i) + ", File: " + pathfile
-          dprint, dlevel=1, msg
-          continue
-       endif
-    endelse
+    if lct lt 14 then begin
+       msg = 'Error in FGM cal file. Line: ' + string(i) + ", File: " + pathfile
+       dprint, dlevel=1, msg
+       continue
+    endif else if lct gt 16 then begin
+       msg = 'Unexpected elements in FGM cal file. Consider updating software, Line: ' $
+             + string(i) + ", File: " + pathfile
+       dprint, dlevel=1, msg
+    endif
     utci=split_result[0]
     offi[i,*]=split_result[1:3]
     cali[i,*]=split_result[4:12]
     spinperi[i]=split_result[13]
     utcStr[i]=utci
-    ;translate time information
+;translate time information
     STRPUT, utci, '/', 10
     utc[i]=time_double(utci)
-    if probe_letter eq 'e' and lct eq 16 then bz_slope_intercept[i,*] = split_result[14:15]
-ENDFOR
+    if probe_letter eq 'e' and lct ge 16 then begin
+       bz_slope_intercept[i,*] = split_result[14:15]
+    endif
+endfor
 
 ;for probe e, calculate the mid-point offset intercept for the last
 ;orbit and use this value for intercept with zero slope, jmm, 2024-05-02
