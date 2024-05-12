@@ -38,7 +38,8 @@
 ;       TRANGE:        Search for files only within this time range.
 ;                      Only year, month, day are used.
 ;
-;       DATES:         Search only for specific dates.
+;       DATES:         Search only for specific dates.  Can be an array
+;                      in any format accepted by time_double.
 ;
 ;       PDS:           Search for files only in this PDS release
 ;                      number or range.
@@ -47,8 +48,8 @@
 ;                      This will force immediate delivery to the SDC.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-10 14:56:11 -0700 (Fri, 10 May 2024) $
-; $LastChangedRevision: 32572 $
+; $LastChangedDate: 2024-05-11 13:29:55 -0700 (Sat, 11 May 2024) $
+; $LastChangedRevision: 32574 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_catalog.pro $
 ;
 ;CREATED BY:    David L. Mitchell  04-25-13
@@ -113,40 +114,36 @@ pro mvn_swe_catalog, version=version, revision=revision, mtime=mtime, result=dat
 
 ; Process a list of dates
 
-  str_element, dates, 'yyyy', success=ok
-  if (ok) then begin
-    ndates = n_elements(dates.yyyy)
-    dat = {fname:'', ftype:'', exists:0}
-    dat = replicate(dat,ndates+ntypes)
-  else ndates = 0L
+  ndates = n_elements(dates)
+  if (ndates gt 0L) then begin
+    dates = time_string(dates,prec=-3)
+    yyyy = strmid(dates,0,4)
+    mm = strmid(dates,6,2)
+    dd = strmid(dates,9,2)
 
-  for i=0L,(ndates-1L) do begin
-    yyyy = dates.yyyy[i]
-    mm = dates.mm[i]
-    dd = dates.dd[i]
-    path = data_dir + yyyy + '/' + mm + '/'
-    for k=0L,(ntypes-1L) do begin
-      fname = path + froot + ftypes[k] + '_' + yyyy + mm + dd + '_v' + ver + '_r' + rev + '.cdf'
-      file = file_retrieve(fname,/no_server,last_version=last)
-      chksum = file_dirname(file) + '/' + file_basename(file,'.cdf') + '.md5'
-      finfo = file_info(file)
-      valid = finfo.exists and (finfo.mtime ge mtime)
+    for i=0L,(ndates-1L) do begin
+      path = data_dir + yyyy[i] + '/' + mm[i] + '/'
+      for k=0L,(ntypes-1L) do begin
+        fname = path + froot + ftypes[k] + '_' + yyyy[i] + mm[i] + dd[i] + '_v' + ver + '_r' + rev + '.cdf'
+        file = file_retrieve(fname,/no_server,last_version=last)
+        chksum = file_dirname(file) + '/' + file_basename(file,'.cdf') + '.md5'
+        finfo = file_info(file)
+        valid = finfo.exists and (finfo.mtime ge mtime)
 
-      if (valid) then begin
-        print, file
-        dat[i]
-        if (tflg) then begin
-          spawn, 'touch ' + file
-          spawn, 'touch ' + chksum
+        if (valid) then begin
+          print, file_basename(file)
+          if (tflg) then begin
+            spawn, 'touch ' + file
+            spawn, 'touch ' + chksum
+          endif
+          if (dflg) then begin
+            file_copy, file, drop_dir, /overwrite, /verbose
+            file_copy, chksum, drop_dir, /overwrite, /verbose
+          endif
         endif
-        if (dflg) then begin
-          file_copy, file, drop_dir, /overwrite, /verbose
-          file_copy, chksum, drop_dir, /overwrite, /verbose
-        endif
-      endif
-
+      endfor
     endfor
-  endfor
+  endif
 
   if (ndates gt 0L) then return
 
