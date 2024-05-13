@@ -193,8 +193,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-02-29 15:23:31 -0800 (Thu, 29 Feb 2024) $
-; $LastChangedRevision: 32468 $
+; $LastChangedDate: 2024-05-12 17:37:34 -0700 (Sun, 12 May 2024) $
+; $LastChangedRevision: 32579 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -637,7 +637,7 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
   nplot = 0
   
   while (ok) do begin
-    result = {null:0}
+    result = {units:units}
 
     if (dosmo) then begin
       tmin = min(trange, max=tmax)
@@ -733,6 +733,8 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
       endif else pot = 0.
       if (finite(scp)) then pot = scp  ; override with user-supplied value
       pad.sc_pot = pot
+
+      str_element, result, 'scpot', pot, /add
 
 ; Correct for spacecraft potential.  For instrumental units (COUNTS, RATE, or
 ; CRATE) only shift in energy.  For flux units (FLUX, EFLUX), shift in energy 
@@ -1138,8 +1140,8 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
 
         pad_cut = {x      : reform(y[i,*])    , $
                    dx     : abs(yhi - ylo)/2. , $
-                   y      : zi                , $
-                   dy     : dzi               , $
+                   y      : reform(zi)        , $
+                   dy     : reform(dzi)       , $
                    time   : tstring           , $
                    energy : penergy           , $
                    units  : 'normalized'         }
@@ -1373,9 +1375,10 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
           if (domid) then errplot, x, (Fz-Fz_err)>tiny, Fz+Fz_err, color=4, width=0
         endif
 
-        str_element, result, 'spec_plus', {x:x1, y:Fp, dy:Fp_err}, /add
-        str_element, result, 'spec_minus', {x:x2, y:Fm, dy:Fm_err}, /add
-        str_element, result, 'spec_mid', {x:x, y:Fz, dy:Fz_err}, /add
+        dwidth = swidth*!radeg
+        str_element, result, 'spec_plus', {x:x1, y:Fp, dy:Fp_err, pa_range:[0.,dwidth]}, /add
+        str_element, result, 'spec_minus', {x:x2, y:Fm, dy:Fm_err, pa_range:[180.-dwidth,180.]}, /add
+        str_element, result, 'spec_mid', {x:x, y:Fz, dy:Fz_err, pa_range:[dwidth, 180.-dwidth]}, /add
 
         if (dopot) then begin
           if (spflg) then oplot,[-pot,-pot],drange,line=2,color=6 $
@@ -1598,8 +1601,6 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
     endif else ok = 0
     
   endwhile
-
-  str_element, result, 'null', /del
 
   if (kflg) then begin
     if (~rflg) then wdelete, Pwin

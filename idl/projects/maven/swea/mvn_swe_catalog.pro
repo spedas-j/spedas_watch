@@ -48,8 +48,8 @@
 ;                      This will force immediate delivery to the SDC.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-11 13:29:55 -0700 (Sat, 11 May 2024) $
-; $LastChangedRevision: 32574 $
+; $LastChangedDate: 2024-05-12 16:29:11 -0700 (Sun, 12 May 2024) $
+; $LastChangedRevision: 32577 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_catalog.pro $
 ;
 ;CREATED BY:    David L. Mitchell  04-25-13
@@ -118,8 +118,10 @@ pro mvn_swe_catalog, version=version, revision=revision, mtime=mtime, result=dat
   if (ndates gt 0L) then begin
     dates = time_string(dates,prec=-3)
     yyyy = strmid(dates,0,4)
-    mm = strmid(dates,6,2)
-    dd = strmid(dates,9,2)
+    mm = strmid(dates,5,2)
+    dd = strmid(dates,8,2)
+    print,"Number of dates: " + strtrim(string(ndates),2)
+    dat = replicate('',ndates*ntypes)
 
     for i=0L,(ndates-1L) do begin
       path = data_dir + yyyy[i] + '/' + mm[i] + '/'
@@ -131,7 +133,9 @@ pro mvn_swe_catalog, version=version, revision=revision, mtime=mtime, result=dat
         valid = finfo.exists and (finfo.mtime ge mtime)
 
         if (valid) then begin
-          print, file_basename(file)
+          j = i*5L + k
+          dat[j] = file_basename(file)
+          print, dat[j]
           if (tflg) then begin
             spawn, 'touch ' + file
             spawn, 'touch ' + chksum
@@ -143,9 +147,8 @@ pro mvn_swe_catalog, version=version, revision=revision, mtime=mtime, result=dat
         endif
       endfor
     endfor
+    return
   endif
-
-  if (ndates gt 0L) then return
 
 ; Process a time range
 
