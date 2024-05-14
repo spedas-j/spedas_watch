@@ -247,8 +247,8 @@ end
 ;                             for "good" spectra.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-12 17:36:29 -0700 (Sun, 12 May 2024) $
-; $LastChangedRevision: 32578 $
+; $LastChangedDate: 2024-05-12 19:09:27 -0700 (Sun, 12 May 2024) $
+; $LastChangedRevision: 32580 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -987,7 +987,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
         mvn_swe_convert_units, halo, units
         oplot,E1,halo.data,color=mcol,psym=10
 
-        str_element, result, 'halo', {x:E1, y:halo.data}, /add
+        str_element, result, 'halo', {x:E1, y:halo.data, dy:dy}, /add
       endelse
 
       if (spflg) then jndx = indgen(64) else jndx = where(E1 gt p.pot)
