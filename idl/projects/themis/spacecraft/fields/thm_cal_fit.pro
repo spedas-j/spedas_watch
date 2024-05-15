@@ -29,9 +29,9 @@
 ;   -- time-dependent spinn axis offset implemented Hannes 05/25/2007
 ;   -- fixed trouble reading cal files with extra lines at the end,
 ;      jmm, 8-nov-2007
-; $LastChangedBy: jwl $
-; $LastChangedDate: 2016-12-20 16:18:08 -0800 (Tue, 20 Dec 2016) $
-; $LastChangedRevision: 22467 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2024-05-14 11:01:15 -0700 (Tue, 14 May 2024) $
+; $LastChangedRevision: 32582 $
 ; $URL $
 ;-
 pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = trange, $
@@ -131,25 +131,58 @@ pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = tra
     spinperi = dblarr(ncal)
     offi = dblarr(ncal, 3)
     cali = dblarr(ncal, 9)
-    offi2 = dblarr(ncal, 3)
-    spinperii = dblarr(1)
-    offii = dblarr(3)
-    calii = dblarr(9)
-    utci = '2006-01-01T00:00:00.000Z'
     utc = dblarr(ncal)
     utcStr = strarr(ncal)
-    FOR i = 0, ncal-1 DO BEGIN
-      calstri = calstr[i]
-      utci = strmid(calstr[i], 0, 25)
-      reads, strmid(calstr[i], 26), offii, calii, spinperii ;
-      offi[i, *] = offii
-      cali[i, *] = calii
-      spinperi[i] = spinperii
-      utcStr[i] = utci
-      ;translate time information
-      STRPUT, utci, '/', 10
-      utc[i] = time_double(utci)
-    ENDFOR
+
+;THEMIS E has two extra columns as of 2024-04-24
+    bz_slope_intercept = dblarr(ncal, 2)
+;Swapped the cal read from THM_LOAD_FGM, the original version here
+;using reads gives incorrect values when the X offset is greater than
+;10, jmm, 2024-05-13
+;    offi2 = dblarr(ncal, 3)
+;    spinperii = dblarr(1)
+;    offii = dblarr(3)
+;    calii = dblarr(9)
+;    utci = '2006-01-01T00:00:00.000Z'
+;    utc = dblarr(ncal)
+;    utcStr = strarr(ncal)
+;    FOR i = 0, ncal-1 DO BEGIN
+;      calstri = calstr[i]
+;      utci = strmid(calstr[i], 0, 25)
+;      reads, strmid(calstr[i], 26), offii, calii, spinperii ;
+;      offi[i, *] = offii
+;      cali[i, *] = calii
+;      spinperi[i] = spinperii
+;      utcStr[i] = utci
+;      ;translate time information
+;      STRPUT, utci, '/', 10
+;      utc[i] = time_double(utci)
+;    ENDFOR
+    DPRINT,  'done reading FGM calibration file'
+ 
+    for i=0,ncal-1 do begin
+       split_result = strsplit(calstr[i], COUNT=lct, /EXTRACT)
+       utci=split_result[0]
+       offi[i,*]=split_result[1:3]
+       cali[i,*]=split_result[4:12]
+       spinperi[i]=split_result[13]
+       utcStr[i]=utci
+;translate time information
+       STRPUT, utci, '/', 10
+       utc[i]=time_double(utci)
+       if sc eq 'e' and lct ge 16 then begin
+          bz_slope_intercept[i,*] = split_result[14:15]
+       endif
+    endfor
+;for probe e, calculate the mid-point offset intercept for the last
+;orbit and use this value for intercept with zero slope, jmm, 2024-05-02
+    if sc eq 'e' then begin
+       bz_last_time = 2.0*utc[ncal-1]-utc[ncal-2] ;last time for nonzero slope
+       bz_last_tmid = 0.5d0*(utc[ncal-1]+utc[ncal-2])
+       bz_ext_intercept = bz_slope_intercept[ncal-2,0]+$
+                          bz_slope_intercept[ncal-2,1]*(bz_last_tmid-utc[ncal-2])/3600.0d0
+    endif
+    
     DPRINT,  'done reading FGM calibration file'
     ;end Hannes 05/25/2007
     ; check that data has not already been calibrated
@@ -195,31 +228,42 @@ pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = tra
     ;we still need to implement: Gz,Gxy,phi1
     flipxz = [[0, 0, -1.], [0, -1., 0], [-1., 0, 0]]
     IF (istart eq istop) THEN BEGIN
-      offi2 = invert(transpose([cali[istart, 0:2], cali[istart, 3:5], cali[istart, 6:8]]) ## flipxz)##offi[istart, *]
-      Bzoffset[0L:count-1L] = offi2[2] ;
+       ii = istart
+       offi2 = invert(transpose([cali[ii, 0:2], cali[ii, 3:5], cali[ii, 6:8]]) ## flipxz)##offi[ii, *]
+       if sc eq 'e' then begin ;needs extra correction, jmm, 2024-05-13
+          if d.x[0] gt bz_last_time then begin
+             offi2x = offi2[2]-bz_ext_intercept
+          endif else begin
+             offi2x = offi2[2]-(bz_slope_intercept[ii, 0]+$
+                      bz_slope_intercept[ii, 1]*(d.x-utc[ii])/3600.0d0)
+          endelse
+          Bzoffset[0L:count-1L] = offi2x
+       endif else begin
+          Bzoffset[0L:count-1L] = offi2[2]
+       endelse
     ENDIF ELSE BEGIN
       FOR ii = istart, istop DO BEGIN
         IF (ii eq istart) THEN BEGIN
-          indcal = WHERE(d.X lt utc[ii+1])
-          if (indcal[0] gt -1) THEN BEGIN
-            offi2 = invert(transpose([cali[ii, 0:2], cali[ii, 3:5], cali[ii, 6:8]]) ## flipxz)##offi[ii, *]
-            Bzoffset[indcal] = offi2[2]
-          ENDIF
+           indcal = WHERE(d.X lt utc[ii+1])
+        ENDIF ELSE IF (ii eq istop) THEN BEGIN
+           indcal = WHERE(d.X ge utc[ii])
         ENDIF ELSE BEGIN
-          IF (ii eq istop) THEN BEGIN
-            indcal = WHERE(d.X ge utc[ii])
-            if (indcal[0] gt -1) THEN BEGIN
-              offi2 = invert(transpose([cali[ii, 0:2], cali[ii, 3:5], cali[ii, 6:8]]) ## flipxz)##offi[ii, *]
-              Bzoffset[indcal] = offi2[2]
-            ENDIF
-          ENDIF ELSE BEGIN
-            indcal = WHERE((d.X ge utc[ii]) AND (d.X lt utc[ii+1]))
-            if (indcal[0] gt -1) THEN BEGIN
-              offi2 = invert(transpose([cali[ii, 0:2], cali[ii, 3:5], cali[ii, 6:8]]) ## flipxz)##offi[ii, *]
-              Bzoffset[indcal] = offi2[2]
-            ENDIF
-          ENDELSE
+           indcal = WHERE((d.X ge utc[ii]) AND (d.X lt utc[ii+1]))
         ENDELSE
+        IF (indcal[0] gt -1) THEN BEGIN
+           offi2 = invert(transpose([cali[ii, 0:2], cali[ii, 3:5], cali[ii, 6:8]]) ## flipxz)##offi[ii, *]
+           if sc eq 'e' then begin
+              if d.x[indcal[0]] gt bz_last_time then begin
+                 offi2x = offi2[2]-bz_ext_intercept
+              endif else begin
+                 offi2x = offi2[2]-(bz_slope_intercept[ii, 0]+$
+                                    bz_slope_intercept[ii, 1]*(d.x[indcal]-utc[ii])/3600.0d0)
+              endelse
+              Bzoffset[indcal] = offi2x
+           endif else begin
+              Bzoffset[indcal] = offi2[2]
+           endelse
+        ENDIF
       ENDFOR
     ENDELSE
     ;Bzoffset is an array (for vectorized processing)
