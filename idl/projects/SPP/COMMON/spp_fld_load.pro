@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2023
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2023-09-19 16:04:38 -0700 (Tue, 19 Sep 2023) $
-; $LastChangedRevision: 32108 $
+; $LastChangedDate: 2024-05-17 11:54:43 -0700 (Fri, 17 May 2024) $
+; $LastChangedRevision: 32598 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -472,7 +472,7 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
     ; Solar Orbiter longterm ephemeris
     ;
 
-    if pathformat.Contains('solo') then begin
+    if pathformat.contains('solo') then begin
       pathformat = str_sub(pathformat, '20180812_090000_20250831_090000', $
         '20200210_050000_20301120_050000')
     endif
@@ -537,46 +537,46 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
       ;
 
       if strmatch(type, 'mag_*') then begin
-        r = where(tn.Matches('quality_flag'))
+        r = where(tn.matches('quality_flag'))
         qf_root = tn[r[0]]
 
-        r = where(tn.Matches('mag_RTN') and $
-          not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'), /null)
+        r = where(tn.matches('mag_RTN') and $
+          not tn.matches('(_MET|_range|_mode|_rate|_packet_index)'), /null)
         options, tn[r], /def, ytitle = 'MAG RTN', $
           psym_lim = 300, $
           colors = 'bgr', $
           qf_root = qf_root ; To simplify dealing with pre/suffixes for qf filtering
         options, tn[r], max_points = 10000 ; not a default option, so users can turn it off
 
-        r = where(tn.Matches('mag_SC') and $
-          not tn.Matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'), /null)
+        r = where(tn.matches('mag_SC') and $
+          not tn.matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'), /null)
         options, tn[r], /def, ytitle = 'MAG SC', $
           psym_lim = 300, $
           colors = 'bgr', $
           qf_root = qf_root ; see above
         options, tn[r], max_points = 10000 ; see above
 
-        r = where(tn.Matches('mag_VSO') and $
-          not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'), /null)
+        r = where(tn.matches('mag_VSO') and $
+          not tn.matches('(_MET|_range|_mode|_rate|_packet_index)'), /null)
         options, tn[r], /def, ytitle = 'MAG VSO', psym_lim = 300
         options, tn[r], /def, colors = 'bgr'
         options, tn[r], max_points = 10000 ; see above
       endif
 
       if strmatch(type, 'magi_*') then begin
-        r = where(tn.Matches('quality_flag'))
+        r = where(tn.matches('quality_flag'))
         qf_root = tn[r[0]]
 
-        r = where(tn.Matches('magi_RTN') and $
-          not tn.Matches('(_MET|_range|_mode|_rate|_packet_index)'), /null)
+        r = where(tn.matches('magi_RTN') and $
+          not tn.matches('(_MET|_range|_mode|_rate|_packet_index)'), /null)
         options, tn[r], /def, ytitle = 'MAGi RTN', $
           psym_lim = 300, $
           colors = 'bgr', $
           qf_root = qf_root ; To simplify dealing with pre/suffixes for qf filtering
         options, tn[r], max_points = 10000 ; not a default option, so users can turn it off
 
-        r = where(tn.Matches('magi_SC') and $
-          not tn.Matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'), /null)
+        r = where(tn.matches('magi_SC') and $
+          not tn.matches('(_zero|_MET|_range|_mode|_rate|_packet_index)'), /null)
         options, tn[r], /def, ytitle = 'MAGi SC', $
           psym_lim = 300, $
           colors = 'bgr', $
@@ -659,9 +659,9 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
         aeb_tnames = tnames('psp_fld_l2_aeb*', n_aeb_tnames)
 
         for i = 0, n_aeb_tnames - 1 do begin
-          ytitle = strupcase(((aeb_tnames[i]).SubString(11)))
+          ytitle = strupcase(((aeb_tnames[i]).subString(11)))
 
-          options, aeb_tnames[i], 'ytitle', ytitle.Replace('_', '!C')
+          options, aeb_tnames[i], 'ytitle', ytitle.replace('_', '!C')
 
           options, aeb_tnames[i], 'datagap', 7200d
 
@@ -683,6 +683,37 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
           options, 'psp_fld_l2_aeb2_V3_*', 'colors', ['r']
           options, 'psp_fld_l2_aeb2_V4_*', 'colors', ['m']
         endif
+      endif
+
+      if strmatch(type, 'sqtn_rfs*') then begin
+        sqtn = 'psp_fld_l3_sqtn_rfs_V1V2_'
+
+        get_data, sqtn + 'electron_density', $
+          data = d_ne, al = al_ne
+        get_data, sqtn + 'electron_density_delta', $
+          data = d_delta
+
+        store_data, sqtn + 'electron_density_ddelta', $
+          data = {x: d_ne.x, $
+            y: [[d_ne.y - d_delta.y[*, 0]], [d_ne.y + d_delta.y[*, 1]]]}
+
+        options, sqtn + 'electron_density', 'ytitle', 'SQTN Ne'
+        options, sqtn + 'density_quality_flag', 'ytitle', 'SQTN Quality'
+        options, sqtn + 'electron_core_temperature', 'ytitle', 'SQTN Tc'
+        options, sqtn + 'electron_density_delta', 'ytitle', 'SQTN dNe'
+        options, sqtn + 'electron_density_ddelta', 'ytitle', 'SQTN Ne+/-dNe'
+
+        options, sqtn + 'electron_density*', 'psym', -3
+        options, sqtn + 'electron_density*', 'ylog', 1
+        options, sqtn + 'electron_density_*delta', 'colors', ['r', 'k']
+        options, sqtn + 'electron_density_*delta', 'ysubtitle', $
+          al_ne.ysubtitle
+        options, sqtn + 'electron_core_temperature', 'ylog', 1
+
+        options, sqtn + 'density_quality_flag', 'psym', 3
+        options, sqtn + 'density_quality_flag', 'yrange', [-0.5, 4.5]
+        options, sqtn + 'density_quality_flag', 'ystyle', 1
+        options, sqtn + 'density_quality_flag', 'yminor', 1
       endif
 
       ;

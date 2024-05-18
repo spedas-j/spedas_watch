@@ -79,8 +79,8 @@
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-02-04 14:55:20 -0800 (Sun, 04 Feb 2024) $
-; $LastChangedRevision: 32435 $
+; $LastChangedDate: 2024-05-17 09:17:23 -0700 (Fri, 17 May 2024) $
+; $LastChangedRevision: 32597 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol2=nol2, $
@@ -152,7 +152,9 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
 
   t0 = time_double(time)
   tm1 = t0 - oneday
+  tm4 = t0 - 4D*oneday
   tp1 = t0 + oneday
+  tp4 = t0 + 4D*oneday
 
 ; Added to assure that pre-orbit files are not processed
 ;   First SWEA power-on in orbit: 2014-10-06/22:58:28
@@ -168,15 +170,17 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
   endif
 
   message, /info, 'PROCESSING: '+time_string(t0)
-  timespan, [tm1,tp1]
 
 ; get SPICE time, frames, and SPK kernels
+; load at least a week to avoid occasionally problematic "rec" C-kernels : DLM 2024-05-17
 
+  timespan, [tm4,tp4]
   if (l2only) then mvn_swe_spice_init, /force, /list $
               else mvn_swe_spice_init, /nock, /force, /list
 
 ; Load L0 SWEA data
 
+  timespan, [tm1,tp1]
   mvn_swe_load_l0, /nospice
 
 ; Load highest level MAG data available (for pitch angle sorting)
