@@ -62,17 +62,19 @@
 ;                     Caveat: There is increased noise around 23 eV, even 
 ;                     for "good" spectra.
 ;
+;   TRANGE:    Process data over this time range.
+;
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-04-12 09:38:08 -0700 (Fri, 12 Apr 2024) $
-; $LastChangedRevision: 32524 $
+; $LastChangedDate: 2024-05-19 10:18:49 -0700 (Sun, 19 May 2024) $
+; $LastChangedRevision: 32602 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_n1d.pro $
 ;
 ;-
 pro mvn_swe_n1d, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, mask_sc=mask_sc, $
                  mom=mom, mb=mb, minden=minden, erange=erange, secondary=sec, qlevel=qlevel, $
-                 result=result
+                 result=result, trange=trange
 
   compile_opt idl2
 
@@ -89,6 +91,10 @@ pro mvn_swe_n1d, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, mask
   if (size(minden,/type) eq 0) then minden = 0.08  ; minimum density
   dosec = keyword_set(sec)
   qlevel = (n_elements(qlevel) gt 0) ? byte(qlevel[0]) < 2B : 0B
+  if (n_elements(trange) ge 2) then begin
+    tmin = min(time_double(trange), max=tmax)
+    tflg = 1
+  endif else tflg = 0
   result = 0
 
 ; Get energy spectra from SPEC or 3D distributions
@@ -113,7 +119,15 @@ pro mvn_swe_n1d, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, mask
     if (size(mvn_swe_3d,/type) eq 8) then t = mvn_swe_3d.time $
                                      else t = swe_3d.time
 
-    npts = n_elements(t)
+    if (tflg) then begin
+      indx = where((t ge tmin) and (t le tmax), npts)
+      if (npts eq 0L) then begin
+        print,"No data from ",time_string(tmin)," to ",time_string(tmax)
+        return
+      endif
+      t = t[indx]
+    endif else npts = n_elements(t)
+
     dens = fltarr(npts)
     halo = dens
     temp = dens
@@ -157,7 +171,19 @@ pro mvn_swe_n1d, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, mask
     if (size(mvn_swe_engy,/type) ne 8) then mvn_swe_makespec
 
     t = mvn_swe_engy.time
-    npts = n_elements(t)
+
+    if (tflg) then begin
+      tndx = where((t ge tmin) and (t le tmax), npts)
+      if (npts eq 0L) then begin
+        print,"No data from ",time_string(tmin)," to ",time_string(tmax)
+        return
+      endif
+      t = t[tndx]
+    endif else begin
+      npts = n_elements(t)
+      tndx = lindgen(npts)
+    endelse
+
     dens = fltarr(npts)
     halo = dens
     temp = dens
@@ -166,16 +192,16 @@ pro mvn_swe_n1d, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, mask
 
     ounits = mvn_swe_engy[0].units_name
     mvn_swe_convert_units, mvn_swe_engy, 'eflux'
-    energy = mvn_swe_engy.energy
-    eflux = mvn_swe_engy.data
-    var = mvn_swe_engy.var
-    bkg = mvn_swe_engy.bkg
-    sc_pot = mvn_swe_engy.sc_pot
+    energy = mvn_swe_engy[tndx].energy
+    eflux = mvn_swe_engy[tndx].data
+    var = mvn_swe_engy[tndx].var
+    bkg = mvn_swe_engy[tndx].bkg
+    sc_pot = mvn_swe_engy[tndx].sc_pot
 
     if (dosec) then begin
       mvn_swe_secondary, mvn_swe_engy
-      bkg = mvn_swe_engy.bkg
-      indx = where(~mvn_swe_engy.valid, count)
+      bkg = mvn_swe_engy[tndx].bkg
+      indx = where(~mvn_swe_engy[tndx].valid, count)
       if (count gt 0L) then begin
         eflux[indx] = tiny
         var[indx] = tiny
@@ -297,7 +323,7 @@ pro mvn_swe_n1d, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, mask
 
   str_element, mvn_swe_engy, 'quality', success=ok
   if (ok) then begin
-    indx = where(mvn_swe_engy.quality lt qlevel, count)
+    indx = where(mvn_swe_engy[tndx].quality lt qlevel, count)
     if (count gt 0L) then begin
       dens[indx] = !values.f_nan
       halo[indx] = !values.f_nan

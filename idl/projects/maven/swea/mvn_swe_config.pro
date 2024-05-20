@@ -41,7 +41,7 @@
 ;                   the following to list changes of a particular type:
 ;
 ;                     'swp' : sweep table
-;                     'mtx' : MAG-to_SWE rotation matrix
+;                     'mtx' : MAG-to-SWE rotation matrix
 ;                     'dsf' : deflection scale factors
 ;                     'mcp' : MCP bias voltage (or SWE-SWI cross calibration)
 ;                     'sup' : electron suppression
@@ -55,8 +55,8 @@
 ;                     type : types of configuration changes (see above)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-04 14:46:01 -0700 (Sat, 04 May 2024) $
-; $LastChangedRevision: 32546 $
+; $LastChangedDate: 2024-05-19 10:17:10 -0700 (Sun, 19 May 2024) $
+; $LastChangedRevision: 32599 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_config.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -153,7 +153,7 @@ pro mvn_swe_config, list=list, timebar=tbar
 
 ; Comet Siding Spring encounter with Mars: 2014-10-19
 ;  - ESA HV off (hunker down): 2014-10-19/16:41:36
-;  - ESA HV on: 2014-10-19/22:04:00
+;  - ESA HV on               : 2014-10-19/22:04:00
 ;  - SWEA science data resume: 2014-10-19/23:01:40
 
   t_mcp = [t_mcp, time_double('2014-11-12/00:00:00')]
@@ -161,7 +161,7 @@ pro mvn_swe_config, list=list, timebar=tbar
 
 ; ----- SCIENCE PHASE BEGINS (2014-11-15) -----
 
-; 2015-11-15/00:00                                     ; beginning of EM-1
+; 2014-11-15/00:00                                     ; beginning of EM-1
 
   t_mcp = [t_mcp, time_double('2015-12-18/23:39:09')]
   m_mcp = [m_mcp, 'MCP bias adjustment (2600 -> 2700 V)']

@@ -49,8 +49,8 @@
 ;       SILENT:       Don't print any warnings or messages.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-04 14:46:33 -0700 (Sat, 04 May 2024) $
-; $LastChangedRevision: 32547 $
+; $LastChangedDate: 2024-05-19 10:17:42 -0700 (Sun, 19 May 2024) $
+; $LastChangedRevision: 32600 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_crosscal.pro $
 ;
 ;CREATED BY:    David L. Mitchell  05-04-16
@@ -71,16 +71,16 @@ function mvn_swe_crosscal, time, on=on, off=off, refresh=refresh, extrap=extrap,
     ac[*,4] = [2.2929D,  6.0841d-3, -2.0345d-5,  3.0202d-8 ]  ; MCPHV = 2800 V
     ac[*,5] = [2.0304D,  1.7992d-3, -1.2476d-6,  3.0578d-10]  ; MCPHV = 2875 V
     ac[*,6] = [2.0700D,  0.0D     ,  0.0D     ,  0.0D      ]  ; MCPHV = 2925 V
-    eflg = 0                                                 ; 0 -> extrapolate using last known value
-                                                             ; 1 -> extrapolate using last polynomial
+    eflg = 0                                                  ; 0 -> extrapolate using last known value
+                                                              ; 1 -> extrapolate using last polynomial
   endif
 
   domsg = ~keyword_set(silent)
 
   if (size(extrap,/type) gt 0) then begin
     eflg = keyword_set(extrap)
-    if (domsg) then if (eflg) then print,"SWE-SWI crosscal extrapolation ON." $
-                              else print,"SWE-SWI crosscal extrapolation OFF."
+    if (domsg) then if (eflg) then print,"SWE-SWI polynomial extrapolation ON." $
+                              else print,"SWE-SWI polynomial extrapolation OFF."
     return, 0.
   endif
   
@@ -165,7 +165,7 @@ function mvn_swe_crosscal, time, on=on, off=off, refresh=refresh, extrap=extrap,
     cc[indx] = ac[0,i] + day*(ac[1,i] + day*(ac[2,i] + day*ac[3,i]))
   endif
 
-; Extrapolate past last known SWE-SWI cross calibration
+; Extrapolate past last measured SWE-SWI cross calibration
 
   indx = where(t ge t_mcp[10], count)
   if (count gt 0L) then begin

@@ -64,10 +64,10 @@
 ;              gap (in seconds) to interpolate across.
 ;
 ;   SECONDARY: Estimate and remove secondary electrons.  This makes greatly
-;              improves moments in the sheath.  Default is 1 (yes).
+;              improved moments in the sheath.  Default is 1 (yes).
 ;              To disable, set this keyword to zero.
 ;
-;   BIAS:      Bias to add to SWEPOS potential estimates.
+;   BIAS:      Bias to add to SWEPOS potential estimates.  Default = +0.5 V.
 ;
 ;   COMPOSITE: Try to use the composite spacecraft potential first.  If that
 ;              fails, then try the SWE+ method.  Default = 1 (yes).
@@ -82,8 +82,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-02-04 14:56:01 -0800 (Sun, 04 Feb 2024) $
-; $LastChangedRevision: 32436 $
+; $LastChangedDate: 2024-05-19 11:11:11 -0700 (Sun, 19 May 2024) $
+; $LastChangedRevision: 32606 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_kp.pro $
 ;
 ;-
@@ -97,7 +97,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 
   @mvn_swe_com
 
-  delta_t = 1.95D/2D
+  delta_t = 1.95D/2D  ; start time to center time for PAD and 3D
   pans = ['']
 
 ; Process inputs
@@ -123,14 +123,15 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
     return
   endif
 
+  dopad = 1
   if keyword_set(l2only) then begin
-    str_element, swe_mag1, 'level', level, success=ok
-    if (ok) then if (max(level) lt 2B) then ok = 0
-    if (not ok) then begin
+    str_element, swe_mag1, 'level', level, success=dopad
+    if (dopad) then if (max(level) lt 2B) then dopad = 0
+    if (not dopad) then begin
       print,"No MAG L2 data loaded!"
       print,"No KP PAD data generated!"
     endif
-  endif else ok = 1
+  endif
 
 ; Set the time range for processing
 
@@ -173,7 +174,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 ; Calculate the energy shape parameter
 
   if (inorbit) then begin
-    mvn_swe_shape_par, pans=more_pans
+    mvn_swe_shape_par, trange=[t0,t1], pans=more_pans
     pans = [pans, more_pans]
   endif
 
@@ -187,10 +188,10 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 ; reliable measurements.
 
   if (inorbit) then begin
-    ok = 0
-    if (docomp) then mvn_scpot, comp=1, nocalc=1, success=ok
-    if (not ok) then mvn_scpot, comp=0, lpw=0, pospot=1, negpot=0, stapot=0, shapot=0, $
-                                bias=bias, qlevel=qlevel, qinterp=qinterp
+    gotpot = 0
+    if (docomp) then mvn_scpot, comp=1, nocalc=1, success=gotpot
+    if (not gotpot) then mvn_scpot, comp=0, lpw=0, pospot=1, negpot=0, stapot=0, shapot=0, $
+                                    qlevel=qlevel, qinterp=qinterp
   endif else begin
     mvn_swe_sc_pot, erange=[5.5,20], potential=phi, qlevel=0
     phi.potential += bias
@@ -206,7 +207,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 
 ; Calculate the density and temperature
     
-  mvn_swe_n1d, mom=mom, pans=more_pans, qlevel=qlevel, secondary=secondary
+  mvn_swe_n1d, trange=[t0,t1], mom=mom, pans=more_pans, qlevel=qlevel, secondary=secondary
 
   pans = [pans, more_pans]
 
@@ -264,7 +265,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
     midpa = !pi/2.
     NaNs = replicate(!values.f_nan,64)
   
-    if (ok) then begin
+    if (dopad) then begin
       for i=0L,(npts-1L) do begin
         pad = mvn_swe_getpad(atime[i], units='counts')
 
@@ -360,7 +361,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
       indx = where(finite(eflux_neg_hi) and ~finite(sdev_neg_hi), count)
       if (count gt 0L) then eflux_neg_hi[indx] = !values.f_nan
     endif else begin
-      t = a2.time + (1.95D/2D)  ; center times
+      t = atime
       eflux_pos_lo[*] = !values.f_nan
       eflux_pos_md[*] = !values.f_nan
       eflux_pos_hi[*] = !values.f_nan
@@ -420,7 +421,7 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 
 ; Store the results in tplot save/restore file(s)
 
-  date = time_string(t[npts/2L],/date_only)
+  date = time_string((t0 + 3600D),/date_only)
   yyyy = strmid(date,0,4)
   mm = strmid(date,5,2)
   dd = strmid(date,8,2)
