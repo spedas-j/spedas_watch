@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2023
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2024-05-17 11:54:43 -0700 (Fri, 17 May 2024) $
-; $LastChangedRevision: 32598 $
+; $LastChangedDate: 2024-05-20 16:28:58 -0700 (Mon, 20 May 2024) $
+; $LastChangedRevision: 32618 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -698,7 +698,6 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
             y: [[d_ne.y - d_delta.y[*, 0]], [d_ne.y + d_delta.y[*, 1]]]}
 
         options, sqtn + 'electron_density', 'ytitle', 'SQTN Ne'
-        options, sqtn + 'density_quality_flag', 'ytitle', 'SQTN Quality'
         options, sqtn + 'electron_core_temperature', 'ytitle', 'SQTN Tc'
         options, sqtn + 'electron_density_delta', 'ytitle', 'SQTN dNe'
         options, sqtn + 'electron_density_ddelta', 'ytitle', 'SQTN Ne+/-dNe'
@@ -710,10 +709,13 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
           al_ne.ysubtitle
         options, sqtn + 'electron_core_temperature', 'ylog', 1
 
-        options, sqtn + 'density_quality_flag', 'psym', 3
-        options, sqtn + 'density_quality_flag', 'yrange', [-0.5, 4.5]
-        options, sqtn + 'density_quality_flag', 'ystyle', 1
-        options, sqtn + 'density_quality_flag', 'yminor', 1
+        if tnames(sqtn + 'density_quality_flag') ne '' then begin
+          options, sqtn + 'density_quality_flag', 'ytitle', 'SQTN Quality'
+          options, sqtn + 'density_quality_flag', 'psym', 3
+          options, sqtn + 'density_quality_flag', 'yrange', [-0.5, 4.5]
+          options, sqtn + 'density_quality_flag', 'ystyle', 1
+          options, sqtn + 'density_quality_flag', 'yminor', 1
+        endif
       endif
 
       ;

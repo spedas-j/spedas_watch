@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-04-01 15:44:06 -0700 (Mon, 01 Apr 2024) $
-; $LastChangedRevision: 32516 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-05-20 09:17:45 -0700 (Mon, 20 May 2024) $
+; $LastChangedRevision: 32609 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -143,8 +143,8 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'RATES' : tplot,add=add,'*hkp2_?????_RATES'
     'CMD'   : tplot,add=add,'*hkp2_CMDS_* *hkp2_CMD_PACKETS_RECEIVED'
     'WAIT'  : tplot,add=add,'*hkp1*REMAIN*'
-    'DL1':  tplot,add=add,'*sci*COUNTS *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_REMAINING *hkp1_CMDS_EXECUTED'
-    'DL2':  tplot,add=add,'*sci_RATE6 *sci*COUNTS *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
+    'DL1':  tplot,add=add,'*sci_RATE6 *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_REMAINING *hkp1_CMDS_EXECUTED'
+    'DL2':  tplot,add=add,'*sci_RATE6 *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     'DL3':  tplot,add=add,'*sci_RATE6 *sci_SCI_* stis_l1a_SPEC_?? *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     'DL4':  tplot,add=add,'*sci_RATE6 *hkp2_*BIAS* stis_l1a_SPEC_?? *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     'LPT':  tplot,add=add,'*sci_RATE6 *hkp?_DAC_VALUES *sci*COUNTS *hkp3*REMAIN* *hkp1*REMAIN*'
@@ -156,6 +156,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'PS':tplot,add=add,'PS_*'
     'CPT':tplot,add=add,'*_DAC* *FREQ *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*EXECUTED2
     'SC':tplot,add=add,'swfo_sc_100_FSW* swfo_sc_130_STIS_* swfo_sc_120_INSTRUMENT_* swfo_sc_120_SUBSYSTEM_* swfo_sc_*REACTION_WHEEL* swfo_sc_100_BATTERY_*'
+    'TEST':tplot,add=add,'swfo_sc_INST*_CURRENT_AMPS swfo_sc_*WHEEL* *sci_RATE6 *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     else: dprint,'Unknown code: '+strtrim(name,2)
   endcase
 
