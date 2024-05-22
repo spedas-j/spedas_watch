@@ -33,8 +33,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2024-05-09 11:01:28 -0700 (Thu, 09 May 2024) $
-; $LastChangedRevision: 32569 $
+; $LastChangedDate: 2024-05-20 22:57:29 -0700 (Mon, 20 May 2024) $
+; $LastChangedRevision: 32620 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/misc/esc_tplot_restore.pro $
 ;
 ;-
@@ -140,8 +140,16 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                           nevy = REPLICATE(!values.f_nan, [s2[0], s12])
                           oldy[*, 0:s1[1]-1] = *olddata.y
                           nevy[*, 0:s2[1]-1] = *(*thisdq.dh).y
-                          
-                          (*newy)[-1] = oldy
+
+                          IF N_ELEMENTS(*newy) EQ 0 THEN (*newy).add, oldy $
+                          ELSE BEGIN
+                             (*newy)[-1] = TEMPORARY(oldy)
+                             FOR k=0, N_ELEMENTS(*newy)-2 DO BEGIN
+                                oldy = REPLICATE(!values.f_nan, dimen1((*newy)[k]), s12)
+                                oldy[*, 0:dimen2((*newy)[k])-1] = (*newy)[k]
+                                (*newy)[k] = TEMPORARY(oldy)
+                             ENDFOR 
+                          ENDELSE 
                           (*newy).add, nevy
                        ENDIF ELSE BEGIN
                           IF N_ELEMENTS(*newy) EQ 0 THEN (*newy).add, *olddata.y
@@ -171,8 +179,16 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                           olddy[*, 0:s1[1]-1] = *olddata.dy
                           nevdy[*, 0:s2[1]-1] = *(*thisdq.dh).dy
 
-                          (*newdy)[-1] = olddy
-                          (*newdy).add, nevy
+                          IF N_ELEMENTS(*newdy) EQ 0 THEN (*newdy).add, olddy $
+                          ELSE BEGIN
+                             (*newdy)[-1] = TEMPORARY(olddy)
+                             FOR k=0, N_ELEMENTS(*newdy)-2 DO BEGIN
+                                olddy = REPLICATE(!values.f_nan, dimen1((*newdy)[k]), s12)
+                                olddy[*, 0:dimen2((*newdy)[k])-1] = (*newdy)[k]
+                                (*newdy)[k] = TEMPORARY(olddy)
+                             ENDFOR
+                          ENDELSE
+                          (*newdy).add, nevdy
                        ENDIF ELSE BEGIN
                           IF N_ELEMENTS(*newdy) EQ 0 THEN (*newdy).add, *olddata.dy
                           (*newdy).add, *(*thisdq.dh).dy
@@ -212,8 +228,16 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                                 oldw[*, 0:s1[1]-1] = *oldv
                                 nevv[*, 0:s2[1]-1] = *(*thisdq.dh).v
 
-                                (*newv)[-1] = oldw
-                                (*newv).add, *(*thisdq.dh).v 
+                                IF N_ELEMENTS(*newv) EQ 0 THEN (*newv).add, oldw $
+                                ELSE BEGIN
+                                   (*newv)[-1] = TEMPORARY(oldw)
+                                   FOR k=0, N_ELEMENTS(*newv)-2 DO BEGIN
+                                      oldw = REPLICATE(!values.f_nan, dimen1((*newv)[k]), s12)
+                                      oldw[*, 0:dimen2((*newv)[k])-1] = (*newv)[k]
+                                      (*newv)[k] = TEMPORARY(oldw)
+                                   ENDFOR
+                                ENDELSE
+                                (*newv).add, nevv
                              ENDIF ELSE BEGIN
                                 IF N_ELEMENTS(*newv) EQ 0 THEN (*newv).add, *oldv
                                 (*newv).add, *(*thisdq.dh).v                    

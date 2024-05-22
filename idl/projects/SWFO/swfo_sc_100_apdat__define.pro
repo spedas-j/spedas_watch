@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-03-26 19:02:16 -0700 (Tue, 26 Mar 2024) $
-; $LastChangedRevision: 32509 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-05-21 12:27:38 -0700 (Tue, 21 May 2024) $
+; $LastChangedRevision: 32621 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_100_apdat__define.pro $
 
 
@@ -12,6 +12,8 @@ function swfo_sc_100_apdat::decom,ccsds,source_dict=source_dict
     time:ccsds.time,  $
     time_delta:ccsds.time_delta, $
     met:ccsds.met,   $
+    grtime: ccsds.grtime,  $
+    delaytime: ccsds.delaytime, $
     apid:ccsds.apid,  $
     seqn:ccsds.seqn,$
     seqn_delta:ccsds.seqn_delta,$
