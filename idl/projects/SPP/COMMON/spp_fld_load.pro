@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2023
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2024-05-20 16:28:58 -0700 (Mon, 20 May 2024) $
-; $LastChangedRevision: 32618 $
+; $LastChangedDate: 2024-05-23 22:27:56 -0700 (Thu, 23 May 2024) $
+; $LastChangedRevision: 32631 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -165,7 +165,8 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
 
   ; SCaM data is Level 3
 
-  if type eq 'merged_scam_wf' or type eq 'sqtn_rfs_V1V2' then level = 3
+  if type eq 'merged_scam_wf' or type eq 'sqtn_rfs_V1V2' or $
+    type eq 'rfs_lfr_qtn' then level = 3
 
   ;
   ; If the type keyword is set to DFB AC or DC spectra or cross spectra,
@@ -683,6 +684,13 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
           options, 'psp_fld_l2_aeb2_V3_*', 'colors', ['r']
           options, 'psp_fld_l2_aeb2_V4_*', 'colors', ['m']
         endif
+      endif
+
+      if strmatch(type, 'rfs_lfr_qtn') then begin
+        options, 'psp_fld_l3_rfs_lfr_qtn_N_elec*', 'ylog', 1
+        options, 'psp_fld_l3_rfs_lfr_qtn_N_elec*', 'psym', -3
+        options, 'psp_fld_l3_rfs_lfr_qtn_N_elec_dqf', 'ylog'
+        options, 'psp_fld_l3_rfs_lfr_qtn_N_elec', 'ytitle', 'LFR QTN Ne'
       endif
 
       if strmatch(type, 'sqtn_rfs*') then begin
