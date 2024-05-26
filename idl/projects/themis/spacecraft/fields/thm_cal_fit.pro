@@ -30,8 +30,8 @@
 ;   -- fixed trouble reading cal files with extra lines at the end,
 ;      jmm, 8-nov-2007
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-05-14 11:01:15 -0700 (Tue, 14 May 2024) $
-; $LastChangedRevision: 32582 $
+; $LastChangedDate: 2024-05-25 18:14:54 -0700 (Sat, 25 May 2024) $
+; $LastChangedRevision: 32645 $
 ; $URL $
 ;-
 pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = trange, $
@@ -174,13 +174,10 @@ pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = tra
           bz_slope_intercept[i,*] = split_result[14:15]
        endif
     endfor
-;for probe e, calculate the mid-point offset intercept for the last
-;orbit and use this value for intercept with zero slope, jmm, 2024-05-02
+;for probe e, use the last value for intercept with zero slope, jmm, 2024-05-25
     if sc eq 'e' then begin
-       bz_last_time = 2.0*utc[ncal-1]-utc[ncal-2] ;last time for nonzero slope
-       bz_last_tmid = 0.5d0*(utc[ncal-1]+utc[ncal-2])
-       bz_ext_intercept = bz_slope_intercept[ncal-2,0]+$
-                          bz_slope_intercept[ncal-2,1]*(bz_last_tmid-utc[ncal-2])/3600.0d0
+       bz_last_time = utc[ncal-1] ;last time for nonzero slope                                                                           
+       bz_ext_intercept = bz_slope_intercept[ncal-1,0]
     endif
     
     DPRINT,  'done reading FGM calibration file'

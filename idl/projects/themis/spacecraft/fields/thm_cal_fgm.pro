@@ -79,8 +79,8 @@
 ;
 ;Written by Hannes Schwarzl.
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-05-07 15:55:45 -0700 (Tue, 07 May 2024) $
-; $LastChangedRevision: 32562 $
+; $LastChangedDate: 2024-05-25 18:14:54 -0700 (Sat, 25 May 2024) $
+; $LastChangedRevision: 32645 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/fields/thm_cal_fgm.pro $
 ;Changes by Edita Georgescu
 ;eg 6/3/2007     - matrix multiplication
@@ -467,13 +467,10 @@ for i=0,ncal-1 do begin
     endif
 endfor
 
-;for probe e, calculate the mid-point offset intercept for the last
-;orbit and use this value for intercept with zero slope, jmm, 2024-05-02
+;for probe e, use the last value for intercept with zero slope if needed, jmm, 2024-05-25
 if probe_letter eq 'e' then begin
-   bz_last_time = 2.0*utc[ncal-1]-utc[ncal-2] ;last time for nonzero slope
-   bz_last_tmid = 0.5d0*(utc[ncal-1]+utc[ncal-2])
-   bz_ext_intercept = bz_slope_intercept[ncal-2,0]+$
-                      bz_slope_intercept[ncal-2,1]*(bz_last_tmid-utc[ncal-2])/3600.0d0
+   bz_last_time = utc[ncal-1] ;last time for nonzero slope                                                                           
+   bz_ext_intercept = bz_slope_intercept[ncal-1,0]
 endif
 
 DPRINT, dlevel=4, 'done reading calibration file'
