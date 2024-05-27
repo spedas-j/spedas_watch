@@ -50,12 +50,13 @@
 ;           parameters.  0 = ignore composite potential and use the SWE+ method,
 ;           1=try to use the composite potential first; if that fails use the
 ;           SWE+ method.  Default = 1.
+; mail_xtra = send emails to this address as well as to the default address
 ;
 ;HISTORY:
 ;Hacked from mvn_call_sta_l2gen, 17-Apr-2014, jmm
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-02-04 15:09:01 -0800 (Sun, 04 Feb 2024) $
-; $LastChangedRevision: 32437 $
+; $LastChangedDate: 2024-05-26 10:44:41 -0700 (Sun, 26 May 2024) $
+; $LastChangedRevision: 32647 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_call_swe_l2gen.pro $
 ;-
 Pro mvn_call_swe_l2gen, time_in = time_in, $
@@ -70,6 +71,7 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
                         allbad = allbad, $
                         refresh = refresh, $
                         kp_comp=kp_comp, $
+                        mail_xtra = mail_xtra, $
                         _extra = _extra
   
   common temp_call_swe_l2gen, load_position
@@ -83,6 +85,7 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
     else         : mailto = 'jimm@ssl.berkeley.edu'
   endcase
 
+  mxtra = size(mail_xtra,/type) eq 7
   refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 2
   kp_comp = (n_elements(kp_comp) gt 0) ? keyword_set(kp_comp) : 1
 
@@ -114,6 +117,10 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
         subj = 'Problem with SWE L2 process on ' + uinfo.machine_name
         cmd_rq = 'mailx -s "' + subj + '" ' + mailto + ' < '+efile
         spawn, cmd_rq
+        if (mxtra) then begin
+          cmd_rq = 'mailx -s "' + subj + '" ' + mail_xtra + ' < '+efile
+          spawn, cmd_rq
+        endif
         file_delete, efile
      Endif
      case load_position of
@@ -246,6 +253,10 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
         subj = 'SWEA L2 process start on ' + uinfo.machine_name
         cmd0 = 'mailx -s "' + subj + '" ' + mailto + ' < '+ofile0
         spawn, cmd0
+        if (mxtra) then begin
+          cmd0 = 'mailx -s "' + subj + '" ' + mail_xtra + ' < '+ofile0
+          spawn, cmd0
+        endif
         file_delete, ofile0
 ;extract the date from the filename
         For i = 0, nproc-1 Do Begin
@@ -291,6 +302,10 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
         subj = 'SWEA L2 process end on ' + uinfo.machine_name
         cmd1 = 'mailx -s "' + subj + '" ' + mailto + ' < '+ofile1
         spawn, cmd1
+        if (mxtra) then begin
+          cmd1 = 'mailx -s "' + subj + '" ' + mail_xtra + ' < '+ofile1
+          spawn, cmd1
+        endif
         file_delete, ofile1
      Endelse
   Endfor

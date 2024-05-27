@@ -79,8 +79,8 @@
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-17 09:17:23 -0700 (Fri, 17 May 2024) $
-; $LastChangedRevision: 32597 $
+; $LastChangedDate: 2024-05-26 15:42:49 -0700 (Sun, 26 May 2024) $
+; $LastChangedRevision: 32650 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol2=nol2, $
@@ -180,8 +180,21 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
 
 ; Load L0 SWEA data
 
+  mvn_swe_clear
   timespan, [tm1,tp1]
   mvn_swe_load_l0, /nospice
+
+; Determine what was loaded and what to do
+
+  mvn_swe_stat, npkt=npkt, /silent
+  if (total(npkt[0:5]) eq 0L) then begin
+    print, "No data.  Nothing to do."
+    return
+  endif
+  do3d = do3d and ((npkt[0]+npkt[1]) gt 0L)
+  dopad = dopad and ((npkt[2]+npkt[3]) gt 0L)
+  dospec = dospec and ((npkt[4]+npkt[5]) gt 0L)
+  dokp = dokp and ((npkt[2]+npkt[4]) gt 0L)
 
 ; Load highest level MAG data available (for pitch angle sorting)
 ;   L0 --> MAG angles computed onboard (stored in A2/A3 packets)
@@ -237,7 +250,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
   if (dopad) then begin
     if (maglev eq 2B) then begin
       mfile = 'maven/data/sci/mag/l2/YYYY/MM/mvn_mag_l2_YYYY???pl_YYYYMMDD_v??_r??.xml'
-      mname = mvn_pfp_file_retrieve(mfile,trange=trange,/daily,/valid,verbose=-1)
+      mname = mvn_pfp_file_retrieve(mfile,trange=[t0,tp1],/daily,/valid,verbose=-1)
       mname = file_basename(mname[0])
       i = strpos(mname,'.xml')
       if (i gt 0) then mname = strmid(mname,0,i) + '.sts' else mname = 'mag_level_2'
