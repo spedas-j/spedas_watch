@@ -3,8 +3,8 @@
 ; ESC_IESA_SWEEP_TABLE
 ;
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2023-09-24 14:07:32 -0700 (Sun, 24 Sep 2023) $
-; $LastChangedRevision: 32119 $
+; $LastChangedDate: 2024-05-28 00:21:12 -0700 (Tue, 28 May 2024) $
+; $LastChangedRevision: 32651 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sweep_table.pro $
 ;
 ;-
@@ -16,11 +16,37 @@ FUNCTION esc_iesa_sweep_table_crc16, data
    
    init_crc = uint('FFFF'x)
 
-   ;; Convert to Byte Array
-   a1 = byte(ishft(uint(data),-8))
-   a2 = byte(uint(data) OR '0xFF')
-   databyte = reform(transpose([[a1],[a2]]),n_elements(data)*2)
+   ;; Find Data Type
+   dt = (size(data))[1+(size(data))[0]]
 
+   ;; Turn data into byte array
+   CASE dt OF
+      1: databyte = data
+      2: BEGIN
+         a1 = byte(ishft(uint(data),-8))
+         a2 = byte(uint(data) OR '0xFF')
+         databyte = reform(transpose([[a1],[a2]]),n_elements(data)*2)
+      END
+      3: BEGIN
+         a1 = byte(ishft(uint(data),-8))
+         a2 = byte(uint(data) OR '0xFF')
+         databyte = reform(transpose([[a1],[a2]]),n_elements(data)*2)
+      END
+
+      ELSE: stop, 'Must provide bytearr or uintarr.'
+   ENDCASE
+   
+   
+   ;; Byte Array
+   ;;IF isa(data,'byte') THEN databyte = data
+   
+   ;; Convert uint to bytarr if necessary
+   ;;IF isa(data, 'uint') THEN BEGIN 
+   ;;   a1 = byte(ishft(uint(data),-8))
+   ;;   a2 = byte(uint(data) OR '0xFF')
+   ;;   databyte = reform(transpose([[a1],[a2]]),n_elements(data)*2)
+   ;;ENDIF
+      
    crc = init_crc
    FOR i=0, n_elements(databyte)-1 DO BEGIN
 
@@ -120,6 +146,7 @@ FUNCTION esc_iesa_sweep_table_deflector_angle_to_dac, ang, poly_val
 
    ;; Polynomial Values
    p = poly_val
+   ;;p = double(poly_val)
    
    ;; Generate DACS
    ang_dac = p[0]+p[1]*ang+p[2]*ang^2+p[3]*ang^3+p[4]*ang^4+p[5]*ang^5
@@ -150,8 +177,8 @@ FUNCTION esc_iesa_sweep_table_write, table, mram=mram
       printf, 1, '# '+table.note
       printf, 1, '# '
       printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sweep_table.pro'
-      printf, 1, '# Date:     $LastChangedDate: 2023-09-24 14:07:32 -0700 (Sun, 24 Sep 2023) $'
-      printf, 1, '# Revision: $LastChangedRevision: 32119 $'
+      printf, 1, '# Date:     $LastChangedDate: 2024-05-28 00:21:12 -0700 (Tue, 28 May 2024) $'
+      printf, 1, '# Revision: $LastChangedRevision: 32651 $'
       printf, 1, '# '
       printf, 1, '# --- Sweep Parameters ---'
       printf, 1, format='(A21, F7.1, A5)', '# Energy Min:         ', table.const.emin, ' [eV]'
@@ -206,8 +233,8 @@ FUNCTION esc_iesa_sweep_table_write, table, mram=mram
       printf, 1, '# '+table.note
       printf, 1, '# '
       printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sweep_table.pro'
-      printf, 1, '# Date:     $LastChangedDate: 2023-09-24 14:07:32 -0700 (Sun, 24 Sep 2023) $'
-      printf, 1, '# Revision: $LastChangedRevision: 32119 $'
+      printf, 1, '# Date:     $LastChangedDate: 2024-05-28 00:21:12 -0700 (Tue, 28 May 2024) $'
+      printf, 1, '# Revision: $LastChangedRevision: 32651 $'
       printf, 1, '# '
       printf, 1, '# --- Sweep Parameters ---'
       printf, 1, format='(A21, F7.1, A5)', '# Energy Min:         ', table.const.emin, ' [eV]'
@@ -260,8 +287,8 @@ FUNCTION esc_iesa_sweep_table_write, table, mram=mram
       printf, 1, '# '+table.note
       printf, 1, '# '
       printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sweep_table.pro'
-      printf, 1, '# Date:     $LastChangedDate: 2023-09-24 14:07:32 -0700 (Sun, 24 Sep 2023) $'
-      printf, 1, '# Revision: $LastChangedRevision: 32119 $'
+      printf, 1, '# Date:     $LastChangedDate: 2024-05-28 00:21:12 -0700 (Tue, 28 May 2024) $'
+      printf, 1, '# Revision: $LastChangedRevision: 32651 $'
       printf, 1, '# '
       printf, 1, '# --- Sweep Parameters ---'
       printf, 1, format='(A21, F7.1, A5)', '# Energy Min:         ', table.const.emin, ' [eV]'
@@ -325,10 +352,9 @@ PRO esc_iesa_sweep_table_generate, table, emin=emin, emax=emax, title=title, $
    k = 7.8
 
    ;; Deflector Gain Relative to Hemisphere
-   ;;def_gain = 13.
    def_gain = 8.
 
-   ;; High Voltage Multiplier
+   ;; High Voltage Multiplier (for both Hemisphere and Deflectors)
    hv_gain = 1000
 
    ;; Spoiler Gain
@@ -394,7 +420,23 @@ PRO esc_iesa_sweep_table_generate, table, emin=emin, emax=emax, title=title, $
    IF poly EQ 'HERMES' THEN $
     poly_val = [ -0.231661,     -807.011,       -1.48519,      -0.0246793,    0.000165991,  1.84911e-05 ]
 
+   ;; ESCAPADE iESA FM1 Calibration - 2023-06-23
+   IF poly EQ 'ESC_FM1' THEN $
+    poly_val = [ -525.2822265625, -1231.6815185547, 0.1745962799, 0.1081047505,  0.0000314365, -0.0000239858]
+
+   ;; ESCAPADE iESA FM2 Calibration - 2023-09-13/21:00:00
+   IF poly EQ 'ESC_FM2_A' THEN $
+    poly_val = [ -289.7713928223, -1304.4713134766, 1.4805048704, 0.1967162639, -0.0008549984, -0.0000669929]
+
    
+   ;; ESCAPADE iESA FM2 Calibration
+   IF poly EQ 'ESC_FM2_B' THEN $
+    poly_val = [ ]
+
+   ;; ESCAPADE iESA FM2 Calibration - 0.5eV to 400 eV - with spoiler - 2023-XX-XX
+   ;;IF poly EQ 'ESC_FM2_C' THEN $
+   ;; poly_val = [ ]
+
    ;;##################
    ;;### Hemisphere ###
    ;;##################
@@ -475,12 +517,12 @@ PRO esc_iesa_sweep_table_generate, table, emin=emin, emax=emax, title=title, $
    def2_volts = (1.*def2_dacs/'ffff'x) * def_gain * hem_volts
 
    ;; ### Deflector Science Product Values ###
-   sci_def_bin = [reverse(indgen(nang)),indgen(nang)]
-   sci_def_bin = reform(rebin(sci_def_bin,nang*2,tot_bins/mbins/2/nang),tot_bins/mbins)
+   sci_def_bin = [reverse(indgen(nang/2)),indgen(nang/2)]
+   sci_def_bin = reform(rebin(sci_def_bin,nang,tot_bins/mbins/nang),tot_bins/mbins)
    sci_def1_angs = mean(reform(def1_angs,mbins,tot_bins/mbins),dim=1)
    sci_def2_angs = mean(reform(def2_angs,mbins,tot_bins/mbins),dim=1)
-   sci_def_angs = sci_def1_angs - sci_def2_angs
-
+   sci_def_angs = sci_def1_angs + sci_def2_angs
+   
    ;; ### Deflector Theta ###
    tmp1 = reform(def1_angs,mbins,tot_bins/mbins)
    tmp2 = reform(def2_angs,mbins,tot_bins/mbins)
@@ -595,7 +637,7 @@ END
 ;; #######################################
 ;; ################ MAIN #################
 ;; #######################################
-;;
+
 ;; Based on Instrument Data Allocations [22-10-03]
 
 PRO esc_iesa_sweep_table, tables
@@ -790,8 +832,7 @@ PRO esc_iesa_sweep_table, tables
    title = 'esc_iesa_cal_table_16'
    note = 'Calibration Table 16: 600eV - 1400eV - -15 to 15 - 0.50 SPL Ratio'
    esc_iesa_sweep_table_generate, tc16, emin=emin,emax=emax,dmin=dmin,dmax=dmax,title=title,note=note, spl_ratio=spl_ratio
-   
-   
+
    ;; Test Checksum Calculator   
    
    ;; Gather all tables into one structure
