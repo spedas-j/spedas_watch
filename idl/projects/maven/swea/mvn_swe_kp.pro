@@ -82,8 +82,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-19 11:11:11 -0700 (Sun, 19 May 2024) $
-; $LastChangedRevision: 32606 $
+; $LastChangedDate: 2024-05-30 11:35:16 -0700 (Thu, 30 May 2024) $
+; $LastChangedRevision: 32662 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_kp.pro $
 ;
 ;-
@@ -214,12 +214,19 @@ pro mvn_swe_kp, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, $
 ; Filter out poor solutions
 
   for i=0,(n_elements(more_pans)-1) do begin
-    get_data,more_pans[i],data=dat
-    indx = where(finite(dat.y) and ~finite(dat.dy), count)
-    if (count gt 0L) then begin
-      dat.y[indx] = !values.f_nan
-      store_data,more_pans[i],data=dat
-    endif
+    get_data, more_pans[i], data=dat, index=j
+    str_element, dat, 'y', success=ok
+    if (ok) then str_element, dat, 'dy', success=ok
+    if (ok) then begin
+      indx = where(finite(dat.y) and ~finite(dat.dy), count)
+      if (count gt 0L) then begin
+        dat.y[indx] = !values.f_nan
+        store_data,more_pans[i],data=dat
+      endif
+    endif else begin
+      print, "Problem with tplot variable: ", more_pans[i]
+      help, dat, /str
+    endelse
   endfor
   dat = 0
 
