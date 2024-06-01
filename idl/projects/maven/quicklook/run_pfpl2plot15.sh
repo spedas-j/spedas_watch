@@ -27,7 +27,8 @@ if (! -e /mydisks/home/maven/muser/PFPL2PLOT15lock.txt) then
     echo exit >> run_pfpl2plot15.bm
 
     idl run_pfpl2plot15.bm > /mydisks/home/maven/muser/run_pfpl2plot15.txt &
-#else close quietly
+else
+    echo "PFPL215 Process not started" | mailx -s "PFPL215 process not started" jimm@ssl.berkeley.edu
 endif 
 
 
