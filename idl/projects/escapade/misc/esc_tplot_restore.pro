@@ -33,8 +33,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2024-05-20 22:57:29 -0700 (Mon, 20 May 2024) $
-; $LastChangedRevision: 32620 $
+; $LastChangedDate: 2024-06-06 12:18:42 -0700 (Thu, 06 Jun 2024) $
+; $LastChangedRevision: 32688 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/misc/esc_tplot_restore.pro $
 ;
 ;-
@@ -119,6 +119,7 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
            ENDIF 
 
            IF KEYWORD_SET(append) AND is_struct(olddata) THEN BEGIN ; olddata needs to be a structure, jmm, 2021-10-19
+              IF undefined(nan) THEN IF SIZE(*olddata.y, /type) EQ 5 THEN nan = !values.d_nan ELSE nan = !values.f_nan
               IF KEYWORD_SET(*thisdq.dh) THEN BEGIN
                  IF thisdq.dtype EQ 1 THEN BEGIN
                     IF PTR_VALID((*thisdq.dh).y) THEN BEGIN
@@ -136,8 +137,8 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                        IF tag_exist(olddata, 'tplot_restore', /quiet) THEN newy = (*olddata.tplot_restore).y ELSE newy = PTR_NEW(list())
                        IF N_ELEMENTS(s1) EQ 2 && s1[1] NE s2[1] THEN BEGIN
                           dprint, dlevel=3, 'Variable ' + thisdq.name + ' Y size mismatch; matching sizes!'
-                          oldy = REPLICATE(!values.f_nan, [s1[0], s12])
-                          nevy = REPLICATE(!values.f_nan, [s2[0], s12])
+                          oldy = REPLICATE(nan, [s1[0], s12])
+                          nevy = REPLICATE(nan, [s2[0], s12])
                           oldy[*, 0:s1[1]-1] = *olddata.y
                           nevy[*, 0:s2[1]-1] = *(*thisdq.dh).y
 
@@ -145,7 +146,7 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                           ELSE BEGIN
                              (*newy)[-1] = TEMPORARY(oldy)
                              FOR k=0, N_ELEMENTS(*newy)-2 DO BEGIN
-                                oldy = REPLICATE(!values.f_nan, dimen1((*newy)[k]), s12)
+                                oldy = REPLICATE(nan, dimen1((*newy)[k]), s12)
                                 oldy[*, 0:dimen2((*newy)[k])-1] = (*newy)[k]
                                 (*newy)[k] = TEMPORARY(oldy)
                              ENDFOR 
@@ -174,8 +175,8 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
 
                        IF N_ELEMENTS(s1) EQ 2 && s1[1] NE s2[1] THEN BEGIN
                           dprint, dlevel=3, 'Variable ' + thisdq.name + ' DY size mismatch; matching sizes!'
-                          olddy = REPLICATE(!values.f_nan, [s1[0], s12])
-                          nevdy = REPLICATE(!values.f_nan, [s2[0], s12])
+                          olddy = REPLICATE(nan, [s1[0], s12])
+                          nevdy = REPLICATE(nan, [s2[0], s12])
                           olddy[*, 0:s1[1]-1] = *olddata.dy
                           nevdy[*, 0:s2[1]-1] = *(*thisdq.dh).dy
 
@@ -183,7 +184,7 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                           ELSE BEGIN
                              (*newdy)[-1] = TEMPORARY(olddy)
                              FOR k=0, N_ELEMENTS(*newdy)-2 DO BEGIN
-                                olddy = REPLICATE(!values.f_nan, dimen1((*newdy)[k]), s12)
+                                olddy = REPLICATE(nan, dimen1((*newdy)[k]), s12)
                                 olddy[*, 0:dimen2((*newdy)[k])-1] = (*newdy)[k]
                                 (*newdy)[k] = TEMPORARY(olddy)
                              ENDFOR
@@ -209,8 +210,8 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                        IF ndimen(*oldv) EQ 1 THEN BEGIN
                           ;;  1D --> no need to append
                           IF ~ARRAY_EQUAL(oldv, (*thisdq.dh).v) THEN BEGIN
-                             oldw = REPLICATE(!values.f_nan, [s1[0], s12])
-                             nevv = REPLICATE(!values.f_nan, [s2[0], s12])
+                             oldw = REPLICATE(nan, [s1[0], s12])
+                             nevv = REPLICATE(nan, [s2[0], s12])
                              oldw[*, 0:s1[1]-1] = REPLICATE(1., s1[0]) # (*oldv)
                              IF ndimen(*(*thisdq.dh).v) EQ 1 THEN *(*thisdq.dh).v = REPLICATE(1., s2[0]) # (*(*thisdq.dh).v)
                              nevv[*, 0:s2[1]-1] = *(*thisdq.dh).v
@@ -223,8 +224,8 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                              ;;  present --> append
                              IF ndimen(*(*thisdq.dh).v) EQ 1 THEN *(*thisdq.dh).v = REPLICATE(1., s2[0]) # (*(*thisdq.dh).v)
                              IF s1[1] NE s2[1] THEN BEGIN
-                                oldw = REPLICATE(!values.f_nan, [s1[0], s12])
-                                nevv = REPLICATE(!values.f_nan, [s2[0], s12])
+                                oldw = REPLICATE(nan, [s1[0], s12])
+                                nevv = REPLICATE(nan, [s2[0], s12])
                                 oldw[*, 0:s1[1]-1] = *oldv
                                 nevv[*, 0:s2[1]-1] = *(*thisdq.dh).v
 
@@ -232,7 +233,7 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                                 ELSE BEGIN
                                    (*newv)[-1] = TEMPORARY(oldw)
                                    FOR k=0, N_ELEMENTS(*newv)-2 DO BEGIN
-                                      oldw = REPLICATE(!values.f_nan, dimen1((*newv)[k]), s12)
+                                      oldw = REPLICATE(nan, dimen1((*newv)[k]), s12)
                                       oldw[*, 0:dimen2((*newv)[k])-1] = (*newv)[k]
                                       (*newv)[k] = TEMPORARY(oldw)
                                    ENDFOR
