@@ -19,8 +19,8 @@
 ;   When the Kyoto AE is not available, it shows [Themis AE (black, 0), Real Time Kyoto AE 5-min (green, 4)]
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2021-07-08 12:41:39 -0700 (Thu, 08 Jul 2021) $
-; $LastChangedRevision: 30110 $
+; $LastChangedDate: 2024-06-08 13:35:54 -0700 (Sat, 08 Jun 2024) $
+; $LastChangedRevision: 32689 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/misc/spd_gen_overplot_ae_panel.pro $
 ;-
 
@@ -35,7 +35,7 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
     overviewdate = time_string(date)
     timespan, overviewdate, duration, /day
   endif
-  
+
   ; For error handling and recovery
   input_timerange = timerange()
 
@@ -82,7 +82,8 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
     for i=0l, n_elements(kyoto_ae_data.X)-1 do begin
       ae_nearest_neighbor = find_nearest_neighbor(thm_ae_data.X, kyoto_ae_data.X[i])
       if ae_nearest_neighbor ne -1 then begin
-        idxae = where(thm_ae_data.X eq ae_nearest_neighbor)
+        idxae = where(thm_ae_data.X eq ae_nearest_neighbor, count)
+        if count gt 1 then idxae = max(idxae)
         if idxae ge 0 && idxae le (n_elements(thm_ae_data.Y)-1) then begin
           combined_ae[i,0] = thm_ae_data.Y[idxae]
         endif else begin
