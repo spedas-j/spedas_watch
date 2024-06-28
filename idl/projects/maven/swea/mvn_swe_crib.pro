@@ -6,8 +6,8 @@
 ; displayed using doc_library.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-14 09:41:11 -0700 (Thu, 14 Mar 2024) $
-; $LastChangedRevision: 32495 $
+; $LastChangedDate: 2024-06-27 16:30:57 -0700 (Thu, 27 Jun 2024) $
+; $LastChangedRevision: 32712 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_crib.pro $
 ;======================================================================
 ;
@@ -487,6 +487,107 @@ maven_orbit_predict
 ; orbit maintainence maneuvers that may or may not occur as planned.
 ; Inability to predict the atmospheric density is the main source
 ; of uncertainty.
+
+;
+; ESTIMATING THE PENETRATING PARTICLE BACKGROUND
+; (Hint: it's not trivial.)
+;
+; Protons with energies above ~20 MeV and electrons with energies above
+; ~2 MeV can penetrate the instrument housing and internal walls to pass
+; through the MCP, where they can trigger electron cascades and generate
+; counts.  Galactic Cosmic Rays (GCRs) peak near 1 GeV and easily pass
+; through the instrument -- and the entire spacecraft, resulting in a
+; background count rate of several counts per second summed over all
+; anodes.  SEP events are episodic, but can increase the penetrating
+; particle background by orders of magnitude for days.  If you are 
+; analyzing SWEA data at energies above ~1 keV, then you may want to 
+; consider subtracting this background.  The following is the recommended
+; approach.
+
+; First, load some data, then retrieve the SPEC data into a variable.
+
+spec = mvn_swe_getspec()                       ; get SPEC data
+spec.bkg = 0.                                  ; clear the background array
+mvn_swe_secondary, spec                        ; calculate secondary contamination
+old_units = spec[0].units_name                 ; remember the original units
+mvn_swe_convert_units, spec, 'crate'           ; convert units to corrected count rate
+bkg = average(spec.data[0:3,*], 1, /nan)       ; estimate penetrating particle background
+bkgs = smooth_in_time(bkg, spec.time, 64)      ; smooth in time by 64 sec (32 spectra)
+store_data, 'bkg', data={x:spec.time, y:bkgs}  ; make a tplot variable
+tplot, 'bkg', add=100                          ; plot 'bkg' as the last panel
+
+; Note that I have averaged over the highest four energy channels (3.3-4.6 keV)
+; to estimate the background count rate.  This is often reasonable, but not
+; always.  SEP events can have electron components that extend into SWEA's
+; measurement range.  When this happens, the count rate from 3.3-4.6 keV is not
+; constant, because electrons are present with a decreasing flux vs. energy in
+; SWEA's highest energy channels.  Simply averaging the high-energy count rate
+; as above will overestimate the background level, possibly by a lot.  So you
+; will have to find times when the count rate is constant as a function of
+; energy above 3.3 keV.
+
+; At this point, look at the background panel in the tplot window.  Note the
+; stochastic nature of the background.  Because of this, you shouldn't simply
+; subtract the background counts at each time.  That just introduces noise into
+; the background estimate.  Instead, you should take an average over a long 
+; enough interval that you can calculate a reliable mean.  It's the mean value
+; that you should subtract from the data.
+
+; But there another complication.  Mars blocks a variable amount of the sky 
+; in MAVEN's elliptical orbit.  Penetrating particles cannot pass through 
+; the planet, so you'll have to estimate the background level around apoapsis,
+; then correct for the changing solid angle subtended by Mars along MAVEN's 
+; orbit.  (The background level is lower near periapsis, because Mars provides
+; more shielding.)  You should be able to see the dips in the background level
+; around periapsis.
+
+; Finally, note that all apoapsis background estimates are not the same.
+; The apoapsis background level can vary by ~10% from one orbit to another.
+; I don't think the GCR flux does this.  More likely, this is due to the 
+; presence of 3.3-4.6 keV electrons that increase the count rate, but not
+; enough to be obvious in the spectra.  Your best bet is to average over a
+; time range around apoapsis during which the background is near a minimum
+; and the count rate is constant as a function of energy above 3.3 keV.
+; Once you find such an interval, take the mean of the background:
+
+tmean, 'bkg', /hist, result=dat
+bkg_avg = dat.mean                   ; Background count rate near apoapsis
+
+; Now correct for Mars' changing solid angle as seen by MAVEN
+
+Rm = 3389.5                          ; Mars volumetric mean radius, km
+get_data, 'alt', data=alt            ; variable created by maven_orbit_tplot
+h = spline(alt.x, alt.y, spec.time)  ; MAVEN altitude at each time 
+blk = (Rm/(Rm+h))/2.                 ; fraction of sky blocked by Mars
+bkg_model = bkg_avg*(1.-blk)/(1.-min(blk))
+store_data, 'bkg_model', data={x:spec.time, y:bkg_model}
+store_data, 'bkg_comp', data=['bkg','bkg_model']
+options, 'bkg_comp', 'colors', [4,6]
+plot, 'bkg_comp', add=100            ; plot the background & model
+
+; An alternative to consider is measuring the background below the 
+; photoelectron boundary on a closed magnetic field loop.  The averaging
+; interval will be shorter, but the signal above 3.3 keV is likely to be
+; dominated by penetrating particles.  In that case, replace the model
+; calculation with:
+
+bkg_model = bkg_avg*(1.-blk)/(1.-max(blk))
+
+; where bkg_avg is obtained near periapsis, and proceed as above.
+
+; Note that the background model is a smooth curve vs. time.  This is what
+; you insert into the background array.
+
+spec.bkg += replicate(1.,64) # bkg_model  ; sum secondary and penetrating particle bkgs
+mvn_swe_convert_units, spec, old_units    ; convert back to original units
+
+; And you're done!  The GCR background varies by a factor of two over the solar
+; cycle.  It should be essentially constant over time scales of days to weeks.
+; This means that you should be able to find one good orbit that will provide
+; a background estimate that is valid for days or weeks around that orbit.
+;
+; Note: Because of the stochastic nature of the data, subtracting background
+; can result in negative values.  You'll have to decide what to do in this case.
 
 ;
 ; I HAVE QUESTIONS AND/OR I NEED HELP WITH ....
