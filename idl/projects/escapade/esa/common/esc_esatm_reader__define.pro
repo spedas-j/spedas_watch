@@ -77,7 +77,7 @@ pro esc_esatm_reader::decom_esctm, buffer ; , source_dict=parent_dict
    dat = {  $
          time:     0d, $
          sync:     0u, $
-         index :   0u, $
+         index:    0u, $
          tbd:      0b, $
          boardid:  0b, $
          fasthkp:  0b, $
@@ -151,16 +151,17 @@ pro esc_esatm_reader::decom_esctm, buffer ; , source_dict=parent_dict
    dat.user1     = 0u
    dat.user2     = 0u
 
-
    ;; Diagnostic Words (TOF/RAW/RATES)
    case dat.ion_diag of
      1:dat.frates     = byte(data2[98:106],0,18)
      2:dat.thist      = data2[98:105]
      3:dat.raw_events = data2[98:105]
-     else: begin
-       dat.user1     = data2[98]
-       dat.user2     = data2[99]
-       end
+     else: BEGIN
+        IF dat.size GT 202 THEN BEGIN
+           dat.user1     = data2[98]
+           dat.user2     = data2[99]
+        ENDIF
+     end
    endcase 
 
 
