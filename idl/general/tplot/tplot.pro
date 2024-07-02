@@ -19,6 +19,10 @@
 ;         first panel and so on.  Set this to a value greater than the
 ;         existing number of panels in your tplot window to add panels to
 ;             the bottom of the plot.
+;         Set this variable to a negative integer to count up from the last
+;         panel.  If set to -1, the new panels will be placed above the last
+;         panel.  If set to -2, they will be placed above the second to last
+;         panel, and so on.
 ;   LASTVAR:  Set this variable to plot the previous variables plotted in a
 ;         TPLOT window.
 ;   PICK:     Set this keyword to choose new order of plot panels
@@ -106,8 +110,8 @@
 ;   Send e-mail to:  tplot@ssl.berkeley.edu    someone might answer!
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-04-19 08:25:51 -0700 (Fri, 19 Apr 2024) $
-; $LastChangedRevision: 32526 $
+; $LastChangedDate: 2024-07-01 10:40:40 -0700 (Mon, 01 Jul 2024) $
+; $LastChangedRevision: 32715 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot.pro $
 ;-
 
@@ -204,6 +208,7 @@ if n_elements(mix) ne 0 then datanames = tplot_vars.settings.varnames[mix]
 if keyword_set(add_var)  then begin
    names = tnames(datanames,/all)
    if keyword_set(reverse) then names = reverse(names)
+   if (add_var lt 0) then add_var = (n_elements(tplot_vars.options.varnames)+add_var+1) > 1
    if add_var eq 1 then datanames = [names,tplot_vars.options.varnames] else $
     if (add_var gt n_elements(tplot_vars.options.varnames)) then $
         datanames = [tplot_vars.options.varnames,names] else $
