@@ -23,10 +23,12 @@
 ;         panel.  If set to -1, the new panels will be placed above the last
 ;         panel.  If set to -2, they will be placed above the second to last
 ;         panel, and so on.
+;   SUB_VAR:  Set this variable to remove datanames from the plot.
 ;   LASTVAR:  Set this variable to plot the previous variables plotted in a
 ;         TPLOT window.
 ;   PICK:     Set this keyword to choose new order of plot panels
 ;             using the mouse.
+;   TOSS:     Set this keyword to remove panels using the mouse.
 ;   WINDOW:   Window to be used for all time plots.  If set to -1, then the
 ;             current window is used.
 ;   VAR_LABEL:  String [array]; Variable(s) used for putting labels along
@@ -110,8 +112,8 @@
 ;   Send e-mail to:  tplot@ssl.berkeley.edu    someone might answer!
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-01 10:40:40 -0700 (Mon, 01 Jul 2024) $
-; $LastChangedRevision: 32715 $
+; $LastChangedDate: 2024-07-03 14:40:21 -0700 (Wed, 03 Jul 2024) $
+; $LastChangedRevision: 32718 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot.pro $
 ;-
 
@@ -127,6 +129,7 @@ pro tplot,datanames,      $
    TITLE = title,         $
    LASTVAR = lastvar,     $
    ADD_VAR = add_var,     $
+   SUB_VAR = sub_var,     $
    LOCAL_TIME= local_time,$
    REFDATE = refdate,     $
    VAR_LABEL = var_label, $
@@ -135,6 +138,7 @@ pro tplot,datanames,      $
    TRANGE = trng,         $
    NAMES = names,         $
    PICK = pick,           $
+   TOSS = toss,           $
    new_tvars = new_tvars, $
    old_tvars = old_tvars, $
    datagap = datagap,     $  ;It looks like this keyword isn't actually used.  pcruce 10/4/2012
@@ -204,6 +208,22 @@ extract_tags,def_opts,tplot_vars.options
 if keyword_set(pick) then $
    ctime,prompt='Click on desired panels. (button 3 to quit)',panel=mix,/silent
 if n_elements(mix) ne 0 then datanames = tplot_vars.settings.varnames[mix]
+
+if keyword_set(toss) then $
+   ctime,prompt='Click on panels to remove. (button 3 to quit)',panel=mix,/silent
+if n_elements(mix) ne 0 then begin
+   datanames = tplot_vars.settings.varnames[mix]
+   sub_var = 1
+endif
+
+if keyword_set(sub_var) then begin
+   names = tnames(datanames,/all)
+   datanames = tplot_vars.options.varnames
+   for i=0,n_elements(names)-1 do begin
+     j = where(strmatch(datanames, names[i]) eq 0, count)
+     if (count gt 0) then datanames = datanames[j]
+   endfor
+endif
 
 if keyword_set(add_var)  then begin
    names = tnames(datanames,/all)
