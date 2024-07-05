@@ -6,8 +6,8 @@
 ; displayed using doc_library.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-06-27 16:30:57 -0700 (Thu, 27 Jun 2024) $
-; $LastChangedRevision: 32712 $
+; $LastChangedDate: 2024-07-04 13:34:56 -0700 (Thu, 04 Jul 2024) $
+; $LastChangedRevision: 32720 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_crib.pro $
 ;======================================================================
 ;
@@ -490,13 +490,12 @@ maven_orbit_predict
 
 ;
 ; ESTIMATING THE PENETRATING PARTICLE BACKGROUND
-; (Hint: it's not trivial.)
 ;
 ; Protons with energies above ~20 MeV and electrons with energies above
 ; ~2 MeV can penetrate the instrument housing and internal walls to pass
 ; through the MCP, where they can trigger electron cascades and generate
 ; counts.  Galactic Cosmic Rays (GCRs) peak near 1 GeV and easily pass
-; through the instrument -- and the entire spacecraft, resulting in a
+; through the instrument (and the entire spacecraft), resulting in a
 ; background count rate of several counts per second summed over all
 ; anodes.  SEP events are episodic, but can increase the penetrating
 ; particle background by orders of magnitude for days.  If you are 
@@ -514,7 +513,8 @@ mvn_swe_convert_units, spec, 'crate'           ; convert units to corrected coun
 bkg = average(spec.data[0:3,*], 1, /nan)       ; estimate penetrating particle background
 bkgs = smooth_in_time(bkg, spec.time, 64)      ; smooth in time by 64 sec (32 spectra)
 store_data, 'bkg', data={x:spec.time, y:bkgs}  ; make a tplot variable
-tplot, 'bkg', add=100                          ; plot 'bkg' as the last panel
+options, 'bkg', 'ytitle', 'CRATE (>3.3 keV)'
+tplot, 'bkg', add=-1                           ; plot 'bkg' above the last panel
 
 ; Note that I have averaged over the highest four energy channels (3.3-4.6 keV)
 ; to estimate the background count rate.  This is often reasonable, but not
@@ -524,7 +524,9 @@ tplot, 'bkg', add=100                          ; plot 'bkg' as the last panel
 ; SWEA's highest energy channels.  Simply averaging the high-energy count rate
 ; as above will overestimate the background level, possibly by a lot.  So you
 ; will have to find times when the count rate is constant as a function of
-; energy above 3.3 keV.
+; energy above 3.3 keV.  You can check using the energy snapshot procedure:
+
+swe_engy_snap, /sum, yrange=[1e-1,1e5], units='crate'
 
 ; At this point, look at the background panel in the tplot window.  Note the
 ; stochastic nature of the background.  Because of this, you shouldn't simply
@@ -546,24 +548,28 @@ tplot, 'bkg', add=100                          ; plot 'bkg' as the last panel
 ; I don't think the GCR flux does this.  More likely, this is due to the 
 ; presence of 3.3-4.6 keV electrons that increase the count rate, but not
 ; enough to be obvious in the spectra.  Your best bet is to average over a
-; time range around apoapsis during which the background is near a minimum
-; and the count rate is constant as a function of energy above 3.3 keV.
-; Once you find such an interval, take the mean of the background:
+; time range around apoapsis during which the >3.3-keV count rate is near 
+; a minimum and nearly constant as a function of energy.  Once you find 
+; such an interval, take the mean of the background:
 
-tmean, 'bkg', /hist, result=dat
-bkg_avg = dat.mean                   ; Background count rate near apoapsis
+tmean, 'bkg', /hist, result=dat             ; time interval around apoapsis
+bkg_avg = dat.mean                          ; background count rate near apoapsis
 
 ; Now correct for Mars' changing solid angle as seen by MAVEN
 
-Rm = 3389.5                          ; Mars volumetric mean radius, km
-get_data, 'alt', data=alt            ; variable created by maven_orbit_tplot
-h = spline(alt.x, alt.y, spec.time)  ; MAVEN altitude at each time 
-blk = (Rm/(Rm+h))/2.                 ; fraction of sky blocked by Mars
-bkg_model = bkg_avg*(1.-blk)/(1.-min(blk))
+Rm = 3389.5                                 ; Mars volumetric mean radius, km
+get_data, 'alt', data=alt                   ; variable created by maven_orbit_tplot
+h = spline(alt.x, alt.y, spec.time)         ; MAVEN altitude at each time 
+blk = (Rm/(Rm+h))/2.                        ; fraction of sky blocked by Mars
+bkg_model = bkg_avg*(1.-blk)/(1.-min(blk))  ; background model with sky blockage
 store_data, 'bkg_model', data={x:spec.time, y:bkg_model}
+options, 'bkg_model', 'thick', 2
 store_data, 'bkg_comp', data=['bkg','bkg_model']
+options, 'bkg_comp', 'ytitle', 'CRATE (>3.3 keV)'
 options, 'bkg_comp', 'colors', [4,6]
-plot, 'bkg_comp', add=100            ; plot the background & model
+options, 'bkg_comp', 'labels', ['data', 'model']
+options, 'bkg_comp', 'labflag', 1
+tplot, 'bkg_comp', add=-1                   ; plot the background and model
 
 ; An alternative to consider is measuring the background below the 
 ; photoelectron boundary on a closed magnetic field loop.  The averaging
@@ -578,8 +584,8 @@ bkg_model = bkg_avg*(1.-blk)/(1.-max(blk))
 ; Note that the background model is a smooth curve vs. time.  This is what
 ; you insert into the background array.
 
-spec.bkg += replicate(1.,64) # bkg_model  ; sum secondary and penetrating particle bkgs
-mvn_swe_convert_units, spec, old_units    ; convert back to original units
+spec.bkg += replicate(1.,64) # bkg_model    ; sum secondary and penetrating bkgs
+mvn_swe_convert_units, spec, old_units      ; convert back to original units
 
 ; And you're done!  The GCR background varies by a factor of two over the solar
 ; cycle.  It should be essentially constant over time scales of days to weeks.

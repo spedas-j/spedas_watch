@@ -226,6 +226,8 @@ end
 ;                      that the deadtime corrections for the individual spectra
 ;                      are lost.
 ;
+;       BACKGROUND:    Show the background on the plot.
+;
 ;       COLOR_TABLE:   Use this color table for all plots.
 ;
 ;       REVERSE_COLOR_TABLE:  Reverse the color table (except for fixed colors).
@@ -247,8 +249,8 @@ end
 ;                             for "good" spectra.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-12 19:09:27 -0700 (Sun, 12 May 2024) $
-; $LastChangedRevision: 32580 $
+; $LastChangedDate: 2024-07-04 13:36:05 -0700 (Thu, 04 Jul 2024) $
+; $LastChangedRevision: 32722 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -265,7 +267,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
                    endx=endx, twot=twot, rcolors=rcolors, cuii=cuii, fmfit=fmfit, nolab=nolab, $
                    showdead=showdead, monitor=monitor, der=der, color_table=color_table, $
                    reverse_color_table=reverse_color_table, line_colors=line_colors, noraw=noraw, $
-                   qlevel=qlevel, result=result
+                   qlevel=qlevel, result=result, background=background
 
   @mvn_swe_com
   @mvn_scpot_com
@@ -296,7 +298,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
            'POPEN','TIMES','FLEV','PYLIM','K_E','PEREF','ERROR_BARS','TRANGE', $
            'TSMO','WSCALE','CSCALE','VOFFSET','ENDX','TWOT','RCOLORS','CUII', $
            'FMFIT','NOLAB','SHOWDEAD','MONITOR','COLOR_TABLE','REVERSE_COLOR_TABLE', $
-           'LINE_COLORS','NORAW','QLEVEL','RESULT']
+           'LINE_COLORS','NORAW','QLEVEL','RESULT','BACKGROUND']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
@@ -718,6 +720,13 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
 
       spec3d = total(ddd.data*omask,2,/nan)/onorm
       oplot,ddd.energy[*,0],spec3d,psym=psym,color=cols.green
+    endif
+
+    if keyword_set(background) then begin
+      x = spec.energy
+      y = spec.bkg
+      oplot, x, y, color=4, psym=0
+      dosec = 0  ; disable secondary code, which overwrites the background
     endif
 
 ; Secondary electrons produced by primary electron impact inside the instrument.
