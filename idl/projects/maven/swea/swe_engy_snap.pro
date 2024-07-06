@@ -249,8 +249,8 @@ end
 ;                             for "good" spectra.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-04 13:36:05 -0700 (Thu, 04 Jul 2024) $
-; $LastChangedRevision: 32722 $
+; $LastChangedDate: 2024-07-05 15:20:37 -0700 (Fri, 05 Jul 2024) $
+; $LastChangedRevision: 32725 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -665,6 +665,8 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
       tend   = strmid(time_string(spec.end_time),11)
       title = tstart + ' - ' + tend
     endif else title = time_string(spec.time)
+
+    str_element, result, 'trange', [spec.time-delta_t, spec.end_time], /add
 
     if ((nplot eq 0) or oflg) then plot_oo,x,y,yrange=yrange,/ysty,xrange=xrange,/xsty, $
             xtitle='Energy (eV)', ytitle=ytitle,charsize=csize2,psym=psym,title=title, $
