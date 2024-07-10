@@ -22,8 +22,8 @@
 ; load_labels=load_labels ;copy labels from labl_ptr_1 in attributes into dlimits
 ;         resolve labels implemented as keyword to preserve backwards
 ;         compatibility.
-; smex_epoch=if set, interpret variables called "epoch" as seconds
-;            from 1968-05-24, rather than the CDF EPoch variable,
+; smex_epoch=if set, interpret variables called "epoch" or "time" as seconds
+;            from 1968-05-24, rather than the CDF EPoch variable or Unix time,
 ;            needed to read CDF files created by SDT
 ;NOTES:
 ; CDF attributes are obtained from the first file in the array of files input.
@@ -33,8 +33,8 @@
 ;Author: Davin Larson -  20th century
 ;
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2020-04-06 14:11:58 -0700 (Mon, 06 Apr 2020) $
-; $LastChangedRevision: 28515 $
+; $LastChangedDate: 2024-07-09 11:03:46 -0700 (Tue, 09 Jul 2024) $
+; $LastChangedRevision: 32730 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/cdf2tplot.pro $
 ; $ID: $
 ;-
@@ -44,7 +44,7 @@ pro cdf2tplot,files,files=files2,prefix=prefix,midfix=midfix,midpos=midpos,suffi
    ,all=all,verbose=verbose, get_support_data=get_support_data, convert_int1_to_int2=convert_int1_to_int2 $
    ,record=record, tplotnames=tplotnames,load_labels=load_labels,smex_epoch=smex_epoch
 
-dprint,dlevel=4,verbose=verbose,'$Id: cdf2tplot.pro 28515 2020-04-06 21:11:58Z jimm $'
+dprint,dlevel=4,verbose=verbose,'$Id: cdf2tplot.pro 32730 2024-07-09 18:03:46Z jimm $'
 vb = keyword_set(verbose) ? verbose : 0
 
 if keyword_set(files2) then files=files2    ; added for backward compatibility  and to make it match the documentation
