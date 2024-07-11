@@ -38,9 +38,9 @@
 ;
 ;CREATED BY:	Davin Larson
 ;FILE:  mplot.pro
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-03-09 21:45:39 -0800 (Sat, 09 Mar 2024) $
-; $LastChangedRevision: 32485 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2024-07-10 11:28:39 -0700 (Wed, 10 Jul 2024) $
+; $LastChangedRevision: 32731 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/mplot.pro $
 ;
 ;-
@@ -242,9 +242,11 @@ if n_elements(constant) ne 0 then begin
   if n_elements(const_color) ne 0 then ccols = get_colors(const_color) else ccols=!p.color
   str_element,stuff,'const_line',const_line
   if n_elements(const_line) ne 0 then cline = const_line[0] else cline = 1
+  str_element,stuff,'const_thick',const_thick
+  if n_elements(const_thick) ne 0 then cthick = const_thick[0] else cthick = 1
   ncc = n_elements(constant)
   for i=0,ncc-1 do $
-    oplot,xrange,constant[i]*[1,1],color=ccols[i mod n_elements(ccols)],linestyle=cline
+    oplot,xrange,constant[i]*[1,1],color=ccols[i mod n_elements(ccols)],linestyle=cline,thick=cthick
 endif
 
 labbins = replicate(1,d2)
