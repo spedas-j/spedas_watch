@@ -6,8 +6,8 @@
 ; displayed using doc_library.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-04 13:34:56 -0700 (Thu, 04 Jul 2024) $
-; $LastChangedRevision: 32720 $
+; $LastChangedDate: 2024-07-14 11:31:21 -0700 (Sun, 14 Jul 2024) $
+; $LastChangedRevision: 32744 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_crib.pro $
 ;======================================================================
 ;
@@ -560,7 +560,8 @@ bkg_avg = dat.mean                          ; background count rate near apoapsi
 Rm = 3389.5                                 ; Mars volumetric mean radius, km
 get_data, 'alt', data=alt                   ; variable created by maven_orbit_tplot
 h = spline(alt.x, alt.y, spec.time)         ; MAVEN altitude at each time 
-blk = (Rm/(Rm+h))/2.                        ; fraction of sky blocked by Mars
+x = Rm/(Rm+h)                               ; sine of half-angle subtended by Mars
+blk = (1. - sqrt(1. - x*x))/2.              ; fraction of sky blocked by Mars
 bkg_model = bkg_avg*(1.-blk)/(1.-min(blk))  ; background model with sky blockage
 store_data, 'bkg_model', data={x:spec.time, y:bkg_model}
 options, 'bkg_model', 'thick', 2
