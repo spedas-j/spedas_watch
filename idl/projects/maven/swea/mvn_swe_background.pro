@@ -1,5 +1,38 @@
+; Fitting function for SWEA penetrating particle and radioactive decay background.
+;
+; background = (penetrating particle)*(1 - Mars shielding) + radioactive decay
+;
+
+function swe_background, h,  $
+    parameters=p,  p_names = p_names, pder_values= pder_values
+
+  if not keyword_set(p) then p = {func:'swe_background', a:1D, k40:0D}
+
+  if n_params() eq 0 then return, p
+
+  Rm = 3389.5D                        ; +/- 0.2, volumetric radius of Mars (km)
+  sina = Rm/(Rm + h)                  ; sine of half-angle subtended by Mars
+  y = (1D - sqrt(1D - sina*sina))/2D  ; fraction of sky blocked by Mars
+  f = p.k40 + p.a*(1.-y)              ; background vs. altitude
+
+  if keyword_set(p_names) then begin
+     np = n_elements(p_names)
+     nd = n_elements(f)
+     pder_values = dblarr(nd,np)
+     for i=0,np-1 do begin
+        case strupcase(p_names(i)) of
+            'A'   : pder_values[*,i] = 1. - y
+            'K40' : pder_values[*,i] = 1D
+        endcase
+     endfor
+  endif
+
+  return, f
+
+end
+
 ;+
-;FUNCTION:   mvn_swe_background
+;PROCEDURE:   mvn_swe_background
 ;PURPOSE:
 ;  At energies above ~1 keV, the SWEA count rate comes from three
 ;  sources:  >1-keV electrons, penetrating high-energy particles, and
@@ -51,29 +84,29 @@
 ;  None.       SPEC data are obtained from the SWEA common block.
 ;
 ;KEYWORDS:
-;  PERIAPSIS:  Measure the penetrating background at periapsis instead of
-;              apoapsis.  Useful when periapsis is the only part of the
-;              orbit where the 3.3-to-4.6-keV count rate is constant.
-;
-;  K40:        The count rate due to radioactive decay of potassium 40 in
-;              the MCP glass.  This should be a single value that's valid
-;              for the entire mission.
+;  K40:        If set, then fit for the radioactive decay background in
+;              addition to the penetrating particle background.
+;              Default = 0 (no).
 ;
 ;  RESIDUAL:   Create a tplot variable that shows the residual (measured 
-;              background subtract model).
+;              background subtract model).  Default = 1 (yes).
+;
+;  RESULT:     Returns the fitted/assumed results:
+;                param = function parameters (a, k40)
+;                uncer = parameter uncertainties (sigma_a, sigma_k40)
 ;
 ;SEE ALSO:
 ;   mvn_swe_secondary:  Calculates the secondary electron background.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-14 11:32:59 -0700 (Sun, 14 Jul 2024) $
-; $LastChangedRevision: 32745 $
+; $LastChangedDate: 2024-07-17 16:30:31 -0700 (Wed, 17 Jul 2024) $
+; $LastChangedRevision: 32750 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_background.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-05-24
 ;FILE: mvn_swe_background.pro
 ;-
-pro mvn_swe_background, periapsis=periapsis, k40=k40, residual=residual
+pro mvn_swe_background, k40=k40, residual=residual, result=result
 
   @mvn_swe_com
 
@@ -86,15 +119,16 @@ pro mvn_swe_background, periapsis=periapsis, k40=k40, residual=residual
 
   mvn_spice_stat, check=mvn_swe_engy.time, summary=sinfo, /silent
   if (sinfo.spk_check eq 0) then begin
-    print,"Insufficient SPICE coverage for SWEA SPEC data.",format='(/,a)'
+    print,"Insufficient SPICE SPK coverage for SWEA SPEC data.",format='(/,a)'
     print,"   SPEC: ",time_string(minmax(spec.time)),format='(a,a19," - ",a19)'
     print,"    SPK: ",time_string(sinfo.spk_trange),format='(a,a19," - ",a19)'
-    print,"Try reinitializing SPICE.",format='(a,/)'
+    print,"Reinitialize SPICE and try again.",format='(a,/)'
     return
   endif
 
-  peri = keyword_set(periapsis)
-  k40 = n_elements(k40) gt 0 ? float(k40[0]) : 0.
+  res = (n_elements(residual) gt 0) ? keyword_set(residual) : 1
+  k40 = keyword_set(k40)
+  twin = !d.window
 
 ; Prepare SPEC data for analysis
 
@@ -105,36 +139,94 @@ pro mvn_swe_background, periapsis=periapsis, k40=k40, residual=residual
   mvn_swe_convert_units, spec, 'crate'               ; convert units to corrected count rate
   bkg = average(spec.data[0:3,*], 1, /nan)           ; estimate penetrating particle background
   bkgs = smooth_in_time(bkg, spec.time, 64)          ; smooth in time by 64 sec (32 spectra)
-  store_data, 'swe_bkg', data={x:spec.time, y:bkgs}  ; make a tplot variable
+  store_data, 'swe_bkg', data={x:spec.time, y:bkgs}  ; make a tplot variable of smoothed data
   options, 'swe_bkg', 'ytitle', 'CRATE (>3.3 keV)'
 
+  wset, twin
   tplot_options, get=topt
   i = where(strmatch(topt.varnames, 'swe_bkg*'), count)
   if (count gt 0) then tplot else tplot, 'swe_bkg', add=-1
 
-; Interactively find a time range for measuring the background
-
-  msg = peri ? 'PERIAPSIS' : 'APOAPSIS'
-  print," "
-  print,"Choose a time range around " + msg + " where the >3.3 keV count rate is constant."
-  swe_engy_snap, /sum, yrange=[1e-1,1e5], units='crate', result=dat
-  tmean, 'swe_bkg', trange=dat.trange, result=dat
-  bkg_avg = dat.mean
-
-; Correct for variable Mars shielding
+; Get altitude
 
   timestr = time_string(spec.time,prec=5)
   cspice_str2et, timestr, et
   cspice_spkezr, 'MAVEN', et, 'IAU_MARS', 'NONE', 'Mars', state, ltime
-  mvn_altitude, cart=state[0:2,*], datum='ell', result=result
+  mvn_altitude, cart=state[0:2,*], datum='ell', result=dat
+  h = dat.alt
+  undefine, dat
 
-  Rm = 3389.5                                    ; Mars volumetric mean radius, km
-  x = Rm/(Rm + result.alt)                       ; sine of half-angle subtended by Mars
-  blk = (1. - sqrt(1 - x*x))/2.                  ; fraction of sky blocked by Mars
-  bkg_model = (bkg_avg - k40)*(1. - blk)/(1. - (minmax(blk))[peri]) + k40
+; Exclude data from the fit
 
-  store_data, 'swe_bkg_model', data={x:spec.time, y:bkg_model}
-  options, 'swe_bkg_model', 'thick', 2
+  ok = 1
+  first = 1
+  print, "Select time range(s) to exclude from the fit ... "
+  while (ok) do begin
+    ctime, tt, npoints=2, /silent
+    cursor,cx,cy,/norm,/up  ; make sure mouse button is released
+    if (n_elements(tt) eq 2) then begin
+      indx = where(spec.time ge min(tt) or spec.time le max(tt), count)
+      if (count gt 0L) then begin
+        if (first) then begin
+          jndx = temporary(indx)
+          first = 0
+        endif else jndx = [temporary(jndx), temporary(indx)]
+        timebar, min(tt), /line, color=4
+        timebar, max(tt), /line, color=6
+      endif else print, "No data to exclude."
+    endif else ok = 0
+  endwhile
+
+  if (n_elements(jndx) gt 0) then begin
+    bkg[jndx] = !values.f_nan
+    jndx = where(finite(bkg), count)
+    if (count eq 0L) then begin
+      print, "No data to fit."
+      return
+    endif
+    h = temporary(h[jndx])
+    bkg = temporary(bkg[jndx])
+  endif
+
+; Bin and fit the measurements; show the fit in a separate window
+
+  bindata, h, bkg, xbins=30, result=dat
+  msg = string(minmax(dat.npts), format='("Points per bin: ",i," - ",i)')
+  print, strcompress(msg)
+
+  p = swe_background()
+  if (k40) then names = 'a k40' else names = 'a'
+  fit, dat.x, dat.y, dy=dat.sdev, param=p, names=names, function='swe_background', $
+                         p_values=pval, p_sigma=psig
+  msg = string(0.5/(p.a * minmax(dat.npts)), format='("Poisson correction: ",e8.2," - ",e8.2)')
+  print, strcompress(msg)
+
+  win,1,/sec,dx=10,dy=10, xsize=800, ysize=600
+  plot, dat.x, dat.y, psym=10, xtitle='Altitude (km)', ytitle='Count Rate (>3.3 keV)', yrange=[0,1.1], $
+        title='Penetrating Background', charsize=1.8
+  oplot, dat.x, swe_background(dat.x, param=p), color=4, thick=2
+  msg = 'B(h -> !4y!1H) = ' + string(pval[0],format='(f4.2)') + ' +/- ' + string(psig[0],format='(f5.2)')
+  xyouts, 0.5, 0.6, strcompress(msg) , /norm, charsize=1.8, color=4
+  msg = 'K40 = ' + string(p.k40,format='(f5.2)')
+  if (n_elements(psig) gt 1) then msg += ' +/- ' + string(psig[1],format='(f5.2)') else msg += ' (assumed)'
+  xyouts, 0.5, 0.55, strcompress(msg) , /norm, charsize=1.8, color=4
+
+  win,2,clone=1,relative=1,dy=-10
+  scale = 10.^floor(alog10(min(dat.npts,/nan)))
+  ytitle = strcompress(string(round(scale), format='("Number / ",i)'))
+  plot, dat.x, float(dat.npts)/scale, psym=10, xtitle='Altitude (km)', ytitle=ytitle, $
+        title='Number of Samples', charsize=1.8
+
+  result = {param:p, uncer:psig, names:names}
+
+; Create/update tplot variables
+
+  bkg_model = swe_background(h, param=p)
+  vname = 'swe_bkg_model'
+  store_data, vname, data={x:spec.time, y:bkg_model}
+  options, vname, 'line_colors', 5
+  options, vname, 'colors', [6]
+  options, vname, 'thick', 2
 
   vname = 'swe_bkg_comp'
   store_data, vname, data=['swe_bkg','swe_bkg_model']
@@ -148,7 +240,9 @@ pro mvn_swe_background, periapsis=periapsis, k40=k40, residual=residual
     options, vname, 'const_line', 2
     options, vname, 'const_color', 5
     options, vname, 'const_thick', 2
-  endif
+  endif else begin
+    options, vname, 'constant', -1.
+  endelse
 
   tplot_options, get=topt
   varnames = topt.varnames
@@ -161,7 +255,7 @@ pro mvn_swe_background, periapsis=periapsis, k40=k40, residual=residual
     if (i lt imax) then varnames = [firstvars, varnames[(i+1):imax]]
   endif
 
-  if keyword_set(residual) then begin
+  if (res) then begin
     vname = 'swe_bkg_residual'
     store_data,vname,data={x:spec.time, y:(bkgs - bkg_model)}
     options,vname, 'ytitle', 'Residual'
@@ -179,12 +273,13 @@ pro mvn_swe_background, periapsis=periapsis, k40=k40, residual=residual
     endif
   endif
 
+  wset, twin
   tplot, varnames                                ; display the measured background and model
 
 ; Save the result
 
   spec.bkg += replicate(1.,64) # bkg_model       ; sum secondary and penetrating bkgs
   mvn_swe_convert_units, spec, old_units         ; convert back to original units
-  mvn_swe_engy = spec                            ; store the result in the common block
+  mvn_swe_engy = temporary(spec)                 ; store the result in the common block
 
 end
