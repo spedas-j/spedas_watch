@@ -112,8 +112,8 @@
 ;   Send e-mail to:  tplot@ssl.berkeley.edu    someone might answer!
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-03 14:40:21 -0700 (Wed, 03 Jul 2024) $
-; $LastChangedRevision: 32718 $
+; $LastChangedDate: 2024-07-18 15:48:04 -0700 (Thu, 18 Jul 2024) $
+; $LastChangedRevision: 32751 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot.pro $
 ;-
 
@@ -205,15 +205,20 @@ extract_tags,def_opts,tplot_vars.options
 ; if n_elements(tplot_var) eq 0 then $
 ;    str_element,tplot_vars,'options.varnames',['NULL'],/add_replace
 
-if keyword_set(pick) then $
+if keyword_set(pick) then begin
    ctime,prompt='Click on desired panels. (button 3 to quit)',panel=mix,/silent
-if n_elements(mix) ne 0 then datanames = tplot_vars.settings.varnames[mix]
+   if n_elements(mix) ne 0 then begin
+      datanames = tplot_vars.settings.varnames[mix]
+      sub_var = 0
+   endif
+endif
 
-if keyword_set(toss) then $
+if keyword_set(toss) then begin
    ctime,prompt='Click on panels to remove. (button 3 to quit)',panel=mix,/silent
-if n_elements(mix) ne 0 then begin
-   datanames = tplot_vars.settings.varnames[mix]
-   sub_var = 1
+   if n_elements(mix) ne 0 then begin
+      datanames = tplot_vars.settings.varnames[mix]
+      sub_var = 1
+   endif
 endif
 
 if keyword_set(sub_var) then begin
