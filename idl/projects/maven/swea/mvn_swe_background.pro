@@ -2,9 +2,12 @@
 ;
 ; background = (penetrating particle)*(1 - Mars shielding) + radioactive decay
 ;
+;   h   = spacecraft altitude (km)
+;   a   = penetrating particle background for zero Mars shielding
+;   k40 = background from radioactive decay of potassium 40
+;
 
-function swe_background, h,  $
-    parameters=p,  p_names = p_names, pder_values= pder_values
+function swe_background, h,  parameters=p,  p_names=p_names, pder_values=pder_values
 
   if not keyword_set(p) then p = {func:'swe_background', a:1D, k40:0D}
 
@@ -13,7 +16,7 @@ function swe_background, h,  $
   Rm = 3389.5D                        ; +/- 0.2, volumetric radius of Mars (km)
   sina = Rm/(Rm + h)                  ; sine of half-angle subtended by Mars
   y = (1D - sqrt(1D - sina*sina))/2D  ; fraction of sky blocked by Mars
-  f = p.k40 + p.a*(1.-y)              ; background vs. altitude
+  f = p.a*(1D - y) + p.k40            ; background vs. altitude
 
   if keyword_set(p_names) then begin
      np = n_elements(p_names)
@@ -21,7 +24,7 @@ function swe_background, h,  $
      pder_values = dblarr(nd,np)
      for i=0,np-1 do begin
         case strupcase(p_names(i)) of
-            'A'   : pder_values[*,i] = 1. - y
+            'A'   : pder_values[*,i] = 1D - y
             'K40' : pder_values[*,i] = 1D
         endcase
      endfor
@@ -92,21 +95,38 @@ end
 ;              background subtract model).  Default = 1 (yes).
 ;
 ;  RESULT:     Returns the fitted/assumed results:
-;                param = function parameters (a, k40)
-;                uncer = parameter uncertainties (sigma_a, sigma_k40)
+;                alt   = altitude bins
+;                data  = average >3.3-keV count rate per bin
+;                sdev  = statistical uncertainty for each bin
+;                npts  = number of points per bin
+;                model = count rate vs. altitude for best fit
+;                units = count rate per anode
+;                a     = penetrating background count rate corresponding
+;                        to zero shielding from Mars (alt -> infinity)
+;                a_sigma = uncertainty in a
+;                k40   = count rate from radioactive decay of potassium 40
+;                        in the MCP glass
+;                k40_sigma = uncertainty in k40 (if applicable)
+;
+;  NBINS:      Number of altitude bins for the >3.3-keV count rate data.
+;              Default = 30.
+;
+;  EXCLUDE:    If set, interactively exclude one or more time ranges from
+;              the fit.  This can be used to exclude times when the >3.3-keV
+;              count rate is not constant.
 ;
 ;SEE ALSO:
 ;   mvn_swe_secondary:  Calculates the secondary electron background.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-17 16:30:31 -0700 (Wed, 17 Jul 2024) $
-; $LastChangedRevision: 32750 $
+; $LastChangedDate: 2024-07-19 13:09:50 -0700 (Fri, 19 Jul 2024) $
+; $LastChangedRevision: 32753 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_background.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-05-24
 ;FILE: mvn_swe_background.pro
 ;-
-pro mvn_swe_background, k40=k40, residual=residual, result=result
+pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, exclude=exclude
 
   @mvn_swe_com
 
@@ -129,6 +149,8 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result
   res = (n_elements(residual) gt 0) ? keyword_set(residual) : 1
   k40 = keyword_set(k40)
   twin = !d.window
+  nbins = (n_elements(nbins) gt 0) ? fix(nbins[0]) : 30
+  exclude = keyword_set(exclude)
 
 ; Prepare SPEC data for analysis
 
@@ -158,66 +180,78 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result
 
 ; Exclude data from the fit
 
-  ok = 1
-  first = 1
-  print, "Select time range(s) to exclude from the fit ... "
-  while (ok) do begin
-    ctime, tt, npoints=2, /silent
-    cursor,cx,cy,/norm,/up  ; make sure mouse button is released
-    if (n_elements(tt) eq 2) then begin
-      indx = where(spec.time ge min(tt) or spec.time le max(tt), count)
-      if (count gt 0L) then begin
-        if (first) then begin
-          jndx = temporary(indx)
-          first = 0
-        endif else jndx = [temporary(jndx), temporary(indx)]
-        timebar, min(tt), /line, color=4
-        timebar, max(tt), /line, color=6
-      endif else print, "No data to exclude."
-    endif else ok = 0
-  endwhile
+  jndx = lindgen(n_elements(h))
+  if (exclude) then begin
+    ok = 1
+    first = 1
+    print, "Select time range(s) to exclude from the fit (right click to exit) ... "
+    while (ok) do begin
+      ctime, tt, npoints=2, /silent
+      cursor,cx,cy,/norm,/up  ; make sure mouse button is released
+      if (n_elements(tt) eq 2) then begin
+        indx = where(spec.time ge min(tt) and spec.time le max(tt), count)
+        if (count gt 0L) then begin
+          if (first) then begin
+            jndx = temporary(indx)
+            first = 0
+          endif else jndx = [temporary(jndx), temporary(indx)]
+          timebar, min(tt), /line, color=4
+          timebar, max(tt), /line, color=6
+        endif else print, "No data to exclude."
+      endif else ok = 0
+    endwhile
 
-  if (n_elements(jndx) gt 0) then begin
-    bkg[jndx] = !values.f_nan
-    jndx = where(finite(bkg), count)
-    if (count eq 0L) then begin
-      print, "No data to fit."
-      return
+    if (n_elements(jndx) gt 0) then begin
+      bkg[jndx] = !values.f_nan
+      jndx = where(finite(bkg), count)
+      if (count eq 0L) then begin
+        print, "No data to fit."
+        return
+      endif
     endif
-    h = temporary(h[jndx])
-    bkg = temporary(bkg[jndx])
   endif
 
-; Bin and fit the measurements; show the fit in a separate window
+; Bin and fit the measurements
 
-  bindata, h, bkg, xbins=30, result=dat
-  msg = string(minmax(dat.npts), format='("Points per bin: ",i," - ",i)')
-  print, strcompress(msg)
+  bindata, h[jndx], bkg[jndx], xbins=nbins, result=dat
 
   p = swe_background()
   if (k40) then names = 'a k40' else names = 'a'
   fit, dat.x, dat.y, dy=dat.sdev, param=p, names=names, function='swe_background', $
                          p_values=pval, p_sigma=psig
-  msg = string(0.5/(p.a * minmax(dat.npts)), format='("Poisson correction: ",e8.2," - ",e8.2)')
-  print, strcompress(msg)
 
-  win,1,/sec,dx=10,dy=10, xsize=800, ysize=600
+; Plot the fit results
+
+  !x.omargin = [2,4]
+  win, 1, /sec, dx=10, dy=10, xsize=800, ysize=600
+  xrange = [0., ceil(max(dat.x)/1000.)*1000.]
   plot, dat.x, dat.y, psym=10, xtitle='Altitude (km)', ytitle='Count Rate (>3.3 keV)', yrange=[0,1.1], $
-        title='Penetrating Background', charsize=1.8
-  oplot, dat.x, swe_background(dat.x, param=p), color=4, thick=2
-  msg = 'B(h -> !4y!1H) = ' + string(pval[0],format='(f4.2)') + ' +/- ' + string(psig[0],format='(f5.2)')
-  xyouts, 0.5, 0.6, strcompress(msg) , /norm, charsize=1.8, color=4
+        title='Penetrating Background', charsize=1.8, xrange=xrange, /xsty
+  yfit = swe_background(dat.x, param=p)
+  oplot, dat.x, yfit, color=4, thick=2
+  msg = 'Rate(alt -> !4y!1H) = ' + string(pval[0],format='(f4.2)') + ' +/- ' + string(psig[0],format='(f5.2)')
+  xyouts, 0.45, 0.60, strcompress(msg) , /norm, charsize=1.8, color=4
   msg = 'K40 = ' + string(p.k40,format='(f5.2)')
   if (n_elements(psig) gt 1) then msg += ' +/- ' + string(psig[1],format='(f5.2)') else msg += ' (assumed)'
-  xyouts, 0.5, 0.55, strcompress(msg) , /norm, charsize=1.8, color=4
+  xyouts, 0.45, 0.55, strcompress(msg) , /norm, charsize=1.8, color=4
 
-  win,2,clone=1,relative=1,dy=-10
-  scale = 10.^floor(alog10(min(dat.npts,/nan)))
-  ytitle = strcompress(string(round(scale), format='("Number / ",i)'))
-  plot, dat.x, float(dat.npts)/scale, psym=10, xtitle='Altitude (km)', ytitle=ytitle, $
-        title='Number of Samples', charsize=1.8
+  win, 2, clone=1, relative=1, dy=-10
+  !p.multi = [0,1,2]  ; starting panel, number of columns, number of rows
+    plot_io, dat.x, float(dat.npts), psym=10, xtitle='', ytitle='Number', $
+          title='Number of Samples', charsize=1.8, xrange=xrange, /xsty
 
-  result = {param:p, uncer:psig, names:names}
+    plot_io, dat.x, 0.5/(dat.y * dat.npts), psym=10, xtitle='Altitude (km)', $
+          ytitle='Correction', title='Poisson Correction', charsize=1.8, xrange=xrange, /xsty
+  !p.multi = 0
+  !x.omargin = [0,0]
+
+; Create the result structure
+
+  result = {alt:dat.x, data:dat.y, sdev:dat.sdev, npts:dat.npts, model:yfit, $
+            units:'crate/anode', a:p.a, a_sigma:psig[0], k40:p.k40}
+
+  if (n_elements(psig) gt 1) then str_element, result, 'k40_sigma', psig[1], /add $
+                             else str_element, result, 'k40_sigma', !values.d_nan, /add
 
 ; Create/update tplot variables
 

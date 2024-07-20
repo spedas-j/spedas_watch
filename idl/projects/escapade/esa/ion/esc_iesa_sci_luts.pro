@@ -3,8 +3,8 @@
 ; ESC_IESA_SCI_LUTS
 ;
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2024-01-24 23:35:25 -0800 (Wed, 24 Jan 2024) $
-; $LastChangedRevision: 32407 $
+; $LastChangedDate: 2024-07-19 13:45:07 -0700 (Fri, 19 Jul 2024) $
+; $LastChangedRevision: 32754 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sci_luts.pro $
 ;
 ;-
@@ -17,21 +17,27 @@ FUNCTION esc_iesa_sci_luts_write_csv, table
    printf, 1, '# ESCAPADE iESA Science Product Look-Up Tables'
    printf, 1, '# '
    printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sci_luts.pro'
-   printf, 1, '# Date:     $LastChangedDate: 2024-01-24 23:35:25 -0800 (Wed, 24 Jan 2024) $'
-   printf, 1, '# Revision: $LastChangedRevision: 32407 $'
+   printf, 1, '# Date:     $LastChangedDate: 2024-07-19 13:45:07 -0700 (Fri, 19 Jul 2024) $'
+   printf, 1, '# Revision: $LastChangedRevision: 32754 $'
    printf, 1, '# '
    ;;printf, 1, '# ' + table.note
    printf, 1, '# '
-   printf, 1, '# --- Sweep Table Dimensions --- #'
-   printf, 1, '# '   
+   printf, 1, '# Sweep Table Dimensions'
    printf, 1, '# Mass:       '+ string(table.tbl_mas_rr,format='(I2)')
    printf, 1, '# Anode:      '+ string(table.tbl_ano_rr,format='(I2)')
    printf, 1, '# Deflection: '+ string(table.tbl_def_rr,format='(I2)')
    printf, 1, '# Energy:     '+ string(table.tbl_nrg_rr,format='(I2)')
    printf, 1, '# '
+   printf, 1, '# '
+   printf, 1, '# '
+   printf, 1, '# '
+   printf, 1, '# '
+   printf, 1, '# '
    printf, 1, '# ##############################'
    printf, 1, '# ###    Science Products    ###'
    printf, 1, '# ##############################'
+   printf, 1, '# '
+   printf, 1, '# '
    printf, 1, '# '   
    printf, 1, '#      --- Fine Masses ---     #'
    printf, 1, '# '+strjoin(replicate('-',30))
@@ -44,7 +50,8 @@ FUNCTION esc_iesa_sci_luts_write_csv, table
    printf, 1, '# ELUT - 64 Bin Array'
    FOR i=0, 7 DO printf, 1, format='(8I4)',table.nrg_lut_fm[8*i:8*i+7]
    printf, 1, '#  '
-
+   printf, 1, '#  '
+   printf, 1, '#  '   
 
    printf, 1, '#     --- Fine Energies ---    #'
    printf, 1, '# '+strjoin(replicate('-',30))
@@ -66,7 +73,8 @@ FUNCTION esc_iesa_sci_luts_write_csv, table
    printf, 1, '# ELUT - 64 Bin Array'
    FOR i=0, 7 DO printf, 1, format='(8I4)',table.nrg_lut_fe[8*i:8*i+7]
    printf, 1, '#  '
-
+   printf, 1, '#  '
+   printf, 1, '#  '
 
    printf, 1, '#    --- Fine Deflectors ---   #'
    printf, 1, '# '+strjoin(replicate('-',30))
@@ -88,8 +96,8 @@ FUNCTION esc_iesa_sci_luts_write_csv, table
    printf, 1, '# ELUT - 64 Bin Array'
    FOR i=0, 7 DO printf, 1, format='(8I4)',table.nrg_lut_fd[8*i:8*i+7]
    printf, 1, '# '
-
-
+   printf, 1, '#  '
+   printf, 1, '#  '
 
    printf, 1, '#       --- Fine 4D ---        #'
    printf, 1, '# '+strjoin(replicate('-',30))
@@ -111,8 +119,8 @@ FUNCTION esc_iesa_sci_luts_write_csv, table
    printf, 1, '# ELUT - 64 Bin Array'
    FOR i=0, 7 DO printf, 1, format='(8I4)',table.nrg_lut_f4[8*i:8*i+7]
    printf, 1, '# '
-
-
+   printf, 1, '#  '
+   printf, 1, '#  '
    
    printf, 1, '#      --- Solar Wind ---      #'
    printf, 1, '# '+strjoin(replicate('-',30))
@@ -202,7 +210,8 @@ PRO esc_iesa_sci_luts
    f4 = intarr(nn_mas_f4, nn_ano_f4, nn_def_f4, nn_nrg_f4)
 
    mas_lut_f4 = [0,0,1,2]
-   ano_lut_f4 = [indgen(10),replicate(10,6)]
+   ;;ano_lut_f4 = [indgen(10),replicate(10,6)]
+   ano_lut_f4 = [0,0,1,1,2,2,3,3,4,4,5,6,7,8,9,10,11]
    def_lut_f4 = indgen(def_rr)
    nrg_lut_f4 = reform(transpose(indgen(nrg_rr/2) # replicate(1,2)),64)
 
