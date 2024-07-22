@@ -119,8 +119,8 @@ end
 ;   mvn_swe_secondary:  Calculates the secondary electron background.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-19 13:09:50 -0700 (Fri, 19 Jul 2024) $
-; $LastChangedRevision: 32753 $
+; $LastChangedDate: 2024-07-21 16:06:34 -0700 (Sun, 21 Jul 2024) $
+; $LastChangedRevision: 32755 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_background.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-05-24
@@ -148,9 +148,13 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 
   res = (n_elements(residual) gt 0) ? keyword_set(residual) : 1
   k40 = keyword_set(k40)
-  twin = !d.window
   nbins = (n_elements(nbins) gt 0) ? fix(nbins[0]) : 30
   exclude = keyword_set(exclude)
+
+  device, window_state=ws
+  indx = where(ws eq 1, count)
+  if (count eq 0) then win, 0, /center               ; no graphics window, so make one
+  twin = !d.window
 
 ; Prepare SPEC data for analysis
 
@@ -166,8 +170,15 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 
   wset, twin
   tplot_options, get=topt
-  i = where(strmatch(topt.varnames, 'swe_bkg*'), count)
-  if (count gt 0) then tplot else tplot, 'swe_bkg', add=-1
+
+  str_element, topt, 'varnames', varnames, success=ok
+  if (not ok) then begin
+    mvn_swe_sumplot, /load
+    tplot, ['alt2','swe_bkg','swe_a4']
+  endif else begin
+    i = where(strmatch(topt.varnames, 'swe_bkg*'), count)
+    if (count gt 0) then tplot else tplot, 'swe_bkg', add=-1
+  endelse
 
 ; Get altitude
 
@@ -180,7 +191,7 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 
 ; Exclude data from the fit
 
-  jndx = lindgen(n_elements(h))
+  mask = replicate(1B, n_elements(spec.time))
   if (exclude) then begin
     ok = 1
     first = 1
@@ -191,24 +202,18 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
       if (n_elements(tt) eq 2) then begin
         indx = where(spec.time ge min(tt) and spec.time le max(tt), count)
         if (count gt 0L) then begin
-          if (first) then begin
-            jndx = temporary(indx)
-            first = 0
-          endif else jndx = [temporary(jndx), temporary(indx)]
+          mask[indx] = 0B
           timebar, min(tt), /line, color=4
           timebar, max(tt), /line, color=6
-        endif else print, "No data to exclude."
+        endif
       endif else ok = 0
     endwhile
+  endif
 
-    if (n_elements(jndx) gt 0) then begin
-      bkg[jndx] = !values.f_nan
-      jndx = where(finite(bkg), count)
-      if (count eq 0L) then begin
-        print, "No data to fit."
-        return
-      endif
-    endif
+  jndx = where(mask eq 1B, count)
+  if (count eq 0) then begin
+    print, "No data to fit."
+    return
   endif
 
 ; Bin and fit the measurements
@@ -223,7 +228,8 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 ; Plot the fit results
 
   !x.omargin = [2,4]
-  win, 1, /sec, dx=10, dy=10, xsize=800, ysize=600
+  win, /free, /sec, dx=10, dy=10, xsize=800, ysize=600
+  fwin = !d.window
   xrange = [0., ceil(max(dat.x)/1000.)*1000.]
   plot, dat.x, dat.y, psym=10, xtitle='Altitude (km)', ytitle='Count Rate (>3.3 keV)', yrange=[0,1.1], $
         title='Penetrating Background', charsize=1.8, xrange=xrange, /xsty
@@ -235,7 +241,8 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   if (n_elements(psig) gt 1) then msg += ' +/- ' + string(psig[1],format='(f5.2)') else msg += ' (assumed)'
   xyouts, 0.45, 0.55, strcompress(msg) , /norm, charsize=1.8, color=4
 
-  win, 2, clone=1, relative=1, dy=-10
+  win, /free, clone=fwin, relative=fwin, dy=-10
+  swin = !d.window
   !p.multi = [0,1,2]  ; starting panel, number of columns, number of rows
     plot_io, dat.x, float(dat.npts), psym=10, xtitle='', ytitle='Number', $
           title='Number of Samples', charsize=1.8, xrange=xrange, /xsty
