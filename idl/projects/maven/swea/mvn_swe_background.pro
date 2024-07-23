@@ -91,8 +91,12 @@ end
 ;              addition to the penetrating particle background.
 ;              Default = 0 (no).
 ;
-;  RESIDUAL:   Create a tplot variable that shows the residual (measured 
-;              background subtract model).  Default = 1 (yes).
+;  NBINS:      Number of altitude bins for the >3.3-keV count rate data.
+;              Default = 30.
+;
+;  EXCLUDE:    If set, interactively exclude one or more time ranges from
+;              the fit.  This can be used to exclude times when the >3.3-keV
+;              count rate is not constant.
 ;
 ;  RESULT:     Returns the fitted/assumed results:
 ;                alt   = altitude bins
@@ -108,25 +112,27 @@ end
 ;                        in the MCP glass
 ;                k40_sigma = uncertainty in k40 (if applicable)
 ;
-;  NBINS:      Number of altitude bins for the >3.3-keV count rate data.
-;              Default = 30.
+;  RESIDUAL:   Create a tplot variable that shows the residual (measured 
+;              background subtract model).  Default = 1 (yes).
 ;
-;  EXCLUDE:    If set, interactively exclude one or more time ranges from
-;              the fit.  This can be used to exclude times when the >3.3-keV
-;              count rate is not constant.
+;  SHOWFIT:    If set, show the fit results in a separate window.  The top
+;              panel shows the binned count rate vs. altitude along with the
+;              best fit.  The next two panels show the number of samples per
+;              bin and the Poisson correction.
 ;
 ;SEE ALSO:
 ;   mvn_swe_secondary:  Calculates the secondary electron background.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-21 16:06:34 -0700 (Sun, 21 Jul 2024) $
-; $LastChangedRevision: 32755 $
+; $LastChangedDate: 2024-07-22 16:23:25 -0700 (Mon, 22 Jul 2024) $
+; $LastChangedRevision: 32756 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_background.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-05-24
 ;FILE: mvn_swe_background.pro
 ;-
-pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, exclude=exclude
+pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, $
+                        exclude=exclude, showfit=showfit
 
   @mvn_swe_com
 
@@ -150,11 +156,7 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   k40 = keyword_set(k40)
   nbins = (n_elements(nbins) gt 0) ? fix(nbins[0]) : 30
   exclude = keyword_set(exclude)
-
-  device, window_state=ws
-  indx = where(ws eq 1, count)
-  if (count eq 0) then win, 0, /center               ; no graphics window, so make one
-  twin = !d.window
+  showfit = keyword_set(showfit)
 
 ; Prepare SPEC data for analysis
 
@@ -168,8 +170,17 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   store_data, 'swe_bkg', data={x:spec.time, y:bkgs}  ; make a tplot variable of smoothed data
   options, 'swe_bkg', 'ytitle', 'CRATE (>3.3 keV)'
 
-  wset, twin
+; Choose a graphics window.  Make one if necessary.
+
+  device, window_state=ws
   tplot_options, get=topt
+  str_element, topt, 'window', i, success=ok
+  if (ok) then begin
+    if (ws[i]) then wset, i else win, i, /center
+  endif else if (~max(ws)) then win, 0, /center
+  twin = !d.window
+
+; Determine which panels to plot.  Make sure swe_bkg is on the list.
 
   str_element, topt, 'varnames', varnames, success=ok
   if (not ok) then begin
@@ -194,7 +205,6 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   mask = replicate(1B, n_elements(spec.time))
   if (exclude) then begin
     ok = 1
-    first = 1
     print, "Select time range(s) to exclude from the fit (right click to exit) ... "
     while (ok) do begin
       ctime, tt, npoints=2, /silent
@@ -224,38 +234,40 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   if (k40) then names = 'a k40' else names = 'a'
   fit, dat.x, dat.y, dy=dat.sdev, param=p, names=names, function='swe_background', $
                          p_values=pval, p_sigma=psig
+  yfit = swe_background(dat.x, param=p)
 
 ; Plot the fit results
 
-  !x.omargin = [2,4]
-  win, /free, /sec, dx=10, dy=10, xsize=800, ysize=600
-  fwin = !d.window
-  xrange = [0., ceil(max(dat.x)/1000.)*1000.]
-  plot, dat.x, dat.y, psym=10, xtitle='Altitude (km)', ytitle='Count Rate (>3.3 keV)', yrange=[0,1.1], $
-        title='Penetrating Background', charsize=1.8, xrange=xrange, /xsty
-  yfit = swe_background(dat.x, param=p)
-  oplot, dat.x, yfit, color=4, thick=2
-  msg = 'Rate(alt -> !4y!1H) = ' + string(pval[0],format='(f4.2)') + ' +/- ' + string(psig[0],format='(f5.2)')
-  xyouts, 0.45, 0.60, strcompress(msg) , /norm, charsize=1.8, color=4
-  msg = 'K40 = ' + string(p.k40,format='(f5.2)')
-  if (n_elements(psig) gt 1) then msg += ' +/- ' + string(psig[1],format='(f5.2)') else msg += ' (assumed)'
-  xyouts, 0.45, 0.55, strcompress(msg) , /norm, charsize=1.8, color=4
+  if (showfit) then begin
+    win, /free, /sec, dx=10, xsize=800, ysize=1000, /yfull
+    fwin = !d.window
+    !x.omargin = [2,4]
+    !p.multi = [0,1,3]  ; starting panel, number of columns, number of rows
+      csize = 2.7
+      lsize = 1.5
+      xrange = [0., ceil(max(dat.x)/1000.)*1000.]
+      plot, dat.x, dat.y, psym=10, xtitle='', ytitle='Count Rate (>3.3 keV)', yrange=[0.5,1.1], /ysty, $
+            title='Penetrating Background', charsize=csize, xrange=xrange, /xsty
+      oplot, dat.x, yfit, color=4, thick=2
+      msg = 'Rate(alt -> !4y!1H) = ' + string(pval[0],format='(f4.2)') + ' +/- ' + string(psig[0],format='(f5.2)')
+      xyouts, 0.55, 0.83, strcompress(msg) , /norm, charsize=lsize, color=4
+      msg = 'K40 = ' + string(p.k40,format='(f5.2)')
+      if (n_elements(psig) gt 1) then msg += ' +/- ' + string(psig[1],format='(f5.2)') else msg += ' (assumed)'
+      xyouts, 0.55, 0.80, strcompress(msg) , /norm, charsize=lsize, color=4
 
-  win, /free, clone=fwin, relative=fwin, dy=-10
-  swin = !d.window
-  !p.multi = [0,1,2]  ; starting panel, number of columns, number of rows
-    plot_io, dat.x, float(dat.npts), psym=10, xtitle='', ytitle='Number', $
-          title='Number of Samples', charsize=1.8, xrange=xrange, /xsty
+      plot_io, dat.x, float(dat.npts), psym=10, xtitle='', ytitle='Number', $
+            title='Number of Samples', charsize=csize, xrange=xrange, /xsty
 
-    plot_io, dat.x, 0.5/(dat.y * dat.npts), psym=10, xtitle='Altitude (km)', $
-          ytitle='Correction', title='Poisson Correction', charsize=1.8, xrange=xrange, /xsty
-  !p.multi = 0
-  !x.omargin = [0,0]
+      plot_io, dat.x, 0.5/(dat.y * dat.npts), psym=10, xtitle='Altitude (km)', $
+            ytitle='Correction', title='Poisson Correction', charsize=csize, xrange=xrange, /xsty
+    !p.multi = 0
+    !x.omargin = [0,0]
+  endif
 
 ; Create the result structure
 
-  result = {alt:dat.x, data:dat.y, sdev:dat.sdev, npts:dat.npts, model:yfit, $
-            units:'crate/anode', a:p.a, a_sigma:psig[0], k40:p.k40}
+  result = {trange:minmax(spec.time), alt:dat.x, data:dat.y, sdev:dat.sdev, npts:dat.npts, $
+            model:yfit, units:'crate/anode', a:p.a, a_sigma:psig[0], k40:p.k40}
 
   if (n_elements(psig) gt 1) then str_element, result, 'k40_sigma', psig[1], /add $
                              else str_element, result, 'k40_sigma', !values.d_nan, /add
