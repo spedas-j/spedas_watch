@@ -99,42 +99,46 @@ end
 ;              count rate is not constant.
 ;
 ;  RESULT:     Returns the fitted/assumed results:
-;                alt   = altitude bins
-;                data  = average >3.3-keV count rate per bin
-;                sdev  = statistical uncertainty for each bin
-;                npts  = number of points per bin
-;                model = count rate vs. altitude for best fit
-;                units = count rate per anode
-;                a     = penetrating background count rate corresponding
-;                        to zero shielding from Mars (alt -> infinity)
+;                trange  = time range of loaded data
+;                alt     = altitude bins
+;                data    = average >3.3-keV count rate
+;                sdev    = statistical uncertainty
+;                npts    = number of points
+;                model   = count rate vs. altitude for best fit
+;                units   = data units ('CRATE')
+;                a       = penetrating background count rate corresponding
+;                          to zero shielding from Mars (alt -> infinity)
 ;                a_sigma = uncertainty in a
-;                k40   = count rate from radioactive decay of potassium 40
-;                        in the MCP glass
+;                k40     = count rate from radioactive decay of potassium 40
+;                          in the MCP glass
 ;                k40_sigma = uncertainty in k40 (if applicable)
 ;
-;  RESIDUAL:   Create a tplot variable that shows the residual (measured 
-;              background subtract model).  Default = 1 (yes).
+;  RESIDUAL:   Show the residual (measured background - model) in the tplot
+;              window.  Default = 0 (no).
 ;
 ;  SHOWFIT:    If set, show the fit results in a separate window.  The top
 ;              panel shows the binned count rate vs. altitude along with the
 ;              best fit.  The next two panels show the number of samples per
-;              bin and the Poisson correction.
+;              bin and the Poisson correction.  Default = 0 (no).
+;
+;  RESET:      Force a new altitude calculation.
 ;
 ;SEE ALSO:
 ;   mvn_swe_secondary:  Calculates the secondary electron background.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-22 16:23:25 -0700 (Mon, 22 Jul 2024) $
-; $LastChangedRevision: 32756 $
+; $LastChangedDate: 2024-07-23 14:32:09 -0700 (Tue, 23 Jul 2024) $
+; $LastChangedRevision: 32757 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_background.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-05-24
 ;FILE: mvn_swe_background.pro
 ;-
 pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, $
-                        exclude=exclude, showfit=showfit
+                        exclude=exclude, showfit=showfit, reset=reset
 
   @mvn_swe_com
+  common swe_bkg_com, tspan, h
 
 ; Make sure data and ephemeris exist
 
@@ -152,11 +156,14 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
     return
   endif
 
-  res = (n_elements(residual) gt 0) ? keyword_set(residual) : 1
+; Process keywords
+
   k40 = keyword_set(k40)
+  res = keyword_set(residual)
   nbins = (n_elements(nbins) gt 0) ? fix(nbins[0]) : 30
   exclude = keyword_set(exclude)
   showfit = keyword_set(showfit)
+  reset = keyword_set(reset)
 
 ; Prepare SPEC data for analysis
 
@@ -182,6 +189,7 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 
 ; Determine which panels to plot.  Make sure swe_bkg is on the list.
 
+  wset, twin
   str_element, topt, 'varnames', varnames, success=ok
   if (not ok) then begin
     mvn_swe_sumplot, /load
@@ -191,14 +199,20 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
     if (count gt 0) then tplot else tplot, 'swe_bkg', add=-1
   endelse
 
-; Get altitude
+; Get altitude if necessary
 
-  timestr = time_string(spec.time,prec=5)
-  cspice_str2et, timestr, et
-  cspice_spkezr, 'MAVEN', et, 'IAU_MARS', 'NONE', 'Mars', state, ltime
-  mvn_altitude, cart=state[0:2,*], datum='ell', result=dat
-  h = dat.alt
-  undefine, dat
+  if (n_elements(tspan) eq 2) then begin
+    getalt = (max(abs(minmax(mvn_swe_engy.time) - tspan)) ne 0D) or $
+             (n_elements(mvn_swe_engy.time) ne n_elements(h)) or reset
+  endif else getalt = 1B
+
+  if (getalt) then begin
+    pos = spice_body_pos('Mars','MAVEN',ut=spec.time,frame='IAU_MARS',check='MAVEN')
+    mvn_altitude, cart=pos, datum='ell', result=dat
+    h = dat.alt
+    tspan = minmax(spec.time)
+    undefine, dat
+  endif
 
 ; Exclude data from the fit
 
@@ -243,17 +257,27 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
     fwin = !d.window
     !x.omargin = [2,4]
     !p.multi = [0,1,3]  ; starting panel, number of columns, number of rows
-      csize = 2.7
-      lsize = 1.5
+      csize = 3.0
+      lsize = 1.6
       xrange = [0., ceil(max(dat.x)/1000.)*1000.]
-      plot, dat.x, dat.y, psym=10, xtitle='', ytitle='Count Rate (>3.3 keV)', yrange=[0.5,1.1], /ysty, $
+      yrange = [floor(10.*min(dat.y) - 1.), ceil(10.*max(dat.y) + 1.)]/10.
+      plot, dat.x, dat.y, psym=10, xtitle='', ytitle='Count Rate (>3.3 keV)', yrange=yrange, /ysty, $
             title='Penetrating Background', charsize=csize, xrange=xrange, /xsty
       oplot, dat.x, yfit, color=4, thick=2
+
+      dx = xrange[1] - xrange[0]
+      dy = yrange[1] - yrange[0]
+      dys = dy*0.08*(1440./float(!d.y_size))
+      xs = (dx*0.50 + xrange[0])
+      ys = median(yfit) - 1.5*dys
       msg = 'Rate(alt -> !4y!1H) = ' + string(pval[0],format='(f4.2)') + ' +/- ' + string(psig[0],format='(f5.2)')
-      xyouts, 0.55, 0.83, strcompress(msg) , /norm, charsize=lsize, color=4
+      xyouts, xs, ys, strcompress(msg) , /data, charsize=lsize, color=4
+      ys -= dys
+
       msg = 'K40 = ' + string(p.k40,format='(f5.2)')
       if (n_elements(psig) gt 1) then msg += ' +/- ' + string(psig[1],format='(f5.2)') else msg += ' (assumed)'
-      xyouts, 0.55, 0.80, strcompress(msg) , /norm, charsize=lsize, color=4
+      xyouts, xs, ys, strcompress(msg) , /data, charsize=lsize, color=4
+      ys -= dys
 
       plot_io, dat.x, float(dat.npts), psym=10, xtitle='', ytitle='Number', $
             title='Number of Samples', charsize=csize, xrange=xrange, /xsty
@@ -267,7 +291,7 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 ; Create the result structure
 
   result = {trange:minmax(spec.time), alt:dat.x, data:dat.y, sdev:dat.sdev, npts:dat.npts, $
-            model:yfit, units:'crate/anode', a:p.a, a_sigma:psig[0], k40:p.k40}
+            model:yfit, units:'CRATE', a:p.a, a_sigma:psig[0], k40:p.k40}
 
   if (n_elements(psig) gt 1) then str_element, result, 'k40_sigma', psig[1], /add $
                              else str_element, result, 'k40_sigma', !values.d_nan, /add
@@ -308,16 +332,16 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
     if (i lt imax) then varnames = [firstvars, varnames[(i+1):imax]]
   endif
 
-  if (res) then begin
-    vname = 'swe_bkg_residual'
-    store_data,vname,data={x:spec.time, y:(bkgs - bkg_model)}
-    options,vname, 'ytitle', 'Residual'
-    options,vname, 'constant', 0
-    options,vname, 'line_colors', 5
-    options,vname, 'const_color', 6
-    options,vname, 'const_line', 0
-    options,vname, 'const_thick', 2
+  vname = 'swe_bkg_residual'
+  store_data,vname,data={x:spec.time, y:(bkgs - bkg_model)}
+  options,vname, 'ytitle', 'Residual'
+  options,vname, 'constant', 0
+  options,vname, 'line_colors', 5
+  options,vname, 'const_color', 6
+  options,vname, 'const_line', 0
+  options,vname, 'const_thick', 2
 
+  if (res) then begin
     j = where(varnames eq vname, count)
     if (count eq 0) then begin
       imax = n_elements(varnames) - 1
