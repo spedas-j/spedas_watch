@@ -91,8 +91,8 @@
 ;       SUCCESS:  Returns 1 on normal operation, 0 otherwise.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-14 17:42:11 -0800 (Sun, 14 Jan 2024) $
-; $LastChangedRevision: 32365 $
+; $LastChangedDate: 2024-07-25 14:47:18 -0700 (Thu, 25 Jul 2024) $
+; $LastChangedRevision: 32761 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_ramdir.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -267,8 +267,11 @@ pro mvn_ramdir, trange, dt=dt, pans=pans, frame=frame, mso=mso, polar=polar, res
           ylim,'RAM_Error',0,3,0
           options,'RAM_Error','ytitle','RAM Error!cdeg'
           options,'RAM_Error','psym',3
+          options,'RAM_Error','line_colors',5
           options,'RAM_Error','colors',6
           options,'RAM_Error','constant',[0.5,2]
+          options,'RAM_Error','const_color',[4,5]
+          options,'RAM_Error','const_line',[2,2]
         endif
       endif
     endif else begin

@@ -248,9 +248,9 @@ end
 ;                             Caveat: There is increased noise around 23 eV, even 
 ;                             for "good" spectra.
 ;
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-05 15:20:37 -0700 (Fri, 05 Jul 2024) $
-; $LastChangedRevision: 32725 $
+; $LastChangedBy: xussui $
+; $LastChangedDate: 2024-07-25 10:46:18 -0700 (Thu, 25 Jul 2024) $
+; $LastChangedRevision: 32758 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -267,7 +267,8 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
                    endx=endx, twot=twot, rcolors=rcolors, cuii=cuii, fmfit=fmfit, nolab=nolab, $
                    showdead=showdead, monitor=monitor, der=der, color_table=color_table, $
                    reverse_color_table=reverse_color_table, line_colors=line_colors, noraw=noraw, $
-                   qlevel=qlevel, result=result, background=background
+                   qlevel=qlevel, result=result, background=background,$
+                   mkpng=mkpng,figname=figname
 
   @mvn_swe_com
   @mvn_scpot_com
@@ -1423,6 +1424,11 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
     endif else ok = 0
 
   endwhile
+
+  if keyword_set(mkpng) then begin
+      if ~keyword_set(figname) then figname='~/'
+      makepng,figname+'_espec',wi=Ewin      
+  endif
 
   if (kflg) then begin
     wdelete, Ewin

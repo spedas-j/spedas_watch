@@ -192,9 +192,9 @@
 ;                         1B = uncertain
 ;                         0B = affected by low-energy anomaly
 ;
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-12 17:37:34 -0700 (Sun, 12 May 2024) $
-; $LastChangedRevision: 32579 $
+; $LastChangedBy: xussui $
+; $LastChangedDate: 2024-07-25 10:46:33 -0700 (Thu, 25 Jul 2024) $
+; $LastChangedRevision: 32759 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -213,7 +213,8 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
                   sundir=sundir, wscale=wscale, cscale=cscale, fscale=fscale, $
                   result=result, vdis=vdis, padmap=padmap, sec=sec, sconfig=sconfig, $
                   color_table=color_table, reverse_color_table=reverse_color_table, $
-                  line_colors=line_colors, pyrange=pyrange, qlevel=qlevel, _extra=_extra
+                  line_colors=line_colors, pyrange=pyrange, qlevel=qlevel, _extra=_extra,$
+                  mkpng=mkpng,figname=figname
 
   @mvn_swe_com
   @putwin_common
@@ -1601,6 +1602,14 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
     endif else ok = 0
     
   endwhile
+
+  if keyword_set(mkpng) then begin
+    if ~keyword_set(figname) then figname='~/'
+    if (dospec) then makepng,figname+'_espec',wi=Ewin
+    if (rflg or hflg or uflg) then makepng, figname+'_epad',wi=Pwin
+    if (doind) then makepng, figname+'_indvspec', wi=Iwin
+    if (dov) then makepng, figname+'_phasespace', wi=vwin
+  endif
 
   if (kflg) then begin
     if (~rflg) then wdelete, Pwin
