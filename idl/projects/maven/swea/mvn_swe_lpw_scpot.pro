@@ -56,9 +56,9 @@
 ;       Yuki Harada on 2016-02-29
 ;       Major update on 2017-07-24 - incl. negative pot
 ;
-; $LastChangedBy: haraday $
-; $LastChangedDate: 2024-02-07 19:31:45 -0800 (Wed, 07 Feb 2024) $
-; $LastChangedRevision: 32440 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2024-07-26 13:45:34 -0700 (Fri, 26 Jul 2024) $
+; $LastChangedRevision: 32769 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_lpw_scpot.pro $
 ;-
 
@@ -178,10 +178,12 @@ if ~keyword_set(noload) then begin
 
    ;;; load SWEA data
    if keyword_set(swel0) then mvn_swe_load_l0, tr $
-   else mvn_swe_load_l2, tr, /spec, ddd=angcorr
+   else mvn_swe_load_l2, tr, prod=['svyspec'], ddd=angcorr  ; new syntax, DLM - 03/18/2024
    mvn_swe_sumplot,/loadonly
 ;   mvn_swe_sc_pot,angcorr=angcorr
-   mvn_scpot, comp=0, lpw=0, pospot=1, negpot=0, stapot=0, shapot=0, qlev=1, qint=8, bias=0.5 ;- recommended by Dave
+   mvn_scpot, comp=0, lpw=0, pospot=1, negpot=0, stapot=0, shapot=0, qlev=1, qint=8 ; bias=0.5 ;- recommended by Dave
+                                                                                    ; now applied in another routine
+                                                                                    ; DLM - 03/18/2024
    tplot_rename,'pot_swepos','swe_pos' ;-  (v03_r00)
    mvn_swe_sc_negpot
    mvn_sta_l2_load, sta_apid=['c6']

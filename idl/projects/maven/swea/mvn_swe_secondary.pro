@@ -78,8 +78,8 @@
 ;       TPLOT:        Create a tplot variable.  (Only works for SPEC data.)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-16 15:15:28 -0800 (Tue, 16 Jan 2024) $
-; $LastChangedRevision: 32383 $
+; $LastChangedDate: 2024-07-26 13:45:00 -0700 (Fri, 26 Jul 2024) $
+; $LastChangedRevision: 32768 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_secondary.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -161,7 +161,7 @@ pro mvn_swe_secondary, data, config=config, param=param, default=default, tplot=
   for i=0L,(npts-1L) do begin
     for j=0L,(nbins-1L) do begin
 
-      f = data[i].data[*,j]                   ; measured flux
+      f = data[i].data[*,j]                   ; measured flux**
       df = sqrt(data[i].var[*,j])
       e = data[i].energy[*,j]
       de = data[i].denergy[*,j]
@@ -179,6 +179,9 @@ pro mvn_swe_secondary, data, config=config, param=param, default=default, tplot=
 ;   surfaces are coated with copper black (Cu2S).  The first ionization potentials of copper
 ;   and sulfur are 7.73 and 10.36 eV, respectively.  So, I assume that the yield function
 ;   falls to zero below the first ionization potential of copper (7.73 eV).
+
+; ** At low flux levels, it may be necessary to remove background from penetrating particles
+;    and radioactive decay before estimating secondary contamination.
 
       fs = s1*s*total(f*d*de)                 ; secondaries
       rmax = max(fs[endx]/f[endx])            ; ratio of secondary to measured flux < 100 eV
@@ -240,8 +243,13 @@ pro mvn_swe_secondary, data, config=config, param=param, default=default, tplot=
 
   if (doplot) then begin
     vname = 'ambient'
-    amb = transpose(data.data - data.bkg)
-    store_data,'ambient',data={x:data.time, y:amb, v:data[0].energy}
+    amb = data.data - data.bkg
+    if (0) then begin
+      indx = where(~data.valid, count)
+      if (count gt 0L) then amb[indx] = !values.f_nan
+    endif
+
+    store_data,'ambient',data={x:data.time, y:transpose(amb), v:data[0].energy}
     ylim,vname,3,5000,1
     zlim,vname,0,0,1
     options,vname,'spec',1

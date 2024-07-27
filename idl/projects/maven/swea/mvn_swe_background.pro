@@ -94,18 +94,22 @@ end
 ;  NBINS:      Number of altitude bins for the >3.3-keV count rate data.
 ;              Default = 30.
 ;
+;  INCLUDE:    If set, interactively include one or more time ranges for
+;              the fit.  This can be used to select times when the >3.3-keV
+;              count rate is constant.  Disabled when EXCLUDE is set.
+;
 ;  EXCLUDE:    If set, interactively exclude one or more time ranges from
 ;              the fit.  This can be used to exclude times when the >3.3-keV
-;              count rate is not constant.
+;              count rate is not constant.  Takes precedence over INCLUDE.
 ;
 ;  RESULT:     Returns the fitted/assumed results:
 ;                trange  = time range of loaded data
 ;                alt     = altitude bins
-;                data    = average >3.3-keV count rate
+;                data    = average >3.3-keV count rate in each bin
 ;                sdev    = statistical uncertainty
-;                npts    = number of points
+;                npts    = number of points in each bin
 ;                model   = count rate vs. altitude for best fit
-;                units   = data units ('CRATE')
+;                units   = data, sdev, model units ('CRATE')
 ;                a       = penetrating background count rate corresponding
 ;                          to zero shielding from Mars (alt -> infinity)
 ;                a_sigma = uncertainty in a
@@ -127,18 +131,18 @@ end
 ;   mvn_swe_secondary:  Calculates the secondary electron background.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-23 14:32:09 -0700 (Tue, 23 Jul 2024) $
-; $LastChangedRevision: 32757 $
+; $LastChangedDate: 2024-07-26 13:46:06 -0700 (Fri, 26 Jul 2024) $
+; $LastChangedRevision: 32770 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_background.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-05-24
 ;FILE: mvn_swe_background.pro
 ;-
 pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, $
-                        exclude=exclude, showfit=showfit, reset=reset
+                        exclude=exclude, include=include, showfit=showfit, reset=reset
 
   @mvn_swe_com
-  common swe_bkg_com, tspan, h
+  common swe_bkg_com, tspan, h, fwin, fdim
 
 ; Make sure data and ephemeris exist
 
@@ -162,6 +166,7 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   res = keyword_set(residual)
   nbins = (n_elements(nbins) gt 0) ? fix(nbins[0]) : 30
   exclude = keyword_set(exclude)
+  include = keyword_set(include) and ~exclude
   showfit = keyword_set(showfit)
   reset = keyword_set(reset)
 
@@ -176,6 +181,9 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   bkgs = smooth_in_time(bkg, spec.time, 64)          ; smooth in time by 64 sec (32 spectra)
   store_data, 'swe_bkg', data={x:spec.time, y:bkgs}  ; make a tplot variable of smoothed data
   options, 'swe_bkg', 'ytitle', 'CRATE (>3.3 keV)'
+  options, 'swe_bkg', 'datagap', 16D
+  store_data, 'swe_bkg_mask', data={x:minmax(spec.time), y:replicate(!values.f_nan,2)}
+  options, 'swe_bkg_mask', 'datagap', 16D
 
 ; Choose a graphics window.  Make one if necessary.
 
@@ -202,21 +210,22 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 ; Get altitude if necessary
 
   if (n_elements(tspan) eq 2) then begin
-    getalt = (max(abs(minmax(mvn_swe_engy.time) - tspan)) ne 0D) or $
-             (n_elements(mvn_swe_engy.time) ne n_elements(h)) or reset
+    getalt = (max(abs(minmax(spec.time) - tspan)) ne 0D) or $
+             (n_elements(spec.time) ne n_elements(h)) or reset
   endif else getalt = 1B
 
   if (getalt) then begin
-    pos = spice_body_pos('Mars','MAVEN',ut=spec.time,frame='IAU_MARS',check='MAVEN')
+    pos = spice_body_pos('Mars', 'MAVEN', ut=spec.time, frame='IAU_MARS', check='MAVEN')
     mvn_altitude, cart=pos, datum='ell', result=dat
     h = dat.alt
     tspan = minmax(spec.time)
-    undefine, dat
+    undefine, pos, dat
   endif
 
 ; Exclude data from the fit
 
-  mask = replicate(1B, n_elements(spec.time))
+  mask = replicate(1B, n_elements(spec.time))  ; default is to include all data
+
   if (exclude) then begin
     ok = 1
     print, "Select time range(s) to exclude from the fit (right click to exit) ... "
@@ -227,8 +236,28 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
         indx = where(spec.time ge min(tt) and spec.time le max(tt), count)
         if (count gt 0L) then begin
           mask[indx] = 0B
-          timebar, min(tt), /line, color=4
-          timebar, max(tt), /line, color=6
+          timebar, min(tt), line=2, color=4
+          timebar, max(tt), line=2, color=6
+        endif
+      endif else ok = 0
+    endwhile
+  endif
+
+; Include data for the fit
+
+  if (include) then begin
+    mask = replicate(0B, n_elements(spec.time))  ; first, exclude all data
+    ok = 1
+    print, "Select time range(s) to include for the fit (right click to exit) ... "
+    while (ok) do begin
+      ctime, tt, npoints=2, /silent
+      cursor,cx,cy,/norm,/up  ; make sure mouse button is released
+      if (n_elements(tt) eq 2) then begin
+        indx = where(spec.time ge min(tt) and spec.time le max(tt), count)
+        if (count gt 0L) then begin
+          mask[indx] = 1B
+          timebar, min(tt), line=2, color=4
+          timebar, max(tt), line=2, color=6
         endif
       endif else ok = 0
     endwhile
@@ -253,8 +282,18 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 ; Plot the fit results
 
   if (showfit) then begin
-    win, /free, /sec, dx=10, xsize=800, ysize=1000, /yfull
-    fwin = !d.window
+    makewin = 1
+    if (n_elements(fwin) gt 0) then if (ws[fwin]) then begin
+      wset, fwin
+      makewin = !d.x_size ne fdim
+    endif
+
+    if (makewin) then begin
+      win, /free, /sec, dx=10, xsize=800, ysize=1000, /yfull
+      fwin = !d.window
+      fdim = !d.x_size
+    endif else wset, fwin
+
     !x.omargin = [2,4]
     !p.multi = [0,1,3]  ; starting panel, number of columns, number of rows
       csize = 3.0
@@ -265,10 +304,8 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
             title='Penetrating Background', charsize=csize, xrange=xrange, /xsty
       oplot, dat.x, yfit, color=4, thick=2
 
-      dx = xrange[1] - xrange[0]
-      dy = yrange[1] - yrange[0]
-      dys = dy*0.08*(1440./float(!d.y_size))
-      xs = (dx*0.50 + xrange[0])
+      dys = 0.08*(yrange[1] - yrange[0])*(1440./float(!d.y_size))
+      xs = mean(xrange)
       ys = median(yfit) - 1.5*dys
       msg = 'Rate(alt -> !4y!1H) = ' + string(pval[0],format='(f4.2)') + ' +/- ' + string(psig[0],format='(f5.2)')
       xyouts, xs, ys, strcompress(msg) , /data, charsize=lsize, color=4
@@ -305,12 +342,20 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   options, vname, 'colors', [6]
   options, vname, 'thick', 2
 
+  vname = 'swe_bkg_mask'
+  mndx = where(mask eq 0B, count)
+  if (count gt 0L) then mdat = {x:spec[mndx].time, y:bkgs[mndx]} $
+                   else mdat = {x:minmax(spec.time), y:replicate(!values.f_nan,2)}
+  store_data, vname, data=mdat
+  options, vname, 'datagap', 16D
+
   vname = 'swe_bkg_comp'
-  store_data, vname, data=['swe_bkg','swe_bkg_model']
+  store_data, vname, data=['swe_bkg','swe_bkg_mask','swe_bkg_model']
+  ylim, vname, 0, 5, 0
   options, vname, 'ytitle', 'CRATE (>3.3 keV)'
   options, vname, 'line_colors', 5
-  options, vname, 'colors', [4,6]
-  options, vname, 'labels', ['data', 'model']
+  options, vname, 'colors', [4,2,6]
+  options, vname, 'labels', ['data','mask','model']
   options, vname, 'labflag', 1
   if (k40 gt 0.) then begin
     options, vname, 'constant', k40
