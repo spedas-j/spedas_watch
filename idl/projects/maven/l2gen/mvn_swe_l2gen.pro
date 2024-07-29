@@ -79,8 +79,8 @@
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-26 15:42:49 -0700 (Sun, 26 May 2024) $
-; $LastChangedRevision: 32650 $
+; $LastChangedDate: 2024-07-28 11:55:37 -0700 (Sun, 28 Jul 2024) $
+; $LastChangedRevision: 32771 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol2=nol2, $
@@ -195,6 +195,11 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
   dopad = dopad and ((npkt[2]+npkt[3]) gt 0L)
   dospec = dospec and ((npkt[4]+npkt[5]) gt 0L)
   dokp = dokp and ((npkt[2]+npkt[4]) gt 0L)
+
+  if ((do3d+dopad+dospec+dokp) eq 0) then begin
+    print, "No processing flags set.  Nothing to do."
+    return
+  endif
 
 ; Load highest level MAG data available (for pitch angle sorting)
 ;   L0 --> MAG angles computed onboard (stored in A2/A3 packets)
