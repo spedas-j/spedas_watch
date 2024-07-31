@@ -6,6 +6,13 @@
 ;   a   = penetrating particle background for zero Mars shielding
 ;   k40 = background from radioactive decay of potassium 40
 ;
+; Assumption: The GCR flux and the penetrating SEP flux (when present)
+;   would be isotropic if Mars were not present.  This may sometimes be a
+;   bad assumption for SEPs.
+;
+; Note: The GCR energy spectrum peaks at ~300 MeV.  The part that varies with 
+;   the solar cycle is below ~1 GeV.  SEPs are softer (lower energy), typically
+;   peaking aroung 1 MeV and falling with a power law at higher energies.
 
 function swe_background, h,  parameters=p,  p_names=p_names, pder_values=pder_values
 
@@ -58,7 +65,7 @@ end
 ;
 ;  Since penetrating particles bypass SWEA's optics, they result in a
 ;  constant count rate across SWEA's energy range.  The GCR background is
-;  ~1 count/sec/anode, varying by a factor of two over the solar cycle.
+;  ~1 count/sec/anode, varying by a factor of three over the solar cycle.
 ;  Penetrating background can be identified by a constant count rate in
 ;  SWEA's highest energy channels.  However, there are times when < 4.6 keV
 ;  electrons are present at the same time as penetrating particles.  This
@@ -94,6 +101,11 @@ end
 ;  NBINS:      Number of altitude bins for the >3.3-keV count rate data.
 ;              Default = 30.
 ;
+;  MAXALT:     Set this keyword to the maximum altitude to include in the
+;              fit.  Use this to base the fit solely on periapsis passes.
+;              Reduce NBINS to maintain a reasonable number of points per
+;              bin.  This keyword can be useful during SEP events.  
+;
 ;  INCLUDE:    If set, interactively include one or more time ranges for
 ;              the fit.  This can be used to select times when the >3.3-keV
 ;              count rate is constant.  Disabled when EXCLUDE is set.
@@ -103,6 +115,7 @@ end
 ;              count rate is not constant.  Takes precedence over INCLUDE.
 ;
 ;  RESULT:     Returns the fitted/assumed results:
+;                time    = center time of loaded data
 ;                trange  = time range of loaded data
 ;                alt     = altitude bins
 ;                data    = average >3.3-keV count rate in each bin
@@ -131,15 +144,16 @@ end
 ;   mvn_swe_secondary:  Calculates the secondary electron background.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-26 13:46:06 -0700 (Fri, 26 Jul 2024) $
-; $LastChangedRevision: 32770 $
+; $LastChangedDate: 2024-07-30 11:31:43 -0700 (Tue, 30 Jul 2024) $
+; $LastChangedRevision: 32774 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_background.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-05-24
 ;FILE: mvn_swe_background.pro
 ;-
 pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, $
-                        exclude=exclude, include=include, showfit=showfit, reset=reset
+                        maxalt=maxalt, exclude=exclude, include=include, $
+                        showfit=showfit, reset=reset
 
   @mvn_swe_com
   common swe_bkg_com, tspan, h, fwin, fdim
@@ -165,6 +179,7 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   k40 = keyword_set(k40)
   res = keyword_set(residual)
   nbins = (n_elements(nbins) gt 0) ? fix(nbins[0]) : 30
+  maxalt = (n_elements(maxalt) gt 0) ? double(maxalt[0]) : 10000D
   exclude = keyword_set(exclude)
   include = keyword_set(include) and ~exclude
   showfit = keyword_set(showfit)
@@ -263,15 +278,20 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
     endwhile
   endif
 
-  jndx = where(mask eq 1B, count)
-  if (count eq 0) then begin
-    print, "No data to fit."
-    return
-  endif
+; Apply altitude mask
+
+  indx = where(h gt maxalt, count)
+  if (count gt 0L) then mask[indx] = 0B
 
 ; Bin and fit the measurements
 
-  bindata, h[jndx], bkg[jndx], xbins=nbins, result=dat
+  indx = where(mask eq 1B, count)
+  if (count eq 0) then begin
+    print, "All data masked.  No data to fit."
+    return
+  endif
+
+  bindata, h[indx], bkg[indx], xbins=nbins, result=dat
 
   p = swe_background()
   if (k40) then names = 'a k40' else names = 'a'
@@ -327,11 +347,11 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
 
 ; Create the result structure
 
-  result = {trange:minmax(spec.time), alt:dat.x, data:dat.y, sdev:dat.sdev, npts:dat.npts, $
-            model:yfit, units:'CRATE', a:p.a, a_sigma:psig[0], k40:p.k40}
+  trange = minmax(spec.time)
+  k40_sigma = (n_elements(psig) gt 1) ? psig[1] : !values.d_nan
 
-  if (n_elements(psig) gt 1) then str_element, result, 'k40_sigma', psig[1], /add $
-                             else str_element, result, 'k40_sigma', !values.d_nan, /add
+  result = {time:mean(trange), trange:trange, alt:dat.x, data:dat.y, sdev:dat.sdev, npts:dat.npts, $
+            model:yfit, units:'CRATE', a:p.a, a_sigma:psig[0], k40:p.k40, k40_sigma:k40_sigma}
 
 ; Create/update tplot variables
 
