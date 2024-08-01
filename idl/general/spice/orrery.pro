@@ -121,6 +121,10 @@
 ;                  to the orbit of Saturn, where the magnetic field
 ;                  is nearly tangential to the orbit.
 ;
+;       PCURVE:    Show the Parker spiral curve that intersects the
+;                  planet indicated by this keyword.  This is shown
+;                  in a different color.
+;
 ;       VSW:       Solar wind velocity for calculating the spiral.
 ;                  Default = 400 km/s.  (Usually within the range
 ;                  of 250 to 750 km/s.)
@@ -175,8 +179,8 @@
 ;       BLACK:     Use a black background for the orbit snapshot.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-25 08:36:05 -0700 (Fri, 25 Aug 2023) $
-; $LastChangedRevision: 32062 $
+; $LastChangedDate: 2024-07-31 16:33:41 -0700 (Wed, 31 Jul 2024) $
+; $LastChangedRevision: 32775 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -187,7 +191,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   xyrange=range, planet=planet2, sorb=sorb2, psp=psp2, sall=sall, $
                   verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor, $
                   window=window, png=png, varnames=varnames, plabel=plabel, slabel=slabel, $
-                  css=css2, black=black, key=key
+                  css=css2, black=black, pcurve=pcurve, key=key
 
   common planetorb, planet, css, sta, stb, sorb, psp, orrkey
   @putwin_common
@@ -202,7 +206,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   tlist = ['NOPLOT','NOBOX','LABEL','SCALE','EPH','SPIRAL','VSW','SROT','MOVIE', $
            'STEREO','KEEPWIN','TPLOT','RELOAD','OUTER','XYRANGE','PLANET2','SORB2', $
            'PSP2','SALL','VERBOSE','FULL','FIXPLANET','MONITOR','WINDOW','PNG', $
-           'VARNAMES','PLABEL','SLABEL','CSS2','BLACK']
+           'VARNAMES','PLABEL','SLABEL','CSS2','BLACK','PCURVE']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
@@ -1229,6 +1233,25 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       endif
 
+      if keyword_set(pcurve) then begin
+        ds = smax/float(spts)
+        rs = ds*findgen(spts)
+        dt = rs/Vsw
+        phi = omega*dt
+
+        if (finite(rp[pnum]) and (pnum lt 6)) then begin
+          dr = min(abs(rs - rp[pnum]), k)
+          xs = rs*cos(phi)
+          ys = -rs*sin(phi)
+
+          phi0 = 2.*!pi - atan(yp[pnum],xp[pnum])
+          phi -= (phi[k] - phi0)
+          xs = rs*cos(phi)
+          ys = -rs*sin(phi)
+          oplot, xs, ys, color=5, line=2
+        endif
+      endif
+
       pday = pday < (n_elements(planet[3].x)-1)
       for k=0,ipmax do begin
         xx = planet[k].x[0:pday[k]]
@@ -1588,6 +1611,25 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       oplot, xs, ys, color=pkscol, line=1
       phi = phi + (30.*!dtor)
     endfor
+  endif
+
+  if keyword_set(pcurve) then begin
+    ds = smax/float(spts)
+    rs = ds*findgen(spts)
+    dt = rs/Vsw
+    phi = omega*dt
+
+    if (finite(rp[pnum]) and (pnum lt 6)) then begin
+      dr = min(abs(rs - rp[pnum]), k)
+      xs = rs*cos(phi)
+      ys = -rs*sin(phi)
+
+      phi0 = 2.*!pi - atan(yp[pnum],xp[pnum])
+      phi -= (phi[k] - phi0)
+      xs = rs*cos(phi)
+      ys = -rs*sin(phi)
+      oplot, xs, ys, color=5, line=2
+    endif
   endif
 
   pday = pday < (n_elements(planet[3].x)-1)
