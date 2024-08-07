@@ -66,8 +66,8 @@
 ;               conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-05 19:11:56 -0700 (Sun, 05 May 2024) $
-; $LastChangedRevision: 32550 $
+; $LastChangedDate: 2024-08-06 15:20:12 -0700 (Tue, 06 Aug 2024) $
+; $LastChangedRevision: 32781 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/tsnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -203,14 +203,17 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
 
 ; Make snapshot(s)
 
+  nmax = n_elements(dat.x) - 1L
   keepgoing = 1
 
   while (keepgoing) do begin
     i = nn2(dat.x, t)
     if ((size(dat.v))[0] eq 2) then x = reform(dat.v[i,*]) else x = dat.v
     if (npts eq 1) then begin
-      y = reform(dat.y[(i-k):(i+k),*])
-      if (err) then dy = reform(dat.dy[(i-k):(i+k),*])
+      imin = (i-k) > 0L
+      imax = (imin + 2L*k) < nmax
+      y = reform(dat.y[imin:imax,*])
+      if (err) then dy = reform(dat.dy[imin:imax,*])
     endif else begin
       y = reform(dat.y[min(i):max(i),*])
       if (err) then dy = reform(dat.dy[min(i):max(i),*])
@@ -241,9 +244,13 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
     wset, Swin
       if (size(title,/type) ne 7) then begin
         if (npts eq 1) then begin
-          msg = time_string(dat.x[i-k])
-          if (k gt 0) then msg +=  ' - ' + strmid(time_string(dat.x[i+k]),11)
-        endif else msg = time_string(dat.x[min(i)]) + ' - ' + strmid(time_string(dat.x[max(i)]),11)
+          tsp = minmax(dat.x[imin:imax])
+          msg = time_string(tsp[0])
+          if (k gt 0) then msg +=  ' - ' + strmid(time_string(tsp[1]),11)
+        endif else begin
+          tsp = minmax(dat.x[min(i):max(i)])
+          msg = time_string(tsp[0]) + ' - ' + strmid(time_string(tsp[1]),11)
+        endelse
       endif else msg = title[0]
       plot, x, y, title=msg, xtitle=xtitle, ytitle=ytitle, xrange=xrange, yrange=yrange, $
                   xlog=xlog, ylog=ylog, xstyle=xstyle, ystyle=ystyle, linestyle=linestyle, $
