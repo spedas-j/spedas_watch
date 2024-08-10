@@ -1,6 +1,6 @@
 ; $LastChangedBy: moka $
-; $LastChangedDate: 2024-07-11 12:49:49 -0700 (Thu, 11 Jul 2024) $
-; $LastChangedRevision: 32735 $
+; $LastChangedDate: 2024-08-09 15:29:13 -0700 (Fri, 09 Aug 2024) $
+; $LastChangedRevision: 32784 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/sitl/eva/source/cw_data/eva_data.pro $
 
 ; PRO eva_data_update_date, state, update=update
@@ -696,7 +696,7 @@ function eva_data, parent, $
   ; pref = {EVA_CACHE_DIR: home_dir + 'data/mms/sitl/eva_cache/', $
   pref = {eva_cache_dir: !mms.local_data_dir + 'sitl/eva_cache/', $
     eva_paramset_dir: '', $
-    eva_trigger: 1, $ ; load trigger data by default
+    eva_trigger: 0, $ ; load trigger data by default
     eva_testmode: 0}
 
   ; ----- STATE -----

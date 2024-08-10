@@ -33,6 +33,8 @@ function eva_data_load_reformat, paramlist, probelist, fourth = fourth
     match += (strpos(paramlist[i], '_z') ge sdif)
     match += (strpos(paramlist[i], '_p') ge sdif)
     match += (strpos(paramlist[i], '_t') ge sdif)
+    match += (strpos(paramlist[i], '_i') ge sdif)
+    match += (strpos(paramlist[i], '_e') ge sdif)
 
     ; exception
     if strmatch(paramlist[i], 'mms*_dsp_*') then begin
@@ -97,7 +99,20 @@ function eva_data_load_reformat, paramlist, probelist, fourth = fourth
             iii = where(tgn eq 'LABELS', ic)
             newlabel = (ic ge 1) ? lim.labels[2] : 'Z'
           endif
-
+          if strpos(paramlist[i], '_e') ge 12 then begin
+            sfx = '_e'
+            pcolor = 2
+            Dnew = DD.y[*, 0]
+            iii = where(tgn eq 'LABELS', ic)
+            newlabel = (ic ge 1) ? lim.labels[0] : 'Ele'
+          endif
+          if strpos(paramlist[i], '_i') ge 12 then begin
+            sfx = '_i'
+            pcolor = 6
+            Dnew = DD.y[*, 1]
+            iii = where(tgn eq 'LABELS', ic)
+            newlabel = (ic ge 1) ? lim.labels[1] : 'Ion'
+          endif
           if (strpos(paramlist[i], '_p') ge 0) then begin
             sfx = '_p'
             pcolor = 0

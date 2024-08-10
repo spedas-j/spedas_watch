@@ -10,7 +10,8 @@ mmsw_dfg_srvy_gsm_dmpa_z
 ;----------------------------------
 ; Density
 ;----------------------------------
-mmsw_fpi_density
+;mmsw_fpi_density_e
+mmsw_fpi_density_i
 
 ;----------------------------------
 ; Velocity
