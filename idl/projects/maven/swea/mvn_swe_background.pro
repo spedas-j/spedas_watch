@@ -54,14 +54,17 @@ end
 ;  Protons with energies above ~20 MeV and electrons with energies above
 ;  ~2 MeV can penetrate the instrument housing and internal walls to pass
 ;  through the MCP, where they can trigger electron cascades and generate
-;  counts.  Galactic Cosmic Rays (GCRs) peak near 1 GeV and easily pass
-;  through the instrument (and the entire spacecraft), resulting in a
-;  background count rate of several counts per second summed over all
-;  anodes.  GCR's are isotropic, but Mars effectively shields part of the
-;  sky.  Since MAVEN's orbit is elliptical, the GCR background varies 
-;  along the orbit according to the changing angular size of the planet.
-;  SEP events are episodic, but can increase the penetrating particle
-;  background by orders of magnitude for days.
+;  counts.  Lower energy electrons can partially penetrate and generate
+;  bremsstrahlung x-rays by interacting with the instrument's aluminum
+;  walls.  The x-rays can then penetrate to the MCP and trigger counts.
+;  Galactic Cosmic Rays (GCRs) peak near 1 GeV and easily pass through the
+;  instrument (and the entire spacecraft), resulting in a background count 
+;  rate of several counts per second summed over all anodes.  GCR's are 
+;  isotropic, but Mars effectively shields part of the sky.  Since MAVEN's
+;  orbit is elliptical, the GCR background varies along the orbit according
+;  to the changing angular size of the planet.  SEP events are episodic, 
+;  but can increase the penetrating particle background by orders of 
+;  magnitude for days.
 ;
 ;  Since penetrating particles bypass SWEA's optics, they result in a
 ;  constant count rate across SWEA's energy range.  The GCR background is
@@ -104,7 +107,9 @@ end
 ;  MAXALT:     Set this keyword to the maximum altitude to include in the
 ;              fit.  Use this to base the fit solely on periapsis passes.
 ;              Reduce NBINS to maintain a reasonable number of points per
-;              bin.  This keyword can be useful during SEP events.  
+;              bin.  You may also need to load 3+ days of data to obtain
+;              good statistics.  This keyword can be useful during SEP
+;              events.  
 ;
 ;  INCLUDE:    If set, interactively include one or more time ranges for
 ;              the fit.  This can be used to select times when the >3.3-keV
@@ -113,6 +118,15 @@ end
 ;  EXCLUDE:    If set, interactively exclude one or more time ranges from
 ;              the fit.  This can be used to exclude times when the >3.3-keV
 ;              count rate is not constant.  Takes precedence over INCLUDE.
+;
+;  MASK:       Returns the mask used to select which data to use in the fit.
+;              (0 = exclude, 1 = include).  You can also set this keyword to
+;              a previous mask to make additional edits.
+;
+;  ORBIT:      Mask data orbit by orbit.  Useful in combination with INCLUDE
+;              and EXCLUDE during a SEP event, when the GCR background can 
+;              only be measured at periapsis on closed or deeply draped field
+;              lines.  (Open field lines must be masked.)
 ;
 ;  RESULT:     Returns the fitted/assumed results:
 ;                time    = center time of loaded data
@@ -144,16 +158,16 @@ end
 ;   mvn_swe_secondary:  Calculates the secondary electron background.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-30 11:31:43 -0700 (Tue, 30 Jul 2024) $
-; $LastChangedRevision: 32774 $
+; $LastChangedDate: 2024-08-12 09:49:16 -0700 (Mon, 12 Aug 2024) $
+; $LastChangedRevision: 32788 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_background.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-05-24
 ;FILE: mvn_swe_background.pro
 ;-
 pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, $
-                        maxalt=maxalt, exclude=exclude, include=include, $
-                        showfit=showfit, reset=reset
+                        maxalt=maxalt, exclude=exclude, include=include, mask=mask, $
+                        orbit=orbit, showfit=showfit, reset=reset
 
   @mvn_swe_com
   common swe_bkg_com, tspan, h, fwin, fdim
@@ -182,12 +196,16 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   maxalt = (n_elements(maxalt) gt 0) ? double(maxalt[0]) : 10000D
   exclude = keyword_set(exclude)
   include = keyword_set(include) and ~exclude
+  orbit = keyword_set(orbit)
+  nmask = n_elements(mask)
   showfit = keyword_set(showfit)
   reset = keyword_set(reset)
 
 ; Prepare SPEC data for analysis
 
   spec = mvn_swe_engy                                ; get SPEC data from the common block
+  nspec = n_elements(spec)
+  tmax = max(spec.time)
   spec.bkg = 0.                                      ; clear the background array
   mvn_swe_secondary, spec                            ; calculate secondary contamination
   old_units = spec[0].units_name                     ; remember the original units
@@ -197,7 +215,7 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
   store_data, 'swe_bkg', data={x:spec.time, y:bkgs}  ; make a tplot variable of smoothed data
   options, 'swe_bkg', 'ytitle', 'CRATE (>3.3 keV)'
   options, 'swe_bkg', 'datagap', 16D
-  store_data, 'swe_bkg_mask', data={x:minmax(spec.time), y:replicate(!values.f_nan,2)}
+  if (nmask ne nspec) then store_data, 'swe_bkg_mask', data={x:minmax(spec.time), y:replicate(!values.f_nan,2)}
   options, 'swe_bkg_mask', 'datagap', 16D
 
 ; Choose a graphics window.  Make one if necessary.
@@ -219,7 +237,7 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
     tplot, ['alt2','swe_bkg','swe_a4']
   endif else begin
     i = where(strmatch(topt.varnames, 'swe_bkg*'), count)
-    if (count gt 0) then tplot else tplot, 'swe_bkg', add=-1
+    if (count gt 0) then tplot, trange=topt.trange_full else tplot, 'swe_bkg', add=-1, trange=topt.trange_full
   endelse
 
 ; Get altitude if necessary
@@ -237,49 +255,73 @@ pro mvn_swe_background, k40=k40, residual=residual, result=result, nbins=nbins, 
     undefine, pos, dat
   endif
 
-; Exclude data from the fit
+; Select data for the fit
 
-  mask = replicate(1B, n_elements(spec.time))  ; default is to include all data
+  if (orbit) then skip, /first, /apo
+  tplot_options, get=topt
+  keepgoing = 1
 
-  if (exclude) then begin
-    ok = 1
-    print, "Select time range(s) to exclude from the fit (right click to exit) ... "
-    while (ok) do begin
-      ctime, tt, npoints=2, /silent
-      cursor,cx,cy,/norm,/up  ; make sure mouse button is released
-      if (n_elements(tt) eq 2) then begin
-        indx = where(spec.time ge min(tt) and spec.time le max(tt), count)
-        if (count gt 0L) then begin
-          mask[indx] = 0B
-          timebar, min(tt), line=2, color=4
-          timebar, max(tt), line=2, color=6
-        endif
-      endif else ok = 0
-    endwhile
+  while (keepgoing) do begin
+
+    if (exclude) then begin
+      if (nmask ne nspec) then begin
+        mask = replicate(1B, nspec)
+        nmask = nspec
+      endif
+      ok = 1
+      print, "Select time range(s) to exclude from the fit (right click to exit) ... "
+      while (ok) do begin
+        undefine, tt
+        ctime, tt, npoints=2, /silent
+        cursor,cx,cy,/norm,/up  ; make sure mouse button is released
+        if (n_elements(tt) gt 1) then begin
+          indx = where(spec.time ge min(tt) and spec.time le max(tt), count)
+          if (count gt 0L) then begin
+            mask[indx] = 0B
+            timebar, min(tt), line=2, color=4
+            timebar, max(tt), line=2, color=6
+          endif
+        endif else ok = 0
+      endwhile
+    endif
+
+    if (include) then begin
+      if (nmask ne nspec) then begin
+        mask = replicate(0B, nspec)
+        nmask = nspec
+      endif
+      ok = 1
+      print, "Select time range(s) to include for the fit (right click to exit) ... "
+      while (ok) do begin
+        undefine, tt
+        ctime, tt, npoints=2, /silent
+        cursor,cx,cy,/norm,/up  ; make sure mouse button is released
+        if (n_elements(tt) gt 1) then begin
+          indx = where(spec.time ge min(tt) and spec.time le max(tt), count)
+          if (count gt 0L) then begin
+            mask[indx] = 1B
+            timebar, min(tt), line=2, color=4
+            timebar, max(tt), line=2, color=6
+          endif
+        endif else ok = 0
+      endwhile
+    endif
+
+    if (orbit) then begin
+      skip
+      tplot_options, get=topt
+      if (topt.trange[0] gt tmax) then keepgoing = 0
+    endif else keepgoing = 0
+  endwhile
+
+  if (orbit) then tlimit,/full
+
+; Altitude mask
+
+  if (nmask ne nspec) then begin
+    mask = replicate(1B, nspec)
+    nmask = nspec
   endif
-
-; Include data for the fit
-
-  if (include) then begin
-    mask = replicate(0B, n_elements(spec.time))  ; first, exclude all data
-    ok = 1
-    print, "Select time range(s) to include for the fit (right click to exit) ... "
-    while (ok) do begin
-      ctime, tt, npoints=2, /silent
-      cursor,cx,cy,/norm,/up  ; make sure mouse button is released
-      if (n_elements(tt) eq 2) then begin
-        indx = where(spec.time ge min(tt) and spec.time le max(tt), count)
-        if (count gt 0L) then begin
-          mask[indx] = 1B
-          timebar, min(tt), line=2, color=4
-          timebar, max(tt), line=2, color=6
-        endif
-      endif else ok = 0
-    endwhile
-  endif
-
-; Apply altitude mask
-
   indx = where(h gt maxalt, count)
   if (count gt 0L) then mask[indx] = 0B
 
