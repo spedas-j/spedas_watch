@@ -56,8 +56,8 @@
 ;       SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-02-27 11:56:33 -0800 (Tue, 27 Feb 2024) $
-; $LastChangedRevision: 32460 $
+; $LastChangedDate: 2024-08-17 12:49:06 -0700 (Sat, 17 Aug 2024) $
+; $LastChangedRevision: 32793 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_set_quality.pro $
 ;
 ;CREATED BY:  David Mitchell - August 2023
@@ -178,35 +178,35 @@ pro mvn_swe_set_quality, trange=trange, missing=missing, doplot=doplot, silent=s
 
   if (size(mvn_swe_engy,/type) eq 8) then begin
     str_element, mvn_swe_engy, 'quality', replicate(1B,n_elements(mvn_swe_engy.time)), /add
-    i = nn2(qtime, mvn_swe_engy.time, maxdt=0.25D, /valid, vindex=j, badindex=k)
+    i = nn2(qtime, mvn_swe_engy.time, maxdt=0.5D, /valid, vindex=j, badindex=k)
     if (max(j) ge 0L) then mvn_swe_engy[j].quality = qflag[i]
     if (max(k) ge 0L) then missing[4] = n_elements(k)
   endif
 
   if (size(a2,/type) eq 8) then begin
     str_element, a2, 'quality', replicate(1B,n_elements(a2.time)), /add
-    i = nn2(qtime, a2.time + delta_t, maxdt=0.6D, /valid, vindex=j, badindex=k)
+    i = nn2(qtime, a2.time + delta_t, maxdt=0.8D, /valid, vindex=j, badindex=k)
     if (max(j) ge 0L) then a2[j].quality = qflag[i]
     if (max(k) ge 0L) then missing[2] = n_elements(k)
   endif
 
   if (size(a3,/type) eq 8) then begin
     str_element, a3, 'quality', replicate(1B,n_elements(a3.time)), /add
-    i = nn2(qtime, a3.time + delta_t, maxdt=0.6D, /valid, vindex=j, badindex=k)
+    i = nn2(qtime, a3.time + delta_t, maxdt=0.8D, /valid, vindex=j, badindex=k)
     if (max(j) ge 0L) then a3[j].quality = qflag[i]
     if (max(k) ge 0L) then missing[3] = n_elements(k)
   endif
 
   if (size(swe_3d,/type) eq 8) then begin
     str_element, swe_3d, 'quality', replicate(1B,n_elements(swe_3d.time)), /add
-    i = nn2(qtime, swe_3d.time + delta_t, maxdt=0.6D, /valid, vindex=j, badindex=k)
+    i = nn2(qtime, swe_3d.time + delta_t, maxdt=0.8D, /valid, vindex=j, badindex=k)
     if (max(j) ge 0L) then swe_3d[j].quality = qflag[i]
     if (max(k) ge 0L) then missing[0] = n_elements(k)
   endif
 
   if (size(swe_3d_arc,/type) eq 8) then begin
     str_element, swe_3d_arc, 'quality', replicate(1B,n_elements(swe_3d_arc.time)), /add
-    i = nn2(qtime, swe_3d_arc.time + delta_t, maxdt=0.6D, /valid, vindex=j, badindex=k)
+    i = nn2(qtime, swe_3d_arc.time + delta_t, maxdt=0.8D, /valid, vindex=j, badindex=k)
     if (max(j) ge 0L) then swe_3d_arc[j].quality = qflag[i]
     if (max(k) ge 0L) then missing[1] = n_elements(k)
   endif
