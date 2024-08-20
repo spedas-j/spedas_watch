@@ -73,12 +73,12 @@ end
 ;
 ; :VERSION:
 ;   $LastChangedBy: moka $
-;   $LastChangedDate: 2024-07-11 12:49:49 -0700 (Thu, 11 Jul 2024) $
-;   $LastChangedRevision: 32735 $
+;   $LastChangedDate: 2024-08-19 11:26:30 -0700 (Mon, 19 Aug 2024) $
+;   $LastChangedRevision: 32794 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/sitl/eva/source/cw_sitl/eva_sitl_copy_fomstr.pro $
 ;-
 pro eva_sitl_copy_fomstr
-  compile_opt idl3
+  compile_opt idl2
 
   tn = tnames('mms_stlm_fomstr', ct)
   if (ct eq 0) then begin
