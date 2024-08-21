@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-05-21 12:27:38 -0700 (Tue, 21 May 2024) $
-; $LastChangedRevision: 32621 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2024-08-19 18:29:54 -0700 (Mon, 19 Aug 2024) $
+; $LastChangedRevision: 32796 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_100_apdat__define.pro $
 
 
@@ -23,6 +23,9 @@ function swfo_sc_100_apdat::decom,ccsds,source_dict=source_dict
     tod_microsec:                     swfo_data_select(ccsds_data, 12*8,16),$
     flight_software_version_number:   swfo_data_select(ccsds_data, 14*8,32,/signed),$
     packet_definition_version_number: float(swfo_data_select(ccsds_data, 18*8,32),0),$
+    rt_critical_vc:                   swfo_data_select(ccsds_data, 69*8+2, 6),$
+    rt_non_critical_vc:               swfo_data_select(ccsds_data, 78*8+2, 6),$
+    pbk_critical_vc:                  swfo_data_select(ccsds_data,154*8+2, 6),$
     fsw_transfer_frame_accept_counter:swfo_data_select(ccsds_data,155*8, 8),$
     fsw_transfer_frame_reject_counter:swfo_data_select(ccsds_data,156*8, 8),$
     fsw_command_accept_counter:       swfo_data_select(ccsds_data,157*8, 8),$

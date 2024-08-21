@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-05-20 09:17:45 -0700 (Mon, 20 May 2024) $
-; $LastChangedRevision: 32609 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2024-08-19 18:29:54 -0700 (Mon, 19 Aug 2024) $
+; $LastChangedRevision: 32796 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -72,10 +72,12 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     cmds_bad='swfo_stis_hkp1_CMDS_'+['IGNORED','INVALID','UNKNOWN']
     store_data,'swfo_stis_DURATION',data=duration,dlim={labels:duration.substring(10,13),labflag:-1,colors:'rgbk',psym:-1}
     store_data,'swfo_stis_hkp1_CMDS_BAD',data=cmds_bad,dlim={labels:cmds_bad.substring(20),labflag:-1,colors:'rgb',psym:-1}
-    store_data,'swfo_stis_RATES_PULSFREQ',data='swfo_stis_'+['sci_RATE6','nse_RATE_DIV_SIX','hkp1_'+['VALID_RATES_PPS','PULSER_FREQUENCY']],dlim={panel_size:3,yrange:[.5,7e5],ylog:1}
+    store_data,'swfo_stis_RATES_PULSFREQ',data='swfo_stis_'+['sci_RATE6','nse_RATE_DIV_SIX','hkp2_'+['VALID_RATES_PPS','PULSER_FREQUENCY']],dlim={panel_size:3,yrange:[.5,7e5],ylog:1}
     store_data,'swfo_stis_RATES_TOTAL',data='swfo_stis_'+['hkp2_SCIENCE_EVENTS','hkp2_VALID_RATES_TOTAL','sci_TOTAL','sci_RATE2'],dlim={labflag:-1}
     store_data,'swfo_stis_hkp1_RATES_ALL',data=tnames('*hkp1*RATES'),dlim={yrange:[1,7e5],ylog:1}
     store_data,'swfo_stis_hkp2_RATES_ALL',data=tnames('*hkp2*RATES'),dlim={yrange:[1,7e5],ylog:1}
+    store_data,'swfo_SEQN_DELTAS',data='swfo_*_SEQN_DELTA',dlim={ylog:1}
+    store_data,'swfo_DELAYTIMES',data='swfo_*_DELAYTIME'
     options,/def,'*_BITS *USER_0A',tplot_routine='bitplot',psyms=1
     options,/def,'*nse_HISTOGRAM',spec=1,panel_size=2,/no_interp,/zlog,constant=findgen(6)*10+5;,zrange=[10,4000.]
     options,/def,'*memdump_DATA',spec=1
@@ -117,14 +119,18 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*hkp?_TIMEOUTS_*US',colors='bgr',labels=['0x1D Event','0x1E Valid','0x1F Nopeak'],labflag=-1
     options,/def,'*NOISE_BITS',numbits=12,labels=reverse(['ENABLE','RES2','RES1','RES0','PERIOD7','PERIOD6','PERIOD5','PERIOD4','PERIOD3','PERIOD2','PERIOD1','PERIOD0']),colors=[0,1,2,6]
     options,/def,'swfo_sc_120_INSTRUMENT_*',colors='bgrk',labels=['STIS','CCOR','MAG','SWiPS'],labflag=1,numbits=4
-    options,/def,'swfo_sc_1?0_REACTION_WHEEL_*',colors='bgrk',labels=['1','2','3','4'],labflag=1,numbits=4
+    options,/def,'swfo_sc_1?0_REACTION_WHEEL_*',colors='bgrk',labels=['1','2','3','4'],labflag=1,numbits=4,constant=0
     options,/def,'swfo_sc_100_REACTION_WHEEL_OVERSPEED_FAULT_BITS',colors='krgb',labels=reverse(['O1','O2','O3','O4','F1','F2','F3','F4']),numbits=8
     options,/def,'swfo_sc_100_FSW_POWER_MANAGEMENT_BITS',colors='rgb',labels=reverse(['Battery OverTemp Enable','OverVoltage Enable','UnderVoltage Enable','Battery OverTemp Latched','Overvoltage Latched','UnderVoltage Latched']),numbits=6
     options,/def,'swfo_sc_120_SUBSYSTEM_*',numbits=6,labels=reverse(['Gimbal Control Electronics','S-Band Transmitter','TWTA','X-Band Modulator','Star Tracker Electronics','IRU']),colors='rgbkmc',labflag=1
     options,/def,'swfo_sc_120_????_POWER_BITS',numbits=5,labels=reverse(['Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
     options,/def,'swfo_sc_120_MAG_POWER_BITS swfo_sc_120_SWIPS_POWER_BITS',numbits=6,labels=reverse(['Arm Power','Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
     options,/def,'swfo_sc_130_STIS_TEMPS',colors='br',labels=['Sensor','SEB'],labflag=-1
-    ;options,/def,'*USER_0A',labels=['BASELINE_OFFSET','NOISE_RES','NOISE_PERIOD','THRESHOLD','PULSER_HEIGHT','BIAS_PERIOD','BIAS_VOLTAGE','DIGITAL_FILTER']+'_SWEEP',colors=[0,1,2,6]
+    options,/def,'swfo_sc_160_PPS_OUTPUT_STATUS_BITS',numbits=8,labels=reverse(['CCOR','STIS','SWiPS','MAG','Source0','Source1','Internal','External']),colors='rkbg
+    options,/def,'swfo_sc_160_FLASH_ERROR_COUNTS',colors='bgrymck',labels=['Error Count','No Power','Not Ready','Address','Read','Write','Erase','EDAC DBE'],labflag=-1
+    options,/def,'swfo_sc_160_FLASH_SUCCESSFUL_BLOCK_COUNTS',colors='bgr',labels=['Read','Write','Erase'],labflag=-1
+    options,/def,'swfo_sc_160_FLASH_EDAC_COUNTS',colors='bgrk',labels=['1B Page Buffer','2B Page Buffer','1B Access','2B Access'],labflag=-1
+    options,/def,'*AMPS',constant=0
 
     options,'swfo_*',ystyle=3
     tplot_options,'wshow',0
@@ -155,7 +161,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'TV' : tplot,add=add,'*hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *sci_RATE6 *hkp2*EXECUTED2
     'PS':tplot,add=add,'PS_*'
     'CPT':tplot,add=add,'*_DAC* *FREQ *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*EXECUTED2
-    'SC':tplot,add=add,'swfo_sc_100_FSW* swfo_sc_130_STIS_* swfo_sc_120_INSTRUMENT_* swfo_sc_120_SUBSYSTEM_* swfo_sc_*REACTION_WHEEL* swfo_sc_100_BATTERY_*'
+    'SC':tplot,add=add,'swfo_SEQN_DELTAS swfo_DELAYTIMES swfo_sc_100_FSW* swfo_sc_130_STIS_* swfo_sc_120_INSTRUMENT_* swfo_sc_120_SUBSYSTEM_* swfo_sc_*REACTION_WHEEL* swfo_sc_100_BATTERY_*'
     'TEST':tplot,add=add,'swfo_sc_INST*_CURRENT_AMPS swfo_sc_*WHEEL* *sci_RATE6 *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     else: dprint,'Unknown code: '+strtrim(name,2)
   endcase
