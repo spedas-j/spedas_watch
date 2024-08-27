@@ -249,8 +249,8 @@ end
 ;                             for "good" spectra.
 ;
 ; $LastChangedBy: xussui $
-; $LastChangedDate: 2024-07-25 10:46:18 -0700 (Thu, 25 Jul 2024) $
-; $LastChangedRevision: 32758 $
+; $LastChangedDate: 2024-08-26 11:27:14 -0700 (Mon, 26 Aug 2024) $
+; $LastChangedRevision: 32799 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -469,12 +469,12 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
        1 : begin
              tspan = time_double(tspan)
              tsflg = 1
-             kflg = 0
+             if keyword_set(keepwins) then kflg = 0 else kflg=1
            end
     else : begin
              tspan = minmax(time_double(tspan))
              tsflg = 1
-             kflg = 0
+             if keyword_set(keepwins) then kflg = 0 else kflg=1
            end
   endcase
 
