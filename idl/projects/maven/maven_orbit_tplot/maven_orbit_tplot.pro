@@ -175,8 +175,8 @@
 ;                 arbitrary set of ephemeris conditions.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-27 13:10:15 -0700 (Sun, 27 Aug 2023) $
-; $LastChangedRevision: 32068 $
+; $LastChangedDate: 2024-08-28 13:18:18 -0700 (Wed, 28 Aug 2024) $
+; $LastChangedRevision: 32802 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -395,6 +395,16 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
     case extended of
        0   : ; do nothing (don't use extended predict ephemeris)
        1   : begin
+               mname = 'maven_spacecraft_mso_240821-331231_dsf2.0_prm_4.4ms_240820.sav'
+               gname = 'maven_spacecraft_geo_240821-331231_dsf2.0_prm_4.4ms_240820.sav'
+               ename = 'maven_spacecraft_eph_240821-331231_dsf2.0_prm_4.4ms_240820.sav'
+               timespan, ['2024-08-21','2034-01-01']
+               treset = 1
+               print,"Using extended predict ephemeris."
+               print,"  SPK = trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp"
+               ttitle = "trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp"
+             end
+       2   : begin
                mname = 'maven_spacecraft_mso_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.sav'
                gname = 'maven_spacecraft_geo_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.sav'
                ename = 'maven_spacecraft_eph_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.sav'
@@ -404,7 +414,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp"
                ttitle = "trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp"
              end
-       2   : begin
+       3   : begin
                mname = 'maven_spacecraft_mso_230322-320101_dsf1.5-prm-3.5ms_230320.sav'
                gname = 'maven_spacecraft_geo_230322-320101_dsf1.5-prm-3.5ms_230320.sav'
                ename = 'maven_spacecraft_eph_230322-320101_dsf1.5-prm-3.5ms_230320.sav'
@@ -414,7 +424,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp"
                ttitle = "trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp"
              end
-       3   : begin
+       4   : begin
                mname = 'maven_spacecraft_mso_2022-2032_dsf2.5_arm_prm_19.2ms_220802.sav'
                gname = 'maven_spacecraft_geo_2022-2032_dsf2.5_arm_prm_19.2ms_220802.sav'
                ename = 'maven_spacecraft_eph_2022-2032_dsf2.5_arm_prm_19.2ms_220802.sav'
@@ -424,7 +434,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp"
                ttitle = "trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp"
              end
-       4   : begin
+       5   : begin
                mname = 'maven_spacecraft_mso_2022-2032_dsf2.5_arms_18ms_210930.sav'
                gname = 'maven_spacecraft_geo_2022-2032_dsf2.5_arms_18ms_210930.sav'
                ename = 'maven_spacecraft_eph_2022-2032_dsf2.5_arms_18ms_210930.sav'
@@ -434,7 +444,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_220101-270101_dsf2.5_arms_18ms_210930.bsp"
                ttitle = "trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp"
              end
-        5  : begin
+        6  : begin
                mname = 'maven_spacecraft_mso_2022-2032_dsf2.5_arm_prm_13.5ms_210908.sav'
                gname = 'maven_spacecraft_geo_2022-2032_dsf2.5_arm_prm_13.5ms_210908.sav'
                ename = 'maven_spacecraft_eph_2022-2032_dsf2.5_arm_prm_13.5ms_210908.sav'
@@ -444,7 +454,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_220101-270101_dsf2.5_arm_prm_13.5ms_210908.bsp"
                ttitle = "trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp"
              end
-        6  : begin
+        7  : begin
                mname = 'maven_spacecraft_mso_2021-2030_dsf2.5_210330.sav'
                gname = 'maven_spacecraft_geo_2021-2030_dsf2.5_210330.sav'
                ename = 'maven_spacecraft_eph_2021-2030_dsf2.5_210330.sav'
