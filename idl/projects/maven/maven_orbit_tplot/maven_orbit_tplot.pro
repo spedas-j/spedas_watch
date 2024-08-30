@@ -92,7 +92,7 @@
 ;                 Used for long range predict and special events kernels.  Replaces
 ;                 keywords EXTENDED and HIRES.
 ;
-;       EXTENDED: If set, load one of six long-term predict ephemerides.  All but one
+;       EXTENDED: If set, load one of seven long-term predict ephemerides.  All but two
 ;                 have a density scale factor (DSF) of 2.5, which is a weighted average
 ;                 over several Mars years.  They differ in the number and timing of
 ;                 apoapsis, periapsis, and inclination maneuvers (arm, prm, inc) and total
@@ -101,12 +101,13 @@
 ;                 dates better reflect current mission goals.  When in doubt, use the
 ;                 most recent.
 ;
-;                   1 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
-;                   2 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
-;                   3 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
-;                   4 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp
-;                   5 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
-;                   6 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
+;                   1 : trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp
+;                   2 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
+;                   3 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
+;                   4 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
+;                   5 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp
+;                   6 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
+;                   7 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
 ;
 ;                 Warning: using this keyword will reset timespan to cover the specified
 ;                 extended ephemeris, overwriting any existing timespan.  This will affect
@@ -164,19 +165,19 @@
 ;
 ;       MISSION:  Restore save files that span from Mars orbit insertion to the 
 ;                 present.  These files are refreshed periodically.  Together, 
-;                 the save files are 15 GB in size (as of July 2023), so this 
+;                 the save files are 17 GB in size (as of August 2024), so this 
 ;                 keyword is only useful for computers with sufficient memory.
 ;
-;                   Latest refresh: 2023-07-15
+;                   Latest refresh: 2024-08-28
 ;                   Ephemeris start date: 2014-09-21
-;                   Ephemeris end date: 2023-11-17
+;                   Ephemeris end date: 2024-11-01
 ;
 ;                 Using the where command, you can identify times that meet an
 ;                 arbitrary set of ephemeris conditions.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-08-28 13:18:18 -0700 (Wed, 28 Aug 2024) $
-; $LastChangedRevision: 32802 $
+; $LastChangedDate: 2024-08-28 20:01:52 -0700 (Wed, 28 Aug 2024) $
+; $LastChangedRevision: 32803 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
