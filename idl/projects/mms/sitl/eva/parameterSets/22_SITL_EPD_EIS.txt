@@ -4,7 +4,7 @@ mms*_dfg_srvy_gsm_dmpa_m; |B|
 ;mms*_fpi_bentPipeB_DBCS;.... FPI Emergency parameters for when DFG/AFG not available.
 ;mms*_fpi_bentPipeB_Norm;... FPI Emergency parameters for when DFG/AFG not available.
 
-mms_sroi; Science ROIs
+mms*_sroi; Science ROIs
 
 mms*_epd_eis_extof_proton_flux_omni_spin
 mms*_epd_eis_extof_alpha_flux_omni_spin

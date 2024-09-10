@@ -92,7 +92,10 @@ function eva_data_load_sitl, state
     eva_sitl_strct_yrange, 'mms_stlm_fomstr'
 
     ; 'mms_sroi'
-    eva_sitl_sroi_bar, trange = time_double(str_tspan)
+    eva_sitl_sroi_bar, trange = time_double(str_tspan), prb = '1'
+    eva_sitl_sroi_bar, trange = time_double(str_tspan), prb = '2'
+    eva_sitl_sroi_bar, trange = time_double(str_tspan), prb = '3'
+    eva_sitl_sroi_bar, trange = time_double(str_tspan), prb = '4'
 
     ; Update the history
     eva_sitl_stack

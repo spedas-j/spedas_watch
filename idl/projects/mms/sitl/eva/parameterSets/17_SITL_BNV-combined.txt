@@ -24,7 +24,7 @@ mmsw_fpi_ion_vel_dbcs_z
 ;--------------------
 ; SITL
 ;--------------------
-mms_sroi; Science ROIs
+mms*_sroi; Science ROIs
 mms_stlm_fomstr; FOM (current) (being modified by a SITL)
 mms*_stlm_fomstr; FOM for individual spacecraft
 mms_stlm_fomstr_copy; FOM (temporary selections for comparison with FOM (current))
