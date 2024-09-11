@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-08-19 18:29:54 -0700 (Mon, 19 Aug 2024) $
-; $LastChangedRevision: 32796 $
+; $LastChangedDate: 2024-09-10 14:47:15 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32815 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -160,9 +160,29 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'EGUN' : tplot,add=add,'Vac_Pressure hvs_5*_VOLTAGE hvs_5*_CURRENT *sci_RATE6 stis_l1a_SPEC_F[13] manip_YAW
     'TV' : tplot,add=add,'*hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *sci_RATE6 *hkp2*EXECUTED2
     'PS':tplot,add=add,'PS_*'
-    'CPT':tplot,add=add,'*_DAC* *FREQ *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*EXECUTED2
+    'CPT':tplot,add=add,'*_DAC* *FREQ *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*CM*REMAINING
+    'CPT2':tplot,add=add,'*_DAC* swfo_stis_RATE6 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*CM*REMAINING    
     'SC':tplot,add=add,'swfo_SEQN_DELTAS swfo_DELAYTIMES swfo_sc_100_FSW* swfo_sc_130_STIS_* swfo_sc_120_INSTRUMENT_* swfo_sc_120_SUBSYSTEM_* swfo_sc_*REACTION_WHEEL* swfo_sc_100_BATTERY_*'
+    'SC2':tplot,add=add,'swfo_sc_100_FSW* swfo_sc_130_STIS_* swfo_sc_120_INSTRUMENT_* swfo_sc_120_SUBSYSTEM_* *REACTION_WHEEL_*RPM *WHEEL*_AMP *WHEEL*_COMMAND swfo_sc_100_BATTERY_*'
     'TEST':tplot,add=add,'swfo_sc_INST*_CURRENT_AMPS swfo_sc_*WHEEL* *sci_RATE6 *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
+    'DELAY_ALL':tplot,add=add,'*DELAYTIME'
+    'DELAY':tplot,add=add,'*2*DELAYTIME'
+    'WHEEL1':begin
+      split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
+      tplot,add=add,'*WHEEL_*_0
+      end
+      'WHEEL2':begin
+        split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
+        tplot,add=add,'*WHEEL_*_1
+      end
+      'WHEEL3':begin
+        split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
+        tplot,add=add,'*WHEEL_*_2
+      end
+      'WHEEL4':begin
+        split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
+        tplot,add=add,'*WHEEL_*_3
+      end
     else: dprint,'Unknown code: '+strtrim(name,2)
   endcase
 

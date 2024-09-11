@@ -1,9 +1,9 @@
 ;+
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
-; $LastChangedRevision: 32519 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2024-09-10 14:47:15 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32815 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -183,7 +183,7 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
 
 
     if dict.sync_errors ne 0 then begin
-      dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(dict.sync_errors,2)+' sync errors';,dwait =4.
+      dprint,verbose=self.verbose,dlevel=3,self.name+': '+strtrim(dict.sync_errors,2)+' sync errors';,dwait =4.
     endif
 
     ; if it reaches this point then a valid message header+payload has been read in
@@ -206,7 +206,7 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
   endwhile
 
   if dict.sync_errors ne 0 then begin
-    dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(dict.sync_errors,1)+' sync errors at "'+time_string(dict.time_received)+'"'
+    dprint,verbose=self.verbose,dlevel=3,self.name+': '+strtrim(dict.sync_errors,1)+' sync errors at "'+time_string(dict.time_received)+'"'
     ;printdat,source
     ;hexprint,source
   endif

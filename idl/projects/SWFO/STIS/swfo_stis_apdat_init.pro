@@ -1,7 +1,7 @@
 ;+
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-08-19 18:29:54 -0700 (Mon, 19 Aug 2024) $
-; $LastChangedRevision: 32796 $
+; $LastChangedDate: 2024-09-09 18:49:44 -0700 (Mon, 09 Sep 2024) $
+; $LastChangedRevision: 32812 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_apdat_init.pro $
 ;-
 
@@ -17,6 +17,7 @@ pro swfo_stis_apdat_init,reset=reset, save_flag=save_flag,swem=swem,rt_flag=rt_f
   swfo_apdat_info, 0 ,name='Stats',apid_obj='swfo_gen_apdat_stats',tname='APIDS', ttags=ttags,save_flag=save_flag,rt_flag=rt_flag
   
   spp_apdat_info,100,name='sc_100',apid_obj ='swfo_sc_100_apdat',tname='swfo_sc_100',save_flag=save_flag,ttags='*',rt_flag=rt_flag
+  spp_apdat_info,110,name='sc_110',apid_obj ='swfo_sc_110_apdat',tname='swfo_sc_110',save_flag=save_flag,ttags='*',rt_flag=rt_flag
   spp_apdat_info,120,name='sc_120',apid_obj ='swfo_sc_120_apdat',tname='swfo_sc_120',save_flag=save_flag,ttags='*',rt_flag=rt_flag
   spp_apdat_info,130,name='sc_130',apid_obj ='swfo_sc_130_apdat',tname='swfo_sc_130',save_flag=save_flag,ttags='*',rt_flag=rt_flag
   spp_apdat_info,160,name='sc_160',apid_obj ='swfo_sc_160_apdat',tname='swfo_sc_160',save_flag=save_flag,ttags='*',rt_flag=rt_flag

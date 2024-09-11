@@ -3,9 +3,9 @@
 ; Run using:
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-01-10 12:04:32 -0800 (Wed, 10 Jan 2024) $
-; $LastChangedRevision: 32354 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2024-09-10 14:47:15 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32815 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -97,7 +97,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
   
   if param.haskey('read_object') && isa(param.read_object,'socket_reader') then begin
     trec = systime(1)
-    if trec gt param.read_object.getattr('time_received') +10 then begin
+    if trec gt param.read_object.getattr('time_received') +1000 then begin
       dprint,dlevel = 2, "Forced timed socket read. Don't forget to exit ctime!"
       param.read_object.timed_event
     endif
@@ -160,7 +160,8 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     lim = param.lim
     ;box,lim
     ;init=0
-    lim.title = trange_str(minmax(samples.time))
+    ts=time_string(minmax(samples.time))
+    lim.title = ts[0]+' - '+ts[1] 
     if 1 then begin
       par = mgauss(numg=1)
     endif
