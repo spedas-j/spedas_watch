@@ -1,6 +1,6 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2024-09-10 15:33:56 -0700 (Tue, 10 Sep 2024) $
-;$LastChangedRevision: 32816 $
+;$LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+;$LastChangedRevision: 32817 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -297,7 +297,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_Ball_cmblk')
         if 1 then begin  ;new method
           rdr.add_handler, 'raw_tlm',  gsemsg_reader(name='SWFO_reader',/no_widget,mission='SWFO')   
-          rdr.add_handler, 'raw_ball', ccsds_reader(/no_widget,name='BALL_reader', _extra = opts.tostruct() , sync_pattern = ['2b'xb,  'ad'xb ,'ca'xb, 'fe'xb] )  
+          rdr.add_handler, 'raw_ball', ccsds_reader(/no_widget,name='BALL_reader', _extra = opts.tostruct() , sync_pattern = ['2b'xb,  'ad'xb ,'ca'xb, 'fe'xb], sync_mask= [0xef,0xff,0xff,0xff] )  
         endif else begin
           rdr.add_handler, 'raw_tlm',  swfo_raw_tlm(name='SWFO_raw_telem',/no_widget)          
         endelse

@@ -1,9 +1,9 @@
 ;+
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-09-10 14:47:15 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32815 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32817 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -22,6 +22,7 @@ FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
   self.sync  = 'CMB1'
   self.header_size = 32
   self.sync_pattern = byte('CMB1')
+  self.sync_mask = byte([0xff,0xff,0xff,0xff])
   self.sync_size = 4
 ;  self.desctypes = orderedhash()
   if  keyword_set(ex) then dprint,ex,phelp=2,dlevel=self.dlevel,verbose=self.verbose
@@ -183,7 +184,7 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
 
 
     if dict.sync_errors ne 0 then begin
-      dprint,verbose=self.verbose,dlevel=3,self.name+': '+strtrim(dict.sync_errors,2)+' sync errors';,dwait =4.
+      dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(dict.sync_errors,2)+' sync errors';,dwait =4.
     endif
 
     ; if it reaches this point then a valid message header+payload has been read in
@@ -206,7 +207,7 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
   endwhile
 
   if dict.sync_errors ne 0 then begin
-    dprint,verbose=self.verbose,dlevel=3,self.name+': '+strtrim(dict.sync_errors,1)+' sync errors at "'+time_string(dict.time_received)+'"'
+    dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(dict.sync_errors,1)+' sync errors at "'+time_string(dict.time_received)+'"'
     ;printdat,source
     ;hexprint,source
   endif

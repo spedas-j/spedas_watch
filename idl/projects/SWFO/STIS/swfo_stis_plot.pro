@@ -3,9 +3,9 @@
 ; Run using:
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-09-10 14:47:15 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32815 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32817 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -63,7 +63,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     ;xlim,param.lim,10000,32000.,0
     ylim,param.lim,.001,1e7,1
     units = 'Eflux'
-    options,param.lim,units=units,ytitle=units,xtitle='Energy (keV)',xunits='ADC'
+    options,param.lim,units=units,ytitle=units,xtitle='Energy (keV)',xunits='ENERGY'
   endif
   if ~param.haskey('routine_name') then param.routine_name = 'swfo_stis_plot'
   if ~param.haskey('nsamples') then param.nsamples = 20
@@ -248,11 +248,15 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     if 1 then begin
       xv = dgen()
       
+      
       flux_min = 2.48e2 * xv ^ (-1.6)  ; #/sec/cm2/ster/keV
       flux_max = 1.01e7 * xv ^ (-1.6)
       if strupcase(param.lim.units) eq 'EFLUX' then  scale = xv else scale = 1
       oplot, xv, flux_min * scale
       oplot, xv, flux_max * scale
+      
+      oplot, 40.*[1.,1.],[.1,1e6],linestyle=2
+      
       
       if 0 then begin
         ;stop

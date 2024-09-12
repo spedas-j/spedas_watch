@@ -5,8 +5,8 @@
 ; Written by Davin Larson
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:12:52 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32262 $
+; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32817 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_spkt_handler.pro $
 ;
 ;-
@@ -20,9 +20,15 @@ pro swfo_ccsds_spkt_handler,dbuffer, source_dict = source_dict , wrap_ccsds=wrap
     endif
     return
   endif
+  
+  playback = 0
+  if isa(source_dict,'dictionary') && source_dict.headerstr.sync eq 0x3b then begin
+    playback = 0x400
+  endif
 
+  ;printdat,ccsds
 ;  get object handler for the given apid:
-  apdat = swfo_apdat(ccsds.apid)
+  apdat = swfo_apdat(ccsds.apid  or playback)
   
   if keyword_set( *apdat.ccsds_last) then begin
     ccsds_last = *apdat.ccsds_last

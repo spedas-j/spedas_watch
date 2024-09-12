@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-20 17:44:34 -0800 (Mon, 20 Nov 2023) $
-; $LastChangedRevision: 32254 $
+; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32817 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
 
 
@@ -21,13 +21,24 @@ function ccsds_reader::header_struct,header
 
   nsync = self.sync_size
   if nsync ne 0 then  sync = self.sync_pattern[0:nsync-1] else sync = !null
+
+  if header[0] eq 0x3b then begin
+     i=1;    printdat,/hex,self.sync_mask,sync,header   
+  endif
+  
   
   if n_elements(header) lt self.header_size then return, !null                    ; Not enough bytes in packet header
-  if  (isa(sync) && array_equal(sync,header[0:nsync-1]) eq 0) then return,!null   ; Not a valid packet
+  if  (isa(sync) && (array_equal(sync,header[0:nsync-1] and self.sync_mask) eq 0)) then return,!null   ; Not a valid packet
+  
 
-  strct = {  time:!values.d_nan, apid:0u,  psize: 0u , type:0u ,valid:0, gap:0}
+  strct = {  time:!values.d_nan, sync:header[0], apid:0u,  psize: 0u , type:0u ,valid:0, gap:0}
   strct.apid  = (header[nsync+0] * 256U + header[nsync+1]) and 0x3FFF 
   strct.psize = header[nsync+4] * 256u + header[nsync+5] + 1   ; size of payload  (6 bytes less than size of ccsds packet)
+
+ ; if isa(sync) && header[0] eq 0x3b then begin    ; special case for SWFO
+ ;   strct.apid = strct.apid or 0x8000         ; turn on highest order bit to segregate different apid
+ ; endif
+
 
   return,strct
 
@@ -42,6 +53,7 @@ end
 pro ccsds_reader::read_old,source   ;,source_dict=parent_dict
 
   ;dwait = 10.
+  message,'Obsolete'
   
   dict = self.source_dict
   if dict.haskey('parent_dict') then parent_dict = dict.parent_dict
@@ -189,7 +201,7 @@ end
 
 
 
-function ccsds_reader::init,sync_pattern=sync_pattern,decom_procedure = decom_procedure,mission=mission,_extra=ex
+function ccsds_reader::init,sync_pattern=sync_pattern,sync_mask=sync_mask,decom_procedure = decom_procedure,mission=mission,_extra=ex
   ret=self.socket_reader::init(_extra=ex)
   if ret eq 0 then return,0
 
@@ -204,7 +216,11 @@ function ccsds_reader::init,sync_pattern=sync_pattern,decom_procedure = decom_pr
     dprint,'Number of sync bytes must be <= 4'
     return, 0
   endif
-  if self.sync_size ne 0 then self.sync_pattern = sync_pattern 
+  if self.sync_size ne 0 then begin
+    self.sync_pattern = sync_pattern
+    self.sync_mask = ['ff'xb,  'ff'xb ,'ff'xb, 'ff'xb ]
+  endif
+  if isa(sync_mask) then self.sync_mask = sync_mask
   self.header_size = self.sync_size + 6
 
   return,1

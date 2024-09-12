@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-25 09:34:31 -0800 (Mon, 25 Dec 2023) $
-; $LastChangedRevision: 32321 $
+; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32817 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -94,8 +94,8 @@ function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,
       ;                      1     2    3      4     5      6      7
       ;                     C1    C2   C12    C3    C13    C23   C123
       scale14 = scale6[  [ 0,3,  1,4,  1,4,   2,5,   2,5,   2,5,   2,5    ]                       ]   ; Note :  still need to work on coincident decimation
-      dprint,verbose=self.verbose,dlevel=2,'Decimation is on! ',scale6
-      dprint,verbose=self.verbose,dlevel=2, scale14
+      dprint,verbose=self.verbose,dlevel=3,'Decimation is on! ',scale6
+      dprint,verbose=self.verbose,dlevel=3, scale14
       for ch = 0,13 do begin
         d[*,ch]  *= scale14[ch]
       endfor
@@ -175,23 +175,44 @@ end
 pro swfo_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_dict
   if  ~obj_valid(self.level_0b) then begin
     dprint,'Creating Science level 0B'
-    self.level_0b = dynamicarray(name='Science_L0b')
+    l0b_format = self.get_ncdf_master_structure('sfwo_stis_l0b_MASTER.nc')
+    ddata = dynamicarray(name='Science_L0b')
+    ddata.dict.format = l0b_format
+    self.level_0b = ddata
     first_level_0b = 1
-  endif
-
+  endif 
+  
+  l0b_format = self.level_0b.dict.format
+  
   if  ~obj_valid(self.level_1a) then begin
     dprint,'Creating Science level 1a'
     self.level_1a = dynamicarray(name='Science_L1a')
     first_level_1a = 1
-  endif
+  endif 
 
-  sciobj = swfo_apdat('stis_sci')
-  nseobj = swfo_apdat('stis_nse')
-  hkpobj = swfo_apdat('stis_hkp2')
+;  sciobj = swfo_apdat('stis_sci')   ; stis_sci
+;  nseobj = swfo_apdat('stis_nse')   ; stis_nse
+;  hkpobj = swfo_apdat('stis_hkp2')  ; stis_hkp2
+  
+  pb = 0
+  if source_dict.headerstr.sync eq 0x3b  then pb = 0x400
+  sciobj = swfo_apdat(0x350 or pb)   ; stis_sci
+  nseobj = swfo_apdat(0x351 or pb)   ; stis_nse
+  hkpobj = swfo_apdat(0x35f or pb)   ; stis_hkp2
+
+  
 
   sci_last = sciobj.last_data    ; this should be identical to struct_stis_sci_level_0b
-;  nse_last = nseobj.last_data
-;  hkp_last = hkpobj.last_data
+  nse_last = nseobj.last_data
+  hkp_last = hkpobj.last_data
+
+  if isa(hkp_last) then struct_assign, hkp_last  ,  l0b_format
+  if isa(nse_last) then struct_assign, nse_last  ,  l0b_format
+  if isa(sci_last) then struct_assign, sci_last  ,  l0b_format
+  
+  l0b_format.time_unix = sci_last.time
+  
+
 
   res = self.file_resolution
 
@@ -221,11 +242,13 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_
 
   if isa(self.level_0b,'dynamicarray') then begin
     ;struct_stis_sci_level_1a = swfo_stis_sci_level_1a(sci_last)
-    self.level_0b.append, struct_stis_sci_level_0b
+    self.level_0b.append, l0b_format
     if keyword_set(first_level_0b) then begin
       ;store_data,'stis_L0B',data = self.level_0b,tagnames = '*'  ;,val_tag='_NRG'
       ;options,'stis_L0B_COUNTS',spec=1
-      store_data,'swfo_stis',data = self.level_0b,tagnames = '*'  ;,val_tag='_NRG'
+      
+
+      store_data,'swfo_stis',data = self.level_0b,tagnames = '*' , time_tag = 'TIME_UNIX'  ;,val_tag='_NRG'    ; warning don't use time_tag keyword
       options,'swfo_stis_COUNTS',spec=1
     endif
     if makefile then  begin
@@ -282,8 +305,8 @@ PRO swfo_stis_sci_apdat__define
 
   void = {swfo_stis_sci_apdat, $
     inherits swfo_gen_apdat, $    ; superclass
-    file_resolution: 0d,  $
-    lastfile_time : 0d,  $
+    ;file_resolution: 0d,  $     ; this parameter was moved to swfo_gen_apdat
+    ;lastfile_time : 0d,  $       ; this parameter was moved to swfo_gen_apdat
     level_0b: obj_new(),  $       ; Level 0B data is stored in the "data" variable of swfo_gen_apdat
     ;level_0b_all: obj_new(),  $       ; This will hold a dynamic array of structures that include data from 3 STIS apids  (Science + Noise + hkp2)
     level_1a: obj_new(),  $

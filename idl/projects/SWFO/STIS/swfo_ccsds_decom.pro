@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
-; $LastChangedRevision: 32519 $
+; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32817 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_decom.pro $
 
 ;
@@ -63,7 +63,7 @@ function swfo_ccsds_decom,buffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,o
     source_hash:  0UL,  $               ; hashcode() of source_name
     compr_ratio:  0. , $
     aggregate:    0u,  $                ; number of data samples aggregated - determined from outer wrapper header
-    time_delta :  f_nan, $
+    time_delta :  d_nan, $
     ptp_time:     d_nan,  $             ; unixtime from ptp packet
     error :       0b, $
     version :     0b , $   ; this could be eliminated since it is useless

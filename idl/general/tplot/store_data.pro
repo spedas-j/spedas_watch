@@ -37,8 +37,8 @@
 ;
 ;CREATED BY:    Davin Larson
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-04-10 00:21:25 -0700 (Mon, 10 Apr 2023) $
-; $LastChangedRevision: 31718 $
+; $LastChangedDate: 2024-09-10 23:19:07 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32819 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/store_data.pro $
 ;-
 pro store_data,name, time,ydata,values, $
@@ -305,7 +305,12 @@ pro store_data,name, time,ydata,values, $
     *dq.dh = dh
     dq.dtype = 4
     sz = dh.ddata.size
-    dq.trange = (dh.ddata.slice([0,sz-1])).time
+    str_fl = dh.ddata.slice([0,sz-1])
+;    dq.trange = (dh.ddata.slice([0,sz-1])).time
+    tags = tag_names(str_fl)
+    tag_num =  where(/null,tags eq strupcase(vardef.x))
+    if isa(tag_num) then dq.trange = str_fl.(tag_num) + [-1,1]
+
     dq.create_time = systime(1)
     data_quants[index] = dq
     return

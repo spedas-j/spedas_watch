@@ -12,8 +12,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-11 00:17:46 -0800 (Mon, 11 Dec 2023) $
-; $LastChangedRevision: 32281 $
+; $LastChangedDate: 2024-09-10 23:16:36 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32818 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -851,6 +851,7 @@ pro socket_reader__define
     buffersize:0L, $
     header_size:0, $
     sync_pattern:  bytarr(4),  $
+    sync_mask:  bytarr(4),  $
     sync_size:  0,  $
     ;buffer_ptr: ptr_new(),   $
     source_dict: obj_new(),  $

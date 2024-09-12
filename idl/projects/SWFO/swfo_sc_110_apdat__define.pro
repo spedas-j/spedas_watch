@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-09-09 18:49:44 -0700 (Mon, 09 Sep 2024) $
-; $LastChangedRevision: 32812 $
+; $LastChangedDate: 2024-09-11 18:09:23 -0700 (Wed, 11 Sep 2024) $
+; $LastChangedRevision: 32823 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_110_apdat__define.pro $
 
 function swfo_sc_110_rw_temps,temps
@@ -51,6 +51,7 @@ function swfo_sc_110_apdat::decom,ccsds,source_dict=source_dict
     reaction_wheel_5v_current_monitor_ma:    .2*swfo_data_select(ccsds_data,[925+indgen(4)*32]*8,16),$
     reaction_wheel_3p3v_current_monitor_ma:    .2*swfo_data_select(ccsds_data,[927+indgen(4)*32]*8,16),$
     reaction_wheel_1p5v_current_monitor_ma:    .1*swfo_data_select(ccsds_data,[929+indgen(4)*32]*8,16),$
+    iru_bits:                  swfo_data_select(ccsds_data,690*8+4, 8),$
     gap:ccsds.gap }
 
   return,datastr

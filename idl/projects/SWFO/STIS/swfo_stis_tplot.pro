@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-09-10 14:47:15 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32815 $
+; $LastChangedDate: 2024-09-11 18:09:23 -0700 (Wed, 11 Sep 2024) $
+; $LastChangedRevision: 32823 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -118,18 +118,20 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*hkp?_PULSER_DELAY_CLOCK_CYCLES',colors='bgr',labels=['0x17 Pulser1','0x18 Pulser2','0x19 Pulser3'],labflag=1
     options,/def,'*hkp?_TIMEOUTS_*US',colors='bgr',labels=['0x1D Event','0x1E Valid','0x1F Nopeak'],labflag=-1
     options,/def,'*NOISE_BITS',numbits=12,labels=reverse(['ENABLE','RES2','RES1','RES0','PERIOD7','PERIOD6','PERIOD5','PERIOD4','PERIOD3','PERIOD2','PERIOD1','PERIOD0']),colors=[0,1,2,6]
-    options,/def,'swfo_sc_120_INSTRUMENT_*',colors='bgrk',labels=['STIS','CCOR','MAG','SWiPS'],labflag=1,numbits=4
-    options,/def,'swfo_sc_1?0_REACTION_WHEEL_*',colors='bgrk',labels=['1','2','3','4'],labflag=1,numbits=4,constant=0
-    options,/def,'swfo_sc_100_REACTION_WHEEL_OVERSPEED_FAULT_BITS',colors='krgb',labels=reverse(['O1','O2','O3','O4','F1','F2','F3','F4']),numbits=8
-    options,/def,'swfo_sc_100_FSW_POWER_MANAGEMENT_BITS',colors='rgb',labels=reverse(['Battery OverTemp Enable','OverVoltage Enable','UnderVoltage Enable','Battery OverTemp Latched','Overvoltage Latched','UnderVoltage Latched']),numbits=6
-    options,/def,'swfo_sc_120_SUBSYSTEM_*',numbits=6,labels=reverse(['Gimbal Control Electronics','S-Band Transmitter','TWTA','X-Band Modulator','Star Tracker Electronics','IRU']),colors='rgbkmc',labflag=1
-    options,/def,'swfo_sc_120_????_POWER_BITS',numbits=5,labels=reverse(['Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
-    options,/def,'swfo_sc_120_MAG_POWER_BITS swfo_sc_120_SWIPS_POWER_BITS',numbits=6,labels=reverse(['Arm Power','Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
-    options,/def,'swfo_sc_130_STIS_TEMPS',colors='br',labels=['Sensor','SEB'],labflag=-1
-    options,/def,'swfo_sc_160_PPS_OUTPUT_STATUS_BITS',numbits=8,labels=reverse(['CCOR','STIS','SWiPS','MAG','Source0','Source1','Internal','External']),colors='rkbg
-    options,/def,'swfo_sc_160_FLASH_ERROR_COUNTS',colors='bgrymck',labels=['Error Count','No Power','Not Ready','Address','Read','Write','Erase','EDAC DBE'],labflag=-1
-    options,/def,'swfo_sc_160_FLASH_SUCCESSFUL_BLOCK_COUNTS',colors='bgr',labels=['Read','Write','Erase'],labflag=-1
-    options,/def,'swfo_sc_160_FLASH_EDAC_COUNTS',colors='bgrk',labels=['1B Page Buffer','2B Page Buffer','1B Access','2B Access'],labflag=-1
+    options,/def,'*swfo_sc_120_INSTRUMENT_*',colors='bgrk',labels=['STIS','CCOR','MAG','SWiPS'],labflag=1,numbits=4
+    options,/def,'*swfo_sc_1?0_REACTION_WHEEL_*',colors='bgrk',labels=['1','2','3','4'],labflag=1,numbits=4,constant=0
+    options,/def,'*swfo_sc_100_REACTION_WHEEL_OVERSPEED_FAULT_BITS',colors='krgb',labels=reverse(['O1','O2','O3','O4','F1','F2','F3','F4']),numbits=8
+    options,/def,'*swfo_sc_110_REACTION_WHEEL_XYZ_TORQUE_ACTUAL_NM',labels=['X','Y','Z']
+    options,/def,'*swfo_sc_110_IRU_BITS',labels=reverse(['Misalignment Bypass','Memory Effect Error','X Health','Y Health','Z Health','X Valid','Y Valid','Z Valid']),colors='rgbrgbmc'
+    options,/def,'*swfo_sc_100_FSW_POWER_MANAGEMENT_BITS',colors='rgb',labels=reverse(['Battery OverTemp Enable','OverVoltage Enable','UnderVoltage Enable','Battery OverTemp Latched','Overvoltage Latched','UnderVoltage Latched']),numbits=6
+    options,/def,'*swfo_sc_120_SUBSYSTEM_*',numbits=6,labels=reverse(['Gimbal Control Electronics','S-Band Transmitter','TWTA','X-Band Modulator','Star Tracker Electronics','IRU']),colors='rgbkmc',labflag=1
+    options,/def,'*swfo_sc_120_????_POWER_BITS',numbits=5,labels=reverse(['Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
+    options,/def,'*swfo_sc_120_MAG_POWER_BITS swfo_sc_120_SWIPS_POWER_BITS',numbits=6,labels=reverse(['Arm Power','Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
+    options,/def,'*swfo_sc_130_STIS_TEMPS',colors='br',labels=['Sensor','SEB'],labflag=-1
+    options,/def,'*swfo_sc_160_PPS_OUTPUT_STATUS_BITS',numbits=8,labels=reverse(['CCOR','STIS','SWiPS','MAG','Source0','Source1','Internal','External']),colors='rkbg
+    options,/def,'*swfo_sc_160_FLASH_ERROR_COUNTS',colors='bgrymck',labels=['Error Count','No Power','Not Ready','Address','Read','Write','Erase','EDAC DBE'],labflag=-1
+    options,/def,'*swfo_sc_160_FLASH_SUCCESSFUL_BLOCK_COUNTS',colors='bgr',labels=['Read','Write','Erase'],labflag=-1
+    options,/def,'*swfo_sc_160_FLASH_EDAC_COUNTS',colors='bgrk',labels=['1B Page Buffer','2B Page Buffer','1B Access','2B Access'],labflag=-1
     options,/def,'*AMPS',constant=0
 
     options,'swfo_*',ystyle=3

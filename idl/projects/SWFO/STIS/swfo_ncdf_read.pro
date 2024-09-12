@@ -1,11 +1,11 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-03-16 01:51:24 -0700 (Thu, 16 Mar 2023) $
-; $LastChangedRevision: 31637 $
+; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32817 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_read.pro $
 ; $ID: $
 
 
-function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbose
+function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbose,num_recs=num_recs
 
   dat = !null
   nfiles = n_elements(filenames)
@@ -71,12 +71,16 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
     endelse
   endfor
 
+if num_recs gt 0 then begin
   dat = replicate(dat0,num_recs)
 
   for vid=0, inq.nvars-1 do begin
     ncdf_varget,id,vid,values
     dat.(vid) = values
   endfor
+  
+endif else dat = dat0
+
   ncdf_close,id
   return,dat
 end
