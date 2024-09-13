@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-09-11 18:09:23 -0700 (Wed, 11 Sep 2024) $
-; $LastChangedRevision: 32823 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-09-12 00:28:26 -0700 (Thu, 12 Sep 2024) $
+; $LastChangedRevision: 32825 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -169,6 +169,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'TEST':tplot,add=add,'swfo_sc_INST*_CURRENT_AMPS swfo_sc_*WHEEL* *sci_RATE6 *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     'DELAY_ALL':tplot,add=add,'*DELAYTIME'
     'DELAY':tplot,add=add,'*2*DELAYTIME'
+    'WHEELS': tplot,add=add,'s*WHEEL_TORQUE* s*WHEEL_SPEED_RPM s*WHEEL*CURRENT_AMPS
     'WHEEL1':begin
       split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
       tplot,add=add,'*WHEEL_*_0
