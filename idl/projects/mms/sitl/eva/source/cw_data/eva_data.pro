@@ -1,6 +1,6 @@
 ; $LastChangedBy: moka $
-; $LastChangedDate: 2024-08-09 15:29:13 -0700 (Fri, 09 Aug 2024) $
-; $LastChangedRevision: 32784 $
+; $LastChangedDate: 2024-09-18 16:43:59 -0700 (Wed, 18 Sep 2024) $
+; $LastChangedRevision: 32846 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/sitl/eva/source/cw_data/eva_data.pro $
 
 ; PRO eva_data_update_date, state, update=update
@@ -162,7 +162,7 @@ function eva_data_load_and_plot, state, cod = cod, evtop = evtop
     if (~undefined(evtop) and (trange_user_specified[1] gt trange_sitl_window[0])) then begin
       trange = trange_user_specified
       algo = [state_sitl.pref.eva_gls1_algo, state_sitl.pref.eva_gls2_algo, state_sitl.pref.eva_gls3_algo]
-      eva_sitl_load_gls, trange = trange, algo = algo
+      ; eva_sitl_load_gls, trange = trange, algo = algo
     endif
   endif
 
