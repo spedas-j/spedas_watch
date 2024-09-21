@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-12 00:28:26 -0700 (Thu, 12 Sep 2024) $
-; $LastChangedRevision: 32825 $
+; $LastChangedDate: 2024-09-19 22:37:32 -0700 (Thu, 19 Sep 2024) $
+; $LastChangedRevision: 32847 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -64,7 +64,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
       options,'SWFO*L1_NOISE_RES',yrange=[0,7]
       options,'*DECIMATION_FACTOR_BITS',panel_size=.5
       options,'*SPEC_??',panel_size=1.5
-      tplot,'SWFO*L1*',/add
+      ;tplot,'SWFO*L1*',/add
     endif
 
     ylim,'stis_l1a_SPEC*',10,20000.,1
@@ -133,9 +133,19 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*swfo_sc_160_FLASH_SUCCESSFUL_BLOCK_COUNTS',colors='bgr',labels=['Read','Write','Erase'],labflag=-1
     options,/def,'*swfo_sc_160_FLASH_EDAC_COUNTS',colors='bgrk',labels=['1B Page Buffer','2B Page Buffer','1B Access','2B Access'],labflag=-1
     options,/def,'*AMPS',constant=0
+    options,/def,'*IRU_BITS', negate='111111'b
+    ylim,'*nse_SIGMA',.5,4,1
+    ylim,'*nse_BASELINE',-3,1
+    ylim,'*VALID_RATES',1,1,1
+    ylim,'*REACTION_WHEEL_CURRENT_AMPS',0.05,3,1
+    ylim,'*REACTION_WHEEL_BUS_CURRENT_AMPS',0.05,3,1
+    ylim,'*REACTION_WHEEL_CURRENT_AMPS',0.0,.5,0
+    ylim,'*REACTION_WHEEL_BUS_CURRENT_AMPS',0.0,.5,0
+    options,'*WHEEL*',/reverse_order
 
     options,'swfo_*',ystyle=3
     tplot_options,'wshow',0
+    tplot_options,'datagap',60
   endif
 
   if ~keyword_set(name) then name = 'none'
@@ -144,7 +154,8 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'SUM1': tplot,add=add,'*hkp1_USER_0A *hkp1_STATE_MACHINE_ERRORS *DURATION_ALL *hkp1_PPS_* *hkp?_DAC_* *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp1_CMDS_RECEIVED *hkp1_CMDS_BAD *hkp1_*REMAIN* *hkp1_*BITS *hkp1_*CYCLES *hkp1_TEST_PULSE_WIDTH_1US *hkp1_COINCIDENCE_WINDOW* *hkp1_BIAS_CLOCK_PERIOD_2US *hkp1_ADC_*'
     'SUM2': tplot,add=add,'*hkp2_STATE_MACHINE_ERRORS *hkp?_DAC_* swfo_stis_RATES_TOTAL *hkp2_*RATES *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp2_CMDS_RECEIVED *hkp2_*BITS *hkp2_*CYCLES *hkp2_TEST_PULSE_WIDTH_1US *hkp2_COINCIDENCE_WINDOW* *hkp2_BIAS_CLOCK_PERIOD_2US *hkp2_ADC_*'
     'SUM3': tplot,add=add,'*hkp2_*CYCLES *hkp2_BIAS_CLOCK_PERIOD_2US *sci_DECI* *sci_USER_09 *hkp2_COINCIDENCE_WINDOW* *hkp2_TIMEOUTS_2US *hkp?_DAC_* swfo_stis_RATES_TOTAL *hkp2*RATES *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp2_CMDS_EXECUTED2 *hkp2_CMD_PACKETS_RECEIVED
-    'NOISE': tplot,add=add,'*nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6'
+    'NOISE': tplot,add=add,'s*nse_HISTOGRAM s*nse_BASELINE s*nse_SIGMA s*nse_*RA_TE6'
+    'NOISE2': tplot,add=add,'s*nse_HISTO_GRAM s*nse_BASELINE s*nse_SIGMA s*hkp2_VALID_RATES s*sci_RATE6'
     'SCI': tplot,add=add,'*sci_COUNTS *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14'
     'ADC': tplot,add=add,'*hkp2_ADC*
     'ERRORS' : tplot,add=add,'*hkp2*ERRORS *hkp2_BUS_TIMEOUT_COUNTERS'
@@ -169,7 +180,8 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'TEST':tplot,add=add,'swfo_sc_INST*_CURRENT_AMPS swfo_sc_*WHEEL* *sci_RATE6 *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     'DELAY_ALL':tplot,add=add,'*DELAYTIME'
     'DELAY':tplot,add=add,'*2*DELAYTIME'
-    'WHEELS': tplot,add=add,'s*WHEEL_TORQUE* s*WHEEL_SPEED_RPM s*WHEEL*CURRENT_AMPS
+    'WHEELS': tplot,add=add,'s*WHEEL_TORQUE s*WHEEL_SPEED_RPM s*WHEEL_CURRENT_AMPS s*WHEEL_BUS_CUR* s*IRU_BITS
+    'WHEELS1': tplot,add=add,'s*WHEEL_TOR_QUE s*WHEEL_SPEED_RPM s*WHEEL_BUS_CURRENT_AMPS s*IRU_BITS
     'WHEEL1':begin
       split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
       tplot,add=add,'*WHEEL_*_0
