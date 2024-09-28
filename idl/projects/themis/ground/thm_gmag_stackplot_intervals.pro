@@ -80,8 +80,16 @@ if not keyword_set(no_data_load) then begin
    ;If NRSQ was loaded, take it out -- it's the same as NAQ
    del_data, '*nrsq*'
    del_data, '*pang*'
+   del_data, '*iglo*'
 endif
+; add low lat stations
+ll_sites=['dva', 'gua', 'hon', 'bsl', 'dtx', 'tuc', 'frn', 'frd', 'dmo', 'col', 'bou', $
+  'dbo', 'doh', 'dct', 'dat', 'dme', 'dhe', 'nes', 'kapu', 'pina', 'sept', $
+  'roth', 'atha', 'shu', 'gill', 'nain', 'sit']
+thm_load_gmag, site=ll_sites  
 
+tplot_names
+stop
 ;________________________________________________________________________________________________
 ;check that there is some valid data
 ;________________________________________________________________________________________________
@@ -208,7 +216,7 @@ for k=0,n_elements(dhr)-1 do begin
      lo_lat_lon_index = -1
      skip_lo = 1  ; set a flag to be checked in the loop below
   Endelse
-
+  
   ;________________________________________________________________________________________________
   ;manipulate data into tplot variables for "relative" stack plots
   ;________________________________________________________________________________________________
