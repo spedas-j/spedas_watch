@@ -63,8 +63,8 @@
 ;                   Added new site list for 2015 and later 22-may-2015, clr
 ;
 ; $LastChangedBy: crussell $
-; $LastChangedDate: 2023-08-28 14:41:30 -0700 (Mon, 28 Aug 2023) $
-; $LastChangedRevision: 32072 $
+; $LastChangedDate: 2024-10-01 06:17:48 -0700 (Tue, 01 Oct 2024) $
+; $LastChangedRevision: 32866 $
 ; $URL $
 ;-
 
@@ -183,8 +183,8 @@ For j = 0, nstat-1 Do Begin
        yj = dd.y[*, 0]
        median_dt = median(dt)
        spike_test_width = (long(120.1/median_dt)+1) >3 ;typically 2 minutes
-       yj = simple_despike_1d(yj, spike_threshold = 3, width = spike_test_width)
-       xclip, max_dev[0], max_dev[1], yj, /clip_adjacent
+;       yj = simple_despike_1d(yj, spike_threshold = 3, width = spike_test_width)
+ ;      xclip, max_dev[0], max_dev[1], yj, /clip_adjacent
        dd.y[*, 0] = yj
        store_data, stations[j], data = dd
     endif else begin
