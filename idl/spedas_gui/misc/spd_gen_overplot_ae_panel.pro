@@ -18,9 +18,9 @@
 ;   When the Kyoto AE is available, it shows [Themis AE (black, 0), Kyoto AE (blue, 2)]
 ;   When the Kyoto AE is not available, it shows [Themis AE (black, 0), Real Time Kyoto AE 5-min (green, 4)]
 ;
-; $LastChangedBy: nikos $
-; $LastChangedDate: 2024-06-08 13:35:54 -0700 (Sat, 08 Jun 2024) $
-; $LastChangedRevision: 32689 $
+; $LastChangedBy: crussell $
+; $LastChangedDate: 2024-10-02 04:51:07 -0700 (Wed, 02 Oct 2024) $
+; $LastChangedRevision: 32867 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/misc/spd_gen_overplot_ae_panel.pro $
 ;-
 
@@ -65,8 +65,13 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
   endif else copy_data, 'thg_idx_ae', 'thmAE'
 
   get_data, 'thmAE', data=thm_ae_data, dlimits=thm_ae_dlimits
+  ; check thmAE yaxis limits
+  if ~is_struct(thm_ae_data) then begin
+    undefine, ylims
+    if max(thm_ae_data.y) GT 2000. or min(thm_ae_data.y) LT -10. then ylims=[-10.,2000.]
+  endif
+  
   get_data, 'kyoto_ae', data=kyoto_ae_data, dlimits=kyoto_ae_dlimits
-
   if ~is_struct(kyoto_ae_data) then begin
     ; In this case, use the Kyoto real time AE generated at UCLA
     get_data, 'thg_idx_uc_avg', data=kyoto_ae_data, dlimits=kyoto_ae_dlimits
@@ -100,6 +105,10 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
     str_element, thm_ae_dlimits, 'ytitle', 'AE index', /add
     str_element, thm_ae_dlimits, 'ysubtitle', '[nT]', /add
     str_element, thm_ae_dlimits, 'labflag', 1, /add
+    if ~undefined(ylims) then begin
+      str_element, thm_ae_dlimits, 'yaxis', ylims, /add
+      str_element, thm_ae_dlimits, 'ystyle', 1, /add
+    endif
     store_data, 'kyoto_thm_combined_ae'+suffix, data={x: kyoto_ae_data.X, y: combined_ae}, dlimits=thm_ae_dlimits
   endif else if is_struct(thm_ae_data) then begin
     ; only THEMIS AE available
@@ -109,6 +118,10 @@ pro spd_gen_overplot_ae_panel, date=date, duration=duration, suffix=suffix, out_
     options, 'kyoto_thm_combined_ae'+suffix, 'labflag', 1
     options, 'kyoto_thm_combined_ae'+suffix, 'ysubtitle', '[nT]'
     options, 'kyoto_thm_combined_ae'+suffix, 'colors', 0
+    if ~undefined(ylims) then begin
+      options, 'kyoto_thm_combined_ae'+suffix, 'yaxis', ylims
+      options, 'kyoto_thm_combined_ae'+suffix, 'ystle', 1
+    endif
   endif else if is_struct(kyoto_ae_data) then begin
     ; only Kyoto AE available
     copy_data, 'kyoto_ae', 'kyoto_thm_combined_ae'+suffix
