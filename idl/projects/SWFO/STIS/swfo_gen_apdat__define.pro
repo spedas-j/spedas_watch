@@ -2,8 +2,8 @@
 ;  swfo_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32817 $
+; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
+; $LastChangedRevision: 32876 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -262,12 +262,12 @@ pro swfo_gen_apdat::sort
 end
 
 
-pro swfo_gen_apdat::create_tplot_vars,ttags=ttags
+pro swfo_gen_apdat::create_tplot_vars,ttags=ttags,verbose=verbose
   dprint,dlevel=2,verbose=self.verbose,'Creating tplot variables for: ',self.name
   if ~keyword_set(ttags) then ttags = self.ttags
   dyndata = self.data
   if isa(dyndata,'dynamicarray') && keyword_set(self.tname) then begin
-    store_data,self.tname,data=dyndata, tagnames=ttags, gap_tag='GAP',verbose = self.verbose
+    store_data,self.tname,data=dyndata, tagnames=ttags, gap_tag='GAP',verbose = self.verbose ;,/silent
   endif
 end
 
@@ -299,8 +299,8 @@ function swfo_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 32817 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 32876 $'
 
     return,sw_hash
 end
@@ -337,8 +337,8 @@ function swfo_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32817 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32876 $'
 
   return,global_att
 end

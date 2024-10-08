@@ -2,8 +2,8 @@
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32817 $
+; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
+; $LastChangedRevision: 32876 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -94,7 +94,18 @@ end
 
 
 
-pro cmblk_reader::read,source   ;,source_dict=parent_dict
+;+
+  ; :Description:
+  ;    Describe the procedure.
+  ;
+  ; :Params:
+  ;    source
+  ;
+  ;
+  ;
+  ; :Author: davin
+  ;-
+pro cmblk_reader::read,source  
 
   ;dwait = 10.
 
@@ -102,13 +113,13 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
   if dict.haskey('parent_dict') then parent_dict = dict.parent_dict
 
 
-  if isa(parent_dict,'dictionary') &&  parent_dict.haskey('headerstr') then begin
-    header = parent_dict.headerstr
-    ;   dprint,dlevel=4,verbose=self.verbose,header.description,'  ',header.size
-  endif else begin
-    dprint,verbose=self.verbose,dlevel=4,'No headerstr'
-    header = {time: !values.d_nan , gap:0 }
-  endelse
+;  if isa(parent_dict,'dictionary') &&  parent_dict.haskey('headerstr') then begin
+;    header = parent_dict.headerstr
+;    ;   dprint,dlevel=4,verbose=self.verbose,header.description,'  ',header.size
+;  endif else begin
+;    dprint,verbose=self.verbose,dlevel=4,'No headerstr'
+;    header = {time: !values.d_nan , gap:0 }
+;  endelse
 
 
   if ~dict.haskey('fifo') then begin
@@ -189,7 +200,13 @@ pro cmblk_reader::read,source   ;,source_dict=parent_dict
 
     ; if it reaches this point then a valid message header+payload has been read in
 
+    if self.save_data && isa(self.dyndata,'dynamicarray') then begin
+      self.dyndata.append,dict.headerstr
+    endif
+
     self.handle,dict.fifo    ; process each packet
+    
+    
 
     if keyword_set(dict.flag) && debug(2,self.verbose,msg='status') then begin
       dprint,verbose=self.verbose,dlevel=3,header
@@ -231,7 +248,7 @@ end
 
 
 
-pro cmblk_reader::read_old ,buffer      ;, source_dict = source_dict
+pro cmblk_reader::read_old1 ,buffer      ;, source_dict = source_dict
 
   if isa(source_dict,'dictionary') then begin
     dprint,'Recursive call not allowed yet.'

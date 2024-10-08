@@ -1,7 +1,7 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
-; $LastChangedRevision: 32876 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
+; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
+; $LastChangedRevision: 32817 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu:36867/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
 
 
 
@@ -17,13 +17,13 @@
 
 
 
-function ccsds_reader::header_struct,header
+function ccsds_frame_reader::header_struct,header
 
   nsync = self.sync_size
   if nsync ne 0 then  sync = self.sync_pattern[0:nsync-1] else sync = !null
 
   if header[0] eq 0x3b then begin
-     i=1;    printdat,/hex,self.sync_mask,sync,header   
+     i=1;    printdat,/hex,self.sync_mask,sync,header     ; trap to detect replay packets for SWFO
   endif
   
   
@@ -31,9 +31,15 @@ function ccsds_reader::header_struct,header
   if  (isa(sync) && (array_equal(sync,header[0:nsync-1] and self.sync_mask) eq 0)) then return,!null   ; Not a valid packet
   
 
-  strct = {  time:!values.d_nan, sync:header[0], apid:0u,  psize: 0u , type:0u ,valid:0, gap:0}
-  strct.apid  = (header[nsync+0] * 256U + header[nsync+1]) and 0x3FF 
-  strct.psize = header[nsync+4] * 256u + header[nsync+5] + 1   ; size of payload  (6 bytes less than size of ccsds packet)
+  strct = {  time:!values.d_nan, scid:0u, vcid:0b,  psize: 0u , replay:0u, SEQN:0UL, sigfield:0b  , offset:0u, valid:0, gap:0}
+  temp = (header[nsync+0] * 256U + header[nsync+1])
+  strct.scid  = ishft(temp,6)  and 0xFF 
+  strct.vcid  = temp and 0x3F
+  strct.seqn = ((header[nsync+2] *256ul) +header[nsync+3]) *256ul + header[nsync+4]
+  strct.sigfield = header[nsync+5]
+  strct.offset = header[nsync+6]*256u + header[nsync+7]
+  
+  strct.psize = self.frame_size - self.header_size   ; size of payload  (6 bytes less than size of ccsds packet)
 
  ; if isa(sync) && header[0] eq 0x3b then begin    ; special case for SWFO
  ;   strct.apid = strct.apid or 0x8000         ; turn on highest order bit to segregate different apid
@@ -50,7 +56,7 @@ end
 
 
 
-pro ccsds_reader::read_old,source   ;,source_dict=parent_dict
+pro ccsds_frame_reader::read_old,source   ;,source_dict=parent_dict
 
   ;dwait = 10.
   message,'Obsolete'
@@ -185,33 +191,66 @@ end
 
 
 
-pro ccsds_reader::handle,buffer
+pro ccsds_frame_reader::handle,buffer
 
-  if debug(3,self.verbose) then begin
+  if debug(4,self.verbose) then begin
     dprint,self.name
     hexprint,buffer
     dprint
   endif
+  payload = buffer[self.header_size : -5]    ; skip header and leave off the last 4 bytes.  Not clear what they are.
+  
+  
+  headerstr = self.source_dict.headerstr
+  offset = headerstr.offset
+  cpkt_rdr = self.ccsds_packet_reader
+  if cpkt_rdr.source_dict.haskey('FIFO') then begin
+    length_fifo  =  n_elements(cpkt_rdr.source_dict.fifo)  
+    if isa(cpkt_rdr.source_dict.headerstr) then begin
+      psize =  cpkt_rdr.source_dict.headerstr.psize
+    endif
+  endif else begin
+    length_fifo = 0
+  endelse
+  
+  
+  if length_fifo eq 0  then begin   ; First time there won't be a pre-existing FIFO;  skip the beginning bytes and start at offset
+    ;cpkt_rdr.read, payload[offset:*]
+    start = offset
+  endif else begin
+    if offset eq 0x7ff then begin
+      dprint,dlevel=3,verbose=self.verbose, 'No start packet'
+      start = 0
+    endif else begin
+      if keyword_set(psize) && psize + 6 ne length_fifo+offset then begin
+        dprint,dlevel=2,verbose=self.verbose, 'concatenate: ',psize+6,length_fifo,offset
+        start = offset         ; start new sequence
+        cpkt_rdr.source_dict.fifo=!null
+        cpkt_rdr.source_dict.headerstr=!null
+      endif else start = 0
+    endelse    
+  endelse
 
-  swfo_ccsds_spkt_handler,buffer[self.sync_size:*],source_dict=self.source_dict         ; Process the complete packet
-
+  cpkt_rdr.read,   payload[start:*]     
+  
+  
 end
 
 
 
 
 
-function ccsds_reader::init,sync_pattern=sync_pattern,sync_mask=sync_mask,decom_procedure = decom_procedure,mission=mission,_extra=ex
+function ccsds_frame_reader::init,sync_pattern=sync_pattern,sync_mask=sync_mask,decom_procedure = decom_procedure,mission=mission,_extra=ex
   ret=self.socket_reader::init(_extra=ex)
   if ret eq 0 then return,0
 
   if isa(mission,'string') && mission eq 'SWFO' then begin
-    if ~isa(sync_pattern) && ~isa(sync_pattern,/null) then sync_pattern = ['1a'xb,  'cf'xb ,'fc'xb, '1d'xb ]
-    decom_procedure = 'swfo_ccsds_spkt_handler'
+    if ~isa(sync_pattern) then sync_pattern = ['1a'xb,  'cf'xb ,'fc'xb, '1d'xb ]
+    ;decom_procedure = 'swfo_ccsds_spkt_handler'
   endif
   self.sync_size = n_elements(sync_pattern)
-  self.maxsize = 4100
-  self.minsize = 10
+  self.maxsize = 1100
+  self.minsize = 1000
   if self.sync_size gt 4 then begin
     dprint,'Number of sync bytes must be <= 4'
     return, 0
@@ -221,7 +260,10 @@ function ccsds_reader::init,sync_pattern=sync_pattern,sync_mask=sync_mask,decom_
     self.sync_mask = ['ff'xb,  'ff'xb ,'ff'xb, 'ff'xb ]
   endif
   if isa(sync_mask) then self.sync_mask = sync_mask
-  self.header_size = self.sync_size + 6
+  self.header_size = self.sync_size + 8
+  self.frame_size = 1024
+  self.save_data = 1
+  self.ccsds_packet_reader = ccsds_reader(mission=mission,/no_widget,sync_pattern=!null)
 
   return,1
 end
@@ -230,10 +272,12 @@ end
 
 
 
-PRO ccsds_reader__define
-  void = {ccsds_reader, $
+PRO ccsds_frame_reader__define
+  void = {ccsds_frame_reader, $
     inherits cmblk_reader, $    ; superclass
+    frame_size: 0uL, $
     decom_procedure: '',  $
+    ccsds_packet_reader: obj_new(),  $
     minsize: 0UL , $
     maxsize: 0UL  $
   }

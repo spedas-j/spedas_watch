@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
-; $LastChangedRevision: 32519 $
+; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
+; $LastChangedRevision: 32876 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_crib.pro $
 ; $ID: $
 
@@ -872,6 +872,85 @@ pro swfo_stis_swap_det2_det3,data
 
 end
 
+
+
+function random_poisson,avg,seed=seed  
+  common random_poisson_com, pseed
+  if isa(seed) then pseed = seed
+  n = n_elements(avg)
+  cnts = long(avg)
+  for i=0l,n-1 do begin
+    cnts[i] = randomu(pseed,1,poisson =avg[i])
+  endfor
+  seed = pseed
+  return, cnts
+end
+
+
+function inverse_erf_sigma,x
+  common inverse_erf_sigma_common, erf_par
+  if ~isa(erf_par) then begin
+    xv = dgen(901,[-5.,5.])
+    erf_xv = erf(xv)
+    erf_par = spline_fit3(!null,erf_xv,xv)
+    printdat,erf_par
+  endif
+
+  return, -6 > spline_fit3(x,param=erf_par) <6
+end
+
+
+function inverse_erfc_sigma,x
+  common inverse_erfc_sigma_common, erfc_par
+  if ~isa(erfc_par) then begin
+    xv =  dgen(301,[-2.,10.]) 
+    erfc_xv =  erfc(xv)/2
+    erfc_par = spline_fit3(!null,reverse(erfc_xv),reverse(xv),xlog=1)
+    printdat,erfc_par
+  endif
+
+  return, -4. > spline_fit3(x,param=erfc_par) < 12.
+  ;return,  spline_fit3(x,param=erfc_par) 
+end
+
+
+function poisson_sigma,measured_counts,average_counts,ylog=ylog,psym=psym
+  offset=3
+  maxcnts = round(average_counts +sqrt(average_counts)*10)+offset > 10
+  x = indgen(maxcnts)-offset
+  gauss_par = mgauss(/quantize,binsize=1)
+  gauss_par.g.x0 = average_counts
+  gauss_par.g.s = sqrt(average_counts)
+  gdist = mgauss(x,param=gauss_par)
+  gauss_par.g.a = 1/total(gdist,/double)
+  gdist = mgauss(x,param=gauss_par)
+  
+  poisson_par = spp_poisson()
+  poisson_par.avg = average_counts
+  pdist = spp_poisson(x,param=poisson_par)
+  
+  pdist_cum = total(pdist,/cum)
+  gdist_cum = total(gdist,/cum)
+
+  psigma = inverse_erf_sigma(pdist_cum*2-1)
+  gsigma = inverse_erf_sigma(gdist_cum*2-1)
+
+  if keyword_set(plotit) || keyword_set(psym) then begin
+    !p.multi = [0,1,3]
+    plot,x,pdist,ylog=ylog,psym=psym
+    oplot,x,gdist,col=6 ,psym=psym
+    plot,x,pdist_cum,ylog=ylog,psym=psym
+    oplot,x,gdist_cum,col=6,psym=psym
+    plot,x,psigma,psym=psym
+    oplot,x,gsigma,psym=psym, color=6
+    !p.multi=0    
+  endif
+  
+  
+  return,gsigma[round(measured_counts)+offset ]
+end
+
+
 ; Begin program here
 
 if 0 then $
@@ -1264,11 +1343,11 @@ endif
 
 if 1 then begin
   pow_p = -1.6
-  flux =  20000. * (energy/50.) ^ pow_p
-  w = where(energy gt 5000)
+  flux =  100. * (energy/50.) ^ pow_p
+  w = where(energy gt 900)
   flux = flux/100
   ;flux = flux_min
-  flux[w] = flux[w] / 100.
+  ;flux[w] = flux[w] / 100.
 
   
 endif
@@ -1288,7 +1367,10 @@ endif
 
 
 p_flux = flux   + flux_cosmicray
-e_flux = flux   /3
+e_flux = flux/energy *1000
+e_flux = flux  /4 ;*2
+w = where(energy gt 900,/null)
+;e_flux[w] = e_flux[w]/1000 
 a_flux = p_flux /40
 ;cr_flux = flux_cosmicray
 
@@ -1340,42 +1422,46 @@ oplot,e_rate_true,color=2
 ;swfo_stis_response_rate2flux,e_rate,p_resp,method=method
 ;swfo_stis_response_rate2flux,t_rate,p_resp,method=method
 
-wi,win++ ,/show
+if 1 then begin
+  wi,win++ ,/show
 
-swfo_stis_response_simflux_plot,flux_func = flux_func_true
-swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',color=0
-swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
-;swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
+  swfo_stis_response_simflux_plot,flux_func = flux_func_true
+  swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over, name = 'O-3',color=0
+  swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
+  ;swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
 
-swfo_stis_response_simflux_plot,e_resp,rate=t_rate_true,   /over, name = 'F-3',color=0;,psym=2
-;swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6;,psym=2
-swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2;,psym=2
+  swfo_stis_response_simflux_plot,e_resp,rate=t_rate_true,   /over, name = 'F-3',color=0;,psym=2
+  ;swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6;,psym=2
+  swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2;,psym=2
 
-oplot,energy,flux_min
-oplot,energy,flux_max
-
-
-w_p = where(/null,p_resp.bmap.name eq 'O-3' and finite(p_resp.bmap.E0_inc) )
-p_energy_recon = p_resp.bmap[w_p].e0_inc
-p_energy_recon = [25.,45.,70,100,200,500,1000,5000]
-p_energy_recon = [p_energy_recon, 2e4,2e5]
-
-p_func_recon = spline_fit3(!null,p_energy_recon, 1d4 * p_energy_recon ^ (-2)  ,/xlog,/ylog,pwlin=1)   ; initial guess
+  oplot,energy,flux_min
+  oplot,energy,flux_max
 
 
+  w_p = where(/null,p_resp.bmap.name eq 'O-3' and finite(p_resp.bmap.E0_inc) )
+  p_energy_recon = p_resp.bmap[w_p].e0_inc
+  p_energy_recon = [25.,45.,70,100,200,500,1000,5000]
+  p_energy_recon = [p_energy_recon, 2e4,2e5]
 
-;w_e = where(/null,e_resp.bmap.name eq 'F-3' and finite(e_resp.bmap.E0_inc))
-;energy_e = e_resp.bmap[w].e0_inc
-;flux_e  = 1e4 * energy_e ^ (-2)
-;e_flux_func_recon = s
+  p_func_recon = spline_fit3(!null,p_energy_recon, 1d4 * p_energy_recon ^ (-2)  ,/xlog,/ylog,pwlin=1)   ; initial guess
 
-e_energy_recon = [30.,100.,1000.,3000.,10000.]
-e_func_recon = spline_fit3(!null,e_energy_recon, .1 * e_energy_recon ^ (-2)  ,/xlog,/ylog,pwlin=1)   ; initial guess
 
-flux_func_recon = swfo_stis_response_func(eflux_func = e_func_recon,pflux_func=p_func_recon)
 
-;swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
+  ;w_e = where(/null,e_resp.bmap.name eq 'F-3' and finite(e_resp.bmap.E0_inc))
+  ;energy_e = e_resp.bmap[w].e0_inc
+  ;flux_e  = 1e4 * energy_e ^ (-2)
+  ;e_flux_func_recon = s
 
+  e_energy_recon = [30.,100.,1000.,3000.,10000.]
+  e_func_recon = spline_fit3(!null,e_energy_recon, .1 * e_energy_recon ^ (-2)  ,/xlog,/ylog,pwlin=1)   ; initial guess
+
+  flux_func_recon = swfo_stis_response_func(eflux_func = e_func_recon,pflux_func=p_func_recon)
+
+  ;swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
+
+
+  
+endif
 
 
 
@@ -1419,54 +1505,66 @@ endif
 p_flux_plot.setdata,  energy, p_flux
 e_flux_plot.setdata,  energy, e_flux
 
+if ~isa(rate_window,'GRAPHICSWIN') then begin
+  rate_window = window(dimensions=[1600,800],window_title='Rate Window')
+endif else begin
+  rate_window.erase
+endelse
 
-
-if ~isa(rate_window,'GRAPHICSWIN') || ~isa(rate_plot,'PLOT') then begin
+if ~isa(rate_plot,'PLOT') then begin
   dummydat = [1,1]
-  rate_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-4,1e6],xrange=[-10,685],/xstyle,dimensions=[1600,500] $
-    ,xtitle='Bin Number',Ytitle='Count Rate',title='Raw Rates vs Bin #',window_title='Rate Plot',font_size=15)
+  rate_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-4,1e6],xrange=[-10,685],/xstyle,current=rate_window $
+    ,xtitle='Bin Number',Ytitle='Count Rate',title='Raw Rates vs Bin #',font_size=15,layout=[1,2,1],margin=.1)
   rate_plot.uvalue = dictionary()
-  p_plot=plot(dummydat, /overplot ,' .r',sym_size=3,name='Proton rate')
-  rate_plot.uvalue.p_plot = p_plot
-  e_plot=plot(dummydat, /overplot ,' .b',sym_size=3,name='Electron rate')
-  rate_plot.uvalue.e_plot = e_plot
-  t_plot=plot(dummydat, /overplot ,'-',name='Total rate')
-  rate_plot.uvalue.t_plot = t_plot
+  p_rate_plot=plot(dummydat,/nodata, /overplot ,' .r',sym_size=3,name='Proton rate')
+  rate_plot.uvalue.p_rate_plot = p_rate_plot
+  e_rate_plot=plot(dummydat, /overplot ,' .b',sym_size=3,name='Electron rate')
+  rate_plot.uvalue.e_rate_plot = e_rate_plot
+  t_rate_plot=plot(dummydat, /overplot ,'-',name='Total rate')
+  rate_plot.uvalue.t_rate_plot = t_rate_plot
   tt = strsplit('O_1 F_1 O_2 F_2 O_12 F_12 O_3 F_3 O_13 F_13 O_23 F_23 O_123 F_123',/extract)
   i = indgen(n_elements(tt))
   colors = ['red','blue'] ;,'cyan','magenta']
   ncolors = n_elements(colors) 
   ttt = text(i*48+24,1e5+i,tt,/data,alignment=0.5, color = colors[i mod ncolors], font_size=8)
- 
-  rate_window = rate_plot.window
-  rate_plot.window_title = 'Rate Plot'
+   rate_plot.window_title = 'Rate Plot'
+
+   cnts_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-4,1e6],xrange=[-10,685],/xstyle,current=rate_window $
+     ,xtitle='Bin Number',Ytitle='Counts',title='Raw Counts vs Bin #',font_size=15,layout=[1,2,2],margin=.1)
+   cnts_plot.uvalue = dictionary()
+   p_cnts_plot=plot(dummydat,/nodata, overplot=cnts_plot ,' .r',sym_size=3,name='Proton rate')
+   cnts_plot.uvalue.p_cnts_plot = p_cnts_plot
+   e_cnts_plot=plot(dummydat, overplot=cnts_plot ,' .b',sym_size=3,name='Electron rate')
+   cnts_plot.uvalue.e_cnts_plot = e_cnts_plot
+   t_cnts_plot=plot(dummydat, overplot=cnts_plot ,'-',name='Total rate')
+   cnts_plot.uvalue.t_cnts_plot = t_cnts_plot
+
 endif
 
-e_plot.setdata, e_rate_true
-p_plot.setdata, p_rate_true
-t_plot.setdata, t_rate_true
+e_rate_plot.setdata, e_rate_true
+p_rate_plot.setdata, p_rate_true
+t_rate_plot.setdata, t_rate_true
+
+deltatime = 300.
+t_cnts_meas = random_poisson(deltatime * t_rate_true)
+t_cnts_plot.setdata,t_cnts_meas
 
 if 0 then begin
-  
   t_rate_recon = func(param=flux_func_recon,0)
   oplot,t_rate_recon > 1e-5,color = 4
-
-
-
 ;  fit,0,rate_t ,param = flux_func_recon,/logfit,names = 'pflux.ys[1,2,3]
-
   t_rate_recon = func(param=flux_func_recon,0)
   oplot,t_rate_recon > 1e-5,color = 3
 endif
 
-
+print,win
 wi,win++,/show
 
-swfo_stis_response_simflux_plot,flux_func = flux_func_true
+swfo_stis_response_simflux_plot,flux_func = flux_func_true  ;,rate=t_cnts_meas/deltatime
 ;swfo_stis_response_simflux_plot,p_resp,rate=t_rate_true,   /over , name = 'O-3',color=1
-oplot,energy,flux_min
-oplot,energy,flux_max
-oplot,energy,flux_mid
+oplot,energy,flux_min,linestyle=1
+oplot,energy,flux_max,linestyle=1
+oplot,energy,flux_mid,linestyle=1
 
 ;flux_plot = plot()
 ;flux_plot = get_plot_state()
@@ -1491,8 +1589,8 @@ func_recon = swfo_stis_response_correct_flux(t_rate_true,rate_plot=rate_plot,flu
 ;swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2
 
 ;swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
-oplot,energy,flux_min
-oplot,energy,flux_max
+;oplot,energy,flux_min
+;oplot,energy,flux_max
 
 
 ;stop

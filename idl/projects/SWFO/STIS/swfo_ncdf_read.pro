@@ -1,11 +1,11 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32817 $
+; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
+; $LastChangedRevision: 32876 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_read.pro $
 ; $ID: $
 
 
-function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbose,num_recs=num_recs
+function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbose,num_recs=num_recs,force_recdim=force_recdim
 
   dat = !null
   nfiles = n_elements(filenames)
@@ -28,6 +28,9 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
   id =  ncdf_open(filename)  ;,/netcdf4_format
 
   inq= ncdf_inquire(id)
+  
+  if isa(force_recdim) then inq.recdim = force_recdim   ; cluge to fix annoying definition of swfo L0 files
+  
   ;printdat,inq
   dim_sizes = replicate(-1L,inq.ndims)
   dim_names = replicate("???",inq.ndims)

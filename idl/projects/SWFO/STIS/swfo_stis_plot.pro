@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32817 $
+; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
+; $LastChangedRevision: 32876 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -67,6 +67,8 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
   endif
   if ~param.haskey('routine_name') then param.routine_name = 'swfo_stis_plot'
   if ~param.haskey('nsamples') then param.nsamples = 20
+  if ~param.haskey('dtrate') then param.dtrate = 3e4     ; 1 / dead time
+  if ~param.haskey('jconv') then param.jconv = .01       ; conversion from j to rate
   if ~param.haskey('ddata') then begin
     if (sci = swfo_apdat('stis_sci'))  then begin ; First look for data from the L0 data stream
       param.ddata = sci.data   ; L0 data
@@ -97,7 +99,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
   
   if param.haskey('read_object') && isa(param.read_object,'socket_reader') then begin
     trec = systime(1)
-    if trec gt param.read_object.getattr('time_received') +1000 then begin
+    if trec gt param.read_object.getattr('time_received') +10 then begin
       dprint,dlevel = 2, "Forced timed socket read. Don't forget to exit ctime!"
       param.read_object.timed_event
     endif
@@ -230,6 +232,28 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         
       endfor
     endfor
+    
+    
+    if 1 then begin
+      j1 = channels[0].y
+      j2 = channels[2].y
+      jconv = param.jconv
+      dtrate = param.dtrate
+      rate1 = total(j1) * jconv
+      rate2 = total(j2) * jconv * 100
+      dtcor2 = 1/(1-rate2/30e4)
+      dtcor2 = 1 + rate2/dtrate
+      eta1 =  0. > sqrt( rate1 * param.range  ) < 1.
+      eta2 =  0. >     (1.8- dtcor2)*.4    < 1.
+      j_hdr = (eta1 * j1 + eta2 *j2)/ (eta1 + eta2)
+      ch_cor = channels[0]
+      ch_cor.color = 0
+      ch_cor.y = j_hdr
+      oplot,ch_cor.x,ch_cor.y ,color=ch.color,psym=ch.psym
+
+      dprint,dlevel=2,total(j1),total(j2), rate1,rate2, eta1,eta2
+    endif
+    
     
     if 1 then begin
       print_names = struct_value(param,'print_names')

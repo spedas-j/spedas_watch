@@ -2,8 +2,8 @@
 ;  SPP_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-04-30 13:09:09 -0700 (Tue, 30 Apr 2024) $
-; $LastChangedRevision: 32541 $
+; $LastChangedDate: 2024-10-07 17:44:01 -0700 (Mon, 07 Oct 2024) $
+; $LastChangedRevision: 32880 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -245,8 +245,8 @@ function spp_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: ali $'
-  sw_hash['svn_changedate'] = '$LastChangedDate: 2024-04-30 13:09:09 -0700 (Tue, 30 Apr 2024) $'
-  sw_hash['svn_revision '] = '$LastChangedRevision: 32541 $'
+  sw_hash['svn_changedate'] = '$LastChangedDate: 2024-10-07 17:44:01 -0700 (Mon, 07 Oct 2024) $'
+  sw_hash['svn_revision '] = '$LastChangedRevision: 32880 $'
 
   return,sw_hash
 end
@@ -288,8 +288,8 @@ function spp_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: ali $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-04-30 13:09:09 -0700 (Tue, 30 Apr 2024) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32541 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-10-07 17:44:01 -0700 (Mon, 07 Oct 2024) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32880 $'
 
   return,global_att
 end
@@ -444,7 +444,7 @@ pro spp_gen_apdat::sav_makefile,sav_file=sav_file,parents=parents,verbose=verbos
     self.data.name=self.name ;in case spp_swp_apdat_init updated the object name (e.g., from wrp_P5 to wrp_P5P7)
     file_mkdir2,file_dirname(filename),add_link=root_data_dir()+self.cdf_linkname,/add_parent_link
     dprint,dlevel=3,'Saving '+filename
-    ;save,file=filename,self,parents,verbose=verbose,/compress
+    save,file=filename,self,parents,verbose=verbose,/compress
     dprint,dlevel=1,'Saved '+file_info_string(filename)
   endfor
   self.data.array=datarray ;returning self to its original

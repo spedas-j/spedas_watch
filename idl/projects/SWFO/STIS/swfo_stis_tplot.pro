@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-19 22:37:32 -0700 (Thu, 19 Sep 2024) $
-; $LastChangedRevision: 32847 $
+; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
+; $LastChangedRevision: 32876 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -141,7 +141,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     ylim,'*REACTION_WHEEL_BUS_CURRENT_AMPS',0.05,3,1
     ylim,'*REACTION_WHEEL_CURRENT_AMPS',0.0,.5,0
     ylim,'*REACTION_WHEEL_BUS_CURRENT_AMPS',0.0,.5,0
-    options,'*WHEEL*',/reverse_order
+    options,'*WHEEL* *_nse_* *_hkp*_RATES *nse_SIGMA *nse_BASELINE',/reverse_order
 
     options,'swfo_*',ystyle=3
     tplot_options,'wshow',0
