@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-20 17:44:34 -0800 (Mon, 20 Nov 2023) $
-; $LastChangedRevision: 32254 $
+; $LastChangedDate: 2024-10-11 10:32:34 -0700 (Fri, 11 Oct 2024) $
+; $LastChangedRevision: 32884 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/gsemsg_reader__define.pro $
 
 
@@ -420,7 +420,7 @@ end
 
 PRO gsemsg_reader__define
   void = {gsemsg_reader, $
-    inherits cmblk_reader, $    ; superclass
+    inherits cmblk_reader, $    ; superclass ;  this should inherit socket_reader
     ccsds_reader:   obj_new(), $         ; user definable object  not used
     gsemsg_reader:  obj_new()  $
 }

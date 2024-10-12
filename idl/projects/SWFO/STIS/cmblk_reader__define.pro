@@ -2,8 +2,8 @@
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
-; $LastChangedRevision: 32876 $
+; $LastChangedDate: 2024-10-11 10:32:34 -0700 (Fri, 11 Oct 2024) $
+; $LastChangedRevision: 32884 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -105,7 +105,7 @@ end
   ;
   ; :Author: davin
   ;-
-pro cmblk_reader::read,source  
+pro cmblk_reader::read_old2,source     ; This routine is now obsolete - moved to socket_reader__define
 
   ;dwait = 10.
 

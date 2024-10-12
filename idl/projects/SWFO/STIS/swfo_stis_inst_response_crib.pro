@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
-; $LastChangedRevision: 32876 $
+; $LastChangedDate: 2024-10-11 10:32:34 -0700 (Fri, 11 Oct 2024) $
+; $LastChangedRevision: 32884 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_crib.pro $
 ; $ID: $
 
@@ -880,7 +880,7 @@ function random_poisson,avg,seed=seed
   n = n_elements(avg)
   cnts = long(avg)
   for i=0l,n-1 do begin
-    cnts[i] = randomu(pseed,1,poisson =avg[i])
+    cnts[i] = randomu(pseed,1,poisson =avg[i],/double)
   endfor
   seed = pseed
   return, cnts
@@ -1345,7 +1345,7 @@ if 1 then begin
   pow_p = -1.6
   flux =  100. * (energy/50.) ^ pow_p
   w = where(energy gt 900)
-  flux = flux/100
+  flux = flux; *200
   ;flux = flux_min
   ;flux[w] = flux[w] / 100.
 
@@ -1402,12 +1402,14 @@ p_rate_true = func(param=flux_func_true,0,choice=1)
 e_rate_true = func(param=flux_func_true,0,choice=2)
 t_rate_true = func(param=flux_func_true,0,choice=3)
 
+deltatime = 300.
+t_cnts_meas = random_poisson(deltatime * t_rate_true)
+t_rate_meas = t_cnts_meas / deltatime
 
-;p_bmap = p_resp.bmap
-;e_bmap = p_resp.bmap
-;t_bmap = p_bmap
 
-wi,win++
+
+
+wi,win++  ,/show
 ylim,rlim,1e-5,1e5,1
 xlim,rlim,-10,700
 box,rlim
@@ -1422,7 +1424,7 @@ oplot,e_rate_true,color=2
 ;swfo_stis_response_rate2flux,e_rate,p_resp,method=method
 ;swfo_stis_response_rate2flux,t_rate,p_resp,method=method
 
-if 1 then begin
+if 0 then begin
   wi,win++ ,/show
 
   swfo_stis_response_simflux_plot,flux_func = flux_func_true
@@ -1473,11 +1475,17 @@ oplot,p_rate_true ,color=6
 oplot,e_rate_true,color=2
 
 
+if ~isa(flux_window,'GRAPHICSWIN') then begin
+  flux_window = window(dimensions=[800,800],window_title='Flux Window')
+endif else begin
+  flux_window.erase
+  flux_window.show
+endelse
 
 
-if ~isa(flux_window,'GRAPHICSWIN') || ~isa(flux_plot,'PLOT') then begin
+if  ~isa(flux_plot,'PLOT') then begin
   dummydat = [1,1]
-  flux_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-4,1e6],xrange=[5,2e6],/xlog,/xstyle,dimensions=[800,800] $
+  flux_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-4,1e6],xrange=[5,2e6],/xlog,/xstyle,current=flux_window $
      ,xtitle='Incident Energy (keV)',Ytitle='Flux (#/s/ster/cm^2/keV',title='Flux vs Energy' $
      ,font_size=15,window_title='Flux Plot')
   flux_plot.uvalue = dictionary()
@@ -1486,18 +1494,18 @@ if ~isa(flux_window,'GRAPHICSWIN') || ~isa(flux_plot,'PLOT') then begin
   dummy = plot(energy,flux_mid,':',/over)
   dummy = plot([50,50.],[1.,1e4],/over,':')
   dummy = plot([2000.,2000.],[.002,5e1],':',/over)
-  p_flux_plot=plot(dummydat, /overplot ,'-r6',transparency=90,name='Proton flux')
+  p_flux_plot=plot(dummydat, /overplot ,'.rd',transparency=90,name='Proton flux',sym_size=.5)
   flux_plot.uvalue.p_flux_plot = p_flux_plot
-  e_flux_plot=plot(dummydat, /overplot ,'-b6',transparency=90,name='Electron flux')
+  e_flux_plot=plot(dummydat, /overplot ,'.bd',transparency=90,name='Electron flux',sym_size=.5)
   flux_plot.uvalue.e_flux_plot = e_flux_plot
   ;t_flux_plot=plot(dummydat, /overplot ,'-',name='Electron rate')
-  tt = strsplit('O_1 F_1 O_2 F_2 O_12 F_12 O_3 F_3 O_13 F_13 O_23 F_23 O_123 F_123',/extract)
-  i = indgen(n_elements(tt))
+  ;tt = strsplit('O_1 F_1 O_2 F_2 O_12 F_12 O_3 F_3 O_13 F_13 O_23 F_23 O_123 F_123',/extract)
+  ;i = indgen(n_elements(tt))
   colors = ['red','blue'] ;,'cyan','magenta']
   ncolors = n_elements(colors)
-;  ttt = text(i*48+24,1e5+i,tt,/data,alignment=0.5, color = colors[i mod ncolors], font_size=8)
+  ;  ttt = text(i*48+24,1e5+i,tt,/data,alignment=0.5, color = colors[i mod ncolors], font_size=8)
 
-  flux_window = flux_plot.window
+  ;flux_window = flux_plot.window
   ;flux_window.window_title = 'Rate Plot'
 
 endif
@@ -1529,14 +1537,14 @@ if ~isa(rate_plot,'PLOT') then begin
   ttt = text(i*48+24,1e5+i,tt,/data,alignment=0.5, color = colors[i mod ncolors], font_size=8)
    rate_plot.window_title = 'Rate Plot'
 
-   cnts_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-4,1e6],xrange=[-10,685],/xstyle,current=rate_window $
+   cnts_plot = plot(dummydat,/nodata,/ylog,yrange=[1e-2,1e8],xrange=[-10,685],/xstyle,current=rate_window $
      ,xtitle='Bin Number',Ytitle='Counts',title='Raw Counts vs Bin #',font_size=15,layout=[1,2,2],margin=.1)
    cnts_plot.uvalue = dictionary()
    p_cnts_plot=plot(dummydat,/nodata, overplot=cnts_plot ,' .r',sym_size=3,name='Proton rate')
    cnts_plot.uvalue.p_cnts_plot = p_cnts_plot
    e_cnts_plot=plot(dummydat, overplot=cnts_plot ,' .b',sym_size=3,name='Electron rate')
    cnts_plot.uvalue.e_cnts_plot = e_cnts_plot
-   t_cnts_plot=plot(dummydat, overplot=cnts_plot ,'-',name='Total rate')
+   t_cnts_plot=plot(dummydat, overplot=cnts_plot ,'-d',name='Total rate',sym_size = .5)
    cnts_plot.uvalue.t_cnts_plot = t_cnts_plot
 
 endif
@@ -1545,8 +1553,6 @@ e_rate_plot.setdata, e_rate_true
 p_rate_plot.setdata, p_rate_true
 t_rate_plot.setdata, t_rate_true
 
-deltatime = 300.
-t_cnts_meas = random_poisson(deltatime * t_rate_true)
 t_cnts_plot.setdata,t_cnts_meas
 
 if 0 then begin
@@ -1577,93 +1583,9 @@ flux_window.show
 
 
 
-func_recon = swfo_stis_response_correct_flux(t_rate_true,rate_plot=rate_plot,flux_plot=flux_plot)   ;,flux_plot=flux_plot)
+func_recon = swfo_stis_response_correct_flux(t_rate_meas,rate_plot=rate_plot,flux_plot=flux_plot)   ;,flux_plot=flux_plot)
 
-
-
-;swfo_stis_response_simflux_plot,p_resp,rate=p_rate_true,   /over, name = 'O-3',color=6
-;swfo_stis_response_simflux_plot,p_resp,rate=e_rate_true,   /over, name = 'O-3',color=2
-
-;swfo_stis_response_simflux_plot,e_resp,rate=t_rate_true,   /over, name = 'F-3',color=0
-;swfo_stis_response_simflux_plot,e_resp,rate=p_rate_true,   /over, name = 'F-3',color=6
-;swfo_stis_response_simflux_plot,e_resp,rate=e_rate_true,   /over, name = 'F-3',color=2
-
-;swfo_stis_response_simflux_plot,flux_func = flux_func_recon,/over
-;oplot,energy,flux_min
-;oplot,energy,flux_max
-
-
-;stop
-
-
-
-;p_rate = transpose(p_resp.mde) # func(p_resp.e_inc,param=p_func)
-;e_rate = transpose(e_resp.mde) # func(e_resp.e_inc,param=e_func)
-;a_rate = transpose(a_resp.mde) # func(a_resp.e_inc,param=a_func)
-
-
-if 0 then begin
-  wi,win++
-  if ~isa(plim,'dictionary') then plim = dictionary()
-  xlim,plim, -5,690
-  ylim,plim, .0001,1e6, 1
-  box,plim
-
-  ;oplot,p_rate+e_rate+a_rate
-  ;plots,findgen(681),p_rate ,color = p_resp.bmap.color
-  plots,findgen(681),e_rate ,color = e_resp.bmap.color,noclip=0
-  ;oplot,e_rate ,color = 2
-  ;oplot,a_rate ,color = 4
-
-endif
-
-if 0 then begin
-  wi,win++,/show
-  if ~keyword_set(flim) then begin
-    flim= dictionary('xrange',[1,1e6],'xlog',1,'yrange',[1e-4,1e6],'ylog',1,'ystyle',1)
-    flim.xtitle = 'Measured Energy (keV)
-    flim.ytitle = 'Count Rate (1/s)
-  endif
-  ; box,flim
-  ;  nrg = dgen()
-  test = 3
-  if (test and 1) ne 0 then begin
-    ;pf, p_func, color = 5, thick=6
-    swfo_stis_response_rate_plot,p_resp.bmap,p_rate,lim=flim, name=p_names,/overplot
-  endif
-
-  wi,win++,/show
-  if (test and 2) ne 0 then begin
-    ;pf, e_func ,color =5,thick=6
-    swfo_stis_response_rate_plot,e_resp.bmap,e_rate,lim=flim , name=e_names,/overplot
-  endif
-endif
-
-
-
-if 0 then begin
-
-  swfo_stis_response_plots,     p_resp  ,window=win   ;    simstat_e,data_e,filter=f, response = e_resp
-  swfo_stis_response_plots,     e_resp  ,window=win   ;    simstat_e,data_e,filter=f, response = e_resp
-  swfo_stis_response_plots,     a_resp  ,window=win   ;    simstat_e,data_e,filter=f, response = e_resp
-
-endif
-
-
-if 0 then begin
-  ;mi = calval.responses['Proton'].mde
-  ;me = calval.responses['Electron'].mde
-  wi,win++,/wshow
-  ei = p_resp.e_inc
-  b = p_resp.bin_val
-  p_mde = p_resp.mde+.1
-  e_mde = e_resp.mde+.1
-  limit={xlog:1,zlog:1,xmargin:[20,20],zrange:[1e-4,1e4],yrange:[0,680],ystyle:1}
-  specplot,ei,b,e_mde/p_mde,limit=limit
-endif
-
-
-
+;func_recon = swfo_stis_response_correct_flux(t_rate_true,rate_plot=rate_plot,flux_plot=flux_plot)   ;,flux_plot=flux_plot)
 
 
 end

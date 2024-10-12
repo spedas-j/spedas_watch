@@ -1,7 +1,27 @@
 ;+
-;WIDGET Procedure:
+;Procedure:
 ;  socket_reader
 ;PURPOSE:
+; This tool is a generic multi purpose object that can read data from:
+;    1)  regular files
+;    2)  data streams (a socket)
+;    3)  array of bytes
+;  It will optionally record data to a file
+;    
+;  It is typically used by a higher level object which inherits the methods and possibly overload some of the methods.
+;  In particular the following object all call this object:
+;    cmblk_reader()   ; reads common block data (files or sockets) that typically contain all of the following data types
+;    ccsds_reader()   ; reads ccsds packet data (files or sockets)
+;    ccsds_frame_reader()  ; reads ccsds frame data  (still in development)
+;    json_reader()         ; reads json files
+;    gsemsg_reader()       ; reads SSL "silver box" (swemulator or swifulator output)
+;    ascii_reader()        ; ascii text files with each line of text ending with a newline character.
+;    
+;    It is very common for a hierarchy of nested streams to exist in a single file or stream. 
+;    
+;  
+;    
+;  
 ; Widget tool that opens a socket and reads streaming data from a server (host) and can save it to a file
 ; or send to a user specified routine. This tool runs in the background.
 ; Keywords:
@@ -12,8 +32,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-10 23:16:36 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32818 $
+; $LastChangedDate: 2024-10-11 10:32:34 -0700 (Fri, 11 Oct 2024) $
+; $LastChangedRevision: 32884 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -47,6 +67,12 @@ pro socket_reader::check_connection,nbytes
   endif
 
 end
+
+
+
+
+
+
 
 
 function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
@@ -162,6 +188,17 @@ function socket_reader::read_line,source,pos=pos ,eofile=eofile ;,nbytes=nb    ;
 end
 
 
+; this routine writes a common block (cmblk) header before each segment of data  (should be 32 bytes long!;;;;;
+pro socket_reader::write_header, buffer
+  cmblk = self.cmblk
+  cmblk.time = systime(1)
+  cmblk.psize = ulong(n_elements(buffer))  
+  self.cmblk.seqn++
+  
+  writeu,self.output_lun, cmblk
+
+end
+
 
 pro socket_reader::write ,buffer
 
@@ -180,6 +217,9 @@ pro socket_reader::write ,buffer
       self.next_filechange = self.file_timeres * ceil(self.time_received / self.file_timeres)
     endif
     if keyword_set(buffer) && self.output_lun gt 0 then begin
+      if self.add_cmblk_header then begin
+        self.write_header,buffer
+      endif
       writeu,self.output_lun, buffer
     endif    else flush,self.output_lun
   endif
@@ -189,10 +229,163 @@ end
 
 
 
+;+
+; :Description:
+;    Describe the procedure.
+;
+; :Params:
+;    source
+;
+;
+;
+; :Author: davin
+;-
+pro socket_reader::read,source
+
+  ;dwait = 10.
+
+  dict = self.source_dict
+  if dict.haskey('parent_dict') then parent_dict = dict.parent_dict
+
+
+  ;  if isa(parent_dict,'dictionary') &&  parent_dict.haskey('headerstr') then begin
+  ;    header = parent_dict.headerstr
+  ;    ;   dprint,dlevel=4,verbose=self.verbose,header.description,'  ',header.size
+  ;  endif else begin
+  ;    dprint,verbose=self.verbose,dlevel=4,'No headerstr'
+  ;    header = {time: !values.d_nan , gap:0 }
+  ;  endelse
+
+
+  if ~dict.haskey('fifo') then begin
+    dict.fifo = !null    ; this contains the unused bytes from a previous call
+    dict.flag = 0
+    ;self.verbose=3
+  endif
+
+
+  on_ioerror, nextfile
+  time = systime(1)
+  dict.time_received = time
+
+  msg = '' ;time_string(dict.time_received,tformat='hh:mm:ss.fff -',local=localtime)
+
+  nbytes = 0UL
+  ;sync_errors =0ul
+  total_bytes = 0L
+  endofdata = 0
+  while ~endofdata do begin
+
+    if dict.fifo eq !null then begin
+      dict.n2read = self.header_size
+      dict.headerstr = !null
+      dict.sync_errors = 0
+      dict.packet_is_complete = 0
+    endif
+    nb = dict.n2read
+
+    buf= self.read_nbytes(nb,source,pos=nbytes)
+    nbuf = n_elements(buf)
+
+    if nbuf eq 0 then begin
+      dprint,verbose=self.verbose,dlevel=4,'No more data'
+      break
+    endif
+
+    bytes_missing = nb - nbuf   ; the number of missing bytes in the read
+
+    dict.fifo = [dict.fifo,buf]
+    nfifo = n_elements(dict.fifo)
+
+    if bytes_missing ne 0 then begin
+      dict.n2read = bytes_missing
+      if ~isa(buf) then endofdata =1
+      continue
+    endif
+
+    if ~isa(dict.headerstr) then begin
+
+      dict.headerstr = self.header_struct(dict.fifo)
+      if ~isa(dict.headerstr) then    begin     ; invalid structure: Skip a byte and try again
+        dict.fifo = dict.fifo[1:*]
+        dict.n2read = 1
+        nb = 1
+        dict.sync_errors += 1
+        continue      ; read one byte at a time until sync is found
+      endif
+      dict.packet_is_complete = 0
+    endif
+
+    if ~dict.packet_is_complete then begin
+      nb = dict.headerstr.psize
+      if nb eq 0 then begin
+        dprint,verbose = self.verbose,dlevel=2,self.name+'; Packet length with zero length'
+        dict.fifo = !null
+      endif else begin
+        dict.packet_is_complete =1
+        dict.n2read = nb
+      endelse
+      continue            ; continue to read the rest of the packet
+    endif
+
+
+    if dict.sync_errors ne 0 then begin
+      dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(dict.sync_errors,2)+' sync errors';,dwait =4.
+    endif
+
+    ; if it reaches this point then a valid message header+payload has been read in
+
+    if self.save_data && isa(self.dyndata,'dynamicarray') then begin
+      self.dyndata.append,dict.headerstr
+    endif
+
+    self.handle,dict.fifo    ; process each packet
 
 
 
-pro socket_reader::read, buffer, source_dict=source_dict
+    if keyword_set(dict.flag) && debug(2,self.verbose,msg='status') then begin
+      dprint,verbose=self.verbose,dlevel=3,header
+      ;dprint,'gsehdr: ',n_elements(gsehdr)
+      ;hexprint,gsehdr
+      ;dprint,'payload: ',n_elements(payload)
+      ;hexprint,payload
+      dprint,'fifo: ', n_elements(dict.fifo)  ;,'   ',time_string(gsemsg.time)
+      hexprint,dict.fifo
+      dprint
+    endif
+
+    dict.fifo = !null
+
+  endwhile
+
+  if dict.sync_errors ne 0 then begin
+    dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(dict.sync_errors,1)+' sync errors at "'+time_string(dict.time_received)+'"'
+    ;printdat,source
+    ;hexprint,source
+  endif
+
+
+  if 0 then begin
+    nextfile:
+    dprint,!error_state.msg
+    dprint,'Skipping file'
+  endif
+
+  if nbytes ne 0 then msg += string(/print,nbytes,format='(i6 ," bytes: ")')  $
+  else msg+= ' No data available'
+
+  dprint,verbose=self.verbose,dlevel=3,msg
+  dict.msg = msg
+
+end
+
+
+
+
+
+
+
+pro socket_reader::read_old1, buffer, source_dict=source_dict
   ; Read data from stream until EOF is encountered or no more data is available on the stream
   ; if the proc flag is set then it will process the data
   ; if the output lun is non zero then it will save the data.
@@ -752,6 +945,10 @@ function socket_reader::init,name=name,title=title,ids=ids,host=host,port=port,f
   ;self.isasocket=1
   self.run_proc = isa(run_proc) ? run_proc : 1    ; default to not running proc
   self.dyndata = dynamicarray(name=name,tplot_tagnames=tplot_tagnames)
+  self.cmblk = {cmblk_header}
+  self.cmblk.sync =  0x434D4231
+  self.cmblk.time = systime(1)
+  self.cmblk.descid = byte(strmid(name,0,10))
 
 
   if ~keyword_set(no_widget) then begin
@@ -825,6 +1022,18 @@ END
 
 
 pro socket_reader__define
+
+  cmblk ={cmblk_header, $
+    sync: 0x434D4231 , $ ;  swap_endian(ulong(byte('CMB1'),0))  
+    psize: 0ul, $
+    time: !values.d_nan,  $
+    seqn: 0us,  $   ; 2 byte sequence counter
+    user: 0us,  $   ; 2 byte uint
+    source: 0b,$   ; byte stored as uint
+    type: 0b,  $   ; byte stored as uint
+    descid: bytarr(10)  }
+    
+
   dummy = {socket_reader, $
     inherits generic_object, $
     timer_id: 0u, $
@@ -854,10 +1063,15 @@ pro socket_reader__define
     sync_mask:  bytarr(4),  $
     sync_size:  0,  $
     ;buffer_ptr: ptr_new(),   $
+    parent_dict: obj_new(),   $
     source_dict: obj_new(),  $
     dyndata: obj_new(), $        ; dynamicarray object to save all the data in
-    apid: '',  $                 ; APID name used in common block
+    hdr_data: obj_new(), $       ; dynamicarray object to save header data
+    apid: '',  $         ; APID name used in common block
+    add_cmblk_header:0 ,  $
+    cmblk : cmblk, $
     name: '',  $
+    save_data: 0b ,  $            ; set this flag to save data
     nbytes: 0UL, $
     sum1_bytes: 0UL, $
     sum2_bytes: 0UL, $
