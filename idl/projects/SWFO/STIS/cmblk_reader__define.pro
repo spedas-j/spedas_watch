@@ -1,9 +1,11 @@
 ;+
 ;  cmblk_reader
 ;  This basic object is the entry point for defining and obtaining all data from common block files
+;  A description of this file format is available at:
+;  https://docs.google.com/presentation/d/1b5ooHfuHJsavys-BOUOOZohXeCzJC1M0MNaUlxM1tEg/edit?usp=sharing
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-11 10:32:34 -0700 (Fri, 11 Oct 2024) $
-; $LastChangedRevision: 32884 $
+; $LastChangedDate: 2024-10-15 08:12:13 -0700 (Tue, 15 Oct 2024) $
+; $LastChangedRevision: 32887 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2

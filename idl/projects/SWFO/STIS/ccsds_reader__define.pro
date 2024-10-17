@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
-; $LastChangedRevision: 32876 $
+; $LastChangedDate: 2024-10-15 08:12:13 -0700 (Tue, 15 Oct 2024) $
+; $LastChangedRevision: 32887 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
 
 
@@ -31,9 +31,12 @@ function ccsds_reader::header_struct,header
   if  (isa(sync) && (array_equal(sync,header[0:nsync-1] and self.sync_mask) eq 0)) then return,!null   ; Not a valid packet
   
 
-  strct = {  time:!values.d_nan, sync:header[0], apid:0u,  psize: 0u , type:0u ,valid:0, gap:0}
-  strct.apid  = (header[nsync+0] * 256U + header[nsync+1]) and 0x3FF 
+  strct = {  time:!values.d_nan, sync:header[0], apid:0u, seqn:0u, psize: 0u , frm_seqn:0ul ,valid:0, gap:0}
+  strct.apid  = (header[nsync+0] * 256U + header[nsync+1]) and 0x7FF 
+  strct.seqn  = (header[nsync+2] * 256u + header[nsync+3]) and 0x3FFF
   strct.psize = header[nsync+4] * 256u + header[nsync+5] + 1   ; size of payload  (6 bytes less than size of ccsds packet)
+  
+  strct.frm_seqn = self.last_frm_seqn
 
  ; if isa(sync) && header[0] eq 0x3b then begin    ; special case for SWFO
  ;   strct.apid = strct.apid or 0x8000         ; turn on highest order bit to segregate different apid
@@ -192,8 +195,15 @@ pro ccsds_reader::handle,buffer
     hexprint,buffer
     dprint
   endif
+  
 
   swfo_ccsds_spkt_handler,buffer[self.sync_size:*],source_dict=self.source_dict         ; Process the complete packet
+
+  headerstr = self.source_dict.headerstr
+  if self.save_data then begin
+    self.dyndata.append, headerstr
+  endif
+
 
 end
 
@@ -232,7 +242,8 @@ end
 
 PRO ccsds_reader__define
   void = {ccsds_reader, $
-    inherits cmblk_reader, $    ; superclass
+    inherits socket_reader, $    ; superclass
+    last_frm_seqn: 0ul,  $            ; if the parent ccsds frame exists then this will contain the last frame seq number
     decom_procedure: '',  $
     minsize: 0UL , $
     maxsize: 0UL  $

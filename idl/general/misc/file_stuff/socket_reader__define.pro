@@ -32,8 +32,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-11 10:32:34 -0700 (Fri, 11 Oct 2024) $
-; $LastChangedRevision: 32884 $
+; $LastChangedDate: 2024-10-15 08:12:13 -0700 (Tue, 15 Oct 2024) $
+; $LastChangedRevision: 32887 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -335,15 +335,12 @@ pro socket_reader::read,source
 
     ; if it reaches this point then a valid message header+payload has been read in
 
-    if self.save_data && isa(self.dyndata,'dynamicarray') then begin
-      self.dyndata.append,dict.headerstr
-    endif
 
     self.handle,dict.fifo    ; process each packet
 
 
 
-    if keyword_set(dict.flag) && debug(2,self.verbose,msg='status') then begin
+    if dict.haskey('flag') && keyword_set(dict.flag) && debug(2,self.verbose,msg='status') then begin
       dprint,verbose=self.verbose,dlevel=3,header
       ;dprint,'gsehdr: ',n_elements(gsehdr)
       ;hexprint,gsehdr
@@ -379,6 +376,32 @@ pro socket_reader::read,source
 
 end
 
+
+
+
+
+pro socket_reader::handle, buffer    ; This routine is typically overloaded by another object
+
+  dprint,dlevel=4,verbose=self.verbose,n_elements(buffer),' Bytes for Handler: "',self.name,'"'
+  self.nbytes += n_elements(buffer)
+  self.npkts  += 1
+  
+  if self.save_data && isa(self.dyndata,'dynamicarray') then begin
+    self.dyndata.append,self.source_dict.headerstr
+  endif
+
+
+  if self.run_proc then begin
+    if self.procedure_name then begin
+      call_procedure,self.procedure_name,buffer ,source_dict=self.source_dict
+    endif else begin
+      if debug(3,self.verbose,msg=self.name+' '+self.msg) then begin
+        if debug(3,self.verbose) then      hexprint,buffer
+      endif
+    endelse
+  endif
+
+end
 
 
 
@@ -494,26 +517,6 @@ end
 
 
 
-pro socket_reader::handle, buffer, source_dict=source_dict
-
-  dprint,dlevel=4,verbose=self.verbose,n_elements(buffer),' Bytes for Handler: "',self.name,'"'
-  self.nbytes += n_elements(buffer)
-  self.npkts  += 1
-
-  if self.run_proc then begin
-    if self.procedure_name then begin
-      call_procedure,self.procedure_name,buffer ,source_dict=self.source_dict
-    endif else begin
-      if debug(3,self.verbose,msg=self.name+' '+self.msg) then begin
-        if debug(3,self.verbose) then      hexprint,buffer
-      endif
-    endelse
-  endif
-
-end
-
-
-
 
 ;pro socket_reader::process_data,buffer
 ;  if self.run_proc then begin
@@ -537,10 +540,11 @@ pro socket_reader::GetProperty,name=name,verbose=verbose,dyndata=dyndata,time_re
   if arg_present(verbose) then verbose=self.verbose
   if arg_present(time_received) then time_received=self.time_received
   if arg_present(source_dict) then source_dict=self.source_dict
+  if arg_present(parent_dict) then parent_dict=self.parent_dict
 end
 
 pro socket_reader::help , item
-  if keyword_set(self.base) then begin
+  if keyword_set(self.base) and widget_info(self.base,/valid_id) then begin
     msg = string('Base ID is: ',self.base)
     output_text_id = widget_info(self.base,find_by_uname='OUTPUT_TEXT')
     widget_control, output_text_id, set_value=msg
@@ -918,6 +922,7 @@ function socket_reader::init,name=name,title=title,ids=ids,host=host,port=port,f
   tplot_tagnames=tplot_tagnames, $
   ;apid = apid,  $
   eol = eol,  $
+  save_data = save_data,  $
   run_proc=run_proc,directory=directory, $
   no_widget=no_widget,verbose=verbose
 
@@ -945,6 +950,7 @@ function socket_reader::init,name=name,title=title,ids=ids,host=host,port=port,f
   ;self.isasocket=1
   self.run_proc = isa(run_proc) ? run_proc : 1    ; default to not running proc
   self.dyndata = dynamicarray(name=name,tplot_tagnames=tplot_tagnames)
+  if isa(save_data) then self.save_data = save_data
   self.cmblk = {cmblk_header}
   self.cmblk.sync =  0x434D4231
   self.cmblk.time = systime(1)
@@ -1063,6 +1069,7 @@ pro socket_reader__define
     sync_mask:  bytarr(4),  $
     sync_size:  0,  $
     ;buffer_ptr: ptr_new(),   $
+    parent_reader: obj_new() , $
     parent_dict: obj_new(),   $
     source_dict: obj_new(),  $
     dyndata: obj_new(), $        ; dynamicarray object to save all the data in

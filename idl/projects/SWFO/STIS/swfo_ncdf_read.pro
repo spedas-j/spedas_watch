@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
-; $LastChangedRevision: 32876 $
+; $LastChangedDate: 2024-10-15 08:12:13 -0700 (Tue, 15 Oct 2024) $
+; $LastChangedRevision: 32887 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_read.pro $
 ; $ID: $
 
@@ -13,7 +13,7 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
     dat_all = dynamicarray()
     for i=0,nfiles-1 do begin
       filename = filenames[i]
-      dat_i = swfo_ncdf_read(filename=filename,def_values=def_values)
+      dat_i = swfo_ncdf_read(filename=filename,def_values=def_values,force_recdim=force_recdim)
       dat_all.append,dat_i
     endfor
     return,dat_all.array
@@ -32,6 +32,11 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
   if isa(force_recdim) then inq.recdim = force_recdim   ; cluge to fix annoying definition of swfo L0 files
   
   ;printdat,inq
+  if inq.ndims eq 0 then begin
+    ncdf_close,id
+    dprint,'Invalid dimensions in file: ',filename
+    return,!null
+  endif
   dim_sizes = replicate(-1L,inq.ndims)
   dim_names = replicate("???",inq.ndims)
   for did=0,inq.ndims-1 do begin

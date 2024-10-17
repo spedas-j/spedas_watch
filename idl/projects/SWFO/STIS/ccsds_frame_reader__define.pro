@@ -30,8 +30,8 @@ function ccsds_frame_reader::header_struct,header
   if n_elements(header) lt self.header_size then return, !null                    ; Not enough bytes in packet header
   if  (isa(sync) && (array_equal(sync,header[0:nsync-1] and self.sync_mask) eq 0)) then return,!null   ; Not a valid packet
   
-
-  strct = {  time:!values.d_nan, scid:0u, vcid:0b,  psize: 0u , replay:0u, SEQN:0UL, sigfield:0b  , offset:0u, valid:0, gap:0}
+  strct = {  time:!values.d_nan, scid:0u, vcid:0b,  psize: 0u , replay:0u, SEQN:0UL, seqn_delta:0L, sigfield:0b  , offset:0u, hashcode:0uL, valid:1, gap:0}
+  
   temp = (header[nsync+0] * 256U + header[nsync+1])
   strct.scid  = ishft(temp,6)  and 0xFF 
   strct.vcid  = temp and 0x3F
@@ -40,6 +40,7 @@ function ccsds_frame_reader::header_struct,header
   strct.offset = header[nsync+6]*256u + header[nsync+7]
   
   strct.psize = self.frame_size - self.header_size   ; size of payload  (6 bytes less than size of ccsds packet)
+  strct.hashcode = header.hashcode()
 
  ; if isa(sync) && header[0] eq 0x3b then begin    ; special case for SWFO
  ;   strct.apid = strct.apid or 0x8000         ; turn on highest order bit to segregate different apid
@@ -55,184 +56,110 @@ end
 
 
 
+pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds frame  
 
-pro ccsds_frame_reader::read_old,source   ;,source_dict=parent_dict
-
-  ;dwait = 10.
-  message,'Obsolete'
-  
-  dict = self.source_dict
-  if dict.haskey('parent_dict') then parent_dict = dict.parent_dict
-
-
-  if isa(parent_dict,'dictionary') &&  parent_dict.haskey('headerstr') then begin
-    header = parent_dict.headerstr
-    ;   dprint,dlevel=4,verbose=self.verbose,header.description,'  ',header.size
-  endif else begin
-    dprint,verbose=self.verbose,dlevel=4,'No headerstr'
-    header = {time: !values.d_nan , gap:0 }
-  endelse
-
-  
-  if ~dict.haskey('fifo') then begin
-    dict.fifo = !null    ; this contains the unused bytes from a previous call
-    dict.flag = 0
-    ;self.verbose=3
-  endif
-
-
-  on_ioerror, nextfile
-  time = systime(1)
-  dict.time_received = time
-
-  msg = '' ;time_string(dict.time_received,tformat='hh:mm:ss.fff -',local=localtime)
-
-  nbytes = 0UL
-  sync_errors =0ul
-  total_bytes = 0L
-  endofdata = 0
-  while ~endofdata do begin
-
-    if dict.fifo eq !null then begin
-      dict.n2read = self.header_size
-      dict.headerstr = !null
-      dict.packet_is_valid = 0
-    endif
-    nb = dict.n2read
-
-    buf= self.read_nbytes(nb,source,pos=nbytes)
-    nbuf = n_elements(buf)
-
-    if nbuf eq 0 then begin
-      dprint,verbose=self.verbose,dlevel=4,'No more data'
-      break
-    endif
-
-    bytes_missing = nb - nbuf   ; the number of missing bytes in the read
-
-    dict.fifo = [dict.fifo,buf]
-    nfifo = n_elements(dict.fifo)
-
-    if bytes_missing ne 0 then begin
-      dict.n2read = bytes_missing
-      if ~isa(buf) then endofdata =1
-      continue
-    endif
-
-    if ~isa(dict.headerstr) then begin
-           
-      dict.headerstr = self.header_struct(dict.fifo)
-      if ~isa(dict.headerstr) then    begin     ; invalid structure: Skip a byte and try again      
-        dict.fifo = dict.fifo[1:*]
-        dict.n2read = 1
-        nb = 1
-        sync_errors += 1
-        continue      ; read one byte at a time until sync is found
-      endif
-      dict.packet_is_valid = 0
-    endif
-
-    if ~dict.packet_is_valid then begin
-      nb = dict.headerstr.psize
-      if nb eq 0 then begin
-        dprint,verbose = self.verbose,dlevel=2,self.name+'; Packet length with zero length'
-        dict.fifo = !null
-      endif else begin
-        dict.packet_is_valid =1
-        dict.n2read = nb
-      endelse
-      continue            ; continue to read the rest of the packet
-    endif
-
-
-    if sync_errors ne 0 then begin
-      dprint,verbose=self.verbose,dlevel=2,sync_errors,' GSEMSG sync errors',dwait =4.
-    endif
-
-    ; if it reaches this point then a valid message header+payload has been read in
-
-    self.handle,dict.fifo    ; process each packet
-
-    if keyword_set(dict.flag) && debug(2,self.verbose,msg='status') then begin
-      dprint,verbose=self.verbose,dlevel=3,header
-      ;dprint,'gsehdr: ',n_elements(gsehdr)
-      ;hexprint,gsehdr
-      ;dprint,'payload: ',n_elements(payload)
-      ;hexprint,payload
-      dprint,'fifo: ', n_elements(dict.fifo)  ;,'   ',time_string(gsemsg.time)
-      hexprint,dict.fifo
-      dprint
-    endif
-
-    dict.fifo = !null
-
-  endwhile
-
-  if sync_errors ne 0 then begin
-    dprint,verbose=self.verbose,dlevel=2,self.name+': '+strtrim(sync_errors,1)+' sync errors at "'+time_string(dict.time_received)+'"'
-    ;printdat,source
-    ;hexprint,source
-  endif
-
-
-  if 0 then begin
-    nextfile:
-    dprint,!error_state.msg
-    dprint,'Skipping file'
-  endif
-
-  if nbytes ne 0 then msg += string(/print,nbytes,format='(i6 ," bytes: ")')  $
-  else msg+= ' No data available'
-
-  dprint,verbose=self.verbose,dlevel=3,msg
-  dict.msg = msg
-
-end
-
-
-
-pro ccsds_frame_reader::handle,buffer
-
-  if debug(4,self.verbose) then begin
+  if debug(5,self.verbose) then begin
     dprint,self.name
-    hexprint,buffer
+    hexprint,frame
     dprint
   endif
-  payload = buffer[self.header_size : -5]    ; skip header and leave off the last 4 bytes.  Not clear what they are.
+  payload = frame[self.header_size : -5]    ; skip header and leave off the last 4 bytes.  Not clear what they are.
+  
+  frame_headerstr = self.source_dict.headerstr
+  seqid = frame_headerstr.vcid + 256u * (frame[-2] and 6)
+  
+  if ~self.handlers.haskey(seqid) then begin
+    dprint,'Creating handler for seqid: ',seqid
+    self.handlers[seqid] = ccsds_reader(mission=self.mission,/no_widget,sync_pattern=!null,/save_data)
+    cpkt_rdr = self.handlers[seqid]
+    cpkt_rdr.source_dict.fifo = !null
+    cpkt_rdr.source_dict.headerstr = !null
+    cpkt_rdr.source_dict.last_frm_seqn = 0
+    cpkt_rdr.source_dict.dejavu_cntr = 0ul
+    cpkt_rdr.source_dict.dejavu_hashcode = ulonarr(1000)   
+  endif
+  
+  cpkt_rdr = self.handlers[seqid]
+  ;cpkt_rdr = self.ccsds_packet_reader
   
   
-  headerstr = self.source_dict.headerstr
-  offset = headerstr.offset
-  cpkt_rdr = self.ccsds_packet_reader
-  if cpkt_rdr.source_dict.haskey('FIFO') then begin
-    length_fifo  =  n_elements(cpkt_rdr.source_dict.fifo)  
+;  if ~cpkt_rdr.source_dict.haskey('FIFO') then begin
+;    cpkt_rdr.source_dict.fifo = !null
+;  endif
+;  if ~cpkt_rdr.source_dict.haskey('headerstr') then begin
+;    cpkt_rdr.source_dict.headerstr = !null
+;  endif
+;  if ~cpkt_rdr.source_dict.haskey('last_frm_seqn') then begin
+;    cpkt_rdr.source_dict.last_frm_seqn = 0
+;  endif
+  
+  
+  
+
+;  if (seqn_delta gt 0x7fffff || seqn_delta le 0) && last_frm_seqn ne -1 then begin  ; modify this test to allow the starting seqn to be large
+;    dprint,'Skipping old frame: ',seqn_delta,frm_seqn,dwait= 1.
+;    return
+;  endif
+  frm_seqn = frame_headerstr.seqn
+
+  hcode = frame.hashcode()
+  dict = cpkt_rdr.source_dict  
+  ncodes = n_elements(dict.dejavu_hashcode)
+  w_hcode = where(hcode eq dict.dejavu_hashcode,/null)
+  dprint,dlevel=4,verbose=self.verbose,'Frame: ',frm_seqn, seqid, hcode,'  ',  isa(w_hcode) ?  w_hcode[0] : long( -1) , '     ', frame[-4:*]
+  
+  if isa(w_hcode) then begin
+    disp = (dict.dejavu_cntr - ulong(w_hcode[0]) ) mod ncodes
+    dprint,'Repeated Frame is being skipped ',frm_seqn,disp,verbose = self.verbose,dlevel=3
+    frame_headerstr.valid = 0
+  endif else begin
+    dejavu_hashcodes = dict.dejavu_hashcode
+    dejavu_hashcodes[dict.dejavu_cntr++] = hcode
+    dict.dejavu_hashcode  = dejavu_hashcodes
+    dict.dejavu_cntr = dict.dejavu_cntr mod ncodes
+
+    last_frm_seqn = cpkt_rdr.source_dict.last_frm_seqn
+    seqn_delta = (long(frm_seqn) - last_frm_seqn) ;and 0xFFFFFFu
+    cpkt_rdr.source_dict.last_frm_seqn = frm_seqn
+
+    if seqn_delta ne 1 then begin
+      dprint,'Jump ahead by ' ,seqn_delta,frm_seqn,verbose = self.verbose,dlevel=2,'                    ', frame[-4:*]
+      frame_headerstr.gap = 1
+      cpkt_rdr.source_dict.FIFO = !null
+    endif
+    offset = frame_headerstr.offset
+
+    length_fifo  =  n_elements(cpkt_rdr.source_dict.fifo)
     if isa(cpkt_rdr.source_dict.headerstr) then begin
       psize =  cpkt_rdr.source_dict.headerstr.psize
     endif
-  endif else begin
-    length_fifo = 0
-  endelse
-  
-  
-  if length_fifo eq 0  then begin   ; First time there won't be a pre-existing FIFO;  skip the beginning bytes and start at offset
-    ;cpkt_rdr.read, payload[offset:*]
-    start = offset
-  endif else begin
-    if offset eq 0x7ff then begin
-      dprint,dlevel=3,verbose=self.verbose, 'No start packet'
-      start = 0
-    endif else begin
-      if keyword_set(psize) && psize + 6 ne length_fifo+offset then begin
-        dprint,dlevel=2,verbose=self.verbose, 'concatenate: ',psize+6,length_fifo,offset
-        start = offset         ; start new sequence
-        cpkt_rdr.source_dict.fifo=!null
-        cpkt_rdr.source_dict.headerstr=!null
-      endif else start = 0
-    endelse    
-  endelse
 
-  cpkt_rdr.read,   payload[start:*]     
+    if length_fifo eq 0  then begin   ; First time there won't be a pre-existing FIFO;  skip the beginning bytes and start at offset
+      ;cpkt_rdr.read, payload[offset:*]
+      start = offset
+    endif else begin
+      if offset eq 0x7ff then begin
+        dprint,dlevel=3,verbose=self.verbose, 'No start packet ',frm_seqn
+        start = 0
+      endif else begin
+        if keyword_set(psize) && psize + 6 ne length_fifo+offset then begin
+          dprint,dlevel=1,verbose=self.verbose, 'Offset error: ',psize+6,length_fifo,offset
+          start = offset         ; start new sequence
+          cpkt_rdr.source_dict.fifo=!null
+          cpkt_rdr.source_dict.headerstr=!null
+        endif else start = 0
+      endelse
+    endelse
+
+    if start lt n_elements(payload) then begin
+      cpkt_rdr.read,   payload[start:*]         
+    endif else begin
+      dprint,'Skipping Frame ',frm_seqn  ,dlevel=2,verbose=self.verbose
+    endelse
+    
+  endelse
   
+  if self.save_data then  self.dyndata.append, frame_headerstr
   
 end
 
@@ -244,7 +171,8 @@ function ccsds_frame_reader::init,sync_pattern=sync_pattern,sync_mask=sync_mask,
   ret=self.socket_reader::init(_extra=ex)
   if ret eq 0 then return,0
 
-  if isa(mission,'string') && mission eq 'SWFO' then begin
+  if isa(mission,'string') then self.mission = mission
+  if self.mission eq 'SWFO' then begin
     if ~isa(sync_pattern) then sync_pattern = ['1a'xb,  'cf'xb ,'fc'xb, '1d'xb ]
     ;decom_procedure = 'swfo_ccsds_spkt_handler'
   endif
@@ -263,7 +191,8 @@ function ccsds_frame_reader::init,sync_pattern=sync_pattern,sync_mask=sync_mask,
   self.header_size = self.sync_size + 8
   self.frame_size = 1024
   self.save_data = 1
-  self.ccsds_packet_reader = ccsds_reader(mission=mission,/no_widget,sync_pattern=!null)
+  self.handlers = orderedhash()
+  ;self.ccsds_packet_reader = ccsds_reader(mission=mission,/no_widget,sync_pattern=!null,/save_data)
 
   return,1
 end
@@ -274,10 +203,14 @@ end
 
 PRO ccsds_frame_reader__define
   void = {ccsds_frame_reader, $
-    inherits cmblk_reader, $    ; superclass
+    inherits socket_reader, $    ; superclass
     frame_size: 0uL, $
-    decom_procedure: '',  $
-    ccsds_packet_reader: obj_new(),  $
+    ;decom_procedure: '',  $
+    mission: '',  $
+    handlers: obj_new() , $
+    ;ccsds_packet_reader: obj_new(),  $
+    ;ccsds_packet_reader2: obj_new(),  $
+    ;last_frame_seqn: 0ul,  $
     minsize: 0UL , $
     maxsize: 0UL  $
   }
