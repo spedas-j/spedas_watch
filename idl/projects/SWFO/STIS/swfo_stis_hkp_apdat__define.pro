@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
-; $LastChangedRevision: 32498 $
+; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
+; $LastChangedRevision: 32894 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hkp_apdat__define.pro $
 
 
@@ -88,7 +88,10 @@ function swfo_stis_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,
     adc_baselines:            swfo_data_select(ccsds_data,(d+dig_size+[10:15]*2)*8,16,/signed)*flt,$
     adc_voltages:             swfo_data_select(ccsds_data,(d+dig_size+[2:6]*2)*8,16,/signed)*flt*coeff-voltages,$
     adc_temps:                swfo_therm_temp(swfo_data_select(ccsds_data,(d+dig_size+[1,8,9]*2)*8,16,/signed),param=temp_par_16bit),$
-    mux_all:                  swfo_data_select(ccsds_data,(d+dig_size+[0:15]*2)*8,16,/signed)*flt}
+    mux_all:                  swfo_data_select(ccsds_data,(d+dig_size+[0:15]*2)*8,16,/signed)*flt, $
+    replay: 0b, $
+    valid: 1b, $
+    gap: 0b}
   endif
 
 
@@ -154,8 +157,7 @@ function swfo_stis_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,
         sci_mode_bits:            swfo_data_select(ccsds_data,(d+61*2)*8+14,2),$
         timeouts_2us:             swfo_data_select(ccsds_data,(d+62*2  )*8+[0:2]*4,4),$
         sci_resolution:           swfo_data_select(ccsds_data,(d+62*2)*8+12,4),$
-        sci_translate:            swfo_data_select(ccsds_data,(d+63*2  )*8,16),$
-        gap:ccsds.gap }
+        sci_translate:            swfo_data_select(ccsds_data,(d+63*2  )*8,16)      }
       valid_rates_pps=str2.valid_rates/float(str2.pps_period_100us)*1e4
       str3={valid_rates_pps:valid_rates_pps,valid_rates_total:total(str2.valid_rates)}
       str=create_struct(str1,str2,str3,ana_hkp)

@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32817 $
+; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
+; $LastChangedRevision: 32894 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_decom.pro $
 
 ;
@@ -151,15 +151,18 @@ function swfo_ccsds_decom,buffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,o
   endif
   if isa(source_dict) then begin
     if source_dict.haskey('source_info') then ccsds.source_hash = source_dict.source_info.input_sourcehash
-    if source_dict.haskey('ptp_header') && isa(source_dict.ptp_header) then begin
-      ptp_header = source_dict.ptp_header
-      if isa(ptp_header) && ptp_header.ptp_size ne ccsds.pkt_size + 17 then begin
-        dprint,dlevel=2,format='("APID: ",Z03," ccsds PKT size: ",i5," does not match ptp size:",i5,a)',ccsds.apid,ccsds.pkt_size+17, ptp_header.ptp_size,' '+time_string(ccsds.time)
-      endif
-      if isa(source_dict.ptp_header) then ccsds.ptp_time = ptp_header.ptp_time
-    endif else begin
-      source_dict.ptp_header2 ={ ptp_time:systime(1), ptp_scid: 0, ptp_source:0, ptp_spare:0, ptp_path:0, ptp_size: 17 + ccsds.pkt_size }
-    endelse
+    if 0 then begin
+      if source_dict.haskey('ptp_header') && isa(source_dict.ptp_header) then begin
+        ptp_header = source_dict.ptp_header
+        if isa(ptp_header) && ptp_header.ptp_size ne ccsds.pkt_size + 17 then begin
+          dprint,dlevel=2,format='("APID: ",Z03," ccsds PKT size: ",i5," does not match ptp size:",i5,a)',ccsds.apid,ccsds.pkt_size+17, ptp_header.ptp_size,' '+time_string(ccsds.time)
+        endif
+        if isa(source_dict.ptp_header) then ccsds.ptp_time = ptp_header.ptp_time
+      endif else begin
+        source_dict.ptp_header2 ={ ptp_time:systime(1), ptp_scid: 0, ptp_source:0, ptp_spare:0, ptp_path:0, ptp_size: 17 + ccsds.pkt_size }
+      endelse
+      
+    endif
 
   endif
 

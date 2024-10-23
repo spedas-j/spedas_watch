@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-15 08:12:13 -0700 (Tue, 15 Oct 2024) $
-; $LastChangedRevision: 32887 $
+; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
+; $LastChangedRevision: 32894 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
 
 
@@ -190,7 +190,7 @@ end
 
 pro ccsds_reader::handle,buffer
 
-  if debug(3,self.verbose) then begin
+  if debug(4,self.verbose) then begin
     dprint,self.name
     hexprint,buffer
     dprint

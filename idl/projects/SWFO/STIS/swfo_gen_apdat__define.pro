@@ -2,8 +2,8 @@
 ;  swfo_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
-; $LastChangedRevision: 32876 $
+; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
+; $LastChangedRevision: 32894 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -104,8 +104,14 @@ end
 function swfo_gen_apdat::info,header=header
   ;rs =string(format="(Z03,'x ',a-14, i8,i8 ,i12,i3,i3,i8,' ',a-14,a-36,' ',a-36, ' ',a-20,a)",self.apid,self.name,self.npkts,self.lost_pkts, $
   ;    self.nbytes,self.save_flag,self.rt_flag,self.data.size,self.data.typename,string(/print,self),self.routine,self.tname,self.save_tags)
-  fmt ="(Z03,'x ',a-14, i8,i6,i8 ,i12,i3,i3,i3,i8,' ',a-14,a-26,' ',a-20,'<',a,'>','     ',a)"
-  hfmt="( a4,' ' ,a-14, a8,a6,a8 ,a12,a3,a3,a3,a8,' ',a-14,a-26,' ',a-20,'<',a,'>','     ',a)"
+  if 0 then begin
+    fmt ="(Z03,'x ',a-14, i8,i6,i8 ,i12,i3,i3,i3,i8,' ',a-14,a-26,' ',a-20,'<',a,'>','     ',a)"
+    hfmt="( a4,' ' ,a-14, a8,a6,a8 ,a12,a3,a3,a3,a8,' ',a-14,a-26,' ',a-20,'<',a,'>','     ',a)"    
+  endif else begin
+    fmt ="(i4,' ',a-14, i8,i6,i8 ,i12,i3,i3,i3,i8,' ',a-14,a-26,' ',a-20,'<',a,'>','     ',a)"
+    hfmt="( a4,' ' ,a-14, a8,a6,a8 ,a12,a3,a3,a3,a8,' ',a-14,a-26,' ',a-20,'<',a,'>','     ',a)"
+    
+  endelse
   ;  if keyword_set(header) then rs=string(format=hfmt,'APID','Name','npkts','lost','nbytes','save','rtf','size','type','objname','routine','tname','tags')
   rs =string(format=fmt,self.apid,self.name,self.npkts,self.ngaps,self.lost_pkts, $
     self.nbytes,self.save_flag,self.rt_flag,self.dlevel,self.data.size,self.data.typestring,typename(self),self.tname,self.ttags,self.routine)
@@ -299,8 +305,8 @@ function swfo_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 32876 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 32894 $'
 
     return,sw_hash
 end
@@ -337,8 +343,8 @@ function swfo_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32876 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32894 $'
 
   return,global_att
 end
