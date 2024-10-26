@@ -20,8 +20,8 @@
 ;       Yuki Harada on 2014-07-02
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-05-29 23:13:05 -0700 (Tue, 29 May 2018) $
-; $LastChangedRevision: 25297 $
+; $LastChangedDate: 2024-10-24 22:38:48 -0700 (Thu, 24 Oct 2024) $
+; $LastChangedRevision: 32899 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/pace/kgy_ima_get3d.pro $
 ;-
 
@@ -550,6 +550,9 @@ dat = { $
       gfactor:gfactor, $
       eff:eff, $
       bins:bins, $
+
+      enesq:enesq, $
+      polsq:polsq, $
 
       denergy:denergy, $
       dtheta:dtheta, $

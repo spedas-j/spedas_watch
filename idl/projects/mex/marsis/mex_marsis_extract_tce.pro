@@ -15,7 +15,7 @@
 ; $URL: $
 ;-
 
-pro mex_marsis_extract_tce, wfilename=wfilename
+pro mex_marsis_extract_tce, wfilename=wfilename,_extra=_ex
 
 dprint,'============= Select a time range ============='
 ctime,tr,np=2
@@ -40,7 +40,7 @@ for it=0,nwt-1 do begin
    dprint,'============= (2) You can do the procedure (1) many times ============='
    dprint,'============= (3) Right-click once (1)-(2) is done ============='
    dprint,'============= (4) Repeat (1)-(3) for the next ionogram ============='
-   mex_marsis_snap,time=time_string(times[wt[it]]),win=Iwin,/keep
+   mex_marsis_snap,time=time_string(times[wt[it]]),win=Iwin,/keep,_extra=_ex
    y = !values.f_nan
    mex_marsis_crosshairs2,x,y
    printf,unit,time_string(times[wt[it]],tf='YYYYMMDD')+', '+time_string(times[wt[it]],tf='hhmmss.fff')+', ' $

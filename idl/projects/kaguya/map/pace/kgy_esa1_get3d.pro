@@ -18,8 +18,8 @@
 ;       Yuki Harada on 2014-07-01
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2018-05-29 23:13:05 -0700 (Tue, 29 May 2018) $
-; $LastChangedRevision: 25297 $
+; $LastChangedDate: 2024-10-24 22:38:48 -0700 (Thu, 24 Oct 2024) $
+; $LastChangedRevision: 32899 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/pace/kgy_esa1_get3d.pro $
 ;-
 
@@ -340,6 +340,8 @@ case esa1_header_arr[i].type of
       tmp_sft = count and '1f'x
       decode_cnt = ishft( tmp_cnt , tmp_sft )
       data = float(decode_cnt)
+      enesq = -1
+      polsq = -1
    end
 endcase
 
@@ -390,6 +392,9 @@ dat = { $
       gfactor:gfactor, $
       eff:eff, $
       bins:bins, $
+
+      enesq:enesq, $
+      polsq:polsq, $
 
       denergy:denergy, $
       dtheta:dtheta, $
