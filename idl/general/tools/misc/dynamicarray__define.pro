@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
-; $LastChangedRevision: 32519 $
+; $LastChangedDate: 2024-10-26 11:29:22 -0700 (Sat, 26 Oct 2024) $
+; $LastChangedRevision: 32903 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -296,9 +296,9 @@ end
 
 
 
-pro DynamicArray::sort   , tagname       ; Use with caution
+pro DynamicArray::sort   , tagname    , uniq=uniq   ; Use with caution
   nsize = self.size
-  if isa(tagname,/string) && isa(*self.ptr_array,/struct) then begin
+  if isa(tagname,/string) && isa(*self.ptr_array,'struct') then begin
     if strlowcase(tagname) ne 'time' then message,'Can only sort on time for now.'
 
     ;v = ((*self.ptr_array)[0: self.size-1] ).time
@@ -308,8 +308,14 @@ pro DynamicArray::sort   , tagname       ; Use with caution
   endif else begin
     v = (*self.ptr_array)[0: nsize-1] 
   endelse
-  s= sort( v.time )
+  s= sort( v )
   (*self.ptr_array)[0:nsize-1]  = (*self.ptr_array)[s]
+  if keyword_set(uniq) then begin
+    u = uniq( ((*self.ptr_array)[0:nsize-1]).time )
+    nusize = n_elements(u)
+    self.size = nusize
+    (*self.ptr_array)[0:nusize-1]  = (*self.ptr_array)[u]    
+  endif
 
 
 end

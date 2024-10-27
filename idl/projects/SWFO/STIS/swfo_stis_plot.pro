@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
-; $LastChangedRevision: 32876 $
+; $LastChangedDate: 2024-10-26 11:32:41 -0700 (Sat, 26 Oct 2024) $
+; $LastChangedRevision: 32906 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -194,7 +194,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         case strupcase(param.lim.units) of
           "EFLUX": begin 
             scale = x 
-            param.lim.ytitle = 'Energy Flux (#/cm2/ster/s)'
+            param.lim.ytitle = 'Energy Flux (keV/cm2/ster/s/keV)'
             end
           'ERATE': begin
             scale = 1
@@ -279,18 +279,19 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
       oplot, xv, flux_min * scale
       oplot, xv, flux_max * scale
       
-      oplot, 40.*[1.,1.],[.1,1e6],linestyle=2
+      oplot, 40.*[1.,1.],[30,1e6],linestyle=2
+      oplot, 2000.*[1.,1.],[3,1e5],linestyle=2
       
       
-      if 0 then begin
+      if 1 then begin
         ;stop
         w = where(x ge 30 and x lt 2000)
         flux_min = 2.48e2 * x ^ (-1.6)
         eflux_min  = x * flux_min
-        dt = 30.
+        dt = 300.
         counts = flux_min * .2 * dt * dx
         flux = counts /.2 / dt / dx
-        dflux = sqrt(counts+1.) / .2/dt/dx
+        dflux = sqrt(counts+1.) / .2/dt/dx  
         oplot,x,flux * x, color = 2,psym=10
         oplot,x,(flux+dflux) * x, color = 2,psym=10
         oplot,x,(flux-dflux) * x, color = 2,psym=10
@@ -298,15 +299,20 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         ;print,max(dflux/flux)
         ;print,dx/x
         ;print,x
-        ;print,dx
+        ;print,dx'
+        ;w = where(finite(x))
+        printdat,x
+        dprint, 'Energy',float(x[w])
+        
+        dprint, 'Min ',float(dflux[w]/flux[w])
 
       endif
       
-      if 0 then begin
-        w = where(x ge 10 and x lt 8000)
+      if 1 then begin
+        w = where(x ge 30 and x lt 2000)
         flux_max = 1.01e7 * x ^ (-1.6)
         eflux_max  = x * flux_max
-        dt = 2.
+        dt = 300.
         geom = .002
         counts = flux_max * geom * dt * dx
         flux = counts /geom / dt / dx
@@ -317,7 +323,9 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         ;print,total(counts[w])/dt
         ;print,max(dflux/flux)
         ;print,dx/x
-        
+        ;w = where(finite(x))
+        dprint, 'Energy',float(x[w])
+        dprint, 'Max ',float(dflux[w]/flux[w])
       endif
       
       

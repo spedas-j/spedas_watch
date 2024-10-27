@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
-; $LastChangedRevision: 32894 $
+; $LastChangedDate: 2024-10-26 11:32:41 -0700 (Sat, 26 Oct 2024) $
+; $LastChangedRevision: 32906 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
 
 
@@ -197,7 +197,9 @@ pro ccsds_reader::handle,buffer
   endif
   
 
-  swfo_ccsds_spkt_handler,buffer[self.sync_size:*],source_dict=self.source_dict         ; Process the complete packet
+  if self.run_proc then begin
+    swfo_ccsds_spkt_handler,buffer[self.sync_size:*],source_dict=self.source_dict         ; Process the complete packet
+  endif
 
   headerstr = self.source_dict.headerstr
   if self.save_data then begin

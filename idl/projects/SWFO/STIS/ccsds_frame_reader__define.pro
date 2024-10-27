@@ -91,7 +91,9 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds fr
   
   if ~self.handlers.haskey(seqid) then begin
     dprint,'Creating handler for seqid: ',seqid
-    self.handlers[seqid] = ccsds_reader(mission=self.mission,/no_widget,sync_pattern=!null,/save_data,name=self.mission+'_pkt_seqid_'+strtrim(seqid,2))
+    name = self.mission+'_pkt_seqid_'+strtrim(seqid,2)
+    if isa(self.source_dict,'dictionary') && self.source_dict.haskey('run_proc')  then run_proc = self.source_dict.run_proc
+    self.handlers[seqid] = ccsds_reader(mission=self.mission,/no_widget,sync_pattern=!null,/save_data,name=name,run_proc=run_proc)
     cpkt_rdr = self.handlers[seqid]
     cpkt_rdr.source_dict.fifo = !null
     cpkt_rdr.source_dict.headerstr = !null
@@ -114,7 +116,11 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds fr
   if isa(w_hcode) then begin
     disp = (dict.dejavu_cntr - ulong(w_hcode[0]) ) mod ncodes
     ;dprint,'Repeated Frame is being skipped ',frm_seqn,disp,verbose = self.verbose,dlevel=3
-    self.print_info,dlevel=3,frame_headerstr,'Repeated Frame: '+strtrim(disp,2)
+    if disp gt 1 then begin
+      self.print_info,dlevel=2,frame_headerstr,'Repeated Frames: '+strtrim(disp,2)
+    endif else begin
+      self.print_info,dlevel=3,frame_headerstr,'Repeated frame: '+strtrim(disp,2)      
+    endelse
     frame_headerstr.valid = 0
   endif else begin
     dejavu_hashcodes = dict.dejavu_hashcodes
@@ -129,7 +135,7 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds fr
     self.print_info,dlevel=4,frame_headerstr,'  '
     if seqn_delta ne 1 then begin
       ;dprint,'Jump ahead by ' ,seqn_delta,frm_seqn,verbose = self.verbose,dlevel=2,'                    ', frame[-4:*]
-      self.print_info,dlevel=2,frame_headerstr,' Jump ahead '
+      self.print_info,dlevel=3,frame_headerstr,' Jump ahead '
       frame_headerstr.gap = 1
       cpkt_rdr.source_dict.FIFO = !null
     endif
@@ -146,7 +152,7 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds fr
     endif else begin
       if offset eq 0x7ff then begin
         ;dprint,dlevel=3,verbose=self.verbose, 'No start packet ',frm_seqn
-        self.print_info,dlevel=3,frame_headerstr,' No start packet '
+        self.print_info,dlevel=5,frame_headerstr,' No start packet '
         start = 0
       endif else begin
         if keyword_set(psize) && psize + 6 ne length_fifo+offset then begin

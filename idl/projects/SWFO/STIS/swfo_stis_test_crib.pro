@@ -26,7 +26,7 @@ defsysv,/test,'!stis',dictionary()
 
 
 ;swfo_stis_load,reader=rdr,file='cmblk',station='Ball2',tr=24
-swfo_stis_load,reader=rdr,file='cmblk',station='Ball2',trange=['2024 9 14 0','2024 9 16']
+swfo_stis_load,reader=rdr,file='cmblk',station='Ball2',trange=['2024 9 14 0','2024 9 20']
 
 
 ; Plotting data
@@ -38,7 +38,10 @@ swfo_stis_tplot,'noise2',add=99
 !stis.pngname = root_data_dir() + 'swfo/data/sci/stis/prelaunch/realtime/plot'
 
 
-
+if 0 then begin
+  
+  
+endif
 
 
 

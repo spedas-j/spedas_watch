@@ -32,8 +32,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-15 08:12:13 -0700 (Tue, 15 Oct 2024) $
-; $LastChangedRevision: 32887 $
+; $LastChangedDate: 2024-10-26 11:32:00 -0700 (Sat, 26 Oct 2024) $
+; $LastChangedRevision: 32905 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -313,10 +313,10 @@ pro socket_reader::read,source
         dict.sync_errors += 1
         continue      ; read one byte at a time until sync is found
       endif
-      dict.packet_is_complete = 0
+      dict.packet_is_complete = (dict.headerstr.psize eq 0)
     endif
 
-    if ~dict.packet_is_complete then begin
+    if ~dict.packet_is_complete then begin    ; need to read rest of the packet
       nb = dict.headerstr.psize
       if nb eq 0 then begin
         dprint,verbose = self.verbose,dlevel=2,self.name+'; Packet length with zero length'
@@ -368,7 +368,7 @@ pro socket_reader::read,source
     dprint,'Skipping file'
   endif
 
-  if nbytes ne 0 then msg += string(/print,nbytes,format='(i6 ," bytes: ")')  $
+  if nbytes ne 0 then msg += string(/print,nbytes,format='(i8 ," bytes: ")')  $
   else msg+= ' No data available'
 
   dprint,verbose=self.verbose,dlevel=3,msg

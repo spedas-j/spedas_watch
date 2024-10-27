@@ -2,8 +2,8 @@
 ;  swfo_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
-; $LastChangedRevision: 32894 $
+; $LastChangedDate: 2024-10-26 11:32:41 -0700 (Sat, 26 Oct 2024) $
+; $LastChangedRevision: 32906 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -305,8 +305,8 @@ function swfo_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 32894 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2024-10-26 11:32:41 -0700 (Sat, 26 Oct 2024) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 32906 $'
 
     return,sw_hash
 end
@@ -343,8 +343,8 @@ function swfo_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32894 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-10-26 11:32:41 -0700 (Sat, 26 Oct 2024) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32906 $'
 
   return,global_att
 end
@@ -515,7 +515,7 @@ end
 
 
 pro swfo_gen_apdat::ncdf_make_file,ddata=ddata,pathformat=pathformat,testdir=testdir,ret_filename=ret_filename,type=type,trange=trange
-  if ~isa(type) then type='LLL'
+  if ~isa(type) then type='L0'
   ;if keyword_set(pathname) then self.ncdf_pathname = pathname
   ;if ~keyword_set(pathformat) then begin
   ;if ~keyword_set(pathformat) then pathformat = self.fileformat   ; pathformat = self.name+'/'+type + '/YYYY/MM/swfo_' + self.name+'_'+type + '_YYYYMMDD_hhmm_v00.nc'
@@ -524,6 +524,10 @@ pro swfo_gen_apdat::ncdf_make_file,ddata=ddata,pathformat=pathformat,testdir=tes
   ; More work needs to be done here to separate into daily (or hourly) files...
   ; For now just create one big file
   if ~isa(ddata) then ddata=self.data
+  if ~isa(ddata,'dynamicarray') || ddata.size le 0  then begin
+    dprint,'No data available to make a NCDF file: ',self.name
+    return
+  endif
 
   if keyword_set(trange) then begin
     data_array = ddata.sample(range=trange,tagname='time')
@@ -537,7 +541,7 @@ pro swfo_gen_apdat::ncdf_make_file,ddata=ddata,pathformat=pathformat,testdir=tes
     filename=time_string(trange[0],tformat=ncdf_format)
     filename=str_sub(filename,'$NAME$',self.name)
     filename=str_sub(filename,'$TYPE$',type)
-    filename=str_sub(filename,'$RES$', strtrim(fix(self.file_resolution),2)  )
+    filename=str_sub(filename,'$RES$', strtrim(long(self.file_resolution),2)  )
     filename=self.ncdf_directory + filename
   endif
 

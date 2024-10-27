@@ -1,7 +1,7 @@
 ; +
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:12:52 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32262 $
+; $LastChangedDate: 2024-10-26 11:32:41 -0700 (Sat, 26 Oct 2024) $
+; $LastChangedRevision: 32906 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_apdat_info.pro $
 ; $ID: $
 ; This is the master routine that changes or accesses the ccsds data structures for each type of packet that is received
@@ -26,6 +26,7 @@ pro swfo_apdat_info,apid_description,name=name,verbose=verbose,$
   cdf_pathname = cdf_pathname, $
   cdf_linkname = cdf_linkname, $
   make_cdf = make_cdf, $
+  make_ncdf = make_ncdf,  $
   nonzero=nonzero,  $
   dlevel=dlevel, $
   all = all, $
@@ -170,6 +171,7 @@ pro swfo_apdat_info,apid_description,name=name,verbose=verbose,$
     if keyword_set(sort_flag) then apdat.sort
     if keyword_set(finish)    then apdat.finish
     if keyword_set(make_cdf)  then apdat.cdf_create_file
+    if keyword_set(make_ncdf) then apdat.ncdf_make_file
     if keyword_set(clear)  then    apdat.clear
     if keyword_set(zero)   then    apdat.zero
     if keyword_set(trim)   then    apdat.trim

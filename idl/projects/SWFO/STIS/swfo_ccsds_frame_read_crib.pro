@@ -1,6 +1,6 @@
 ;swfo_test
 
-pro swfo_frame_header_plot, hdrs
+pro swfo_frame_header_plot, hdrs, _extra = ex
   if n_elements(hdrs) le 1 then begin
     printdat,hdrs
     return
@@ -12,6 +12,7 @@ pro swfo_frame_header_plot, hdrs
   !x.style=3
   !y.style=3
   !y.margin = 1
+  !p.psym = struct_value(ex,'psym',default=!p.psym)
   index = lindgen(n_elements(hdrs))
   plot,hdrs.seqn,/ynozero
   seqn_delta = long(hdrs.seqn) - shift(hdrs.seqn,1)
@@ -45,39 +46,64 @@ if ~keyword_set(files) then begin
   trange = '2024 10 18/' + ['0','24']
   ;trange = systime(1) + [-1,0] *3600d *6
   trange = '2024 10 18/' + ['13:15','14:35']
-  ;trange = ['2024 10 14','2024 10 22']
+  trange = ['2024 10 14','2024 10 22']
   stop
 
-  !p.charsize = 1.2
-  ;!x.style=3
-  ;!y.style =3
+
+  if ~isa(rdr) then begin
+    swfo_stis_apdat_init,/save_flag
+    rdr = ccsds_frame_reader(mission='SWFO',/no_widget,verbose=verbose,run_proc=run_proc)
+    !p.charsize = 1.2
+  endif
+
+
 
   no_download = 0    ;comment out this line to download the files  (or set no_download =0
 
   ;https://sprg.ssl.berkeley.edu/data/swfo/outgoing/swfo-l1/l0/
   source = {$
     remote_data_dir:'http://sprg.ssl.berkeley.edu/data/', $
-    resolution :900   }
-    
-   
+       resolution: 900L  }
 
-  if 0 then begin
-    pathname = 'swfo/swpc/L0/YYYY/MM/DD/it_frm-rt-l0_swfol1_sYYYYMMDDThhmm00Z_*.nc'
-    files = file_retrieve(pathname,_extra=source,trange=trange,/no_update,no_download=no_download)    
-    w=where(file_test(files),/null)
-    files = files[w]
-  endif else begin
-    pathname = 'swfo/swpc/E2E2b/decomp/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc'
-    files = file_retrieve(pathname,_extra=source,/no_update,no_download=no_download)  ; get All the files first
-    fileformat = file_basename(str_sub(pathname,'*.nc','YYYYMMDDThhmm00'))
-    filerange = time_string(trange,tformat=fileformat)
-    w = where(file_basename(files) ge filerange[0] and file_basename(files) lt filerange[1],nw,/null)
-    files = files[w]   
-  endelse
 
-  ;f = '/Users/davin/Downloads/it_frm-rt-l0_swfol1_s20240918T151500Z_e20240918T152959Z_p20240918T153015Z_emb.nc'  ; Very large
-  ;f = '/Users/davin/Downloads/it_frm-rt-l0_swfol1_s20240919T061500Z_e20240919T062959Z_p20240919T063015Z_emb.nc'  ; no STIS
-  ;f = '/Users/davin/Downloads/it_frm-rt-l0_swfol1_s20240920T174500Z_e20240920T175959Z_p20240920T180015Z_emb.nc'  ; has STIS
+  case 3 of
+    0: begin
+      pathname = 'swfo/swpc/L0/YYYY/MM/DD/it_frm-rt-l0_swfol1_sYYYYMMDDThhmm00Z_*.nc'
+      files = file_retrieve(pathname,_extra=source,trange=trange,/no_update,no_download=no_download)
+      w=where(file_test(files),/null)
+      files = files[w]
+    end
+    1: begin
+      pathname = 'swfo/swpc/E2E2b/decomp/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc'
+      allfiles = file_retrieve(pathname,_extra=source,/no_update,no_download=no_download)  ; get All the files first
+      fileformat = file_basename(str_sub(pathname,'*.nc','YYYYMMDDThhmm00'))
+      filerange = time_string(trange,tformat=fileformat)
+      w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
+      files = allfiles[w]
+      frames_name = 'frames'
+    end
+    2: begin
+      pathname = 'swfo/aws/L0/SWFOWCD/YYYY/MM/DD/OR_SWFOWCD-L0_SL1_s*.nc'
+      source.resolution = 24L*3600
+      allfiles = file_retrieve(pathname,_extra=source,no_update=1,no_download=no_download,trange=trange)  ; get All the files first
+      fileformat =  file_basename(str_sub(pathname,'*.nc','YYYYDOYhhmm'))
+      filerange = time_string(trange,tformat=fileformat)
+      w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
+      files = allfiles[w]
+      frames_name = 'swfo_frame_data'
+    end
+    3: begin
+      pathname = 'swfo/aws/L0/SWFOCBU/YYYY/MM/DD/OR_SWFOCBU-L0_SL1_s*.nc'
+      source.resolution = 24L*3600
+      allfiles = file_retrieve(pathname,_extra=source,no_update=1,no_download=no_download,trange=trange)  ; get All the files first
+      fileformat =  file_basename(str_sub(pathname,'*.nc','YYYYDOYhhmm'))
+      filerange = time_string(trange,tformat=fileformat)
+      w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
+      files = allfiles[w]
+      frames_name = 'swfo_frame_data'
+    end
+  endcase
+
 
 
   if strmid(pathname,2,3,/reverse) eq '.gz' then begin
@@ -85,14 +111,14 @@ if ~keyword_set(files) then begin
     ofiles = files
     for i=0,n_elements(files)-1 do files[i] = strmid(files[i],0,strlen(files[i])-3)
   endif
-  
+
 endif
 
 
 if 0 &&  ~isa(dat) then begin
-  
+
   dat = swfo_ncdf_read(files,force_recdim=1)
-  
+
   if ~keyword_set(dhdrs) then begin
     foo_rdr = ccsds_frame_reader(mission='SWFO',/no_widget)
     dhdrs = dynamicarray(name='test')
@@ -100,8 +126,6 @@ if 0 &&  ~isa(dat) then begin
     for i=0,nframes-1 do dhdrs.append, foo_rdr.header_struct(dat[i].frames)
 
   endif
-
-
   hdrs = dhdrs.array
   ;hdrs.time = dindgen(n_elements(hdrs))
 
@@ -113,8 +137,6 @@ if 0 &&  ~isa(dat) then begin
     s = sort(hdrs.index)
     hdrs = hdrs[s]
   endif
-
-
 
   wi,2   ,wsize=[1200,1100]
 
@@ -135,7 +157,7 @@ if 0 &&  ~isa(dat) then begin
     endfor
 
   endif
-  
+
 endif
 
 
@@ -143,23 +165,26 @@ endif
 stop
 
 
-swfo_stis_apdat_init,/save_flag
 
-rdr = ccsds_frame_reader(mission='SWFO',/no_widget,verbose=verbose)
-
-
-if keyword_set(dat) then begin
-  rdr.read,(dat.frames)[*]
-
-endif else begin
+if keyword_set(1) then begin
+  parent = dictionary()
+  rdr.parent_dict = parent
+  rdr.verbose = 3
+  rdr.source_dict.run_proc = 1
   for i = 0, n_elements(files)-1 do begin
-    d = swfo_ncdf_read(file=files[i],force_recdim=1)
-   if isa(d) then  rdr.read , d.frames
+    file = files[i]
+    dprint,file
+    parent.filename = files[i]
+    parent.num_duplicates = 0
+    parent.max_displacement = 0
+    dat = ncdf2struct(file)
+    frames = struct_value(dat,frames_name,default = !null)
+    rdr.read , frames
   endfor
-endelse
+endif
 
 
-
+stop
 
 
 
@@ -170,6 +195,9 @@ swfo_apdat_info,/print,/all
 
 
 printdat,rdr.dyndata.array
+
+swfo_frame_header_plot, rdr.dyndata.array
+
 
 if 0 then begin
   ;pkt_rdr = rdr.getattr('ccsds_packet_reader')
@@ -187,7 +215,7 @@ if 0 then begin
   plot,pkt_rdr.dyndata.array.apid,psym=3
 
 endif
-  
+
 
 swfo_stis_tplot,/set
 tplot,'*SEQN
