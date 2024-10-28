@@ -1,10 +1,10 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
-; $LastChangedRevision: 32894 $
+; $LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
+; $LastChangedRevision: 32908 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
-function swfo_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
+function swfo_stis_sci_apdat::decom,ccsds   ,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
   common swfo_stis_sci_com4, lastdat, last_str
   ccsds_data = swfo_ccsds_data(ccsds)
   str1=swfo_stis_ccsds_header_decom(ccsds)
@@ -172,17 +172,59 @@ end
 
 
 
-pro swfo_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_dict
-  if  ~obj_valid(self.level_0b) then begin
-    dprint,'Creating Science level 0B'
-    l0b_format = self.get_ncdf_master_structure('sfwo_stis_l0b_MASTER.nc')
-    ddata = dynamicarray(name='Science_L0b')
-    ddata.dict.format = l0b_format
-    self.level_0b = ddata
-    first_level_0b = 1
-  endif 
+pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
+
+  pb = 0
+  if source_dict.headerstr.replay  then begin
+    pb = 0x400
+    prefix='pb_'
+  endif else begin
+    pb = 0
+    prefix= ''
+  endelse
   
-  l0b_format = self.level_0b.dict.format
+  tname = prefix + 'swfo_stis_L0b'
+  
+  sciobj = swfo_apdat(0x350 or pb)   ; stis_sci
+  nseobj = swfo_apdat(0x351 or pb)   ; stis_nse
+  hkpobj = swfo_apdat(0x35f or pb)   ; stis_hkp2
+
+
+  sci_last = sciobj.last_data    ; this should be identical to struct_stis_sci
+  nse_last = nseobj.last_data
+  hkp_last = hkpobj.last_data
+
+  l0b = swfo_stis_sci_level_0b(sci_last,nse_last,hkp_last)
+  
+
+
+  if  ~obj_valid(self.level_0b) then begin
+    dprint,'Creating Science level 0B for: '+self.name
+;    if 0 then begin
+;      l0b_format = self.get_ncdf_master_structure('sfwo_stis_l0b_MASTER.nc')
+;    endif else begin
+;      l0b_format =     swfo_stis_sci_level_0b()
+;    endelse
+    ddata = dynamicarray(name='Science_L0b')
+;    ddata.dict.format = l0b_format
+    self.level_0b = ddata
+ ;   first_level_0b = 1
+  endif
+
+  if isa(self.level_0b,'dynamicarray') then begin
+    size = self.level_0b.size
+    self.level_0b.append, l0b
+    if size eq 0 then begin
+      store_data,tname,data = self.level_0b,tagnames = '*'  , verbose=1 ;, time_tag = 'TIME_UNIX';,val_tag='_NRG'    ; warning don't use time_tag keyword
+      options,tname+'_SCI_COUNTS',spec=1
+    endif
+
+  
+  endif
+  
+  
+  return
+  
   
   if  ~obj_valid(self.level_1a) then begin
     dprint,'Creating Science level 1a'
@@ -194,24 +236,16 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_
 ;  nseobj = swfo_apdat('stis_nse')   ; stis_nse
 ;  hkpobj = swfo_apdat('stis_hkp2')  ; stis_hkp2
   
-  pb = 0
-  if source_dict.headerstr.sync eq 0x3b  then pb = 0x400
-  sciobj = swfo_apdat(0x350 or pb)   ; stis_sci
-  nseobj = swfo_apdat(0x351 or pb)   ; stis_nse
-  hkpobj = swfo_apdat(0x35f or pb)   ; stis_hkp2
-
+  
+;  if isa(hkp_last) then struct_assign, hkp_last  ,  l0b_format
+;  if isa(nse_last) then struct_assign, nse_last  ,  l0b_format
+;  if isa(sci_last) then struct_assign, sci_last  ,  l0b_format
+;  
+;  l0b_format.time_unix = sci_last.time
   
 
-  sci_last = sciobj.last_data    ; this should be identical to struct_stis_sci_level_0b
-  nse_last = nseobj.last_data
-  hkp_last = hkpobj.last_data
 
-  if isa(hkp_last) then struct_assign, hkp_last  ,  l0b_format
-  if isa(nse_last) then struct_assign, nse_last  ,  l0b_format
-  if isa(sci_last) then struct_assign, sci_last  ,  l0b_format
-  
-  l0b_format.time_unix = sci_last.time
-  
+
 
 
   res = self.file_resolution
@@ -239,22 +273,9 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_
   ;    sci_all.nse_reltime = sci_last.time - struct_value(hkp_last,'time',default = !values.d_nan )
   ;    self.level_0b.append, sci_all
   ;  endif
-
-  if isa(self.level_0b,'dynamicarray') then begin
-    ;struct_stis_sci_level_1a = swfo_stis_sci_level_1a(sci_last)
-    self.level_0b.append, l0b_format
-    if keyword_set(first_level_0b) then begin
-      ;store_data,'stis_L0B',data = self.level_0b,tagnames = '*'  ;,val_tag='_NRG'
-      ;options,'stis_L0B_COUNTS',spec=1
-      
-
-      store_data,'swfo_stis',data = self.level_0b,tagnames = '*' , time_tag = 'TIME_UNIX'  ;,val_tag='_NRG'    ; warning don't use time_tag keyword
-      options,'swfo_stis_COUNTS',spec=1
-    endif
     if makefile then  begin
       self.ncdf_make_file,ddata=self.level_0b, trange=trange,type='L0B'
     endif
-  endif
 
 
 
@@ -262,8 +283,8 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_
     struct_stis_sci_level_1a = swfo_stis_sci_level_1a(sci_last)
     self.level_1a.append, struct_stis_sci_level_1a
     if keyword_set(first_level_1a) then begin
-      store_data,'stis_L1A',data = self.level_1a,tagnames = 'SPEC_??',val_tag='_NRG'
-      options,'stis_L1B_SPEC_??',spec=1
+      store_data,'swfo_stis_L1a',data = self.level_1a,tagnames = 'SPEC_??',val_tag='_NRG'
+      options,'swfo_stis_L1a_SPEC_??',spec=1
     endif
     if makefile then begin
       self.ncdf_make_file,ddata=self.level_1a, trange=trange,type='L1A'
@@ -288,11 +309,11 @@ pro swfo_stis_sci_apdat::create_tplot_vars,ttags=ttags
   if ~keyword_set(ttags) then ttags = self.ttags
   dyndata = self.data
   if isa(dyndata,'dynamicarray') && keyword_set(self.tname) then begin
-    store_data,self.tname,data=dyndata, tagnames=ttags, gap_tag='GAP',verbose = self.verbose
+    store_data,self.tname,data=dyndata, tagnames=ttags, gap_tag='GAP',verbose = 0  ;self.verbose
   endif
 
   if isa(self.level_1a,'dynamicarray') then begin
-    store_data,'stis_l1a',data=self.level_1a,tagnames='SPEC_??',val_tag='_NRG'
+    store_data,'stis_l1a',data=self.level_1a,tagnames='SPEC_??',val_tag='_NRG',verbose=0
     options,'stis_l1a_SPEC_??',spec=1,yrange=[5.,8000],/ylog,/zlog,/default
   endif
 

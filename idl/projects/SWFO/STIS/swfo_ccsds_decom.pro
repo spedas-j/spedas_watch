@@ -1,8 +1,8 @@
 ; buffer should contain bytes for a single ccsds packet, header is
 ; contained in first 3 words (6 bytes)
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
-; $LastChangedRevision: 32894 $
+; $LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
+; $LastChangedRevision: 32908 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_decom.pro $
 
 ;
@@ -78,8 +78,8 @@ function swfo_ccsds_decom,buffer,source_dict=source_dict,wrap_ccsds=wrap_ccsds,o
 
   if buffer_length-offset lt 15 then begin
     if debug(2) then begin
-      dprint,'CCSDS Buffer length too short to include full header: ',buffer_length-offset,dlevel=2,offset,dwait=20
-      hexprint,buffer
+      dprint,'CCSDS Buffer length too short to include full header: ',buffer_length-offset,dlevel=2,offset;,dwait=20
+      ;hexprint,buffer
     endif
     error = 1b
     return, !null

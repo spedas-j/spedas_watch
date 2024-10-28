@@ -21,12 +21,14 @@ pro swfo_stis_nse_metric
 end
 
 
+trange = ['2024 9 14 0','2024 9 20']
+trange = ['2024 9 20 8','2024 9 21 6']  ; 1 atmos test after TVAC
 
 defsysv,/test,'!stis',dictionary()
 
 
 ;swfo_stis_load,reader=rdr,file='cmblk',station='Ball2',tr=24
-swfo_stis_load,reader=rdr,file='cmblk',station='Ball2',trange=['2024 9 14 0','2024 9 20']
+swfo_stis_load,reader=rdr,file='cmblk',station='Ball2',trange=trange,/no_widget
 
 
 ; Plotting data

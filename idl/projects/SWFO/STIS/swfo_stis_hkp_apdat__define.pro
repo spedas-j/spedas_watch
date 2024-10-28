@@ -1,10 +1,18 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
-; $LastChangedRevision: 32894 $
+; $LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
+; $LastChangedRevision: 32908 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hkp_apdat__define.pro $
 
 
 function swfo_stis_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
+
+  if n_params() eq 0 then begin   ; Not working yet.  eventually should provide a dummy fill structure
+    dummy = bytarr(500)
+    dat = self.decom(dummy)
+    fill = fill_nan(dat)
+    return,fill
+  endif
+
   ccsds_data = swfo_ccsds_data(ccsds)
   str1=swfo_stis_ccsds_header_decom(ccsds)
 

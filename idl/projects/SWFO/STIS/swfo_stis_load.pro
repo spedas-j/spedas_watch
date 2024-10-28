@@ -1,11 +1,11 @@
 ;$LastChangedBy: davin-mac $
-;$LastChangedDate: 2024-10-22 10:09:34 -0700 (Tue, 22 Oct 2024) $
-;$LastChangedRevision: 32894 $
+;$LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
+;$LastChangedRevision: 32908 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
   trange=trange,opts=opts,make_ncdf=make_ncdf,make_ccsds=make_ccsds, debug=debug,run_proc=run_proc, $
-  offline=offline,no_exec=no_exec,reader_object=rdr
+  offline=offline,no_exec=no_exec,reader_object=rdr,no_widget=no_widget
   
 
   if keyword_set(debug) then stop
@@ -294,7 +294,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
         endelse
       end
       'cmblk': begin        
-        rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_Ball_cmblk')
+        rdr  = cmblk_reader( _extra = opts.tostruct(),name='SWFO_Ball_cmblk',no_widget=no_widget)
         if 1 then begin  ;new method
           rdr.add_handler, 'raw_tlm',  gsemsg_reader(name='SWFO_reader',/no_widget,mission='SWFO')   
           rdr.add_handler, 'raw_ball', ccsds_reader(/no_widget,name='BALL_reader', _extra = opts.tostruct() , sync_pattern = ['2b'xb,  'ad'xb ,'ca'xb, 'fe'xb], sync_mask= [0xef,0xff,0xff,0xff] )  
@@ -351,7 +351,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
     endcase
 
     str_element,opts,'exec_text',exec_text
-    if ~keyword_set(no_exec) && keyword_set(exec_text) then begin
+    if ~keyword_set(no_exec) && ~keyword_set(no_widget) && keyword_set(exec_text) then begin
       exec, exec_text = exec_text;,title=opts.title
     endif
 

@@ -1,4 +1,11 @@
 ;swfo_test
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
+; $LastChangedRevision: 32908 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
+
+
+
 
 pro swfo_frame_header_plot, hdrs, _extra = ex
   if n_elements(hdrs) le 1 then begin
@@ -45,8 +52,8 @@ if ~keyword_set(files) then begin
   trange = '2024 10 17/' + ['0','6']
   trange = '2024 10 18/' + ['0','24']
   ;trange = systime(1) + [-1,0] *3600d *6
-  trange = '2024 10 18/' + ['13:15','14:35']
-  trange = ['2024 10 14','2024 10 22']
+  trange = '2024 10 18/' + ['13:15','16:35']
+  ;trange = ['2024 10 14','2024 10 22']
   stop
 
 
@@ -66,7 +73,7 @@ if ~keyword_set(files) then begin
        resolution: 900L  }
 
 
-  case 3 of
+  case 2 of
     0: begin
       pathname = 'swfo/swpc/L0/YYYY/MM/DD/it_frm-rt-l0_swfol1_sYYYYMMDDThhmm00Z_*.nc'
       files = file_retrieve(pathname,_extra=source,trange=trange,/no_update,no_download=no_download)
@@ -173,8 +180,8 @@ if keyword_set(1) then begin
   rdr.source_dict.run_proc = 1
   for i = 0, n_elements(files)-1 do begin
     file = files[i]
-    dprint,file
-    parent.filename = files[i]
+    dprint,string(rdr.getattr('index'))+'   '+ file
+    parent.filename = files
     parent.num_duplicates = 0
     parent.max_displacement = 0
     dat = ncdf2struct(file)
@@ -198,28 +205,21 @@ printdat,rdr.dyndata.array
 
 swfo_frame_header_plot, rdr.dyndata.array
 
+stop
 
-if 0 then begin
-  ;pkt_rdr = rdr.getattr('ccsds_packet_reader')
-  h = rdr.getattr('handlers')
-  hi= h.keys()
-  if ~isa(pkt_rdr) then pkt_rdr = h[hi[0]]
 
-  printdat,pkt_rdr.dyndata.array
-
-  wi,4
-  plot,pkt_rdr.dyndata.array.apid,psym=3,yrange=[0,2000]
-
-  wi,5
-  pkt_rdr = h[hi[1]]
-  plot,pkt_rdr.dyndata.array.apid,psym=3
-
-endif
 
 
 swfo_stis_tplot,/set
-tplot,'*SEQN
-tplot,'*SEQN_DELTA',add=99
+tplot,'*SEQN *SEQN_DELTA'
+
+stop
+swfo_apdat_info,/sort,/all,/print
+delta_data,'*SEQN',modulo=2^14
+options,'*_delta',psym=-1,symsize=.4,yrange=[-10,10]
+
+
+tplot,'*SEQN *SEQN_delta'
 
 
 end
