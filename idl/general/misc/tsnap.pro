@@ -40,7 +40,7 @@
 ;
 ;       KEEP:   Do not close the snapshot window on exit.
 ;
-;       DYDX:   Plot the first (DYDX=1) or second (DYDX=2) derivative.
+;       DERIV:  Plot the first (DERIV=1) or second (DERIV=2) derivative.
 ;               Default = 0 (just plot Y).
 ;
 ;       ERR:    If the tplot variable has a DY tag, then plot error bars for
@@ -65,14 +65,16 @@
 ;               use them multiple times without a lot of typing.  In case of 
 ;               conflict, keywords set explicitly take precedence over KEY.
 ;
+;       LASTCUT:  Named variable to hold data for the last plot.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-08-06 15:20:12 -0700 (Tue, 06 Aug 2024) $
-; $LastChangedRevision: 32781 $
+; $LastChangedDate: 2024-10-29 13:30:32 -0700 (Tue, 29 Oct 2024) $
+; $LastChangedRevision: 32911 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/tsnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
-pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, key=key, $
+pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, deriv=deriv, err=err, key=key, lastcut=lastcut, $
 
               ; WIN
                 monitor=monitor, secondary=secondary, xsize=xsize, ysize=ysize, dx=dx, dy=dy, $
@@ -92,7 +94,7 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
 
   if (size(key,/type) eq 8) then begin
     ktag = tag_names(key)
-    tlist = ['NAVG','SUM','XSMO','KEEP','DYDX','ERR', $
+    tlist = ['NAVG','SUM','XSMO','KEEP','DERIV','ERR','LASTCUT', $
              'MONITOR','SECONDARY','XSIZE','YSIZE','DX','DY','CORNER','CENTER','XCENTER','YCENTER', $
              'NORM','XPOS','YPOS','FULL','XFULL','YFULL', $
              'TITLE','XTITLE','YTITLE','XLOG','YLOG','XRANGE','YRANGE','XSTYLE','YSTYLE','LINESTYLE', $
@@ -119,7 +121,7 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
   npts = keyword_set(sum) ? 2 : 1
   keep = keyword_set(keep)
   xsmo = (n_elements(xsmo) gt 0) ? fix(xsmo[0]) > 1 : 1
-  if (size(dydx,/type) eq 0) then dydx = 0 else dydx = fix(dydx[0]) < 2 > 0
+  if (size(deriv,/type) eq 0) then deriv = 0 else deriv = fix(deriv[0]) < 2 > 0
   dx = (n_elements(dx) gt 0) ? fix(dx[0]) : 10
   dy = (n_elements(dy) gt 0) ? fix(dy[0]) : 10
   secondary = (n_elements(secondary) gt 0) ? keyword_set(secondary) : 1
@@ -208,7 +210,7 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
 
   while (keepgoing) do begin
     i = nn2(dat.x, t)
-    if ((size(dat.v))[0] eq 2) then x = reform(dat.v[i,*]) else x = dat.v
+    if ((size(dat.v))[0] eq 2) then x = reform(mean(dat.v[i,*],dim=1)) else x = dat.v
     if (npts eq 1) then begin
       imin = (i-k) > 0L
       imax = (imin + 2L*k) < nmax
@@ -235,7 +237,7 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
 
     y = smooth(y, xsmo, /nan, /edge_truncate)
 
-    case dydx of
+    case deriv of
         1  : y = deriv(x,y)
         2  : y = deriv(x,deriv(x,y))
       else : ; do nothing
@@ -260,6 +262,9 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, dydx=dydx, err=err, ke
                   xtickinterval=xtickinterval, ytickinterval=ytickinterval, xticklen=xticklen, $
                   yticklen=yticklen, xticks=xticks, yticks=yticks
       if (err) then if (ylog) then errplot,x,(y-dy)>tiny,y+dy,width=0 else errplot,x,y-dy,y+dy,width=0
+
+      lastcut = {x:x, y:y, dy:!values.f_nan, time:tsp, deriv:deriv}
+      if (err) then lastcut.dy = dy
     wset, Twin
 
     ctime,t,npoints=npts,/silent
