@@ -40,6 +40,7 @@
 ;         mag_name:  Use a different tplot variable containing magnetic field data for moments and FAC transformations
 ;         pos_name:  Use a different tplot variable containing spacecraft position for FAC transformations
 ;         vel_name:  Use a different tplot variable containing velocity data in km/s when subtracting the bulk velocity
+;         sc_pot_name: Use a different tplot variable containing spacecraft potential data
 ;  
 ; Notes:
 ;         Updated to automatically center HPCA measurements if not specified already, 18Oct2017
@@ -52,9 +53,9 @@
 ;             
 ;         Spacecraft photoelectrons are corrected in moments_3d
 ;         
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2023-03-28 15:52:31 -0700 (Tue, 28 Mar 2023) $
-;$LastChangedRevision: 31682 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2024-10-31 14:42:56 -0700 (Thu, 31 Oct 2024) $
+;$LastChangedRevision: 32913 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_getspec.pro $
 ;-
 
@@ -95,7 +96,7 @@ pro mms_part_getspec, probes=probes, $
                       vel_name=vel_name_user, $  ; Tplot variable containing velocity data in km/s for use with /subtract_bulk
                       mag_name=mag_name_user, $  ; Tplot variable containing magnetic field data for moments and FAC transformations
                       pos_name=pos_name_user, $  ; Tplot variable containing spacecraft position for FAC transformations
-
+                      sc_pot_name=sc_pot_name_user, $ ; Tplot variable containing spacecraft potential for moments and spectra
                       center_measurement=center_measurement, $
                       tplotnames=tplotnames, $
                       
@@ -227,8 +228,7 @@ pro mms_part_getspec, probes=probes, $
     for probe_idx = 0, n_elements(probes)-1 do begin
         if undefined(mag_name_user) then bname = 'mms'+probes[probe_idx]+'_fgm_b_gse_'+mag_data_rate+'_l2_bvec'+mag_suffix else bname = mag_name_user
         if undefined(pos_name_user) then pos_name = 'mms'+probes[probe_idx]+'_mec_r_gse' else pos_name = pos_name_user
-
-        scpot_variable = 'mms'+probes[probe_idx]+'_edp_scpot_'+scpot_data_rate+'_l2'
+        if undefined(sc_pot_name_user) then scpot_variable = 'mms'+probes[probe_idx]+'_edp_scpot_'+scpot_data_rate+'_l2' else scpot_variable = sc_pot_name_user
 
         ;;;;;;;;;;;;; kludge zone;;;;;;;;;;;
         if keyword_set(with_aspoc) then begin
