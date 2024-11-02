@@ -1,12 +1,13 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
-; $LastChangedRevision: 32908 $
+; $LastChangedDate: 2024-11-01 10:09:46 -0700 (Fri, 01 Nov 2024) $
+; $LastChangedRevision: 32916 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hkp_apdat__define.pro $
 
 
 function swfo_stis_hkp_apdat::decom,ccsds,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
 
   if n_params() eq 0 then begin   ; Not working yet.  eventually should provide a dummy fill structure
+    message,'Not working yet'
     dummy = bytarr(500)
     dat = self.decom(dummy)
     fill = fill_nan(dat)

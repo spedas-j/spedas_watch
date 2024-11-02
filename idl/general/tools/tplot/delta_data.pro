@@ -29,7 +29,7 @@
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/thmsoc/branches/tdas_4_00/idl/themis/common/thm_config.pro $
 ;
 ;-
-PRO delta_data,names,newname=newname,nsmooth=nsmth,suffix=suffix,replace=replace, display_object=display_object, modelo=modelo
+PRO delta_data,names,newname=newname,nsmooth=nsmth,suffix=suffix,replace=replace, display_object=display_object, modulo=modulo
 
 ns = tnames(names,n)
 
@@ -111,7 +111,7 @@ for i=0,n-1 do begin
   y = d.y 
   if ndimen(d.y) eq 1 then y = y - shift(y,1)
   IF ndimen(d.y) eq 2 then y = y - shift(y,1,0)
-  if keyword_set(modelo) then y = y mod modelo
+  if keyword_set(modulo) then y = y mod modulo
 
   store_data,nout,data={x:d.x,y:y},dlimits=dl
 endfor

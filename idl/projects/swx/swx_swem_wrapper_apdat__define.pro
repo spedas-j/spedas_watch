@@ -1,7 +1,7 @@
 ;+
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-12-02 00:05:21 -0800 (Sat, 02 Dec 2023) $
-; $LastChangedRevision: 32261 $
+; $LastChangedDate: 2024-11-01 10:09:46 -0700 (Fri, 01 Nov 2024) $
+; $LastChangedRevision: 32916 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/swx/swx_swem_wrapper_apdat__define.pro $
 ;-
 
@@ -77,7 +77,7 @@ function swx_swem_wrapper_apdat::decom,ccsds, source_dict=source_dict ;,ptp_head
     content_time_diff: dnan , $   ; difference in time between wrapper met and content met
     content_apid: 0u    , $          ; will replace content_id
     content_decomp_size: 0u,  $
-    content_compressed:  0b,  $
+  ;  content_compressed:  0b,  $
     content_aggregate:  0b  $
   } )
 

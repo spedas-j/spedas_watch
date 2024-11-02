@@ -67,13 +67,13 @@ end
 
 
 pro ccsds_frame_reader::print_info,hdr,txt,dlevel=dlevel
-  dprint,dlevel=dlevel,verbose=self.verbose,hdr.index,hdr.seqn,hdr.seqn_delta,hdr.seqid,hdr.sigfield,hdr.offset,hdr.last4[2],hdr.last4[3],' '+txt
+  dprint,dlevel=dlevel,verbose=self.verbose,hdr.index,hdr.vcid,hdr.seqn,hdr.seqn_delta,hdr.sigfield,hdr.offset,hdr.last4[2],hdr.last4[3],' '+txt
 
 end
 
 
 
-pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds frame  
+pro ccsds_frame_reader::handle,frame    ; This routine handles a SINGLE ccsds frame  
 
   if debug(5,self.verbose) then begin
     dprint,self.name
@@ -90,7 +90,7 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds fr
   seqid = frame_headerstr.seqid
   
   if ~self.handlers.haskey(seqid) then begin
-    dprint,'Creating handler for seqid: ',seqid
+    self.print_info,dlevel=2,frame_headerstr,'New VCid: '+strtrim(seqid,2)
     name = self.mission+'_pkt_seqid_'+strtrim(seqid,2)
     if isa(self.source_dict,'dictionary') && self.source_dict.haskey('run_proc')  then run_proc = self.source_dict.run_proc
     self.handlers[seqid] = ccsds_reader(mission=self.mission,/no_widget,sync_pattern=!null,/save_data,name=name,run_proc=run_proc)
@@ -99,43 +99,42 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds fr
     cpkt_rdr.source_dict.headerstr = !null
     cpkt_rdr.source_dict.last_frm_seqn = 0
     cpkt_rdr.source_dict.dejavu_cntr = 0ul
-    cpkt_rdr.source_dict.dejavu_hashcodes = ulonarr(1000)    ; the size of this might need to be increased
+    cpkt_rdr.source_dict.dejavu_hashcodes = ulonarr(9000)    ; the size of this might need to be increased
   endif
   
   cpkt_rdr = self.handlers[seqid]
-  
-  
+    
   frm_seqn = frame_headerstr.seqn
+  
+  last_frm_seqn = cpkt_rdr.source_dict.last_frm_seqn
+  seqn_delta = (long(frm_seqn) - last_frm_seqn) ;and 0xFFFFFFu
+  cpkt_rdr.source_dict.last_frm_seqn = frm_seqn
+  frame_headerstr.seqn_delta = seqn_delta
 
   hcode = frame.hashcode()
   dict = cpkt_rdr.source_dict  
   ncodes = n_elements(dict.dejavu_hashcodes)
-  w_hcode = where(hcode eq dict.dejavu_hashcodes,/null)
+  w_hcode = where(hcode eq dict.dejavu_hashcodes,/null,nw)
   ;dprint,dlevel=4,verbose=self.verbose,'Frame: ',frm_seqn, seqid, hcode,'  ',  isa(w_hcode) ?  w_hcode[0] : long( -1) , '     ', frame[-4:*]
   
+  dejavu_hashcodes = dict.dejavu_hashcodes
+  dejavu_hashcodes[dict.dejavu_cntr++] = hcode
+  dict.dejavu_hashcodes  = dejavu_hashcodes
+  dict.dejavu_cntr = dict.dejavu_cntr mod ncodes
   if isa(w_hcode) then begin
     disp = (dict.dejavu_cntr - ulong(w_hcode[0]) ) mod ncodes
-    ;dprint,'Repeated Frame is being skipped ',frm_seqn,disp,verbose = self.verbose,dlevel=3
     if disp gt 1 then begin
-      self.print_info,dlevel=2,frame_headerstr,'Repeated Frames: '+strtrim(disp,2)
+      self.print_info,dlevel=2,frame_headerstr,'Repeat: '+strtrim(disp,2)+' '+strtrim(nw,2)
     endif else begin
-      self.print_info,dlevel=3,frame_headerstr,'Repeated frame: '+strtrim(disp,2)      
+      self.print_info,dlevel=3,frame_headerstr,'Repeat: '+strtrim(disp,2)+' '+strtrim(nw,2)
     endelse
     frame_headerstr.valid = 0
   endif else begin
-    dejavu_hashcodes = dict.dejavu_hashcodes
-    dejavu_hashcodes[dict.dejavu_cntr++] = hcode
-    dict.dejavu_hashcodes  = dejavu_hashcodes
-    dict.dejavu_cntr = dict.dejavu_cntr mod ncodes
 
-    last_frm_seqn = cpkt_rdr.source_dict.last_frm_seqn
-    seqn_delta = (long(frm_seqn) - last_frm_seqn) ;and 0xFFFFFFu
-    cpkt_rdr.source_dict.last_frm_seqn = frm_seqn
-    frame_headerstr.seqn_delta = seqn_delta
     self.print_info,dlevel=4,frame_headerstr,'  '
     if seqn_delta ne 1 then begin
       ;dprint,'Jump ahead by ' ,seqn_delta,frm_seqn,verbose = self.verbose,dlevel=2,'                    ', frame[-4:*]
-      self.print_info,dlevel=3,frame_headerstr,' Jump ahead '
+      self.print_info,dlevel=3,frame_headerstr,'Missing'
       frame_headerstr.gap = 1
       cpkt_rdr.source_dict.FIFO = !null
     endif
@@ -152,12 +151,12 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds fr
     endif else begin
       if offset eq 0x7ff then begin
         ;dprint,dlevel=3,verbose=self.verbose, 'No start packet ',frm_seqn
-        self.print_info,dlevel=5,frame_headerstr,' No start packet '
+        self.print_info,dlevel=5,frame_headerstr,'No start packet '
         start = 0
       endif else begin
-        if keyword_set(psize) && psize + 6 ne length_fifo+offset then begin
+        if isa(psize) && psize + 6 ne length_fifo+offset then begin
           ;dprint,dlevel=1,verbose=self.verbose, 'Offset error: ',psize+6,length_fifo,offset
-          self.print_info,dlevel=1,frame_headerstr,' Offset error: '+string(psize+6)+' '+string(length_fifo)+' '+string(offset)
+          self.print_info,dlevel=1,frame_headerstr,'Offset error: '+string(psize+6-length_fifo)+' '+string(offset)
           start = offset         ; start new sequence
           cpkt_rdr.source_dict.fifo=!null
           cpkt_rdr.source_dict.headerstr=!null
@@ -169,7 +168,7 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a single ccsds fr
     if start lt n_elements(payload) then begin
       cpkt_rdr.read,   payload[start:*]         
     endif else begin
-      dprint,'Skipping Frame ',frm_seqn  ,dlevel=3,verbose=self.verbose
+      self.print_info,dlevel=3,frame_headerstr,'Skipping'
     endelse
     frame_headerstr.time = cpkt_rdr.source_dict.pkt_time
     

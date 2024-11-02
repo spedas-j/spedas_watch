@@ -2,8 +2,8 @@
 ;  swfo_GEN_APDAT
 ;  This basic object is the entry point for defining and obtaining all data for all apids
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
-; $LastChangedRevision: 32908 $
+; $LastChangedDate: 2024-11-01 10:08:56 -0700 (Fri, 01 Nov 2024) $
+; $LastChangedRevision: 32915 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_gen_apdat__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -19,6 +19,7 @@ FUNCTION swfo_gen_apdat::Init,apid,name,_EXTRA=ex,verbose=verbose
   if isa(verbose) then self.verbose = verbose else self.verbose = 2
   ;self.sort_flag = 1
   self.last_data_p = ptr_new(!null)
+  self.last_replay_p = ptr_new(!null)
   if keyword_set(name) then begin
     self.name  =name
     ;  insttype = strsplit(self.name
@@ -305,8 +306,8 @@ function swfo_gen_apdat::sw_version
   sw_hash['sw_runtime'] = time_string(systime(1))
   sw_hash['sw_runby'] = getenv('LOGNAME')
   sw_hash['svn_changedby '] = '$LastChangedBy: davin-mac $'
-    sw_hash['svn_changedate'] = '$LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $'
-    sw_hash['svn_revision '] = '$LastChangedRevision: 32908 $'
+    sw_hash['svn_changedate'] = '$LastChangedDate: 2024-11-01 10:08:56 -0700 (Fri, 01 Nov 2024) $'
+    sw_hash['svn_revision '] = '$LastChangedRevision: 32915 $'
 
     return,sw_hash
 end
@@ -343,8 +344,8 @@ function swfo_gen_apdat::cdf_global_attributes
   ;  global_att['SW_RUNTIME'] =  time_string(systime(1))
   ;  global_att['SW_RUNBY'] =
   ;  global_att['SVN_CHANGEDBY'] = '$LastChangedBy: davin-mac $'
-  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $'
-  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32908 $'
+  ;  global_att['SVN_CHANGEDATE'] = '$LastChangedDate: 2024-11-01 10:08:56 -0700 (Fri, 01 Nov 2024) $'
+  ;  global_att['SVN_REVISION'] = '$LastChangedRevision: 32915 $'
 
   return,global_att
 end
@@ -514,8 +515,8 @@ end
 
 
 
-pro swfo_gen_apdat::ncdf_make_file,ddata=ddata,pathformat=pathformat,testdir=testdir,ret_filename=ret_filename,type=type,trange=trange
-  if ~isa(type) then type='L0'
+pro swfo_gen_apdat::ncdf_make_file,ddata=ddata,pathformat=pathformat,testdir=testdir,ret_filename=ret_filename,type=type,trange=trange,resolution=resolution
+  if ~isa(type) then type='L1'
   ;if keyword_set(pathname) then self.ncdf_pathname = pathname
   ;if ~keyword_set(pathformat) then begin
   ;if ~keyword_set(pathformat) then pathformat = self.fileformat   ; pathformat = self.name+'/'+type + '/YYYY/MM/swfo_' + self.name+'_'+type + '_YYYYMMDD_hhmm_v00.nc'
@@ -536,6 +537,29 @@ pro swfo_gen_apdat::ncdf_make_file,ddata=ddata,pathformat=pathformat,testdir=tes
     trange = minmax(data_array.time)
     trange[0] = median(data_array.time)  ;  cluge to fix problem in which the time is out of bounds
   endelse
+  
+  if ~isa(resolution) then resolution = self.file_resolution
+  if resolution gt 0 then begin
+    trange_int = [floor( trange[0] / resolution ) , ceil(trange[1] /resolution) ] 
+    nfiles = trange_int[1] - trange_int[0] 
+    for i=0 ,nfiles-1 do begin
+      tr = (trange_int[0] + [i,i+1]) *resolution 
+      data_array = ddata.sample(range=tr,tagname='time')
+      ncdf_format=self.ncdf_fileformat
+      filename=time_string(tr[0],tformat=ncdf_format)
+      filename=str_sub(filename,'$NAME$',self.name)
+      filename=str_sub(filename,'$TYPE$',type)
+      filename=str_sub(filename,'$RES$', strtrim(long(resolution),2)  )
+      filename=self.ncdf_directory + filename
+      swfo_ncdf_create,data_array,filename = filename,ncdf_template=self.ncdf_templatename
+      
+    endfor
+    
+    
+    return
+  endif
+  
+  
   if ~isa(filename) then begin
     ncdf_format=self.ncdf_fileformat
     filename=time_string(trange[0],tformat=ncdf_format)
@@ -544,6 +568,8 @@ pro swfo_gen_apdat::ncdf_make_file,ddata=ddata,pathformat=pathformat,testdir=tes
     filename=str_sub(filename,'$RES$', strtrim(long(self.file_resolution),2)  )
     filename=self.ncdf_directory + filename
   endif
+  
+  
 
   
   ;pathname = time_string(trange[0],tformat= pathformat )
@@ -621,8 +647,9 @@ PRO swfo_gen_apdat__define
     errors: 0, $               ; error counter
     last_ccsds_p: ptr_new(), $      ; pointer to the last ccsds packet
     last_data_p:  ptr_new(),  $     ; pointer to the loast decomutated packet
+    last_replay_p: ptr_new(),  $
     ccsds_array: obj_new(), $        ; dynamicarray to hold raw packets
-    data: obj_new(), $               ; dynamicarray to hold stored data
+    data: obj_new(), $               ; dynamicarray to hold stored data   - this might hold both realtime and replay data
     user_dict:  obj_new(), $         ; user definable object  (typically a dictionary)
     window_obj: obj_new(), $         ; user definable object  (typically a plot window)
     cdf_pathname:'', $

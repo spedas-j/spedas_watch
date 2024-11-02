@@ -1,7 +1,7 @@
 ; +
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-26 11:32:41 -0700 (Sat, 26 Oct 2024) $
-; $LastChangedRevision: 32906 $
+; $LastChangedDate: 2024-11-01 10:08:56 -0700 (Fri, 01 Nov 2024) $
+; $LastChangedRevision: 32915 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_apdat_info.pro $
 ; $ID: $
 ; This is the master routine that changes or accesses the ccsds data structures for each type of packet that is received
@@ -27,6 +27,8 @@ pro swfo_apdat_info,apid_description,name=name,verbose=verbose,$
   cdf_linkname = cdf_linkname, $
   make_cdf = make_cdf, $
   make_ncdf = make_ncdf,  $
+  trange = trange,  $
+  file_resolution = file_resolution, $
   nonzero=nonzero,  $
   dlevel=dlevel, $
   all = all, $
@@ -53,7 +55,7 @@ pro swfo_apdat_info,apid_description,name=name,verbose=verbose,$
     all_info = !null
   endif
 
-  if ~keyword_set(all_apdat) then all_apdat = replicate( obj_new() , 2^11 )
+  if ~keyword_set(all_apdat) then all_apdat = replicate( obj_new() , 2^12 )   ; increased size to allow for artificial apids
 
   if ~keyword_set(alt_apdat) then alt_apdat = orderedhash()
 
@@ -171,7 +173,7 @@ pro swfo_apdat_info,apid_description,name=name,verbose=verbose,$
     if keyword_set(sort_flag) then apdat.sort
     if keyword_set(finish)    then apdat.finish
     if keyword_set(make_cdf)  then apdat.cdf_create_file
-    if keyword_set(make_ncdf) then apdat.ncdf_make_file
+    if keyword_set(make_ncdf) then apdat.ncdf_make_file,trange=trange,resolution=file_resolution
     if keyword_set(clear)  then    apdat.clear
     if keyword_set(zero)   then    apdat.zero
     if keyword_set(trim)   then    apdat.trim

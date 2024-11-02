@@ -32,8 +32,8 @@
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-26 11:32:00 -0700 (Sat, 26 Oct 2024) $
-; $LastChangedRevision: 32905 $
+; $LastChangedDate: 2024-11-01 10:10:28 -0700 (Fri, 01 Nov 2024) $
+; $LastChangedRevision: 32917 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -132,7 +132,7 @@ function socket_reader::read_nbytes,nbytes,source,pos=pos,eofile=eofile
   if n eq 0 then buf = !null else  buf = buf[0:n-1]
   pos = pos + n
   self.write,buf
-  dprint,verbose=self.verbose,dlevel=2,'IO warning: '+ !error_state.msg  +strtrim(n_elements(buf)) 
+  dprint,verbose=self.verbose,dlevel=3,'IO warning: '+ !error_state.msg  +strtrim(n_elements(buf)) 
   eofile = eof(self.input_lun)
   return,buf
 end
@@ -371,7 +371,7 @@ pro socket_reader::read,source
   if nbytes ne 0 then msg += string(/print,nbytes,format='(i8 ," bytes: ")')  $
   else msg+= ' No data available'
 
-  dprint,verbose=self.verbose,dlevel=3,msg
+  dprint,verbose=self.verbose,dlevel=4,msg
   dict.msg = msg
 
 end

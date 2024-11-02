@@ -21,8 +21,8 @@
 ;    SYMSIZE: set the size of the symbol
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-12 05:23:05 -0700 (Thu, 12 Sep 2024) $
-; $LastChangedRevision: 32826 $
+; $LastChangedDate: 2024-11-01 10:11:41 -0700 (Fri, 01 Nov 2024) $
+; $LastChangedRevision: 32920 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/bitplot.pro $
 ;-
 pro bitplot,x,y,psyms=psyms,overplot=overplot,di=di,limits=lim,data=data,numbits=nb,symsize=symsize
@@ -39,7 +39,7 @@ str_element,stuff,'labels',val=labels
 str_element,lim,'psyms',psyms
 str_element,lim,'symsize',symsize
 str_element,lim,'thick',thick
-str_element,lim,'negate',negate    ; don't check this in.
+str_element,lim,'negate',negate    
 labsize = 1.
 str_element,stuff,'labsize',val=labsize
 str_element,stuff,'colors',colors

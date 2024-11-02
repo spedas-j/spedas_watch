@@ -36,7 +36,8 @@
 ;
 ;       SUM:    Average all times between two selected times.
 ;
-;       XSMO:   Number of points to smooth in X.  Default = 1 (no smoothing).
+;       XSMO:   Number of points to smooth in the second independent variable
+;               (which is the snapshot X axis).  Default = 1 (no smoothing).
 ;
 ;       KEEP:   Do not close the snapshot window on exit.
 ;
@@ -68,8 +69,8 @@
 ;       LASTCUT:  Named variable to hold data for the last plot.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-10-29 13:30:32 -0700 (Tue, 29 Oct 2024) $
-; $LastChangedRevision: 32911 $
+; $LastChangedDate: 2024-11-01 10:48:36 -0700 (Fri, 01 Nov 2024) $
+; $LastChangedRevision: 32921 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/tsnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -178,21 +179,35 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, deriv=deriv, err=err, 
 ; Use these to set any keywords that are missing.
 
   str_element, lim, 'ytitle', msg, success=ok
+  if (not ok) then str_element, dat, 'ytitle', msg, success=ok
   if (ok && n_elements(xtitle) eq 0) then xtitle = msg
+
   str_element, lim, 'yrange', rng, success=ok
+  if (not ok) then str_element, dat, 'yrange', msg, success=ok
   if (ok && n_elements(xrange) eq 0) then xrange = rng
+
   str_element, lim, 'ylog', i, success=ok
+  if (not ok) then str_element, dat, 'ylog', i, success=ok
   if (ok && n_elements(xlog) eq 0) then xlog = i
+
   str_element, lim, 'ystyle', i, success=ok
+  if (not ok) then str_element, dat, 'ystyle', i, success=ok
   if (ok && n_elements(xstyle) eq 0) then xstyle = i
 
   str_element, lim, 'ztitle', msg, success=ok
+  if (not ok) then str_element, dat, 'ztitle', msg, success=ok
   if (ok && n_elements(ytitle) eq 0) then ytitle = msg
+
   str_element, lim, 'zrange', rng, success=ok
+  if (not ok) then str_element, dat, 'zrange', rng, success=ok
   if (ok && n_elements(yrange) eq 0) then yrange = rng
+
   str_element, lim, 'zlog', i, success=ok
+  if (not ok) then str_element, dat, 'zlog', i, success=ok
   if (ok && n_elements(ylog) eq 0) then ylog = i
+
   str_element, lim, 'zstyle', i, success=ok
+  if (not ok) then str_element, dat, 'zstyle', i, success=ok
   if (ok && n_elements(ystyle) eq 0) then ystyle = i
 
 ; Create a snapshot window
@@ -264,7 +279,7 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, deriv=deriv, err=err, 
       if (err) then if (ylog) then errplot,x,(y-dy)>tiny,y+dy,width=0 else errplot,x,y-dy,y+dy,width=0
 
       lastcut = {x:x, y:y, dy:!values.f_nan, time:tsp, deriv:deriv}
-      if (err) then lastcut.dy = dy
+      if (err) then str_element, lastcut, 'dy', dy, /add_replace
     wset, Twin
 
     ctime,t,npoints=npts,/silent

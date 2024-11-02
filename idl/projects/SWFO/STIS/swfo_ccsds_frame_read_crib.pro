@@ -1,7 +1,7 @@
 ;swfo_test
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
-; $LastChangedRevision: 32908 $
+; $LastChangedDate: 2024-11-01 10:09:46 -0700 (Fri, 01 Nov 2024) $
+; $LastChangedRevision: 32916 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -51,9 +51,10 @@ if ~keyword_set(files) then begin
   ;trange = ['2024 9 17','2024 9 25']
   trange = '2024 10 17/' + ['0','6']
   trange = '2024 10 18/' + ['0','24']
-  ;trange = systime(1) + [-1,0] *3600d *6
-  trange = '2024 10 18/' + ['13:15','16:35']
-  ;trange = ['2024 10 14','2024 10 22']
+  ;trange = systime(1) + [-1,0] *3600d *6       ; last few hours
+  trange = '2024 10 18/' + ['13:15','16:35']   ; Normal operations including some replay
+  trange = ['2024 10 16','2024 10 20']      ; Entirety of E2E2
+  ;trange = ['2024 1 291/ 18:00','2024 1 292 / 8:45']   ; some repeated frames
   stop
 
 
@@ -65,24 +66,27 @@ if ~keyword_set(files) then begin
 
 
 
-  no_download = 0    ;comment out this line to download the files  (or set no_download =0
+  no_download = 0    ;set to 1 to prevent download
+  no_update = 1      ; set to 1 to prevent checking for updates
 
   ;https://sprg.ssl.berkeley.edu/data/swfo/outgoing/swfo-l1/l0/
   source = {$
     remote_data_dir:'http://sprg.ssl.berkeley.edu/data/', $
+    no_update : no_update ,$
+    no_download :no_download ,$
        resolution: 900L  }
 
 
-  case 2 of
+  case 1 of
     0: begin
       pathname = 'swfo/swpc/L0/YYYY/MM/DD/it_frm-rt-l0_swfol1_sYYYYMMDDThhmm00Z_*.nc'
-      files = file_retrieve(pathname,_extra=source,trange=trange,/no_update,no_download=no_download)
+      files = file_retrieve(pathname,_extra=source,trange=trange)
       w=where(file_test(files),/null)
       files = files[w]
     end
     1: begin
       pathname = 'swfo/swpc/E2E2b/decomp/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc'
-      allfiles = file_retrieve(pathname,_extra=source,/no_update,no_download=no_download)  ; get All the files first
+      allfiles = file_retrieve(pathname,_extra=source)  ; get All the files first
       fileformat = file_basename(str_sub(pathname,'*.nc','YYYYMMDDThhmm00'))
       filerange = time_string(trange,tformat=fileformat)
       w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
@@ -92,7 +96,7 @@ if ~keyword_set(files) then begin
     2: begin
       pathname = 'swfo/aws/L0/SWFOWCD/YYYY/MM/DD/OR_SWFOWCD-L0_SL1_s*.nc'
       source.resolution = 24L*3600
-      allfiles = file_retrieve(pathname,_extra=source,no_update=1,no_download=no_download,trange=trange)  ; get All the files first
+      allfiles = file_retrieve(pathname,_extra=source,trange=trange)  ; get All the files first
       fileformat =  file_basename(str_sub(pathname,'*.nc','YYYYDOYhhmm'))
       filerange = time_string(trange,tformat=fileformat)
       w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
@@ -102,7 +106,7 @@ if ~keyword_set(files) then begin
     3: begin
       pathname = 'swfo/aws/L0/SWFOCBU/YYYY/MM/DD/OR_SWFOCBU-L0_SL1_s*.nc'
       source.resolution = 24L*3600
-      allfiles = file_retrieve(pathname,_extra=source,no_update=1,no_download=no_download,trange=trange)  ; get All the files first
+      allfiles = file_retrieve(pathname,_extra=source,trange=trange)  ; get All the files first
       fileformat =  file_basename(str_sub(pathname,'*.nc','YYYYDOYhhmm'))
       filerange = time_string(trange,tformat=fileformat)
       w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
@@ -169,23 +173,33 @@ endif
 
 
 
+
+
 stop
 
+if 1 then begin
+  dprint,print_dtime=0,print_dlevel=0,print_trace=0
+  stop
+endif
 
 
 if keyword_set(1) then begin
   parent = dictionary()
   rdr.parent_dict = parent
   rdr.verbose = 3
-  rdr.source_dict.run_proc = 1
+  rdr.source_dict.run_proc = 0
+  cntr = dynamicarray('index_counter')
   for i = 0, n_elements(files)-1 do begin
     file = files[i]
-    dprint,string(rdr.getattr('index'))+'   '+ file
-    parent.filename = files
+    parent.filename = file
     parent.num_duplicates = 0
     parent.max_displacement = 0
+    index
     dat = ncdf2struct(file)
     frames = struct_value(dat,frames_name,default = !null)
+    index = rdr.getattr('index')
+    cntr.append, { index:index,   time: time_double( dat.
+    dprint,dlevel=1,string(index)+'   '+ file_basename(file)+ '  '+strtrim(n_elements(frames)/1024, 2)
     rdr.read , frames
   endfor
 endif
