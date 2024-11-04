@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-11-01 10:08:56 -0700 (Fri, 01 Nov 2024) $
-; $LastChangedRevision: 32915 $
+; $LastChangedDate: 2024-11-03 13:15:35 -0800 (Sun, 03 Nov 2024) $
+; $LastChangedRevision: 32924 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -175,7 +175,8 @@ end
 pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
 
   pb = 0
-  if source_dict.haskey('headerstr') && source_dict.headerstr.replay  then begin
+  ;if source_dict.haskey('headerstr') && source_dict.headerstr.haskey('replay') && source_dict.headerstr.replay  then begin
+  if source_dict.haskey('replay')  && source_dict.replay  then begin
     pb = 0x400
     prefix='pb_'
   endif else begin
@@ -330,6 +331,7 @@ PRO swfo_stis_sci_apdat__define
 
   void = {swfo_stis_sci_apdat, $
     inherits swfo_gen_apdat, $    ; superclass
+;    inherits generic_apdat,  $
     level_xx: obj_new(),  $       ; This will be a an ordered hash that contains all higher level data products
     level_0b: obj_new(),  $       ; Level 0B data is stored in the "data" variable of swfo_gen_apdat
     ;level_0b_all: obj_new(),  $       ; This will hold a dynamic array of structures that include data from 3 STIS apids  (Science + Noise + hkp2)

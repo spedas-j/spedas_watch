@@ -4,7 +4,7 @@
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu:36867/repos/spdsoft/trunk/projects/swx/swx_stis_sci_apdat__define.pro $
 
 
-function swx_stis_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
+function swx_sst_sci_apdat::decom,ccsds,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
   common swx_stis_sci_com4, lastdat, last_str
   ccsds_data = swx_ccsds_data(ccsds)
   str1=swx_stis_ccsds_header_decom(ccsds)
@@ -135,7 +135,7 @@ end
 
 
 
-pro swx_stis_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_dict
+pro swx_sst_sci_apdat::handler2,struct_stis_sci_level_0b  ,source_dict=source_dict
   if  ~obj_valid(self.level_0b) then begin
     dprint,'Creating Science level 0B'
     self.level_0b = dynamicarray(name='Science_L0b')
@@ -223,7 +223,7 @@ end
 
 
 
-pro swx_stis_sci_apdat::create_tplot_vars,ttags=ttags
+pro swx_sst_sci_apdat::create_tplot_vars,ttags=ttags
   dprint,dlevel=2,verbose=self.verbose,'Creating tplot variables for: ',self.name
   if ~keyword_set(ttags) then ttags = self.ttags
   dyndata = self.data
@@ -232,8 +232,8 @@ pro swx_stis_sci_apdat::create_tplot_vars,ttags=ttags
   endif
 
   if isa(self.level_1a,'dynamicarray') then begin
-    store_data,'stis_l1a',data=self.level_1a,tagnames='SPEC_??',val_tag='_NRG'
-    options,'stis_l1a_SPEC_??',spec=1,yrange=[5.,8000],/ylog,/zlog,/default
+    store_data,'sst_l1a',data=self.level_1a,tagnames='SPEC_??',val_tag='_NRG'
+    options,'sst_l1a_SPEC_??',spec=1,yrange=[5.,8000],/ylog,/zlog,/default
   endif
 
 end
@@ -241,12 +241,12 @@ end
 
 
 
-PRO swx_stis_sci_apdat__define
+PRO swx_sst_sci_apdat__define
 
-  void = {swx_stis_sci_apdat, $
-    inherits swx_gen_apdat, $    ; superclass
-    file_resolution: 0d,  $
-    lastfile_time : 0d,  $
+  void = {swx_sst_sci_apdat, $
+    inherits generic_apdat, $    ; superclass
+;    file_resolution: 0d,  $
+;    lastfile_time : 0d,  $
     level_0b: obj_new(),  $       ; Level 0B data is stored in the "data" variable of swx_gen_apdat
     ;level_0b_all: obj_new(),  $       ; This will hold a dynamic array of structures that include data from 3 STIS apids  (Science + Noise + hkp2)
     level_1a: obj_new(),  $
