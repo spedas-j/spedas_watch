@@ -1,7 +1,7 @@
 ;swfo_test
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-11-03 13:15:35 -0800 (Sun, 03 Nov 2024) $
-; $LastChangedRevision: 32924 $
+; $LastChangedDate: 2024-11-04 07:09:05 -0800 (Mon, 04 Nov 2024) $
+; $LastChangedRevision: 32930 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -54,8 +54,8 @@ if ~keyword_set(files) then begin
   ;trange = systime(1) + [-1,0] *3600d *6       ; last few hours
   trange = '2024 10 18/' + ['13:15','16:35']   ; Normal operations including some replay
   trange = ['2024 10 16','2024 10 20']      ; Entirety of E2E2
-  trange = ['2024 1 291/ 18:00','2024 1 292 / 8:45']   ; some repeated frames
-  trange = ['2024 1 291/ 22:00','2024 1 292 / 0:45']   ; some repeated frames
+  ;trange = ['2024 1 291/ 18:00','2024 1 292 / 8:45']   ; some repeated frames
+  ;trange = ['2024 1 291/ 22:00','2024 1 292 / 0:45']   ; test some repeated frames
   stop
 
 
@@ -235,6 +235,9 @@ options,'*_delta',psym=-1,symsize=.4,yrange=[-10,10]
 
 
 tplot,'*SEQN *SEQN_delta'
+
+stop
+swfo_apdat_info,/make_ncdf,trange=time_double(trange),file_resolution=1800d
 
 
 end

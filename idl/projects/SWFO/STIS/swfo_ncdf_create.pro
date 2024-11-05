@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-09-10 22:51:25 -0700 (Tue, 10 Sep 2024) $
-; $LastChangedRevision: 32817 $
+; $LastChangedDate: 2024-11-03 23:43:14 -0800 (Sun, 03 Nov 2024) $
+; $LastChangedRevision: 32928 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_create.pro $
 ; $ID: $
 
@@ -51,6 +51,10 @@ pro swfo_ncdf_create,dat,filename=ncdf_filename,verbose=verbose,global_atts=glob
 
     for i=0,n_elements(tags)-1 do begin
       dd = size(/struct,dat0.(i) )
+      if ~types.haskey(dd.type) then begin
+        dprint,dlevel=3,'skipping ',dd.type_name
+        continue
+      endif
       type_struct=create_struct(types[dd.type],1)
       if dd.n_dimensions eq  0 then begin   ; scalers
         vid = ncdf_vardef(id,tags[i],tid,_extra=type_struct)
@@ -69,9 +73,14 @@ pro swfo_ncdf_create,dat,filename=ncdf_filename,verbose=verbose,global_atts=glob
   endelse
 
   for i=0,n_elements(tags)-1 do begin
-    dd = dat.(i)
+    dd = size(/struct,dat0.(i) )
+    if ~types.haskey(dd.type) then begin
+      dprint,dlevel=3,'skipping ',dd.type_name
+      continue
+    endif
+    dati = dat.(i)
     ; if size(/n_dimen,dd) eq 2 then dd = transpose(dd)
-    ncdf_varput,id,tags[i],dd
+    ncdf_varput,id,tags[i],dati
   endfor
   ncdf_close,id
 

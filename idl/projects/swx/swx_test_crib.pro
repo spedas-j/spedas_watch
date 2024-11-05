@@ -6,15 +6,15 @@ swx_apdat_info,rt_flag=0, save_flag=1;, /clear
 source = { remote_data_dir: 'http://sprg.ssl.berkeley.edu/data/',resolution:3600d,master_file:'swx/sst/prelaunch/.master'}
 trange = ['2023-12-27 5','2023-12-27 / 8']
 trange = ['2023-12 22', '2023-12-31']
-;trange = ['2023-12 27 18', '2023-12-28']
+trange = ['2023-12 27 22', '2023-12-28 2']
 files = file_retrieve('swx/s\st/prelaunch/realtime/cleantent/ptp_reader/YYYY/MM/DD/ptp_reader_YYYYMMDD_hh.dat',_extra=source,trange=trange)
 if 1 then begin
-  rdr = ptp_reader(/no_widget,mission='SWX'  )  ;,procedure_name= 'swfo_ccsds_spkt_handler')
+  rdr = ptp_reader(/no_widget,mission='SWX'  )  
   rdr.file_read,files
 endif else begin
   swfo_ptp_file_read, files,file_type =  'ptp_file'  
 endelse
 
 
-swfo_apdat_info,/print,/all    ;/make_ncdf,trange=trange,resolution=3600d*24
+swfo_apdat_info,/print,/all  ,  /make_ncdf,trange=trange,file_resolution=3600d*24
 end
