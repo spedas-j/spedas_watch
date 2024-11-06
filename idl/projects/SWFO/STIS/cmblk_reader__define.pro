@@ -4,8 +4,8 @@
 ;  A description of this file format is available at:
 ;  https://docs.google.com/presentation/d/1b5ooHfuHJsavys-BOUOOZohXeCzJC1M0MNaUlxM1tEg/edit?usp=sharing
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-15 08:12:13 -0700 (Tue, 15 Oct 2024) $
-; $LastChangedRevision: 32887 $
+; $LastChangedDate: 2024-11-04 20:21:48 -0800 (Mon, 04 Nov 2024) $
+; $LastChangedRevision: 32933 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/cmblk_reader__define.pro $
 ;-
 COMPILE_OPT IDL2
@@ -13,8 +13,8 @@ COMPILE_OPT IDL2
 
 FUNCTION cmblk_reader::Init,_EXTRA=ex,handlers=handlers
 
-  txt = ['tplot,verbose=0,trange=systime(1)+[-1,.05]*3600*.1','timebar, systime(1)']
-  exec, exec_text = txt
+  ;txt = ['tplot,verbose=0,trange=systime(1)+[-1,.05]*3600*.1','timebar, systime(1)']
+  ;exec, exec_text = txt
 
   ; Call our superclass Initialization method.
   void = self.socket_reader::Init(_EXTRA = ex)
