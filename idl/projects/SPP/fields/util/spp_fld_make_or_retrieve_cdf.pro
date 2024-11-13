@@ -6,8 +6,8 @@
 ; Kept around for backward compatibility with some old routines.
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2023-10-16 11:56:53 -0700 (Mon, 16 Oct 2023) $
-; $LastChangedRevision: 32188 $
+; $LastChangedDate: 2024-11-12 10:43:29 -0800 (Tue, 12 Nov 2024) $
+; $LastChangedRevision: 32943 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/spp_fld_make_or_retrieve_cdf.pro $
 ;
 ;-
@@ -22,11 +22,10 @@ pro spp_fld_make_or_retrieve_cdf, $
 
   if keyword_set(make) then begin
     if ~keyword_set(lusee) then begin
-      if (getenv('HOSTNAME')).Contains('lucem') then lusee = 1 else lusee = 0
+      if (getenv('HOSTNAME')).contains('lucem') then lusee = 1 else lusee = 0
     endif
     spp_fld_make_cdf_l1, apid_name, load = load, lusee = lusee
   endif else if getenv('HOSTNAME') eq 'spfdata2' then begin
-
     if strmid(apid_name, 0, 3) eq 'dfb' and apid_name ne 'dfb_hk' then begin
       final_underscore = strpos(apid_name, '_', /reverse_search)
 
@@ -53,7 +52,7 @@ pro spp_fld_make_or_retrieve_cdf, $
       local_data_dir = getenv('PSP_STAGING_DIR'), $
       remote_data_dir = remote_site, no_update = 0, $
       trange = time_string(ts, tformat = 'YYYY-MM-DD/hh:mm:ss'), $
-      user_pass = getenv('PSP_USER') + ':' + getenv('PSP_STAGING_PW'))
+      user_pass = getenv('PSP_STAGING_ID') + ':' + getenv('PSP_STAGING_PW'))
 
     valid_files = where(file_test(files) eq 1, valid_count)
 
