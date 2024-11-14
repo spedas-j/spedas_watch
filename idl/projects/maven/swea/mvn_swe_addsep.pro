@@ -23,8 +23,8 @@
 ;    TSMO:          Smoothing interval for FTO signal.  Default = 65 sec.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-08-12 13:21:17 -0700 (Mon, 12 Aug 2024) $
-; $LastChangedRevision: 32791 $
+; $LastChangedDate: 2024-11-13 11:21:33 -0800 (Wed, 13 Nov 2024) $
+; $LastChangedRevision: 32960 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_addsep.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03/18/14
@@ -123,7 +123,7 @@ pro mvn_swe_addsep, pans=pans, noatt=noatt, fto=fto, tsmo=tsmo
 ; FTO
 
   if (dofto) then begin
-    if (find_handle('mvn_sep1_A-FTO_Eflux_Energy')) then begin
+    if (find_handle('mvn_sep1_A-FTO_Eflux_Energy') gt 0) then begin
       get_data,'mvn_sep1_A-FTO_Eflux_Energy',data=fto1a
       get_data,'mvn_sep1_B-FTO_Eflux_Energy',data=fto1b
       get_data,'mvn_sep1_svy_ATT',data=att1

@@ -67,6 +67,7 @@
 ;       SHADOW:   Choose shadow boundary definition:
 ;                    0 : optical shadow at spacecraft altitude
 ;                    1 : EUV shadow at spacecraft altitude (default)
+;                    2 : EUV shadow at electron absorption altitude
 ;
 ;       SEGMENTS: Plot nominal altitudes for orbit segment boundaries as dotted
 ;                 horizontal lines.  Closely spaced lines are transitions, during
@@ -176,8 +177,8 @@
 ;                 arbitrary set of ephemeris conditions.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-08-28 20:01:52 -0700 (Wed, 28 Aug 2024) $
-; $LastChangedRevision: 32803 $
+; $LastChangedDate: 2024-11-13 11:15:07 -0800 (Wed, 13 Nov 2024) $
+; $LastChangedRevision: 32954 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -359,8 +360,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
 
   tspan = tspan + [-oneday, oneday]  ; pad by one day before and after
 
-  if (size(shadow,/type) eq 0) then shadow = 1
-  sflg = keyword_set(shadow)
+  sflg = (size(shadow,/type) gt 0) ? fix(shadow[0]) > 0 : 1
   if not keyword_set(ialt) then ialt = !values.f_nan
 
   mname = 'maven_spacecraft_mso_??????' + '.sav'
@@ -650,14 +650,31 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
 
   r = sqrt(x*x + y*y + z*z)
   s = sqrt(y*y + z*z)
-  if (sflg) then begin
-    print,"Using EUV shadow"
-    shadow = 1D + (150D/R_m)
-  endif else begin
-    print,"Using optical shadow"
-    shadow = 1D
-  endelse
   sza = atan(s,x)
+
+  case (sflg) of
+      0  : begin
+             print,"Using optical shadow"
+             shadow = 1D
+             stype = 'OPT'
+           end
+      1  : begin
+             print,"Using EUV shadow"
+             shadow = 1D + (150D/R_m)
+             stype = 'EUV'
+           end
+      2  : begin
+             print,"Using electron footpoint shadow"
+             shadow = 1D + (170D/R_m)
+             stype = 'EFP'
+           end
+    else : begin
+             print,"Shadow option not recognized: ",sflg
+             print,"Using default EUV shadow"
+             shadow = 1D + (150D/R_m)
+             stype = 'EUV'
+           end
+  endcase
 
 ; Calculate altitude, longitude, latitude, local time, and sub-solar point
 ; (or restore pre-calculated values for MISSION or EXTENDED).  All of these
@@ -884,7 +901,6 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
   store_data,'pileup',data={x:time, y:pileup[*,4]}
   options,'pileup','color',rcols[1]
 
-  if (sflg) then stype = 'EUV' else stype = 'OPT'
   store_data,'wake',data={x:time, y:wake[*,4], shadow:stype}
   options,'wake','color',rcols[2]
 

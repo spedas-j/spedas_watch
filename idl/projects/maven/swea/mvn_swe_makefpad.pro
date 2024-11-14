@@ -27,8 +27,8 @@
 ;                 data structures: swe_fpad, swe_fpad_arc.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-08-10 08:53:12 -0700 (Tue, 10 Aug 2021) $
-; $LastChangedRevision: 30194 $
+; $LastChangedDate: 2024-11-13 11:18:00 -0800 (Wed, 13 Nov 2024) $
+; $LastChangedRevision: 32957 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makefpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -90,14 +90,14 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pf
     e200 = 199.05093D
 
     pname = 'swe_pad_resample_32hz_200eV'
-    mvn_swe_pad_resample,nbins=128,erange=e200,/tplot,/norm,/mask,/silent,$
+    mvn_swe_pad_resample,nbins=128,erange=e200,snap=0,/tplot,/norm,/mask,/silent,$
                          tabnum=7,/burst,pans=pname
     options,pname,'x_no_interp',1
     options,pname,'datagap',4D
     pans = [pname]
 
     pname = 'swe_pad_resample_32hz_50eV'
-    mvn_swe_pad_resample,nbins=128,erange=e50,/tplot,/norm,/mask,/silent,$
+    mvn_swe_pad_resample,nbins=128,erange=e50,snap=0,/tplot,/norm,/mask,/silent,$
                          tabnum=8,/burst,pans=pname
     options,pname,'x_no_interp',1
     options,pname,'datagap',4D
@@ -113,13 +113,13 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pf
       endelse
 
       pname = 'swe_pad_resample_50eV'
-      mvn_swe_pad_resample,tsp,nbins=128,erange=e50,/tplot,/norm,/mask,/silent,$
+      mvn_swe_pad_resample,tsp,nbins=128,erange=e50,snap=0,/tplot,/norm,/mask,/silent,$
                            tabnum=5,pans=pname
       options,pname,'x_no_interp',1
       options,pname,'datagap',4D
 
       pname = 'swe_pad_resample_200eV'
-      mvn_swe_pad_resample,tsp,nbins=128,erange=e200,/tplot,/norm,/mask,/silent,$
+      mvn_swe_pad_resample,tsp,nbins=128,erange=e200,snap=0,/tplot,/norm,/mask,/silent,$
                            tabnum=5,pans=pname
       options,pname,'x_no_interp',1
       options,pname,'datagap',4D

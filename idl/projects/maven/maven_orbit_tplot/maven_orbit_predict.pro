@@ -68,8 +68,8 @@
 ;                       affects only the altitude panel.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-08 16:11:26 -0800 (Mon, 08 Jan 2024) $
-; $LastChangedRevision: 32343 $
+; $LastChangedDate: 2024-11-13 11:11:16 -0800 (Wed, 13 Nov 2024) $
+; $LastChangedRevision: 32949 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_predict.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -222,7 +222,7 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
 
   bname = 'calbar'
   store_data,bname,data={x:palt.x, y:flagc}
-  ylim,bname,0,6,0
+  ylim,bname,0,8,0
   options,bname,'ytitle',''
   options,bname,'no_interp',1
   options,bname,'thick',8
@@ -230,6 +230,7 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
   options,bname,'ystyle',4
 
   mvn_flyz_bar  ; Fly+Z periods from the constraints spreadsheet
+  ylim,'mvn_flyz_bar',0,8,0
 
   get_data,'palt',data=palt
   get_data,'lst',data=lst,index=i
@@ -296,7 +297,7 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
     indx = where((L_s gt 180.) and (L_s lt 320.), count)
     if (count gt 0L) then dust[indx] = 1.
     store_data,bname,data={x:lss.x, y:dust}
-    ylim,bname,0,6,0
+    ylim,bname,0,8,0
     options,bname,'ytitle',''
     options,bname,'no_interp',1
     options,bname,'thick',8
@@ -304,12 +305,37 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
     options,bname,'ystyle',4
   endif
 
+; ROSE bar (works only for EM6)
+
+  trose = ['2025-10-01','2025-12-24','2026-02-04','2026-04-25','2026-06-03','2026-08-23', $
+           '2026-10-02','2026-11-14','2027-04-12','2027-09-25','2027-11-28','2028-01-19', $
+           '2028-03-16','2028-05-13','2028-06-30','2028-09-19']
+  trose = time_double(trose)
+
+  bname = 'rosebar'
+  ndays = round((time_double('2028-10-01') - time_double('2025-10-01'))/86400D) + 1L
+  time2 = time_double('2025-10-01') + 86400D*dindgen(ndays)
+  rose = replicate(!values.f_nan, ndays)
+  for i=0,(n_elements(trose)-1),2 do begin
+    indx = where((time2 ge trose[i]) and (time2 le trose[i+1]), count)
+    if (count gt 0L) then rose[indx] = 7.
+  endfor
+  store_data,bname,data={x:time2, y:rose}
+  ylim,bname,0,8,0
+  options,bname,'ytitle',''
+  options,bname,'no_interp',1
+  options,bname,'thick',8
+  options,bname,'xstyle',4
+  options,bname,'ystyle',4
+
   bname = 'bars'
-  store_data,bname,data=['dustbar','mvn_flyz_bar','calbar']
-  ylim,bname,0.7,5.3,0
-  options,bname,'line_colors',5
-  options,bname,'colors',[5,4,6]  ; [orange, green, red]
-  options,bname,'labels',['DUST','FLY+Z','FLY Y/Z']
+  store_data,bname,data=['dustbar','mvn_flyz_bar','calbar','rosebar']
+  ylim,bname,0.7,7.3,0
+  mylines = get_line_colors(5, mycolors={ind:1, rgb:[242,59,67]})
+  options,bname,'line_colors',mylines
+
+  options,bname,'colors',[5,4,2,1]  ; [orange, green, blue, rose]
+  options,bname,'labels',['DUST','FLY+Z','FLY Y/Z','ROSE']
   options,bname,'labflag',2
   options,bname,'xstyle',5
   options,bname,'ystyle',5

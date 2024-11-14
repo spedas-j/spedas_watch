@@ -6,8 +6,8 @@
 ; displayed using doc_library.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-14 11:31:21 -0700 (Sun, 14 Jul 2024) $
-; $LastChangedRevision: 32744 $
+; $LastChangedDate: 2024-11-13 11:19:21 -0800 (Wed, 13 Nov 2024) $
+; $LastChangedRevision: 32958 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_crib.pro $
 ;======================================================================
 ;
@@ -494,107 +494,41 @@ maven_orbit_predict
 ; Protons with energies above ~20 MeV and electrons with energies above
 ; ~2 MeV can penetrate the instrument housing and internal walls to pass
 ; through the MCP, where they can trigger electron cascades and generate
-; counts.  Galactic Cosmic Rays (GCRs) peak near 1 GeV and easily pass
-; through the instrument (and the entire spacecraft), resulting in a
-; background count rate of several counts per second summed over all
-; anodes.  SEP events are episodic, but can increase the penetrating
-; particle background by orders of magnitude for days.  If you are 
-; analyzing SWEA data at energies above ~1 keV, then you may want to 
-; consider subtracting this background.  The following is the recommended
-; approach.
-
-; First, load some data, then retrieve the SPEC data into a variable.
-
-spec = mvn_swe_getspec()                       ; get SPEC data
-spec.bkg = 0.                                  ; clear the background array
-mvn_swe_secondary, spec                        ; calculate secondary contamination
-old_units = spec[0].units_name                 ; remember the original units
-mvn_swe_convert_units, spec, 'crate'           ; convert units to corrected count rate
-bkg = average(spec.data[0:3,*], 1, /nan)       ; estimate penetrating particle background
-bkgs = smooth_in_time(bkg, spec.time, 64)      ; smooth in time by 64 sec (32 spectra)
-store_data, 'bkg', data={x:spec.time, y:bkgs}  ; make a tplot variable
-options, 'bkg', 'ytitle', 'CRATE (>3.3 keV)'
-tplot, 'bkg', add=-1                           ; plot 'bkg' above the last panel
-
-; Note that I have averaged over the highest four energy channels (3.3-4.6 keV)
-; to estimate the background count rate.  This is often reasonable, but not
-; always.  SEP events can have electron components that extend into SWEA's
-; measurement range.  When this happens, the count rate from 3.3-4.6 keV is not
-; constant, because electrons are present with a decreasing flux vs. energy in
-; SWEA's highest energy channels.  Simply averaging the high-energy count rate
-; as above will overestimate the background level, possibly by a lot.  So you
-; will have to find times when the count rate is constant as a function of
-; energy above 3.3 keV.  You can check using the energy snapshot procedure:
-
-swe_engy_snap, /sum, yrange=[1e-1,1e5], units='crate'
-
-; At this point, look at the background panel in the tplot window.  Note the
-; stochastic nature of the background.  Because of this, you shouldn't simply
-; subtract the background counts at each time.  That just introduces noise into
-; the background estimate.  Instead, you should take an average over a long 
-; enough interval that you can calculate a reliable mean.  It's the mean value
-; that you should subtract from the data.
-
-; But there another complication.  Mars blocks a variable amount of the sky 
-; in MAVEN's elliptical orbit.  Penetrating particles cannot pass through 
-; the planet, so you'll have to estimate the background level around apoapsis,
-; then correct for the changing solid angle subtended by Mars along MAVEN's 
-; orbit.  (The background level is lower near periapsis, because Mars provides
-; more shielding.)  You should be able to see the dips in the background level
-; around periapsis.
-
-; Finally, note that all apoapsis background estimates are not the same.
-; The apoapsis background level can vary by ~10% from one orbit to another.
-; I don't think the GCR flux does this.  More likely, this is due to the 
-; presence of 3.3-4.6 keV electrons that increase the count rate, but not
-; enough to be obvious in the spectra.  Your best bet is to average over a
-; time range around apoapsis during which the >3.3-keV count rate is near 
-; a minimum and nearly constant as a function of energy.  Once you find 
-; such an interval, take the mean of the background:
-
-tmean, 'bkg', /hist, result=dat             ; time interval around apoapsis
-bkg_avg = dat.mean                          ; background count rate near apoapsis
-
-; Now correct for Mars' changing solid angle as seen by MAVEN
-
-Rm = 3389.5                                 ; Mars volumetric mean radius, km
-get_data, 'alt', data=alt                   ; variable created by maven_orbit_tplot
-h = spline(alt.x, alt.y, spec.time)         ; MAVEN altitude at each time 
-x = Rm/(Rm+h)                               ; sine of half-angle subtended by Mars
-blk = (1. - sqrt(1. - x*x))/2.              ; fraction of sky blocked by Mars
-bkg_model = bkg_avg*(1.-blk)/(1.-min(blk))  ; background model with sky blockage
-store_data, 'bkg_model', data={x:spec.time, y:bkg_model}
-options, 'bkg_model', 'thick', 2
-store_data, 'bkg_comp', data=['bkg','bkg_model']
-options, 'bkg_comp', 'ytitle', 'CRATE (>3.3 keV)'
-options, 'bkg_comp', 'colors', [4,6]
-options, 'bkg_comp', 'labels', ['data', 'model']
-options, 'bkg_comp', 'labflag', 1
-tplot, 'bkg_comp', add=-1                   ; plot the background and model
-
-; An alternative to consider is measuring the background below the 
-; photoelectron boundary on a closed magnetic field loop.  The averaging
-; interval will be shorter, but the signal above 3.3 keV is likely to be
-; dominated by penetrating particles.  In that case, replace the model
-; calculation with:
-
-bkg_model = bkg_avg*(1.-blk)/(1.-max(blk))
-
-; where bkg_avg is obtained near periapsis, and proceed as above.
-
-; Note that the background model is a smooth curve vs. time.  This is what
-; you insert into the background array.
-
-spec.bkg += replicate(1.,64) # bkg_model    ; sum secondary and penetrating bkgs
-mvn_swe_convert_units, spec, old_units      ; convert back to original units
-
-; And you're done!  The GCR background varies by a factor of two over the solar
-; cycle.  It should be essentially constant over time scales of days to weeks.
-; This means that you should be able to find one good orbit that will provide
-; a background estimate that is valid for days or weeks around that orbit.
+; counts.  In addition, electrons below 2 MeV scatter off atoms in the
+; instrument walls and emit bremsstrahlung radiation at x-ray energies
+; (typically 10-30 keV).  These x-rays penetrate internal walls to impact 
+; the MCP and generate counts.  Finally, radioactive decay of potassium-40
+; (half-life: 1.3 Gy) in the MCP glass emits electrons and positrons that
+; can also contribute background counts.
 ;
-; Note: Because of the stochastic nature of the data, subtracting background
-; can result in negative values.  You'll have to decide what to do in this case.
+; Galactic Cosmic Rays (GCRs, dominated by H+ and He++) are essentially
+; isotropic and peak near 1 GeV.  They easily pass through the instrument 
+; and the entire spacecraft, resulting in a background count rate of 
+; several counts per second summed over all anodes.  The GCR background 
+; varies by a factor of two over the 11-year solar cycle, but should be 
+; essentially constant over time scales of days to weeks.
+;
+; SEP events are episodic, but can increase the penetrating particle 
+; background by orders of magnitude for days.  SEP events can contain 
+; both energetic ions and electrons.  In addition, SEP events often have
+; an electron population below 5 keV that SWEA measures normally.  Thus,
+; during SEP events, the 1-5-keV count rate can result from five sources: 
+; (1) < 5 keV electrons, (2) bremsstrahlung x-rays, (3) > 2 MeV electrons, 
+; (4) > 20 MeV protons, and (5) radioactive decay of potassium-40 in the
+; MCP glass. 
+;
+; If you are analyzing SWEA data at energies above ~1 keV, then you may 
+; want to consider subtracting this background.  During SEP events, this
+; may be difficult because of the presence of 1-5-keV electrons; however,
+; during quiet times, when the background is dominated by GCR's, the 
+; recommended approach is to use mvn_swe_background.  The header of that 
+; program contains instructions on how to use it.
+;
+; Because of the stochastic nature of the data, subtracting background
+; can result in negative values.  You'll have to decide what to do in 
+; this case.
+
+mvn_swe_background
 
 ;
 ; I HAVE QUESTIONS AND/OR I NEED HELP WITH ....

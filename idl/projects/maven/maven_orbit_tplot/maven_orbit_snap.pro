@@ -51,6 +51,36 @@
 ;                   1 : Use a small MAG-MOLA image
 ;                   2 : Use a large MAG-MOLA image
 ;                   3 : Use a large dBr-topology image
+;                   4 : Use a Langlais Br at 160 km image (electron footpoint)
+;                   5 : Use a Langlais Br at 250 km image (less detail)
+;
+;       LLIM:     Limits structure for the Langlais image.  Use this to set
+;                 the window size (xsize), xrange, yrange, xticks, yticks, etc.
+;                 Any keywords accepted by CONTOUR and SPECPLOT are allowed.
+;                 The image is generated dynamically, so you can zoom into a
+;                 particular region.  When specifying window size, only the
+;                 horizontal dimension (xsize) is used.  The vertical dimension
+;                 (ysize) is calculated so that the pixels/degree is the same 
+;                 in both X and Y.
+;
+;                 The Langlais map is shown as a shaded contour plot.  Default
+;                 contour levels (LLIM.LEVELS) are [10,30,50,70] nT.  Positive
+;                 contours (+LLIM.LEVELS) are blue, and negative contours
+;                 (-LLIM.LEVELS) are red.  Shading is a washed-out red-to-blue
+;                 color scale to allow overlays.  You can control this by setting
+;                 the tag WASH in the LLIM structure:
+;
+;                   LLIM.WASH > 50  (more color)
+;                   LLIM.WASH = 50  (default)
+;                   LLIM.WASH < 50  (less color)
+;                   LLIM.WASH =  0  (no color, contours only)
+;
+;                 You can choose the magnetic field vector component to plot:
+;
+;                   LLIM.COMPONENT = 'BR'  ; radial component (default)
+;                   LLIM.COMPONENT = 'BT'  ; north component
+;                   LLIM.COMPONENT = 'BP'  ; east component
+;                   LLIM.COMPONENT = 'B'   ; magnitude
 ;
 ;       NPOLE:    Plot the position of the spacecraft (PREC=1) or periapsis
 ;                 (PREC=0) on a north polar projection (lat > 55 deg).  The
@@ -71,13 +101,14 @@
 ;                      4 : Plot EUV shadow at electron absorption altitude.
 ;
 ;       NOERASE:  Don't erase previously plotted positions.  Can be used to build
-;                 up a visual representation of sampling.
+;                 up complex plots.
 ;
 ;       NODOT:    Do not plot a filled circle at periapsis or spacecraft location.
 ;
 ;       NOORB:    Do not plot the orbit.
 ;
-;       SCSYM:    Symbol for the spacecraft.  Default = 1 (plus symbol).
+;       SCSYM:    Symbol for the spacecraft.  Default = 1 (plus symbol).  Filled
+;                 circles are obtained with SCSYM = 8.
 ;
 ;       RESET:    Initialize all plots.
 ;
@@ -90,7 +121,8 @@
 ;       TIMES:    An array of times for snapshots.  Snapshots are overlain onto
 ;                 a single version of the plot.  For evenly spaced times, this
 ;                 produces a "spirograph" effect.  This overrides the interactive
-;                 entry of times with the cursor.  Sets KEEP, NOERASE, and RESET.
+;                 entry of times with the cursor.  Sets KEEP and NOERASE.  Also
+;                 sets RESET if necessary.
 ;
 ;       TCOLORS:  Color index for every element of TIMES.
 ;
@@ -102,10 +134,7 @@
 ;
 ;       BCLIP:    Maximum amplitude for plotting B whisker.
 ;
-;       BAZEL:    Show the azimuth of the magnetic field vector at the spacecraft
-;                 location on the Mars topography-crustal magnetic field plot.
-;
-;       MSCALE:   To change the scale/length of magnetic field lines, the default
+;       MSCALE:   To change the scale/length of magnetic field whiskers, the default
 ;                 value is set to 0.05
 ;
 ;       VDIR:     Set keyword to a tplot variable containing MSO vectors for a whisker
@@ -117,6 +146,17 @@
 ;
 ;       VSCALE:   To change the scale/length of vector lines, the default value is
 ;                 set to 0.05.
+;
+;       BAZEL:    Show the azimuth of the magnetic field vector at the spacecraft
+;                 location on the Mars topography-crustal magnetic field plot.
+;                 Whiskers are a fixed length and do not scale with the field
+;                 amplitude or projection.  The value of this keyword is used to
+;                 scale the whisker lengths.
+;
+;       CAZEL:    If set, the BAZEL whisker colors are set according to the current
+;                 color table.  For table 1074 (reverse): blue = radial out, and
+;                 red = radial in.  If not set, all the whiskers are the same color
+;                 as the spacecraft symbol (see keyword COLOR).  Default = 0.
 ;
 ;       THICK:    Line thickness.
 ;
@@ -153,8 +193,8 @@
 ;                 easier to see the colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-04-26 18:29:13 -0700 (Fri, 26 Apr 2024) $
-; $LastChangedRevision: 32539 $
+; $LastChangedDate: 2024-11-13 11:14:17 -0800 (Wed, 13 Nov 2024) $
+; $LastChangedRevision: 32953 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -165,7 +205,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     magnify=magnify, Bclip=Bclip, Vdir=Vdir, Vclip=Vclip, Vscale=Vscale, Vrange=Vrange, $
     alt=alt2, psname=psname, nolabel=nolabel, xy=xy, yz=yz, landers=landers, slab=slab, $
     scol=scol, tcolors=tcolors, noorb=noorb, monitor=monitor, wscale=wscale, ssize=ssize, $
-    black=black, iono=iono, arange=arange, bazel=bazel
+    black=black, iono=iono, arange=arange, bazel=bazel, llim=llim2, cazel=cazel
 
   @maven_orbit_common
   @putwin_common
@@ -197,7 +237,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
            'COLOR','RESET','CYL','TIMES','NODOT','TERMINATOR','THICK','BDIR', $
            'MSCALE','SCSYM','MAGNIFY','BCLIP','VDIR','VCLIP','VSCALE','VRANGE', $
            'ALT2','PSNAME','NOLABEL','XY','YZ','LANDERS','SLAB','SCOL','TCOLORS', $
-           'NOORB','MONITOR','WSCALE','BLACK','ARANGE','BAZEL']
+           'NOORB','MONITOR','WSCALE','BLACK','ARANGE','BAZEL','CAZEL','LLIM']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
@@ -230,9 +270,11 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   if keyword_set(bazel) then begin
     get_data,'mvn_mag_azel',data=dat,index=i
     if (i gt 0) then begin
-      bt = dat.x
-      baz = dat.y[*,1]*!dtor
-      bel = (dat.y[*,0]/2. - 90.)*!dtor
+      j = where(finite(dat.y[*,1]) and finite(dat.y[*,0]), ngud, ncomplement=nbad)
+      if (nbad gt 0L) then print,strcompress("BAZEL: ignoring " + string(nbad) + " bad times.")
+      bt = dat.x[j]
+      baz = dat.y[j,1]*!dtor
+      bel = (dat.y[j,0]/2. - 90.)*!dtor
       bx = cos(baz)*cos(bel)
       by = sin(baz)*cos(bel)
       bz = sin(bel)
@@ -241,7 +283,11 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       d2bz = spl_init(bt,bz,/double)
       dat = 0
       doazel = 1
-    endif
+      bscale = bazel[0]
+    endif else begin
+      print,"Tplot variable mvn_mag_azel not found."
+      print,"Run mvn_mag_tplot before using keyword BAZEL."
+    endelse
   endif
   if (size(terminator,/type) gt 0) then doterm = fix(round(terminator)) < 3 else doterm = 0
   if keyword_set(wscale) then begin
@@ -298,16 +344,16 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     if (dolab) then begin
       slab = ['V1','V2','Pa','S','O','Ph','C','I','Pe','Z']
       print,"Lander Key:"
-      print,"  V1 = Viking 1"
-      print,"  V2 = Viking 2"
-      print,"  Pa = Pathfinder"
-      print,"  S  = Spirit"
-      print,"  O  = Opportunity"
-      print,"  Ph = Phoenix"
-      print,"  C  = Curiosity"
-      print,"  I  = InSight"
-      print,"  Pe = Perserverence"
-      print,"  Z  = Zhurong"
+      print,"  V1 = Viking 1 (1976-1982)"
+      print,"  V2 = Viking 2 (1976-1980)"
+      print,"  Pa = Pathfinder (1997)"
+      print,"  S  = Spirit (2004-2010)"
+      print,"  O  = Opportunity (2004-2018)"
+      print,"  Ph = Phoenix (2008)"
+      print,"  C  = Curiosity (2012-)"
+      print,"  I  = InSight (2018-)"
+      print,"  Pe = Perserverence (2021-)"
+      print,"  Z  = Zhurong (2021-)"
       print,""
     endif else slab = 0
   endif
@@ -321,7 +367,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     times = time_double(times)
     ntimes = n_elements(times)
     if (n_elements(tcolors) ne ntimes) then tcolors = replicate(color, ntimes)
-;   reset = 1
+    device, window_state=ws
+    reset = (ws[29] eq 0)
     noerase = 1
     keep = 1
     tflg = 1
@@ -365,17 +412,28 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
 
   if keyword_set(latlon) then gflg = 1 else gflg = 0
   
+  mbig = 0
   dbr = 0
+  lang = 0
   if (size(mars,/type) gt 0) then begin
     mflg = mars
     case mflg of
         1  : mbig = 0
         2  : mbig = 1
         3  : dbr = 1
+        4  : lang = 1
+        5  : lang = 2
       else : mflg = 0
     endcase
   endif else mflg = 0
-  
+
+  llim = {xrange:[0,360], yrange:[-90,90], xsize:1200, scale:1.0, levels:[10,30,50,70], $
+          xticks:4, xminor:3, yticks:2, yminor:3, xtitle:'East Longitude', ytitle:'Latitude'}
+  if (size(llim2,/type) eq 8) then begin
+    ktag = tag_names(llim2)
+    for i=0,(n_elements(ktag)-1) do str_element, llim, ktag[i], llim2.(i), /add_replace
+  endif
+
   if keyword_set(orbit) then oflg = 1 else oflg = 0
   
   if keyword_set(cyl) then cyflg = 1 else cyflg = 0
@@ -442,7 +500,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   endif
 
   if (mflg gt 0) then begin                                          ; GEO Lat-Lon on MAG-MOLA map
-    if (~noerase or reset) then mag_mola_orbit, -100., -100., big=mbig, dbr=dbr, rwin=Owin, /reset
+    if (~noerase or reset) then mag_mola_orbit, -100., -100., big=mbig, dbr=dbr, lang=lang, llim=llim, $
+                                                rwin=Owin, /reset
   endif
 
   if keyword_set(mhd) then begin                                     ; MHD simulation
@@ -1308,7 +1367,8 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       endif else bazel = 0
       mag_mola_orbit, lon[i], lat[i], big=mbig, noerase=noerase, title=title, color=j, $
                       terminator=ttime, psym=scsym, shadow=(doterm - 1), alt=sc_alt, $
-                      sites=sites, slab=slab, scol=scol, dbr=dbr, bazel=bazel
+                      sites=sites, slab=slab, scol=scol, dbr=dbr, lang=lang, llim=llim, $
+                      bazel=bazel, cazel=cazel, bscale=bscale
     endif
 
 ; Put up Mars North polar plot

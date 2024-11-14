@@ -122,8 +122,9 @@
 ;                  is nearly tangential to the orbit.
 ;
 ;       PCURVE:    Show the Parker spiral curve that intersects the
-;                  planet indicated by this keyword.  This is shown
-;                  in a different color.
+;                  planet indicated by keyword PLANET.  This is shown
+;                  in a different color.  This is automatically set
+;                  whenever SPIRAL is set.
 ;
 ;       VSW:       Solar wind velocity for calculating the spiral.
 ;                  Default = 400 km/s.  (Usually within the range
@@ -179,8 +180,8 @@
 ;       BLACK:     Use a black background for the orbit snapshot.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-31 16:33:41 -0700 (Wed, 31 Jul 2024) $
-; $LastChangedRevision: 32775 $
+; $LastChangedDate: 2024-11-13 11:35:25 -0800 (Wed, 13 Nov 2024) $
+; $LastChangedRevision: 32961 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -382,6 +383,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
              endif
            end
   endcase
+
+  spiral = keyword_set(spiral)
+  pcurve = keyword_set(pcurve) or spiral
 
   varnames = ['S-M','Lss','STEREO','R-SORB','Lat-SORB','R-PSP']
 
@@ -1208,7 +1212,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       plot, [0.], [0.], xrange=xyrange, yrange=xyrange, xsty=xsty, ysty=ysty, $
                         charsize=csize, xtitle='Ecliptic X (AU)', ytitle='Ecliptic Y (AU)'
 
-      if keyword_set(spiral) then begin
+      if (spiral) then begin
         ds = smax/float(spts)
         rs = ds*findgen(spts)
         dt = rs/Vsw
@@ -1233,7 +1237,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       endif
 
-      if keyword_set(pcurve) then begin
+      if (pcurve) then begin
         ds = smax/float(spts)
         rs = ds*findgen(spts)
         dt = rs/Vsw
@@ -1397,7 +1401,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         xs = 0.14  ; lower left
         ys = 0.17
 
-        if keyword_set(spiral) then begin
+        if (spiral) then begin
           msg = string(round(Vsw*au/1d5), format='("Vsw = ",i," km/s")')
           msg = strcompress(msg)
           xyouts, xs, ys, msg, /norm, charsize=csize, color=4
@@ -1588,7 +1592,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   plot, [0.], [0.], xrange=xyrange, yrange=xyrange, xsty=xsty, ysty=ysty, $
                     charsize=csize, xtitle='Ecliptic X (AU)', ytitle='Ecliptic Y (AU)'
 
-  if keyword_set(spiral) then begin
+  if (spiral) then begin
     ds = smax/float(spts)
     rs = ds*findgen(spts)
     dt = rs/Vsw
@@ -1613,7 +1617,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endfor
   endif
 
-  if keyword_set(pcurve) then begin
+  if (pcurve) then begin
     ds = smax/float(spts)
     rs = ds*findgen(spts)
     dt = rs/Vsw
@@ -1771,7 +1775,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     xs = 0.14  ; lower left
     ys = 0.17
 
-    if keyword_set(spiral) then begin
+    if (spiral) then begin
       msg = string(round(Vsw*au/1d5), format='("Vsw = ",i," km/s")')
       msg = strcompress(msg)
       xyouts, xs, ys, msg, /norm, charsize=csize, color=4

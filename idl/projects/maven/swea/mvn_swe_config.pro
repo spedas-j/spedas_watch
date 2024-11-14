@@ -26,8 +26,10 @@
 ;    Ext Ops 5   2022-10-01/00:00  -
 ;                                   |-> Extended Mission 5 (PDS R33 - R44)
 ;    Ext Ops 6   2025-10-01/00:00  -
-;                                   |-> Extended Mission 6
+;                                   |-> Extended Mission 6 (PDS R45 - R56)
 ;    Ext Ops 7   2028-10-01/00:00  -
+;                                   |-> Extended Mission 7 (PDS R57 - R68)
+;    Ext Ops 8   2031-10-01/00:00  -
 ;    -----------------------------------------------------------------------
 ;
 ;USAGE:
@@ -55,8 +57,8 @@
 ;                     type : types of configuration changes (see above)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-26 12:19:58 -0700 (Fri, 26 Jul 2024) $
-; $LastChangedRevision: 32767 $
+; $LastChangedDate: 2024-11-13 11:21:09 -0800 (Wed, 13 Nov 2024) $
+; $LastChangedRevision: 32959 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_config.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
