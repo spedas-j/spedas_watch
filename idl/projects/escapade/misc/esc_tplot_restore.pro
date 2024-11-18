@@ -33,14 +33,14 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2024-06-06 12:18:42 -0700 (Thu, 06 Jun 2024) $
-; $LastChangedRevision: 32688 $
+; $LastChangedDate: 2024-11-16 14:39:18 -0800 (Sat, 16 Nov 2024) $
+; $LastChangedRevision: 32964 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/misc/esc_tplot_restore.pro $
 ;
 ;-
 PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                        get_tvars=get_tvars, verbose=verbose, restored_varnames=restored_varnames, $
-                       directory=directory, tplot_name=tplot_name
+                       directory=directory, tplot_name=tplot_name, misc=mflg
 
   COMPILE_OPT IDL2
   @tplot_com.pro
@@ -66,7 +66,8 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
 
   IF KEYWORD_SET(all) THEN filenames = FILE_SEARCH(restore_dir + '*.tplot')
   IF SIZE(/type, filenames) NE 7 THEN filenames = 'saved.tplot'
-
+  IF undefined(mflg) THEN mflg = 0
+  
   n = N_ELEMENTS(filenames)
   restored_varnames = ''
   FOR i=0L, n[0]-1L DO BEGIN
@@ -264,6 +265,26 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                        newdata = {x: TEMPORARY(newx), y: TEMPORARY(newy)}
                        IF ~undefined(newdy) THEN str_element, newdata, 'dy', TEMPORARY(newdy), /add
                     ENDELSE 
+
+                    IF (mflg) THEN BEGIN
+                       extract_tags, misc, olddata, except=['x', 'y', 'v', 'dy', 'tplot_restore']
+                       w = WHERE( ~(TAG_NAMES(misc)).contains('_IND'), nw)
+                       IF nw GT 0 THEN BEGIN
+                          dattags = TAG_NAMES(misc)
+                          dattags = dattags[w]
+                          FOR k=0, N_ELEMENTS(dattags)-1 DO BEGIN
+                             IF tag_exist(olddata, 'tplot_restore', /quiet) THEN str_element, (*olddata.tplot_restore), dattags[k], newm ELSE newm = PTR_NEW(list())
+                             str_element, olddata, dattags[k], oldm
+                             str_element, (*thisdq.dh), dattags[k], thim
+
+                             IF N_ELEMENTS(*newm) EQ 0 THEN (*newm).add, TEMPORARY(*oldm)
+                             (*newm).add, TEMPORARY(*thim)
+                             str_element, newdata, dattags[k], TEMPORARY(newm), /add
+                          ENDFOR
+                       ENDIF
+                       misc = 0
+                    ENDIF
+
                     olddata = 0
                  ENDIF ELSE BEGIN
                     ; I expect that this section is obsolete... (T. Hara)
