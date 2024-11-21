@@ -50,8 +50,6 @@
 ;  cal_get_dac_dat = Returns the raw data from directly after the DAC(non-linearity offset) calibration is applied.  For verification.
 ;  cal_get_spin_dat = Returns the raw data from directly after the spin harmonic(solar array current) calibration is applied.  For verification.
 ;  interpolate_cal = if it is set, then thm_cal values are interpolated to 10 min time intervals
-;
-;
 ; use_eclipse_corrections:  Only applies when loading and calibrating
 ;   Level 1 data. Defaults to 0 (no eclipse spin model corrections 
 ;   applied).  use_eclipse_corrections=1 applies partial eclipse 
@@ -64,6 +62,9 @@
 ;    tone removal. Use this for short time intervals.
 ; cal_file_in: A full path to the calibration file, for testing. This
 ;              will only work for single probe proecessing
+; check_l1b: if set, then look for L1B data files that include
+;            estimates for Bz. This is the deafult for THEMIS E 
+;            after 2024-06-01 (date subject to change....)
 ;optional parameters:
 ;
 ;         name_thx_fgx_in   --> input data (t-plot variable name)
@@ -71,7 +72,6 @@
 ;         name_thx_fgx_out  --> name for output (t-plot variable name)
 ;         pathfile          --> path and filename of the calibration file
 ;
-;keywords:
 ;Example:
 ;      tha_cal_fgm, probe = 'a', datatype= 'fgl'
 ;
@@ -79,8 +79,8 @@
 ;
 ;Written by Hannes Schwarzl.
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-05-25 18:14:54 -0700 (Sat, 25 May 2024) $
-; $LastChangedRevision: 32645 $
+; $LastChangedDate: 2024-11-20 11:24:00 -0800 (Wed, 20 Nov 2024) $
+; $LastChangedRevision: 32968 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/fields/thm_cal_fgm.pro $
 ;Changes by Edita Georgescu
 ;eg 6/3/2007     - matrix multiplication
@@ -176,7 +176,7 @@ pro thm_interpolate_cal_apply, thx_fgx, utcStr=utcStr, offi=offi, cali=cali, nca
   cali = dblarr(ncal,9) 
   cali = cali_new
 
-  DPRINT, dlevel=4, 'Interpollation was applied for cal parameters.'
+  DPRINT, dlevel=4, 'Interpolation was applied for cal parameters.'
 
 end
 
@@ -200,6 +200,7 @@ pro thm_cal_fgm,$
          cal_get_spin_dat=cal_get_spin_dat,$
          use_eclipse_corrections=use_eclipse_corrections,$
          cal_file_in=cal_file_in, no_spin_tone_batch=no_spin_tone_batch, $
+         check_l1b=check_l1b, $
          _extra=_extra      
          ;eg 30/3/2007;Hannes 30/3/2007 ;kb
 
@@ -285,6 +286,7 @@ if n_params() eq 0 then begin
                         cal_get_spin_dat=spin_dat,$
                         use_eclipse_corrections=use_eclipse_corrections,$
                         cal_file_in=cal_file_in, no_spin_tone_batch=no_spin_tone_batch,$
+                        check_l1b=check_l1b, $
                         _extra=_extra      
      
            if arg_present(cal_get_fulloffset) && keyword_set(fulloffset) then begin  
@@ -469,7 +471,7 @@ endfor
 
 ;for probe e, use the last value for intercept with zero slope if needed, jmm, 2024-05-25
 if probe_letter eq 'e' then begin
-   bz_last_time = utc[ncal-1] ;last time for nonzero slope                                                                           
+   bz_last_time = utc[ncal-1]   ;last time for nonzero slope
    bz_ext_intercept = bz_slope_intercept[ncal-1,0]
 endif
 
@@ -620,6 +622,39 @@ ENDELSE
 
 ydata=thx_fgx.Y
 
+;check for L1B data, and reset ydata
+thx = 'th'+probe_letter[0]
+If(keyword_set(check_l1b)) Then use_l1b_bz = 1b Else Begin
+   If(thx_fgx.x[0] Gt time_double('2024-06-01/00:00:00')) Then use_l1b_bz = 1b Else use_l1b_bz = 0b
+Endelse
+If(use_l1b_bz) Then Begin
+   get_data, thx+'_fgl_l1b_bz', data = temp_bz
+   If(is_struct(temp_bz)) Then Begin
+;if the data overlaps the input, then keep the variable, set start and
+;end times to nearest day boundary
+      thbz = minmax(temp_bz.x)
+      thbz[0] = time_double(time_string(thbz[0], precision=-3))
+      thbz[1] = time_double(time_String(thbz[1]+86400.0d0, precision=-3))
+      If(min(thx_fgx.x) Ge thbz[0] And max(thx_fgx.x) Le thbz[1]) Then Begin
+         read_alt_bz = 0b
+      Endif Else read_alt_bz = 1b
+   Endif Else read_alt_bz = 1b
+   If(read_alt_bz) Then Begin
+      If(is_struct(temp_bz)) Then del_data, thx+'_fgl_l1b_bz'
+      l1b_relpath = thx+'/l1b/fgm/'
+      l1b_filenames = file_dailynames(thx+'/l1b/fgm/', thx+'_l1b_fgm_', '_v01.cdf', $
+                                      /yeardir, trange = minmax(thx_fgx.x))
+      l1b_files = spd_download(remote_file = l1b_filenames, _extra = !themis)
+      cdf2tplot, files = l1b_files, varformat = '*'
+      get_data, 'the_fgl_l1b_bz', data = temp_bz
+   Endif
+   If(is_struct(temp_bz)) Then Begin
+      dprint, 'WARNING: Using L1B level Bz estimated from spin-plane components'
+      ydata[*, 0] = kr*interpol(temp_bz.y, temp_bz.x, thx_fgx.x)
+      ydata_bz = ydata[*, 0] ;will use this value later
+   Endif
+Endif
+
 for j=0L,count-1L do begin
     ;Hannes 30/3/2007
     ;apply the right calibration at the right time
@@ -647,6 +682,7 @@ for j=0L,count-1L do begin
       timei=thx_fgx_HED.X[i]
    endwhile
 
+;Here is where we make more exceptions for THEMIS E
    if probe_letter eq 'e' then begin
 ;if the time is more than 1 orbit since the last value in the cal
 ;file, then use bz_ext_intercept for the offset with zero slope
@@ -658,12 +694,13 @@ for j=0L,count-1L do begin
                       bz_slope_intercept[iact, 1]*(thx_fgx.x[j]-utc[iact])/3600.0d0)
       endelse
    endif
-
+   if(use_l1b_bz) then offs[0, 2] = 0 ;jmm, 2024-11-06
    if modi eq 0 then begin      ;eg 30/3/2007
-
- ;   thx_fgx.Y[j,*]=MATRIX_MULTIPLY(calm, thx_fgx.Y[j,*], /BTRANSPOSE)-offs     ;eg 6/3/2007
+      
+;   thx_fgx.Y[j,*]=MATRIX_MULTIPLY(calm, thx_fgx.Y[j,*], /BTRANSPOSE)-offs     ;eg 6/3/2007
       ydata[j,*]=calm ## ydata[j,*] - offs ;eg 6/3/2007
-    ;correct for filter
+      if(use_l1b_bz) then ydata[j, 2] = -ydata_bz[j] ;jmm, 2024-11-06, the matrix multiplication adds a spin dependence
+;correct for filter
       if ffi eq 2 then begin
          spinper=thx_spinper_interp.Y[j] ;Hannes 30/3/2007
          arg=-!dpi/fsi/spinper

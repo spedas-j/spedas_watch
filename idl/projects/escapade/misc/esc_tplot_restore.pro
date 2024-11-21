@@ -33,8 +33,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2024-11-16 14:39:18 -0800 (Sat, 16 Nov 2024) $
-; $LastChangedRevision: 32964 $
+; $LastChangedDate: 2024-11-20 15:29:23 -0800 (Wed, 20 Nov 2024) $
+; $LastChangedRevision: 32971 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/misc/esc_tplot_restore.pro $
 ;
 ;-
@@ -277,8 +277,28 @@ PRO esc_tplot_restore, filenames=filenames, all=all, append=append, sort=sort,$
                              str_element, olddata, dattags[k], oldm
                              str_element, (*thisdq.dh), dattags[k], thim
 
-                             IF N_ELEMENTS(*newm) EQ 0 THEN (*newm).add, TEMPORARY(*oldm)
-                             (*newm).add, TEMPORARY(*thim)
+                             IF s1[1] NE s2[1] THEN BEGIN
+                                IF (*oldm).tname EQ 'DOUBLE' THEN nans = !values.d_nan ELSE nans = !values.f_nan
+                                toldm = REPLICATE(nans, [s1[0], s12])
+                                tthim = REPLICATE(nans, [s2[0], s12])
+                                toldm[*, 0:s1[1]-1] = *oldm
+                                tthim[*, 0:s2[1]-1] = *thim
+                                *oldm = TEMPORARY(toldm)
+                                *thim = TEMPORARY(tthim)
+                                IF N_ELEMENTS(*newm) EQ 0 THEN (*newm).add, TEMPORARY(*oldm) $
+                                ELSE BEGIN
+                                   (*newm)[-1] = TEMPORARY(*oldm)
+                                   FOR kk=0, N_ELEMENTS(*newm)-2 DO BEGIN
+                                      oldm = REPLICATE(nans, dimen1((*newm)[kk]), s12)
+                                      oldm[*, 0:dimen2((*newm)[kk])-1] = (*newm)[kk]
+                                      (*newm)[kk] = TEMPORARY(oldm)
+                                   ENDFOR
+                                ENDELSE
+                                (*newm).add, TEMPORARY(*thim)
+                             ENDIF ELSE BEGIN
+                                IF N_ELEMENTS(*newm) EQ 0 THEN (*newm).add, TEMPORARY(*oldm)
+                                (*newm).add, TEMPORARY(*thim)
+                             ENDELSE 
                              str_element, newdata, dattags[k], TEMPORARY(newm), /add
                           ENDFOR
                        ENDIF

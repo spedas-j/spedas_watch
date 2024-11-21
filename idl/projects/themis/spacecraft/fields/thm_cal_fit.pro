@@ -12,7 +12,9 @@
 ;   applied).  use_eclipse_corrections=1 applies partial eclipse
 ;   corrections (not recommended, used only for internal SOC processing).
 ;   use_eclipse_corrections=2 applies all available eclipse corrections.
-;
+; check_l1b: if set, then look for L1B data files that include
+;            estimates for Bz. This is the deafult for THEMIS E 
+;            after 2024-06-01 (date subject to change....)
 ;Example:
 ;   thm_cal_fit, /all
 ;
@@ -30,14 +32,14 @@
 ;   -- fixed trouble reading cal files with extra lines at the end,
 ;      jmm, 8-nov-2007
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-05-25 18:14:54 -0700 (Sat, 25 May 2024) $
-; $LastChangedRevision: 32645 $
+; $LastChangedDate: 2024-11-20 11:24:00 -0800 (Wed, 20 Nov 2024) $
+; $LastChangedRevision: 32968 $
 ; $URL $
 ;-
 pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = trange, $
   coord = coord, valid_names = valid_names, verbose = verbose, in_suf = in_suf, $
   out_suf = out_suf, no_cal = no_cal, true_dsl = true_dsl,$
-  use_eclipse_corrections=use_eclipse_corrections
+  use_eclipse_corrections=use_eclipse_corrections, check_l1b=check_l1b, _extra=_extra
   
   
   thm_init
@@ -176,7 +178,7 @@ pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = tra
     endfor
 ;for probe e, use the last value for intercept with zero slope, jmm, 2024-05-25
     if sc eq 'e' then begin
-       bz_last_time = utc[ncal-1] ;last time for nonzero slope                                                                           
+       bz_last_time = utc[ncal-1] ;last time for nonzero slope                          
        bz_ext_intercept = bz_slope_intercept[ncal-1,0]
     endif
     
@@ -344,12 +346,45 @@ pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = tra
     fgsy_fixed = fgs[fgsx_good, *]
     
     if n_fgs_good gt 0 then begin ;if all fgs is NaN then skip calculations
-    
+
+;If check_l1b is set, then replace Bz with estimated value
+      If(keyword_set(check_l1b)) Then use_l1b_bz = 1b Else Begin
+         If(fgsx_fixed[0] Gt time_double('2024-06-01/00:00:00')) Then use_l1b_bz = 1b Else use_l1b_bz = 0b
+      Endelse
+      If(use_l1b_bz) Then Begin
+         get_data, thx+'_fgl_l1b_bz', data = temp_bz
+         If(is_struct(temp_bz)) Then Begin
+;if the data overlaps the input, then keep the variable, set start and
+;end times to nearest day boundary
+            thbz = minmax(temp_bz.x)
+            thbz[0] = time_double(time_string(thbz[0], precision=-3))
+            thbz[1] = time_double(time_String(thbz[1]+86400.0d0, precision=-3))
+            If(min(fgsx_fixed) Ge thbz[0] And max(fgsx_fixed) Le thbz[1]) Then Begin
+               read_alt_bz = 0b
+            Endif Else read_alt_bz = 1b
+         Endif Else read_alt_bz = 1b
+         If(read_alt_bz) Then Begin
+            If(is_struct(temp_bz)) Then del_data, thx+'_fgl_l1b_bz'
+            l1b_relpath = thx+'/l1b/fgm/'
+            l1b_filenames = file_dailynames(thx+'/l1b/fgm/', thx+'_l1b_fgm_', '_v01.cdf', $
+                                            /yeardir, trange = minmax(fgsx_fixed))
+            l1b_files = spd_download(remote_file = l1b_filenames, _extra = !themis)
+            cdf2tplot, files = l1b_files, varformat = '*'
+            get_data, 'the_fgl_l1b_bz', data = temp_bz
+         Endif
+         If(is_struct(temp_bz)) Then Begin
+            dprint, 'WARNING: Using L1B level Bz estimated from spin-plane components'
+            kr=2.980232238769531E-3 ;raw data to nT, kr=25000.0/2^23 --> see *CALPROC*.doc
+            fgsy_fixed[*, 2] = -kr*interpol(temp_bz.y, temp_bz.x, fgsx_fixed)
+         Endif
+      Endif
+       
       if (where(dt_output eq 'fgs') ne -1) then begin
         store_data, tplot_var_fgs, data = {x:fgsx_fixed, y:fgsy_fixed}, lim = l, dlim = dl
         ;store_data, tplot_var_fgs, data = {x:d.x, y:fgs}, lim = l, dlim = dl
         if keyword_set(coord) && strlowcase(coord) ne 'dsl' then begin
-          thm_cotrans, tplot_var_fgs, out_coord = coord, use_spinaxis_correction = 1, use_spinphase_correction = 1
+           thm_cotrans, tplot_var_fgs, out_coord = coord, use_spinaxis_correction = 1, $
+                        use_spinphase_correction = 1
           options, tplot_var_fgs, 'ytitle', /def, $
             string(tplot_var_fgs_orig, units, format = '(A,"!C!C[",A,"]")'), /add
         endif
