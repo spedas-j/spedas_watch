@@ -32,8 +32,8 @@
 ;   -- fixed trouble reading cal files with extra lines at the end,
 ;      jmm, 8-nov-2007
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-11-20 11:24:00 -0800 (Wed, 20 Nov 2024) $
-; $LastChangedRevision: 32968 $
+; $LastChangedDate: 2024-12-02 14:04:22 -0800 (Mon, 02 Dec 2024) $
+; $LastChangedRevision: 32981 $
 ; $URL $
 ;-
 pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = trange, $
@@ -349,7 +349,9 @@ pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = tra
 
 ;If check_l1b is set, then replace Bz with estimated value
       If(keyword_set(check_l1b)) Then use_l1b_bz = 1b Else Begin
-         If(fgsx_fixed[0] Gt time_double('2024-06-01/00:00:00')) Then use_l1b_bz = 1b Else use_l1b_bz = 0b
+         If(probe[0] Eq 'e') Then Begin
+            If(fgsx_fixed[0] Gt time_double('2024-06-01/00:00:00')) Then use_l1b_bz = 1b Else use_l1b_bz = 0b
+         Endif Else use_l1b_bz = 0b
       Endelse
       If(use_l1b_bz) Then Begin
          get_data, thx+'_fgl_l1b_bz', data = temp_bz

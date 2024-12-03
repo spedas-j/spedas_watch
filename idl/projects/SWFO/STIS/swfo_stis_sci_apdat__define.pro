@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-11-03 13:15:35 -0800 (Sun, 03 Nov 2024) $
-; $LastChangedRevision: 32924 $
+; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
+; $LastChangedRevision: 32978 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -175,6 +175,8 @@ end
 pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
 
   pb = 0
+  makefile=0
+
   ;if source_dict.haskey('headerstr') && source_dict.headerstr.haskey('replay') && source_dict.headerstr.replay  then begin
   if source_dict.haskey('replay')  && source_dict.replay  then begin
     pb = 0x400
@@ -184,7 +186,7 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
     prefix= ''
   endelse
   
-  tname = prefix + 'swfo_stis_L0b'
+  tname = prefix + 'swfo_stis_'
   
   sciobj = swfo_apdat(0x350 or pb)   ; stis_sci
   nseobj = swfo_apdat(0x351 or pb)   ; stis_nse
@@ -196,8 +198,11 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
   hkp_last = hkpobj.last_data
 
   l0b = swfo_stis_sci_level_0b(sci_last,nse_last,hkp_last)
-  
 
+  if isa(l0b,/null) then begin
+    dprint , 'Bad L0B'
+    return
+  endif
 
   if  ~obj_valid(self.level_0b) then begin
     dprint,'Creating Science level 0B for: '+self.name
@@ -216,76 +221,28 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
     size = self.level_0b.size
     self.level_0b.append, l0b
     if size eq 0 then begin
-      store_data,tname,data = self.level_0b,tagnames = '*'  , verbose=1 ;, time_tag = 'TIME_UNIX';,val_tag='_NRG'    ; warning don't use time_tag keyword
-      options,tname+'_SCI_COUNTS',spec=1
+      store_data,tname+'L0b',data = self.level_0b,tagnames = '*'  , verbose=1 ;, time_tag = 'TIME_UNIX';,val_tag='_NRG'    ; warning don't use time_tag keyword
+      options,tname+'L0b_SCI_COUNTS',spec=1
     endif
-
-  
   endif
   
   
-  return
+;  return
   
   
   if  ~obj_valid(self.level_1a) then begin
     dprint,'Creating Science level 1a'
     self.level_1a = dynamicarray(name='Science_L1a')
-    first_level_1a = 1
   endif 
 
-;  sciobj = swfo_apdat('stis_sci')   ; stis_sci
-;  nseobj = swfo_apdat('stis_nse')   ; stis_nse
-;  hkpobj = swfo_apdat('stis_hkp2')  ; stis_hkp2
-  
-  
-;  if isa(hkp_last) then struct_assign, hkp_last  ,  l0b_format
-;  if isa(nse_last) then struct_assign, nse_last  ,  l0b_format
-;  if isa(sci_last) then struct_assign, sci_last  ,  l0b_format
-;  
-;  l0b_format.time_unix = sci_last.time
-  
-
-
-
-
-
-  res = self.file_resolution
-
-  if res gt 0 && isa(sci_last) && sci_last.time gt (self.lastfile_time + res) then begin
-    makefile =1
-    trange = self.lastfile_time + [0,res]
-    self.lastfile_time = floor( sci_last.time /res) * res
-    dprint,dlevel=2,'Make new file ',time_string(self.lastfile_time,prec=3)+'  '+time_string(sci_last.time,prec=3)
-  endif else makefile = 0
-
-;  if isa(self.level_0b,'dynamicarray') then begin
-;    self.level_0b.append, sci_last
-;    if makefile then   self.ncdf_make_file,ddata=self.level_0b, trange=trange,type='L0b'
-;  endif
-
-  ;  if isa(self.level_0b_all,'dynamicarray') then begin
-  ;    if makefile then   self.ncdf_make_file,ddata=self.level_0b_all, trange=trange,type='_all_L0b'
-  ;    ignore_tags = ['pkt_size','MET_RAW']
-  ;    sci_all = {time:0d,nse_reltime:0d, hkp_reltime:0d}
-  ;    extract_tags, sci_all, sci_last, except=ignore_tags
-  ;    extract_tags, sci_all, nse_last, except=ignore_tags, /preserve
-  ;    extract_tags, sci_all, hkp_last, except=ignore_tags, /preserve
-  ;    sci_all.nse_reltime = sci_last.time - struct_value(nse_last,'time',default = !values.d_nan )
-  ;    sci_all.nse_reltime = sci_last.time - struct_value(hkp_last,'time',default = !values.d_nan )
-  ;    self.level_0b.append, sci_all
-  ;  endif
-    if makefile then  begin
-      self.ncdf_make_file,ddata=self.level_0b, trange=trange,type='L0B'
-    endif
-
-
+  L1a = swfo_stis_sci_level_1a(L0b)
 
   if isa(self.level_1a,'dynamicarray') then begin
-    struct_stis_sci_level_1a = swfo_stis_sci_level_1a(sci_last)
-    self.level_1a.append, struct_stis_sci_level_1a
-    if keyword_set(first_level_1a) then begin
-      store_data,'swfo_stis_L1a',data = self.level_1a,tagnames = 'SPEC_??',val_tag='_NRG'
-      options,'swfo_stis_L1a_SPEC_??',spec=1
+    size = self.level_1a.size
+    self.level_1a.append, L1a
+    if size eq 0 then begin
+      store_data,tname+'L1a',data = self.level_1a,tagnames = 'SPEC_??',val_tag='_NRG'
+      options,tname+'L1a_SPEC_??',spec=1
     endif
     if makefile then begin
       self.ncdf_make_file,ddata=self.level_1a, trange=trange,type='L1A'
@@ -293,13 +250,47 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
   endif
 
 
+
+  if  ~obj_valid(self.level_1b) then begin
+    dprint,'Creating Science level 1b'
+    self.level_1b = dynamicarray(name='Science_L1b')
+  endif
+
+
+  L1b = swfo_stis_sci_level_1b(L1a)
+
+
   if isa(self.level_1b,'dynamicarray') then begin
-    struct_stis_sci_level_1b = swfo_stis_sci_level_1b(sci_last)
-    self.level_1b.append, struct_stis_sci_level_1b
+    size = self.level_1a.size
+    self.level_1b.append, L1b
+    if size eq 0 then begin
+      store_data,tname+'L1b',data = self.level_1a,tagnames = 'SPEC_??',val_tag='_NRG'
+      options,tname+'L1b_SPEC_??',spec=1
+    endif
     if makefile then begin
       self.ncdf_make_file,ddata=self.level_1b, trange=trange,type='L1B'
     endif
   endif
+
+
+
+  
+
+  if 0 then begin
+    res = self.file_resolution
+
+    if res gt 0 && isa(sci_last) && sci_last.time gt (self.lastfile_time + res) then begin
+      makefile =1
+      trange = self.lastfile_time + [0,res]
+      self.lastfile_time = floor( sci_last.time /res) * res
+      dprint,dlevel=2,'Make new file ',time_string(self.lastfile_time,prec=3)+'  '+time_string(sci_last.time,prec=3)
+    endif else makefile = 0    
+    if makefile then  begin
+      self.ncdf_make_file,ddata=self.level_0b, trange=trange,type='L0B'
+    endif
+  endif
+
+
 
 end
 

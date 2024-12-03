@@ -1,7 +1,7 @@
 ;swfo_test
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-11-04 07:09:05 -0800 (Mon, 04 Nov 2024) $
-; $LastChangedRevision: 32930 $
+; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
+; $LastChangedRevision: 32978 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -78,7 +78,7 @@ if ~keyword_set(files) then begin
        resolution: 900L  }
 
 
-  case 2 of
+  case 3 of
     0: begin
       pathname = 'swfo/swpc/L0/YYYY/MM/DD/it_frm-rt-l0_swfol1_sYYYYMMDDThhmm00Z_*.nc'
       files = file_retrieve(pathname,_extra=source,trange=trange)
@@ -180,6 +180,7 @@ stop
 
 if 0  then begin
   dprint,print_dtime=0,print_dlevel=0,print_trace=0
+  run_proc = 0
   stop
 endif
 
@@ -188,7 +189,7 @@ if keyword_set(1) then begin
   parent = dictionary()
   rdr.parent_dict = parent
   rdr.verbose = 3
-  rdr.source_dict.run_proc = 1
+  rdr.source_dict.run_proc = run_proc
   cntr = dynamicarray('index_counter')
   for i = 0, n_elements(files)-1 do begin
     file = files[i]

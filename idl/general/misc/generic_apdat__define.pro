@@ -194,27 +194,51 @@ end
 
 pro generic_apdat::handler,ccsds,source_dict=source_dict ;,header,source_info=source_info
 
-  ;dprint,dlevel=self.dlevel,'hi',self.apid,self.dlevel
-  if debug(self.dlevel+3,msg='handler') then begin
+  if self.test && debug(self.dlevel,msg=self.name + ' handler') then begin
+    ;dprint,dlevel=self.dlevel,'hi',self.apid,self.dlevel
     hexprint,*ccsds.pdata
   endif
 
-  if not self.ignore_flag then strct = self.decom(ccsds,source_dict=source_dict)
+  self.drate = ccsds.pkt_size/ccsds.time_delta
+
+  tbad =0. ; time_double('2020-1-1')
+  ;  This is where a generic CCSDS packet is decommutated into an APID specific structure
+  if 1 || ccsds.time ge tbad then begin
+    if not self.ignore_flag then strct = self.decom(ccsds,source_dict=source_dict)
+  endif else begin
+    dprint,verbose=self.verbose,dlevel=1, 'Invalid time.  CCSDS Packet ignored'
+    strct = !null
+  endelse
+
   if keyword_set(strct) then  *self.last_data_p= strct
 
-  ;if ccsds.seqn_group ne 3 then self.help   ;dprint,dlevel=2,ccsds.seqn_group,ccsds.apid
+  if self.save_flag && obj_valid(self.ccsds_array) then begin
+    self.ccsds_array.append, ccsds
+  endif
 
-  if self.save_flag && keyword_set(strct) then begin
-    dprint,self.name,dlevel=self.dlevel+4,self.apid
+
+  if self.save_flag && obj_valid(self.data) && keyword_set(strct) then begin
+    dprint,verbose=self.verbose,dlevel=4,self.name,self.apid
     self.data.append,  strct
   endif
 
   if self.rt_flag && keyword_set(strct) then begin
-    if ccsds.gap eq 1 then strct = [fill_nan(strct[0]),strct]
-    store_data,self.tname,data=strct, tagnames=self.ttags , append = 1, gap_tag='GAP'
+    if ccsds.gap eq 1 then strct = [fill_nan(strct[0]),strct]   ; insert a NAN structure as a gap
+    store_data,self.tname,data=strct, tagnames=self.ttags , append = 1, gap_tag='GAP',  seperator='_'
   endif
 
+  self.handler2,strct,source_dict=source_dict
+
 end
+
+
+
+
+pro generic_apdat::handler2,strct,source_dict=source_dict
+  ;  This routine is a place holder for users. It should be overloaded and used to process higher level data.
+end
+
+
 
 
 pro generic_apdat::sort
@@ -641,11 +665,20 @@ PRO generic_apdat__define
     routine:  '', $
     tname: '',  $
     ttags: '',  $
+    test: 0, $                 ; general purpose flag for use in testing
+    errors: 0, $               ; error counter
+    last_ccsds_p: ptr_new(), $      ; pointer to the last ccsds packet
+    last_data_p:  ptr_new(),  $     ; pointer to the loast decomutated packet
+    last_replay_p: ptr_new(),  $
+    ccsds_array: obj_new(), $        ; dynamicarray to hold raw packets
+    data: obj_new(), $               ; dynamicarray to hold stored data   - this might hold both realtime and replay data
+    user_dict:  obj_new(), $         ; user definable object  (typically a dictionary)
+    window_obj: obj_new(), $         ; user definable object  (typically a plot window)
     ccsds_last: ptr_new(), $
-    last_data_p:  ptr_new(),  $
-    ccsds_array: obj_new(), $
-    data: obj_new(), $
-    window_obj: obj_new(), $
+;    last_data_p:  ptr_new(),  $
+;    ccsds_array: obj_new(), $
+;    data: obj_new(), $
+;    window_obj: obj_new(), $
     cdf_pathname:'', $
     cdf_linkname:'', $
     cdf_tagnames:'', $

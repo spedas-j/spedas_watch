@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-26 11:32:41 -0700 (Sat, 26 Oct 2024) $
-; $LastChangedRevision: 32906 $
+; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
+; $LastChangedRevision: 32978 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -71,7 +71,11 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
   if ~param.haskey('jconv') then param.jconv = .01       ; conversion from j to rate
   if ~param.haskey('ddata') then begin
     if (sci = swfo_apdat('stis_sci'))  then begin ; First look for data from the L0 data stream
-      param.ddata = sci.data   ; L0 data
+      param.ddata = sci.getattr('level_0b')      ; L0b data
+      param.L0b = sci.getattr('level_0b')
+      param.L1a = sci.getattr('level_1a')
+      param.L1b = sci.getattr('level_1b')
+      ;param.L2  = sci.level_2b
     endif else begin        ;   Look for data from the L0 or L1 tplot variables
       get_data,'swfo_stis_sci_COUNTS',ptr_str = tplot_data, time
       if isa(tplot_data,'dynamicarray') then begin
@@ -251,7 +255,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
       ch_cor.y = j_hdr
       oplot,ch_cor.x,ch_cor.y ,color=ch.color,psym=ch.psym
 
-      dprint,dlevel=2,total(j1),total(j2), rate1,rate2, eta1,eta2
+     ;tl dprint,dlevel=2,total(j1),total(j2), rate1,rate2, eta1,eta2
     endif
     
     
@@ -301,15 +305,16 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         ;print,x
         ;print,dx'
         ;w = where(finite(x))
-        printdat,x
-        dprint, 'Energy',float(x[w])
+      ;  printdat,x
+      ;  dprint, 'Energy',float(x[w])
         
-        dprint, 'Min ',float(dflux[w]/flux[w])
+      ;  dprint, 'Min ',float(dflux[w]/flux[w])
 
       endif
       
       if 1 then begin
-        w = where(x ge 30 and x lt 2000)
+        w = where(x ge 20 and x lt 20000)
+       ; w = where(finite(x))
         flux_max = 1.01e7 * x ^ (-1.6)
         eflux_max  = x * flux_max
         dt = 300.
@@ -320,12 +325,14 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         oplot,x,flux * x, color = 6,psym=10
         oplot,x,(flux+dflux) * x, color = 6,psym=10
         oplot,x,(flux-dflux) * x, color = 6,psym=10
-        ;print,total(counts[w])/dt
-        ;print,max(dflux/flux)
-        ;print,dx/x
+        if 1 then begin
+          print,total(counts[w])/dt
+          ;print,max(dflux/flux)
+          ;print,dx/x
+        endif
         ;w = where(finite(x))
-        dprint, 'Energy',float(x[w])
-        dprint, 'Max ',float(dflux[w]/flux[w])
+       ; dprint, 'Energy',float(x[w])
+       ; dprint, 'Max ',float(dflux[w]/flux[w])
       endif
       
       

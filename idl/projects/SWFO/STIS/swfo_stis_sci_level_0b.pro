@@ -27,7 +27,8 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     hkp_seqn:      0u,  $
     hkp_seqn_delta:  0u,  $
     packet_size:  0u,  $
-    nbins:      0u,   $
+    sci_duration:  0u, $
+    sci_nbins:      0u,   $
     sci_counts: replicate(nan,672) ,$
     nse_raw:    replicate(0u,60)  , $
     nse_histogram:   replicate(0u,60)  , $
@@ -36,6 +37,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     sci_decimate:    0b, $
     sci_translate:   0b,  $
     sci_resolution:   0b,  $
+    fpga_rev:   0b,  $
     quality_bits:    0ull,  $
     gap:  0b  }
 
@@ -43,7 +45,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
 
   if ~isa(sci_dat) || ~isa(nse_dat) || ~isa(hkp_dat) then begin
     dprint,'bad data in L0b'
-    return, l0b
+    return,!null  ; l0b
   endif
 
   if nd gt 1 then begin
@@ -69,7 +71,9 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
   output.hkp_seqn  = hkp_dat.seqn
   output.hkp_seqn_delta = hkp_dat.seqn_delta
   output.packet_size = sci_dat.packet_size
-  output.nbins  = sci_dat.nbins
+  output.fpga_rev = sci_dat.fpga_rev
+  output.sci_duration = sci_dat.duration
+  output.sci_nbins  = sci_dat.nbins
   output.sci_counts= sci_dat.counts
   ;  output.nse_raw= nse_dat.raw
   output.nse_histogram =  nse_dat.histogram

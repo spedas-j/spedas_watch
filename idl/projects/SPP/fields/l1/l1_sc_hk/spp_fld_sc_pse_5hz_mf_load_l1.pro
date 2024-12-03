@@ -1,7 +1,7 @@
 pro spp_fld_sc_pse_5hz_mf_load_l1, file, prefix = prefix, varformat = varformat
   compile_opt idl2
 
-  if not keyword_set(prefix) then prefix = 'spp_fld_sc_pse_5hz_mf_'
+  if not keyword_set(prefix) then prefix = 'spp_fld_sc_pse_5hz_mf'
 
   cdf2tplot, /get_support_data, file, prefix = prefix, varformat = varformat
 

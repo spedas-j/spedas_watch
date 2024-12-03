@@ -1,24 +1,25 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2022-08-05 15:10:39 -0700 (Fri, 05 Aug 2022) $
-; $LastChangedRevision: 30999 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
+; $LastChangedRevision: 32978 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 
-function swfo_stis_sci_level_1b,strcts,format=format,reset=reset,cal=cal
+function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
 
   output = !null
-  nd = n_elements(strcts)
+  nd = n_elements(L1a_strcts)
   for i=0l,nd-1 do begin
-    str = strcts[i]
+    str = L1a_strcts[i]
 
     cal = swfo_stis_cal_params(str,reset=reset)
+    if ~isa(cal) then return,!null
 
     n_energy = cal.n_energy
-    duration = str.duration
+    duration = str.sci_duration
 
     period = cal.period   ; approximate period (in seconds) of Version 64 FPGA
-    integration_time = str.duration * period
-    srate  = str.counts/integration_time          ; srate is the measure (actual) count rate
+    integration_time = duration * period
+    srate  = str.sci_counts/integration_time          ; srate is the measure (actual) count rate
 
     ; Determine deadtime correctons here
     rate14 = str.total14/ integration_time    ; this needs to be checked

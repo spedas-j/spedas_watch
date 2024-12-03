@@ -79,8 +79,8 @@
 ;
 ;Written by Hannes Schwarzl.
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-11-20 11:24:00 -0800 (Wed, 20 Nov 2024) $
-; $LastChangedRevision: 32968 $
+; $LastChangedDate: 2024-12-02 14:04:22 -0800 (Mon, 02 Dec 2024) $
+; $LastChangedRevision: 32981 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/fields/thm_cal_fgm.pro $
 ;Changes by Edita Georgescu
 ;eg 6/3/2007     - matrix multiplication
@@ -625,7 +625,9 @@ ydata=thx_fgx.Y
 ;check for L1B data, and reset ydata
 thx = 'th'+probe_letter[0]
 If(keyword_set(check_l1b)) Then use_l1b_bz = 1b Else Begin
-   If(thx_fgx.x[0] Gt time_double('2024-06-01/00:00:00')) Then use_l1b_bz = 1b Else use_l1b_bz = 0b
+   If(probe_letter[0] Eq 'e') Then Begin
+      If(thx_fgx.x[0] Gt time_double('2024-06-01/00:00:00')) Then use_l1b_bz = 1b Else use_l1b_bz = 0b
+   Endif Else use_l1b_bz = 0b
 Endelse
 If(use_l1b_bz) Then Begin
    get_data, thx+'_fgl_l1b_bz', data = temp_bz
