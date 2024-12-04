@@ -79,8 +79,8 @@
 ;
 ;Written by Hannes Schwarzl.
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-12-02 14:04:22 -0800 (Mon, 02 Dec 2024) $
-; $LastChangedRevision: 32981 $
+; $LastChangedDate: 2024-12-03 10:44:44 -0800 (Tue, 03 Dec 2024) $
+; $LastChangedRevision: 32982 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/fields/thm_cal_fgm.pro $
 ;Changes by Edita Georgescu
 ;eg 6/3/2007     - matrix multiplication
@@ -654,7 +654,7 @@ If(use_l1b_bz) Then Begin
       dprint, 'WARNING: Using L1B level Bz estimated from spin-plane components'
       ydata[*, 0] = kr*interpol(temp_bz.y, temp_bz.x, thx_fgx.x)
       ydata_bz = ydata[*, 0] ;will use this value later
-   Endif
+   Endif Else use_l1b_bz = 0b ;no L1B data, so reset it
 Endif
 
 for j=0L,count-1L do begin
