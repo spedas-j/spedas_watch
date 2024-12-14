@@ -224,7 +224,9 @@ var_string = ''
 
 ;-----------------------
 ;fgm with total
-thm_load_fgm,probe=probe,coord='gsm', level = 'l2'
+;thm_load_fgm,probe=probe,coord='gsm', level = 'l2'
+;Use L1 data
+thm_load_fit,probe=probe,coord='gsm',suffix='_gsm',level='l1'
 
 fgs_name = 'th'+probe+'_fgs_gsm'
 
@@ -241,6 +243,11 @@ if tnames(fgs_name) then begin
    dl.labels[3] = 'Bt'
 
    store_data,fgs_name+'+t',dlimit=dl
+
+;for recent FGS data, if there is an estimated Bz, put the Bz curve
+;behind Bx and By. jmm, 2024-12-12
+   If(probe Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then $
+      options, fgs_name+'+t', 'indices', [2,0,1,3]
 
 endif else begin 
 

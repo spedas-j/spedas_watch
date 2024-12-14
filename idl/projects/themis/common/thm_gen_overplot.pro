@@ -43,9 +43,9 @@
 ;HISTORY:
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
-;$LastChangedBy: nikos $
-;$LastChangedDate: 2023-09-29 13:31:54 -0700 (Fri, 29 Sep 2023) $
-;$LastChangedRevision: 32158 $
+;$LastChangedBy: jimm $
+;$LastChangedDate: 2024-12-13 12:11:43 -0800 (Fri, 13 Dec 2024) $
+;$LastChangedRevision: 32993 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -250,6 +250,12 @@ load_position='fgm'
 
 thm_load_state,probe=sc,/get_support
 thm_load_fit,lev=1,probe=sc,/get_support
+
+;for recent FGS data, if there is an estimated Bz, put the Bz curve
+;behind Bx and By. jmm, 2024-12-12
+If(sc[0] Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then $
+   options, 'the_fgs', 'indices', [2, 0,1]
+
 
 SKIP_FGM_LOAD:
 
