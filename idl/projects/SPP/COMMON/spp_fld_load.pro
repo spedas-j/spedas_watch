@@ -92,8 +92,8 @@
 ;                   maintained by Marc Pulupa, 2019-2023
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2024-05-23 22:27:56 -0700 (Thu, 23 May 2024) $
-; $LastChangedRevision: 32631 $
+; $LastChangedDate: 2024-12-14 14:48:35 -0800 (Sat, 14 Dec 2024) $
+; $LastChangedRevision: 32995 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_fld_load.pro $
 ;
 ;-
@@ -633,6 +633,15 @@ pro spp_fld_load, trange = trange, type = type, files = files, $
               strmid(edc_tnames[i], 22)
           endfor
         endif
+      endif
+
+      if strmatch(type, 'dfb_dbm*') then begin
+        foreach tn, tnames('psp_fld_l2_' + type + '*') do begin
+          tn_split = strsplit(strmid(tn, 15), '_', /ex)
+          if n_elements(tn_split) eq 3 then $
+            options, tn, 'psym', 1
+          options, tn, 'ytitle', strupcase(strjoin(tn_split, '!C'))
+        endforeach
       endif
 
       if strmatch(type, 'merged_scam_wf') then begin
