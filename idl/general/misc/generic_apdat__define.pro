@@ -29,8 +29,8 @@ FUNCTION generic_apdat::Init,apid,name,_EXTRA=ex
   IF (ISA(ex)) THEN self->SetProperty, _EXTRA=ex
   if ~keyword_set(self.mission) then self.mission = 'MISS'
   if ~keyword_set(self.instrument) then self.instrument = 'INST'
-  self.ncdf_directory = root_data_dir() +  'swfo/data/sci/prelaunch/'+self.mission+'/'+self.instrument+'/ncdf/'
-  self.ncdf_fileformat = '$NAME$/$TYPE$/YYYY/MM/DD/swfo_$NAME$_$TYPE$_$RES$_YYYYMMDD_hhmm_v00.nc'
+  self.ncdf_directory = root_data_dir() + self.mission + '/data/sci/prelaunch/'+self.mission+'/'+self.instrument+'/ncdf/'
+  self.ncdf_fileformat = '$NAME$/$TYPE$/YYYY/MM/DD/'+self.mission+'_$NAME$_$TYPE$_$RES$_YYYYMMDD_hhmm_v00.nc'
   RETURN, 1
 END
 

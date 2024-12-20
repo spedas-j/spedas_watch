@@ -1,7 +1,7 @@
 ;swfo_test
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
-; $LastChangedRevision: 32978 $
+; $LastChangedDate: 2024-12-19 05:58:47 -0800 (Thu, 19 Dec 2024) $
+; $LastChangedRevision: 33006 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -56,6 +56,9 @@ if ~keyword_set(files) then begin
   trange = ['2024 10 16','2024 10 20']      ; Entirety of E2E2
   ;trange = ['2024 1 291/ 18:00','2024 1 292 / 8:45']   ; some repeated frames
   ;trange = ['2024 1 291/ 22:00','2024 1 292 / 0:45']   ; test some repeated frames
+  trange = ['2024 10 16 19:40' , '2024 10 16 2200']    ; LPT?
+  trange = ['2024 12 18 12' , '2024 12 18 22']    ; LPT?
+  trange = ['2024 12 18 16:00' , '2024 12 18 16:30']    ; LPT?
   stop
 
 
@@ -78,7 +81,7 @@ if ~keyword_set(files) then begin
        resolution: 900L  }
 
 
-  case 3 of
+  case 2 of
     0: begin
       pathname = 'swfo/swpc/L0/YYYY/MM/DD/it_frm-rt-l0_swfol1_sYYYYMMDDThhmm00Z_*.nc'
       files = file_retrieve(pathname,_extra=source,trange=trange)
@@ -87,6 +90,7 @@ if ~keyword_set(files) then begin
     end
     1: begin
       pathname = 'swfo/swpc/E2E2b/decomp/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc'
+      pathname = 'swfo/swpc/E2E4/outgoing/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc.gz'
       allfiles = file_retrieve(pathname,_extra=source)  ; get All the files first
       fileformat = file_basename(str_sub(pathname,'*.nc','YYYYMMDDThhmm00'))
       filerange = time_string(trange,tformat=fileformat)
@@ -218,7 +222,7 @@ swfo_apdat_info,/print,/all
 
 
 printdat,rdr.dyndata.array
-
+wi,2
 swfo_frame_header_plot, rdr.dyndata.array
 
 stop

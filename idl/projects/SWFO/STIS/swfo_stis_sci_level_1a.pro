@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
-; $LastChangedRevision: 32978 $
+; $LastChangedDate: 2024-12-19 05:58:47 -0800 (Thu, 19 Dec 2024) $
+; $LastChangedRevision: 33006 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -36,6 +36,24 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     spec_F1_nrg:  nan48, $
     spec_F2_nrg:  nan48, $
     spec_F3_nrg:  nan48, $
+    spec_O1_dnrg:  nan48, $
+    spec_O2_dnrg:  nan48, $
+    spec_O3_dnrg:  nan48, $
+    spec_F1_dnrg:  nan48, $
+    spec_F2_dnrg:  nan48, $
+    spec_F3_dnrg:  nan48, $
+    spec_O1_adc:  nan48, $
+    spec_O2_adc:  nan48, $
+    spec_O3_adc:  nan48, $
+    spec_F1_adc:  nan48, $
+    spec_F2_adc:  nan48, $
+    spec_F3_adc:  nan48, $
+    spec_O1_dadc:  nan48, $
+    spec_O2_dadc:  nan48, $
+    spec_O3_dadc:  nan48, $
+    spec_F1_dadc:  nan48, $
+    spec_F2_dadc:  nan48, $
+    spec_F3_dadc:  nan48, $
     fpga_rev: 0b, $
     quality_bits: 0ULL, $
     gap:0}
@@ -68,6 +86,7 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     counts = L0b_str.sci_counts
     nrg  = mapd.nrg
     dnrg = mapd.dnrg
+    adc = mapd.adc
     dadc = mapd.dadc
     
     if 0 then begin
@@ -84,9 +103,9 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
 ;      str_element,/add,out,'rate_'+key,counts[w]/ L0b_str.sci_duration
       str_element,/add,out,'spec_'+key,counts[w] / dnrg[w] / mapd.geom[w] / L0b_str.sci_duration
       str_element,/add,out,'spec_'+key+'_nrg',nrg[w]
- ;     str_element,/add,out,'spec_'+key+'_dnrg',dnrg[w]
- ;     str_element,/add,out,'spec_'+key+'_adc',mapd.adc[w]    
- ;     str_element,/add,out,'spec_'+key+'_dadc',mapd.dadc[w]
+      str_element,/add,out,'spec_'+key+'_dnrg',dnrg[w]
+  ;    str_element,/add,out,'spec_'+key+'_adc',adc[w]    
+  ;    str_element,/add,out,'spec_'+key+'_dadc',dadc[w]
     endforeach
     L1a_strcts[i] = out
     
