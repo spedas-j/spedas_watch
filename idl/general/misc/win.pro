@@ -259,8 +259,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-05 19:12:17 -0700 (Sun, 05 May 2024) $
-; $LastChangedRevision: 32551 $
+; $LastChangedDate: 2024-12-31 18:25:54 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33020 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/win.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -277,6 +277,8 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
   @putwin_common
   @colors_com
 
+  device, window_state=ws
+
 ; Query the operating system to get monitor information.
 ; Silently act like WINDOW until CONFIG is set.
 
@@ -285,13 +287,13 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
       mnames = oInfo->GetMonitorNames()
       numMons = oInfo->GetNumberOfMonitors()
       rects = oInfo->GetRectangles()
-      primon = oInfo->GetPrimaryMonitorIndex()
+      primon = fix(oInfo->GetPrimaryMonitorIndex())
     obj_destroy, oInfo
 
     if (numMons gt 2) then begin
       j = sort(rects[0,1:*]) + 1
       rects = rects[*,[0,j]]
-      primon = 1L  ; left-most external
+      primon = 1  ; left-most external
     endif
 
     mons = indgen(numMons)
@@ -300,9 +302,9 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
 
     mgeom = rects
     mgeom[1,*] = rects[3,primon] - rects[3,*] - rects[1,*]
-    maxmon = numMons - 1
-    primarymon = primon
-    secondarymon = secmon
+    maxmon = fix(numMons) - 1
+    primarymon = fix(primon)
+    secondarymon = fix(secmon)
 
     tbar = 22           ; MacOS
     if (strmatch(mnames[0], ':?')) then begin
@@ -373,42 +375,56 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
       wait, fix(show[0]) > 5
       for i=0,(n_elements(j)-1) do wdelete, j[i]
     endif else begin
-      print,"Monitor configuration:"
+      if (blab) then print,"Monitor configuration:"
       j = sort(mgeom[1,0:maxmon])
       for i=maxmon,0,-1 do begin
-        print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4," ",$)'
+        if (blab) then print, j[i], mgeom[2:3,j[i]], format='(2x,i2," : ",i4," x ",i4," ",$)'
         case i of
           primarymon   : msg = "(primary)"
           secondarymon : msg = "(secondary)"
           else         : msg = ""
         endcase
-        print, msg
+        if (blab) then print, msg
       endfor
       if n_elements(color_table) then begin
         cstr = strtrim(string(color_table),2)
         if keyword_set(color_reverse) then cstr += " (reverse)"
       endif else cstr = "not defined"
-      print,"Color table: ", cstr
+      if (blab) then print,"Color table: ", cstr
       if n_elements(line_colors_index) then lstr = strtrim(string(line_colors_index),2) $
                                        else lstr = "not defined"
-      print,"Line colors: ", lstr
+      if (blab) then print,"Line colors: ", lstr
       if (stat gt 1) then begin
-        device, window_state=ws
-        owin = where(ws, count)
+        owin = fix(where(ws, count))
         if (count gt 0L) then begin
-          print,"Open windows:"
+          mnum = replicate(-1, count)
           wsave = !d.window
-          for k=0,(count-1) do begin
-            wset, owin[k]
-            print, owin[k], !d.x_size, !d.y_size, format='(2x,i2," : ",i4," x ",i4)'
+          if (blab) then print,'   #   Xsize   Ysize   Monitor'
+          for i=0,(count-1) do begin
+            wset,owin[i]
+            device, get_window_position=wpos
+            xok = (wpos[0] ge mgeom[0,*]) and (wpos[0] lt mgeom[0,*]+mgeom[2,*])
+            yok = (wpos[1] ge mgeom[1,*]) and (wpos[1] lt mgeom[1,*]+mgeom[3,*])
+            mnum[i] = where(xok and yok)
+            if (blab) then print,owin[i],!d.x_size,!d.y_size,mnum[i],format='(2x,i2,3x,i5,3x,i5,5x,i2)'
           endfor
-          wset, wsave
-        endif
+          wset,wsave
+          tplot_options, get=topt
+          str_element, topt, 'window', twin, success=ok
+          if (~ok) then twin = -1
+          if (ok and ws[twin]) then tmon = mnum[where(owin eq twin)] else tmon = -1
+        endif else if (blab) then print,'  No open windows'
       endif
-      print,""
+      if (blab) then print,""
     endelse
 
-    config = {geom:mgeom, primon:primarymon, secmon:secondarymon, tbar:tbar}
+    config = {geom:mgeom, nmons:(maxmon+1), primon:primarymon, secmon:secondarymon, tbar:tbar}
+    if (stat gt 1) then begin
+      str_element, config, 'owin', owin, /add
+      str_element, config, 'mnum', mnum, /add
+      str_element, config, 'twin', twin, /add
+      str_element, config, 'tmon', fix(tmon[0]), /add
+    endif
 
     return
   endif
@@ -416,20 +432,29 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
 ; List the currently existing windows.
 
   if keyword_set(list) then begin
-    device, window_state=ws
-    indx = where(ws eq 1, nwin)
-    wsave = !d.window
-    print,'   #   Xsize   Ysize   Monitor'
-    for i=0,(nwin-1) do begin
-      wset,indx[i]
-      device, get_window_position=wpos
-      xok = (wpos[0] ge mgeom[0,*]) and (wpos[0] le mgeom[0,*]+mgeom[2,*])
-      yok = (wpos[1] ge mgeom[1,*]) and (wpos[1] le mgeom[1,*]+mgeom[3,*])
-      j = where(xok and yok)
-      print,indx[i],!d.x_size,!d.y_size,j,format='(2x,i2,3x,i5,3x,i5,5x,i2)'
-    endfor
-    print,''
-    wset,wsave
+    owin = fix(where(ws, count))
+    if (count gt 0L) then begin
+      mnum = replicate(-1L, count)
+      wsave = !d.window
+      if (blab) then print,'   #   Xsize   Ysize   Monitor'
+      for i=0,(count-1) do begin
+        wset,owin[i]
+        device, get_window_position=wpos
+        xok = (wpos[0] ge mgeom[0,*]) and (wpos[0] lt mgeom[0,*]+mgeom[2,*])
+        yok = (wpos[1] ge mgeom[1,*]) and (wpos[1] lt mgeom[1,*]+mgeom[3,*])
+        mnum[i] = where(xok and yok)
+        if (blab) then print,owin[i],!d.x_size,!d.y_size,mnum[i],format='(2x,i2,3x,i5,3x,i5,5x,i2)'
+      endfor
+      wset,wsave
+    endif else if (blab) then print,'  No open windows'
+    if (blab) then print,''
+    config = {owin:owin, mnum:mnum}
+    tplot_options, get=topt
+    str_element, topt, 'window', twin, success=ok
+    if (~ok) then twin = -1
+    str_element, config, 'twin', twin, /add
+    if (ok and ws[twin]) then tmon = mnum[where(owin eq twin)] else tmon = -1
+    str_element, config, 'tmon', fix(tmon[0]), /add
     return
   endif
 

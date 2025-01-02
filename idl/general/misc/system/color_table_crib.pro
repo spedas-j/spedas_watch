@@ -11,6 +11,7 @@
 ;   line_colors : Choose one of 11 predefined line color schemes, or define a custom scheme.
 ;   get_line_colors : Returns a 3x8 array of the current line colors [[R,G,B],[R,G,B], ...].
 ;                     Can also return the 3x8 array for any line color scheme.
+;   color_table : Returns the current color table as a 256x3 array.
 ;
 ;   See the headers of these routines for more details.
 ;
@@ -73,8 +74,8 @@
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-04 14:35:11 -0800 (Mon, 04 Mar 2024) $
-; $LastChangedRevision: 32476 $
+; $LastChangedDate: 2024-12-31 18:27:43 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33022 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
@@ -174,12 +175,14 @@ options, var1, 'line_colors', mylines
 options, var1, 'color_table', -1
 options, var1, 'line_colors', -1
 
-; Set color and line style for constants.  If there are fewer colors than values, then
-; the colors are cycled as needed.  There can be only one line style per variable.
+; Set color, line style and thickness for constants.  If there are fewer colors
+; than values, then the colors are cycled as needed.  There can be only one line
+; style per variable.
 
 options, var1, 'constant', [value0, value1, ...]
 options, var1, 'const_color', [color0, color1, ...]
 options, var1, 'const_line', linestyle
+options, var1, 'const_thick', thick
 
 end ; of crib
 ;-

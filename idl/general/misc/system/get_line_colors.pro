@@ -79,26 +79,30 @@
 ;       To actually use this color for the background, you must set !p.background=255
 ;       (normally combined with !p.color=0).
 ;
+;   RESET: Reinitialize the predefined color schemes.
+;
 ;common blocks:
 ;   colors:      IDL color common block.  Many IDL routines rely on this.
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-26 15:18:02 -0800 (Fri, 26 Jan 2024) $
-; $LastChangedRevision: 32417 $
+; $LastChangedDate: 2024-12-31 18:28:15 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33023 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/get_line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023
 ;-
 
-function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors, graybkg=graybkg
+function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors, graybkg=graybkg, reset=reset
 
   @colors_com
 
 ; Initialize line color preset definitions
 
-  if (n_elements(line_colors_presets) eq 0) then begin
-    lcp = intarr(3,8,11)
+  init = keyword_set(reset) or (n_elements(line_colors_presets) eq 0)
+
+  if (init) then begin
+    lcp = intarr(3,8,12)
     ; Preset 0:  Primary and secondary colors [black, magenta, blue, cyan, green, yellow, red, white]
     lcp[*,*,0] = [[0,0,0],[255,0,255],[0,0,255],[0,255,255],[0,255,0],[255,255,0],[255,0,0],[255,255,255]]
     ; Presets 1-4: Line colors suitable for colorblind vision
@@ -118,6 +122,8 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
     lcp[*,*,9] = [[0,0,0],[86,180,233],[0,114,178],[0,158,115],[230,159,0],[213,94,0],[204,121,167],[255,255,255]]
     ; Preset 10: Chaffin's CSV line colors, suitable for colorblind vision
     lcp[*,*,10] = [[0,0,0],[152,78,163],[55,126,184],[77,175,74],[255,255,51],[255,127,0],[228,26,28],[255,255,255]]
+    ; Preset 11: Same as 5 but with blues and green that show up better on white background
+    lcp[*,*,11] = [[0,0,0],[255,0,255],[30,75,245],[0,220,220],[61,145,93],[255,165,0],[255,0,0],[255,255,255]]
     ; ------------- Add new line color schemes above this line, then update definition of lcp -------------
     ; ------------- Don't change the order or you might break someone else's code -------------------------
     line_colors_presets = temporary(lcp)
@@ -144,8 +150,7 @@ function get_line_colors, line_clrs, color_names=color_names, mycolors=mycolors,
 
   if n_elements(line_clrs) gt 0 then begin
     if n_elements(line_clrs) ne 24 then begin
-      i = fix(line_clrs[0])
-      if ((i lt 0) or (i gt 10)) then i = 1
+      i = fix(line_clrs[0]) > 0 < (n_elements(line_colors_presets[0,0,*]) - 1)
       line_clrs = line_colors_presets[*,*,i]
     endif
     line_clrs = fix(line_clrs)

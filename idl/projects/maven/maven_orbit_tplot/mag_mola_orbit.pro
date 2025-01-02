@@ -89,8 +89,8 @@
 ;       SCOL:       Color for each of the sites.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-11-13 11:13:36 -0800 (Wed, 13 Nov 2024) $
-; $LastChangedRevision: 32952 $
+; $LastChangedDate: 2024-12-31 18:34:56 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33026 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mag_mola_orbit.pro $
 ;
 ;CREATED BY:	David L. Mitchell  04-02-03
@@ -195,6 +195,9 @@ pro mag_mola_orbit, lon, lat, psym=psym, lstyle=lstyle, color=color, $
 
       str_element, k, 'bottom', (k.gray - k.wash) > 7, /add_replace  ; washed out reds
       str_element, k, 'top', (k.gray + k.wash) < 254, /add_replace   ; washed out blues
+
+      k.xrange = minmax(k.xrange)
+      k.yrange = minmax(k.yrange)
 
       xpix = !d.x_ch_size*total(!x.margin)
       ypix = !d.y_ch_size*total(!y.margin)

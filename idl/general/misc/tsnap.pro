@@ -56,9 +56,8 @@
 ;
 ;       KEY:    Alternate method for setting keywords.  Structure containing
 ;               keyword(s) for this routine, plus many keywords for WIN and
-;               PLOT.  Unrecognized keywords can be added to the structure 
-;               but will subsequently be ignored.  Ambiguous keywords are also
-;               ignored, but they will generate error messages.
+;               PLOT.  Unrecognized or ambiguous keywords are ignored, but 
+;               they will generate error messages.
 ;
 ;                      {KEYWORD: value, KEYWORD: value, ...}
 ;
@@ -69,8 +68,8 @@
 ;       LASTCUT:  Named variable to hold data for the last plot.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-11-01 10:48:36 -0700 (Fri, 01 Nov 2024) $
-; $LastChangedRevision: 32921 $
+; $LastChangedDate: 2024-12-31 18:26:32 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33021 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/tsnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -105,7 +104,7 @@ pro tsnap, var, navg=navg, sum=sum, xsmo=xsmo, keep=keep, deriv=deriv, err=err, 
     for j=0,(n_elements(ktag)-1) do begin
       i = strmatch(tlist, ktag[j]+'*', /fold)
       case (total(i)) of
-          0  : ; keyword not recognized -> do nothing
+          0  : print, "Keyword unrecognized: ", ktag[j]
           1  : begin
                  kname = (tlist[where(i eq 1)])[0]
                  ok = execute('kset = size(' + kname + ',/type) gt 0',0,1)

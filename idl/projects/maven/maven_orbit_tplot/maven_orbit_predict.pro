@@ -2,8 +2,9 @@
 ;PROCEDURE:   maven_orbit_predict
 ;PURPOSE:
 ;  Specialized version of maven_orbit_tplot that makes predict ephemeris
-;  plots suitable for long-range planning, including identification of Fly-Y/Z
-;  calibration opportunities, conjunction periods, and dust storm seasons.
+;  plots suitable for short- and long-term planning, including identification
+;  of Fly-Y/Z calibration opportunities, conjunction periods, and dust storm 
+;  seasons.
 ;
 ;  Warning: This routine can reset the SPICE loadlist.
 ;
@@ -11,28 +12,32 @@
 ;  ephemeris, overwriting any existing timespan.  This will affect any routines
 ;  that use timespan for determining what data to process.
 ;
+;  It's best to use this routine in its own IDL session.
+;
 ;USAGE:
 ;  maven_orbit_predict, extended=1, eph=eph
 ;
 ;INPUTS:
 ;
 ;KEYWORDS:
-;       EXTENDED: If set to a value from 1 to 6, loads one of six long-term predict
-;                 ephemerides.  All but one have a density scale factor (DSF) of 2.5,
+;       EXTENDED: If set to a value from 1 to 7, loads one of six long-term predict
+;                 ephemerides.  All but two have a density scale factor (DSF) of 2.5,
 ;                 which is a weighted average over several Mars years.  They differ
 ;                 in the number and timing of apoapsis, periapsis, and inclination 
 ;                 maneuvers (arm, prm, inc) and total fuel usage (meters per second, 
 ;                 or ms).  The date when the ephemeris was generated is given at the 
 ;                 end of the filename (YYMMDD).  More recent dates better reflect 
-;                 current mission goals.  When in doubt, use the most recent.
+;                 actual past perfomance and current mission goals.  When in doubt, 
+;                 use the most recent.
 ;
 ;                   0 : use timerange() to load short-term predicts
-;                   1 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
-;                   2 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
-;                   3 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
-;                   4 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp
-;                   5 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
-;                   6 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
+;                   1 : trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp
+;                   2 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
+;                   3 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
+;                   4 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
+;                   5 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp
+;                   6 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
+;                   7 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
 ;
 ;                 Default = 1 (most recent long-term predict).
 ;
@@ -67,14 +72,16 @@
 ;                 Note: Setting LINE_COLORS and COLORS here is local to this routine and
 ;                       affects only the altitude panel.
 ;
+;       PDS:      Plot vertical dashed lines separating the PDS release dates.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-11-13 11:11:16 -0800 (Wed, 13 Nov 2024) $
-; $LastChangedRevision: 32949 $
+; $LastChangedDate: 2024-12-31 18:22:52 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33018 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_predict.pro $
 ;
 ;CREATED BY:	David L. Mitchell
 ;-
-pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=col
+pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=col, pds=pds
 
   ext = n_elements(extended) ? fix(extended[0]) : 1
   if (ext eq 0) then begin
@@ -84,6 +91,14 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
       return
     endif
   endif
+
+  if keyword_set(pds) then begin
+    nmon = 100  ; extends to 2040-02-15
+    pds_rel = replicate(time_struct('2015-05-15'),nmon)
+    pds_rel.month += 3*indgen(nmon)
+    pds_rel = time_double(pds_rel)
+    pflg = 1
+  endif else pflg = 0
 
   mvn_spice_stat, summary=sstat, /silent
   if (~sstat.frames_exist) then mvn_swe_spice_init, /base
@@ -341,6 +356,7 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
   options,bname,'ystyle',5
   options,bname,'ytitle',''
   options,bname,'panel_size',0.4
+  lflg = 0
 
   get_data,'twake',data=twake,index=i
   if (i gt 0) then begin
@@ -373,6 +389,19 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
   tplot_options,'var_label',''
 
   tplot,['alt2','SEM','palt','psza','bars','plst','Lss']
+  if (lflg) then begin
+    xs = 0.927
+    ys = 0.431
+    dys = 0.018
+    xyouts,xs,ys,'ROSE',color=6,/norm,charsize=1.8
+    ys -= dys
+    xyouts,xs,ys,'FLY Y/Z',color=2,/norm,charsize=1.8
+    ys -= dys
+    xyouts,xs,ys,'FLY +Z',color=4,/norm,charsize=1.8
+    ys -= dys
+    xyouts,xs,ys,'DUST',color=5,/norm,charsize=1.8
+  endif
+  if (pflg) then timebar,pds_rel,line=2
 
   return
 

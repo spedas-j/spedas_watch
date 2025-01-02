@@ -23,6 +23,7 @@
 ;           8  : see https://www.nature.com/articles/nmeth.1618, except no yellow
 ;           9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;          10  : Chaffin's CSV line colors, suitable for colorblind vision
+;          11  : same as 5, except a darker green for better contrast on white
 ;
 ;    If not specified, use the current (or default) line color scheme and use keywords to
 ;    make modifications.
@@ -80,8 +81,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-08-27 13:06:46 -0700 (Sun, 27 Aug 2023) $
-; $LastChangedRevision: 32066 $
+; $LastChangedDate: 2024-12-31 18:28:34 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33024 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023

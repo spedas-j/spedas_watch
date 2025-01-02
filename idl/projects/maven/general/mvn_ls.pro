@@ -3,6 +3,16 @@
 ;PURPOSE:
 ;  Calculates the Mars season (i.e. solar longitude)
 ;
+;    Ls =   0  --> Northern spring equinox
+;    Ls =  90  --> Northern summer solstice
+;    Ls = 180  --> Northern fall equinox
+;    Ls = 270  --> Northern winter solstice
+;
+;    Ls =  71  --> Aphelion
+;    Ls = 251  --> Perihelion
+;
+;    Ls = 180-320  --> Dust storm season
+;
 ;USAGE:
 ;  ls = mvn_ls(time)
 ;
@@ -15,9 +25,9 @@
 ;KEYWORDS:
 ;       TPLOT: make a tplot variable of Ls
 ;
-; $LastChangedBy: hara $
-; $LastChangedDate: 2023-12-05 16:37:25 -0800 (Tue, 05 Dec 2023) $
-; $LastChangedRevision: 32274 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2024-12-31 18:23:40 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33019 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_ls.pro $
 ;
 ;CREATED BY:	Robert J. Lillis 2017-10-09

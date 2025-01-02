@@ -114,6 +114,11 @@
 ;                 extended ephemeris, overwriting any existing timespan.  This will affect
 ;                 any routines that use timespan for determining what data to process.
 ;
+;                 Note: For short-term predictions (< 1 month in the future) it's better
+;                 to use set the desired timespan and run this routine without setting
+;                 EXTENDED.  That will load the short-term predict spk kernels, which are
+;                 more accurate than any of the above long-term predicts.
+;
 ;       HIRES:    OBSOLETE.  This keyword has no effect.
 ;
 ;       LOADONLY: Create the TPLOT variables, but do not plot.
@@ -166,19 +171,24 @@
 ;
 ;       MISSION:  Restore save files that span from Mars orbit insertion to the 
 ;                 present.  These files are refreshed periodically.  Together, 
-;                 the save files are 17 GB in size (as of August 2024), so this 
+;                 the save files are 17 GB in size (as of December 2024), so this 
 ;                 keyword is only useful for computers with sufficient memory.
 ;
-;                   Latest refresh: 2024-08-28
-;                   Ephemeris start date: 2014-09-21
-;                   Ephemeris end date: 2024-11-01
+;                   Latest refresh: 2024-12-16
+;                   Range 1: 2014-09-21 to 2025-01-18
+;                            -- gap --
+;                   Range 2: 2025-02-01 to 2025-04-05
+;
+;                 The first range is derived from reconstructed spk kernels plus
+;                 short-term predict kernels.  The second range is derived from 
+;                 medium-term predict kernels.
 ;
 ;                 Using the where command, you can identify times that meet an
 ;                 arbitrary set of ephemeris conditions.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-11-13 11:15:07 -0800 (Wed, 13 Nov 2024) $
-; $LastChangedRevision: 32954 $
+; $LastChangedDate: 2024-12-31 18:22:52 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33018 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -189,7 +199,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                        spk=spk, segments=segments, shadow=shadow, datum=datum2, noload=noload, $
                        pds=pds, verbose=verbose, clear=clear, success=success, save=save, $
                        restore=restore, mission=mission, timecrop=timecrop, nocrop=nocrop, $
-                       line_colors=lcol
+                       line_colors=lcol, fatmars=fatmars
 
   @maven_orbit_common
 
@@ -282,9 +292,9 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
 
   R_equ = 3396.19D  ; +/- 0.1
   R_pol = 3376.20D  ; N pole = 3373.19 +/- 0.1 ; S pole = 3379.21 +/- 0.1
-  R_vol = 3389.50D  ; +/- 0.2
+  R_vol = 3389.50D  ; +/- 0.2  (volumetric mean radius)
 
-  R_m = R_vol       ; use the mean radius for converting to Mars radii
+  if keyword_set(fatmars) then R_m = R_equ else R_m = R_vol
 
 ; Load any keyword defaults
 

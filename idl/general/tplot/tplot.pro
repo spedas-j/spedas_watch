@@ -112,8 +112,8 @@
 ;   Send e-mail to:  tplot@ssl.berkeley.edu    someone might answer!
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-18 15:48:04 -0700 (Thu, 18 Jul 2024) $
-; $LastChangedRevision: 32751 $
+; $LastChangedDate: 2024-12-31 18:33:10 -0800 (Tue, 31 Dec 2024) $
+; $LastChangedRevision: 33025 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/tplot.pro $
 ;-
 
@@ -207,27 +207,15 @@ extract_tags,def_opts,tplot_vars.options
 
 if keyword_set(pick) then begin
    ctime,prompt='Click on desired panels. (button 3 to quit)',panel=mix,/silent
-   if n_elements(mix) ne 0 then begin
-      datanames = tplot_vars.settings.varnames[mix]
-      sub_var = 0
-   endif
+   if n_elements(mix) ne 0 then datanames = tplot_vars.settings.varnames[mix]
 endif
 
 if keyword_set(toss) then begin
-   ctime,prompt='Click on panels to remove. (button 3 to quit)',panel=mix,/silent
-   if n_elements(mix) ne 0 then begin
-      datanames = tplot_vars.settings.varnames[mix]
-      sub_var = 1
-   endif
-endif
-
-if keyword_set(sub_var) then begin
-   names = tnames(datanames,/all)
-   datanames = tplot_vars.options.varnames
-   for i=0,n_elements(names)-1 do begin
-     j = where(strmatch(datanames, names[i]) eq 0, count)
-     if (count gt 0) then datanames = datanames[j]
-   endfor
+   ctime,prompt='Click on panels to remove. (button 3 to quit)',panel=nix,/silent
+   mix = indgen(n_elements(tplot_vars.settings.varnames))
+   for i=0,(n_elements(nix)-1) do mix[nix[i]] = -1
+   i = where(mix ne -1, count)
+   if (count gt 0) then datanames = tplot_vars.options.varnames[mix[i]]
 endif
 
 if keyword_set(add_var)  then begin
