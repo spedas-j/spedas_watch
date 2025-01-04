@@ -178,10 +178,11 @@
 ;                  spiral, and all labels.
 ;
 ;       BLACK:     Use a black background for the orbit snapshot.
+;                  (After all, space is black.)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-11-13 11:35:25 -0800 (Wed, 13 Nov 2024) $
-; $LastChangedRevision: 32961 $
+; $LastChangedDate: 2025-01-03 14:06:05 -0800 (Fri, 03 Jan 2025) $
+; $LastChangedRevision: 33042 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -1079,6 +1080,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     if (size(window,/type) gt 0) then wnum = fix(window[0])
   endif
 
+; Ensure color scheme
+
+  initct, 1074, /rev, previous_ct=pct, previous_rev=prev
+  line_colors, 5, previous_lines=plines
+
   if (mflg) then begin
     if (keyword_set(black) and (!p.background ne 0L)) then begin
       revvid
@@ -1096,6 +1102,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     if (data_type(trange) eq 2) then begin
       wdelete, Owin  ; window never used
       wset, Twin
+      initct, pct, rev=prev, line=plines
       return
     endif
     t = trange[0]
@@ -1286,7 +1293,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
           yy = y
         endif
 
-        initct, 1072, /rev, previous_ct=pct, previous_rev=prev
+;       Encode solar latitude with red-to-blue color gradient
+
+        initct, 1072, /rev, previous_ct=pct2, previous_rev=prev2
           ll = css.lat[imin:imax] + 60.
           lscale = float(colstr.top_c - colstr.bottom_c)/120.
           lcol = (round(ll*lscale) + colstr.bottom_c) > colstr.bottom_c < colstr.top_c
@@ -1296,7 +1305,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
           if (clabel and visible) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab, color=ccol, charsize=scale
           draw_color_scale, range=[-60,60], brange=[colstr.bottom_c, colstr.top_c], charsize=scale, $
                             position=[0.88,0.1,0.9,0.2], title='Lat (deg)', yticks=2, ytickval=[-60,0,60]
-        initct, pct, rev=prev
+        initct, pct2, rev=prev2
       endif
 
       if (sflg) then begin
@@ -1455,6 +1464,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     if (not kflg) then wdelete, Owin
     wset,Twin
 
+    initct, pct, rev=prev, line=plines
     return
 
   endif
@@ -1588,6 +1598,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   endelse
 
   csize = 1.5*zscl*scale
+
+  if (keyword_set(black) and (!p.background ne 0L)) then begin
+    revvid
+    vswap = 1
+  endif else vswap = 0
 
   plot, [0.], [0.], xrange=xyrange, yrange=xyrange, xsty=xsty, ysty=ysty, $
                     charsize=csize, xtitle='Ecliptic X (AU)', ytitle='Ecliptic Y (AU)'
@@ -1848,12 +1863,15 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   if (dopng) then begin
     print, "Writing png file: ",pngname," ... ",format='(3a,$)'
-    img = tvrd()
+    img = tvrd(true=1)
     tvlct, red, green, blue, /get
     write_image, pngname, 'png', img, red, green, blue
     print, "done"
     set_plot, current_dev
   endif else wset, Twin
+
+  initct, pct, rev=prev, line=plines
+  if (vswap) then revvid
 
   return
 

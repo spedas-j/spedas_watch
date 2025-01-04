@@ -11,8 +11,8 @@
 ;
 ;  Primary electron weighting function (secondary yield per primary):
 ;    Emax = 300.
-;    s = 1.6                       ; from experiment (Schultz et al. 1996)
-;    s = 1.9 - 1.05*alog10(e)/3.   ; tuned to be close to Andreone et al. 2022
+;    s = 1.6                       ; from experiment (Schultz+ 1996)
+;    s = 1.9 - 1.05*alog10(e)/3.   ; tuned to be close to Andreone+ 2022
 ;
 ;    d(E) = exp(-(alog(E/Emax)^2.)/(2.*s*s))
 ;
@@ -21,7 +21,7 @@
 ;
 ;  Secondary electron population has a Maxwell-Boltzmann distribution with a
 ;  temperature that is independent of primary energy:
-;    E0 = 3.
+;    E0 = 4.0                      ; from in-flight calibration (see below)
 ;    Smax = 0.1225
 ;    S(E) = Smax * exp(1.) * (E/E0) * exp(-(E/E0))
 ;
@@ -30,7 +30,9 @@
 ;
 ;  The scale factor eps is of order unity.  It is used to tune the secondary
 ;  yield to match observations.  Andreone allowed eps to be tuned separately
-;  for each spectrum.
+;  for each spectrum.  In the sheath, the electron distribution can change
+;  significantly during the 2-second SWEA measurement cycle, so a dynamic 
+;  correction is necessary.
 ;
 ;  Filters are used to avoid over- and under- correction.
 ;
@@ -52,8 +54,9 @@
 ;
 ;                       e0  : temperature (eV) of the M-B secondary electron
 ;                             distribution (default = 4.0 eV, based on
-;                             observations where secondary population is well
-;                             separated from primary population)
+;                             observations in the sheath, where the secondary 
+;                             population is well separated from the primary
+;                             population)
 ;
 ;                       s0  : peak value of the M-B secondary electron
 ;                             distribution function (default = 0.1225)
@@ -78,8 +81,8 @@
 ;       TPLOT:        Create a tplot variable.  (Only works for SPEC data.)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-26 13:45:00 -0700 (Fri, 26 Jul 2024) $
-; $LastChangedRevision: 32768 $
+; $LastChangedDate: 2025-01-03 12:14:09 -0800 (Fri, 03 Jan 2025) $
+; $LastChangedRevision: 33040 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_secondary.pro $
 ;
 ;CREATED BY:	David L. Mitchell

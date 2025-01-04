@@ -62,6 +62,7 @@
 ;                         8  : https://www.nature.com/articles/nmeth.1618 except no yellow
 ;                         9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;                        10  : Chaffin's CSV line colors, suitable for colorblind vision
+;                        11  : same as 5, except a darker green for better contrast on white
 ;
 ;                         See get_line_colors() for RGB values of predefined schemes.
 ;                         The most recent color schemes may not be documented here.
@@ -112,8 +113,8 @@
 ;       SUPPRESS:     Suppress floating overflow error in first call to window.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-03-02 11:08:00 -0800 (Thu, 02 Mar 2023) $
-; $LastChangedRevision: 31572 $
+; $LastChangedDate: 2025-01-03 12:09:13 -0800 (Fri, 03 Jan 2025) $
+; $LastChangedRevision: 33036 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/initct.pro $
 ;
 ;Created by David L. Mitchell (February 2023)

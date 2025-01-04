@@ -53,7 +53,7 @@
 ;   tables are: [24, 29, 30, 38, 39, 40] <-> [1024, 1029, 1030, 1038, 1039, 1040].  So, apart
 ;   from a few slight differences, there are 122 unique tables.
 ;
-;   As of this writing, there are 11 predefined line color schemes:
+;   As of this writing, there are 12 predefined line color schemes:
 ;
 ;        0  : primary and secondary colors [black, magenta, blue, cyan, green, yellow, red, white]
 ;       1-4 : four different schemes suitable for colorblind vision
@@ -63,6 +63,7 @@
 ;        8  : https://www.nature.com/articles/nmeth.1618, except no yellow
 ;        9  : same as 8 but permuted so vector defaults are blue, orange, reddish purple
 ;       10  : Chaffin's CSV line colors, suitable for colorblind vision
+;       11  : same as 5, except a darker green for better contrast on white
 ;
 ;   More schemes can be added by including them in the initialization block of get_line_colors.pro.
 ;   Always add new schemes at the end of the list, so you don't break anyone else's code.  It's 
@@ -74,8 +75,8 @@
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-12-31 18:27:43 -0800 (Tue, 31 Dec 2024) $
-; $LastChangedRevision: 33022 $
+; $LastChangedDate: 2025-01-03 12:10:37 -0800 (Fri, 03 Jan 2025) $
+; $LastChangedRevision: 33037 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023

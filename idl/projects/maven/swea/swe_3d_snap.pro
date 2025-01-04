@@ -56,6 +56,8 @@
 ;                      during which conditions are steady and the s/c potential
 ;                      is constant.
 ;
+;       THICK:         Line thickness for the SPEC plots.  Default = 1.
+;
 ;       POT:           Plot the spacecraft potential on the SPEC plots.
 ;
 ;       UNITS:         Data units for SPEC plots.  Default = 'crate'.
@@ -140,8 +142,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-12-31 18:42:21 -0800 (Tue, 31 Dec 2024) $
-; $LastChangedRevision: 33027 $
+; $LastChangedDate: 2025-01-03 12:13:43 -0800 (Fri, 03 Jan 2025) $
+; $LastChangedRevision: 33039 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -155,7 +157,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
                  labsize=labsize, trange=trange2, tsmo=tsmo, wscale=wscale, zlog=zlog, $
                  zrange=zrange, monitor=monitor, esum=esum, color_table=color_table, $
                  reverse_color_table=reverse_color_table, line_colors=line_colors, $
-                 qlevel=qlevel, qratio=qratio, pgroup=pgroup, result=result
+                 qlevel=qlevel, qratio=qratio, pgroup=pgroup, result=result, thick=thick
 
   @mvn_swe_com
   @putwin_common
@@ -184,7 +186,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
            'SYMDIAG','POWER','MAP','ABINS','DBINS','OBINS','MASK_SC','BURST', $
            'PLOT_SC','PADMAP','POT','PLOT_FOV','LABSIZE','TRANGE2','TSMO', $
            'WSCALE','ZLOG','ZRANGE','MONITOR','ESUM','COLOR_TABLE', $
-           'REVERSE_COLOR_TABLE','QLEVEL','QRATIO','PGROUP']
+           'REVERSE_COLOR_TABLE','QLEVEL','QRATIO','PGROUP','THICK']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
@@ -216,6 +218,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
   pot = (n_elements(pot) gt 0) ? keyword_set(pot) : 1
   labsize = (n_elements(labsize) gt 0) ? float(labsize[0]) : 1.
   wscale = (n_elements(wscale) gt 0) ? float(wscale[0]) : 1.
+  thick = (n_elements(thick) gt 0) ? float(thick[0]) : 1.
 
   omask = replicate(1.,96,2)
   indx = where(obins eq 0B, count)
@@ -692,7 +695,8 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
         1 : begin
               wset, Swin
               bins = where(obins[*,boom] eq 1B, count)
-              spec3d, ddd, units=units, limits={yrange:yrange, ystyle:1, ylog:ylog, psym:10, ytitle:ytitle},bins=bins
+              limits = {yrange:yrange, ystyle:1, ylog:ylog, psym:10, thick:thick, ytitle:ytitle}
+              spec3d, ddd, units=units, limits=limits, bins=bins
               if (pot) then oplot, [ddd.sc_pot, ddd.sc_pot], yrange, line=2, color=6
             end
         2 : begin
@@ -713,8 +717,14 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
               endif
               result.brange[*,0] = minmax(indx)
               result.y[*,0] = y
+
+              delta_t = ddd.end_time - ddd.time
+              tstart = time_string(ddd.time - delta_t)
+              tend   = time_string(ddd.end_time)
+              title  = tstart + ' - ' + strmid(tend,11)
+
               plot, x, y, xrange=xrange, /xlog, /xsty, yrange=yrange, /ysty, ylog=ylog, $
-                    charsize=1.5, xtitle='Energy (eV)', ytitle=ytitle
+                    charsize=1.5, xtitle='Energy (eV)', ytitle=ytitle, title=title, thick=thick
               for k=1,(nspec-1) do begin
                 j = indx + k*pgroup
                 y = average(ddd.data[*,j],2,/nan)
@@ -727,7 +737,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
                 result.y[*,k] = y
                 clr = k mod 6
                 if (clr eq 0) then clr = !p.color
-                oplot, x, y, color=clr
+                oplot, x, y, color=clr, thick=thick
               endfor
               if (qratio) then oplot, minmax(x), [1.,1.], line=1
               if (pot) then oplot, [ddd.sc_pot, ddd.sc_pot], yrange, line=2, color=6
@@ -763,7 +773,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
                 endif
                 result.brange[*,k] = minmax(j)
                 result.y[*,k] = y
-                plot, [0.1], [1.], yrange=yrange, /ysty, ylog=ylog, charsize=1.5, $
+                plot, [0.1], [1.], yrange=yrange, /ysty, ylog=ylog, charsize=1.8, thick=thick, $
                          xrange=xrange, /xlog, /xsty, xtitle='Energy (eV)', ytitle=ytitle
                 if finite(max(y)) then begin
                   oplot, x, yavg
