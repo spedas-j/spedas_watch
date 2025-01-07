@@ -25,10 +25,11 @@
 ;       SPEC:          Plot energy spectra for the 3D bins.
 ;                        0 = Don't plot any spectra.  Default.
 ;                        1 = All 96 spectra are overplotted in a single frame
-;                            with cycling line colors.  (Uses spec3d.)
+;                            with rainbow color scheme (blue = small 3D bin
+;                            numbers, red = high numbers).
 ;                        2 = Spectra are grouped and averaged using PGROUP and
-;                            then overplotted in a single frame with cycling
-;                            line colors.
+;                            then overplotted in a single frame with a rainbow
+;                            color scheme.
 ;                        3 = Spectra are grouped and averaged using PGROUP and
 ;                            then plotted in an NxM grid of frames (one spectrum
 ;                            per frame), where N is the number of phi bins (see 
@@ -142,8 +143,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-03 12:13:43 -0800 (Fri, 03 Jan 2025) $
-; $LastChangedRevision: 33039 $
+; $LastChangedDate: 2025-01-06 11:50:46 -0800 (Mon, 06 Jan 2025) $
+; $LastChangedRevision: 33050 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -176,6 +177,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
   bad3d.quality = 255B
 
   if (size(windex,/type) eq 0) then win, config=0  ; win acts like window
+  colstr = get_colors()
 
 ; Load any keyword defaults
 
@@ -374,9 +376,9 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
 ; Otherwise, the user has to resize and reposition the spectrum window manually before
 ; selecting the first time range.
 
-  if (size(numMons,/type) gt 0) then begin
-    if ((sflg eq 3) and (numMons gt 2)) then begin
-      win, stat=2, /silent, config=cfg
+  win, stat=2, /silent, config=cfg
+  if (cfg.enable) then begin
+    if ((sflg eq 3) and (cfg.nmons gt 2)) then begin
       if (cfg.tmon lt 0) then cfg.tmon = primarymon
       mons = indgen(cfg.nmons)
       mnum = minmax(where(mons ne cfg.tmon))
@@ -695,7 +697,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
         1 : begin
               wset, Swin
               bins = where(obins[*,boom] eq 1B, count)
-              limits = {yrange:yrange, ystyle:1, ylog:ylog, psym:10, thick:thick, ytitle:ytitle}
+              limits = {yrange:yrange, ystyle:1, ylog:ylog, psym:0, thick:thick, ytitle:ytitle}
               spec3d, ddd, units=units, limits=limits, bins=bins
               if (pot) then oplot, [ddd.sc_pot, ddd.sc_pot], yrange, line=2, color=6
             end
@@ -723,22 +725,28 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
               tend   = time_string(ddd.end_time)
               title  = tstart + ' - ' + strmid(tend,11)
 
-              plot, x, y, xrange=xrange, /xlog, /xsty, yrange=yrange, /ysty, ylog=ylog, $
-                    charsize=1.5, xtitle='Energy (eV)', ytitle=ytitle, title=title, thick=thick
-              for k=1,(nspec-1) do begin
-                j = indx + k*pgroup
-                y = average(ddd.data[*,j],2,/nan)
-                if (di gt 1) then begin
-                  z = x
-                  for i=0,(n_e-1) do z[i] = average(y[(i*di):(i*di + (di-1))],/nan)
-                  y = z
-                endif
-                result.brange[*,k] = minmax(j)
-                result.y[*,k] = y
-                clr = k mod 6
-                if (clr eq 0) then clr = !p.color
-                oplot, x, y, color=clr, thick=thick
-              endfor
+              initct, 43, previous_ct=pct2, previous_rev=prev2
+                plot, x, y, xrange=xrange, /xlog, /xsty, yrange=yrange, /ysty, ylog=ylog, $
+                      charsize=1.5, xtitle='Energy (eV)', ytitle=ytitle, title=title, thick=thick
+                cbot = 40
+                oplot, x, y, color=cbot, thick=thick
+
+                cscale = float(colstr.top_c - cbot)/float(nspec - 1)
+                for k=1,(nspec-1) do begin
+                  j = indx + k*pgroup
+                  y = average(ddd.data[*,j],2,/nan)
+                  if (di gt 1) then begin
+                    z = x
+                    for i=0,(n_e-1) do z[i] = average(y[(i*di):(i*di + (di-1))],/nan)
+                    y = z
+                  endif
+                  result.brange[*,k] = minmax(j)
+                  result.y[*,k] = y
+                  clr = (round(k*cscale) + cbot) > cbot < colstr.top_c
+                  oplot, x, y, color=clr, thick=thick
+                endfor
+              initct, pct2, rev=prev2
+
               if (qratio) then oplot, minmax(x), [1.,1.], line=1
               if (pot) then oplot, [ddd.sc_pot, ddd.sc_pot], yrange, line=2, color=6
             end

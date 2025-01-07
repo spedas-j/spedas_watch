@@ -259,8 +259,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-12-31 18:25:54 -0800 (Tue, 31 Dec 2024) $
-; $LastChangedRevision: 33020 $
+; $LastChangedDate: 2025-01-06 11:50:01 -0800 (Mon, 06 Jan 2025) $
+; $LastChangedRevision: 33049 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/win.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -344,7 +344,8 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
 
   if (keyword_set(stat) or keyword_set(show)) then begin
     if (~windex) then begin
-      print,"Win is disabled (acts like window).  Use 'win, /config' to enable."
+      if (blab) then print,"Win is disabled (acts like window).  Use 'win, /config' to enable."
+      config = {enable:0}
       return
     endif
 
@@ -399,7 +400,11 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
         if (count gt 0L) then begin
           mnum = replicate(-1, count)
           wsave = !d.window
-          if (blab) then print,'   #   Xsize   Ysize   Monitor'
+          if (blab) then begin
+            print,""
+            print,"Open windows: "
+            print,'   #   Xsize   Ysize   Monitor'
+          endif
           for i=0,(count-1) do begin
             wset,owin[i]
             device, get_window_position=wpos
@@ -418,8 +423,8 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
       if (blab) then print,""
     endelse
 
-    config = {geom:mgeom, nmons:(maxmon+1), primon:primarymon, secmon:secondarymon, tbar:tbar}
-    if (stat gt 1) then begin
+    config = {enable:windex, geom:mgeom, nmons:(maxmon+1), primon:primarymon, secmon:secondarymon, tbar:tbar}
+    if keyword_set(stat) then if (stat gt 1) then begin
       str_element, config, 'owin', owin, /add
       str_element, config, 'mnum', mnum, /add
       str_element, config, 'twin', twin, /add
@@ -436,7 +441,10 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
     if (count gt 0L) then begin
       mnum = replicate(-1L, count)
       wsave = !d.window
-      if (blab) then print,'   #   Xsize   Ysize   Monitor'
+      if (blab) then begin
+        print,"Open windows: "
+        print,'   #   Xsize   Ysize   Monitor'
+      endif
       for i=0,(count-1) do begin
         wset,owin[i]
         device, get_window_position=wpos
