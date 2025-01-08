@@ -8,8 +8,8 @@
 ;  monitor.  XPOS and YPOS are used to position windows within the super
 ;  monitor; however, the coordinate system is not known in advance, and
 ;  when you attempt to place a window entirely or partially out of bounds,
-;  IDL forces the window inbounds, so that it can appear in an unexpected
-;  location.
+;  it can appear in an unexpected location, depending on your window
+;  server.
 ;
 ;  This procedure divides the super monitor back into physical monitors
 ;  and allows you to choose a monitor and place a window relative to the
@@ -259,8 +259,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-06 11:50:01 -0800 (Mon, 06 Jan 2025) $
-; $LastChangedRevision: 33049 $
+; $LastChangedDate: 2025-01-07 06:41:45 -0800 (Tue, 07 Jan 2025) $
+; $LastChangedRevision: 33051 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/win.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -438,6 +438,7 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
 
   if keyword_set(list) then begin
     owin = fix(where(ws, count))
+    mnum = -1
     if (count gt 0L) then begin
       mnum = replicate(-1L, count)
       wsave = !d.window
