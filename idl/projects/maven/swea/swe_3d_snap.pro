@@ -34,11 +34,16 @@
 ;                            then plotted in an NxM grid of frames (one spectrum
 ;                            per frame), where N is the number of phi bins (see 
 ;                            PGROUP), and M is the number of theta bins (always 6).
-;                            The average spectrum over all 3D bins is shown in the
-;                            foreground color (usually white or black).
+;                            The spectrum for each frame is shown in green and the
+;                            average spectrum over all 3D bins is shown in red.
 ;                            Note: The window for this plot should be as large as
 ;                            possible to accommodate the many frames.  Best is to
 ;                            devote and entire external monitor for this plot.
+;                            Once the snapshot window appears, you can move and
+;                            resize it as needed.  If you are using 'win', and
+;                            it's enabled, then 'win' will automatically make the
+;                            snapshot window as large it can while maintaining a
+;                            reasonable aspect ratio for each frame.
 ;
 ;       PGROUP:        If SPEC > 1, then group the 3D bins in the phi (anode)
 ;                      dimension to generate fewer spectra.  This keyword should
@@ -143,8 +148,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-06 11:50:46 -0800 (Mon, 06 Jan 2025) $
-; $LastChangedRevision: 33050 $
+; $LastChangedDate: 2025-01-08 12:04:35 -0800 (Wed, 08 Jan 2025) $
+; $LastChangedRevision: 33057 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -781,11 +786,12 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
                 endif
                 result.brange[*,k] = minmax(j)
                 result.y[*,k] = y
-                plot, [0.1], [1.], yrange=yrange, /ysty, ylog=ylog, charsize=1.8, thick=thick, $
+                plot, [0.1], [1.], yrange=yrange, /ysty, ylog=ylog, charsize=1.8, $
                          xrange=xrange, /xlog, /xsty, xtitle='Energy (eV)', ytitle=ytitle
-                if finite(max(y)) then begin
-                  oplot, x, yavg
-                  oplot, x, y, color=4
+                igud = where(finite(y), ngud)
+                if (ngud gt 0L) then begin
+                  oplot, x, yavg, color=6, line=0, thick=1
+                  oplot, x, y, color=4, thick=thick
                   if (pot) then oplot, [ddd.sc_pot, ddd.sc_pot], yrange, line=2, color=6
                 endif else begin
                   xs = exp(mean(alog(xrange)))

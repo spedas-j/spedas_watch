@@ -192,9 +192,9 @@
 ;                         1B = uncertain
 ;                         0B = affected by low-energy anomaly
 ;
-; $LastChangedBy: xussui $
-; $LastChangedDate: 2024-07-25 10:46:33 -0700 (Thu, 25 Jul 2024) $
-; $LastChangedRevision: 32759 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2025-01-08 11:13:21 -0800 (Wed, 08 Jan 2025) $
+; $LastChangedRevision: 33056 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -1364,11 +1364,11 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
         
         plot_oo, [0.1,0.1], drange, xrange=xrange, yrange=drange, /xsty, /ysty, $
           xtitle='Energy (eV)', ytitle=ytitle, title=time_string(pad.time), $
-          charsize=1.4*cscale, xmargin=[10,3], _extra=_extra
+          charsize=1.4*cscale, xmargin=[10,3] ; , _extra=_extra
 
-        oplot, x1, Fp, psym=10, color=6, _extra=_extra
-        oplot, x2, Fm, psym=10, color=2, _extra=_extra
-        if (domid) then oplot, x, Fz, psym=10, color=4, _extra=_extra
+        oplot, x1, Fp, psym=10, color=6 ; , _extra=_extra
+        oplot, x2, Fm, psym=10, color=2 ; , _extra=_extra
+        if (domid) then oplot, x, Fz, psym=10, color=4 ; , _extra=_extra
 
         if (ebar) then begin
           errplot, x1*0.999, (Fp-Fp_err)>tiny, Fp+Fp_err, color=6, width=0
