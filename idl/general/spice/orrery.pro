@@ -35,6 +35,8 @@
 ;  to see the positions of these two spacecraft.  Version 1.8.0 is 
 ;  known to work.
 ;
+;  Note: This routine will not reset timespan or timerange.
+;
 ;USAGE:
 ;  orrery [, time] [,KEYWORD=value, ...]
 ;
@@ -46,6 +48,9 @@
 ;                  If not specified, use the current system time.
 ;
 ;KEYWORDS:
+;       You can set default values for any of the following keywords with
+;       orrery_options.pro.  Keywords set explicitly override defaults.
+;
 ;       NOPLOT:    Skip the plot (useful with keyword EPH).
 ;
 ;       NOBOX:     Hide the axis box.
@@ -166,7 +171,7 @@
 ;                  extends out to the orbit of Saturn.
 ;
 ;       TPLOT:     Create Earth-PLANET geometry and spacecraft position
-;                  tplot variables.
+;                  tplot variables.  Default = 1 (yes).
 ;
 ;       VARNAMES:  Standard set of tplot variables to plot.
 ;
@@ -178,11 +183,11 @@
 ;                  spiral, and all labels.
 ;
 ;       BLACK:     Use a black background for the orbit snapshot.
-;                  (After all, space is black.)
+;                  (After all, space is black.)  Default = 1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-03 14:06:05 -0800 (Fri, 03 Jan 2025) $
-; $LastChangedRevision: 33042 $
+; $LastChangedDate: 2025-01-11 17:20:11 -0800 (Sat, 11 Jan 2025) $
+; $LastChangedRevision: 33067 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -387,7 +392,9 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   spiral = keyword_set(spiral)
   pcurve = keyword_set(pcurve) or spiral
+  black = size(black,/type) eq 0 ? 1 : keyword_set(black)
 
+  tflg = size(tplot,/type) eq 0 ? 1 : keyword_set(tplot)
   varnames = ['S-M','Lss','STEREO','R-SORB','Lat-SORB','R-PSP']
 
 ; Check the version of ICY/SPICE
@@ -907,7 +914,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
 ; Create TPLOT variables
 
-  if keyword_set(tplot) then begin
+  if (tflg) then begin
     xm = planet[pnum].x
     ym = planet[pnum].y
     zm = planet[pnum].z
@@ -1086,7 +1093,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   line_colors, 5, previous_lines=plines
 
   if (mflg) then begin
-    if (keyword_set(black) and (!p.background ne 0L)) then begin
+    if (black and (!p.background ne 0L)) then begin
       revvid
       vswap = 1
     endif else vswap = 0
@@ -1599,7 +1606,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
   csize = 1.5*zscl*scale
 
-  if (keyword_set(black) and (!p.background ne 0L)) then begin
+  if (black and (!p.background ne 0L)) then begin
     revvid
     vswap = 1
   endif else vswap = 0

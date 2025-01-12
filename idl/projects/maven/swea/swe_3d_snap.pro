@@ -25,11 +25,11 @@
 ;       SPEC:          Plot energy spectra for the 3D bins.
 ;                        0 = Don't plot any spectra.  Default.
 ;                        1 = All 96 spectra are overplotted in a single frame
-;                            with rainbow color scheme (blue = small 3D bin
-;                            numbers, red = high numbers).
+;                            with rainbow color scheme (blue: low bin numbers,
+;                            red: high bin numbers).
 ;                        2 = Spectra are grouped and averaged using PGROUP and
 ;                            then overplotted in a single frame with a rainbow
-;                            color scheme.
+;                            color scheme (as above).
 ;                        3 = Spectra are grouped and averaged using PGROUP and
 ;                            then plotted in an NxM grid of frames (one spectrum
 ;                            per frame), where N is the number of phi bins (see 
@@ -65,6 +65,9 @@
 ;       THICK:         Line thickness for the SPEC plots.  Default = 1.
 ;
 ;       POT:           Plot the spacecraft potential on the SPEC plots.
+;
+;       SCP:           Temporarily override any other estimates of the spacecraft 
+;                      potential and force it to be this value.
 ;
 ;       UNITS:         Data units for SPEC plots.  Default = 'crate'.
 ;
@@ -148,8 +151,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-08 12:04:35 -0800 (Wed, 08 Jan 2025) $
-; $LastChangedRevision: 33057 $
+; $LastChangedDate: 2025-01-11 17:21:06 -0800 (Sat, 11 Jan 2025) $
+; $LastChangedRevision: 33068 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -163,7 +166,8 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
                  labsize=labsize, trange=trange2, tsmo=tsmo, wscale=wscale, zlog=zlog, $
                  zrange=zrange, monitor=monitor, esum=esum, color_table=color_table, $
                  reverse_color_table=reverse_color_table, line_colors=line_colors, $
-                 qlevel=qlevel, qratio=qratio, pgroup=pgroup, result=result, thick=thick
+                 qlevel=qlevel, qratio=qratio, pgroup=pgroup, result=result, thick=thick, $
+                 scp=scp
 
   @mvn_swe_com
   @putwin_common
@@ -481,14 +485,17 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
             g3d = mvn_swe_3dsum(ddd[gndx])
             ddd = b3d
             ddd.data /= g3d.data
-            ddd.sc_pot = g3d.sc_pot
+            ddd.sc_pot = (n_elements(scp) gt 0) ? float(scp[0]) : g3d.sc_pot
           endif else begin
             print,"Can't calculate BAD/GOOD ratio."
             ddd = bad3d
             ddd.time = mean(trange)
             ddd.end_time = max(trange)
           endelse
-        endif else ddd = mvn_swe_3dsum(ddd)
+        endif else begin
+          ddd = mvn_swe_3dsum(ddd)
+          if (n_elements(scp) gt 0) then ddd.sc_pot = float(scp[0])
+        endelse
       endif else begin
         ddd = bad3d
         ddd.time = mean(trange)
