@@ -1,7 +1,7 @@
 ;swfo_test
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-12-19 05:58:47 -0800 (Thu, 19 Dec 2024) $
-; $LastChangedRevision: 33006 $
+; $LastChangedDate: 2025-01-17 04:27:14 -0800 (Fri, 17 Jan 2025) $
+; $LastChangedRevision: 33069 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -41,7 +41,7 @@ end
 
 
 
-if ~keyword_set(files) then begin
+if 1 || ~keyword_set(files) then begin
   trange = ['2024 9 18','2024 9 19']
   trange = '2024-9-18 / 20:45'
   trange = '2024-9-19 ' + [' 0:0',' 24:00']
@@ -58,8 +58,19 @@ if ~keyword_set(files) then begin
   ;trange = ['2024 1 291/ 22:00','2024 1 292 / 0:45']   ; test some repeated frames
   trange = ['2024 10 16 19:40' , '2024 10 16 2200']    ; LPT?
   trange = ['2024 12 18 12' , '2024 12 18 22']    ; LPT?
-  trange = ['2024 12 18 16:00' , '2024 12 18 16:30']    ; LPT?
-  stop
+  trange = ['2024 12 18 16:00' , '2024 12 18 16:30']    ; memdump test #1
+  trange = ['2024 12 18 ' , '2024 12 19']    ; memdump day 1
+  trange = ['2024 12 19' , '2024 12 20']    ; memdump day  2
+  trange = ['2024 12 18' , '2024 12 21']    ; memdump day  1&2&3
+  trange = ['2024 12 20' , '2024 12 21']    ; memdump day  3
+  trange = ['2024 12 20 11' , '2024 12 20 14 ']    ; memdump day  3  test only
+  trange = ['2025 1 14','2025 1 18']   ; ETE4 RFR
+  trange = ['2025 1 16 16','2025 1 16 20']   ; ETE4 RFR
+  trange = ['2025 1 16 16','now']   ; ETE4 RFR
+
+  run_proc = 1
+
+  ;stop
 
 
   if ~isa(rdr) then begin
@@ -78,10 +89,13 @@ if ~keyword_set(files) then begin
     remote_data_dir:'http://sprg.ssl.berkeley.edu/data/', $
     no_update : no_update ,$
     no_download :no_download ,$
-       resolution: 900L  }
+    resolution: 900L  }
 
+  typecase = 2.5
+  if ~isa(lastfile) then lastfile = ''
+  ;stop
 
-  case 2 of
+  case typecase of
     0: begin
       pathname = 'swfo/swpc/L0/YYYY/MM/DD/it_frm-rt-l0_swfol1_sYYYYMMDDThhmm00Z_*.nc'
       files = file_retrieve(pathname,_extra=source,trange=trange)
@@ -89,22 +103,45 @@ if ~keyword_set(files) then begin
       files = files[w]
     end
     1: begin
-      pathname = 'swfo/swpc/E2E2b/decomp/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc'
-      pathname = 'swfo/swpc/E2E4/outgoing/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc.gz'
+      ;pathname = 'swfo/swpc/E2E2b/decomp/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc'
+      ;pathname = 'swfo/swpc/E2E4/outgoing/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc.gz'
+      pathname = 'swfo/swpc/E2E4_RFR/outgoing/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc.gz'
       allfiles = file_retrieve(pathname,_extra=source)  ; get All the files first
-      fileformat = file_basename(str_sub(pathname,'*.nc','YYYYMMDDThhmm00'))
+      fileformat = file_basename(str_sub(pathname,'*.nc.gz','YYYYMMDDThhmm00'))
       filerange = time_string(trange,tformat=fileformat)
       w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
       files = allfiles[w]
       frames_name = 'frames'
+
+      if strmid(pathname,2,3,/reverse) eq '.gz' then begin
+        ofiles = str_sub(files,'outgoing','decomp')
+        for i=0,n_elements(ofiles)-1 do ofiles[i] = strmid(ofiles[i],0,strlen(ofiles[i])-3)   ; get rid of ".gz"
+        file_mkdir2,file_dirname(ofiles)
+        dprint,'Unzipping files'
+        file_gunzip,files,ofiles
+        files=ofiles
+      endif
     end
     2: begin
       pathname = 'swfo/aws/L0/SWFOWCD/YYYY/MM/DD/OR_SWFOWCD-L0_SL1_s*.nc'
+      pathname = 'swfo/aws/preplt/SWFO-L1/l0/SWFOWCD/YYYY/jan/YYYYMMDD/OR_SWFOWCD-L0_SL1_s*.nc'
       source.resolution = 24L*3600
       allfiles = file_retrieve(pathname,_extra=source,trange=trange)  ; get All the files first
       fileformat =  file_basename(str_sub(pathname,'*.nc','YYYYDOYhhmm'))
       filerange = time_string(trange,tformat=fileformat)
       w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
+      files = allfiles[w]
+      frames_name = 'swfo_frame_data'
+    end
+    2.5: begin
+      ;pathname = 'swfo/aws/preplt/SWFO-L1/l0/SWFOWCD/YYYY/jan/YYYYMMDD/OR_SWFOWCD-L0_SL1_sYYYYDOYhh*.nc'
+      pathname = 'swfo/aws/preplt/SWFO-L1/l0/SWFOWCD/YYYY/MM/YYYYMMDD/OR_SWFOWCD-L0_SL1_sYYYYDOYhh*.nc'
+      source.resolution = 3600
+      allfiles = file_retrieve(pathname,_extra=source,trange=trange)  ; get All the files first
+      fileformat =  file_basename(str_sub(pathname,'*.nc',''))
+      filerange = time_string(time_double(trange)+[0,3600],tformat=fileformat)
+      if keyword_set(lastfile) then filerange[0] = file_basename(lastfile)
+      w = where(file_basename(allfiles) gt filerange[0] and file_basename(allfiles) lt filerange[1] and file_test(allfiles),nw,/null)
       files = allfiles[w]
       frames_name = 'swfo_frame_data'
     end
@@ -120,13 +157,6 @@ if ~keyword_set(files) then begin
     end
   endcase
 
-
-
-  if strmid(pathname,2,3,/reverse) eq '.gz' then begin
-    file_gunzip,files
-    ofiles = files
-    for i=0,n_elements(files)-1 do files[i] = strmid(files[i],0,strlen(files[i])-3)
-  endif
 
 endif
 
@@ -180,7 +210,7 @@ endif
 
 
 
-stop
+;stop
 
 if 0  then begin
   dprint,print_dtime=0,print_dlevel=0,print_trace=0
@@ -200,49 +230,65 @@ if keyword_set(1) then begin
     parent.filename = file
     parent.num_duplicates = 0
     parent.max_displacement = 0
-;    index
-    dat = ncdf2struct(file)
-    frames = struct_value(dat,frames_name,default = !null)
-    index = rdr.getattr('index')
-;    cntr.append, { index:index,   time: time_double( dat.
-    dprint,dlevel=1,string(index)+'   '+ file_basename(file)+ '  '+strtrim(n_elements(frames)/1024, 2)
-    rdr.read , frames
+    ;    index
+    if file_test(file) then begin
+      dat = ncdf2struct(file)
+      frames = struct_value(dat,frames_name,default = !null)
+      index = rdr.getattr('index')
+      ;    cntr.append, { index:index,   time: time_double( dat.
+      dprint,dlevel=1,string(index)+'   '+ file_basename(file)+ '  '+strtrim(n_elements(frames)/1024, 2)
+      rdr.read , frames
+      lastfile = file
+
+    endif else begin
+      dprint,'No such file: ',file
+
+    endelse
   endfor
+  if isa(files) then begin
+    wshow,0
+    tplot ,verbose=0,trange=systime(1)+[-1,.05] *60*60*10
+    timebar,systime(1)
+  endif    else dprint,'No new files'
 endif
 
 
-stop
+;stop
 
 
 
-swfo_apdat_info,/create_tplot_vars,/all,/print  ;  ,verbose=0
+swfo_apdat_info,/create_tplot_vars,/all;,/print  ;  ,verbose=0
+
+if 0 then begin
+
+  swfo_apdat_info,/print,/all
 
 
-swfo_apdat_info,/print,/all
+  printdat,rdr.dyndata.array
+  wi,2
+  swfo_frame_header_plot, rdr.dyndata.array
 
-
-printdat,rdr.dyndata.array
-wi,2
-swfo_frame_header_plot, rdr.dyndata.array
-
-stop
+  stop
 
 
 
 
-swfo_stis_tplot,/set
-tplot,'*SEQN *SEQN_DELTA',trange=trange
+  swfo_stis_tplot,/set
+  tplot,'*SEQN *SEQN_DELTA',trange=trange
 
-stop
-swfo_apdat_info,/sort,/all,/print
-delta_data,'*SEQN',modulo=2^14
-options,'*_delta',psym=-1,symsize=.4,yrange=[-10,10]
+  stop
+  swfo_apdat_info,/sort,/all,/print
+  delta_data,'*SEQN',modulo=2^14
+  options,'*_delta',psym=-1,symsize=.4,yrange=[-10,10]
 
 
-tplot,'*SEQN *SEQN_delta'
+  tplot,'*SEQN *SEQN_delta'
 
-stop
-swfo_apdat_info,/make_ncdf,trange=time_double(trange),file_resolution=1800d
+  stop
+  ;swfo_apdat_info,/make_ncdf,trange=time_double(trange),file_resolution=1800d
 
+endif
+
+;swfo_stis_tplot,'cpt2
 
 end
