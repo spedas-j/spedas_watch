@@ -66,7 +66,9 @@
 ;                  !p.background=255 (normally combined with !p.color=0).
 ;
 ;    PREVIOUS_LINES: Named variable to hold the previous line colors.
-;                 Tplot needs this to swap line colors on the fly.
+;                  Tplot needs this to swap line colors on the fly.
+;
+;       SUCCESS:   Returns 1 if the routine finishes normally, 0 otherwise.
 ;
 ;SEE ALSO:
 ;    get_line_colors() : Works like this routine, but returns a 24 element array
@@ -81,22 +83,48 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-12-31 18:28:34 -0800 (Tue, 31 Dec 2024) $
-; $LastChangedRevision: 33024 $
+; $LastChangedDate: 2025-01-22 18:42:28 -0800 (Wed, 22 Jan 2025) $
+; $LastChangedRevision: 33082 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023
 ;-
 
 pro line_colors, line_clrs, color_names=color_names, mycolors=mycolors, graybkg=graybkg, $
-                        previous_lines=previous_lines
+                        previous_lines=previous_lines, success=ok
 
   common colors, r_orig, g_orig, b_orig, r_curr, g_curr, b_curr
   @colors_com
 
+  ok = 0
   tvlct,r,g,b,/get
 
-  previous_lines = n_elements(line_colors_common) eq 24 ? line_colors_common : -1
+  previous_lines = get_line_colors()
+  nmax = n_elements(line_colors_presets[0,0,*]) - 1
+
+  case n_elements(line_clrs) of
+       1 : begin
+             if ((line_clrs lt 0) or (line_clrs gt nmax)) then begin
+               print,"  Line color scheme undefined: ", strtrim(string(line_clrs),2)
+               print,""
+               return
+             endif
+           end
+      24 : begin
+             delta = abs((size(line_clrs))[0:2] - [2,3,8])
+             if (total(delta) ne 0) then begin
+               print,"  Line color array must have dimensions of 3x8."
+               print,""
+               return
+             endif
+           end
+    else : begin
+             print,"  You must supply a 3x8 array of RGB values or a scheme number."
+             print,""
+             return
+           end
+  endcase
+  
   new_lines = get_line_colors(line_clrs, color_names=color_names, mycolors=mycolors, graybkg=graybkg)
   line_colors_common = new_lines
 
@@ -107,8 +135,10 @@ pro line_colors, line_clrs, color_names=color_names, mycolors=mycolors, graybkg=
 
   tvlct,r,g,b
 
-  r_curr = r  ;Important!  Update the colors common block.
+  r_curr = r  ; Important!  Update the colors common block.
   g_curr = g
   b_curr = b
+
+  ok = 1
 
 end

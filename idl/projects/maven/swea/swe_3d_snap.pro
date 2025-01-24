@@ -141,9 +141,13 @@
 ;                      format accepted by time_double.  (This disables the
 ;                      interactive time range selection.)
 ;
-;       COLOR_TABLE:   Use this color table for all plots.
+;       COLOR_TABLE:   Use this color table for plot3d.  Default is table 34
+;                      (rainbow).  This allows masked bins (black) to be 
+;                      distinguished from bins with low signal (violet).
 ;
 ;       REVERSE_COLOR_TABLE:  Reverse the color table (except for fixed colors).
+;
+;       LINE_COLORS:   Set the line colors. (See line_colors.pro for more info.)
 ;
 ;       QLEVEL:        Minimum quality level to plot (0-2, default=0):
 ;                         2B = good
@@ -151,8 +155,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-11 17:21:06 -0800 (Sat, 11 Jan 2025) $
-; $LastChangedRevision: 33068 $
+; $LastChangedDate: 2025-01-22 18:45:01 -0800 (Wed, 22 Jan 2025) $
+; $LastChangedRevision: 33085 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12

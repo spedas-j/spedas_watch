@@ -112,9 +112,11 @@
 ;
 ;       SUPPRESS:     Suppress floating overflow error in first call to window.
 ;
+;       SUCCESS:      Returns 1 if the routine finishes normally, 0 otherwise.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-03 12:09:13 -0800 (Fri, 03 Jan 2025) $
-; $LastChangedRevision: 33036 $
+; $LastChangedDate: 2025-01-22 18:42:04 -0800 (Wed, 22 Jan 2025) $
+; $LastChangedRevision: 33081 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/initct.pro $
 ;
 ;Created by David L. Mitchell (February 2023)
@@ -122,14 +124,23 @@
 
 pro initct, ctab, reverse=rv, line_clrs=ln, mycolors=mc, color_names=cn, graybkg=gb, $
                   previous_ct=previous_ct, previous_rev=previous_rev, show=show, $
-                  suppress=suppress
+                  suppress=suppress, success=ok
+
+  ok = 0
 
   if (n_elements(ctab) eq 0) then begin
-    print,"You must supply a color table."
+    print,"  You must supply a color table number."
+    print,""
     return
   endif
 
   ct = fix(ctab[0])
+
+  if ((ct lt 0) or (ct gt 74 and ct lt 1000) or (ct gt 1118)) then begin
+    print,"  Table number out of range: " + strtrim(string(ct),2)
+    print,""
+    return
+  endif
 
   if (ct lt 1000) then begin
     loadct2, ct, reverse=rv, line_clrs=ln, mycolors=mc, line_color_names=cn, $
@@ -142,5 +153,7 @@ pro initct, ctab, reverse=rv, line_clrs=ln, mycolors=mc, color_names=cn, graybkg
   if keyword_set(show) then showct
 
   if keyword_set(suppress) then i = check_math()
+
+  ok = 1
 
 end

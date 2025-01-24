@@ -7,6 +7,7 @@
 ;            setting line colors.  The previous routines still exist and can still be 
 ;            called as before, so there's no need to modify any code unless you want to.
 ;   showct : Display the current color table or any color table with any line color scheme.
+;            Also shows a catalog of color tables as a grid of color bars.
 ;   revvid : Swaps the values of !p.background and !p.color.
 ;   line_colors : Choose one of 11 predefined line color schemes, or define a custom scheme.
 ;   get_line_colors : Returns a 3x8 array of the current line colors [[R,G,B],[R,G,B], ...].
@@ -53,6 +54,28 @@
 ;   tables are: [24, 29, 30, 38, 39, 40] <-> [1024, 1029, 1030, 1038, 1039, 1040].  So, apart
 ;   from a few slight differences, there are 122 unique tables.
 ;
+;   Table 43 is a custom rainbow-like table designed at SSL.  Unlike the rainbow table 34, it
+;   starts at black instead of violet, and ends at a deeper red.  In addition, green hues make 
+;   up a smaller fraction of the table.  The objective is to have roughly the same number of 
+;   table entries for each of the colors (magenta, blue, green, yellow, orange, red) and to 
+;   extend the overall dynamic range with fade-to-black and saturate-to-deep-red.  This table
+;   is good for showing variations over a wide dynamic range; however, it has a double-peaked 
+;   intensity curve and is not suitable for the color blind.  It's worth comparing this table
+;   with an intensity-based table, such as 1074.  Each table has its pros and cons.
+;
+;   Table numbers 49-65 (standard), 1049-1065 (CSV), and 1075-1116 (CSV) encode intensity on
+;   a monotonically increasing or decreasing scale, with color as a secondary feature.  These
+;   are useful for displaying data where intensity is the most important attribute.
+;
+;   Table numbers 66-74 (standard) and 1066-1074 (CSV) are cross-fade tables, starting with a
+;   deep shade of one color and ending with a deep shade of a different color, with the peak
+;   intensity in the center.  Table 74 (or 1074) reversed is similar to a rainbow table;
+;   however, the light green, yellow, and light orange hues, which do not have good contrast,
+;   make up about 25% of the table, so it's not good for showing variations in the middle of
+;   the dynamic range.
+;
+;   Table numbers 1117 and 1118 are sinusoidal, with the top and bottom colors the same.
+;
 ;   As of this writing, there are 12 predefined line color schemes:
 ;
 ;        0  : primary and secondary colors [black, magenta, blue, cyan, green, yellow, red, white]
@@ -69,14 +92,16 @@
 ;   Always add new schemes at the end of the list, so you don't break anyone else's code.  It's 
 ;   helpful if you can add a note about your scheme.
 ;
-;   Use showct to preview any color table with any line color scheme.
+;   Use showct to preview any color table with any line color scheme.  It's always best to try out
+;   different color tables on the actual data to evaluate what conveys the important features best
+;   without being misleading.  (The most important person not to mislead is yourself.)
 ;
 ;   Tplot has been modified to use initct and line_colors, so you can set custom color tables
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-03 12:10:37 -0800 (Fri, 03 Jan 2025) $
-; $LastChangedRevision: 33037 $
+; $LastChangedDate: 2025-01-22 18:43:49 -0800 (Wed, 22 Jan 2025) $
+; $LastChangedRevision: 33084 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
@@ -86,10 +111,10 @@ pro color_table_crib
   print, 'This routine is not intended to be a procedure.  Read the contents instead.'
   return
 
-; Place the following lines in your idl_startup.pro to initialize your device and color
-; table.  Of course, you can choose any of >100 color tables (reversed if desired), any of
-; the predefined line color schemes, or completely custom line colors.  This example sets a
-; dark background, but many people prefer a light background.
+;; Place the following lines in your idl_startup.pro to initialize your device and color
+;; table.  Of course, you can choose any of >100 color tables (reversed if desired), any of
+;; the predefined line color schemes, or completely custom line colors.  This example sets a
+;; dark background, but many people prefer a light background.
 
 device,decompose=0,retain=2   ; specific to MacOS (settings for other OS's might be different)
                               ;   decompose=0 --> use color table with TrueColor display
@@ -98,65 +123,69 @@ initct,1074,line=5,/rev,/sup  ; define color table and fixed line colors (suppre
 !p.background = 0             ; use tplot fixed color for background (0 = black by default)
 !p.color = 255                ; use tplot fixed color for foreground (255 = white by default)
 
-; To use color tables with the Z buffer, do the following:
+;; To use color tables with the Z buffer, do the following:
 
 set_plot, 'z'                            ; switch to virtual graphics device
 device, set_pixel_depth=24, decompose=0  ; allow the Z buffer to use color tables
 
-; Change the color table at the command line.  This does not alter the line color scheme, 
-; which is persistent until you explicitly change it.
+;; Change the color table at the command line.  This does not alter the line color scheme, 
+;; which is persistent until you explicitly change it.
 
 inict, 1091
 
-; Select a new color table and line color scheme at the command line.
+;; Select a new color table and line color scheme at the command line.
 
 initct, 43, line=2
 
-; Change line colors without otherwise modifying the color table.
+;; Change line colors without otherwise modifying the color table.
 
 line_colors, 6
 
-; Swap !p.background and !p.color
+;; Swap !p.background and !p.color
 
 revvid
 
-; Use gray instead of white for the background, which looks better in some situations.
-; The default gray level is [211,211,211].
+;; Use gray instead of white for the background, which looks better in some situations.
+;; The default gray level is [211,211,211].
 
 revvid, /white  ; if needed
 line_colors, 5, /graybkg
 
-; Use a custom gray level for the background.
+;; Use a custom gray level for the background.
 
 revvid, /white  ; if needed
 line_colors, 5, graybkg=[198,198,198]
 
-; Poke arbitrary RGB colors into indices 1 and 4 of the current line color scheme.
+;; Poke arbitrary RGB colors into indices 1 and 4 of the current line color scheme.
 
 line_colors, mycolors={ind:[1,4], rgb:[[198,83,44],[18,211,61]]}
 
-; Use a fancy rainbow-like CSV color table with line colors suitable for color blind people.
-; CSV color tables encode intensity first and color second, which is closer to how humans
-; perceive colors.  Reverse the table, so that blue is low and red is high.
+;; Use an intensity-based, rainbow-like color table (1074).  Reverse the table, so that blue is
+;; low and red is high.  Use line colors suitable for the color blind.
 
 initct, 1074, /reverse, line=8
 
-; See a catalog of the many CSV color tables. (Note: loadcsv is not usually called directly.)
-; Remember that you have to add 1000 to CSV color table numbers.
-
-loadcsv, /catalog
-
-; Display the current color table with an intensity plot.
+;; Display the current color table with an intensity plot.
 
 showct, /i
 
-; Display any color table with any line color scheme -- DOES NOT modify the current color table.
+;; Display any color table with any line color scheme -- DOES NOT modify the current color table.
 
 showct, 1078, line=8, /i
 showct, 1091, line=5, /reverse, /graybkg, /i
 
-; Set a custom color table and line color scheme for any tplot variable.  This allows you
-; to use multiple color tables and/or line color schemes within a single multi-panel plot.
+;; Display a catalog of color tables as a grid of color bars in a separate window.  Also show
+;; the current color table and corresponding intensity plot.
+
+showct, /i, /cat        ; standard color tables (0-74)
+showct, /i, /cat, /csv  ; CSV color tables (1000-1118)
+
+;; Following one of these commands, you can use showct to take a close look at any of the tables
+;; in the catalog.  Keep in mind what you are trying to convey with color.  Is it variations over
+;; a wide dynamic range, or intensity, or something else?
+
+;; Set a custom color table and line color scheme for any tplot variable.  This allows you
+;; to use multiple color tables and/or line color schemes within a single multi-panel plot.
 
 options, var1, 'color_table', 1074
 options, var1, 'reverse_color_table', 1
@@ -166,19 +195,19 @@ options, var2, 'color_table', 1078
 options, var2, 'reverse_color_table', 0
 options, var2, 'line_colors', 5
 
-; Set a custom line color scheme for a tplot variable.
+;; Set a custom line color scheme for a tplot variable.
 
 mylines = get_line_colors(5, /graybkg, mycolors={ind:3, rgb:[211,0,211]})
 options, var1, 'line_colors', mylines
 
-; Disable custom color tables and line colors for a tplot variable.
+;; Disable custom color tables and line colors for a tplot variable.
 
 options, var1, 'color_table', -1
 options, var1, 'line_colors', -1
 
-; Set color, line style and thickness for constants.  If there are fewer colors
-; than values, then the colors are cycled as needed.  There can be only one line
-; style per variable.
+;; Set color, line style and thickness for constants.  If there are fewer colors
+;; than values, then the colors are cycled as needed.  There can be only one line
+;; style and one line thickness per variable.
 
 options, var1, 'constant', [value0, value1, ...]
 options, var1, 'const_color', [color0, color1, ...]
