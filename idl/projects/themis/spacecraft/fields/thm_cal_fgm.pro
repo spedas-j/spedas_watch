@@ -79,8 +79,8 @@
 ;
 ;Written by Hannes Schwarzl.
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2025-01-21 15:39:10 -0800 (Tue, 21 Jan 2025) $
-; $LastChangedRevision: 33076 $
+; $LastChangedDate: 2025-01-27 11:54:29 -0800 (Mon, 27 Jan 2025) $
+; $LastChangedRevision: 33093 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/fields/thm_cal_fgm.pro $
 ;Changes by Edita Georgescu
 ;eg 6/3/2007     - matrix multiplication
@@ -654,7 +654,9 @@ If(use_l1b_bz) Then Begin
       dprint, 'WARNING: Using L1B level Bz estimated from spin-plane components'
       ydata[*, 0] = kr*interpol(temp_bz.y, temp_bz.x, thx_fgx.x)
       ydata_bz = ydata[*, 0] ;will use this value later
-   Endif Else use_l1b_bz = 0b ;no L1B data, so reset it
+   Endif Else Begin
+      ydata_bz = ydata[*, 0] & ydata_bz[*] = 0
+   Endelse
 Endif
 
 for j=0L,count-1L do begin
@@ -723,7 +725,6 @@ for j=0L,count-1L do begin
          ydata[j,*]=mfilt ## ydata[j,*] ;eg 6/3/2007
       endif                             ;correct for filter
    endif else ydata[j,*]=fillvalue      ;eg 30/3/2007 set vectors to fillvalue ???
-
 endfor
 
 DPRINT, dlevel=4, 'calibration applied'

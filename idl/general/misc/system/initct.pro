@@ -114,9 +114,9 @@
 ;
 ;       SUCCESS:      Returns 1 if the routine finishes normally, 0 otherwise.
 ;
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-22 18:42:04 -0800 (Wed, 22 Jan 2025) $
-; $LastChangedRevision: 33081 $
+; $LastChangedBy: pulupalap $
+; $LastChangedDate: 2025-01-27 16:40:32 -0800 (Mon, 27 Jan 2025) $
+; $LastChangedRevision: 33094 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/initct.pro $
 ;
 ;Created by David L. Mitchell (February 2023)
@@ -136,7 +136,7 @@ pro initct, ctab, reverse=rv, line_clrs=ln, mycolors=mc, color_names=cn, graybkg
 
   ct = fix(ctab[0])
 
-  if ((ct lt 0) or (ct gt 74 and ct lt 1000) or (ct gt 1118)) then begin
+  if ((ct lt 0) or (ct gt 74 and ct lt 1000) or (ct gt 1118)) and (getenv('IDL_CT_FILE') eq '') then begin
     print,"  Table number out of range: " + strtrim(string(ct),2)
     print,""
     return

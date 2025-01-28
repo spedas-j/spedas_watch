@@ -32,8 +32,8 @@
 ;   -- fixed trouble reading cal files with extra lines at the end,
 ;      jmm, 8-nov-2007
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2025-01-21 15:39:10 -0800 (Tue, 21 Jan 2025) $
-; $LastChangedRevision: 33076 $
+; $LastChangedDate: 2025-01-27 11:54:29 -0800 (Mon, 27 Jan 2025) $
+; $LastChangedRevision: 33093 $
 ; $URL $
 ;-
 pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = trange, $
@@ -378,7 +378,7 @@ pro thm_cal_fit, probe = probe, datatype = datatype, files = files, trange = tra
             dprint, 'WARNING: Using L1B level Bz estimated from spin-plane components'
             kr=2.980232238769531E-3 ;raw data to nT, kr=25000.0/2^23 --> see *CALPROC*.doc
             fgsy_fixed[*, 2] = -kr*interpol(temp_bz.y, temp_bz.x, fgsx_fixed)
-         Endif
+         Endif Else fgsy_fixed[*, 2] = !values.f_nan
       Endif
        
       if (where(dt_output eq 'fgs') ne -1) then begin
