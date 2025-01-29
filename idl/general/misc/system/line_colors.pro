@@ -83,8 +83,8 @@
 ;   colors_com:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-22 18:42:28 -0800 (Wed, 22 Jan 2025) $
-; $LastChangedRevision: 33082 $
+; $LastChangedDate: 2025-01-28 08:52:54 -0800 (Tue, 28 Jan 2025) $
+; $LastChangedRevision: 33098 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/line_colors.pro $
 ;
 ;Created by David Mitchell;  February 2023
@@ -103,6 +103,7 @@ pro line_colors, line_clrs, color_names=color_names, mycolors=mycolors, graybkg=
   nmax = n_elements(line_colors_presets[0,0,*]) - 1
 
   case n_elements(line_clrs) of
+       0 : ; do nothing and allow color_names, mycolors, and/or graybkg to take effect
        1 : begin
              if ((line_clrs lt 0) or (line_clrs gt nmax)) then begin
                print,"  Line color scheme undefined: ", strtrim(string(line_clrs),2)

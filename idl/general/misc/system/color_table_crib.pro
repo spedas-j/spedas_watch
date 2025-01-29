@@ -100,8 +100,8 @@
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-22 18:43:49 -0800 (Wed, 22 Jan 2025) $
-; $LastChangedRevision: 33084 $
+; $LastChangedDate: 2025-01-27 18:46:02 -0800 (Mon, 27 Jan 2025) $
+; $LastChangedRevision: 33095 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
@@ -131,7 +131,7 @@ device, set_pixel_depth=24, decompose=0  ; allow the Z buffer to use color table
 ;; Change the color table at the command line.  This does not alter the line color scheme, 
 ;; which is persistent until you explicitly change it.
 
-inict, 1091
+initct, 1091
 
 ;; Select a new color table and line color scheme at the command line.
 

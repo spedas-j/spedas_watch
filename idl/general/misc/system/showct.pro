@@ -36,9 +36,8 @@
 ;   CATALOG:   Show a catalog of available color tables as a grid of color
 ;              bars, with the table number below each bar.
 ;
-;   CSV:       Used with CATALOG.  If set, show a catalog of the CSV
-;              tables (1000-1118).  Default is to show a catalog of the
-;              standard tables (0-74).
+;   CSV:       Same as CATALOG, except show the CSV tables (1000-1118).
+;              Default is to show a catalog of the standard tables (0-74).
 ;
 ;   BLACK:     Temporarily use a black background.  Default is !p.background.
 ;
@@ -50,8 +49,8 @@
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-22 18:43:28 -0800 (Wed, 22 Jan 2025) $
-; $LastChangedRevision: 33083 $
+; $LastChangedDate: 2025-01-28 08:52:04 -0800 (Tue, 28 Jan 2025) $
+; $LastChangedRevision: 33097 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
@@ -70,6 +69,7 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
   wnum = !d.window
   if keyword_set(black) then white = 0
   vswap = (keyword_set(black) and (!p.background ne 0L)) or (keyword_set(white) and (!p.background eq 0L))
+  catalog = keyword_set(catalog) or keyword_set(csv)
 
 ; Get window parameters for individual color tables and catalog
 
@@ -112,9 +112,38 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
 
   if (vswap) then revvid
 
+; Load the requested color table
+
+  if (n_elements(color_table) gt 0) then begin
+    ctab = fix(color_table[0])
+    crev = keyword_set(color_reverse)
+  endif else begin
+    ctab = pct
+    crev = (n_elements(color_reverse) gt 0) ? keyword_set(color_reverse) : prev
+  endelse
+  if ((ctab ne pct) or (crev ne prev)) then begin
+    initct, ctab, rev=crev, success=ok
+    if (not ok) then goto, bail
+  endif
+
+; Load the requested line colors
+
+  if ((n_elements(lines) gt 0) or (size(mycolors,/type) eq 8) or $
+      (size(color_names,/type) eq 7) or keyword_set(graybkg)) then begin
+    line_colors, lines, color_names=color_names, mycolors=mycolors, graybkg=graybkg, success=ok
+    if (not ok) then goto, bail
+    newcols = get_colors()
+    lndx = newcols.line_colors_index
+  endif else begin
+    lines = plines
+    lndx = plndx
+  endelse
+
 ; Show a catalog of color tables in a big window
 
-  if keyword_set(catalog) then begin
+  if (catalog) then begin
+    mcols = get_colors()
+    mlines = get_line_colors()
     if (size(bnum,/type) eq 0) then win,bnum,/free,key=bwinkey else wset,bnum
     bnum = !d.window & bnum2 = bnum
     ncols = cols.top_c - cols.bottom_c + 1
@@ -151,35 +180,8 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
       specplot, x, y, z, limits=lim
       xyouts, (px + dx/2.), (py - dy - my/2.), string(i+ioff,format='(i4)'), align=0.5, charsize=1.1, /norm
     endfor
-    initct, pct, rev=prev
+    initct, mcols.color_table, rev=mcols.color_reverse, line=mlines
   endif
-
-; Load the requested color table
-
-  if (n_elements(color_table) gt 0) then begin
-    ctab = fix(color_table[0])
-    crev = keyword_set(color_reverse)
-  endif else begin
-    ctab = pct
-    crev = (n_elements(color_reverse) gt 0) ? keyword_set(color_reverse) : prev
-  endelse
-  if ((ctab ne pct) or (crev ne prev)) then begin
-    initct, ctab, rev=crev, success=ok
-    if (not ok) then goto, bail
-  endif
-
-; Load the requested line colors
-
-  if ((n_elements(lines) gt 0) or (size(mycolors,/type) eq 8) or $
-      (size(color_names,/type) eq 7) or keyword_set(graybkg)) then begin
-    line_colors, lines, color_names=color_names, mycolors=mycolors, graybkg=graybkg, success=ok
-    if (not ok) then goto, bail
-    newcols = get_colors()
-    lndx = newcols.line_colors_index
-  endif else begin
-    lines = plines
-    lndx = plndx
-  endelse
 
 ; Plot the table in a grid of filled squares
 
@@ -253,7 +255,6 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
   bail:
   wset, wnum
   if (vswap) then revvid
-  initct, pct, rev=prev
-  line_colors, plines
+  initct, pct, rev=prev, line=plines
 
 end

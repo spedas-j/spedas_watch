@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2024-12-13 12:11:43 -0800 (Fri, 13 Dec 2024) $
-;$LastChangedRevision: 32993 $
+;$LastChangedDate: 2025-01-28 16:16:23 -0800 (Tue, 28 Jan 2025) $
+;$LastChangedRevision: 33102 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -251,12 +251,6 @@ load_position='fgm'
 thm_load_state,probe=sc,/get_support
 thm_load_fit,lev=1,probe=sc,/get_support
 
-;for recent FGS data, if there is an estimated Bz, put the Bz curve
-;behind Bx and By. jmm, 2024-12-12
-If(sc[0] Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then $
-   options, 'the_fgs', 'indices', [2, 0,1]
-
-
 SKIP_FGM_LOAD:
 
 ;kluge to prevent missing data from crashing things
@@ -269,6 +263,17 @@ if (index_fit[0] eq -1 or index_state[0] eq -1) then begin
   ylim,thx+'_fgs_gse',-100,100,0
 endif else begin
   thm_cotrans,thx+'_fgs',out_suf='_gse', in_c='dsl', out_c='gse'
+;for recent FGS data, if there is an estimated Bz, put the Bz curve
+;behind Bx and By. jmm, 2024-12-12
+  If(sc[0] Eq 'e' And time_double(date) Ge time_double('2024-05-25')) Then Begin
+     options, thx+'_fgs_gse', 'indices', [2,0,1]
+;check for l1b data, if there is none yet, set Bz to NaN 
+     If(~is_string(thm_l1b_check(date, sc[0]))) Then Begin
+        get_data, thx+'_fgs_gse', data = btmp
+        btmp.y[*, 2] = !values.f_nan
+        store_data, thx+'_fgs_gse', data = btmp
+     Endif
+  Endif
 endelse
 
 ;clip data
