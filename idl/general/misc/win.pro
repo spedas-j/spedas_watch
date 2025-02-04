@@ -9,7 +9,9 @@
 ;  monitor; however, the coordinate system is not known in advance, and
 ;  when you attempt to place a window entirely or partially out of bounds,
 ;  it can appear in an unexpected location, depending on your window
-;  server.
+;  server.  (IDL can only make a request.  The window server will try to
+;  to honor that request, but if there's a problem the server may do 
+;  something different and unexpected.)
 ;
 ;  This procedure divides the super monitor back into physical monitors
 ;  and allows you to choose a monitor and place a window relative to the
@@ -259,8 +261,8 @@
 ;                  separately in the usual way.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-07 06:41:45 -0800 (Tue, 07 Jan 2025) $
-; $LastChangedRevision: 33051 $
+; $LastChangedDate: 2025-02-03 13:32:18 -0800 (Mon, 03 Feb 2025) $
+; $LastChangedRevision: 33109 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/win.pro $
 ;
 ;CREATED BY:	David L. Mitchell  2020-06-03
@@ -388,7 +390,16 @@ pro win, wnum, mnum, monitor=monitor, dx=dx, dy=dy, corner=corner, full=full, $
         if (blab) then print, msg
       endfor
       if n_elements(color_table) then begin
-        cstr = strtrim(string(color_table),2)
+        if (size(ct_file,/type) eq 7) then begin
+          cfile = file_basename(ct_file,'.tbl')
+          case cfile of
+            ''               : cstr = ''
+            'spp_fld_colors' : cstr = 'SPP Fields '
+            else             : cstr = cfile + ' '
+          endcase
+        endif else cstr = ''
+        if (color_table ge 1000) then cstr = 'CSV '
+        cstr += strtrim(string(color_table),2)
         if keyword_set(color_reverse) then cstr += " (reverse)"
       endif else cstr = "not defined"
       if (blab) then print,"Color table: ", cstr

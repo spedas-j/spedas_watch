@@ -38,9 +38,9 @@
 ;
 ;CREATED BY:	Davin Larson
 ;FILE:  mplot.pro
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-10 11:28:39 -0700 (Wed, 10 Jul 2024) $
-; $LastChangedRevision: 32731 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2025-02-03 15:20:43 -0800 (Mon, 03 Feb 2025) $
+; $LastChangedRevision: 33112 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/mplot.pro $
 ;
 ;-
@@ -112,6 +112,7 @@ str_element,stuff,'charthick',value=charthick
 str_element,stuff,'axis',value=axis
 str_element,stuff,'reverse_order',rev_order
 str_element,stuff,'median_filter',median_filter
+str_element,stuff,'panel_label',panel_label
 
 extract_tags,plotstuff,stuff,/plot
 ;plotstuff = stuff
@@ -232,7 +233,16 @@ if keyword_set(notes) then begin
   xpos = !x.window[0] + .03*(!x.window[1]-!x.window[0])
   ypos = !y.window[1] - .03*(!y.window[1]-!y.window[0]) 
   xyouts,xpos,ypos,'!c'+notes,/normal, charsize=charsize
+endif
 
+if keyword_set(panel_label) then begin
+   if panel_label.dq_set then begin
+      xyouts, panel_label.xpos, panel_label.ypos, panel_label.label, charsize = panel_label.charsize
+   endif else begin
+      xpos = !x.window[0] + panel_label.xpos*(!x.window[1]-!x.window[0])
+      ypos = !y.window[0] + panel_label.ypos*(!y.window[1]-!y.window[0])
+      xyouts,xpos,ypos, panel_label.label, /normal, charsize=panel_label.charsize
+   endelse
 endif
 
 str_element,stuff,'constant',constant

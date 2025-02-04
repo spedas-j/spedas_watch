@@ -54,14 +54,16 @@
 ;   tables are: [24, 29, 30, 38, 39, 40] <-> [1024, 1029, 1030, 1038, 1039, 1040].  So, apart
 ;   from a few slight differences, there are 122 unique tables.
 ;
-;   Table 43 is a custom rainbow-like table designed at SSL.  Unlike the rainbow table 34, it
-;   starts at black instead of violet, and ends at a deeper red.  In addition, green hues make 
-;   up a smaller fraction of the table.  The objective is to have roughly the same number of 
-;   table entries for each of the colors (magenta, blue, green, yellow, orange, red) and to 
-;   extend the overall dynamic range with fade-to-black and saturate-to-deep-red.  This table
-;   is good for showing variations over a wide dynamic range; however, it has a double-peaked 
-;   intensity curve and is not suitable for the color blind.  It's worth comparing this table
-;   with an intensity-based table, such as 1074.  Each table has its pros and cons.
+;   Table 43 is a custom rainbow-like table designed at SSL.  The standard rainbow table (34)
+;   is problematic because it contains a large "dead zone", where many of the color values are
+;   hues of green that are hard to distinguish.  Important features of the data can be lost in
+;   this dead zone.  Table 43 is designed to have roughly the same number of table entries for
+;   each of the distinguishable colors (magenta, blue, cyan, green, yellow, orange, red) and 
+;   to extend the overall dynamic range with fade-to-black and saturate-to-deep-red.  This 
+;   table minimizes dead zones and is good for showing variations over a wide dynamic range;
+;   however, it has a double-peaked intensity curve and is not suitable for the color blind.  
+;   It's worth comparing this table with an intensity-based table, such as 1074.  Each table 
+;   has its pros and cons.
 ;
 ;   Table numbers 49-65 (standard), 1049-1065 (CSV), and 1075-1116 (CSV) encode intensity on
 ;   a monotonically increasing or decreasing scale, with color as a secondary feature.  These
@@ -69,12 +71,18 @@
 ;
 ;   Table numbers 66-74 (standard) and 1066-1074 (CSV) are cross-fade tables, starting with a
 ;   deep shade of one color and ending with a deep shade of a different color, with the peak
-;   intensity in the center.  Table 74 (or 1074) reversed is similar to a rainbow table;
-;   however, the light green, yellow, and light orange hues, which do not have good contrast,
-;   make up about 25% of the table, so it's not good for showing variations in the middle of
-;   the dynamic range.
+;   intensity in the center.  Table 74 (or 1074) reversed is similar to a rainbow table.  Its
+;   single-peaked intensity curve is good perceptually; however, it has a dead zone from light
+;   green to yellow to light orange, which makes up about 25% of the table, so it's not good 
+;   for showing variations in the middle of the dynamic range (same problem as table 34).
 ;
-;   Table numbers 1117 and 1118 are sinusoidal, with the top and bottom colors the same.
+;   Table numbers 1117 and 1118 are cyclical, with the top and bottom colors the same.  These
+;   tables are useful for displaying phase data (0 to 360 degrees).
+;
+;   In addition to the standard and CSV catalogs, you can also choose the SPP Fields catalog
+;   which is based on the CET catalog (https://colorcet.com/index.html).  The SPP catalog has 
+;   the same goals as the CSV catalog, but has a different set of intensity, cross-fade, and 
+;   cyclical tables.
 ;
 ;   As of this writing, there are 12 predefined line color schemes:
 ;
@@ -100,8 +108,8 @@
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-27 18:46:02 -0800 (Mon, 27 Jan 2025) $
-; $LastChangedRevision: 33095 $
+; $LastChangedDate: 2025-02-03 13:34:12 -0800 (Mon, 03 Feb 2025) $
+; $LastChangedRevision: 33110 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
@@ -165,11 +173,18 @@ line_colors, mycolors={ind:[1,4], rgb:[[198,83,44],[18,211,61]]}
 
 initct, 1074, /reverse, line=8
 
+;; Choose the SPP Fields color table catalog.  Once you change the color table catalog,
+;; it remains in effect until you use initct to change it.  You can also select the SPP Fields
+;; color tables by setting the environment variable IDL_CT_FILE.
+
+initct, 123, /spp
+
 ;; Display the current color table with an intensity plot.
 
 showct, /i
 
-;; Display any color table with any line color scheme -- DOES NOT modify the current color table.
+;; Display any color table with any line color scheme.  Unlike initct, this does not make any
+;; changes to the color table or line colors.
 
 showct, 1078, line=8, /i
 showct, 1091, line=5, /reverse, /graybkg, /i
@@ -177,12 +192,20 @@ showct, 1091, line=5, /reverse, /graybkg, /i
 ;; Display a catalog of color tables as a grid of color bars in a separate window.  Also show
 ;; the current color table and corresponding intensity plot.
 
-showct, /i, /cat        ; standard color tables (0-74)
-showct, /i, /cat, /csv  ; CSV color tables (1000-1118)
+showct, /i, /cat
 
-;; Following one of these commands, you can use showct to take a close look at any of the tables
-;; in the catalog.  Keep in mind what you are trying to convey with color.  Is it variations over
-;; a wide dynamic range, or intensity, or something else?
+;; Show the SPP Fields catalog and a color table from that catalog.
+
+showct, 123, /i, /cat, /spp
+
+;; Following one of these commands, you can omit the CAT keyword and use showct to take a close
+;; look at any of the tables in the catalog while the catalog window is still visible.  Keep in
+;; mind what you are trying to convey with color.  Is it variations over a wide dynamic range, 
+;; or intensity, or something else?  See https://colorcet.com/index.html for tips on choosing
+;; a good color table.
+
+showct, 125, /i, /spp
+showct, 84, /reverse, /i, /spp
 
 ;; Set a custom color table and line color scheme for any tplot variable.  This allows you
 ;; to use multiple color tables and/or line color schemes within a single multi-panel plot.

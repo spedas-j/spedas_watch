@@ -1,7 +1,7 @@
 ;+
 ;PROCEDURE showct
-;   Show the specified color table in a new window.  Does not alter the current
-;   color table.  Can also show a catalog of color tables.
+;   Show the specified color table and line colors in a new window.  Does not
+;   alter the current color table.  Can also show a catalog of color tables.
 ;
 ;USAGE:
 ;   showct [, n] [, KEYWORD=value, ...]
@@ -20,7 +20,9 @@
 ;
 ;   MYCOLORS:  Structure of custom line colors.  See line_colors.pro.
 ;
-;   GRAYBKG:   Set background color to gray.  See line_colors.pro.
+;   GRAYBKG:   Set background color to gray.  See line_colors.pro.  For this to
+;              work properly, !p.background must be set to 255 (see keyword
+;              WHITE below, or see color_table_crib.pro).
 ;
 ;   INTENSITY: Show intensity in a separate window.
 ;
@@ -33,11 +35,22 @@
 ;
 ;   RESET:     Forgets any window numbers.
 ;
-;   CATALOG:   Show a catalog of available color tables as a grid of color
-;              bars, with the table number below each bar.
+;   CATALOG:   Show a catalog of available color tables as a grid of color bars,
+;              with the table number below each bar.  Color bars are shown for 
+;              the current catalog, unless you choose a different one with of
+;              the following four keywords.
 ;
-;   CSV:       Same as CATALOG, except show the CSV tables (1000-1118).
-;              Default is to show a catalog of the standard tables (0-74).
+;   STD:       Use the standard (n < 1000) or csv (n >= 1000) color tables for
+;              both the catalog and the table number specified by n.  This is
+;              equivalent to FILE=''.
+;
+;   SPP:       Use the SPP Fields color tables for both the catalog and the table
+;              number specified by n.
+;
+;   FILE:      Use the color table defined by this file (full path and filename)
+;              for both the catalog and the table number specified by n.  Set
+;              this keyword to the null string ('') to use the standard (n < 1000)
+;              or csv (n >= 1000) tables.
 ;
 ;   BLACK:     Temporarily use a black background.  Default is !p.background.
 ;
@@ -49,14 +62,15 @@
 ;              more functionality, but only for the current color table.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-28 08:52:04 -0800 (Tue, 28 Jan 2025) $
-; $LastChangedRevision: 33097 $
+; $LastChangedDate: 2025-02-03 13:34:12 -0800 (Mon, 03 Feb 2025) $
+; $LastChangedRevision: 33110 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/showct.pro $
 ;-
 pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolors, $
                          color_names=color_names, graybkg=graybkg, intensity=intensity, $
                          key=key, cnum=cnum2, tnum=tnum2, bnum=bnum2, reset=reset, $
-                         catalog=catalog, csv=csv, black=black, white=white
+                         catalog=cat, std=std, spp=spp, file=file, black=black, $
+                         white=white
 
   common showct_com, cnum, tnum, bnum
 
@@ -65,11 +79,21 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
   prev = cols.color_reverse
   plndx = cols.line_colors_index
   plines = get_line_colors()
+  ct_file = cols.ct_file
+  ct_max = cols.ct_max
 
   wnum = !d.window
   if keyword_set(black) then white = 0
   vswap = (keyword_set(black) and (!p.background ne 0L)) or (keyword_set(white) and (!p.background eq 0L))
-  catalog = keyword_set(catalog) or keyword_set(csv)
+  if (size(file,/type) eq 7) then usr = (file ne '') else usr = 0
+  std = keyword_set(std)
+  spp = keyword_set(spp)
+  nset = usr + std + spp
+  if (nset gt 1) then begin
+    print,"  You can only specify one set of color tables."
+    return
+  endif
+  if (std) then file = ''
 
 ; Get window parameters for individual color tables and catalog
 
@@ -122,9 +146,10 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
     crev = (n_elements(color_reverse) gt 0) ? keyword_set(color_reverse) : prev
   endelse
   if ((ctab ne pct) or (crev ne prev)) then begin
-    initct, ctab, rev=crev, success=ok
+    initct, ctab, rev=crev, spp=spp, file=file, success=ok
     if (not ok) then goto, bail
   endif
+  mcols = get_colors()
 
 ; Load the requested line colors
 
@@ -138,35 +163,41 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
     lines = plines
     lndx = plndx
   endelse
+  mlines = get_line_colors()
 
 ; Show a catalog of color tables in a big window
 
-  if (catalog) then begin
-    mcols = get_colors()
-    mlines = get_line_colors()
+  if keyword_set(cat) then begin
     if (size(bnum,/type) eq 0) then win,bnum,/free,key=bwinkey else wset,bnum
     bnum = !d.window & bnum2 = bnum
-    ncols = cols.top_c - cols.bottom_c + 1
-    x = float(cols.bottom_c) + findgen(ncols)
+    ncols = mcols.top_c - mcols.bottom_c + 1
+    x = float(mcols.bottom_c) + findgen(ncols)
     y = [0.,1.]
     z = x # replicate(1.,2)
     lim = {no_interp:1, no_color_scale:1, xrange:minmax(x), xstyle:5, yrange:minmax(y), ystyle:5, $
            zrange:minmax(z), noerase:1}
 
-    ncols = 6
+    ncols = 7
     nrows = 20
     dx = 1./float(ncols)
     dy = 1./(float(nrows) + 1.5)
     mx = 0.015
     my = 0.010
-    if keyword_set(csv) then begin
+
+    if (ctab ge 1000) then begin
       imax = 118
       ioff = 1000
       tmsg = 'CSV Color Tables'
     endif else begin
-      imax = 74
+      imax = mcols.ct_max
       ioff = 0
-      tmsg = 'Standard Color Tables'
+      cfile = file_basename(mcols.ct_file,'.tbl')
+      case cfile of
+        ''               : cmsg = 'Standard'
+        'spp_fld_colors' : cmsg = 'SPP Fields'
+        else             : cmsg = cfile
+      endcase
+      tmsg = cmsg + ' Color Tables'
     endelse
 
     erase
@@ -174,13 +205,13 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
     for i=0,imax do begin
       px = 0. + dx*float(i/nrows)
       py = 1. - dy*float(i mod nrows) - dy
-      initct, i+ioff, success=ok
+      initct, i+ioff, spp=spp, file=file, success=ok
       if (not ok) then goto, bail
       str_element, lim, 'position', [px+mx, py-dy+my, px+dx-mx, py-my], /add
       specplot, x, y, z, limits=lim
       xyouts, (px + dx/2.), (py - dy - my/2.), string(i+ioff,format='(i4)'), align=0.5, charsize=1.1, /norm
     endfor
-    initct, mcols.color_table, rev=mcols.color_reverse, line=mlines
+    initct, mcols.color_table, rev=mcols.color_reverse, file=mcols.ct_file, line=mlines
   endif
 
 ; Plot the table in a grid of filled squares
@@ -198,7 +229,15 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
   for j=0,15 do for i=k[j],k[j]+15 do oplot,[float(i mod 16)/4.5 + 0.35],[6. - float(j)/3.],$
                                             psym=8,color=!p.color,symsize=4,thick=2
 
-  msg = 'Color Table ' + strtrim(string(ctab),2)
+  cfile = file_basename(mcols.ct_file,'.tbl')
+  case cfile of
+    ''               : cmsg = ''
+    'spp_fld_colors' : cmsg = 'SPP '
+    else             : cmsg = cfile
+  endcase
+  if (ctab ge 1000) then cmsg = 'CSV '
+
+  msg = cmsg + 'Color Table ' + strtrim(string(ctab),2)
   if (crev) then msg = msg + ' (reverse)'
   msg = msg + '  :  Line Colors ' + strtrim(string(lndx),2)
   xyouts,2.0,6.25,msg,align=0.5,charsize=1.8
@@ -255,6 +294,6 @@ pro showct, color_table, reverse=color_reverse, line_clrs=lines, mycolors=mycolo
   bail:
   wset, wnum
   if (vswap) then revvid
-  initct, pct, rev=prev, line=plines
+  initct, pct, rev=prev, line=plines, file=ct_file
 
 end
