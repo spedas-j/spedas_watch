@@ -52,6 +52,16 @@ swfo_stis_plot,param=param
 printdat,param.lim
 param.range = 10
 
+sciobj = swfo_apdat('stis_sci')    ; This gets the object that contains all science products
+level_0b = sciobj.getattr('level_0b')  ; this a (dynamic) array of structures that contain all level_0B data
+level_1A = sciobj.getattr('level_1a')
+level_1b = sciobj.getattr('level_1b')
+
+
+test_0a = level
+
+test_1a = swfo_stis_sci_level_1a(level_0b.array)
+
 
 swfo_stis_tplot,/set,'dl1'
 swfo_stis_tplot,/set,'iongun',/add

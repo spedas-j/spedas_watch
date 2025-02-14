@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
-; $LastChangedRevision: 32978 $
+; $LastChangedDate: 2025-02-13 14:40:21 -0800 (Thu, 13 Feb 2025) $
+; $LastChangedRevision: 33125 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -274,7 +274,6 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
 
 
 
-  
 
   if 0 then begin
     res = self.file_resolution

@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
-; $LastChangedRevision: 32978 $
+; $LastChangedDate: 2025-02-13 14:43:22 -0800 (Thu, 13 Feb 2025) $
+; $LastChangedRevision: 33126 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 
@@ -19,7 +19,7 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
 
     period = cal.period   ; approximate period (in seconds) of Version 64 FPGA
     integration_time = duration * period
-    srate  = str.sci_counts/integration_time          ; srate is the measure (actual) count rate
+    srate  = str.sci_counts/integration_time          ; srate is the measured (actual)  count rate
 
     ; Determine deadtime correctons here
     rate14 = str.total14/ integration_time    ; this needs to be checked

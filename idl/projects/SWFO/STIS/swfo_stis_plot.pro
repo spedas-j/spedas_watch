@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
-; $LastChangedRevision: 32978 $
+; $LastChangedDate: 2025-02-13 14:40:21 -0800 (Thu, 13 Feb 2025) $
+; $LastChangedRevision: 33125 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -238,7 +238,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     endfor
     
     
-    if 1 then begin
+    if 0 then begin
       j1 = channels[0].y
       j2 = channels[2].y
       jconv = param.jconv
@@ -273,7 +273,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     endif
     
 
-    if 1 then begin
+    if 0 then begin
       xv = dgen()
       
       
