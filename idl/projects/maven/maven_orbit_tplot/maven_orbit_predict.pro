@@ -75,8 +75,8 @@
 ;       PDS:      Plot vertical dashed lines separating the PDS release dates.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-12-31 18:22:52 -0800 (Tue, 31 Dec 2024) $
-; $LastChangedRevision: 33018 $
+; $LastChangedDate: 2025-02-16 14:50:29 -0800 (Sun, 16 Feb 2025) $
+; $LastChangedRevision: 33133 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_predict.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -303,7 +303,8 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
   get_data,'Lss',data=lss,index=i
   if (i gt 0) then begin
     options,'Lss','constant',0
-    L_s = mvn_ls(lss.x)
+    mars_season = mvn_ls(lss.x, /all, /silent)
+    L_s = mars_season.ls
     store_data,'L_s',data={x:lss.x, y:L_s}
 ;   tplot_options,'var_label','L_s'
 

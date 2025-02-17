@@ -57,8 +57,8 @@
 ;                     type : types of configuration changes (see above)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-22 14:39:46 -0800 (Wed, 22 Jan 2025) $
-; $LastChangedRevision: 33079 $
+; $LastChangedDate: 2025-02-16 14:46:18 -0800 (Sun, 16 Feb 2025) $
+; $LastChangedRevision: 33131 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_config.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -163,7 +163,7 @@ pro mvn_swe_config, list=list, timebar=tbar
 
 ; ----- SCIENCE PHASE BEGINS (2014-11-15) -----
 
-; 2014-11-15/00:00                                     ; beginning of EM-1
+; 2014-11-15/00:00                                     ; beginning of Primary Mission
 
   t_mcp = [t_mcp, time_double('2015-12-18/23:39:09')]
   m_mcp = [m_mcp, 'MCP bias adjustment (2600 -> 2700 V)']
@@ -173,6 +173,8 @@ pro mvn_swe_config, list=list, timebar=tbar
 
   t_mcp = [t_mcp, time_double('2015-12-30/02:28:57')]
   m_mcp = [m_mcp, 'MCP bias back to correct value (2700 V)']
+
+; 2015-11-15/00:00                                     ; beginning of EM-1
 
 ; SWEA data dropouts resulting from PFDPU processing error
 ;

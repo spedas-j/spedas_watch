@@ -186,8 +186,8 @@
 ;                  (After all, space is black.)  Default = 1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-11 17:20:11 -0800 (Sat, 11 Jan 2025) $
-; $LastChangedRevision: 33067 $
+; $LastChangedDate: 2025-02-16 14:47:41 -0800 (Sun, 16 Feb 2025) $
+; $LastChangedRevision: 33132 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -200,7 +200,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   window=window, png=png, varnames=varnames, plabel=plabel, slabel=slabel, $
                   css=css2, black=black, pcurve=pcurve, key=key
 
-  common planetorb, planet, css, sta, stb, sorb, psp, orrkey
+  common planetorb, planet, css, sta, stb, sorb, psp, orrkey, madeplot
   @putwin_common
 
   if (size(windex,/type) eq 0) then win, config=0  ; win acts like window
@@ -394,7 +394,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   pcurve = keyword_set(pcurve) or spiral
   black = size(black,/type) eq 0 ? 1 : keyword_set(black)
 
-  tflg = size(tplot,/type) eq 0 ? 1 : keyword_set(tplot)
+  tflg = keyword_set(tplot) or undefined(madeplot)
   varnames = ['S-M','Lss','STEREO','R-SORB','Lat-SORB','R-PSP']
 
 ; Check the version of ICY/SPICE
@@ -588,11 +588,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     tt = t0 + oneday*dindgen(ndays)
     et = time_ephemeris(tt)
 
-; Calculate ephemeris for each planet
+; Calculate J2000 ECLIPTIC ephemeris for each planet
 
     planet = {name  : ''                  , $
               time  : replicate(0D,ndays) , $
-              x     : replicate(0D,ndays) , $
+              x     : replicate(0D,ndays) , $  ; J2000
               y     : replicate(0D,ndays) , $
               z     : replicate(0D,ndays) , $
               r     : replicate(0D,ndays) , $
@@ -602,6 +602,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
               owlt  : replicate(0D,ndays) , $
               latss : replicate(0D,ndays) , $
               d2l   : replicate(0D,ndays) , $
+              xs    : replicate(0D,ndays) , $  ; IAU_SUN
+              ys    : replicate(0D,ndays) , $
+              zs    : replicate(0D,ndays) , $
+              d2xs  : replicate(0D,ndays) , $
+              d2ys  : replicate(0D,ndays) , $
+              d2zs  : replicate(0D,ndays) , $
+              ls    : replicate(0D,ndays) , $  ; solar longitude
+              my    : replicate(0D,ndays) , $  ; Mars year
               units : ['AU','SEC','DEG']  , $
               frame : 'ECLIPJ2000'           }
 
@@ -634,6 +642,23 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endfor
     print,".",format='(a1,$)'
 
+; --------- SUBPLANET POINT ON THE SUN ---------
+
+    pos = transpose(pos)
+    for k=0,(nplan-1) do begin
+      pos[0,*] = planet[k].x
+      pos[1,*] = planet[k].y
+      pos[2,*] = planet[k].z
+      pos = spice_vector_rotate(pos, tt, 'ECLIPJ2000', 'IAU_SUN')
+      planet[k].xs   = pos[0,*]
+      planet[k].ys   = pos[1,*]
+      planet[k].zs   = pos[2,*]
+      planet[k].d2xs = spl_init(planet[k].time, planet[k].xs, /double)
+      planet[k].d2ys = spl_init(planet[k].time, planet[k].ys, /double)
+      planet[k].d2zs = spl_init(planet[k].time, planet[k].zs, /double)
+    endfor
+    print,".",format='(a1,$)'
+
 ; --------- MARS SUBSOLAR LATITUDE ---------
 
     latss = dblarr(ndays)
@@ -645,6 +670,13 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endfor
     planet[3].latss = latss
     planet[3].d2l = spl_init(planet[3].time, planet[3].latss, /double)
+    print,".",format='(a1,$)'
+
+; --------- MARS SOLAR LONGITUDE (L_s) ---------
+
+    mars_season = mvn_ls(planet[3].time, /all, /silent)
+    planet[3].ls = mars_season.ls
+    planet[3].my = mars_season.mars_year
     print,".",format='(a1,$)'
 
 ; Place holder for missing ephemeris data
@@ -976,7 +1008,44 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     if (pnum eq 3) then begin
       store_data,'latss',data={x:planet[3].time, y:planet[3].latss}
       options,'latss','ytitle','Mars!cLss (deg)'
+
+      store_data,'Ls',data={x:planet[3].time, y:planet[3].Ls}
+      ylim,'Ls',0,360,0
+      options,'Ls','yticks',4
+      options,'Ls','yminor',3
+      options,'Ls','ytitle','Mars L!dS!n (deg)'
+
+      store_data,'MarsYear',data={x:planet[3].time, y:planet[3].My}
+      options,'MarsYear','ytitle','Mars Year'
+      options,'MarsYear','ynozero',1
     endif
+
+    slon = atan(planet[pnum].ys, planet[pnum].xs) * !radeg
+    indx = where(slon lt 0., count)
+    if (count gt 0L) then slon[indx] += 360.
+    if (1) then begin
+      ; line plot format
+      store_data,'Slon',data={x:planet[pnum].time, y:slon}
+      ylim,'Slon',0,360,0
+      options,'Slon','spec',0
+      options,'Slon','color_table',-1
+      options,'Slon','panel_size',1.0
+      options,'Slon','x_no_interp',0
+      options,'Slon','yticks',4
+      options,'Slon','yminor',3
+      options,'Slon','psym',3
+    endif else begin
+      ; cyclic color bar format (experimental)
+      store_data,'Slon',data={x:planet[pnum].time, y:slon#[1.,1.], v:[0.,1.]}
+      ylim,'Slon',0,1,0
+      options,'Slon','spec',1
+      options,'Slon','color_table',1118
+      options,'Slon','panel_size',0.3
+      options,'Slon','x_no_interp',1
+      options,'Slon','no_color_scale',1
+      options,'Slon','yticks',1
+      options,'Slon','yminor',1
+    endelse
 
     if (css.frame ne 'INVALID') then begin
       tname = 'OWLT-CSS'
@@ -1051,6 +1120,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,tname,'constant',[minmax(planet[0].r), mean(planet[1].r), 1.]*(au/Rs)
       options,tname,'colors',scol[3]
     endif
+
+    madeplot = 1
 
   endif
 
@@ -1411,7 +1482,17 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
             msg = string(abs(Lss), format='("Lss = ",f8.1)') + ns
             msg = strcompress(msg)
             xyouts, xs, ys,  msg, /norm, charsize=csize
+            ys -= dys
           endif
+
+          xss = spl_interp(planet[pnum].time, planet[pnum].xs, planet[pnum].d2xs, t)
+          yss = spl_interp(planet[pnum].time, planet[pnum].ys, planet[pnum].d2ys, t)
+          slon = atan(yss, xss) * !radeg
+          if (slon lt 0.) then slon += 360.
+          msg = string(slon, format='("Slon = ",f8.1)')
+          msg = strcompress(msg)
+          xyouts, xs, ys, msg, /norm, charsize=csize
+          ys -= dys
         endif
 
         xs = 0.14  ; lower left
@@ -1791,7 +1872,17 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         msg = string(abs(Lss), format='("Lss = ",f8.1)') + ns
         msg = strcompress(msg)
         xyouts,  xs, ys, msg, /norm, charsize=csize
+        ys -= dys
       endif
+
+      xss = spl_interp(planet[pnum].time, planet[pnum].xs, planet[pnum].d2xs, t)
+      yss = spl_interp(planet[pnum].time, planet[pnum].ys, planet[pnum].d2ys, t)
+      slon = atan(yss, xss) * !radeg
+      if (slon lt 0.) then slon += 360.
+      msg = string(slon, format='("Slon = ",f8.1)')
+      msg = strcompress(msg)
+      xyouts, xs, ys, msg, /norm, charsize=csize
+      ys -= dys
     endif
 
     xs = 0.14  ; lower left

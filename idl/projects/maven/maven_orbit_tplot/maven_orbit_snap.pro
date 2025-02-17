@@ -193,8 +193,8 @@
 ;                 easier to see the colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-11-13 11:14:17 -0800 (Wed, 13 Nov 2024) $
-; $LastChangedRevision: 32953 $
+; $LastChangedDate: 2025-02-16 14:52:11 -0800 (Sun, 16 Feb 2025) $
+; $LastChangedRevision: 33134 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -306,6 +306,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   doalt = keyword_set(alt2)
   dolab = ~keyword_set(nolabel)
   if (n_elements(arange) ge 2) then begin
+    hmin = min(arange, max=hmax)
     amin = min((arange + R_m)/R_m, max=amax)
     arflg = 1
   endif else arflg = 0
@@ -733,7 +734,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       xsc = x[i]
       ysc = y[i]
 
-      plot,xm,ym,xrange=xrange,yrange=yrange,/xsty,/ysty,/noerase, $
+      plot,xm,ym,xrange=xrange,yrange=yrange,/xsty,/ysty,/noerase,/isotropic, $
            xtitle='X (Rp)',ytitle='Y (Rp)',charsize=csize,title=msg,thick=thick
       msg = ''
       oplot,xm,ym,color=6,thick=thick
@@ -914,7 +915,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       xsc = x[i]
       zsc = z[i]
 
-      plot,xm,ym,xrange=xrange,yrange=yrange,/xsty,/ysty,/noerase, $
+      plot,xm,ym,xrange=xrange,yrange=yrange,/xsty,/ysty,/noerase,/isotropic, $
            xtitle='X (Rp)',ytitle='Z (Rp)',charsize=csize,title=msg,thick=thick
       msg = ''
       oplot,xm,ym,color=6,thick=thick
@@ -1087,7 +1088,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
       ysc = y[i]
       zsc = z[i]
 
-      plot,xm,ym,xrange=xrange,yrange=yrange,/xsty,/ysty,/noerase, $
+      plot,xm,ym,xrange=xrange,yrange=yrange,/xsty,/ysty,/noerase,/isotropic, $
            xtitle='Y (Rp)',ytitle='Z (Rp)',title=msg,charsize=csize,thick=thick
       msg = ''
       oplot,xm,ym,color=6,thick=thick
@@ -1209,7 +1210,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
        z = zo
        s = sqrt(y*y + z*z)
 
-       plot,xm,ym,xrange=xrange,yrange=[0,yrange[1]],/xsty,/ysty,/noerase, $
+       plot,xm,ym,xrange=xrange,yrange=[0,yrange[1]],/xsty,/ysty,/noerase,/isotropic, $
             xtitle='X (Rp)',ytitle='S (Rp)',charsize=csize/2.,title=title,thick=thick
        oplot,xm,ym,color=6,thick=thick
        if keyword_set(iono) then oplot,xi,yi,line=2,thick=thick
@@ -1365,7 +1366,13 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
         bazel[*,1] = byi
         bazel[*,2] = bzi
       endif else bazel = 0
-      mag_mola_orbit, lon[i], lat[i], big=mbig, noerase=noerase, title=title, color=j, $
+      lon_i = lon[i]
+      lat_i = lat[i]
+      if (arflg) then if ((hgt[i] lt hmin) or (hgt[i] gt hmax)) then begin
+          lon_i = !values.f_nan
+          lat_i = !values.f_nan
+      endif
+      mag_mola_orbit, lon_i, lat_i, big=mbig, noerase=noerase, title=title, color=j, $
                       terminator=ttime, psym=scsym, shadow=(doterm - 1), alt=sc_alt, $
                       sites=sites, slab=slab, scol=scol, dbr=dbr, lang=lang, llim=llim, $
                       bazel=bazel, cazel=cazel, bscale=bscale

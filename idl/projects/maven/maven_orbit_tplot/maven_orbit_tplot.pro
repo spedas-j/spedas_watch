@@ -187,8 +187,8 @@
 ;                 arbitrary set of ephemeris conditions.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-12-31 18:22:52 -0800 (Tue, 31 Dec 2024) $
-; $LastChangedRevision: 33018 $
+; $LastChangedDate: 2025-02-16 14:52:31 -0800 (Sun, 16 Feb 2025) $
+; $LastChangedRevision: 33135 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -938,8 +938,8 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                            else options,'alt2','constant',-1
 
   if keyword_set(pds) then begin
-    nmon = 100  ; extends to 2040-02-15
-    pds_rel = replicate(time_struct('2015-05-15'),nmon)
+    nmon = 100  ; extends to 2039-08-15
+    pds_rel = replicate(time_struct('2014-11-15'),nmon)
     pds_rel.month += 3*indgen(nmon)
     pds_rel = time_double(pds_rel)
     pflg = 1
