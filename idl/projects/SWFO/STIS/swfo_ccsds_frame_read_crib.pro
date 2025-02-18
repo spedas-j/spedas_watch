@@ -1,7 +1,7 @@
 ;swfo_test
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-01-17 04:27:14 -0800 (Fri, 17 Jan 2025) $
-; $LastChangedRevision: 33069 $
+; $LastChangedDate: 2025-02-17 12:53:26 -0800 (Mon, 17 Feb 2025) $
+; $LastChangedRevision: 33137 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -66,7 +66,8 @@ if 1 || ~keyword_set(files) then begin
   trange = ['2024 12 20 11' , '2024 12 20 14 ']    ; memdump day  3  test only
   trange = ['2025 1 14','2025 1 18']   ; ETE4 RFR
   trange = ['2025 1 16 16','2025 1 16 20']   ; ETE4 RFR
-  trange = ['2025 1 16 16','now']   ; ETE4 RFR
+  trange = ['2025 1 12 ','now']   ; ETE4 RFR
+  trange = ['2025 1 16 16 ','2025 1 16 19']   ; ETE4 RFR
 
   run_proc = 1
 
@@ -91,7 +92,7 @@ if 1 || ~keyword_set(files) then begin
     no_download :no_download ,$
     resolution: 900L  }
 
-  typecase = 2.5
+  if ~isa(typecase) then typecase = 2.5
   if ~isa(lastfile) then lastfile = ''
   ;stop
 
@@ -106,6 +107,27 @@ if 1 || ~keyword_set(files) then begin
       ;pathname = 'swfo/swpc/E2E2b/decomp/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc'
       ;pathname = 'swfo/swpc/E2E4/outgoing/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc.gz'
       pathname = 'swfo/swpc/E2E4_RFR/outgoing/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc.gz'
+      allfiles = file_retrieve(pathname,_extra=source)  ; get All the files first
+      fileformat = file_basename(str_sub(pathname,'*.nc.gz','YYYYMMDDThhmm00'))
+      filerange = time_string(trange,tformat=fileformat)
+      w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
+      files = allfiles[w]
+      frames_name = 'frames'
+
+      if strmid(pathname,2,3,/reverse) eq '.gz' then begin
+        ofiles = str_sub(files,'outgoing','decomp')
+        for i=0,n_elements(ofiles)-1 do ofiles[i] = strmid(ofiles[i],0,strlen(ofiles[i])-3)   ; get rid of ".gz"
+        file_mkdir2,file_dirname(ofiles)
+        dprint,'Unzipping files'
+        file_gunzip,files,ofiles
+        files=ofiles
+      endif
+    end
+    1.5: begin
+      ;pathname = 'swfo/swpc/E2E2b/decomp/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc'
+      ;pathname = 'swfo/swpc/E2E4/outgoing/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc.gz'
+      pathname = 'swfo/swpc/E2E4_RFR/outgoing/swfo-l1/l0/it_frm-rt-l0_swfol1_s*.nc.gz'
+      pathname = 'swfo/swpc/E2E4_RFR/outgoing/swfo-l1/l0/it_frm-st-l0_swfol1_s*.nc.gz'
       allfiles = file_retrieve(pathname,_extra=source)  ; get All the files first
       fileformat = file_basename(str_sub(pathname,'*.nc.gz','YYYYMMDDThhmm00'))
       filerange = time_string(trange,tformat=fileformat)
@@ -147,11 +169,13 @@ if 1 || ~keyword_set(files) then begin
     end
     3: begin
       pathname = 'swfo/aws/L0/SWFOCBU/YYYY/MM/DD/OR_SWFOCBU-L0_SL1_s*.nc'
-      source.resolution = 24L*3600
+      pathname = 'swfo/aws/preplt/SWFO-L1/l0/SWFOCBU/YYYY/MM/YYYYMMDD/OR_SWFOCBU-L0_SL1_sYYYYDOYhh*.nc'
+      source.resolution = 3600
       allfiles = file_retrieve(pathname,_extra=source,trange=trange)  ; get All the files first
-      fileformat =  file_basename(str_sub(pathname,'*.nc','YYYYDOYhhmm'))
-      filerange = time_string(trange,tformat=fileformat)
-      w = where(file_basename(allfiles) ge filerange[0] and file_basename(allfiles) lt filerange[1],nw,/null)
+      fileformat =  file_basename(str_sub(pathname,'*.nc',''))
+      filerange = time_string(time_double(trange)+[0,3600],tformat=fileformat)
+      if keyword_set(lastfile) then filerange[0] = file_basename(lastfile)
+      w = where(file_basename(allfiles) gt filerange[0] and file_basename(allfiles) lt filerange[1] and file_test(allfiles),nw,/null)
       files = allfiles[w]
       frames_name = 'swfo_frame_data'
     end

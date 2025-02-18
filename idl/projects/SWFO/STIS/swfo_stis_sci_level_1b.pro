@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-02-13 14:43:22 -0800 (Thu, 13 Feb 2025) $
-; $LastChangedRevision: 33126 $
+; $LastChangedDate: 2025-02-17 12:53:26 -0800 (Mon, 17 Feb 2025) $
+; $LastChangedRevision: 33137 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 
@@ -42,6 +42,26 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
     w = where(bins.species eq 0,/null,nw)
     elec_flux = elec_flux[w]
     elec_energy= elec_energy[w]
+    
+    if 0 then begin
+      j1 = channels[0].y
+      j2 = channels[2].y
+      jconv = param.jconv
+      dtrate = param.dtrate
+      rate1 = total(j1) * jconv
+      rate2 = total(j2) * jconv * 100
+      dtcor2 = 1/(1-rate2/30e4)
+      dtcor2 = 1 + rate2/dtrate
+      eta1 =  0. > sqrt( rate1 * param.range  ) < 1.
+      eta2 =  0. >     (1.8- dtcor2)*.4    < 1.
+      j_hdr = (eta1 * j1 + eta2 *j2)/ (eta1 + eta2)
+      ch_cor = channels[0]
+      ch_cor.color = 0
+      ch_cor.y = j_hdr
+      
+    endif
+
+    
 
     sci_ex = {  $
       integration_time : duration * period, $

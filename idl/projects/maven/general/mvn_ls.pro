@@ -76,8 +76,8 @@
 ;       RESET:     Re-calculate mars_season and refresh the common block.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-16 14:45:39 -0800 (Sun, 16 Feb 2025) $
-; $LastChangedRevision: 33130 $
+; $LastChangedDate: 2025-02-17 08:58:11 -0800 (Mon, 17 Feb 2025) $
+; $LastChangedRevision: 33136 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_ls.pro $
 ;
 ;CREATED BY:	Robert J. Lillis 2017-10-09
@@ -285,17 +285,16 @@ function mvn_ls, time, dt=dt, tplot=tplot, calc=calc, all=all, bar=bar, silent=s
       print,"  No ephemeris coverage for input times."
       return, !values.f_nan
     endif
-    if (nbad gt 0L) then begin
-      print,"  Some input times extend outside ephemeris coverage.  Truncating."
-      t = t[indx]
-    endif
+    if (nbad gt 0L) then print,"  Some input times extend outside ephemeris coverage."
 
-    Ls_x = interpol(cos(mars_season.Ls * !dtor), mars_season.time, t)
-    Ls_y = interpol(sin(mars_season.Ls * !dtor), mars_season.time, t)
-    Ls = atan(Ls_y, Ls_x) * !radeg
-    indx = where(Ls lt 0., count)
-    if (count gt 0L) then Ls[indx] += 360.
-    My = interpol(mars_season.mars_year, mars_season.time, t)
+    Ls = replicate(!values.d_nan, n_elements(t))
+    My = Ls
+    Ls_x = interpol(cos(mars_season.Ls * !dtor), mars_season.time, t[indx])
+    Ls_y = interpol(sin(mars_season.Ls * !dtor), mars_season.time, t[indx])
+    Ls[indx] = atan(Ls_y, Ls_x) * !radeg
+    jndx = where(Ls[indx] lt 0D, count)
+    if (count gt 0L) then Ls[indx[jndx]] += 360D
+    My[indx] = interpol(mars_season.mars_year, mars_season.time, t[indx])
   endif else begin
     t = mars_season.time
     Ls = mars_season.Ls

@@ -4,8 +4,8 @@
 station = 'S2'
 trange = ['23 7 26 4','23 7 26 5']
 trange = ['23 7 27 4','23 7 27 24']    ; Calibration with ion gun
-trange = ['23 7 27 17 ','23 7 27 19']  & station='S2'   ; High flux ions
-;trange = ['23 6 1','23 6 1 4']  & station='S0'     ; 1/r^2 test with x-ray source
+trange = ['23 7 27 17 ','23 7 27 19']  & station='S2'   ; High flux ions from calibration
+trange = ['23 6 1','23 6 1 4']  & station='S0'     ; 1/r^2 test with x-ray source
 stop
 
 
@@ -53,14 +53,17 @@ printdat,param.lim
 param.range = 10
 
 sciobj = swfo_apdat('stis_sci')    ; This gets the object that contains all science products
-level_0b = sciobj.getattr('level_0b')  ; this a (dynamic) array of structures that contain all level_0B data
-level_1A = sciobj.getattr('level_1a')
-level_1b = sciobj.getattr('level_1b')
+level_0b_da = sciobj.getattr('level_0b')  ; this a (dynamic) array of structures that contain all level_0B data
+level_1A_da = sciobj.getattr('level_1a')
+level_1b_da = sciobj.getattr('level_1b')
 
 
-test_0a = level
+;Additional examples of how to extract data from the object and then recompute the data
 
-test_1a = swfo_stis_sci_level_1a(level_0b.array)
+level_0b_structs = level_0b_da.array
+level_1a_structs =   swfo_stis_sci_level_1a(level_0b_structs)
+level_1b_structs =   swfo_stis_sci_level_1a(level_1a_structs)
+
 
 
 swfo_stis_tplot,/set,'dl1'
