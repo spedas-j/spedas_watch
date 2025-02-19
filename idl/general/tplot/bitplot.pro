@@ -20,9 +20,9 @@
 ;    NUMBITS: the number of bits that will be plot
 ;    SYMSIZE: set the size of the symbol
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-11-01 10:11:41 -0700 (Fri, 01 Nov 2024) $
-; $LastChangedRevision: 32920 $
+; $LastChangedBy: jimm $
+; $LastChangedDate: 2025-02-18 14:05:52 -0800 (Tue, 18 Feb 2025) $
+; $LastChangedRevision: 33138 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/bitplot.pro $
 ;-
 pro bitplot,x,y,psyms=psyms,overplot=overplot,di=di,limits=lim,data=data,numbits=nb,symsize=symsize
@@ -45,6 +45,8 @@ str_element,stuff,'labsize',val=labsize
 str_element,stuff,'colors',colors
 str_element,stuff,'psym_lim',psym_lim
 str_element,stuff,'xrange',xrange
+str_element,stuff,'panel_label',panel_label ;jmm, 2025-02-18
+
 chsize = !p.charsize
 if not keyword_set(chsize) then chsize = 1.
 
@@ -118,5 +120,10 @@ if keyword_set(labels) then begin
    else lbsize = lbsize*charsize
    xyouts,xp,yp,prefix+labels,charsize=lbsize,color= col[indgen(nlab) mod ncol]
 endif
+
+if is_struct(panel_label) then begin ;jmm, 2025-02-18
+   tplot_apply_panel_label, panel_label
+endif
+
 
 end

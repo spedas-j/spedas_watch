@@ -39,8 +39,8 @@
 ;CREATED BY:	Davin Larson
 ;FILE:  mplot.pro
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2025-02-03 15:20:43 -0800 (Mon, 03 Feb 2025) $
-; $LastChangedRevision: 33112 $
+; $LastChangedDate: 2025-02-18 14:05:52 -0800 (Tue, 18 Feb 2025) $
+; $LastChangedRevision: 33138 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/mplot.pro $
 ;
 ;-
@@ -236,13 +236,7 @@ if keyword_set(notes) then begin
 endif
 
 if keyword_set(panel_label) then begin
-   if panel_label.dq_set then begin
-      xyouts, panel_label.xpos, panel_label.ypos, panel_label.label, charsize = panel_label.charsize
-   endif else begin
-      xpos = !x.window[0] + panel_label.xpos*(!x.window[1]-!x.window[0])
-      ypos = !y.window[0] + panel_label.ypos*(!y.window[1]-!y.window[0])
-      xyouts,xpos,ypos, panel_label.label, /normal, charsize=panel_label.charsize
-   endelse
+   tplot_apply_panel_label, panel_label
 endif
 
 str_element,stuff,'constant',constant
