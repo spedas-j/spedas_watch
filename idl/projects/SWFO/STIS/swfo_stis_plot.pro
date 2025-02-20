@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-02-17 12:53:26 -0800 (Mon, 17 Feb 2025) $
-; $LastChangedRevision: 33137 $
+; $LastChangedDate: 2025-02-19 15:40:17 -0800 (Wed, 19 Feb 2025) $
+; $LastChangedRevision: 33141 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -221,6 +221,27 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
         ch.dy = dy
         ch.lim = lim
         channels[c] = ch
+        if 1 then begin
+          j1 = channels[3].y
+          j2 = channels[5].y
+          jconv = param.jconv
+          dtrate = param.dtrate
+          rate1 = total(j1) * jconv
+          rate2 = total(j2) * jconv * 100
+          dtcor2 = 1/(1-rate2/30e4)
+          dtcor2 = 1 + rate2/dtrate
+          eta1 =  0. > sqrt( rate1 * param.range  ) < 1.
+          eta2 =  0. >     (1.8- dtcor2)*.4    < 1.
+          j_hdr = (eta1 * j1 + eta2 *j2)/ (eta1 + eta2)
+          ch_cor = channels[0]
+          ch_cor.color = 0
+          ch_cor.y = j_hdr
+          oplot,ch_cor.x,ch_cor.y ,color=5,psym=ch.psym,thick=3
+
+          ;tl dprint,dlevel=2,total(j1),total(j2), rate1,rate2, eta1,eta2
+        endif
+        
+        
         oplot,x,y ,color=ch.color,psym=ch.psym
         if param.haskey('dofit') && keyword_set(param.dofit) && (c ge 0) && i eq n_elements(u)-1 then begin
           ;printdat,u
@@ -238,25 +259,6 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     endfor
     
     
-    if 1 then begin
-      j1 = channels[0].y
-      j2 = channels[2].y
-      jconv = param.jconv
-      dtrate = param.dtrate
-      rate1 = total(j1) * jconv
-      rate2 = total(j2) * jconv * 100
-      dtcor2 = 1/(1-rate2/30e4)
-      dtcor2 = 1 + rate2/dtrate
-      eta1 =  0. > sqrt( rate1 * param.range  ) < 1.
-      eta2 =  0. >     (1.8- dtcor2)*.4    < 1.
-      j_hdr = (eta1 * j1 + eta2 *j2)/ (eta1 + eta2)
-      ch_cor = channels[0]
-      ch_cor.color = 0
-      ch_cor.y = j_hdr
-      oplot,ch_cor.x,ch_cor.y ,color=ch.color,psym=ch.psym
-
-     ;tl dprint,dlevel=2,total(j1),total(j2), rate1,rate2, eta1,eta2
-    endif
     
     
     if 1 then begin
