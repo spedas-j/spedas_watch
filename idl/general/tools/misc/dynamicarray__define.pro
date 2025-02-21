@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-26 11:29:22 -0700 (Sat, 26 Oct 2024) $
-; $LastChangedRevision: 32903 $
+; $LastChangedDate: 2025-02-20 15:34:22 -0800 (Thu, 20 Feb 2025) $
+; $LastChangedRevision: 33142 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -317,6 +317,15 @@ pro DynamicArray::sort   , tagname    , uniq=uniq   ; Use with caution
     (*self.ptr_array)[0:nusize-1]  = (*self.ptr_array)[u]    
   endif
 
+
+end
+
+
+
+
+pro DynamicArray::make_ncdf,filename=ncdf_filename,verbose=verbose,global_atts=global_atts,ncdf_template=ncdf_template
+  dat = (*self.ptr_array)[0:self.size-1,*,*,*]
+  swfo_ncdf_create,dat,filename=ncdf_filename,verbose=verbose,global_atts=global_atts,ncdf_template=ncdf_template
 
 end
 
