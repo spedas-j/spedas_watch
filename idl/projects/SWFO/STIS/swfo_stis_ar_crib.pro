@@ -5,7 +5,7 @@ station = 'S2'
 trange = ['23 7 26 4','23 7 26 5']
 trange = ['23 7 27 4','23 7 27 24']    ; Calibration with ion gun
 trange = ['23 7 27 17 ','23 7 27 19']  & station='S2'   ; High flux ions from calibration
-trange = ['23 6 1','23 6 1 4']  & station='S0'     ; 1/r^2 test with x-ray source
+;trange = ['23 6 1','23 6 1 4']  & station='S0'     ; 1/r^2 test with x-ray source
 stop
 
 
@@ -41,6 +41,13 @@ endif else begin
   rdr.add_handler, 'raw_tlm',  gsemsg_reader(name='SWFO_reader',/no_widget,mission='SWFO')
   rdr.add_handler, 'raw_ball', ccsds_reader(/no_widget,name='BALL_reader' , sync_pattern = ['2b'xb,  'ad'xb ,'ca'xb, 'fe'xb], sync_mask= [0xef,0xff,0xff,0xff] )
 
+  if 1 then begin
+    raw_gsemsg = rdr.get_handlers('raw_tlm')
+    ccsds_rdr = raw_gsemsg.getattr('ccsds_reader')
+    openw,lun,'SWFO_STIS_L0A.bin',/get_lun
+    ccsds_rdr.ccsds_output_lun = lun
+  endif
+
 
   rdr.file_read,files
   
@@ -61,8 +68,16 @@ level_1b_da = sciobj.getattr('level_1b')
 ;Additional examples of how to extract data from the object and then recompute the data
 
 level_0b_structs = level_0b_da.array
+level_1a_structs = level_1a_da.array
 level_1a_structs =   swfo_stis_sci_level_1a(level_0b_structs)
-level_1b_structs =   swfo_stis_sci_level_1a(level_1a_structs)
+level_1b_structs =   swfo_stis_sci_level_1b(level_1a_structs)
+
+
+
+level_0b_da.make_ncdf,filename='STIS_L0B_test.nc'
+level_1a_da.make_ncdf,filename='STIS_L1A_test.nc'
+level_1b_da.make_ncdf,filename='STIS_L1B_test.nc'
+
 
 
 

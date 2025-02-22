@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-27 01:24:49 -0700 (Sun, 27 Oct 2024) $
-; $LastChangedRevision: 32908 $
+; $LastChangedDate: 2025-02-21 16:59:13 -0800 (Fri, 21 Feb 2025) $
+; $LastChangedRevision: 33145 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
 
 
@@ -80,6 +80,11 @@ pro ccsds_reader::handle,buffer
   if self.run_proc then begin
     swfo_ccsds_spkt_handler,buffer[self.sync_size:*],source_dict=self.source_dict         ; Process the complete packet
   endif
+  
+  if self.ccsds_output_lun ne 0 then BEGIN
+    dprint ,dlevel=2,'Writing output',dwait=10.
+    writeu,self.ccsds_output_lun,buffer[self.sync_size:*]
+  endif
 
   headerstr = self.source_dict.headerstr
   if self.save_data then begin
@@ -129,7 +134,8 @@ PRO ccsds_reader__define
     replay:     0b,  $                ; byte indicates this was a replay packet
     decom_procedure: '',  $
     minsize: 0UL , $
-    maxsize: 0UL  $
+    maxsize: 0UL , $
+    ccsds_output_lun: 0  $ ; Use this to generate ccsds output
   }
 END
 

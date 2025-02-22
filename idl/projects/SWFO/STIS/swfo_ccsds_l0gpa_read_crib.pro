@@ -15,10 +15,11 @@ if 1 || ~keyword_set(files) then begin
   
   
   files = '/Users/davin/Downloads/stis_e2e4_rfr_realtime.bin'
+  files = '/Users/davin/analysis/SWFO_STIS_xray_L0A.bin'
 
   hexprint,files
   
-  stop
+  ;stop
 
 
 
@@ -39,36 +40,38 @@ rdr.file_read,files
 
 swfo_apdat_info,/create_tplot_vars,/all;,/print  ;  ,verbose=0
 
-if 0 then begin
-
-  swfo_apdat_info,/print,/all
 
 
-  printdat,rdr.dyndata.array
-  wi,2
-  swfo_frame_header_plot, rdr.dyndata.array
-
-  stop
-
+sciobj = swfo_apdat('stis_sci')    ; This gets the object that contains all science products
+level_0b_da = sciobj.getattr('level_0b')  ; this a (dynamic) array of structures that contain all level_0B data
+level_1A_da = sciobj.getattr('level_1a')
+level_1b_da = sciobj.getattr('level_1b')
 
 
+;Additional examples of how to extract data from the object and then recompute the data
 
-  swfo_stis_tplot,/set
-  tplot,'*SEQN *SEQN_DELTA',trange=trange
-
-  stop
-  swfo_apdat_info,/sort,/all,/print
-  delta_data,'*SEQN',modulo=2^14
-  options,'*_delta',psym=-1,symsize=.4,yrange=[-10,10]
+level_0b_structs = level_0b_da.array
+level_1a_structs = level_1a_da.array
+level_1a_structs =   swfo_stis_sci_level_1a(level_0b_structs)
+level_1b_structs =   swfo_stis_sci_level_1b(level_1a_structs)
 
 
-  tplot,'*SEQN *SEQN_delta'
 
-  stop
-  ;swfo_apdat_info,/make_ncdf,trange=time_double(trange),file_resolution=1800d
+level_0b_da.make_ncdf,filename='STIS_L0B_test.nc'
+level_1a_da.make_ncdf,filename='STIS_L1A_test.nc'
+level_1b_da.make_ncdf,filename='STIS_L1B_test.nc'
 
-endif
 
 swfo_stis_tplot,'cpt2',/set
+
+
+swfo_stis_tplot,/set,'dl1'
+swfo_stis_tplot,/set,'iongun',/add
+
+
+ctime,/silent,t,routine_name="swfo_stis_plot"
+
+
+
 
 end

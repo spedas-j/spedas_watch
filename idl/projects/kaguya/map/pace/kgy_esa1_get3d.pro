@@ -18,8 +18,8 @@
 ;       Yuki Harada on 2014-07-01
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2024-10-24 22:38:48 -0700 (Thu, 24 Oct 2024) $
-; $LastChangedRevision: 32899 $
+; $LastChangedDate: 2025-02-20 21:55:42 -0800 (Thu, 20 Feb 2025) $
+; $LastChangedRevision: 33143 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/pace/kgy_esa1_get3d.pro $
 ;-
 
@@ -33,9 +33,8 @@ if size(infoangle,/type) eq 0 then infoangle = 1
 
 if keyword_set(gettimes) then begin
    times = $
-      time_double( string(esa1_header_arr[*].yyyymmdd,format='(i8.8)') $
-                   +string(esa1_header_arr[*].hhmmss,format='(i6.6)'), $
-                   tformat='YYYYMMDDhhmmss' ) $
+      time_double( string(esa1_header_arr[*].yyyymmdd,format='(i8.8)'),tformat='YYYYMMDD' ) $
+      + esa1_header_arr[*].time_ms/1d3 $
       + esa1_header_arr[*].time_resolution / 2.d3
    return,times
 endif
@@ -49,9 +48,8 @@ if n_elements(esa1_header_arr) eq 0 then begin
 endif
 if size(index,/type) eq 0 then begin
    times = $
-      time_double( string(esa1_header_arr[*].yyyymmdd,format='(i8.8)') $
-                   +string(esa1_header_arr[*].hhmmss,format='(i6.6)'), $
-                   tformat='YYYYMMDDhhmmss' ) $
+      time_double( string(esa1_header_arr[*].yyyymmdd,format='(i8.8)'),tformat='YYYYMMDD' ) $
+      + esa1_header_arr[*].time_ms/1d3 $
       + esa1_header_arr[*].time_resolution / 2.d3
    tmp = min( abs( times - t ), i )
    theindex = esa1_header_arr[i].index
@@ -65,14 +63,12 @@ endif else begin
 endelse
 
 start_time = $
-   time_double( string(esa1_header_arr[i].yyyymmdd,format='(i8.8)') $
-                +string(esa1_header_arr[i].hhmmss,format='(i6.6)'), $
-                tformat='YYYYMMDDhhmmss' )
+   time_double( string(esa1_header_arr[i].yyyymmdd,format='(i8.8)'),tformat='YYYYMMDD' ) $
+   + esa1_header_arr[i].time_ms/1d3
 
 end_time = $
-   time_double( string(esa1_header_arr[i].yyyymmdd,format='(i8.8)') $
-                +string(esa1_header_arr[i].hhmmss,format='(i6.6)'), $
-                tformat='YYYYMMDDhhmmss' ) $
+   time_double( string(esa1_header_arr[i].yyyymmdd,format='(i8.8)'),tformat='YYYYMMDD' ) $
+   + esa1_header_arr[i].time_ms/1d3 $
    + esa1_header_arr[i].time_resolution / 1.d3
 
 integ_t = 16./esa1_header_arr[i].sampl_time         ;- integration time [sec]
@@ -408,6 +404,8 @@ dat = { $
       vsw:[!values.f_nan,!values.f_nan,!values.f_nan], $
       spice_frame:'SELENE_M_SPACECRAFT', $
 
+      header:esa1_header_arr[i], $
+      
       data:data $
       }
 
