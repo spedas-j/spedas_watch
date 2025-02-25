@@ -68,6 +68,9 @@ swfo_stis_tplot,'cpt2',/set
 swfo_stis_tplot,/set,'dl1'
 swfo_stis_tplot,/set,'iongun',/add
 
+swfo_stis_plot,param=param    ; extract the parameter the control plotting
+xlim,param.lim,0,100,0    ; set xrange plot limits 0 to 100 , linear
+param.range=10   ; set integration range to 10 seconds
 
 ctime,/silent,t,routine_name="swfo_stis_plot"
 
