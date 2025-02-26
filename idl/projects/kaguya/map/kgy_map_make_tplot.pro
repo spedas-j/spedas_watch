@@ -19,8 +19,8 @@
 ;     Yuki Harada on 2015-01-23
 ;
 ; $LastChangedBy: haraday $
-; $LastChangedDate: 2025-02-20 21:55:42 -0800 (Thu, 20 Feb 2025) $
-; $LastChangedRevision: 33143 $
+; $LastChangedDate: 2025-02-24 23:31:40 -0800 (Mon, 24 Feb 2025) $
+; $LastChangedRevision: 33148 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/kgy_map_make_tplot.pro $
 ;-
 
@@ -119,7 +119,7 @@ pro kgy_map_make_tplot, sensor=sensor, trange=trange, bkgd=bkgd, suffix=suffix, 
 
         times = $
            time_double( string(header_arr[*].yyyymmdd,format='(i8.8)'),tformat='YYYYMMDD' ) $
-           + esa1_header_arr[*].time_ms/1d3 $
+           + header_arr[*].time_ms/1d3 $
            ;; time_double( string(header_arr[*].yyyymmdd,format='(i8.8)') $
            ;;              +string(header_arr[*].hhmmss,format='(i6.6)'), $
            ;;              tformat='YYYYMMDDhhmmss' ) $
