@@ -76,8 +76,8 @@
 ;       RESET:     Re-calculate mars_season and refresh the common block.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-17 08:58:11 -0800 (Mon, 17 Feb 2025) $
-; $LastChangedRevision: 33136 $
+; $LastChangedDate: 2025-02-26 08:22:51 -0800 (Wed, 26 Feb 2025) $
+; $LastChangedRevision: 33152 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_ls.pro $
 ;
 ;CREATED BY:	Robert J. Lillis 2017-10-09
@@ -220,8 +220,11 @@ function mvn_ls_calc, time, dt=dt, silent=silent
 
   ls = dblarr(ntimes)
   for i=0L, ntimes-1L do ls[i] = cspice_dpr() * cspice_lspcn('MARS', et[i], 'NONE')
-  dls = ls - shift(ls,1)
-  dls[0] = dls[1]
+
+  if (ntimes gt 1L) then begin
+    dls = ls - shift(ls,1)
+    dls[0] = dls[1]
+  endif else dls = [1D]
 
   imy = where(dls lt 0, count)
   if (count gt 0) then begin
