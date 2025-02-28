@@ -14,8 +14,7 @@ if 1 || ~keyword_set(files) then begin
   
   
   
-  files = '/Users/davin/Downloads/stis_e2e4_rfr_realtime.bin'
-  files = '/Users/davin/analysis/SWFO_STIS_xray_L0A.bin'
+  files = '~/analysis/SWFO_STIS_xray_L0A.bin'
 
   hexprint,files
   
@@ -39,6 +38,9 @@ rdr.file_read,files
 
 
 swfo_apdat_info,/create_tplot_vars,/all;,/print  ;  ,verbose=0
+
+
+; level_0A_sci_
 
 
 

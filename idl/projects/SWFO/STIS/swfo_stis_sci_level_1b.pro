@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-02-17 12:53:26 -0800 (Mon, 17 Feb 2025) $
-; $LastChangedRevision: 33137 $
+; $LastChangedDate: 2025-02-27 14:57:42 -0800 (Thu, 27 Feb 2025) $
+; $LastChangedRevision: 33155 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 
@@ -43,10 +43,22 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
     elec_flux = elec_flux[w]
     elec_energy= elec_energy[w]
     
-    if 0 then begin
+    if 1 then begin
+      
+      names='SPEC_' + ['O1','O2','O3','F1','F2','F3']
+      nans = replicate(!values.f_nan,48)
+      format = {name:'',color:0,linestye:0,psym:-4,linethick:2,geomfactor:1.,x:nans,y:nans,dx:nans,dy:nans,xunits:'',yunits:'',lim:obj_new()}
+      channels = replicate(format,n_elements(names))
+      channels.name = names
+      channels.color = [2,4,6,1,3,0]
+      
+      swfo_stis_plot,param=param   ; temporary access to test variables
+      
+      
+      
       j1 = channels[0].y
       j2 = channels[2].y
-      jconv = param.jconv
+      jconv =   param.jconv   ; temporary
       dtrate = param.dtrate
       rate1 = total(j1) * jconv
       rate2 = total(j2) * jconv * 100
@@ -58,6 +70,26 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
       ch_cor = channels[0]
       ch_cor.color = 0
       ch_cor.y = j_hdr
+      ;oplot,ch_cor.x,ch_cor.y ,color=5,psym=ch.psym,thick=3
+      ion_flux = ch_cor.y
+      ion_energy = ch_cor.x
+      
+      j1 = channels[3].y
+      j2 = channels[5].y
+      jconv =   param.jconv   ; temporary
+      dtrate = param.dtrate
+      rate1 = total(j1) * jconv
+      rate2 = total(j2) * jconv * 100
+      dtcor2 = 1/(1-rate2/30e4)
+      dtcor2 = 1 + rate2/dtrate
+      eta1 =  0. > sqrt( rate1 * param.range  ) < 1.
+      eta2 =  0. >     (1.8- dtcor2)*.4    < 1.
+      j_hdr = (eta1 * j1 + eta2 *j2)/ (eta1 + eta2)
+      ch_cor = channels[0]
+      ch_cor.color = 0
+      ch_cor.y = j_hdr
+      ELEC_flux = ch_cor.y
+      elec_energy = ch_cor.x
       
     endif
 
