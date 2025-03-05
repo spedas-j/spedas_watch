@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-06 22:11:12 -0700 (Sun, 06 Oct 2024) $
-; $LastChangedRevision: 32876 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-04 10:57:07 -0800 (Tue, 04 Mar 2025) $
+; $LastChangedRevision: 33161 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -128,7 +128,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*swfo_sc_120_????_POWER_BITS',numbits=5,labels=reverse(['Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
     options,/def,'*swfo_sc_120_MAG_POWER_BITS swfo_sc_120_SWIPS_POWER_BITS',numbits=6,labels=reverse(['Arm Power','Power','OC Trip','OC Enable','SH Power','SH OC Trip']),colors=[0,1,2,6]
     options,/def,'*swfo_sc_130_STIS_TEMPS',colors='br',labels=['Sensor','SEB'],labflag=-1
-    options,/def,'*swfo_sc_160_PPS_OUTPUT_STATUS_BITS',numbits=8,labels=reverse(['CCOR','STIS','SWiPS','MAG','Source0','Source1','Internal','External']),colors='rkbg
+    options,/def,'*swfo_sc_160_PPS_OUTPUT_STATUS_BITS',numbits=8,labels=reverse(['CCOR','STIS','SWiPS','MAG','Source0','Source1','Internal','External']),colors='rkbg'
     options,/def,'*swfo_sc_160_FLASH_ERROR_COUNTS',colors='bgrymck',labels=['Error Count','No Power','Not Ready','Address','Read','Write','Erase','EDAC DBE'],labflag=-1
     options,/def,'*swfo_sc_160_FLASH_SUCCESSFUL_BLOCK_COUNTS',colors='bgr',labels=['Read','Write','Erase'],labflag=-1
     options,/def,'*swfo_sc_160_FLASH_EDAC_COUNTS',colors='bgrk',labels=['1B Page Buffer','2B Page Buffer','1B Access','2B Access'],labflag=-1
@@ -153,11 +153,11 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
   case plot_name of
     'SUM1': tplot,add=add,'*hkp1_USER_0A *hkp1_STATE_MACHINE_ERRORS *DURATION_ALL *hkp1_PPS_* *hkp?_DAC_* *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp1_CMDS_RECEIVED *hkp1_CMDS_BAD *hkp1_*REMAIN* *hkp1_*BITS *hkp1_*CYCLES *hkp1_TEST_PULSE_WIDTH_1US *hkp1_COINCIDENCE_WINDOW* *hkp1_BIAS_CLOCK_PERIOD_2US *hkp1_ADC_*'
     'SUM2': tplot,add=add,'*hkp2_STATE_MACHINE_ERRORS *hkp?_DAC_* swfo_stis_RATES_TOTAL *hkp2_*RATES *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp2_CMDS_RECEIVED *hkp2_*BITS *hkp2_*CYCLES *hkp2_TEST_PULSE_WIDTH_1US *hkp2_COINCIDENCE_WINDOW* *hkp2_BIAS_CLOCK_PERIOD_2US *hkp2_ADC_*'
-    'SUM3': tplot,add=add,'*hkp2_*CYCLES *hkp2_BIAS_CLOCK_PERIOD_2US *sci_DECI* *sci_USER_09 *hkp2_COINCIDENCE_WINDOW* *hkp2_TIMEOUTS_2US *hkp?_DAC_* swfo_stis_RATES_TOTAL *hkp2*RATES *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp2_CMDS_EXECUTED2 *hkp2_CMD_PACKETS_RECEIVED
+    'SUM3': tplot,add=add,'*hkp2_*CYCLES *hkp2_BIAS_CLOCK_PERIOD_2US *sci_DECI* *sci_USER_09 *hkp2_COINCIDENCE_WINDOW* *hkp2_TIMEOUTS_2US *hkp?_DAC_* swfo_stis_RATES_TOTAL *hkp2*RATES *_RATES_PULSFREQ *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *nse_*RATE6 *hkp2_CMDS_EXECUTED2 *hkp2_CMD_PACKETS_RECEIVED'
     'NOISE': tplot,add=add,'s*nse_HISTOGRAM s*nse_BASELINE s*nse_SIGMA s*nse_*RA_TE6'
     'NOISE2': tplot,add=add,'s*nse_HISTO_GRAM s*nse_BASELINE s*nse_SIGMA s*hkp2_VALID_RATES s*sci_RATE6'
     'SCI': tplot,add=add,'*sci_COUNTS *sci_RATE14 *sci_SIGMA14 *sci_AVGBIN14'
-    'ADC': tplot,add=add,'*hkp2_ADC*
+    'ADC': tplot,add=add,'*hkp2_ADC*'
     'ERRORS' : tplot,add=add,'*hkp2*ERRORS *hkp2_BUS_TIMEOUT_COUNTERS'
     'RATES' : tplot,add=add,'*hkp2_?????_RATES'
     'CMD'   : tplot,add=add,'*hkp2_CMDS_* *hkp2_CMD_PACKETS_RECEIVED'
@@ -170,33 +170,33 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     'SCIHKP': tplot,add=add,'*hkp2*SCI_*'
     'IONGUN': tplot,add=add,'Vac_Pressure gse_kpa-?_F1 IG_* stis_l1a_SPEC_O[13]'
     'IONGUN1': tplot,add=add,'*sci_RATE6 IG_GUN_V stis_l1a_SPEC_O[13]'
-    'EGUN' : tplot,add=add,'Vac_Pressure hvs_5*_VOLTAGE hvs_5*_CURRENT *sci_RATE6 stis_l1a_SPEC_F[13] manip_YAW
-    'TV' : tplot,add=add,'*hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *sci_RATE6 *hkp2*EXECUTED2
+    'EGUN' : tplot,add=add,'Vac_Pressure hvs_5*_VOLTAGE hvs_5*_CURRENT *sci_RATE6 stis_l1a_SPEC_F[13] manip_YAW'
+    'TV' : tplot,add=add,'*hkp2_ADC_TEMPS *nse_BASELINE *nse_SIGMA *sci_RATE6 *hkp2*EXECUTED2'
     'PS':tplot,add=add,'PS_*'
-    'CPT':tplot,add=add,'*_DAC* *FREQ *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*CM*REMAINING
-    'CPT2':tplot,add=add,'*_DAC* swfo_stis_RATE6 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*CM*REMAINING    
+    'CPT':tplot,add=add,'*_DAC* *FREQ *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*CM*REMAINING'
+    'CPT2':tplot,add=add,'*_DAC* swfo_stis_RATE6 *nse_HISTOGRAM *nse_BASELINE *nse_SIGMA *hkp2_ADC* *hkp2*CM*REMAINING'    
     'SC':tplot,add=add,'swfo_SEQN_DELTAS swfo_DELAYTIMES swfo_sc_100_FSW* swfo_sc_130_STIS_* swfo_sc_120_INSTRUMENT_* swfo_sc_120_SUBSYSTEM_* swfo_sc_*REACTION_WHEEL* swfo_sc_100_BATTERY_*'
     'SC2':tplot,add=add,'swfo_sc_100_FSW* swfo_sc_130_STIS_* swfo_sc_120_INSTRUMENT_* swfo_sc_120_SUBSYSTEM_* *REACTION_WHEEL_*RPM *WHEEL*_AMP *WHEEL*_COMMAND swfo_sc_100_BATTERY_*'
     'TEST':tplot,add=add,'swfo_sc_INST*_CURRENT_AMPS swfo_sc_*WHEEL* *sci_RATE6 *nse_HISTOGRAM *nse_SIGMA *nse_BASELINE *hkp1_CMDS_EXECUTED'
     'DELAY_ALL':tplot,add=add,'*DELAYTIME'
     'DELAY':tplot,add=add,'*2*DELAYTIME'
-    'WHEELS': tplot,add=add,'s*WHEEL_TORQUE s*WHEEL_SPEED_RPM s*WHEEL_CURRENT_AMPS s*WHEEL_BUS_CUR* s*IRU_BITS
-    'WHEELS1': tplot,add=add,'s*WHEEL_TOR_QUE s*WHEEL_SPEED_RPM s*WHEEL_BUS_CURRENT_AMPS s*IRU_BITS
+    'WHEELS': tplot,add=add,'s*WHEEL_TORQUE s*WHEEL_SPEED_RPM s*WHEEL_CURRENT_AMPS s*WHEEL_BUS_CUR* s*IRU_BITS'
+    'WHEELS1': tplot,add=add,'s*WHEEL_TOR_QUE s*WHEEL_SPEED_RPM s*WHEEL_BUS_CURRENT_AMPS s*IRU_BITS'
     'WHEEL1':begin
       split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
-      tplot,add=add,'*WHEEL_*_0
+      tplot,add=add,'*WHEEL_*_0'
       end
       'WHEEL2':begin
         split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
-        tplot,add=add,'*WHEEL_*_1
+        tplot,add=add,'*WHEEL_*_1'
       end
       'WHEEL3':begin
         split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
-        tplot,add=add,'*WHEEL_*_2
+        tplot,add=add,'*WHEEL_*_2'
       end
       'WHEEL4':begin
         split_vec,'*WHEEL_SPEED_RPM *WHEEL_CURRENT_AMPS'
-        tplot,add=add,'*WHEEL_*_3
+        tplot,add=add,'*WHEEL_*_3'
       end
     else: dprint,'Unknown code: '+strtrim(name,2)
   endcase

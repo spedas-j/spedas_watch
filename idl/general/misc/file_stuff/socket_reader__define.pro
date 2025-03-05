@@ -31,9 +31,9 @@
 ;    Davin Larson - January 2023
 ;    proprietary - D. Larson UC Berkeley/SSL
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-11-01 10:10:28 -0700 (Fri, 01 Nov 2024) $
-; $LastChangedRevision: 32917 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-04 10:57:07 -0800 (Tue, 04 Mar 2025) $
+; $LastChangedRevision: 33161 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_stuff/socket_reader__define.pro $
 ;
 ;-
@@ -170,7 +170,7 @@ function socket_reader::read_line,source,pos=pos ,eofile=eofile ;,nbytes=nb    ;
           buf = [buf,b]
           if b[0] eq self.eol then break
         endif else begin
-          dprint,verbose=self.verbose,dlevel=1,'End of file
+          dprint,verbose=self.verbose,dlevel=1,'End of file'
         endelse
         pos = pos+n
         if ~self.isasocket then eofile = eof(self.input_lun)

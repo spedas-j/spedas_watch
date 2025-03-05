@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-02-20 15:34:22 -0800 (Thu, 20 Feb 2025) $
-; $LastChangedRevision: 33142 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-04 10:57:07 -0800 (Tue, 04 Mar 2025) $
+; $LastChangedRevision: 33161 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -230,7 +230,7 @@ pro DynamicArray::append, a1, error = error,replace=replace
       error = prefix +": "+ error +" " + suffix
       dprint,verbose=self.verbose,dlevel=self.dlevel,error
       if ~keyword_set(size_error) then begin
-        dprint,verbose=self.verbose,dlevel=self.dlevel,'Attempting to concatenate using "relaxed structure assignment" (STRUCT_ASSIGN)
+        dprint,verbose=self.verbose,dlevel=self.dlevel,'Attempting to concatenate using "relaxed structure assignment" (STRUCT_ASSIGN)'
         a2=(*a0)[index:index+n1-1,*,*,*]
         struct_assign,a1,a2,/nozero ,verbose=self.verbose
         a1=a2

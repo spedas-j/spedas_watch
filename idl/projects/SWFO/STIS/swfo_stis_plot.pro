@@ -3,9 +3,9 @@
 ; Run using:
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-02-19 15:40:17 -0800 (Wed, 19 Feb 2025) $
-; $LastChangedRevision: 33141 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-04 10:57:07 -0800 (Tue, 04 Mar 2025) $
+; $LastChangedRevision: 33161 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -161,7 +161,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     u = h.uniq()
 
     
-    if param.lim.xunits eq 'ADC' then param.lim.xtitle = 'ADC units' else param.lim.xtitle = 'Deposited Energy (keV)
+    if param.lim.xunits eq 'ADC' then param.lim.xtitle = 'ADC units' else param.lim.xtitle = 'Deposited Energy (keV)'
 
     lim = param.lim
     ;box,lim

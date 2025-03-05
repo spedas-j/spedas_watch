@@ -1,5 +1,12 @@
 ; Routine to extract the coefficients eta1 and eta2
-; from level 1b alongside the merged flux.
+; from a level 1b structure for plotting alongside the
+; fluxes from the big pixel, tiny pixel, and merged flux.
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-04 11:38:00 -0800 (Tue, 04 Mar 2025) $
+; $LastChangedRevision: 33162 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hdr_tplot.pro $
+
+
 pro swfo_stis_hdr_tplot, level_1b_structs, add=add, elec=elec, ion=ion
 
 

@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-11 10:32:34 -0700 (Fri, 11 Oct 2024) $
-; $LastChangedRevision: 32884 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-04 10:57:07 -0800 (Tue, 04 Mar 2025) $
+; $LastChangedRevision: 33161 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/gsemsg_reader__define.pro $
 
 
@@ -331,7 +331,7 @@ pro gsemsg_reader::handle_old,buffer   ;,source_dict=source_dict
           ccsds_writer.directory = self.directory
           ccsds_writer.time_received = ccsds_dict.gse_header.time
           if ccsds_writer.getattr('output_lun') eq 0 then begin
-            dprint,'Are you sure about this?
+            dprint,'Are you sure about this?'
             ccsds_writer.output_lun = -1
             ;stop
           endif

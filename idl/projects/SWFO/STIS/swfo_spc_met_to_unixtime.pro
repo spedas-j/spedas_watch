@@ -7,9 +7,9 @@
 ;see also:  "spp_spc_unixtime_to_met" for the reverse conversion
 ; This routine is in the process of being modified to use SPICE Kernels to correct for clock drift as needed.
 ; Author: Davin Larson
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-03-20 10:09:28 -0700 (Wed, 20 Mar 2024) $
-; $LastChangedRevision: 32498 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-04 10:57:07 -0800 (Tue, 04 Mar 2025) $
+; $LastChangedRevision: 33161 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_spc_met_to_unixtime.pro $
 ;-
 function swfo_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=correct_clockdrift,reset=reset,ephemeris_time=et,kernels=kernels  ;,prelaunch = prelaunch
@@ -24,7 +24,7 @@ function swfo_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=corre
   if n_elements(cor_clkdrift) eq 0 then cor_clkdrift = 0b
 
   if keyword_set(cor_clkdrift) then begin
-    message,'Not implemented yet
+    message,'Not implemented yet'
     if  n_elements(kernel_verified) eq 0 || keyword_set(reset) then begin ; check for cspice first
       if spice_test() then begin
         ;       tls = spice_standard_kernels(/load) ;jmm, 22-sep-2014;  DEL, tls  included in call on next line
@@ -95,7 +95,7 @@ function swfo_spc_met_to_unixtime,input,reverse=reverse,correct_clockdrift=corre
   if ~cor_clkdrift then begin
     unixtime =  met +  epoch
   endif else begin
-    message,'Not implemented!
+    message,'Not implemented!'
     seconds = floor(met,/l64)
     subseconds = met mod 1
     subticks = round(subseconds*50000)
