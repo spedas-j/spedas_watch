@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2021-05-30 19:48:04 -0700 (Sun, 30 May 2021) $
-; $LastChangedRevision: 30012 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-03-12 12:58:15 -0700 (Wed, 12 Mar 2025) $
+; $LastChangedRevision: 33168 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ptp_file_read.pro $
 ; adding code
 
@@ -28,12 +28,15 @@ pro spp_ptp_file_read,files,dwait=dwait,no_products=no_products,no_clear=no_clea
     spp_ptp_lun_read,lun,info=info
     fst = fstat(lun)
     dprint,dlevel=2,'Compression: ',float(fst.cur_ptr)/fst.size
-    free_lun,lun
     if 0 then begin
       nextfile:
       dprint,!error_state.msg
+      printdat,!error_state
       dprint,'Skipping file'
+      spawn,'echo "Problem with cron job" | mailx -s "Cron error" rahmati@berkeley.edu'
+      message,'Aborting.'
     endif
+    free_lun,lun
   endfor
   dt = systime(1)-t0
   dprint,format='("Finished loading in ",f0.1," seconds")',dt
