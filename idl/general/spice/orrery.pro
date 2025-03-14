@@ -186,8 +186,8 @@
 ;                  (After all, space is black.)  Default = 1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-16 14:47:41 -0800 (Sun, 16 Feb 2025) $
-; $LastChangedRevision: 33132 $
+; $LastChangedDate: 2025-03-13 11:11:42 -0700 (Thu, 13 Mar 2025) $
+; $LastChangedRevision: 33169 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -544,7 +544,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
     if (iflg) then begin
       path = 'misc/spice/naif/Solar_Orbiter/kernels/spk/'
-      pathname = path + 'solo_ANC_soc-orbit_20200210-20301120_L016_V2_00025_V01.bsp'
+      pathname = path + 'solo_ANC_soc-orbit_20200210-20301120_L020_V1_00408_V01.bsp'
       fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
       indx = where(mk eq fname, count)
       if (count eq 0) then begin
@@ -560,7 +560,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 ; Parker Solar Probe
 
       path = 'misc/spice/naif/PSP/kernels/spk/'
-      pathname = path + 'spp_nom_20180812_20250831_v039_RO6.bsp'
+      pathname = path + 'spp_nom_20180812_20300101_v042_PostV7.bsp'
       fname = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
       indx = where(mk eq fname, count)
       if (count eq 0) then begin

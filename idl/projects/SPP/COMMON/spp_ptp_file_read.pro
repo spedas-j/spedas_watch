@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-03-12 12:58:15 -0700 (Wed, 12 Mar 2025) $
-; $LastChangedRevision: 33168 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2025-03-13 13:05:13 -0700 (Thu, 13 Mar 2025) $
+; $LastChangedRevision: 33171 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_ptp_file_read.pro $
 ; adding code
 
@@ -22,7 +22,7 @@ pro spp_ptp_file_read,files,dwait=dwait,no_products=no_products,no_clear=no_clea
     tplot_options,title=info.input_sourcename
     file_open,'r',info.input_sourcename,unit=lun,dlevel=3,compress=-1
     sizebuf = bytarr(2)
-    fi = file_info(info.input_sourcename)
+    fi = file_info_string(info.input_sourcename)
     dprint,dlevel=1,'Reading '+file_info_string(info.input_sourcename)+' LUN:'+strtrim(lun,2)
     if lun eq 0 then continue
     spp_ptp_lun_read,lun,info=info
@@ -32,8 +32,8 @@ pro spp_ptp_file_read,files,dwait=dwait,no_products=no_products,no_clear=no_clea
       nextfile:
       dprint,!error_state.msg
       printdat,!error_state
-      dprint,'Skipping file'
-      spawn,'echo "Problem with cron job" | mailx -s "Cron error" rahmati@berkeley.edu'
+      dprint,'Skipping file '+fi
+      spawn,'echo "'+str_sub(strjoin([scope_traceback(),fi,!error_state.msg,getenv(/e)],'\n'),'$','')+'" | mailx -s "spp_ptp_file_read error" rahmati@berkeley.edu'
       message,'Aborting.'
     endif
     free_lun,lun
