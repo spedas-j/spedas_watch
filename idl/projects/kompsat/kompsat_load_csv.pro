@@ -25,11 +25,11 @@
 ;
 ;   To download data as csv files, the user can use a web browser with the ESA HAPI web server.
 ;
-;   For example, the following URL downloads SOSMAG calibrated data (data product esa_gk2a_sosmag_recalib):
-;   https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_recalib&time.min=2024-05-11T01:00:00.000Z&time.max=2024-05-11T02:00:00.000Z&format=csv
+;   For example, the following URL downloads SOSMAG calibrated data (data product d3s_gk2a_sosmag_recalib):
+;   https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_recalib&time.min=2024-05-11T01:00:00.000Z&time.max=2024-05-11T02:00:00.000Z&format=csv
 ;
-;   The following downloads SOSMAG real-time data (data product esa_gk2a_sosmag_1m):
-;   https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_1m&time.min=2024-05-11T01:00:00.000Z&time.max=2024-05-11T02:00:00.000Z&format=csv
+;   The following downloads SOSMAG real-time data (data product d3s_gk2a_sosmag_1m):
+;   https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_1m&time.min=2024-05-11T01:00:00.000Z&time.max=2024-05-11T02:00:00.000Z&format=csv
 ;
 ;   The following downloads proton flux data (data product kma_gk2a_ksem_pd_p_l1):
 ;   https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/GEO-KOMPSAT-2A/kma_gk2a_ksem_pd_p_l1&time.min=2024-05-11T01:00:00.000Z&time.max=2024-05-11T02:00:00.000Z&format=csv
@@ -39,12 +39,12 @@
 ;
 ;
 ;   To find information on the variables for each data set, use the above links with 'info' instead of 'data' and 'json' instead of 'csv'. For example:
-;   https://swe.ssa.esa.int/hapi/info?id=spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_recalib&time.min=2024-05-11T01:00:00.000Z&time.max=2024-05-11T02:00:00.000Z&format=json
+;   https://swe.ssa.esa.int/hapi/info?id=spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_recalib&time.min=2024-05-11T01:00:00.000Z&time.max=2024-05-11T02:00:00.000Z&format=json
 ;
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2024-11-09 15:31:36 -0800 (Sat, 09 Nov 2024) $
-; $LastChangedRevision: 32939 $
+; $LastChangedDate: 2025-03-14 13:38:31 -0700 (Fri, 14 Mar 2025) $
+; $LastChangedRevision: 33177 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kompsat/kompsat_load_csv.pro $
 ;-
 

@@ -10,8 +10,8 @@
 ;     trange:     Time range of interest (array with 2 elements, start and end time)
 ;     dataset:    Four datasets are available: recalib (default), 1m, p, e
 ;                 Two datasets for SOSMAG magnetometer: recalib (recalibrated, default) and 1m (1 min, real-time):
-;                      'spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_recalib'
-;                      'spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_1m'
+;                      'spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_recalib'
+;                      'spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_1m'
 ;                 Two datasets for particle detector: e (electrons), p (protons):
 ;                      'spase://SSA/NumericalData/GEO-KOMPSAT-2A/kma_gk2a_ksem_pd_e_l1'
 ;                      'spase://SSA/NumericalData/GEO-KOMPSAT-2A/kma_gk2a_ksem_pd_p_l1'
@@ -22,8 +22,8 @@
 ;
 ;
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2024-11-09 15:31:36 -0800 (Sat, 09 Nov 2024) $
-;$LastChangedRevision: 32939 $
+;$LastChangedDate: 2025-03-14 13:38:31 -0700 (Fri, 14 Mar 2025) $
+;$LastChangedRevision: 33177 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kompsat/kompsat_load_data.pro $
 ;-
 
@@ -170,8 +170,8 @@ pro kompsat_load_data, trange=trange, dataset=dataset, prefix=prefix, suffix=suf
   endif else if dataset eq 'e' then begin
     dataid = 'spase://SSA/NumericalData/GEO-KOMPSAT-2A/kma_gk2a_ksem_pd_e_l1'
   endif else if dataset eq '1m' || dataset eq '1min' then begin
-    dataid = 'spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_1m'
-  endif else dataid = 'spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_recalib'
+    dataid = 'spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_1m'
+  endif else dataid = 'spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_recalib'
 
   dataURL = 'https://swe.ssa.esa.int/hapi/data?id=' + dataid + '&time.min=' + timemin + '&time.max=' + timemax + '&format=json'
 

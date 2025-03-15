@@ -1,9 +1,9 @@
 ;+
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-02-17 12:53:26 -0800 (Mon, 17 Feb 2025) $
-; $LastChangedRevision: 33137 $
+; $LastChangedBy: orlando $
+; $LastChangedDate: 2025-03-14 14:30:18 -0700 (Fri, 14 Mar 2025) $
+; $LastChangedRevision: 33180 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -55,7 +55,7 @@ pro spp_data_product::make_tplot_var,tagnames,prefix=prefix
       print,(tag_names(*self.data_ptr))
       return
     endif
-    if ~isa(prefix,/string) then prefix = self.name
+    if ~isa(prefix,/string) then prefix = self.name;+'_'
     store_data,prefix,data= *self.data_ptr,tagnames=strupcase(tagnames)
   endif
 end
@@ -134,9 +134,7 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
     endif else begin
       if n_elements(index) gt 1 && keyword_set(sum) then begin
         dprint,n_elements(index),verbose=verbose,dlevel=2
-        dprint,'Fix this error'
-        ;stop
-        ;dats = psp_swp_spx_sumdata(dats,trange=tr) ;bug! please fix before committing...
+        dats = spp_swp_spx_sumdata(dats,trange=tr)
       endif else begin
         if isa(trange) then dprint,dlevel=3,verbose=verbose,'returning all values within range'
       endelse

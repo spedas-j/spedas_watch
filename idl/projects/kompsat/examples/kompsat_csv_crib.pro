@@ -7,8 +7,8 @@
 ;
 ;
 ; $LastChangedBy: nikos $
-; $LastChangedDate: 2024-11-09 15:31:36 -0800 (Sat, 09 Nov 2024) $
-; $LastChangedRevision: 32939 $
+; $LastChangedDate: 2025-03-14 13:38:31 -0700 (Fri, 14 Mar 2025) $
+; $LastChangedRevision: 33177 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kompsat/examples/kompsat_csv_crib.pro $
 ;-
 
@@ -20,9 +20,9 @@ pro kompsat_csv_crib
   ; After authentication, the user can download SOSMAG data as a CSV file using a browser.
   ;
   ; For example, this URL downloads one hour of calibrated data:
-  ; https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_recalib&time.min=2021-01-31T01:00:00.000Z&time.max=2021-01-31T02:00:00.000Z&format=csv
+  ; https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_recalib&time.min=2021-01-31T01:00:00.000Z&time.max=2021-01-31T02:00:00.000Z&format=csv
   ; and the following URL downloads real-time data:
-  ; https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/GEO-KOMPSAT-2A/esa_gk2a_sosmag_1m&time.min=2021-01-31T01:00:00.000Z&time.max=2021-01-31T02:00:00.000Z&format=csv
+  ; https://swe.ssa.esa.int/hapi/data?id=spase://SSA/NumericalData/D3S/d3s_gk2a_sosmag_1m&time.min=2021-01-31T01:00:00.000Z&time.max=2021-01-31T02:00:00.000Z&format=csv
   ;
   ; After the user has downloaded the data, it can be read with kompsat_load_csv.pro.
   ; For this crib, we are going to use the file sosmag_test_data.csv
