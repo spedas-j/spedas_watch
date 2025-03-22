@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-02-13 14:40:21 -0800 (Thu, 13 Feb 2025) $
-; $LastChangedRevision: 33125 $
+; $LastChangedDate: 2025-03-21 13:30:26 -0700 (Fri, 21 Mar 2025) $
+; $LastChangedRevision: 33196 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -10,8 +10,8 @@ function swfo_stis_sci_apdat::decom,ccsds   ,source_dict=source_dict      ;,head
   str1=swfo_stis_ccsds_header_decom(ccsds)
   ;if str1.fpga_rev gt 209 then ccsds_data=ccsds_data[0:-3]
 
-  hkp = swfo_apdat('stis_hkp2')
-  hkp_sample = hkp.last_data       ; retrieve last hkp packet
+  ;hkp = swfo_apdat('stis_hkp2')
+  ;hkp_sample = hkp.last_data       ; retrieve last hkp packet
 
   if debug(3) then begin
     dprint,dlevel=2,'SST',ccsds.pkt_size, n_elements(ccsds_data), ccsds.apid,'  ', time_string(ccsds.time)
@@ -51,120 +51,132 @@ function swfo_stis_sci_apdat::decom,ccsds   ,source_dict=source_dict      ;,head
   ;  if duration eq 0 then duration = 1u   ; cluge to fix lack of proper output in early version FPGA
 
 
+  if 1 then begin
+    str2 = {$
+      nbins:    nbins,  $
+      counts:   fltarr(672) , $
+      valid: 1, $
+      gap:ccsds.gap}
 
-  ; Force all structures to have exactly 672 elements. If the LUT is being used then only the first 256 will be used
-  total6=fltarr(6)
-  total14=fltarr(14)
-  str2 = {$
-    nbins:    nbins,  $
-    counts:   fltarr(672) , $
-    total:    total(scidata),$
-    total2:   0.,$
-    total6:   total6,$
-    total14:  total14,$
-    rate:     0.,$
-    rate2:    0.,$
-  ;  rate6_raw:    total6,$
-    rate6    :    total6, $
-    scaled_rate6:total6,$
-  ;  rate14_raw:   total14,$
-    rate14:   total14,$
-    sigma14:  total14,$
-    avgbin14: total14,$
-    valid: 1, $
-    gap:ccsds.gap}
-
-  p=replicate(swfo_stis_nse_find_peak(),14)
-  if nbins eq 672 then begin
-
-    ;    for fto=1,7 do begin
-    ;      for tid=0,1 do begin
-    ;        bin=(fto-1)*2+tid
-    ;        total14[bin]=total(scidata[48*bin:48*bin+47])
-    ;      endfor
-    ;    endfor
-
-    d=reform(scidata,[48,14])
-
-    
-    dec = str1.DECIMATION_FACTOR_BITS
-    if dec ne 0 then begin
-      dec6 = [0,dec,ishft(dec,-2),0,ishft(dec,-4),ishft(dec,-6)]  and 3
-      scale6 = 2. ^ dec6
-      ;                      1     2    3      4     5      6      7
-      ;                     C1    C2   C12    C3    C13    C23   C123
-      scale14 = scale6[  [ 0,3,  1,4,  1,4,   2,5,   2,5,   2,5,   2,5    ]                       ]   ; Note :  still need to work on coincident decimation
-      dprint,verbose=self.verbose,dlevel=3,'Decimation is on! ',scale6
-      dprint,verbose=self.verbose,dlevel=3, scale14
-      for ch = 0,13 do begin
-        d[*,ch]  *= scale14[ch]
-      endfor
-
-    endif
-    
-
-
-    total14=total(d,1)
-
-
-    
-    
-    foreach tid,[0,1] do begin
-      total6[0+tid*3]=total14[0+tid]+total14[4+tid]+total14[ 8+tid]+total14[12+tid]
-      total6[1+tid*3]=total14[2+tid]+total14[4+tid]+total14[10+tid]+total14[12+tid]
-      total6[2+tid*3]=total14[6+tid]+total14[8+tid]+total14[10+tid]+total14[12+tid]
-    endforeach
-    str2.total2=total(total6)
-
-    for j=0,13 do begin
-      p[j]=swfo_stis_nse_find_peak(d[*,j])
-    endfor
+    str=create_struct(str1,str2)
+ 
 
   endif else begin
-    dprint,'mode not allowed',dlevel=2,verbose=self.verbose
+    ; Force all structures to have exactly 672 elements. If the LUT is being used then only the first 256 will be used
+    total6=fltarr(6)
+    total14=fltarr(14)
+    str2 = {$
+      nbins:    nbins,  $
+      counts:   fltarr(672) , $
+      total:    total(scidata),$
+      total2:   0.,$
+      total6:   total6,$
+      total14:  total14,$
+      rate:     0.,$
+      rate2:    0.,$
+      ;  rate6_raw:    total6,$
+      rate6    :    total6, $
+      scaled_rate6:total6,$
+      ;  rate14_raw:   total14,$
+      rate14:   total14,$
+      sigma14:  total14,$
+      avgbin14: total14,$
+      valid: 1, $
+      gap:ccsds.gap}
+
+    p=replicate(swfo_stis_nse_find_peak(),14)
+    if nbins eq 672 then begin
+
+      ;    for fto=1,7 do begin
+      ;      for tid=0,1 do begin
+      ;        bin=(fto-1)*2+tid
+      ;        total14[bin]=total(scidata[48*bin:48*bin+47])
+      ;      endfor
+      ;    endfor
+
+      d=reform(scidata,[48,14])
+
+
+      dec = str1.DECIMATION_FACTOR_BITS
+      if dec ne 0 then begin
+        dec6 = [0,dec,ishft(dec,-2),0,ishft(dec,-4),ishft(dec,-6)]  and 3
+        scale6 = 2. ^ dec6
+        ;                      1     2    3      4     5      6      7
+        ;                     C1    C2   C12    C3    C13    C23   C123
+        scale14 = scale6[  [ 0,3,  1,4,  1,4,   2,5,   2,5,   2,5,   2,5    ]                       ]   ; Note :  still need to work on coincident decimation
+        dprint,verbose=self.verbose,dlevel=3,'Decimation is on! ',scale6
+        dprint,verbose=self.verbose,dlevel=3, scale14
+        for ch = 0,13 do begin
+          d[*,ch]  *= scale14[ch]
+        endfor
+
+      endif
+
+
+
+      total14=total(d,1)
+
+
+
+
+      foreach tid,[0,1] do begin
+        total6[0+tid*3]=total14[0+tid]+total14[4+tid]+total14[ 8+tid]+total14[12+tid]
+        total6[1+tid*3]=total14[2+tid]+total14[4+tid]+total14[10+tid]+total14[12+tid]
+        total6[2+tid*3]=total14[6+tid]+total14[8+tid]+total14[10+tid]+total14[12+tid]
+      endforeach
+      str2.total2=total(total6)
+
+      for j=0,13 do begin
+        p[j]=swfo_stis_nse_find_peak(d[*,j])
+      endfor
+
+    endif else begin
+      dprint,'mode not allowed',dlevel=2,verbose=self.verbose
+    endelse
+
+
+
+    str2.counts=scidata
+    str2.total6=total6
+    str2.total14=total14
+    str2.rate=str2.total/str1.duration
+    str2.rate2=str2.total2/str1.duration
+    str2.rate6=total6/str1.duration
+    str2.scaled_rate6=str2.rate6/str1.pulser_frequency[0]
+    str2.rate14=total14/str1.duration
+    str2.sigma14=p.s
+    str2.avgbin14=p.x0
+    lut_map        = struct_value(hkp_sample,'USER_09',default=6b)
+    ;use_lut        = struct_value(hkp_sample,'xxxx',default=0b)   ; needs fixing
+    ;sci_nonlut_mode   = 1b and struct_value(hkp_sample,'SCI_MODE_BITS',default=0b)
+    sci_nonlut_mode   = (str1.detector_bits and 64) ne 0
+    sci_decimate = (str1.detector_bits and 128) ne 0
+    sci_resolution     = struct_value(hkp_sample,'SCI_RESOLUTION',default=3b)
+    sci_translate      = struct_value(hkp_sample,'SCI_TRANSLATE',default=0u)
+
+
+    str3={ $
+      ;use_lut: use_lut, $
+      lut_map: lut_map, $
+      sci_nonlut_mode: sci_nonlut_mode, $
+      sci_decimate: sci_decimate, $
+      sci_translate: sci_translate, $
+      sci_resolution: sci_resolution $
+    }
+
+    ;printdat,str3
+
+    str=create_struct(str1,str2,str3)
+
+    if debug(4) then begin
+
+      printdat,str
+      dprint,time_string(str.time,/local)
+    endif
+
   endelse
 
 
-
-  str2.counts=scidata
-  str2.total6=total6
-  str2.total14=total14
-  str2.rate=str2.total/str1.duration
-  str2.rate2=str2.total2/str1.duration
-  str2.rate6=total6/str1.duration
-  str2.scaled_rate6=str2.rate6/str1.pulser_frequency[0]
-  str2.rate14=total14/str1.duration
-  str2.sigma14=p.s
-  str2.avgbin14=p.x0
-
-
-  lut_map        = struct_value(hkp_sample,'USER_09',default=6b)
-  ;use_lut        = struct_value(hkp_sample,'xxxx',default=0b)   ; needs fixing
-  ;sci_nonlut_mode   = 1b and struct_value(hkp_sample,'SCI_MODE_BITS',default=0b)
-  sci_nonlut_mode   = (str1.detector_bits and 64) ne 0
-  sci_decimate = (str1.detector_bits and 128) ne 0
-  sci_resolution     = struct_value(hkp_sample,'SCI_RESOLUTION',default=3b)
-  sci_translate      = struct_value(hkp_sample,'SCI_TRANSLATE',default=0u)
-
-
-  str3={ $
-    ;use_lut: use_lut, $
-    lut_map: lut_map, $
-    sci_nonlut_mode: sci_nonlut_mode, $
-    sci_decimate: sci_decimate, $
-    sci_translate: sci_translate, $
-    sci_resolution: sci_resolution $
-  }
-
-  ;printdat,str3
-
-  str=create_struct(str1,str2,str3)
-
-  if debug(4) then begin
-
-    printdat,str
-    dprint,time_string(str.time,/local)
-  endif
 
   last_str =str
   return,str
@@ -185,9 +197,9 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
     pb = 0
     prefix= ''
   endelse
-  
+
   tname = prefix + 'swfo_stis_'
-  
+
   sciobj = swfo_apdat(0x350 or pb)   ; stis_sci
   nseobj = swfo_apdat(0x351 or pb)   ; stis_nse
   hkpobj = swfo_apdat(0x35f or pb)   ; stis_hkp2
@@ -206,15 +218,15 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
 
   if  ~obj_valid(self.level_0b) then begin
     dprint,'Creating Science level 0B for: '+self.name
-;    if 0 then begin
-;      l0b_format = self.get_ncdf_master_structure('sfwo_stis_l0b_MASTER.nc')
-;    endif else begin
-;      l0b_format =     swfo_stis_sci_level_0b()
-;    endelse
+    ;    if 0 then begin
+    ;      l0b_format = self.get_ncdf_master_structure('sfwo_stis_l0b_MASTER.nc')
+    ;    endif else begin
+    ;      l0b_format =     swfo_stis_sci_level_0b()
+    ;    endelse
     ddata = dynamicarray(name='Science_L0b')
-;    ddata.dict.format = l0b_format
+    ;    ddata.dict.format = l0b_format
     self.level_0b = ddata
- ;   first_level_0b = 1
+    ;   first_level_0b = 1
   endif
 
   if isa(self.level_0b,'dynamicarray') then begin
@@ -225,15 +237,15 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
       options,tname+'L0b_SCI_COUNTS',spec=1
     endif
   endif
-  
-  
-;  return
-  
-  
+
+
+  ;  return
+
+
   if  ~obj_valid(self.level_1a) then begin
     dprint,'Creating Science level 1a'
     self.level_1a = dynamicarray(name='Science_L1a')
-  endif 
+  endif
 
   L1a = swfo_stis_sci_level_1a(L0b)
 
@@ -283,7 +295,7 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
       trange = self.lastfile_time + [0,res]
       self.lastfile_time = floor( sci_last.time /res) * res
       dprint,dlevel=2,'Make new file ',time_string(self.lastfile_time,prec=3)+'  '+time_string(sci_last.time,prec=3)
-    endif else makefile = 0    
+    endif else makefile = 0
     if makefile then  begin
       self.ncdf_make_file,ddata=self.level_0b, trange=trange,type='L0B'
     endif
@@ -321,7 +333,7 @@ PRO swfo_stis_sci_apdat__define
 
   void = {swfo_stis_sci_apdat, $
     inherits swfo_gen_apdat, $    ; superclass
-;    inherits generic_apdat,  $
+    ;    inherits generic_apdat,  $
     level_xx: obj_new(),  $       ; This will be a an ordered hash that contains all higher level data products
     level_0b: obj_new(),  $       ; Level 0B data is stored in the "data" variable of swfo_gen_apdat
     ;level_0b_all: obj_new(),  $       ; This will hold a dynamic array of structures that include data from 3 STIS apids  (Science + Noise + hkp2)

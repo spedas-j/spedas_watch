@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2023-04-24 16:21:20 -0700 (Mon, 24 Apr 2023) $
-; $LastChangedRevision: 31787 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-21 12:05:54 -0700 (Fri, 21 Mar 2025) $
+; $LastChangedRevision: 33191 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_nse_apdat__define.pro $
 
 
@@ -33,17 +33,23 @@ function swfo_stis_nse_apdat::decom,ccsds,source_dict=source_dict      ;,header,
 
   str2 = {$
     histogram:float(nse_diff),$
-    total:total(nse_diff),$
-    total6:total(reform(nse_diff,[10,6]),1),$
     gap:ccsds.gap}
 
-  str3=create_struct(str1,str2)
-  str4=swfo_stis_nse_level_1(str3)
-  rate=str2.total/str1.duration
-  rate6=str2.total6/str1.duration
-  str5={rate:rate,scaled_rate6:rate6/str1.pulser_frequency[1],rate_div_six:rate/6.,baseline:str4.baseline,sigma:str4.sigma}
+  str=create_struct(str1,str2)
 
-  str=create_struct(str3,str5)
+  ; str2 = {$
+  ;   histogram:float(nse_diff),$
+  ;   total:total(nse_diff),$
+  ;   total6:total(reform(nse_diff,[10,6]),1),$
+  ;   gap:ccsds.gap}
+
+  ; str3=create_struct(str1,str2)
+  ; str4=swfo_stis_nse_level_1(str3)
+  ; rate=str2.total/str1.duration
+  ; rate6=str2.total6/str1.duration
+  ; str5={rate:rate,scaled_rate6:rate6/str1.pulser_frequency[1],rate_div_six:rate/6.,baseline:str4.baseline,sigma:str4.sigma}
+
+  ; str=create_struct(str3,str5)
 
   if debug(3) then begin
     printdat,str

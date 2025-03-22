@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-02-27 18:59:51 -0800 (Thu, 27 Feb 2025) $
-; $LastChangedRevision: 33156 $
+; $LastChangedDate: 2025-03-21 12:12:22 -0700 (Fri, 21 Mar 2025) $
+; $LastChangedRevision: 33194 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 ; Function that merges counts/fluxes/rates/efluxes from the small pixel
@@ -50,12 +50,13 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
   ; and big pixel AR2 (3)
   ; presumably ions
   small_O_bins = mapd.wh["o1"]
-  mid_O_bins = mapd.wh["o2"]
+  thick_O_bins = mapd.wh["o2"]
   big_O_bins = mapd.wh["o3"]
 
   small_F_bins = mapd.wh["f1"]
-  mid_F_bins = mapd.wh["f2"]
+  thick_F_bins = mapd.wh["f2"]
   big_F_bins = mapd.wh["f3"]
+  ; stop
 
   for i=0l,nd-1 do begin
     str = L1a_strcts[i]
@@ -74,8 +75,8 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
     ; w = where(deadtime_correction gt 10. or deadtime_correction lt .5,/null)
     ; deadtime_correction[w] = !values.f_nan
 
-    tot_rate_O = total([srate[small_O_bins], srate[big_O_bins], srate[mid_O_bins]])
-    tot_rate_F = total([srate[small_F_bins], srate[big_F_bins], srate[mid_F_bins]])
+    tot_rate_O = total([srate[small_O_bins], srate[big_O_bins], srate[thick_O_bins]])
+    tot_rate_F = total([srate[small_F_bins], srate[big_F_bins], srate[thick_F_bins]])
 
     deadtime_correction_O = 1 / (1- tot_rate_O*cal.deadtime)
     deadtime_correction_F = 1 / (1- tot_rate_F*cal.deadtime)
@@ -126,8 +127,8 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
 
     ; from GPA doc:
     ; sqrt(N) / 100 for total counts for param.range seconds.
-    eta1_ion =  0. > sqrt( total(ion_rate_small) * param.range  )/100 < 1.
-    eta1_elec =  0. > sqrt( total(elec_rate_small) * param.range  )/100 < 1.
+    eta1_ion =  0. > sqrt( total(ion_rate_small) * integration_time  )/100 < 1.
+    eta1_elec =  0. > sqrt( total(elec_rate_small) * integration_time  )/100 < 1.
 
     ; ; scaled poisson
     ; if tot_N_ion eq 0 then eta1_ion = 0. else  eta1_ion =  0. > sqrt( tot_N_ion  ) / tot_N_ion < 1.
@@ -154,7 +155,7 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
     ; elec_energy= elec_energy[w]
 
     sci_ex = {  $
-      integration_time : duration * period, $
+      integration_time : integration_time, $
       ; srate : srate , $
       ; crate : crate , $
       TID:  bins.tid,  $

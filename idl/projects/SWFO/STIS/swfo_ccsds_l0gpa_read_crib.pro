@@ -44,6 +44,11 @@ swfo_apdat_info,/create_tplot_vars,/all;,/print  ;  ,verbose=0
 
 
 
+;apdats = swfo_apdat('*')
+;for i= 0,n_elemenst(pdat
+
+
+
 sciobj = swfo_apdat('stis_sci')    ; This gets the object that contains all science products
 level_0b_da = sciobj.getattr('level_0b')  ; this a (dynamic) array of structures that contain all level_0B data
 level_1A_da = sciobj.getattr('level_1a')
