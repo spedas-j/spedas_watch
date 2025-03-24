@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
-; $LastChangedRevision: 32519 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-23 18:07:39 -0700 (Sun, 23 Mar 2025) $
+; $LastChangedRevision: 33198 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_ccsds_header_decom.pro $
 
 
@@ -32,7 +32,7 @@ function swfo_stis_ccsds_header_decom,ccsds
     noise_period:0b,$
     noise_res:0b,$
     duration:0,$
-    pulser_frequency:[0.,0.],$
+    ; pulser_frequency:[0.,0.],$
     packet_checksum_reported:0u,$
     packet_checksum_calculated:0u,$
     packet_checksum_match:2b $
@@ -42,7 +42,7 @@ function swfo_stis_ccsds_header_decom,ccsds
   str.noise_res=ishft(str.noise_bits,-8) and 7u
 
   if str.fpga_rev lt 'CC'x then timer_period=10 else timer_period=2.5 ;microseconds
-  str.pulser_frequency=[1.,.5]/(1e-6*timer_period*str.noise_period) ;[pulser,noise]
+  ; str.pulser_frequency=[1.,.5]/(1e-6*timer_period*str.noise_period) ;[pulser,noise]
 
   if str.fpga_rev gt 'd1'x then begin
     str.packet_checksum_reported=256u*ccsds_data[-2]+ccsds_data[-1]

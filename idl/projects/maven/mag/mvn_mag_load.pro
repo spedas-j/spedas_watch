@@ -8,21 +8,23 @@
 ; Purpose: Loads MAVEN mag data into tplot variables
 ;
 ; Author: Davin Larson and Roberto Livi
-; $LastChangedBy: ali $
-; $LastChangedDate: 2023-10-21 18:50:42 -0700 (Sat, 21 Oct 2023) $
-; $LastChangedRevision: 32205 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2025-03-23 14:45:46 -0700 (Sun, 23 Mar 2025) $
+; $LastChangedRevision: 33197 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/mag/mvn_mag_load.pro $
 ;-
 
 pro mvn_mag_load,format,trange=trange,files=files,download_only=download_only,tplot=tplot_flag,$
   format=format_old,source=source,verbose=verbose,pathname=pathname,data=str_all,spice_frame=spice_frame,$
-  timecrop=timecrop,mag_product=mag_product,sclk_ver=sclk_ver,mag_frame=mag_frame,l2only=l2only
+  timecrop=timecrop,mag_product=mag_product,sclk_ver=sclk_ver,mag_frame=mag_frame,l2only=l2only, $
+  onesec=onesec
 
   if n_elements(tplot_flag) eq 0  then tplot_flag  = 1
   if keyword_set(format_old)      then format      = format_old
   if size(format,/type) ne 7      then format      = 'L2_1SEC'
   if size(mag_product,/type) ne 7 then mag_product = 'MAG1'
   if size(mag_frame,/type) ne 7   then mag_frame   = 'pl'
+  if keyword_set(onesec)          then onesec      = '1s' else onesec = ''  ; STS files only
   l1_ok = ~keyword_set(l2only)
 
   mag_frame = strlowcase(mag_frame[0])
@@ -209,7 +211,7 @@ pro mvn_mag_load,format,trange=trange,files=files,download_only=download_only,tp
     end
 
     'L2_STS': begin
-      pathname = 'maven/data/sci/mag/l2/YYYY/MM/mvn_mag_l2_YYYYDOYpl_YYYYMMDD_v??_r??.sts'
+      pathname = 'maven/data/sci/mag/l2/YYYY/MM/mvn_mag_l2_YYYYDOYpl' + onesec + '_YYYYMMDD_v??_r??.sts'
       files=mvn_pfp_file_retrieve(pathname,/daily,trange=trange,source=source,verbose=verbose,files=files,/last_version,/valid_only)
       dprint,dlevel=2,verbose=verbose,'Reading '+file_info_string(files[0])
       str_all=mvn_mag_sts_read(files[0])
@@ -229,7 +231,8 @@ pro mvn_mag_load,format,trange=trange,files=files,download_only=download_only,tp
       str_all = str_temp
       str_temp = 0
       if ~keyword_set(download_only) then store_data,'mvn_B_sts_L2',str_all.time,transpose(str_all.vec)
-      options,/def,'mvn_B_sts_L2',level=level,labflag=-1,labels=['Bx','By','Bz'],colors='bgr',ysubtitle='[nT]'
+      options,/def,'mvn_B_sts_L2',level=level,labflag=-1,labels=['Bx','By','Bz'],colors='bgr',ysubtitle='[nT]', $
+                                  spice_frame='MAVEN_SPACECRAFT'
     end
 
     else: dprint,format+' Not found.'

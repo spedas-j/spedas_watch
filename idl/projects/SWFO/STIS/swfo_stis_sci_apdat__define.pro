@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-03-21 13:30:26 -0700 (Fri, 21 Mar 2025) $
-; $LastChangedRevision: 33196 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-23 18:07:39 -0700 (Sun, 23 Mar 2025) $
+; $LastChangedRevision: 33198 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -57,6 +57,7 @@ function swfo_stis_sci_apdat::decom,ccsds   ,source_dict=source_dict      ;,head
       counts:   fltarr(672) , $
       valid: 1, $
       gap:ccsds.gap}
+    str2.counts=scidata
 
     str=create_struct(str1,str2)
  
@@ -151,6 +152,7 @@ function swfo_stis_sci_apdat::decom,ccsds   ,source_dict=source_dict      ;,head
     ;sci_nonlut_mode   = 1b and struct_value(hkp_sample,'SCI_MODE_BITS',default=0b)
     sci_nonlut_mode   = (str1.detector_bits and 64) ne 0
     sci_decimate = (str1.detector_bits and 128) ne 0
+    ; sci_detectorenable = (str1.detector_bits and 63) ne 0
     sci_resolution     = struct_value(hkp_sample,'SCI_RESOLUTION',default=3b)
     sci_translate      = struct_value(hkp_sample,'SCI_TRANSLATE',default=0u)
 

@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-12-01 21:14:54 -0800 (Sun, 01 Dec 2024) $
-; $LastChangedRevision: 32978 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-23 18:07:39 -0700 (Sun, 23 Mar 2025) $
+; $LastChangedRevision: 33198 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_cal_params.pro $
 
 ;This routine should return a structure that contains calibration parameters.
@@ -48,7 +48,7 @@ function swfo_stis_cal_params,strct,reset=reset
     ewidth = DEL_ADC * kev_per_adc
     energy = (ADC_max + Adc_min)/2. * kev_per_adc + kev_dead_layer
     geom = gf_area  * ewidth
-    bad = where(energy lt 20.,/null)
+    bad = where(energy lt 20.,/null)   ; commented out
     geom[bad] = !values.f_nan
     bin_resp.geom = geom
     bin_resp.energy = energy

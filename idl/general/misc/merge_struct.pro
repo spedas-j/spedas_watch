@@ -3,6 +3,9 @@
 ;PURPOSE:
 ; Renames structure element with name "old_tag_name" or index "index",
 ; to "new_tag_name" in structure "struct_i".
+; 
+; This is equivalent to replace_tag.pro, but uses str_element and extract_tags.
+; It runs slower in merge_struct (0.13 sec) than replace_tag.pro (0.03 sec).
 ;
 ; Input:
 ;   struct_i - structure with tags
@@ -16,9 +19,9 @@
 ;
 ;LAST MODIFICATION: 
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-21 12:08:47 -0700 (Fri, 21 Mar 2025) $
-; $LastChangedRevision: 33193 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/merge_struct.pro $
+; $LastChangedDate: 2025-03-23 18:07:39 -0700 (Sun, 23 Mar 2025) $
+; $LastChangedRevision: 33198 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/merge_struct.pro $
 ;-
 
 
@@ -63,9 +66,9 @@ end
 ;FILE:  merge_struct.pro
 ;LAST MODIFICATION: 
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-21 12:08:47 -0700 (Fri, 21 Mar 2025) $
-; $LastChangedRevision: 33193 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/merge_struct.pro $
+; $LastChangedDate: 2025-03-23 18:07:39 -0700 (Sun, 23 Mar 2025) $
+; $LastChangedRevision: 33198 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/merge_struct.pro $
 ;-
 
 
@@ -175,8 +178,9 @@ if prepend_str_1 then begin
         ; new tag name:
         new_tag_name_i = prepend_str_1 + old_tag_name_i
 
-        rename_struct_tag, struct_1, new_tag_name_i, $
-            old_tag_name=old_tag_name_i, index=i, /remove
+        replace_tag, struct_1, old_tag_name_i, new_tag_name_i, struct_1.(i)
+        ; rename_struct_tag, struct_1, new_tag_name_i, $
+        ;     old_tag_name=old_tag_name_i, index=i, /remove
     endforeach
 endif
 
@@ -191,8 +195,9 @@ if prepend_str_2 then begin
         ; new tag name:
         new_tag_name_i = prepend_str_2 + old_tag_name_i
 
-        rename_struct_tag, struct_2, new_tag_name_i, $
-            old_tag_name=old_tag_name_i, index=i, /remove
+        replace_tag, struct_2, old_tag_name_i, new_tag_name_i, struct_2.(i)
+        ; rename_struct_tag, struct_2, new_tag_name_i, $
+        ;     old_tag_name=old_tag_name_i, index=i, /remove
     endforeach
 endif
 
