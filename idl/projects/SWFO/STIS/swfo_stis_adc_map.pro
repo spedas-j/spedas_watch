@@ -1,9 +1,9 @@
 ;+
 ;
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2023-11-15 10:49:27 -0800 (Wed, 15 Nov 2023) $
-; $LastChangedRevision: 32243 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-03-24 20:31:57 -0700 (Mon, 24 Mar 2025) $
+; $LastChangedRevision: 33200 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_adc_map.pro $
 ; $ID: $
 ;-
@@ -82,6 +82,16 @@ function swfo_stis_adc_map, data_sample=data_sample
   ftoi['f1'] =3
   ftoi['f2'] =5
   ftoi['f3'] =9
+  ; Adding coincidences:
+  ftoi['o12'] =6
+  ftoi['f12'] =7
+  ftoi['o13'] =10
+  ftoi['f13'] =11
+  ftoi['o23'] =12
+  ftoi['f23'] =13
+  ftoi['o123'] =14
+  ftoi['f123'] =15
+
   wh = orderedhash()
   
   center_adc_bins = [    234.06952     ,  228.35745    ,  231.78710     ,  232.06377      ,  232.78850      ,  231.65691    ]  

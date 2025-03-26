@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-04 10:57:07 -0800 (Tue, 04 Mar 2025) $
-; $LastChangedRevision: 33161 $
+; $LastChangedDate: 2025-03-24 20:34:45 -0700 (Mon, 24 Mar 2025) $
+; $LastChangedRevision: 33203 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -150,6 +150,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     wi,param.window
    
     l1a = swfo_stis_sci_level_1a(samples)
+    l1b = swfo_stis_sci_level_1b(l1a)
     ;h= [l1a.hash,0]   ; get the uniq segments
     ;up =   uniq(h)       
     ;u0= [0,up]
@@ -181,7 +182,9 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
       w = where(h eq u[i] and dh eq 0,/null,nw)
       if nw eq 0 then continue
       datw=l1a[w]
+      datw_b=l1b[w]
       dat = average(datw)
+      dat_b = average(datw_b)
       nc = n_elements(channels)
       for c = 0,nc-1 do begin
         ch = channels[c]
@@ -236,7 +239,11 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
           ch_cor = channels[0]
           ch_cor.color = 0
           ch_cor.y = j_hdr
+
+          oplot, datw_b.ion_energy, datw_b.ion_energy*datw_b.hdr_ion_flux, color=2, thick=3, psym=ch.psym
+          oplot, datw_b.elec_energy, datw_b.elec_energy*datw_b.hdr_elec_flux, color=1, thick=3, psym=ch.psym
           oplot,ch_cor.x,ch_cor.y ,color=5,psym=ch.psym,thick=3
+          ; stop
 
           ;tl dprint,dlevel=2,total(j1),total(j2), rate1,rate2, eta1,eta2
         endif

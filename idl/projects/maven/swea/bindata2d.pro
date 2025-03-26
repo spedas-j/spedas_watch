@@ -13,6 +13,9 @@
 ;              < 0 -> distribution is less peaked than a Gaussian
 ;              > 0 -> distribution is more peaked than a Gaussian
 ;
+;  Also calculates the median, lower quartile, upper quartile, minimum and
+;  maximum.
+;
 ;USAGE:
 ;  bindata2d, x, y, z
 ;INPUTS:
@@ -37,15 +40,15 @@
 ;
 ;       YRANGE:    The range for creating bins.  Default is [min(y),max(y)].
 ;
-;       RESULT:    A structure containing the moments, median, and the number
-;                  of points per bin.
+;       RESULT:    A structure containing the moments, median, quartiles, 
+;                  minimum, maximum, and the number of points per bin.
 ;
 ;       DST:       Stores the distribution for each bin.  Can take a lot of
 ;                  space.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-07-29 14:10:44 -0700 (Thu, 29 Jul 2021) $
-; $LastChangedRevision: 30158 $
+; $LastChangedDate: 2025-03-25 13:28:11 -0700 (Tue, 25 Mar 2025) $
+; $LastChangedRevision: 33205 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/bindata2d.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -82,6 +85,10 @@ pro bindata2d, x, y, z, xbins=xbins, dx=dx, xrange=xrange, ybins=ybins, $
   z_skew = z_mean
   z_kurt = z_mean
   z_medn = z_mean
+  z_lqrt = z_mean
+  z_uqrt = z_mean
+  z_min  = z_mean
+  z_max  = z_mean
   z_npts = lonarr(xbins,ybins)
 
   if (dodist) then begin
@@ -111,7 +118,13 @@ pro bindata2d, x, y, z, xbins=xbins, dx=dx, xrange=xrange, ybins=ybins, $
                  z_adev[j,k] = mdev
                  z_skew[j,k] = mom[2]
                  z_kurt[j,k] = mom[3]
-                 z_medn[j,k] = median(z[i])
+
+                 med = createboxplotdata(z[i])
+                 z_min[j,k]  = med[0]
+                 z_lqrt[j,k] = med[1]
+                 z_medn[j,k] = med[2]
+                 z_uqrt[j,k] = med[3]
+                 z_max[j,k]  = med[4]
                  if (dodist) then z_dist[j,k,0L:(count-1L)] = z[i]
                end
       endcase
@@ -119,7 +132,8 @@ pro bindata2d, x, y, z, xbins=xbins, dx=dx, xrange=xrange, ybins=ybins, $
   endfor
 
   result = {x:x_a, y:y_a, z:z_mean, sdev:z_sdev, adev:z_adev, $
-            skew:z_skew, kurt:z_kurt, med:z_medn, npts:z_npts}
+            skew:z_skew, kurt:z_kurt, med:z_medn, lqrt:z_lqrt, $
+            uqrt:z_uqrt, min:z_min, max:z_max, npts:z_npts}
 
   if (dodist) then str_element, result, 'dist', z_dist, /add
 

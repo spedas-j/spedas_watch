@@ -13,6 +13,9 @@
 ;              < 0 -> distribution is less peaked than a Gaussian
 ;              > 0 -> distribution is more peaked than a Gaussian
 ;
+;  Also calculates the median, lower quartile, upper quartile, minimum and
+;  maximum.
+;
 ;USAGE:
 ;  bindata, x, y
 ;INPUTS:
@@ -28,15 +31,15 @@
 ;
 ;       XRANGE:    The range for creating bins.  Default is [min(x),max(x)].
 ;
-;       RESULT:    A structure containing the moments, median, and the number
-;                  of points per bin.
+;       RESULT:    A structure containing the moments, median, quartiles, 
+;                  minimum, maximum, and the number of points per bin.
 ;
 ;       DST:       Stores the distribution for each bin.  Can take a lot of
 ;                  space but allows detailed inspection of statistics.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-07-29 14:10:44 -0700 (Thu, 29 Jul 2021) $
-; $LastChangedRevision: 30158 $
+; $LastChangedDate: 2025-03-25 13:28:11 -0700 (Tue, 25 Mar 2025) $
+; $LastChangedRevision: 33205 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/bindata.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -64,6 +67,10 @@ pro bindata, x, y, xbins=xbins, dx=dx, xrange=xrange, result=result, dst=dst
   y_skew = y_mean
   y_kurt = y_mean
   y_medn = y_mean
+  y_lqrt = y_mean
+  y_uqrt = y_mean
+  y_min  = y_mean
+  y_max  = y_mean
   y_npts = lonarr(xbins)
 
   if (dodist) then begin
@@ -88,14 +95,21 @@ pro bindata, x, y, xbins=xbins, dx=dx, xrange=xrange, result=result, dst=dst
                y_adev[j] = mdev
                y_skew[j] = mom[2]
                y_kurt[j] = mom[3]
-               y_medn[j] = median(y[i])
+
+               med = createboxplotdata(y[i])
+               y_min[j]  = med[0]
+               y_lqrt[j] = med[1]
+               y_medn[j] = med[2]
+               y_uqrt[j] = med[3]
+               y_max[j]  = med[4]
                if (dodist) then y_dist[j,0L:(count-1L)] = y[i]
              end
     endcase
   endfor
 
   result = {x:x_a, y:y_mean, sdev:y_sdev, adev:y_adev, $
-            skew:y_skew, kurt:y_kurt, med:y_medn, npts:y_npts}
+            skew:y_skew, kurt:y_kurt, med:y_medn, lqrt:y_lqrt, $
+            uqrt:y_uqrt, min:y_min, max:y_max, npts:y_npts}
 
   if (dodist) then str_element, result, 'dist', y_dist, /add
 

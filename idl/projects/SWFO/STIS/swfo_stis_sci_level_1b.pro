@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-21 12:12:22 -0700 (Fri, 21 Mar 2025) $
-; $LastChangedRevision: 33194 $
+; $LastChangedDate: 2025-03-24 20:34:11 -0700 (Mon, 24 Mar 2025) $
+; $LastChangedRevision: 33202 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 ; Function that merges counts/fluxes/rates/efluxes from the small pixel
@@ -33,89 +33,72 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
 
   ; pull map for first str
   str_0 = L1a_strcts[0]
-  mapd = swfo_stis_adc_map(data_sample=str_0)
   cal = swfo_stis_cal_params(str_0,reset=reset)
   if ~isa(cal) then return,!null
   bins = cal.prot_resp
   elec_resp = cal.elec_resp
   geom = bins.geom  ; this is the same for elecs and protons
-  energy = bins.energy
 
-  w = where(bins.species eq 1,/null)
-  ion_energy= energy[w]
-  w = where(elec_resp.species eq 0,/null)
-  elec_energy= energy[w]
 
-  ; Indices of the ion (O) and electron (F) in small pixel AR1 (1)
-  ; and big pixel AR2 (3)
-  ; presumably ions
-  small_O_bins = mapd.wh["o1"]
-  thick_O_bins = mapd.wh["o2"]
-  big_O_bins = mapd.wh["o3"]
-
-  small_F_bins = mapd.wh["f1"]
-  thick_F_bins = mapd.wh["f2"]
-  big_F_bins = mapd.wh["f3"]
-  ; stop
 
   for i=0l,nd-1 do begin
     str = L1a_strcts[i]
+    ; stop
 
-    n_energy = cal.n_energy
-    duration = str.sci_duration
+    ; approximate period (in seconds) of Version 64 FPGA
+    integration_time = str.sci_duration * cal.period
 
-    period = cal.period   ; approximate period (in seconds) of Version 64 FPGA
-    integration_time = duration * period
-    srate  = str.sci_counts/integration_time          ; srate is the measured (actual)  count rate
+    ; get the energies:
+    ion_energy  = str.spec_O1_nrg
+    elec_energy = str.spec_F1_nrg
+    ion_denergy  = str.spec_O1_dnrg
+    elec_denergy = str.spec_F1_dnrg
 
     ; Determine deadtime correctons here
+    ; srate is the total count rate in each detector for deadtime
+    ; (summed over coincidences):
+    ; O1/F1 first (tiny pixel)
+    srate_O1 = total(str.rate_O1 + str.rate_O12 + str.rate_O13 + str.rate_O123)
+    srate_F1 = total(str.rate_F1 + str.rate_F12 + str.rate_F13 + str.rate_F123)
+    ; O3/F3 next (big pixel)
+    srate_O3 = total(str.rate_O3 + str.rate_O13 + str.rate_O23 + str.rate_O123)
+    srate_F3 = total(str.rate_F3 + str.rate_F13 + str.rate_F23 + str.rate_F123)
+
+    ; Nonparalyzable deadtime in O1/F1 (tiny pixel AKA AR1)
+    deadtime_correction_O1 = 1 / (1- srate_O1*cal.deadtime)
+    deadtime_correction_F1 = 1 / (1- srate_F1*cal.deadtime)
+    ; Nonparalyzable deadtime in O3/F3 (big pixel AKA AR2)
+    deadtime_correction_O3 = 1 / (1- srate_O3*cal.deadtime)
+    deadtime_correction_F3 = 1 / (1- srate_F3*cal.deadtime)
+
+    ; formulation from gpa doc:
+    ; get the deadtime prefactor:
+    ; This accepts the big pixel if the deadtime correction below 1.2
+    ; and de-emphasizes it as deadtime correction exceeds 1.8.
+    ; eta2 = 0. > (1.8- deadtime_correction)*.4 < 1.
+    eta2_O = 0. > (1.8- deadtime_correction_O3)*(1/(1.8-1.2)) < 1.
+    eta2_F = 0. > (1.8- deadtime_correction_F3)*(1/(1.8-1.2)) < 1.
+
     ; rate14 = str.total14/ integration_time    ; this needs to be checked
-    ; Exrate = reform(replicate(1,n_energy) # rate14,n_energy * 14)
+    ; Exrate = reform(replicate(1,cal.n_energy) # rate14,cal.n_energy * 14)
     ; deadtime_correction = 1 / (1- exrate*cal.deadtime)
     ; w = where(deadtime_correction gt 10. or deadtime_correction lt .5,/null)
     ; deadtime_correction[w] = !values.f_nan
-
-    tot_rate_O = total([srate[small_O_bins], srate[big_O_bins], srate[thick_O_bins]])
-    tot_rate_F = total([srate[small_F_bins], srate[big_F_bins], srate[thick_F_bins]])
-
-    deadtime_correction_O = 1 / (1- tot_rate_O*cal.deadtime)
-    deadtime_correction_F = 1 / (1- tot_rate_F*cal.deadtime)
-
     ; Alternate: Taylor expand to avoid singularity:
     ; deadtime_correction = 1 + exrate * cal.deadtime
     ; if total(rate14) gt 1000 then stop
-    ; print, deadtime_correction
-    ; stop
 
-    ; crate is the count rate corrected for deadtime
-    crate_O  = srate * deadtime_correction_O    
-    crate_F  = srate * deadtime_correction_F
-    flux_O = crate_O / geom
-    flux_F = crate_F / geom
+    ; Apply deadtime correction to flux & rate:
+    ; rate is the count rate corrected for deadtime
+    ion_rate_small = str.rate_O1 * deadtime_correction_O1
+    ion_rate_big = str.rate_O3 * deadtime_correction_O3
+    ion_flux_small = str.spec_O1 * deadtime_correction_O1
+    ion_flux_big = str.spec_O3 * deadtime_correction_O3
 
-    ; get the deadtime prefactor:
-    ; eta2 = 0. > (1.8- deadtime_correction)*.4 < 1.
-
-    ; formulation from gpa doc:
-    ; This accepts the big pixel if the deadtime correction below 1.2
-    ; and de-emphasizes it as deadtime correction exceeds 1.8.
-    eta2_O = 0. > (1.8- deadtime_correction_O)*(1/(1.8-1.2)) < 1.
-    eta2_F = 0. > (1.8- deadtime_correction_F)*(1/(1.8-1.2)) < 1.
-    ; print, cal.deadtime * total(rate14), mean(eta2)
-
-    ; bins = cal.elec_resp
-    ; elec_flux = crate / bins.geom
-    ; elec_energy = bins.energy
-    ; w = where(bins.species eq 0,/null,nw)
-    ; elec_flux = elec_flux[w]
-    ; elec_energy= elec_energy[w]
-    
-
-    ion_rate_small = crate_O[small_O_bins]
-    ion_rate_big = crate_O[big_O_bins]
-
-    elec_rate_small = crate_F[small_F_bins]
-    elec_rate_big = crate_F[big_F_bins]
+    elec_rate_small = str.rate_F1 * deadtime_correction_F1
+    elec_rate_big = str.rate_F3 * deadtime_correction_F3
+    elec_flux_small = str.spec_F1 * deadtime_correction_F1
+    elec_flux_big = str.spec_F3 * deadtime_correction_F3
 
     tot_N_ion = total(ion_rate_small)
     tot_N_elec = total(elec_rate_small)
@@ -136,14 +119,10 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
 
     ; stop
 
-    hdr_ion_flux = swfo_stis_hdr(flux_O[big_O_bins], flux_O[small_O_bins], $
+    hdr_ion_flux = swfo_stis_hdr(ion_flux_big, ion_flux_small, $
       eta_smallpixel=eta1_ion, eta_largepixel=eta2_O)
-    hdr_elec_flux = swfo_stis_hdr(flux_F[big_F_bins], flux_F[small_F_bins], $
+    hdr_elec_flux = swfo_stis_hdr(elec_flux_big, elec_flux_small, $
       eta_smallpixel=eta1_ion, eta_largepixel=eta2_F)
-
-    ; Previous way:
-    ion_flux = flux_O[big_O_bins]
-    elec_flux = flux_F[big_F_bins]
 
     ; ion_energy = bins.energy
     ; w = where(bins.species eq 1,/null)
@@ -158,21 +137,21 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
       integration_time : integration_time, $
       ; srate : srate , $
       ; crate : crate , $
-      TID:  bins.tid,  $
-      FTO:  bins.fto,  $
-      geom:  bins.geom,  $
-      ewidth: bins.ewidth,  $
+      ; TID:  bins.tid,  $
+      ; FTO:  bins.fto,  $
+      ; geom:  bins.geom,  $
+      ewidth: ion_denergy,  $
       ion_energy: ion_energy,   $   ; midpoint energy
-      ion_flux :   ion_flux,  $
-      tiny_ion_flux :   flux_O[small_O_bins],  $
+      AR1_ion_flux :   ion_flux_small,  $
+      AR2_ion_flux :   ion_flux_big,  $
       hdr_ion_flux :   hdr_ion_flux,  $
       eta2_ion: eta2_O, $
       eta2_elec: eta2_F, $
       eta1_ion: eta1_ion, $
       eta1_elec: eta1_elec, $
       elec_energy:  elec_energy, $
-      tiny_elec_flux :   flux_F[small_F_bins],  $
-      elec_flux:  elec_flux, $
+      AR1_elec_flux :   elec_flux_small,  $
+      AR2_elec_flux :   elec_flux_big,  $
       hdr_elec_flux:  hdr_elec_flux, $
       lut_id: 0 }
 
