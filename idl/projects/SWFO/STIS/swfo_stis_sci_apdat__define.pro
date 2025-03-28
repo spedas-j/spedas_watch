@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-23 18:07:39 -0700 (Sun, 23 Mar 2025) $
-; $LastChangedRevision: 33198 $
+; $LastChangedDate: 2025-03-27 18:12:48 -0700 (Thu, 27 Mar 2025) $
+; $LastChangedRevision: 33207 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -94,26 +94,6 @@ function swfo_stis_sci_apdat::decom,ccsds   ,source_dict=source_dict      ;,head
       ;        total14[bin]=total(scidata[48*bin:48*bin+47])
       ;      endfor
       ;    endfor
-
-      d=reform(scidata,[48,14])
-
-
-      dec = str1.DECIMATION_FACTOR_BITS
-      if dec ne 0 then begin
-        dec6 = [0,dec,ishft(dec,-2),0,ishft(dec,-4),ishft(dec,-6)]  and 3
-        scale6 = 2. ^ dec6
-        ;                      1     2    3      4     5      6      7
-        ;                     C1    C2   C12    C3    C13    C23   C123
-        scale14 = scale6[  [ 0,3,  1,4,  1,4,   2,5,   2,5,   2,5,   2,5    ]                       ]   ; Note :  still need to work on coincident decimation
-        dprint,verbose=self.verbose,dlevel=3,'Decimation is on! ',scale6
-        dprint,verbose=self.verbose,dlevel=3, scale14
-        for ch = 0,13 do begin
-          d[*,ch]  *= scale14[ch]
-        endfor
-
-      endif
-
-
 
       total14=total(d,1)
 

@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-24 20:33:09 -0700 (Mon, 24 Mar 2025) $
-; $LastChangedRevision: 33201 $
+; $LastChangedDate: 2025-03-27 18:12:48 -0700 (Thu, 27 Mar 2025) $
+; $LastChangedRevision: 33207 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -10,16 +10,22 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
   nd = n_elements(l0b_strcts)  
   
   nan48=replicate(!values.f_nan,48)
-  
+
   L1a = {swfo_stis_L1a,  $
     time:0d, $
     time_unix: 0d, $
     time_MET:  0d, $
     time_GR:  0d, $
     hash:   0UL, $
+    ; noise columns:
+    noise_res: 0b, $
+    noise_total: replicate(0.,6),  $
+    noise_baseline: replicate(!values.f_nan,6),  $
+    noise_sigma: replicate(!values.f_nan,6),  $
     sci_duration: 0u , $
     sci_nbins:   0u,  $
     sci_counts : replicate(!values.f_nan,672),  $
+    ; nse_noise_res: , $
 ;    sci_adc    : replicate(!values.f_nan,672),  $
 ;    sci_dadc    : replicate(!values.f_nan,672),  $
     total14:  fltarr(14) , $
@@ -84,6 +90,33 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     d = L0b_str.sci_counts
     d = reform(d,48,14)
     
+    ; Moved from swfo_stis_sci_apdat__define
+    ; when decimation active (e.g. high count rates)
+    ; drops in sensitivity to allow resolution of higher fluxes
+    dec = L0b_str.sci_decimation_factor_bits
+    if dec ne 0 then begin
+      ; Channels 2, 3, 5, and 6
+      dec6 = [0,dec,ishft(dec,-2),0,ishft(dec,-4),ishft(dec,-6)]  and 3
+      scale6 = 2. ^ dec6
+      ;                      1     2    3      4     5      6      7
+      ;                     C1    C2   C12    C3    C13    C23   C123
+      scale14 = scale6[  [ 0,3,  1,4,  1,4,   2,5,   2,5,   2,5,   2,5    ]                       ]   ; Note :  still need to work on coincident decimation
+      dprint,dlevel=3,'Decimation is on! ',scale6
+      dprint,dlevel=3, scale14
+      for ch = 0,13 do begin
+        d[*,ch]  *= scale14[ch]
+      endfor
+    endif
+
+    ; Noise value determination (copied from swfo_stis_nse_apdat::handler2)
+    nse_level_1_str = swfo_stis_nse_level_1(L0b_str, /from_l0b)
+    l1a.noise_res = nse_level_1_str.noise_res
+    l1a.noise_total = nse_level_1_str.noise_total
+    l1a.noise_baseline = nse_level_1_str.noise_baseline
+    l1a.noise_sigma = nse_level_1_str.noise_sigma
+
+    ; stop
+
     total14=total(d,1)
     total6 = fltarr(6)
 
@@ -108,6 +141,8 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     ; adc = mapd.adc
     ; dadc = mapd.dadc
     ; stop
+
+
 
     if 1 then begin
 

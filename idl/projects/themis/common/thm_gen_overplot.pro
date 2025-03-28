@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2025-03-25 12:58:03 -0700 (Tue, 25 Mar 2025) $
-;$LastChangedRevision: 33204 $
+;$LastChangedDate: 2025-03-27 11:07:46 -0700 (Thu, 27 Mar 2025) $
+;$LastChangedRevision: 33206 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -364,7 +364,7 @@ For i=0,n_elements(fbk_tvars)-1 Do Begin
                  If(match2[0] Ne -1) Then fft_use = fft_tvars[match2[0]] $
                  Else fft_use = fft_tvars[match1[0]]
               Endif
-           Endif ;if no match to 'edc' or 'scm', the do nothing
+           Endif ;if no match to 'edc' or 'scm', then do nothing
         Endelse
      Endif
      If(is_string(fft_use)) Then Begin
@@ -375,7 +375,8 @@ For i=0,n_elements(fbk_tvars)-1 Do Begin
         options, fbk_tvars[i], 'zlog', 1
         options, fbk_tvars[i], 'ytitle', 'FBK-FFT!C'+strmid(fbk_tvars[i], 7) +'!C[Hz]'
      Endif
-     If(time_double(date) Ge time_double('2025-02-01')) Then ylim, fbk_tvars[i], 20.0, 2048.0, 1
+     If(time_double(date) Ge time_double('2025-02-01')) Then ylim, fbk_tvars[i], 20.0, 2048.0, 1 $
+     Else ylim, fbk_tvars[i], 9.5, 2048.0, 1
   Endif
 Endfor
 

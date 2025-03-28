@@ -37,10 +37,10 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       tod_day: 0ul, $
       tod_millisec: 0ul, $
       tod_microsec: 0ul, $
-      ; delay times:
-      sci_delaytime: nan, $
-      hkp_delaytime: nan, $
-      nse_delaytime: nan, $
+      ; relative time differences between
+      ; science and housekeeping/noise packets
+      hkp_offset: 0d,$
+      nse_offset: 0d,$
       ; these headers are invariant across nse/hkp/sci
       fpga_rev:   0b,  $
       user_09:   0b,  $
@@ -48,6 +48,9 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       sci_time_delta: 0d, $
       hkp_time_delta: 0d, $
       nse_time_delta: 0d, $
+      sci_delaytime: 0d, $
+      hkp_delaytime: 0d, $
+      nse_delaytime: 0d, $
       sci_apid:   0u,  $
       hkp_apid:   0u,  $
       nse_apid:   0u,  $
@@ -88,16 +91,15 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       nse_duration:  0u, $
       ; These are set in swfo_stis_ccsds_header_decom,
       ; but currently fixed.
-      sci_packet_checksum_reported:  0u,  $
-      hkp_packet_checksum_reported:  0u,  $
-      nse_packet_checksum_reported:  0u,  $
-      sci_packet_checksum_calculated:  0u,  $
-      hkp_packet_checksum_calculated:  0u,  $
-      nse_packet_checksum_calculated:  0u,  $
-      sci_packet_checksum_match:  0b,  $
-      hkp_packet_checksum_match:  0b,  $
-      nse_packet_checksum_match:  0b,  $
-      ; gap:
+      ; sci_packet_checksum_reported:  0u,  $
+      ; hkp_packet_checksum_reported:  0u,  $
+      ; nse_packet_checksum_reported:  0u,  $
+      ; sci_packet_checksum_calculated:  0u,  $
+      ; hkp_packet_checksum_calculated:  0u,  $
+      ; nse_packet_checksum_calculated:  0u,  $
+      ; sci_packet_checksum_match:  0b,  $
+      ; hkp_packet_checksum_match:  0b,  $
+      ; nse_packet_checksum_match:  0b,  $
       sci_gap:  0b,  $
       hkp_gap:  0b,  $
       nse_gap:  0b,  $
@@ -108,9 +110,9 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       pps_timeout_100ms:  0b, $
       cmd_fifo_write_ptr:  0u, $
       cmd_fifo_read_ptr:  0u, $
-      cmds_remaining: 0., $ ; not currently in spreadsheet
-      cmds_received: 0., $ ; not currently in spreadsheet
-      cmds_executed: 0., $ ; not currently in spreadsheet
+      cmds_remaining: 0u, $ ; not currently in spreadsheet
+      cmds_received: 0u, $ ; not currently in spreadsheet
+      cmds_executed: 0u, $ ; not currently in spreadsheet
       cmds_executed2:  0u, $ ; u? not b?
       cmds_ignored: 0b, $
       cmds_unknown: 0b, $
@@ -170,11 +172,11 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       temp_sensor1: 0., $
       temp_sensor2: 0., $
       adc_baselines: replicate(0., 6),$
-      adc_voltages: replicate(0., 5),$  ; not currently in spreadsheet
-      adc_temps: replicate(0., 3),$  ; not currently in spreadsheet
-      mux_all: replicate(0., 16),$ ; not currently in spreadsheet
-      hkp_replay: 0b, $ ; not currently in spreadsheet
-      hkp_valid: 0b, $ ; not currently in spreadsheet
+      ; adc_voltages: replicate(0., 5),$  ; not currently in spreadsheet
+      ; adc_temps: replicate(0., 3),$  ; not currently in spreadsheet
+      ; mux_all: replicate(0., 16),$ ; not currently in spreadsheet
+      ; hkp_replay: 0b, $ ; not currently in spreadsheet, only for IDL - useful for debugging, different var names for replay
+      ; hkp_valid: 0b, $ ; not currently in spreadsheet, only for IDL - placeholder
       ; sci data
       sci_nbins:      672l, $
       sci_counts: replicate(nan, 672),$
@@ -252,11 +254,18 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     output.temp_sensor1 = hkp_dat.temp_sensor1
     output.temp_sensor2 = hkp_dat.temp_sensor2
     output.adc_baselines = hkp_dat.adc_baselines
-    output.adc_voltages = hkp_dat.adc_voltages  ; not currently in spreadsheet
-    output.adc_temps = hkp_dat.adc_temps  ; not currently in spreadsheet
-    output.mux_all = hkp_dat.mux_all ; not currently in spreadsheet
-    output.hkp_replay = hkp_dat.replay ; not currently in spreadsheet
-    output.hkp_valid = hkp_dat.valid ; not currently in spreadsheet
+
+    ; Opted to not include the following in l0b files, which
+    ; are convenience variables for each packet:
+    ; output.adc_voltages = hkp_dat.adc_voltages
+    ; output.adc_temps = hkp_dat.adc_temps
+    ; output.mux_all = hkp_dat.mux_al
+
+    ; Opted to not include the replay (encoded in filename,
+    ; as replay files have different names), valid redundant
+    ; quality flag:
+    ; output.hkp_replay = hkp_dat.replay
+    ; output.hkp_valid = hkp_dat.valid
 
     ; from packet headers (swfo_stis_ccsds_header_decom.pro):
     output.time       = sci_dat.time
@@ -266,23 +275,27 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     output.tod_day  = sci_dat.tod_day
     output.tod_millisec  = sci_dat.tod_millisec
     output.tod_microsec= sci_dat.tod_microsec
+
+    ; Instead of recording time, met, grtime, unixtime
+    ; tod_day, tod_millisec, tod_microsec for each packet,
+    ; get nse/hkp_offset:
+    output.hkp_offset = sci_dat.time - hkp_dat.time
+    output.nse_offset = sci_dat.time - nse_dat.time
+
     ; Always same across nse_dat/hkp_dat/sci_dat
     output.fpga_rev = hkp_dat.fpga_rev
     output.user_09 = hkp_dat.user_09
+
+    ; Reead the header info for each packet even if
+    ; redundant for debugging:
     ; - time_delta (swfo_ccsds_data)
     output.hkp_time_delta = hkp_dat.time_delta
     output.sci_time_delta = sci_dat.time_delta
     output.nse_time_delta = nse_dat.time_delta
     ; ; - delaytime (swfo_ccsds_data)
-    ; output.hkp_delaytime = hkp_dat.delaytime
-    ; output.sci_delaytime = sci_dat.delaytime
-    ; output.nse_delaytime = nse_dat.delaytime
-    ; Instead of recording time, met, grtime,
-    ; and tod_day, tod_millisec, tod_microsec, get
-    ; delay_times:
-    output.sci_delaytime = sci_dat.grtime - sci_dat.time
-    output.hkp_delaytime = sci_dat.time - hkp_dat.time
-    output.nse_delaytime = sci_dat.time - nse_dat.time
+    output.hkp_delaytime = hkp_dat.delaytime
+    output.sci_delaytime = sci_dat.delaytime
+    output.nse_delaytime = nse_dat.delaytime
     ; - APID (swfo_ccsds_data)
     output.hkp_apid = hkp_dat.apid
     output.sci_apid = sci_dat.apid
@@ -331,17 +344,19 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     output.hkp_duration = hkp_dat.duration
     output.sci_duration = sci_dat.duration
     output.nse_duration = nse_dat.duration
-    ; packet_checksums:
-    output.hkp_packet_checksum_reported = hkp_dat.packet_checksum_reported
-    output.sci_packet_checksum_reported = sci_dat.packet_checksum_reported
-    output.nse_packet_checksum_reported = nse_dat.packet_checksum_reported
-    output.hkp_packet_checksum_calculated = hkp_dat.packet_checksum_calculated
-    output.sci_packet_checksum_calculated = sci_dat.packet_checksum_calculated
-    output.nse_packet_checksum_calculated = nse_dat.packet_checksum_calculated
-    output.hkp_packet_checksum_match = hkp_dat.packet_checksum_match
-    output.sci_packet_checksum_match = sci_dat.packet_checksum_match
-    output.nse_packet_checksum_match = nse_dat.packet_checksum_match
-    ; - Gap
+    ; ; packet_checksums:
+    ; NOT INCLUDED -- these are not actually reported
+    ; for this instrument.
+    ; output.hkp_packet_checksum_reported = hkp_dat.packet_checksum_reported
+    ; output.sci_packet_checksum_reported = sci_dat.packet_checksum_reported
+    ; output.nse_packet_checksum_reported = nse_dat.packet_checksum_reported
+    ; output.hkp_packet_checksum_calculated = hkp_dat.packet_checksum_calculated
+    ; output.sci_packet_checksum_calculated = sci_dat.packet_checksum_calculated
+    ; output.nse_packet_checksum_calculated = nse_dat.packet_checksum_calculated
+    ; output.hkp_packet_checksum_match = hkp_dat.packet_checksum_match
+    ; output.sci_packet_checksum_match = sci_dat.packet_checksum_match
+    ; output.nse_packet_checksum_match = nse_dat.packet_checksum_match
+    ; - gap
     output.hkp_gap = hkp_dat.gap
     output.sci_gap = sci_dat.gap
     output.nse_gap = nse_dat.gap
@@ -349,7 +364,6 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     ; nse:
     output.nse_histogram =  nse_dat.histogram
     ;  output.nse_raw= nse_dat.raw
-
     ; output.nse_sigma = nse_dat.sigma
     ; output.nse_baseline = nse_dat.baseline
     ; output.nse_total6 = nse_dat.total6
