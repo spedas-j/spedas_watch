@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2025-03-27 11:07:46 -0700 (Thu, 27 Mar 2025) $
-;$LastChangedRevision: 33206 $
+;$LastChangedDate: 2025-03-28 14:19:54 -0700 (Fri, 28 Mar 2025) $
+;$LastChangedRevision: 33209 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -370,13 +370,24 @@ For i=0,n_elements(fbk_tvars)-1 Do Begin
      If(is_string(fft_use)) Then Begin
         If(fbk_inst Eq 'edc') Then scale = 20.0 Else scale = 0.2
         fbk_tvars[i] = thm_ffffbk_composite(fft_use, fbk_tvars[i], scale = scale)
+;replace zero values with NaN
+        get_data, fbk_tvars[i], data = dd
+        zv = where(dd.y Eq 0, nzv)
+        If(nzv Gt 0) Then dd.y[zv] = !values.f_nan
+        store_data, fbk_tvars[i], data = temporary(dd)
+;Set limits after setting zero values to NaN
         thm_spec_lim4overplot, fbk_tvars[i], ylog = 1, zlog = 1, /overwrite
+        zlim,  fbk_tvars[i], 2.0e-4, 2.0, 1
+        get_data, fbk_tvars[i], data = d
         options, fbk_tvars[i], 'spec', 1
         options, fbk_tvars[i], 'zlog', 1
         options, fbk_tvars[i], 'ytitle', 'FBK-FFT!C'+strmid(fbk_tvars[i], 7) +'!C[Hz]'
+        x1 = strpos(fbk_tvars[i], 'scm')
+        If(x1[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', '<|nT|>'
+        xe = strpos(fbk_tvars[i], 'e')
+        If(xe[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', '<|mV/m|>'
      Endif
-     If(time_double(date) Ge time_double('2025-02-01')) Then ylim, fbk_tvars[i], 20.0, 2048.0, 1 $
-     Else ylim, fbk_tvars[i], 9.5, 2048.0, 1
+     ylim, fbk_tvars[i], 9.0, 2048.0, 1
   Endif
 Endfor
 
@@ -1059,11 +1070,11 @@ if keyword_set(makepng) then begin
   vars06 = ['kyoto_thm_combined_ae', roi_bar, 'Keogram', thx+'_fgs_gse', $
              esar_n_name, esair_v_name, esar_t_name, 'sample_rate_'+sc, $
              ssti_name, esair_flux_name, sste_name,  $
-             esaer_flux_name, thx+'_fb_*', thx+'_pos_gse_z']
+             esaer_flux_name, fbk_tvars[0], fbk_tvars[1], thx+'_pos_gse_z']
   vars02 = ['kyoto_thm_combined_ae', roi_bar, 'Keogram', thx+'_fgs_gse', $
              esar_n_name, esair_v_name, esar_t_name, 'sample_rate_'+sc, $
              ssti_name, esair_flux_name, sste_name,  $
-             esaer_flux_name, thx+'_fb_*', thx+'_pos_gse_z']
+             esaer_flux_name, fbk_tvars[0], fbk_tvars[1], thx+'_pos_gse_z']
   dprint, '24: ',vars_full
   options,vars_full,ysubtitle=''
   options,vars_full,ysubtitle='',/def
