@@ -29,7 +29,6 @@ pro minvar_python_validate
 
   test1_vars=['thb_fgs_gsm_mvaclipped1','thb_fgs_gsm_mvaclipped1_mva_mat', 'mva_vals', 'mva_min', 'mva_int', 'mva_max',$
     'thb_fgs_gsm_mvaclipped1_rot', 'thb_fgs_gsm_shockclipped_rot']
-  tplot_save,test1_vars,filename='mva_python_validate'
    
   del_data    
   ;
@@ -60,5 +59,5 @@ pro minvar_python_validate
   test2_vars = ['mms1_fgm_b_gsm_srvy_l2_bvec_hp4minvar', 'mms1_fgm_b_gsm_srvy_l2_bvec_hp4minvar_mva_mat', 'mms1_fgm_b_gsm_srvy_l2_bvec_bp', 'mva_vals2', 'mva_min2', 'mva_int2', 'mva_max2', $
     'mms1_fgm_b_gsm_srvy_l2_bvec_bp_rot']
     
-   tplot_save,test2_vars,filename='mva_python_validate2'
+   tplot_save,[test1_vars, test2_vars],filename='mva_python_validate'
 end
