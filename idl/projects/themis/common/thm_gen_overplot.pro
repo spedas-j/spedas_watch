@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2025-03-28 14:19:54 -0700 (Fri, 28 Mar 2025) $
-;$LastChangedRevision: 33209 $
+;$LastChangedDate: 2025-03-31 15:30:01 -0700 (Mon, 31 Mar 2025) $
+;$LastChangedRevision: 33220 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -381,11 +381,11 @@ For i=0,n_elements(fbk_tvars)-1 Do Begin
         get_data, fbk_tvars[i], data = d
         options, fbk_tvars[i], 'spec', 1
         options, fbk_tvars[i], 'zlog', 1
-        options, fbk_tvars[i], 'ytitle', 'FBK-FFT!C'+strmid(fbk_tvars[i], 7) +'!C[Hz]'
+        options, fbk_tvars[i], 'ytitle', 'FBK-FFT!C[Hz]'
         x1 = strpos(fbk_tvars[i], 'scm')
-        If(x1[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', '<|nT|>'
+        If(x1[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', 'FBK-|nT|!C!CFFT-nT!E2/!NHz'
         xe = strpos(fbk_tvars[i], 'e')
-        If(xe[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', '<|mV/m|>'
+        If(xe[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', 'FBK-|mV/m|!C!CFFT-(V/m)!E2/!NHz'
      Endif
      ylim, fbk_tvars[i], 9.0, 2048.0, 1
   Endif
@@ -1032,8 +1032,9 @@ if (gui_plot eq 1) then begin ; for GUI plots we have some differences
 
 endif else begin
   ;for server plots
-  timespan,date,dur
-  tplot, vars_full,trange=[t0,t1], title = probes_title[pindex[0]]+' (TH-'+strupcase(sc)+')', $
+   timespan,date,dur
+   tplot_options, 'xmargin', [14,16]
+   tplot, vars_full,trange=[t0,t1], title = probes_title[pindex[0]]+' (TH-'+strupcase(sc)+')', $
     var_label = [thx+'_state_pos_gse_z', thx+'_state_pos_gse_y', thx+'_state_pos_gse_x']
 endelse
 
