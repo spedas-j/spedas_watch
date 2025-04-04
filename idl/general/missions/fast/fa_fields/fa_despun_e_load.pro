@@ -1,10 +1,13 @@
 ;Helper function to load one data type at a time
 Pro fa_despun_e_load_type, type, trange = trange, orbit = orbit, $
-                           no_time_clip = no_time_clip, _extra = _extra
+                           no_time_clip = no_time_clip, version = version, $
+                           force = force, _extra = _extra
 
-  common fa_esa_saved_tranges, tr0_esv, tr0_e4k, tr0_e16k, tr0_esv_long
+  common fa_esv_saved_tranges, tr0_esv, tr0_e4k, tr0_e16k, tr0_esv_long
 ;Keep track of software versioning here
-  sw_vsn = 0
+  If(keyword_set(version)) Then Begin
+     sw_vsn = version
+  Endif Else sw_vsn = 1
   vxx = 'v'+string(sw_vsn, format='(i2.2)')
 ;Here we are loading one type
   type = strlowcase(strcompress(/remove_all, type[0]))
@@ -44,7 +47,7 @@ Pro fa_despun_e_load_type, type, trange = trange, orbit = orbit, $
      End
   Endcase
   timetest = total(abs(tr0-tr0_test))
-  If(timetest Gt 0.0 || keyword_set(no_time_clip)) Then Begin
+  If(timetest Gt 0.0 || keyword_set(no_time_clip) || keyword_set(force)) Then Begin
 ;reset saved time
      Case type of
         'esv' : tr0_esv = tr0
@@ -74,6 +77,24 @@ Pro fa_despun_e_load_type, type, trange = trange, orbit = orbit, $
 ;Check time range
      If(~keyword_set(files) and ~keyword_set(no_time_clip)) Then Begin
         time_clip, tnames(tvars), tr0[0], tr0[1], /replace
+     Endif
+;Add labels for 3D fields
+     colors = [ 2, 4, 6]
+     labels = [ 'Ex', 'Ey', 'Ez']
+     get_data,'fa_e0_s_dsc',data = edsc
+     If(is_struct(edsc)) Then Begin
+        options, 'fa_e0_s_dsc', 'colors', colors
+        options, 'fa_e0_s_dsc', 'labels', labels+' (DSC)'
+     Endif
+     get_data,'fa_e0_s_gse',data = egse
+     If(is_struct(egse)) Then Begin
+        options, 'fa_e0_s_gse', 'colors', colors
+        options, 'fa_e0_s_gse', 'labels', labels+' (GSE)'
+     Endif
+     get_data,'fa_e0_s_gsm',data = egsm
+     If(is_struct(egsm)) Then Begin
+        options, 'fa_e0_s_gsm', 'colors', colors
+        options, 'fa_e0_s_gsm', 'labels', labels+' (GSM)'
      Endif
   Endif Else Begin
      dprint, dlevel=2, 'Not reloading '+type+' data'
@@ -114,13 +135,13 @@ Pro fa_despun_e_load, datatype = datatype, type = type, $
                       no_time_clip = no_time_clip, _extra = _extra
 
 ;fa_init, initializes a system variable
-  fa_esa_init
+  fa_init
 
 ;work out the datatype
   If(keyword_set(datatype)) Then Begin
      type = datatype
   Endif Else Begin
-     If(~keyword_set(type)) then type=['esv','e4k','e16k','esv_long']
+     If(~keyword_set(type)) Then type='esv' ;only 'esv' for now
   Endelse
 ;call for different types, 
   For j = 0, n_elements(type)-1 Do fa_despun_e_load_type, type[j], $

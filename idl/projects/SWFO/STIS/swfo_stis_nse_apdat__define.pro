@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-21 12:05:54 -0700 (Fri, 21 Mar 2025) $
-; $LastChangedRevision: 33191 $
+; $LastChangedDate: 2025-04-03 17:23:26 -0700 (Thu, 03 Apr 2025) $
+; $LastChangedRevision: 33226 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_nse_apdat__define.pro $
 
 
@@ -32,6 +32,7 @@ function swfo_stis_nse_apdat::decom,ccsds,source_dict=source_dict      ;,header,
   str1=swfo_stis_ccsds_header_decom(ccsds)
 
   str2 = {$
+    raw: nsedata, $
     histogram:float(nse_diff),$
     gap:ccsds.gap}
 

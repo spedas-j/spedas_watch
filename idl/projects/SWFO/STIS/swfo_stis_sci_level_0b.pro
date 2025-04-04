@@ -82,9 +82,9 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       sci_aaee_bits: 0b, $
       hkp_aaee_bits: 0b, $
       nse_aaee_bits: 0b, $
-      sci_noise_bits: 0b, $
-      hkp_noise_bits: 0b, $
-      nse_noise_bits: 0b, $
+      sci_noise_bits: 0u, $
+      hkp_noise_bits: 0u, $
+      nse_noise_bits: 0u, $
       ; set in swfo_stis_ccsds_header_decom as 1 + time_res
       sci_duration:  0u, $
       hkp_duration:  0u, $
@@ -182,6 +182,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       sci_counts: replicate(nan, 672),$
       ; nse data
       nse_histogram: replicate(0u, 60), $
+      nse_raw: replicate(0u, 60), $
       quality_bits:  0ul}
 
     ; hkp: from swfo_stis_hkp_apdat__define.pro
@@ -363,7 +364,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
 
     ; nse:
     output.nse_histogram =  nse_dat.histogram
-    ;  output.nse_raw= nse_dat.raw
+    output.nse_raw = nse_dat.raw
     ; output.nse_sigma = nse_dat.sigma
     ; output.nse_baseline = nse_dat.baseline
     ; output.nse_total6 = nse_dat.total6
