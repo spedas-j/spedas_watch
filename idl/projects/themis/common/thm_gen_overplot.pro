@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2025-04-03 12:42:01 -0700 (Thu, 03 Apr 2025) $
-;$LastChangedRevision: 33223 $
+;$LastChangedDate: 2025-04-04 14:01:24 -0700 (Fri, 04 Apr 2025) $
+;$LastChangedRevision: 33227 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -368,6 +368,7 @@ For i=0,n_elements(fbk_tvars)-1 Do Begin
         Endelse
      Endif
      If(is_string(fft_use)) Then Begin
+        If(fbk_inst Eq 'edc') Then scale = 100 Else scale = 0
         fbk_tvars[i] = thm_ffffbk_composite(fft_use, fbk_tvars[i], scale = scale)
 ;replace zero values with NaN
         get_data, fbk_tvars[i], data = dd
@@ -382,9 +383,9 @@ For i=0,n_elements(fbk_tvars)-1 Do Begin
         options, fbk_tvars[i], 'zlog', 1
         options, fbk_tvars[i], 'ytitle', 'FBK-FFT!C[Hz]'
         x1 = strpos(fbk_tvars[i], 'scm')
-        If(x1[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', '|nT|'
+        If(x1[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', 'FBK-|nT|!C!CFFT-|nT|'
         xe = strpos(fbk_tvars[i], 'e')
-        If(xe[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', '|mV/m|'
+        If(xe[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', 'FBK-|mV/m|!C!CFFT-100|mV/m|'
      Endif
      ylim, fbk_tvars[i], 9.0, 4096.0, 1
   Endif
