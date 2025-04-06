@@ -26,8 +26,8 @@
 ;       NOLUT:    Do not recalculate the LUT.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-06 14:50:53 -0700 (Mon, 06 May 2024) $
-; $LastChangedRevision: 32557 $
+; $LastChangedDate: 2025-04-05 14:35:58 -0700 (Sat, 05 Apr 2025) $
+; $LastChangedRevision: 33232 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makespec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -170,6 +170,7 @@ pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, n
     if keyword_set(tplot) then begin
       x = mvn_swe_engy.time
       y = transpose(mvn_swe_engy.data)
+      dy = transpose(sqrt(mvn_swe_engy.var))
       i = where(mvn_swe_engy.lut eq 5B, n)
       if (n gt 0L) then v = mvn_swe_engy[i[0]].energy else v = swe_swp[*,0]
       Emin = min(v, max=Emax)
@@ -178,7 +179,7 @@ pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, n
 
       ename = 'swe_a4'
       eunits = strupcase(mvn_swe_engy[0].units_name)
-      store_data,ename,data={x:x, y:y, v:v}
+      store_data,ename,data={x:x, y:y, dy:dy, v:v}
       if (sflg) then begin
         options,ename,'spec',1
         ylim,ename,Emin,Emax,1

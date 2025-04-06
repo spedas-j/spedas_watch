@@ -93,31 +93,32 @@
 ;                 Used for long range predict and special events kernels.  Replaces
 ;                 keywords EXTENDED and HIRES.
 ;
-;       EXTENDED: If set, load one of seven long-term predict ephemerides.  All but two
-;                 have a density scale factor (DSF) of 2.5, which is a weighted average
-;                 over several Mars years.  They differ in the number and timing of
-;                 apoapsis, periapsis, and inclination maneuvers (arm, prm, inc) and total
-;                 fuel usage (meters per second, or ms).  The date when the ephemeris was
-;                 generated is given at the end of the filename (YYMMDD).  More recent
-;                 dates better reflect current mission goals.  When in doubt, use the
+;       EXTENDED: If set to a value from 1 to 8, loads one of eight long-term predict
+;                 ephemerides.  Most have a density scale factor (DSF) of 2.5, which
+;                 is a weighted average over several Mars years.  They differ in the
+;                 number and timing of apoapsis, periapsis, and inclination maneuvers
+;                 (arm, prm, inc) and total fuel usage (meters per second, or ms).
+;                 The date when the ephemeris was generated is given at the end of 
+;                 the filename (YYMMDD).  More recent dates better reflect actual 
+;                 past perfomance and current mission goals.  When in doubt, use the
 ;                 most recent.
 ;
-;                   1 : trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp
-;                   2 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
-;                   3 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
-;                   4 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
-;                   5 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp
-;                   6 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
-;                   7 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
+;                   0 : use timerange() to load short-term predicts
+;                   1 : trj_orb_250407-350702_dsf2.0_prm_4.4ms_250402.bsp
+;                   2 : trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp
+;                   3 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
+;                   4 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
+;                   5 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
+;                   6 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp
+;                   7 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
+;                   8 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
 ;
-;                 Warning: using this keyword will reset timespan to cover the specified
-;                 extended ephemeris, overwriting any existing timespan.  This will affect
-;                 any routines that use timespan for determining what data to process.
+;                 Default = 0.
 ;
-;                 Note: For short-term predictions (< 1 month in the future) it's better
-;                 to use set the desired timespan and run this routine without setting
-;                 EXTENDED.  That will load the short-term predict spk kernels, which are
-;                 more accurate than any of the above long-term predicts.
+;                 For short-term predictions (< 3-4 months in the future) it's better to
+;                 set the desired timespan and run this routine without setting EXTENDED.
+;                 That will load the short-term predict spk kernels, which are more 
+;                 accurate than any of the above long-term predicts.
 ;
 ;       HIRES:    OBSOLETE.  This keyword has no effect.
 ;
@@ -125,7 +126,6 @@
 ;
 ;       NOLOAD:   Don't load or refresh the ephemeris information.  Just fill in any
 ;                 keywords and exit.
-;
 ;
 ;       LINE_COLORS: Line color scheme for altitude panel.  This can be an integer [0-10]
 ;                 to select one of 11 pre-defined line color schemes.  It can also be array
@@ -187,8 +187,8 @@
 ;                 arbitrary set of ephemeris conditions.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-16 14:52:31 -0800 (Sun, 16 Feb 2025) $
-; $LastChangedRevision: 33135 $
+; $LastChangedDate: 2025-04-05 14:34:27 -0700 (Sat, 05 Apr 2025) $
+; $LastChangedRevision: 33230 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -406,6 +406,16 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
     case extended of
        0   : ; do nothing (don't use extended predict ephemeris)
        1   : begin
+               mname = 'maven_spacecraft_mso_250407-350702_dsf2.0_prm_4.4ms_250402.sav'
+               gname = 'maven_spacecraft_geo_250407-350702_dsf2.0_prm_4.4ms_250402.sav'
+               ename = 'maven_spacecraft_eph_250407-350702_dsf2.0_prm_4.4ms_250402.sav'
+               timespan, ['2025-04-07','2035-07-01']
+               treset = 1
+               print,"Using extended predict ephemeris."
+               print,"  SPK = trj_orb_250407-350702_dsf2.0_prm_4.4ms_250402.bsp"
+               ttitle = "trj_orb_250407-350702_dsf2.0_prm_4.4ms_250402.bsp"
+             end
+       2   : begin
                mname = 'maven_spacecraft_mso_240821-331231_dsf2.0_prm_4.4ms_240820.sav'
                gname = 'maven_spacecraft_geo_240821-331231_dsf2.0_prm_4.4ms_240820.sav'
                ename = 'maven_spacecraft_eph_240821-331231_dsf2.0_prm_4.4ms_240820.sav'
@@ -415,7 +425,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp"
                ttitle = "trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp"
              end
-       2   : begin
+       3   : begin
                mname = 'maven_spacecraft_mso_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.sav'
                gname = 'maven_spacecraft_geo_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.sav'
                ename = 'maven_spacecraft_eph_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.sav'
@@ -425,7 +435,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp"
                ttitle = "trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp"
              end
-       3   : begin
+       4   : begin
                mname = 'maven_spacecraft_mso_230322-320101_dsf1.5-prm-3.5ms_230320.sav'
                gname = 'maven_spacecraft_geo_230322-320101_dsf1.5-prm-3.5ms_230320.sav'
                ename = 'maven_spacecraft_eph_230322-320101_dsf1.5-prm-3.5ms_230320.sav'
@@ -435,7 +445,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp"
                ttitle = "trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp"
              end
-       4   : begin
+       5   : begin
                mname = 'maven_spacecraft_mso_2022-2032_dsf2.5_arm_prm_19.2ms_220802.sav'
                gname = 'maven_spacecraft_geo_2022-2032_dsf2.5_arm_prm_19.2ms_220802.sav'
                ename = 'maven_spacecraft_eph_2022-2032_dsf2.5_arm_prm_19.2ms_220802.sav'
@@ -445,7 +455,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp"
                ttitle = "trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp"
              end
-       5   : begin
+       6   : begin
                mname = 'maven_spacecraft_mso_2022-2032_dsf2.5_arms_18ms_210930.sav'
                gname = 'maven_spacecraft_geo_2022-2032_dsf2.5_arms_18ms_210930.sav'
                ename = 'maven_spacecraft_eph_2022-2032_dsf2.5_arms_18ms_210930.sav'
@@ -455,7 +465,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_220101-270101_dsf2.5_arms_18ms_210930.bsp"
                ttitle = "trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp"
              end
-        6  : begin
+       7   : begin
                mname = 'maven_spacecraft_mso_2022-2032_dsf2.5_arm_prm_13.5ms_210908.sav'
                gname = 'maven_spacecraft_geo_2022-2032_dsf2.5_arm_prm_13.5ms_210908.sav'
                ename = 'maven_spacecraft_eph_2022-2032_dsf2.5_arm_prm_13.5ms_210908.sav'
@@ -465,7 +475,7 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
                print,"  SPK = trj_orb_220101-270101_dsf2.5_arm_prm_13.5ms_210908.bsp"
                ttitle = "trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp"
              end
-        7  : begin
+       8   : begin
                mname = 'maven_spacecraft_mso_2021-2030_dsf2.5_210330.sav'
                gname = 'maven_spacecraft_geo_2021-2030_dsf2.5_210330.sav'
                ename = 'maven_spacecraft_eph_2021-2030_dsf2.5_210330.sav'
@@ -478,12 +488,14 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
       else : begin
                print,"Extended predict ephemeris options are: "
                print,"  0 : Do not use an extended predict ephemeris (default)."
-               print,"  1 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp"
-               print,"  2 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp"
-               print,"  3 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp"
-               print,"  4 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp"
-               print,"  5 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp"
-               print,"  6 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
+               print,"  1 : trj_orb_250407-350702_dsf2.0_prm_4.4ms_250402.bsp"
+               print,"  2 : trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp"
+               print,"  3 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp"
+               print,"  4 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp"
+               print,"  5 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp"
+               print,"  6 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp"
+               print,"  7 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp"
+               print,"  8 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp"
                print,""
                return
              end

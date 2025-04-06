@@ -13,17 +13,16 @@
 ;              < 0 -> distribution is less peaked than a Gaussian
 ;              > 0 -> distribution is more peaked than a Gaussian
 ;
-;  Also calculates the median, lower quartile, upper quartile, minimum and
-;  maximum.
+;  Also calculates the median, quartiles, and extrema.
 ;
 ;USAGE:
 ;  bindata2d, x, y, z
 ;INPUTS:
-;       x:         The first independent variable.
+;       x:         The first independent variable (N-element array).
 ;
-;       y:         The second independent variable.
+;       y:         The second independent variable (M-element array).
 ;
-;       z:         The dependent variable (2D array).
+;       z:         The dependent variable (N x M array).
 ;
 ;KEYWORDS:
 ;       XBINS:     The number of bins to divide x into.  Takes precedence
@@ -47,8 +46,8 @@
 ;                  space.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-03-25 13:28:11 -0700 (Tue, 25 Mar 2025) $
-; $LastChangedRevision: 33205 $
+; $LastChangedDate: 2025-04-05 14:35:08 -0700 (Sat, 05 Apr 2025) $
+; $LastChangedRevision: 33231 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/bindata2d.pro $
 ;
 ;CREATED BY:	David L. Mitchell

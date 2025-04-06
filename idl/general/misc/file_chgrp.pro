@@ -25,28 +25,28 @@
 ;
 ;                 0 = normal completion, no errors
 ;                 1 = OS family is not UNIX
-;                 2 = file name(s) not specified
+;                 2 = file name not specified
 ;                 3 = target group not specified
 ;                 4 = caller is not a member of the target group
-;                 5 = file does not exist, or caller does not own file
+;                 5 = caller does not own file
+;                 6 = file does not exist
 ;
-;               ERRCODE returns a single integer (1-4) if there's a problem
-;               affecting the entire operation.  Otherwise, ERRCODE returns
-;               an integer array with a code (0 or 5) for each file.  This
-;               allows automated error handling.
+;               For errors that affect the entire operation (1-4), a single
+;               code is returned.  Otherwise, an array of codes, one for
+;               each file, is returned.
 ;
 ;   SILENT:     Suppress messages.  Exit status is returned via ERRCODE.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-10-23 10:22:03 -0700 (Mon, 23 Oct 2023) $
-; $LastChangedRevision: 32206 $
+; $LastChangedDate: 2025-04-05 14:33:09 -0700 (Sat, 05 Apr 2025) $
+; $LastChangedRevision: 33229 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/file_chgrp.pro $
 ;-
 pro file_chgrp, files, group, success=ok, errcode=err, silent=silent
 
+  blab = ~keyword_set(silent)
   ok = 0
   err = 0
-  blab = ~keyword_set(silent)
 
   if (strupcase(!version.os_family) ne 'UNIX') then begin
     if (blab) then print, 'OS family is not unix.'
@@ -78,7 +78,7 @@ pro file_chgrp, files, group, success=ok, errcode=err, silent=silent
 
   nfiles = n_elements(files)
   ok = replicate(0, nfiles)
-  err = replicate(0, nfiles)
+  err = ok
 
   for i=0, nfiles-1 do begin
     file = files[i]
@@ -86,8 +86,14 @@ pro file_chgrp, files, group, success=ok, errcode=err, silent=silent
       spawn, 'chgrp ' + group + ' ''' + file + ''''
       ok[i] = 1  ; assume success if you get this far
     endif else begin
-      if (blab) then print, 'File does not exist, or I''m not the owner: ' + file
-      err[i] = 5
+      finfo = file_info(file)
+      if (finfo.exists) then begin
+        if (blab) then print, 'I''m not the owner: ' + file
+        err[i] = 5
+      endif else begin
+        if (blab) then print, 'File does not exist: ' + file
+        err[i] = 6
+      endelse
     endelse
   endfor
 

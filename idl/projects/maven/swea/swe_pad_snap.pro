@@ -193,8 +193,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-08 11:13:21 -0800 (Wed, 08 Jan 2025) $
-; $LastChangedRevision: 33056 $
+; $LastChangedDate: 2025-04-05 14:36:55 -0700 (Sat, 05 Apr 2025) $
+; $LastChangedRevision: 33233 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_pad_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -951,7 +951,8 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
               oplot,[3,5000],[yhi2[63,8],yhi2[63,8]],line=2
             endif
             if (sflg) then for k=0,(n_elements(penergy)-1) do oplot,[penergy[k],penergy[k]],[0,180],line=2
-            if (pad.quality eq 255B) then xyouts,0.5,0.5,"NO VALID DATA",/norm,align=0.5,charsize=csize2*1.5
+            str_element, pad, 'quality', pq, success=gotq
+            if (gotq) then if (pq eq 255B) then xyouts,0.5,0.5,"NO VALID DATA",/norm,align=0.5,charsize=csize2*1.5
 
             if (uflg) then begin
                str_element, rlim, 'ztitle', 'Relative Uncertainty', /add_replace
@@ -1564,12 +1565,23 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
       el = [swe_el[*,63,pad.group] - (swe_del[*,63,pad.group]/2.), elmax*!radeg]
       for i=0,6 do oplot,[0,360],[el[i],el[i]],color=4,linestyle=1
 
-      if (~dosmo and (npts eq 1)) then for k=0,15 do begin
+      if (dosmo or (npts gt 1)) then $  ; TSMO or SUM mode is active
+          xyouts,0.05,0.03,'* Data are averaged, so PA map is approximate.',/norm,charsize=1.2
+
+      for k=0,7 do begin
         i = pad.iaz[k]
         j = pad.jel[k]
         azbox = [az[i], az[i+1], az[i+1], az[i]   ,az[i]]
         elbox = [el[j], el[j]  , el[j+1], el[j+1] ,el[j]]
-        oplot,azbox,elbox,color=6,linestyle=2
+        oplot,azbox,elbox,color=col[0],linestyle=2
+      endfor
+
+      for k=8,15 do begin
+        i = pad.iaz[k]
+        j = pad.jel[k]
+        azbox = [az[i], az[i+1], az[i+1], az[i]   ,az[i]]
+        elbox = [el[j], el[j]  , el[j+1], el[j+1] ,el[j]]
+        oplot,azbox,elbox,color=col[8],linestyle=2
       endfor
 
       kb = where(swe_sc_mask[*,boom] eq 0, count)
@@ -1578,7 +1590,7 @@ pro swe_pad_snap, keepwins=keepwins, killwins=killwins, archive=archive, energy=
       for k=0,(count-1) do begin
         i = ib[k]
         j = jb[k]
-        oplot,[mean(az[i:i+1])],[mean(el[j:j+1])],psym=7,color=5
+        oplot,[mean(az[i:i+1])],[mean(el[j:j+1])],psym=7,symsize=3,thick=2,color=5
       endfor
 
       az = pad.Baz*!radeg

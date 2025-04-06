@@ -193,8 +193,8 @@
 ;                 easier to see the colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-16 14:52:11 -0800 (Sun, 16 Feb 2025) $
-; $LastChangedRevision: 33134 $
+; $LastChangedDate: 2025-04-05 14:34:27 -0700 (Sat, 05 Apr 2025) $
+; $LastChangedRevision: 33230 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -338,7 +338,7 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
     sites[*,4] = [354.473,  -1.946]  ; Opportunity Rover (2004-2018)
     sites[*,5] = [234.100,  68.150]  ; Phoenix Lander (May-Nov 2008)
     sites[*,6] = [137.200,  -4.600]  ; Curiosity Rover (MSL 2012-)
-    sites[*,7] = [135.000,   4.500]  ; InSight Lander (2018-)
+    sites[*,7] = [135.000,   4.500]  ; InSight Lander (2018-2022)
     sites[*,8] = [ 77.500,  18.400]  ; Perserverence Rover (2021-)
     sites[*,9] = [110.318,  24.748]  ; Zhurong Rover (Tianwen-1, Jun 2021)
     if (size(slab,/type) gt 0) then dolab = keyword_set(slab) else dolab = 1

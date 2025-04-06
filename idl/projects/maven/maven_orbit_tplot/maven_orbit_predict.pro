@@ -20,24 +20,25 @@
 ;INPUTS:
 ;
 ;KEYWORDS:
-;       EXTENDED: If set to a value from 1 to 7, loads one of six long-term predict
-;                 ephemerides.  All but two have a density scale factor (DSF) of 2.5,
-;                 which is a weighted average over several Mars years.  They differ
-;                 in the number and timing of apoapsis, periapsis, and inclination 
-;                 maneuvers (arm, prm, inc) and total fuel usage (meters per second, 
-;                 or ms).  The date when the ephemeris was generated is given at the 
-;                 end of the filename (YYMMDD).  More recent dates better reflect 
-;                 actual past perfomance and current mission goals.  When in doubt, 
-;                 use the most recent.
+;       EXTENDED: If set to a value from 1 to 8, loads one of eight long-term predict
+;                 ephemerides.  Most have a density scale factor (DSF) of 2.5, which
+;                 is a weighted average over several Mars years.  They differ in the
+;                 number and timing of apoapsis, periapsis, and inclination maneuvers
+;                 (arm, prm, inc) and total fuel usage (meters per second, or ms).
+;                 The date when the ephemeris was generated is given at the end of 
+;                 the filename (YYMMDD).  More recent dates better reflect actual 
+;                 past perfomance and current mission goals.  When in doubt, use the
+;                 most recent.
 ;
 ;                   0 : use timerange() to load short-term predicts
-;                   1 : trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp
-;                   2 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
-;                   3 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
-;                   4 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
-;                   5 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp
-;                   6 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
-;                   7 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
+;                   1 : trj_orb_250407-350702_dsf2.0_prm_4.4ms_250402.bsp
+;                   2 : trj_orb_240821-331231_dsf2.0_prm_4.4ms_240820.bsp
+;                   3 : trj_orb_230322-320101_dsf2.5-arm-prm-inc-17.5ms_230320.bsp
+;                   4 : trj_orb_230322-320101_dsf1.5-prm-3.5ms_230320.bsp
+;                   5 : trj_orb_220810-320101_dsf2.5_arm_prm_19.2ms_220802.bsp
+;                   6 : trj_orb_220101-320101_dsf2.5_arms_18ms_210930.bsp
+;                   7 : trj_orb_220101-320101_dsf2.5_arm_prm_13.5ms_210908.bsp
+;                   8 : trj_orb_210326-301230_dsf2.5-otm0.4-arms-prm-13.9ms_210330.bsp
 ;
 ;                 Default = 1 (most recent long-term predict).
 ;
@@ -75,8 +76,8 @@
 ;       PDS:      Plot vertical dashed lines separating the PDS release dates.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-16 14:50:29 -0800 (Sun, 16 Feb 2025) $
-; $LastChangedRevision: 33133 $
+; $LastChangedDate: 2025-04-05 14:34:27 -0700 (Sat, 05 Apr 2025) $
+; $LastChangedRevision: 33230 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_predict.pro $
 ;
 ;CREATED BY:	David L. Mitchell

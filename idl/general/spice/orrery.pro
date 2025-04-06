@@ -105,7 +105,7 @@
 ;                  ephemeris values and interpolates across the 
 ;                  gap.)
 ;                    Coverage:
-;                      Stereo A: 2006-10-26 to 2023-01-25
+;                      Stereo A: 2006-10-26 to 2025-06-05
 ;                      Stereo B: 2006-10-26 to 2014-09-28
 ;
 ;       SORB:      Plot the location of Solar Orbiter.  Includes a
@@ -114,7 +114,7 @@
 ;
 ;       PSP:       Plot the location of Parker Solar Probe. Includes
 ;                  a predict ephemeris.
-;                    Coverage: 2018-08-12 to 2025-08-31
+;                    Coverage: 2018-08-12 to 2030-01-01
 ;
 ;       SALL:      Plot all of the above spacecraft locations.
 ;
@@ -186,8 +186,8 @@
 ;                  (After all, space is black.)  Default = 1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-03-13 11:11:42 -0700 (Thu, 13 Mar 2025) $
-; $LastChangedRevision: 33169 $
+; $LastChangedDate: 2025-04-05 14:39:20 -0700 (Sat, 05 Apr 2025) $
+; $LastChangedRevision: 33234 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -1294,7 +1294,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         endif
       endif
 
-      plot, [0.], [0.], xrange=xyrange, yrange=xyrange, xsty=xsty, ysty=ysty, $
+      plot, [0.], [0.], xrange=xyrange, yrange=xyrange, xsty=xsty, ysty=ysty, /isotropic, $
                         charsize=csize, xtitle='Ecliptic X (AU)', ytitle='Ecliptic Y (AU)'
 
       if (spiral) then begin
@@ -1428,9 +1428,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       endif
 
       if (inbounds and (dolab gt 0)) then begin
-        xs = 0.77  ; upper right
-        ys = 0.92
-        dys = 0.03
+        span = xyrange[1] - xyrange[0]
+        xs = span*0.75 + xyrange[0]
+        ys = span*0.95 + xyrange[0]
+        dys = span*0.03
+        donorm = 0
 
         if (dolab gt 1) then begin
           phi_e = atan(yp[2], xp[2])*!radeg
@@ -1445,7 +1447,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
           msg = string(pstr[pnum], round(dphi), format = '("ES",a1," = ",i," deg")')
           msg = strcompress(msg)
-          xyouts,  xs, ys,  msg, /norm, charsize=csize
+          xyouts,  xs, ys,  msg, norm=donorm, charsize=csize
           ys -= dys
 
           ds = [(xp[pnum] - xp[2]), (yp[pnum] - yp[2]), (zp[pnum] - zp[2])]
@@ -1455,14 +1457,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
           msg = string(pstr[pnum], round(sme), format = '("S",a1,"E = ",i," deg")')
           msg = strcompress(msg)
-          xyouts,  xs, ys,  msg, /norm, charsize=csize
+          xyouts,  xs, ys,  msg, norm=donorm, charsize=csize
           ys -= dys
 
           sem = acos((rp[2]*rp[2] + ds*ds - rp[pnum]*rp[pnum])/(2.*rp[2]*ds))*!radeg
 
           msg = string(pstr[pnum], round(sem), format='("SE",a1," = ",i," deg")')
           msg = strcompress(msg)
-          xyouts,  xs, ys,  msg, /norm, charsize=csize
+          xyouts,  xs, ys,  msg, norm=donorm, charsize=csize
           ys -= dys
 
           if (pnum le 5) then begin
@@ -1473,7 +1475,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
             msg = string(owlt, format='("OWLT = ",f5.2," hrs")')
           endelse
           msg = strcompress(msg)
-          xyouts,  xs, ys, msg, /norm, charsize=csize
+          xyouts,  xs, ys, msg, norm=donorm, charsize=csize
           ys -= dys
 
           if (pnum eq 3) then begin
@@ -1481,7 +1483,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
             if (Lss ge 0.) then ns = ' N' else ns = ' S'
             msg = string(abs(Lss), format='("Lss = ",f8.1)') + ns
             msg = strcompress(msg)
-            xyouts, xs, ys,  msg, /norm, charsize=csize
+            xyouts, xs, ys,  msg, norm=donorm, charsize=csize
             ys -= dys
           endif
 
@@ -1491,22 +1493,22 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
           if (slon lt 0.) then slon += 360.
           msg = string(slon, format='("Slon = ",f8.1)')
           msg = strcompress(msg)
-          xyouts, xs, ys, msg, /norm, charsize=csize
+          xyouts, xs, ys, msg, norm=donorm, charsize=csize
           ys -= dys
         endif
 
-        xs = 0.14  ; lower left
-        ys = 0.17
+        xs = span*0.05 + xyrange[0]
+        ys = span*0.10 + xyrange[0]
 
         if (spiral) then begin
           msg = string(round(Vsw*au/1d5), format='("Vsw = ",i," km/s")')
           msg = strcompress(msg)
-          xyouts, xs, ys, msg, /norm, charsize=csize, color=4
+          xyouts, xs, ys, msg, norm=donorm, charsize=csize, color=4
           ys -= dys
           if (alpha gt -1.) then begin
             msg = string(pstr[pnum], round(alpha), format='("Asw at ",a1," = ",i," deg")')
             msg = strcompress(msg)
-            xyouts, xs, ys, msg, /norm, charsize=csize, color=4
+            xyouts, xs, ys, msg, norm=donorm, charsize=csize, color=4
             ys -= dys
           endif
         endif
@@ -1526,14 +1528,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
             msg = string(round(dphi), format = '("AB = ",i," deg")')
           endif else msg = ""
           msg = strcompress(msg)
-          xyouts,  xs, ys,  msg, /norm, charsize=csize, color=5
+          xyouts,  xs, ys,  msg, norm=donorm, charsize=csize, color=5
         endif
 
-        xs = 0.14  ; upper left
-        ys = 0.92
+        xs = span*0.05 + xyrange[0]
+        ys = span*0.95 + xyrange[0]
 
         tmsg = time_string(t)
-        xyouts, xs, ys, tmsg, /norm, charsize=csize
+        xyouts, xs, ys, tmsg, norm=donorm, charsize=csize
         ys -= dys
 
       endif
@@ -1692,7 +1694,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     vswap = 1
   endif else vswap = 0
 
-  plot, [0.], [0.], xrange=xyrange, yrange=xyrange, xsty=xsty, ysty=ysty, $
+  plot, [0.], [0.], xrange=xyrange, yrange=xyrange, xsty=xsty, ysty=ysty, /isotropic, $
                     charsize=csize, xtitle='Ecliptic X (AU)', ytitle='Ecliptic Y (AU)'
 
   if (spiral) then begin
@@ -1817,9 +1819,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   endif
 
   if (inbounds and (dolab gt 0)) then begin
-    xs = 0.77  ; upper right
-    ys = 0.92
-    dys = 0.03
+    span = xyrange[1] - xyrange[0]
+    xs = span*0.75 + xyrange[0]
+    ys = span*0.95 + xyrange[0]
+    dys = span*0.03
+    donorm = 0
     csize = 1.5*zscl*scale  ; character size for labels
 
     if (dolab gt 1) then begin
@@ -1835,7 +1839,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       msg = string(pstr[pnum], round(dphi), format = '("ES",a1," = ",i," deg")')
       msg = strcompress(msg)
-      xyouts, xs, ys, msg, /norm, charsize=csize
+      xyouts, xs, ys, msg, norm=donorm, charsize=csize
       ys -= dys
 
       ds = [(xp[pnum,j[1]] - xp[2,j[1]]), (yp[pnum,j[1]] - yp[2,j[1]]), (zp[pnum,j[1]] - zp[2,j[1]])]
@@ -1845,14 +1849,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       msg = string(pstr[pnum], round(sme), format = '("S",a1,"E = ",i," deg")')
       msg = strcompress(msg)
-      xyouts, xs, ys, msg, /norm, charsize=csize
+      xyouts, xs, ys, msg, norm=donorm, charsize=csize
       ys -= dys
 
       sem = acos((rp[2,j[1]]^2. + ds^2. - rp[pnum,j[1]]^2.)/(2.*rp[2,j[1]]*ds))*!radeg
 
       msg = string(pstr[pnum], round(sem), format='("SE",a1," = ",i," deg")')
       msg = strcompress(msg)
-      xyouts, xs, ys, msg, /norm, charsize=csize
+      xyouts, xs, ys, msg, norm=donorm, charsize=csize
       ys -= dys
 
       if (pnum le 5) then begin
@@ -1863,7 +1867,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         msg = string(owlt, format='("OWLT = ",f5.2," hrs")')
       endelse
       msg = strcompress(msg)
-      xyouts, xs, ys, msg, /norm, charsize=csize
+      xyouts, xs, ys, msg, norm=donorm, charsize=csize
       ys -= dys
 
       if (pnum eq 3) then begin
@@ -1871,7 +1875,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         if (Lss ge 0.) then ns = ' N' else ns = ' S'
         msg = string(abs(Lss), format='("Lss = ",f8.1)') + ns
         msg = strcompress(msg)
-        xyouts,  xs, ys, msg, /norm, charsize=csize
+        xyouts,  xs, ys, msg, norm=donorm, charsize=csize
         ys -= dys
       endif
 
@@ -1881,22 +1885,22 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       if (slon lt 0.) then slon += 360.
       msg = string(slon, format='("Slon = ",f8.1)')
       msg = strcompress(msg)
-      xyouts, xs, ys, msg, /norm, charsize=csize
+      xyouts, xs, ys, msg, norm=donorm, charsize=csize
       ys -= dys
     endif
 
-    xs = 0.14  ; lower left
-    ys = 0.17
+    xs = span*0.05 + xyrange[0]
+    ys = span*0.10 + xyrange[0]
 
     if (spiral) then begin
       msg = string(round(Vsw*au/1d5), format='("Vsw = ",i," km/s")')
       msg = strcompress(msg)
-      xyouts, xs, ys, msg, /norm, charsize=csize, color=4
+      xyouts, xs, ys, msg, norm=donorm, charsize=csize, color=4
       ys -= dys
       if (alpha gt -1.) then begin
         msg = string(pstr[pnum], round(alpha), format='("Asw at ",a1," = ",i," deg")')
         msg = strcompress(msg)
-        xyouts, xs, ys, msg, /norm, charsize=csize, color=4
+        xyouts, xs, ys, msg, norm=donorm, charsize=csize, color=4
         ys -= dys
       endif
     endif
@@ -1916,22 +1920,22 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         msg = string(round(dphi), format = '("AB = ",i," deg")')
       endif else msg = ""
       msg = strcompress(msg)
-      xyouts,  xs, ys,  msg, /norm, charsize=csize, color=5
+      xyouts,  xs, ys,  msg, norm=donorm, charsize=csize, color=5
     endif
 
-    xs = 0.14  ; upper left
-    ys = 0.92
+    xs = span*0.05 + xyrange[0]
+    ys = span*0.95 + xyrange[0]
 
     if (npts gt 1) then begin
       tmsg = strmid(time_string(tmin),0,10)
-      xyouts, xs, ys, tmsg, /norm, charsize=csize
+      xyouts, xs, ys, tmsg, norm=donorm, charsize=csize
       ys -= dys
       tmsg = strmid(time_string(tmax),0,10)
-      xyouts, xs, ys, tmsg, /norm, charsize=csize
+      xyouts, xs, ys, tmsg, norm=donorm, charsize=csize
       ys -= dys
     endif else begin
       tmsg = time_string(tavg)
-      xyouts, xs, ys, tmsg, /norm, charsize=csize
+      xyouts, xs, ys, tmsg, norm=donorm, charsize=csize
       ys -= dys
     endelse
   endif
