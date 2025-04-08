@@ -96,6 +96,10 @@ Pro fa_despun_e_load_type, type, trange = trange, orbit = orbit, $
         options, 'fa_e0_s_gsm', 'colors', colors
         options, 'fa_e0_s_gsm', 'labels', labels+' (GSM)'
      Endif
+;Add bitplot and labels for data quality
+     options, 'fa_data_quality', 'ytitle' ,'1-B Notch,2-S Notch!C3-Both'
+     options, 'fa_data_quality', 'ysubtitle' ,0
+     options, 'fa_data_quality', 'yrange', [0,4]
   Endif Else Begin
      dprint, dlevel=2, 'Not reloading '+type+' data'
   Endelse

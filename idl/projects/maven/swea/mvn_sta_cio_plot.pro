@@ -20,6 +20,7 @@
 ;                         'temp'   -> ion temperature
 ;                         'vbulk'  -> ion bulk velocity
 ;                         'vratio' -> ratio of ion bulk velocity to escape velocity
+;                         'voratio' -> ratio of O2+ to O+ bulk velocity
 ;                         'fbulk'  -> ion bulk flux (den_i * vbulk)
 ;                         'vel_x'  -> ion velocity X component
 ;                         'vel_y'  -> ion velocity Y component
@@ -158,8 +159,8 @@
 ;                   for outputting a png plot.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-09-12 11:16:32 -0700 (Thu, 12 Sep 2024) $
-; $LastChangedRevision: 32828 $
+; $LastChangedDate: 2025-04-07 15:27:02 -0700 (Mon, 07 Apr 2025) $
+; $LastChangedRevision: 33238 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_plot.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -194,16 +195,16 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
   xsize = 730.                   ; x dimension in pixels
   case (!d.name) of
     'X'   : begin
-              aspect1 = 1.17280  ; aspect ratio for 1x1 plot (x/y)
-              aspect2 = 1.24361  ; aspect ratio for 2x2 plot (x/y)
+              aspect1 = 1.175  ; aspect ratio for 1x1 plot (x/y)
+              aspect2 = 1.175  ; aspect ratio for 2x2 plot (x/y)
             end
     'WIN' : begin
-              aspect1 = 1.17280  ; aspect ratio for 1x1 plot (x/y)
-              aspect2 = 1.24361  ; aspect ratio for 2x2 plot (x/y)
+              aspect1 = 1.175  ; aspect ratio for 1x1 plot (x/y)
+              aspect2 = 1.175  ; aspect ratio for 2x2 plot (x/y)
             end
      else : begin
-              aspect1 = 1.17280  ; aspect ratio for 1x1 plot (x/y)
-              aspect2 = 1.24361  ; aspect ratio for 2x2 plot (x/y)
+              aspect1 = 1.175  ; aspect ratio for 1x1 plot (x/y)
+              aspect2 = 1.175  ; aspect ratio for 2x2 plot (x/y)
             end
   endcase
 
@@ -1081,6 +1082,8 @@ pro mvn_sta_cio_plot, ptr, data=data, dst=dst, options=options, filter=filter, $
             ystyle:1, xtitle:xlab, ytitle:ylab, ztitle:zlab, xlog:xlog, $
             ylog:ylog, zlog:zlog, xticks:xt, yticks:yt, zticks:zt, xminor:xm, yminor:ym, $
             zminor:zm, xmargin:[10,12], charsize:1.2, psym:psym}
+
+  if (bflg) then str_element, limits, 'isotropic', 1, /add
 
 ; User defined plotting options (override defaults and/or add new options)
 

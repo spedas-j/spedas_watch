@@ -25,6 +25,16 @@
 ;                                 |          |
 ;                               tagN : [minN, maxN]    }
 ;
+;                   If a tag refers to an angle that wraps at 360 degrees,
+;                   then the following filter rule applies:
+;
+;                     tagN = [value1, value2]
+;
+;                     If value1 < value2, then the filter passes angles
+;                     between value1 and value2.  If value1 > value2, then
+;                     the filter passes angles > value1 OR < value2, which
+;                     crosses the 360-0-degree wrap.
+;
 ;                   If a tag is missing or set to 0, then no filter is
 ;                   applied to that variable.  Only data that pass though
 ;                   all the filters are used to calculate distributions.
@@ -39,8 +49,8 @@
 ;       SUCCESS :   Returns 1 if there were no problems.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2021-08-25 09:09:17 -0700 (Wed, 25 Aug 2021) $
-; $LastChangedRevision: 30249 $
+; $LastChangedDate: 2025-04-07 15:27:02 -0700 (Mon, 07 Apr 2025) $
+; $LastChangedRevision: 33238 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_filter.pro $
 ;
 ;CREATED BY:	David L. Mitchell

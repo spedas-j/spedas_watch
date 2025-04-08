@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2025-04-04 14:01:24 -0700 (Fri, 04 Apr 2025) $
-;$LastChangedRevision: 33227 $
+;$LastChangedDate: 2025-04-07 13:34:04 -0700 (Mon, 07 Apr 2025) $
+;$LastChangedRevision: 33237 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -381,11 +381,11 @@ For i=0,n_elements(fbk_tvars)-1 Do Begin
         get_data, fbk_tvars[i], data = d
         options, fbk_tvars[i], 'spec', 1
         options, fbk_tvars[i], 'zlog', 1
-        options, fbk_tvars[i], 'ytitle', 'FBK-FFT!C[Hz]'
+        options, fbk_tvars[i], 'ytitle', 'FBK-FFF!C[Hz]'
         x1 = strpos(fbk_tvars[i], 'scm')
-        If(x1[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', 'FBK-|nT|!C!CFFT-|nT|'
+        If(x1[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', 'FBK-|nT|!C!CFFF-|nT|'
         xe = strpos(fbk_tvars[i], 'e')
-        If(xe[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', 'FBK-|mV/m|!C!CFFT-100|mV/m|'
+        If(xe[0] Ne -1) Then options, fbk_tvars[i], 'ztitle', 'FBK-|mV/m|!C!CFFF-100|mV/m|'
      Endif
      ylim, fbk_tvars[i], 9.0, 4096.0, 1
   Endif
