@@ -6,89 +6,74 @@
 ;  Creates a tplot variable, using the GSM to LMN transformation gsm2lmn.
 ;
 ; Parameters (required):
-;     pos_var_name: Time and position in GSM coorinates.
-;     mag_var_name: B field in GSM coordinates.
-;     
-; Keywords (optional):
-;     swdata:  Solar wind data array (times, dynamic pressure, Bz).
-;               If provided, this will be used instead of swdata_var_name.
-;     swdata_var_name: Name of tplot variable containing solar wind data (times, dynamic pressure, Bz).
-;     loadsolarwind: Flag indicating whether to load solar wind data from OMNI.
-;     interpol_to_pos: Flag. If set, pos_var_name will be used for interpolation. If it is not set, mag_var_name will be used.
-;     newname: Name for the output tplot variable. If not set, newname will be mag_var_name + "_lmn_mat"
+;     pos_var_name: tplot name with position in GSM coorinates.
+;     mag_var_name: tplot name with B field in GSM coordinates.
 ;
-; Notes:
-;   This procedure uses solarwind_load for the solar wind parameters.
+; Keywords (optional):
+;     trange:   Time range of interest (array with 2 elements, start and end time).
+;               If trange is not provided, it will be extracted from mag_var_name.
+;     hro2:     Flag. Load the newer HRO2 data set instead of HRO.
+;     newname:  Name for the output tplot variable. If not set, newname will be mag_var_name + "_lmn_mat".
 ;
 ;
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2025-04-05 09:43:07 -0700 (Sat, 05 Apr 2025) $
-;$LastChangedRevision: 33228 $
+;$LastChangedDate: 2025-04-13 15:15:43 -0700 (Sun, 13 Apr 2025) $
+;$LastChangedRevision: 33258 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/cotrans/lmn_transform/lmn_matrix_make.pro $
 ;-
 
-pro lmn_matrix_make, pos_var_name, mag_var_name, swdata=swdata, swdata_var_name=swdata_var_name, loadsolarwind=loadsolarwind, $
-   interpol_to_pos, newname=newname, _Extra=ex
+pro lmn_matrix_make, pos_var_name, mag_var_name, trange=trange, hro2=hro2, newname=newname
 
-  if ~keyword_set(pos_var_name) then begin
+  if ~keyword_set(pos_var_name) && tnames(pos_var_name) ne '' then begin
     dprint,'lmn_matrix_make requires pos_var_name to be set'
     return
   endif
-  if ~keyword_set(mag_var_name) then begin
+  if ~keyword_set(mag_var_name) && tnames(mag_var_name) ne '' then begin
     dprint,'lmn_matrix_make requires mag_var_name to be set'
     return
+  endif
+  if ~keyword_set(trange) || n_elements(trange) ne 2 then begin
+    ; Set trange from input tplot variable
+    get_data, mag_var_name, data=d, dlimits=dl
+    trange = [min(d.x), max(d.x)]
+    dprint, 'trange was set using mag_var_name:', trange
   endif
   if ~keyword_set(newname) then begin
     newname = mag_var_name + "_lmn_mat"
   endif
 
-  if keyword_set(interpol_to_pos) then begin
-    ; Interpolate to position
-    interpol_name = pos_var_name
-    mag_temp = mag_var_name + '_temp'
-    tinterpol, mag_var_name, interpol_name, newname=mag_temp
+  ; Get solarwind data
+  omni_solarwind_load, trange=trange, hro2=hro2
+  bz_names = tnames('OMNI_solarwind_BZ')
+  p_names = tnames('OMNI_solarwind_P')
+  ; We are using repeat_extrapolate because the BZ and Pressure have values for 1min
+  ; but the B field can many more values (every 3 secs) and the edges can go off with extrapolation
+  bz_interpol = bz_names[0] + '_interpol'
+  p_interpol = p_names[0] + '_interpol'
+  tinterpol, bz_names[0], mag_var_name, newname=bz_interpol, /repeat_extrapolate
+  tinterpol, p_names[0], mag_var_name, newname=p_interpol, /repeat_extrapolate
+  get_data, bz_interpol, data=dbz, dl=dlbz
+  get_data, p_interpol, data=dp, dl=dlp
+  timesw = dbz.x
+  swdata = dindgen(n_elements(timesw), 3)
+  swdata[*, 0] = timesw
+  swdata[*, 1] = dp.y
+  swdata[*, 2] = dbz.y
 
-    get_data, mag_temp, data=db, limits=lb, dlimits=dlb
-    Bxyz = db.y
+  ; Get position data
+  pos_interpol = pos_var_name + "_interpol"
+  tinterpol, pos_var_name, mag_var_name, newname=pos_interpol
+  get_data, pos_interpol, data=dpos, limits=lp, dlimits=dlp
+  timesp = dpos.x
+  txyz = dindgen(n_elements(timesp), 4)
+  txyz[*, 0] = timesp
+  txyz[*, 1] = dpos.y[*, 0]
+  txyz[*, 2] = dpos.y[*, 1]
+  txyz[*, 3] = dpos.y[*, 2]
 
-    get_data, pos_var_name, data=dp, limits=lp, dlimits=dlp
-    times = dp.x
-    txyz = findgen(n_elements(times), 4)
-    txyz[*, 0] = times
-    txyz[*, 1] = dp.y[*, 0]
-    txyz[*, 2] = dp.y[*, 1]
-    txyz[*, 3] = dp.y[*, 2]
-  endif else begin
-    ; Interpolate to B field, the default
-    interpol_name = mag_var_name
-    pos_temp = pos_var_name + '_temp'
-    tinterpol, pos_var_name, interpol_name, newname=pos_temp
-
-    get_data, mag_var_name, data=db, limits=lb, dlimits=dlb
-    Bxyz = db.y
-
-    get_data, pos_temp, data=dp, limits=lp, dlimits=dlp
-    times = dp.x
-    txyz = findgen(n_elements(times), 4)
-    txyz[*, 0] = times
-    txyz[*, 1] = dp.y[*, 0]
-    txyz[*, 2] = dp.y[*, 1]
-    txyz[*, 3] = dp.y[*, 2]
-  endelse
-
-  if keyword_set(loadsolarwind) then begin
-    ; If loadsolarwind keyword is set, use solarwind_load
-    trange = [times[0], times[n_elements(times)-1]]
-    solarwind_load, swdata, dst, trange, resol=3, hro=1, _Extra=ex
-  endif else if keyword_set(swdata) then begin
-    ; If swdata is set, use that (no changes)
-  endif else if keyword_set(swdata_var_name) then begin
-    ; If swdata_var_name is set, use that for swdata
-    swdata_temp = swdata_var_name + '_temp'
-    tinterpol, swdata_var_name, interpol_name, newname=swdata_temp
-    get_data, swdata_temp, data=ds, limits=l, dlimits=dl
-    swdata = ds.y
-  endif
+  ; Get magnetic field data
+  get_data, mag_var_name, data=db, limits=lb, dlimits=dlb
+  Bxyz = db.y
 
   ; Apply GSM to LMN
   gsm2lmn, txyz, Bxyz, Blmn, swdata
@@ -99,7 +84,9 @@ pro lmn_matrix_make, pos_var_name, mag_var_name, swdata=swdata, swdata_var_name=
   str_element, d_new, 'ysubtitle', '[LMN]', /add
   str_element, d_new, 'data_att.coord_sys', 'LMN', /add
   str_element, d_new, 'labels', ['Bl', 'Bm', 'Bn'], /add
-  store_data, newname, data={x:times, y:Blmn}, dlimits=d_new
+  store_data, newname, data={x:timesw, y:Blmn}, dlimits=d_new
+
+  time_clip, newname, trange[0], trange[1], /replace
 
   dprint, "LMN data saved in tplot variable: " + newname
 

@@ -11,6 +11,7 @@
 ;   local_file_first: set this keyword to look for the local file first before
 ;       downloading the file
 ;   res5min: set this keyword to request only 5 minute resolution data
+;   hro2: download hro2 data instead of hro
 ;
 ;   Obsolete keywords no longer used:
 ;   datatype
@@ -28,14 +29,14 @@
 ;
 ;     http://omniweb.gsfc.nasa.gov/html/HROdocum.html
 ;
-; $LastChangedBy: jwl $
-; $LastChangedDate: 2024-04-26 14:23:16 -0700 (Fri, 26 Apr 2024) $
-; $LastChangedRevision: 32537 $
+; $LastChangedBy: nikos $
+; $LastChangedDate: 2025-04-13 15:06:29 -0700 (Sun, 13 Apr 2025) $
+; $LastChangedRevision: 33256 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/omni/omni_load_data.pro $
 ;-
 pro omni_load_data,type,files=files,trange=trange,verbose=verbose,$
   downloadonly=downloadonly, no_download=no_download, $
-  local_file_first=local_file_first, varformat=varformat,datatype=datatype, $
+  local_file_first=local_file_first, varformat=varformat,datatype=datatype, hro2=hro2, $
   res5min=res5min,res1min=res1min, $
   addmaster=addmaster,data_source=data_source, $
   tplotnames=tn,source_options=source
@@ -61,8 +62,13 @@ pro omni_load_data,type,files=files,trange=trange,verbose=verbose,$
   ;URL deprecated by reorg at SPDF
   ;pathformat = 'omni/hro_'+rstr+'/YYYY/omni_hro_'+rstr+'_YYYYMM01_v01.cdf
   ;New URL 2012/10 pcruce@igpp
+  
+  if keyword_set(hro2) then begin
+    pathformat = 'omni/omni_cdaweb/hro2_'+rstr+'/YYYY/omni_hro2_'+rstr+'_YYYYMM01_v01.cdf'
+  endif else begin
   pathformat = 'omni/omni_cdaweb/hro_'+rstr+'/YYYY/omni_hro_'+rstr+'_YYYYMM01_v01.cdf'
-
+  endelse
+  
   ;if not keyword_set(varformat) then begin
   ;   if datatype eq  'k0' then    varformat = 'BGSEc PGSE'
   ;   if datatype eq  'h0' then    varformat = 'B3GSE'
@@ -126,7 +132,11 @@ pro omni_load_data,type,files=files,trange=trange,verbose=verbose,$
   ; double check that the file is available
   if file_test(files) eq 0 then return
 
-  prefix = 'OMNI_HRO_'+rstr+'_'
+  if keyword_set(hro2) then begin
+    prefix = 'OMNI_HRO2_'+rstr+'_'
+  endif else begin
+    prefix = 'OMNI_HRO_'+rstr+'_'
+  endelse
 
   cdf2tplot,file=files,varformat=varformat,verbose=verbose,prefix=prefix ,tplotnames=tn    ; load data into tplot variables
 
