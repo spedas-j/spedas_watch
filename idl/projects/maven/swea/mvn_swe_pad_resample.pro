@@ -136,9 +136,9 @@
 ;
 ;CREATED BY:      Takuya Hara on 2014-09-24.
 ;
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-23 18:07:39 -0700 (Sun, 23 Mar 2025) $
-; $LastChangedRevision: 33198 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2025-04-14 10:14:21 -0700 (Mon, 14 Apr 2025) $
+; $LastChangedRevision: 33262 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_resample.pro $
 ;
 ;-
@@ -795,7 +795,7 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
                ENDFOR 
                undefine, k
 
-               stop
+;              stop
 
                pa[m].avg[j,*] = tot/index               ; average signal of overlapping PA bins
                pa[m].nbins[j,*] = index                 ; normalization factor (# overlapping PA bins)

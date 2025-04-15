@@ -6,11 +6,17 @@
 ;  of Fly-Y/Z calibration opportunities, conjunction periods, and dust storm 
 ;  seasons.
 ;
-;  Warning: This routine can reset the SPICE loadlist.
+;  Warnings:
 ;
-;  Warning: This routine will reset timespan to cover the specified extended
-;  ephemeris, overwriting any existing timespan.  This will affect any routines
-;  that use timespan for determining what data to process.
+;   (1) This routine will reset timespan to cover the specified extended
+;       ephemeris, overwriting any existing timespan.  This will affect any
+;       routines that use timespan for determining what data to process.
+;
+;   (2) This routine can reset the SPICE loadlist.
+;
+;   (3) The extended ephemerides span about a decade, with peak RAM consumption
+;       of ~6 GB.  Most modern computers have at least 16 GB of RAM, but this is
+;       something to be aware of.
 ;
 ;  It's best to use this routine in its own IDL session.
 ;
@@ -76,8 +82,8 @@
 ;       PDS:      Plot vertical dashed lines separating the PDS release dates.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-04-05 14:34:27 -0700 (Sat, 05 Apr 2025) $
-; $LastChangedRevision: 33230 $
+; $LastChangedDate: 2025-04-14 10:11:37 -0700 (Mon, 14 Apr 2025) $
+; $LastChangedRevision: 33260 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_predict.pro $
 ;
 ;CREATED BY:	David L. Mitchell
