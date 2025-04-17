@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-10-15 08:12:13 -0700 (Tue, 15 Oct 2024) $
-; $LastChangedRevision: 32887 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-04-15 18:55:53 -0700 (Tue, 15 Apr 2025) $
+; $LastChangedRevision: 33263 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_read.pro $
 ; $ID: $
 
@@ -51,6 +51,7 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
     def_values['DOUBLE'] = !values.d_nan
     def_values['FLOAT'] = !values.f_nan
     def_values['INT'] = 0
+    def_values['CHAR'] = ''
     def_values['UINT'] = 0u
     def_values['LONG'] = 0L
     def_values['ULONG'] = 0uL
@@ -64,30 +65,53 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
   endif else num_recs = 0
 
   dat0 = !null
+  vartypes = strarr(inq.nvars)  ; for latter ID of char arrays
   for vid=0,inq.nvars-1 do begin
     vinq = ncdf_varinq(id,vid)
     ;printdat,vinq
-    val = def_values[vinq.datatype]
-    if vinq.ndims eq 0 then begin    ;scalers
+
+    ; get the datatype, ndims, and dim:
+    vid_dtype = vinq.datatype
+    vid_ndims = vinq.ndims
+    vid_dim = vinq.dim
+
+    ; pull the expected null value:
+    val = def_values[vid_dtype]
+
+    ; log the datatype
+    vartypes[vid] = vid_dtype
+
+    ; Decrement the ndims for CHAR -- ignore first
+    ; entry that describes the # of bits (length of the string)
+    if vid_dtype eq 'CHAR' then  vid_ndims = vid_ndims - 1
+
+    if vid_ndims eq 0 then begin    ;scalers
       dat0 = create_struct(dat0,vinq.name,val)
     endif  else begin
-      w = where(vinq.dim ne inq.recdim,/null)  ;get the dimensions that do not vary in time
-      dim_novary = vinq.dim[w]
+      w = where(vid_dim ne inq.recdim,/null)  ;get the dimensions that do not vary in time
+      dim_novary = vid_dim[w]
       dim = dim_sizes[dim_novary]
+      ; Skip the first axis for CHAR
+      if vid_dtype eq 'CHAR' then dim = dim[1:-1]
       if keyword_set(dim) then val = replicate(val,dim)
       dat0 = create_struct(dat0,vinq.name,val)
     endelse
   endfor
 
-if num_recs gt 0 then begin
-  dat = replicate(dat0,num_recs)
+  ; Make # recs of the dat0 for dat or set to dat
+  if num_recs gt 0 then dat = replicate(dat0,num_recs) else dat = dat0
 
+  ; Fill in the structure:
   for vid=0, inq.nvars-1 do begin
     ncdf_varget,id,vid,values
+
+    ; varget returns string fields as a byte array
+    ; needs to be converted into string:
+    if vartypes[vid] eq 'CHAR' then values = string(values)
+
     dat.(vid) = values
+
   endfor
-  
-endif else dat = dat0
 
   ncdf_close,id
   return,dat
