@@ -155,8 +155,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-01-22 18:45:01 -0800 (Wed, 22 Jan 2025) $
-; $LastChangedRevision: 33085 $
+; $LastChangedDate: 2025-04-17 15:22:57 -0700 (Thu, 17 Apr 2025) $
+; $LastChangedRevision: 33265 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -821,6 +821,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
               endfor
               !p.multi = 0
             end
+        else : ; do nothing
       endcase
     endif
 
