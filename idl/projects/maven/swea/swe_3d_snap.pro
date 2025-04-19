@@ -16,7 +16,15 @@
 ;
 ;       CENTER:        Longitude and latitude of the center [lon, lat].
 ;
-;       MAP:           Mapping projection.  See plot3d_options for details.
+;       MAP:           Mapping projection, which is passed to plot3d_options.  See
+;                      the manual page for map_set for a list of projections:
+;                        aitoff (default)
+;                        cylindrical
+;                        lambert
+;                        mercator
+;                        mollweide
+;                        orthographic
+;                        ... etc.
 ;
 ;       ZLOG:          If set, use a log color scale.
 ;
@@ -155,8 +163,8 @@
 ;                         0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-04-17 15:22:57 -0700 (Thu, 17 Apr 2025) $
-; $LastChangedRevision: 33265 $
+; $LastChangedDate: 2025-04-18 14:04:25 -0700 (Fri, 18 Apr 2025) $
+; $LastChangedRevision: 33268 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_3d_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -242,8 +250,27 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
 
   zrange = (n_elements(zrange) gt 1) ? float(zrange[0:1]) : [0.,0.]
   if (size(units,/type) ne 7) then units = 'crate'
+
+  plist = ['aitoff','albers','azimuthal','conic','cylindrical','gnomic', $
+           'goodeshomolosine','hammer','lambert','mercator','miller_cylindrical', $
+           'mollweide','orthographic','robinson','satellite','sinusoidal', $
+           'stereographic','transverse_mercator']
+
   if (size(map,/type) ne 7) then map = 'ait'
-  plot3d_options, map=map
+  i = strmatch(plist, map+'*', /fold)
+  case (total(i)) of
+      0  : begin
+             print, "Map projection not recognized: ", map
+             pname = 'aitoff'
+           end
+      1  : pname = (plist[where(i eq 1)])[0]
+    else : begin
+             print, "Map projection ambiguous: ", map
+             pname = 'aitoff'
+           end
+  endcase
+  print, "Using " + pname + " projection."
+  plot3d_options, map=pname
 
   xrange = [3.,5000.]
   ylog = 1
@@ -565,7 +592,10 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
         plot,[-1],[-1],xrange=[0,1],yrange=[0,1],xsty=5,ysty=5
         xyouts,0.5,0.4,tsp,/norm,align=0.5,charsize=csize2*1.5
         xyouts,0.5,0.5,"NO VALID DATA",/norm,align=0.5,charsize=csize2*1.5
-      endif else plot3d_new, ddd, lat, lon, ebins=ebins, zrange=zrange, log=keyword_set(zlog)
+      endif else begin
+        plot3d_new, ddd, lat, lon, ebins=ebins, zrange=zrange, log=keyword_set(zlog)
+        xyouts, 0.95, 0.98, /norm, align=1, pname + " projection", charsize=csize2
+      endelse
 
       if (pflg) then begin
         dt = min(abs(a2.time - mean(ddd.time)),j)
@@ -698,7 +728,7 @@ pro swe_3d_snap, spec=spec, keepwins=keepwins, archive=archive, ebins=ebins, $
         for k=0,(count-1) do begin
           i = ib[k]
           j = jb[k]
-          oplot,[mean(az[i:i+1])],[mean(el[j:j+1])],psym=7,color=5
+          oplot,[mean(az[i:i+1])],[mean(el[j:j+1])],psym=7,symsize=3,thick=2,color=5
         endfor
 
         az = Baz*!radeg

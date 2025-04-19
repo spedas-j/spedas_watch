@@ -2,13 +2,15 @@
 ; from a level 1b structure for plotting alongside the
 ; fluxes from the big pixel, tiny pixel, and merged flux.
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-24 20:34:45 -0700 (Mon, 24 Mar 2025) $
-; $LastChangedRevision: 33203 $
+; $LastChangedDate: 2025-04-18 13:45:12 -0700 (Fri, 18 Apr 2025) $
+; $LastChangedRevision: 33267 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hdr_tplot.pro $
 
 
-pro swfo_stis_hdr_tplot, level_1b_structs, add=add, elec=elec, ion=ion
+pro swfo_stis_hdr_tplot, level_1b_structs, add=add, elec=elec, ion=ion, prefix=prefix
 
+
+  if not keyword_set(prefix) then prefix = 'swfo_stis_'
 
     ; Parameters for a spectra plot with a logarithmic y and z axes
     ; with a spec range of 10^-2 to 10^3 and y range of 10-600 keV
@@ -17,35 +19,35 @@ pro swfo_stis_hdr_tplot, level_1b_structs, add=add, elec=elec, ion=ion
 
     if keyword_set(elec) then begin
 
-      store_data, 'elec_AR2_flux', $
+      store_data, prefix + 'elec_AR2_flux', $
         data={x: level_1b_structs.time_unix, $
               v: transpose(level_1b_structs.elec_energy), $
               y: transpose(level_1b_structs.AR2_elec_flux)}, dl=dl, limits=l
-      store_data, 'elec_AR1_flux', $
+      store_data, prefix + 'elec_AR1_flux', $
         data={x: level_1b_structs.time_unix, $
               v: transpose(level_1b_structs.elec_energy), $
               y: transpose(level_1b_structs.AR1_elec_flux)}, dl=dl, limits=l
-      store_data, 'elec_hdr_flux', $
+      store_data, prefix + 'elec_hdr_flux', $
         data={x: level_1b_structs.time_unix, $
               v: transpose(level_1b_structs.elec_energy), $
               y: transpose(level_1b_structs.hdr_elec_flux)}, dl=dl, limits=l
-      tplot, ['elec_AR2_flux', 'elec_AR1_flux', 'elec_hdr_flux'], add=add
+      tplot, prefix + ['elec_AR2_flux', 'elec_AR1_flux', 'elec_hdr_flux'], add=add
     endif
 
     if keyword_set(ion) then begin
-      store_data, 'ion_AR2_flux', $
+      store_data, prefix + 'ion_AR2_flux', $
         data={x: level_1b_structs.time_unix, $
               v: transpose(level_1b_structs.ion_energy), $
               y: transpose(level_1b_structs.AR2_ion_flux)}, dl=dl, limits=l
-      store_data, 'ion_AR1_flux', $
+      store_data, prefix + 'ion_AR1_flux', $
         data={x: level_1b_structs.time_unix, $
               v: transpose(level_1b_structs.ion_energy), $
               y: transpose(level_1b_structs.AR1_ion_flux)}, dl=dl, limits=l
-      store_data, 'ion_hdr_flux', $
+      store_data, prefix + 'ion_hdr_flux', $
         data={x: level_1b_structs.time_unix, $
               v: transpose(level_1b_structs.ion_energy), $
               y: transpose(level_1b_structs.hdr_ion_flux)}, dl=dl, limits=l
-      tplot, ['ion_AR2_flux', 'ion_AR1_flux', 'ion_hdr_flux'], add=add
+      tplot, prefix + ['ion_AR2_flux', 'ion_AR1_flux', 'ion_hdr_flux'], add=add
 
     endif
 
