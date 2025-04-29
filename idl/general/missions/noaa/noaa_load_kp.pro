@@ -24,9 +24,9 @@
 ;HISTORY:
 ;     egrimes, 3/20/2018: updated to use spd_download, and download the file from NOAA NGDC
 ;
-;$LastChangedBy: nikos $
-;$LastChangedDate: 2023-12-13 07:55:43 -0800 (Wed, 13 Dec 2023) $
-;$LastChangedRevision: 32285 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2025-04-28 17:54:46 -0700 (Mon, 28 Apr 2025) $
+;$LastChangedRevision: 33279 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/noaa/noaa_load_kp.pro $
 ;-
 
@@ -49,11 +49,11 @@ pro noaa_load_kp, trange = trange, kp_mirror = kp_mirror, remote_kp_dir=remote_k
     
     ;if ~keyword_set(kp_mirror) then kp_mirror = 'http://themis-data.igpp.ucla.edu/'
     if keyword_set(gfz) then kp_mirror = 'ftp://ftp.gfz-potsdam.de/'
-    if ~keyword_set(kp_mirror) then kp_mirror = 'ftp://ftp.ngdc.noaa.gov/'
-    ; Settings might contain themis-data.igpp.ucla.edu, in that case change it to ftp.ngdc.noaa.gov
+    if ~keyword_set(kp_mirror) then kp_mirror = 'https://www.ngdc.noaa.gov/'
+    ; Settings might contain themis-data.igpp.ucla.edu, in that case change it to https://www.ngdc.noaa.gov
     if strmatch(kp_mirror, '*themis-data.igpp.ucla.edu*', /fold_case) then begin
-      dprint, "Please check your Geomagnetic Indices settings and !geom_indices. The NOAA remote directory should be ftp://ftp.ngdc.noaa.gov"
-      kp_mirror = 'ftp://ftp.ngdc.noaa.gov/'
+      dprint, "Please check your Geomagnetic Indices settings and !geom_indices. The NOAA remote directory should be https://www.ngdc.noaa.gov/"
+      kp_mirror = 'https://www.ngdc.noaa.gov/'
     endif
     if STRLEN(kp_mirror) gt 0 then if STRMID(kp_mirror, STRLEN(kp_mirror)-1, 1) ne "/" then kp_mirror = kp_mirror + "/"
     if ~keyword_set(local_kp_dir) then file_prefix = root_data_dir() + 'geom_indices' + path_sep() $
@@ -61,7 +61,7 @@ pro noaa_load_kp, trange = trange, kp_mirror = kp_mirror, remote_kp_dir=remote_k
     if STRLEN(file_prefix) gt 0 then if STRMID(file_prefix, STRLEN(file_prefix)-1, 1) ne path_sep() then file_prefix = file_prefix + path_sep()    
     ;if ~keyword_set(remote_kp_dir) then remote_kp_dir = 'thg/mirrors/kp/noaa/'
     if keyword_set(gfz) then remote_kp_dir = 'pub/home/obs/kp-ap/wdc/yearly/'
-    if ~keyword_set(remote_kp_dir) then remote_kp_dir = 'STP/GEOMAGNETIC_DATA/INDICES/KP_AP/'
+    if ~keyword_set(remote_kp_dir) then remote_kp_dir = 'stp/space-weather/geomagnetic-data/INDICES/KP_AP/'
 
     
     years = starttime.year+indgen(endtime.year-starttime.year+1)
@@ -106,7 +106,7 @@ pro noaa_load_kp, trange = trange, kp_mirror = kp_mirror, remote_kp_dir=remote_k
         endif
         
         ; loop through file
-        ; see ftp://ftp.ngdc.noaa.gov/STP/GEOMAGNETIC_DATA/INDICES/KP_AP/kp_ap.fmt for a full description of the data files
+        ; see  https://www.ngdc.noaa.gov/stp/space-weather/geomagnetic-data/INDICES/KP_AP/kp_ap.fmt for a full description of the data files
         while not eof(lun) do begin
             full_line = ''
             readf,lun,full_line

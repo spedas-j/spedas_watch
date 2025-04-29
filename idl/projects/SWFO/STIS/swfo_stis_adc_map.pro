@@ -2,8 +2,8 @@
 ;
 ;
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-24 20:31:57 -0700 (Mon, 24 Mar 2025) $
-; $LastChangedRevision: 33200 $
+; $LastChangedDate: 2025-04-28 15:01:05 -0700 (Mon, 28 Apr 2025) $
+; $LastChangedRevision: 33275 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_adc_map.pro $
 ; $ID: $
 ;-
@@ -50,16 +50,21 @@ function swfo_stis_adc_map, data_sample=data_sample
     adcmap = dictionary()
     adcmap.codes = 0
   endif
-  adcmap.codes = 0
+  ; adcmap.codes = 0
   
   lut_map        = struct_value(data_sample,'lut_map',default=6)
   lut_mode       = struct_value(data_sample,'xxxx',default=1)
-  linear_mode    = struct_value(data_sample,'SCI_NONLUT_MODE',default=0) ne 0
+  ; linear_mode    = struct_value(data_sample,'SCI_NONLUT_MODE',default=0) ne 0
+  linear_mode   = (data_sample.sci_detector_bits and 64) ne 0
+
   resolution     = fix(struct_value(data_sample,'SCI_RESOLUTION',default=3))
   translate      = fix(struct_value(data_sample,'SCI_TRANSLATE',default=32))
-  
+ 
+
+ ; stop 
   codes = [translate,resolution,linear_mode,lut_mode,lut_map]
-  
+
+ ; print, codes  
   if array_equal(codes,adcmap.codes) then return,adcmap
 
   adcmap.codes = codes
@@ -140,6 +145,7 @@ function swfo_stis_adc_map, data_sample=data_sample
 
   adc_n  = adc0_n + dadc_n/2.
 
+ dprint, dlevel=2, 'First ten energies: ', (adc_n * conv_n)[0:10]
 
   adcmap.wh   = wh
   adcmap.ftoi = ftoi_n

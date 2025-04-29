@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-27 18:12:48 -0700 (Thu, 27 Mar 2025) $
-; $LastChangedRevision: 33207 $
+; $LastChangedDate: 2025-04-28 15:03:40 -0700 (Mon, 28 Apr 2025) $
+; $LastChangedRevision: 33276 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -18,8 +18,8 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     time_GR:  0d, $
     hash:   0UL, $
     ; noise columns:
-    noise_res: 0b, $
-    noise_total: replicate(0.,6),  $
+    noise_res: 0u, $
+    noise_total: replicate(0d,6),  $
     noise_baseline: replicate(!values.f_nan,6),  $
     noise_sigma: replicate(!values.f_nan,6),  $
     sci_duration: 0u , $
@@ -50,6 +50,8 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
 
     fpga_rev: 0b, $
     quality_bits: 0UL, $
+    sci_resolution: 0b, $
+    sci_translate: 0u, $
     gap:0}
     
 
@@ -57,14 +59,13 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
   L1a_strcts = replicate({swfo_stis_l1a}, nd )
   struct_assign , l0b_strcts,  l1a_strcts, /nozero, verbose = verbose
 
-
-  str_0 = l0b_strcts[0]
-  mapd = swfo_stis_adc_map(data_sample=str_0)  
-  nrg = mapd.nrg
-  dnrg = mapd.dnrg
-  adc = mapd.adc
-  dadc = mapd.dadc
-  geom = mapd.geom
+  ; str_0 = l0b_strcts[0]
+  ; mapd = swfo_stis_adc_map(data_sample=str_0)  
+  ; nrg = mapd.nrg
+  ; dnrg = mapd.dnrg
+  ; adc = mapd.adc
+  ; dadc = mapd.dadc
+  ; geom = mapd.geom
 
   ; Ion fill in:
   index_O123 = 12
@@ -83,10 +84,19 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
   index_F2 = 3
   index_F1 = 1
 
+    ; print, nd
+
   for i=0l,nd-1 do begin
     L0b_str = l0b_strcts[i]
     L1a = L1a_strcts[i]
     
+    mapd = swfo_stis_adc_map(data_sample=L0b_str)  
+    nrg = mapd.nrg
+    dnrg = mapd.dnrg
+    adc = mapd.adc
+    dadc = mapd.dadc
+    geom = mapd.geom
+
     d = L0b_str.sci_counts
     d = reform(d,48,14)
     
@@ -114,6 +124,10 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     l1a.noise_total = nse_level_1_str.noise_total
     l1a.noise_baseline = nse_level_1_str.noise_baseline
     l1a.noise_sigma = nse_level_1_str.noise_sigma
+
+    l1a.sci_translate = L0b_str.sci_translate
+    l1a.sci_resolution = L0b_str.sci_resolution
+    ; stop
 
     ; stop
 
@@ -157,6 +171,7 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
       ;      3,        6,      1-3,       4-6,      2-3,       5-6,   1-2-3,     4-5-6
       ;     O3,       F3,      O13,       F13,      O23,       F56,    O123,      F123
       ;Ion-AR2, Elec-AR2, Ion-AR12, Elec-AR12, Ion-AR23, Elec-AR23, Ion-123, Elec-F123
+      
 
       ; Fill in ion AKA O info
       l1a.geom_O1   = geom[*, index_O1]

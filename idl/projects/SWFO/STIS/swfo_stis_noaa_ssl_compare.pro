@@ -57,10 +57,10 @@ n_l1b = n_elements(level_1b_noaa)
 print, 'Now l1b: ', n_l1b
 
 if n_l1b ne 0 then begin
-    swfo_stis_hdr_tplot, level_1b_noaa, prefix=prefix, /ion, /elec, /add
+    swfo_stis_hdr_tplot, level_1b_noaa, prefix=noaa_prefix, /ion, /elec, /add
 endif
 
-; stop
+stop
 
 window, 2, XSIZE=750, YSIZE=800
 

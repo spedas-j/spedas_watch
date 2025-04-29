@@ -1,8 +1,8 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-04-04 08:02:24 -0700 (Thu, 04 Apr 2024) $
-; $LastChangedRevision: 32519 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-04-28 15:06:46 -0700 (Mon, 28 Apr 2025) $
+; $LastChangedRevision: 33277 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response.pro $
-; $Id: swfo_stis_inst_response.pro 32519 2024-04-04 15:02:24Z davin-mac $
+; $Id: swfo_stis_inst_response.pro 33277 2025-04-28 22:06:46Z rjolitz $
 
 
 
@@ -223,7 +223,7 @@ pro swfo_stis_inst_bin_response,simstat,data,new_seed=new_seed,noise_level=noise
       ;   endif
     endfor
   endif else begin
-    dprint , 'Non-LUT setup
+    dprint , 'Non-LUT setup'
     lut = uintarr(2L^15, 2, 8 )   + 680
     map = swfo_stis_adc_map(data_sample=data_sample)
     bin = 0
