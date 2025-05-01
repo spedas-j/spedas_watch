@@ -54,9 +54,9 @@
 ;
 ;HISTORY:
 ;Hacked from mvn_call_sta_l2gen, 17-Apr-2014, jmm
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-26 10:44:41 -0700 (Sun, 26 May 2024) $
-; $LastChangedRevision: 32647 $
+; $LastChangedBy: xussui_lap $
+; $LastChangedDate: 2025-04-30 13:04:10 -0700 (Wed, 30 Apr 2025) $
+; $LastChangedRevision: 33281 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_call_swe_l2gen.pro $
 ;-
 Pro mvn_call_swe_l2gen, time_in = time_in, $
@@ -70,6 +70,10 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
                         no_reset_time = no_reset_time, $
                         allbad = allbad, $
                         refresh = refresh, $
+                        dokp=dokp, $
+                        dospec=dospec,$
+                        dopad=dopad,$
+                        do3d=do3d,$
                         kp_comp=kp_comp, $
                         mail_xtra = mail_xtra, $
                         _extra = _extra
@@ -88,7 +92,11 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
   mxtra = size(mail_xtra,/type) eq 7
   refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 2
   kp_comp = (n_elements(kp_comp) gt 0) ? keyword_set(kp_comp) : 1
-
+  dospec = (n_elements(dospec) gt 0) ? keyword_set(dospec) : 1
+  dopad = (n_elements(dopad) gt 0) ? keyword_set(dopad) : 1
+  do3d = (n_elements(do3d) gt 0) ? keyword_set(do3d) : 1
+  dokp = (n_elements(dokp) gt 0) ? keyword_set(dokp) : 1
+  
   allbad = 0  ; disabled for Version 5 of the SWEA L2 products, DLM 2024-01-24
 
   einit = 0
@@ -283,6 +291,7 @@ Pro mvn_call_swe_l2gen, time_in = time_in, $
            Case instrk Of
               'swe': mvn_swe_l2gen, date = timei, directory = filei_dir, $
                                     l2only = l2only, refresh = refresh, $
+                                    dospec=dospec, dopad=dopad, do3d=do3d, dokp=dokp, $
                                     kp_comp=kp_comp, _extra=_extra
               Else: mvn_swe_l2gen, date = timei, directory = filei_dir, $
                                     l2only = l2only, refresh = refresh, $

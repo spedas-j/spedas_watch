@@ -4,8 +4,8 @@
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-24 20:34:45 -0700 (Mon, 24 Mar 2025) $
-; $LastChangedRevision: 33203 $
+; $LastChangedDate: 2025-04-30 12:29:05 -0700 (Wed, 30 Apr 2025) $
+; $LastChangedRevision: 33280 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -240,8 +240,8 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
           ch_cor.color = 0
           ch_cor.y = j_hdr
 
-          oplot, datw_b.ion_energy, datw_b.ion_energy*datw_b.hdr_ion_flux, color=2, thick=3, psym=ch.psym
-          oplot, datw_b.elec_energy, datw_b.elec_energy*datw_b.hdr_elec_flux, color=1, thick=3, psym=ch.psym
+          oplot, dat_b.ion_energy, dat_b.ion_energy*dat_b.hdr_ion_flux, color=2, thick=3, psym=ch.psym
+          oplot, dat_b.elec_energy, dat_b.elec_energy*dat_b.hdr_elec_flux, color=1, thick=3, psym=ch.psym
           oplot,ch_cor.x,ch_cor.y ,color=5,psym=ch.psym,thick=3
           ; stop
 
