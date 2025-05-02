@@ -1,14 +1,14 @@
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-04-28 15:03:40 -0700 (Mon, 28 Apr 2025) $
-; $LastChangedRevision: 33276 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-05-01 14:59:00 -0700 (Thu, 01 May 2025) $
+; $LastChangedRevision: 33286 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
 function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,reset=reset,cal=cal
 
   output = !null
-  nd = n_elements(l0b_strcts)  
-  
+  nd = n_elements(l0b_strcts)
+
   nan48=replicate(!values.f_nan,48)
 
   L1a = {swfo_stis_L1a,  $
@@ -18,16 +18,16 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     time_GR:  0d, $
     hash:   0UL, $
     ; noise columns:
-    noise_res: 0u, $
-    noise_total: replicate(0d,6),  $
+    noise_res: 0b, $
+    noise_total: replicate(0.,6),  $
     noise_baseline: replicate(!values.f_nan,6),  $
     noise_sigma: replicate(!values.f_nan,6),  $
     sci_duration: 0u , $
     sci_nbins:   0u,  $
     sci_counts : replicate(!values.f_nan,672),  $
     ; nse_noise_res: , $
-;    sci_adc    : replicate(!values.f_nan,672),  $
-;    sci_dadc    : replicate(!values.f_nan,672),  $
+    ;    sci_adc    : replicate(!values.f_nan,672),  $
+    ;    sci_dadc    : replicate(!values.f_nan,672),  $
     total14:  fltarr(14) , $
     total6:   fltarr(6) , $
     geom_O1: nan48, rate_O1: nan48, SPEC_O1: nan48, spec_O1_nrg: nan48, spec_O1_dnrg: nan48, spec_O1_adc:  nan48, spec_O1_dadc:  nan48, $
@@ -56,6 +56,9 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     
 
   ; Old: struct assign
+  L1a_strcts = replicate(L1a, nd )
+ ; struct_assign , l0b_strcts,  l1a_strcts, /nozero, verbose = verbose
+
   L1a_strcts = replicate({swfo_stis_l1a}, nd )
   struct_assign , l0b_strcts,  l1a_strcts, /nozero, verbose = verbose
 
@@ -89,7 +92,7 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
   for i=0l,nd-1 do begin
     L0b_str = l0b_strcts[i]
     L1a = L1a_strcts[i]
-    
+
     mapd = swfo_stis_adc_map(data_sample=L0b_str)  
     nrg = mapd.nrg
     dnrg = mapd.dnrg
@@ -99,14 +102,30 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
 
     d = L0b_str.sci_counts
     d = reform(d,48,14)
+
     
+    
+    mapd = swfo_stis_adc_map(data_sample=l0b_str)
+    nrg = mapd.nrg
+    dnrg = mapd.dnrg
+    adc = mapd.adc
+    dadc = mapd.dadc
+    geom = mapd.geom
+
     ; Moved from swfo_stis_sci_apdat__define
     ; when decimation active (e.g. high count rates)
     ; drops in sensitivity to allow resolution of higher fluxes
     dec = L0b_str.sci_decimation_factor_bits
-    if dec ne 0 then begin
+
+    if total(/preserve,dec) gt 0 then begin
+      if n_elements(dec) eq 4 then begin
+        dec6 = [0, dec[0], dec[1],0, dec[3]  , dec[4] ]  and 3             ; NOAA version   of file
+      endif else begin
+        dec6 = [0,dec,ishft(dec,-2),0,ishft(dec,-4),ishft(dec,-6)]  and 3   ; berkeley version of file
+      endelse
+      
+    ; Ion fill in:
       ; Channels 2, 3, 5, and 6
-      dec6 = [0,dec,ishft(dec,-2),0,ishft(dec,-4),ishft(dec,-6)]  and 3
       scale6 = 2. ^ dec6
       ;                      1     2    3      4     5      6      7
       ;                     C1    C2   C12    C3    C13    C23   C123
@@ -143,7 +162,7 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
     L1a.total14 = total14
     l1a.total6  = total6
 
-  ;  cal = swfo_stis_cal_params(L0b_str,reset=reset)
+    ;  cal = swfo_stis_cal_params(L0b_str,reset=reset)
     duration = L0b_str.sci_duration
     rate = d / duration  ; count rate (#/s)
     flux = rate / geom / dnrg ; flux (#/s/cm2/eV)
@@ -292,27 +311,27 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose ;,format=format,res
         out = {time:L0b_str.time}
         str_element,/add,out,'hash',mapd.codes.hashcode()
         str_element,/add,out,'sci_duration',L0b_str.sci_duration
-        str_element,/add,out,'sci_nbins',L0b_str.sci_nbins      
+        str_element,/add,out,'sci_nbins',L0b_str.sci_nbins
         str_element,/add,out,'gap',0
       endif else begin
         out = l1a
       endelse
       foreach w,mapd.wh,key do begin
-  ;      str_element,/add,out,'cnts_'+key,counts[w]
-  ;      str_element,/add,out,'rate_'+key,counts[w]/ L0b_str.sci_duration
+        ;      str_element,/add,out,'cnts_'+key,counts[w]
+        ;      str_element,/add,out,'rate_'+key,counts[w]/ L0b_str.sci_duration
 
         str_element,/add,out,'spec_'+key,flux[w]
         str_element,/add,out,'spec_'+key+'_nrg',nrg[w]
         str_element,/add,out,'spec_'+key+'_dnrg',dnrg[w]
 
-    ;    str_element,/add,out,'spec_'+key+'_adc',adc[w]    
-    ;    str_element,/add,out,'spec_'+key+'_dadc',dadc[w]
+        ;    str_element,/add,out,'spec_'+key+'_adc',adc[w]
+        ;    str_element,/add,out,'spec_'+key+'_dadc',dadc[w]
       endforeach
     endelse
     L1a_strcts[i] = l1a
-    
-;    if nd eq 1 then   return, out
-;    if i  eq 0 then   output = replicate(out,nd) else output[i] = out
+
+    ;    if nd eq 1 then   return, out
+    ;    if i  eq 0 then   output = replicate(out,nd) else output[i] = out
 
   endfor
 

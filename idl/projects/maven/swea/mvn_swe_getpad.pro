@@ -38,8 +38,8 @@
 ;                        0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-02 16:17:45 -0800 (Sat, 02 Mar 2024) $
-; $LastChangedRevision: 32472 $
+; $LastChangedDate: 2025-05-01 12:25:40 -0700 (Thu, 01 May 2025) $
+; $LastChangedRevision: 33283 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -61,10 +61,9 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
       return, 0
     endif else begin
       ok = 0
-      time = time_double(time)
       if keyword_set(archive) then begin
-        if ((not ok) and size(swe_a3) eq 8) then begin
-          time = swe_a3.time + delta_t  ; center times
+        if ((not ok) and size(a3,/type) eq 8) then begin
+          time = a3.time + delta_t  ; center times
           ok = 1
         endif
         if ((not ok) and size(mvn_swe_pad_arc,/type) eq 8) then begin
@@ -72,8 +71,8 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
           ok = 1
         endif
       endif else begin
-        if ((not ok) and size(swe_a2) eq 8) then begin
-          time = swe_a2.time + delta_t  ; center times
+        if ((not ok) and size(a2,/type) eq 8) then begin
+          time = a2.time + delta_t  ; center times
           ok = 1
         endif
         if ((not ok) and size(mvn_swe_pad,/type) eq 8) then begin
