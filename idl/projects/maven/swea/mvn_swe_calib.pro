@@ -91,8 +91,8 @@
 ;       LIST:         List the current calibration constants.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-17 08:46:14 -0800 (Wed, 17 Jan 2024) $
-; $LastChangedRevision: 32384 $
+; $LastChangedDate: 2025-05-15 11:25:49 -0700 (Thu, 15 May 2025) $
+; $LastChangedRevision: 33311 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_calib.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -298,6 +298,10 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default,
 
   mvn_swe_padlut, lut=lut, dlat=22.5  ; table used in flight software
   swe_padlut = lut
+
+; FOV map (unit vectors pointing to each solid angle element)
+
+  mvn_swe_fovmap, patch_size=15, /reset
 
 ; Geometric Factor
 ;   Simulations give a geometric factor of 0.03 (ignoring grids, posts, MCP 
