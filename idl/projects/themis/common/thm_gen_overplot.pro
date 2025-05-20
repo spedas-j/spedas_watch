@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jimm $
-;$LastChangedDate: 2025-04-07 13:34:04 -0700 (Mon, 07 Apr 2025) $
-;$LastChangedRevision: 33237 $
+;$LastChangedDate: 2025-05-19 11:45:05 -0700 (Mon, 19 May 2025) $
+;$LastChangedRevision: 33318 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -285,13 +285,20 @@ options, name, 'labflag', 1
 options, name, 'colors', [2, 4, 6]
 
 
-;load FBK and FFT data
+;load FBK and FFT data, skip this if probe = 'a' and date past
+;26-feb-2025, jmm, 19-May-2025, as EFI and SCM are turned off
 ;--------------
 
 load_position='fbk'
-
-thm_load_fbk,lev=1,probe=sc
-thm_load_fft,lev=1,probe=sc
+If(sc Eq 'a') Then Begin
+   If(time_double(date) Lt time_double('2025-02-26')) Then Begin
+      thm_load_fbk,lev=1,probe=sc
+      thm_load_fft,lev=1,probe=sc
+   Endif
+Endif Else Begin
+   thm_load_fbk,lev=1,probe=sc
+   thm_load_fft,lev=1,probe=sc
+Endelse   
 
 SKIP_FBK_LOAD:
 
