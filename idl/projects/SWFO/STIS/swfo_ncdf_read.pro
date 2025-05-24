@@ -1,6 +1,6 @@
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-04-15 18:55:53 -0700 (Tue, 15 Apr 2025) $
-; $LastChangedRevision: 33263 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-05-23 10:33:06 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33323 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_read.pro $
 ; $ID: $
 
@@ -56,8 +56,10 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
     def_values['LONG'] = 0L
     def_values['ULONG'] = 0uL
     def_values['ULONG64'] = 0uLL
+    def_values['LONG64'] = 0LL
     def_values['BYTE'] = 0B
     def_values['UBYTE'] = 0B
+    def_values['STRING'] =''
   endif
 
   if inq.recdim ne -1 then begin

@@ -1,6 +1,6 @@
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-23 18:07:39 -0700 (Sun, 23 Mar 2025) $
-; $LastChangedRevision: 33198 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-05-23 10:33:06 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33323 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_cal_params.pro $
 
 ;This routine should return a structure that contains calibration parameters.
@@ -16,8 +16,8 @@ function swfo_stis_cal_params,strct,reset=reset
   if ~isa(stis_master,'dictionary') then stis_master = dictionary()
 
   if strct.sci_nbins ne 672 then begin
-    dprint, 'Not working with LUT mode yet'
-    return,!null
+    dprint, 'Not working with LUT mode yet',strct.sci_nbins,dwait=60
+    ;return,!null
   endif
 
   if ~stis_master.haskey('cal') then begin

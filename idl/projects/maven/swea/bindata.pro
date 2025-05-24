@@ -1,9 +1,10 @@
 ;+
 ;PROCEDURE:   bindata
 ;PURPOSE:
-;  Bins a 2D data set and calculates moments for each bin.  The calculated
-;  moments are: mean, standard deviation, skewness, kurtosis, mean absolute
-;  deviation, and median.
+;  Bins a 3D data set and calculates moments for each bin: mean, standard 
+;  deviation, skewness, kurtosis, and mean absolute deviation.  Also 
+;  determines the median, upper quartile, lower quartile, minimum, and 
+;  maximum.
 ;
 ;    skewness: = 0 -> distribution is symmetric about the maximum
 ;              < 0 -> distribution is skewed to the left
@@ -12,9 +13,6 @@
 ;    kurtosis: = 0 -> distribution is peaked like a Gaussian
 ;              < 0 -> distribution is less peaked than a Gaussian
 ;              > 0 -> distribution is more peaked than a Gaussian
-;
-;  Also calculates the median, lower quartile, upper quartile, minimum and
-;  maximum.
 ;
 ;USAGE:
 ;  bindata, x, y
@@ -38,8 +36,8 @@
 ;                  space but allows detailed inspection of statistics.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-03-25 13:28:11 -0700 (Tue, 25 Mar 2025) $
-; $LastChangedRevision: 33205 $
+; $LastChangedDate: 2025-05-23 15:44:25 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33324 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/bindata.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -107,9 +105,19 @@ pro bindata, x, y, xbins=xbins, dx=dx, xrange=xrange, result=result, dst=dst
     endcase
   endfor
 
-  result = {x:x_a, y:y_mean, sdev:y_sdev, adev:y_adev, $
-            skew:y_skew, kurt:y_kurt, med:y_medn, lqrt:y_lqrt, $
-            uqrt:y_uqrt, min:y_min, max:y_max, npts:y_npts}
+  result = { x    : x_a    , $   ; bin center locations in x
+             y    : y_mean , $   ; mean value
+             sdev : y_sdev , $   ; standard deviation
+             adev : y_adev , $   ; absolute deviation
+             skew : y_skew , $   ; skewness
+             kurt : y_kurt , $   ; kurtosis
+             med  : y_medn , $   ; median
+             lqrt : y_lqrt , $   ; lower quartile
+             uqrt : y_uqrt , $   ; upper quartile
+             min  : y_min  , $   ; minimum
+             max  : y_max  , $   ; maximum
+             dx   : dx     , $   ; bin size in x
+             npts : y_npts    }  ; number of values in each bin
 
   if (dodist) then str_element, result, 'dist', y_dist, /add
 

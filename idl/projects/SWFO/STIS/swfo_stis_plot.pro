@@ -3,9 +3,9 @@
 ; Run using:
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-04-30 12:29:05 -0700 (Wed, 30 Apr 2025) $
-; $LastChangedRevision: 33280 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-05-23 10:33:06 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33323 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -69,7 +69,7 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
   if ~param.haskey('nsamples') then param.nsamples = 20
   if ~param.haskey('dtrate') then param.dtrate = 3e4     ; 1 / dead time
   if ~param.haskey('jconv') then param.jconv = .01       ; conversion from j to rate
-  if ~param.haskey('ddata') then begin
+  if ~param.haskey('ddata') || ~isa(param.ddata) then begin
     if (sci = swfo_apdat('stis_sci'))  then begin ; First look for data from the L0 data stream
       param.ddata = sci.getattr('level_0b')      ; L0b data
       param.L0b = sci.getattr('level_0b')
@@ -240,9 +240,9 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
           ch_cor.color = 0
           ch_cor.y = j_hdr
 
-          oplot, dat_b.ion_energy, dat_b.ion_energy*dat_b.hdr_ion_flux, color=2, thick=3, psym=ch.psym
+         ; oplot, dat_b.ion_energy, dat_b.ion_energy*dat_b.hdr_ion_flux, color=2, thick=3, psym=ch.psym
           oplot, dat_b.elec_energy, dat_b.elec_energy*dat_b.hdr_elec_flux, color=1, thick=3, psym=ch.psym
-          oplot,ch_cor.x,ch_cor.y ,color=5,psym=ch.psym,thick=3
+         ; oplot,ch_cor.x,ch_cor.y ,color=6,psym=ch.psym,thick=3
           ; stop
 
           ;tl dprint,dlevel=2,total(j1),total(j2), rate1,rate2, eta1,eta2

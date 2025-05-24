@@ -15,6 +15,7 @@ if 1 || ~keyword_set(files) then begin
   
   
   files = '~/analysis/SWFO_STIS_xray_L0A.bin'
+  files = '~/analysis/SWFO_STIS_ioncal_L0A.bin'
 
   hexprint,files
   

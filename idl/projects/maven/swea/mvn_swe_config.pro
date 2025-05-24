@@ -57,8 +57,8 @@
 ;                     type : types of configuration changes (see above)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-16 14:46:18 -0800 (Sun, 16 Feb 2025) $
-; $LastChangedRevision: 33131 $
+; $LastChangedDate: 2025-05-23 15:45:39 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33326 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_config.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
@@ -217,7 +217,7 @@ pro mvn_swe_config, list=list, timebar=tbar
   t_mcp = [t_mcp, time_double('2023-09-21/18:50:41')]
   m_mcp = [m_mcp, 'MCP bias adjustment (2875 -> 2925 V)']
 
-  t_mcp = [t_mcp, time_double('2024-09-18/00:00:00')]
+  t_mcp = [t_mcp, time_double('2025-01-20/00:00:00')]
   m_mcp = [m_mcp, 'last SWE-SWI cross calibration']
 
 ; 2025-10-01/00:00                                     ; beginning of EM-6

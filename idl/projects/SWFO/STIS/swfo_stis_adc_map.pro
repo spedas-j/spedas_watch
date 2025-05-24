@@ -1,9 +1,9 @@
 ;+
 ;
 ;
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-04-28 15:01:05 -0700 (Mon, 28 Apr 2025) $
-; $LastChangedRevision: 33275 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-05-23 10:33:06 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33323 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_adc_map.pro $
 ; $ID: $
 ;-
@@ -69,7 +69,7 @@ function swfo_stis_adc_map, data_sample=data_sample
 
   adcmap.codes = codes
   
-  dprint,'Generating new ADC map: ',codes,dlevel=3
+  dprint,'Generating new ADC map: ',codes,dlevel=2
 
   ftoi_n = intarr(48,14)
   adc0_n = lonarr(48,14)

@@ -90,15 +90,17 @@
 ;
 ;       LIST:         List the current calibration constants.
 ;
+;       SILENT:       Shhh.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-05-15 11:25:49 -0700 (Thu, 15 May 2025) $
-; $LastChangedRevision: 33311 $
+; $LastChangedDate: 2025-05-23 15:45:10 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33325 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_calib.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-13
 ;FILE: mvn_swe_calib.pro
 ;-
-pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default, list=list
+pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default, list=list, silent=silent
 
   @mvn_swe_com
 
@@ -108,10 +110,12 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default,
 
 ; Initialize
 
+  blab = ~keyword_set(silent)
+
   if (size(swe_hsk_str,/type) ne 8) then mvn_swe_init
 
   if (keyword_set(default) or (size(swe_G,/type) eq 0)) then begin
-    print, "Initializing SWEA constants"
+    if (blab) then print, "Initializing SWEA constants"
     swe_Ka       = 6.17       ; analyzer constant (1.4% variation around azim)
     swe_G        = 0.009/16.  ; nominal geometric factor per anode (IRAP)
     swe_Ke       = 2.80       ; nominal value, see mvn_swe_esuppress.pro
@@ -212,7 +216,7 @@ pro mvn_swe_calib, tabnum=tabnum, chksum=chksum, setcal=setcal, default=default,
     return
   endif
 
-  print, tabnum, mvn_swe_tabnum(tabnum,/inverse), format='("LUT: ",i2.2,3x,"Checksum: ",Z2.2)'
+  if (blab) then print, tabnum, mvn_swe_tabnum(tabnum,/inverse), format='("LUT: ",i2.2,3x,"Checksum: ",Z2.2)'
 
 ; Integration time per energy/angle bin prior to summing bins.
 ; There are 7 deflection bins for each of 64 energy bins spanning

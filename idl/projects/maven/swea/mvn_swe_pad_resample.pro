@@ -137,8 +137,8 @@
 ;CREATED BY:      Takuya Hara on 2014-09-24.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-04-14 10:14:21 -0700 (Mon, 14 Apr 2025) $
-; $LastChangedRevision: 33262 $
+; $LastChangedDate: 2025-05-23 15:48:13 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33330 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_resample.pro $
 ;
 ;-
@@ -373,11 +373,13 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
                           snap=plot, tplot=tplot, map3d=map3d, swia=swia, $
                           mbins=mbins, sc_pot=sc_pot, symdir=symdir, interpolate=interpolate, $
                           cut=cut, spec=spec, pstyle=pstyle, silent=sil, verbose=vb, $
-                          hires=hires, fbdata=fbdata, tabnum=tabnum, burst=burst
+                          hires=hires, fbdata=fbdata, tabnum=tabnum, burst=burst, $
+                          success=success
   COMPILE_OPT idl2
   @mvn_swe_com
   nan = !values.f_nan 
 
+  success = 0
   fifb = string("15b) ;"
   IF keyword_set(sil) THEN silent = sil ELSE silent = 0
   IF keyword_set(vb) THEN verbose = vb ELSE verbose = 0
@@ -465,7 +467,7 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
 ; Hires PAD data (select data by table number)
 
   dwell = 0
-  if ((tabnum eq 7) or (tabnum eq 8)) then begin
+  if ((tabnum ge 7) and (tabnum le 9)) then begin
     dtype = 0  ; only PAD data for now
     if keyword_set(archive) then begin
       idx = where(a3.lut eq tabnum, ndat)
@@ -487,6 +489,7 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
     case tabnum of
         7  : erange = 199.
         8  : erange = 49.
+        9  : erange = 125.
       else : begin
                print, ptrace()
                print, "  This should be impossible!  TABNUM: ",tabnum
@@ -838,6 +841,8 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
         IF keyword_set(silent) THEN prt = 0
      ENDIF  
   ENDFOR
+  
+  success = 1  ; found data and resampled
   undefine, i
   IF ndat GT 1 THEN PRINT, ' '
 

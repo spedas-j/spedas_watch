@@ -26,21 +26,21 @@
 ;       NOLUT:    Do not recalculate the LUT.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-04-05 14:35:58 -0700 (Sat, 05 Apr 2025) $
-; $LastChangedRevision: 33232 $
+; $LastChangedDate: 2025-05-23 15:47:53 -0700 (Fri, 23 May 2025) $
+; $LastChangedRevision: 33329 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makespec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
 ;FILE: mvn_swe_makespec.pro
 ;-
-pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, nolut=nolut
+pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, lut=lut
 
   @mvn_swe_com
-  
+
   if not keyword_set(sum) then smode = 0 else smode = 1
   if (size(units,/type) ne 7) then units = 'eflux'
   if (size(sflg,/type) eq 0) then sflg = 1 else sflg = keyword_set(sflg)
-  dolut = ~keyword_set(nolut)
+  gotlut = n_elements(lut) eq (n_elements(a4)*16L)
   ename = ''
 
 ; Initialize the deflection scale factors, geometric factor, and MCP efficiency
@@ -61,7 +61,7 @@ pro mvn_swe_makespec, sum=sum, units=units, tplot=tplot, sflg=sflg, pan=ename, n
     mvn_swe_engy = replicate(swe_engy_struct, npts)
     mvn_swe_engy.apid = 'A4'XB
 
-    if (dolut) then mvn_swe_getlut
+    if (gotlut) then mvn_swe_engy.lut = lut else mvn_swe_getlut
 
     for i=0L,(npkt-1L) do begin
       delta_t = swe_dt[a4[i].period]*dindgen(16) + (1.95D/2D)  ; center time offset (sample mode)
