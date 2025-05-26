@@ -82,8 +82,8 @@
 ;       PDS:      Plot vertical dashed lines separating the PDS release dates.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-04-14 10:11:37 -0700 (Mon, 14 Apr 2025) $
-; $LastChangedRevision: 33260 $
+; $LastChangedDate: 2025-05-25 09:53:09 -0700 (Sun, 25 May 2025) $
+; $LastChangedRevision: 33337 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_predict.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -394,7 +394,7 @@ pro maven_orbit_predict, extended=extended, eph=eph, line_colors=lcol, colors=co
 
   dt = median(palt.x - shift(palt.x,1))
   options,['alt2','palt','psza','plst','Lss'],'datagap',3D*dt  ; 3 median orbits = data gap
-  tplot_options,'var_label',''
+  tplot_options,'var_label','MarsYear'
 
   tplot,['alt2','SEM','palt','psza','bars','plst','Lss']
   if (lflg) then begin

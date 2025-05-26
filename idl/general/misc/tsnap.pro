@@ -25,10 +25,12 @@
 ;       var:    Tplot variable name or number.  If not specified, determine
 ;               based on which panel the mouse is in when clicked.
 ;
-;               If specified, this must have two independent variables
-;               (time and some other parameter).  This cannot be a compound
-;               variable (list of variables to be plotted in the same panel).
-;               You must specify which variable within the list.
+;               The selected variable must have two independent variables
+;               X and Y (time and some other parameter) and one dependent 
+;               variable Z (represented as color in the spectrogram).  This 
+;               cannot be a compound variable (list of variables to be plotted 
+;               in the same panel).  You must specify which variable within 
+;               the list.
 ;
 ;KEYWORDS:
 ;       NAVG:   Number of times to average centered on the selected time.
@@ -68,8 +70,8 @@
 ;       LASTCUT:  Named variable to hold data for the last plot.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-12-31 18:26:32 -0800 (Tue, 31 Dec 2024) $
-; $LastChangedRevision: 33021 $
+; $LastChangedDate: 2025-05-25 09:50:47 -0700 (Sun, 25 May 2025) $
+; $LastChangedRevision: 33334 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/tsnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell

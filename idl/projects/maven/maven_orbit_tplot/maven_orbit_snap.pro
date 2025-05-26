@@ -170,12 +170,15 @@
 ;
 ;       PSNAME:   Name of a postscript plot.  Works only for orbit plots.
 ;
-;       LANDERS:  Plot the locations of landers.  Can also be an 2 x N array
-;                 of surface locations (lon, lat) in the IAU_Mars frame.
+;       LANDERS:  Plot the locations of landers.  Can also be an array of surface
+;                 locations [lon1, lat1, lon2, lat2, ...] in the IAU_Mars frame.
+;                 (east longitude, units = deg).  Longitude range can be [-180, 180]
+;                 or [0, 360].  Default is all existing landing sites, from
+;                 Viking 1 to present.
 ;
 ;       SLAB:     Text labels for each of the landers.  If LANDERS is a scalar,
 ;                 then this provides a 1- or 2-character label for each lander.
-;                 If LANDERS is a 2 x N array, SLAB should be an N-element string
+;                 If LANDERS is an 2N array, SLAB should be an N-element string
 ;                 array.  Set SLAB to zero to disable text labels and just plot
 ;                 symbols instead.  Text labels are centered in longitude with
 ;                 the baseline at latitude.
@@ -193,8 +196,8 @@
 ;                 easier to see the colors.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-04-05 14:34:27 -0700 (Sat, 05 Apr 2025) $
-; $LastChangedRevision: 33230 $
+; $LastChangedDate: 2025-05-25 09:52:41 -0700 (Sun, 25 May 2025) $
+; $LastChangedRevision: 33336 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_snap.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -314,10 +317,11 @@ pro maven_orbit_snap, prec=prec, mhd=mhd, hybrid=hybrid, latlon=latlon, xz=xz, m
   ok = 0
   sites = 0
   nsites = 0
-  sz = size(landers)
-  if (((sz[0] eq 1) or (sz[0] eq 2)) and (sz[1] eq 2)) then begin
-    sites = landers
+  if (n_elements(landers) gt 1) then begin
     nsites = n_elements(landers)/2
+    sites = reform(landers[0:(2*nsites-1)], 2, nsites)
+    i = where(sites[0,*] lt 0., count)
+    if (count gt 0L) then sites[0,i] += 360.
     if (size(slab,/type) eq 7) then begin
       nlab = n_elements(slab)
       if (nlab ne nsites) then begin

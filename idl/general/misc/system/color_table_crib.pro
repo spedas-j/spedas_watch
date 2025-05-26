@@ -14,6 +14,12 @@
 ;                     Can also return the 3x8 array for any line color scheme.
 ;   color_table : Returns the current color table as a 256x3 array.
 ;
+;HELPER ROUTINE:
+;   tsnap:   Plots Y-Z cuts through any tplot color spectrogram at times (X) selected by 
+;            the mouse.  Plots error bars if DY is specified in the tplot variable.
+;            Also averages data in time and propagates errors, if desired.  Use this to
+;            determine if color variations are significant.
+;
 ;   See the headers of these routines for more details.
 ;
 ;OVERVIEW:
@@ -82,7 +88,7 @@
 ;   In addition to the standard and CSV catalogs, you can also choose the SPP Fields catalog
 ;   which is based on the CET catalog (https://colorcet.com/index.html).  The SPP catalog has 
 ;   the same goals as the CSV catalog, but has a different set of intensity, cross-fade, and 
-;   cyclical tables.
+;   cyclical tables.  In particular, the SPP catalog has more cross-fade and cyclical options.
 ;
 ;   As of this writing, there are 12 predefined line color schemes:
 ;
@@ -102,14 +108,18 @@
 ;
 ;   Use showct to preview any color table with any line color scheme.  It's always best to try out
 ;   different color tables on the actual data to evaluate what conveys the important features best
-;   without being misleading.  (The most important person not to mislead is yourself.)
+;   without being misleading.  (The most important person not to mislead is yourself.)  There is
+;   no substitute for plotting cuts through the color spectrogram with symbols and error bars.
+;   This allows you to determine if a change in color is statistically significant.  There is a
+;   generic routine that plots cuts through any tplot color spectrogram at times selected by the
+;   mouse: tsnap.pro (see that routine's header for more information).
 ;
 ;   Tplot has been modified to use initct and line_colors, so you can set custom color tables
 ;   and line color schemes for individual tplot variables using options.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-03 13:34:12 -0800 (Mon, 03 Feb 2025) $
-; $LastChangedRevision: 33110 $
+; $LastChangedDate: 2025-05-25 12:08:33 -0700 (Sun, 25 May 2025) $
+; $LastChangedRevision: 33340 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/system/color_table_crib.pro $
 ;
 ; Created by David Mitchell;  February 2023
@@ -229,13 +239,24 @@ options, var1, 'color_table', -1
 options, var1, 'line_colors', -1
 
 ;; Set color, line style and thickness for constants.  If there are fewer colors
-;; than values, then the colors are cycled as needed.  There can be only one line
-;; style and one line thickness per variable.
+;; than values, then the colors are cycled as needed.  Line styles (0-5) and line
+;; thicknesses work the same way.
 
-options, var1, 'constant', [value0, value1, ...]
+options, var1, 'constant',    [value0, value1, ...]
 options, var1, 'const_color', [color0, color1, ...]
-options, var1, 'const_line', linestyle
-options, var1, 'const_thick', thick
+options, var1, 'const_line',  [style0, style1, ...]
+options, var1, 'const_thick', [thick0, thick1, ...]
+
+;; Plot Y-Z cuts through a tplot color spectrogram at times (X) selected with the
+;; mouse.  This example enables plotting of error bars (ERR=1), averages five 
+;; neighboring measurements (NAVG=5), and sets some keywords that are passed to 
+;; PLOT.  TSNAP recognizes many keywords for PLOT and WIN (or WINDOW).  See the 
+;; header of tsnap.pro for more information.
+;;
+;; Use this to determine if color variations are significant.
+
+key = {err:1, yrange:[1e3,1e9], ylog:1, psym:10, charsize:1.5, xsize:800, ysize:1000}
+tsnap, var1, key=key, navg=5
 
 end ; of crib
 ;-

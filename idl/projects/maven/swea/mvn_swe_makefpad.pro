@@ -23,18 +23,21 @@
 ;
 ;       PANS:     Returns names of any tplot variables.
 ;
-;       PFILE:    Name of an IDL save file containing the hires PAD
+;       PFILE:    Name of an IDL save file for loading the hires PAD
 ;                 data structures: swe_fpad, swe_fpad_arc.
 ;
+;       SFILE:    Name of an IDL save file for storing the hires PAD
+;                 data structure: swe_fpad, swe_fpad_arc.
+;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-05-23 15:47:14 -0700 (Fri, 23 May 2025) $
-; $LastChangedRevision: 33328 $
+; $LastChangedDate: 2025-05-25 09:53:41 -0700 (Sun, 25 May 2025) $
+; $LastChangedRevision: 33338 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makefpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
 ;FILE: mvn_swe_makespec.pro
 ;-
-pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pfile
+pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pfile, sfile=sfile
 
   @mvn_swe_com
 
@@ -80,7 +83,9 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pf
         swe_fpad_arc = swe_pad32hz_unpack(swe_fpad_arc)
       endif
       doa3 = 1
-   endif else doa3 = 0
+    endif else doa3 = 0
+
+    if (size(sfile,/type) eq 7) then save, swe_fpad, swe_fpad_arc, file=sfile
   endif
 
 ; Make tplot variables with merged lores and hires pad data
@@ -129,32 +134,38 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pf
         tsp = tsp + [-two_hours, two_hours]
       endelse
 
-      pname = 'swe_pad_resample_50eV'
-      mvn_swe_pad_resample,tsp,nbins=128,erange=e50,snap=0,/tplot,/norm,/mask,/silent,$
-                           tabnum=5,pans=pname,success=ok50
-      if (ok50) then begin
-        print,"resampled normal 50 eV"
-        options,pname,'x_no_interp',1
-        options,pname,'datagap',4D
-      endif else print, "No normal 50 eV data"
+      if (ok50h) then begin
+        pname = 'swe_pad_resample_50eV'
+        mvn_swe_pad_resample,tsp,nbins=128,erange=e50,snap=0,/tplot,/norm,/mask,/silent,$
+                             tabnum=5,pans=pname,success=ok50
+        if (ok50) then begin
+          print,"resampled normal 50 eV"
+          options,pname,'x_no_interp',1
+          options,pname,'datagap',4D
+        endif else print, "No normal 50 eV data"
+      endif else ok50 = 0
 
-      pname = 'swe_pad_resample_200eV'
-      mvn_swe_pad_resample,tsp,nbins=128,erange=e200,snap=0,/tplot,/norm,/mask,/silent,$
-                           tabnum=5,pans=pname,success=ok200
-      if (ok200) then begin
-        print,"resampled normal 200 eV"
-        options,pname,'x_no_interp',1
-        options,pname,'datagap',4D
-      endif else print, "No normal 200 eV data"
+      if (ok200h) then begin
+        pname = 'swe_pad_resample_200eV'
+        mvn_swe_pad_resample,tsp,nbins=128,erange=e200,snap=0,/tplot,/norm,/mask,/silent,$
+                             tabnum=5,pans=pname,success=ok200
+        if (ok200) then begin
+          print,"resampled normal 200 eV"
+          options,pname,'x_no_interp',1
+          options,pname,'datagap',4D
+        endif else print, "No normal 200 eV data"
+      endif else ok200 = 0
 
-      pname = 'swe_pad_resample_125eV'
-      mvn_swe_pad_resample,tsp,nbins=128,erange=e125,snap=0,/tplot,/norm,/mask,/silent,$
-                           tabnum=5,pans=pname,success=ok125
-      if (ok125) then begin
-        print,"resampled normal 125 eV"
-        options,pname,'x_no_interp',1
-        options,pname,'datagap',4D
-      endif else print, "No normal 125 eV data"
+      if (ok125h) then begin
+        pname = 'swe_pad_resample_125eV'
+        mvn_swe_pad_resample,tsp,nbins=128,erange=e125,snap=0,/tplot,/norm,/mask,/silent,$
+                             tabnum=5,pans=pname,success=ok125
+        if (ok125) then begin
+          print,"resampled normal 125 eV"
+          options,pname,'x_no_interp',1
+          options,pname,'datagap',4D
+        endif else print, "No normal 125 eV data"
+      endif else ok125 = 0
 
       if (ok200 and ok200h) then begin
         get_data,'swe_pad_resample_200eV',data=lores,dlim=dlim
