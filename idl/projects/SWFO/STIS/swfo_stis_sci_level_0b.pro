@@ -64,29 +64,29 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       hkp_packet_size:  0ul,  $
       nse_packet_size:  0ul,  $
       ; from the header info:
-      sci_ptcu_bits: 0b, $
+      ptcu_bits: 0b, $
       hkp_ptcu_bits: 0b, $
       nse_ptcu_bits: 0b, $
       sci_time_res: 0u, $
       hkp_time_res: 0u, $
       nse_time_res: 0u, $
-      sci_decimation_factor_bits: 0b, $
+      decimation_factor_bits: 0b, $
       hkp_decimation_factor_bits: 0b, $
       nse_decimation_factor_bits: 0b, $
-      sci_pulser_bits: 0b, $
+      pulser_bits: 0b, $
       hkp_pulser_bits: 0b, $
       nse_pulser_bits: 0b, $
-      sci_detector_bits: 0b, $
+      detector_bits: 0b, $
       hkp_detector_bits: 0b, $
       nse_detector_bits: 0b, $
-      sci_aaee_bits: 0b, $
+      aaee_bits: 0b, $
       hkp_aaee_bits: 0b, $
       nse_aaee_bits: 0b, $
-      sci_noise_bits: 0u, $
+      noise_bits: 0u, $
       hkp_noise_bits: 0u, $
       nse_noise_bits: 0u, $
       ; set in swfo_stis_ccsds_header_decom as 1 + time_res
-      sci_duration:  0u, $
+      duration:  0u, $
       hkp_duration:  0u, $
       nse_duration:  0u, $
       ; These are set in swfo_stis_ccsds_header_decom,
@@ -182,7 +182,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       sci_counts: replicate(nan, 672),$
       ; nse data
       nse_histogram: replicate(0u, 60), $
-      nse_raw: replicate(0u, 60), $
+      nse_counts: replicate(0u, 60), $
       quality_bits:  0ul}
 
     ; hkp: from swfo_stis_hkp_apdat__define.pro
@@ -315,7 +315,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     output.nse_packet_size = nse_dat.packet_size
     ; - ptcu_bits (swfo_data_select):
     output.hkp_ptcu_bits = hkp_dat.ptcu_bits
-    output.sci_ptcu_bits = sci_dat.ptcu_bits
+    output.ptcu_bits = sci_dat.ptcu_bits
     output.nse_ptcu_bits = nse_dat.ptcu_bits
     ; - time res (swfo_data_select):
     output.hkp_time_res = hkp_dat.time_res
@@ -323,27 +323,27 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     output.nse_time_res = nse_dat.time_res
     ; - decimation_factor_bits (swfo_data_select):
     output.hkp_decimation_factor_bits = hkp_dat.decimation_factor_bits
-    output.sci_decimation_factor_bits = sci_dat.decimation_factor_bits
+    output.decimation_factor_bits = sci_dat.decimation_factor_bits
     output.nse_decimation_factor_bits = nse_dat.decimation_factor_bits
     ; - pulser_bits (swfo_data_select):
     output.hkp_pulser_bits = hkp_dat.pulser_bits
-    output.sci_pulser_bits = sci_dat.pulser_bits
+    output.pulser_bits = sci_dat.pulser_bits
     output.nse_pulser_bits = nse_dat.pulser_bits
     ; - detector_bits (swfo_data_select):
     output.hkp_detector_bits = hkp_dat.detector_bits
-    output.sci_detector_bits = sci_dat.detector_bits
+    output.detector_bits = sci_dat.detector_bits
     output.nse_detector_bits = nse_dat.detector_bits
     ; - aaee_bits (swfo_data_select):
     output.hkp_aaee_bits = hkp_dat.aaee_bits
-    output.sci_aaee_bits = sci_dat.aaee_bits
+    output.aaee_bits = sci_dat.aaee_bits
     output.nse_aaee_bits = nse_dat.aaee_bits
     ; - noise_bits (swfo_data_select):
     output.hkp_noise_bits = hkp_dat.noise_bits
-    output.sci_noise_bits = sci_dat.noise_bits
+    output.noise_bits = sci_dat.noise_bits
     output.nse_noise_bits = nse_dat.noise_bits
     ; - duration = 1 + time_res(swfo_stis_ccsds_header_decom)
     output.hkp_duration = hkp_dat.duration
-    output.sci_duration = sci_dat.duration
+    output.duration = sci_dat.duration
     output.nse_duration = nse_dat.duration
     ; ; packet_checksums:
     ; NOT INCLUDED -- these are not actually reported
@@ -364,7 +364,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
 
     ; nse:
     output.nse_histogram =  nse_dat.histogram
-    output.nse_raw = nse_dat.raw
+    output.nse_counts = nse_dat.raw
     ; output.nse_sigma = nse_dat.sigma
     ; output.nse_baseline = nse_dat.baseline
     ; output.nse_total6 = nse_dat.total6

@@ -1,9 +1,9 @@
 ;+
 ;
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-05-23 10:33:06 -0700 (Fri, 23 May 2025) $
-; $LastChangedRevision: 33323 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-05-28 17:59:57 -0700 (Wed, 28 May 2025) $
+; $LastChangedRevision: 33346 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_adc_map.pro $
 ; $ID: $
 ;-
@@ -52,17 +52,29 @@ function swfo_stis_adc_map, data_sample=data_sample
   endif
   ; adcmap.codes = 0
   
-  lut_map        = struct_value(data_sample,'lut_map',default=6)
-  lut_mode       = struct_value(data_sample,'xxxx',default=1)
+  ; These are the old struct value commands that returned a default
+  ; but don't make sense since these are defined:
+  ; lut_map        = struct_value(data_sample,'lut_map',default=6)
+  ; lut_mode       = struct_value(data_sample,'xxxx',default=1)
   ; linear_mode    = struct_value(data_sample,'SCI_NONLUT_MODE',default=0) ne 0
-  linear_mode   = (data_sample.sci_detector_bits and 64) ne 0
+  ; resolution     = fix(struct_value(data_sample,'SCI_RESOLUTION',default=3))
+  ; translate      = fix(struct_value(data_sample,'SCI_TRANSLATE',default=32))
 
-  resolution     = fix(struct_value(data_sample,'SCI_RESOLUTION',default=3))
-  translate      = fix(struct_value(data_sample,'SCI_TRANSLATE',default=32))
+  ; LUT mode:
+  ptcu_bits = data_sample.ptcu_bits
+  if n_elements(ptcu_bits) eq 4 then uselut_bit = ptcu_bits[3] else uselut_bit = ptcu_bits and 1
+  uselut_flag = uselut_bit ne 0
+  ; NOAA detector bits are three elements with the second
+  ; representing the nonlut mode (AKA linear mode)
+  detector_bits = data_sample.detector_bits 
+  if n_elements(detector_bits) eq 3 then linear_mode = detector_bits[1] else $
+    linear_mode = (detector_bits and 64) ne 0
+  resolution = data_sample.sci_resolution
+  translate = data_sample.sci_translate
  
 
  ; stop 
-  codes = [translate,resolution,linear_mode,lut_mode,lut_map]
+  codes = [translate,resolution,linear_mode,uselut_flag]
 
  ; print, codes  
   if array_equal(codes,adcmap.codes) then return,adcmap
@@ -120,6 +132,7 @@ function swfo_stis_adc_map, data_sample=data_sample
   for n= 0,13 do begin
     if linear_mode then begin
       adc0 =[ 0,  ( (lindgen(47)+1) * 2L ^ resolution ) + translate  < 2L^15 , 2L^15 ]
+      ; adc0 =[ 0,  ( (lindgen(47)+1) * resolution ) + translate  < 2L^15 , 2L^15 ]
       d_adc0 = shift(adc0 ,-1) - adc0
       adc0 = adc0[0:47]
       d_adc0 = d_adc0[0:47]
