@@ -1,12 +1,12 @@
 ; swfo_stis_sci_qflag_crib.pro
 
 
-filename = '/Users/rjolitz/swfo_dat/SWFO_STIS_ioncal__combined_l0b.nc'
-; filename = '/Users/rjolitz/swfo_dat/stis_e2e4_rfr_realtime_30min_combined_l0b.nc'
-; filename = '/Users/rjolitz/swfo_dat/SWFO_STIS_xray_combined_l0b_decimation_factor_bits_2_3_5_6.nc'
-; filename = '/Users/rjolitz/swfo_dat/SWFO_STIS_xray_combined_l0b_decimation_factor_bits_6_5_3_2.nc'
-; filename = '/Users/rjolitz/swfo_dat/STIS_L0B_SSL_Xray_upd.nc'
-; filename = '/Users/rjolitz/swfo_dat/STIS_L0B_SSL_iongun_upd.nc'
+filename = 'SWFO_STIS_ioncal__combined_l0b.nc'
+filename = 'stis_e2e4_rfr_realtime_30min_combined_l0b.nc'
+; filename = 'SWFO_STIS_xray_combined_l0b_decimation_factor_bits_2_3_5_6.nc'
+; filename = 'SWFO_STIS_xray_combined_l0b_decimation_factor_bits_6_5_3_2.nc'
+; filename = 'STIS_L0B_SSL_Xray_upd.nc'
+; filename = 'STIS_L0B_SSL_iongun_upd.nc'
 l0b = swfo_ncdf_read(filenames=filename, force_recdim=0)
 l1a =   swfo_stis_sci_level_1a(l0b)
 

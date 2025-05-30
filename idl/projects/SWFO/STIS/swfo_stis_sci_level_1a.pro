@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-05-28 18:06:32 -0700 (Wed, 28 May 2025) $
-; $LastChangedRevision: 33348 $
+; $LastChangedDate: 2025-05-29 13:33:13 -0700 (Thu, 29 May 2025) $
+; $LastChangedRevision: 33351 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -69,7 +69,7 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
     gap:0}
     
 
-  cal = {nse_threshold: [2., 2., 2., 2., 2., 2.], $
+  cal = {nse_threshold: [0.84, 1.4, 1.05, 0.84, 1.4, 1.05], $
          rate_threshold: [10e3, 10e3, 10e3, 10e3, 10e3, 10e3], $
          reaction_wheel_threshold: [2000, 2000, 2000, 2000], $
          dap_temperature_threshold: [-35., 50.], $
