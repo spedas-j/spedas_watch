@@ -20,9 +20,9 @@
 ;    NUMBITS: the number of bits that will be plot
 ;    SYMSIZE: set the size of the symbol
 ;
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2025-02-18 14:05:52 -0800 (Tue, 18 Feb 2025) $
-; $LastChangedRevision: 33138 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-06-01 14:04:12 -0700 (Sun, 01 Jun 2025) $
+; $LastChangedRevision: 33355 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/bitplot.pro $
 ;-
 pro bitplot,x,y,psyms=psyms,overplot=overplot,di=di,limits=lim,data=data,numbits=nb,symsize=symsize
@@ -95,7 +95,7 @@ if n_elements(colors) ne 0 then col = get_colors(colors)  $
 else col = !p.color
 ncol = n_elements(col)
 
-bit = 1l
+if nb eq 64 then bit = 1ll else bit = 1l
 prefix = replicate("  ",nb)
 for i=0,nb-1 do begin
   ind = where(y and bit,c)
