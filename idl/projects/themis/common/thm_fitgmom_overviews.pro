@@ -222,9 +222,17 @@ if tnames(fgs_name) then begin
 
 ;for recent FGS data, if there is an estimated Bz, put the Bz curve
 ;behind Bx and By. jmm, 2024-12-12
-   If(probe Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then $
+;Set Bz to zero if L1B data is not used, jmm, 2025-06-02
+   If(probe Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then Begin
       options, fgs_name+'+t', 'indices', [2,0,1,3]
-
+      get_data, 'th'+probe+'_fgl_l1b_bz', data = temp_bz
+      If(~is_struct(temp_bz)) Then Begin ;reset Bz to zero
+         get_data, fgs_name+'+t', data = dbz
+         dbz.y[*, 2] = 0
+         dbz.y[*, 3] = sqrt(dbz.y[*, 0]^2+dbz.y[*, 1]^2)
+         store_data, fgs_name+'+t', data = dbz
+      Endif
+   Endif
 
 endif else begin 
 
