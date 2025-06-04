@@ -94,8 +94,8 @@
 ;                      to a higher number to see more diagnostic messages.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-16 13:48:44 -0800 (Tue, 16 Jan 2024) $
-; $LastChangedRevision: 32379 $
+; $LastChangedDate: 2025-06-03 11:58:01 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33363 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_load_l0.pro $
 ;
 ;CREATED BY:    David L. Mitchell  04-25-13
@@ -367,6 +367,13 @@ pro mvn_swe_load_l0, trange, filename=filename, latest=latest, maxbytes=maxbytes
 ; Make energy spectra
 
   mvn_swe_makespec
+
+; Load MAG data and rotate to the SWEA frame
+;   priority order: L2, L1, PAD MAG angles (L0)
+
+  print,"Getting MAG data in the SWEA frame:",format='(/,a)'
+  mvn_swe_addmag, /usepadmag
+  print,""
 
 ; Set the quality flag (do not attempt to generate missing flags)
 

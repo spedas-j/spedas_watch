@@ -35,8 +35,8 @@
 ;    L2ONLY:        Insist on loading L2 data.  (Useful for generating PDS data.)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-30 09:20:12 -0800 (Tue, 30 Jan 2024) $
-; $LastChangedRevision: 32429 $
+; $LastChangedDate: 2025-06-03 12:01:10 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33364 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_addmag.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03/18/14
@@ -53,15 +53,17 @@ pro mvn_swe_addmag, full=full, usepadmag=usepadmag, l2only=l2only
 
 ; Get the highest level MAG data available
 
-  store_data, 'mvn_B_1sec', /delete
-  mvn_mag_load, 'L2_1SEC', mag_frame='pl', l2only=l2only
+  i = find_handle('mvn_B_1sec', verbose=-1)
+  if (i gt 0) then store_data, 'mvn_B_1sec', /delete
+  mvn_mag_load, 'L2_1SEC', mag_frame='pl', l2only=l2only, verbose=-1
   get_data, 'mvn_B_1sec', data=mag1, alim=lim, index=i
 
   if (i eq 0) then begin
     print,"No L2 MAG PL data found!"
     if (l2only) then begin  ; try to load l2 pc data as a last resort
-      store_data, 'mvn_B_1sec_MAVEN_SPACECRAFT', /delete
-      mvn_mag_load, 'L2_1SEC', mag_frame='pc', spice_frame='spacecraft', l2only=l2only
+      i = find_handle('mvn_B_1sec_MAVEN_SPACECRAFT', verbose=-1)
+      if (i gt 0) then store_data, 'mvn_B_1sec_MAVEN_SPACECRAFT', /delete
+      mvn_mag_load, 'L2_1SEC', mag_frame='pc', spice_frame='spacecraft', l2only=l2only, verbose=-1
       get_data, 'mvn_B_1sec_MAVEN_SPACECRAFT', data=mag1, alim=lim, index=i
       if (i eq 0) then print,"No L2 MAG PC data found!" $
                   else print,"Using L2 MAG PC data instead."

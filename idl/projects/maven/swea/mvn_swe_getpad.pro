@@ -38,8 +38,8 @@
 ;                        0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-05-01 12:25:40 -0700 (Thu, 01 May 2025) $
-; $LastChangedRevision: 33283 $
+; $LastChangedDate: 2025-06-03 11:52:11 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33359 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -174,12 +174,42 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
       jel = swe_padlut[*,jBel[i]]
       k3d = jel*16 + iaz
 
+      Sx = Sx3d[*,k3d,*,pad[i].group]
+      Sy = Sy3d[*,k3d,*,pad[i].group]
+      Sz = Sz3d[*,k3d,*,pad[i].group]
+
       if (pad[i].maglev gt 0B) then magf = pad[i].magf else magf = 0
-      pam = mvn_swe_padmap(fake_pkt[i],magf=magf)
-      pad[i].pa     = transpose(pam.pa)
-      pad[i].dpa    = transpose(pam.dpa)
-      pad[i].pa_min = transpose(pam.pa_min)
-      pad[i].pa_max = transpose(pam.pa_max)
+
+      if (n_elements(magf) eq 3) then begin
+        B = sqrt(total(magf[0:2]*magf[0:2]))
+        Bx = magf[0]/B
+        By = magf[1]/B
+        Bz = magf[2]/B
+        Baz = atan(By, Bx)
+        if (Baz lt 0.) then Baz += (2.*!pi)
+        Bel = asin(Bz)
+      endif else begin
+        cosBel = cos(pad[i].Bel)
+        Bx = cos(pad[i].Baz)*cosBel
+        By = sin(pad[i].Baz)*cosBel
+        Bz = sin(pad[i].Bel)
+      endelse
+
+      SxBx = temporary(Sx)*Bx
+      SyBy = temporary(Sy)*By
+      SzBz = temporary(Sz)*Bz
+      SdotB = (SxBx + SyBy + SzBz)
+      pam = acos(SdotB < 1D > (-1D))        ; (n*n,16,64)
+
+      pa = mean(pam, dim=1)                 ; mean pitch angle
+      pa_min = min(pam, dim=1, max=pa_max)  ; min and max pitch angle
+      dpa = pa_max - pa_min                 ; pitch angle range
+
+      pad[i].pa = transpose(pa)
+      pad[i].dpa = transpose(dpa)
+      pad[i].pa_min = transpose(pa_min)
+      pad[i].pa_max = transpose(pa_max)
+
       pad[i].theta  = transpose(swe_el[jel,*,pad[i].group])
       pad[i].dtheta = transpose(swe_del[jel,*,pad[i].group])
       pad[i].phi    = replicate(1.,pad[i].nenergy) # swe_az[iaz]
@@ -325,20 +355,54 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
 ; Mapping between PAD bins and 3D bins uses the raw magnetic field direction
 ;   rBaz, rBel    --> magnetic field direction as determined onboard
 ;   iaz, jel, k3d --> mapping between PAD bins and 3D bins
+;   Sx, Sy, Sz    --> FOV unit vector (n*n,16,64); see mvn_swe_fovmap.pro
 
     mvn_swe_magdir, pkt.time, pkt.Baz, pkt.Bel, rBaz, rBel
     iaz = fix((indgen(16) + pkt.Baz/16) mod 16)
     jel = swe_padlut[*,pkt.Bel]
     k3d = jel*16 + iaz
 
+    Sx = Sx3d[*,k3d,*,pkt.group]
+    Sy = Sy3d[*,k3d,*,pkt.group]
+    Sz = Sz3d[*,k3d,*,pkt.group]
+
 ; Pitch angle map.  Use MAG L1 or L2 data, if available, via MAGF keyword.
 ; Otherwise, use the MAG angles contained in the A2/A3 packets.
 
-    pam = mvn_swe_padmap(pkt,magf=magf)
-    pad[n].pa = transpose(pam.pa)
-    pad[n].dpa = transpose(pam.dpa)
-    pad[n].pa_min = transpose(pam.pa_min)
-    pad[n].pa_max = transpose(pam.pa_max)
+    if (n_elements(magf) eq 3) then begin
+      B = sqrt(total(magf[0:2]*magf[0:2]))
+      Bx = magf[0]/B
+      By = magf[1]/B
+      Bz = magf[2]/B
+      Baz = atan(By, Bx)
+      if (Baz lt 0.) then Baz += (2.*!pi)
+      Bel = asin(Bz)
+    endif else begin
+      cosBel = cos(rBel)
+      Bx = cos(rBaz)*cosBel
+      By = sin(rBaz)*cosBel
+      Bz = sin(rBel)
+    endelse
+
+; Calculate the nominal (center) pitch angle for each bin
+;   This is a function of energy because the deflector high voltage supply
+;   tops out above ~2 keV, and it's function of time because the magnetic
+;   field varies: pam -> 16 angles X 64 energies.
+
+    SxBx = temporary(Sx)*Bx
+    SyBy = temporary(Sy)*By
+    SzBz = temporary(Sz)*Bz
+    SdotB = (SxBx + SyBy + SzBz)
+    pam = acos(SdotB < 1D > (-1D))        ; (n*n,16,64)
+
+    pa = mean(pam, dim=1)                 ; mean pitch angle
+    pa_min = min(pam, dim=1, max=pa_max)  ; min and max pitch angle
+    dpa = pa_max - pa_min                 ; pitch angle range
+
+    pad[n].pa = transpose(pa)
+    pad[n].dpa = transpose(dpa)
+    pad[n].pa_min = transpose(pa_min)
+    pad[n].pa_max = transpose(pa_max)
 
 ; Energy bins are summed according to the group parameter.
 ; Energy resolution in the standard PAD structure allows for the possibility of

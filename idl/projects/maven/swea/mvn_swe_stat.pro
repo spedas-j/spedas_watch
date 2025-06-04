@@ -18,8 +18,8 @@
 ;    SILENT:        Shhhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-07 08:43:42 -0700 (Tue, 07 May 2024) $
-; $LastChangedRevision: 32559 $
+; $LastChangedDate: 2025-06-03 11:57:08 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33362 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -145,6 +145,11 @@ pro mvn_swe_stat, npkt=npkt, full=full, silent=silent
         2 : print,"User-defined flatfield correction"
       endcase
     endif
+
+    if (size(swe_mag1,/type) eq 8) then begin
+      maglev = string(swe_mag1[0].level, format='("L",i1)')
+      print,"MAG " + maglev + " data loaded"
+    endif else print,"MAG data not loaded"
 
     print,""
 

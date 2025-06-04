@@ -2,8 +2,8 @@
 ;
 ;
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-05-28 17:59:57 -0700 (Wed, 28 May 2025) $
-; $LastChangedRevision: 33346 $
+; $LastChangedDate: 2025-06-03 15:59:53 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33366 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_adc_map.pro $
 ; $ID: $
 ;-
@@ -42,7 +42,7 @@ end
 
 
 
-function swfo_stis_adc_map, data_sample=data_sample
+function swfo_stis_adc_map, data_sample=data_sample, cal=cal
 
   common swfo_stis_adc_map_common,adcmap
   
@@ -79,6 +79,8 @@ function swfo_stis_adc_map, data_sample=data_sample
  ; print, codes  
   if array_equal(codes,adcmap.codes) then return,adcmap
 
+  if ~isa(cal,'dictionary') then cal = swfo_stis_inst_response_calval()
+
   adcmap.codes = codes
   
   dprint,'Generating new ADC map: ',codes,dlevel=2
@@ -86,48 +88,26 @@ function swfo_stis_adc_map, data_sample=data_sample
   ftoi_n = intarr(48,14)
   adc0_n = lonarr(48,14)
   dadc_n = lonarr(48,14)
-  clog_17_6=[  0,     1,     2,     3,     4,     5,     6,     7,     8,     10,    12,     14,$
-    16,    20,    24,    28,    32,    40,    48,    56,    64,     80,    96,    112,$
-    128,   160,   192,   224,   256,   320,   384,   448,   512,    640,   768,    896,$
-    1024,  1280,  1536,  1792,  2048,  2560,  3072,  3584,  4096,   5120,  6144,   7168,$
-    2L^13    ]
-
-  ftoi = orderedhash()
-  ftoi['o1'] =2
-  ftoi['o2'] =4
-  ftoi['o3'] =8
-  ftoi['f1'] =3
-  ftoi['f2'] =5
-  ftoi['f3'] =9
-  ; Adding coincidences:
-  ftoi['o12'] =6
-  ftoi['f12'] =7
-  ftoi['o13'] =10
-  ftoi['f13'] =11
-  ftoi['o23'] =12
-  ftoi['f23'] =13
-  ftoi['o123'] =14
-  ftoi['f123'] =15
-
-  wh = orderedhash()
+  ; clog_17_6=[  0,     1,     2,     3,     4,     5,     6,     7,     8,     10,    12,     14,$
+  ;   16,    20,    24,    28,    32,    40,    48,    56,    64,     80,    96,    112,$
+  ;   128,   160,   192,   224,   256,   320,   384,   448,   512,    640,   768,    896,$
+  ;   1024,  1280,  1536,  1792,  2048,  2560,  3072,  3584,  4096,   5120,  6144,   7168,$
+  ;   2L^13    ]
+  clog_17_6 = cal.nonlut_adc_min
+  kev_per_adc = cal.detector_keV_per_adc
+  geomfactor = cal.geometric_factor
+  ftoi = cal.coincidence_map
   
-  center_adc_bins = [    234.06952     ,  228.35745    ,  231.78710     ,  232.06377      ,  232.78850      ,  231.65691    ]  
-
-  
-  ;channel = orderedhash('o1',1,'o2',2,'o3',3,'f1',4,'f2',5,'f3',6)
+  ; center_adc_bins = [    234.06952     ,  228.35745    ,  231.78710     ,  232.06377      ,  232.78850      ,  231.65691    ]  
   ;kev_per_adc = 59.5 / ( [25.12, 22.58, 25.65, 25.48, 23.61,  24.7 ] *8)
   ;kev_per_adc = 5500. / ( [5500.,5500.,5500.,5500.,5500.,5500.] * 4)
-  kev_per_adc = 59.5 / center_adc_bins
+  ; kev_per_adc = 59.5 / center_adc_bins
   kev_per_adc = [!values.f_nan,kev_per_adc]
-  geomfactor  = .2  * [.01,1,1,.01,1,1]
+  ; geomfactor  = .2  * [.01,1,1,.01,1,1]
   geomfactor  = [!values.f_nan,geomfactor]
   channel_n = [1,4,2,5,0,0,3,6,0,0,0,0,0,0]
   conv_n = replicate(!values.f_nan,48,14)
   geom_n = replicate(!values.f_nan,48,14)
-
-;  foreach c, channel, k do begin
-;    conv[wh[k]]
-;  endforeach
   
   for n= 0,13 do begin
     if linear_mode then begin
@@ -143,7 +123,7 @@ function swfo_stis_adc_map, data_sample=data_sample
       d_adc0 = d_adc0[0:47] 
     endelse
     
-    ftoi_n[*,n] = n+2
+    ftoi_n[*,n] = n
     adc0_n[*,n] = adc0
     dadc_n[*,n] = d_adc0
     
@@ -152,9 +132,8 @@ function swfo_stis_adc_map, data_sample=data_sample
 
   endfor
 
-  foreach p, ftoi, k do begin
-    wh[k] = where(ftoi_n eq p,/null)
-  endforeach
+  wh = orderedhash()
+  foreach p, ftoi, k do wh[k] = where(ftoi_n eq p,/null)
 
   adc_n  = adc0_n + dadc_n/2.
 

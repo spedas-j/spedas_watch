@@ -21,7 +21,11 @@
 ;
 ;       y:         The second independent variable (M-element array).
 ;
-;       z:         The dependent variable (N x M array).
+;       z:         The dependent variable (N x M array).  If any elements
+;                  of z are not finite, they are treated as missing data.
+;                  They are not included when calculating statistics, and 
+;                  they are not included in the distribution (see keyword 
+;                  DST below).
 ;
 ;KEYWORDS:
 ;       XBINS:     The number of bins to divide x into.  Takes precedence
@@ -45,8 +49,8 @@
 ;                  space.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-05-23 15:44:25 -0700 (Fri, 23 May 2025) $
-; $LastChangedRevision: 33324 $
+; $LastChangedDate: 2025-06-03 12:08:02 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33365 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/bindata2d.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -55,6 +59,7 @@ pro bindata2d, x, y, z, xbins=xbins, dx=dx, xrange=xrange, ybins=ybins, $
                       dy=dy, yrange=yrange, result=result, dst=dst
 
   dodist = keyword_set(dst)
+  zgud = finite(z)
 
 ; Set up the grid for binning the data
 
@@ -92,7 +97,7 @@ pro bindata2d, x, y, z, xbins=xbins, dx=dx, xrange=xrange, ybins=ybins, $
   if (dodist) then begin
     for j=0,(xbins-1) do begin
       for k=0,(ybins-1) do begin
-        i = where(x ge xx[j] and x lt xx[j+1] and y ge yy[k] and y lt yy[k+1], count)
+        i = where(x ge xx[j] and x lt xx[j+1] and y ge yy[k] and y lt yy[k+1] and zgud, count)
         z_npts[j,k] = count
       endfor
     endfor
@@ -104,13 +109,33 @@ pro bindata2d, x, y, z, xbins=xbins, dx=dx, xrange=xrange, ybins=ybins, $
 
   for j=0,(xbins-1) do begin
     for k=0,(ybins-1) do begin
-      i = where(x ge xx[j] and x lt xx[j+1] and y ge yy[k] and y lt yy[k+1], count)
+      i = where(x ge xx[j] and x lt xx[j+1] and y ge yy[k] and y lt yy[k+1] and zgud, count)
       z_npts[j,k] = count
-      case (count) of
-        0 :  ; do nothing -> leave everything as NaN
-        1 :    z_mean[j,k] = z[i]
+      case (1) of
+        count eq 0 : ; do nothing -> leave everything as NaN
+        count eq 1 : begin
+                       z_mean[j,k] = z[i]
+
+                       z_min[j]  = z[i]
+                       z_medn[j] = z[i]
+                       z_max[j]  = z[i]
+                       if (dodist) then z_dist[j,k,0L] = z[i]
+                     end
+        count lt 5 : begin
+                       mom = moment(z[i], mdev=mdev)
+                       z_mean[j,k] = mom[0]
+                       z_sdev[j,k] = sqrt(mom[1])
+                       z_adev[j,k] = mdev
+                       z_skew[j,k] = mom[2]
+                       z_kurt[j,k] = mom[3]
+
+                       z_min[j,k]  = min(z[i], max=zmax)
+                       z_medn[j,k] = median(z[i])
+                       z_max[j,k]  = zmax
+                       if (dodist) then z_dist[j,k,0L:(count-1L)] = z[i]
+                     end
         else : begin
-                 mom = moment(z[i], mdev=mdev, /nan)
+                 mom = moment(z[i], mdev=mdev)
                  z_mean[j,k] = mom[0]
                  z_sdev[j,k] = sqrt(mom[1])
                  z_adev[j,k] = mdev

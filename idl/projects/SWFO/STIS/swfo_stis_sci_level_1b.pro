@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-24 20:34:11 -0700 (Mon, 24 Mar 2025) $
-; $LastChangedRevision: 33202 $
+; $LastChangedDate: 2025-06-03 15:59:53 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33366 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 ; Function that merges counts/fluxes/rates/efluxes from the small pixel
@@ -21,32 +21,44 @@ function swfo_stis_hdr, F_largepixel, F_smallpixel, eta_smallpixel=eta_smallpixe
 end
 
 
-function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, param=param
+function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
 
   ; if isa(param,'dictionary') then def_param = param
   ; if ~isa(def_param,'dictionary') then def_param=dictionary()
-  if ~keyword_set(param) then param=dictionary()
-  if ~param.haskey('range') then param.range = 30   ; interval in seconds
+  ; if ~keyword_set(param) then param=dictionary()
+  ; if ~param.haskey('range') then param.range = 30   ; interval in seconds
 
   output = !null
   nd = n_elements(L1a_strcts)
 
-  ; pull map for first str
-  str_0 = L1a_strcts[0]
-  cal = swfo_stis_cal_params(str_0,reset=reset)
-  if ~isa(cal) then return,!null
-  bins = cal.prot_resp
-  elec_resp = cal.elec_resp
-  geom = bins.geom  ; this is the same for elecs and protons
+  ; ; pull map for first str
+  ; str_0 = L1a_strcts[0]
+  ; cal = swfo_stis_cal_params(str_0,reset=reset)
+  ; if ~isa(cal) then return,!null
+  ; bins = cal.prot_resp
+  ; elec_resp = cal.elec_resp
+  ; geom = bins.geom  ; this is the same for elecs and protons
+  ; Get the cal values if not defined:
+  if ~isa(cal,'dictionary') then cal = swfo_stis_inst_response_calval()
 
 
+  ; Get deadtime correction criteria:
+  dtc = cal.deadtime_correction_criteria
+  dtc_lower = dtc[0]
+  dtc_upper = dtc[1]
+  dtc_scaling = 1/(dtc_upper-dtc_lower)
+
+  poisson = cal.poisson_statistics_criteria
+  N_low = poisson[0]
+  N_high = poisson[1]
+  a = cal.poisson_statistics_power_coefficient
 
   for i=0l,nd-1 do begin
     str = L1a_strcts[i]
     ; stop
 
     ; approximate period (in seconds) of Version 64 FPGA
-    integration_time = str.sci_duration * cal.period
+    integration_time = str.sci_duration ; * cal.period
 
     ; get the energies:
     ion_energy  = str.spec_O1_nrg
@@ -65,19 +77,19 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
     srate_F3 = total(str.rate_F3 + str.rate_F13 + str.rate_F23 + str.rate_F123)
 
     ; Nonparalyzable deadtime in O1/F1 (tiny pixel AKA AR1)
-    deadtime_correction_O1 = 1 / (1- srate_O1*cal.deadtime)
-    deadtime_correction_F1 = 1 / (1- srate_F1*cal.deadtime)
+    deadtime_correction_O1 = 1 / (1- srate_O1*cal.deadtime_s)
+    deadtime_correction_F1 = 1 / (1- srate_F1*cal.deadtime_s)
     ; Nonparalyzable deadtime in O3/F3 (big pixel AKA AR2)
-    deadtime_correction_O3 = 1 / (1- srate_O3*cal.deadtime)
-    deadtime_correction_F3 = 1 / (1- srate_F3*cal.deadtime)
+    deadtime_correction_O3 = 1 / (1- srate_O3*cal.deadtime_s)
+    deadtime_correction_F3 = 1 / (1- srate_F3*cal.deadtime_s)
 
     ; formulation from gpa doc:
     ; get the deadtime prefactor:
     ; This accepts the big pixel if the deadtime correction below 1.2
     ; and de-emphasizes it as deadtime correction exceeds 1.8.
     ; eta2 = 0. > (1.8- deadtime_correction)*.4 < 1.
-    eta2_O = 0. > (1.8- deadtime_correction_O3)*(1/(1.8-1.2)) < 1.
-    eta2_F = 0. > (1.8- deadtime_correction_F3)*(1/(1.8-1.2)) < 1.
+    eta2_O = 0. > (dtc_upper - deadtime_correction_O3)*dtc_scaling < 1.
+    eta2_F = 0. > (dtc_upper - deadtime_correction_F3)*dtc_scaling < 1.
 
     ; rate14 = str.total14/ integration_time    ; this needs to be checked
     ; Exrate = reform(replicate(1,cal.n_energy) # rate14,cal.n_energy * 14)
@@ -100,8 +112,9 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
     elec_flux_small = str.spec_F1 * deadtime_correction_F1
     elec_flux_big = str.spec_F3 * deadtime_correction_F3
 
-    tot_N_ion = total(ion_rate_small)
-    tot_N_elec = total(elec_rate_small)
+    ; total counts in entire energy channel:
+    N_ion = total(ion_rate_small) * integration_time
+    N_elec = total(elec_rate_small) * integration_time
 
     ; These are currently constant over energy
     ; original:
@@ -110,8 +123,15 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
 
     ; from GPA doc:
     ; sqrt(N) / 100 for total counts for param.range seconds.
-    eta1_ion =  0. > sqrt( total(ion_rate_small) * integration_time  )/100 < 1.
-    eta1_elec =  0. > sqrt( total(elec_rate_small) * integration_time  )/100 < 1.
+    eta1_ion =  0. > sqrt( N_ion  )/100 < 1.
+    eta1_elec =  0. > sqrt( N_elec  )/100 < 1.
+
+    ; New approach:
+    ; maximum control by calvals table:
+    f_elec = (N_elec^a - N_low^a)/(N_high^a - N_low^a)
+    eta1_elec = (N_elec gt N_high) + (N_elec lt N_high and N_elec gt N_low) * f_elec
+    f_ion = (N_ion^a - N_low^a)/(N_high^a - N_low^a)
+    eta1_ion = (N_ion gt N_high) + (N_ion lt N_high and N_ion gt N_low) * f_ion
 
     ; ; scaled poisson
     ; if tot_N_ion eq 0 then eta1_ion = 0. else  eta1_ion =  0. > sqrt( tot_N_ion  ) / tot_N_ion < 1.
@@ -142,16 +162,16 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal, pa
       ; geom:  bins.geom,  $
       ewidth: ion_denergy,  $
       ion_energy: ion_energy,   $   ; midpoint energy
-      AR1_ion_flux :   ion_flux_small,  $
-      AR2_ion_flux :   ion_flux_big,  $
+      Ch1_ion_flux :   ion_flux_small,  $
+      Ch3_ion_flux :   ion_flux_big,  $
       hdr_ion_flux :   hdr_ion_flux,  $
       eta2_ion: eta2_O, $
       eta2_elec: eta2_F, $
       eta1_ion: eta1_ion, $
       eta1_elec: eta1_elec, $
       elec_energy:  elec_energy, $
-      AR1_elec_flux :   elec_flux_small,  $
-      AR2_elec_flux :   elec_flux_big,  $
+      Ch1_elec_flux :   elec_flux_small,  $
+      Ch3_elec_flux :   elec_flux_big,  $
       hdr_elec_flux:  hdr_elec_flux, $
       lut_id: 0 }
 

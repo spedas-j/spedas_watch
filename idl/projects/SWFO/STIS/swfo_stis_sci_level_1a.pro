@@ -1,39 +1,50 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-05-29 13:33:13 -0700 (Thu, 29 May 2025) $
-; $LastChangedRevision: 33351 $
+; $LastChangedDate: 2025-06-03 15:59:53 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33366 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
-function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=format,reset=reset,cal=cal
-
+function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
+  ;,format=format,reset=reset
   output = !null
-  nd = n_elements(l0b_strcts)
+  nd = n_elements(l0b_structs)
 
   nan48=replicate(!values.f_nan,48)
 
   ; ; for NOAA files, the detectorbits will be 3 x N_samples:
-  ; check_detector_bit = where(size(l0b_strcts[0].detector_bits, /dim) eq 3, n)
+  ; check_detector_bit = where(size(l0b_structs[0].detector_bits, /dim) eq 3, n)
   ; l0b_from_noaa = (n eq 1)
   ; SSL calculates noise histogram in l0b, NOAA only has raw noise counts.
 
+  ; Get the tag names from Level 0b to see if
+  ; tags already inside:
+  tags = tag_names(l0b_structs)
+
   ; NOAA files do not determine the noise histogram in level 0b,
   ; only the raw counts. Need to calculate the noise histogram
-  tags = tag_names(l0b_strcts)
   index = (where("NSE_HISTOGRAM" eq tags,count))[0]
   if count eq 0 then begin
-    nse_counts = l0b_strcts.nse_counts
+    nse_counts = l0b_structs.nse_counts
     nse_histogram = fltarr(60, nd)
     nse_histogram[*, 1:-1] = nse_counts[*, 1:-1] - nse_counts[*, 0:-2]
-  endif else nse_histogram = l0b_strcts.nse_histogram
+  endif else nse_histogram = l0b_structs.nse_histogram
   ; Assume nse_histogram is 60 x ND
   nse_histogram = reform(nse_histogram, 10, 6, nd)
 
+  ; Files starting with E2E testing include spacecraft data,
+  ; so can include s/c flags:
+  index = (where("REACTION_WHEEL_SPEED_RPM" eq tags,sc_info_present))[0]
+
+  ; Get the cal values if not defined:
+  if ~isa(cal,'dictionary') then cal = swfo_stis_inst_response_calval()
+  ; cal.rate_threshold /= 10  ; comment out, after testing
+
   L1a = {swfo_stis_L1a,  $
-    time:0d, $
+    ; time:0d, $
     time_unix: 0d, $
     time_MET:  0d, $
     time_GR:  0d, $
-    hash:   0UL, $
+    ; hash:   0UL, $
     ; noise columns:
     noise_res: 0b, $
     noise_period: 0., $
@@ -63,73 +74,60 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
     geom_F23: nan48, rate_F23: nan48, SPEC_F23: nan48, spec_F23_nrg: nan48, spec_F23_dnrg: nan48, spec_F23_adc:  nan48, spec_F23_dadc:  nan48, $
     geom_F123: nan48, rate_F123: nan48, SPEC_F123: nan48, spec_F123_nrg: nan48, spec_F123_dnrg: nan48, spec_F123_adc:  nan48, spec_F123_dadc:  nan48, $
     fpga_rev: 0b, $
-    quality_bits: 0UL, $
+    quality_bits: 0ULl, $
     sci_resolution: 0b, $
     sci_translate: 0u, $
     gap:0}
-    
 
-  cal = {nse_threshold: [0.84, 1.4, 1.05, 0.84, 1.4, 1.05], $
-         rate_threshold: [10e3, 10e3, 10e3, 10e3, 10e3, 10e3], $
-         reaction_wheel_threshold: [2000, 2000, 2000, 2000], $
-         dap_temperature_threshold: [-35., 50.], $
-         sensor_1_temperature_threshold: [-50., 45.], $
-         sensor_2_temperature_threshold: [-50., 45.]}
-
-  cal.rate_threshold /= 10  ; comment out, after testing
-  override_user_09 = 1  ; comment out after testing
 
   ; Old: struct assign
   L1a_strcts = replicate(L1a, nd )
- ; struct_assign , l0b_strcts,  l1a_strcts, /nozero, verbose = verbose
+ ; struct_assign , l0b_structs,  l1a_strcts, /nozero, verbose = verbose
 
   L1a_strcts = replicate({swfo_stis_l1a}, nd )
-  struct_assign , l0b_strcts,  l1a_strcts, /nozero, verbose = verbose
+  struct_assign , l0b_structs,  l1a_strcts, /nozero, verbose = verbose
 
-  ; str_0 = l0b_strcts[0]
-  ; mapd = swfo_stis_adc_map(data_sample=str_0)  
-  ; nrg = mapd.nrg
-  ; dnrg = mapd.dnrg
-  ; adc = mapd.adc
-  ; dadc = mapd.dadc
-  ; geom = mapd.geom
+  ; See if duration in the file, relabel to sci_duration:
+  index = (where("DURATION" eq tags,duration_present))[0]
+  if duration_present then L1a_strcts.sci_duration = l0b_structs.duration
 
-  ; Ion fill in:
-  index_O123 = 12
-  index_O23 = 10
-  index_O13 = 8
-  index_O12 = 4
-  index_O3 = 6
-  index_O2 = 2
-  index_O1 = 0
-  ; Elec indexL
-  index_F123 = 13
-  index_F23 = 11
-  index_F13 = 9
-  index_F12 = 5
-  index_F3 = 7
-  index_F2 = 3
-  index_F1 = 1
+  ; Indices of each coincidence,
+  ; first for ions (O detector)
+  ; and next for electrons (F detector)
+  index_O123 = cal.coincidence_map.O123
+  index_O23 = cal.coincidence_map.O23
+  index_O13 = cal.coincidence_map.O13
+  index_O12 = cal.coincidence_map.O12
+  index_O3 = cal.coincidence_map.O3
+  index_O2 = cal.coincidence_map.O2
+  index_O1 = cal.coincidence_map.O1
+  index_F123 = cal.coincidence_map.F123
+  index_F23 = cal.coincidence_map.F23
+  index_F13 = cal.coincidence_map.F13
+  index_F12 = cal.coincidence_map.F12
+  index_F3 = cal.coincidence_map.F3
+  index_F2 = cal.coincidence_map.F2
+  index_F1 = cal.coincidence_map.F1
 
     ; print, nd
 
   for i=0l,nd-1 do begin
-    L0b_str = l0b_strcts[i]
+    l0b = l0b_structs[i]
     L1a = L1a_strcts[i]
 
-    mapd = swfo_stis_adc_map(data_sample=L0b_str)  
+    mapd = swfo_stis_adc_map(data_sample=l0b)  
     nrg = mapd.nrg
     dnrg = mapd.dnrg
     adc = mapd.adc
     dadc = mapd.dadc
     geom = mapd.geom
 
-    d = L0b_str.sci_counts
+    d = l0b.sci_counts
     d = reform(d,48,14)
 
 
     
-    mapd = swfo_stis_adc_map(data_sample=l0b_str)
+    mapd = swfo_stis_adc_map(data_sample=l0b)
     nrg = mapd.nrg
     dnrg = mapd.dnrg
     adc = mapd.adc
@@ -139,7 +137,7 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
     ; Moved from swfo_stis_sci_apdat__define
     ; when decimation active (e.g. high count rates)
     ; drops in sensitivity to allow resolution of higher fluxes
-    dec = L0b_str.decimation_factor_bits
+    dec = l0b.decimation_factor_bits
     ; berkeley version: decimation_Factor is read out 
     ; as bytes with an order '6532' for Channels 6,5,3,2.
     if n_elements(dec) ne 4 then dec = [dec, ishft(dec,-2),ishft(dec,-4),ishft(dec,-6)] and 3 else dec = dec and 3
@@ -161,9 +159,9 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
 
     ; Noise value determination (copied from swfo_stis_nse_apdat::handler2,
     ; swfo_stis_nse_level_1)
-    ; nse_level_1_str = swfo_stis_nse_level_1(L0b_str, /from_l0b)
+    ; nse_level_1_str = swfo_stis_nse_level_1(l0b, /from_l0b)
 
-    noise_bits = L0b_str.noise_bits
+    noise_bits = l0b.noise_bits
     if n_elements(noise_bits) eq 3 then begin
       noise_enable = noise_bits[0]
       noise_res = noise_bits[1]
@@ -197,8 +195,8 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
 
     ; also move over sci_translate and resolution, since
     ; defines the energy values that the bins correspond to:
-    l1a.sci_translate = L0b_str.sci_translate
-    l1a.sci_resolution = L0b_str.sci_resolution
+    l1a.sci_translate = l0b.sci_translate
+    l1a.sci_resolution = l0b.sci_resolution
 
     ; get the total counts per coincidence and detector:
     total14=total(d,1)
@@ -212,7 +210,7 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
     l1a.total6  = total6
 
     ; Get the duration of counts to calculate rate:
-    duration = L0b_str.duration
+    duration = l0b.duration
     rate = d / duration  ; count rate (#/s)
     flux = rate / geom / dnrg ; flux (#/s/cm2/eV)
 
@@ -225,11 +223,11 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
 
     ; Qflag: Bits at positional index 1-6 are 0 or 1
     ; for each channel (Ch 1-6). Set bit if any pulser on:
-    pulser_bits = L0b_str.pulser_bits
+    pulser_bits = l0b.pulser_bits
     if n_elements(pulser_bits) eq 3 then pulsers_enabled = pulser_bits[2] else pulsers_enabled = pulser_bits
     pulser_flag = (pulsers_enabled and 0x3full)
     q = q OR ishft(pulser_flag*1ull, 1)
-    if q ne 0 then stop
+    ; if q ne 0 then stop
 
     ; Bits at positional index 7-12 are 0 or 1 if high noise
     ; and defined for Ch 1-6.
@@ -244,11 +242,11 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
     ; if q ne 0 then stop
 
     ; Bit at positional index 13 is 1 if any detector disabled else 0
-    detector_bits = L0b_str.detector_bits
+    detector_bits = l0b.detector_bits
     if n_elements(detector_bits) eq 3 then detectors_enabled = detector_bits[2] else detectors_enabled = detector_bits
     det_flag = (not detectors_enabled and 0x3fub) ne 0
     q = q or ishft(det_flag*1ull, 13)
-    if det_flag ne 0 then stop
+    ; if det_flag ne 0 then stop
 
     ; Bits at positional index 14-17 are 1 if decimation factor
     ; active (whether by 2x or 4x) on Ch 1,2,4,5
@@ -280,13 +278,13 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
 
     ; Q flag: bit at positional index 26 set if temperature
     ; limit exceeded:
-    temps = [l0b_str.temp_dap, l0b_str.temp_sensor1, l0b_str.temp_sensor2]
+    temps = [l0b.temp_dap, l0b.temp_sensor1, l0b.temp_sensor2]
     temp_dap_flag = temps[0] lt cal.dap_temperature_threshold[0] or temps[0] gt cal.dap_temperature_threshold[1]
     temp_s1_flag = temps[1] lt cal.sensor_1_temperature_threshold[0] or temps[1] gt cal.sensor_1_temperature_threshold[1]
     temp_s2_flag = temps[2] lt cal.sensor_2_temperature_threshold[0] or temps[2] gt cal.sensor_2_temperature_threshold[1]
     temp_flag = (temp_s1_flag or temp_s2_flag) or temp_dap_flag
     q = q or ishft(temp_flag*1ull, 26)
-    if temp_flag ne 0 then stop
+    ; if temp_flag ne 0 then stop
 
     ; Q flag: bits at positional index 27-29 unset, reserved for future use.
 
@@ -299,14 +297,14 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
     ; - user_09 = 1 (AKA not doing CPT)
     ;   - CAVEAT: user_09 will be non-1 A LOT in the Xray
     ;     and ion gun tests.
-    translate_flag = (L0b_str.sci_translate ne 16)
+    translate_flag = (l0b.sci_translate ne 16)
     if n_elements(detector_bits) eq 3 then nonlut_bits = detector_bits[1] else nonlut_bits = ishft(detector_bits, -6) and 1
     nonlut_flag = nonlut_bits ne 0
-    ptcu_bits = L0b_str.ptcu_bits
+    ptcu_bits = l0b.ptcu_bits
     if n_elements(ptcu_bits) eq 4 then uselut_bit = ptcu_bits[3] else uselut_bit = ptcu_bits and 1
     uselut_flag = uselut_bit ne 0
     noise_enable_flag = noise_enable ne 1
-    if override_user_09 then user_09_flag = 0b else user_09_flag = L0b_str.user_09 ne 1
+    user_09_flag = l0b.user_09 ne 1
     nonstandard_flag = translate_flag or nonlut_flag or uselut_flag or noise_enable_flag or user_09_flag
     q = q or ishft(nonstandard_flag * 1ull, 30)
     ; if nonstandard_flag ne 0 then stop
@@ -316,6 +314,15 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
     ; Q flag: bits at positional index 32-35 set if reaction wheel
     ; speed for each reaction wheel are too high (known to cause noise)
     ; - Warning - APID does not exist for calibration datasets
+    if sc_info_present ne 0 then begin
+      reax_wheel_flag = abs(l0b.reaction_wheel_speed_rpm) gt cal.reaction_wheel_threshold
+      q = q or ishft(reax_wheel_flag[0]*1ull, 32)
+      q = q or ishft(reax_wheel_flag[1]*1ull, 33)
+      q = q or ishft(reax_wheel_flag[2]*1ull, 34)
+      q = q or ishft(reax_wheel_flag[3]*1ull, 35)
+
+    endif
+
 
     ; print, q.tobinary()
     l1a.quality_bits = q
@@ -457,17 +464,17 @@ function swfo_stis_sci_level_1a,l0b_strcts , verbose=verbose, pb=pb ;,format=for
 
     endif else begin
       if 0 then begin
-        out = {time:L0b_str.time}
+        out = {time:l0b.time}
         str_element,/add,out,'hash',mapd.codes.hashcode()
-        str_element,/add,out,'sci_duration',L0b_str.sci_duration
-        str_element,/add,out,'sci_nbins',L0b_str.sci_nbins
+        str_element,/add,out,'sci_duration',l0b.sci_duration
+        str_element,/add,out,'sci_nbins',l0b.sci_nbins
         str_element,/add,out,'gap',0
       endif else begin
         out = l1a
       endelse
       foreach w,mapd.wh,key do begin
         ;      str_element,/add,out,'cnts_'+key,counts[w]
-        ;      str_element,/add,out,'rate_'+key,counts[w]/ L0b_str.sci_duration
+        ;      str_element,/add,out,'rate_'+key,counts[w]/ l0b.sci_duration
 
         str_element,/add,out,'spec_'+key,flux[w]
         str_element,/add,out,'spec_'+key+'_nrg',nrg[w]

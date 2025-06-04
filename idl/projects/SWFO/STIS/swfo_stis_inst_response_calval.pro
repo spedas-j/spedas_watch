@@ -1,8 +1,8 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2024-01-03 22:37:44 -0800 (Wed, 03 Jan 2024) $
-; $LastChangedRevision: 32333 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-06-03 15:59:53 -0700 (Tue, 03 Jun 2025) $
+; $LastChangedRevision: 33366 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_calval.pro $
-; $Id: swfo_stis_inst_response_calval.pro 32333 2024-01-04 06:37:44Z davin-mac $
+; $Id: swfo_stis_inst_response_calval.pro 33366 2025-06-03 22:59:53Z rjolitz $
 
 
 
@@ -17,15 +17,73 @@ function swfo_stis_inst_response_calval,reset=reset
   endif else begin
     calval = swfo_stis_inst_response_calval_dict
   endelse
-  
+
   if calval.isempty() then begin
-    calval.instrument_name  = 'SWFO-STIS'
-    dim = [3,2]
     nan = !values.f_nan
-    names_fto = strsplit('1 2 12 3 13 23 123',/extract)
-    names_fto = reform( transpose( [['O-'+names_fto],['F-'+names_fto]]))
-    geom_raw   = .13 * [nan, .01,  1 , .99]   * !pi
-    det_adc_scales = [234.1  , 228.4 , 232.4, 233.4, 232.7,  232.5]/ 59.5    ; for conversion from nrg to adc units 
+
+    calval.instrument_name  = 'SWFO-STIS'
+    ; Channel names / detector names:
+    calval.channels = ['1', '2', '3', '4', '5', '6']
+    calval.detectors = ['O1, O2', 'O3', 'F1', 'F2', 'F3']
+    ; names_fto = strsplit('1 2 12 3 13 23 123',/extract)
+    ; names_fto = reform( transpose( [['O-'+names_fto],['F-'+names_fto]]))
+
+    ; Geometric factor needs verification:
+    ; calval.geometric_factor = .13 * [nan, .01,  1 , .99]   * !pi
+    ; calval.geometric_factor = .2  * [nan, .01,1,1,.01,1,1]
+    calval.geometric_factor = 0.2 * [0.01, 1., 1., 0.01, 1., 1.]
+    geom_raw = [nan, calval.geometric_factor]
+    calval.coincidence =$
+      ['O1', 'F1', 'O2', 'F2', 'O12', 'F12',$
+       'O3', 'F3', 'O13', 'F13', 'O23', 'F23',$
+       'O123', 'F123']
+    calval.coincidence_index = indgen(14)
+    calval.detector_index = [0, 1]
+    calval.coincidence_map = dictionary()
+    calval.coincidence_map.O123 = 12
+    calval.coincidence_map.O23 = 10
+    calval.coincidence_map.O13 = 8
+    calval.coincidence_map.O12 = 4
+    calval.coincidence_map.O3 = 6
+    calval.coincidence_map.O2 = 2
+    calval.coincidence_map.O1 = 0
+    ; Elec indexL
+    calval.coincidence_map.F123 = 13
+    calval.coincidence_map.F23 = 11
+    calval.coincidence_map.F13 = 9
+    calval.coincidence_map.F12 = 5
+    calval.coincidence_map.F3 = 7
+    calval.coincidence_map.F2 = 3
+    calval.coincidence_map.F1 = 1
+
+    ; Calibration result: ADC values for the Americium-241 59.5 keV line 
+    ; for detectors O1, O2, O3, F1, F2, F3:
+    calibrated_adc_bins = [    234.06952     ,  228.35745    ,  231.78710     ,  232.06377      ,  232.78850      ,  231.65691    ]  
+    ; calibrated_adc_bins = [234.1  , 228.4 , 232.4, 233.4, 232.7,  232.5]
+    detector_keV_per_adc = 59.5 / calibrated_adc_bins   ; for conversion from nrg to adc units 
+    calval.detector_keV_per_adc = detector_keV_per_adc
+    det_adc_scales = 1/detector_keV_per_adc
+
+    ; Deadtime:
+    ; calval.deadtime_s = 1e-6
+    calval.deadtime_s = 10e-6
+
+    ; Criteria for deadtime correction:
+    ; This accepts the big pixel if the deadtime correction below 1.2
+    ; and de-emphasizes it as deadtime correction exceeds 1.8.
+    calval.deadtime_correction_criteria = [1.2, 1.8]
+
+    ; Criteria for Poisson statistics:
+    ; This accepts the small pixel if the # counts above
+    ; 100, only uses the big pixel if the # counts below/equal
+    ; 1, weights by sqrt(N) between:
+    calval.poisson_statistics_criteria = [1e2, 1e4]
+    ; calval.poisson_statistics_criteria = [0, 1e4]
+    calval.poisson_statistics_power_coefficient = 0.5
+
+    dim = [3,2]
+
+
     det2fto = [0, 1, 2, 1, 3,  1, 3, 1   ]
     det2fto = [1, 2, 1, 3,  1, 3, 1   ]
     fto2detmap  = [ [1,4], [2,5],  [1,4],  [3,6],  [3,6], [3,6], [3,6]] 
@@ -49,6 +107,29 @@ function swfo_stis_inst_response_calval,reset=reset
     calval.proton_F_dl  = 300.  ; kev
     calval.electron_F_dl = 10.  ; keV
     
+    calval.nse_threshold = [0.84, 1.4, 1.05, 0.84, 1.4, 1.05]
+    calval.rate_threshold = [10e3, 10e3, 10e3, 10e3, 10e3, 10e3]
+    calval.reaction_wheel_threshold = [2000, 2000, 2000, 2000]
+    calval.dap_temperature_threshold = [-35., 50.]
+    calval.sensor_1_temperature_threshold = [-50., 45.]
+    calval.sensor_2_temperature_threshold = [-50., 45.]
+
+    ; nonlut ADC corresponds to clog_17_6 (compressed log)
+    calval.nonlut_adc_min  =$
+      [   0,    1,    2,    3,$
+          4,    5,    6,    7,$
+          8,   10,   12,   14,$
+         16,   20,   24,   28,$
+         32,   40,   48,   56,$
+         64,   80,   96,  112,$
+        128,  160,  192,  224,$
+        256,  320,  384,  448,$
+        512,  640,  768,  896,$
+       1024, 1280, 1536, 1792,$
+       2048, 2560, 3072, 3584,$
+       4096, 5120, 6144, 7168,$
+       2L^13    ]
+
 ;    cal_functions = orderedhash()
     calval.nrglost_vs_nrgmeas = orderedhash()
     
@@ -70,7 +151,7 @@ function swfo_stis_inst_response_calval,reset=reset
     calval.nrglost_vs_nrgmeas['Electron-F-1'] =  calval.nrglost_vs_nrgmeas['Electron-F-3']
     
     calval.responses = orderedhash()
-    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 32333 2024-01-04 06:37:44Z davin-mac $'
+    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 33366 2025-06-03 22:59:53Z rjolitz $'
     swfo_stis_inst_response_calval_dict  = calval
     dprint,'Using Revision: '+calval.rev_date
   endif

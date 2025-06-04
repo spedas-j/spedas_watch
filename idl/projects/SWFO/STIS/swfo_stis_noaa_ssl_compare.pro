@@ -8,21 +8,24 @@
 
 
 ; e2e4_file = '/Users/rjolitz/swfo_dat/stis_e2e4_rfr_realtime_30min_combined_l0b.nc'
-noaa_xray_test_filename = '/Users/rjolitz/swfo_dat/SWFO_STIS_xray_combined_l0b.nc'
+; noaa_xray_test_filename = '/Users/rjolitz/swfo_dat/SWFO_STIS_xray_combined_l0b.nc'
+
+noaa_xray_test_filename = '/Users/rjolitz/swfo_dat/SWFO_STIS_xray_combined_l0b_decimation_factor_bits_2_3_5_6.nc'
 ssl_l0b_xray_filename = '/Users/rjolitz/swfo_dat/STIS_L0B_xray_ssl.nc'
 
 
 window, 0, XSIZE=750, YSIZE=800
 
 tic
-l0b_noaa_nc = swfo_ncdf_read(filenames=noaa_xray_test_filename)
+level_0b_noaa = swfo_ncdf_read(filenames=noaa_xray_test_filename, force_recdim=0)
 print, 'Netcdf from NOAA has been read, has # records: ', n_elements(l0b_noaa_nc)
 toc
+stop
 
-tic
-level_0b_noaa = swfo_stis_level_0b_fromncdf(l0b_noaa_nc, /noaa)
-print, 'Relabeled NOAA struct so consistent with SSL categories: ', n_elements(level_0b_noaa)
-toc
+; tic
+; level_0b_noaa = swfo_stis_level_0b_fromncdf(l0b_noaa_nc, /noaa)
+; print, 'Relabeled NOAA struct so consistent with SSL categories: ', n_elements(level_0b_noaa)
+; toc
 
 noaa_prefix = 'noaa_swfo_stis_'
 

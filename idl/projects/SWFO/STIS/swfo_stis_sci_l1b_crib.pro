@@ -1,4 +1,4 @@
-; swfo_stis_sci_qflag_crib.pro
+; swfo_stis_sci_l1b_crib.pro
 
 
 ; filename = 'SWFO_STIS_ioncal__combined_l0b.nc'
@@ -9,6 +9,12 @@ filename = 'SWFO_STIS_xray_combined_l0b_decimation_factor_bits_2_3_5_6.nc'
 ; filename = 'STIS_L0B_SSL_iongun_upd.nc'
 l0b = swfo_ncdf_read(filenames=filename, force_recdim=0)
 l1a =   swfo_stis_sci_level_1a(l0b)
+l1b =   swfo_stis_sci_level_1b(l1a)
+
+swfo_stis_hdr_tplot, l1b, /elec, /ion
+; tplot, ['swfo_stis_l1b_eta', 'swfo_stis_ion_Ch1_flux', 'swfo_stis_ion_Ch3_flux', 'swfo_stis_ion_hdr_flux']
+options, '*_flux', zrange=[1e-2, 1e5]
+
 
 qflag_labels = ['Playback', 'P1 Enabled', 'P2 Enabled', 'P3 Enabled', 'P4 Enabled', 'P5 Enabled', 'P6 Enabled', $
                 '1: High Nse Sigma', '2: High Nse Sigma', '3: High Nse Sigma', $
@@ -34,6 +40,10 @@ options, 'noise_sigma', labels=['Ch1', 'Ch2', 'Ch3', 'Ch4', 'Ch5', 'Ch6'], labfl
 store_data, 'noise_histogram', data={x: l1a.time_unix, y: transpose(l1a.noise_histogram)}
 options, 'noise_histogram', labels=['Ch1', 'Ch2', 'Ch3', 'Ch4', 'Ch5', 'Ch6'], labflag=1, spec=1,/no_interp,/zlog,constant=findgen(6)*10+5
 
-tplot, ['quality_bits', 'total6', 'noise_sigma', 'noise_histogram']
+; tplot, ['quality_bits', 'total6', 'noise_sigma', 'noise_histogram']
+tplot, ['swfo_stis_l1b_eta', 'swfo_stis_elec_Ch1_flux',$
+        'swfo_stis_elec_Ch3_flux', 'swfo_stis_elec_hdr_flux',$
+        'quality_bits']
+; stop
 
 end
