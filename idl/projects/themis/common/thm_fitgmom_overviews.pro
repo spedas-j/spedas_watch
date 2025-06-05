@@ -266,6 +266,16 @@ if tnames(fgs_name) && tnames('th'+probe+'_state_pos') then begin
 
    options,fgs_name+'-t89',ytitle='th'+probe+'!Cfgs!Cgsm!C-t89',ysubtitle='[nT]',labels=['Bx','By','Bz']
 
+   If(probe Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then Begin
+      options, fgs_name+'-t89', 'indices', [2,0,1]
+      get_data, 'th'+probe+'_fgl_l1b_bz', data = temp_bz
+      If(~is_struct(temp_bz)) Then Begin ;reset Bz to zero
+         get_data, fgs_name+'-t89', data = dbz
+         dbz.y[*, 2] = 0
+         store_data, fgs_name+'-t89', data = dbz
+      Endif
+   Endif
+
 endif else begin
   
    thm_blank_panel,fgs_name+'-t89','th'+probe+'!Cfgs!Cgsm!C-t89!C[nT]',labels=['Bx','By','Bz']
