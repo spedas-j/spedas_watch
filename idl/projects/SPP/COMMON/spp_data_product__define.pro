@@ -1,9 +1,9 @@
 ;+
 ;  spp_data_product
 ;  This basic object is the entry point for defining and obtaining all data for all data products
-; $LastChangedBy: orlando $
-; $LastChangedDate: 2025-03-14 14:30:18 -0700 (Fri, 14 Mar 2025) $
-; $LastChangedRevision: 33180 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-06-12 05:06:32 -0700 (Thu, 12 Jun 2025) $
+; $LastChangedRevision: 33382 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_data_product__define.pro $
 ;-
 ;COMPILE_OPT IDL2
@@ -120,7 +120,7 @@ function spp_data_product::getdat,trange=trange,index=index,nsamples=nsamples,va
     ;  dprint,dlevel=2,verbose=verbose,"out of range: index="+strtrim(index,2)+", ns="+strtrim(ns,2)+' for '+self.name
     ;  if keyword_set(extrapolate) then index = 0 > index < (ns-1)    else return, !null
     ;endif
-    dats = (*self.data_ptr)[index]
+    dats = (*self.data_ptr)[0 > index < (ns-1)]
     wbad = where((index lt 0) or (index ge ns),/null,nbad)
     if nbad gt 0 then begin
       fill = fill_nan(dats[wbad])

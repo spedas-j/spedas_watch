@@ -3,6 +3,7 @@
 ;PURPOSE:  Returns the value of a structure element.
 ;   Function equivalent to the procedure: "STR_ELEMENT"
 ;   if "name" is an array then a new structure is returned with only the named values.
+;   works with dictionary or hash just like str_element
 ;Author:  Davin Larson, 2006
 ;-
 

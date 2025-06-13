@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-06-03 15:59:53 -0700 (Tue, 03 Jun 2025) $
-; $LastChangedRevision: 33366 $
+; $LastChangedDate: 2025-06-05 14:17:48 -0700 (Thu, 05 Jun 2025) $
+; $LastChangedRevision: 33370 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -40,7 +40,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
   ; cal.rate_threshold /= 10  ; comment out, after testing
 
   L1a = {swfo_stis_L1a,  $
-    ; time:0d, $
+    time:0d, $
     time_unix: 0d, $
     time_MET:  0d, $
     time_GR:  0d, $
@@ -86,6 +86,8 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
 
   L1a_strcts = replicate({swfo_stis_l1a}, nd )
   struct_assign , l0b_structs,  l1a_strcts, /nozero, verbose = verbose
+
+  L1a_strcts.time = l0b_structs.time_unix
 
   ; See if duration in the file, relabel to sci_duration:
   index = (where("DURATION" eq tags,duration_present))[0]

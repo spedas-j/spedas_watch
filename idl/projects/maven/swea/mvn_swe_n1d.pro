@@ -67,8 +67,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-19 10:18:49 -0700 (Sun, 19 May 2024) $
-; $LastChangedRevision: 32602 $
+; $LastChangedDate: 2025-06-11 12:16:34 -0700 (Wed, 11 Jun 2025) $
+; $LastChangedRevision: 33376 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_n1d.pro $
 ;
 ;-
@@ -210,7 +210,8 @@ pro mvn_swe_n1d, pans=pans, ddd=ddd, abins=abins, dbins=dbins, obins=obins, mask
     endif else bkg[*] = 0.
   endelse
 
-  E = energy[*,0]
+  mvn_swe_sweep, tab=5, result=swp
+  E = swp.e
   dE = E
   dE[0] = abs(E[1] - E[0])
   for i=1,62 do dE[i] = abs(E[i+1] - E[i-1])/2.

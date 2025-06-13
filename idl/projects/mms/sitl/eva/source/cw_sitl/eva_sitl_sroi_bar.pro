@@ -1,8 +1,9 @@
 ; 'trange' and 'sc_id' are optional
 ;
-pro eva_sitl_sroi_bar, trange = trange, prb = prb, colors = colors, suffix = suffix
+pro eva_sitl_sroi_bar, trange = trange, colors = colors, suffix = suffix, sc_id=sc_id
   compile_opt idl2
 
+  
   ; -----------------
   ; LOAD DATA
   ; -----------------
@@ -11,9 +12,9 @@ pro eva_sitl_sroi_bar, trange = trange, prb = prb, colors = colors, suffix = suf
   endif else begin
     trange = time_double(trange)
   endelse
-  if undefined(prb) then prb = '1'
-  str_trange = time_string(trange)
-  sROIs = mms_get_srois(trange = str_trange, sc_id = 'mms' + prb)
+  if undefined(sc_id) then sc_id = 'mms1'
+    str_trange = time_string(trange)
+  sROIs = mms_get_srois(trange = str_trange, sc_id = sc_id)
   nan = !values.f_nan
   nan4 = [!values.f_nan, !values.f_nan, !values.f_nan, !values.f_nan]
   if n_tags(sROIs) lt 3 then return
@@ -54,7 +55,7 @@ pro eva_sitl_sroi_bar, trange = trange, prb = prb, colors = colors, suffix = suf
   labels = ['even', 'odd']
   ; ////////////////////////
 
-  dname = 'mms' + prb + '_sroi'
+  dname = sc_id  + '_sroi'
   if ~undefined(suffix) then dname += suffix
 
   store_data, dname, data = {x: bar_x, y: bar_y, v: [0, 1]}

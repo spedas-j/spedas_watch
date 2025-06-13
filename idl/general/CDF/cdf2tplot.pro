@@ -32,9 +32,9 @@
 ;
 ;Author: Davin Larson -  20th century
 ;
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2024-07-09 11:03:46 -0700 (Tue, 09 Jul 2024) $
-; $LastChangedRevision: 32730 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-06-12 05:10:17 -0700 (Thu, 12 Jun 2025) $
+; $LastChangedRevision: 33384 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/CDF/cdf2tplot.pro $
 ; $ID: $
 ;-
@@ -44,7 +44,7 @@ pro cdf2tplot,files,files=files2,prefix=prefix,midfix=midfix,midpos=midpos,suffi
    ,all=all,verbose=verbose, get_support_data=get_support_data, convert_int1_to_int2=convert_int1_to_int2 $
    ,record=record, tplotnames=tplotnames,load_labels=load_labels,smex_epoch=smex_epoch
 
-dprint,dlevel=4,verbose=verbose,'$Id: cdf2tplot.pro 32730 2024-07-09 18:03:46Z jimm $'
+dprint,dlevel=4,verbose=verbose,'$Id: cdf2tplot.pro 33384 2025-06-12 12:10:17Z davin-mac $'
 vb = keyword_set(verbose) ? verbose : 0
 
 if keyword_set(files2) then files=files2    ; added for backward compatibility  and to make it match the documentation
@@ -57,7 +57,7 @@ if keyword_set(get_support_data) then var_type = ['data','support_data']
 cdfi = cdf_load_vars(files,varformat=varformat,var_type=var_type,/spdf_depend, $
      varnames=varnames2,verbose=verbose,record=record, convert_int1_to_int2=convert_int1_to_int2, all=all)
 
-dprint,dlevel=4,verbose=verbose,'Starting load into tplot'
+dprint,dlevel=3,verbose=verbose,'Starting load into tplot'
 ;  Insert into tplot format
 cdf_info_to_tplot,cdfi,varnames2,all=all,prefix=prefix,midfix=midfix,midpos=midpos,suffix=suffix,newname=newname, $  ;bpif keyword_set(all) eq 0
        verbose=verbose,  tplotnames=tplotnames,load_labels=load_labels, smex_epoch=smex_epoch

@@ -49,8 +49,8 @@
 ;                  space.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-06-03 12:08:02 -0700 (Tue, 03 Jun 2025) $
-; $LastChangedRevision: 33365 $
+; $LastChangedDate: 2025-06-05 08:10:18 -0700 (Thu, 05 Jun 2025) $
+; $LastChangedRevision: 33369 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/bindata2d.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -116,9 +116,9 @@ pro bindata2d, x, y, z, xbins=xbins, dx=dx, xrange=xrange, ybins=ybins, $
         count eq 1 : begin
                        z_mean[j,k] = z[i]
 
-                       z_min[j]  = z[i]
-                       z_medn[j] = z[i]
-                       z_max[j]  = z[i]
+                       z_min[j,k]  = z[i]
+                       z_medn[j,k] = z[i]
+                       z_max[j,k]  = z[i]
                        if (dodist) then z_dist[j,k,0L] = z[i]
                      end
         count lt 5 : begin
