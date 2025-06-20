@@ -23,11 +23,14 @@
 ;
 ;       PAN:      Returns the name of the tplot variable.
 ;
-;       NOLUT:    Do not recalculate the LUT.
+;       LUT:      Do not recalculate the LUT.  Instead, use these values.  Must
+;                 have the same number of elements as SPEC.  This allows the user
+;                 to use custom settings in mvn_swe_getlut to handle the presence
+;                 of hires data.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-05-23 15:47:53 -0700 (Fri, 23 May 2025) $
-; $LastChangedRevision: 33329 $
+; $LastChangedDate: 2025-06-19 14:46:22 -0700 (Thu, 19 Jun 2025) $
+; $LastChangedRevision: 33394 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makespec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14

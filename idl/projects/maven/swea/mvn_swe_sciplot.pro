@@ -78,8 +78,8 @@
 ;OUTPUTS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-03-14 08:00:09 -0700 (Thu, 14 Mar 2024) $
-; $LastChangedRevision: 32494 $
+; $LastChangedDate: 2025-06-19 14:45:39 -0700 (Thu, 19 Jun 2025) $
+; $LastChangedRevision: 33393 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sciplot.pro $
 ;
 ;-
@@ -124,8 +124,14 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
     return
   endif
 
+; Get the time range of loaded SWEA data
+
   str_element, a4, 'time', etime, success=ok
-  if (not ok) then str_element, mvn_swe_engy, 'time', etime, success=ok
+  if (ok) then trange = minmax(etime) + [0D,34D]
+  if (not ok) then begin
+    str_element, mvn_swe_engy, 'time', etime, success=ok
+    if (ok) then trange = minmax(etime) + [-1D,1D]
+  endif
   if (not ok) then begin
     print,"This should be impossible: mvn_swe_stat says that data are loaded,"
     print,"but I can't find the L0 or L2 SPEC data."
@@ -135,13 +141,12 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
 ; Make sure ephemeris covers loaded data
 
   tplot_options, get=topt
-  if (max(topt.trange) lt 1D) then timespan, (minmax(etime) + [0D,34D])
+  if (max(topt.trange) lt 1D) then timespan, trange
 
   if (find_handle('alt2',v=-1) gt 0) then begin
     get_data,'alt',data=alt
     tsp = minmax(alt.x)
-    indx = where((etime lt tsp[0]) or (etime gt tsp[1]), count)
-    if (count gt 0) then maven_orbit_tplot, /loadonly, /shadow, datum=datum
+    if ((etime[0] lt tsp[0]) or (etime[1] gt tsp[1])) then maven_orbit_tplot, /loadonly, /shadow, datum=datum
   endif else maven_orbit_tplot, /loadonly, /shadow, datum=datum
 
   mvn_swe_sumplot,/loadonly
@@ -202,7 +207,7 @@ pro mvn_swe_sciplot, sun=sun, ram=ram, sep=sep, swia=swia, static=static, lpw=lp
 
 ; MAG data
 
-  mvn_swe_addmag
+  if (size(swe_mag1,/type) ne 8) then mvn_swe_addmag
   if keyword_set(magfull) then begin
     mvn_mag_load, 'L2_FULL'
     mvn_mag_geom, var='mvn_B_full'
