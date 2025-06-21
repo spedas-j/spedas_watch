@@ -16,8 +16,8 @@
 ;       TPLOT:     If set, create a time series plot of the data.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-06-19 14:53:05 -0700 (Thu, 19 Jun 2025) $
-; $LastChangedRevision: 33397 $
+; $LastChangedDate: 2025-06-20 15:31:57 -0700 (Fri, 20 Jun 2025) $
+; $LastChangedRevision: 33399 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_make_hires.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -31,6 +31,8 @@ pro swe_make_hires, date, tplot=tplot
     print,"You must supply a date."
     return
   endif
+
+  t0 = systime(/utc,/sec)
 
   date = time_string(time_double(date), prec=-3)
 
@@ -57,8 +59,9 @@ pro swe_make_hires, date, tplot=tplot
 ; Load SWEA data
 
   mvn_swe_load_l0
-  mvn_swe_getlut, /flux, /tplot, result=lut
-  mvn_swe_makespec, lut=lut
+  mvn_swe_getlut, /flux, /tplot
+  get_data, 'TABNUM', data=tab  ; table number vs time
+  mvn_swe_makespec, lut=tab.y
   mvn_swe_sumplot, /lut, /loadonly
   mvn_swe_addswi
   ylim,'mvn_swics_en_eflux',25,25000,1
@@ -67,7 +70,7 @@ pro swe_make_hires, date, tplot=tplot
   mvn_attitude_bar
 
 ; Get high resolution PAD data and make tplot variables
-;   This step takes time because of the pitch angle sorting
+;   This step takes time because of the pitch angle sorting and resampling
 
   mvn_swe_makefpad, pans=padpans, /tplot, merge=1
 
@@ -80,24 +83,23 @@ pro swe_make_hires, date, tplot=tplot
 ;      normal energy sweep and variation of the calibration with energy.  So,
 ;      we have to start with units of CRATE and convert to EFLUX manually.
 
-  mvn_swe_makespec, units='crate', /tplot
-  mvn_swe_getlut, /flux, /tplot
-  get_data,'TABNUM',data=tab
+  mvn_swe_makespec, units='crate', lut=tab.y, /tplot
 
-  spec = mvn_swe_getspec(units='crate')
-  tmp = spec[0] & spec = 0
-  mvn_swe_convert_units, tmp, 'eflux', scale=scale
-  i = nn2(tmp.energy, 50)
+  j = (where(tab.y eq 5))[0]
+  spec = mvn_swe_getspec(tab.x[j], units='crate')  ; first normal SPEC
+
+  mvn_swe_convert_units, spec, 'eflux', scale=scale
+  i = nn2(spec.energy, 50)
   scale_50 = scale[i]  ; CRATE -> EFLUX at 50 eV
-  i = nn2(tmp.energy, 125)
+  i = nn2(spec.energy, 125)
   scale_125 = scale[i] ; CRATE -> EFLUX at 125 eV
-  i = nn2(tmp.energy, 200)
+  i = nn2(spec.energy, 200)
   scale_200 = scale[i] ; CRATE -> EFLUX at 200 eV
-  tmp = 0
+  spec = 0
 
   swe_engy_timing, /cal
-  get_data,'edat_svy',data=dat
-  lut = reform(replicate(1B,64) # tab.y, n_elements(dat.x))
+  get_data,'edat_svy',data=dat                               ; hires SPEC timing
+  lut = reform(replicate(1B,64) # tab.y, n_elements(dat.x))  ; expand LUT to hires sampling
 
   indx = where(lut eq 7B, count7)
   if (count7 gt 0L) then begin
@@ -143,7 +145,7 @@ pro swe_make_hires, date, tplot=tplot
 
 ; Standard flux from SPEC data (now with EFLUX units)
 
-  mvn_swe_makespec, units='eflux', /tplot
+  mvn_swe_makespec, units='eflux', lut=tab.y, /tplot
 
   get_data,'swe_a4',data=dat
   indx = where(tab.y ne 5)
@@ -184,8 +186,6 @@ pro swe_make_hires, date, tplot=tplot
     ylim,'flux_125a',3e5,3e8,1
   endif
 
-; Tplot panels
-
 ; Plot the data
 
   if keyword_set(tplot) then begin
@@ -201,16 +201,17 @@ pro swe_make_hires, date, tplot=tplot
     tplot, pans
   endif
 
-; Make a SWEA save file
+; Make save files
 
   mvn_swe_save, filename=(fname + '.sav')
-
-; Make tplot save file
 
   allpans = ['mvn_swics_en_eflux','mvn_mag_l1_bamp','mvn_B_full_maven_mso','mvn_sun_bar',$
              'mvn_att_bar','swe_a3_bar','swe_pad_resample_50eV_merge','flux_50a','flux_50',$
              'flux_50n','TABNUM','swe_a4','swe_quality']
 
   tplot_save, allpans, file=fname
+
+  t1 = systime(/utc,/sec)
+  print, (t1 - t0)/60D, format='(/"Time to process: ",f5.2," min",/)'
 
 end
