@@ -30,8 +30,8 @@
 ;                 data structure: swe_fpad, swe_fpad_arc.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-05-25 09:53:41 -0700 (Sun, 25 May 2025) $
-; $LastChangedRevision: 33338 $
+; $LastChangedDate: 2025-06-23 16:20:25 -0700 (Mon, 23 Jun 2025) $
+; $LastChangedRevision: 33414 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makefpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
@@ -69,7 +69,7 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pf
       indx = where(a2.lut gt 6B, count)
       if (count gt 0) then begin
         print,"Survey data ... "
-        swe_fpad = mvn_swe_getpad(a2[indx].time + delta_t, units=units)
+        swe_fpad = mvn_swe_getpad(a2[indx].time + delta_t, units=units, /L0)
         swe_fpad = swe_pad32hz_unpack(swe_fpad)
       endif
       doa2 = 1
@@ -79,7 +79,7 @@ pro mvn_swe_makefpad, units=units, tplot=tplot, merge=merge, pans=pans, pfile=pf
       indx = where(a3.lut gt 6B, count)
       if (count gt 0) then begin
         print,"Burst data ... "
-        swe_fpad_arc = mvn_swe_getpad(a3[indx].time + delta_t, units=units, /burst)
+        swe_fpad_arc = mvn_swe_getpad(a3[indx].time + delta_t, units=units, /burst, /L0)
         swe_fpad_arc = swe_pad32hz_unpack(swe_fpad_arc)
       endif
       doa3 = 1

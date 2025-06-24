@@ -16,8 +16,8 @@
 ;       TPLOT:     If set, create a time series plot of the data.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-06-20 15:31:57 -0700 (Fri, 20 Jun 2025) $
-; $LastChangedRevision: 33399 $
+; $LastChangedDate: 2025-06-23 10:37:01 -0700 (Mon, 23 Jun 2025) $
+; $LastChangedRevision: 33409 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_make_hires.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -61,13 +61,29 @@ pro swe_make_hires, date, tplot=tplot
   mvn_swe_load_l0
   mvn_swe_getlut, /flux, /tplot
   get_data, 'TABNUM', data=tab  ; table number vs time
+  indx = where(tab.y gt 6, count)
+  if (count eq 0L) then begin
+    print,"No hires data.  Nothing to do."
+    return
+  endif
   mvn_swe_makespec, lut=tab.y
   mvn_swe_sumplot, /lut, /loadonly
+  mvn_scpot, /loadonly
+  mvn_attitude_bar
+
+; Load SWIA data and estimate error bars
+
   mvn_swe_addswi
+  get_data, 'mvn_swics_en_counts', data=swicnt, index=i
+  if (i gt 0) then begin
+    rerr = (1./sqrt(swicnt.y)) > 0.01  ; digitization noise limits rerr
+    get_data, 'mvn_swics_en_eflux', data=swiflx
+    str_element, swiflx, 'dy', rerr*swiflx.y, /add
+    store_data, 'mvn_swics_en_eflux', data=swiflx
+    undefine, swicnt, swiflx, rerr
+  endif else print,"Variable not found:  mvn_swics_en_counts"
   ylim,'mvn_swics_en_eflux',25,25000,1
   options, 'mvn_swics_en_eflux', 'ztitle', 'EFLUX'
-  mvn_scpot
-  mvn_attitude_bar
 
 ; Get high resolution PAD data and make tplot variables
 ;   This step takes time because of the pitch angle sorting and resampling
@@ -143,7 +159,7 @@ pro swe_make_hires, date, tplot=tplot
     options,'flux_125','psym',0
   endif
 
-; Standard flux from SPEC data (now with EFLUX units)
+; Merge high and normal resolution SPEC data (now with EFLUX units)
 
   mvn_swe_makespec, units='eflux', lut=tab.y, /tplot
 
@@ -152,6 +168,8 @@ pro swe_make_hires, date, tplot=tplot
   dat.y[indx,*] = !values.f_nan
   dat.dy[indx,*] = !values.f_nan
   store_data,'swe_a4',data=dat
+  padpans = ['']
+  morepadpans = padpans
 
   if (count7 gt 0L) then begin
     de = min(abs(dat.v - 200.),j)
@@ -162,6 +180,9 @@ pro swe_make_hires, date, tplot=tplot
 
     store_data,'flux_200a',data=['flux_200','flux_200n']
     ylim,'flux_200a',3e4,3e7,1
+
+    padpans = [padpans, 'swe_pad_resample_200eV_merge', 'flux_200a']
+    morepadpans = [morepadpans, 'flux_200', 'flux_200n']
   endif
 
   if (count8 gt 0L) then begin
@@ -173,6 +194,9 @@ pro swe_make_hires, date, tplot=tplot
 
     store_data,'flux_50a',data=['flux_50','flux_50n']
     ylim,'flux_50a',3e5,3e8,1
+
+    padpans = [padpans, 'swe_pad_resample_50eV_merge', 'flux_50a']
+    morepadpans = [morepadpans, 'flux_50', 'flux_50n']
   endif
 
   if (count9 gt 0L) then begin
@@ -184,7 +208,13 @@ pro swe_make_hires, date, tplot=tplot
 
     store_data,'flux_125a',data=['flux_125','flux_125n']
     ylim,'flux_125a',3e5,3e8,1
+
+    padpans = [padpans, 'swe_pad_resample_125eV_merge', 'flux_125a']
+    morepadpans = [morepadpans, 'flux_125', 'flux_125n']
   endif
+
+  padpans = padpans[1:*]
+  morepadpans = morepadpans[1:*]
 
 ; Plot the data
 
@@ -196,8 +226,7 @@ pro swe_make_hires, date, tplot=tplot
     if (wstate[Twin]) then wset,Twin else win,Twin,/f
 
     pans = ['mvn_swics_en_eflux','mvn_mag_l1_bamp','mvn_B_full_maven_mso','mvn_sun_bar',$
-           'mvn_att_bar','swe_a3_bar','swe_pad_resample_50eV_merge','flux_50a','TABNUM',$
-           'swe_a4']
+           'mvn_att_bar','swe_a3_bar',padpans,'TABNUM','swe_a4']
     tplot, pans
   endif
 
@@ -205,9 +234,8 @@ pro swe_make_hires, date, tplot=tplot
 
   mvn_swe_save, filename=(fname + '.sav')
 
-  allpans = ['mvn_swics_en_eflux','mvn_mag_l1_bamp','mvn_B_full_maven_mso','mvn_sun_bar',$
-             'mvn_att_bar','swe_a3_bar','swe_pad_resample_50eV_merge','flux_50a','flux_50',$
-             'flux_50n','TABNUM','swe_a4','swe_quality']
+  allpans = ['mvn_swics_en_eflux','mvn_mag_l1_bamp','mvn_B_full_maven_mso',$
+             'mvn_sun_bar','mvn_att_bar','swe_a3_bar',padpans,morepadpans,'TABNUM','swe_a4','swe_quality']
 
   tplot_save, allpans, file=fname
 

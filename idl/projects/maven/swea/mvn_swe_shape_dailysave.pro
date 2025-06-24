@@ -20,9 +20,9 @@
 ;
 ;       saveflux:      If set to 1, will save eflux for 3 PA ranges to
 ;                      a provided directory. 
-; $LastChangedBy: xussui_lap $
-; $LastChangedDate: 2024-09-17 15:24:15 -0700 (Tue, 17 Sep 2024) $
-; $LastChangedRevision: 32840 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2025-06-23 10:14:21 -0700 (Mon, 23 Jun 2025) $
+; $LastChangedRevision: 33407 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_shape_dailysave.pro $
 ;
 ;CREATED BY:    Shaosui Xu, 08/01/2017
@@ -89,7 +89,7 @@ Pro mvn_swe_shape_dailysave,start_day=start_day,end_day=end_day,ndays=ndays,$
         
         mvn_swe_spice_init,/force
         mvn_swe_load_l2
-        ;mvn_swe_load_l2,/pad,/burst,/noerase
+        ;mvn_swe_load_l2,prod=['arcpad'],/noerase
         
         if (size(mvn_swe_pad,/type) eq 8) then begin
             

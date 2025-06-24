@@ -29,8 +29,7 @@
 ;
 ;       SHIFTPOT:      Correct for spacecraft potential.
 ;
-;       HIRES:         Returns 0 for normal resolution (2-sec) data; returns 1 for
-;                      high resolution (0.03-sec) data.
+;       L0:            Force loading from L0.
 ;
 ;       QLEVEL:        Minimum quality level to load (0-2, default=0):
 ;                        2B = good
@@ -38,21 +37,20 @@
 ;                        0B = affected by low-energy anomaly
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-06-03 11:52:11 -0700 (Tue, 03 Jun 2025) $
-; $LastChangedRevision: 33359 $
+; $LastChangedDate: 2025-06-23 16:20:05 -0700 (Mon, 23 Jun 2025) $
+; $LastChangedRevision: 33413 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getpad.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
 ;FILE: mvn_swe_getpad.pro
 ;-
 function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, burst=burst, $
-                         shiftpot=shiftpot, hires=hires, qlevel=qlevel
+                         shiftpot=shiftpot, L0=L0, qlevel=qlevel
 
   @mvn_swe_com
 
   delta_t = 1.95D/2D  ; PAD start time to center time
   if keyword_set(burst) then archive = 1
-  hires = 0
   qlevel = (n_elements(qlevel) gt 0L) ? byte(qlevel[0]) : 0B
 
   if (size(time,/type) eq 0) then begin
@@ -93,8 +91,12 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
   if (size(swe_mag1,/type) eq 8) then addmag = 1 else addmag = 0
   if (size(swe_sc_pot,/type) eq 8) then addpot = 1 else addpot = 0
 
+  if keyword_set(L0) then goto, L0_EXTRACT
+
 ;---------------------------------------------------------------------------------
 ; First attempt to get extract PAD(s) from L2 data
+
+  L2_EXTRACT:
 
   if keyword_set(archive) then begin
     if (size(mvn_swe_pad_arc,/type) eq 8) then begin
@@ -238,6 +240,8 @@ function mvn_swe_getpad, time, archive=archive, all=all, sum=sum, units=units, b
 
 ;---------------------------------------------------------------------------------
 ; If necessary (npts = 0), extract PAD(s) from L0 data
+
+  L0_EXTRACT:
 
   delta_t = 1.95D/2D  ; start time to center time
   time -= delta_t

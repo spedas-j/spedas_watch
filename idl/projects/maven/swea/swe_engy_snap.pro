@@ -226,6 +226,8 @@ end
 ;                      that the deadtime corrections for the individual spectra
 ;                      are lost.
 ;
+;       DEAD:          Same as SHOWDEAD.
+;
 ;       BACKGROUND:    Show the background on the plot.
 ;
 ;       COLOR_TABLE:   Use this color table for all plots.
@@ -248,9 +250,9 @@ end
 ;                             Caveat: There is increased noise around 23 eV, even 
 ;                             for "good" spectra.
 ;
-; $LastChangedBy: xussui $
-; $LastChangedDate: 2024-08-26 11:27:14 -0700 (Mon, 26 Aug 2024) $
-; $LastChangedRevision: 32799 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2025-06-23 09:23:37 -0700 (Mon, 23 Jun 2025) $
+; $LastChangedRevision: 33402 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_engy_snap.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -265,7 +267,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
                    flev=flev, pylim=pylim, k_e=k_e, peref=peref, error_bars=error_bars, $
                    trange=tspan, tsmo=tsmo, wscale=wscale, cscale=cscale, voffset=voffset, $
                    endx=endx, twot=twot, rcolors=rcolors, cuii=cuii, fmfit=fmfit, nolab=nolab, $
-                   showdead=showdead, monitor=monitor, der=der, color_table=color_table, $
+                   showdead=showdead, dead=dead, monitor=monitor, der=der, color_table=color_table, $
                    reverse_color_table=reverse_color_table, line_colors=line_colors, noraw=noraw, $
                    qlevel=qlevel, result=result, background=background,$
                    mkpng=mkpng,figname=figname
@@ -298,7 +300,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
            'BKG','TPLOT','MAGDIR','BCK','SHIFTPOT','XRANGE','YRANGE','SCONFIG', $
            'POPEN','TIMES','FLEV','PYLIM','K_E','PEREF','ERROR_BARS','TRANGE', $
            'TSMO','WSCALE','CSCALE','VOFFSET','ENDX','TWOT','RCOLORS','CUII', $
-           'FMFIT','NOLAB','SHOWDEAD','MONITOR','COLOR_TABLE','REVERSE_COLOR_TABLE', $
+           'FMFIT','NOLAB','SHOWDEAD','DEAD','MONITOR','COLOR_TABLE','REVERSE_COLOR_TABLE', $
            'LINE_COLORS','NORAW','QLEVEL','RESULT','BACKGROUND']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
@@ -316,6 +318,7 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
 ; Process keywords
 
   if (size(Espan,/type) eq 0) then mvn_scpot_defaults
+  if keyword_set(dead) then showdead = 1
 
   aflg = 0  ; there are never any SPEC archive data (apid a5)
   if not keyword_set(units) then units = 'eflux'
@@ -687,13 +690,9 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
     if keyword_set(showdead) then begin
       scale = max(yrange)/10.
       if (swe_paralyze) then mindtc = 1./exp(1.) else mindtc = swe_min_dtc
-      oplot,x,scale/swe_deadtime(rate),psym=psym,color=cols.red
-      oplot,xrange,[scale,scale],line=2,color=cols.red
-      oplot,xrange,[scale,scale]/mindtc,line=2,color=cols.red
-      msg = "!4s!1H = " + string(swe_dead, format='(e8.2)')
-      xyouts, max(xrange)*0.8, scale*0.75/mindtc, msg, charsize=csize2, align=1, color=cols.red
-      msg = ["non-paralyzable","paralyzable"]
-      xyouts, max(xrange)*0.8, scale*0.55/mindtc, msg[swe_paralyze], charsize=csize2, align=1, color=cols.red
+      oplot,x,scale/swe_deadtime(rate),psym=psym,color=5
+      oplot,xrange,[scale,scale],line=2,color=5
+      oplot,xrange,[scale,scale]/mindtc,line=2,color=5
     endif
 
     if (keyword_set(fmfit) and strupcase(units) eq 'DF') then begin
@@ -911,6 +910,15 @@ pro swe_engy_snap, units=units, keepwins=keepwins, archive=archive, spec=spec, d
         xyouts,xs,ys,string(round(sza.y[aref]), format='("SZA = ",i5)'),charsize=csize1,/norm
         ys -= dys
       endif
+    endif
+
+    if (0) then begin  ; this info available with mvn_swe_calib,/list
+      msg = "!4s!1H = " + string(swe_dead, format='(e8.2)')
+      xyouts, xs, ys, msg, charsize=csize1, color=5,/norm
+      ys -= dys
+      msg = ["non-paralyzable","paralyzable"]
+      xyouts, xs, ys, msg[swe_paralyze], charsize=csize1, color=5,/norm
+      ys -= dys
     endif
     
     if (domag) then begin

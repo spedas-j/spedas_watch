@@ -137,8 +137,8 @@
 ;CREATED BY:      Takuya Hara on 2014-09-24.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-05-23 15:48:13 -0700 (Fri, 23 May 2025) $
-; $LastChangedRevision: 33330 $
+; $LastChangedDate: 2025-06-23 16:19:42 -0700 (Mon, 23 Jun 2025) $
+; $LastChangedRevision: 33412 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_pad_resample.pro $
 ;
 ;-
@@ -627,8 +627,26 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
 ; Loop through data in time sequence
 
   FOR i=0L,(ndat-1L) DO BEGIN
+
+     IF i EQ 0L THEN BEGIN
+        t0 = SYSTIME(/sec)
+        dt = SYSTIME(/sec) - t0
+        undefine, t0
+     ENDIF 
+
      IF keyword_set(dtype) THEN BEGIN
         ddd = mvn_swe_get3d(dat_time[idx[i]], units=units, archive=archive)
+        if (size(ddd,/type) ne 8) then begin
+          pa = dformat
+          if (nchan gt 1) then pa = replicate(pa, nchan)
+          GOTO, skip_spec
+        endif
+        if (not ok) then begin
+          pa = dformat
+          if (nchan gt 1) then pa = replicate(pa, nchan)
+          GOTO, skip_spec
+        endif
+        dtime = ddd.time
         dname = ddd.data_name
         energy = average(ddd.energy, 2)
         tabok = ddd.lut eq tabnum
@@ -640,7 +658,6 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
             mvn_swe_convert_units, ddd, units
           endif
         endif
-        dtime = ddd.time
 
         IF keyword_set(swia) THEN $
            ddd = mvn_swe_pad_resample_swia(ddd, archive=archive, interpolate=interpolate, $
@@ -657,11 +674,22 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
         IF keyword_set(map3d) THEN ddd = mvn_swe_pad_resample_map3d(ddd, prf=interpolate)
      ENDIF ELSE BEGIN
         pad = mvn_swe_getpad(dat_time[idx[i]], units=units, archive=archive)
+        if (size(pad,/type) ne 8) then begin
+          pa = dformat
+          if (nchan gt 1) then pa = replicate(pa, nchan)
+          GOTO, skip_spec
+        endif
+        dtime = pad.time
         dname = pad.data_name
         energy = average(pad.energy, 2)
         tabok = pad.lut eq tabnum
         IF (hflg) THEN pad = mvn_swe_padmap_32hz(pad, fbdata=fbdata, verbose=verbose)
         if (dwell) then pad = swe_pad32hz_unpack(pad)
+        if (size(pad,/type) ne 8) then begin
+          pa = dformat
+          if (nchan gt 1) then pa = replicate(pa, nchan)
+          GOTO, skip_spec
+        endif
         if keyword_set(sc_pot) then begin
           pot = swe_sc_pot[nn2(swe_sc_pot.time, pad.time)].potential
           if (finite(pot)) then begin
@@ -670,8 +698,6 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
             mvn_swe_convert_units, pad, units
           endif
         endif
-
-        dtime = pad.time
 
         for j=0,(nchan-1) do begin
          ; print, 'Block check'
@@ -692,12 +718,6 @@ PRO mvn_swe_pad_resample, var, mask=mask, stow=stow, ddd=ddd, pad=pad,  $
           undefine, block, nblock
         endfor
      ENDELSE 
-
-     IF i EQ 0L THEN BEGIN
-        t0 = SYSTIME(/sec)
-        dt = SYSTIME(/sec) - t0
-        undefine, t0
-     ENDIF 
 
      pa = dformat
      if (nchan gt 1) then pa = replicate(pa, nchan)

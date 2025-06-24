@@ -9,17 +9,19 @@
 ;                 blocks and tplot variables.
 ;
 ;KEYWORDS:
+;      LOADONLY:  Insert potential information into SPEC data but do not refresh
+;                 the tplot window.
 ;
 ;CREATED BY:      D. L. Mitchell
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-01-20 12:17:43 -0800 (Sat, 20 Jan 2024) $
-; $LastChangedRevision: 32392 $
+; $LastChangedDate: 2025-06-23 10:26:29 -0700 (Mon, 23 Jun 2025) $
+; $LastChangedRevision: 33408 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_addpot.pro $
 ;
 ;-
-pro mvn_swe_addpot
+pro mvn_swe_addpot, loadonly=loadonly
 
   @mvn_swe_com
   @mvn_scpot_com
@@ -66,7 +68,7 @@ pro mvn_swe_addpot
       j = where(topt.varnames eq 'swe_a4', count)
       if (count gt 0) then begin
         topt.varnames[j] = 'swe_a4_pot'
-        replot = 1
+        replot = ~keyword_set(loadonly)
       endif
     endif
   endif

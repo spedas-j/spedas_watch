@@ -116,6 +116,8 @@
 ;
 ;   PANS:      Named varible to hold the tplot panels created.
 ;
+;   LOADONLY:  Load the potential but do not refresh the tplot window.
+;
 ;   QLEVEL:    Minimum quality level for SWEA data.  Filters out the vast
 ;              majority of spectra affected by the sporadic low energy
 ;              anomaly below 28 eV.  The validity levels are:
@@ -145,8 +147,8 @@
 ;          the five unmerged methods in one panel.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-25 14:47:01 -0700 (Thu, 25 Jul 2024) $
-; $LastChangedRevision: 32760 $
+; $LastChangedDate: 2025-06-23 10:37:26 -0700 (Mon, 23 Jun 2025) $
+; $LastChangedRevision: 33410 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_scpot.pro $
 ;
 ;-
@@ -154,7 +156,7 @@
 pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
                stapot=stapot, lpwpot=lpwpot, shapot=shapot, composite=composite, $
                pans=pans, nocalc=nocalc, qlevel=qlevel, qinterp=qinterp, $
-               success=success, no_server=no_server
+               success=success, loadonly=loadonly, no_server=no_server
 
   compile_opt idl2
 
@@ -165,6 +167,7 @@ pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
   success = 0
   NaN = !values.f_nan
   qlevel = (n_elements(qlevel) gt 0) ? byte(qlevel[0]) : 1B
+  loadonly = keyword_set(loadonly)
 
 ; Parameters for each of the potential estimation methods are managed by
 ; mvn_scpot_defaults.pro.  See that procedure for parameter definitions.
@@ -205,7 +208,7 @@ pro mvn_scpot, potential=pot, setval=setval, pospot=pospot, negpot=negpot, $
     phi = {x:mvn_sc_pot.time, y:mvn_sc_pot.potential}
     store_data,'mvn_sc_pot',data=phi
 
-    mvn_swe_addpot
+    mvn_swe_addpot, loadonly=loadonly
     mvn_sta_scpot_update
 
     pot = mvn_sc_pot
