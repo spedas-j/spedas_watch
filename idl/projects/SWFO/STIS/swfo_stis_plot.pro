@@ -3,9 +3,9 @@
 ; Run using:
 ; ctime,routine_name='swfo_stis_plot',/silent
 ;
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-05-23 10:33:06 -0700 (Fri, 23 May 2025) $
-; $LastChangedRevision: 33323 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-07-01 14:19:06 -0700 (Tue, 01 Jul 2025) $
+; $LastChangedRevision: 33417 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_plot.pro $
 ; $ID: $
 ;-
@@ -155,7 +155,28 @@ pro  swfo_stis_plot,var,t,param=param,trange=trange,nsamples=nsamples,lim=lim,fi
     ;up =   uniq(h)       
     ;u0= [0,up]
     
-    h = l1a.hash
+    ; h was originally l1a.hash, which
+    ; was represented as a hashcode of the mapd codes
+    ; [translate,resolution,linear_mode,uselut_flag]
+
+    ; Can instead look directly and translate / resolution
+    ; and the nonstandard flag (30th bit of the quality bit),
+    ; which is set if linear mode is on or uselut is True
+    ; h = l1a.hash
+    translate = l1a.sci_translate
+    resolution = l1a.sci_resolution
+    q = l1a.quality_bits
+    nonstandard_flag = ishft(q, -30) and 1 ; this combines linear mode and uselut
+
+    dtrans = translate - shift(translate,-1)
+    dres = resolution - shift(resolution,-1)
+    dnons = nonstandard_flag - shift(nonstandard_flag, -1)
+    h = dtrans + dres + dnons
+    ; print, translate
+    ; print, resolution
+    ; print, nonstandard_flag
+    ; if total(h) gt 0 then stop
+
     if nsamples gt 1 then   h[-1] = 0    ; ignore the last one
     dh = h - shift(h,-1)   ; ignore any spectrum in which the following hkp changes
          
