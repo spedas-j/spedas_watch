@@ -1,11 +1,11 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-05-23 10:33:06 -0700 (Fri, 23 May 2025) $
-; $LastChangedRevision: 33323 $
+; $LastChangedDate: 2025-07-07 17:11:41 -0700 (Mon, 07 Jul 2025) $
+; $LastChangedRevision: 33434 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_read.pro $
 ; $ID: $
 
 
-function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbose,num_recs=num_recs,force_recdim=force_recdim
+function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbose,num_recs=num_recs,force_recdim=force_recdim,recdimname=recdimname
 
   dat = !null
   nfiles = n_elements(filenames)
@@ -29,7 +29,6 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
 
   inq= ncdf_inquire(id)
   
-  if isa(force_recdim) then inq.recdim = force_recdim   ; cluge to fix annoying definition of swfo L0 files
   
   ;printdat,inq
   if inq.ndims eq 0 then begin
@@ -45,6 +44,12 @@ function swfo_ncdf_read,filenames=filenames,def_values=def_values,verbose=verbos
     dim_names[did] = name
     dprint,dlevel=3,verbose=verbose,did,"  ",name,dimsize
   endfor
+  
+  if ~isa(recdimname,/string) then recdimname = 'dim_time'
+  w = where(dim_names eq recdimname,/null)
+  if isa(w) then inq.recdim = w[0]
+
+  if isa(force_recdim) then inq.recdim = force_recdim   ; cluge to fix annoying definition of swfo L0 files
 
   if ~keyword_set(def_values) then begin
     def_values = dictionary()

@@ -293,10 +293,12 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
 
           if ~undefined(files) then begin
             unique_files = files[uniq(files, sort(files))]
-            if n_elements(unique_files) GT 1 then begin
-              sidx = strpos(unique_files, cdf_version)
-              fidx = where(sidx NE -1, ncnt)
-              if ncnt GT 0 then unique_files = unique_files[fidx]
+            if ~undefined(cdf_version) then begin 
+               if n_elements(unique_files) GT 1 then begin
+                 sidx = strpos(unique_files, cdf_version)
+                 fidx = where(sidx NE -1, ncnt)
+                 if ncnt GT 0 then unique_files = unique_files[fidx]
+                 endif
             endif
             if instrument eq 'epd' and level eq 'l2' then begin
               elf_cdf2tplot, unique_files, tplotnames = loaded_tnames, varformat=varformat, $
