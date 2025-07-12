@@ -107,9 +107,9 @@
 ;          after photoelectron corrections; this functionality is now available by setting the keyword: /zero_negative_values
 ;
 ;
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2023-03-28 15:41:29 -0700 (Tue, 28 Mar 2023) $
-;$LastChangedRevision: 31681 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2025-07-11 11:00:11 -0700 (Fri, 11 Jul 2025) $
+;$LastChangedRevision: 33452 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_products.pro $
 ;-
 pro mms_part_products, $
@@ -700,14 +700,14 @@ pro mms_part_products, $
   ;Moments Variables
   if ~undefined(moments) then begin
     moments.time = times
-    spd_pgs_moments_tplot, moments, prefix=tplot_prefix, suffix=suffix, tplotnames=tplotnames
+    spd_pgs_moments_tplot, moments, prefix=tplot_prefix, suffix=suffix, tplotnames=tplotnames, coords='DBCS'
   endif
 
   ;FAC Moments Variables
   if ~undefined(fac_moments) then begin
     fac_moments.time = times
     fac_mom_suffix = '_mag' + (undefined(suffix) ? '' : suffix)
-    spd_pgs_moments_tplot, fac_moments, /no_mag, prefix=tplot_prefix, suffix=fac_mom_suffix, tplotnames=tplotnames
+    spd_pgs_moments_tplot, fac_moments, /no_mag, prefix=tplot_prefix, suffix=fac_mom_suffix, tplotnames=tplotnames, coords='FA'
   endif
 
   ;Return transformed data structures

@@ -48,6 +48,7 @@ testvars=[$
   'mms1_dis_dist_brst_avgtemp_no_bulk_subtract','mms1_dis_dist_brst_avgtemp_bulk_subtract',$
   'mms1_dis_dist_brst_density_no_bulk_subtract','mms1_dis_dist_brst_density_bulk_subtract',$
   'mms1_dis_dist_brst_eflux_no_bulk_subtract','mms1_dis_dist_brst_eflux_bulk_subtract',$
+  'mms1_dis_dist_brst_qflux_no_bulk_subtract','mms1_dis_dist_brst_qflux_bulk_subtract',$
   'mms1_dis_dist_brst_flux_no_bulk_subtract','mms1_dis_dist_brst_flux_bulk_subtract',$
   'mms1_dis_dist_brst_mftens_no_bulk_subtract','mms1_dis_dist_brst_mftens_bulk_subtract',$
   'mms1_dis_dist_brst_ptens_no_bulk_subtract','mms1_dis_dist_brst_ptens_bulk_subtract',$
@@ -88,6 +89,7 @@ testvars=[$
   'mms1_dis_dist_brst_avgtemp_mag_no_bulk_subtract','mms1_dis_dist_brst_avgtemp_mag_bulk_subtract',$ 
   'mms1_dis_dist_brst_density_mag_no_bulk_subtract','mms1_dis_dist_brst_density_mag_bulk_subtract',$
   'mms1_dis_dist_brst_eflux_mag_no_bulk_subtract','mms1_dis_dist_brst_eflux_mag_bulk_subtract',$
+  'mms1_dis_dist_brst_qflux_mag_no_bulk_subtract','mms1_dis_dist_brst_qflux_mag_bulk_subtract',$
   'mms1_dis_dist_brst_flux_mag_no_bulk_subtract','mms1_dis_dist_brst_flux_mag_bulk_subtract',$
   'mms1_dis_dist_brst_mftens_mag_no_bulk_subtract','mms1_dis_dist_brst_mftens_mag_bulk_subtract',$
   'mms1_dis_dist_brst_ptens_mag_no_bulk_subtract','mms1_dis_dist_brst_ptens_mag_bulk_subtract',$
@@ -109,6 +111,7 @@ testvars=[$
   'mms1_hpca_hplus_phase_space_density_avgtemp_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_avgtemp_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_density_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_density_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_eflux_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_eflux_bulk_subtract',$
+  'mms1_hpca_hplus_phase_space_density_qflux_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_qflux_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_flux_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_flux_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_mftens_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_mftens_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_ptens_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_ptens_bulk_subtract',$
@@ -128,6 +131,7 @@ testvars=[$
   'mms1_hpca_hplus_phase_space_density_avgtemp_mag_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_avgtemp_mag_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_density_mag_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_density_mag_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_eflux_mag_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_eflux_mag_bulk_subtract',$
+  'mms1_hpca_hplus_phase_space_density_qflux_mag_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_qflux_mag_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_flux_mag_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_flux_mag_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_mftens_mag_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_mftens_mag_bulk_subtract',$
   'mms1_hpca_hplus_phase_space_density_ptens_mag_no_bulk_subtract','mms1_hpca_hplus_phase_space_density_ptens_mag_bulk_subtract',$

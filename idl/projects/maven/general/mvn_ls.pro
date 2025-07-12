@@ -76,8 +76,8 @@
 ;       RESET:     Re-calculate mars_season and refresh the common block.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-02-26 08:22:51 -0800 (Wed, 26 Feb 2025) $
-; $LastChangedRevision: 33152 $
+; $LastChangedDate: 2025-07-11 17:52:59 -0700 (Fri, 11 Jul 2025) $
+; $LastChangedRevision: 33456 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/mvn_ls.pro $
 ;
 ;CREATED BY:	Robert J. Lillis 2017-10-09
@@ -196,10 +196,13 @@ function mvn_ls_calc, time, dt=dt, silent=silent
     dprint,' ', setdebug=0, dlevel=4
   endif
 
+  mvn_spice_stat, summary=sinfo, info=info, /silent  ; only load kernels if necessary
+  if (~sinfo.planets_exist or ~sinfo.frames_exist) then maven_kernels = mvn_spice_kernels(['STD', 'FRM'], /load)
+
   oneday = 86400D
   if undefined(time) then begin
-    start_time = time_double('1900-01-05')
-    end_time = time_double('2099-12-31')
+    start_time = time_double('1600-01-01')
+    end_time = time_double('2600-01-01')
     if undefined(dt) then dt = oneday
     times = dgen(range=[start_time, end_time], resolution=dt[0])
   endif else begin
@@ -211,8 +214,6 @@ function mvn_ls_calc, time, dt=dt, silent=silent
 
   et = time_ephemeris(times)
   ntimes = n_elements(et)
-  mvn_spice_stat, summary=sinfo, /silent  ; only load kernels if necessary
-  if (~sinfo.planets_exist or ~sinfo.frames_exist) then maven_kernels = mvn_spice_kernels(['STD', 'FRM'], /load)
 
   ; Mars Year 34 started on 2017-05-05
   start_MY_34 = time_double('2017-05-05/11:28:03')  ; previous value was 2017-05-05/17:47:31
@@ -258,7 +259,7 @@ function mvn_ls, time, dt=dt, tplot=tplot, calc=calc, all=all, bar=bar, silent=s
 
   if ((size(mars_season,/type) ne 8) or keyword_set(reset)) then begin
     rootdir = 'maven/anc/spice/sav/'
-    pathname = rootdir + 'Mars_seasons_1900_2100*.sav'
+    pathname = rootdir + 'Mars_seasons_1600_2600*.sav'
     file = mvn_pfp_file_retrieve(pathname, /last_version, /valid, verbose=shh)
     if (file[0] eq '') then begin
       print,"  File not found: ", pathname

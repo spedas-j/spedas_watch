@@ -26,9 +26,9 @@
 ;  Much of this code was copied from thm_part_moments.pro
 ;
 ;
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-08-09 16:26:49 -0700 (Thu, 09 Aug 2018) $
-;$LastChangedRevision: 25623 $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2025-07-11 11:01:54 -0700 (Fri, 11 Jul 2025) $
+;$LastChangedRevision: 33453 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/science/spd_part_products/spd_pgs_moments_tplot.pro $
 ;-
 pro spd_pgs_moments_tplot, moments, $
@@ -37,6 +37,7 @@ pro spd_pgs_moments_tplot, moments, $
                            prefix=prefix0, $
                            suffix=suffix0, $
                            tplotnames=tplotnames, $
+                           coords=coords, $
                            _extra = _extra
 
     compile_opt idl2, hidden
@@ -45,19 +46,26 @@ pro spd_pgs_moments_tplot, moments, $
   if undefined(prefix0) then prefix='' else prefix=prefix0
   if undefined(suffix0) then suffix='' else suffix=suffix0
   if keyword_set(get_error) then suffix = '_sigma'+suffix
+  ; Default to DSL coordinates if not specified
+  if n_elements(coords) eq 0 or (size(coords,/type) ne 7) then coords='DSL'
 
 
   ;Get names of valid moments
-  if keyword_set(get_error) || keyword_set(no_mag) then begin
+  if keyword_set(get_error) then begin
     ;error estimates produced by moments_3d
     valid_moments = ['avgtemp', 'density', 'eflux', 'flux', $
                      'mftens', 'ptens', 'sc_current', $
-                     'velocity', 'vthermal'] 
+                     'velocity', 'vthermal']
+  endif else if keyword_set(no_mag)  then begin
+    ;error estimates produced by moments_3d
+    valid_moments = ['avgtemp', 'density', 'eflux', 'flux', $
+      'mftens', 'ptens', 'sc_current', $
+      'velocity', 'vthermal', 'qflux']
   endif else begin
     ;moments produced by moments_3d
     valid_moments = ['avgtemp', 'density', 'eflux', 'flux', $
                      'mftens', 'ptens', 'sc_current', $
-                     'velocity', 'vthermal', $
+                     'velocity', 'vthermal', 'qflux', $
                      'magf', 'magt3', 't3', 'sc_pot', 'symm', $
                      'symm_theta', 'symm_phi', 'symm_ang']
   endelse
@@ -96,7 +104,9 @@ pro spd_pgs_moments_tplot, moments, $
   options,strfilter(mom_tnames,'*_flux'+suffix),/def ,yrange=[-1e8,1e8],/ystyle,ysubtitle='!c[#/s/cm2 ??]'
   options,strfilter(mom_tnames,'*t3'+suffix),/def ,yrange=[1,10000.],/ystyle,/ylog,ysubtitle='!c[eV]'
   options,strfilter(mom_tnames,'*tens'+suffix),/def ,colors='bgrmcy',ysubtitle='!c[eV/cm^3]'
-  
+  options,strfilter(mom_tnames,'*_eflux'+suffix),/def ,colors='bgr',ysubtitle='!c[eV/(cm^2-s)]'  
+  options,strfilter(mom_tnames,'*_qflux'+suffix),/def ,colors='bgr',ysubtitle='!c[eV/(cm^2-s)]'
+    
   ;set units (copied from thm_part_moments)
   spd_new_units, strfilter(mom_tnames, '*_density'+suffix), units_in = '1/cm^3'
   spd_new_units, strfilter(mom_tnames,'*_velocity'+suffix), units_in = 'km/s'
@@ -106,19 +116,21 @@ pro spd_pgs_moments_tplot, moments, $
   spd_new_units, strfilter(mom_tnames,'*_avgtemp'+suffix), units_in = 'eV'
   spd_new_units, strfilter(mom_tnames,'*_sc_pot'+suffix), units_in = 'V'
   spd_new_units, strfilter(mom_tnames,'*_eflux'+suffix), units_in = 'eV/(cm^2-s)'
+  spd_new_units, strfilter(mom_tnames,'*_qflux'+suffix), units_in = 'eV/(cm^2-s)'
   spd_new_units, strfilter(mom_tnames,'*tens'+suffix), units_in = 'eV/cm^3'
   spd_new_units, strfilter(mom_tnames,'*_symm_theta'+suffix), units_in = 'degrees'
   spd_new_units, strfilter(mom_tnames,'*_symm_phi'+suffix), units_in = 'degrees'
   spd_new_units, strfilter(mom_tnames,'*_symm_ang'+suffix), units_in = 'degrees'
   spd_new_units, strfilter(mom_tnames,'*_magf'+suffix), units_in = 'nT'
-  
+
   ;set coordinates (copied from thm_part_moments)
-  spd_new_coords, strfilter(mom_tnames,'*_velocity'+suffix), coords_in = 'DSL'
-  spd_new_coords, strfilter(mom_tnames,'*_flux'+suffix), coords_in = 'DSL'
-  spd_new_coords, strfilter(mom_tnames,'*_t3'+suffix), coords_in = 'DSL'
-  spd_new_coords, strfilter(mom_tnames,'*_eflux'+suffix), coords_in = 'DSL'
-  spd_new_coords, strfilter(mom_tnames,'*tens'+suffix), coords_in = 'DSL'
-  spd_new_coords, strfilter(mom_tnames,'*_magf'+suffix), coords_in = 'DSL'
+  spd_new_coords, strfilter(mom_tnames,'*_velocity'+suffix), coords_in = coords
+  spd_new_coords, strfilter(mom_tnames,'*_flux'+suffix), coords_in = coords
+  spd_new_coords, strfilter(mom_tnames,'*_t3'+suffix), coords_in = coords
+  spd_new_coords, strfilter(mom_tnames,'*_eflux'+suffix), coords_in = coords
+  spd_new_coords, strfilter(mom_tnames,'*_qflux'+suffix), coords_in = coords
+  spd_new_coords, strfilter(mom_tnames,'*tens'+suffix), coords_in = coords
+  spd_new_coords, strfilter(mom_tnames,'*_magf'+suffix), coords_in = coords
   spd_new_coords, strfilter(mom_tnames,'*_magt3'+suffix), coords_in = 'FA'
 
   

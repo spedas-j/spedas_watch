@@ -42,7 +42,7 @@
 ;
 ;INPUTS:
 ;       time:      Show planet positions at this time(s).  Valid times
-;                  are from 1900-01-05 to 2100-01-01 in any format
+;                  are from 1600-01-01 to 2600-01-01 in any format
 ;                  accepted by time_double().
 ;
 ;                  If not specified, use the current system time.
@@ -50,6 +50,11 @@
 ;KEYWORDS:
 ;       You can set default values for any of the following keywords with
 ;       orrery_options.pro.  Keywords set explicitly override defaults.
+;
+;       TIMERANGE: Time range for ephemeric calculations.  The latest planetary
+;                  ephemeris spans from 1600 to 2600 (one thousand years!), but
+;                  the routine runs much faster when this is limited to a shorter
+;                  span.  Default = ['1850','2150'].
 ;
 ;       NOPLOT:    Skip the plot (useful with keyword EPH).
 ;
@@ -186,8 +191,8 @@
 ;                  (After all, space is black.)  Default = 1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-04-05 14:39:20 -0700 (Sat, 05 Apr 2025) $
-; $LastChangedRevision: 33234 $
+; $LastChangedDate: 2025-07-11 17:56:54 -0700 (Fri, 11 Jul 2025) $
+; $LastChangedRevision: 33458 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -198,7 +203,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   xyrange=range, planet=planet2, sorb=sorb2, psp=psp2, sall=sall, $
                   verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor, $
                   window=window, png=png, varnames=varnames, plabel=plabel, slabel=slabel, $
-                  css=css2, black=black, pcurve=pcurve, key=key
+                  css=css2, black=black, pcurve=pcurve, timerange=timerange, key=key
 
   common planetorb, planet, css, sta, stb, sorb, psp, orrkey, madeplot
   @putwin_common
@@ -213,7 +218,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   tlist = ['NOPLOT','NOBOX','LABEL','SCALE','EPH','SPIRAL','VSW','SROT','MOVIE', $
            'STEREO','KEEPWIN','TPLOT','RELOAD','OUTER','XYRANGE','PLANET2','SORB2', $
            'PSP2','SALL','VERBOSE','FULL','FIXPLANET','MONITOR','WINDOW','PNG', $
-           'VARNAMES','PLABEL','SLABEL','CSS2','BLACK','PCURVE']
+           'VARNAMES','PLABEL','SLABEL','CSS2','BLACK','PCURVE','TIMERANGE']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
     case (total(i)) of
@@ -243,7 +248,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   pcol = [ 4, 204, 3,  6, 204, 4,  5,  3,  1 ]  ; planet colors
   psze = [ 3,  4,  4,  3,  6,  5,  4,  4,  3 ]  ; planet symbol sizes
   pday = [89, 226, 367, 688, 4334, 10757, 30689, 60192, 90562]  ; days per orbit
-  tspan = time_double(['1900-01-05','2100-01-01'])  ; range covered by mar097.bsp
+  tspan = time_double(['1600','2600'])          ; mar099.bsp covers 1600 to 2600
   nplan = n_elements(pname)
 
   cname = 'SIDING SPRING'
@@ -276,6 +281,11 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
 ; Process keywords
 
+  if (n_elements(timerange) gt 1) then begin
+    timerange = time_double(timerange)
+    tspan[0] = min(timerange) > tspan[0]
+    tspan[1] = max(timerange) < tspan[1]
+  endif else tspan = time_double(['1850','2150'])     ; shorter timespan for speed
   if (size(planet2,/type) eq 0) then planet2 = 4      ; default is Mars
   if (size(planet2,/type) eq 7) then begin
     ok = 0
