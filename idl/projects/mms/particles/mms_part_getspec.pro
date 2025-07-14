@@ -34,6 +34,7 @@
 ;         
 ;         photoelectron_corrections: *experimental* photoelectron corrections for DES; enabled by default for DES moments; you can disable with photoelectron_corrections=0
 ;         remove_fpi_sw: Flag to remove the solar wind component from the FPI ion DFs prior to performing the calculations
+;         sdc_units: Flag to convert moments_3d pressure tensor and heat flux outputs to nPa and mW/m^2 respectively, for compatibility with MMS SDC moments
 ;         
 ;     The following are found by default for the requested instrument/probe/data_rate; use these keywords 
 ;     to override the defaults:
@@ -54,8 +55,8 @@
 ;         Spacecraft photoelectrons are corrected in moments_3d
 ;         
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2024-10-31 14:42:56 -0700 (Thu, 31 Oct 2024) $
-;$LastChangedRevision: 32913 $
+;$LastChangedDate: 2025-07-12 19:14:21 -0700 (Sat, 12 Jul 2025) $
+;$LastChangedRevision: 33459 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/particles/mms_part_getspec.pro $
 ;-
 
@@ -119,6 +120,7 @@ pro mms_part_getspec, probes=probes, $
                       dir_interval=dir_interval, $
                       
                       spdf=spdf, $
+                      sdc_units=sdc_units, $  ; Convert moments_3d ptens and qflux units to nPa and mW/m^2 respectively, for compatibility with MMS SDC moments
                       _extra=ex 
 
     compile_opt idl2
@@ -259,7 +261,7 @@ pro mms_part_getspec, probes=probes, $
             sc_pot_name=scpot_variable, data_rate=data_rate, correct_photoelectrons=photoelectron_corrections, $
             internal_photoelectron_corrections=internal_photoelectron_corrections, $
             correct_sc_potential=correct_sc_potential, zero_negative_values=zero_negative_values, $
-            remove_fpi_sw=remove_fpi_sw, _extra=ex
+            remove_fpi_sw=remove_fpi_sw, sdc_units=sdc_units, _extra=ex
 
         if undefined(tplotnames_thisprobe) then continue ; nothing created by mms_part_products
         append_array, tplotnames, tplotnames_thisprobe
