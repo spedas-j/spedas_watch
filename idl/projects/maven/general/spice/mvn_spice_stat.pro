@@ -39,6 +39,8 @@
 ;
 ;    SUMMARY:       Provides a concise summary.
 ;
+;    FULL:          Provides additional details: time coverage and objects.
+;
 ;    CHECK:         Set this keyword to a time array to test whether the loaded
 ;                   kernels are sufficient to cover the entire time range.  The
 ;                   time array can be in any format accepted by time_double.
@@ -50,13 +52,14 @@
 ;    SILENT:        Shhh.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2023-12-18 16:14:29 -0800 (Mon, 18 Dec 2023) $
-; $LastChangedRevision: 32306 $
+; $LastChangedDate: 2025-07-14 11:38:38 -0700 (Mon, 14 Jul 2025) $
+; $LastChangedRevision: 33462 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_stat.pro $
 ;
 ;CREATED BY:    David L. Mitchell  09/14/18
 ;-
-pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=check, silent=silent, key=key
+pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=check, silent=silent, $
+                    full=full, key=key
 
   blab = ~keyword_set(silent)
 
@@ -105,6 +108,17 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=ch
     print,''
   endif
 
+  info = spice_kernel_info(verbose=0)
+  if (keyword_set(full) and blab) then begin
+    nobj = n_elements(info)
+    print,"  SPICE coverage by object:"
+    for i=0,(nobj-1) do begin
+      print,i,time_string(info[i].trange,prec=-3),info[i].obj_name,file_basename(info[i].filename), $
+              format='(3x,i3,2x,a10," to ",a10,2x,a-18,2x,a)'
+    endfor
+    print,''
+  endif
+
 ; Check for time, planet, moon, and frame kernels
 
   ok = max(stregex(loadlist,'naif[0-9]{4}\.tls',/subexpr,/fold_case)) gt (-1)
@@ -132,7 +146,6 @@ pro mvn_spice_stat, list=list, info=info, tplot=tplot, summary=summary, check=ch
     endif
   endif
 
-  info = spice_kernel_info(verbose=0)
   dt = time_double(info.trange[1]) - time_double(info.trange[0])
   indx = where((info.interval lt 1) or (abs(dt) gt 1D), count)
   if (count gt 0) then info = info[indx]  ; discard intervals of zero length

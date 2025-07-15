@@ -59,13 +59,24 @@
 ;  RESET:      Forces a reload of all standard kernels
 ;  VERBOSE:    Passed to spice_file_source and spice_kernel_load
 ;  NO_UPDATE:  Passed to spice_file_source: files are assumed to be correct if they exist
-;  
+;
+;MORE WORDS OF CAUTION:
+;  It can matter what order you load kernels in.  The reason is that natural and artificial satellite
+;  kernels as well as minor body kernels often attempt to be self contained by including kernels for one
+;  or more planets.  This introduces overlap with the planetary spk (de442).  Which planet kernel
+;  prevails?  The one that is loaded last.  For example, if you load the kernel for Comet Siding Spring, 
+;  it will contain a snippet of the Mars kernel, superceding the much longer Mars kernel contained in the
+;  de442.  To solve this, load the comet kernel first, then load the de442.  A similar situation occurs
+;  with the Mars satellite kernel.  Currently, the mar099 and de442 kernels cover about the same time 
+;  range, so the order doesn't matter much.  But someday it could.  This routine loads the de442 after
+;  the satellite kernel(s).
+;
 ;OUTPUT:
 ; fully qualified kernel filename(s)
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-07-11 17:56:25 -0700 (Fri, 11 Jul 2025) $
-; $LastChangedRevision: 33457 $
+; $LastChangedDate: 2025-07-14 11:23:09 -0700 (Mon, 14 Jul 2025) $
+; $LastChangedRevision: 33460 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/spice_standard_kernels.pro $
 ;-
 function spice_standard_kernels,load=load,source=src,reset=reset,verbose=verbose,mars=mars,jupiter=jupiter,$
@@ -87,8 +98,6 @@ function spice_standard_kernels,load=load,source=src,reset=reset,verbose=verbose
       no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
     append_array, kernels, spd_download_plus(remote_file=rpath+'pck/pck000??.tpc',local_path=lpath+'pck/',/last_version, $
       no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
-    append_array, kernels, spd_download_plus(remote_file=rpath+'spk/planets/de442.bsp',local_path=lpath+'spk/planets/', $
-      no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o) ;de442.bsp includes years 1550 to 2650, updated on 2025-02-06
     if keyword_set(mars) then append_array, kernels, spd_download_plus(remote_file=rpath+'spk/satellites/mar099.bsp',local_path =lpath+'spk/satellites/', $
       no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o) ;mar099.bsp includes years 1600 to 2600, updated on 2025-06-02
     if keyword_set(jupiter) then append_array, kernels, spd_download_plus(remote_file=rpath+'spk/satellites/jup365.bsp',local_path =lpath+'spk/satellites/', $
@@ -101,6 +110,8 @@ function spice_standard_kernels,load=load,source=src,reset=reset,verbose=verbose
       no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o) ;nep095.bsp includes years 1900 to 2050, updated on 2020-08-05
     if keyword_set(pluto) then append_array, kernels, spd_download_plus(remote_file=rpath+'spk/satellites/plu060.bsp',local_path =lpath+'spk/satellites/', $
       no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o) ;plu060.bsp includes years 1800 to 2200, updated on 2024-04-03
+    append_array, kernels, spd_download_plus(remote_file=rpath+'spk/planets/de442.bsp',local_path=lpath+'spk/planets/', $
+      no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o) ;de442.bsp includes years 1550 to 2650, updated on 2025-02-06
     retrievetime = ct
   endif
   if keyword_set(load) then spice_kernel_load, kernels, verbose=verbose
