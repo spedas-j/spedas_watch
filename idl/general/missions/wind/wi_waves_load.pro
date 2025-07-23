@@ -23,8 +23,8 @@
 ;     IDL> wi_waves_load, 'dust_impact_l3'
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2024-01-10 11:13:42 -0800 (Wed, 10 Jan 2024) $
-; $LastChangedRevision: 32350 $
+; $LastChangedDate: 2025-07-21 16:43:40 -0700 (Mon, 21 Jul 2025) $
+; $LastChangedRevision: 33480 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/missions/wind/wi_waves_load.pro $
 ;
 ;-
@@ -43,6 +43,7 @@ pro wi_waves_load, type, files = files, trange = trange, $
 
   if keyword_set(type) then begin
     if type.contains('l3') then level = 3
+    if type.contains('qtnfit') then level = 3
   endif
 
   if not keyword_set(level) then level = 2
@@ -97,6 +98,18 @@ pro wi_waves_load, type, files = files, trange = trange, $
         '/YYYY/wi_l3-dustimpact_waves_YYYYMMDD_v???.cdf' else $
       path = 'wind/waves/' + type + $
         '/YYYY/wi_wa_' + type + '_YYYYMMDD_v??.cdf'
+  endif
+
+  if type eq 'qtnfit' then begin
+    path = 'wind/waves/' + $
+      'solar-wind_electron_quasi-thermal_noise_spectroscopy_qtnfit' + $
+      '/YYYY/wind_waves_qtnfit_YYYYMMDD_v??.cdf'
+  endif
+
+  if type eq 'qtnfit-filtered' then begin
+    path = 'wind/waves/' + $
+      'solar-wind_electron_quasi-thermal_noise_spectroscopy_qtnfit-filtered' + $
+      '/YYYY/wind_waves_qtnfit-filtered_YYYYMMDD_v??.cdf'
   endif
 
   relpathnames = time_string(dates, tformat = path)

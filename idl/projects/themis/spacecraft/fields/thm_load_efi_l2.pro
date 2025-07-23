@@ -53,9 +53,9 @@
 ;    through to THM_CAL_EFI.PRO, W.M.Feuerstein, 4/7/2008 (M).
 ;  Fixed crash on passing an argument for RELPATHNAMES_ALL, WMF, 4/9/2008 (Tu).
 ;
-; $LastChangedBy: jimm $
-; $LastChangedDate: 2025-05-08 11:29:53 -0700 (Thu, 08 May 2025) $
-; $LastChangedRevision: 33301 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2025-07-22 16:45:29 -0700 (Tue, 22 Jul 2025) $
+; $LastChangedRevision: 33486 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/fields/thm_load_efi_l2.pro $
 ;-
 
@@ -153,7 +153,10 @@ pro thm_load_efi_l2, probe = probe, datatype = datatype, trange = trange, $
       If(keyword_set(coord)) Then Begin
         crd = ssl_check_valid_name(strlowcase(coord), ['dsl', 'gse', 'gsm'], /include_all, $
                                    invalid=msg_coord, type='coordinates')
-      Endif Else crd = 'dsl'
+      Endif Else begin
+        crd = 'dsl'
+        dprint,  'Defaulting to loading data in DSL coordinates.  Use coord="gse", "gsm", "all", or "*" to load other coordinate systems.'
+      Endelse
       For vv = 0, n_elements(crd)-1 Do Begin
         varformat = [varformat, ' th?_'+dts+'_'+crd[vv]]
       Endfor

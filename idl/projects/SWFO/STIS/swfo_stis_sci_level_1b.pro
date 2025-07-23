@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-06-03 15:59:53 -0700 (Tue, 03 Jun 2025) $
-; $LastChangedRevision: 33366 $
+; $LastChangedDate: 2025-07-21 15:44:21 -0700 (Mon, 21 Jul 2025) $
+; $LastChangedRevision: 33479 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 ; Function that merges counts/fluxes/rates/efluxes from the small pixel
@@ -53,6 +53,24 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
   N_high = poisson[1]
   a = cal.poisson_statistics_power_coefficient
 
+  ; Get the deadlayer / spline info for access in forloop:
+  if cal.energy_response_function then begin
+    O_proton_dl_keV = spline_fit3(!null,$
+      cal.modeled_proton_energy_measured_in_O,$
+      cal.modeled_proton_energy_loss_in_O,/xlog,/ylog)
+    F_proton_dl_keV = spline_fit3(!null,$
+      cal.modeled_proton_energy_measured_in_F,$
+      cal.modeled_proton_energy_loss_in_F,/xlog,/ylog)
+    F_electron_dl_keV = spline_fit3(!null,$
+      cal.modeled_electron_energy_measured_in_F,$
+      cal.modeled_electron_energy_loss_in_F,/xlog,/ylog)
+
+  endif else begin
+    O_proton_dl_keV = cal.proton_O_dead_layer
+    F_proton_dl_keV = cal.proton_F_dead_layer
+    F_electron_dl_keV = cal.electron_F_dead_layer
+  endelse
+
   for i=0l,nd-1 do begin
     str = L1a_strcts[i]
     ; stop
@@ -60,11 +78,49 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
     ; approximate period (in seconds) of Version 64 FPGA
     integration_time = str.sci_duration ; * cal.period
 
-    ; get the energies:
-    ion_energy  = str.spec_O1_nrg
-    elec_energy = str.spec_F1_nrg
-    ion_denergy  = str.spec_O1_dnrg
-    elec_denergy = str.spec_F1_dnrg
+    ; Get the measured energies in the O and F detectors:
+    O_energy  = str.spec_O1_nrg
+    F_energy = str.spec_F1_nrg
+    O_denergy  = str.spec_O1_dnrg
+    F_denergy = str.spec_F1_dnrg
+
+    ; To get the initial particle energy from measured energy,
+    ; need a response function to determine how much energy was
+    ; lost in the dead layer. The energy loss will differ depending
+    ; on the assumed particle. Can either use a fixed energy loss
+    ; or a Cubic spline fit to the response function
+
+    ; This isn't easily determined for the detector at the back
+    ; of the stack (O2 and F2, sensitive to Xrays + GCRs). For coincidences,
+    ; assume the energy loss from the first coincidence (e.g. F12, use F1,
+    ; F23, use F3.)
+    ; but we only need the front-facing detectors (O1 and O2).
+    ; For the coincidences 13/23, can use the same offset.
+
+    if cal.energy_response_function then begin
+      F_elec_energy = spline_fit3(param=F_electron_dl_keV, F_energy) + F_energy
+      O_ion_energy = spline_fit3(param=O_proton_dl_keV, O_energy) + O_energy
+
+      ; plot, F_energy, F_elec_energy, /xlog, /ylog, xtit='Measured Energy, keV', ytit='Actual particle energy, keV', psym=-4
+      ; oplot, cal.modeled_electron_energy_measured_in_F, cal.modeled_electron_energy_loss_in_F + cal.modeled_electron_energy_measured_in_F
+      ; stop
+    endif else begin
+
+      F_elec_energy = F_electron_dl_keV + F_energy
+      O_ion_energy = O_proton_dl_keV + O_energy
+
+    endelse
+
+    ion_denergy = O_denergy
+    elec_denergy = F_denergy
+    ion_energy = O_ion_energy
+    elec_energy = F_elec_energy
+
+    ; f = nrglost_vs_nrgmeas['Electron-F-3']
+    ; mnrg, nrg
+    ; nrg = spl(mnrg) + mnrg for F1, F3
+    ; nrg_n[] = spline_fit3(param=f, (adc_n * conv_n)) + (adc_n * conv_n)
+
 
     ; Determine deadtime correctons here
     ; srate is the total count rate in each detector for deadtime

@@ -2,8 +2,8 @@
 ;
 ;
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-06-03 15:59:53 -0700 (Tue, 03 Jun 2025) $
-; $LastChangedRevision: 33366 $
+; $LastChangedDate: 2025-07-21 09:58:52 -0700 (Mon, 21 Jul 2025) $
+; $LastChangedRevision: 33476 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_adc_map.pro $
 ; $ID: $
 ;-
@@ -38,8 +38,37 @@ function integration_width_matrix,x_edges,bin_centers,bin_widths   ; not finishe
 end
 
 
+;+
+;FUNCTION:  SWFO_STIS_ADC_MAP
+;PURPOSE: Generates the bins and bin widths used by SWFO STIS
+; depending on:
+; - uselut_flag: 1 if uploaded LUT is in-use, else 0.
+;     The "U" in PTCU_BITS. Typically False
+; - linear_mode: 1 if NONLUT_MODE is not 0, else 0.
+;     Second bit in DETECTOR_BITS. Typically 0 (AKA logarithmic bins).
+; - resolution: the pulse height resolution in ADC units, used only if linear_mode.
+;     Typically 3
+; - translate: offset of the pulse height in ADC units
+;     Typically 16
+;
+; Function returns a dictionary containing multiple 48 (# pulse height bins)
+; x 14 (# coincidences) arrays:
+; - adc0: lower edge of the bin in ADC units
+; - dadc: width of bin in ADC units
+; - adc_n: midpoint of bin in ADC units
+; - mnrg: measured energy
+; - geom: Geometric factor
+; - ftoi
 
-
+; Test the function using :
+; map = swfo_stis_adc_map(data_sample={ptcu_bits: [0, 0, 1, 0], detector_bits: [1, 0, 63], sci_resolution: 3, sci_translate: 16})
+;
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-07-21 09:58:52 -0700 (Mon, 21 Jul 2025) $
+; $LastChangedRevision: 33476 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_adc_map.pro $
+; $ID: $
+;-
 
 
 function swfo_stis_adc_map, data_sample=data_sample, cal=cal
@@ -97,38 +126,46 @@ function swfo_stis_adc_map, data_sample=data_sample, cal=cal
   kev_per_adc = cal.detector_keV_per_adc
   geomfactor = cal.geometric_factor
   ftoi = cal.coincidence_map
-  
+  coincidence_index = cal.geometric_factor_coincidence_index
+  adcm = cal.adc_coincidence_multiplier
+
   ; center_adc_bins = [    234.06952     ,  228.35745    ,  231.78710     ,  232.06377      ,  232.78850      ,  231.65691    ]  
   ;kev_per_adc = 59.5 / ( [25.12, 22.58, 25.65, 25.48, 23.61,  24.7 ] *8)
   ;kev_per_adc = 5500. / ( [5500.,5500.,5500.,5500.,5500.,5500.] * 4)
   ; kev_per_adc = 59.5 / center_adc_bins
-  kev_per_adc = [!values.f_nan,kev_per_adc]
+  ; kev_per_adc = [!values.f_nan,kev_per_adc]
   ; geomfactor  = .2  * [.01,1,1,.01,1,1]
-  geomfactor  = [!values.f_nan,geomfactor]
-  channel_n = [1,4,2,5,0,0,3,6,0,0,0,0,0,0]
+  ; geomfactor  = [!values.f_nan,geomfactor]
+  ; channel_n = [1,4,2,5,0,0,3,6,0,0,0,0,0,0]
   conv_n = replicate(!values.f_nan,48,14)
   geom_n = replicate(!values.f_nan,48,14)
   
+  ; ADC bins for all 14 coincidences are the same*
+  ; (as long as non-LUT mode) but are scaled by
+  ; 2 (3) for double (triple) coincidences
+  if linear_mode then begin
+    adc0 =[ 0,  ( (lindgen(47)+1) * 2L ^ resolution ) + translate  < 2L^15 , 2L^15 ]
+    ; adc0 =[ 0,  ( (lindgen(47)+1) * resolution ) + translate  < 2L^15 , 2L^15 ]
+    d_adc0 = shift(adc0 ,-1) - adc0
+    adc0 = adc0[0:47]
+    d_adc0 = d_adc0[0:47]
+  endif else begin
+    adc0 = [0, (clog_17_6[1:*])  * 4  + translate < 2L^15 , 2L^15 ]      ; low adc threshold
+    d_adc0 = shift(adc0 ,-1) - adc0
+    adc0 = adc0[0:47]               ; this might be incorrect for some pattern
+    d_adc0 = d_adc0[0:47] 
+  endelse
+
+
   for n= 0,13 do begin
-    if linear_mode then begin
-      adc0 =[ 0,  ( (lindgen(47)+1) * 2L ^ resolution ) + translate  < 2L^15 , 2L^15 ]
-      ; adc0 =[ 0,  ( (lindgen(47)+1) * resolution ) + translate  < 2L^15 , 2L^15 ]
-      d_adc0 = shift(adc0 ,-1) - adc0
-      adc0 = adc0[0:47]
-      d_adc0 = d_adc0[0:47]
-    endif else begin
-      adc0 = [0, (clog_17_6[1:*])  * 4  + translate < 2L^15 , 2L^15 ]      ; low adc threshold
-      d_adc0 = shift(adc0 ,-1) - adc0
-      adc0 = adc0[0:47]               ; this might be incorrect for some pattern
-      d_adc0 = d_adc0[0:47] 
-    endelse
-    
+
     ftoi_n[*,n] = n
-    adc0_n[*,n] = adc0
-    dadc_n[*,n] = d_adc0
+    adc0_n[*,n] = adc0 * adcm[n]
+    dadc_n[*,n] = d_adc0 * adcm[n]
     
-    conv_n[*,n] = kev_per_adc[ channel_n[n] ] 
-    geom_n[*,n] = geomfactor[ channel_n[n] ]
+    conv_n[*,n] = kev_per_adc[coincidence_index[n]] 
+    geom_n[*,n] = geomfactor[coincidence_index[n]]
+
 
   endfor
 
@@ -144,7 +181,7 @@ function swfo_stis_adc_map, data_sample=data_sample, cal=cal
   adcmap.adc0 = adc0_n
   adcmap.dadc = dadc_n
   adcmap.adc  = adc_n
-  adcmap.nrg  = adc_n * conv_n
+  adcmap.nrg  = adc_n * conv_n  ; measured energy
   adcmap.dnrg = dadc_n * conv_n
   adcmap.geom = geom_n
   

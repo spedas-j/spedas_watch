@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-06-05 14:17:48 -0700 (Thu, 05 Jun 2025) $
-; $LastChangedRevision: 33370 $
+; $LastChangedDate: 2025-07-21 15:44:21 -0700 (Mon, 21 Jul 2025) $
+; $LastChangedRevision: 33479 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -233,7 +233,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
 
     ; Bits at positional index 7-12 are 0 or 1 if high noise
     ; and defined for Ch 1-6.
-    nse_flag = l1a.noise_sigma gt cal.nse_threshold
+    nse_flag = l1a.noise_sigma gt cal.noise_sigma_threshold
     ; q = q or ishft(nse_flag.frombits()*1ull, 7)
     q = q or ishft(nse_flag[0]*1ull, 7)
     q = q or ishft(nse_flag[1]*1ull, 8)
@@ -266,7 +266,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; the count rate exceeds the threshold in the cal table,
     ; for channels 1-6:
     rate6 = total6/duration
-    rate_flag = rate6 gt cal.rate_threshold
+    rate_flag = rate6 gt cal.count_rate_threshold
     q = q or ishft(rate_flag[0]*1ull, 18)
     q = q or ishft(rate_flag[1]*1ull, 19)
     q = q or ishft(rate_flag[2]*1ull, 20)
@@ -281,9 +281,9 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; Q flag: bit at positional index 26 set if temperature
     ; limit exceeded:
     temps = [l0b.temp_dap, l0b.temp_sensor1, l0b.temp_sensor2]
-    temp_dap_flag = temps[0] lt cal.dap_temperature_threshold[0] or temps[0] gt cal.dap_temperature_threshold[1]
-    temp_s1_flag = temps[1] lt cal.sensor_1_temperature_threshold[0] or temps[1] gt cal.sensor_1_temperature_threshold[1]
-    temp_s2_flag = temps[2] lt cal.sensor_2_temperature_threshold[0] or temps[2] gt cal.sensor_2_temperature_threshold[1]
+    temp_dap_flag = temps[0] lt cal.dap_temperature_range[0] or temps[0] gt cal.dap_temperature_range[1]
+    temp_s1_flag = temps[1] lt cal.sensor_1_temperature_range[0] or temps[1] gt cal.sensor_1_temperature_range[1]
+    temp_s2_flag = temps[2] lt cal.sensor_2_temperature_range[0] or temps[2] gt cal.sensor_2_temperature_range[1]
     temp_flag = (temp_s1_flag or temp_s2_flag) or temp_dap_flag
     q = q or ishft(temp_flag*1ull, 26)
     ; if temp_flag ne 0 then stop
@@ -317,7 +317,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; speed for each reaction wheel are too high (known to cause noise)
     ; - Warning - APID does not exist for calibration datasets
     if sc_info_present ne 0 then begin
-      reax_wheel_flag = abs(l0b.reaction_wheel_speed_rpm) gt cal.reaction_wheel_threshold
+      reax_wheel_flag = abs(l0b.reaction_wheel_speed_rpm) gt cal.reaction_wheel_speed_threshold
       q = q or ishft(reax_wheel_flag[0]*1ull, 32)
       q = q or ishft(reax_wheel_flag[1]*1ull, 33)
       q = q or ishft(reax_wheel_flag[2]*1ull, 34)
@@ -331,161 +331,143 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
 
     ; stop
 
+    ; Now, store information for each coincidence-specific quantity:
+    ; Fill in ion AKA O info
+    l1a.geom_O1   = geom[*, index_O1]
+    l1a.geom_O2   = geom[*, index_O2]
+    l1a.geom_O12  = geom[*, index_O12]
+    l1a.geom_O3   = geom[*, index_O3]
+    l1a.geom_O13  = geom[*, index_O13]
+    l1a.geom_O23  = geom[*, index_O23]
+    l1a.geom_O123 = geom[*, index_O123]
+
+    l1a.spec_O1   = flux[*, index_O1]
+    l1a.spec_O2   = flux[*, index_O2]
+    l1a.spec_O12  = flux[*, index_O12]
+    l1a.spec_O3   = flux[*, index_O3]
+    l1a.spec_O13  = flux[*, index_O13]
+    l1a.spec_O23  = flux[*, index_O23]
+    l1a.spec_O123 = flux[*, index_O123]
+
+    l1a.rate_O1   = rate[*, index_O1]
+    l1a.rate_O2   = rate[*, index_O2]
+    l1a.rate_O12  = rate[*, index_O12]
+    l1a.rate_O3   = rate[*, index_O3]
+    l1a.rate_O13  = rate[*, index_O13]
+    l1a.rate_O23  = rate[*, index_O23]
+    l1a.rate_O123 = rate[*, index_O123]
+
+    l1a.spec_O1_nrg   = nrg[*, index_O1]
+    l1a.spec_O2_nrg   = nrg[*, index_O2]
+    l1a.spec_O12_nrg  = nrg[*, index_O12]
+    l1a.spec_O3_nrg   = nrg[*, index_O3]
+    l1a.spec_O13_nrg  = nrg[*, index_O13]
+    l1a.spec_O23_nrg  = nrg[*, index_O23]
+    l1a.spec_O123_nrg = nrg[*, index_O123]
+
+    l1a.spec_O1_dnrg   = dnrg[*, index_O1]
+    l1a.spec_O2_dnrg   = dnrg[*, index_O2]
+    l1a.spec_O12_dnrg  = dnrg[*, index_O12]
+    l1a.spec_O3_dnrg   = dnrg[*, index_O3]
+    l1a.spec_O13_dnrg  = dnrg[*, index_O13]
+    l1a.spec_O23_dnrg  = dnrg[*, index_O23]
+    l1a.spec_O123_dnrg = dnrg[*, index_O123]
+
+    l1a.spec_O1_adc   = adc[*, index_O1]
+    l1a.spec_O2_adc   = adc[*, index_O2]
+    l1a.spec_O12_adc  = adc[*, index_O12]
+    l1a.spec_O3_adc   = adc[*, index_O3]
+    l1a.spec_O13_adc  = adc[*, index_O13]
+    l1a.spec_O23_adc  = adc[*, index_O23]
+    l1a.spec_O123_adc = adc[*, index_O123]
+
+    l1a.spec_O1_dadc   = dadc[*, index_O1]
+    l1a.spec_O2_dadc   = dadc[*, index_O2]
+    l1a.spec_O12_dadc  = dadc[*, index_O12]
+    l1a.spec_O3_dadc   = dadc[*, index_O3]
+    l1a.spec_O13_dadc  = dadc[*, index_O13]
+    l1a.spec_O23_dadc  = dadc[*, index_O23]
+    l1a.spec_O123_dadc = dadc[*, index_O123]
+
+    ; Fill in elec AKA F info
+    l1a.geom_F1   = geom[*, index_F1]
+    l1a.geom_F2   = geom[*, index_F2]
+    l1a.geom_F12  = geom[*, index_F12]
+    l1a.geom_F3   = geom[*, index_F3]
+    l1a.geom_F13  = geom[*, index_F13]
+    l1a.geom_F23  = geom[*, index_F23]
+    l1a.geom_F123 = geom[*, index_F123]
+
+    l1a.spec_F1   = flux[*, index_F1]
+    l1a.spec_F2   = flux[*, index_F2]
+    l1a.spec_F12  = flux[*, index_F12]
+    l1a.spec_F3   = flux[*, index_F3]
+    l1a.spec_F13  = flux[*, index_F13]
+    l1a.spec_F23  = flux[*, index_F23]
+    l1a.spec_F123 = flux[*, index_F123]
+
+    l1a.rate_F1   = rate[*, index_F1]
+    l1a.rate_F2   = rate[*, index_F2]
+    l1a.rate_F12  = rate[*, index_F12]
+    l1a.rate_F3   = rate[*, index_F3]
+    l1a.rate_F13  = rate[*, index_F13]
+    l1a.rate_F23  = rate[*, index_F23]
+    l1a.rate_F123 = rate[*, index_F123]
+
+    l1a.spec_F1_nrg   = nrg[*, index_F1]
+    l1a.spec_F2_nrg   = nrg[*, index_F2]
+    l1a.spec_F12_nrg  = nrg[*, index_F12]
+    l1a.spec_F3_nrg   = nrg[*, index_F3]
+    l1a.spec_F13_nrg  = nrg[*, index_F13]
+    l1a.spec_F23_nrg  = nrg[*, index_F23]
+    l1a.spec_F123_nrg = nrg[*, index_F123]
+
+    l1a.spec_F1_dnrg   = dnrg[*, index_F1]
+    l1a.spec_F2_dnrg   = dnrg[*, index_F2]
+    l1a.spec_F12_dnrg  = dnrg[*, index_F12]
+    l1a.spec_F3_dnrg   = dnrg[*, index_F3]
+    l1a.spec_F13_dnrg  = dnrg[*, index_F13]
+    l1a.spec_F23_dnrg  = dnrg[*, index_F23]
+    l1a.spec_F123_dnrg = dnrg[*, index_F123]
+
+    l1a.spec_F1_adc   = adc[*, index_F1]
+    l1a.spec_F2_adc   = adc[*, index_F2]
+    l1a.spec_F12_adc  = adc[*, index_F12]
+    l1a.spec_F3_adc   = adc[*, index_F3]
+    l1a.spec_F13_adc  = adc[*, index_F13]
+    l1a.spec_F23_adc  = adc[*, index_F23]
+    l1a.spec_F123_adc = adc[*, index_F123]
+
+    l1a.spec_F1_dadc   = dadc[*, index_F1]
+    l1a.spec_F2_dadc   = dadc[*, index_F2]
+    l1a.spec_F12_dadc  = dadc[*, index_F12]
+    l1a.spec_F3_dadc   = dadc[*, index_F3]
+    l1a.spec_F13_dadc  = dadc[*, index_F13]
+    l1a.spec_F23_dadc  = dadc[*, index_F23]
+    l1a.spec_F123_dadc = dadc[*, index_F123]
+
+    ; DEFUNCT: Below code is shorter and easier to read,
+    ; but str_element is time-consuming and inappropriate
+    ; for this high-throughput routine:
+
+    ; out = {time:l0b.time}
+    ; str_element,/add,out,'hash',mapd.codes.hashcode()
+    ; str_element,/add,out,'sci_duration',l0b.sci_duration
+    ; str_element,/add,out,'sci_nbins',l0b.sci_nbins
+    ; str_element,/add,out,'gap',0
+    ; foreach w,mapd.wh,key do begin
+    ;   ;      str_element,/add,out,'cnts_'+key,counts[w]
+    ;   ;      str_element,/add,out,'rate_'+key,counts[w]/ l0b.sci_duration
+
+    ;   str_element,/add,out,'spec_'+key,flux[w]
+    ;   str_element,/add,out,'spec_'+key+'_nrg',nrg[w]
+    ;   str_element,/add,out,'spec_'+key+'_dnrg',dnrg[w]
+
+    ;   ;    str_element,/add,out,'spec_'+key+'_adc',adc[w]
+    ;   ;    str_element,/add,out,'spec_'+key+'_dadc',dadc[w]
+    ; endforeach
 
 
-
-
-    if 1 then begin
-
-      ; Indices of the ion (O) and electron (F) in small pixel AR1 (1)
-      ; and big pixel AR2 (3) for single coincidences (e.g. 1, 2, 3)
-      ;Index:          0,        1,        2,        3,        4,         5,
-      ;Channel #:      1,        4,        2,        5,      1-2,       4-5,
-      ;Detector:      O1,       F1,      O2,       F2,      O12,       F12,
-      ;Meaning:  Ion-AR1, Elec-AR1, Ion-AR3, Elec-AR3, Ion-AR13, Elec-AR13,
-      ; -----------------------------
-      ;      6,        7,        8,         9,       10,        11,      12,        13
-      ;      3,        6,      1-3,       4-6,      2-3,       5-6,   1-2-3,     4-5-6
-      ;     O3,       F3,      O13,       F13,      O23,       F56,    O123,      F123
-      ;Ion-AR2, Elec-AR2, Ion-AR12, Elec-AR12, Ion-AR23, Elec-AR23, Ion-123, Elec-F123
-      
-
-      ; Fill in ion AKA O info
-      l1a.geom_O1   = geom[*, index_O1]
-      l1a.geom_O2   = geom[*, index_O2]
-      l1a.geom_O12  = geom[*, index_O12]
-      l1a.geom_O3   = geom[*, index_O3]
-      l1a.geom_O13  = geom[*, index_O13]
-      l1a.geom_O23  = geom[*, index_O23]
-      l1a.geom_O123 = geom[*, index_O123]
-
-      l1a.spec_O1   = flux[*, index_O1]
-      l1a.spec_O2   = flux[*, index_O2]
-      l1a.spec_O12  = flux[*, index_O12]
-      l1a.spec_O3   = flux[*, index_O3]
-      l1a.spec_O13  = flux[*, index_O13]
-      l1a.spec_O23  = flux[*, index_O23]
-      l1a.spec_O123 = flux[*, index_O123]
-
-      l1a.rate_O1   = rate[*, index_O1]
-      l1a.rate_O2   = rate[*, index_O2]
-      l1a.rate_O12  = rate[*, index_O12]
-      l1a.rate_O3   = rate[*, index_O3]
-      l1a.rate_O13  = rate[*, index_O13]
-      l1a.rate_O23  = rate[*, index_O23]
-      l1a.rate_O123 = rate[*, index_O123]
-
-      l1a.spec_O1_nrg   = nrg[*, index_O1]
-      l1a.spec_O2_nrg   = nrg[*, index_O2]
-      l1a.spec_O12_nrg  = nrg[*, index_O12]
-      l1a.spec_O3_nrg   = nrg[*, index_O3]
-      l1a.spec_O13_nrg  = nrg[*, index_O13]
-      l1a.spec_O23_nrg  = nrg[*, index_O23]
-      l1a.spec_O123_nrg = nrg[*, index_O123]
-
-      l1a.spec_O1_dnrg   = dnrg[*, index_O1]
-      l1a.spec_O2_dnrg   = dnrg[*, index_O2]
-      l1a.spec_O12_dnrg  = dnrg[*, index_O12]
-      l1a.spec_O3_dnrg   = dnrg[*, index_O3]
-      l1a.spec_O13_dnrg  = dnrg[*, index_O13]
-      l1a.spec_O23_dnrg  = dnrg[*, index_O23]
-      l1a.spec_O123_dnrg = dnrg[*, index_O123]
-
-      l1a.spec_O1_adc   = adc[*, index_O1]
-      l1a.spec_O2_adc   = adc[*, index_O2]
-      l1a.spec_O12_adc  = adc[*, index_O12]
-      l1a.spec_O3_adc   = adc[*, index_O3]
-      l1a.spec_O13_adc  = adc[*, index_O13]
-      l1a.spec_O23_adc  = adc[*, index_O23]
-      l1a.spec_O123_adc = adc[*, index_O123]
-
-      l1a.spec_O1_dadc   = dadc[*, index_O1]
-      l1a.spec_O2_dadc   = dadc[*, index_O2]
-      l1a.spec_O12_dadc  = dadc[*, index_O12]
-      l1a.spec_O3_dadc   = dadc[*, index_O3]
-      l1a.spec_O13_dadc  = dadc[*, index_O13]
-      l1a.spec_O23_dadc  = dadc[*, index_O23]
-      l1a.spec_O123_dadc = dadc[*, index_O123]
-
-      ; Fill in elec AKA F info
-      l1a.geom_F1   = geom[*, index_F1]
-      l1a.geom_F2   = geom[*, index_F2]
-      l1a.geom_F12  = geom[*, index_F12]
-      l1a.geom_F3   = geom[*, index_F3]
-      l1a.geom_F13  = geom[*, index_F13]
-      l1a.geom_F23  = geom[*, index_F23]
-      l1a.geom_F123 = geom[*, index_F123]
-
-      l1a.spec_F1   = flux[*, index_F1]
-      l1a.spec_F2   = flux[*, index_F2]
-      l1a.spec_F12  = flux[*, index_F12]
-      l1a.spec_F3   = flux[*, index_F3]
-      l1a.spec_F13  = flux[*, index_F13]
-      l1a.spec_F23  = flux[*, index_F23]
-      l1a.spec_F123 = flux[*, index_F123]
-
-      l1a.rate_F1   = rate[*, index_F1]
-      l1a.rate_F2   = rate[*, index_F2]
-      l1a.rate_F12  = rate[*, index_F12]
-      l1a.rate_F3   = rate[*, index_F3]
-      l1a.rate_F13  = rate[*, index_F13]
-      l1a.rate_F23  = rate[*, index_F23]
-      l1a.rate_F123 = rate[*, index_F123]
-
-      l1a.spec_F1_nrg   = nrg[*, index_F1]
-      l1a.spec_F2_nrg   = nrg[*, index_F2]
-      l1a.spec_F12_nrg  = nrg[*, index_F12]
-      l1a.spec_F3_nrg   = nrg[*, index_F3]
-      l1a.spec_F13_nrg  = nrg[*, index_F13]
-      l1a.spec_F23_nrg  = nrg[*, index_F23]
-      l1a.spec_F123_nrg = nrg[*, index_F123]
-
-      l1a.spec_F1_dnrg   = dnrg[*, index_F1]
-      l1a.spec_F2_dnrg   = dnrg[*, index_F2]
-      l1a.spec_F12_dnrg  = dnrg[*, index_F12]
-      l1a.spec_F3_dnrg   = dnrg[*, index_F3]
-      l1a.spec_F13_dnrg  = dnrg[*, index_F13]
-      l1a.spec_F23_dnrg  = dnrg[*, index_F23]
-      l1a.spec_F123_dnrg = dnrg[*, index_F123]
-
-      l1a.spec_F1_adc   = adc[*, index_F1]
-      l1a.spec_F2_adc   = adc[*, index_F2]
-      l1a.spec_F12_adc  = adc[*, index_F12]
-      l1a.spec_F3_adc   = adc[*, index_F3]
-      l1a.spec_F13_adc  = adc[*, index_F13]
-      l1a.spec_F23_adc  = adc[*, index_F23]
-      l1a.spec_F123_adc = adc[*, index_F123]
-
-      l1a.spec_F1_dadc   = dadc[*, index_F1]
-      l1a.spec_F2_dadc   = dadc[*, index_F2]
-      l1a.spec_F12_dadc  = dadc[*, index_F12]
-      l1a.spec_F3_dadc   = dadc[*, index_F3]
-      l1a.spec_F13_dadc  = dadc[*, index_F13]
-      l1a.spec_F23_dadc  = dadc[*, index_F23]
-      l1a.spec_F123_dadc = dadc[*, index_F123]
-
-    endif else begin
-      if 0 then begin
-        out = {time:l0b.time}
-        str_element,/add,out,'hash',mapd.codes.hashcode()
-        str_element,/add,out,'sci_duration',l0b.sci_duration
-        str_element,/add,out,'sci_nbins',l0b.sci_nbins
-        str_element,/add,out,'gap',0
-      endif else begin
-        out = l1a
-      endelse
-      foreach w,mapd.wh,key do begin
-        ;      str_element,/add,out,'cnts_'+key,counts[w]
-        ;      str_element,/add,out,'rate_'+key,counts[w]/ l0b.sci_duration
-
-        str_element,/add,out,'spec_'+key,flux[w]
-        str_element,/add,out,'spec_'+key+'_nrg',nrg[w]
-        str_element,/add,out,'spec_'+key+'_dnrg',dnrg[w]
-
-        ;    str_element,/add,out,'spec_'+key+'_adc',adc[w]
-        ;    str_element,/add,out,'spec_'+key+'_dadc',dadc[w]
-      endforeach
-    endelse
     L1a_strcts[i] = l1a
 
     ;    if nd eq 1 then   return, out

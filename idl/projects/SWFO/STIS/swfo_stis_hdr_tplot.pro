@@ -2,15 +2,16 @@
 ; from a level 1b structure for plotting alongside the
 ; fluxes from the big pixel, tiny pixel, and merged flux.
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-06-03 15:59:53 -0700 (Tue, 03 Jun 2025) $
-; $LastChangedRevision: 33366 $
+; $LastChangedDate: 2025-07-21 09:59:43 -0700 (Mon, 21 Jul 2025) $
+; $LastChangedRevision: 33477 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_hdr_tplot.pro $
 
 
-pro swfo_stis_hdr_tplot, level_1b_structs, add=add, elec=elec, ion=ion, prefix=prefix
+pro swfo_stis_hdr_tplot, level_1b_structs, add=add, elec=elec, ion=ion, label=label
 
 
-  if not keyword_set(prefix) then prefix = 'swfo_stis_'
+  if keyword_set(label) then label = label + '_' else label = ''
+  prefix = 'swfo_stis_' + label
 
     ; Parameters for a spectra plot with a logarithmic y and z axes
     ; with a spec range of 10^-2 to 10^3 and y range of 10-600 keV
@@ -35,7 +36,7 @@ pro swfo_stis_hdr_tplot, level_1b_structs, add=add, elec=elec, ion=ion, prefix=p
     endif
 
     if keyword_set(ion) then begin
-      store_data, prefix + 'ion_Ch3_flux', $
+      store_data, prefix+ 'ion_Ch3_flux', $
         data={x: level_1b_structs.time_unix, $
               v: transpose(level_1b_structs.ion_energy), $
               y: transpose(level_1b_structs.Ch3_ion_flux)}, dl=dl, limits=l
@@ -52,21 +53,21 @@ pro swfo_stis_hdr_tplot, level_1b_structs, add=add, elec=elec, ion=ion, prefix=p
     endif
 
     ; Store the coefficients:
-    store_data, 'swfo_stis_l1b_eta2_elec', $
+    store_data, prefix + 'l1b_eta2_elec', $
       data={x: level_1b_structs.time_unix, y: level_1b_structs.eta2_elec}
-    store_data, 'swfo_stis_l1b_eta2_ion', $
+    store_data, prefix + 'l1b_eta2_ion', $
       data={x: level_1b_structs.time_unix, y: level_1b_structs.eta2_ion}
-    store_data, 'swfo_stis_l1b_eta1_elec', $
+    store_data, prefix + 'l1b_eta1_elec', $
         data={x: level_1b_structs.time_unix, y: level_1b_structs.eta1_elec}
-    store_data, 'swfo_stis_l1b_eta1_ion', $
+    store_data, prefix + 'l1b_eta1_ion', $
         data={x: level_1b_structs.time_unix, y: level_1b_structs.eta1_ion}
 
     ; Plot the etas alongside each other:
-    store_data, 'swfo_stis_l1b_eta',$
-        data=['swfo_stis_l1b_eta1_elec', 'swfo_stis_l1b_eta1_ion',$
-              'swfo_stis_l1b_eta2_elec', 'swfo_stis_l1b_eta2_ion'],$
+    store_data, prefix + 'l1b_eta',$
+        data=[prefix + 'l1b_eta1_elec', prefix + 'l1b_eta1_ion',$
+              prefix + 'l1b_eta2_elec', prefix + 'l1b_eta2_ion'],$
             dl={colors: "brgm", labels: ["elec n1", "ion n1", "elec n2", "ion n2"], labflag: -1}
-    ylim, 'swfo_stis_l1b_eta', -0.1, 1.1
-    tplot, 'swfo_stis_l1b_eta', /add
+    ylim, prefix + 'l1b_eta', -0.1, 1.1
+    tplot, prefix + 'l1b_eta', /add
 
 end
