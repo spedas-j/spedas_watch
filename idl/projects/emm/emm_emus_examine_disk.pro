@@ -636,15 +636,15 @@ pro emm_emus_examine_disk, time_range, MAVEN = MAVEN, MEX = MEX, $
 ; find the wavelength indices
                  wv_indices = value_locate (wv.wavelength_L2A[*,i], WV_range)
                  for K = 0, nb-1 do begin       
-                    rad_rand =  int_simple (wv.wavelength_l2a [wv_indices [0, k]+1: wv_indices [1, k], i], $
+                    rad_rand =  emm_int_simple (wv.wavelength_l2a[wv_indices [0, k]+1: wv_indices [1, k], i], $
                                    cal[j].radiance [wv_indices [0, k]+1: wv_indices [1, k],i], $
                                    df = cal[j].rad_err_rand[wv_indices [0, k]+1: wv_indices [1, k],i], $
-                                   error = error)    
+                                   error = error)   
                      
                     disk [p, l].drad_rand [j,i, k] = error
                     disk [p, l].rad[j,i, k] = rad_rand
                     band_radiance [j, i,k] = $
-                       int_simple (wv.wavelength_l2a [wv_indices [0, k]+1: wv_indices [1, k], i], $
+                       emm_int_simple (wv.wavelength_l2a [wv_indices [0, k]+1: wv_indices [1, k], i], $
                                    cal[j].radiance [wv_indices [0, k]+1: wv_indices [1, k],i], $
                                    df = sqrt(cal[j].rad_err_rand[wv_indices [0, k]+1: wv_indices [1, k],i]^2 + $
                                              cal[j].rad_err_sys[wv_indices [0, k]+1: wv_indices [1, k],i]^2), $

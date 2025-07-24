@@ -1,7 +1,7 @@
 ;Ali: February 2020
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2023-12-29 18:52:02 -0800 (Fri, 29 Dec 2023) $
-; $LastChangedRevision: 32325 $
+; $LastChangedDate: 2025-07-22 18:41:22 -0700 (Tue, 22 Jul 2025) $
+; $LastChangedRevision: 33488 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/COMMON/spp_wav_data.pro $
 ; $ID: $
 
@@ -22,10 +22,10 @@ pro spp_wav_data,trange=trange,types=types,hires=hires,hourly=hourly,monthly=mon
   t1=systime(1)
 
   if keyword_set(generate) then begin
-    spp_wav_data,/genhourly,trange=trange
-    spp_wav_data,/gendaily,trange=trange
-    spp_wav_data,/genmonthly,trange=trange
-    spp_wav_data,/genyearly,trange=trange
+    spp_wav_data,/genhourly,trange=trange,types=types
+    spp_wav_data,/gendaily,trange=trange,types=types
+    spp_wav_data,/genmonthly,trange=trange,types=types
+    spp_wav_data,/genyearly,trange=trange,types=types
     dprint,'Finished everything in '+strtrim(systime(1)-t1,2)+' seconds on '+systime()
     return
   endif
@@ -35,24 +35,23 @@ pro spp_wav_data,trange=trange,types=types,hires=hires,hourly=hourly,monthly=mon
   if keyword_set(genyearly) then monthly=1
   if keyword_set(monthly) then path='psp/data/sci/sweap/.wav/$TYPE$_1sec/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMM'
   if keyword_set(yearly) then path='psp/data/sci/sweap/.wav/$TYPE$_1sec/YYYY/psp_fld_l2_$TYPE$_YYYY'
-  cdfpath='psp/data/sci/fields/staging/l2/$TYPE$/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMMDDhh_v??.cdf'
   cdfpath='psp/data/sci/fields/l2/$TYPE$/YYYY/MM/psp_fld_l2_$TYPE$_YYYYMMDDhh_v??.cdf'
   if keyword_set(monthly) || keyword_set(yearly) then lowresstr='' else lowresstr='_1sec'
   if keyword_set(hourly) || keyword_set(gendaily) then begin
     path=path+'hh'
     if keyword_set(hires) then lowresstr=''
   endif else if ~keyword_set(hires) then path=path+'_1min'
-  alltypes=['mag_SC','dfb_wf_dvdc','dfb_wf_scm']
+  alltypes=['mag_SC','dfb_wf_dvdc','dfb_wf_scm','dfb_wf_vdc']
   if ~keyword_set(types) then types=alltypes
-  tpnames=orderedhash(alltypes,['mag_SC','dfb_wf_dVdc_sensor','dfb_wf_scm_hg_sensor'])
-  colors=orderedhash(alltypes,['bgr','br','br'])
-  cotres=orderedhash(alltypes,['b','g','r'])
-  subs=orderedhash(alltypes,[0,5,4])
-  rotate=orderedhash(alltypes,[1,0,0])
-  prange=orderedhash(alltypes,[24,24,1.1])
-  zlim=orderedhash('mag_SC',[2e-3,50],'dfb_wf_dvdc',[1e-8,1e-4],'dfb_wf_scm',[1e-5,1])
-  labels=orderedhash('mag_SC',['Bx','By','Bz'],'dfb_wf_dvdc',['dV12','dV34'],'dfb_wf_scm',['By','Bz'])
-  dims=orderedhash('mag_SC',[0:2],'dfb_wf_dvdc',[0:1],'dfb_wf_scm',[1:2])
+  tpnames=orderedhash(alltypes,['mag_SC','dfb_wf_dVdc_sensor','dfb_wf_scm_hg_sensor','dfb_wf_V1dc'])
+  colors=orderedhash(alltypes,['bgr','br','br','k'])
+  cotres=orderedhash(alltypes,['b','g','r','k'])
+  subs=orderedhash(alltypes,[0,5,4,4])
+  rotate=orderedhash(alltypes,[1,0,0,0])
+  prange=orderedhash(alltypes,[24,24,1.1,24])
+  zlim=orderedhash('mag_SC',[2e-3,50],'dfb_wf_dvdc',[1e-8,1e-4],'dfb_wf_scm',[1e-5,1],'dfb_wf_vdc',[1e-5,1])
+  labels=orderedhash('mag_SC',['Bx','By','Bz'],'dfb_wf_dvdc',['dV12','dV34'],'dfb_wf_scm',['By','Bz'],'dfb_wf_vdc','V1dc')
+  dims=orderedhash('mag_SC',[0:2],'dfb_wf_dvdc',[0:1],'dfb_wf_scm',[1:2],'dfb_wf_vdc',0)
 
   foreach type,types do begin
 
@@ -60,7 +59,6 @@ pro spp_wav_data,trange=trange,types=types,hires=hires,hourly=hourly,monthly=mon
     tpname=tpname0+'_1hr'+['_tres(Hz)','','_wv_pow','_wv_pol_par','_wv_pol_perp']
 
     if keyword_set(genhourly) then begin
-      ;fileall=file_search(dir+'fields/staging/l2/mag_SC/????/??/psp_fld_l2_mag_SC_??????????_v01.cdf')
       pathformat=str_sub(cdfpath,'$TYPE$',type)
       files=spp_file_retrieve(pathformat,trange=trange,/last_version,/valid_only,/hourly)
       for i=0,n_elements(files)-1 do begin

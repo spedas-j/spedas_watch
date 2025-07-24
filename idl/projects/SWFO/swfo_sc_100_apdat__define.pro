@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2024-08-19 18:29:54 -0700 (Mon, 19 Aug 2024) $
-; $LastChangedRevision: 32796 $
+; $LastChangedDate: 2025-07-22 18:25:22 -0700 (Tue, 22 Jul 2025) $
+; $LastChangedRevision: 33487 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_100_apdat__define.pro $
 
 
@@ -42,7 +42,7 @@ function swfo_sc_100_apdat::decom,ccsds,source_dict=source_dict
     sband_downlink_rate:              swfo_data_select(ccsds_data,405*8  ,32),$
     fsw_power_management_bits:        swfo_data_select(ccsds_data,245*8  , 6),$
     adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth:swfo_data_select(ccsds_data,22*8,3),$
-    sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver:swfo_data_select(ccsds_data,35*8,3),$
+    sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver:swfo_data_select(ccsds_data,35*8+4,3),$
     battery_current_amps:             double(swfo_data_select(ccsds_data,246*8,64),0),$
     battery_temperature_c:            double(swfo_data_select(ccsds_data,254*8,64),0),$
     battery_voltage_v:                double(swfo_data_select(ccsds_data,262*8,64),0),$
