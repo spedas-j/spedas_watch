@@ -8,7 +8,7 @@
 ;         If probes=16,17 then it runs goesr_overview_plot
 ;
 ;KEYWORDS:
-;         probes: array of goes probe numbers, if probe='' then probe=['10','11','12','13','14','15','16,'17']
+;         probes: array of goes probe numbers, if probe='' then probe=['10','11','12','13','14','15','16,'17','18','19']
 ;         date_start: begin processing at this date (eg. '2013-12-19')
 ;         date_end: end processing at this date (eg. '2013-12-29')
 ;         base_dir: root dir for output plots (eg. /disks/themisdata/overplots/)
@@ -36,8 +36,8 @@
 ;
 ;HISTORY:
 ;$LastChangedBy: nikos $
-;$LastChangedDate: 2023-10-05 10:04:38 -0700 (Thu, 05 Oct 2023) $
-;$LastChangedRevision: 32172 $
+;$LastChangedDate: 2025-07-23 18:52:55 -0700 (Wed, 23 Jul 2025) $
+;$LastChangedRevision: 33493 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/goes/goes_overview_plot_wrapper.pro $
 ;----------
 
@@ -137,7 +137,7 @@ pro goes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
     file_mkdir, base_dir
   endif
   lastdate_file = base_dir + 'goeslastdate.txt' ;this file holds the last day processed
-  if ~keyword_set(probes) || probes[0] eq '' || probes[0] eq 'all' then probes=['10','11','12','13','14','15', '16', '17']
+  if ~keyword_set(probes) || probes[0] eq '' || probes[0] eq 'all' then probes=['10','11','12','13','14','15','16','17','18','19']
   if ~keyword_set(date_start) then date_start = ''
   if strlen(date_start) ne 10 then date_start = ''
   if ~keyword_set(date_end) then date_end = ''
@@ -226,9 +226,10 @@ pro goes_overview_plot_wrapper, date_start = date_start, date_end = date_end, $
           count_errors = count_errors + error
           goes_write_lastdate, lastdate_file, date
         endif
-      endif else begin ; Goes-R, probes 16,17,18       
-        if year03 lt 2018 then continue  ; GOES16,17 start in 2018
-        if probe ge 18 && ((year03 lt 2022) || (year03 eq 2022 && month03 lt 12)) then continue  ; GOES18 starts in December 2022
+      endif else begin ; Goes-R, probes 16+       
+        if year03 lt 2018 then continue  ; GOES16+ start in 2018
+        if fix(probe) ge 18 && ((fix(year03) lt 2022) || (fix(year03) eq 2022 && fix(month03) lt 12)) then continue  ; GOES18 starts in December 2022
+        if fix(probe) ge 19 && ((fix(year03) lt 2025) || (fix(year03) eq 2025 && fix(month03) lt 4)) then continue  ; GOES19 starts in April 2025
         store_data, '*', /delete
         error = 0
         goesr_overview_plot, date=date, probe=probe, directory=directory, device=device, geopack_lshell=geopack_lshell, error=error, makepng=makepng
