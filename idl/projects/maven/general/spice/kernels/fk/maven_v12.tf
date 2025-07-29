@@ -261,18 +261,18 @@ MAVEN Frames Hierarchy
 
 
                                "J2000" INERTIAL
-       +--------------------------------------------------------------+
-       |         |     |               |               |              |
-       |<-pck    |     |<-dyn          |<-fxd          |<-dyn         |<-pck
-       V         |     |               |               |              V
-    "IAU_MARS"   |     V               V               V        "IAU_EARTH"
-    MARS BFR(*)  | "MAVEN_MSO"   "MAVEN_MME_2000"  "MAVEN_SSO"   EARTH BFR(*)
-    -----------  | -----------   ----------------  -----------  ------------
-                 |                     |
-                 |<-dyn                |
-                 V                     |
-         "MAVEN_SUN_RTN"               |
-         ---------------               |
+       +----------------------------------------------------------------+
+       |         |     |               |               |        |       |
+       |<-pck    |     |<-dyn          |<-fxd          |<-dyn   |       |<-pck
+       V         |     |               |               |        |       V
+    "IAU_MARS"   |     V               V               V        | "IAU_EARTH"
+    MARS BFR(*)  | "MAVEN_MSO"   "MAVEN_MME_2000"  "MAVEN_SSO"  |  EARTH BFR(*)
+    -----------  | -----------   ----------------  -----------  | ------------
+                 |                     |                        |
+                 |<-dyn                |                        |<-dyn
+                 V                     |                        V
+         "MAVEN_MARS_ENR"              |                "MAVEN_SUN_RTN"
+         ----------------              |                ---------------
                                        |
                                        |
      "MAVEN_LGA_FWD"  "MAVEN_LGA_AFT"  |         "MAVEN_HGA"     "MAVEN_UHF"
@@ -536,7 +536,9 @@ Mars MAVEN East-North-Radial Frame
          vector: +Z axis points from the center of Mars to
          MAVEN (the local "up" direction);
 
-      -  +Y axis is parallel to Mars' spin axis (North);
+      -  +Y axis is constrained towards Mars' spin axis (North),
+         that is, Mars' spin axis is in the MAVEN_MARS_ENR half-
+         plane defined by X = 0 and Y > 0;
 
       -  +X axis completes the right-handed system (East);
 
@@ -562,8 +564,8 @@ Mars MAVEN East-North-Radial Frame
 
    It is strongly recommended to indicate what data have been used
    in the evaluation of this frame when referring to it, e.g.
-   MAVEN_MARS_ENR using the DE405 ephemeris and the MAVEN ephemeris
-   version N.
+   MAVEN_MARS_ENR using the DE442 ephemeris, the pck00011 natural body
+   orientation and size/shape data, and the MAVEN ephemeris version N.
 
    \begindata
 

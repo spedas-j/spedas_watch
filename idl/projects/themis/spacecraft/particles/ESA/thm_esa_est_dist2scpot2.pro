@@ -88,7 +88,7 @@ End
 ;            is below this value, set potential to low limit
 ; densmatch = if the potential is set to the low limit, because the
 ;             distribution is unsuitable (maybe not two maxima below
-;             100 eV) then use thm_esa_dens2scpot for the potential.
+;             100 eV) then use thm_esa_dfrac2scpot for the potential.
 ; use_counts = if set, use the'en_counts' variable, and not
 ;              the 'en_flux' variable.
 ; slope_test = if set then the potential is set to the point at which
@@ -159,8 +159,8 @@ End
 ;HISTORY:
 ; 3-mar-2016, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2025-03-11 14:41:23 -0700 (Tue, 11 Mar 2025) $
-; $LastChangedRevision: 33166 $
+; $LastChangedDate: 2025-07-28 14:04:49 -0700 (Mon, 28 Jul 2025) $
+; $LastChangedRevision: 33505 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_esa_est_dist2scpot2.pro $
 ;-
 
@@ -306,7 +306,7 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, $
            edj = call_function(efuncj, dr.x[j])
            ifuncj = 'get_'+thx+'_peir'
            idj = call_function(ifuncj, dr.x[j])
-           scpot_dens = thm_esa_dens2scpot(edj, idj, _extra = _extra)
+           scpot_dens = thm_esa_dfrac2scpot(edj, idj, _extra = _extra)
         Endif
         If(exp(vvv[i]) Lt scphi) Then scpot[j] = exp(vvv[i]) Else Begin
            If(keyword_set(densmatch)) Then scpot[j] = scpot_dens $
