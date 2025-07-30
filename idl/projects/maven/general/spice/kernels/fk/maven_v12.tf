@@ -189,6 +189,7 @@ MAVEN Frames
       MAVEN_MSO               rel.to J2000         DYNAMIC        -202911
       MAVEN_SSO               rel.to J2000         DYNAMIC        -202912
       MAVEN_SUN_RTN           rel.to J2000         DYNAMIC        -202921
+      MAVEN_MARS_ENR          rel.to J2000         DYNAMIC        -202931
 
    Spacecraft frame:
    -----------------

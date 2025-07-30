@@ -102,6 +102,9 @@
 ;       CSS:       Plot the location of Comet Siding Spring.
 ;                    Coverage: 2000-01-01 to 2016-01-01
 ;
+;       I3A:       Plot the location of Comet I3/ATLAS.
+;                    Coverage: 2020-01-01 to 2030-01-01
+;
 ;       STEREO:    Plot the locations of the STEREO spacecraft,
 ;                  when available.  (The Stereo-B ephemeris has
 ;                  an error near the beginning of the mission,
@@ -195,8 +198,8 @@
 ;                  (After all, space is black.)  Default = 1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-07-14 11:32:33 -0700 (Mon, 14 Jul 2025) $
-; $LastChangedRevision: 33461 $
+; $LastChangedDate: 2025-07-29 17:09:18 -0700 (Tue, 29 Jul 2025) $
+; $LastChangedRevision: 33509 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -207,10 +210,10 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
                   xyrange=range, planet=planet2, sorb=sorb2, psp=psp2, sall=sall, $
                   verbose=verbose, full=full, fixplanet=fixplanet, monitor=monitor, $
                   window=window, png=png, varnames=varnames, plabel=plabel, slabel=slabel, $
-                  css=css2, black=black, pcurve=pcurve, timerange=timerange, key=key, $
-                  maven=maven
+                  css=css2, i3a=i3a2, black=black, pcurve=pcurve, timerange=timerange, $
+                  key=key, maven=maven
 
-  common planetorb, planet, css, sta, stb, sorb, psp, mvn, orrkey, madeplot
+  common planetorb, planet, css, i3a, sta, stb, sorb, psp, mvn, orrkey, madeplot
   @putwin_common
 
   if (size(windex,/type) eq 0) then win, config=0  ; win acts like window
@@ -223,7 +226,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   tlist = ['NOPLOT','NOBOX','LABEL','SCALE','EPH','SPIRAL','VSW','SROT','MOVIE', $
            'STEREO','KEEPWIN','TPLOT','RELOAD','OUTER','XYRANGE','PLANET2','SORB2', $
            'PSP2','SALL','VERBOSE','FULL','FIXPLANET','MONITOR','WINDOW','PNG', $
-           'VARNAMES','PLABEL','SLABEL','CSS2','BLACK','PCURVE','TIMERANGE', $
+           'VARNAMES','PLABEL','SLABEL','CSS2','I3A2','BLACK','PCURVE','TIMERANGE', $
            'MAVEN']
   for j=0,(n_elements(ktag)-1) do begin
     i = strmatch(tlist, ktag[j]+'*', /fold)
@@ -257,12 +260,12 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   tspan = time_double(['1550','2650'])          ; de442.bsp covers 1550 to 2650
   nplan = n_elements(pname)
 
-  cname = 'SIDING SPRING'
-  clab = 'CSS'
-  csym = 8
-  ccol = 5
-  csze = 3
-  cday = 5845  ; 2000-01-01 to 2016-01-01 (siding_spring_s46.bsp)
+  cname = ['SIDING SPRING','I3 ATLAS']
+  clab = ['CSS','I3A']
+  csym = [ 8, 8 ]                   ; comet symbols
+  ccol = [ 5, 5 ]                   ; comet colors
+  csze = [ 3, 3 ]                   ; comet symbol sizes
+  cday = [ 5845, 5845 ]  ; 2000-01-01 to 2016-01-01 (siding_spring_s46.bsp)
 
   sname = ['STEREO AHEAD','STEREO BEHIND','SOLAR ORBITER','SOLAR PROBE PLUS','MAVEN']
   slab = ['STA','STB','SO','PSP','MVN']
@@ -337,6 +340,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   pflg = keyword_set(psp2)
   vflg = keyword_set(maven)
   cflg = keyword_set(css2)
+  aflg = keyword_set(i3a2)
 
   if keyword_set(full) then begin
     sall = 1
@@ -468,12 +472,16 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
     ssrc = mvn_file_source(archive_ext='')  ; don't archive old files
 
-; Locate the Siding Spring and MAVEN ephemerides, but do not load them yet
+; Locate the Siding Spring, I3/ATLAS and MAVEN ephemerides, but do not load them yet
 ;   The positions of these kernels in the loadlist matter!
 
     path = 'misc/spice/naif/generic_kernels/spk/comets/'
     pathname = path + 'siding_spring_s46.bsp'
     css_ker = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
+
+    path = 'misc/spice/naif/generic_kernels/spk/comets/'
+    pathname = path + '1004083.bsp'
+    i3a_ker = (mvn_pfp_file_retrieve(pathname,source=ssrc,verbose=verbose))[0]
 
     path = 'misc/spice/naif/MAVEN/kernels/spk/'
     pathname = path + 'trj_c_131118-140923_rec_v1.bsp'
@@ -488,14 +496,14 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       dprint,' ', getdebug=bug, dlevel=4
       dprint,' ', setdebug=0, dlevel=4
       std_kernels = spice_standard_kernels(/mars,verbose=-1)
-      std_kernels = [std_kernels[0:1], css_ker, mvn_ker, std_kernels[2:*]]
+      std_kernels = [std_kernels[0:1], css_ker, i3a_ker, mvn_ker, std_kernels[2:*]]
       spice_kernel_load, std_kernels
       dprint,' ', setdebug=bug, dlevel=4
       mk = spice_test('*', verbose=-1)
       print,'done'
     endif
 
-; Add the ID's for Solar Probe and Solar Orbiter
+; Add the ID's for Solar Probe, Solar Orbiter, and I3/ATLAS
 
     path = 'misc/spice/naif/generic_kernels/'
     pathname = path + 'name_id_map.tf'
@@ -714,7 +722,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
 ; --------- COMET SIDING SPRING ---------
 
-    i = where(sinfo.obj_name eq cname, count)
+    i = where(sinfo.obj_name eq cname[0], count)
     if (count gt 0L) then begin
       tsp = time_double(sinfo[i].trange)
       tsp = minmax(tsp)
@@ -757,6 +765,53 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       css.owlt = ds*(au/c)
 
     endif else css = missing
+    print,".",format='(a1,$)'
+
+; --------- COMET I3/ATLAS ---------
+
+    i = where(sinfo.obj_name eq cname[1], count)
+    if (count gt 0L) then begin
+      tsp = time_double(sinfo[i].trange)
+      tsp = minmax(tsp)
+      ndays = floor(2D*(tsp[1] - tsp[0])/oneday)
+      dt = (tsp[1] - tsp[0])/double(ndays)
+      tt = tsp[0] + dt*dindgen(ndays)
+      et = time_ephemeris(tt)
+
+      cspice_spkpos, cname[1], et, 'ECLIPJ2000', 'NONE', 'Sun', i3a, ltime
+      i3a = transpose(i3a)/(au/1.d5)
+      i3a = { name  : cname[1]     , $
+              time  : tt           , $
+              x     : i3a[*,0]     , $
+              y     : i3a[*,1]     , $
+              z     : i3a[*,2]     , $
+              owlt  : ltime        , $
+              units : ['AU','SEC'] , $
+              frame : 'ECLIPJ2000'    }
+
+      d2x = spl_init(i3a.time, css.x, /double)
+      d2y = spl_init(i3a.time, css.y, /double)
+      d2z = spl_init(i3a.time, css.z, /double)
+      str_element, i3a, 'd2x', d2x, /add
+      str_element, i3a, 'd2y', d2y, /add
+      str_element, i3a, 'd2z', d2z, /add
+
+      r = sqrt(i3a.x^2. + i3a.y^2. + i3a.z^2.)
+      lat = asin(i3a.z/r)*!radeg
+      str_element, i3a, 'lat', lat, /add
+
+;     OWLT with respect to Mars, not Earth
+
+      xe = spl_interp(planet[3].time, planet[3].x, planet[3].d2x, i3a.time)
+      ye = spl_interp(planet[3].time, planet[3].y, planet[3].d2y, i3a.time)
+      ze = spl_interp(planet[3].time, planet[3].z, planet[3].d2z, i3a.time)
+      dx = i3a.x - xe
+      dy = i3a.y - ye
+      dz = i3a.z - ze
+      ds = sqrt(dx*dx + dy*dy + dz*dz)
+      i3a.owlt = ds*(au/c)
+
+    endif else i3a = missing
     print,".",format='(a1,$)'
 
 ; Calculate ephemeris for each spacecraft
@@ -985,6 +1040,10 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     print, 'Warning: Siding Spring ephemeris not loaded.'
     cflg = 0
   endif
+  if (aflg and (i3a.frame eq 'INVALID')) then begin
+    print, 'Warning: I3/ATLAS ephemeris not loaded.'
+    aflg = 0
+  endif
   if (sflg and (sta.frame eq 'INVALID')) then begin
     print, 'Warning: Stereo-A ephemeris not loaded.'
     sflg = 0
@@ -1005,7 +1064,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     vflg = 0
   endif
 
-  eph = {planet:planet, css:css, stereo_A:sta, stereo_B:stb, solar_orb:sorb, psp:psp, mvn:mvn}
+  eph = {planet:planet, css:css, i3a:i3a, stereo_A:sta, stereo_B:stb, solar_orb:sorb, psp:psp, mvn:mvn}
 
   if ((tmin lt min(planet[2].time)) or (tmax gt max(planet[2].time))) then begin
     tsp = time_string(minmax(planet[2].time),prec=-3)
@@ -1120,20 +1179,40 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       tname = 'OWLT-CSS'
       store_data,tname,data={x:css.time, y:css.owlt/60D}
       options,tname,'ytitle','SIDING SPRING!cOWLT (min)'
-      options,tname,'colors',ccol
+      options,tname,'colors',ccol[0]
       options,tname,'ynozero',1
 
       tname = 'R-CSS'
       store_data,tname,data={x:css.time, y:css.owlt*(c/Rmars)}
       ylim,tname,0,0,1
       options,tname,'ytitle','Siding Spring!cDistance (R!dM!n)'
-      options,tname,'colors',ccol
+      options,tname,'colors',ccol[0]
 
       tname = 'Lat-CSS'
       store_data,tname,data={x:css.time, y:css.lat}
       options,tname,'ytitle','Siding Spring!cLatitude (deg)'
       options,tname,'constant',0
-      options,tname,'colors',ccol
+      options,tname,'colors',ccol[0]
+    endif
+
+    if (i3a.frame ne 'INVALID') then begin
+      tname = 'OWLT-I3A'
+      store_data,tname,data={x:i3a.time, y:i3a.owlt/60D}
+      options,tname,'ytitle','I3/ATLAS!cOWLT (min)'
+      options,tname,'colors',ccol[1]
+      options,tname,'ynozero',1
+
+      tname = 'R-I3A'
+      store_data,tname,data={x:i3a.time, y:i3a.owlt*(c/Rmars)}
+      ylim,tname,0,0,1
+      options,tname,'ytitle','I3/ATLAS!cDistance (R!dM!n)'
+      options,tname,'colors',ccol[1]
+
+      tname = 'Lat-I3A'
+      store_data,tname,data={x:i3a.time, y:i3a.lat}
+      options,tname,'ytitle','I3/ATLAS!cLatitude (deg)'
+      options,tname,'constant',0
+      options,tname,'colors',ccol[1]
     endif
 
     if (sta.frame ne 'INVALID') then begin
@@ -1316,6 +1395,22 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
         endif
       endif
 
+      if (aflg) then begin
+        xi3a = !values.f_nan
+        yi3a = xi3a
+        ii3a = nn2(i3a.time, t, maxdt=oneday)
+        if (ii3a ge 0L) then begin
+          xi3a = spl_interp(i3a.time, i3a.x, i3a.d2x, t)
+          yi3a = spl_interp(i3a.time, i3a.y, i3a.d2y, t)
+          if (fflg) then begin
+            x =  xi3a*cosp + yi3a*sinp
+            y = -xi3a*sinp + yi3a*cosp
+            xi3a = x
+            yi3a = y
+          endif
+        endif
+      endif
+
       if (sflg) then begin
         xsta = !values.f_nan
         ysta = xsta
@@ -1460,8 +1555,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       oplot, [0.], [0.], psym=8, symsize=sunsze*zscl, color=suncol
 
       if (cflg) then if (finite(xcss)) then begin
-        imin = (icss - cday) > 0L
-        imax = (icss + cday) < (n_elements(css.time) - 1L)
+        imin = (icss - cday[0]) > 0L
+        imax = (icss + cday[0]) < (n_elements(css.time) - 1L)
         xx = css.x[imin:imax]
         yy = css.y[imin:imax]
         if (fflg) then begin
@@ -1478,11 +1573,38 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
           lscale = float(colstr.top_c - colstr.bottom_c)/120.
           lcol = (round(ll*lscale) + colstr.bottom_c) > colstr.bottom_c < colstr.top_c
           for k=0L,(n_elements(yy)-2L) do oplot, xx[k:k+1L], yy[k:k+1L], color=lcol[k], thick=2
-          oplot, [xcss], [ycss], psym=csym, symsize=csze*zscl, color=ccol
+          oplot, [xcss], [ycss], psym=csym[0], symsize=csze[0]*zscl, color=ccol[0]
           visible = (xcss ge xyrange[0]) and (xcss le xyrange[1]) and (ycss ge xyrange[0]) and (ycss le xyrange[1])
-          if (clabel and visible) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab, color=ccol, charsize=scale
+          if (clabel and visible) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab[0], color=ccol[0], charsize=scale
           draw_color_scale, range=[-60,60], brange=[colstr.bottom_c, colstr.top_c], charsize=scale, $
                             position=[0.88,0.1,0.9,0.2], title='Lat (deg)', yticks=2, ytickval=[-60,0,60]
+        initct, pct2, rev=prev2
+      endif
+
+      if (aflg) then if (finite(xi3a)) then begin
+        imin = (ii3a - cday[1]) > 0L
+        imax = (ii3a + cday[1]) < (n_elements(i3a.time) - 1L)
+        xx = i3a.x[imin:imax]
+        yy = i3a.y[imin:imax]
+        if (fflg) then begin
+          x =  xx*cosp + yy*sinp
+          y = -xx*sinp + yy*cosp
+          xx = x
+          yy = y
+        endif
+
+;       Encode solar latitude with red-to-blue color gradient
+
+        initct, 1072, /rev, previous_ct=pct2, previous_rev=prev2
+          ll = i3a.lat[imin:imax] + 5.
+          lscale = float(colstr.top_c - colstr.bottom_c)/10.
+          lcol = (round(ll*lscale) + colstr.bottom_c) > colstr.bottom_c < colstr.top_c
+          for k=0L,(n_elements(yy)-2L) do oplot, xx[k:k+1L], yy[k:k+1L], color=lcol[k], thick=2
+          oplot, [xi3a], [yi3a], psym=csym[1], symsize=csze[1]*zscl, color=ccol[1]
+          visible = (xi3a ge xyrange[0]) and (xi3a le xyrange[1]) and (yi3a ge xyrange[0]) and (yi3a le xyrange[1])
+          if (clabel and visible) then xyouts, [xi3a+loff[3]], [yi3a+loff[3]], clab[1], color=ccol[1], charsize=scale
+          draw_color_scale, range=[-5,5], brange=[colstr.bottom_c, colstr.top_c], charsize=scale, $
+                            position=[0.88,0.1,0.9,0.2], title='Lat (deg)', yticks=2, ytickval=[-5,0,5]
         initct, pct2, rev=prev2
       endif
 
@@ -1722,6 +1844,24 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
     endif
   endif
 
+  if (aflg) then begin
+    xi3a = replicate(!values.f_nan, n_elements(t))
+    yi3a = xi3a
+    i = nn2(i3a.time, t, maxdt=oneday)
+    j = where(i ge 0L, count)
+    if (count gt 0L) then begin
+      ii3a = round(mean(i[j]))
+      xi3a[j] = spl_interp(i3a.time, i3a.x, i3a.d2x, t[j])
+      yi3a[j] = spl_interp(i3a.time, i3a.y, i3a.d2y, t[j])
+      if (fflg) then begin
+        x =  xi3a*cosp + yi3a*sinp
+        y = -xi3a*sinp + yi3a*cosp
+        xi3a = x
+        yi3a = y
+      endif
+    endif
+  endif
+
   if (sflg) then begin
     xsta = replicate(!values.f_nan, n_elements(t))
     ysta = xsta
@@ -1898,8 +2038,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   endfor
 
   if (cflg) then if (max(finite(xcss))) then begin
-    imin = (icss - cday) > 0L
-    imax = (icss + cday) < (n_elements(css.time) - 1L)
+    imin = (icss - cday[0]) > 0L
+    imax = (icss + cday[0]) < (n_elements(css.time) - 1L)
     xx = css.x[imin:imax]
     yy = css.y[imin:imax]
     if (fflg) then begin
@@ -1908,9 +2048,25 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       xx = x
       yy = y
     endif
-    oplot, xx, yy, color=ccol
-    oplot, [xcss], [ycss], psym=csym, symsize=csze*zscl, color=ccol
-    if (slabel) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab, color=ccol, charsize=scale
+    oplot, xx, yy, color=ccol[0]
+    oplot, [xcss], [ycss], psym=csym[0], symsize=csze[0]*zscl, color=ccol[0]
+    if (slabel) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab[0], color=ccol[0], charsize=scale
+  endif
+
+  if (aflg) then if (max(finite(xi3a))) then begin
+    imin = (ii3a - cday[1]) > 0L
+    imax = (ii3a + cday[1]) < (n_elements(i3a.time) - 1L)
+    xx = i3a.x[imin:imax]
+    yy = i3a.y[imin:imax]
+    if (fflg) then begin
+      x =  xx*cosp + yy*sinp
+      y = -xx*sinp + yy*cosp
+      xx = x
+      yy = y
+    endif
+    oplot, xx, yy, color=ccol[1]
+    oplot, [xi3a], [yi3a], psym=csym[1], symsize=csze[1]*zscl, color=ccol[1]
+    if (slabel) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab[1], color=ccol[1], charsize=scale
   endif
 
   if (sflg) then begin
