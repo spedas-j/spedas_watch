@@ -38,9 +38,9 @@
 ;       DST:       Stores the distribution for each bin.  Can take a lot of
 ;                  space but allows detailed inspection of statistics.
 ;
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-06-03 11:49:42 -0700 (Tue, 03 Jun 2025) $
-; $LastChangedRevision: 33358 $
+; $LastChangedBy: ghanley $
+; $LastChangedDate: 2025-07-30 11:35:50 -0700 (Wed, 30 Jul 2025) $
+; $LastChangedRevision: 33512 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/bindata.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -118,12 +118,15 @@ pro bindata, x, y, xbins=xbins, dx=dx, xrange=xrange, result=result, dst=dst
                y_skew[j] = mom[2]
                y_kurt[j] = mom[3]
 
-               med = createboxplotdata(y[i])
-               y_min[j]  = med[0]
-               y_lqrt[j] = med[1]
-               y_medn[j] = med[2]
-               y_uqrt[j] = med[3]
-               y_max[j]  = med[4]
+               if n_elements(where(finite(y[i]))) gt 5. then begin ;if no finite values, createboxplotdata will break
+                 med = createboxplotdata(y[i])
+                 y_min[j]  = med[0]
+                 y_lqrt[j] = med[1]
+                 y_medn[j] = med[2]
+                 y_uqrt[j] = med[3]
+                 y_max[j]  = med[4]
+               endif
+
                if (dodist) then y_dist[j,0L:(count-1L)] = y[i]
              end
     endcase

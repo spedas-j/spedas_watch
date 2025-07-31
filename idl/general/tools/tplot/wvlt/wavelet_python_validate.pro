@@ -131,9 +131,15 @@ ylim,'tha_fgs_fac_bp_?_wv_pow', 1.0e-3,4.1e-2, 0  ; y axis in linear to be consi
 tplot, 'tha_fgs_fac_bp_?_wv_pow', title = 'Dynamic Power Spectrum with wavelet'
 stop
 
+; Run Torrence and Compo's 'wavetest' example, and save the resulting tplot variable wavetest_oowspec for the power spectrum.
+
+wavetest
 
 ; Save input and output variables for Python validation
 
-varnames = ['sin_wav', 'sin_wav_wv_pow', 'tha_fgs_fac_bp_x', 'tha_fgs_fac_bp_y', 'tha_fgs_fac_bp_z', 'tha_fgs_fac_bp_x_wv_pow', 'tha_fgs_fac_bp_y_wv_pow', 'tha_fgs_fac_bp_z_wv_pow']
+varnames = ['sin_wav', 'sin_wav_wv_pow',$
+  'tha_fgs_fac_bp_x', 'tha_fgs_fac_bp_y', 'tha_fgs_fac_bp_z', 'tha_fgs_fac_bp_x_wv_pow', 'tha_fgs_fac_bp_y_wv_pow', 'tha_fgs_fac_bp_z_wv_pow',$
+  'wavetest_powspec']
+  
 tplot_save,varnames,filename='wavelet_test'
 end

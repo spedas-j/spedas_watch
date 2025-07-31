@@ -1,4 +1,22 @@
-;************************************************************** WAVETEST
+; wavetest_unix_times
+; Convert fractional years from wavetest data set to Unix timestamps for making tplot variables
+; 
+function wavetest_unix_times, inp_times
+  n = n_elements(inp_times)
+  output_times = dblarr(n)
+  for i = 0, n-1 do begin
+    iyear = fix(inp_times[i])
+    yearfrac = inp_times[i] - iyear
+    unix_boy = time_double(string(iyear))
+    unix_eoy = time_double(string(iyear+1))
+    year_sec = unix_eoy - unix_boy
+    output_times[i] = unix_boy + yearfrac*year_sec
+  endfor
+  return, output_times
+end
+
+ 
+; ;************************************************************** WAVETEST
 ;+
 ; NAME:   WAVETEST
 ;
@@ -15,6 +33,7 @@
 ;-
 ;**************************************************************
 
+pro wavetest
   compile_opt idl2
 
   data_dir=routine_dir()
@@ -45,7 +64,7 @@
 ; estimate lag-1 autocorrelation, for red-noise significance tests
 ; Note that we actually use the global wavelet spectrum (GWS)
 ; for the significance tests, but if you wanted to use red noise,
-; here's how you could calculate it...
+; here's how you could calculate it...`
 	lag1 = (A_CORRELATE(sst,1) + SQRT(A_CORRELATE(sst,2)))/2.
 	
 ; Wavelet transform:
@@ -54,6 +73,15 @@
 	power = (ABS(wave))^2  ; compute wavelet power spectrum
 	global_ws = TOTAL(power,1)/n   ; global wavelet spectrum (GWS)
 	J = N_ELEMENTS(scale) - 1
+	
+; Make a tplot variable for the power spectrum   JWL 2025-07-30
+
+; Convert fractional years to Unix times
+  unix_times = wavetest_unix_times(time)
+
+  dl={spec: 1}
+  
+  store_data,'wavetest_powspec',data={x: unix_times, y: power, v: period}, dl=dl
 
 ; Significance levels, assuming the GWS as background spectrum:
 	signif = WAVE_SIGNIF(sst,dt,scale,0, $

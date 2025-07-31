@@ -24,8 +24,8 @@
 ; 12-feb-2008, jmm, jimm@ssl.berkeley.edu
 ; 
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2025-07-11 10:56:30 -0700 (Fri, 11 Jul 2025) $
-;$LastChangedRevision: 33451 $
+;$LastChangedDate: 2025-07-30 17:43:20 -0700 (Wed, 30 Jul 2025) $
+;$LastChangedRevision: 33516 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/spedas_gui/utilities/spd_new_coords.pro $
 ;-
 Pro spd_new_coords, vars, coords_in = coords_in
@@ -54,7 +54,11 @@ Pro spd_new_coords, vars, coords_in = coords_in
 ;data_att structure, if it does exist, change or add the 'coords' tag
 ;if applicable
     If(coords Ne 'none') Then Begin
+      ; convert to lowercase and remove spaces
       coords = strcompress(strlowcase(coords), /remove_all)
+      ; remove any CDF comments ('>' and everything after)
+      pos = STRPOS(coords, '>')
+      if pos NE -1 then coords = STRMID(coords, 0, pos)
       If(is_struct(dl)) Then Begin
         str_element, dl, 'data_att', success = yes_data_att
         If(yes_data_att) Then Begin ;data_att exists, add or replace the coords
