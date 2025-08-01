@@ -22,16 +22,10 @@
 ;                   set if the no_color_setup keyword is used
 ;     no_color_setup   added to prevent cronjob to crash, hfrey, 2007-02-10
 ;
-;  Author:  Davin Larson Nov 2006
-;           jmm, 2007-05-17, Altered to read thm_comfig text file,
-;           this removes the need for someone to alter this program
-;           jmm, 2007-07-02, applies slashes to remote and local
-;           directories, if they are not there
-;           cg, 2008-5-6, reset default default directory
 ;
-; $LastChangedBy: elfin_shared $
-; $LastChangedDate: 2025-07-14 22:58:01 -0700 (Mon, 14 Jul 2025) $
-; $LastChangedRevision: 33465 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2025-07-31 17:36:13 -0700 (Thu, 31 Jul 2025) $
+; $LastChangedRevision: 33518 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/tracers/common/tracers_config.pro $
 ;
 ;-
@@ -59,7 +53,7 @@ pro tracers_config, colortable=colortable, no_color_setup=no_color_setup
   ; Settings of environment variables can override tracers_config
   if getenv('TRACERS_REMOTE_DATA_DIR') ne '' then $
     !tracers.remote_data_dir = getenv('TRACERS_REMOTE_DATA_DIR') else $
-    !tracers.remote_data_dir = '' ; ******* NEED to ADD TRACERS remote dir ftp://themis-data.igpp.ucla.edu/themis/data/tracers/'
+    !tracers.remote_data_dir = 'https://spdf.gsfc.nasa.gov/pub/data/tracers/'
   !tracers.remote_data_dir = spd_addslash(!tracers.remote_data_dir)
 
   ; Settings of environment variables can override tracers_config

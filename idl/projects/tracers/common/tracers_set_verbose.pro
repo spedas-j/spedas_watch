@@ -14,15 +14,10 @@
 ;          into tplot options)
 ;
 ;HISTORY:
-; 21-aug-2012, jmm, jimm@ssl.berkeley.edu
-; 12-oct-2012, jmm, Added this comment to test SVN
-; 12-oct-2012, jmm, Added this comment to test SVN, again
-; 18-oct-2012, jmm, Another SVN test
-; 10-apr-2015, moka, adapted for elf from 'thm_set_verbose'
 ;
-; $LastChangedBy: elfin_shared $
-; $LastChangedDate: 2025-07-14 22:58:01 -0700 (Mon, 14 Jul 2025) $
-; $LastChangedRevision: 33465 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2025-07-31 17:36:13 -0700 (Thu, 31 Jul 2025) $
+; $LastChangedRevision: 33518 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/tracers/common/tracers_set_verbose.pro $
 ;-
 Pro tracers_set_verbose, vlevel

@@ -38,6 +38,7 @@ pro elf_fgm_fsp_gei2ndw, trange=trange, probe=probe, sz_starttimes=sz_starttimes
   timeduration=(time_double(trange[1])-time_double(trange[0]))
   timespan,trange[0],timeduration,/seconds
   tr=timerange()
+  elf_load_state, probe=probe, trange=tr, no_download=no_download, suffix='_fsp'
   if ~keyword_set(probe) then probe = 'a' else probe = probe
   if ~keyword_set(sz_starttimes) then begin
     dprint, 'No *fgs_fsp_* data.'
@@ -54,7 +55,7 @@ pro elf_fgm_fsp_gei2ndw, trange=trange, probe=probe, sz_starttimes=sz_starttimes
 ;  if ~spd_data_exists('el'+probe+'_pos_gei',tr[0],tr[1]) then $
 ;    elf_load_state, probe=probe, trange=tr, no_download=no_download
   ; verify that state data was loaded, if not print error and return
-  if ~spd_data_exists('el'+probe+'_pos_gei',tr[0],tr[1]) then begin
+  if ~spd_data_exists('el'+probe+'_pos_gei_fsp',tr[0],tr[1]) then begin
     dprint, 'There is no data for el'+probe+'_pos_gei for '+ $
       time_string(tr[0])+ ' to ' + time_string(tr[1])
     return
@@ -67,8 +68,8 @@ pro elf_fgm_fsp_gei2ndw, trange=trange, probe=probe, sz_starttimes=sz_starttimes
      return
   endif
  
-  copy_data, 'el'+probe+'_pos_gei', 'elx_pos_gei'
-  copy_data, 'el'+probe+'_att_gei', 'elx_att_gei'
+  copy_data, 'el'+probe+'_pos_gei_fsp', 'elx_pos_gei'
+  copy_data, 'el'+probe+'_att_gei_fsp', 'elx_att_gei'
   copy_data, 'el'+probe+'_fgs_fsp_res_dmxl', 'elx_fgs_fsp_res_dmxl'
   copy_data, 'el'+probe+'_fgs_fsp_res_gei', 'elx_fgs_fsp_res_gei'
   copy_data, 'el'+probe+'_fgs_fsp_igrf_dmxl', 'elx_fgs_fsp_igrf_dmxl'

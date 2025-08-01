@@ -1,17 +1,12 @@
 ;+
 ;NAME: 
-;  elf_load_data
-;          This routine loads local ELFIN data. 
-;          There is no server available yet so all files must
-;           be local. The default value is currently set to
-;          'C:/data/elfin/el[ab]/l[0,1,2]/instrument/yyyy/mm/dd/*.cdf'
-;          If you do not want to place your cdf files there you 
-;          must change the elfin system variable !elf.local_data_dir = 'yourdirectorypath'
+;  tracers_load_data
+;
 ;KEYWORDS (commonly used by other load routines):
 ;         trange:       time range of interest [starttime, endtime] with the format
 ;                       ['YYYY-MM-DD','YYYY-MM-DD'] or to specify more or less than a day
 ;                       ['YYYY-MM-DD/hh:mm:ss','YYYY-MM-DD/hh:mm:ss']
-;         probes:       list of probes, valid values for ELFIN probes are ['a','b'].
+;         probes:       list of probes, valid values for TRACERS probes are ['1','2'].
 ;                       if no probe is specified the default is probe 'a'
 ;         level:        indicates level of data processing. levels include 'l1' and 'l2'
 ;                       The default if no level is specified is 'l1' (l1 default needs to be confirmed)
@@ -33,7 +28,7 @@
 ;         cdf_version:  specify a specific CDF version # to load (e.g., cdf_version='4.3.0')
 ;         cdf_records: specify the # of records to load from the CDF files; this is useful
 ;             for grabbing one record from a CDF file
-;         spdf:         grab the data from the SPDF instead of ELFIN server - ***NOTE: only state and epdef data are 
+;         spdf:         grab the data from the SPDF instead of TRACERS server - ***NOTE: only state and epdef data are 
 ;                       at SPDF available
 ;         available:    (NOT YET IMPLEMENTED) returns a list of files available at the SDC for the requested parameters
 ;                       this is useful for finding which files would be downloaded (along with their sizes) if
@@ -46,7 +41,7 @@
 ;         public_data: set this flag to retrieve data from the public area (default is private dir) 
 ;;          
 ;EXAMPLE:
-;   elf_load_data,probe='a'
+;   tracers_load_data,probe='a'
 ; 
 ;NOTES:
 ;   Since there is no data server - yet - files must reside locally.
@@ -54,7 +49,7 @@
 ;   Temporary fix for state CDF - state CDFs are the only CDFs that have version v02
 ;     
 ;--------------------------------------------------------------------------------------
-PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in, $
+PRO tracers_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in, $
   levels = levels, instrument = instrument, data_rates = data_rates, spdf = spdf, $
   local_data_dir = local_data_dir, source = source, pred = pred, versions = versions, $
   get_support_data = get_support_data, login_info = login_info, no_time_sort=no_time_sort, $
@@ -70,32 +65,24 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
   dt_load = 0d
   public = 0
 
-  defsysv,'!elf',exists=exists
-  if not keyword_set(exists) then elf_init, remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, no_color_setup = no_color_setup
+  defsysv,'!tracers',exists=exists
+  if not keyword_set(exists) then tracers_init, remote_data_dir = remote_data_dir, local_data_dir = local_data_dir, no_color_setup = no_color_setup
  
-  if undefined(source) then source = !elf
+  if undefined(source) then source = !tracers
 
-  if undefined(probes) then probes = ['a','b'] else probes = strlowcase(probes) ; default to ELFIN A
-  if probes[0] eq '*' then probes = ['a','b']
+  if undefined(probes) then probes = ['1','2']
+  if probes[0] eq '*' then probes = ['1','2']
   probes = strcompress(string(probes), /rem) ; probes should be strings
   
-  if undefined(instrument) then instrument = 'fgm' else instrument = strlowcase(instrument)
-  if undefined(levels) then begin
-    if instrument EQ 'state' then levels = 'l1' else levels = 'l2'
-  endif
+  if undefined(instrument) then instrument = 'ace' else instrument = strlowcase(instrument)
+  if undefined(levels) then levels='l2'
   levels = strlowcase(levels)  
-  if undefined(data_rates) then data_rates = 'srvy' else data_rates = strlowcase(data_rates)
-  if (instrument NE 'epd' OR instrument NE 'fgm') then data_rates = ''
+  if undefined(data_rates) then data_rates = ''
   if undefined(datatypes_in) then datatypes_in = '' else datatypes_in = strlowcase(datatypes_in)
   if undefined(pred) then pred = 0 else pred = 1
   
-  ;ensure datatypes are explicitly set for simplicity
-  if undefined(datatypes_in) || in_set('*',datatypes_in) then begin
-    elf_load_options, instrument, rate=data_rates, level=levels, datatype=datatypes
-  endif else begin
-    datatypes = datatypes_in
-  endelse
-
+  datatypes=datatypes_in
+  
   if is_string(datatypes) && ~is_array(datatypes) then datatypes = strsplit(datatypes, ' ', /extract)
 
   if undefined(remote_data_dir) then remote_data_dir = source.remote_data_dir 
@@ -144,7 +131,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
          for datatypes_idx = 0, n_elements(datatypes)-1 do begin
 
           ;options for this iteration
-          probe = 'el' + strcompress(string(probes[probe_idx]), /rem)
+          probe = 'ts' + strcompress(string(probes[probe_idx]), /rem)
           data_rate = data_rates[rate_idx]
           level = levels[level_idx]
           datatype = datatypes[datatypes_idx]
@@ -157,28 +144,10 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           fnames=make_array(n_elements(daily_names), /string)
           
           Case instrument of
-            'epd': begin
-                idx = where(datatype EQ 'pif', ncnt)
-                if ncnt GT 0 then append_array, ftypes, 'epdif'  
-                idx = where(datatype EQ 'pis', ncnt)
-                if ncnt GT 0 then append_array, ftypes, 'epdis'
-                idx = where(datatype EQ 'pef', ncnt)
-                if ncnt GT 0 then append_array, ftypes, 'epdef'
-                idx = where(datatype EQ 'pes', ncnt)
-                if ncnt GT 0 then append_array, ftypes, 'epdes'
-            end
-            'fgm': begin
-              idx = where(datatype EQ 'fgs', ncnt)
-              if ncnt GT 0 then append_array, ftypes, 'fgs'
-              idx = where(datatype EQ 'fgf', ncnt)
-              if ncnt GT 0 then append_array, ftypes, 'fgf'
-            end
-            'state': if pred then ftypes='state_pred' else ftypes='state_defn'
-            'mrma': ftypes='mrma'
-            'mrmi': ftypes='mrmi'
-            'eng': ftypes='eng'
+            'ace': ftypes='ace'
+            'fgm': ftypes='fgm'
           endcase
-          for dn=0, n_elements(daily_names)-1 do fnames[dn] = probe + '_' + level + '_' + ftypes + '_' + daily_names[dn] + '_v01.cdf'
+          for dn=0, n_elements(daily_names)-1 do fnames[dn] = probe + '_' + level + '_' + ftypes + '_' + datatype + '_' + daily_names[dn] + '_v0.0.10.cdf'
             
           ;clear so new names are not appended to existing array
           undefine, tplotnames
@@ -188,23 +157,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
           ; set up the path names
           ;if instrument EQ state then handle predicted vs definitive data directories
           subdir = ''
-          if instrument EQ 'state' then begin
-            if pred then subdir='pred/' else subdir='defn/'  
-            ; **** Temporary fix for new state CDF with v02         
-            if subdir EQ 'defn/' then for dn=0, n_elements(daily_names)-1 do fnames[dn] = probe + '_' + level + '_' + ftypes + '_' + daily_names[dn] + '_' + cdf_version +'.cdf'
-          endif
-          if instrument EQ 'epd' then begin
-             Case datatype of 
-               'pes': subdir='survey/electron/'
-               'pis': subdir='survey/ion/'
-               'pef': subdir='fast/electron/'
-               'pif': subdir='fast/ion/'
-             Endcase
-          endif
-          if instrument EQ 'fgm' then begin
-            if datatype EQ 'fgs' then subdir = 'survey/' else subdir = 'fast/'
-          endif
-;          subdir = subdir + year_string[0] + '/'   ; moved below
           
           remote_path = remote_data_dir + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
           
@@ -213,7 +165,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
             this_remote=strmid(remote_data_dir,0,slen-6)
             remote_path = this_remote + strlowcase(probe) + '/' + level + '/' + instrument + '/' + subdir
           endif
-          local_path = filepath('', ROOT_DIR=!elf.local_data_dir, $
+          local_path = filepath('', ROOT_DIR=!tracers.local_data_dir, $
             SUBDIRECTORY=[probe, level, instrument]) + subdir 
 
           if strlowcase(!version.os_family) eq 'windows' then local_path = strjoin(strsplit(local_path, '/', /extract), path_sep())
@@ -235,19 +187,13 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                 if ~undefined(spdf) && spdf EQ 1 then begin
                   spdf_datatypes=['state', 'epd']
                   if instrument EQ 'state' or instrument EQ 'epd' then begin
-                    remote_path = 'https://spdf.gsfc.nasa.gov/pub/data/elfin/elfin'+probes[probe_idx]+'/'
+                    remote_path = 'https://spdf.gsfc.nasa.gov/pub/data/tracers/'+probes[probe_idx]+'/'
                     if instrument eq 'state' then begin
                       remote_path=remote_path+'ephemeris/'
                       if pred then subdir='pred/'+strmid(daily_names, 0, 4)+'/' else subdir='defn/'+strmid(daily_names, 0, 4)+'/'
                       subdir=''
                     endif
-                    if instrument EQ 'epd' then begin
-                      if datatype eq 'pef' then subdir='l1/fast/electron/'+strmid(daily_names, 0, 4)+'/'
-                      if datatype eq 'pif' then subdir='l1/fast/ion/'+strmid(daily_names, 0, 4)+'/'
-                    endif                 
-;                    relpath= 'elfin' + strcompress(string(probes[probe_idx]), /rem) +'/'+'ephemeris/'+subdir + '/' + yeardir
                     remote_path=remote_path+subdir
-;                    relpathname=relpath + fnames[file_idx]
 
                     paths = spd_download(remote_file=fnames[file_idx], remote_path=remote_path[0], $
                       local_file=fnames[file_idx], local_path=this_local_path, ssl_verify_peer=0, ssl_verify_host=0)
@@ -271,7 +217,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                 ; get all files from the beginning of the first day
                 day_string=strmid(daily_names[file_idx],0,4)+'-'+strmid(daily_names[file_idx],4,2)+'-'+strmid(daily_names[file_idx],6,2)
                 end_string=time_string(time_double(day_string)+86399.)
-                local_files = elf_get_local_files(probe=probe, instrument=instrument, $
+                local_files = tracers_get_local_files(probe=probe, instrument=instrument, $
                   data_rate=data_rate, datatype=datatype, level=level, $
                   trange=time_double([day_string, end_string]), cdf_version=cdf_version, $
                   min_version=min_version, latest_version=latest_version, pred=pred)
@@ -283,7 +229,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                   endfor
 
                   ; filter to the requested time range
-                  local_files_filtered = elf_files_in_interval(local_file_info, tr)
+                  local_files_filtered = tracers_files_in_interval(local_file_info, tr)
                   local_files = local_files_filtered.filename
                   append_array, files, local_files
                 endif                 
@@ -300,21 +246,13 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
                  if ncnt GT 0 then unique_files = unique_files[fidx]
                  endif
             endif
-            if instrument eq 'epd' and level eq 'l2' then begin
-              elf_cdf2tplot, unique_files, tplotnames = loaded_tnames, varformat=varformat, $
-                suffix = suffix, get_support_data = get_support_data, /load_labels, $
-                min_version=min_version,version=cdf_version,latest_version=latest_version, $
-                number_records=cdf_records, center_measurement=center_measurement, $
-                loaded_versions = the_loaded_versions, major_version=major_version, $
-                tt2000=tt2000, instrument=instrument, level=level
-            endif else begin
-              spd_cdf2tplot, unique_files, tplotnames = loaded_tnames, varformat=varformat, $
-                suffix = suffix, get_support_data = get_support_data, /load_labels, $
-                min_version=min_version,version=cdf_version,latest_version=latest_version, $
-                number_records=cdf_records, center_measurement=center_measurement, $
-                loaded_versions = the_loaded_versions, major_version=major_version, $
-                tt2000=tt2000
-            endelse            
+            spd_cdf2tplot, unique_files, tplotnames = loaded_tnames, varformat=varformat, $
+              suffix = suffix, get_support_data = get_support_data, /load_labels, $
+              min_version=min_version,version=cdf_version,latest_version=latest_version, $
+              number_records=cdf_records, center_measurement=center_measurement, $
+              loaded_versions = the_loaded_versions, major_version=major_version, $
+              tt2000=tt2000
+          
           endif
                   
           append_array, cdf_filenames, files
@@ -356,13 +294,6 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
     error = 0
     if (n_elements(tr) eq 2) and (tplotnames[0] ne '') and ~keyword_set(no_time_clip) then begin
      tc0 = systime(/sec)
-      ;;if instrument EQ 'state' && pred then begin
-      ;;  idx=where(strpos(tplotnames, 'att') GE 0 OR strpos(tplotnames, 'spin') GE 0, ncnt)
-      ;;  if ncnt GT 0 then del_data, tplotnames[idx]
-      ;;  idx=where(strpos(tplotnames, 'vel') GE 0 OR strpos(tplotnames, 'pos') GE 0, ncnt)
-      ;;  if ncnt GT 0 then tplotnames=tplotnames[idx]
-      ;;  dprint, dlevel=1,'Attitude or spin tplot variables are not valid for predicted state data.'
-      ;;endif 
       for tc=0,n_elements(tplotnames)-1 do begin
         time_clip, tplotnames[tc], tr[0], tr[1], replace=1, error=error
         if error EQ 1 then begin
@@ -378,31 +309,7 @@ PRO elf_load_data, trange = trange, probes = probes, datatypes_in = datatypes_in
       dt_timeclip = systime(/sec)-tc0
     endif
     if ~undefined(tclip_tplotnames) then tplotnames=tclip_tplotnames
-    
-    ; sort times and remove duplicates
-    if ~keyword_set(no_time_sort) && ~undefined(tplotnames) then begin
-      for t=0,n_elements(tplotnames)-1 do begin
-        tplot_sort, tplotnames[t]
-        get_data, tplotnames[t], data=d, dlimits=dl, limits=l
-        if size(d, /type) EQ 8 then begin
-          idx=uniq(d.x,sort(d.x))
-          ydim = n_elements(size(d.y, /dimensions))
-          if ydim LT 3 then store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*]}, dlimits=dl, limits=l
-          if ydim EQ 3 then begin
-            dpos=strpos(tplotnames[t], 'pef_hs_Epat')
-            if dpos GE 0 then begin
-              thistn=tnames('*pef_hs_epa_spec')
-              get_data, thistn[0], data=dv
-            endif else begin
-              thistn=tnames('*pef_fs_epa_spec')
-              get_data, thistn[0], data=dv              
-            endelse
-            store_data, tplotnames[t], data={x:d.x[idx], y:d.y[idx,*,*], v:dv.y[idx,*]}, dlimits=dl, limits=l
-          endif
-        endif
-      endfor
-    endif
-    
+        
   endif
 
   ;temporary messages for diagnostic purposes

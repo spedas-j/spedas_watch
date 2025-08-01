@@ -1,14 +1,14 @@
 ;+
 ;Procedure:
-;  elf_get_local_files
+;  tracers_get_local_files
 ;
 ;Purpose:
-;  Search for local ELFIN files in case a list cannot be retrieved from the
+;  Search for local TRACERS files in case a list cannot be retrieved from the
 ;  remote server. Returns a sorted list of file paths.
 ;
 ;Calling Sequence:
 ;
-;  files = elf_get_local_file_info( probe=probe, instrument=instrument, $
+;  files = tracers_get_local_file_info( probe=probe, instrument=instrument, $
 ;            data_rate=data_rate, level=level, datatype=datatype, trange=trange)
 ;
 ;Input:
@@ -32,13 +32,13 @@
 ;  -Input strings should not contain wildcards (datatype may be '*')
 ;
 ;
-;$LastChangedBy: egrimes $
-;$LastChangedDate: 2018-04-09 12:14:36 -0700 (Mon, 09 Apr 2018) $
-;$LastChangedRevision: 25023 $
-;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/elf/common/elf_get_local_files.pro $
+;$LastChangedBy: jwl $
+;$LastChangedDate: 2025-07-31 17:36:13 -0700 (Thu, 31 Jul 2025) $
+;$LastChangedRevision: 33518 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/tracers/load_data/tracers_get_local_files.pro $
 ;-
 
-function elf_get_local_files, probe = probe, instrument = instrument, data_rate = data_rate, $
+function tracers_get_local_files, probe = probe, instrument = instrument, data_rate = data_rate, $
   level = level, datatype = datatype, trange = trange_in, cdf_version = cdf_version, $
   latest_version = latest_version, min_version = min_version, mirror = mirror, pred=pred
 
@@ -106,7 +106,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   search_pattern = escape_string(dir_pattern  + file_pattern, list='\')
   ;get list of all .cdf files in local directory
   
-  instr_data_dir = filepath('', ROOT_DIR=!elf.local_data_dir + dir_pattern) 
+  instr_data_dir = filepath('', ROOT_DIR=!tracers.local_data_dir + dir_pattern) 
   files = file_search(instr_data_dir, '*.cdf')
 
   ;----------------------------------------------------------------
@@ -137,7 +137,7 @@ function elf_get_local_files, probe = probe, instrument = instrument, data_rate 
   ;restrict list of files to those in the time range
 ;  files = files[time_idx]
 ;  file_strings = file_strings[*,time_idx]
-  ;ensure files are in chronological order, just in case (see note in elf_load_data)
+  ;ensure files are in chronological order, just in case (see note in tracers_load_data)
 ;  files_out = files[bsort(files)]
 ;stop
   return, files_out

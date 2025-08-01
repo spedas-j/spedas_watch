@@ -28,11 +28,10 @@
 ;
 ;
 ;HISTORY:
-; 2015-04-10, moka, Created based on 'thm_init'
 ;
-; $LastChangedBy: elfin_shared $
-; $LastChangedDate: 2025-07-14 22:58:01 -0700 (Mon, 14 Jul 2025) $
-; $LastChangedRevision: 33465 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2025-07-31 17:36:13 -0700 (Thu, 31 Jul 2025) $
+; $LastChangedRevision: 33518 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/tracers/common/tracers_init.pro $
 ;-
 
@@ -68,8 +67,8 @@ pro tracers_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=re
   tracers_config,no_color_setup=no_color_setup; override the defaults by local config file
   ; temporarily override the private are and point to tracersindata
   ; *********** ADD remote_data_dir from new machine **************
-  !tracers.remote_data_dir = ''
-  ;!tracers.remote_data_dir = spd_addslash(!tracers.remote_data_dir)
+  !tracers.remote_data_dir = 'https://spdf.gsfc.nasa.gov/pub/data/tracers/'
+  !tracers.remote_data_dir = spd_addslash(!tracers.remote_data_dir)
   !tracers.local_data_dir = spd_default_local_data_dir() + 'tracers/'
   !tracers.local_data_dir = spd_addslash(!tracers.local_data_dir)
 
@@ -84,21 +83,21 @@ pro tracers_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=re
   cdf_version_tracers = '3.6.30';'3.6'
 
   if cdf_version lt cdf_version_readmin then begin
-    print,'Your version of the CDF library ('+cdf_version+') is unable to read THEMIS and tracers data files.'
+    print,'Your version of the CDF library ('+cdf_version+') is unable to read TRACERS data files.'
     print,'Please go to the following url to learn how to patch your system:'
     print,'http://cdf.gsfc.nasa.gov/html/idl62_or_earlier_and_cdf3_problems.html'
     message,"You can have your data. You just can't read it! Sorry!"
   endif
   if cdf_version lt cdf_version_writemin then begin
     print,ptrace()
-    print,'Your version of the CDF library ('+cdf_version+') is unable to correctly write THEMIS/tracers CDF data files.'
+    print,'Your version of the CDF library ('+cdf_version+') is unable to correctly write TRACERS CDF data files.'
     print,'If you ever need to create CDF files then go to the following URL to learn how to patch your system:'
     print,'http://cdf.gsfc.nasa.gov/html/idl62_or_earlier_and_cdf3_problems.html'
   endif
   if cdf_version lt cdf_version_tracers then begin
     msg = ['A leap second was inserted on December 31, 2016.']
     msg = [msg,' ']
-    msg = [msg,'For correct interpretation of time tags for tracers data taken after this date,']
+    msg = [msg,'For correct interpretation of time tags for TRACERS data taken after this date,']
     msg = [msg,'please upgrade your CDF software to its latest version at']
     msg = [msg,' ']
     msg = [msg,'http://cdf.gsfc.nasa.gov/html/cdf_patch_for_idl.html']
@@ -120,7 +119,7 @@ pro tracers_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=re
   !tracers.init = 1
   ;----------------
 
-  dt = - (time_double('2018-09-12/22:44') - systime(1)) / 3600/24
+  dt = - (time_double('2025-07-23/11:13') - systime(1)) / 3600/24
   days = floor(dt)
   dt = (dt - days) * 24
   hours = floor(dt)
@@ -129,7 +128,7 @@ pro tracers_init, reset=reset, local_data_dir=local_data_dir, remote_data_dir=re
   dt = (dt - mins)  * 60
   secs = floor(dt)
   print,ptrace()
-  print,days,hours,mins,secs,format= '("tracers countdown:",i4," Days, ",i02," Hours, ",i02," Minutes, ",i02," Seconds since launch")'
+  print,days,hours,mins,secs,format= '("TRACERS countdown:",i4," Days, ",i02," Hours, ",i02," Minutes, ",i02," Seconds since launch")'
 
   return
 
