@@ -1,8 +1,8 @@
 ;+
 ;
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2021-11-04 22:11:10 -0700 (Thu, 04 Nov 2021) $
-; $LastChangedRevision: 30396 $
+; $LastChangedDate: 2025-08-01 15:32:01 -0700 (Fri, 01 Aug 2025) $
+; $LastChangedRevision: 33522 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/l1/l1_rfs_rawspectra/spp_fld_rfs_rawspectra_load_l1.pro $
 ;
 ;-
@@ -417,7 +417,7 @@ pro spp_fld_rfs_rawspectra_load_l1, file, prefix = prefix, varformat = varformat
   options, 'spp_fld_rfs_rawspectra_ch?', 'yticks', 7
   options, 'spp_fld_rfs_rawspectra_ch?', 'ytickv', findgen(8)
 
-  options, 'spp_fld_rfs_rawspectra_ch0', 'ytickname', ['V1-V2','V1-V3','SCM','GND','V1','V3','GND','GND']
+  options, 'spp_fld_rfs_rawspectra_ch0', 'ytickname', ['V1-V2','V1-V3','V1-V4','SCM','V1','V3','GND','GND']
   options, 'spp_fld_rfs_rawspectra_ch1', 'ytickname', ['V3-V4','V3-V2','V1-V2','SCM','V2','V4','GND','GND']
   options, 'spp_fld_rfs_rawspectra_ch0', 'colors', 6
   options, 'spp_fld_rfs_rawspectra_ch1', 'colors', 2
