@@ -17,10 +17,10 @@
 ;     printdat, alt_cal
 ; 
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-07-21 15:44:21 -0700 (Mon, 21 Jul 2025) $
-; $LastChangedRevision: 33479 $
+; $LastChangedDate: 2025-08-02 16:12:14 -0700 (Sat, 02 Aug 2025) $
+; $LastChangedRevision: 33524 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_calval.pro $
-; $Id: swfo_stis_inst_response_calval.pro 33479 2025-07-21 22:44:21Z rjolitz $
+; $Id: swfo_stis_inst_response_calval.pro 33524 2025-08-02 23:12:14Z rjolitz $
 
 
 
@@ -81,6 +81,16 @@ function swfo_stis_inst_response_calval,reset=reset, save=save
     calval.geometric_factor_coincidence_index = [0, 3, 1, 4, 0, 3, 2, 5, 0, 3, 1, 4, 0, 3]
     ; calval.geometric_factor_coincidence_index = [0, 3, 1, 4, 0, 3, 2, 5, 0, 3, 1, 4, 0, 3]
 
+    ; TIDs / FTO IDs
+    ; (Assume O is Telescope index 0, and F is Index 1)
+    ; tid = [0, 1]
+    calval.telescope_id_map = reform(replicate_array([replicate(0, 48), replicate(1, 48)], 7), 672)
+    fto_id = 1 + replicate(1,48) # indgen(7)
+    calval.fto_logic_id_map =$
+      [fto_id[*, 0], fto_id[*, 0], fto_id[*, 1], fto_id[*, 1], fto_id[*, 2],$
+       fto_id[*, 2], fto_id[*, 3], fto_id[*, 3], fto_id[*, 4], fto_id[*, 4],$
+       fto_id[*, 5], fto_id[*, 5], fto_id[*, 6], fto_id[*, 6]]
+
     ; Dictionary mapping coincidence type to positional index in the data array:
     calval.coincidence_map = dictionary()
     for i=0, 13 do calval.coincidence_map[calval.coincidence[i]] = i
@@ -123,12 +133,33 @@ function swfo_stis_inst_response_calval,reset=reset, save=save
     calval.nrg_sigmas   = calval.adc_sigmas  * detector_keV_per_adc
     calval.nrg_thresholds  = calval.nrg_sigmas * 5
 
+    ; For quality flag determination:
     calval.noise_sigma_threshold = [0.84, 1.4, 1.05, 0.84, 1.4, 1.05]
     calval.count_rate_threshold = [10e3, 10e3, 10e3, 10e3, 10e3, 10e3]
     calval.reaction_wheel_speed_threshold = [2000, 2000, 2000, 2000]
     calval.dap_temperature_range = [-35., 50.]
     calval.sensor_1_temperature_range = [-50., 45.]
     calval.sensor_2_temperature_range = [-50., 45.]
+    calval.maximum_swfo_sun_offpointing_angle = 5.
+    calval.minimum_stis_sun_angle = 40.
+    ; STIS requirement that center of field-of-view is
+    ; 50 deg. in the ecliptic off sun-earth line in "ahead" direction
+    ; in spacecraft reference frame, unit vector for the FOV is (0.643, 0, 0.766)
+    ; calval.stis_boresight_unit_vector = [cos(50. * !dtor), 0, sin(50. * !dtor)]
+    calval.stis_boresight_sc_unit_vector = [0.643, 0, 0.766]
+
+    ; Qflag indices:
+    calval.pulser_on_qflag_index = indgen(6) + 1
+    calval.high_noise_sigma_qflag_index = indgen(6) + 7
+    calval.any_detector_disabled_qflag_index = 13
+    calval.decimation_qflag_index = indgen(4) + 14
+    calval.high_rate_qflag_index = indgen(6) + 18
+    calval.extreme_temperature_qflag_index = 26
+    calval.nonstandard_config_qflag_index = 30
+    calval.high_reaction_wheel_speed_qflag_index = indgen(4) + 32
+    calval.bad_iru_qflag_index = 38
+    calval.swfo_offpointing_qflag_index = 39
+    calval.sun_in_stis_fov_qflag_index = 40
 
     ; nonlut ADC corresponds to clog_17_6 (compressed log)
     calval.nonlut_adc_min  =$
@@ -187,8 +218,12 @@ function swfo_stis_inst_response_calval,reset=reset, save=save
     ; For l1b flag:
     calval.electron_contam_factor = 0.5
 
+    ; For L2:
+    calval.epam_ion_edge_energies = [47., 68., 115., 195., 315., 583., 1060., 1900., 4800.]
+    calval.epam_electron_edge_energies = [45., 62., 102., 175., 315.]
+
     calval.responses = orderedhash()
-    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 33479 2025-07-21 22:44:21Z rjolitz $'
+    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 33524 2025-08-02 23:12:14Z rjolitz $'
     swfo_stis_inst_response_calval_dict  = calval
     dprint,'Using Revision: '+calval.rev_date
   endif
@@ -209,7 +244,8 @@ function swfo_stis_inst_response_calval,reset=reset, save=save
     if not file_test(save) then print, "Cannot save calval to '" + save + "', netcdf file does not exist."
 
     ; Get the Netcdf variable names:
-    ncdf_list, 'revised_ground_lut.nc', vname=ncdf_fields, /var, /quiet
+    ncdf_list, save, vname=ncdf_fields, /var, /quiet
+    print, ncdf_fields
 
     ; Open for writing:
     fid = ncdf_open(save, /write)

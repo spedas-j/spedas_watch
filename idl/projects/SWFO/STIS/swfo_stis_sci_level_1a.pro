@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-07-21 15:44:21 -0700 (Mon, 21 Jul 2025) $
-; $LastChangedRevision: 33479 $
+; $LastChangedDate: 2025-08-02 16:12:25 -0700 (Sat, 02 Aug 2025) $
+; $LastChangedRevision: 33525 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -22,14 +22,15 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
 
   ; NOAA files do not determine the noise histogram in level 0b,
   ; only the raw counts. Need to calculate the noise histogram
-  index = (where("NSE_HISTOGRAM" eq tags,count))[0]
-  if count eq 0 then begin
-    nse_counts = l0b_structs.nse_counts
-    nse_histogram = fltarr(60, nd)
-    nse_histogram[*, 1:-1] = nse_counts[*, 1:-1] - nse_counts[*, 0:-2]
-  endif else nse_histogram = l0b_structs.nse_histogram
-  ; Assume nse_histogram is 60 x ND
-  nse_histogram = reform(nse_histogram, 10, 6, nd)
+  index = (where("NSE_HISTOGRAM" eq tags,nse_hist_not_in_l0b))[0]
+
+  ; Old code to evaluate noise histogram, want to eval packet-by-packet
+  ; instead:
+  ; if nse_hist_not_in_l0b eq 0 then begin
+  ;   nse_counts = l0b_structs.nse_counts
+  ;   nse_histogram = fltarr(60, nd)
+  ;   nse_histogram[*, 1:-1] = nse_counts[*, 1:-1] - nse_counts[*, 0:-2]
+  ; endif else nse_histogram = l0b_structs.nse_histogram
 
   ; Files starting with E2E testing include spacecraft data,
   ; so can include s/c flags:
@@ -127,15 +128,6 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     d = l0b.sci_counts
     d = reform(d,48,14)
 
-
-    
-    mapd = swfo_stis_adc_map(data_sample=l0b)
-    nrg = mapd.nrg
-    dnrg = mapd.dnrg
-    adc = mapd.adc
-    dadc = mapd.dadc
-    geom = mapd.geom
-
     ; Moved from swfo_stis_sci_apdat__define
     ; when decimation active (e.g. high count rates)
     ; drops in sensitivity to allow resolution of higher fluxes
@@ -179,12 +171,37 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; resolution as read from the header:
     noise_scale = 2.^(fix(noise_res) - 3)
     noise_adc_bins = (findgen(10)-4.5) * noise_scale
-    ; Flatten for storage into l1a:
-    l1a.noise_histogram = reform(nse_histogram[*, *, i], 60)
+
+    ; New code 8/2/25: This will be eval'ed element by element,
+    ; rather than assuming all data:
+    if nse_hist_not_in_l0b eq 0 then begin
+      ; if no packets for a while or no last nse counts, define:
+      if n_elements(last_nse_counts) eq 0 || (abs(l0b.time_unix-last_time_unix) gt 300) then begin
+         last_nse_counts = l0b.nse_counts
+         last_time_unix = l0b.time_unix
+      endif
+      ; Need to convert to float:
+      nse_histogram_i = float(l0b.nse_counts - last_nse_counts)
+      ; log for the next iteration:
+      last_nse_counts = l0b.nse_counts
+    endif else begin
+      ; if present, use the noise histogram
+      ; nse_histogram_i = nse_histogram[*, i]
+      nse_histogram_i = l0b.nse_histogram
+    endelse
+
+    ; Flatten into 60-element array for storage into l1a:
+    ; l1a.noise_histogram = reform(nse_histogram[*, *, i], 60)
+    l1a.noise_histogram = nse_histogram_i
+
+    ; Rescale into 10 (n_noise_channels) x 6 (n_detectors)
+    nse_histogram_i = reform(nse_histogram_i, 10, 6)
 
     noise_stats = replicate(swfo_stis_nse_find_peak(),6)
     for j=0,5 do begin
-      noise_stats[j] = swfo_stis_nse_find_peak(nse_histogram[0:8, j, i],noise_adc_bins[0:8])   ; ignore end channel
+      ; IMPORTANT: ignore end channel! susceptible to overflow:
+      ; noise_stats[j] = swfo_stis_nse_find_peak(nse_histogram[0:8, j, i],noise_adc_bins[0:8])
+      noise_stats[j] = swfo_stis_nse_find_peak(nse_histogram_i[0:8, j],noise_adc_bins[0:8])
     endfor
     ; stop
 
@@ -228,26 +245,26 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     pulser_bits = l0b.pulser_bits
     if n_elements(pulser_bits) eq 3 then pulsers_enabled = pulser_bits[2] else pulsers_enabled = pulser_bits
     pulser_flag = (pulsers_enabled and 0x3full)
-    q = q OR ishft(pulser_flag*1ull, 1)
+    q = q OR ishft(pulser_flag*1ull, cal.pulser_on_qflag_index[0])
     ; if q ne 0 then stop
 
     ; Bits at positional index 7-12 are 0 or 1 if high noise
     ; and defined for Ch 1-6.
     nse_flag = l1a.noise_sigma gt cal.noise_sigma_threshold
     ; q = q or ishft(nse_flag.frombits()*1ull, 7)
-    q = q or ishft(nse_flag[0]*1ull, 7)
-    q = q or ishft(nse_flag[1]*1ull, 8)
-    q = q or ishft(nse_flag[2]*1ull, 9)
-    q = q or ishft(nse_flag[3]*1ull, 10)
-    q = q or ishft(nse_flag[4]*1ull, 11)
-    q = q or ishft(nse_flag[5]*1ull, 12)
+    q = q or ishft(nse_flag[0]*1ull, cal.high_noise_sigma_qflag_index[0])
+    q = q or ishft(nse_flag[1]*1ull, cal.high_noise_sigma_qflag_index[1])
+    q = q or ishft(nse_flag[2]*1ull, cal.high_noise_sigma_qflag_index[2])
+    q = q or ishft(nse_flag[3]*1ull, cal.high_noise_sigma_qflag_index[3])
+    q = q or ishft(nse_flag[4]*1ull, cal.high_noise_sigma_qflag_index[4])
+    q = q or ishft(nse_flag[5]*1ull, cal.high_noise_sigma_qflag_index[5])
     ; if q ne 0 then stop
 
     ; Bit at positional index 13 is 1 if any detector disabled else 0
     detector_bits = l0b.detector_bits
     if n_elements(detector_bits) eq 3 then detectors_enabled = detector_bits[2] else detectors_enabled = detector_bits
     det_flag = (not detectors_enabled and 0x3fub) ne 0
-    q = q or ishft(det_flag*1ull, 13)
+    q = q or ishft(det_flag*1ull, cal.any_detector_disabled_qflag_index)
     ; if det_flag ne 0 then stop
 
     ; Bits at positional index 14-17 are 1 if decimation factor
@@ -255,10 +272,10 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; In NOAA file, decimation bits are separated into 4 columns:
     ; Assume the decimation bits are ordered as: 6,5,3,2
     dec_flag = dec ne 0
-    q = q or ishft(dec_flag[0]*1ull, 14)
-    q = q or ishft(dec_flag[1]*1ull, 15)
-    q = q or ishft(dec_flag[2]*1ull, 16)
-    q = q or ishft(dec_flag[3]*1ull, 17)
+    q = q or ishft(dec_flag[0]*1ull, cal.decimation_qflag_index[0])
+    q = q or ishft(dec_flag[1]*1ull, cal.decimation_qflag_index[1])
+    q = q or ishft(dec_flag[2]*1ull, cal.decimation_qflag_index[2])
+    q = q or ishft(dec_flag[3]*1ull, cal.decimation_qflag_index[3])
 
     ; if dec_flag ne 0 then stop
 
@@ -267,12 +284,12 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; for channels 1-6:
     rate6 = total6/duration
     rate_flag = rate6 gt cal.count_rate_threshold
-    q = q or ishft(rate_flag[0]*1ull, 18)
-    q = q or ishft(rate_flag[1]*1ull, 19)
-    q = q or ishft(rate_flag[2]*1ull, 20)
-    q = q or ishft(rate_flag[3]*1ull, 21)
-    q = q or ishft(rate_flag[4]*1ull, 22)
-    q = q or ishft(rate_flag[5]*1ull, 23)
+    q = q or ishft(rate_flag[0]*1ull, cal.high_rate_qflag_index[0])
+    q = q or ishft(rate_flag[1]*1ull, cal.high_rate_qflag_index[1])
+    q = q or ishft(rate_flag[2]*1ull, cal.high_rate_qflag_index[2])
+    q = q or ishft(rate_flag[3]*1ull, cal.high_rate_qflag_index[3])
+    q = q or ishft(rate_flag[4]*1ull, cal.high_rate_qflag_index[4])
+    q = q or ishft(rate_flag[5]*1ull, cal.high_rate_qflag_index[5])
     ; if total(rate_flag) ne 0 then stop
 
     ; Q flag: bits at positional index 24-25 will be set in Level 1b or 2,
@@ -285,7 +302,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     temp_s1_flag = temps[1] lt cal.sensor_1_temperature_range[0] or temps[1] gt cal.sensor_1_temperature_range[1]
     temp_s2_flag = temps[2] lt cal.sensor_2_temperature_range[0] or temps[2] gt cal.sensor_2_temperature_range[1]
     temp_flag = (temp_s1_flag or temp_s2_flag) or temp_dap_flag
-    q = q or ishft(temp_flag*1ull, 26)
+    q = q or ishft(temp_flag*1ull, cal.extreme_temperature_qflag_index)
     ; if temp_flag ne 0 then stop
 
     ; Q flag: bits at positional index 27-29 unset, reserved for future use.
@@ -308,7 +325,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     noise_enable_flag = noise_enable ne 1
     user_09_flag = l0b.user_09 ne 1
     nonstandard_flag = translate_flag or nonlut_flag or uselut_flag or noise_enable_flag or user_09_flag
-    q = q or ishft(nonstandard_flag * 1ull, 30)
+    q = q or ishft(nonstandard_flag * 1ull, cal.nonstandard_config_qflag_index)
     ; if nonstandard_flag ne 0 then stop
 
     ; Q flag: bit at position 31 unset, reserved for future use.
@@ -318,10 +335,67 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; - Warning - APID does not exist for calibration datasets
     if sc_info_present ne 0 then begin
       reax_wheel_flag = abs(l0b.reaction_wheel_speed_rpm) gt cal.reaction_wheel_speed_threshold
-      q = q or ishft(reax_wheel_flag[0]*1ull, 32)
-      q = q or ishft(reax_wheel_flag[1]*1ull, 33)
-      q = q or ishft(reax_wheel_flag[2]*1ull, 34)
-      q = q or ishft(reax_wheel_flag[3]*1ull, 35)
+      q = q or ishft(reax_wheel_flag[0]*1ull, cal.high_reaction_wheel_speed_qflag_index[0])
+      q = q or ishft(reax_wheel_flag[1]*1ull, cal.high_reaction_wheel_speed_qflag_index[1])
+      q = q or ishft(reax_wheel_flag[2]*1ull, cal.high_reaction_wheel_speed_qflag_index[2])
+      q = q or ishft(reax_wheel_flag[3]*1ull, cal.high_reaction_wheel_speed_qflag_index[3])
+
+      ; Q flag: bit at position 38 if any IRU invalid
+      ; IRU order:
+      ; - misalignment bypass - nominally 0
+      ; - memory effect error - nominally 0
+      ; - health (X, Y, Z) - nominally 1
+      ; - valid (X, Y, Z) - nominally 1
+      iru_bad = array_equal(l0b.iru_bits, [0, 0, 1, 1, 1, 1, 1, 1]) ne 1
+
+
+      q = q or ishft(iru_bad*1ull, cal.bad_iru_qflag_index)
+
+      ; Q flag: bit at position 39 if spacecraft off-pointing
+      ; by +/- 5 deg:
+
+      ; For testing, need to use measured sun vector
+      ; since modeled sun vec wasn't modeled. Code below for
+      ; modeled, since that is the proper sun truth.
+      ; comment in after deploy:
+
+      ; ADMSUNVX[Y,Z] / measured_sun_vector_xyz is the measured sun vector in SC coordinates
+      ; this is the only vector simulated in MR3
+      sun_sc = l0b.measured_sun_vector_xyz
+
+      ; ; ADSCSUNVX[Y,Z] / modeled_spacecraft_sun_vxyz is the modeled sun vector is in ECI coordinates
+      ; model_sun_vec_eci = l0b.modeled_spacecraft_sun_vxyz
+      ; ; this is the quaternion that converts from EGI to s/c coordinates
+      ; q = l0b.body_frame_attitude_q1234
+      ; ; Put the modeled sun vector into s/c body coordinates:
+      ; sun_sc = quaternion_rotation(model_sun_vec_eci, q, last_index=1)
+
+      ; Angle between X_sc and sun:
+      sun_sc_angle_deg = acos(sun_sc[0]) / !dtor
+
+      ; Angle is ~15 deg when Earth pointing, 0 deg sun pointing
+      ; - set flag if earth pointing?  +/-5 deg
+      offpointing_flag = (sun_sc_angle_deg gt cal.maximum_swfo_sun_offpointing_angle)
+
+      q = q or ishft(offpointing_flag*1ull, cal.swfo_offpointing_qflag_index)
+
+      ; Q flag: bit at position 40 if sun in STIS FOV
+      ; Since STIS has a larger FOV of (80 x 60 deg acceptance)
+      ; the sun can intrude if it has an angle within 40 deg of the boresight
+
+      ; STIS requirement that center of field-of-view is
+      ; 50 deg. in the ecliptic off sun-earth line in "ahead" direction
+      ; in spacecraft reference frame, unit vector for the FOV is (0.643, 0, 0.766)
+      stis_fov = cal.stis_boresight_sc_unit_vector
+
+      ; Likewise, calculate angle between STIS FOV center and sun:
+      sun_stis_angle_deg = acos(stis_fov[0]*sun_sc[0] + stis_fov[2]*sun_sc[2]) / !dtor
+
+      ; Sun in STIS FOV flag: angle subtended by fov 60 x 80 deg, angle of
+      ; sun relative to center of boresight between 30-40
+      ; - set flag if under 40
+      sun_in_stis_fov_flag = (sun_stis_angle_deg lt cal.minimum_stis_sun_angle)
+      q = q or ishft(sun_in_stis_fov_flag*1ull, cal.sun_in_stis_fov_qflag_index)
 
     endif
 

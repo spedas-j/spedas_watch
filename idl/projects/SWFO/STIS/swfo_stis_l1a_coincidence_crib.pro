@@ -6,7 +6,9 @@ filename = 'stis_e2e4_rfr_realtime_30min_combined_l0b.nc'
 ; filename = 'SWFO_STIS_xray_combined_l0b_decimation_factor_bits_2_3_5_6.nc'
 ; filename = 'SWFO_STIS_xray_combined_l0b_decimation_factor_bits_6_5_3_2.nc'
 filename = 'STIS_L0B_SSL_Xray_upd.nc'
-filename = 'STIS_L0B_SSL_iongun_upd.nc'
+; filename = 'STIS_L0B_SSL_iongun_upd.nc'
+; filename = 'gpa_generated_products/stis_realtime_s20250613T160000_e20250613T182958_p20250724T000929.143235_0b.nc'
+
 l0b = swfo_ncdf_read(filenames=filename, force_recdim=0)
 l1a =   swfo_stis_sci_level_1a(l0b)
 

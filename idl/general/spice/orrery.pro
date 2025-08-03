@@ -198,8 +198,8 @@
 ;                  (After all, space is black.)  Default = 1.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-07-29 17:09:18 -0700 (Tue, 29 Jul 2025) $
-; $LastChangedRevision: 33509 $
+; $LastChangedDate: 2025-08-02 16:59:39 -0700 (Sat, 02 Aug 2025) $
+; $LastChangedRevision: 33527 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spice/orrery.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -260,8 +260,8 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
   tspan = time_double(['1550','2650'])          ; de442.bsp covers 1550 to 2650
   nplan = n_elements(pname)
 
-  cname = ['SIDING SPRING','I3 ATLAS']
-  clab = ['CSS','I3A']
+  cname = ['SIDING SPRING','3I ATLAS']
+  clab = ['CSS','3IA']
   csym = [ 8, 8 ]                   ; comet symbols
   ccol = [ 5, 5 ]                   ; comet colors
   csze = [ 3, 3 ]                   ; comet symbol sizes
@@ -751,6 +751,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       r = sqrt(css.x^2. + css.y^2. + css.z^2.)
       lat = asin(css.z/r)*!radeg
+      str_element, css, 'r', r, /add
       str_element, css, 'lat', lat, /add
 
 ;     OWLT with respect to Mars, not Earth
@@ -798,6 +799,7 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
 
       r = sqrt(i3a.x^2. + i3a.y^2. + i3a.z^2.)
       lat = asin(i3a.z/r)*!radeg
+      str_element, i3a, 'r', r, /add
       str_element, i3a, 'lat', lat, /add
 
 ;     OWLT with respect to Mars, not Earth
@@ -1182,15 +1184,21 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,tname,'colors',ccol[0]
       options,tname,'ynozero',1
 
-      tname = 'R-CSS'
-      store_data,tname,data={x:css.time, y:css.owlt*(c/Rmars)}
+      tname = 'Mars-CSS'
+      store_data,tname,data={x:css.time, y:css.owlt*(c/1d5)}
       ylim,tname,0,0,1
-      options,tname,'ytitle','Siding Spring!cDistance (R!dM!n)'
+      options,tname,'ytitle','Mars-CSS!cDistance (km)'
+      options,tname,'colors',ccol[0]
+
+      tname = 'Sun-CSS'
+      store_data,tname,data={x:css.time, y:css.r}
+      ylim,tname,0,0,1
+      options,tname,'ytitle','Sun-CSS!cDistance (AU)'
       options,tname,'colors',ccol[0]
 
       tname = 'Lat-CSS'
       store_data,tname,data={x:css.time, y:css.lat}
-      options,tname,'ytitle','Siding Spring!cLatitude (deg)'
+      options,tname,'ytitle','CSS!cLatitude (deg)'
       options,tname,'constant',0
       options,tname,'colors',ccol[0]
     endif
@@ -1202,15 +1210,21 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       options,tname,'colors',ccol[1]
       options,tname,'ynozero',1
 
-      tname = 'R-I3A'
-      store_data,tname,data={x:i3a.time, y:i3a.owlt*(c/Rmars)}
+      tname = 'Mars-I3A'
+      store_data,tname,data={x:i3a.time, y:i3a.owlt*(c/1d5)}
       ylim,tname,0,0,1
-      options,tname,'ytitle','I3/ATLAS!cDistance (R!dM!n)'
+      options,tname,'ytitle','Mars-3I/ATLAS!cDistance (km)'
+      options,tname,'colors',ccol[1]
+
+      tname = 'Sun-I3A'
+      store_data,tname,data={x:i3a.time, y:i3a.r}
+      ylim,tname,0,0,1
+      options,tname,'ytitle','Sun-3I/ATLAS!cDistance (AU)'
       options,tname,'colors',ccol[1]
 
       tname = 'Lat-I3A'
       store_data,tname,data={x:i3a.time, y:i3a.lat}
-      options,tname,'ytitle','I3/ATLAS!cLatitude (deg)'
+      options,tname,'ytitle','3I/ATLAS!cLatitude (deg)'
       options,tname,'constant',0
       options,tname,'colors',ccol[1]
     endif
@@ -2048,9 +2062,20 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       xx = x
       yy = y
     endif
-    oplot, xx, yy, color=ccol[0]
-    oplot, [xcss], [ycss], psym=csym[0], symsize=csze[0]*zscl, color=ccol[0]
-    if (slabel) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab[0], color=ccol[0], charsize=scale
+
+;   Encode solar latitude with red-to-blue color gradient
+
+    initct, 1072, /rev, previous_ct=pct2, previous_rev=prev2
+      ll = css.lat[imin:imax] + 60.
+      lscale = float(colstr.top_c - colstr.bottom_c)/120.
+      lcol = (round(ll*lscale) + colstr.bottom_c) > colstr.bottom_c < colstr.top_c
+      for k=0L,(n_elements(yy)-2L) do oplot, xx[k:k+1L], yy[k:k+1L], color=lcol[k], thick=2
+      oplot, [xcss], [ycss], psym=csym[0], symsize=csze[0]*zscl, color=ccol[0]
+      visible = (xcss ge xyrange[0]) and (xcss le xyrange[1]) and (ycss ge xyrange[0]) and (ycss le xyrange[1])
+      if (clabel and visible) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab[0], color=ccol[0], charsize=scale
+      draw_color_scale, range=[-60,60], brange=[colstr.bottom_c, colstr.top_c], charsize=scale, $
+                        position=[0.88,0.1,0.9,0.2], title='Lat (deg)', yticks=2, ytickval=[-60,0,60]
+    initct, pct2, rev=prev2
   endif
 
   if (aflg) then if (max(finite(xi3a))) then begin
@@ -2064,9 +2089,20 @@ pro orrery, time, noplot=noplot, nobox=nobox, label=label, scale=scale, eph=eph,
       xx = x
       yy = y
     endif
-    oplot, xx, yy, color=ccol[1]
-    oplot, [xi3a], [yi3a], psym=csym[1], symsize=csze[1]*zscl, color=ccol[1]
-    if (slabel) then xyouts, [xcss+loff[3]], [ycss+loff[3]], clab[1], color=ccol[1], charsize=scale
+
+;   Encode solar latitude with red-to-blue color gradient
+
+    initct, 1072, /rev, previous_ct=pct2, previous_rev=prev2
+      ll = i3a.lat[imin:imax] + 5.
+      lscale = float(colstr.top_c - colstr.bottom_c)/10.
+      lcol = (round(ll*lscale) + colstr.bottom_c) > colstr.bottom_c < colstr.top_c
+      for k=0L,(n_elements(yy)-2L) do oplot, xx[k:k+1L], yy[k:k+1L], color=lcol[k], thick=2
+      oplot, [xi3a], [yi3a], psym=csym[1], symsize=csze[1]*zscl, color=ccol[1]
+      visible = (xi3a ge xyrange[0]) and (xi3a le xyrange[1]) and (yi3a ge xyrange[0]) and (yi3a le xyrange[1])
+      if (clabel and visible) then xyouts, [xi3a+loff[3]], [yi3a+loff[3]], clab[1], color=ccol[1], charsize=scale
+      draw_color_scale, range=[-5,5], brange=[colstr.bottom_c, colstr.top_c], charsize=scale, $
+                        position=[0.88,0.1,0.9,0.2], title='Lat (deg)', yticks=2, ytickval=[-5,0,5]
+    initct, pct2, rev=prev2
   endif
 
   if (sflg) then begin
