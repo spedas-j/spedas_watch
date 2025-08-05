@@ -92,7 +92,12 @@ End
 ; use_counts = if set, use the'en_counts' variable, and not
 ;              the 'en_flux' variable.
 ; slope_test = if set then the potential is set to the point at which
-; there is a maximum negative slope, if this value is less than 30 V.
+;              there is a maximum negative slope, if this value is
+;              less than 30 V.
+; sst_test = If set, if the SST electron total flux (thx_psef_tot) is
+;            greater than this value, then th SC potential is set to
+;            scplo. The default is to not use this test, but a good
+;            value, based on data for THE from 2017, looks like 5.0e4.
 ;NOTES:
 ; Here is a summary of the process:
 ; 1) PEER data is the default. If the keyword /no_init is not set,
@@ -106,7 +111,9 @@ End
 ; calculation is expected to be unreliable when the variables
 ; 'th(probe)_hsk_ifgm_xy_raw' and 'th(probe)_hsk_ifgm_zr_raw' have very
 ; low values. hsk_test = 75 is the value used for THEMIS ESA L2
-; production.
+; production. If the sst_test keyword is set, then the calculation is
+; not good when the sst total electron variable is greater than this
+; number. sst_test = 3e4 is the value used for THEMIS_ESA_L2.
 ; 4) Next, the spectrum is bytescaled in log space, so that values are
 ; between 0 and 255.
 ; 5) For each time interval, in order for photoelectrons to be
@@ -159,8 +166,8 @@ End
 ;HISTORY:
 ; 3-mar-2016, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jimm $
-; $LastChangedDate: 2025-07-28 14:04:49 -0700 (Mon, 28 Jul 2025) $
-; $LastChangedRevision: 33505 $
+; $LastChangedDate: 2025-08-04 15:41:41 -0700 (Mon, 04 Aug 2025) $
+; $LastChangedRevision: 33532 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/spacecraft/particles/ESA/thm_esa_est_dist2scpot2.pro $
 ;-
 
@@ -172,7 +179,8 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, $
                              time_smooth_dt = time_smooth_dt, $
                              hsk_test = hsk_test, densmatch = densmatch, $
                              use_counts = use_counts, despike = despike, $
-                             slope_test = slope_test, _extra=_extra
+                             slope_test = slope_test, sst_test = sst_test, $
+                             _extra=_extra
 
 ;The default is to use peer data for this, and a good idea in general
   If(is_string(esa_datatype)) Then Begin
@@ -254,6 +262,18 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, $
      no_hsk:
      ss_hsk_test = bytarr(ntimes)
   Endelse
+;If requested, use SST data to determine where the sc_pot should be
+;set to scplo automatically
+  If(keyword_set(sst_test)) Then Begin
+     If(~keyword_set(no_init)) Then thm_load_sst, probe = sc
+     get_data, thx+'_psef_tot', data = psef
+     If(~is_struct(psef)) Then Goto, no_sst
+     sst_psef = interpol(psef.y, psef.x, dr.x)
+     ss_psef_test = (sst_psef Gt sst_test)
+  Endif Else Begin
+     no_sst:
+     ss_psef_test = bytarr(ntimes)
+  Endelse
 ;bytescale in log space
   ok = where(finite(dr.y) And dr.y Gt 0, nok)
   If(nok Gt 0) Then vrange = minmax(dr.y[ok]) Else vrange = 0b
@@ -267,7 +287,7 @@ Pro thm_esa_est_dist2scpot2, date, probe, trange=trange, $
      i = 0
      maxv = max(yy[j,0:5], maxpt)
 ;     if(dr.x[j] Gt time_double('2025-02-25/07:20:00')) then stop
-     If(ss_hsk_test[j] Gt 0) Then continue ;Do not process this time
+     If(ss_hsk_test[j] Gt 0 Or ss_psef_test[j] Gt 0) Then continue ;Do not process this time
      do_this_j = 0b
      ylwj = (maxv-dylw) > ylw
      If(vv[j, 0] Lt 1.0) Then Begin ;fix for zero energy modes

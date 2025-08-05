@@ -20,8 +20,8 @@
 ;KEYWORDS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2019-03-15 16:32:12 -0700 (Fri, 15 Mar 2019) $
-; $LastChangedRevision: 26830 $
+; $LastChangedDate: 2025-08-04 15:42:16 -0700 (Mon, 04 Aug 2025) $
+; $LastChangedRevision: 33533 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_validlut.pro $
 ;
 ;CREATED BY:    David L. Mitchell  02-01-15
@@ -30,6 +30,6 @@
 function mvn_swe_validlut, lut
 
   if (size(lut,/type) eq 0) then return, 0
-  return, (lut eq 3B) or (lut eq 5B) or (lut eq 6B)
+  return, (lut eq 3B) or (lut eq 5B) or (lut eq 6B) or (lut eq 7B) or (lut eq 8B)
 
 end

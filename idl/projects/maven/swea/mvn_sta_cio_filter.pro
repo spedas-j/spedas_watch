@@ -48,8 +48,8 @@
 ;       SUCCESS :   Returns 1 if there were no problems.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-04-14 10:13:15 -0700 (Mon, 14 Apr 2025) $
-; $LastChangedRevision: 33261 $
+; $LastChangedDate: 2025-08-04 13:32:40 -0700 (Mon, 04 Aug 2025) $
+; $LastChangedRevision: 33530 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_filter.pro $
 ;
 ;CREATED BY:	David L. Mitchell
@@ -231,7 +231,8 @@ pro mvn_sta_cio_filter, ptr, in_filter, list=list, success=ok
     (*ptr).filter = filt
   endelse
 
-  print,'  Number of points passing through all filters: ',npass
+  print, "  Number of points passing through all filters: " + strtrim(string(npass),2), $
+         100.*float(npass)/float(npts), format='(a," (",f4.1,"%)")'
 
   return
 

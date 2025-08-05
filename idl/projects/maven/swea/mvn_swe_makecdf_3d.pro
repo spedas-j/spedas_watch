@@ -27,8 +27,8 @@
 ;   Code for data version 5; DLM: 2023-08
 ; VERSION:
 ;   $LastChangedBy: dmitchell $
-;   $LastChangedDate: 2024-01-14 17:10:01 -0800 (Sun, 14 Jan 2024) $
-;   $LastChangedRevision: 32362 $
+;   $LastChangedDate: 2025-08-04 15:40:32 -0700 (Mon, 04 Aug 2025) $
+;   $LastChangedRevision: 33531 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makecdf_3d.pro $
 ;
 ;-
@@ -62,6 +62,13 @@ pro mvn_swe_makecdf_3d, data, file = file, version = version, directory = direct
     endif
     data = temporary(data[indx])
   endif
+
+  indx = where(data.lut eq 5B, nrec)
+  if (nrec eq 0L) then begin
+    print, 'No valid 3D data!'
+    print, 'CDF file not created.'
+    return
+  endif else data = temporary(data[indx])  ; choose only sweep table 5
 
 ; Get data type -- survey or archive
 
