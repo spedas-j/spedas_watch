@@ -36,6 +36,28 @@
 ;    cycle.  It also fails within superthermal electron voids, where 
 ;    the flux at all energy channels is near background.
 ;
+;  Sweep tables are identified using two different numbering systems,
+;  LUTNUM and TABNUM.  The first is the table number used onboard in
+;  flight software, corresponding to the table number in SWEA memory.
+;  There are 8 LUT registers, numbered 0 through 7.  Of these, only
+;  the first four (0-3) are recognized by flight software.  Sweep
+;  tables are uploaded to the PFDPU and stored in non-volatile memory
+;  (survives power cycle).  When SWEA is powered on, the PFDPU tranfers
+;  these four tables to the SWEA's volatile memory.  Currently, the
+;  four tables are:
+;
+;       LUTNUM   TABNUM     Description
+;     -------------------------------------------------------------
+;         0         5       nominal ops: 3-4627.5 eV, V0 disabled
+;         1         9       hires at 125 eV
+;         2         7       hires at 200 eV
+;         3         8       hires at 50 eV
+;     -------------------------------------------------------------
+;
+;  Note that TABNUM 6 (3-4627.5 eV, V0 enabled) is no longer used.
+;  Table numbers (TABNUM) are defined in ground software.  This routine
+;  makes the connection between LUTNUM and TABNUM.
+;
 ;USAGE:
 ;  mvn_swe_getlut
 ;
@@ -77,12 +99,12 @@
 ;       DIAG:     Make diagnostic plots to evaluate and tune VOLT method.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-05-23 15:46:17 -0700 (Fri, 23 May 2025) $
-; $LastChangedRevision: 33327 $
+; $LastChangedDate: 2025-08-05 16:50:06 -0700 (Tue, 05 Aug 2025) $
+; $LastChangedRevision: 33536 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getlut.pro $
 ;-
 pro mvn_swe_getlut, dt_lut=dt_lut, volt=volt, vmean=vmean, dv_max=dv, flux=flux, diag=diag, tplot=tplot, $
-                    result=result
+                    result=lspec
 
   @mvn_swe_com
   common lutcom, dtl, vflg, fflg
@@ -131,7 +153,7 @@ pro mvn_swe_getlut, dt_lut=dt_lut, volt=volt, vmean=vmean, dv_max=dv, flux=flux,
 ; Define arrays
 
   nhsk = n_elements(swe_hsk)
-  lutnum = swe_hsk.ssctl
+  lutnum = swe_hsk.ssctl                         ; value from 0 to 3
 
 ; Initialize with nominal sweep table (used almost all the time)
 
@@ -179,7 +201,7 @@ pro mvn_swe_getlut, dt_lut=dt_lut, volt=volt, vmean=vmean, dv_max=dv, flux=flux,
     indx = where(lutnum eq 1 and swe_hsk.time gt t_swp[4], count)
     if (count gt 0L) then tabnum[indx] = 9B  ; hires @ 125 eV
     indx = where(lutnum eq 2, count)
-    if (count gt 0L) then tabnum[indx] = 0B  ; normal
+    if (count gt 0L) then tabnum[indx] = 7B  ; hires @ 200 eV
     indx = where(lutnum eq 3, count)
     if (count gt 0L) then tabnum[indx] = 8B  ; hires @ 50 eV
   endelse
@@ -217,42 +239,38 @@ pro mvn_swe_getlut, dt_lut=dt_lut, volt=volt, vmean=vmean, dv_max=dv, flux=flux,
     i7_9 = where(((hiav/loav) gt 0.1) and (loav gt 10.), n7_9, comp=i1_5, ncomp=n1_5)
   endif
 
-; Get timing for a4 (see mvn_swe_makespec for more info)
+; Get SPEC timing (see mvn_swe_makespec)
 
   npkt = n_elements(a4)            ; number of SPEC packets
   npts = 16L*npkt                  ; 16 spectra per packet
-  tspec = replicate(0D, 16L*npkt)  ; center time for each spectrum
-  if (n_elements(mvn_swe_engy) ne npts) then begin
-    mvn_swe_engy = replicate(swe_engy_struct, npts)
+  tspec = replicate(0D, npts)      ; center time for each SPEC
+  lspec = replicate(0B, npts)      ; tabnum for each SPEC
 
-    for i=0L,(npkt-1L) do begin
-      delta_t = swe_dt[a4[i].period]*dindgen(16) + (1.95D/2D)  ; center time offset (sample mode)
-      if (a4[i].smode) then delta_t += (2D^a4[i].period - 1D)  ; center time offset (sum mode)
+  for i=0L,(npkt-1L) do begin
+    delta_t = swe_dt[a4[i].period]*dindgen(16) + (1.95D/2D)  ; center time offset (sample mode)
+    if (a4[i].smode) then delta_t += (2D^a4[i].period - 1D)  ; center time offset (sum mode)
+    j = i*16L
+    tspec[j:(j+15L)] = a4[i].time + delta_t
+  endfor
 
-      j = i*16L
-      tspec[j:(j+15L)] = a4[i].time + delta_t
-    endfor
-
-    dt_mode = swe_dt[a4.period]*16D        ; nominal time interval between packets
-    dt_pkt = a4.time - shift(a4.time,1)    ; actual time interval between packets
-    dt_pkt[0] = dt_pkt[1]
-    dn_pkt = a4.npkt - shift(a4.npkt,1)    ; look for data gaps
-    dn_pkt[0] = 1B
-    j = where((abs(dt_pkt - dt_mode) gt 0.5D) and (dn_pkt eq 1B), count)
-    for i=0,(count-1) do begin
-      dt1 = dt_mode[(j[i] - 1L) > 0L]/16D  ; cadence before mode change
-      dt2 = dt_mode[j[i]]/16D              ; cadence after mode change
-      if (abs(dt1 - dt2) gt 0.5D) then begin
-        m = 16L*((j[i] - 1L) > 0L)
-        n = round((dt_pkt[j[i]] - 16D*dt2)/(dt1 - dt2)) + 1L
-        if ((n gt 0) and (n lt 16)) then begin
-          dt_fix = (dt2 - dt1)*(dindgen(16-n) + 1D)
-          tspec[(m+n):(m+15L)] += dt_fix
-        endif
+  dt_mode = swe_dt[a4.period]*16D        ; nominal time interval between packets
+  dt_pkt = a4.time - shift(a4.time,1)    ; actual time interval between packets
+  dt_pkt[0] = dt_pkt[1]
+  dn_pkt = a4.npkt - shift(a4.npkt,1)    ; look for data gaps
+  dn_pkt[0] = 1B
+  j = where((abs(dt_pkt - dt_mode) gt 0.5D) and (dn_pkt eq 1B), count)
+  for i=0,(count-1) do begin
+    dt1 = dt_mode[(j[i] - 1L) > 0L]/16D  ; cadence before mode change
+    dt2 = dt_mode[j[i]]/16D              ; cadence after mode change
+    if (abs(dt1 - dt2) gt 0.5D) then begin
+      m = 16L*((j[i] - 1L) > 0L)
+      n = round((dt_pkt[j[i]] - 16D*dt2)/(dt1 - dt2)) + 1L
+      if ((n gt 0) and (n lt 16)) then begin
+        dt_fix = (dt2 - dt1)*(dindgen(16-n) + 1D)
+        tspec[(m+n):(m+15L)] += dt_fix
       endif
-    endfor
-    mvn_swe_engy.time = tspec
-  endif
+    endif
+  endfor
 
 ; Insert LUT information into data structures
 
@@ -263,53 +281,60 @@ pro mvn_swe_getlut, dt_lut=dt_lut, volt=volt, vmean=vmean, dv_max=dv, flux=flux,
 
     jndx = where(tabnum le lutcut, count)
     if (count gt 0L) then begin
-      indx = nn2(swe_hsk[jndx].time + dtl, mvn_swe_engy[i1_5].time)
-      mvn_swe_engy[i1_5].lut = tabnum[jndx[indx]]
+      indx = nn2(swe_hsk[jndx].time + dtl, tspec[i1_5])
+      lspec[i1_5] = tabnum[jndx[indx]]
     endif
 
     jndx = where(tabnum gt lutcut, count)
     if (count gt 0L) then begin
-      indx = nn2(swe_hsk[jndx].time + dtl, mvn_swe_engy[i7_9].time)
-      mvn_swe_engy[i7_9].lut = tabnum[jndx[indx]]
+      indx = nn2(swe_hsk[jndx].time + dtl, tspec[i7_9])
+      lspec[i7_9] = tabnum[jndx[indx]]
     endif
   endif else begin
-    indx = nn2(swe_hsk.time + dtl, mvn_swe_engy.time)
-    mvn_swe_engy.lut = tabnum[indx]
+    indx = nn2(swe_hsk.time + dtl, tspec)
+    lspec = tabnum[indx]
   endelse
 
   delta_t = 1.95D/2D  ; start time to center time for PAD and 3D
 
+  if (size(a0,/type) eq 8) then begin
+    indx = nn2(tspec, (a0.time + delta_t))
+    a0.lut = lspec[indx]
+  endif
+
+  if (size(a1,/type) eq 8) then begin
+    indx = nn2(tspec, (a1.time + delta_t))
+    a1.lut = lspec[indx]
+  endif
+
   if (size(a2,/type) eq 8) then begin
-    indx = nn2(mvn_swe_engy.time, (a2.time + delta_t))
-    a2.lut = mvn_swe_engy[indx].lut
+    indx = nn2(tspec, (a2.time + delta_t))
+    a2.lut = lspec[indx]
   endif
 
   if (size(a3,/type) eq 8) then begin
-    indx = nn2(mvn_swe_engy.time, (a3.time + delta_t))
-    a3.lut = mvn_swe_engy[indx].lut
+    indx = nn2(tspec, (a3.time + delta_t))
+    a3.lut = lspec[indx]
   endif
 
-  if (size(a4,/type) eq 8) then begin
-    indx = 16L*lindgen(n_elements(mvn_swe_engy.lut)/16L) + 8L
-    a4.lut = mvn_swe_engy[indx].lut
-  endif
+; The PFDPU assigns a LUT value to each a4 packet.  However, the LUT can change
+; while an a4 packet is being accumulated, so it doesn't make sense to update
+; the LUT values for a4 packets.
 
   if (size(swe_3d,/type) eq 8) then begin
-    indx = nn2(mvn_swe_engy.time, (swe_3d.time + delta_t))
-    swe_3d.lut = mvn_swe_engy[indx].lut
+    indx = nn2(tspec, (swe_3d.time + delta_t))
+    swe_3d.lut = lspec[indx]
   endif
 
   if (size(swe_3d_arc,/type) eq 8) then begin
-    indx = nn2(mvn_swe_engy.time, (swe_3d_arc.time + delta_t))
-    swe_3d_arc.lut = mvn_swe_engy[indx].lut
+    indx = nn2(tspec, (swe_3d_arc.time + delta_t))
+    swe_3d_arc.lut = lspec[indx]
   endif
-
-  result = mvn_swe_engy.lut
 
 ; Make a tplot panel
 
   if keyword_set(tplot) then begin
-    store_data,'TABNUM',data={x:mvn_swe_engy.time, y:mvn_swe_engy.lut}
+    store_data,'TABNUM',data={x:tspec, y:lspec}
     ylim,'TABNUM',4.5,9.5,0
     options,'TABNUM','panel_size',0.5
     options,'TABNUM','ytitle','SWE LUT'
@@ -318,7 +343,5 @@ pro mvn_swe_getlut, dt_lut=dt_lut, volt=volt, vmean=vmean, dv_max=dv, flux=flux,
     options,'TABNUM','colors',[4]
     options,'TABNUM','constant',[5,7,8,9]
   endif
-
-  return
 
 end

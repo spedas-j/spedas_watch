@@ -94,8 +94,8 @@
 ;                      to a higher number to see more diagnostic messages.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-06-03 11:58:01 -0700 (Tue, 03 Jun 2025) $
-; $LastChangedRevision: 33363 $
+; $LastChangedDate: 2025-08-05 16:48:13 -0700 (Tue, 05 Aug 2025) $
+; $LastChangedRevision: 33535 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_load_l0.pro $
 ;
 ;CREATED BY:    David L. Mitchell  04-25-13
@@ -362,11 +362,11 @@ pro mvn_swe_load_l0, trange, filename=filename, latest=latest, maxbytes=maxbytes
 
 ; Determine sweep table for each measurement
 
-  mvn_swe_getlut
+  mvn_swe_getlut, /flux, result=tabnum
 
 ; Make energy spectra
 
-  mvn_swe_makespec
+  mvn_swe_makespec, lut=tabnum
 
 ; Load MAG data and rotate to the SWEA frame
 ;   priority order: L2, L1, PAD MAG angles (L0)
