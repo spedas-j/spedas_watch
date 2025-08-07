@@ -59,6 +59,9 @@
 ;
 ;   KP_COMP:   Value for COMPOSITE keyword for mvn_swe_kp.
 ;
+;   HIRES:     Use the constant flux method for identifing the hires sweep
+;              tables (7-9).  Only needed during hires campaigns.
+;
 ;   REFRESH:   Action to take if a quality save file is not found.
 ;              This keyword can have one of three integer values:
 ;
@@ -79,14 +82,14 @@
 ; Better memory management and added keywords to control processing: dlm
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-28 11:55:37 -0700 (Sun, 28 Jul 2024) $
-; $LastChangedRevision: 32771 $
+; $LastChangedDate: 2025-08-06 08:57:18 -0700 (Wed, 06 Aug 2025) $
+; $LastChangedRevision: 33541 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/l2gen/mvn_swe_l2gen.pro $
 ;- 
 pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol2=nol2, $
                    abins=abins, dbins=dbins, obins=obsin, mask_sc=mask_sc, kp_qlev=kp_qlev, $
                    dospec=dospec, dopad=dopad, do3d=do3d, refresh=refresh, kp_comp=kp_comp, $
-                   _extra=_extra
+                   hires=hires, _extra=_extra
 
   @mvn_swe_com
 
@@ -97,6 +100,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
   dopad = (n_elements(dopad) gt 0) ? keyword_set(dopad) : 1
   do3d = (n_elements(do3d) gt 0) ? keyword_set(do3d) : 1
   dokp = (n_elements(dokp) gt 0) ? keyword_set(dokp) : 1
+  dohires = keyword_set(hires)
   refresh = (n_elements(refresh) gt 0) ? fix(refresh[0]) > 0 < 2 : 2
   if keyword_set(nol2) then begin
     dospec = 0
@@ -182,7 +186,7 @@ pro mvn_swe_l2gen, date=date, directory=directory, l2only=l2only, dokp=dokp, nol
 
   mvn_swe_clear
   timespan, [tm1,tp1]
-  mvn_swe_load_l0, /nospice
+  mvn_swe_load_l0, /nospice, hires=dohires
 
 ; Determine what was loaded and what to do
 

@@ -90,12 +90,15 @@
 ;
 ;       REALTIME:      Use realtime file naming convention: YYYYMMDD_HHMMSS_*_l0.dat
 ;
+;       HIRES:         Search for high time resolution sweep tables (7-9) using 
+;                      the constant flux method.
+;
 ;       VERBOSE:       Level of diagnostic message suppression.  Default = 0.  Set
 ;                      to a higher number to see more diagnostic messages.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-08-05 16:48:13 -0700 (Tue, 05 Aug 2025) $
-; $LastChangedRevision: 33535 $
+; $LastChangedDate: 2025-08-06 08:56:11 -0700 (Wed, 06 Aug 2025) $
+; $LastChangedRevision: 33540 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_load_l0.pro $
 ;
 ;CREATED BY:    David L. Mitchell  04-25-13
@@ -103,8 +106,8 @@
 ;-
 pro mvn_swe_load_l0, trange, filename=filename, latest=latest, maxbytes=maxbytes, badpkt=badpkt, $
                              cdrift=cdrift, sumplot=sumplot, status=status, orbit=orbit, $
-                             loadonly=loadonly, spiceinit=spiceinit, nodupe=nodupe, $
-                             survey=survey, realtime=realtime, nospice=nospice, verbose=verbose
+                             loadonly=loadonly, spiceinit=spiceinit, nodupe=nodupe, survey=survey, $
+                             realtime=realtime, hires=hires, nospice=nospice, verbose=verbose
 
   @mvn_swe_com
 
@@ -116,6 +119,7 @@ pro mvn_swe_load_l0, trange, filename=filename, latest=latest, maxbytes=maxbytes
 
   if (size(verbose,/type) eq 0) then mvn_swe_verbose, get=verbose
   dosurvey = keyword_set(survey)
+  dohires = keyword_set(hires)
 
   if not keyword_set(maxbytes) then maxbytes = 0
   if (size(nodupe,/type) eq 0) then nodupe = 1
@@ -360,11 +364,13 @@ pro mvn_swe_load_l0, trange, filename=filename, latest=latest, maxbytes=maxbytes
 
   mvn_swe_calib
 
-; Determine sweep table for each measurement
+; Determine sweep table for each measurement.  If HIRES is set,
+; this is done using the constant flux method for identifying 
+; the hires sweep tables.  Otherwise, only housekeeping is used.
 
-  mvn_swe_getlut, /flux, result=tabnum
+  mvn_swe_getlut, flux=dohires, result=tabnum
 
-; Make energy spectra
+; Make energy spectra.  Use the table numbers from above.
 
   mvn_swe_makespec, lut=tabnum
 

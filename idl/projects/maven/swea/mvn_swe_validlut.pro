@@ -7,9 +7,8 @@
 ;  2014.  Table 6 is very similar to 5, except that it enables
 ;  V0.
 ;
-;  The high resolution tables (7 and 8) do not comform to the
-;  PDS archive specification and will need to be handled
-;  separately.
+;  The high resolution tables (7-9) do not comform to the PDS
+;  archive specification so they are handled separately.
 ;
 ;USAGE:
 ;  valid = mvn_swe_validlut(lut)
@@ -20,8 +19,8 @@
 ;KEYWORDS:
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-08-04 15:42:16 -0700 (Mon, 04 Aug 2025) $
-; $LastChangedRevision: 33533 $
+; $LastChangedDate: 2025-08-06 08:41:03 -0700 (Wed, 06 Aug 2025) $
+; $LastChangedRevision: 33537 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_validlut.pro $
 ;
 ;CREATED BY:    David L. Mitchell  02-01-15
@@ -30,6 +29,6 @@
 function mvn_swe_validlut, lut
 
   if (size(lut,/type) eq 0) then return, 0
-  return, (lut eq 3B) or (lut eq 5B) or (lut eq 6B) or (lut eq 7B) or (lut eq 8B)
+  return, (lut eq 3B) or (lut eq 5B) or (lut eq 6B)
 
 end

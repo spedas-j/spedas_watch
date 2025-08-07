@@ -27,8 +27,8 @@
 ;   Code for data version 5; DLM: 2023-08
 ; VERSION:
 ;   $LastChangedBy: dmitchell $
-;   $LastChangedDate: 2025-08-04 15:40:32 -0700 (Mon, 04 Aug 2025) $
-;   $LastChangedRevision: 33531 $
+;   $LastChangedDate: 2025-08-06 09:45:05 -0700 (Wed, 06 Aug 2025) $
+;   $LastChangedRevision: 33543 $
 ;   $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_makecdf_spec.pro $
 ;
 ;-
@@ -48,13 +48,13 @@ pro mvn_swe_makecdf_spec, data, file = file, version = version, directory = dire
 ; Identify data that do not use sweep table 3, 5 or 6.  Table 3
 ; is primary during cruise, and was superceded by table 5 during 
 ; transition on Oct. 6, 2014.  Table 6 is very similar to 5, 
-; except that it enables V0.  Exclude invalid data from the CDF.
+; except that it enables V0.  The vast majority of SWEA data use
+; table 5.  Tables 7-9 are time high resolution at a single energy, 
+; which do not conform to the PDS documentation for SWEA.  These 
+; data are excluded from the CDF.
 
-  indx = where(~mvn_swe_validlut(data.lut), count)
-  if (count gt 0L) then begin
-    data[indx].valid = 0B
-
-    indx = where(data.valid, nrec)
+  indx = where(mvn_swe_validlut(data.lut), nrec, ncomplement=nbad)
+  if (nbad gt 0L) then begin
     if (nrec eq 0L) then begin
       print, 'No valid SPEC data!'
       print, 'CDF file not created.'
@@ -62,13 +62,6 @@ pro mvn_swe_makecdf_spec, data, file = file, version = version, directory = dire
     endif
     data = temporary(data[indx])
   endif
-
-  indx = where(data.lut eq 5B, nrec)
-  if (nrec eq 0L) then begin
-    print, 'No valid SPEC data!'
-    print, 'CDF file not created.'
-    return
-  endif else data = temporary(data[indx])  ; choose only sweep table 5
 
 ; Get data type -- survey or archive
 
