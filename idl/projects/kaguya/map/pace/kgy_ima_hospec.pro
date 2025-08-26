@@ -7,6 +7,9 @@
 ;       kgy_ima_hospec
 ; KEYWORDS:
 ;       trange: time range
+;       tres: time resolution (Default: 512 s). Set tres=0 for highest res.
+;       polrange: polar angle range - see Figs. 22 and 24 of Saito+2010
+;       dtof: tof_cent*(1 +/- dtof) (Default: 0.1)
 ; CREATED BY:
 ;       Yuki Harada on 2022-05-25
 ;
@@ -16,13 +19,14 @@
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/kaguya/map/pace/kgy_ima_emspec.pro $
 ;-
 
-pro kgy_ima_hospec,trange=trange,erange=erange,Kloss=Kloss,dtof=dtof,tres=tres
+pro kgy_ima_hospec,trange=trange,erange=erange,Kloss=Kloss,dtof=dtof,tres=tres,suffix=suffix,polrange=polrange
 
-if ~keyword_set(dtof) then dtof = 0.1 ;- tof_cent +/- dtof
+if ~keyword_set(dtof) then dtof = 0.1 ;- tof_cent*(1 +/- dtof)
 if size(tres,/type) eq 0 then tres = 512d
 tr = timerange(trange)
 if n_elements(erange) eq 2 then er = minmax(erange) else er = [20,10e3]
 if ~keyword_set(Kloss) then Kloss = 2 ;- 0, 1, 2, 3, 4, 5
+if ~keyword_set(suffix) then suffix = ''
 
 @kgy_pace_com
 
@@ -43,15 +47,27 @@ endif
 ind = header[wt].index
 nind = nwt
 times = times[wt]
+ram = header[wt].svs_tbl
+
 
 datind = value_locate( dat.index, ind )
 cnt = float(dat[datind].cnt)    ;- pol, ene, tof, time
 w = where( cnt eq uint(-1) , nw )
 if nw gt 0 then cnt[w] = !values.f_nan
-;;; FIXME: theta range?
+if n_elements(polrange) eq 2 then begin    ;- 0->90 range
+   ;;; Note: Type 40 pol. sorted
+   ;;; See momcal.c:
+   ;; // tmp_sum_cnt4 += ((double)s_ima_type40.cnt[inv_pol_map4[j]][inv_ene_map32[i]][l]); // bug 
+   ;;    tmp_sum_cnt4 += ((double)s_ima_type40.cnt[j][inv_ene_map32[i]][l]);} // Type 40 pol. sorted 
+   pol = -1.*median(info.pol_4x16[ram,*,*,*],dim=4)    ;- ram, ene, pol, az -> time, ene, pol
+   pol = transpose(rebin(pol,nwt,32,4,1024),[2,1,3,0]) ;- -> pol, ene, tof, time
+   spol = sort(pol[*,0,0,0])
+   pol = pol[spol,*,*,*]
+   w = where( pol gt min(polrange) and pol lt max(polrange) , comp=cw, ncomp=ncw )
+   if ncw gt 0 then cnt[cw] = 0.
+endif
 cnt = total(cnt,1,/nan)         ;- ene, tof, time
 cnt[*,1022:1023,*] = 0.         ;- throw away mass bin 1022,1023
-
 ene = average(reform(info.ene_4x16[0,*,*,4]),2)*1e3
 
 
@@ -152,10 +168,10 @@ if keyword_set(tres) then begin
    times = newt
 endif
 
-store_data,'kgy_ima_H_en_counts',times,cnt_h,yp, $
+store_data,'kgy_ima_H_en_counts'+suffix,times,cnt_h,yp, $
            dlim={yrange:er,ystyle:1,ylog:1,yticklen:-.01,ytitle:'IMA H!u+!n!cEnergy!c[eV]', $
                  spec:1,zlog:1,ztitle:'Counts'}
-store_data,'kgy_ima_O_en_counts',times,cnt_o,yp, $
+store_data,'kgy_ima_O_en_counts'+suffix,times,cnt_o,yp, $
            dlim={yrange:er,ystyle:1,ylog:1,yticklen:-.01,ytitle:'IMA O!u+!n!cEnergy!c[eV]', $
                  spec:1,zlog:1,ztitle:'Counts'}
 

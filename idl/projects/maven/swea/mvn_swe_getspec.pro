@@ -43,19 +43,20 @@
 ;                      then no data are returned.  Default = 4 sec.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-05-04 14:47:18 -0700 (Sat, 04 May 2024) $
-; $LastChangedRevision: 32548 $
+; $LastChangedDate: 2025-08-25 13:35:48 -0700 (Mon, 25 Aug 2025) $
+; $LastChangedRevision: 33574 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_getspec.pro $
 ;
 ;CREATED BY:    David L. Mitchell  03-29-14
 ;FILE: mvn_swe_getspec.pro
 ;-
-function mvn_swe_getspec, time, archive=archive, sum=sum, units=units, yrange=yrange, burst=burst, $
+function mvn_swe_getspec, timein, archive=archive, sum=sum, units=units, yrange=yrange, burst=burst, $
                           shiftpot=shiftpot, qlevel=qlevel, maxdt=maxdt
 
   @mvn_swe_com  
 
-  npts = n_elements(time)
+  npts = n_elements(timein)
+  if (npts gt 0L) then time = time_double(timein)
   archive = keyword_set(archive) or keyword_set(burst)
   qlevel = n_elements(qlevel) gt 0L ? byte(qlevel[0]) < 2B : 0B
   maxdt = n_elements(maxdt) gt 0L ? double(maxdt[0]) : 4D
@@ -90,7 +91,7 @@ function mvn_swe_getspec, time, archive=archive, sum=sum, units=units, yrange=yr
                spec = mvn_swe_engy_arc[iref]
              end
       else : begin
-               tmin = min(time_double(time), max=tmax)
+               tmin = min(time, max=tmax)
                iref = where((mvn_swe_engy_arc.time ge tmin) and $
                             (mvn_swe_engy_arc.time le tmax), count)
                if (count eq 0L) then begin
@@ -112,7 +113,7 @@ function mvn_swe_getspec, time, archive=archive, sum=sum, units=units, yrange=yr
                spec = mvn_swe_engy[iref]
              end
       else : begin
-               tmin = min(time_double(time), max=tmax)
+               tmin = min(time, max=tmax)
                iref = where((mvn_swe_engy.time ge tmin) and $
                             (mvn_swe_engy.time le tmax), count)
                if (count eq 0L) then begin

@@ -9,9 +9,9 @@
 ;
 ;CREATED BY:    Davin Larson
 ;LAST MODIFICATION:     @(#)minmax.pro	1.2 02/04/17
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2020-12-16 13:00:06 -0800 (Wed, 16 Dec 2020) $
-; $LastChangedRevision: 29505 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2025-08-20 11:11:05 -0700 (Wed, 20 Aug 2025) $
+; $LastChangedRevision: 33563 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/misc/minmax.pro $
 
 ;-
@@ -55,7 +55,7 @@ if n_elements(min_value) then begin
 endif
 
 
-mx = max(data,MIN=mn)
+mx = max(data,MIN=mn,/nan)
 return,[mn,mx]
 end
 
