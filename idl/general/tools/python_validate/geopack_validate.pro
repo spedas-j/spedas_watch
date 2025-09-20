@@ -1,4 +1,4 @@
-pro circle_5re
+pro circle_5re,start_time,suffix
   ; Generate a circle at 5 RE in the XZ plane
   angle = dindgen(361.0)*!dpi/180.0
   
@@ -6,16 +6,16 @@ pro circle_5re
   pos[*,0] = 5.0*sin(angle)
   pos[*,1] = 0.0
   pos[*,2] = 5.0*cos(angle)
-  t = time_double('2024-01-01/06:31:00') + dindgen(361.0)
+  t = time_double(start_time) + dindgen(361.0)
   dl = {data_att:{units:'Re',coord_sys:'GSM'}}
-  store_data,'circle_magpoles_5re',data={x:t,y:pos},dl=dl
-  tkm2re,'circle_magpoles_5re',/km
+  store_data,'circle_magpoles_5re'+suffix,data={x:t,y:pos},dl=dl
+  tkm2re,'circle_magpoles_5re'+suffix,/km
   ;tplot,['circle_magpoles_5re','circle_magpoles_5re_km']
  end 
   
 
 
-pro geopack_validate,cdf_filename=cdf_filename
+pro geopack_validate,filename=filename
 
 ; Load position data for field calculations
 timespan,'2007-03-23'
@@ -40,21 +40,54 @@ tt04s,'tha_state_pos_gsm',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,w1=8.0,w2=5.0,w
 
 ;  For additional test coverage, compute at 5 Re circle in GSM YZ plane
 
-circle_5re
+circle_5re,'2026-01-01/06:31:00','_2026'
+circle_5re,'2024-01-01/06:31:00','_2024'
+circle_5re,'2019-01-01/06:31:00','_2019'
+circle_5re,'2014-01-01/06:31:00','_2014'
 
 ; T96
-tt96,'circle_magpoles_5re_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,/exact_tilt_times,newname='tst5re_bt96'
+tt96,'circle_magpoles_5re_2026_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,/exact_tilt_times,newname='tst5re_2026_bt96'
+tt96,'circle_magpoles_5re_2024_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,/exact_tilt_times,newname='tst5re_2024_bt96'
+tt96,'circle_magpoles_5re_2019_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,/exact_tilt_times,newname='tst5re_2019_bt96'
+tt96,'circle_magpoles_5re_2014_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,/exact_tilt_times,newname='tst5re_2014_bt96'
 
 ; T01
-tt01,'circle_magpoles_5re_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,g1=6.0,g2=10.0,/exact_tilt_times,newname='tst5re_bt01'
+tt01,'circle_magpoles_5re_2026_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,g1=6.0,g2=10.0,/exact_tilt_times,newname='tst5re_2026_bt01'
+tt01,'circle_magpoles_5re_2024_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,g1=6.0,g2=10.0,/exact_tilt_times,newname='tst5re_2024_bt01'
+tt01,'circle_magpoles_5re_2019_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,g1=6.0,g2=10.0,/exact_tilt_times,newname='tst5re_2019_bt01'
+tt01,'circle_magpoles_5re_2014_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,g1=6.0,g2=10.0,/exact_tilt_times,newname='tst5re_2014_bt01'
 
 ; TS04
 
-tt04s,'circle_magpoles_5re_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,w1=8.0,w2=5.0,w3=9.5,w4=30.0,w5=18.5,w6=60.0,/exact_tilt_times,newname='tst5re_bts04'
+tt04s,'circle_magpoles_5re_2026_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,w1=8.0,w2=5.0,w3=9.5,w4=30.0,w5=18.5,w6=60.0,/exact_tilt_times,newname='tst5re_2026_bts04'
+tt04s,'circle_magpoles_5re_2024_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,w1=8.0,w2=5.0,w3=9.5,w4=30.0,w5=18.5,w6=60.0,/exact_tilt_times,newname='tst5re_2024_bts04'
+tt04s,'circle_magpoles_5re_2019_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,w1=8.0,w2=5.0,w3=9.5,w4=30.0,w5=18.5,w6=60.0,/exact_tilt_times,newname='tst5re_2019_bts04'
+tt04s,'circle_magpoles_5re_2014_km',pdyn=2.0,dsti=-30.0,yimf=0.0,zimf=-5.0,w1=8.0,w2=5.0,w3=9.5,w4=30.0,w5=18.5,w6=60.0,/exact_tilt_times,newname='tst5re_2014_bts04'
 
-timespan,'2024-01-01/06:31:00',10,/min
-tplot,['circle_magpoles_5re_km','tst5re_bt01','tst5re_bt96','tst5re_bts04']
-cdf_varlist=['tha_state_pos_gsm','bt89_tilt','bt89','bt89_igrf',$
-  'bt96','bt01','bts04','circle_magpoles_5re_km', 'circle_magpoles_5re','tst5re_bt96','tst5re_bt01','tst5re_bts04']
-tplot2cdf,filename=cdf_filename,tvars=cdf_varlist,/default_cdf_structure
+;timespan,'2024-01-01/06:31:00',10,/min
+;tplot,['circle_magpoles_5re_km','tst5re_bt01','tst5re_bt96','tst5re_bts04']
+varlist=['tha_state_pos_gsm','bt89_tilt','bt89','bt89_igrf',$
+  'bt96','bt01','bts04',$
+  'circle_magpoles_5re_2026_km', 'circle_magpoles_5re_2026',$
+  'circle_magpoles_5re_2024_km', 'circle_magpoles_5re_2024',$
+  'circle_magpoles_5re_2019_km', 'circle_magpoles_5re_2019',$
+  'circle_magpoles_5re_2014_km', 'circle_magpoles_5re_2014',$
+
+  'tst5re_2026_bt96',$
+  'tst5re_2024_bt96',$
+  'tst5re_2019_bt96',$
+  'tst5re_2014_bt96',$
+
+  'tst5re_2026_bt01',$
+  'tst5re_2024_bt01',$
+  'tst5re_2019_bt01',$
+  'tst5re_2014_bt01',$
+
+  'tst5re_2026_bts04',$
+  'tst5re_2024_bts04',$
+  'tst5re_2019_bts04',$
+  'tst5re_2014_bts04' ]
+  
+;tplot2cdf,filename=cdf_filename,tvars=cdf_varlist,/default_cdf_structure
+tplot_save,varlist,filename=filename
 end
