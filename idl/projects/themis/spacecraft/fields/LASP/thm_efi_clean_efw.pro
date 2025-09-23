@@ -463,10 +463,17 @@ Endif
 ; STORE E DATA
 ; add BAND to data_att -JBT
 flow = floor((flow + 2.5)/5.) * 5.
+if abs(srate-1024.) lt 10 then bandmsg = '~' + string(flow, format='(I0)') + $
+         ' Hz -- ~0.4 kHz'
+if abs(srate-2048.) lt 10 then bandmsg = '~' + string(flow, format='(I0)') + $
+         ' Hz -- ~0.8 kHz'
+if abs(srate-4096.) lt 10 then bandmsg = '~' + string(flow, format='(I0)') + $
+         ' Hz -- ~1.6 kHz'
 if abs(srate-8192.) lt 10 then bandmsg = '~' + string(flow, format='(I0)') + $
          ' Hz -- ~3.3 kHz'
 if abs(srate-16384.) lt 10 then bandmsg = '~' + string(flow, format='(I0)') + $
          ' Hz -- ~6.6 kHz'
+
 data_att = {DATA_TYPE: elim.data_att.DATA_TYPE, $
             COORD_SYS: elim.data_att.COORD_SYS, $
             UNITS: elim.data_att.UNITS, $
