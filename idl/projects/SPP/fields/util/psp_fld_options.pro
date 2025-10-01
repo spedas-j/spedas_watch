@@ -7,31 +7,82 @@ pro psp_fld_options, type = type, level = level
 
   psp_fld_sensor_colors = orderedhash()
 
-  matplotlib_indices = [25 * indgen(12) + 8]
+  psp_fld_sensor_colors['V1'] = 72
+  psp_fld_sensor_colors['V2'] = 136
+  psp_fld_sensor_colors['V3'] = 104
+  psp_fld_sensor_colors['V4'] = 88
+  psp_fld_sensor_colors['V5'] = 0
 
-  psp_fld_sensor_colors['V1'] = matplotlib_indices[1]
-  psp_fld_sensor_colors['V2'] = matplotlib_indices[2]
-  psp_fld_sensor_colors['V3'] = matplotlib_indices[4]
-  psp_fld_sensor_colors['V4'] = matplotlib_indices[6]
-  psp_fld_sensor_colors['V5'] = matplotlib_indices[5]
+  psp_fld_sensor_colors['V1LG'] = 72
+  psp_fld_sensor_colors['V2LG'] = 136
+  psp_fld_sensor_colors['V3LG'] = 104
+  psp_fld_sensor_colors['V4LG'] = 88
+  psp_fld_sensor_colors['V5LG'] = 0
 
-  psp_fld_sensor_colors['V1LG'] = matplotlib_indices[1]
-  psp_fld_sensor_colors['V2LG'] = matplotlib_indices[2]
-  psp_fld_sensor_colors['V3LG'] = matplotlib_indices[4]
-  psp_fld_sensor_colors['V4LG'] = matplotlib_indices[6]
-  psp_fld_sensor_colors['V5LG'] = matplotlib_indices[5]
-
-  psp_fld_sensor_colors['V1V2'] = matplotlib_indices[0]
-  psp_fld_sensor_colors['V3V4'] = matplotlib_indices[3]
+  psp_fld_sensor_colors['V1V2'] = 24
+  psp_fld_sensor_colors['V3V4'] = 40
 
   psp_fld_sensor_colors['V1234'] = 0
 
-  psp_fld_sensor_colors['SCM4'] = matplotlib_indices[6]
-  psp_fld_sensor_colors['SCM5'] = matplotlib_indices[8]
+  psp_fld_sensor_colors['SCM4'] = 152
+  psp_fld_sensor_colors['SCM5'] = 152
 
-  psp_fld_sensor_colors['SCM4LG'] = matplotlib_indices[6]
+  psp_fld_sensor_colors['SCM4LG'] = 152
 
-  psp_fld_sensor_color_table = 134
+  psp_fld_sensor_color_table = 133
+
+  ; MARK: Level 2 F2 100BPS
+
+  if type eq 'f2_100bps' and level eq 2 then begin
+    dfb_vdc_labels0 = ['V1', 'V2', 'V3', 'V4', 'V5']
+
+    get_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC_V1', dat = dfb_vdc_v1, lim = lim_v1
+    get_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC_V2', dat = dfb_vdc_v2, lim = lim_v2
+    get_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC_V3', dat = dfb_vdc_v3, lim = lim_v3
+    get_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC_V4', dat = dfb_vdc_v4, lim = lim_v4
+
+    dfb_vdc_v1234_y = [[dfb_vdc_v1.y], [dfb_vdc_v1.y], [dfb_vdc_v1.y], [dfb_vdc_v1.y]]
+
+    dfb_vdc_v1234_median = median(dfb_vdc_v1234_y, dim = 2)
+
+    store_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC_V1_diff', $
+      data = {x: dfb_vdc_v1.x, y: dfb_vdc_v1.y - dfb_vdc_v1234_median}, lim = lim_v1
+    store_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC_V2_diff', $
+      data = {x: dfb_vdc_v2.x, y: dfb_vdc_v2.y - dfb_vdc_v1234_median}, lim = lim_v2
+    store_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC_V3_diff', $
+      data = {x: dfb_vdc_v3.x, y: dfb_vdc_v3.y - dfb_vdc_v1234_median}, lim = lim_v3
+    store_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC_V4_diff', $
+      data = {x: dfb_vdc_v4.x, y: dfb_vdc_v4.y - dfb_vdc_v1234_median}, lim = lim_v4
+
+    ; stop
+
+    dfb_vdc_tnames = []
+    dfb_vdc_colors = []
+    dfb_vdc_labels = []
+
+    foreach dfb_vdc_label, dfb_vdc_labels0 do begin
+      dfb_vdc_tname = tnames('PSP_FLD_L2_F2_100bps_DFB_VDC_' + dfb_vdc_label)
+
+      if dfb_vdc_tname ne '' then begin
+        dfb_vdc_tnames = [dfb_vdc_tnames, dfb_vdc_tname]
+        dfb_vdc_colors = [dfb_vdc_colors, psp_fld_sensor_colors[dfb_vdc_label]]
+        dfb_vdc_labels = [dfb_vdc_labels, dfb_vdc_label]
+      endif
+    endforeach
+
+    if n_elements(dfb_vdc_tnames) gt 0 then begin
+      store_data, 'PSP_FLD_L2_F2_100bps_DFB_VDC', data = dfb_vdc_tnames
+      options, 'PSP_FLD_L2_F2_100bps_DFB_VDC', 'labels', dfb_vdc_labels
+      options, 'PSP_FLD_L2_F2_100bps_DFB_VDC', 'labflag', 1
+      options, 'PSP_FLD_L2_F2_100bps_DFB_VDC', 'colors', dfb_vdc_colors
+
+      options, 'PSP_FLD_L2_F2_100bps_DFB_VDC', 'line_colors', 10
+
+      options, 'PSP_FLD_L2_F2_100bps_DFB_VDC', 'color_table', psp_fld_sensor_color_table
+
+      options, 'PSP_FLD_L2_F2_100bps_DFB_VDC', 'ytitle', 'F2_100BPS!CDFB WF VDC'
+    endif
+  endif
 
   ; MARK: Level 2 DFB WF VDC
 
@@ -57,6 +108,8 @@ pro psp_fld_options, type = type, level = level
       options, 'psp_fld_l2_dfb_wf_Vdc', 'labels', dfb_vdc_labels
       options, 'psp_fld_l2_dfb_wf_Vdc', 'labflag', 1
       options, 'psp_fld_l2_dfb_wf_Vdc', 'colors', dfb_vdc_colors
+
+      options, 'psp_fld_l2_dfb_wf_Vdc', 'line_colors', 10
 
       options, 'psp_fld_l2_dfb_wf_Vdc', 'color_table', psp_fld_sensor_color_table
 
