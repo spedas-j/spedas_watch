@@ -31,6 +31,50 @@ pro psp_fld_options, type = type, level = level
 
   psp_fld_sensor_color_table = 133
 
+  ; MARK: Level 1 DCB Analog HK / F2 Digital HK
+
+  if type eq 'dcb_analog_hk' or type eq 'f2_digital_hk' then begin
+    if tnames('spp_fld_dcb_analog_hk_LNPS1_P100V') ne '' then begin
+      options, 'spp_fld_dcb_analog_hk_LNPS1_?100V', 'colors', 2
+      options, 'spp_fld_dcb_analog_hk_LNPS1_?100V', 'labels', 'LNPS1'
+    endif
+
+    if tnames('spp_fld_f2_digital_hk_lnps2_p100v') ne '' then begin
+      options, 'spp_fld_f2_digital_hk_lnps2_?100v', 'colors', 6
+
+      options, 'spp_fld_f2_digital_hk_lnps2_?100v', 'labels', 'LNPS2'
+    endif
+
+    if tnames('spp_fld_dcb_analog_hk_LNPS1_P100V') ne '' and $
+      tnames('spp_fld_f2_digital_hk_lnps2_p100v') ne '' then begin
+      store_data, 'spp_fld_lnps_p100V', $
+        data = ['spp_fld_dcb_analog_hk_LNPS1_P100V', $
+          'spp_fld_f2_digital_hk_lnps2_p100v']
+      store_data, 'spp_fld_lnps_n100V', $
+        data = ['spp_fld_dcb_analog_hk_LNPS1_N100V', $
+          'spp_fld_f2_digital_hk_lnps2_n100v']
+
+      options, 'spp_fld_lnps_p100V', 'ytitle', 'LNPS!CP100V'
+      options, 'spp_fld_lnps_p100V', 'yrange', [80, 105]
+      options, 'spp_fld_lnps_n100V', 'ytitle', 'LNPS!CN100V'
+      options, 'spp_fld_lnps_n100V', 'yrange', [-105, -80]
+      options, 'spp_fld_lnps_?100V', 'ystyle', 1
+      options, 'spp_fld_lnps_?100V', 'datagap', 3600d
+    endif
+  endif
+
+  ; MARK: Level 1 F1 100bps
+
+  if type eq 'f1_100bps' then begin
+    foreach v, ['1', '2', '3', '4'] do begin
+      options, 'spp_fld_f1_100bps_' + ['VOLT', 'MNMX_V'] + v, $
+        'colors', [psp_fld_sensor_colors['V' + v]]
+    endforeach
+
+    options, 'spp_fld_f1_100bps_' + ['V_PEAK', 'V_MNMX'], $
+      'color_table', psp_fld_sensor_color_table
+  endif
+
   ; MARK: Level 2 F2 100BPS
 
   if type eq 'f2_100bps' and level eq 2 then begin

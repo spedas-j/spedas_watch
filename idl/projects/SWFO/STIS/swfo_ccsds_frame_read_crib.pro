@@ -1,7 +1,7 @@
 ;swfo_test
-; $LastChangedBy: davin $
-; $LastChangedDate: 2025-08-18 14:15:43 -0700 (Mon, 18 Aug 2025) $
-; $LastChangedRevision: 33554 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-10-02 13:33:28 -0700 (Thu, 02 Oct 2025) $
+; $LastChangedRevision: 33686 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -68,6 +68,7 @@ if 1 || ~keyword_set(files) then begin
   trange = ['2025 1 16 16','2025 1 16 20']   ; ETE4 RFR
   trange = ['2025 1 12 ','now']   ; ETE4 RFR
   trange = ['2025 1 16 16 ','2025 1 16 19']   ; ETE4 RFR
+  trange = ['2025 9 30 / 12',time_string(systime(1))]   ; + [-1,0] * 3600d  *5
 
   run_proc = 1
 
@@ -271,9 +272,11 @@ if keyword_set(1) then begin
     endelse
   endfor
   if isa(files) then begin
-    wshow,0
-    tplot ,verbose=0,trange=systime(1)+[-1,.05] *60*60*10
-    timebar,systime(1)
+    swfo_apdat_info,/create
+    ;tplot,'*STIS*TEMP*
+   ; wshow,0
+    ;tplot ,verbose=0,trange=systime(1)+[-1,.05] *60*60*10
+    ;timebar,systime(1)
   endif    else dprint,'No new files'
 endif
 
