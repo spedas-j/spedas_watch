@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-03-27 18:12:48 -0700 (Thu, 27 Mar 2025) $
-; $LastChangedRevision: 33207 $
+; $LastChangedDate: 2025-10-02 18:27:16 -0700 (Thu, 02 Oct 2025) $
+; $LastChangedRevision: 33689 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -235,8 +235,10 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
     size = self.level_1a.size
     self.level_1a.append, L1a
     if size eq 0 then begin
+      store_data,tname+'L1a',data = self.level_1a,tagnames = '*'
       store_data,tname+'L1a',data = self.level_1a,tagnames = 'SPEC_??',val_tag='_NRG'
-      options,tname+'L1a_SPEC_??',spec=1
+      options,tname+'L1a_SPEC_??',spec=1, zlog=1, ylog=1
+
     endif
     if makefile then begin
       self.ncdf_make_file,ddata=self.level_1a, trange=trange,type='L1A'
@@ -255,11 +257,15 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
 
 
   if isa(self.level_1b,'dynamicarray') then begin
-    size = self.level_1a.size
+    size = self.level_1b.size
     self.level_1b.append, L1b
     if size eq 0 then begin
-      store_data,tname+'L1b',data = self.level_1a,tagnames = 'SPEC_??',val_tag='_NRG'
-      options,tname+'L1b_SPEC_??',spec=1
+      store_data,tname+'L1b',data = self.level_1b,tagnames = '*'
+      store_data,tname+'L1b',data = self.level_1b,tagnames = '*_ion_flux',val_tag='ion_energy'
+      ; options,tname+'L1b_SPEC_??',spec=1
+      store_data,tname+'L1b',data = self.level_1b,tagnames = '*_elec_flux',val_tag='elec_energy'
+      ; options,tname+'L1b_*_FLUX',spec=1, zlog=1, ylog=1
+      ; stop
     endif
     if makefile then begin
       self.ncdf_make_file,ddata=self.level_1b, trange=trange,type='L1B'
