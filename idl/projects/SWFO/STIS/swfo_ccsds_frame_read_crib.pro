@@ -1,7 +1,7 @@
 ;swfo_test
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-02 13:33:28 -0700 (Thu, 02 Oct 2025) $
-; $LastChangedRevision: 33686 $
+; $LastChangedDate: 2025-10-04 20:05:45 -0700 (Sat, 04 Oct 2025) $
+; $LastChangedRevision: 33695 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -68,7 +68,9 @@ if 1 || ~keyword_set(files) then begin
   trange = ['2025 1 16 16','2025 1 16 20']   ; ETE4 RFR
   trange = ['2025 1 12 ','now']   ; ETE4 RFR
   trange = ['2025 1 16 16 ','2025 1 16 19']   ; ETE4 RFR
+  trange = ['2025-10- 3 /11 ','2025 10 3 /14']   ; flight with replay
   trange = ['2025 9 30 / 12',time_string(systime(1))]   ; + [-1,0] * 3600d  *5
+  ;trange = systime(1)   + [-1,0] * 3600d  *2   ; last few hours
 
   run_proc = 1
 
@@ -249,8 +251,9 @@ if keyword_set(1) then begin
   parent = dictionary()
   rdr.parent_dict = parent
   rdr.verbose = 3
-  rdr.source_dict.run_proc = run_proc
-  cntr = dynamicarray('index_counter')
+  dict = rdr.source_dict
+  dict.run_proc = run_proc
+  ;cntr = dynamicarray('index_counter')
   for i = 0, n_elements(files)-1 do begin
     file = files[i]
     parent.filename = file
@@ -259,6 +262,11 @@ if keyword_set(1) then begin
     ;    index
     if file_test(file) then begin
       dat = ncdf2struct(file)
+      dict.file_timerange = time_double([dat.time_coverage_start,dat.time_coverage_end])
+      dict.file_nframes = n_elements(dat.size_of_frame)
+      dict.frame_time = dict.file_timerange[0]
+      dict.frame_dtime = (dict.file_timerange[1] - dict.file_timerange[0]) / dict.file_nframes
+      
       frames = struct_value(dat,frames_name,default = !null)
       index = rdr.getattr('index')
       ;    cntr.append, { index:index,   time: time_double( dat.
@@ -272,7 +280,7 @@ if keyword_set(1) then begin
     endelse
   endfor
   if isa(files) then begin
-    swfo_apdat_info,/create
+    ;swfo_apdat_info,/create
     ;tplot,'*STIS*TEMP*
    ; wshow,0
     ;tplot ,verbose=0,trange=systime(1)+[-1,.05] *60*60*10
@@ -285,7 +293,6 @@ endif
 
 
 
-swfo_apdat_info,/create_tplot_vars,/all;,/print  ;  ,verbose=0
 
 if 0 then begin
 
@@ -317,6 +324,11 @@ if 0 then begin
 
 endif
 
-;swfo_stis_tplot,'cpt2
+;swfo_apdat_info,/create_tplot_vars,/all;,/print  ;  ,verbose=0
+if ~isa(init) then begin
+  ;swfo_stis_tplot,'cpt2',/set
+  
+  init = 1
+endif
 
 end

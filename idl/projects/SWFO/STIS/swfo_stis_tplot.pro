@@ -1,6 +1,6 @@
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-10-02 18:27:16 -0700 (Thu, 02 Oct 2025) $
-; $LastChangedRevision: 33689 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-10-04 20:05:45 -0700 (Sat, 04 Oct 2025) $
+; $LastChangedRevision: 33695 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -84,7 +84,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*sci_COUNTS',spec=1,panel_size=3,/no_interp,/zlog,zrange=[1,4000.],constant=findgen(15)*48
     options,/def,'*hkp?_ADC_*',constant=0.
     channels=['CH1','CH2','CH3','CH4','CH5','CH6']
-    options,/def,'*hkp?_*RATES* *nse_BASELINE *nse_SIGMA *NOISE_BASELINE *NOISE_SIGMA *NOISE_TOTAL',colors='bgrmcd',psym=-1,symsize=.5,labels=channels,labflag=-1,constant=0
+    options,/def,'*hkp?_*RATES* *BASELINE *SIGMA *NOISE_TOTAL',colors='bgrmcd',psym=-1,symsize=.5,labels=channels,labflag=-1,constant=0
     options,/def,'*hkp?_*RATES*',constant=2.^(indgen(4)+16)
     options,/def,'*hkp?_NEGATIVE_PULSE_RATES',labels='total_neg',psym=-2,symsize=1
     options,/def,'*sci_TOTAL *sci_RATE',colors='r',psym=6,symsize=.5,labels='SCI'
