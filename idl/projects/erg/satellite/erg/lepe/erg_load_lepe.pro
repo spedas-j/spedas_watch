@@ -1,3 +1,25 @@
+;
+; Version 5 of the ERG LEPE CDFs uses all lower-case variable names.   Other code expects
+; previous convention, which had substrings FEDO, FEDU, Count_Rate, Count_Rate_BG.
+; 
+
+pro rename_lepe_v5_variables,tplotnames
+   for i = 0, n_elements(tplot_names) do begin
+    var=tplotnames[i]
+    original=var
+    newname=var
+    strreplace,newname,'fedo','FEDO'
+    strreplace,newname,'fedu','FEDU'
+    strreplace,newname,'count_rate','Count_Rate'
+    strreplace,newname,'count_rate_bg','Count_Rate_BG'
+    if strcmp(original,newname) ne 1 then begin
+      print,'Renaming '+original+' to '+newname
+      tplot_rename,original,newname
+    endif
+   endfor
+ end
+
+
 ;+
 ; PRO erg_load_lepe
 ;
@@ -44,6 +66,7 @@
 ;   only_fedu: only FEDU is extrancted as tplot variables.
 ;   get_filever: Get data file version.
 ;   (PLEASE do not use this keyword if you want to do the "part_product" process.)
+;   version: CDF version string to use when downloading
 ;
 ;
 ; :Examples:
@@ -62,9 +85,9 @@
 ;   Tzu-Fang Chang, ERG Science Center (E-mail: jocelyn at isee.nagoya-u.ac.jp)
 ;   Chae-Woo Jun, ERG Science Center (E-mail: chae-woo at isee.nagoya-u.ac.jp)
 ;
-; $LastChangedBy: egrimes $
-; $LastChangedDate: 2023-01-11 10:09:14 -0800 (Wed, 11 Jan 2023) $
-; $LastChangedRevision: 31399 $
+; $LastChangedBy: jwl $
+; $LastChangedDate: 2025-10-06 16:26:36 -0700 (Mon, 06 Oct 2025) $
+; $LastChangedRevision: 33700 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/erg/satellite/erg/lepe/erg_load_lepe.pro $
 ;-
 pro erg_load_lepe, $
@@ -86,10 +109,17 @@ pro erg_load_lepe, $
   get_filever=get_filever,$
   only_fedu=only_fedu,$
   fine=fine,$
+  version=version
   _extra=_extra
 
   ;;Initialize the user environmental variables for ERG
   erg_init
+  
+  if n_elements(version) eq 0 then begin
+    last_version = 1
+  endif else begin
+    last_version = 0
+  endelse
 
   ;;check data level
   if ~keyword_set(level) then level = 'l2'
@@ -118,7 +148,11 @@ pro erg_load_lepe, $
     ;;Relative file path
     ;cdffn_prefix = 'erg_lepe_'+level+'_'+datatype+'_' ;
     cdffn_prefix = 'erg_lepe_l2_'+datatype+'_' ; for l2new
-    relfpathfmt = 'YYYY/MM/' + cdffn_prefix+'YYYYMMDD_v**_**.cdf'
+    if last_version eq 1 then begin
+       relfpathfmt = 'YYYY/MM/' + cdffn_prefix+'YYYYMMDD_v**_**.cdf'
+    endif else begin
+       relfpathfmt = 'YYYY/MM/' + cdffn_prefix+'YYYYMMDD_' + version + '.cdf' 
+    endelse     
 
     ;;Expand the wildcards for the designated time range
     relfpaths = file_dailynames(file_format=relfpathfmt, trange=trange, times=times)
@@ -129,9 +163,9 @@ pro erg_load_lepe, $
       datfiles = $
         spd_download( local_path=localdir $
         , remote_path=remotedir, remote_file=relfpaths $
-        , no_download=no_download, /last_version $
+        , no_download=no_download, last_version=last_version $
         , url_username=uname, url_password=passwd $
-        )
+        , version=version)
     endelse
     idx = where( file_test(datfiles), nfile )
     if nfile eq 0 then begin
@@ -144,7 +178,10 @@ pro erg_load_lepe, $
     ;;Read CDF files and generate tplot variables
     prefix = 'erg_lepe_' + level + '_' + datatype + '_'
     cdf2tplot, file=datfiles, prefix=prefix, get_support_data=get_support_data, $
-      varformat=varformat, verbose=verbose
+      varformat=varformat, verbose=verbose, tplotnames=tplotnames
+      
+    ; Ensure variable names conform to version v04_01 conventions (version 5 has names that are all lower case)
+    rename_lepe_v5_variables,tplotnames
     
     ;;Options for tplot variables
     vns = ''
@@ -170,14 +207,23 @@ pro erg_load_lepe, $
       if vns[i] eq prefix+'FEDO' then begin
         time = ori_data.x[cor_ad] 
         flux = ori_data.y[cor_ad,*]
-        ene_ch = ori_data.v[cor_ad,*,*]
+        vdims=size(ori_data.v,/dimensions)
+        if n_elements(vdims) eq 3 then begin
+          ; Old CDF layout: v array has dimensions time, upper/lower, energy bin
+          ; Upper and lower values need to be averaged.
+           ene_ch = ori_data.v[cor_ad,*,*]
         
-        ene = total(ene_ch,2)/2
-        for n = 0, n_elements(time)-1 do begin
-          sort_idx=sort(ene[n,*])
-          flux[n,*]=flux[n,sort_idx]
-          ene[n,*]=ene[n,sort_idx]
-        endfor
+           ene = total(ene_ch,2)/2  ; This is where the upper/lower energy bin values are averaged
+           for n = 0, n_elements(time)-1 do begin
+             sort_idx=sort(ene[n,*])
+             flux[n,*]=flux[n,sort_idx]
+             ene[n,*]=ene[n,sort_idx]
+           endfor
+        endif else begin
+          ; New CDF layout: v array is not time-dependent, only 32 bins
+          ; No averaging, sorting, or time filtering is required
+          ene = ori_data.v
+        endelse
         
         store_data, vns[i], data={x:time, y:flux, v:ene }, dl=dl, lim=lim
         options, vns[i], ztitle='[/s-cm!U2!N-sr-eV]',ytitle='ERG!CLEP-e!CFEDO!CEnergy'
@@ -190,7 +236,7 @@ pro erg_load_lepe, $
         time = ori_data.x[cor_ad]
         flux = ori_data.y[cor_ad,*,*,*]
         ene_ch = ori_data.v1[cor_ad,*,*]
-        ene = total(ene_ch,2)/2
+        ene = total(ene_ch,2)/2  ; Average upper/lower energy bin values
         if (keyword_set(sorting_ene_chn)) then begin
           for n = 0, n_elements(data.x)-1 do begin
             sort_idx=sort(ene[n,*])
@@ -306,7 +352,7 @@ pro erg_load_lepe, $
       time = ori_data.x[cor_ad]
       flux = ori_data.y[cor_ad,*,*]
       energy_channel = ori_data.v1[cor_ad,*,*]
-      energy_arr = total(energy_channel,2,/nan)/2
+      energy_arr = total(energy_channel,2,/nan)/2  ; Average lower/upper energy bin boundaries
       pa_arr = ori_data.v2;[5.625,16.875,28.125,39.375,50.625,61.875,73.125,84.375,95.625,106.875,118.125,129.375,140.625,151.875,163.125,174.375]
 
       ;    ; skip the lose cone mode (number of energy channel less than 5) for L3 data
