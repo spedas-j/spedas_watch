@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2024-09-11 18:09:23 -0700 (Wed, 11 Sep 2024) $
-; $LastChangedRevision: 32823 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-10-06 18:34:12 -0700 (Mon, 06 Oct 2025) $
+; $LastChangedRevision: 33703 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_110_apdat__define.pro $
 
 function swfo_sc_110_rw_temps,temps
@@ -52,6 +52,7 @@ function swfo_sc_110_apdat::decom,ccsds,source_dict=source_dict
     reaction_wheel_3p3v_current_monitor_ma:    .2*swfo_data_select(ccsds_data,[927+indgen(4)*32]*8,16),$
     reaction_wheel_1p5v_current_monitor_ma:    .1*swfo_data_select(ccsds_data,[929+indgen(4)*32]*8,16),$
     iru_bits:                  swfo_data_select(ccsds_data,690*8+4, 8),$
+    modeled_spacecraft_to_sun_vxyz: 3.2e-5 * swfo_data_select(ccsds_data,[710,712,714]*8, 16),$
     gap:ccsds.gap }
 
   return,datastr

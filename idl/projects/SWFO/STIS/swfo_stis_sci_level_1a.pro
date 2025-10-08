@@ -26,12 +26,12 @@
 ; - swfo_stis_sci_qflag_crib.pro: quality flag demo
 ;
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-08-30 12:14:43 -0700 (Sat, 30 Aug 2025) $
-; $LastChangedRevision: 33588 $
+; $LastChangedDate: 2025-10-07 10:58:49 -0700 (Tue, 07 Oct 2025) $
+; $LastChangedRevision: 33711 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
-function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
+function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, cal=cal
   ;,format=format,reset=reset
   output = !null
   nd = n_elements(l0b_structs)
@@ -182,7 +182,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; swfo_stis_nse_level_1)
     ; nse_level_1_str = swfo_stis_nse_level_1(l0b, /from_l0b)
 
-    noise_bits = l0b.noise_bits
+    noise_bits = l0b.nse_noise_bits
     if n_elements(noise_bits) eq 3 then begin
       noise_enable = noise_bits[0]
       noise_res = noise_bits[1]
@@ -263,9 +263,12 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
     ; Quality flag is a 64 bit word.
     ; The first element is the playback, but that is not
     ; stored in the l0b (currently encoded in the filename).
+    ; UPDATE 2025/10/6: Since playback encoded in level 0b,
+    ; reference that
     ; So for now, set the keyword:
-    q = ulong64(keyword_set(pb))
+    ; q = ulong64(keyword_set(pb))
     ; q = 0LL
+    q = l0b.quality_bits
 
     ; Qflag: Bits at positional index 1-6 are 0 or 1
     ; for each channel (Ch 1-6). Set bit if any pulser on:
@@ -371,7 +374,12 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
       ; - memory effect error - nominally 0
       ; - health (X, Y, Z) - nominally 1
       ; - valid (X, Y, Z) - nominally 1
-      iru_bad = array_equal(l0b.iru_bits, [0, 0, 1, 1, 1, 1, 1, 1]) ne 1
+
+      if n_elements(l0b.iru_bits) eq 3 then iru_bad = array_equal(l0b.iru_bits, [0, 0, 1, 1, 1, 1, 1, 1]) ne 1 $
+        else iru_bad = l0b.iru_bits ne 63
+      ; stop
+
+      
 
 
       q = q or ishft(iru_bad*1ull, cal.bad_iru_qflag_index)
@@ -386,14 +394,14 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, pb=pb, cal=cal
 
       ; ADMSUNVX[Y,Z] / measured_sun_vector_xyz is the measured sun vector in SC coordinates
       ; this is the only vector simulated in MR3
-      sun_sc = l0b.measured_sun_vector_xyz
+      ; sun_sc = l0b.measured_sun_vector_xyz
 
       ; ; ADSCSUNVX[Y,Z] / modeled_spacecraft_sun_vxyz is the modeled sun vector is in ECI coordinates
-      ; model_sun_vec_eci = l0b.modeled_spacecraft_sun_vxyz
+      model_sun_vec_eci = l0b.modeled_spacecraft_sun_vxyz
       ; ; this is the quaternion that converts from EGI to s/c coordinates
-      ; q = l0b.body_frame_attitude_q1234
+      quaternion = l0b.body_frame_attitude_q1234
       ; ; Put the modeled sun vector into s/c body coordinates:
-      ; sun_sc = quaternion_rotation(model_sun_vec_eci, q, last_index=1)
+      sun_sc = quaternion_rotation(model_sun_vec_eci, quaternion, last_index=1)
 
       ; Angle between X_sc and sun:
       sun_sc_angle_deg = acos(sun_sc[0]) / !dtor

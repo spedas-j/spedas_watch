@@ -1,7 +1,7 @@
 ;swfo_test
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-04 20:05:45 -0700 (Sat, 04 Oct 2025) $
-; $LastChangedRevision: 33695 $
+; $LastChangedDate: 2025-10-07 09:22:52 -0700 (Tue, 07 Oct 2025) $
+; $LastChangedRevision: 33709 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ccsds_frame_read_crib.pro $
 
 
@@ -69,8 +69,9 @@ if 1 || ~keyword_set(files) then begin
   trange = ['2025 1 12 ','now']   ; ETE4 RFR
   trange = ['2025 1 16 16 ','2025 1 16 19']   ; ETE4 RFR
   trange = ['2025-10- 3 /11 ','2025 10 3 /14']   ; flight with replay
-  trange = ['2025 9 30 / 12',time_string(systime(1))]   ; + [-1,0] * 3600d  *5
-  ;trange = systime(1)   + [-1,0] * 3600d  *2   ; last few hours
+  trange = ['2025-9 30 / 12','2025 10 1'  ]   ; first 12 hours
+  ;trange = ['2025 9 30 / 12',time_string(systime(1))]   ; + [-1,0] * 3600d  *5
+  trange = systime(1)   + [-1,0] * 3600d  *24   * 2; last few hours
 
   run_proc = 1
 

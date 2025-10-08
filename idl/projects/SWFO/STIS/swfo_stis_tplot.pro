@@ -1,11 +1,11 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-04 20:05:45 -0700 (Sat, 04 Oct 2025) $
-; $LastChangedRevision: 33695 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-10-06 18:30:17 -0700 (Mon, 06 Oct 2025) $
+; $LastChangedRevision: 33702 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
 
-pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,powerlim=powerlim
+pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,powerlim=powerlim, cal=cal
 
 
   if keyword_set(ionlim) then begin
@@ -146,6 +146,11 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     ylim,'*REACTION_WHEEL_CURRENT_AMPS',0.0,.5,0
     ylim,'*REACTION_WHEEL_BUS_CURRENT_AMPS',0.0,.5,0
     options,'*WHEEL* *_nse_* *_hkp*_RATES *nse_SIGMA *nse_BASELINE',/reverse_order
+
+    if ~keyword_set(cal) then cal = swfo_stis_inst_response_calval()
+
+    options, '*QUALITY_BITS*', tplot_routine='bitplot', labels=cal.qflag_labels, psyms=1
+    ylim, '*QUALITY_BITS*', -1, 42
 
     options, '*L1b_*FLUX', yrange=[10, 6000],$
       zrange=[1e-2, 1e3], spec=1, ylog=1, zlog=1

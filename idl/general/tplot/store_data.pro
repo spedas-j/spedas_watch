@@ -36,9 +36,9 @@
 ;SEE ALSO:    "GET_DATA", "TPLOT_NAMES",  "TPLOT", "OPTIONS"
 ;
 ;CREATED BY:    Davin Larson
-; $LastChangedBy: jwl $
-; $LastChangedDate: 2025-09-22 11:18:38 -0700 (Mon, 22 Sep 2025) $
-; $LastChangedRevision: 33642 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-10-06 18:29:04 -0700 (Mon, 06 Oct 2025) $
+; $LastChangedRevision: 33701 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/store_data.pro $
 ;-
 pro store_data,name, time,ydata,values, $
@@ -92,6 +92,10 @@ pro store_data,name, time,ydata,values, $
         if isa(val_tag,/string) && total(tags[i]+strupcase(val_tag) eq tags,/pres) ne 0 then begin
           vardef.v = tags[i]+strupcase(val_tag)
         endif 
+        if isa(val_tag,/string) && total(strupcase(val_tag) eq tags,/pres) ne 0 then begin
+          vardef.v = strupcase(val_tag)
+        endif 
+
         y = data_sample.(i)
         if size(/type,y) eq 10 then continue   ; ignore pointers
         ;if size(/type,y) eq 7 then continue    ; ignore strings

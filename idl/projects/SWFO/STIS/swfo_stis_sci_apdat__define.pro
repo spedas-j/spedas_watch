@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-04 20:05:45 -0700 (Sat, 04 Oct 2025) $
-; $LastChangedRevision: 33695 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-10-06 18:34:12 -0700 (Mon, 06 Oct 2025) $
+; $LastChangedRevision: 33703 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -203,7 +203,13 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
   nse_last = nseobj.last_data
   hkp_last = hkpobj.last_data
 
-  l0b = swfo_stis_sci_level_0b(sci_last,nse_last,hkp_last)
+  sc100obj = swfo_apdat('sc_100')  ; apid 100
+  sc100_last = sc100obj.last_data
+  sc110obj = swfo_apdat('sc_110')  ; apid 110
+  sc110_last = sc110obj.last_data
+
+  l0b = swfo_stis_sci_level_0b(sci_last,nse_last,hkp_last,$
+                               sc100_dat=sc100_last, sc110_dat=sc110_last, playback=pb)
 
   if isa(l0b,/null) then begin
     dprint , 'Bad L0B'

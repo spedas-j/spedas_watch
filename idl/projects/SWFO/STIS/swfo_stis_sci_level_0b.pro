@@ -4,7 +4,7 @@
 ; $URL:  $
 
 
-function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=reset,cal=cal
+function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat, sc100_dat=sc100_dat,sc110_dat=sc110_dat, playback=playback  ;,format=format,reset=reset,cal=cal
 
   output = !null
   nan = !values.f_nan
@@ -22,7 +22,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
   if nd gt 1 then begin
     output = replicate(l0b,nd)
     for i=0l,nd-1 do begin
-      output[i] = swfo_stis_sci_level_0b(sci_dat[i],nse_dat[i],hkp_dat[i])
+      output[i] = swfo_stis_sci_level_0b(sci_dat[i],nse_dat[i],hkp_dat[i], sc100_dat=sc100_dat[i], sc110_dat=sc110_dat[i], playback=playback)
     endfor
     return, output
   endif
@@ -183,6 +183,40 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
       ; nse data
       nse_histogram: replicate(0u, 60), $
       nse_counts: replicate(0u, 60), $
+      ; apid 100 data (rxn wheel info)
+      adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth: 0b,$
+      sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver: 0b,$
+      sun_point_minimum_keepout_angle: 0.,$
+      control_torque_xyz: fltarr(3),$
+      rt_critical_vc: 0b, $
+      star_tracker_attitude_q1234: replicate(0d, 4),$
+      rt_non_critical_vc: 0b, $
+      body_frame_attitude_q1234: replicate(0d, 4),$
+      pbk_critical_vc: 0b, $
+      fsw_transfer_frame_accept_counter: 0b, $
+      fsw_transfer_frame_reject_counter: 0b, $
+      fsw_command_accept_counter: 0b, $
+      fsw_command_reject_counter: 0b, $
+      tmon_master_enabled: 0b, $
+      tmon_001_sample_enabled_armed_triggered: 0b, $
+      fsw_power_management_bits: 0b, $
+      battery_current_amps: 0d, $
+      battery_temperature_c: 0d, $
+      battery_voltage_v: 0d, $
+      tmon_230_enabled_armed_triggered: 0b, $
+      tmon_231_enabled_armed_triggered: 0b, $
+      tmon_232_enabled_armed_triggered: 0b, $
+      tmon_233_enabled_armed_triggered: 0b, $
+      tmon_234_enabled_armed_triggered: 0b, $
+      tmon_235_enabled_armed_triggered: 0b, $
+      tmon_236_enabled_armed_triggered: 0b, $
+      reaction_wheel_overspeed_fault_bits: 0b, $
+      sband_downlink_rate:  0ul, $
+      reaction_wheel_speed_rpm:  replicate(0d, 4), $
+      ; apid 110: location and iru bits
+      iru_bits: 0b,$
+      modeled_spacecraft_sun_vxyz: replicate(0d, 3), $
+      ; quality bits always last:
       quality_bits:  0ul}
 
     ; hkp: from swfo_stis_hkp_apdat__define.pro
@@ -372,11 +406,52 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat  ;,format=format,reset=r
     output.sci_nbins  = sci_dat.nbins
     output.sci_counts= sci_dat.counts
 
+    ; apid 100
+    if isa(sc100_dat) then begin
+      output.reaction_wheel_speed_rpm = sc100_dat.reaction_wheel_1234_speed_rpm
+      output.adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth = sc100_dat.adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth
+      output.sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver = sc100_dat.sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver
+      output.sun_point_minimum_keepout_angle = sc100_dat.sun_point_minimum_keepout_angle
+      output.control_torque_xyz = sc100_dat.control_torque_xyz
+      output.rt_critical_vc = sc100_dat.rt_critical_vc
+      output.star_tracker_attitude_q1234 = sc100_dat.star_tracker_attitude_q1234
+      output.rt_non_critical_vc = sc100_dat.rt_non_critical_vc
+      output.body_frame_attitude_q1234 = sc100_dat.body_frame_attitude_q1234
+      output.pbk_critical_vc = sc100_dat.pbk_critical_vc
+      output.fsw_transfer_frame_accept_counter = sc100_dat.fsw_transfer_frame_accept_counter
+      output.fsw_transfer_frame_reject_counter = sc100_dat.fsw_transfer_frame_reject_counter
+      output.fsw_command_accept_counter = sc100_dat.fsw_command_accept_counter
+      output.fsw_command_reject_counter = sc100_dat.fsw_command_reject_counter
+      output.tmon_master_enabled = sc100_dat.tmon_master_enabled
+      output.tmon_001_sample_enabled_armed_triggered = sc100_dat.tmon_001_sample_enabled_armed_triggered
+      output.fsw_power_management_bits = sc100_dat.fsw_power_management_bits
+      output.battery_current_amps = sc100_dat.battery_current_amps
+      output.battery_temperature_c = sc100_dat.battery_temperature_c
+      output.battery_voltage_v = sc100_dat.battery_voltage_v
+      output.tmon_230_enabled_armed_triggered = sc100_dat.tmon_230_enabled_armed_triggered
+      output.tmon_231_enabled_armed_triggered = sc100_dat.tmon_231_enabled_armed_triggered
+      output.tmon_232_enabled_armed_triggered = sc100_dat.tmon_232_enabled_armed_triggered
+      output.tmon_233_enabled_armed_triggered = sc100_dat.tmon_233_enabled_armed_triggered
+      output.tmon_234_enabled_armed_triggered = sc100_dat.tmon_234_enabled_armed_triggered
+      output.tmon_235_enabled_armed_triggered = sc100_dat.tmon_235_enabled_armed_triggered
+      output.tmon_236_enabled_armed_triggered = sc100_dat.tmon_236_enabled_armed_triggered
+      output.reaction_wheel_overspeed_fault_bits = sc100_dat.reaction_wheel_1234_overspeed_momentum_fault_bits
+      output.sband_downlink_rate = sc100_dat.sband_downlink_rate
+    endif
+
+    ; apid 110
+    if isa(sc110_dat) then begin
+      output.iru_bits = sc110_dat.iru_bits
+      output.modeled_spacecraft_sun_vxyz = sc110_dat.modeled_spacecraft_to_sun_vxyz
+
+    endif
+
     ; output.sci_nonlut_mode = sci_dat.sci_nonlut_mode
     ; output.sci_decimate = sci_dat.sci_decimate
     ; output.sci_translate = sci_dat.sci_translate
     ; output.sci_resolution = sci_dat.sci_resolution
-    output.quality_bits  = 0
+    ; print, playback ne 0
+    output.quality_bits  = (playback ne 0)*1ull
 
   endif else begin
     ; Currently inactive:
