@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-04 20:05:45 -0700 (Sat, 04 Oct 2025) $
-; $LastChangedRevision: 33695 $
+; $LastChangedDate: 2025-10-08 17:56:28 -0700 (Wed, 08 Oct 2025) $
+; $LastChangedRevision: 33718 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/ccsds_reader__define.pro $
 
 
@@ -68,7 +68,7 @@ function ccsds_reader::header_struct,header
  ; endif
 
   if strct.replay then begin    ; special case for SWFO   .....  comment out?
-    strct.apid = strct.apid or 0x400
+    strct.apid = strct.apid or 0x800
   endif
 
   return,strct
@@ -90,7 +90,7 @@ pro ccsds_reader::handle,buffer
   endif
   
   if self.run_proc then begin
-    swfo_ccsds_spkt_handler,buffer[self.sync_size:*],source_dict=self.source_dict         ; Process the complete packet
+    swfo_ccsds_spkt_handler,buffer[self.sync_size:*],source_dict=self.source_dict         ; Process the complete packet   This is poorly written it should be more general
   endif
   
   if self.ccsds_output_lun ne 0 then BEGIN

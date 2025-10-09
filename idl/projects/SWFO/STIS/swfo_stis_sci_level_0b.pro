@@ -408,7 +408,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat, sc100_dat=sc100_dat,sc1
 
     ; apid 100
     if isa(sc100_dat) then begin
-      output.reaction_wheel_speed_rpm = sc100_dat.reaction_wheel_1234_speed_rpm
+      output.reaction_wheel_speed_rpm = sc100_dat.reaction_wheel_speed_rpm
       output.adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth = sc100_dat.adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth
       output.sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver = sc100_dat.sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver
       output.sun_point_minimum_keepout_angle = sc100_dat.sun_point_minimum_keepout_angle
@@ -435,7 +435,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat, sc100_dat=sc100_dat,sc1
       output.tmon_234_enabled_armed_triggered = sc100_dat.tmon_234_enabled_armed_triggered
       output.tmon_235_enabled_armed_triggered = sc100_dat.tmon_235_enabled_armed_triggered
       output.tmon_236_enabled_armed_triggered = sc100_dat.tmon_236_enabled_armed_triggered
-      output.reaction_wheel_overspeed_fault_bits = sc100_dat.reaction_wheel_1234_overspeed_momentum_fault_bits
+      output.reaction_wheel_overspeed_fault_bits = sc100_dat.reaction_wheel_overspeed_fault_bits
       output.sband_downlink_rate = sc100_dat.sband_downlink_rate
     endif
 

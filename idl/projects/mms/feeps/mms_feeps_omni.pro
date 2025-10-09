@@ -56,8 +56,8 @@
 ;       New version, 10/03/25 - Christine Gabrielse, added quality flag keyword
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2025-10-07 16:41:56 -0700 (Tue, 07 Oct 2025) $
-; $LastChangedRevision: 33713 $
+; $LastChangedDate: 2025-10-08 17:56:45 -0700 (Wed, 08 Oct 2025) $
+; $LastChangedRevision: 33719 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/feeps/mms_feeps_omni.pro $
 ;-
 
@@ -144,7 +144,6 @@ pro mms_feeps_omni, probe, datatype = datatype, tplotnames = tplotnames, suffix 
             counts_arr[*,*,isen] = reform(d3.y)
             if iE[0] ne -1 then counts_arr[*,iE,isen] = !values.d_nan
             if bad_quality[0] ne -1 then counts_arr[bad_quality,*,isen] = !values.d_nan        
-            
           endif
         endif
         ;;;
@@ -159,7 +158,7 @@ pro mms_feeps_omni, probe, datatype = datatype, tplotnames = tplotnames, suffix 
         if iE[0] ne -1 then dalleyes[*,iE,isen+n_elements(top_sensors)] = !values.d_nan
         ;;Added 10-03-2025
         if level eq 'l2' then begin
-          var_name2 = strcompress(prefix+data_rate+'_'+level+'_'+datatype+'_top_quality_indicator_sensorid_'+string(bot_sensors[fix(isen)])+suffix, /rem)
+          var_name2 = strcompress(prefix+data_rate+'_'+level+'_'+datatype+'_bottom_quality_indicator_sensorid_'+string(bot_sensors[fix(isen)])+suffix, /rem)
           get_data, var_name2, data = d2, dlimits=dl2
           bad_quality=where(d2.y ge quality_flag)
           if bad_quality[0] ne -1 then dalleyes[bad_quality,*,isen+n_elements(top_sensors)] = !values.d_nan

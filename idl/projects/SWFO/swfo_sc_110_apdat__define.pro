@@ -1,6 +1,6 @@
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-10-06 18:34:12 -0700 (Mon, 06 Oct 2025) $
-; $LastChangedRevision: 33703 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2025-10-07 19:39:09 -0700 (Tue, 07 Oct 2025) $
+; $LastChangedRevision: 33716 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_110_apdat__define.pro $
 
 function swfo_sc_110_rw_temps,temps
@@ -28,6 +28,7 @@ function swfo_sc_110_apdat::decom,ccsds,source_dict=source_dict
     tod_day:                          swfo_data_select(ccsds_data,  6*8,16),$
     tod_millisec:                     swfo_data_select(ccsds_data,  8*8,32),$
     tod_microsec:                     swfo_data_select(ccsds_data, 12*8,16),$
+    integral_error_xyz_deg:57.29578e-4*swfo_data_select(ccsds_data, [40,42,44]*8,16,/signed),$
     reaction_wheel_xyz_torque_actual_nm: rwc*swfo_data_select(/signed,ccsds_data,[853,855,857]*8,16),$
     reaction_wheel_torque_command_nm:    rwc*swfo_data_select(/signed,ccsds_data,[859,861,863,865]*8,16),$
     reaction_wheel_model_rate_rpm:    .238724*swfo_data_select(/signed,ccsds_data,[867,869,871,873]*8,16),$
