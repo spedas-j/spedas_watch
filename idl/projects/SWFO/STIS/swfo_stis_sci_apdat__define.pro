@@ -1,6 +1,6 @@
-; $LastChangedBy: ali $
-; $LastChangedDate: 2025-10-07 19:39:09 -0700 (Tue, 07 Oct 2025) $
-; $LastChangedRevision: 33716 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-10-09 11:57:35 -0700 (Thu, 09 Oct 2025) $
+; $LastChangedRevision: 33724 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
@@ -254,7 +254,11 @@ pro swfo_stis_sci_apdat::handler2,struct_stis_sci  ,source_dict=source_dict
     if size eq 0 then begin
       store_data,tname+'L1a',data = self.level_1a,tagnames = '*'
       store_data,tname+'L1a',data = self.level_1a,tagnames = 'SPEC_??',val_tag='_NRG'
+      store_data,tname+'L1a',data = self.level_1a,tagnames = 'SPEC_???',val_tag='_NRG'
+      store_data,tname+'L1a',data = self.level_1a,tagnames = 'SPEC_????',val_tag='_NRG'
       options,tname+'L1a_SPEC_??',spec=1, zlog=1, ylog=1
+      options,tname+'L1a_SPEC_???',spec=1, zlog=1, ylog=1
+      options,tname+'L1a_SPEC_????',spec=1, zlog=1, ylog=1
 
     endif
     if makefile then begin

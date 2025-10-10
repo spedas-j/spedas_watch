@@ -26,8 +26,8 @@
 ; - swfo_stis_sci_qflag_crib.pro: quality flag demo
 ;
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-10-07 10:58:49 -0700 (Tue, 07 Oct 2025) $
-; $LastChangedRevision: 33711 $
+; $LastChangedDate: 2025-10-09 11:26:34 -0700 (Thu, 09 Oct 2025) $
+; $LastChangedRevision: 33723 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -87,6 +87,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, cal=cal
     ;    sci_dadc    : replicate(!values.f_nan,672),  $
     total14:  fltarr(14) , $
     total6:   fltarr(6) , $
+    rate6:   fltarr(6) , $
     geom_O1: nan48, rate_O1: nan48, SPEC_O1: nan48, spec_O1_nrg: nan48, spec_O1_dnrg: nan48, spec_O1_adc:  nan48, spec_O1_dadc:  nan48, $
     geom_O2: nan48, rate_O2: nan48, SPEC_O2: nan48, spec_O2_nrg: nan48, spec_O2_dnrg: nan48, spec_O2_adc:  nan48, spec_O2_dadc:  nan48, $
     geom_O3: nan48, rate_O3: nan48, SPEC_O3: nan48, spec_O3_nrg: nan48, spec_O3_dnrg: nan48, spec_O3_adc:  nan48, spec_O3_dadc:  nan48, $
@@ -313,6 +314,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, cal=cal
     ; the count rate exceeds the threshold in the cal table,
     ; for channels 1-6:
     rate6 = total6/duration
+    l1a.rate6 = rate6
     rate_flag = rate6 gt cal.count_rate_threshold
     q = q or ishft(rate_flag[0]*1ull, cal.high_rate_qflag_index[0])
     q = q or ishft(rate_flag[1]*1ull, cal.high_rate_qflag_index[1])

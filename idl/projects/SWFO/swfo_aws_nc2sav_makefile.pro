@@ -6,15 +6,7 @@ pro swfo_aws_nc2sav_makefile,trange=trange,make_sav=make_sav,load_sav=load_sav,d
   if ~keyword_set(c2) then c2='WCD'
   filepath='preplt/SWFO-L1/l0/SWFO'+c2+'/YYYY/MM/YYYYMMDD/'
   filename='OR_SWFO'+c2+'-L0_SL1_sYYYYDOYhh*.nc'
-  no_download = 0    ;set to 1 to prevent download from the web
-  no_update = 0      ; set to 1 to prevent checking for updates
-
-  source = {$
-    remote_data_dir:'http://sprg.ssl.berkeley.edu/data/', $
-    master_file: 'swfo/.master', $
-    no_update : no_update ,$
-    no_download :no_download ,$
-    resolution: 3600L  }
+  source={remote_data_dir:'http://sprg.ssl.berkeley.edu/data/',master_file: 'swfo/.master'}
 
   if keyword_set(daily) then begin
     nd=long(trange[1]-trange[0])/86400
@@ -36,7 +28,13 @@ pro swfo_aws_nc2sav_makefile,trange=trange,make_sav=make_sav,load_sav=load_sav,d
 
   if keyword_set(make_sav) then begin
     ncfiles=file_retrieve(_extra=source,nc_path+filepath+filename,trange=trange,resolution=3600,/valid,verbose=1)
+    nctimes=time_double(ncfiles.substring(83,95),tformat='YYYYDOYhhmmss')
+    store_data,'nctimes',nctimes,nctimes
+    tres_data,'nctimes'
+    get_data,'nctimes_tres(s)',dat=dat
+    missing=ncfiles[where(dat.y gt 310)-1].substring(55)
     rdr=ccsds_frame_reader(mission='SWFO',/no_widget,verbose=verbose,run_proc=run_proc)
+    dict = rdr.source_dict
     frames_name = 'swfo_frame_data'
     foreach ncfile,ncfiles do begin
       sav_file=root+sav_path+(ncfile).substring(-111)+'.sav'
@@ -45,6 +43,10 @@ pro swfo_aws_nc2sav_makefile,trange=trange,make_sav=make_sav,load_sav=load_sav,d
       swfo_stis_apdat_init,/reset,/save_flag
       dprint,dlevel=2,'Loading '+file_info_string(ncfile)
       dat = ncdf2struct(ncfile)
+      dict.file_timerange = time_double([dat.time_coverage_start,dat.time_coverage_end])
+      dict.file_nframes = n_elements(dat.size_of_frame)
+      dict.frame_time = dict.file_timerange[0]
+      dict.frame_dtime = (dict.file_timerange[1] - dict.file_timerange[0]) / dict.file_nframes
       frames = struct_value(dat,frames_name,default = !null)
       index = rdr.getattr('index')
       dprint,dlevel=1,string(index)+'   '+ file_basename(ncfile)+ '  '+strtrim(n_elements(frames)/1024, 2)

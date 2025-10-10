@@ -1,6 +1,6 @@
 ; $LastChangedBy: ali $
-; $LastChangedDate: 2025-10-07 19:39:09 -0700 (Tue, 07 Oct 2025) $
-; $LastChangedRevision: 33716 $
+; $LastChangedDate: 2025-10-09 12:26:56 -0700 (Thu, 09 Oct 2025) $
+; $LastChangedRevision: 33725 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_sc_100_apdat__define.pro $
 
 
@@ -29,7 +29,7 @@ function swfo_sc_100_apdat::decom,ccsds,source_dict=source_dict
     sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver:swfo_data_select(ccsds_data,35*8+4,3),$
     sun_point_minimum_keepout_angle:  57.29578e-4*swfo_data_select(ccsds_data, 36*8,16,/signed),$
     control_torque_xyz:               3.2e-4*swfo_data_select(ccsds_data, [38,40,42]*8,16,/signed),$
-    reaction_wheel_1234_torque_command_nm:double(swfo_data_select(ccsds_data,[45,53,61,376]*8,64),0,4),$
+    reaction_wheel_torque_command_nm:double(swfo_data_select(ccsds_data,[45,53,61,376]*8,64),0,4),$
     rt_critical_vc:                   swfo_data_select(ccsds_data, 69*8+2, 6),$
     star_tracker_attitude_q1234:3.2e-5*swfo_data_select(ccsds_data,[70:76:2]*8,16,/signed),$
     rt_non_critical_vc:               swfo_data_select(ccsds_data, 78*8+2, 6),$
