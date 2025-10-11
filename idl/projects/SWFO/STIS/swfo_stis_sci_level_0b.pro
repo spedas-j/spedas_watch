@@ -1,7 +1,7 @@
-; $LastChangedBy: dav $
-; $LastChangedDate:  $
-; $LastChangedRevision:  $
-; $URL:  $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-10-10 06:24:34 -0700 (Fri, 10 Oct 2025) $
+; $LastChangedRevision: 33731 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_0b.pro $
 
 
 function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat, sc100_dat=sc100_dat,sc110_dat=sc110_dat, playback=playback  ;,format=format,reset=reset,cal=cal
