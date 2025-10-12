@@ -1,31 +1,29 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-10 06:24:34 -0700 (Fri, 10 Oct 2025) $
-; $LastChangedRevision: 33731 $
+; $LastChangedDate: 2025-10-10 23:27:12 -0700 (Fri, 10 Oct 2025) $
+; $LastChangedRevision: 33733 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_0b.pro $
+
+
+pro swfo_stis_sci_level_0b_test,last=last
+   sci_obj = swfo_apdat('stis_sci')
+   nse_obj = swfo_apdat('stis_nse')
+   hkp_obj = swfo_apdat('stis_hkp2')
+   
+
+
+end
+
+
 
 
 function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat, sc100_dat=sc100_dat,sc110_dat=sc110_dat, playback=playback  ;,format=format,reset=reset,cal=cal
 
-  output = !null
+
+  ;output = !null
   nan = !values.f_nan
   dnan = !values.d_nan
 
-  nd = n_elements(sci_dat)
 
-  if n_params() eq 0 then return,l0b
-
-  if ~isa(sci_dat) || ~isa(nse_dat) || ~isa(hkp_dat) then begin
-    dprint,'bad data in L0b'
-    return,!null  ; l0b
-  endif
-
-  if nd gt 1 then begin
-    output = replicate(l0b,nd)
-    for i=0l,nd-1 do begin
-      output[i] = swfo_stis_sci_level_0b(sci_dat[i],nse_dat[i],hkp_dat[i], sc100_dat=sc100_dat[i], sc110_dat=sc110_dat[i], playback=playback)
-    endfor
-    return, output
-  endif
 
   if 1 then begin
     ; stop
@@ -218,6 +216,30 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat, sc100_dat=sc100_dat,sc1
       modeled_spacecraft_sun_vxyz: replicate(0d, 3), $
       ; quality bits always last:
       quality_bits:  0ul}
+
+    if n_params() eq 0 then return,output   ;l0b
+
+    nd = n_elements(sci_dat)
+
+
+    if ~isa(sci_dat) || ~isa(nse_dat) || ~isa(hkp_dat) then begin
+      dprint,'bad data in L0b'
+      return,!null  ; l0b
+    endif
+
+    if nd gt 1 then begin
+      output = replicate(l0b,nd)
+      for i=0l,nd-1 do begin
+        output[i] = swfo_stis_sci_level_0b(sci_dat[i],nse_dat[i],hkp_dat[i], sc100_dat=sc100_dat[i], sc110_dat=sc110_dat[i], playback=playback)
+      endfor
+      return, output
+    endif
+
+
+
+
+
+
 
     ; hkp: from swfo_stis_hkp_apdat__define.pro
     output.dac_values = hkp_dat.dac_values
@@ -475,6 +497,7 @@ function swfo_stis_sci_level_0b,sci_dat,nse_dat,hkp_dat, sc100_dat=sc100_dat,sc1
 
     output = l0b
   endelse
+
 
 
 
