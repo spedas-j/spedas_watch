@@ -1,17 +1,8 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-10 23:27:12 -0700 (Fri, 10 Oct 2025) $
-; $LastChangedRevision: 33733 $
+; $LastChangedDate: 2025-10-12 01:22:10 -0700 (Sun, 12 Oct 2025) $
+; $LastChangedRevision: 33740 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_0b.pro $
 
-
-pro swfo_stis_sci_level_0b_test,last=last
-   sci_obj = swfo_apdat('stis_sci')
-   nse_obj = swfo_apdat('stis_nse')
-   hkp_obj = swfo_apdat('stis_hkp2')
-   
-
-
-end
 
 
 

@@ -29,14 +29,17 @@ function ccsds_frame_reader::header_struct,header
   
   if n_elements(header) lt self.header_size then return, !null                    ; Not enough bytes in packet header
   if  (isa(sync) && (array_equal(sync,header[0:nsync-1] and self.sync_mask) eq 0)) then begin
-    dprint,dlevel=1,verbose=self.verbose,'Invalid Sync skipping.. ', sync ;,self.sync_pattern
+    dprint,dlevel=3,verbose=self.verbose,'Invalid Sync skipping.. '   ;, sync ' - ',self.sync_pattern
     return,!null   ; Not a valid packet
   endif
   
   ftime = self.source_dict.frame_time
   self.source_dict.frame_time = ftime + self.source_dict.frame_dtime
   strct = {  time:ftime,index:0uL,SEQN:0UL, seqn_delta:0L, scid:0u, vcid:0b, seqid:0u $
-    , psize: 0u ,   sigfield:0b  , offset:0u, last4:[0b,0b,0b,0b], hashcode:0uL,replay:0b  $
+    , psize: 0u ,   sigfield:0b  , offset:0u, last4:[0b,0b,0b,0b]  $
+    , hashcode:0uL   $
+    , file_hash: 0ul   $   ; hash of the filename
+    , replay:0b  $
     , rept: 0u,  disp: 0u,  oerror:0u $
     , valid:1b, gap:0b}
   
@@ -136,8 +139,8 @@ pro ccsds_frame_reader::handle,frame    ; This routine handles a SINGLE ccsds fr
   dict.dejavu_cntr = dict.dejavu_cntr mod ncodes
   if isa(w_hcode) then begin
     disp = (dict.dejavu_cntr - ulong(w_hcode[0]) ) mod ncodes
-    headerstr.disp = disp
-    headerstr.rept = nw
+    frame_headerstr.disp = disp
+    frame_headerstr.rept = nw
     if disp gt 1 then begin
       self.print_info,dlevel=2,frame_headerstr,'Repeat: '+strtrim(disp,2)+' '+strtrim(nw,2)
     endif else begin

@@ -36,9 +36,9 @@
 ;SEE ALSO:    "GET_DATA", "TPLOT_NAMES",  "TPLOT", "OPTIONS"
 ;
 ;CREATED BY:    Davin Larson
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-10-06 18:29:04 -0700 (Mon, 06 Oct 2025) $
-; $LastChangedRevision: 33701 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-10-12 01:05:49 -0700 (Sun, 12 Oct 2025) $
+; $LastChangedRevision: 33736 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tplot/store_data.pro $
 ;-
 pro store_data,name, time,ydata,values, $
@@ -76,7 +76,7 @@ pro store_data,name, time,ydata,values, $
     if isa(data,'dynamicarray') then begin
       if size(/type,time_tag) ne 7 then time_tag = 'TIME'
       if data.size eq 0 then begin
-        dprint,verbose=verbose,dlevel=1,name,': Dynamic array has no data. Unable to create tplot variables for "',data.name,'"'
+        dprint,verbose=verbose,dlevel=1,name+': Dynamic array has no data. Unable to create tplot variables for "',data.name,'"'
         return
       endif
       data_sample = data.slice(/last)
@@ -84,6 +84,7 @@ pro store_data,name, time,ydata,values, $
       ok   = strfilter(tags,strupcase(tagnames),delimiter=' ',/byte)
       if ~keyword_set(seperator) then seperator = '_'
       ;nd = size(/n_elements,data)
+      dprint,dlevel=1,verbose=verbose,'Creating "'+name+'" from Dynamic Array: "'+data.name+ '"  TAGS: "'+tagnames+'"'
       for i=0,n_elements(tags)-1 do begin
         if ok[i] eq 0 then continue
         if tags[i] eq strupcase(time_tag) then continue
@@ -303,7 +304,7 @@ pro store_data,name, time,ydata,values, $
     if ~isa(time_tag,'STRING') then time_tag='time'
     if ~isa(data_tag,'STRING') then data_tag='data'
     if ~(keyword_set(silent)) then begin
-      dprint,verbose=verbose,dlevel=1,verb+' tplot variable: '+strtrim(index,2)+' '+dq.name+' from DynamicArray: "'+data.name+'"'
+      dprint,verbose=verbose,dlevel=2,verb+' tplot variable: '+strtrim(index,2)+' '+dq.name+' from DynamicArray: "'+data.name+'"'
     endif
     if ~isa(vardef,'dictionary') then vardef = dictionary('x',time_tag,'y',data_tag)
     dh = {ddata:data,vardef:vardef}

@@ -1,11 +1,11 @@
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-10-09 11:57:35 -0700 (Thu, 09 Oct 2025) $
-; $LastChangedRevision: 33724 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-10-12 01:37:08 -0700 (Sun, 12 Oct 2025) $
+; $LastChangedRevision: 33741 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_apdat__define.pro $
 
 
 function swfo_stis_sci_apdat::decom,ccsds   ,source_dict=source_dict      ;,header,ptp_header=ptp_header,apdat=apdat
-  common swfo_stis_sci_com4, lastdat, last_str
+;  common swfo_stis_sci_com4, lastdat, last_str
   ccsds_data = swfo_ccsds_data(ccsds)
   str1=swfo_stis_ccsds_header_decom(ccsds)
   ;if str1.fpga_rev gt 209 then ccsds_data=ccsds_data[0:-3]
@@ -45,8 +45,8 @@ function swfo_stis_sci_apdat::decom,ccsds   ,source_dict=source_dict      ;,head
   endif
 
 
-  if n_elements(last_str) eq 0 || (abs(last_str.time-ccsds.time) gt 65) then lastdat = scidata
-  lastdat = scidata
+;  if n_elements(last_str) eq 0 || (abs(last_str.time-ccsds.time) gt 65) then lastdat = scidata
+;  lastdat = scidata
 
   ;  if duration eq 0 then duration = 1u   ; cluge to fix lack of proper output in early version FPGA
 

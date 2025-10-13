@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-10 05:49:56 -0700 (Fri, 10 Oct 2025) $
-; $LastChangedRevision: 33729 $
+; $LastChangedDate: 2025-10-12 01:04:02 -0700 (Sun, 12 Oct 2025) $
+; $LastChangedRevision: 33735 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -284,9 +284,13 @@ function DynamicArray::sample,nearest=nearest,range=range,tagname=tagname,varnam
       ;vals= ((*self.ptr_array).(tag_num))[0:self.size-1,*,*,*]
       vals= (*self.ptr_array)[0:self.size-1,*,*,*].(tag_num)
       if keyword_set(nearest) then begin
-        w = interp(dindgen(self.size),vals,nearest,/last_value)
+        w = interp(dindgen(self.size),vals,nearest)
         ;printdat,w,vals[w],vals[w]-nearest
-        vals = (*self.ptr_array)[w,*,*,*].(var_num)
+        if isa(w) then begin
+          w = round(w)
+          if isa(var_num) then vals = (*self.ptr_array)[w,*,*,*].(var_num) $
+          else vals = (*self.ptr_array)[w,*,*,*]          
+        endif else vals = w
       endif else if isa(range) then begin
         w= where(/null,vals ge min(range[0]) and vals lt max(range[1]))
         if isa(varname) then begin
@@ -319,6 +323,7 @@ end
 
 pro DynamicArray::sort   , tagname    , uniq=uniq   ; Use with caution
   nsize = self.size
+  tagname='time'
   if isa(tagname,/string) && isa(*self.ptr_array,'struct') then begin
     if strlowcase(tagname) ne 'time' then message,'Can only sort on time for now.'
 
