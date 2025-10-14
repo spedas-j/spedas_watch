@@ -25,9 +25,9 @@
 ; Cribsheets that demonstrate Level 1a loading:
 ; - swfo_stis_sci_qflag_crib.pro: quality flag demo
 ;
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2025-10-09 11:26:34 -0700 (Thu, 09 Oct 2025) $
-; $LastChangedRevision: 33723 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2025-10-13 02:43:15 -0700 (Mon, 13 Oct 2025) $
+; $LastChangedRevision: 33747 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -67,7 +67,8 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, cal=cal
   if ~isa(cal,'dictionary') then cal = swfo_stis_inst_response_calval()
   ; cal.rate_threshold /= 10  ; comment out, after testing
 
-  L1a = {swfo_stis_L1a,  $
+  ;L1a = {swfo_stis_L1a,  $
+  L1a = {  $
     time:0d, $
     time_unix: 0d, $
     time_MET:  0d, $
@@ -82,7 +83,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, cal=cal
     noise_sigma: replicate(!values.f_nan,6),  $
     sci_duration: 0u , $
     sci_nbins:   0u,  $
-    sci_counts : replicate(!values.f_nan,672),  $
+ ;   sci_counts : replicate(!values.f_nan,672),  $    ; remove to increase performance
     ;    sci_adc    : replicate(!values.f_nan,672),  $
     ;    sci_dadc    : replicate(!values.f_nan,672),  $
     total14:  fltarr(14) , $
@@ -113,7 +114,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, cal=cal
   L1a_strcts = replicate(L1a, nd )
  ; struct_assign , l0b_structs,  l1a_strcts, /nozero, verbose = verbose
 
-  L1a_strcts = replicate({swfo_stis_l1a}, nd )
+ ; L1a_strcts = replicate({swfo_stis_l1a}, nd )   using a named structure prevents everything from being backward compatible
   struct_assign , l0b_structs,  l1a_strcts, /nozero, verbose = verbose
 
   L1a_strcts.time = l0b_structs.time_unix

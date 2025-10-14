@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-12 01:04:02 -0700 (Sun, 12 Oct 2025) $
-; $LastChangedRevision: 33735 $
+; $LastChangedDate: 2025-10-13 02:33:49 -0700 (Mon, 13 Oct 2025) $
+; $LastChangedRevision: 33742 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -321,14 +321,13 @@ end
 
 
 
-pro DynamicArray::sort   , tagname    , uniq=uniq   ; Use with caution
+pro DynamicArray::sort   , timename    , uniq=uniq   ; Use with caution
   nsize = self.size
-  tagname='time'
-  if isa(tagname,/string) && isa(*self.ptr_array,'struct') then begin
-    if strlowcase(tagname) ne 'time' then message,'Can only sort on time for now.'
+  if  isa(*self.ptr_array,'struct') then begin
+    if ~isa(timename,'string') then timename='TIME'
+    time_num = where(/null,tag_names(*self.ptr_array) eq strupcase(timename) )
 
-    ;v = ((*self.ptr_array)[0: self.size-1] ).time
-    v = (*self.ptr_array).time
+    v = (*self.ptr_array).(time_num)
     v = v[0:nsize-1]
 
   endif else begin
@@ -342,8 +341,48 @@ pro DynamicArray::sort   , tagname    , uniq=uniq   ; Use with caution
     self.size = nusize
     (*self.ptr_array)[0:nusize-1]  = (*self.ptr_array)[u]    
   endif
+end
 
 
+
+
+function DynamicArray::reduce_resolution   , res, timename=timename      ; Use with caution should be sorted
+  nsize = self.size
+  if  isa(*self.ptr_array,'struct') then begin
+    if ~isa(timename,'string') then timename='TIME'
+    time_num = where(/null,tag_names(*self.ptr_array) eq strupcase(timename) )
+    if ~isa(time_num) then return,time_num
+
+    t = (*self.ptr_array).(time_num)
+    t = t[0:nsize-1]
+    
+    bin =  floor((t-t[0])/res)
+    ubin = uniq(bin)
+    
+    nb = n_elements(ubin)
+    strct0 =  fill_nan( (*self.ptr_array)[0] )
+    tags = tag_names(strct0)
+    bit_tags = where(strmid(/reverse, tags,4) eq '_BITS', /null)
+    red_dat = replicate( strct0 ,nb)
+    for i=0l,nb-1 do begin
+      w = where(bin eq bin[ubin[i]],nw,/null)
+      strct_i =  (*self.ptr_array)[w] 
+      avgstr = average( strct_i ,/nan )
+      foreach bt, bit_tags do begin
+        avgstr.(bt) = 0
+        dat_bits = strct_i.(bt)
+        for k=0, nw-1 do  avgstr.(bt) =  avgstr.(bt)  or dat_bits[k]
+      endforeach
+      red_dat[i] = avgstr
+    endfor
+    
+
+  endif else begin
+    
+    v = (*self.ptr_array)[0: nsize-1]
+    return,'error'
+  endelse
+  return,red_dat
 end
 
 

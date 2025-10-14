@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-12 01:02:02 -0700 (Sun, 12 Oct 2025) $
-; $LastChangedRevision: 33734 $
+; $LastChangedDate: 2025-10-13 02:39:11 -0700 (Mon, 13 Oct 2025) $
+; $LastChangedRevision: 33744 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_l0b.pro $
 
 
@@ -14,7 +14,7 @@ function swfo_stis_sci_l0b,getall=getall,prev_l0b_dat=output,sci_dat=sci_dat,nse
   nan = !values.f_nan
   dnan = !values.d_nan
   
-  if ~isa(output,'structure') then  output = { swfo_stis_l0b, $
+  if ~isa(output,'structure') then  output = {  $
     time:dnan  ,$
     time_met: dnan, $
     time_gr:  dnan, $
@@ -238,13 +238,6 @@ function swfo_stis_sci_l0b,getall=getall,prev_l0b_dat=output,sci_dat=sci_dat,nse
     sc100_dat = sc100_obj.data.sample(nearest=sci_time,tagname='time')
     sc110_dat = sc110_obj.data.sample(nearest=sci_time,tagname='time')
 
-    ;      if 0 then begin
-    ;        for i=0l,nd-1 do begin
-    ;          output[i] = swfo_stis_sci_level_0b(sci_dat[i],nse_dat[i],hkp_dat[i], sc100_dat=sc100_dat[i], sc110_dat=sc110_dat[i], playback=playback)
-    ;        endfor
-    ;        return, output
-    ;
-    ;      endif
   endif
 
   nd= n_elements(output)
@@ -296,7 +289,7 @@ function swfo_stis_sci_l0b,getall=getall,prev_l0b_dat=output,sci_dat=sci_dat,nse
     
     ;output.sci_nonlut_mode = sci_dat.sci_nonlut_mode
     ;output.sci_decimate = sci_dat.sci_decimate
-    ;output.sci_translate = sci_dat.sci_translate
+    ;output.sci_translate = sci_dat.sci_translate     these don't exist in the science packets
     ;output.sci_resolution = sci_dat.sci_resolution
 
   endif
@@ -400,8 +393,8 @@ function swfo_stis_sci_l0b,getall=getall,prev_l0b_dat=output,sci_dat=sci_dat,nse
     output.valid_enable_mask_bits = hkp_dat.valid_enable_mask_bits
     output.sci_mode_bits = hkp_dat.sci_mode_bits
     output.timeouts_2us = hkp_dat.timeouts_2us
-    ; output.sci_resolution = hkp_dat.sci_resolution   ; don't overwrite
-    ; output.sci_translate = hkp_dat.sci_translate     ; don't overwrite
+    output.sci_resolution = hkp_dat.sci_resolution   ; don't overwrite
+    output.sci_translate = hkp_dat.sci_translate     ; don't overwrite
     ; hkp: ana:
     output.adc_bias_voltage = hkp_dat.adc_bias_voltage
     output.temp_dap = hkp_dat.temp_dap
@@ -495,6 +488,7 @@ function swfo_stis_sci_l0b,getall=getall,prev_l0b_dat=output,sci_dat=sci_dat,nse
     output.control_torque_xyz = sc100_dat.control_torque_xyz
     output.rt_critical_vc = sc100_dat.rt_critical_vc
     output.star_tracker_attitude_q1234 = sc100_dat.star_tracker_attitude_q1234
+;    output.star_tracker_attitude_q1234 = sc100_dat.start_tracker_attitude_q1234
     output.rt_non_critical_vc = sc100_dat.rt_non_critical_vc
     output.body_frame_attitude_q1234 = sc100_dat.body_frame_attitude_q1234
     output.pbk_critical_vc = sc100_dat.pbk_critical_vc
@@ -521,8 +515,8 @@ function swfo_stis_sci_l0b,getall=getall,prev_l0b_dat=output,sci_dat=sci_dat,nse
 
   ; apid 110
   if n_elements(sc110_dat) eq nd then begin
-    output.iru_bits = sc110_dat.iru_bits
-    output.modeled_spacecraft_sun_vxyz = sc110_dat.modeled_spacecraft_to_sun_vxyz
+    output.iru_bits = sc110_dat.iru_bits      
+    output.modeled_spacecraft_sun_vxyz = sc110_dat.modeled_spacecraft_to_sun_vxyz   ; parameter missing - uncomment when corrected
 
   endif
 
