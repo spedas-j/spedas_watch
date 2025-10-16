@@ -26,8 +26,8 @@
 ; - swfo_stis_sci_qflag_crib.pro: quality flag demo
 ;
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-13 02:43:15 -0700 (Mon, 13 Oct 2025) $
-; $LastChangedRevision: 33747 $
+; $LastChangedDate: 2025-10-15 09:15:31 -0700 (Wed, 15 Oct 2025) $
+; $LastChangedRevision: 33760 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1a.pro $
 
 
@@ -230,7 +230,7 @@ function swfo_stis_sci_level_1a,l0b_structs , verbose=verbose, cal=cal
     for j=0,5 do begin
       ; IMPORTANT: ignore end channel! susceptible to overflow:
       ; noise_stats[j] = swfo_stis_nse_find_peak(nse_histogram[0:8, j, i],noise_adc_bins[0:8])
-      noise_stats[j] = swfo_stis_nse_find_peak(nse_histogram_i[0:8, j],noise_adc_bins[0:8])
+      noise_stats[j] = swfo_stis_nse_find_peak(nse_histogram_i[0:9, j],noise_adc_bins[0:9])
     endfor
     ; stop
 

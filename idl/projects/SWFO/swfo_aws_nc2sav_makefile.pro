@@ -1,4 +1,10 @@
-pro swfo_aws_nc2sav_makefile,trange=trange,make_sav=make_sav,load_sav=load_sav,daily=daily,force_make=force_make,info=info,c2=c2,res=res,make_levels=make_levels,l0b=l0b,l1a=l1a,l1b=l1b
+;$LastChangedBy: davin-mac $
+;$LastChangedDate: 2025-10-15 09:15:31 -0700 (Wed, 15 Oct 2025) $
+;$LastChangedRevision: 33760 $
+;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/swfo_aws_nc2sav_makefile.pro $
+
+pro swfo_aws_nc2sav_makefile,trange=trange,make_sav=make_sav,load_sav=load_sav,daily=daily,force_make=force_make,$
+  info=info,c2=c2,res=res,make_levels=make_levels,l0b=l0b,l1a=l1a,l1b=l1b
   trange = timerange(trange)
   root=root_data_dir()
   sav_path='swfo/data/sci/aws/.sav/'
@@ -10,11 +16,12 @@ pro swfo_aws_nc2sav_makefile,trange=trange,make_sav=make_sav,load_sav=load_sav,d
   source={remote_data_dir:'http://sprg.ssl.berkeley.edu/data/',master_file: 'swfo/.master'}
 
   if keyword_set(daily) then begin
-    t0=long(trange[0])/86400
-    t1=1+long(trange[1]-1)/86400
+    daysec=86400
+    t0=long(trange[0])/daysec
+    t1=1+long(trange[1]-1)/daysec
     nd=t1-t0
     for day=0,nd-1 do begin
-      tr=(t0+day+[0,1])*86400.
+      tr=(t0+day+[0,1])*daysec
       sav_file=file_retrieve(_extra=source,sav_path+'daily/'+filepath.substring(0,-10)+filename.substring(0,-10)+'MMDD'+res+'.sav',tr=tr,valid=keyword_set(load_sav))
       if keyword_set(make_sav) then begin
         sav_files=file_retrieve(_extra=source,sav_path+filepath+filename+'.sav',trange=tr,resolution=3600,/valid,verbose=1)
@@ -23,12 +30,43 @@ pro swfo_aws_nc2sav_makefile,trange=trange,make_sav=make_sav,load_sav=load_sav,d
         swfo_aws_nc2sav_makefile,/load,tr=tr,info=info,c2=c2,daily=load_sav
         if keyword_set(info['current_filehash']) then begin
           if ~keyword_set(load_sav) then swfo_apdat_info,/compress,parents=info['file_hash_list'],file_save=sav_file
-          swfo_apdat_info,/compress,parents=info['file_hash_list'],file_save=sav_file.substring(0,-5)+'_01min.sav',/average,binsize=60
-          swfo_apdat_info,/compress,parents=info['file_hash_list'],file_save=sav_file.substring(0,-5)+'_30min.sav',/average,binsize=60*30
+          swfo_apdat_info,/compress,parents=info['file_hash_list'],file_save=sav_file.substring(0,-5)+'_01min.sav',/average,tspan=daysec,binsize=60
+          swfo_apdat_info,/compress,parents=info['file_hash_list'],file_save=sav_file.substring(0,-5)+'_30min.sav',/average,tspan=daysec,binsize=60*30
         endif
       endif else if keyword_set(load_sav) then swfo_apdat_info,file_restore=sav_file
     endfor
     swfo_apdat_info,/create,/print,/sort,info=info
+    if keyword_set(make_levels) then begin
+      dprint,'Making L0b'
+      l0b = dynamicarray(swfo_stis_sci_l0b(/getall),name='swfo_stis_L0b')
+      store_data,l0b.name,data=l0b ,tagnames = '*'
+      store_data,l0b.name,data=l0b ,tagnames = '*_BITS',dlim ={ tplot_routine:'bitplot' }
+      tname = 'swfo_stis_L1a'
+      dprint,'Making L1: ',tname
+      l1a = dynamicarray(swfo_stis_sci_level_1a(l0b.array),name=tname)
+      store_data,tname,data = l1a,tagnames = '*'
+      store_data,tname,data = l1a,tagnames = 'SPEC_??',val_tag='_NRG'
+      store_data,tname,data = l1a,tagnames = 'SPEC_???',val_tag='_NRG'
+      store_data,tname,data = l1a,tagnames = 'SPEC_????',val_tag='_NRG'
+      options,tname+'_SPEC_??',spec=1, zlog=1, ylog=1
+      options,tname+'_SPEC_???',spec=1, zlog=1, ylog=1
+      options,tname+'_SPEC_????',spec=1, zlog=1, ylog=1
+      options,tname+'_RATE6',/ylog
+      ;options,tname+['_RATE','*SIGMA','*BASELINE', /reverse_order, colors ='bgrmcd'
+      options,/def,'*_RATE6 *BASELINE *SIGMA *NOISE_TOTAL',colors='bgrmcd',symsize=.5,labels=channels,labflag=-1,constant=0,/reverse_order
+      if 0 then begin
+        ; Make reduced time resolution
+        tname = 'swfo_stis_60s_L1a'
+        dprint,'Making L1: ',tname
+        l1a_60sec = l1a.reduce_resolution(60d)
+        l1a_60sec_da = dynamicarray( l1a_60sec, name='L1a_60sec' )
+        store_data,'L1a_avg', data = l1a_60sec_da, tagnames='*'
+        store_data,tname,data = l1a_60sec_da,tagnames = '*'
+        store_data,tname,data = l1a_60sec_da,tagnames = 'SPEC_??',val_tag='_NRG'
+        store_data,tname,data = l1a_60sec_da,tagnames = 'SPEC_???',val_tag='_NRG'
+        store_data,tname,data = l1a_60sec_da,tagnames = 'SPEC_????',val_tag='_NRG'
+      endif
+    endif
     return
   endif
 
@@ -66,40 +104,6 @@ pro swfo_aws_nc2sav_makefile,trange=trange,make_sav=make_sav,load_sav=load_sav,d
     sav_files=file_retrieve(_extra=source,sav_path+filepath+filename+'.sav',trange=trange,resolution=3600,/valid,verbose=1)
     foreach sav_file,sav_files do swfo_apdat_info,file_restore=sav_file
     swfo_apdat_info,/create,/print,/sort,info=info
-  endif
-
-  if keyword_set(make_levels) then begin
-    dprint,'Making L0b'
-    l0b = dynamicarray(swfo_stis_sci_l0b(/getall),name='stis_sci_L0b')
-    tname = 'swfo_stis_L1a'
-    dprint,'Making L1: ',tname
-    l1a = dynamicarray(swfo_stis_sci_level_1a(l0b.array),name='stis_sci_L1b')
-    store_data,tname,data = l1a,tagnames = '*'
-    store_data,tname,data = l1a,tagnames = 'SPEC_??',val_tag='_NRG'
-    store_data,tname,data = l1a,tagnames = 'SPEC_???',val_tag='_NRG'
-    store_data,tname,data = l1a,tagnames = 'SPEC_????',val_tag='_NRG'
-    options,tname+'_SPEC_??',spec=1, zlog=1, ylog=1
-    options,tname+'_SPEC_???',spec=1, zlog=1, ylog=1
-    options,tname+'_SPEC_????',spec=1, zlog=1, ylog=1
-    options,tname+'_RATE6',/ylog
-    ;options,tname+['_RATE','*SIGMA','*BASELINE', /reverse_order, colors ='bgrmcd'
-    options,/def,'*_RATE6 *BASELINE *SIGMA *NOISE_TOTAL',colors='bgrmcd',symsize=.5,labels=channels,labflag=-1,constant=0,/reverse_order
-    ; Make reduced time resolution
-    tname = 'swfo_stis_60s_L1a'
-    dprint,'Making L1: ',tname
-    l1a_60sec = l1a.reduce_resolution(60d)
-    l1a_60sec_da = dynamicarray( l1a_60sec, name='L1a_60sec' )
-    store_data,'L1a_avg', data = l1a_60sec_da, tagnames='*'
-    store_data,tname,data = l1a_60sec_da,tagnames = '*'
-    store_data,tname,data = l1a_60sec_da,tagnames = 'SPEC_??',val_tag='_NRG'
-    store_data,tname,data = l1a_60sec_da,tagnames = 'SPEC_???',val_tag='_NRG'
-    store_data,tname,data = l1a_60sec_da,tagnames = 'SPEC_????',val_tag='_NRG'
-    options,tname+'_SPEC_??',spec=1, zlog=1, ylog=1
-    options,tname+'_SPEC_???',spec=1, zlog=1, ylog=1
-    options,tname+'_SPEC_????',spec=1, zlog=1, ylog=1
-    options,tname+'_RATE6',/ylog
-    ;options,tname+['_RATE','*SIGMA','*BASELINE', /reverse_order, colors ='bgrmcd'
-    options,/def,'*_RATE6 *BASELINE *SIGMA *NOISE_TOTAL',colors='bgrmcd',symsize=.5,labels=channels,labflag=-1,constant=0,/reverse_order
   endif
 
 end
