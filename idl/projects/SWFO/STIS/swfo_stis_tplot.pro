@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-15 09:15:31 -0700 (Wed, 15 Oct 2025) $
-; $LastChangedRevision: 33760 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-10-17 13:37:17 -0700 (Fri, 17 Oct 2025) $
+; $LastChangedRevision: 33770 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -88,7 +88,7 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
     options,/def,'*hkp?_NEGATIVE_PULSE_RATES',labels='total_neg',psym=-2,symsize=1
     options,/def,'*sci_TOTAL *sci_RATE',colors='r',psym=6,symsize=.5,labels='SCI'
     options,/def,'*sci_TOTAL2 *sci_RATE2',colors='m',labels='SCI2'
-    options,/def,'*sci_TOTAL14 *sci_RATE14',spec=1,zlog=1,no_interp=1
+    options,/def,'*TOTAL14 *RATE14',spec=1,zlog=1,no_interp=1
     options,/def,'*sci_SIGMA14',ylog=1
     ylim,/def,'*sci_RATE6',.1,5e6,1
     options,/def,'*_RATE6',symsize=.2

@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-13 02:39:11 -0700 (Mon, 13 Oct 2025) $
-; $LastChangedRevision: 33744 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2025-10-17 13:37:17 -0700 (Fri, 17 Oct 2025) $
+; $LastChangedRevision: 33770 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_l0b.pro $
 
 
@@ -172,6 +172,7 @@ function swfo_stis_sci_l0b,getall=getall,prev_l0b_dat=output,sci_dat=sci_dat,nse
     adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth: 0b,$
     sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver: 0b,$
     sun_point_minimum_keepout_angle: 0.,$
+    measured_sun_vector_xyz: replicate(0d, 3), $
     control_torque_xyz: fltarr(3),$
     rt_critical_vc: 0b, $
     star_tracker_attitude_q1234: replicate(0d, 4),$
@@ -485,6 +486,7 @@ function swfo_stis_sci_l0b,getall=getall,prev_l0b_dat=output,sci_dat=sci_dat,nse
     output.adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth = sc100_dat.adcs_state_0wait_1detumble_2acqsun_3point_4deltav_5earth
     output.sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver = sc100_dat.sun_point_status_0idle_1magpoint_2intrusion_3avoidance_4maneuver
     output.sun_point_minimum_keepout_angle = sc100_dat.sun_point_minimum_keepout_angle
+    output.measured_sun_vector_xyz = sc100_dat.measured_sun_vector_xyz
     output.control_torque_xyz = sc100_dat.control_torque_xyz
     output.rt_critical_vc = sc100_dat.rt_critical_vc
     output.star_tracker_attitude_q1234 = sc100_dat.star_tracker_attitude_q1234
