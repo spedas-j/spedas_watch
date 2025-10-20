@@ -1,6 +1,6 @@
-;$LastChangedBy: ali $
-;$LastChangedDate: 2025-10-14 18:20:42 -0700 (Tue, 14 Oct 2025) $
-;$LastChangedRevision: 33757 $
+;$LastChangedBy: rjolitz $
+;$LastChangedDate: 2025-10-18 18:55:35 -0700 (Sat, 18 Oct 2025) $
+;$LastChangedRevision: 33771 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_load.pro $
 
 pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolution=ncdf_resolution , $
@@ -16,6 +16,7 @@ pro swfo_stis_load,file_type=file_type,station=station,host=host, ncdf_resolutio
   if lowres eq 2 then lowres = '30min'
   if file_type eq 'aws' then begin
     swfo_aws_nc2sav_makefile,/load,/daily,trange=trange,c2=station,res=lowres,/make_levels
+    swfo_stis_tplot, /setlim
     return
   endif
   if ~keyword_set(ncdf_resolution) then ncdf_resolution = 1800
