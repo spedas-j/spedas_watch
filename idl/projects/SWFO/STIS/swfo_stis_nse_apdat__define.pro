@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-24 18:02:38 -0700 (Fri, 24 Oct 2025) $
-; $LastChangedRevision: 33792 $
+; $LastChangedDate: 2025-10-24 21:23:52 -0700 (Fri, 24 Oct 2025) $
+; $LastChangedRevision: 33794 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_nse_apdat__define.pro $
 
 
@@ -88,7 +88,8 @@ end
 pro swfo_stis_nse_apdat::sort ,uniq=uniq
 
   if isa(self.data,'dynamicarray') then self.data.sort,uniq=uniq
-  (*self.data.ptr).histogram = self.data.array.raw - shift(self.data.array.raw,0,1)
+  raw = (*self.data.ptr).raw
+  (*self.data.ptr).histogram = raw - shift(raw,0,1)
   ;self.process_time = systime(1)
 end
 

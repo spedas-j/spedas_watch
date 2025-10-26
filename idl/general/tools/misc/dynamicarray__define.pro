@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-10-24 18:02:38 -0700 (Fri, 24 Oct 2025) $
-; $LastChangedRevision: 33792 $
+; $LastChangedDate: 2025-10-24 21:22:38 -0700 (Fri, 24 Oct 2025) $
+; $LastChangedRevision: 33793 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -344,7 +344,7 @@ pro DynamicArray::sort   , timename    , uniq=uniq   ; Use with caution
     nusize = n_elements(u)
     self.size = nusize
     (*self.ptr_array)[0:nusize-1]  = (*self.ptr_array)[u]   
-    dprint,dlevel = 2,verbose=self.verbose,'Old: ',nsize,' New: ',nusize,' diff: ',nsize-nusize 
+    dprint,dlevel = 2,verbose=self.verbose,'Old: ',nsize,' New: ',nusize,' diff: ',nsize-nusize , '  ',self.name
   endif
 end
 
