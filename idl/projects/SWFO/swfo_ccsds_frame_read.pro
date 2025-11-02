@@ -10,22 +10,39 @@
 
 
 
-pro swfo_ccsds_frame_read,reader=rdr,trange=trange,current=current
+pro swfo_ccsds_frame_read,reader=rdr,trange=trange,current=current,typecase=typecase,user_pass=user_pass
 
   common swfo_ccsds_frame_read_common, reader
+  t0 = systime(1)
+
+  if ~keyword_set(user_pass) then begin
+    log_info = get_login_info()
+    salt = '_a0'
+    user_name = log_info.user_name+salt
+    user_pass = user_name+':'+log_info.machine_name  ; + !version.release
+    pass_word0 = string(format='(i06)', user_pass.hashcode() mod 1000000 )
+    dprint,'User_name: ',user_name
+    dprint,'password:  ',pass_word0
+    user_pass = user_name+ ':' + pass_word0
+    printdat,user_pass
+  endif
+
   if ~isa(reader,'CCSDS_FRAME_READER') then begin
-    run_proc = 1
     swfo_stis_apdat_init,/save_flag
     reader = ccsds_frame_reader(mission='SWFO',/no_widget,verbose=verbose,run_proc=run_proc)
     reader.parent_dict.init = 0
+    reader.parent_dict.user_pass = user_pass
   endif
 
   rdr=reader
 
+  if ~isa(user_pass) then user_pass = rdr.parent_dict.user_pass
 
 
   if ~isa(no_download) then no_download = 0    ;set to 1 to prevent download
   no_update = 1      ; set to 1 to prevent checking for updates
+  run_proc = 1
+
 
   ;https://sprg.ssl.berkeley.edu/data/swfo/outgoing/swfo-l1/l0/
   source = {$
@@ -34,19 +51,21 @@ pro swfo_ccsds_frame_read,reader=rdr,trange=trange,current=current
     min_age_limit :100,$
     no_update : no_update ,$
     no_download :no_download ,$
+    user_pass:  user_pass, $
     resolution: 3600L  }
+     
 
   if ~keyword_set(trange) then begin
     if ~keyword_set(current) then current=24
     trange = systime(1)   + [-1,0] * 3600d   * current  ; last 24 hours
-    if rdr.source_dict.haskey('frame_time') then begin
-      trange[0] = rdr.source_dict.frame_time - 300
-    endif
+  ;  if rdr.source_dict.haskey('frame_time') then begin
+  ;    trange[0] = rdr.source_dict.frame_time - 300
+  ;  endif
 
   endif
 
 
-  typecase = 'WCD'
+  if ~isa(typecase,'string') then  typecase = 'WCD'
 
   case typecase of
     'WCD': begin
@@ -69,7 +88,21 @@ pro swfo_ccsds_frame_read,reader=rdr,trange=trange,current=current
       pathname = 'swfo/aws/L0/SWFOCBU/YYYY/MM/DD/OR_SWFOCBU-L0_SL1_s*.nc'
       pathname = 'swfo/aws/preplt/SWFO-L1/l0/SWFOCBU/YYYY/MM/YYYYMMDD/OR_SWFOCBU-L0_SL1_sYYYYDOYhh*.nc'
       source.resolution = 3600
-      allfiles = file_retrieve(pathname,_extra=source,trange=trange)  ; get All the files first
+      allfiles = file_retrieve(pathname,_extra=source,trange=trange,verbose=2)  ; get All the files first
+      fileformat =  file_basename(str_sub(pathname,'*.nc',''))
+      filerange = time_string(time_double(trange)+[0,3600],tformat=fileformat)
+      ;      if keyword_set(lastfile) then filerange[0] = file_basename(lastfile)
+      if 0 then begin
+        w = where(file_basename(allfiles) gt filerange[0] and file_basename(allfiles) lt filerange[1] and file_test(allfiles),nw,/null)
+      endif else begin
+        w = where(file_test(allfiles),nw,/null)
+      endelse
+
+
+
+
+;      source.resolution = 3600
+ ;     allfiles = file_retrieve(pathname,_extra=source,trange=trange)  ; get All the files first
       ;      fileformat =  file_basename(str_sub(pathname,'*.nc',''))
       ;      filerange = time_string(time_double(trange)+[0,3600],tformat=fileformat)
       ;      if keyword_set(lastfile) then filerange[0] = file_basename(lastfile)
@@ -211,7 +244,7 @@ pro swfo_ccsds_frame_read,reader=rdr,trange=trange,current=current
         rdr.parent_dict.filehashes[filehash] = file
 
       endif else begin
-        dprint,'No such file: ',file
+        dprint,'No such file: '+file
 
       endelse
     endfor
@@ -254,6 +287,8 @@ pro swfo_ccsds_frame_read,reader=rdr,trange=trange,current=current
 
     endif    else dprint,'No new files'
   endif
+  dprint,systime()
+  dprint,(systime(1)-t0)
 
 end
 
