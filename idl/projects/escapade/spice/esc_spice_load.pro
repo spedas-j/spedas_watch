@@ -24,8 +24,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2025-11-17 16:15:39 -0800 (Mon, 17 Nov 2025) $
-; $LastChangedRevision: 33849 $
+; $LastChangedDate: 2025-11-18 12:42:00 -0800 (Tue, 18 Nov 2025) $
+; $LastChangedRevision: 33850 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/spice/esc_spice_load.pro $
 ;
 ;-
@@ -47,8 +47,10 @@ PRO esc_spice_load, trange=itime, verbose=verbose, blue=blue, gold=gold, resolut
   ENDIF 
 
   IF is_struct(info) THEN BEGIN
-     IF tr[0] LT time_double(info[-1].trange[0]) THEN tr[0] = time_double(time_string(time_double(info[-1].trange[0]), prec=-1)) + 120.d0
-     IF tr[1] GT time_double(info[-1].trange[1]) THEN tr[1] = time_double(time_string(time_double(info[-1].trange[1]), prec=-1)) - 120.d0
+     w = WHERE(info.type EQ 'SPK' and ( (info.obj_name EQ 'ESCAPADE_BLUE') OR (info.obj_name EQ 'ESCAPADE_GOLD') ), nw)
+     IF nw GT 0 THEN tcov = minmax(time_double(info[w].trange))
+     IF tr[0] LT tcov[0] THEN tr[0] = time_double(time_string(tcov[0], prec=-1)) + 120.d0
+     IF tr[1] GT tcov[1] THEN tr[1] = time_double(time_string(tcov[1], prec=-1)) - 120.d0
   ENDIF 
 
   IF undefined(res) THEN dt = 60.d0 ELSE dt = DOUBLE(res)
