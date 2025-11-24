@@ -1,6 +1,6 @@
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-11-22 07:53:52 -0800 (Sat, 22 Nov 2025) $
-; $LastChangedRevision: 33864 $
+; $LastChangedBy: ali $
+; $LastChangedDate: 2025-11-22 20:05:31 -0800 (Sat, 22 Nov 2025) $
+; $LastChangedRevision: 33866 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/mag/swfo_mag_sci_apdat__define.pro $
 
 
@@ -34,21 +34,21 @@ function swfo_mag_sci_apdat::decom,ccsds,source_dict=source_dict
   datastr = {$
     time:ccsds.time,  $
     time_delta:ccsds.time_delta, $
- ;   met:ccsds.met,   $
- ;   grtime: ccsds.grtime,  $
- ;   delaytime: ccsds.delaytime, $
+    met:ccsds.met,   $
+    grtime: ccsds.grtime,  $
+    delaytime: ccsds.delaytime, $
     apid:ccsds.apid,  $
     seqn:ccsds.seqn,$
     seqn_delta:ccsds.seqn_delta,$
-    pkt_size:ccsds.pkt_size,$
-    file_hash: ccsds.file_hash, $
+    packet_size:ccsds.pkt_size,$
+    vcid: ccsds.vcid, $
     vcid_seqn: ccsds.vcid_seqn, $
-    vcid:      ccsds.vcid, $
+    file_hash: ccsds.file_hash, $
     replay:    ccsds.replay , $
-    station:   ccsds.station , $ 
-;    tod_day:                          swfo_data_select(ccsds_data,  6*8,16),$
-;    tod_millisec:                     swfo_data_select(ccsds_data,  8*8,32),$
-;    tod_microsec:                     swfo_data_select(ccsds_data, 12*8,16),$
+    station:    ccsds.station  , $
+    tod_day:      ccsds.day,  $   ;                    swfo_data_select(ccsds_data,  6*8,16),$
+    tod_millisec: ccsds.millisec,  $   ;                    swfo_data_select(ccsds_data,  8*8,32),$
+    tod_microsec:  ccsds.microsec,  $   ;                   swfo_data_select(ccsds_data, 12*8,16),$
     mag_data:  fltarr(6)  , $
     extra: fltarr(2)  , $
     raw_data:  bytarr(mdsize) , $
