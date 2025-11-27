@@ -154,6 +154,7 @@
 ;2025-11-21: DLM: replaced qualcolors code with line_colors, which is compatible with tplot.  Line color definitions 
 ;                 are local to each tplot variable, and the user's line colors and color table are not altered.
 ;                 Disabled keywords: coltab, qualc, and leavecolors.
+;2025-11-26: DLM: Completely disabled this "_dlm" version.  Leaving it on svn for possible future testing.
 ;-
 ;
 
@@ -161,7 +162,15 @@
 pro mvn_sta_l3_load_dlm, den=den, temp=temp, success=success, append=append, margin=margin, anc=anc, flag=flag, coltab=coltab, qualc=qualc, $
                         leavecolors=leavecolors, filesloaded=filesloaded, line_clrs=line_clrs
 
-proname = 'mvn_sta_l3_load'
+print,""
+print,"****************************************"
+print,"  This procedure is for testing only!"
+print,"  Use mvn_sta_l3_load.pro instead."
+print,"****************************************"
+print,""
+return
+
+proname = 'mvn_sta_l3_load_dlm'
 sl = path_sep()
 success = 0  ;default if routine bails
 
