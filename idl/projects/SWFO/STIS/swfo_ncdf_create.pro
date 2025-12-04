@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-11-22 07:53:52 -0800 (Sat, 22 Nov 2025) $
-; $LastChangedRevision: 33864 $
+; $LastChangedDate: 2025-12-03 11:34:51 -0800 (Wed, 03 Dec 2025) $
+; $LastChangedRevision: 33895 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_create.pro $
 ; $ID: $
 
@@ -90,11 +90,11 @@ pro swfo_ncdf_create,dat,filename=ncdf_filename,verbose=verbose,global_atts=glob
         dimname = 'DIM_' + tags[i]   ;+strtrim(dd.n_elements,2)
         did = ncdf_dimdef(id, dimname, dd.n_elements)
         vid = ncdf_vardef(id,tags[i],[did,tid],_extra= type_struct)
-        dprint,dlevel=3,tags[i],'  ',dd.type_name,dd.type,'   ',types[dd.type],vid,did
+        dprint,dlevel=4,tags[i],'  ',dd.type_name,dd.type,'   ',types[dd.type],vid,did
       endelse
     endfor
-
     ncdf_control,id,/endef
+    dprint,dlevel=3,'Done with ncdf define for ',ncdf_filename
     
   endelse
 
@@ -107,8 +107,11 @@ pro swfo_ncdf_create,dat,filename=ncdf_filename,verbose=verbose,global_atts=glob
     dati = dat.(i)
     ; if size(/n_dimen,dd) eq 2 then dd = transpose(dd)
     ncdf_varput,id,tags[i],dati
+    dprint,dlevel=3,tags[i],size(dati)
   endfor
+  dprint,dlevel=3,'Done with varput(s)'
   ncdf_close,id
+  
 
   dprint,dlevel=2,verbose=verbose,'Created file: '+file_info_string(ncdf_filename)
 
