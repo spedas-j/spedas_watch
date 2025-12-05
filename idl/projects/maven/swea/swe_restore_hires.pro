@@ -14,8 +14,8 @@
 ;       TPLOT:     Make a time series plot of the result.  Default = 1 (yes).
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-12-03 13:24:17 -0800 (Wed, 03 Dec 2025) $
-; $LastChangedRevision: 33896 $
+; $LastChangedDate: 2025-12-04 14:59:15 -0800 (Thu, 04 Dec 2025) $
+; $LastChangedRevision: 33902 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/swe_restore_hires.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -32,8 +32,10 @@ pro swe_restore_hires, date, tplot=tplot
     return
   endif
 
-  date = time_string(date, prec=-3)
-  yyyymmdd = strmid(date,0,4) + strmid(date,5,2) + strmid(date,8,2)
+  date = time_double(date)
+  day = round(date[sort(date)]/86400D, /L64)  ; round time(s) to nearest day
+  date = time_string(day*86400LL, prec=-3)
+  yyyymmdd = strmid(date[0],0,4) + strmid(date[0],5,2) + strmid(date[0],8,2)
   path = root_data_dir() + 'maven/data/sci/swe/l3/hires/'
   fname = path + 'swe_hires_' + yyyymmdd
 
@@ -101,6 +103,10 @@ pro swe_restore_hires, date, tplot=tplot
 
     pans = ['mvn_swics_en_eflux','mvn_mag_l1_bamp','mvn_B_full_maven_mso','mvn_sun_bar',$
            'mvn_att_bar','swe_a3_bar',padpans,'TABNUM','swe_a4']
+    tplot_options,'var_label',['alt','sza','lat']
+    options,'alt','ytitle','ALT'
+    options,'sza','ytitle','SZA'
+    options,'lat','ytitle','LAT'
     tplot, pans
   endif
 
