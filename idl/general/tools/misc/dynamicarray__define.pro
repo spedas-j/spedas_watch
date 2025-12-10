@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-11-22 09:53:59 -0800 (Sat, 22 Nov 2025) $
-; $LastChangedRevision: 33865 $
+; $LastChangedDate: 2025-12-09 16:12:05 -0800 (Tue, 09 Dec 2025) $
+; $LastChangedRevision: 33911 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -399,16 +399,16 @@ pro DynamicArray::make_ncdf,filename=ncdf_filename,verbose=verbose,global_atts=g
 
 end
 
-
-function dynamicarray::file_format, resolution=resolution,name=name
-
-  case resolution of
-    3600d:     tformat = 'swfo/data/test/NCDF/$NAME$/HR/YYYY/MM/DD/$NAME$_YYYY-MM-DD_hh.nc'
-    3600*24d:  tformat = 'swfo/data/test/NCDF/$NAME$/DAY/YYYY/MM/$NAME$_YYYY-MM-DD.nc'
-  endcase
-
-  return,tformat
-end
+;
+;function dynamicarray::file_format, resolution=resolution,name=name
+;
+;  case resolution of
+;    3600d:     tformat = 'swfo/data/test/NCDF/$NAME$/HR/YYYY/MM/DD/$NAME$_YYYY-MM-DD_hh.nc'
+;    3600*24d:  tformat = 'swfo/data/test/NCDF/$NAME$/DAY/YYYY/MM/$NAME$_YYYY-MM-DD.nc'
+;  endcase
+;
+;  return,tformat
+;end
 
 
 pro dynamicarray::ncdf_make_file,trange=trange,resolution=resolution ,append=append ;,pathformat=pathformat,testdir=testdir,ret_filename=ret_filename,type=type
