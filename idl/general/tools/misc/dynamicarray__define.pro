@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-12-09 16:12:05 -0800 (Tue, 09 Dec 2025) $
-; $LastChangedRevision: 33911 $
+; $LastChangedDate: 2025-12-10 09:47:58 -0800 (Wed, 10 Dec 2025) $
+; $LastChangedRevision: 33913 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -411,13 +411,13 @@ end
 ;end
 
 
-pro dynamicarray::ncdf_make_file,trange=trange,resolution=resolution ,append=append ;,pathformat=pathformat,testdir=testdir,ret_filename=ret_filename,type=type
+pro dynamicarray::ncdf_make_file,trange=trange,resolution=resolution ,append=append ,pathformat=pathformat ;,testdir=testdir,ret_filename=ret_filename,type=type
 
   message,'In testing',/cont
 
   if ~keyword_set(resolution) then resolution = 3600d*24
   
-  tformat = self.file_format(resolution=resolution)
+  tformat = pathformat
 
   ncdf_directory = './'
   ncdf_directory = root_data_dir()
@@ -433,8 +433,8 @@ pro dynamicarray::ncdf_make_file,trange=trange,resolution=resolution ,append=app
       ncdf_format= tformat
       filename=time_string(tr[0],tformat=ncdf_format)
       filename=str_sub(filename,'$NAME$',self.name)
-      filename=str_sub(filename,'$TYPE$',type)
-      filename=str_sub(filename,'$RES$', strtrim(long(resolution),2)  )
+ ;     filename=str_sub(filename,'$TYPE$',self.name)
+ ;     filename=str_sub(filename,'$RES$', strtrim(long(resolution),2)  )
       filename=ncdf_directory + filename
       swfo_ncdf_create,data_array,filename = filename ,append=append
 

@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2025-12-09 16:12:05 -0800 (Tue, 09 Dec 2025) $
-; $LastChangedRevision: 33911 $
+; $LastChangedDate: 2025-12-10 09:47:58 -0800 (Wed, 10 Dec 2025) $
+; $LastChangedRevision: 33913 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_read.pro $
 ; $ID: $
 
@@ -30,38 +30,6 @@ function swfo_ncdf_read,  dynarray=dynarray, filenames=filenames $
   if ~isa(recdimname,/string) then recdimname = 'dim_time'
 
 
-
-  if isa(trange) then begin      ; obsolete
-
-    if ~isa(dynarray,'dynamicarray') then dynarray = dynamicarray(name=name)
-    name = dynarray.name
-
-    if ~isa(name,'string') then name = 'test'
-
-    if ~isa(resolution) then resolution = 3600d*24
-
-    if ~isa(tformat,'string') then begin
-      case resolution of
-        3600d:   tformat = 'NCDF/$NAME$/HR/YYYY/MM/DD/$NAME$_YYYY-MM-DD_hh.nc'
-        3600*24d:  tformat = 'NCDF/$NAME$/DAY/YYYY/MM/$NAME$_YYYY-MM-DD.nc'
-      endcase
-    endif
-
-    if ~dynarray.dict.haskey('filehashes') then dynarray.dict.filehashes = orderedhash()
-
-    trange_int = [floor( trange[0] / resolution ) , ceil(trange[1] /resolution) ]
-    nfiles = trange_int[1] - trange_int[0]
-    times = (trange_int[0] + lindgen(nfiles)) * resolution
-    filenames = time_string(times,tformat = tformat)
-
-    filenames=str_sub(filenames,'$NAME$',name)
-
-    if ~keyword_set(root_dir) then root_dir = root_data_dir()
-
-    filenames = root_dir+filenames
-
-  endif
-
   if ~isa(dynarray,'dynamicarray') then dynarray = dynamicarray()
 
   if ~dynarray.dict.haskey('filehashes') then dynarray.dict.filehashes = orderedhash()
@@ -70,23 +38,6 @@ function swfo_ncdf_read,  dynarray=dynarray, filenames=filenames $
   ;dat = !null
   nfiles = n_elements(filenames)
 
-
-  if 0 && isa(dynarray) then begin  ; obsolete
-    ;  dat_all = dynamicarray(name=name)
-    for i=0,nfiles-1 do begin
-      filename = filenames[i]
-      filehash = filename.hashcode()
-      if dynarray.dict.filehashes.haskey(filehash) then begin
-        dprint,'file: "'+filename+'" already loaded'
-        continue
-      endif
-      dat_i = swfo_ncdf_read(filename=filename,def_values=def_values,force_recdim=force_recdim)
-      if isa(dat_i) then dynarray.dict.filehashes[filehash] = filename
-      dynarray.append,dat_i
-    endfor
-    return,dynarray
-  endif
-  
   
   
   

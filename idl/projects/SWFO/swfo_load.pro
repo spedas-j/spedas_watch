@@ -1,8 +1,12 @@
-pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datahash,resolution=resolution,file_hashes=file_hashes
+pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datahash,resolution=resolution,file_hashes=file_hashes,user_pass=user_pass
 
 
+  if isa(user_pass,'string') then setenv,'SWFO_USER_PASS='+user_pass
 
   swfo_user_pass = getenv('SWFO_USER_PASS')
+  
+  pathname0 = 'swfo/data/test2/NCDF/$NAME$/DAY/YYYY/MM/$NAME$_YYYY-MM-DD.nc'
+
 
 
   source = {$
@@ -15,29 +19,25 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
     user_pass:  swfo_user_pass, $
     resolution: 3600d*24  }
 
-
-
   if keyword_set(make) then begin
     
-    
+ 
     if make eq 3 then begin
       message ,'Not ready yet'
-      
-      
       
     endif
     
     
-    
     if make eq 2 then begin
       if ~keyword_set(trange) then trange = time_double(['2025 9 24','now'])
-      res = 3600d  *24  ; 1 day
-      days = floor(time_double(trange)/res)
-      ndays = days[1] - days[0] +1
+      if ~keyword_set(res) then res = 24*3600d  ;3600d
+      ;res = 3600d  *24  ; 1 day
+      tints = floor(time_double(trange)/res)
+      nt = tints[1] - tints[0] +1
       ;types = ['sc_100','sc_110','stis_hkp2','stis_sci','stis_nse','mag8','mag64']
 
-      for day= days[0],days[1]+1 do begin
-        tr= (day +[0,1]) *res 
+      for tint= tints[0],tints[1]+1 do begin
+        tr= (tint +[0,1]) *res 
         swfo_ccsds_frame_read,trange=tr,merge=0,reader=rdr,user_pass=getenv('SWFO_USER_PASS')  
         dh=!null
         
@@ -48,11 +48,9 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
         dprint,time_string(tr)
         
       endfor   ; day
-      stop
+      
       return
     endif           ; end of make eq 2
-    
-    
     
     
     if ~keyword_set(datahash) then begin
@@ -72,7 +70,7 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
       if isa(da,'dynamicarray') then begin
         if da.size gt 0 then begin
           dprint,key,' ',da.name,da.size
-          da.ncdf_make_file,/append ,trange=trange,resolution=resolution
+          da.ncdf_make_file,/append ,trange=trange,resolution=resolution, pathformat=pathname0
         endif
       endif
     endforeach
@@ -83,7 +81,7 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
   
   
   
-  
+;  Start of load
   
   
   
@@ -101,13 +99,17 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
 
   printdat,source
 
-  pathname0 = 'swfo/data/test2/NCDF/$TYPE$/DAY/YYYY/MM/$TYPE$_YYYY-MM-DD.nc'
   tr = timerange(trange)
   
   foreach type,types do begin
     if datahash.haskey(type) then dynarray = datahash[type] else dynarray= dynamicarray(name=type)
-    pathname = str_sub(pathname0,'$TYPE$',type)
+    pathname = str_sub(pathname0,'$NAME$',type)
     files = file_retrieve(pathname,trange=tr,_extra=source)
+    if 1 then begin
+      pathname = str_sub(pathname0,'$NAME$', 'pb_'+type)
+      pb_files = file_retrieve(pathname,trange=tr,_extra=source)
+      files = [files,pb_files]
+    endif
     da = swfo_ncdf_read(filenames = files,dynarray=dynarray)
     ;da = swfo_ncdf_read(trange=timerange(trange),dynarray=dynarray,name=type,root_dir=root_dir)
     da.trim
