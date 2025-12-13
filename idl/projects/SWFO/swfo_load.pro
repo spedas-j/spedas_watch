@@ -123,6 +123,7 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
     
   endforeach
   
+  
   dprint,'Computing L0b',dlevel=2
   l0b = swfo_stis_sci_level_0b(datahash=datahash)
   l0b_da = dynamicarray(l0b,name='stis_l0b',/nocopy)
@@ -134,7 +135,26 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
   
   dprint,'Computing L1b',dlevel=2
   l1b_da =  dynamicarray(name='stis_l1b', swfo_stis_sci_level_1b(l1a_da.array) )
+  if keyword_set(1 || tplot_store) then begin
+    store_data,'swfo_stis_l1b',data=l1b_da,tagnames='*'
+    store_data,'swfo_stis_l1b',data=l1b_da,tagnames='*ION_FLUX',val='ION_ENERGY'
+    store_data,'swfo_stis_l1b',data=l1b_da,tagnames='*ELEC_FLUX',val='ELEC_ENERGY'
+  endif
   datahash['stis_l1b'] = l1b_da
+
+
+  dprint,'mag stuff'
+  magda = datahash['mag8']
+  mag = magda.array
+  ddb = mag.raw_data
+  
+  nd = n_elements(mag)
+  
+  for i=0,5 do    mag.mag_data[i,*] = ishft( fix( ddb[i*9,*] * 256 + ddb[i*9+1,*] ), 1) / 2 
+  ;for i=0,5 do    mag.mag_data[i] =  fix(ddb[[1,0]+i*9,*]  ,0,nd)
+  mag.mag_data *= ( [1,1,1,-1,1,-1] # replicate(1,nd) )
+  magda.array = mag
+  store_data,'mag8',data=magda,tagnam='*'
   
   dprint,'Done'
   ;stop
