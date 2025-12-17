@@ -271,10 +271,13 @@ Pro fa_fields_despin3, V58, V12, T1 = t1, T2 = t2, PHASE = phase, $
 
      rat = fltarr(n_elements(tf58))+1.
      rt = tf58
-     if n_index gt 0 then begin
+     if n_index gt 3 then begin
         rat = smooth(ratio[index],(n_index/2 < 20) > 2)
         rt = tf58[index]
-     endif
+     endif else begin
+        message,'Not enough es12 or es58 data',/continue
+        return
+     endelse
 
 ; FIX THE ZERO LEVEL AND RATIO OF 12
      index = where(finite(zero12))
