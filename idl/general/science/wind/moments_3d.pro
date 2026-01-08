@@ -310,7 +310,6 @@ endif
 dweight = sqrt(e_inf)/e
 pardens = sqrt(mass/2.)* 1e-5 * data_dv * dweight
 mom.density = total(pardens)   ; 1/cm^3
-if(charge Lt 0) then stop
 if arg_present(dmom) then begin
   pardens1 = sqrt(mass/2.)* 1e-5 * data_dv1 * dweight
   dmom.density = sqrt(total(pardens*pardens1)) ;uncertainty, jmm, 12-apr-2011
