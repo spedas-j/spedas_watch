@@ -13,8 +13,8 @@
 ; interval.
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2026-01-06 16:14:26 -0800 (Tue, 06 Jan 2026) $
-; $LastChangedRevision: 33972 $
+; $LastChangedDate: 2026-01-09 12:21:54 -0800 (Fri, 09 Jan 2026) $
+; $LastChangedRevision: 33984 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/external/IDL_GEOPACK/examples/crib_ts05_fl_tracing_singletime.pro $
 
 
@@ -25,6 +25,7 @@ function ns_trace_draw, m
   get_data, 'foot_s', data=fs
   get_data, 'erg_orb_l2_pos_gsm_avg_tclip', data=erg
   get_data, 'fline_sp_to_np',data=revtrace
+  get_data, 'retrace_foot_n',data=f_retrace
 
   n_trace = n.y[m, *, *]
   n_trace_ref = reform(n_trace)
@@ -36,17 +37,39 @@ function ns_trace_draw, m
   fs_i = fs.y[m, *]
   erg_i = erg.y[m, *]
   revtrace_i = revtrace.y[m,*,*]
+  revtrace_i_ref = reform(revtrace_i)
+  fretrace_i = f_retrace.y[m,*]
   t=time_string(erg.x[m], prec=3)
   print, t
 
-  store_data, 'erg_trace_xy', data={x: n.x, y: n_trace}
-  store_data, 'sp_trace_xy',  data={x: s.x,  y: s_trace}
-  store_data, 'fn_xy', data={x: fn.x, y: fn_i}
-  store_data, 'fs_xy', data={x: fs.x, y: fs_i}
-  store_data, 'erg_xy', data={x: erg.x, y: erg_i}
+  erg_trace_count = n_elements(n_trace_ref)/3
+  store_data, 'erg_trace_xy', data={x: replicate(n.x[0],erg_trace_count), y: n_trace_ref}
+  sp_trace_count = n_elements(s_trace_ref)/3
+  store_data, 'sp_trace_xy',  data={x: replicate(s.x[0], sp_trace_count),  y: s_trace_ref}
+  store_data, 'fn_xy', data={x: fn.x[m], y: fn_i}
+  store_data, 'fs_xy', data={x: fs.x[m], y: fs_i}
+  store_data, 'erg_xy', data={x: erg.x[m], y: erg_i}
   store_data,'fn_i',data={x:fn.x[m], y: fn.y[m,*]}
-  store_data, 'rev_i',data={x:revtrace.x[m], y: revtrace_i}
+  revtrace_count = n_elements(revtrace_i_ref)/3
+  store_data, 'rev_i',data={x:replicate(revtrace.x[0],revtrace_count), y: revtrace_i_ref}
 
+  print,'Time: ', erg.x[m], ' ',time_string(erg.x[m])
+  print,'S/C pos: ', erg_i
+  print,'Trace point count, s/c to NP: ', erg_trace_count
+  print,'First s/c to NP trace point: ', n_trace_ref[0,*]
+  print,'Last s/c to NP trace point: ', n_trace_ref[erg_trace_count-1,*]
+  print,'NP foot point: ',fn_i[*]
+  
+
+  print,'Trace point count, NP to SP: ', sp_trace_count
+  print,'First NP to SP trace point: ', s_trace_ref[0,*]
+  print,'Last NP to SP trace point: ', s_trace_ref[sp_trace_count-1,*]
+  print,'SP foot point: ',fs_i[*]
+
+  print,'Trace point count, SP to NP: ', revtrace_count
+  print,'First SP to NP trace point: ', revtrace_i_ref[0,*]
+  print,'Last SP to NP trace point: ', revtrace_i_ref[revtrace_count-1,*]
+  print,'Retrace NP foot point: ',fretrace_i[*]
 
   xran = [-4, 8] & yran = [-4, 8] & vs = 'xy'
   window, 0 & wset, 0
@@ -77,7 +100,7 @@ function ns_trace_draw, m
   return, t
 end 
 
-pro crib_ts05_fl_tracing_singletime, standard_mapping=standard_mapping, geopack_2008=geopack_2008
+pro crib_ts05_fl_tracing_singletime, standard_mapping=standard_mapping, geopack_2008=geopack_2008,timestamp=timestamp
   compile_opt idl2
   ; default to settings that reproduce the tracing bug
   
@@ -87,6 +110,16 @@ pro crib_ts05_fl_tracing_singletime, standard_mapping=standard_mapping, geopack_
   if n_elements(geopack_2008) eq 0 then begin
     geopack_2008 = 1
   endif
+  if n_elements(timestamp) eq 0 then begin
+    trange = ['2022-11-23/01:00:29.5', '2022-11-23/01:00:30.5']
+  endif else begin
+    tdbl = time_double(timestamp)
+    tstart = tdbl - 0.5
+    tend = tdbl + 0.5
+    trange = [time_string(tstart), time_string(tend)]
+  endelse
+  
+  print, 'Trange: ', trange
   del_data, '*'
   timespan, '2022-11-22', 2
   ;;load omni data
@@ -98,7 +131,7 @@ pro crib_ts05_fl_tracing_singletime, standard_mapping=standard_mapping, geopack_
   timespan, '2022-11-23', 1, /day
   erg_load_orb, /no_download
   avg_data, 'erg_orb_l2_pos_gsm' ;; boxcar-averaging with a 1-min window
-  time_clip, 'erg_orb_l2_pos_gsm_avg', '2022-11-23/00:59.5', '2022-11-23/01:00.5'
+  time_clip, 'erg_orb_l2_pos_gsm_avg', trange[0], trange[1]
   get_data,'erg_orb_l2_pos_gsm_avg_tclip', data=d
   n_times=n_elements(d.x)
   ;; FL-tracing from satellite positions to their
@@ -114,9 +147,10 @@ pro crib_ts05_fl_tracing_singletime, standard_mapping=standard_mapping, geopack_
   get_data,'foot_n',data=f_n
   get_data,'foot_s',data=f_s
   get_data,'retrace_foot_n',data=f_r
-  print,'North:',f_n.y
-  print,'South:',f_s.y
-  print,'Retrace:',f_r.y
+  print,'North:',f_n.y, 'r (km) =', sqrt(total(f_n.y*f_n.y)) * 6371.2D
+  print,'South:',f_s.y,'r (km) =', sqrt(total(f_s.y*f_s.y)) * 6371.2D
+  print,'Retrace:',f_r.y, 'r (km) =', sqrt(total(f_r.y*f_r.y)) * 6371.2D
+  print,'Diff north-retrace:', f_n.y - f_r.y, 'r (km) =', sqrt(total((f_n.y - f_r.y)*(f_n.y - f_r.y))) * 6371.2D
   ; Plot the traces
   ptime=ns_trace_draw(0)
   print,'Field line traces from the ERG spacecraft position at the start of the time interval.'
