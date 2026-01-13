@@ -1,4 +1,4 @@
-pro gp_ex_1,refine=refine
+pro gp_ex_2,refine=refine
 
 ; Show geopack version installed
 
@@ -48,29 +48,6 @@ print, 'Tilt (expected -25.531946614204912 for latest IGRF coefficients) : ', ti
 
 par_iter = [1.7358368713587498D, -1.0000000000000000D, -3.4670000076293945D, 1.4919999718666077D, 0.030043020864904266D, 0.012242400554213096D, 0.025672221363611112D, 0.0061831478743294430D,0.0015737276816553134D,0.0078245301655424995D]
 
-
-; calculate foot point and trace field line from start pos north to ionosphere
-
-dir = -1
-geopack_trace_08, startpos_gsw_x, startpos_gsw_y, startpos_gsw_z, dir, par_iter, np_foot_x, np_foot_y, np_foot_z, R0=R02, RLIM=60.0, fline=trgsm_out, tilt=tilt, IGRF=1, TS04=1, refine=refine, ionosphere=ionosphere
-
-print, 'Count of trace points, sc to north ionosphere: ',n_elements(trgsm_out)/3
-print, 'North foot point: ',np_foot_x, np_foot_y, np_foot_z
-tr_sc_np = trgsm_out
-plot,tr_sc_np[*,0], tr_sc_np[*,1]
-
-
-; calculate foot point and trace field line from north foot point south to ionosphere
-dir=1
-
-geopack_trace_08, np_foot_x, np_foot_y, np_foot_z, dir, par_iter, sp_foot_x, sp_foot_y, sp_foot_z, R0=R02, RLIM=60.0, fline=trgsm_out, tilt=tilt, IGRF=1, TS04=1, refine=refine, ionosphere=ionosphere
-
-print, 'Count of trace points, north ionospere to south ionosphere: ', n_elements(trgsm_out)/3
-print, 'South foot point: ',sp_foot_x, sp_foot_y, sp_foot_z
-tr_np_sp = trgsm_out
-plot,tr_np_sp[*,0], tr_np_sp[*,1]
-
-
 ; calculate foot point and trace field line from south foot point back to north ionosphere
 
 sp_foot_x = sfoot_gsw[0]
@@ -82,8 +59,7 @@ dir=-1
 geopack_trace_08, sp_foot_x, sp_foot_y, sp_foot_z, dir, par_iter, ret_foot_x, ret_foot_y, ret_foot_z, R0=R02, RLIM=60.0, fline=trgsm_out, tilt=tilt, IGRF=1, TS04=1, refine=refine, ionosphere=ionosphere
 
 print, 'Count of trace points, south ionospere to north ionosphere: ', n_elements(trgsm_out)/3
-print, 'Expected north foot point: ',np_foot_x, np_foot_y, np_foot_z
-print, 'Retraced north foot point: ',ret_foot_x, ret_foot_y, ret_foot_z
+print, 'Retraced north foot point (Expected: -0.22478692      0.35936250      0.92365387): ',ret_foot_x, ret_foot_y, ret_foot_z
 tr_sp_np = trgsm_out
 plot,tr_sp_np[*,0], tr_sp_np[*,1]
 
@@ -91,7 +67,5 @@ plot,tr_sp_np[*,0], tr_sp_np[*,1]
 loadct,2
 ; plot all three field line traces on same plot, different colors
 !p.background = !d.table_size - 1
-plot,tr_np_sp[*,0],tr_np_sp[*,1],color=25, thick=5
-oplot,tr_sc_np[*,0],tr_sc_np[*,1],color=100,thick=3
-oplot,tr_sp_np[*,0],tr_sp_np[*,1],color=200,thick=1
+plot,tr_sp_np[*,0],tr_sp_np[*,1],color=25, thick=5
 end
