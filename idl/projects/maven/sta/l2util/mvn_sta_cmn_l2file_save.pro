@@ -24,8 +24,8 @@
 ;HISTORY:
 ; 22-jul-2014, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: muser $
-; $LastChangedDate: 2026-01-12 13:34:31 -0800 (Mon, 12 Jan 2026) $
-; $LastChangedRevision: 33997 $
+; $LastChangedDate: 2026-01-14 11:05:30 -0800 (Wed, 14 Jan 2026) $
+; $LastChangedRevision: 34002 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/l2util/mvn_sta_cmn_l2file_save.pro $
 ;-
 Pro mvn_sta_cmn_l2file_save, otp_struct, fullfile0, temp_dir = temp_dir, $
@@ -100,7 +100,7 @@ Pro mvn_sta_cmn_l2file_save, otp_struct, fullfile0, temp_dir = temp_dir, $
   If(~keyword_set(no_compression)) Then Begin
 ;     spawn, '/usr/local/pkg/cdf-3.6.3_CentOS-6.8/bin/cdfconvert
 ;     '+fullfilex+' '+fullfilex+' -compression cdf:gzip.5 -delete'
-     spd_cdf_compress, fullfilex, /replace
+          spawn, '/disks/socware/thmsoc_production_test/cdf_linux_latest/cdfconvert '+fullfilex+' '+fullfilex+' -compression cdf:gzip.5 -delete'
   Endif
 
 ;move the files to the output directory
