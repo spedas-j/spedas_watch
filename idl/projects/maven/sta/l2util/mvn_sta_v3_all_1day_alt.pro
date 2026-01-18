@@ -1,26 +1,26 @@
 ;+
 ;NAME:
-;mvn_sta_v3_all_1day_end
+;mvn_sta_v3_all_1day_alt
 ;PURPOSE:
 ;reads in a start and end date, and reprocesses all of the days in
 ;the interval. This is a main program, designed to be called from a
 ;shell script. Processes 1 day at a time. Creates version 3 of files,
 ;with start times at the start of the day, and overlap at the end of
 ;the day. This script is designed to be used if the end_date has
-;already been processed. It wont reprocess data for the end date and
+;already been processed. It won't reprocess data for the end date and
 ;beyond.
 ;CALLING SEQUENCE:
-; .run mvn_sta_v3_all_1day_end
+; .run mvn_sta_v3_all_1day_alt
 ;INPUT:
 ;start_time, end_time are input from files
-;mvn_sta_v3_all_1day_end_start_time.txt and
-;mvn_sta_v3_all_1day_end_end_time.txt.
+;mvn_sta_v3_all_1day_alt_start_time.txt and
+;mvn_sta_v3_all_1day_alt_end_time.txt.
 ;OUTPUT:
 ; Maven STA L2 files
 ;HISTORY:
 ; 2025-09-10, jimm@ssl.berkeley.edu
 ;-
-this_file = 'mvn_sta_v3_all_1day_end'
+this_file = 'mvn_sta_v3_all_1day_alt'
 spawn, 'touch '+this_file+'_lock'
 ;Apparently you cannot compile code in the way we're calling this, so
 st_file = this_file+'_start_time.txt'
