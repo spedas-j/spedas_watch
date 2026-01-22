@@ -3,8 +3,8 @@
 ; ESC_IESA_SCI_LUTS
 ;
 ; $LastChangedBy: rlivi04 $
-; $LastChangedDate: 2026-01-20 17:30:54 -0800 (Tue, 20 Jan 2026) $
-; $LastChangedRevision: 34047 $
+; $LastChangedDate: 2026-01-20 18:24:06 -0800 (Tue, 20 Jan 2026) $
+; $LastChangedRevision: 34048 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_flight_lut.pro $
 ;
 ;-
@@ -16,9 +16,9 @@ FUNCTION esc_iesa_sci_luts_write_csv, table
    openw, 1,'~/Desktop/esc_iesa_sci_luts.txt'
    printf, 1, '# ESCAPADE iESA Science Product Look-Up Tables'
    printf, 1, '# '
-   printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_sci_luts.pro'
-   printf, 1, '# Date:     $LastChangedDate: 2026-01-20 17:30:54 -0800 (Tue, 20 Jan 2026) $'
-   printf, 1, '# Revision: $LastChangedRevision: 34047 $'
+   printf, 1, '# Source:   spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_flight_lut.pro'
+   printf, 1, '# Date:     $LastChangedDate: 2026-01-20 18:24:06 -0800 (Tue, 20 Jan 2026) $'
+   printf, 1, '# Revision: $LastChangedRevision: 34048 $'
    printf, 1, '# '
    ;;printf, 1, '# ' + table.note
    printf, 1, '# '
