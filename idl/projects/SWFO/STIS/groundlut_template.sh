@@ -118,10 +118,10 @@ variables:
 		poisson_statistics_criteria:long_name = "poisson_statistics_criteria" ; 
 		poisson_statistics_criteria:comments = "The count range for applying the Poisson criterion to merge small and large pixels to get the high-dynamic range flux. At counts below the first element, the small pixel is ignored (poor counting statistics) and the big pixel is used. At counts above the second element, the big pixel is ignored and the small pixel is used. Between the two, a power law is used to calculate a weighting factor between 0 and 1." ; 
 		poisson_statistics_criteria:units = "# counts" ; 
-	double poisson_statistics_power_coefficient (range) ; 
-		poisson_statistics_power_coefficient:long_name = "poisson_statistics_criteria" ; 
+	double poisson_statistics_power_coefficient (scalar) ; 
+		poisson_statistics_power_coefficient:long_name = "poisson_statistics_power_coefficient" ; 
 		poisson_statistics_power_coefficient:comments = "The coefficient for the power law used for the Poisson criterion to merge small and large pixels to get the high-dynamic range flux. " ; 
-		poisson_statistics_power_coefficient:units = "# counts" ; 
+		poisson_statistics_power_coefficient:units = "unitless" ; 
 	double noise_sigma_threshold (detectors) ; 
 		noise_sigma_threshold:long_name = "noise_sigma_threshold" ; 
 		noise_sigma_threshold:comments = "If the standard deviation of the differenced noise in a channel exceeds this value, set a bit in the quality flag." ; 
