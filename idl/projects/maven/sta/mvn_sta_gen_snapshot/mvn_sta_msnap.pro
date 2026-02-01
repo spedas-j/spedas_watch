@@ -1,10 +1,11 @@
 ;+
-;PROCEDURE:   mvn_sta_vsnap
+;PROCEDURE:   mvn_sta_msnap
 ;PURPOSE:
-;  Wrapper for mvn_sta_slice2d_snap that provides improved interactive use.
+;  Plots mass/energy snapshots of STATIC c6 data.  Wrapper for mvn_sta_get('c6') 
+;  and contour_4d that provides improved interactive use.
 ;
 ;USAGE:
-;  mvn_sta_vsnap
+;  mvn_sta_msnap
 ;
 ;INPUTS:
 ;       none
@@ -39,13 +40,13 @@
 ;                 and end times.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-01-31 09:38:26 -0800 (Sat, 31 Jan 2026) $
-; $LastChangedRevision: 34088 $
-; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_vsnap.pro $
+; $LastChangedDate: 2026-01-31 09:38:42 -0800 (Sat, 31 Jan 2026) $
+; $LastChangedRevision: 34089 $
+; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_msnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
-pro mvn_sta_vsnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xmax=xmax, $
+pro mvn_sta_msnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xmax=xmax, $
 
               ; WIN
                 monitor=monitor, secondary=secondary, xsize=xsize, ysize=ysize, dx=dx, dy=dy, $
@@ -61,11 +62,9 @@ pro mvn_sta_vsnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xma
                 ytickinterval=ytickinterval, xticklen=xticklen, yticklen=yticklen, xticks=xticks, $
                 yticks=yticks, $
 
-              ; MVN_STA_SLICE2D_SNAP and SLICE2D
-                archive=archive, window=window, mso=mso, bline=bline, mass=mass, m_int=m_int, $
-                mmin=mmin, mmax=mmax, apid=apid, units=units, verbose=verbose, burst=burst, $
-                dopot=dopot, sc_pot=sc_pot, vsc=vsc, showdata=showdata, erange=erange, v_esc=v_esc, $
-                datplot=datplot, diag=diag, subtract=subtract, rot=rot, range=range, resolution=resolution
+              ; CONTOUR4D
+                mass=mass, units=units, ncont=ncont, levels=levels, fill=fill, points=points, $
+                label=label, vel=vel, limits=limits
 
 ; Set keywords using the KEY structure
 
@@ -81,9 +80,8 @@ pro mvn_sta_vsnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xma
              'XTHICK','YTHICK','XTICKFORMAT','YTICKFORMAT','XTICKINTERVAL','YTICKINTERVAL', $
              'XTICKLEN','YTICKLEN','XTICKS','YTICKS', $
 
-             'ARCHIVE','WINDOW','MSO','BLINE','MASS','M_INT','MMIN','MMAX','APID','UNITS','VERBOSE', $
-             'BURST','DOPOT','SC_POT','VSC','SHOWDATA','ERANGE','V_ESC','DATPLOT','DIAG', $
-             'SUBTRACT','ROT','RANGE','RESOLUTION']
+             'MASS','UNITS','NCONT','LEVELS','FILL','POINTS','LABEL','VEL','LIMITS']
+
     for j=0,(n_elements(ktag)-1) do begin
       i = strmatch(tlist, ktag[j]+'*', /fold)
       case (total(i)) of
@@ -106,9 +104,17 @@ pro mvn_sta_vsnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xma
   ysize = (n_elements(ysize) gt 0) ? fix(ysize[0]) : 800
   dx = (n_elements(dx) gt 0) ? fix(dx[0]) : 10
   dy = (n_elements(dy) gt 0) ? fix(dy[0]) : 10
+  xrange = (n_elements(xrange) ge 2) ? minmax(xrange) : [0.3, 3000.]
+  zrange = (n_elements(zrange) ge 2) ? minmax(zrange) : [1e4,1e8]
   secondary = (n_elements(secondary) gt 0) ? keyword_set(secondary) : 1
+  fill = (n_elements(fill) gt 0) ? keyword_set(fill) : 1
+  mass = (n_elements(mass) gt 0) ? keyword_set(mass) : 1
+  points = (n_elements(points) gt 0) ? keyword_set(points) : 1
+  label = (n_elements(label) gt 0) ? keyword_set(label) : 1
+  vel = keyword_set(vel)
   tmark = keyword_set(tmark)
-  tiny = 1.e-31
+
+  limits = {xrange:xrange, zrange:zrange, charsize:charsize}
 
 ; Create a snapshot window
 
@@ -131,26 +137,22 @@ pro mvn_sta_vsnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xma
 
   while (keepgoing) do begin
 
-    ttime = minmax(t)
-    if (tmark) then timebar, ttime, /line, /transient
+    tin = minmax(t)
+    if (tmark) then timebar, tin, /line, /transient
 
     wset, Swin
-
-    tin = t
-    mvn_sta_slice2d_snap, tin, bline=bline, mass=minmax(mass), m_int=mass[1], $
-                          mso=mso, rot=rot, xrange=xrange, dopot=dopot, $
-                          vsc=vsc, units=units, charsize=charsize, range=range, $
-                          resolution=resolution, showdata=showdata, apid=apid, /keep, $
-                          v_esc=v_esc, subtract=subtract, window=Swin, erange=erange, $
-                          result=result
-
+      dat = mvn_sta_get('c6', tt=tin)
+      contour4d,dat,mass=mass,fill=fill,points=points,label=label,vel=vel,limits=limits
+      oplot,[0.01,10000],[16,16],line=2,color=1  ; NH3+ (17)
+      oplot,[0.01,10000],[32,32],line=2,color=1  ; N2+ (28)
+      oplot,[0.01,10000],[2,2],line=2,color=1    ; H2+, He++ (2)
     wset, Twin
 
     ctime,t,npoints=npts,/silent
     if (npts eq 2) then cursor,cx,cy,/norm,/up  ; make sure mouse button is released
     if (size(t,/type) eq 2) then keepgoing = 0
 
-    if (tmark) then timebar, ttime, /line, /transient
+    if (tmark) then timebar, tin, /line, /transient
 
   endwhile
 
