@@ -39,8 +39,8 @@
 ;                 and end times.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-01-31 09:38:26 -0800 (Sat, 31 Jan 2026) $
-; $LastChangedRevision: 34088 $
+; $LastChangedDate: 2026-01-31 18:27:13 -0800 (Sat, 31 Jan 2026) $
+; $LastChangedRevision: 34092 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_vsnap.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -108,7 +108,6 @@ pro mvn_sta_vsnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xma
   dy = (n_elements(dy) gt 0) ? fix(dy[0]) : 10
   secondary = (n_elements(secondary) gt 0) ? keyword_set(secondary) : 1
   tmark = keyword_set(tmark)
-  tiny = 1.e-31
 
 ; Create a snapshot window
 
@@ -131,12 +130,11 @@ pro mvn_sta_vsnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xma
 
   while (keepgoing) do begin
 
-    ttime = minmax(t)
-    if (tmark) then timebar, ttime, /line, /transient
+    tin = minmax(t)
+    if (tmark) then timebar, tin, /line, /transient
 
     wset, Swin
 
-    tin = t
     mvn_sta_slice2d_snap, tin, bline=bline, mass=minmax(mass), m_int=mass[1], $
                           mso=mso, rot=rot, xrange=xrange, dopot=dopot, $
                           vsc=vsc, units=units, charsize=charsize, range=range, $
@@ -150,7 +148,7 @@ pro mvn_sta_vsnap, sum=sum, keep=keep, key=key, lastcut=result, tmark=tmark, xma
     if (npts eq 2) then cursor,cx,cy,/norm,/up  ; make sure mouse button is released
     if (size(t,/type) eq 2) then keepgoing = 0
 
-    if (tmark) then timebar, ttime, /line, /transient
+    if (tmark) then timebar, tin, /line, /transient
 
   endwhile
 
