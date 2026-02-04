@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
-; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2026-02-02 12:47:36 -0800 (Mon, 02 Feb 2026) $
-; $LastChangedRevision: 34103 $
+; $LastChangedBy: rjolitz $
+; $LastChangedDate: 2026-02-03 14:29:27 -0800 (Tue, 03 Feb 2026) $
+; $LastChangedRevision: 34112 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -485,8 +485,11 @@ function dynamicarray::to_dict, relabel=relabel
         if relabel.haskey(tag_name) then tag_name = (relabel[tag_name])
       endif
 
+      if n_elements(vals) eq 1 then vals = vals[0]
+
       dict[tag_name] = vals
     endforeach
+    ; stop
 
   return, dict
 
