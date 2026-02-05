@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
-; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2026-02-03 14:29:27 -0800 (Tue, 03 Feb 2026) $
-; $LastChangedRevision: 34112 $
+; $LastChangedBy: davin-mac $
+; $LastChangedDate: 2026-02-04 01:42:16 -0800 (Wed, 04 Feb 2026) $
+; $LastChangedRevision: 34116 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -351,6 +351,16 @@ end
 
 
 
+function dynamicarray::copy,name=name
+  
+
+  return,cp
+end
+
+
+
+
+
 function DynamicArray::reduce_resolution   , res, timename=timename      ; Use with caution should be sorted
   nsize = self.size
   if  isa(*self.ptr_array,'struct') then begin
@@ -419,7 +429,7 @@ pro dynamicarray::ncdf_make_file,trange=trange,resolution=resolution ,append=app
   
   tformat = pathformat
 
-  ncdf_directory = './'
+  ;ncdf_directory = './'
   ncdf_directory = root_data_dir()
   
   if resolution gt 0 then begin
