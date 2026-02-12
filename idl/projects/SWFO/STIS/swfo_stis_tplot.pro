@@ -1,6 +1,6 @@
 ; $LastChangedBy: rjolitz $
-; $LastChangedDate: 2026-02-10 12:41:56 -0800 (Tue, 10 Feb 2026) $
-; $LastChangedRevision: 34136 $
+; $LastChangedDate: 2026-02-11 17:05:06 -0800 (Wed, 11 Feb 2026) $
+; $LastChangedRevision: 34138 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_tplot.pro $
 
 ; This routine will set appropriate limits for tplot variables and then make a tplot
@@ -163,22 +163,26 @@ pro swfo_stis_tplot,name,add=add,setlim=setlim,ionlim=ionlim,eleclim=eleclim,pow
 
     ; variable for both measured/modeled sun-stis angle:
     tplot_names, '*MODELED_SUN_STIS*', names=modeled_vname, /silent
-    tplot_names, '*MEASURED_SUN_STIS*', names=meas_vname, /silent
-    vname_spl = meas_vname.split("_")
-    level1a_str = (vname_spl[where(Vname_spl eq 'MEASURED') - 1])[0]
 
-    store_data, 'swfo_stis_' + level1a_str + '_SUN_STIS_ANGLE_DEG',$
-      data=[modeled_vname, meas_vname],$
-      dl={colors: 'rb', labels:['MODELED', 'MEASURED'],$
-      labflag: 1, constant: cal.minimum_stis_sun_angle}
+    if modeled_vname ne '' then begin
 
-    ; variable for both measured/modeled sun-sc angle:
-    tplot_names, '*MODEL_SUN_SC*', names=modeled_vname, /silent
-    tplot_names, '*MEASURED_SUN_SC*', names=meas_vname, /silent
-    store_data, 'swfo_stis_' + level1a_str + '_SUN_SC_ANGLE_DEG',$
-      data=[modeled_vname, meas_vname],$
-      dl={colors: 'rb', labels:['MODELED', 'MEASURED'],$
-      labflag: 1, constant: cal.MAXIMUM_SWFO_SUN_OFFPOINTING_ANGLE}
+      tplot_names, '*MEASURED_SUN_STIS*', names=meas_vname, /silent
+      vname_spl = meas_vname.split("_")
+      level1a_str = (vname_spl[where(Vname_spl eq 'MEASURED') - 1])[0]
+
+      store_data, 'swfo_stis_' + level1a_str + '_SUN_STIS_ANGLE_DEG',$
+        data=[modeled_vname, meas_vname],$
+        dl={colors: 'rb', labels:['MODELED', 'MEASURED'],$
+        labflag: 1, constant: cal.minimum_stis_sun_angle}
+
+      ; variable for both measured/modeled sun-sc angle:
+      tplot_names, '*MODEL_SUN_SC*', names=modeled_vname, /silent
+      tplot_names, '*MEASURED_SUN_SC*', names=meas_vname, /silent
+      store_data, 'swfo_stis_' + level1a_str + '_SUN_SC_ANGLE_DEG',$
+        data=[modeled_vname, meas_vname],$
+        dl={colors: 'rb', labels:['MODELED', 'MEASURED'],$
+        labflag: 1, constant: cal.MAXIMUM_SWFO_SUN_OFFPOINTING_ANGLE}
+    endif
 
     options, '*FLUX', yrange=[10, 6000],$
       zrange=[1e-2, 1e3], spec=1, ylog=1, zlog=1
