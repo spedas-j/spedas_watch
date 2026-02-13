@@ -4,7 +4,7 @@ pro swfo_load_tplot_store,da
   prefix = 'swfo_'
 
   case 1 of
-    strmatch(da.name,'*_l1a_*'): begin
+    strmatch(da.name,'*_l1a*'): begin
       tname = prefix + da.name
       dprint,'Making tplot variables: ',tname
       ;   l1a = dynamicarray(swfo_stis_sci_level_1a(l0b.array),name=tname)
@@ -16,9 +16,10 @@ pro swfo_load_tplot_store,da
       options,tname+'_SPEC_???',spec=1, zlog=1, ylog=1, yrange=[5,10000.]
       options,tname+'_SPEC_????',spec=1, zlog=1, ylog=1, yrange=[5,10000.]
       options,tname+'_RATE6',/ylog
+    ;  options,tname+'_SIGMA',
       ;options,tname+['_RATE','*SIGMA','*BASELINE', /reverse_order, colors ='bgrmcd'
     end
-    strmatch(da.name,'*_l1b_*'):   begin
+    strmatch(da.name,'*_l1b*'):   begin
       tname = prefix + da.name
       store_data,tname,data=da,tagnames='*'
       dlim = {spec:1,ylog:1,yrange:[10.,10000.],zlog:1,zrange:[1e1,1e10]}
@@ -26,7 +27,7 @@ pro swfo_load_tplot_store,da
       store_data,tname,data=da,tagnames='*ELEC_FLUX',val='ELEC_ENERGY';,dlim=dlim
       options,tname+'*HDR*',spec=1
       ylim,tname+'*HDR*',10,10000,1
-      zlim,'*HDR*',10,1e5,1
+      zlim,tname+'*HDR*',.0001,1e4,1
     end
     else: begin
       store_data,prefix+da.name,data=da,tagnames='*'
@@ -240,14 +241,15 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
   ;  Start of load
 
   store=1
-  if ~isa(lowres) then lowres = 1
+  if ~isa(lowres) then lowres = 0
   if n_elements(trange) ne 2 then trange=timerange(trange)   ;systime(1) + [-1,0]*3600d*24*current
 
   if ~isa(types) then begin
-    types = ['stis_l1a','stis_l1b','mag1s', 'maghr']
+    types = ['stis_l1a','stis_l1b','mag1s' ];, 'maghr']
   endif
 
   if keyword_set(lowres) && lowres eq 1 then types=types+'_30s'
+  if keyword_set(lowres) && lowres eq 2 then types=types+'_300s'
 
   if ~isa(datahash) then datahash= orderedhash()
 
