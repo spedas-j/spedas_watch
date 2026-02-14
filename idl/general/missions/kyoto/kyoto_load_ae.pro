@@ -1,34 +1,20 @@
 
 compile_opt idl2
 
-; Helper routine to merge Kyoto provisional and realtime data, which need to be loaded in separate calls.
-; For each data type, if the variable exists in only one of the lists, we just rename it.
-; If it occurs in both lists, we append the realtime times/values to the provisional times/values
+; Helper routine to extract sort keys from AE data filenames
 
-pro merge_ae_vars, prov_vars, rt_vars
-   datatypes=['kyoto_ae', 'kyoto_al', 'kyoto_ao', 'kyoto_au', 'kyoto_ax']
-   for i=0,n_elements(datatypes)-1 do begin
-    final_name=datatypes[i]
-    prov_name = 'kyoto_tmp_prov_'+datatypes[i]
-    realtime_name = 'kyoto_tmp_realtime_'+datatypes[i]
-    idx1=where(prov_vars eq prov_name,c1)
-    idx2=where(rt_vars eq realtime_name,c2)
-    
-    if (c1 gt 0) and (c2 eq 0) then begin
-      tplot_rename,prov_name, final_name
-    endif else if (c1 eq 0) and (c2 gt 0) then begin
-      tplot_rename,realtime_name, final_name
-    endif else if (c1 gt 0) and (c2 gt 0) then begin
-      ; need to merge provisional and realtime variables
-      get_data,prov_name,data=dp, dl=dl
-      get_data,realtime_name,data=dr
-      newx = [dp.x, dr.x]
-      newy = [dp.y, dr.y]
-      store_data,final_name,data={x:newx, y:newy},dl=dl
-    endif
+pro make_ae_sort_keys,files=files,keys=keys
+   keys = []
+   for i=0,n_elements(files)-1 do begin
+      bn = file_basename(files[i])
+      yy = strmid(bn,2,2)
+      mm = strmid(bn,4,2)
+      dd = strmid(bn,6,2)
+      if uint(yy) ge 90 then key='19'+yy+mm+dd else key='20'+yy+mm+dd
+      keys=[keys,key]
    endfor
-   del_data,'kyoto_tmp_*'
-end
+end   
+   
 
 ; This helper routine does most of the work of downloading and reading the Kyoto data files.
 ; The provisional and realtime data are organized a little differently, so this routine takes a 'realtime' keyword
@@ -53,11 +39,15 @@ pro kyoto_load_ae_helper ,trange=trange, $
   no_server=no_server, $ ; use only locally available data, ie don't download data
   local_data_dir=local_data_dir, $
   remote_data_dir = remote_data_dir, $
-  realtime = realtime, $
+  skip_realtime=skip_realtime, $
+  skip_provisional=skip_provisional, $
   return_vars = return_vars, $
   prefix = prefix
 
 if n_elements(prefix) eq 0 then prefix = ''
+if n_elements(skip_realtime) eq 0 then skip_realtime=0
+if n_elements(skip_provisional) eq 0 then skip_provisional=0
+
    
 ;**************************
 ;Load 'remote_data_dir' default:
@@ -119,52 +109,7 @@ If (keyword_set(trange) && n_elements(trange) Eq 2) then begin
   t = trange
 endif else get_timespan,t
 
-
-if ~size(fns,/type) then begin
-  for i=0,n_elements(datatype)-1 do begin
-
-    ;Get files for ith datatype:
-    ;***************************
-    if realtime then begin
-      ff = 'YYYY/MM/DD/'+datatype[i]+'yyMMDD'
-    endif else begin
-      ff = 'YYYYMM/'+datatype[i]+'yyMMDD'
-    endelse
-    file_names = file_dailynames(file_format=ff,trange=t, times=times, /unique)
-    if not realtime then begin
-      file_names = file_names + '.for.request'
-    endif
-    ;file_names = file_dailynames( $
-    ; file_format='YYYYMM/a'+strmid(datatype[i],1,1)+ $
-    ;'yyMMDD',trange=t,times=times,/unique)+'.for.request
-
-    source = file_retrieve(/struct)
-    source.verbose=verbose
-    if realtime then begin
-      source.local_data_dir = local_data_dir + 'kyoto/ae_realtime/data_dir/' + datatype[i] + '/'
-      source.remote_data_dir = remote_data_dir + 'ae_realtime/data_dir/'
-    endif else begin
-      source.local_data_dir = local_data_dir + 'kyoto/ae_provisional/'+ datatype[i] + '/' 
-      source.remote_data_dir = remote_data_dir + 'ae_provisional/'
-    endelse
-    if keyword_set(no_server) then source.no_server=1
-    
-    ;Get files and local paths, and concatenate local paths:
-    ;=======================================================
-    local_paths=spd_download(remote_file=file_names,_extra=source)
-    local_paths_all = ~(~size(local_paths_all,/type)) ? $
-        [local_paths_all, local_paths] : local_paths
-  
-  endfor
-  if ~(~size(local_paths_all,/type)) then local_paths=local_paths_all
-endif else file_names=fns
-
-;basedate=time_string(times,tformat='YYYY-MM-01')
-;baseyear=strmid(basedate,0,4)
-
-
-
-;Read the files:
+; Initialize the merged data arrays
 ;===============
 s=''
 allaetime=0
@@ -178,80 +123,6 @@ allao= 0
 allau= 0
 allax= 0
 
-
-;Loop on files:
-;==============
-for i=0,n_elements(local_paths)-1 do begin
-    file= local_paths[i]
-    if file_test(/regular,file) then  dprint,'Loading AE file: ',file $
-    else begin
-         dprint,'AE file ',file,' not found. Skipping'
-         continue
-    endelse
-    openr,lun,file,/get_lun
-    ;basetime = time_double(basedate[i])
-    ;
-    ;Loop on lines:
-    ;==============
-    while(not eof(lun)) do begin
-      readf,lun,s
-      ok=1
-      if strmid(s,0,1) eq '[' then ok=0
-      if ok && keyword_set(s) then begin
-         dprint,s ,dlevel=5
-         year = (strmid(s,12,2))
-         month = (strmid(s,14,2))
-         day = (strmid(s,16,2))
-         hour = (strmid(s,19,2))
-         type = strmid(s,21,2)
-         ; Check that the 2-digit year is reasonable before prepending '20' to it!
-         if fix(year) ge 90 then yyyy='19'+year else yyyy='20'+year
-         basetime = time_double(yyyy+'-'+month+'-'+day+'/'+hour)
-         ;
-         kdata = fix ( strmid(s, indgen(60)*6 +34 ,6) )
-         ;
-         ;Append data by type (AE, AL, AO, AU or AX):
-         ;===========================================
-         case type of
-           'AE': begin
-	     append_array,allae,kdata
-	     append_array,allaetime, basetime + dindgen(60)*60d
-	     dprint,' ',s,dlevel=5
-	   end
-	   'AL': begin
-	     append_array,allal,kdata
-	     append_array,allaltime, basetime + dindgen(60)*60d
-	     dprint,' ',s,dlevel=5
-	   end
-	   'AO': begin
-	     append_array,allao,kdata
-	     append_array,allaotime, basetime + dindgen(60)*60d
-	     dprint,' ',s,dlevel=5
-	   end
-	   'AU': begin
-	     append_array,allau,kdata
-	     append_array,allautime, basetime + dindgen(60)*60d
-	     dprint,' ',s,dlevel=5
-	   end
-           'AX': begin
-	     append_array,allax,kdata
-	     append_array,allaxtime, basetime + dindgen(60)*60d
-	     dprint,' ',s,dlevel=5
-	   end
-         endcase
-         continue
-      endif
-
-      ;if s eq 'DAY' then ok=1
-    endwhile
-    free_lun,lun
-endfor
-
-tvars = []
-
-;==============================
-;Store data in TPLOT variables:
-;==============================
 acknowledgstring = 'The provisional AE data are provided by the World Data Center for Geomagnetism, Kyoto,'+ $
   ' and are not for redistribution (https://wdc.kugi.kyoto-u.ac.jp/). Furthermore, we thank'+ $
   ' AE stations (Abisko [SGU, Sweden], Cape Chelyuskin [AARI, Russia], Tixi [IKFIA and'+ $
@@ -261,6 +132,126 @@ acknowledgstring = 'The provisional AE data are provided by the World Data Cente
   ' their cooperations and efforts to operate these stations and to supply data for the provisional'+ $
   ' AE index to the WDC, Kyoto. (Pebek is a new station at geographic latitude of 70.09N'+ $
   ' and longitude of 170.93E, replacing the closed station Cape Wellen.)'
+
+
+
+  for i=0,n_elements(datatype)-1 do begin
+    rt_ff = 'YYYY/MM/DD/'+datatype[i]+'yyMMDD'
+    prov_ff = 'YYYYMM/'+datatype[i]+'yyMMDD'
+    rt_file_names = file_dailynames(file_format=rt_ff,trange=t, times=times, /unique)
+    prov_file_names = file_dailynames(file_format=prov_ff,trange=t, times=times, /unique)
+    prov_file_names = prov_file_names + '.for.request'
+
+    source = file_retrieve(/struct)
+    source.verbose=verbose
+    if keyword_set(no_server) then source.no_server=1    
+    ; download realtime
+    rt_paths = []
+    source.local_data_dir = local_data_dir + 'kyoto/ae_realtime/data_dir/' + datatype[i] + '/'
+    source.remote_data_dir = remote_data_dir + 'ae_realtime/data_dir/'
+    if ~skip_realtime then rt_paths=spd_download(remote_file=rt_file_names,/valid_only,_extra=source)
+      
+    ; download provisional
+    prov_paths = []
+    source.local_data_dir = local_data_dir + 'kyoto/ae_provisional/'+ datatype[i] + '/' 
+    source.remote_data_dir = remote_data_dir + 'ae_provisional/'
+    if ~skip_provisional then prov_paths=spd_download(remote_file=prov_file_names,/valid_only,_extra=source)
+
+    ; We need to sort and de-duplicate the two sets of files using a date key.
+    make_ae_sort_keys,files=rt_paths,keys=rt_keys
+    make_ae_sort_keys,files=prov_paths,keys=prov_keys
+    
+    ; Remove any filenames and keys from the realtime list if they are present in the provisional list
+    rt_paths_thinned = []
+    rt_keys_thinned =  []
+    for j=0, n_elements(rt_keys)-1 do begin
+      idx=where(prov_keys eq rt_keys[j], count)
+      if count eq 0 then begin
+        rt_paths_thinned = [rt_paths_thinned, rt_paths[j]]
+        rt_keys_thinned = [rt_keys_thinned, rt_keys[j]]
+      endif
+    endfor
+ 
+    ; Sort the pathnames using the keys as the sort order   
+    unsorted_paths=[prov_paths, rt_paths_thinned]
+    unsorted_keys=[prov_keys, rt_keys_thinned]
+    sort_idx = sort(unsorted_keys)
+    sorted_paths = unsorted_paths[sort_idx]   
+    
+    ;Loop on files:
+    ;==============
+    for k=0,n_elements(sorted_paths)-1 do begin
+        file= sorted_paths[k]
+        if file_test(/regular,file) then  dprint,'Loading AE file: ',file $
+        else begin
+             dprint,'AE file ',file,' not found. Skipping'
+             continue
+        endelse
+        openr,lun,file,/get_lun
+        ;basetime = time_double(basedate[i])
+        ;
+        ;Loop on lines:
+        ;==============
+        while(not eof(lun)) do begin
+          readf,lun,s
+          ok=1
+          if strmid(s,0,1) eq '[' then ok=0
+          if ok && keyword_set(s) then begin
+             dprint,s ,dlevel=5
+             year = (strmid(s,12,2))
+             month = (strmid(s,14,2))
+             day = (strmid(s,16,2))
+             hour = (strmid(s,19,2))
+             type = strmid(s,21,2)
+             ; Check that the 2-digit year is reasonable before prepending '20' to it!
+             if fix(year) ge 90 then yyyy='19'+year else yyyy='20'+year
+             basetime = time_double(yyyy+'-'+month+'-'+day+'/'+hour)
+             ;
+             kdata = fix ( strmid(s, indgen(60)*6 +34 ,6) )
+             ;
+             ;Append data by type (AE, AL, AO, AU or AX):
+             ;===========================================
+             case type of
+               'AE': begin
+    	     append_array,allae,kdata
+    	     append_array,allaetime, basetime + dindgen(60)*60d
+    	     dprint,' ',s,dlevel=5
+    	   end
+    	   'AL': begin
+    	     append_array,allal,kdata
+    	     append_array,allaltime, basetime + dindgen(60)*60d
+    	     dprint,' ',s,dlevel=5
+    	   end
+    	   'AO': begin
+    	     append_array,allao,kdata
+    	     append_array,allaotime, basetime + dindgen(60)*60d
+    	     dprint,' ',s,dlevel=5
+    	   end
+    	   'AU': begin
+    	     append_array,allau,kdata
+    	     append_array,allautime, basetime + dindgen(60)*60d
+    	     dprint,' ',s,dlevel=5
+    	   end
+               'AX': begin
+    	     append_array,allax,kdata
+    	     append_array,allaxtime, basetime + dindgen(60)*60d
+    	     dprint,' ',s,dlevel=5
+    	   end
+             endcase
+             continue
+          endif
+    
+          ;if s eq 'DAY' then ok=1
+        endwhile
+        free_lun,lun
+     endfor 
+  endfor
+
+tvars = []
+
+;==============================
+;Store data in TPLOT variables:
+;==============================
 
 if keyword_set(allae) then begin
   allae= float(allae)
@@ -486,8 +477,27 @@ pro kyoto_load_ae ,trange=trange, $
     t = trange
   endif else get_timespan,t
 
+
+  ; At this writing (2026-02-12), there's a small island of provsional data for 2024-05-10 through 2025-05-15.
+  ; Except for that window, the provisional data ends at 2021-01-01, then all realtime.
+  ; This should be checked periodically to see if more provisional data is available.
+  
   prov_cutoff_dbl = time_double('2021-01-01/00:00:00')
-  if t[0] gt prov_cutoff_dbl then begin
+  latest_mixed_date = '2024-05-15/00:00:00'
+  latest_provisional_only = '2021-01-01/00:00:00'
+  skip_realtime = 0
+  skip_provisional = 0
+
+  ; Try to minimize queries to the remote server, by identifying times we know are only provisional,
+  ; or only realtime.
+  
+  if time_double(t[1]) le time_double(latest_provisional_only) then begin
+    skip_realtime = 1
+  endif
+  if time_double(t[0]) ge time_double(latest_mixed_date) then begin
+    skip_provisional = 1
+  endif
+
     kyoto_load_ae_helper, trange=t, $
       ;  filenames=fns, $         ;Do not pounce on FILENAMES.
       aedata=allae, $
@@ -505,93 +515,10 @@ pro kyoto_load_ae ,trange=trange, $
       no_server=no_server, $ ; use only locally available data, ie don't download data
       local_data_dir=local_data_dir, $
       remote_data_dir = remote_data_dir, $
-      realtime=1
+      skip_realtime=skip_realtime, $
+      skip_provisional=skip_provisional
 
       
-  endif else if t[1] lt prov_cutoff_dbl then begin
-    kyoto_load_ae_helper, trange=t, $
-      ;  filenames=fns, $         ;Do not pounce on FILENAMES.
-      aedata=allae, $
-      aetime=allaetime, $
-      aldata=allal, $
-      altime=allaltime, $
-      aodata=allao, $
-      aotime=allaotime, $
-      audata=allau, $
-      autime=allautime, $
-      axdata=allax, $
-      axtime=allaxtime, $
-      verbose=verbose, $
-      datatype=datatype, $     ;Input/output -- will clean inputs or show default.
-      no_server=no_server, $ ; use only locally available data, ie don't download data
-      local_data_dir=local_data_dir, $
-      remote_data_dir = remote_data_dir, $
-      realtime=0, $
-      return_vars = pv_vars
-       
-  endif else begin
-    ; Time range spans provisional cutoff
-    del_data,'kyoto_tmp_*'
-    trange_provisional = [t[0], time_double('2020-12-31/59:59:59.1')]
-    trange_realtime = [prov_cutoff_dbl, t[1]]
-    kyoto_load_ae_helper, trange=trange_provisional, $
-      ;  filenames=fns, $         ;Do not pounce on FILENAMES.
-      aedata=pv_allae, $
-      aetime=pv_allaetime, $
-      aldata=pv_allal, $
-      altime=pv_allaltime, $
-      aodata=pv_allao, $
-      aotime=pv_allaotime, $
-      audata=pv_allau, $
-      autime=pv_allautime, $
-      axdata=pv_allax, $
-      axtime=pv_allaxtime, $
-      verbose=verbose, $
-      datatype=datatype, $     ;Input/output -- will clean inputs or show default.
-      no_server=no_server, $ ; use only locally available data, ie don't download data
-      local_data_dir=local_data_dir, $
-      remote_data_dir = remote_data_dir, $
-      realtime=0, $
-      return_vars = pv_vars, $
-      prefix = 'kyoto_tmp_prov_'
- 
-    kyoto_load_ae_helper, trange=trange_realtime, $
-      ;  filenames=fns, $         ;Do not pounce on FILENAMES.
-      aedata=rt_allae, $
-      aetime=rt_allaetime, $
-      aldata=rt_allal, $
-      altime=rt_allaltime, $
-      aodata=rt_allao, $
-      aotime=rt_allaotime, $
-      audata=rt_allau, $
-      autime=rt_allautime, $
-      axdata=rt_allax, $
-      axtime=rt_allaxtime, $
-      verbose=verbose, $
-      datatype=datatype, $     ;Input/output -- will clean inputs or show default.
-      no_server=no_server, $ ; use only locally available data, ie don't download data
-      local_data_dir=local_data_dir, $
-      remote_data_dir = remote_data_dir, $
-      realtime=1, $
-      return_vars = rt_vars, $
-      prefix = 'kyoto_tmp_realtime_'
-
-      ; merge arrays
-      allae = [pv_allae, rt_allae]
-      allaetime = [pv_allaetime, rt_allaetime]
-      allal = [pv_allal, rt_allal]
-      allaltime = [pv_allaltime, rt_allaltime]
-      allao = [pv_allao, rt_allao]
-      allaotime = [pv_allaotime, rt_allaotime]
-      allau = [pv_allau, rt_allau]
-      allautime = [pv_allautime, rt_allautime]
-      allax = [pv_allax, rt_allax]
-      allaxtime = [pv_allaxtime, rt_allaxtime]
-
-      ; merge tplot variables 
-      merge_ae_vars,pv_vars,rt_vars  
-      
-  endelse
 
   print,'**********************************************************************************
   print,'The provisional AE data are provided by the World Data Center for Geomagnetism, Kyoto,
