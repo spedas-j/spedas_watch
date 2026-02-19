@@ -1,6 +1,6 @@
 ; $LastChangedBy: davin-mac $
-; $LastChangedDate: 2026-02-16 14:47:42 -0800 (Mon, 16 Feb 2026) $
-; $LastChangedRevision: 34157 $
+; $LastChangedDate: 2026-02-17 22:04:16 -0800 (Tue, 17 Feb 2026) $
+; $LastChangedRevision: 34166 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_ncdf_read.pro $
 ; $ID: $
 
@@ -86,8 +86,8 @@ function swfo_ncdf_read,  dynarray=dynarray, filenames=filenames $
     for vid=0,inq.nvars-1 do begin
       vinq = ncdf_varinq(id,vid)
       
-      if isa(varnames,/string) && ~strfilter(vinq.name, varnames,/byte,delimiter=' ',/fold_case) then continue
-      if isa(not_varnames,/string) && strfilter(vinq.name, not_varnames,/byte,delimiter=' ',/fold_case) then continue
+      if isa(varnames,/string) && ~strfilter(vinq.name, varnames,/byte,delimiter=' ',/fold_case) && (vinq.name ne 'TIME') then continue
+      if isa(not_varnames,/string) && strfilter(vinq.name, not_varnames,/byte,delimiter=' ',/fold_case) && (vinq.name ne 'TIME') then continue
      
       ;printdat,vinq
 

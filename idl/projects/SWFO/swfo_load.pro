@@ -29,10 +29,10 @@ pro swfo_load_tplot_store,da
       dlim = {spec:1,ylog:1,yrange:[10.,10000.],zlog:1,zrange:[1e1,1e10]}
       store_data,tname,data=da,tagnames='*ION_*FLUX',val='ION_ENERGY';,dlim=dlim
       store_data,tname,data=da,tagnames='*ELEC_*FLUX',val='ELEC_ENERGY';,dlim=dlim
-      options,tname+'*FLUX',spec=1
-      ylim,tname+'*FLUX',10,10000,1
-      zlim,tname+'*_FLUX',.0001,1e4,1
-      zlim,tname+'*_EFLUX',1,1e4,1
+      options,tname+'*FLUX',spec=1,/default
+      ylim,tname+'*FLUX',10,10000,1,/default
+      zlim,tname+'*_FLUX',.0001,1e4,1,/default
+      zlim,tname+'*_EFLUX',1,1e4,1,/default
     end
     else: begin
       store_data,prefix+da.name,data=da,tagnames='*'
@@ -51,7 +51,7 @@ end
 pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datahash  $
   ,resolution=resolution,file_hashes=file_hashes,user_pass=user_pass,lowres=lowres  $
   ,force_l0b = force_l0b $
-  ,station=station
+  ,station=station, varnames=varnames
 
 
   if isa(user_pass,'string') then setenv,'SWFO_USER_PASS='+user_pass
@@ -308,7 +308,7 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
       if datahash.haskey(type) then dynarray = datahash[type] else dynarray= dynamicarray(name=type)
       pathname = str_sub(pathname0,'$NAME$',type)
       files = file_retrieve(pathname,trange=trange,_extra=source)
-      dat_da = swfo_ncdf_read(filenames = files,dynarray = dynarray )
+      dat_da = swfo_ncdf_read(filenames = files,dynarray = dynarray, varnames=varnames )
       datahash[type] = dat_da
     endif
 
@@ -323,39 +323,6 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
     endif
 
   endforeach
-
-
-  if keyword_set(0) || keyword_set(tplot_store) then begin
-
-    tname = 'swfo_stis_L1a'
-    dprint,'Making L1 tplot variables: ',tname
-    ;   l1a = dynamicarray(swfo_stis_sci_level_1a(l0b.array),name=tname)
-    store_data,tname,data = l1a_da,tagnames = '*'
-    store_data,tname,data = l1a_da,tagnames = 'SPEC_??',val_tag='_NRG'
-    store_data,tname,data = l1a_da,tagnames = 'SPEC_???',val_tag='_NRG'
-    store_data,tname,data = l1a_da,tagnames = 'SPEC_????',val_tag='_NRG'
-    options,tname+'_SPEC_??',spec=1, zlog=1, ylog=1, yrange=[5,10000.]
-    options,tname+'_SPEC_???',spec=1, zlog=1, ylog=1, yrange=[5,10000.]
-    options,tname+'_SPEC_????',spec=1, zlog=1, ylog=1, yrange=[5,10000.]
-    options,tname+'_RATE6',/ylog
-    ;options,tname+['_RATE','*SIGMA','*BASELINE', /reverse_order, colors ='bgrmcd'
-
-    tname = 'swfo_stis_L1b'
-    store_data,tname,data=l1b_da,tagnames='*'
-    dlim = {spec:1,ylog:1,yrange:[10.,10000.],zlog:1,zrange:[1e1,1e10]}
-    store_data,tname,data=l1b_da,tagnames='*ION_FLUX',val='ION_ENERGY';,dlim=dlim
-    store_data,tname,data=l1b_da,tagnames='*ELEC_FLUX',val='ELEC_ENERGY';,dlim=dlim
-    options,'*HDR*',spec=1
-    ylim,'*HDR*',5,10000,1
-    zlim,'*HDR*',1,1,1
-
-    options,/def,'*_RATE6 *BASELINE *SIGMA tlimi*NOISE_TOTAL',colors='bgrmcd',symsize=.5,$
-      labels=channels,labflag=-1,constant=0,/reverse_order
-
-
-  endif
-  ;l1b_da.
-
 
   tplot_options,'title','SWFO Prelimary Data - Do not disseminate'
   ; tplot_options,'notes','Preliminary data - Do not disseminate'
