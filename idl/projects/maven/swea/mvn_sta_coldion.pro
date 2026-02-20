@@ -83,8 +83,8 @@
 ;    SUCCESS:       Processing success flag.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-02-16 16:10:26 -0800 (Mon, 16 Feb 2026) $
-; $LastChangedRevision: 34162 $
+; $LastChangedDate: 2026-02-18 12:34:22 -0800 (Wed, 18 Feb 2026) $
+; $LastChangedRevision: 34173 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_coldion.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -283,7 +283,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
 
   pans = pans[1:*]
 
-  if (~doden and ~dotmp and (max(dovel) eq 0)) then return
+  if (~doden and ~got_l3_den and ~dotmp and ~got_l3_tmp and (max(dovel) eq 0)) then return
 
   var4d = 'mvn_sta_' + v_apid + '_E'
   get_data, var4d, data=dat4d, index=i
@@ -350,7 +350,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
       j = where(sta_den_quality.y[*,i] eq 1, count)  ; 0 = good, 1 = bad
       if (count gt 0) then sta_den.y[j,i] = !values.f_nan  ; smooth_in_time ignores NaN's
       y = (min(dx) lt (2D*dt)) ? smooth_in_time(sta_den.y[*,i], sta_den.x, dt) : sta_den.y[*,i]
-      result_h.den_i = interp(y, sta_den.x, time, /ignore_nan, /no_extrapolate, interp_thresh=(2D*dt))
+      result_o1.den_i = interp(y, sta_den.x, time, /ignore_nan, /no_extrapolate, interp_thresh=(2D*dt))
     endif else print,"Warning: missing L3 O+ density"
 
     i = where(sta_den_lim.labels eq 'O2+', count)
@@ -359,8 +359,10 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
       j = where(sta_den_quality.y[*,i] eq 1, count)  ; 0 = good, 1 = bad
       if (count gt 0) then sta_den.y[j,i] = !values.f_nan  ; smooth_in_time ignores NaN's
       y = (min(dx) lt (2D*dt)) ? smooth_in_time(sta_den.y[*,i], sta_den.x, dt) : sta_den.y[*,i]
-      result_h.den_i = interp(y, sta_den.x, time, /ignore_nan, /no_extrapolate, interp_thresh=(2D*dt))
+      result_o2.den_i = interp(y, sta_den.x, time, /ignore_nan, /no_extrapolate, interp_thresh=(2D*dt))
     endif else print,"Warning: missing L3 O2+ density"
+
+    doden = 0  ; reassert - no longer need to calculate densities
 
   endif
 
@@ -833,6 +835,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
 ;   0 = unknown, 1 = solar wind, 2 = sheath, 3 = ionosphere, 4 = dayside ionosphere, 5 = tail lobe
 
   if ~find_handle('regid') then begin
+    mvn_swia_load_l2_data, /loadall, /tplot
     bdata = 'mvn_B_1sec_maven_mso'
     fbdata = 'mvn_B_full'
     mvn_swia_regid, bdata=bdata, fbdata=fbdata, pdata=pdata
@@ -846,7 +849,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
     if ~(nfilter mod 2) then nfilter++
     region = round(median(regid.y[*,0], nfilter))  ; dt-width median filter
 
-    indx = nn2(reg_id.x, time)
+    indx = nn2(regid.x, time)
     result_h.region = region[indx]
     result_o1.region = region[indx]
     result_o2.region = region[indx]
@@ -863,9 +866,10 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
 
   path = root_data_dir() + 'maven/data/sci/swe/l3/'
   fname = 'solar_wind_combined.tplot'
-  tplot_restore, file=(path + fname)  ; direct + penetrating proton (Halekas)
+  finfo = file_info(path + fname)
+  if (finfo.exists) then begin
+    tplot_restore, file=(path + fname)  ; direct + penetrating proton (Halekas)
 
-  if find_handle('ncomb') then begin
     get_data, 'ncomb', data=npsw, index=i
     Np = interp(npsw.y, npsw.x, time, interp_threshold=dtmax, /no_extrapolate)  ; cm-3
     get_data, 'vcomb', data=vpsw, index=i
@@ -886,13 +890,9 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
   finfo = file_info(path + fname)
   if (finfo.exists) then begin
     restore, (path + fname)  ; combined proxy (Azari-Dong)
-    if (size(clock,/type) eq 8) then begin
-      By[gap] = interp(clock.By_norm, clock.time, time[gap], int=dtmax)
-      Bz[gap] = interp(clock.Bz_norm, clock.time, time[gap], int=dtmax)
-    endif
 
-    By = interp(clock.by_norm, clock.time, time, interp_threshold=dtmax, /no_extrapolate)
-    Bz = interp(clock.bz_norm, clock.time, time, interp_threshold=dtmax, /no_extrapolate)
+    By = interp(clock.By_norm, clock.time, time, interp_threshold=dtmax, /no_extrapolate)
+    Bz = interp(clock.Bz_norm, clock.time, time, interp_threshold=dtmax, /no_extrapolate)
     Bclk = atan(Bz,By)  ; radians (0 = east, pi = west)
     result_h.imf_clk = Bclk
     result_o1.imf_clk = Bclk
