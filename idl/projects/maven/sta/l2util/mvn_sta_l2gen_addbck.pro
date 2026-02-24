@@ -120,7 +120,8 @@ Pro mvn_sta_l2gen_addbck, date = date, alt_data_path = alt_data_path, $
   mvn_sta_l2_load, iv_level = 4, alt_data_path = alt_data_path
 ;the directory output is full-path
   If(keyword_set(alt_data_path)) Then Begin
-     dir00 = '/disks/data/'+alt_data_path+'data/sci/sta/'
+     %dir00 = '/disks/data/'+alt_data_path+'data/sci/sta/'
+     dir00 = alt_data_path+'data/sci/sta/'
   Endif Else dir00 = '/disks/data/maven/data/sci/sta/'
   datein = time_string(date)
   yyyy = strmid(datein, 0, 4)
