@@ -6,21 +6,18 @@
 ;
 ;INPUTS:          None.
 ;
-;KEYWORDS:
-;
-;     TNAME:      Returns the tplot variables created.
+;KEYWORDS:        None.
 ;
 ;CREATED BY:      Gwen Hanley & Takuya Hara on 2026-02-22.
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-02-23 15:25:58 -0800 (Mon, 23 Feb 2026) $
-; $LastChangedRevision: 34182 $
+; $LastChangedDate: 2026-02-25 17:13:00 -0800 (Wed, 25 Feb 2026) $
+; $LastChangedRevision: 34201 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_tplot.pro $
 ;
 ;-
-PRO esc_iesa_tplot, data, verbose=verbose, tname=tname
-  tnow = SYSTIME(/sec)
+PRO esc_iesa_tplot, data, verbose=verbose
   prod = ['F4D', 'FM', 'FE', 'SW']
   prob = 'ESC-P'
 
@@ -49,6 +46,7 @@ PRO esc_iesa_tplot, data, verbose=verbose, tname=tname
      time    = 0.5d0 * (dat.time + dat.end_time)
      data    = dat.data
      cnts    = dat.cnts
+     mass_arr = dat.mass_arr 
      
      phi     = REFORM(phi,   nenergy, nanode, ndef, nmass, ntimes)
      theta   = REFORM(theta, nenergy, nanode, ndef, nmass, ntimes)
@@ -71,6 +69,21 @@ PRO esc_iesa_tplot, data, verbose=verbose, tname=tname
                        ztickunits: 'scientific', ytickinterval: 90., yminor: 4}
      ylim, prefix + '_A_cnts', 0., 247.5, 0, /def
      zlim, prefix + '_A_cnts', 1., 1.e4, 1, /def
+    
+     store_data, prefix + '_M_cnts', data={x: time, y: TRANSPOSE(TOTAL(TOTAL(cnts, 1), 1)), v: TRANSPOSE(MEAN(MEAN(mass_arr, dim=1), dim=1))}, $
+                 dlim={ytitle: probe + ' ' + prod[0], ysubtitle: 'Mass [amu]', ztitle: 'Counts [#]', spec: 1, no_interp: 1, extend_y_edges: 1, $
+                 ztickunits: 'scientific'}
+     zlim, prefix + '_M_cnts', 1., 1.e4, 1, /def
+     
+     store_data, prefix + '_att', data={x: time, y: dat.att_ind}, $
+                 dlim={ytitle: probe + ' ' + prod[0], ysubtitle: 'Att. Ind', ytickinterval: 1., yminor: 1}
+     ylim, prefix + '_att', -0.5, 3.5, 0, /def
+     
+     store_data, prefix + 'sc_pot', data={x: time, y: dat.sc_pot}, $
+                 dlim={ytitle: probe + ' ' + prod[0], ysubtitle: 'S/C Pot [V]'}
+     
+     store_data, prefix + 'neg_sc_pot', data={x: time, y: -1.*dat.sc_pot} 
+                 dlim={ytitle: probe + ' ' + prod[0], ysubtitle: '-S/C Pot [V]'}                    
 
      ;store_data, 'escb_iesa_f4d_SAbin_cnts', data = {x: time, y: transpose(total(total(cnts,3),1)), v: indgen(nbins) }
      ;options,'escb_iesa_f4d_SAbin_cnts', no_interp=1., spec=1., ytitle='ESC B f4d!CSA Bin #', ztitle= 'Counts'
@@ -79,10 +92,6 @@ PRO esc_iesa_tplot, data, verbose=verbose, tname=tname
      
      undefine, dat
   ENDFOR 
-
-  tn = tnames('*', create_time=ctime)
-  w = WHERE(ctime GT tnow, nw)
-  IF nw GT 0 THEN tname = tn[w]
   
   RETURN
 END

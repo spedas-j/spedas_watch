@@ -34,8 +34,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-02-23 10:10:11 -0800 (Mon, 23 Feb 2026) $
-; $LastChangedRevision: 34179 $
+; $LastChangedDate: 2026-02-25 17:08:54 -0800 (Wed, 25 Feb 2026) $
+; $LastChangedRevision: 34200 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_load.pro $
 ;
 ;-
@@ -90,8 +90,8 @@ PRO esc_iesa_load, itime, product=product, data=data, verbose=verbose, level=lev
      prefix = (probes[i]).substring(0, 0) + '_eesai_'
      vname = cdfi.vars.name
      
-     ndat = cdfi.vars[0].numrec
-
+     ;ndat = cdfi.vars[0].numrec
+     ndat  = N_ELEMENTS(*cdfi.vars[0].dataptr)
      undefine, data
      data = REPLICATE(esc_iesa_struct(prod[j], probe=probes[i]), ndat)
      tags = TAG_NAMES(data[0])
