@@ -6,18 +6,21 @@
 ;
 ;INPUTS:          None.
 ;
-;KEYWORDS:        None.
+;KEYWORDS:
+;
+;     TNAME:      Returns the tplot variables created.
 ;
 ;CREATED BY:      Gwen Hanley & Takuya Hara on 2026-02-22.
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-02-25 17:13:00 -0800 (Wed, 25 Feb 2026) $
-; $LastChangedRevision: 34201 $
+; $LastChangedDate: 2026-02-25 20:49:49 -0800 (Wed, 25 Feb 2026) $
+; $LastChangedRevision: 34202 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_tplot.pro $
 ;
 ;-
-PRO esc_iesa_tplot, data, verbose=verbose
+PRO esc_iesa_tplot, data, verbose=verbose, tname=tname
+  tnow = SYSTIME(/sec)
   prod = ['F4D', 'FM', 'FE', 'SW']
   prob = 'ESC-P'
 
@@ -92,6 +95,10 @@ PRO esc_iesa_tplot, data, verbose=verbose
      
      undefine, dat
   ENDFOR 
+
+  tn = tnames('*', create_time=ctime)
+  w = WHERE(ctime GT tnow, nw)
+  IF nw GT 0 THEN tname = tn[w]
   
   RETURN
 END
