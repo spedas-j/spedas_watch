@@ -33,8 +33,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-02-25 13:39:12 -0800 (Wed, 25 Feb 2026) $
-; $LastChangedRevision: 34199 $
+; $LastChangedDate: 2026-02-27 17:42:42 -0800 (Fri, 27 Feb 2026) $
+; $LastChangedRevision: 34209 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/spice/esc_eph_load.pro $
 ;
 ;-
@@ -62,7 +62,7 @@ PRO esc_eph_load, itime, verbose=verbose, no_server=no_server, blue=blue, gold=g
      yunit = '[R!DE!N]'
   ENDIF
   
-  IF undefined(source) THEN src = esc_file_source() ELSE src = source
+  IF undefined(source) THEN src = esc_file_source(verbose=verbose) ELSE src = source
   fname = 'YYYY/MM/esc-p_anc-eph_YYYY-MM-DD_*.cdf'
   
   phases = ['prelaunch', 'commissioning', 'science']
