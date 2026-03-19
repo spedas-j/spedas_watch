@@ -83,8 +83,8 @@
 ;    SUCCESS:       Processing success flag.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-02-25 13:15:38 -0800 (Wed, 25 Feb 2026) $
-; $LastChangedRevision: 34198 $
+; $LastChangedDate: 2026-03-18 11:20:01 -0700 (Wed, 18 Mar 2026) $
+; $LastChangedRevision: 34265 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_coldion.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -903,8 +903,8 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
 
 ;   Combined clock angle (Azari + Dong)
 ;   /home/rlillis/work/data/maven_sw_driver_files/clock_angle_vSWIM_Yaxue.sav
-;   coverage: 2014-11-13 to 2024-04-17  (CIO campaigns A-N; need update for O, P, Q)
-;   latest refresh: 2025-06-25
+;   coverage: 2014-11-13 to 2025-10-29  (CIO campaigns A-N; need update for O, P, Q)
+;   latest refresh: 2026-03-17
 
   fname = 'clock_angle_vSWIM_Yaxue.sav'
   finfo = file_info(path + fname)
