@@ -64,8 +64,8 @@
 ;   thm_load_variometer_gmag, site=['s61a','anmo'],sampling_rate=10,trange=trange,/subtract_median
 ;
 ; $LastChangedBy: dcarpenter $
-; $LastChangedDate: 2026-03-18 14:47:03 -0700 (Wed, 18 Mar 2026) $
-; $LastChangedRevision: 34266 $
+; $LastChangedDate: 2026-03-20 09:26:38 -0700 (Fri, 20 Mar 2026) $
+; $LastChangedRevision: 34283 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/ground/thm_load_variometer_gmag.pro $
 ;-
 Function thm_load_variometer_gmag_relpath, sname = sname, $
@@ -83,15 +83,14 @@ Function thm_load_variometer_gmag_relpath, sname = sname, $
         ; if not, assume 1 Hz 
         if keyword_set(sampling_rate) then begin
             if sampling_rate eq 10 then begin
-              sname_file = snamei + '_100ms'
+              sname_file = sname + '_100ms'
             endif else begin
-              sname_file = snamei
+              sname_file = sname
             endelse
         endif else begin
-            snamei = sname
-            sname_file = snamei
+            sname_file = sname
         endelse
-        
+        snamei = sname
     endelse
   ; snamei should only be the station name
     

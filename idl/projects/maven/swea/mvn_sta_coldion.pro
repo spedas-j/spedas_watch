@@ -87,8 +87,8 @@
 ;    SUCCESS:       Processing success flag.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-03-19 15:27:07 -0700 (Thu, 19 Mar 2026) $
-; $LastChangedRevision: 34278 $
+; $LastChangedDate: 2026-03-20 08:45:34 -0700 (Fri, 20 Mar 2026) $
+; $LastChangedRevision: 34282 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_coldion.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -172,6 +172,14 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
 ;   two or more distinct populations with different energies are 
 ;   present at the same time.  In this case, the moment calculations
 ;   may poorly represent the actual situation.
+;
+;   The minimum measureable velocity depends on the spacecraft potential:
+;
+;      Vmin = sqrt(2*(phi+0.4)/m)
+;
+;   When the potential is -0.4 Volts or less, then STATIC can measure 
+;   down to zero velocity.  This is often the case in shadow.  For
+;   positive potentials, the lowest energy component is not measured.
 
   e_arr = fltarr(2,3)
   e_arr[*,0] = [0.,30000.]  ; H+  (2400 km/s max velocity)
