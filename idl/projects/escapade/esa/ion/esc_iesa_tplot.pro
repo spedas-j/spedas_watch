@@ -14,8 +14,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-02-27 13:15:38 -0800 (Fri, 27 Feb 2026) $
-; $LastChangedRevision: 34208 $
+; $LastChangedDate: 2026-04-06 15:52:33 -0700 (Mon, 06 Apr 2026) $
+; $LastChangedRevision: 34332 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_tplot.pro $
 ;
 ;-
@@ -96,6 +96,53 @@ PRO esc_iesa_tplot, data, verbose=verbose, tname=tname
      undefine, dat
   ENDFOR 
 
+  ; Fine Masses (fm)
+  cvar = 'escp_iesa_fm'
+  FOR i=1, 2 DO BEGIN           ; FM1 = BLUE, FM2 = GOLD
+     IF i EQ 1 THEN prefix = cvar.replace('p', 'b') ELSE prefix = cvar.replace('p', 'g')
+     undefine, EXECUTE("dat = SCOPE_VARFETCH(prefix, common='esc_iesa_fm_com')")
+
+     IF ~is_struct(dat) THEN CONTINUE
+
+     IF i EQ 1 THEN probe = prob.replace('P', 'B') ELSE probe = prob.replace('P', 'G')
+     ntimes  = N_ELEMENTS(dat.time)
+     nbins   = dat[0].nbins
+     nenergy = dat[0].nenergy
+     nmass   = dat[0].nmass
+
+     energy  = dat.energy
+     emin    = dat[0].energy_min
+     emax    = dat[0].energy_max
+     mass    = dat.mass
+
+     time    = 0.5d0 * (dat.time + dat.end_time)
+     data    = dat.data
+     cnts    = dat.cnts
+
+     mass_arr = dat.mass_arr 
+     mass_arr = INDGEN(64)
+     
+     store_data, prefix + '_M_cnts', data={x: time, y: TRANSPOSE(TOTAL(cnts, 1, /nan)), v: mass_arr}, $
+                 dlim={ytitle: probe + ' ' + prod[1], ysubtitle: 'Mass Bins', ztitle: 'Counts [#]', spec: 1, no_interp: 1, extend_y_edges: 1, $
+                       ztickunits: 'scientific'}
+     ylim, prefix + '_M_cnts', 0., 64., 0, /def
+     zlim, prefix + '_M_cnts', 1., 1., 1, /def
+
+     IF nenergy GT 1 THEN BEGIN ; Fine Masses Prime
+        FOR j=0, 2 DO BEGIN
+           ysubtit = 'Mass Bins'
+           store_data, prefix + '_M_cnts_' + roundst(j), data={x: time, y: TRANSPOSE(REFORM(cnts[j, *, *])), v: mass_arr}, $
+                       dlim={ytitle: probe + ' ' + prod[1], ztitle: 'Counts [#]', spec: 1, no_interp: 1, extend_y_edges: 1, $
+                             ztickunits: 'scientific'}
+           ylim, prefix + '_M_cnts_' + roundst(j), 0., 64., 0, /def
+           zlim, prefix + '_M_cnts_' + roundst(j), 1., 1., 1, /def
+
+           options, prefix + '_M_cnts_' + roundst(j), ysubtitle=ysubtit + '!C' + STRING(emin[j, 0], '(F0.1)') + ' - ' + STRING(emax[j, 0], '(F0.1)') + ' eV', /def
+        ENDFOR 
+     ENDIF
+     undefine, dat
+  ENDFOR 
+  
   tn = tnames('*', create_time=ctime)
   w = WHERE(ctime GT tnow, nw)
   IF nw GT 0 THEN tname = tn[w]
