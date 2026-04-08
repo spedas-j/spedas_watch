@@ -14,12 +14,29 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-04-06 15:52:33 -0700 (Mon, 06 Apr 2026) $
-; $LastChangedRevision: 34332 $
+; $LastChangedDate: 2026-04-07 12:18:56 -0700 (Tue, 07 Apr 2026) $
+; $LastChangedRevision: 34333 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_tplot.pro $
 ;
 ;-
-PRO esc_iesa_tplot, data, verbose=verbose, tname=tname
+PRO esc_iesa_tplot, verbose=verbose, tname=tname, data=data, limits=limits
+
+  IF is_struct(data) AND is_struct(limits) THEN BEGIN
+     str_element, data, 'vmin', value=vmin
+     str_element, data, 'vmax', value=vmax
+
+     IF ~undefined(vmin) AND ~undefined(vmax) THEN BEGIN
+        engy = [vmin, vmax]
+        engy = engy[REVERSE(SORT(engy))]
+        cnts = FLTARR(N_ELEMENTS(data.x), N_ELEMENTS(engy))
+        FOR i=0, N_ELEMENTS(engy)-1 DO cnts[*, i] = data.y[*, FLOOR(0.5*i)]
+        str_element, data, 'y', cnts, /add_replace
+        str_element, data, 'v', engy, /add
+     ENDIF
+     IF tag_exist(limits, 'spec', /quiet) THEN specplot, data=data, limits=limits ELSE mplot, data=data, limits=limits
+     RETURN
+  ENDIF 
+  
   tnow = SYSTIME(/sec)
   prod = ['F4D', 'FM', 'FE', 'SW']
   prob = 'ESC-P'
@@ -138,7 +155,14 @@ PRO esc_iesa_tplot, data, verbose=verbose, tname=tname
            zlim, prefix + '_M_cnts_' + roundst(j), 1., 1., 1, /def
 
            options, prefix + '_M_cnts_' + roundst(j), ysubtitle=ysubtit + '!C' + STRING(emin[j, 0], '(F0.1)') + ' - ' + STRING(emax[j, 0], '(F0.1)') + ' eV', /def
-        ENDFOR 
+        ENDFOR
+        
+        store_data, prefix + '_E_cnts', data={x: time, y: TRANSPOSE(TOTAL(cnts, 2, /nan)), vmin: MEAN(emin, dim=2), vmax: MEAN(emax, dim=2)}, $ 
+                    dlim={ytitle: probe + ' ' + prod[1], ysubtitle: 'Energy [eV]', ztitle: 'Counts [#]', spec: 1, no_interp: 1, $
+                          ytickunits: 'scientific', ztickunits: 'scientific', tplot_routine: 'esc_iesa_tplot'}
+        ylim, prefix + '_E_cnts', 1., 30.e3, 1, /def
+        zlim, prefix + '_E_cnts', 1.e2, 1.e4, 1, /def
+        
      ENDIF
      undefine, dat
   ENDFOR 

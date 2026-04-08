@@ -34,8 +34,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-04-06 15:52:33 -0700 (Mon, 06 Apr 2026) $
-; $LastChangedRevision: 34332 $
+; $LastChangedDate: 2026-04-07 16:03:30 -0700 (Tue, 07 Apr 2026) $
+; $LastChangedRevision: 34335 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_load.pro $
 ;
 ;-
@@ -93,7 +93,7 @@ PRO esc_iesa_load, itime, product=product, data=data, verbose=verbose, level=lev
      ndat  = N_ELEMENTS(*cdfi.vars[0].dataptr)
      undefine, data
 
-     IF prod EQ 'fm' THEN BEGIN
+     IF prod[j] EQ 'fm' THEN BEGIN
         w = WHERE(vname EQ prefix + 'nenergy', nw)
         IF nw EQ 1 THEN nenergy = *cdfi.vars[w].dataptr
      ENDIF 
