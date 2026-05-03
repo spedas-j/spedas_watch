@@ -14,8 +14,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-04-29 14:16:17 -0700 (Wed, 29 Apr 2026) $
-; $LastChangedRevision: 34404 $
+; $LastChangedDate: 2026-05-02 16:19:25 -0700 (Sat, 02 May 2026) $
+; $LastChangedRevision: 34422 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_tplot.pro $
 ;
 ;-
@@ -236,7 +236,11 @@ PRO esc_iesa_tplot, verbose=verbose, tname=tname, data=data, limits=limits
 
   tn = tnames('*', create_time=ctime)
   w = WHERE(ctime GT tnow, nw)
-  IF nw GT 0 THEN tname = tn[w]
+  IF nw GT 0 THEN tname = tn[w] $
+  ELSE BEGIN
+     dprint, dlevel=2, verbose=verbose, 'No tplot(s) newly created.'
+     RETURN
+  ENDELSE 
   undefine, ctime
 
   cvar = 'escp_iesa_'
@@ -245,8 +249,11 @@ PRO esc_iesa_tplot, verbose=verbose, tname=tname, data=data, limits=limits
      prefix = cvar.replace('p', p[i])
      probe  = prob.replace('P', (p[i]).toupper())
      FOR j=0, 2 DO BEGIN
-        iname = strfilter(tname, prefix + ['f4d', 'sw'] + '_' + type[j] + '_cnts')
-        IF iname[0] EQ '' THEN CONTINUE
+        undefine, iname 
+        iname = strfilter(tname, prefix + ['sw', 'f4d'] + '_' + type[j] + '_cnts', count=ntplot)
+        IF TEMPORARY(ntplot) EQ 0 THEN CONTINUE
+        
+        iname = REVERSE(iname)  ; The order must be ['sw', 'f4d'].
         get_data, iname[0], alim=alim
         extract_tags, ilim, alim, tags=['yrange', 'ylog', 'yticks', 'yminor', 'constant', 'ytitle', 'ysubtitle', 'ytickunits']
         store_data, prefix + type[j] + '_cnts', data=iname, dlim=ilim
