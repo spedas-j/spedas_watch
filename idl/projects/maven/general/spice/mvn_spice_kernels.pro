@@ -20,9 +20,9 @@
 ;PLEASE DO NOT USE this routine within general "LOAD" routines using the LOAD keyword. "LOAD" routines should assume that SPICE kernels are already loaded.
 ; 
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2025-07-27 14:50:12 -0700 (Sun, 27 Jul 2025) $
-; $LastChangedRevision: 33502 $
+; $LastChangedBy: hara $
+; $LastChangedDate: 2026-06-03 15:51:14 -0700 (Wed, 03 Jun 2026) $
+; $LastChangedRevision: 34529 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_kernels.pro $
 ;-
 function mvn_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -130,7 +130,10 @@ function mvn_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,ver
 ;get 3 month time intervals
          ftimes = time_intervals(trange = ['2015-01-01', time_string(ct)], monthly_res = 3)
 ;prepend 2014-09-22, orbit insertion
-         ftimes = [time_double('2014-09-22'), ftimes]
+;        2025-12-06, loss of signal         
+         m = where(ftimes lt time_double('2025-12-06'), nm)
+         if nm gt 0 then ftimes = ftimes[m] 
+         ftimes = [time_double('2014-09-22'), ftimes, time_double('2025-12-06')]
          nftimes = n_elements(ftimes)
          fstring = strmid(time_string(ftimes, tformat='YYYYMMDD'), 2)
          ffiles = 'MAVEN/kernels/spk/maven_orb_rec_'+fstring[0:nftimes-2]+'_'+fstring[1:*]+'_v?.bsp'

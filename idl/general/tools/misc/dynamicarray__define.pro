@@ -1,8 +1,8 @@
 ;+
 ; Written by Davin Larson - August 2016
 ; $LastChangedBy: davin $
-; $LastChangedDate: 2026-06-03 09:56:37 -0700 (Wed, 03 Jun 2026) $
-; $LastChangedRevision: 34523 $
+; $LastChangedDate: 2026-06-03 23:01:06 -0700 (Wed, 03 Jun 2026) $
+; $LastChangedRevision: 34531 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/tools/misc/dynamicarray__define.pro $
 
 ; Purpose: Object that provides an efficient means of concatenating arrays
@@ -276,7 +276,7 @@ function DynamicArray::sample,nearest=nearest,range=range,tagname=tagname,varnam
   compile_opt IDL2
   vals = !null
   if self.size le 0 then begin
-    dprint,dlevel=self.dlevel,'Data size is 0'
+    dprint,dlevel=self.dlevel,'Data size is 0 for: '+self.name
     return,vals
   endif
   if isa(varname,/string) then begin

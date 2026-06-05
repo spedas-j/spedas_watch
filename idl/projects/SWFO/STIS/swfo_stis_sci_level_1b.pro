@@ -23,8 +23,8 @@
 ; - swfo_stis_sci_l1b_crib.pro
 ;
 ; $LastChangedBy: davin $
-; $LastChangedDate: 2026-06-03 10:25:50 -0700 (Wed, 03 Jun 2026) $
-; $LastChangedRevision: 34526 $
+; $LastChangedDate: 2026-06-03 23:01:06 -0700 (Wed, 03 Jun 2026) $
+; $LastChangedRevision: 34531 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 ; Function that merges counts/fluxes/rates/efluxes from the small pixel
@@ -314,14 +314,14 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
     ;      it and move on. (will not set the qf in that case,
     ;      since can't be determined).
     if total(ion_rate_big) gt 1 then ion_pixel_ratio = total(ion_rate_small) / total(ion_rate_big) else $
-      ion_pixel_ratio = !values.f_nan
+      ion_pixel_ratio = !values.d_nan
     if total(elec_rate_big) gt 1 then elec_pixel_ratio = total(elec_rate_small) / total(elec_rate_big) else $
-      elec_pixel_ratio = !values.f_nan
+      elec_pixel_ratio = !values.d_nan
 
     ; ; Error determination (couldn't make this work):
-    ; ion_pixel_ratio_error = !values.f_nan
+    ; ion_pixel_ratio_error = !values.d_nan
     ; if total(ion_rate_big) gt 1 then ion_pixel_ratio_error = sqrt(1/total(ion_rate_small) + 1/total(ion_rate_big))
-    ; elec_pixel_ratio_error = !values.f_nan
+    ; elec_pixel_ratio_error = !values.d_nan
     ; if total(elec_rate_big) gt 1 then elec_pixel_ratio_error = sqrt(1/total(elec_rate_small) + 1/total(elec_rate_big))
 
 
