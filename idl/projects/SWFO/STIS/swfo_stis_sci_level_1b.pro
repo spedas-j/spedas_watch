@@ -23,8 +23,8 @@
 ; - swfo_stis_sci_l1b_crib.pro
 ;
 ; $LastChangedBy: davin $
-; $LastChangedDate: 2026-06-03 23:01:06 -0700 (Wed, 03 Jun 2026) $
-; $LastChangedRevision: 34531 $
+; $LastChangedDate: 2026-06-05 00:50:33 -0700 (Fri, 05 Jun 2026) $
+; $LastChangedRevision: 34537 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_sci_level_1b.pro $
 
 ; Function that merges counts/fluxes/rates/efluxes from the small pixel
@@ -463,6 +463,7 @@ function swfo_stis_sci_level_1b,L1a_strcts,format=format,reset=reset,cal=cal
       elec_pixel_ratio: elec_pixel_ratio, $
       reaction_wheel_speed_rpm:  str.reaction_wheel_speed_rpm, $
       iru_bits: str.iru_bits,$
+      noise_sigma: str.noise_sigma, $
       ; contam_inrange: ion_contam_inrange, $
       ; contam_elec_rate: elec_rate_at_en, $
       ; contam_ion_rate: ion_rate_at_en, $

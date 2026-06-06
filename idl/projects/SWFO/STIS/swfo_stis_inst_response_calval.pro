@@ -17,10 +17,10 @@
 ;     printdat, alt_cal
 ; 
 ; $LastChangedBy: davin $
-; $LastChangedDate: 2026-06-03 12:17:42 -0700 (Wed, 03 Jun 2026) $
-; $LastChangedRevision: 34527 $
+; $LastChangedDate: 2026-06-05 00:50:33 -0700 (Fri, 05 Jun 2026) $
+; $LastChangedRevision: 34537 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SWFO/STIS/swfo_stis_inst_response_calval.pro $
-; $Id: swfo_stis_inst_response_calval.pro 34527 2026-06-03 19:17:42Z davin $
+; $Id: swfo_stis_inst_response_calval.pro 34537 2026-06-05 07:50:33Z davin $
 
 
 
@@ -287,7 +287,7 @@ function swfo_stis_inst_response_calval,reset=reset, save=save
     calval.epam_electron_edge_energies = [45., 62., 102., 175., 315.]
 
     calval.responses = orderedhash()
-    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 34527 2026-06-03 19:17:42Z davin $'
+    calval.rev_date = '$Id: swfo_stis_inst_response_calval.pro 34537 2026-06-05 07:50:33Z davin $'
     dprint,'Using Revision: '+calval.rev_date
 
 
@@ -413,14 +413,14 @@ function swfo_stis_inst_response_calval,reset=reset, save=save
   calval.names_fto = names_fto
   
   calval.reaction_wheel_resonance_center =  [ $
-    [ -4000, -2700, -2300, -1183,  1183, 2300, 2700, 4000, 9999, 9999, 9999, 9999 ]  ,  $      ; Wheel 1
-    [ -4000, -2700, -2300, -1183,  1183, 2300, 2700, 4000, 9999, 9999, 9999, 9999 ]  ,  $      ; Wheel 2
-    [ -4000, -2700, -2300, -1183,  1183, 2300, 2700, 4000, 9999, 9999, 9999, 9999 ]  ,  $      ; Wheel 3
-    [ -4000, -2700, -2300, -1183,  1183, 2300, 2700, 4000, 9999, 9999, 9999, 9999 ]  ]         ; Wheel 4
+    [ -4000., -2700, -2300, -1174.,  1174., 2300, 2700, 4000, 9999, 9999, 9999, 9999 ]  ,  $      ; Wheel 1
+    [ -4000, -2700, -2300, -1174.,  1174., 2300, 2700, 4000, 9999, 9999, 9999, 9999 ]  ,  $      ; Wheel 2
+    [ -4000, -2700, -2300, -1174.,  1174., 2300, 2700, 4000, 9999, 9999, 9999, 9999 ]  ,  $      ; Wheel 3
+    [ -4000, -2700, -2300, -1174.,  1174., 2300, 2700, 4000, 9999, 9999, 9999, 9999 ]  ]         ; Wheel 4
 
 
   calval.reaction_wheel_resonance_width =  [ $
-    [  1000,   100,   100,     5,     5,  100,  100, 1000, 0, 0, 0, 0 ]  ,  $      ; Wheel 1
+    [  1000.,   100,   100,     5,     5,  100,  100, 1000, 0, 0, 0, 0 ]  ,  $      ; Wheel 1
     [  1000,   100,   100,     5,     5,  100,  100, 1000, 0, 0, 0, 0 ]  ,  $      ; Wheel 2
     [  1000,   100,   100,     5,     5,  100,  100, 1000, 0, 0, 0, 0 ]  ,  $      ; Wheel 3
     [  1000,   100,   100,     5,     5,  100,  100, 1000, 0, 0, 0, 0 ]  ]         ; Wheel 4

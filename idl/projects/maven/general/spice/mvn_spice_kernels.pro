@@ -20,9 +20,9 @@
 ;PLEASE DO NOT USE this routine within general "LOAD" routines using the LOAD keyword. "LOAD" routines should assume that SPICE kernels are already loaded.
 ; 
 ;Author: Davin Larson  - January 2014
-; $LastChangedBy: hara $
-; $LastChangedDate: 2026-06-03 15:51:14 -0700 (Wed, 03 Jun 2026) $
-; $LastChangedRevision: 34529 $
+; $LastChangedBy: dmitchell $
+; $LastChangedDate: 2026-06-05 15:03:42 -0700 (Fri, 05 Jun 2026) $
+; $LastChangedRevision: 34552 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/general/spice/mvn_spice_kernels.pro $
 ;-
 function mvn_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,verbose=verbose,source=source,valid_only=valid_only,sck=sck,clear=clear  $
@@ -127,13 +127,14 @@ function mvn_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,ver
                                                 local_path = source.local_data_dir+'MAVEN/kernels/spk/', no_update = no_update, $
                                                 last_version = last_version, no_server = source.no_server, file_mode = '666'o, dir_mode = '777'o)
          endif
-;get 3 month time intervals
-         ftimes = time_intervals(trange = ['2015-01-01', time_string(ct)], monthly_res = 3)
+;get 3 month time intervals up to 2025-10-01
+;        ftimes = time_intervals(trange = ['2015-01-01', time_string(ct)], monthly_res = 3)
+         ftimes = time_intervals(trange = ['2015-01-01', '2025-10-02'], monthly_res = 3)
 ;prepend 2014-09-22, orbit insertion
-;        2025-12-06, loss of signal         
-         m = where(ftimes lt time_double('2025-12-06'), nm)
-         if nm gt 0 then ftimes = ftimes[m] 
-         ftimes = [time_double('2014-09-22'), ftimes, time_double('2025-12-06')]
+         ftimes = [time_double('2014-09-22'), ftimes]
+;append 2026-12-06, loss of signal
+         ftimes = [ftimes, time_double('2025-12-06')]
+
          nftimes = n_elements(ftimes)
          fstring = strmid(time_string(ftimes, tformat='YYYYMMDD'), 2)
          ffiles = 'MAVEN/kernels/spk/maven_orb_rec_'+fstring[0:nftimes-2]+'_'+fstring[1:*]+'_v?.bsp'
@@ -145,6 +146,9 @@ function mvn_spice_kernels,names,trange=trange,all=all,load=load,reset=reset,ver
 ;There's a time lag (40 days or so) between the end time of a
 ;quarter and the appearance of the new file; so if tmp_file
 ;doesn't exist and j = nftimes-2, then replace it with the most recent file
+;After LOS, the following files (maven_orb and maven_orb_rec) are no longer needed.
+;  However, they will be used if the requested time interval ends on or after 2025-12-07.
+;  Be aware that the spk is highly uncertain after 2025-12-06/01:40:00.
                if(~keyword_set(tmp_file) && (j Eq nftimes-2)) then begin
                   if keyword_set(reconstruct) then begin
                      tmp_file = spd_download_plus(remote_file = source.remote_data_dir+'MAVEN/kernels/spk/maven_orb_rec.bsp', $
