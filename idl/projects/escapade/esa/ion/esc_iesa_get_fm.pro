@@ -22,8 +22,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-06-08 17:03:48 -0700 (Mon, 08 Jun 2026) $
-; $LastChangedRevision: 34559 $
+; $LastChangedDate: 2026-06-10 15:08:38 -0700 (Wed, 10 Jun 2026) $
+; $LastChangedRevision: 34567 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_get_fm.pro $
 ;
 ;-
@@ -70,7 +70,7 @@ FUNCTION esc_iesa_get_fm, itime, blue=blue, gold=gold, index=ind, times=times, d
   ENDIF
   
   data = REPLICATE(esc_iesa_struct('fm', blue=bflg, gold=gflg, nenergy=par.nenergy), nw)
-
+  
   data.time          = dat.time[w]
   data.end_time      = dat.end_time[w]
   data.delta_t       = 0.d0
@@ -114,6 +114,7 @@ FUNCTION esc_iesa_get_fm, itime, blue=blue, gold=gold, index=ind, times=times, d
      
      data.eff     = REBIN(par.eff,  n_e, n_m, nw, /sample)
      data.bins    = REBIN(par.bins, n_e, n_m, nw, /sample)
+     data.mass_arr = REBIN(par.mass_arr, n_e, n_m, nw, /sample)
 
      data.valid   = REPLICATE(par.valid, nw)
      data.dead    = REBIN(par.dead, n_e, n_m, nw, /sample)
@@ -132,7 +133,8 @@ FUNCTION esc_iesa_get_fm, itime, blue=blue, gold=gold, index=ind, times=times, d
      
      data.eff     = par.eff
      data.bins    = par.bins
-
+     data.mass_arr = par.mass_arr
+     
      data.valid   = par.valid
      data.dead    = par.dead
   ENDELSE

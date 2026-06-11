@@ -22,8 +22,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-06-08 17:03:48 -0700 (Mon, 08 Jun 2026) $
-; $LastChangedRevision: 34559 $
+; $LastChangedDate: 2026-06-10 15:08:38 -0700 (Wed, 10 Jun 2026) $
+; $LastChangedRevision: 34567 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_get_f4d.pro $
 ;
 ;-
@@ -70,7 +70,7 @@ FUNCTION esc_iesa_get_f4d, itime, blue=blue, gold=gold, index=ind, times=times, 
   ENDIF
 
   data = REPLICATE(esc_iesa_struct('f4d', blue=bflg, gold=gflg), nw)
-
+  
   data.time          = dat.time[w]
   data.end_time      = dat.end_time[w]
   data.delta_t       = 0.d0
@@ -109,7 +109,8 @@ FUNCTION esc_iesa_get_f4d, itime, blue=blue, gold=gold, index=ind, times=times, 
      data.gf       = TRANSPOSE(par.gf[eidx, *, *, *], [1, 2, 3, 0])
   
      data.eff     = REBIN(par.eff,  n_e, n_b, n_m, nw, /sample)
-     data.bins    = REBIN(par.bins, n_e, n_b, n_m, nw, /sample) 
+     data.bins    = REBIN(par.bins, n_e, n_b, n_m, nw, /sample)
+     data.mass_arr = REBIN(par.mass_arr, n_e, n_b, n_m, nw, /sample)
   ENDIF ELSE BEGIN
      data.energy  = REFORM(par.energy[eidx, *, *, *])
      data.denergy = REFORM(par.denergy[eidx, *, *, *])
@@ -122,6 +123,7 @@ FUNCTION esc_iesa_get_f4d, itime, blue=blue, gold=gold, index=ind, times=times, 
 
      data.eff     = par.eff
      data.bins    = par.bins
+     data.mass_arr = par.mass_arr
   ENDELSE
   data.geom_factor = par.geom_factor[eidx]
 

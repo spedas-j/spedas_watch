@@ -22,8 +22,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-06-08 17:03:48 -0700 (Mon, 08 Jun 2026) $
-; $LastChangedRevision: 34559 $
+; $LastChangedDate: 2026-06-10 15:08:38 -0700 (Wed, 10 Jun 2026) $
+; $LastChangedRevision: 34567 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_get_sw.pro $
 ;
 ;-
@@ -70,7 +70,7 @@ FUNCTION esc_iesa_get_sw, itime, blue=blue, gold=gold, index=ind, times=times, d
   ENDIF
 
   data = REPLICATE(esc_iesa_struct('sw', blue=bflg, gold=gflg), nw)
-
+  
   data.time          = dat.time[w]
   data.end_time      = dat.end_time[w]
   data.delta_t       = 0.d0
@@ -119,7 +119,8 @@ FUNCTION esc_iesa_get_sw, itime, blue=blue, gold=gold, index=ind, times=times, d
      data.gf      = TRANSPOSE(REFORM((REFORM(TRANSPOSE(par.gf, [0, 2, 1, 3]), n_i*n_ad, n_e, n_m))[idx, *, *], nw, n_b, n_e, n_m), [2, 1, 3, 0])
   
      data.eff     = REBIN(par.eff,  n_b, n_e, n_m, nw, /sample)
-     data.bins    = REBIN(par.bins, n_b, n_e, n_m, nw, /sample) 
+     data.bins    = REBIN(par.bins, n_b, n_e, n_m, nw, /sample)
+     data.mass_arr = REBIN(par.mass_arr, n_b, n_e, n_m, nw, /sample) 
   ENDIF ELSE BEGIN
      aidx = REFORM(aidx[*, data.lut_id])
      eidx = emode
@@ -135,6 +136,7 @@ FUNCTION esc_iesa_get_sw, itime, blue=blue, gold=gold, index=ind, times=times, d
 
      data.eff     = par.eff
      data.bins    = par.bins
+     data.mass_arr = par.mass_arr
   ENDELSE
   data.geom_factor = par.geom_factor[emode]
 
