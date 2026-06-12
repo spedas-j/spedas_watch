@@ -251,10 +251,10 @@ function poes_netcdfstruct_to_cdfstruct, netCDFi
     endif
     ; Extract spacecraft ID:
     path_array=STRSPLIT(netCDFi.FILENAME,"/",/extract)
-    if n_elements(patharray) eq 0 then begin
+    if n_elements(path_array) eq 0 then begin
         path_array=STRSPLIT(netCDFi.FILENAME,"\\",/extract)
     endif
-    if n_elements(patharray) eq 0 then begin
+    if n_elements(path_array) eq 0 then begin
         dprint, dlevel=1, 'ERROR! NETCDF filename could not be extracted.'
         dprint, dlevel=1, 'Detected filename value:'
         dprint, dlevel=1, netCDFi.FILENAME

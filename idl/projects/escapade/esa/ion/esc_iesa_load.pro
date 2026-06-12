@@ -36,8 +36,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-06-08 17:10:03 -0700 (Mon, 08 Jun 2026) $
-; $LastChangedRevision: 34560 $
+; $LastChangedDate: 2026-06-11 12:10:14 -0700 (Thu, 11 Jun 2026) $
+; $LastChangedRevision: 34575 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/esa/ion/esc_iesa_load.pro $
 ;
 ;-
@@ -50,10 +50,10 @@ PRO esc_iesa_load, itime, product=product, data=data, verbose=verbose, level=lev
   COMMON esc_iesa_sw_com,   escb_iesa_sw,  escg_iesa_sw,  escb_iesa_sw_par, escg_iesa_sw_par  ; Solar Wind    (0x139)
 
   IF KEYWORD_SET(clear) THEN BEGIN
-     undefine, escb_iesa_fe,  escg_iesa_fe
-     undefine, escb_iesa_fm,  escg_iesa_fm
-     undefine, escb_iesa_f4d, escg_iesa_f4d
-     undefine, escb_iesa_sw,  escg_iesa_sw
+     undefine,  escb_iesa_fe,  escg_iesa_fe,  escb_iesa_fe_par, escg_iesa_fe_par
+     undefine,  escb_iesa_fm,  escg_iesa_fm,  escb_iesa_fm_par, escg_iesa_fm_par
+     undefine, escb_iesa_f4d, escg_iesa_f4d, escb_iesa_f4d_par, escg_iesa_f4d_par
+     undefine,  escb_iesa_sw,  escg_iesa_sw,  escb_iesa_sw_par, escg_iesa_sw_par
   ENDIF 
   
   IF undefined(itime) THEN get_timespan, trange ELSE trange = itime
