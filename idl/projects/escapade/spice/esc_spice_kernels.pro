@@ -26,8 +26,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-06-24 15:40:50 -0700 (Wed, 24 Jun 2026) $
-; $LastChangedRevision: 34597 $
+; $LastChangedDate: 2026-06-24 16:13:45 -0700 (Wed, 24 Jun 2026) $
+; $LastChangedRevision: 34598 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/spice/esc_spice_kernels.pro $
 ;
 ;-
@@ -86,12 +86,12 @@ FUNCTION esc_spice_kernels, trange=itime, verbose=verbose, blue=blue, gold=gold,
      SPK:
      IF (pspk) THEN $
         spks = esc_mission_phase(dates) + '/' + probes[i] + '/ephemeris/predictive/' + time_string(dates, tformat='YYYY/MM/' + prefix) + '*.bsp' $
-     ELSE spks = esc_mission_phase(dates) + '/' + probes[i] + '/ephemeris/reconstructed/' + time_string(dates, tformat='YYYY/' + prefix) + '*.bsp'
-
+     ELSE spks = 'science/' + probes[i] + '/ephemeris/reconstructed/' + time_string(dates, tformat='YYYY/' + prefix) + '*.bsp'
+     
      spks = spks[UNIQ(spks)]
      w = WHERE(STRMATCH(spks, '*prelaunch*') EQ 0, nw)
      IF nw GT 0 THEN spks = spks[w]
-
+     
      FOR j=0, N_ELEMENTS(spks)-1 DO BEGIN
         aspk = spath + spks[j]
         spd_download_expand, aspk, url_username=urls[0], url_password=urls[1], no_server=src.no_server;, /last_version
@@ -127,7 +127,9 @@ FUNCTION esc_spice_kernels, trange=itime, verbose=verbose, blue=blue, gold=gold,
            IF src.no_server EQ 1 THEN spk = spk.replace(src.local_data_dir, '') $
            ELSE spk = spk.replace(src.remote_data_dir, '')
            spk = esc_file_retrieve(spk[w], source=src, /valid_only, verbose=verbose)
-        ENDIF 
+        ENDIF ELSE BEGIN
+           IF ~(pspk) THEN pspk = 1
+        ENDELSE 
      ENDIF 
      
      IF nw GT 0 THEN append_array, kernels, spk
