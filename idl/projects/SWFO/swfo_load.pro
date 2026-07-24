@@ -62,6 +62,7 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
   ,mk_l0b = mk_l0b $
   ,mk_l1a = mk_l1a $
   ,mk_l1b = mk_l1b $
+  ,mk_mag = mk_mag $
   ,station=station, varnames=varnames
 
 
