@@ -173,8 +173,9 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
         l0a_filetime = 0
 
 
+        l0b_filename = file_retrieve( str_sub(pathname0,'$NAME$','stis_l0b') ,trange=tr,_extra=source_l0b)
+
         if keyword_set(mk_l0b) then begin
-          l0b_filename = file_retrieve( str_sub(pathname0,'$NAME$','stis_l0b') ,trange=tr,_extra=source_l0b)
           l0b_fileinfo = file_info(l0b_filename)
           l0b_filetime = l0b_fileinfo.mtime
           if keyword_set(force_l0b) then l0b_filetime = 0
@@ -236,9 +237,15 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
        ;   obj_destroy,l0b_da
         endelse
 
-        if keyword_set(mk_l1a) then begin
+        l0b_fileinfo = file_info(l0b_filename)
+        l0b_filetime = l0b_fileinfo.mtime
+        l1a_filename = file_retrieve( str_sub(pathname0,'$NAME$','stis_l1a') ,trange=tr,_extra=source_l0b)
+        l1a_fileinfo = file_info(l1a_filename)
+        l1a_filetime = l1a_fileinfo.mtime
+  
+        if l1a_filetime lt l0b_filetime and keyword_set(mk_l1a) then begin
           if 1  then begin
-            l0b_filename = file_retrieve( str_sub(pathname0,'$NAME$','stis_l0b') ,trange=tr,_extra=source_l0b)
+            ;l0b_filename = file_retrieve( str_sub(pathname0,'$NAME$','stis_l0b') ,trange=tr,_extra=source_l0b)
             l0b_da = swfo_ncdf_read(filenames = l0b_filename)
           endif
 
@@ -256,7 +263,14 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
           dprint,'Done l1a'
         endelse
 
-        if keyword_set(mk_l1b) then begin
+        l1a_fileinfo = file_info(l1a_filename)
+        l1a_filetime = l1a_fileinfo.mtime
+        l1b_filename = file_retrieve( str_sub(pathname0,'$NAME$','stis_l1b') ,trange=tr,_extra=source_l0b)
+        l1b_fileinfo = file_info(l1b_filename)
+        l1b_filetime = l1b_fileinfo.mtime
+
+
+        if l1b_filetime lt l1a_filetime and keyword_set(mk_l1b) then begin
 
           dprint,'Computing L1b',dlevel=2
           l1b = swfo_stis_sci_level_1b(l1a_da.array)
@@ -284,10 +298,10 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
           datahash['mag1s'] = mag1s_da
 
           ;        dprint,dlevel=2,'pathname0: ',pathname0
-          maghr_da.ncdf_make_file,resolution=24*3600d, pathformat=pathname0,  append=1
-          mag1s_da.ncdf_make_file,resolution=24*3600d, pathformat=pathname0,  append=1
+          if obj_valid(maghr_da) then maghr_da.ncdf_make_file,resolution=24*3600d, pathformat=pathname0,  append=1
+          if obj_valid(mag1s_da) then mag1s_da.ncdf_make_file,resolution=24*3600d, pathformat=pathname0,  append=1
 
-          if 1 then begin
+          if obj_valid(mag1s_da) then begin
             mag_da_30s  = dynamicarray( mag1s_da.reduce_resolution(30) , name= mag1s_da.name+'_30s' )
             mag_da_30s.ncdf_make_file,resolution=24*3600d   , pathformat = pathname0,  append=append
           endif
