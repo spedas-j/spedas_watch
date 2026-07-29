@@ -1,7 +1,7 @@
 ;+
 ; $LastChangedBy: pulupalap $
-; $LastChangedDate: 2026-02-02 12:38:39 -0800 (Mon, 02 Feb 2026) $
-; $LastChangedRevision: 34102 $
+; $LastChangedDate: 2026-07-28 00:19:52 -0700 (Tue, 28 Jul 2026) $
+; $LastChangedRevision: 34679 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/SPP/fields/util/psp_fld_tplot_pdf.pro $
 ;-
 
@@ -90,8 +90,9 @@ pro psp_fld_tplot_pdf, filename, timestamp = timestamp, $
     device, decompose = 0
     ; !p.color = 6
 
-    ; if n_elements(set_font) gt 0 then device, SET_FONT = set_font ; , /TT_FONT
-
+    if n_elements(set_font) gt 0 then begin
+      device, SET_FONT = set_font ; , /TT_FONT
+    endif
     if n_elements(bottom_spacer) gt 0 then begin
       if ygap_found then begin
         ygap = [ygap0, 0.]
@@ -162,6 +163,9 @@ pro psp_fld_tplot_pdf, filename, timestamp = timestamp, $
 
     tplot
 
+    ; redraw the plot panel boxes to prevent plotted data
+    ; from partially overlapping plot borders
+
     foreach var, tplot_vars.settings.varnames, var_i do begin
       xw0 = tplot_vars.settings.x.window
       yw0 = tplot_vars.settings.y[var_i].window
@@ -169,7 +173,7 @@ pro psp_fld_tplot_pdf, filename, timestamp = timestamp, $
       xw = [xw0[0], xw0[1], xw0[1], xw0[0], xw0[0]]
       yw = [yw0[0], yw0[0], yw0[1], yw0[1], yw0[0]]
 
-      plot, findgen(10), xthick = thick, ythick = thick, $
+      plot, findgen(10), xthick = !x.thick, ythick = !y.thick, $
         color = 0, /norm, /noerase, /nodata, $
         position = [xw0[0], yw0[0], xw0[1], yw0[1]], $
         xticks = 1, yticks = 1, xminor = 1, yminor = 1, $
