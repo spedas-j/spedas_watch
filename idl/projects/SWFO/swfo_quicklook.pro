@@ -1,86 +1,28 @@
-
-; Does string replace on an array of strings,
-; since that operation is not supported on a strarr:
-
-function replace_substring_arr, arr, pattern, replacement
-  n_arr = n_elements(arr)
-  new_arr = strarr(n_arr)
-  for i=0, n_arr - 1 do begin
-    arr_i = arr[i]
-    new_arr[i] = arr_i.replace(pattern, replacement)
-  endfor
-  return, new_arr
-end
-
-; Converts a descriptive string (e.g. '5 days'
-; or '3 minutes') into a number of seconds.
-; Intended for converting userfriendly
-; strings into something that can be added/subtracted
-; from Unix time objects.
-
-function duration_str2dbl, duration_string
-
-  ; Recursion for multiple strings:
-  if n_elements(duration_string) ne 1 then begin
-    durarr = dblarr(n_elements(duration_string)) 
-    foreach durstrng_i, duration_string, i do begin
-      durdble_i = duration_str2dbl(durstrng_i)
-      durarr[i] = durdble_i
-    endforeach
-    return, durarr
-
-  endif
-
-  ; All lower case the string:
-  ds = duration_string.tolower()
-
-  ; First, check if seconds:
-  has_seconds = ds.contains('s')
-  if has_seconds then begin
-    duration_s = (ds.split('s'))[0].trim()
-    duration_s = double(duration_s)
-  endif
-
-  ; Next, check if minutes:
-  has_min = ds.contains('m')
-  if has_min then begin
-    duration_min = (ds.split('m'))[0].trim()
-    duration_s = 60d*double(duration_min)
-  endif
-
-  ; Next, hours:
-  has_hr = ds.contains('h')
-  if has_hr then begin
-    duration_hr = (ds.split('h'))[0].trim()
-    duration_s = 3600d*double(duration_hr)
-  endif
-
-  ; Next, hours:
-  has_days = ds.contains('d')
-  if has_days then begin
-    duration_days = (ds.split('d'))[0].trim()
-    duration_s = 3600d*24*double(duration_days)
-  endif
-
-  return, duration_s
-
-end
-
 ; Function to produce start/end unix time arrays
 ; that end every X days and begin every Y days
 
-pro plot_intervals, trange, end_cadence, durations, start_time, end_time
+pro plot_intervals, trange, durations,$
+  start_time, end_time, end_cadence=end_cadence
+
+  ; Make sure trange is in unix time
+  trange = time_double(trange)
 
   ; Construct intervals to load and plot data over:
-  cadence_s = duration_str2dbl(end_cadence)
   durations_s = duration_str2dbl(durations)
   n_durations = n_elements(durations)
 
-  ; Create a list of days of days to end each plot on:
-  tints = floor(time_double(trange)/cadence_s)
-  ; print, tints
-  ; print, time_string(tints*cadence_s)
-  n_intervals = tints[1] - tints[0]
+  if keyword_set(end_cadence) then begin
+    cadence_s = duration_str2dbl(end_cadence)
+
+    ; Create a list of days of days to end each plot on:
+    tints = floor(time_double(trange)/cadence_s)
+    ; print, tints
+    ; print, time_string(tints*cadence_s)
+    n_intervals = tints[1] - tints[0]
+
+  endif else begin
+    n_intervals = 1
+  endelse
 
   ; empty arrays to fill:
   start_time = dblarr(n_intervals, n_durations)
@@ -88,7 +30,7 @@ pro plot_intervals, trange, end_cadence, durations, start_time, end_time
   end_time = dblarr(n_intervals)
 
   for i= 0, n_intervals - 1 do begin
-    tr = (tints[0] + i +[0,1]) *cadence_s
+    if keyword_set(end_cadence) then tr = (tints[0] + i +[0,1]) *cadence_s else tr=trange
 
     ; Now make the plot duration times:
     for j=0, n_durations - 1 do begin
@@ -107,24 +49,32 @@ pro plot_intervals, trange, end_cadence, durations, start_time, end_time
 end
 
 
-pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
+pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence,$
+  plot_types=plot_types, destination_dir=destination_dir,$
+  data_resolution=data_resolution, plot_durations=plot_durations,$
+  show=show, live=live
 
-  ; timespan, '2026 1 19', 2
-  ; timespan, '2026 6 23', 1
-  ; loadct2, 33
-
-  plot_types = ['health', 'summ', 'ace', 'noise']
+  ; ACE currently not working on sweapsoc:
+  if ~keyword_set(plot_types) then plot_types = ['health', 'summ', 'ace', 'noise']
 
   ; Information on directory to write file to:
   ; destination_dir = '/Users/rjolitz/Desktop/test_dir'
-  destination_dir = root_data_dir()
+  if ~keyword_set(destination_dir) then destination_dir = root_data_dir()
 
+  ; End with / if not already:
   if ~destination_dir.endswith('/') then destination_dir = destination_dir + '/'
 
-  destination_fname = destination_dir +$
-    'swfo/data/plots/{PLOTNAME}/YYYY/MM/swfo_ql_{PLOTNAME}_{PLOTDURATION}_{CADENCE}_YYYYMMDD'
+  ; Set the destination filename:
+  destination_dir = destination_dir + 'swfo/data/plots/'
 
-  if ~keyword_set(trange) then trange =   timerange(trange)   ; time_double(['2025 9 24','now'])
+  if keyword_set(live) then destination_fname = destination_dir + '{PLOTNAME}_last_{PLOTDURATION}_{CADENCE}' else $
+    destination_fname = destination_dir +$
+      '{PLOTNAME}/YYYY/MM/swfo_ql_{PLOTNAME}_{PLOTDURATION}_{CADENCE}_YYYYMMDD'
+
+  if keyword_set(live) then trange = [systime(1), systime(1)]
+
+  ; Time range for plots to be made over:
+  if ~keyword_set(trange) then trange = timerange(trange)
   trange = time_double(trange)
 
   if trange[0] lt time_double('2025-09-30') then begin
@@ -133,30 +83,42 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
   endif
 
   ; Output plot types:
-  if ~keyword_set(plot_cadence) then plot_cadence = '1d'  ; frequency of plots (e.g. 1d - every day, 3d, every 3 days)
+  ; - plot_cadence: frequency of plots (e.g. 1d - every day, 3d, every 3 days)
+  if ~keyword_set(plot_cadence) then plot_cadence = '1d'
   n_plot_types = n_elements(plot_types)
   ace_in_plot_types = where(plot_types eq 'ace', load_ace)
 
+  ; STIS datasets needed for making plots:
   swfo_types = ['stis_l0b', 'stis_l1a', 'stis_l1b']
 
+  ; Resolution of datasets used:
+  if ~keyword_set(data_resolution) then data_resolution = ['fr', '30s', '300s']
 
-  data_resolution = ['fr', '30s', '300s']
-  data_resolution = ['fr']
-  data_resolution_label = ['', '30-sec ', '5-min ']
+  ; Make label for the data resolutions:
+  data_resolution_label = strarr(n_elements(data_resolution))
+  foreach dr, data_resolution, indx do begin
+    case dr of
+      'fr': label = ''
+      '30s': label = '30-sec '
+      '300s': label = '5-min '
+      else: label = ''
+    endcase
+    data_resolution_label[indx] = label
+  endforeach
 
-  plot_durations = ['7d', '3d', '1d']  ; Order in descending
-  ; plot_durations = ['3d', '7d']
-  plot_durations = ['1d']
+  if ~keyword_set(plot_durations) then plot_durations = ['7d', '3d', '1d']
 
   ; Set up plot intervals that end every 1-3d 
   ; (depending on plot_cadence) and start every 1-7d before
   ; that end.
-  plot_intervals, trange, plot_cadence, plot_durations, start_time_unix, end_time_unix
+  if keyword_set(live) then plot_intervals, trange, plot_durations, start_time_unix, end_time_unix else $
+    plot_intervals, trange, plot_durations, start_time_unix, end_time_unix, end_cadence=plot_cadence
   n_intervals = n_elements(end_time_unix)
   n_durations = n_elements(plot_durations)
 
   ; print, time_String(start_time_unix[0, *])
   ; print, time_String(end_time_unix[0])
+  ; stop
 
   ; Variables for plots:
   ; - Health:
@@ -165,6 +127,18 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
              'VOLTAGE_DFE_NEG_VA', 'BIAS_CURRENT_MICROAMPS', 'ADC_BIAS_VOLTAGE',$
              'TEMP_DAP', 'TEMP_SENSOR1', 'TEMP_SENSOR2']
   tplot_hkp_var = 'swfo_stis_l0b_{}_' + hkp_var
+  hkp_ytit = dictionary()
+  hkp_ytit["FPGA_REV"] = "FPGA!CRev."
+  hkp_ytit["VOLTAGE_1P5_VD"] = "Digital!C1.5 V"
+  hkp_ytit["VOLTAGE_3P3_VD"] = "Digital!C3.3 V"
+  hkp_ytit["VOLTAGE_5P0_VD"] = "Digital!C5.0 V"
+  hkp_ytit["VOLTAGE_DFE_POS_VA"] = "Analog!CDFE +V"
+  hkp_ytit["VOLTAGE_DFE_NEG_VA"] = "Analog!CDFE -V"
+  hkp_ytit["BIAS_CURRENT_MICROAMPS"] = "Bias!CCurrent uA"
+  hkp_ytit["ADC_BIAS_VOLTAGE"] = "ADC Bias!CVoltage"
+  hkp_ytit["TEMP_DAP"] = "DAP!CTemp."
+  hkp_ytit["TEMP_SENSOR1"] = "DFE1!CTemp."
+  hkp_ytit["TEMP_SENSOR2"] = "DFE2!CTemp."
 
   ; set nominal ranges
   hkp_nominal = dictionary()
@@ -181,9 +155,13 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
   hkp_nominal["FPGA_REV"] = [208, 210]
 
   ; - Summary:
-  summ_var = ['swfo_stis_l0b_{}_HKP_GAP', 'swfo_stis_l0b_{}_SCI_GAP', 'swfo_stis_l0b_{}_NSE_GAP',$
+  ; summ_var = ['swfo_stis_l0b_{}_HKP_GAP', 'swfo_stis_l0b_{}_SCI_GAP', 'swfo_stis_l0b_{}_NSE_GAP',$
+  ;             'swfo_stis_l1b_{}_HDR_ION_EFLUX', 'swfo_stis_l1b_{}_HDR_ELEC_EFLUX',$
+  ;             'swfo_stis_l1a_{}_NOISE_SIGMA', 'swfo_stis_l0b_{}_VALID_RATES']
+  summ_var = ['swfo_stis_l0b_GAP',$
               'swfo_stis_l1b_{}_HDR_ION_EFLUX', 'swfo_stis_l1b_{}_HDR_ELEC_EFLUX',$
               'swfo_stis_l1a_{}_NOISE_SIGMA', 'swfo_stis_l0b_{}_VALID_RATES']
+
   ; - ACE compare:
   ace_var = ['stis_l2_{}_ION_FLUX', 'stis_l2_{}_ELEC_FLUX',$
              'ace_rtsw_epam_proton_flux', 'ace_rtsw_epam_elec_flux']
@@ -213,10 +191,10 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
     endelse
 
     ; fill in the tplot variable info:
-    tplot_hkp_var_i = replace_substring_arr(tplot_hkp_var, '{}', res_tplot_prefix)
-    summ_var_i = replace_substring_arr(summ_var, '{}', res_tplot_prefix)
-    ace_var_i = replace_substring_arr(ace_var, '{}', res_tplot_prefix)
-    noise_var_i = replace_substring_arr(noise_var, '{}', res_tplot_prefix)
+    tplot_hkp_var_i = strarr_replace(tplot_hkp_var, '{}', res_tplot_prefix)
+    summ_var_i = strarr_replace(summ_var, '{}', res_tplot_prefix)
+    ace_var_i = strarr_replace(ace_var, '{}', res_tplot_prefix)
+    noise_var_i = strarr_replace(noise_var, '{}', res_tplot_prefix)
 
     for interval=0, n_intervals-1 do begin
       ; Get the end time of the interval:
@@ -245,6 +223,8 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
       for dur=0, n_durations - 1 do begin
         start_time_unix_i = start_time_unix[interval, dur]
         subset_tr = [start_time_unix_i, end_time_unix_i]
+
+        if keyword_set(live) then subset_tr = subset_tr + [0, 2*3600d]
         ; print, tr
         print, time_String(subset_tr)
         ; stop
@@ -261,7 +241,7 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
 
           ; Health plot
           if plot_name.startswith('health') then begin
-            wi, 2, wsize=[800, 900]  ; [900, 1000]
+            wi, 2, wsize=[900, 1000]
             tplot, tplot_hkp_var_i, window=2
             tplot_options, 'charsize', 1.2
             tplot_options,'xmargin',[20,5]
@@ -271,16 +251,25 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
             foreach hkpname, hkp_var do begin
               hkp_tplot_name_i = 'swfo_stis_l0b_'+res_tplot_prefix+'_'+hkpname
               nom = hkp_nominal[hkpname]
-              plot_yrange = [nom[0] - 0.25*(nom[1] - nom[0]), nom[1] + 0.25*(nom[1] - nom[0])]
+              plot_yrange = [nom[0] - 0.1*(nom[1] - nom[0]), nom[1] + 0.1*(nom[1] - nom[0])]
+              if hkpname.contains("FPGA") then begin
+                plot_yrange = [208, 210]
+                options, hkp_tplot_name_i, yticks=2, panel_size=0.5
+              endif else if hkpname.contains("VOLTAGE") then begin
+                options, hkp_tplot_name_i, yticks=4
+              endif
+
               ylim, hkp_tplot_name_i, plot_yrange[0], plot_yrange[1]
+              options, hkp_tplot_name_i, ytitle=hkp_ytit[hkpname]
             endforeach
+
             tlimit, subset_tr
 
             foreach hkpname, hkp_var do begin
               hkp_tplot_name_i = 'swfo_stis_l0b_'+res_tplot_prefix+'_'+hkpname
               nom = hkp_nominal[hkpname]
 
-              if hkp_tplot_name_i.contains("FPGA") then continue
+              if hkpname.contains("FPGA") then continue
 
               timebar, nom[0], /databar, varname=hkp_tplot_name_i, color='g'
               timebar, nom[1], /databar, varname=hkp_tplot_name_i, color='g'
@@ -299,21 +288,35 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
             tplot_options,'xmargin',[10,10]
             tplot_options, 'ygap', 0.4
 
-            if res_tplot_prefix eq 'fr' then begin
-             valid_yrange = [1, 2e5]
-             eflux_zrange = [1, 1e5]
-            endif else begin 
-              valid_yrange=[0.2, 2e5]
-              eflux_zrange = [0.2, 1e5]
-            endelse
+            ; if res_tplot_prefix eq 'fr' then begin
+            ;  valid_yrange = [1, 2e5]
+            ;  eflux_zrange = [1, 1e5]
+            ; endif else begin 
+            valid_yrange=[0.2, 2e5]
+            eflux_zrange = [0.2, 1e5]
+            ; endelse
 
-            ylim, 'swfo_stis_l0b_' + res_tplot_prefix +'_*_GAP', 0, 1, 0
-            options, 'swfo_stis_l0b_' + res_tplot_prefix +'_*_GAP',$
-              colors=6, panel_size=0.1, yticks=1, yminor=1
+            ; Old gap as individual plots:
+            ; ylim, 'swfo_stis_l0b_' + res_tplot_prefix +'_*_GAP', 0, 1, 0
+            ; options, 'swfo_stis_l0b_' + res_tplot_prefix +'_*_GAP',$
+            ;   colors=6, panel_size=0.1, yticks=1, yminor=1
+            ; options, 'swfo_stis_l0b_'+res_tplot_prefix+'_HKP_GAP',ytitle='Hkp', ysubtitle='Gap'
+            ; options, 'swfo_stis_l0b_'+res_tplot_prefix+'_NSE_GAP',ytitle='Nse', ysubtitle='Gap'
+            ; options, 'swfo_stis_l0b_'+res_tplot_prefix+'_SCI_GAP',ytitle='Sci', ysubtitle='Gap'
 
-            options, 'swfo_stis_l0b_'+res_tplot_prefix+'_HKP_GAP',ytitle='Hkp', ysubtitle='Gap'
-            options, 'swfo_stis_l0b_'+res_tplot_prefix+'_NSE_GAP',ytitle='Nse', ysubtitle='Gap'
-            options, 'swfo_stis_l0b_'+res_tplot_prefix+'_SCI_GAP',ytitle='Sci', ysubtitle='Gap'
+
+            ; Instead build a bitplot
+            get_data, 'swfo_stis_l0b_' + res_tplot_prefix + '_USER_09', data=user09
+            get_data, 'swfo_stis_l0b_' + res_tplot_prefix + '_HKP_GAP', data=hkpgap
+            get_data, 'swfo_stis_l0b_' + res_tplot_prefix + '_NSE_GAP', data=nsegap
+            get_data, 'swfo_stis_l0b_' + res_tplot_prefix + '_SCI_GAP', data=scigap
+            gapbit = ishft(user09.y ne 1, 3) or ishft(scigap.y, 2) or ishft(nsegap.y, 1) or hkpgap.y
+            store_data, 'swfo_stis_l0b_GAP', data={x: scigap.x, y: gapbit},$
+              dl={tplot_routine: 'bitplot', psyms:1, colors: 'grbk',$
+                  labels: ['HKP Gap', 'NSE Gap', 'SCI Gap', 'User09!=1'],$
+                  ytitle: 'Flags', panel_size: 0.25, yrange: [-0.5, 3.5],$
+                  yticks: 1, yminor: 1}
+
 
             options, 'swfo_stis_l1b_'+res_tplot_prefix+'_HDR_ION_EFLUX',$
               ytitle='Ion Energy [keV]', ztitle='HDR EFLUX', zrange=eflux_zrange
@@ -380,7 +383,12 @@ pro swfo_quicklook, trange=trange, plot_cadence=plot_cadence
 
           endif
 
+          ; add a timebar marking the current time if
+          ; live plot
+          if keyword_set(live) then timebar, end_time_unix_i
+
           ; Write the pngs:
+          if keyword_set(show) then stop
 
           makepng, fname_i, /mkdir, window=2
           tlimit, 0, 0

@@ -61,15 +61,17 @@
 ;       TIMING:       Plot packet timing.  Useful to identify instrument mode and
 ;                     dropped packets.  Default = 0 (no).
 ;
-;       LOADONLY:     Load tplot variables but do not plot.
+;       LOADONLY:     Load tplot variables but do not plot them.
+;
+;       VARS:         List of tplot variables created.
 ;
 ;       PNG:          Create a PNG image and place it in the default location.
 ;
 ;       BURST:        Plot a color bar showing PAD burst coverage.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-01-08 10:36:22 -0800 (Thu, 08 Jan 2026) $
-; $LastChangedRevision: 33980 $
+; $LastChangedDate: 2026-08-12 11:49:14 -0700 (Wed, 12 Aug 2026) $
+; $LastChangedRevision: 34724 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sumplot.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -79,7 +81,7 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
                      lut=lut, timing=timing, sifctl=sifctl, tplot_vars_out=pans, $
                      eunits=eunits, png=png, pad_smo=smo, eph=eph, orb=orb, $
                      burst=burst, loadonly=loadonly, fhsk=fhsk, fshift=fshift, $
-                     fnorm=fnorm, spice=spice
+                     fnorm=fnorm, spice=spice, vars=pans
 
   @mvn_swe_com
 
