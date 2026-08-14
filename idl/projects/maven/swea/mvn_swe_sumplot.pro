@@ -70,8 +70,8 @@
 ;       BURST:        Plot a color bar showing PAD burst coverage.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-08-12 11:49:14 -0700 (Wed, 12 Aug 2026) $
-; $LastChangedRevision: 34724 $
+; $LastChangedDate: 2026-08-12 16:35:20 -0700 (Wed, 12 Aug 2026) $
+; $LastChangedRevision: 34728 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_sumplot.pro $
 ;
 ;CREATED BY:    David L. Mitchell  07-24-12
@@ -81,7 +81,7 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
                      lut=lut, timing=timing, sifctl=sifctl, tplot_vars_out=pans, $
                      eunits=eunits, png=png, pad_smo=smo, eph=eph, orb=orb, $
                      burst=burst, loadonly=loadonly, fhsk=fhsk, fshift=fshift, $
-                     fnorm=fnorm, spice=spice, vars=pans
+                     fnorm=fnorm, spice=spice, vars=pans2
 
   @mvn_swe_com
 
@@ -1195,7 +1195,9 @@ pro mvn_swe_sumplot, vnorm=vflg, cmdcnt=cmdcnt, sflg=sflg, pad_e=pad_e, a4_sum=a
   if (size(title,/type) eq 7) then tplot_options,'title',title
 
   if (size(hsk,/type) eq 7) then pans = [pans, strupcase(hsk)]
-  
+
+  pans2 = pans
+
   if (n_elements(pans) eq 1) then begin
     print,"Nothing to plot!"
     return
