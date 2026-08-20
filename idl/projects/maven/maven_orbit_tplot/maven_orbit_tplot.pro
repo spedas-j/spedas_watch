@@ -217,8 +217,8 @@
 ;                 ephemeris conditions.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-08-18 14:37:57 -0700 (Tue, 18 Aug 2026) $
-; $LastChangedRevision: 34767 $
+; $LastChangedDate: 2026-08-19 09:04:47 -0700 (Wed, 19 Aug 2026) $
+; $LastChangedRevision: 34774 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/maven_orbit_tplot.pro $
 ;
 ;CREATED BY:	David L. Mitchell  10-28-11
@@ -303,62 +303,22 @@ pro maven_orbit_tplot, trange=trange, stat=stat, swia=swia, ialt=ialt, result=re
 ;   of ephemeris data after LOS is highly uncertain.
 
   if keyword_set(mission) then begin
-    case strlowcase(!version.os) of
-      'darwin' : begin
-                   spawn, 'sysctl hw.memsize', ram, err, exit_status=estat
-                   if (estat eq 0) then begin
-                     ram = strsplit(ram,/extract)  ; units = bytes
-                     ram = fix(ulong64((reverse(ram))[0])/(2LL^30LL))  ; units = GB
-                     if (ram lt 48) then begin
-                       print,"  This operation uses 27 GB of RAM.", format='(a,$)'
-                       print,"  You have " + strtrim(string(ram),2) + " GB."
-                       yn = 'n'
-                       read, yn, prompt='  Proceed (y|n) ? ', format='(a1)'
-                       if (strupcase(yn) ne 'Y') then return
-                     endif
-                   endif else begin
-                     print,"  Warning: This operation uses 27 GB of RAM."
-                     yn = 'n'
-                     read, yn, prompt='  Proceed (y|n) ? ', format='(a1)'
-                     if (strupcase(yn) ne 'Y') then return
-                   endelse
-                 end
-      'linux'  : begin
-                   spawn, 'cat /proc/meminfo | grep MemTotal', ram, err, exit_status=estat
-                   if (estat eq 0) then begin
-                     ram = strsplit(ram,/extract)  ; units = kilobytes
-                     ram = fix(ulong64((reverse(ram))[1])/(2LL^20LL))  ; units = GB
-                     if (ram lt 48) then begin
-                       print,"  This operation uses 27 GB of RAM.", format='(a,$)'
-                       print,"  You have " + strtrim(string(ram),2) + " GB."
-                       yn = 'n'
-                       read, yn, prompt='  Proceed (y|n) ? ', format='(a1)'
-                       if (strupcase(yn) ne 'Y') then return
-                     endif
-                   endif else begin
-                     print,"  Warning: This operation uses 27 GB of RAM."
-                     yn = 'n'
-                     read, yn, prompt='  Proceed (y|n) ? ', format='(a1)'
-                     if (strupcase(yn) ne 'Y') then return
-                   endelse
-                 end
-      'win32'  : begin
-                 ; spawn, 'systeminfo | findstr /C:"Total Physical Memory"', ram, err, exit_status=estat
-                   if (0) then begin
-                     ; A Windows user needs to write/test this part.
-                   endif else begin
-                     print,"  Warning: This operation uses 27 GB of RAM."
-                     yn = 'n'
-                     read, yn, prompt='  Proceed (y|n) ? ', format='(a1)'
-                     if (strupcase(yn) ne 'Y') then return
-                   end
-                 end
-       else    : begin
-                   print,"  Warning: This operation uses 27 GB of RAM."
-                   yn = 'n'
-                   read, yn, prompt='  Proceed (y|n) ? ', format='(a1)'
-                   if (strupcase(yn) ne 'Y') then return
-                 end
+    ram = ram_test()  ; physical RAM in GB
+    case (1) of
+      ram eq -1 : begin
+                    print,"  This operation uses 27 GB of RAM."
+                    yn = 'n'
+                    read, yn, prompt='  Proceed (y|n) ? ', format='(a1)'
+                    if (strupcase(yn) ne 'Y') then return
+                  end
+      ram lt 48 : begin
+                    print,"  This operation uses 27 GB of RAM.", format='(a,$)'
+                    print,"  You have " + strtrim(string(ram),2) + " GB."
+                    yn = 'n'
+                    read, yn, prompt='  Proceed (y|n) ? ', format='(a1)'
+                    if (strupcase(yn) ne 'Y') then return
+                  end
+      else      : ; do nothing, there should be enough RAM
     endcase
 
     fname = 'maven_moi_present.sav'  ; 11 GB
