@@ -45,8 +45,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-08-19 15:42:48 -0700 (Wed, 19 Aug 2026) $
-; $LastChangedRevision: 34779 $
+; $LastChangedDate: 2026-08-20 14:48:01 -0700 (Thu, 20 Aug 2026) $
+; $LastChangedRevision: 34790 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/quicklook/esc_ql_tplot.pro $
 ;
 ;-
@@ -82,6 +82,7 @@ PRO esc_ql_tplot, date, trange=trange, verbose=verbose, window=window, path=path
         IF is_string(tspan) THEN tspan = time_double(tspan)
         date = tspan[0]
         nday = DOUBLE( (tspan[1] - tspan[0]) / oneday)
+        IF nday GT 1. THEN IF undefined(long) THEN long = FIX(nday)
      ENDELSE 
   ENDIF 
   IF N_ELEMENTS(date) EQ 2 THEN dates = time_intervals(trange=date, /daily_res) ELSE dates = date
@@ -131,6 +132,7 @@ PRO esc_ql_tplot, date, trange=trange, verbose=verbose, window=window, path=path
            p     = 'g'
            probe = 'GOLD'
         ENDELSE 
+
         ; EESA-i (spectra: dummy)
         store_data, 'esc' + p + '_iesa_e', data={x: t0 + [0.d0, oneday], y: nan2, v: [1., 30.e3]}, $
                     dlim={ytitle: 'EESA-i', ysubtitle: 'Energy [eV]', ytickunits: 'scientific', ztitle: 'Counts [#]', ztickunits: 'scientific', spec: 1, no_color_scale: 0}
@@ -147,11 +149,11 @@ PRO esc_ql_tplot, date, trange=trange, verbose=verbose, window=window, path=path
         undefine, iesa, index
 
         ; EESA-i (moments: dummy)
-        IF ~tplot_exist('esc' + p + '_iesa_n') THEN store_data, 'esc' + p + '_iesa_n', data={x: t0 + [0.d0, oneday], y: nan1}, $
+        IF ((tnames('esc' + p + '_iesa_n'))[0]  EQ '') THEN store_data, 'esc' + p + '_iesa_n', data={x: t0 + [0.d0, oneday], y: nan1}, $
            dlim={ytitle: 'EESA-i', ysubtitle: 'Density!C[cm!E-3!N]', yminor: 5} $
         ELSE options, 'esc' + p + '_iesa_n', ytitle='EESA-i', ysubtitle='Density!C[cm!E-3!N]', yminor=5
         ylim, 'esc' + p + '_iesa_n', 0., 40., 0, /def
-        IF ~tplot_exist('esc' + p + '_iesa_v') THEN store_data, 'esc' + p + '_iesa_v', data={x: t0 + [0.d0, oneday], y: nan1}, $
+        IF ((tnames('esc' + p + '_iesa_v'))[0]  EQ '') THEN store_data, 'esc' + p + '_iesa_v', data={x: t0 + [0.d0, oneday], y: nan1}, $
            dlim={ytitle: 'EESA-i', ysubtitle: 'Velocity!C[km/s]', yminor: 4, ytickinterval: 200.} $
         ELSE options, 'esc' + p + '_iesa_v', ytitle='EESA-i', ysubtitle='Velocity!C[km/s]', yminor=5           
         ylim, 'esc' + p + '_iesa_v', 200., 800., 0, /def
@@ -310,7 +312,7 @@ PRO esc_ql_tplot, date, trange=trange, verbose=verbose, window=window, path=path
         ENDIF ELSE BEGIN                   ; X window
            wi, wnum+1, wsize=[1600, 1000]
         ENDELSE
-        IF (zflg) THEN chsz = 1. ELSE chsz = topt0.charsize
+        IF (zflg) THEN chsz = 1. ELSE IF tag_exist(topt0, 'charsize', /quiet) THEN chsz = topt0.charsize ELSE chsz = 1.
         ;turbo_rainbow, 248, /load
         loadct_sd, 48
         line_colors, 5
@@ -446,7 +448,7 @@ PRO esc_ql_tplot, date, trange=trange, verbose=verbose, window=window, path=path
         ENDIF ELSE BEGIN                   ; X window
            wi, wnum+1, wsize=[800, 1000]
         ENDELSE
-        IF (zflg) THEN chsz = 1. ELSE chsz = topt0.charsize
+        IF (zflg) THEN chsz = 1. ELSE IF tag_exist(topt0, 'charsize', /quiet) THEN chsz = topt0.charsize ELSE chsz = 1.
         ;turbo_rainbow, 248, /load
         loadct_sd, 48
         line_colors, 5

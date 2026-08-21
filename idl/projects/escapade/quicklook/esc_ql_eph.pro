@@ -26,8 +26,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-08-18 14:38:46 -0700 (Tue, 18 Aug 2026) $
-; $LastChangedRevision: 34768 $
+; $LastChangedDate: 2026-08-20 08:44:38 -0700 (Thu, 20 Aug 2026) $
+; $LastChangedRevision: 34785 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/quicklook/esc_ql_eph.pro $
 ;
 ;-
@@ -145,7 +145,7 @@ PRO esc_ql_eph, date, bsp=bsp, verbose=verbose, window=window, gsm=gsm, $
            wi, wnum, wsize=[600, 1000]
         ENDELSE
      ENDIF 
-     IF (zflg) THEN chsz = 1. ELSE chsz = topt0.charsize
+     IF (zflg) THEN chsz = 1. ELSE IF tag_exist(topt0, 'charsize', /quiet) THEN chsz = topt0.charsize ELSE chsz = 1.
      
      IF (mflg) THEN $
         tname = ['esc_eph_gse_' + ['x', 'y', 'z'], 'esc_eph_gsm_' + ['x', 'y', 'z'], 'esc_eph_timebar', 'esc' + ['b', 'g'] + '_eph_alt', 'esc_blue_gold_dist_' + ['km', 're']] $
