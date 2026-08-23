@@ -13,8 +13,8 @@
 ;
 ;LAST MODIFICATION:
 ; $LastChangedBy: hara $
-; $LastChangedDate: 2026-08-19 16:26:36 -0700 (Wed, 19 Aug 2026) $
-; $LastChangedRevision: 34780 $
+; $LastChangedDate: 2026-08-21 15:56:26 -0700 (Fri, 21 Aug 2026) $
+; $LastChangedRevision: 34800 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/escapade/general/esc_gen_crib.pro $
 ;
 ;-
@@ -126,6 +126,24 @@ esc_ql_tplot, '2026-08-19', long=14, tshift=-1.d0 * 14.d0 * oneday, /reset, /l1,
 ; takuya.hara_at_berkeley.edu
 ; hara_at_ssl.berkeley.edu (_at_ -> @)
 ;
+
+;-------------------------------------------------------------------------------------------------------------------
+; ESCAPADE-dedicated Tplot Wrapper: esc_tplot (updated 2026-08-21)
+;
+line_colors, 5
+timespan, '2026-08-21'
+esc_emag_load, frame='GSE'
+
+; Setup 0: Set the visualization routine to 'esc_tplot' using the "tplot_routine" keyword.
+options, ['esc_emag_tot', 'esc*_emag_gse'], tplot_routine='esc_tplot'
+
+; Example 1: Customize the y-axis title color.
+options, 'escb_emag_gse', ytitle_color=2 ; = Blue   (for ESCAPADE/BLUE)
+options, 'escg_emag_gse', ytitle_color=5 ; = Orange (for ESCAPADE/GOLD)
+
+; Example 2: Add a timebar (i.e., draw vertical line(s) at the user-specified timestamp(s)) to the specified tplot variable.
+t = '2026-08-21/12'
+options, 'esc_emag_tot', timebar={time: t, color: 1, linestyle: 2}
 
 
 ;-------------------------------------------------------------------------------------------------------------------
