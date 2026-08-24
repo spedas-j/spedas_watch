@@ -190,7 +190,7 @@ if success1 eq 1 then begin
     tplot_save, tsave2, filename=savedir2+fn1
     mvn_sta_checkfilesave, savedir2+fn1+'.tplot'
 
-stop
+
 endif else begin
     print, proname, ": mvn_sta_l3_mac_den_v2 wasn't successful."
     success=0
