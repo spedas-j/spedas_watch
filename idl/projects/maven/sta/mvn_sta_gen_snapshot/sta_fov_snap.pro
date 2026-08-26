@@ -76,8 +76,8 @@
 ;       LASTCUT:  Named variable to hold data for the last plot.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-08-24 07:04:44 -0700 (Mon, 24 Aug 2026) $
-; $LastChangedRevision: 34805 $
+; $LastChangedDate: 2026-08-24 16:30:19 -0700 (Mon, 24 Aug 2026) $
+; $LastChangedRevision: 34808 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/sta_fov_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
@@ -301,9 +301,9 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
     if ((n_elements(secondary) eq 0) and (n_elements(monitor) eq 0)) then secondary = 1
     if (n_elements(dx) eq 0) then dx = 10
     if (n_elements(dy) eq 0) then dy = 10
-    if (n_elements(xsize) eq 0) then xsize = 800
-    if (n_elements(ysize) eq 0) then ysize = 400
   endif
+  if (n_elements(xsize) eq 0) then xsize = 800
+  if (n_elements(ysize) eq 0) then ysize = 400
 
   Twin = !d.window
   win, /free, monitor=monitor, secondary=secondary, xsize=xsize, ysize=ysize, dx=dx, dy=dy, $
@@ -311,8 +311,11 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
        norm=norm, full=full, xfull=xfull, yfull=yfull
   Swin = !d.window
 
-  win, /free, clone=Swin, relative=Swin, /left, dy=-10
+  win, /free, xsize=427, ysize=ysize, relative=Swin, /top, dx=10
   Dwin = !d.window
+
+  win, /free, clone=Swin, relative=Swin, /left, dy=-10
+  Awin = !d.window
 
 ; Make snapshot(s)
 
@@ -324,6 +327,7 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
   if (size(t,/type) eq 2) then begin
     wdelete,Swin
     wdelete,Dwin
+    wdelete,Awin
     return
   endif
 
@@ -344,6 +348,8 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
         dz = sqrt(z) > (0.01*z)                       ; uncertainty estimate
         zthe = total(z, 1)                            ; sum over phi
         dzthe = sqrt(zthe) > (0.01*zthe)              ; uncertainty estimate
+        zphi = total(z, 2)                            ; sum over theta
+        dzphi = sqrt(zphi) > (0.01*zphi)              ; uncertainty estimate
       endif
     endif else begin
       emean = mean(energy[i:j,*], dim=1)
@@ -363,6 +369,8 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
         dz = sqrt(z) > (0.01*z)                       ; uncertainty estimate
         zthe = total(z, 1)                            ; sum over phi
         dzthe = sqrt(zthe) > (0.01*zthe)              ; uncertainty estimate
+        zphi = total(z, 2)                            ; sum over theta
+        dzphi = sqrt(zphi) > (0.01*zphi)              ; uncertainty estimate
       endif
     endelse
 
@@ -374,12 +382,12 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
     dzp = zp
     zthep = yp
     dzthep = yp
+    zphip = xp
+    dzphip = xp
 
     xp[1:16] = x
     xp[0] = xp[1] - (xp[2] - xp[1])
     xp[17] = xp[16] + (xp[16] - xp[15])
-    dxp = median(xp - shift(xp,1))
-;    xp -= dxp/2.  ; not sure why there's an 11.25-deg shift
     yp[1:4] = y
     yp[0] = yp[1] - (yp[2] - yp[1])
     yp[5] = yp[4] + (yp[4] - yp[3])
@@ -387,6 +395,8 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
     dzp[1:16,1:4] = dz
     zthep[1:4] = zthe
     dzthep[1:4] = dzthe
+    zphip[1:16] = zphi
+    dzphip[1:16] = dzphi
 
     x = temporary(xp)
     y = temporary(yp)
@@ -394,6 +404,8 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
     dz = temporary(dzp)
     zthe = temporary(zthep)
     dzthe = temporary(dzthep)
+    zphi = temporary(zphip)
+    dzphi = temporary(dzphip)
 
 ; Put up the snapshots
 
@@ -410,23 +422,28 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
     wset, Dwin
       zmax = max(zthe[2:3], m)
       m += 2  ; index of central deflection bin with highest signal
-      plot, y, zthe, psym=10, xtitle='Deflection Angle (deg)', ytitle='Counts', $
-                     xrange=[-90,90], /xsty, xticks=6, xminor=3, charsize=1.5, $
-                     yrange=[1,10000], /ylog, /ysty, title=lim.title
+      metric1 = (m eq 2) ? zthe[2]/zthe[1] : zthe[3]/zthe[4]
+      msg1 = string(metric1, format='("edge : ", f4.1)')
+      metric2 = (zthe[2] + zthe[3])/total(zthe[1:4])
+      msg2 = string(metric2, format='("cntr : ", f4.1)')
+
+      plot, y, zthe, psym=10, xtitle='Elevation (deg)', ytitle=(sname[species]+' Counts'), $
+                     xrange=[-90,90], /xsty, xticks=2, xminor=3, charsize=1.5, $
+                     yrange=[1,10000], /ylog, /ysty, title=(msg1+'    '+msg2)
       errplot, y, zthe-dzthe, zthe+dzthe, width=0
 
-      mx = 0.79
-      my = 0.85
-      dmy = 0.06
-      xyouts, mx, my, sname[species], /norm, charsize=1.5
-      my -= dmy
-      metric1 = (m eq 2) ? zthe[2]/zthe[1] : zthe[3]/zthe[4]
-      msg = string(metric1, format='("FOV edge : ", f4.1)')
-      xyouts, mx, my, msg, /norm, charsize=1.5
-      my -= dmy
-      metric2 = (zthe[2] + zthe[3])/total(zthe[1:4])
-      msg = string(metric2, format='("FOV cntr : ", f4.1)')
-      xyouts, mx, my, msg, /norm, charsize=1.5
+      str_element, lastcut, 'theta', zthe, /add
+      str_element, lastcut, 'dtheta', dzthe, /add
+    wset,Awin
+      plot, x, zphi, psym=10, xtitle='Azimuth (deg)', ytitle=(sname[species]+' Counts'), $
+                     xrange=[-180,180+22.5], /xsty, xticks=4, xminor=3, charsize=1.5, $
+                     yrange=[1,10000], /ylog, /ysty, title=lim.title, $
+                     xmargin=[10,12], xtickv=[-180,-90,0,90,180]
+      errplot, x, zphi-dzphi, zphi+dzphi, width=0
+      xyouts, 93., 100., 'H A R N E S S', align=0.5, orient=90, charsize=1.5
+
+      str_element, lastcut, 'phi', zphi, /add
+      str_element, lastcut, 'dphi', dzphi, /add
     wset, Twin
 
     ctime,t,npoints=npts,/silent
@@ -437,6 +454,7 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
   if (~keep) then begin
     wdelete,Swin
     wdelete,Dwin
+    wdelete,Awin
   endif
 
 end
