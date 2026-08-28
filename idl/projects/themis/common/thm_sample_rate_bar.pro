@@ -12,8 +12,8 @@
 ;
 ;HISTORY:
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2026-08-26 11:49:24 -0700 (Wed, 26 Aug 2026) $
-; $LastChangedRevision: 34811 $
+; $LastChangedDate: 2026-08-26 17:25:13 -0700 (Wed, 26 Aug 2026) $
+; $LastChangedRevision: 34815 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_sample_rate_bar.pro $
 ;-
 
@@ -69,8 +69,8 @@ end
 ;HISTORY:
 ; 20-nov-2007, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2026-08-26 11:49:24 -0700 (Wed, 26 Aug 2026) $
-; $LastChangedRevision: 34811 $
+; $LastChangedDate: 2026-08-26 17:25:13 -0700 (Wed, 26 Aug 2026) $
+; $LastChangedRevision: 34815 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_sample_rate_bar.pro $
 ;-
 Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _extra
@@ -80,6 +80,8 @@ Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _e
   timespan, date, duration
   sc = strlowcase(strcompress(probe[0], /remove_all))
 
+  ; Delete stale variables in case this call does not load data
+  del_data,'th'+sc+'_scmode_*'
   ; Load L1 SCMODE data. The variables contain all the OFF-ON or ON-OFF transitions. 0=OFF, 1=ON
   thm_load_scmode, probe=sc
   get_data, strjoin('th'+sc+'_scmode_pb'), data = dpb,dlimit=dl
@@ -89,13 +91,19 @@ Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _e
   ; default is slow survey, yellow bar
   get_data, strjoin('th'+sc+'_scmode_ss'), data = dss,dlimit=dl
   
+  if  ~(is_struct(dpb) && is_struct(dwb) && is_struct(dufs) && is_struct(dfs) && is_struct(dss)) then begin
+    dprint,'Warning: some scmode variables were not successfully loaded for probe '+sc+', date '+date+', duration '+str(duration)
+  endif
+  
   ; PB and WB intervals are depicted by symbols plotted above and below the colored bar.
   ; For this type of plot, we don't want to mark just the transitions, but have a set of times within each interval
   ; so the plotted symbols form a continuous bar.  thm_sample_rate_bar_helper converts the start/stop times to sets of
   ; points at the given cadence 'dt'.
   
-  thm_sample_rate_bar_helper, in_name='th'+sc+'_scmode_pb', dt=0.25,  out_name='th'+sc+'_scmode_pb_expanded'
-  thm_sample_rate_bar_helper, in_name='th'+sc+'_scmode_wb', dt=0.25, out_name='th'+sc+'_scmode_wb_expanded'
+  pb_name = 'th'+sc+'scmode_pb'
+  if tnames(pb_name) ne '' then thm_sample_rate_bar_helper, in_name=pb_name, dt=0.25, out_name=pb_name+'_expanded'
+  wb_name = 'th'+sc+'scmode_wb'
+  if tnames(wb_name) ne '' then thm_sample_rate_bar_helper, in_name=wb_name, dt=0.25, out_name=wb_name+'_expanded'
 
   ; If any of the SCMODE variables are missing, set up some variables representing "all off" for that mode.
   ;   
@@ -111,9 +119,8 @@ Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _e
   endelse
 
   if (size(dfs,/type) ne 8) then begin
-    fs_time = float('NaN')
-    fs_data = float('NaN')
-    fs_data[*] = float('NaN')   
+    fs_time = [float('NaN')]
+    fs_data = [float('NaN')] 
   endif else begin
     ind_fs = where(dfs.y eq 1)
     fs_time = float(dfs.x)
@@ -123,9 +130,8 @@ Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _e
   endelse
 
   if (size(dss,/type) ne 8) then begin
-    ss_time = float('NaN')
-    ss_data = float('NaN')
-    ss_data[*] = float('NaN')   
+    ss_time = [float('NaN')]
+    ss_data = [float('NaN')]
   endif else begin
     ind_ss = where(dss.y eq 1)
     ss_time = float(dss.x)
@@ -135,9 +141,8 @@ Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _e
   endelse
 
   if (size(dpb,/type) ne 8) then begin
-    pb_time = float('NaN')
-    pb_data = float('NaN')
-    pb_data[*] = float('NaN')
+    pb_time = [float('NaN')]
+    pb_data = [float('NaN')]
   endif else begin
     ind_pb = where(dpb.y eq 1)
     pb_time = float(dpb.x)
@@ -147,9 +152,8 @@ Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _e
   endelse
 
   if (size(dwb,/type) ne 8) then begin
-    wb_time = float('NaN')
-    wb_data = float('NaN')
-    wb_data[*] = float('NaN')
+    wb_time = [float('NaN')]
+    wb_data = [float('NaN')]
   endif else begin
     ind_wb = where(dwb.y eq 1)
     wb_time = float(dwb.x)

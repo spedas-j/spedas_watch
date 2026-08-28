@@ -18,7 +18,7 @@
 ;               counts in azimuth to estimate how much signal is
 ;               missing outside the deflection range -- assumes the
 ;               distributions of counts in azimuth and elevation are
-;               too different
+;               not too different
 ;
 ;  Once the above tplot variables are created, shows the measured 
 ;  distribution of counts for O+ or O2+ as a function of azimuth and 
@@ -42,9 +42,10 @@
 ;
 ;       SUM:      Average all times between two selected times.
 ;
-;       APID:     APID to use: 'd0' or 'd1'
+;       APID:     APID to use: 'd0' or 'd1'.  Default = 'd0'.
 ;
-;       SPECIES:  Integer specifying which species to make snapshots for:
+;       SPECIES:  Integer specifying which species to make tplot panels and
+;                 snapshots for:
 ;                   1 = O+
 ;                   2 = O2+  (default)
 ;
@@ -53,7 +54,21 @@
 ;
 ;       KEEP:     Do not close the snapshot window on exit.
 ;
-;       REFRESH:  Refresh the fov common block.
+;       LASTCUT:  Named variable to hold data for the last snapshots.  Use this
+;                 to make your own fancy plots for a publication.
+;
+;       TMARK:    On the time series window, mark the currently selected time or
+;                 time interval with transient timebar(s).
+;
+;       REFRESH:  Refresh the fov common block.  Use this when changing between
+;                 'd0' and 'd1', or when you load data for a new date.
+;
+;       SHOWDIR:  Show the directions and anti-directions of the Sun and the 
+;                 magnetic field in the deflector tplot panels and the az-el 
+;                 snapshots.  Default = 1 (yes).
+;
+;       MINCOUNTS: Minimum number of counts/deflection bin to calculate metrics.
+;                  Use this to mask metrics with poor statistics.  Default = 3.
 ;
 ;       Passes many keywords to WIN (e.g. MONITOR, DX, DY, etc.).  If WIN is
 ;       enabled (win, /config), then by default the snapshot window will be 
@@ -73,18 +88,17 @@
 ;                 use them multiple times without a lot of typing.  In case of 
 ;                 conflict, keywords set explicitly take precedence over KEY.
 ;
-;       LASTCUT:  Named variable to hold data for the last plot.
-;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-08-24 16:30:19 -0700 (Mon, 24 Aug 2026) $
-; $LastChangedRevision: 34808 $
+; $LastChangedDate: 2026-08-27 15:34:46 -0700 (Thu, 27 Aug 2026) $
+; $LastChangedRevision: 34820 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/sta_fov_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
 ;CREATED BY:    David L. Mitchell
 ;-
 pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange, keep=keep, $
-                  refresh=refresh, key=key, lastcut=lastcut, $
+                  refresh=refresh, key=key, lastcut=lastcut, tmark=tmark, showdir=showdir, $
+                  mincounts=mincounts, $
 
               ; WIN
                 monitor=monitor, secondary=secondary, xsize=xsize, ysize=ysize, dx=dx, dy=dy, $
@@ -100,13 +114,13 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
                 ytickinterval=ytickinterval, xticklen=xticklen, yticklen=yticklen, xticks=xticks, $
                 yticks=yticks
 
-  common sta_fov_com, time, delta_t, counts, phi, theta, energy
+  common sta_fov_com, time, delta_t, counts, phi, theta, energy, sphi, sthe, bphi, bthe, metric1, metric2
 
 ; Set keywords using the KEY structure
 
   if (size(key,/type) eq 8) then begin
     ktag = tag_names(key)
-    tlist = ['NAVG','SUM','APID','SPECIES','ERANGE','KEEP','LASTCUT', $
+    tlist = ['NAVG','SUM','APID','SPECIES','ERANGE','KEEP','REFRESH','LASTCUT','TMARK','SHOWDIR', $
              'MONITOR','SECONDARY','XSIZE','YSIZE','DX','DY','CORNER','CENTER','XCENTER','YCENTER', $
              'NORM','XPOS','YPOS','FULL','XFULL','YFULL', $
              'TITLE','XTITLE','YTITLE','XLOG','YLOG','XRANGE','YRANGE','XSTYLE','YSTYLE','LINESTYLE', $
@@ -135,7 +149,13 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
   dx = (n_elements(dx) gt 0) ? fix(dx[0]) : 10
   dy = (n_elements(dy) gt 0) ? fix(dy[0]) : 10
   secondary = (n_elements(secondary) gt 0) ? keyword_set(secondary) : 1
+  showdir = (n_elements(showdir) gt 0) ? keyword_set(showdir) : 1
+  tmark = keyword_set(tmark)
+  mincounts = (n_elements(mincounts) gt 0) ? float(mincounts[0]) : 3.
   tiny = 1.e-31
+
+  p = findgen(49)*(2.*!pi/49.)
+  usersym,cos(p),sin(p)
 
   if (size(apid,/type) eq 7) then begin
     apid = strlowcase(apid[0])
@@ -229,12 +249,12 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
       metric1 = replicate(!values.f_nan, ntimes)
       if (mcount gt 0L) then begin
         metric1[m] = y[m,3]/(y[m,4] > 0.5)
-        indx = where(y[m,4] eq 0., count)
+        indx = where(y[m,4] lt mincounts, count)
         if (count gt 0L) then metric1[m[indx]] = !values.f_nan
       endif
       if (ncount gt 0L) then begin
         metric1[n] = y[n,2]/(y[n,1] > 0.5)
-        indx = where(y[n,1] eq 0., count)
+        indx = where(y[n,1] lt mincounts, count)
         if (count gt 0L) then metric1[n[indx]] = !values.f_nan
       endif
       store_data, var1[j], data={x:time, y:metric1}
@@ -244,16 +264,66 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
 
       v = total(y[*,1:4], 2)
       metric2 = total(y[*,2:3], 2)/(v > 0.5)
-      indx = where(v eq 0., count)
+      indx = where(v lt 4.*mincounts, count)
       if (count gt 0L) then metric2[indx] = !values.f_nan
       store_data, var2[j], data={x:time, y:metric2}
       ylim, var2[j], 0., 1., 0
       options, var2[j], 'ytitle', 'sta ' + apid + ' ' + sname[j] + '!cCntr Metric '
       options, var2[j], 'constant', 0.5
     endif
-    i = where(names eq var[j], count)
-    if (count eq 0L) then addnames = [addnames, var[j]]
   endfor
+
+; Get the directions of the Sun and magnetic field in the STATIC frame
+
+  if (~find_handle('Sun_STATIC_The') or refresh) then begin
+    mvn_sundir, frame='sta', /pol, dt=4
+    ylim, 'Sun_STATIC_The', -45, 45, 0
+    options, 'Sun_STATIC_The', 'colors', 1
+    options, 'Sun_STATIC_The', 'psym', 3
+
+    get_data, 'Sun_MAVEN_STATIC', data=sun
+    x = spline(sun.x, sun.y[*,0], time)
+    y = spline(sun.x, sun.y[*,1], time)
+    z = spline(sun.x, sun.y[*,2], time)
+    sphi = atan(y,x)*!radeg             ; sun direction is a unit vector
+    sthe = asin(z > (-1.) < 1.)*!radeg  ; prevent round-off errors
+    undefine, sun
+  endif
+
+  if (~find_handle('Mag_STATIC_The') or refresh) then begin
+    if (~find_handle('mvn_B_1sec_MAVEN_STATIC')) then spice_vector_rotate_tplot, 'mvn_B_1sec', 'MAVEN_STATIC'
+    get_data, 'mvn_B_1sec_MAVEN_STATIC', data=mag
+    bamp = sqrt(total(mag.y^2.,2))
+    bphi = atan(mag.y[*,1],mag.y[*,2])*!radeg
+    bthe = asin(mag.y[*,2]/bamp > (-1.) < 1.)*!radeg  ; prevent round-off errors
+    store_data,'Mag_STATIC_Phi',data={x:mag.x, y:bphi}
+    store_data,'Mag_STATIC_The',data={x:mag.x, y:bthe}
+    ylim, 'Mag_STATIC_The', -45, 45, 0
+    options, 'Mag_STATIC_The', 'colors', 0
+    options, 'Mag_STATIC_The', 'psym', 3
+
+    x = spline(mag.x, mag.y[*,0], time)
+    y = spline(mag.x, mag.y[*,1], time)
+    z = spline(mag.x, mag.y[*,2], time)
+    bamp = sqrt(x*x + y*y + z*z)
+    bphi = atan(y,x)*!radeg
+    bthe = asin(z/bamp > (-1.) < 1.)*!radeg  ; prevent round-off errors
+    undefine, mag
+  endif
+
+; Make tplot variables
+
+  for j=0,1 do begin
+    vname = var[j] + '_sm'
+    if (~find_handle(vname) or refresh) then begin
+      store_data, vname, data=[var[j], 'Sun_STATIC_The', 'Mag_STATIC_The']
+      ylim, vname, -45, 45, 0
+      i = where(names eq vname, count)
+      if (count eq 0L) then addnames = [addnames, vname]
+    endif
+  endfor
+
+; Include tplot variables for the FOV metrics
 
   vname = 'sta_' + apid + '_fov_edge'
   if (~find_handle(vname) or refresh) then begin
@@ -311,7 +381,7 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
        norm=norm, full=full, xfull=xfull, yfull=yfull
   Swin = !d.window
 
-  win, /free, xsize=427, ysize=ysize, relative=Swin, /top, dx=10
+  win, /free, ysize=ysize, aspect=1.0675, relative=Swin, /top, dx=10
   Dwin = !d.window
 
   win, /free, clone=Swin, relative=Swin, /left, dy=-10
@@ -332,6 +402,7 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
   endif
 
   while (keepgoing) do begin
+    if (tmark) then timebar, t, /line, /transient
     i = (nn2(time, t) + [-k,k]) > 0L < imax
     i = min(i, max=j)
     if (i eq j) then begin
@@ -374,6 +445,13 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
       endif
     endelse
 
+; Recalculate the metrics based on the (possibly averaged) data
+
+    zmin = (zthe[1] gt zthe[2]) ? zthe[0] : zthe[3]
+    m1 = (zmin ge mincounts) ? max(zthe[1:2], /nan)/zmin : !values.f_nan
+    ztot = total(zthe, /nan)
+    m2 = (ztot ge 4.*mincounts) ? total(zthe[1:2], /nan)/ztot : !values.f_nan
+
 ; Add padding for the spectrogram
 
     xp = replicate(!values.f_nan, 18)
@@ -407,48 +485,63 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
     zphi = temporary(zphip)
     dzphi = temporary(dzphip)
 
+    zpeak = 10.^(ceil(alog10(max(z) > max(zthe) > max(zphi))) > 4)
+    str_element, lim, 'zrange', [zpeak/1e4, zpeak], /add
+
 ; Put up the snapshots
 
     wset, Swin
       if (size(title,/type) ne 7) then begin
-        msg = time_string(time[i])
-        if (i ne j) then msg += ' - ' + strmid(time_string(time[j]),11)
-      endif else msg = title[0]
-      str_element, lim, 'title', apid + ' : ' + msg, /add
+        tmsg = time_string(time[i])
+        if (i ne j) then tmsg += ' - ' + strmid(time_string(time[j]),11)
+      endif else tmsg = title[0]
+      str_element, lim, 'title', apid + ' : ' + tmsg, /add
       specplot, x, y, z, limits=lim
+      ssize = 2.0
+      if (showdir) then begin
+        oplot, [sphi[i]], [sthe[i]], psym=8, symsize=ssize, color=1, thick=2
+        oplot, [sphi[i]], [sthe[i]], psym=3, symsize=ssize, color=1, thick=2
+        msphi = (sphi[i] gt 0.) ? sphi[i] - 180. : sphi[i] + 180.
+        oplot, [msphi], [-sthe[i]], psym=1, symsize=ssize, color=1, thick=2
+        xyouts, [bphi[i]-4.], [bthe[i]-4.], "+B", charsize=ssize, charthick=2, color=!p.color, align=0.5
+        mbphi = (bphi[i] gt 0.) ? bphi[i] - 180. : bphi[i] + 180.
+        xyouts, [mbphi-4.], [-bthe[i]-4.], "-B", charsize=ssize, charthick=2, color=!p.color, align=0.5
+      endif
       xyouts, 93., 0., 'H A R N E S S', align=0.5, orient=90, charsize=1.5
+      msg = strtrim(strcompress(string(erange, format='(i3," - ",i5," eV")')),2)
+      xyouts, 0.15, 0.85, msg, align=0.0, charsize=1.5, /norm
 
-      lastcut = {x:x, y:y, z:z, time:msg}
+      lastcut = {time:[time[i],time[j]], x:x, y:y, z:z, dz:dz, navg:(j-i+1), erange:erange}
     wset, Dwin
-      zmax = max(zthe[2:3], m)
-      m += 2  ; index of central deflection bin with highest signal
-      metric1 = (m eq 2) ? zthe[2]/zthe[1] : zthe[3]/zthe[4]
-      msg1 = string(metric1, format='("edge : ", f4.1)')
-      metric2 = (zthe[2] + zthe[3])/total(zthe[1:4])
-      msg2 = string(metric2, format='("cntr : ", f4.1)')
+      msg1 = string(m1, format='("edge : ", f4.1)')
+      msg2 = string(m2, format='("cntr : ", f4.1)')
 
       plot, y, zthe, psym=10, xtitle='Elevation (deg)', ytitle=(sname[species]+' Counts'), $
                      xrange=[-90,90], /xsty, xticks=2, xminor=3, charsize=1.5, $
-                     yrange=[1,10000], /ylog, /ysty, title=(msg1+'    '+msg2)
+                     yrange=lim.zrange, /ylog, /ysty, title=(msg1+'    '+msg2)
       errplot, y, zthe-dzthe, zthe+dzthe, width=0
 
-      str_element, lastcut, 'theta', zthe, /add
-      str_element, lastcut, 'dtheta', dzthe, /add
+      str_element, lastcut, 'metric1', m1, /add
+      str_element, lastcut, 'metric2', m2, /add
+      str_element, lastcut, 'zthe', zthe, /add
+      str_element, lastcut, 'dzthe', dzthe, /add
     wset,Awin
       plot, x, zphi, psym=10, xtitle='Azimuth (deg)', ytitle=(sname[species]+' Counts'), $
                      xrange=[-180,180+22.5], /xsty, xticks=4, xminor=3, charsize=1.5, $
-                     yrange=[1,10000], /ylog, /ysty, title=lim.title, $
+                     yrange=lim.zrange, /ylog, /ysty, title=lim.title, $
                      xmargin=[10,12], xtickv=[-180,-90,0,90,180]
       errplot, x, zphi-dzphi, zphi+dzphi, width=0
       xyouts, 93., 100., 'H A R N E S S', align=0.5, orient=90, charsize=1.5
 
-      str_element, lastcut, 'phi', zphi, /add
-      str_element, lastcut, 'dphi', dzphi, /add
+      str_element, lastcut, 'zphi', zphi, /add
+      str_element, lastcut, 'dzphi', dzphi, /add
     wset, Twin
 
-    ctime,t,npoints=npts,/silent
+    ctime,tnext,npoints=npts,/silent
     if (npts eq 2) then cursor,cx,cy,/norm,/up  ; make sure mouse button is released
-    if (size(t,/type) eq 2) then keepgoing = 0
+    if (size(tnext,/type) eq 2) then keepgoing = 0
+    timebar, t, /line, /transient
+    t = tnext
   endwhile
 
   if (~keep) then begin
