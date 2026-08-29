@@ -68,7 +68,7 @@
 ;                 snapshots.  Default = 1 (yes).
 ;
 ;       MINCOUNTS: Minimum number of counts/deflection bin to calculate metrics.
-;                  Use this to mask metrics with poor statistics.  Default = 3.
+;                  Use this to mask values with poor statistics.  Default = 3.
 ;
 ;       Passes many keywords to WIN (e.g. MONITOR, DX, DY, etc.).  If WIN is
 ;       enabled (win, /config), then by default the snapshot window will be 
@@ -89,8 +89,8 @@
 ;                 conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-08-27 15:34:46 -0700 (Thu, 27 Aug 2026) $
-; $LastChangedRevision: 34820 $
+; $LastChangedDate: 2026-08-28 08:42:23 -0700 (Fri, 28 Aug 2026) $
+; $LastChangedRevision: 34823 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/sta_fov_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
@@ -152,10 +152,11 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
   showdir = (n_elements(showdir) gt 0) ? keyword_set(showdir) : 1
   tmark = keyword_set(tmark)
   mincounts = (n_elements(mincounts) gt 0) ? float(mincounts[0]) : 3.
+  symthick = (n_elements(thick) gt 0) ? thick[0] : 2.
   tiny = 1.e-31
 
   p = findgen(49)*(2.*!pi/49.)
-  usersym,cos(p),sin(p)
+  usersym, cos(p), sin(p), thick=symthick
 
   if (size(apid,/type) eq 7) then begin
     apid = strlowcase(apid[0])
@@ -232,7 +233,7 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
         endif
       endfor
       dy = sqrt(y) > (0.01*y)                       ; uncertainty estimate
-      v[*,0] = v[*,1] - (v[*,2] - v[*,1])           ; padding
+      v[*,0] = v[*,1] - (v[*,2] - v[*,1])           ; padding so spectrogram displays properly
       v[*,5] = v[*,4] + (v[*,4] - v[*,3])
 
       store_data, var[j], data={x:time, y:y, dy:dy, v:v}
@@ -452,7 +453,7 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
     ztot = total(zthe, /nan)
     m2 = (ztot ge 4.*mincounts) ? total(zthe[1:2], /nan)/ztot : !values.f_nan
 
-; Add padding for the spectrogram
+; Add padding for the spectrogram so it displays properly
 
     xp = replicate(!values.f_nan, 18)
     yp = replicate(!values.f_nan, 6)
@@ -498,14 +499,15 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
       str_element, lim, 'title', apid + ' : ' + tmsg, /add
       specplot, x, y, z, limits=lim
       ssize = 2.0
+      offset = 4.0
       if (showdir) then begin
-        oplot, [sphi[i]], [sthe[i]], psym=8, symsize=ssize, color=1, thick=2
-        oplot, [sphi[i]], [sthe[i]], psym=3, symsize=ssize, color=1, thick=2
+        oplot, [sphi[i]], [sthe[i]], psym=8, symsize=ssize, color=1, thick=symthick
+        oplot, [sphi[i]], [sthe[i]], psym=3, symsize=ssize, color=1, thick=symthick
         msphi = (sphi[i] gt 0.) ? sphi[i] - 180. : sphi[i] + 180.
-        oplot, [msphi], [-sthe[i]], psym=1, symsize=ssize, color=1, thick=2
-        xyouts, [bphi[i]-4.], [bthe[i]-4.], "+B", charsize=ssize, charthick=2, color=!p.color, align=0.5
+        oplot, [msphi], [-sthe[i]], psym=1, symsize=ssize, color=1, thick=symthick
+        xyouts, [bphi[i]-4.], [bthe[i]-offset], "+B", charsize=ssize, charthick=2, color=!p.color, align=0.5
         mbphi = (bphi[i] gt 0.) ? bphi[i] - 180. : bphi[i] + 180.
-        xyouts, [mbphi-4.], [-bthe[i]-4.], "-B", charsize=ssize, charthick=2, color=!p.color, align=0.5
+        xyouts, [mbphi-4.], [-bthe[i]-offset], "-B", charsize=ssize, charthick=2, color=!p.color, align=0.5
       endif
       xyouts, 93., 0., 'H A R N E S S', align=0.5, orient=90, charsize=1.5
       msg = strtrim(strcompress(string(erange, format='(i3," - ",i5," eV")')),2)
@@ -540,7 +542,7 @@ pro sta_fov_snap, navg=navg, sum=sum, apid=apid, species=species, erange=erange,
     ctime,tnext,npoints=npts,/silent
     if (npts eq 2) then cursor,cx,cy,/norm,/up  ; make sure mouse button is released
     if (size(tnext,/type) eq 2) then keepgoing = 0
-    timebar, t, /line, /transient
+    if (tmark) then timebar, t, /line, /transient
     t = tnext
   endwhile
 

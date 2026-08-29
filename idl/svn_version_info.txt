@@ -3,9 +3,9 @@ URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos
 Relative URL: ^/
 Repository Root: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos
 Repository UUID: ea83537a-ea1e-0410-8ee1-cd5f2ce86762
-Revision: 34820
+Revision: 34824
 Node Kind: directory
 Last Changed Author: dmitchell
-Last Changed Rev: 34820
-Last Changed Date: 2026-08-27 15:34:46 -0700 (Thu, 27 Aug 2026)
+Last Changed Rev: 34824
+Last Changed Date: 2026-08-28 11:08:09 -0700 (Fri, 28 Aug 2026)
 
