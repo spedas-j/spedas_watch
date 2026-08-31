@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2026-08-26 11:54:34 -0700 (Wed, 26 Aug 2026) $
-;$LastChangedRevision: 34813 $
+;$LastChangedDate: 2026-08-30 11:29:31 -0700 (Sun, 30 Aug 2026) $
+;$LastChangedRevision: 34834 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -225,6 +225,7 @@ endif else begin
   endif  
 
   set_plot,device
+  spd_graphics_config
   help,/device,output=plot_device
   plot_device=strtrim(strlowcase(strmid(plot_device[1],24)),2)
   if plot_device eq 'z' then device, set_resolution = [750, 800]

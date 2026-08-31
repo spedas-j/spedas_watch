@@ -187,7 +187,10 @@ endif
 
 if keyword_set(directory) then dir=directory else dir='./'
 
-if keyword_set(device) then set_plot,device
+if keyword_set(device) then begin
+  set_plot,device
+  spd_graphics_config
+endif
 
 timespan,date2,1,/day
 
@@ -242,7 +245,7 @@ endelse
 
 var_string += ' ' + fgs_name+'+t'
 
-thm_load_state,probe=probe,coord='gsm',/get_support
+thm_load_state,probe=probe,coord='gsm'
 
 ;---------------------------------------
 ;fgm with t89 model field subtracted

@@ -184,7 +184,10 @@ endif
 
 if keyword_set(directory) then dir=directory else dir='./'
 
-if keyword_set(device) then set_plot,device
+if keyword_set(device) then begin
+  set_plot,device
+  spd_graphics_config
+endif
 
 ;the dates after which spacecraft moments are considered valid
 if(probe eq 'a' && time_double(date) lt time_double('2007-08-02/:00:00')) then begin
@@ -267,7 +270,7 @@ endelse
 var_string += ' ' + fgs_name+'+t'
 
 ;need state data in GEI for cotrans
-thm_load_state,probe=probe,/get_support
+thm_load_state,probe=probe
 
 ;needs position in gsm for t89 modeling
 thm_load_state,probe=probe,coord='gsm',suffix='_gsm'
