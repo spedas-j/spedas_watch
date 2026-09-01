@@ -270,7 +270,7 @@ endelse
 var_string += ' ' + fgs_name+'+t'
 
 ;need state data in GEI for cotrans
-thm_load_state,probe=probe
+thm_load_state,probe=probe,/get_support,/no_spin
 
 ;needs position in gsm for t89 modeling
 thm_load_state,probe=probe,coord='gsm',suffix='_gsm'

@@ -12,8 +12,8 @@
 ;
 ;HISTORY:
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2026-08-26 17:25:13 -0700 (Wed, 26 Aug 2026) $
-; $LastChangedRevision: 34815 $
+; $LastChangedDate: 2026-08-30 22:37:14 -0700 (Sun, 30 Aug 2026) $
+; $LastChangedRevision: 34844 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_sample_rate_bar.pro $
 ;-
 
@@ -69,8 +69,8 @@ end
 ;HISTORY:
 ; 20-nov-2007, jmm, jimm@ssl.berkeley.edu
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2026-08-26 17:25:13 -0700 (Wed, 26 Aug 2026) $
-; $LastChangedRevision: 34815 $
+; $LastChangedDate: 2026-08-30 22:37:14 -0700 (Sun, 30 Aug 2026) $
+; $LastChangedRevision: 34844 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_sample_rate_bar.pro $
 ;-
 Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _extra
@@ -100,9 +100,9 @@ Function thm_sample_rate_bar, date, duration, probe,outline=outline, _extra = _e
   ; so the plotted symbols form a continuous bar.  thm_sample_rate_bar_helper converts the start/stop times to sets of
   ; points at the given cadence 'dt'.
   
-  pb_name = 'th'+sc+'scmode_pb'
+  pb_name = 'th'+sc+'_scmode_pb'
   if tnames(pb_name) ne '' then thm_sample_rate_bar_helper, in_name=pb_name, dt=0.25, out_name=pb_name+'_expanded'
-  wb_name = 'th'+sc+'scmode_wb'
+  wb_name = 'th'+sc+'_scmode_wb'
   if tnames(wb_name) ne '' then thm_sample_rate_bar_helper, in_name=wb_name, dt=0.25, out_name=wb_name+'_expanded'
 
   ; If any of the SCMODE variables are missing, set up some variables representing "all off" for that mode.

@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2026-08-30 11:29:31 -0700 (Sun, 30 Aug 2026) $
-;$LastChangedRevision: 34834 $
+;$LastChangedDate: 2026-08-31 15:18:39 -0700 (Mon, 31 Aug 2026) $
+;$LastChangedRevision: 34852 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -277,11 +277,51 @@ endif else begin
         store_data, fgs_varname, data = btmp
      Endif
      options, fgs_varname, 'ytitle', 'B FIT!CDSL!C[nT]'
-     options, fgs_varname, 'labels', ['Bx', 'By', 'Bz']
+     options, fgs_varname, 'labels', ['Bx', 'By', 'Bz_est']
      options, fgs_varname, 'labflag', 1
      options, fgs_varname, 'colors', [2, 4, 6]
 
-  Endif else begin
+  Endif else $
+  ; THEMIS-A FGM started having problems with Bz offsets after 2024-09-01, but seems to have recovered after 2026-04-15
+  ; after a long shutoff.  The sensor was powered down but the telemetry was still enabled, so there is some garbage data
+  ; that shouldn't be displayed.
+  ; The sensor-off intervals seem to be
+  ; 2024-12-13 - 2025-01-15
+  ; 2025-01-31 - 2025-02-25
+  ; 2025-03-03 - 2025-03-23
+  ; 2025-03-24 - 2025-04-16
+  If(sc[0] Eq 'a' And time_double(date) Ge time_double('2024-09-01')) and time_double(date) lt time_double('2026-04-16') Then Begin
+     ; this is the varname that will be added to the list of vars to plot
+     fgs_varname=thx+'_fgs'
+     options, fgs_varname, 'indices', [2,0,1]
+     sensor_off = 0
+     tdbl=time_double(date)
+     sens_off_int1 = time_double(['2024-12-13','2025-01-15'])
+     sens_off_int2 = time_double(['2025-01-31','2025-02-25'])
+     sens_off_int3 = time_double(['2025-03-03','2025-03-23'])
+     sens_off_int4 = time_double(['2025-03-24','2025-04-16'])
+     if (tdbl ge sens_off_int1[0]) && (tdbl lt sens_off_int1[1]) then sensor_off = 1
+     if (tdbl ge sens_off_int2[0]) && (tdbl lt sens_off_int2[1]) then sensor_off = 1
+     if (tdbl ge sens_off_int3[0]) && (tdbl lt sens_off_int3[1]) then sensor_off = 1
+     if (tdbl ge sens_off_int4[0]) && (tdbl lt sens_off_int4[1]) then sensor_off = 1
+     if sensor_off then begin
+       ; Set all components to NaN
+       get_data, fgs_varname, data = btmp
+       btmp.y[*, *] = !values.f_nan
+       store_data, fgs_varname, data = btmp
+     endif
+     options, fgs_varname, 'indices', [2,0,1]
+;check for l1b data, if there is none yet, set Bz to NaN 
+     If(~is_string(thm_l1b_check(date, sc[0]))) Then Begin
+        get_data, fgs_varname, data = btmp
+        btmp.y[*, 2] = !values.f_nan
+        store_data, fgs_varname, data = btmp
+     Endif
+     options, fgs_varname, 'ytitle', 'B FIT!CDSL!C[nT]'
+     options, fgs_varname, 'labels', ['Bx', 'By', 'Bz_est']
+     options, fgs_varname, 'labflag', 1
+     options, fgs_varname, 'colors', [2, 4, 6]
+   endif else begin
    ; other probes and times: use cotrans to gse
    thm_cotrans,thx+'_fgs',out_suf='_gse', in_c='dsl', out_c='gse'
    options, fgs_varname, 'ytitle', 'B FIT!CGSE!C[nT]'
