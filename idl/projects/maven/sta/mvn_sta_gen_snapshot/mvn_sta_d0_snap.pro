@@ -60,7 +60,7 @@
 ;                 You can choose only one mass bin for this.
 ;
 ;       TMASS:    Integer array specifying which mass bins to make deflector
-;                 fov tplot panels for.  You can make up to eight panels.
+;                 FOV tplot panels for.  You can make up to eight panels.
 ;                 If available, the Sun and magnetic field directions will be
 ;                 overplotted onto the fov spectrogram.  Default = [4,5].
 ;
@@ -83,8 +83,14 @@
 ;                 magnetic field in the deflector tplot panels and the az-el 
 ;                 snapshots.  Default = 1 (yes).
 ;
+;       SHOWMASS: Show the mass distribution in a separate window.
+;
 ;       MINCOUNTS: Minimum number of counts/deflection bin to calculate metrics.
 ;                  Use this to mask values with poor statistics.  Default = 3.
+;
+;       BKG:      If set, subtract background counts.  This requires v3 L2 data
+;                 or v2 L2 data with the IV_LEVEL keyword set.  Otherwise, it
+;                 will have no effect.  Default = 1 (yes).
 ;
 ;       Passes many keywords to WIN (e.g. MONITOR, DX, DY, etc.).  If WIN is
 ;       enabled (win, /config), then by default the snapshot window will be 
@@ -105,8 +111,8 @@
 ;                 conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-08-31 14:01:03 -0700 (Mon, 31 Aug 2026) $
-; $LastChangedRevision: 34849 $
+; $LastChangedDate: 2026-09-01 14:12:15 -0700 (Tue, 01 Sep 2026) $
+; $LastChangedRevision: 34861 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_d0_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
@@ -114,7 +120,7 @@
 ;-
 pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, erange=erange, keep=keep, $
                      refresh=refresh, key=key, lastcut=lastcut, tmark=tmark, showdir=showdir, $
-                     mincounts=mincounts, $
+                     showmass=showmass, mincounts=mincounts, bkg=bkg, $
 
               ; WIN
                 monitor=monitor, secondary=secondary, xsize=xsize, ysize=ysize, dx=dx, dy=dy, $
@@ -130,13 +136,14 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
                 ytickinterval=ytickinterval, xticklen=xticklen, yticklen=yticklen, xticks=xticks, $
                 yticks=yticks
 
-  common sta_fov_com, time, delta_t, counts, phi, theta, energy, sphi, sthe, bphi, bthe, metric1, metric2
+  common sta_fov_com, time, delta_t, counts, phi, theta, energy, mass_arr, sphi, sthe, bphi, bthe
 
 ; Set keywords using the KEY structure
 
   if (size(key,/type) eq 8) then begin
     ktag = tag_names(key)
     tlist = ['NAVG','SUM','APID','MASS','ERANGE','KEEP','REFRESH','LASTCUT','TMARK','SHOWDIR', $
+             'SHOWMASS','MINCOUNTS','BKG', $
              'MONITOR','SECONDARY','XSIZE','YSIZE','DX','DY','CORNER','CENTER','XCENTER','YCENTER', $
              'NORM','XPOS','YPOS','FULL','XFULL','YFULL', $
              'TITLE','XTITLE','YTITLE','XLOG','YLOG','XRANGE','YRANGE','XSTYLE','YSTYLE','LINESTYLE', $
@@ -166,10 +173,11 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
   dy = (n_elements(dy) gt 0) ? fix(dy[0]) : 10
   secondary = (n_elements(secondary) gt 0) ? keyword_set(secondary) : 1
   showdir = (n_elements(showdir) gt 0) ? keyword_set(showdir) : 1
+  showmass = keyword_set(showmass)
   tmark = keyword_set(tmark)
   mincounts = (n_elements(mincounts) gt 0) ? float(mincounts[0]) : 3.
+  bkg = (n_elements(bkg) gt 0) ? keyword_set(bkg) : 1
   symthick = (n_elements(thick) gt 0) ? thick[0] : 2.
-  tiny = 1.e-31
 
   p = findgen(49)*(2.*!pi/49.)
   usersym, cos(p), sin(p), thick=symthick
@@ -187,8 +195,9 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
   routine = 'mvn_sta_get_' + apid
 
   erange = (n_elements(erange) lt 2) ? [0.,1000.] : minmax(erange)
-  mass = (n_elements(mass) eq 0) ? 5 : mass[0] < 7 > 0
-  tmass = (n_elements(tmass) eq 0) ? [4,5] : tmass < 7 > 0
+  mass = (n_elements(mass) eq 0) ? 5 : fix(mass[0]) < 7 > 0
+  tmass = (n_elements(tmass) eq 0) ? [4,5] : fix(tmass) < 7 > 0
+  tmass = tmass[uniq(tmass, sort(tmass))]  ; make each panel only once
 
 ; Make sure d0/d1 data are loaded
 
@@ -249,14 +258,16 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     phi = counts
     theta = counts
     energy = fltarr(ntimes,32)       ; not a function of angle or mass
+    mass_arr = fltarr(32,8)          ; not a function of time or angle
 
     for i=0L,(ntimes-1L) do begin
       dat = call_function(routine, time[i])
-      counts[i,*,*,*] = dat.data
+      counts[i,*,*,*] = bkg ? (dat.data - dat.bkg) > 0. : dat.data
       phi[i,*,*,*] = dat.phi
       theta[i,*,*,*] = dat.theta
       energy[i,*] = dat.energy[*,0,0]
     endfor
+    mass_arr = mean(dat.mass_arr, dim=2)
     undefine, dat
   endif
 
@@ -299,7 +310,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
       options, vname, 'x_no_interp', 1
       options, vname, 'y_no_interp', 1
       zpeak = 10.^(round(alog10(max(y,/nan)) > 4))  ; allow some saturation
-      zlim, vname, [zpeak/1e4, zpeak], 1
+      zlim, vname, zpeak/1e4, zpeak, 1
       options, vname, 'ztickformat', 'mvn_ql_pfp_tplot_ytickname_plus_log'
       options, vname, 'ztitle', 'Counts'
 
@@ -455,6 +466,11 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
   win, /free, clone=Swin, relative=Swin, /left, dy=-10
   Awin = !d.window
 
+  if (showmass) then begin
+    win, /free, clone=Dwin, relative=Awin, /top, dx=10
+    Mwin = !d.window
+  endif
+
 ; Make snapshot(s)
 
   imax = n_elements(time) - 1L
@@ -466,6 +482,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     wdelete,Swin
     wdelete,Dwin
     wdelete,Awin
+    if (showmass) then wdelete,Mwin
     line_colors, plines
     return
   endif
@@ -490,6 +507,11 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
         dzthe = sqrt(zthe) > (0.01*zthe)              ; uncertainty estimate
         zphi = total(z, 2)                            ; sum over theta
         dzphi = sqrt(zphi) > (0.01*zphi)              ; uncertainty estimate
+        cnt1 = reform(counts[i,endx,*,*])
+        cnt1 = total(cnt1, 1)                         ; sum over energy
+        cnt1 = total(cnt1, 1)                         ; sum over angle
+        dcnt1 = sqrt(cnt1) > (0.01*cnt1)              ; uncertainty estimate
+        u = mean(mass_arr[endx,*], dim=1)             ; average over energy
       endif
     endif else begin
       emean = mean(energy[i:j,*], dim=1)
@@ -511,6 +533,12 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
         dzthe = sqrt(zthe) > (0.01*zthe)              ; uncertainty estimate
         zphi = total(z, 2)                            ; sum over theta
         dzphi = sqrt(zphi) > (0.01*zphi)              ; uncertainty estimate
+        cnt1 = reform(counts[i:j,endx,*,*])
+        cnt1 = total(cnt1, 1)                         ; sum over time
+        cnt1 = total(cnt1, 1)                         ; sum over energy
+        cnt1 = total(cnt1, 1)                         ; sum over angle
+        dcnt1 = sqrt(cnt1) > (0.01*cnt1)              ; uncertainty estimate
+        u = mean(mass_arr[endx,*], dim=1)             ; average over energy
       endif
     endelse
 
@@ -612,6 +640,20 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
 
       str_element, lastcut, 'zphi', zphi, /add
       str_element, lastcut, 'dzphi', dzphi, /add
+
+    if (showmass) then begin
+      wset,Mwin
+      mpeak = 10.^(ceil(alog10(max(cnt1,/nan))) > 4)
+      mrange = [mpeak/1e4, mpeak]
+      plot, u, cnt1, psym=10, xtitle='Mass (amu)', ytitle='Counts', charsize=1.5, title=lim.title, $
+                     xrange=[0.8,80.], /xlog, /xsty, yrange=mrange, /ylog, /ysty, $
+                     ytickformat='mvn_ql_pfp_tplot_ytickname_plus_log'
+      errplot, u, cnt1-dcnt1, cnt1+dcnt1, width=0
+      xyouts, u[0], 0.5*cnt1[0], sname[0], align=0.5, charsize=1.2
+      xyouts, u[4], 0.5*cnt1[4], sname[4], align=0.5, charsize=1.2
+      xyouts, u[5], 0.5*cnt1[5], sname[5], align=0.5, charsize=1.2
+    endif
+
     wset, Twin
 
     ctime,tnext,npoints=npts,/silent
@@ -625,6 +667,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     wdelete,Swin
     wdelete,Dwin
     wdelete,Awin
+    if (showmass) then wdelete,Mwin
   endif
 
   line_colors, plines  ; restore original line colors

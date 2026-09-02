@@ -200,21 +200,34 @@ times = timerange(/current)
 tplot_options, 'xmargin', [20, 10]
 
 var_string = ''
-
-;-----------------------
-;fgm with total
-;thm_load_fgm,probe=probe,coord='gsm', level = 'l2'
-;Use L1 data
-thm_load_fit,probe=probe,coord='gsm',suffix='_gsm'
+use_dsl = 0
 
 fgs_name = 'th'+probe+'_fgs_gsm'
+
+If (probe Eq 'e' && time_double(date) Ge time_double('2024-06-01')) $
+  || (probe Eq 'a' && time_double(date) Ge time_double('2024-09-01') && time_double(date) lt time_double('2026-04-16')) Then Begin
+
+  use_dsl=1
+  thm_load_fit,probe=probe,coord='dsl',suffix='_dsl',level='l1'
+  fgs_name = 'th'+probe+'_fgs_dsl'
+  options, fgs_name, 'labels', ['Bx', 'By', 'Bz_est']
+endif else begin
+  use_dsl=0
+  thm_load_fit,probe=probe,coord='gsm',suffix='_gsm',level='l1'
+  fgs_name = 'th'+probe+'_fgs_gsm'
+endelse
 
 if tnames(fgs_name) then begin
 
    tvectot,fgs_name,newname=fgs_name+'+t'
 
-   options,fgs_name+'+t',ytitle='th'+probe+'!Cfgs!Cgsm',ysubtitle='[nT]'
-
+   if use_dsl then begin
+     options,fgs_name+'+t',ytitle='th'+probe+'!Cfgs!Cdsl',ysubtitle='[nT]' 
+     options,fgs_name+'+t',labels=['Bx', 'By', 'Bz_est', 'Bt']   
+   endif else begin
+     options,fgs_name+'+t',ytitle='th'+probe+'!Cfgs!Cgsm',ysubtitle='[nT]'
+   endelse
+   
    thm_set_lim,fgs_name+'+t',times[0],times[1],-100D,100D,0
 
    get_data,fgs_name+'+t',dlimit=dl
@@ -225,17 +238,50 @@ if tnames(fgs_name) then begin
 
 ;for recent FGS data, if there is an estimated Bz, put the Bz curve
 ;behind Bx and By. jmm, 2024-12-12
-;Set Bz to zero if L1B data is not used, jmm, 2025-06-02
+;Set Bz to NaN if L1B data is not used, jmm, 2025-06-02
    If(probe Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then Begin
       options, fgs_name+'+t', 'indices', [2,0,1,3]
       get_data, 'th'+probe+'_fgl_l1b_bz', data = temp_bz
       If(~is_struct(temp_bz)) Then Begin ;reset Bz to zero
          get_data, fgs_name+'+t', data = dbz
-         dbz.y[*, 2] = 0
+         dbz.y[*, 2] = !VALUES.D_NAN
          dbz.y[*, 3] = sqrt(dbz.y[*, 0]^2+dbz.y[*, 1]^2)
          store_data, fgs_name+'+t', data = dbz
       Endif
-   Endif
+   Endif else $
+     If(probe Eq 'a' And time_double(date) Ge time_double('2024-09-01')) and time_double(date) lt time_double('2026-04-16') Then Begin
+       options, fgs_name+'+t', 'indices', [2,0,1,3]
+       get_data, 'th'+probe+'_fgl_l1b_bz', data = temp_bz
+       If(~is_struct(temp_bz)) Then Begin ;reset Bz to zero
+         get_data, fgs_name+'+t', data = dbz
+         dbz.y[*, 2] = !VALUES.D_NAN
+         dbz.y[*, 3] = sqrt(dbz.y[*, 0]^2+dbz.y[*, 1]^2)
+         store_data, fgs_name+'+t', data = dbz
+       Endif
+
+       sensor_off = 0
+       tdbl=time_double(date)
+       sens_off_int1 = time_double(['2025-12-13','2026-01-15'])
+       sens_off_int2 = time_double(['2026-01-31','2026-02-25'])
+       sens_off_int3 = time_double(['2026-03-03','2026-03-23'])
+       sens_off_int4 = time_double(['2026-03-24','2026-04-16'])
+       if (tdbl ge sens_off_int1[0]) && (tdbl lt sens_off_int1[1]) then sensor_off = 1
+       if (tdbl ge sens_off_int2[0]) && (tdbl lt sens_off_int2[1]) then sensor_off = 1
+       if (tdbl ge sens_off_int3[0]) && (tdbl lt sens_off_int3[1]) then sensor_off = 1
+       if (tdbl ge sens_off_int4[0]) && (tdbl lt sens_off_int4[1]) then sensor_off = 1
+       if sensor_off then begin
+         ; Set all FGS components to NaN
+         get_data, fgs_name, data = btmp
+         btmp.y[*, *] = !values.f_nan
+         store_data, fgs_name, data = btmp
+         
+         ; Set all FGS components to NaN
+         get_data, fgs_name+'+t', data = btmp
+         btmp.y[*, *] = !values.f_nan
+         store_data, fgs_name+'+t', data = btmp  
+       endif
+   endif
+   
 
 endif else begin 
 
@@ -250,26 +296,30 @@ thm_load_state,probe=probe,coord='gsm'
 ;---------------------------------------
 ;fgm with t89 model field subtracted
 
-if tnames(fgs_name) && tnames('th'+probe+'_state_pos') then begin
+if tnames(fgs_name) && tnames('th'+probe+'_state_pos_gsm') then begin
 
-   tinterpol_mxn,'th'+probe+'_state_pos',fgs_name,newname='pos_interp', /QUADRATIC
-   
+   tinterpol_mxn,'th'+probe+'_state_pos_gsm',fgs_name,newname='pos_interp', /QUADRATIC
+
    tt89,'pos_interp', period=3.049
 
-;now subtract
-   dif_data,fgs_name,'pos_interp_bt89',newname=fgs_name+'-t89'
+;now subtract, using DSL coords if needed
+   if use_dsl then begin
+    thm_cotrans,probe=probe,'pos_interp_bt89',out_coord='dsl',out_suff='_dsl'
+    dif_data,fgs_name,'pos_interp_bt89_dsl',newname=fgs_name+'-t89'
+    options,fgs_name+'-t89',ytitle='th'+probe+'!Cfgs!Cdsl!C-t89',ysubtitle='[nT]',labels=['Bx','By','Bz_est'], colors=[2,4,6]
+   endif else begin
+     dif_data,fgs_name,'pos_interp_bt89',newname=fgs_name+'-t89'
+     options,fgs_name+'-t89',ytitle='th'+probe+'!Cfgs!Cgsm!C-t89',ysubtitle='[nT]',labels=['Bx','By','Bz'], colors=[2,4,6]
+   endelse
 
    get_data,fgs_name,dlimit=dl
-
-   store_data,fgs_name+'-t89',dlimit=dl
 
 ;ensure that the y scale is bounded at +- 100 nT
 
    thm_set_lim,fgs_name+'-t89',times[0],times[1],-100D,100D,0
 
-   options,fgs_name+'-t89',ytitle='th'+probe+'!Cfgs!Cgsm!C-t89',ysubtitle='[nT]',labels=['Bx','By','Bz']
 
-   If(probe Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then Begin
+   If use_dsl Then Begin
       options, fgs_name+'-t89', 'indices', [2,0,1]
       get_data, 'th'+probe+'_fgl_l1b_bz', data = temp_bz
       If(~is_struct(temp_bz)) Then Begin ;reset Bz to zero
@@ -281,7 +331,7 @@ if tnames(fgs_name) && tnames('th'+probe+'_state_pos') then begin
 
 endif else begin
   
-   thm_blank_panel,fgs_name+'-t89','th'+probe+'!Cfgs!Cgsm!C-t89!C[nT]',labels=['Bx','By','Bz']
+ thm_blank_panel,fgs_name+'-t89','th'+probe+'!Cfgs!Cgsm!C-t89!C[nT]',labels=['Bx','By','Bz']
 
 endelse
 
@@ -510,16 +560,23 @@ var_string += ' ' + pee_vel_name+'+t'
 ;     * Note: You must interpolate the B data on the V times before
 ;       multiplying, even though they are at the same cadence.
 
-if tnames('th'+probe+'_peif_velocity_gsm') && $
-   tnames('th'+probe+'_fgs_gsm') then begin
+pei_vel_name='th'+probe+'_peif_velocity_gsm'
+if tnames(pei_vel_name) && $
+   tnames(fgs_name) then begin
 
-   
+   if use_dsl then begin
+     pei_vel_name_cotrans = pei_vel_name
+   endif else begin
+     pei_vel_name_cotrans = pei_vel_name + '_gsm'
+     thm_cotrans,pei_vel_name,out_c='gsm',out_suffix='_gsm'
+   endelse
+  
    ;this clipping fixes an artifact where interpolation sometimes causes
    ;unreasonably large or small values if the velocity times preceed or
    ;exceed the fgm times.
-   time_clip,'th'+probe+'_peif_velocity_gsm','th'+probe+'_fgs_gsm','th'+probe+'_fgs_gsm',/tvar,newname='vel_clip'
+   time_clip,pei_vel_name_cotrans,fgs_name,fgs_name,/tvar,newname='vel_clip'
 
-   tinterpol_mxn,'th'+probe+'_fgs_gsm','vel_clip',newname='bvinterpol'
+   tinterpol_mxn,fgs_name,'vel_clip',newname='bvinterpol'
 
    tcrossp, 'vel_clip', 'bvinterpol',newname='vxb';jmm,3-mar-2008, removed 'th'+probe
 
@@ -563,11 +620,11 @@ endelse
 ;     * Note: You must interpolate the B data on the Pi times before
 ;       multiplying, even though they are on the same cadence.
 
-if tnames('th'+probe+'_fgs_gsm') && $
+if tnames(fgs_name) && $
    tnames('th'+probe+'_peir_ptens') && $
    tnames('th'+probe+'_peer_ptens') then begin
 
-   get_data,'th'+probe+'_fgs_gsm',data=d_fgs
+   get_data,fgs_name,data=d_fgs
 
    get_data,'th'+probe+'_peir_ptens',data=d_peir
 

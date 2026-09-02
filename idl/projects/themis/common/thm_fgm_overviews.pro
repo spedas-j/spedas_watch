@@ -12,8 +12,8 @@
 ;       device(optional):switch to 'z' device for cron plotting
 ;
 ; $LastChangedBy: jwl $
-; $LastChangedDate: 2026-08-30 11:21:20 -0700 (Sun, 30 Aug 2026) $
-; $LastChangedRevision: 34830 $
+; $LastChangedDate: 2026-09-01 12:58:31 -0700 (Tue, 01 Sep 2026) $
+; $LastChangedRevision: 34860 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_fgm_overviews.pro $
 ;-
 
@@ -100,7 +100,9 @@ for i = 0L,n_elements(probe_list)-1L do begin
     endif
     
     sc = probe_list[i]          ;load routines can change this to an array
-    If(sc Eq 'e' And time_double(date) Ge time_double('2024-05-25')) Then Begin
+    tdbl = time_double(date)
+    If (sc Eq 'e' && time_double(date) Ge time_double('2024-05-25')) $
+      || (sc Eq 'a' && time_double(date) Ge time_double('2024-09-01')) && time_double(date) lt time_double('2026-04-16') Then Begin
       fgs_varname = 'th'+sc+'_fgs_dsl'
       fgl_varname = 'th'+sc+'_fgl_dsl'
       var_string1 += 'th'+sc+'_fgs_dsl '
@@ -111,23 +113,29 @@ for i = 0L,n_elements(probe_list)-1L do begin
       var_string1 += 'th'+sc+'_fgs_gse '
       var_string2 += ' sample_rate_'+sc + ' th'+sc+'_fgl_gse '
     endelse
+
 ;Adjust titles
     options, fgs_varname, 'ytitle', fgs_varname
     options, fgl_varname, 'ytitle', fgl_varname
 ;kill units in ytitles
     options, fgs_varname, 'ysubtitle', ''
     options, fgl_varname, 'ysubtitle', ''
+    options, fgs_varname, 'labels', ['Bx', 'By', 'Bz']
+    options, fgs_varname, 'labflag', 1
+    options, fgl_varname, 'labels', ['Bx', 'By', 'Bz']
+    options, fgl_varname, 'labflag', 1
+
 ;for recent THEMIS E FGS data, if there is an estimated Bz, put the Bz curve
 ;behind Bx and By. jmm, 2024-12-12
    If(sc Eq 'e' And time_double(date) Ge time_double('2024-05-25')) Then Begin
       thm_load_fgm, probe = sc, coord = 'dsl', suff = '_dsl', level = 'l1'
       thm_load_fit, probe = sc, coord = 'dsl', suff = '_dsl', level = 'l1' ;level 1 is default
       if ~is_string(tnames('th'+sc+'_fgl_dsl')) then begin
-        store_data,'th'+sc+'_fgl_dsl',data={x:time_double(date2)+findgen(2)*86400., y:[!VALUES.D_NAN,!VALUES.D_NAN]}
+        store_data,'th'+sc+'_fgl_dsl',data={x:time_double(date2)+findgen(2)*86400., y:transpose([[!VALUES.D_NAN,!VALUES.D_NAN,!VALUES.D_NAN],[!VALUES.D_NAN,!VALUES.D_NAN,!VALUES.D_NAN]])}
       endif
 
       if ~is_string(tnames('th'+sc+'_fgs_dsl')) then begin
-        store_data,'th'+sc+'_fgs_dsl',data={x:time_double(date2)+findgen(2)*86400., y:[!VALUES.D_NAN,!VALUES.D_NAN]}
+        store_data,'th'+sc+'_fgs_dsl',data={x:time_double(date2)+findgen(2)*86400., y:transpose([[!VALUES.D_NAN,!VALUES.D_NAN,!VALUES.D_NAN],[!VALUES.D_NAN,!VALUES.D_NAN,!VALUES.D_NAN]])}
       endif
 
 
@@ -135,11 +143,16 @@ for i = 0L,n_elements(probe_list)-1L do begin
       options, fgs_varname, 'ytitle', fgs_varname
       options, fgl_varname, 'ytitle', fgl_varname
       ;kill units in ytitles
-      options, fgs_varname, 'ysubtitle', 'DSL'
-      options, fgl_varname, 'ysubtitle', 'DSL'
+      options, fgs_varname, 'ysubtitle', ''
+      options, fgl_varname, 'ysubtitle', ''
 
       options, fgs_varname, 'indices', [2,0,1]
       options, fgl_varname, 'indices', [2,0,1]
+      options, fgs_varname, 'labels', ['Bx', 'By', 'Bz_est']
+      options, fgs_varname, 'labflag', 1
+      options, fgl_varname, 'labels', ['Bx', 'By', 'Bz_est']
+      options, fgl_varname, 'labflag', 1
+
 
 ;check for l1b data, if there is none yet, set Bz to NaN 
       If(~is_string(thm_l1b_check(date, sc))) Then Begin
@@ -150,7 +163,71 @@ for i = 0L,n_elements(probe_list)-1L do begin
          btmp.y[*, 2] = !values.f_nan
          store_data, 'th'+sc+'_fgl_dsl', data = btmp
       Endif
+   Endif else $
+     ;for recent THEMIS A FGS data, if there is an estimated Bz, put the Bz curve
+     ;behind Bx and By. jwl 2026-08-31
+     If(sc Eq 'a' And time_double(date) Ge time_double('2024-09-01')) and time_double(date) lt time_double('2026-04-16') Then Begin
+     thm_load_fgm, probe = sc, coord = 'dsl', suff = '_dsl', level = 'l1'
+     thm_load_fit, probe = sc, coord = 'dsl', suff = '_dsl', level = 'l1' ;level 1 is default
+     if ~is_string(tnames('th'+sc+'_fgl_dsl')) then begin
+       store_data,'th'+sc+'_fgl_dsl',data={x:time_double(date2)+findgen(2)*86400., y:transpose([[!VALUES.D_NAN,!VALUES.D_NAN,!VALUES.D_NAN],[!VALUES.D_NAN,!VALUES.D_NAN,!VALUES.D_NAN]])}
+     endif
+
+     if ~is_string(tnames('th'+sc+'_fgs_dsl')) then begin
+       store_data,'th'+sc+'_fgs_dsl',data={x:time_double(date2)+findgen(2)*86400., y:transpose([[!VALUES.D_NAN,!VALUES.D_NAN,!VALUES.D_NAN],[!VALUES.D_NAN,!VALUES.D_NAN,!VALUES.D_NAN]])}
+     endif
+
+
+     ;Adjust titles
+     options, fgs_varname, 'ytitle', fgs_varname
+     options, fgl_varname, 'ytitle', fgl_varname
+     ;kill units in ytitles
+     options, fgs_varname, 'ysubtitle', ''
+     options, fgl_varname, 'ysubtitle', ''
+
+     options, fgs_varname, 'indices', [2,0,1]
+     options, fgl_varname, 'indices', [2,0,1]
+     options, fgs_varname, 'labels', ['Bx', 'By', 'Bz_est']
+     options, fgs_varname, 'labflag', 1
+     options, fgl_varname, 'labels', ['Bx', 'By', 'Bz_est']
+     options, fgl_varname, 'labflag', 1
+
+
+     sensor_off = 0
+     tdbl=time_double(date)
+     sens_off_int1 = time_double(['2025-12-13','2026-01-15'])
+     sens_off_int2 = time_double(['2026-01-31','2026-02-25'])
+     sens_off_int3 = time_double(['2026-03-03','2026-03-23'])
+     sens_off_int4 = time_double(['2026-03-24','2026-04-16'])
+     if (tdbl ge sens_off_int1[0]) && (tdbl lt sens_off_int1[1]) then sensor_off = 1
+     if (tdbl ge sens_off_int2[0]) && (tdbl lt sens_off_int2[1]) then sensor_off = 1
+     if (tdbl ge sens_off_int3[0]) && (tdbl lt sens_off_int3[1]) then sensor_off = 1
+     if (tdbl ge sens_off_int4[0]) && (tdbl lt sens_off_int4[1]) then sensor_off = 1
+     if sensor_off then begin
+       ; Set all FGS components to NaN
+       get_data, fgs_varname, data = btmp
+       btmp.y[*, *] = !values.f_nan
+       store_data, fgs_varname, data = btmp
+       
+       ; Set all FGL components to NaN
+       get_data, fgl_varname, data = btmp
+       btmp.y[*, *] = !values.f_nan
+       store_data, fgl_varname, data = btmp
+     endif
+     options, fgs_varname, 'indices', [2,0,1]
+     options, fgl_varname, 'indices', [2,0,1]
+     
+     ;check for l1b data, if there is none yet, set Bz to NaN
+     If(~is_string(thm_l1b_check(date, sc))) Then Begin
+       get_data, 'th'+sc+'_fgs_dsl', data = btmp
+       btmp.y[*, 2] = !values.f_nan
+       store_data, 'th'+sc+'_fgs_dsl', data = btmp
+       get_data, 'th'+sc+'_fgl_dsl', data = btmp
+       btmp.y[*, 2] = !values.f_nan
+       store_data, 'th'+sc+'_fgl_dsl', data = btmp
+     Endif
    Endif
+
 endfor
 
 var_string = var_string1 + ' ' + var_string2
