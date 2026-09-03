@@ -204,8 +204,7 @@ use_dsl = 0
 
 fgs_name = 'th'+probe+'_fgs_gsm'
 
-If (probe Eq 'e' && time_double(date) Ge time_double('2024-06-01')) $
-  || (probe Eq 'a' && time_double(date) Ge time_double('2024-09-01') && time_double(date) lt time_double('2026-04-16')) Then Begin
+If fgm_bad_bz(probe=probe, date=date) then begin
 
   use_dsl=1
   thm_load_fit,probe=probe,coord='dsl',suffix='_dsl',level='l1'
@@ -239,7 +238,7 @@ if tnames(fgs_name) then begin
 ;for recent FGS data, if there is an estimated Bz, put the Bz curve
 ;behind Bx and By. jmm, 2024-12-12
 ;Set Bz to NaN if L1B data is not used, jmm, 2025-06-02
-   If(probe Eq 'e' And time_double(date) Ge time_double('2024-06-01')) Then Begin
+   If (probe Eq 'e' && fgm_bad_bz(probe=probe,date=date)) Then Begin
       options, fgs_name+'+t', 'indices', [2,0,1,3]
       get_data, 'th'+probe+'_fgl_l1b_bz', data = temp_bz
       If(~is_struct(temp_bz)) Then Begin ;reset Bz to zero
@@ -249,7 +248,7 @@ if tnames(fgs_name) then begin
          store_data, fgs_name+'+t', data = dbz
       Endif
    Endif else $
-     If(probe Eq 'a' And time_double(date) Ge time_double('2024-09-01')) and time_double(date) lt time_double('2026-04-16') Then Begin
+     If (probe Eq 'a' && fgm_bad_bz(probe=probe,date=date)) Then Begin
        options, fgs_name+'+t', 'indices', [2,0,1,3]
        get_data, 'th'+probe+'_fgl_l1b_bz', data = temp_bz
        If(~is_struct(temp_bz)) Then Begin ;reset Bz to zero
@@ -259,17 +258,7 @@ if tnames(fgs_name) then begin
          store_data, fgs_name+'+t', data = dbz
        Endif
 
-       sensor_off = 0
-       tdbl=time_double(date)
-       sens_off_int1 = time_double(['2025-12-13','2026-01-15'])
-       sens_off_int2 = time_double(['2026-01-31','2026-02-25'])
-       sens_off_int3 = time_double(['2026-03-03','2026-03-23'])
-       sens_off_int4 = time_double(['2026-03-24','2026-04-16'])
-       if (tdbl ge sens_off_int1[0]) && (tdbl lt sens_off_int1[1]) then sensor_off = 1
-       if (tdbl ge sens_off_int2[0]) && (tdbl lt sens_off_int2[1]) then sensor_off = 1
-       if (tdbl ge sens_off_int3[0]) && (tdbl lt sens_off_int3[1]) then sensor_off = 1
-       if (tdbl ge sens_off_int4[0]) && (tdbl lt sens_off_int4[1]) then sensor_off = 1
-       if sensor_off then begin
+       if fgm_sensor_off(probe=probe,date=date) then begin
          ; Set all FGS components to NaN
          get_data, fgs_name, data = btmp
          btmp.y[*, *] = !values.f_nan

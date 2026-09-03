@@ -44,8 +44,8 @@
 ;  This has replaced the older spd_ui_overplot.pro which was written specifically for GUI overview plots.
 ;
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2026-09-01 10:04:32 -0700 (Tue, 01 Sep 2026) $
-;$LastChangedRevision: 34857 $
+;$LastChangedDate: 2026-09-02 16:45:53 -0700 (Wed, 02 Sep 2026) $
+;$LastChangedRevision: 34868 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/themis/common/thm_gen_overplot.pro $
 ;-----------------------------------------------------------------------------------
 
@@ -266,7 +266,7 @@ if (index_fit[0] eq -1 or index_state[0] eq -1) then begin
 endif else begin
 ;for recent FGS data, if there is an estimated Bz, put the Bz curve
 ;behind Bx and By. jmm, 2024-12-12
-  If(sc[0] Eq 'e' And time_double(date) Ge time_double('2024-05-25')) Then Begin
+  If(sc[0] Eq 'e' && fgm_bad_bz(probe=sc[0],date=date)) Then Begin
      ; this is the varname that will be added to the list of vars to plot
      fgs_varname=thx+'_fgs'
      options, fgs_varname, 'indices', [2,0,1]
@@ -282,29 +282,11 @@ endif else begin
      options, fgs_varname, 'colors', [2, 4, 6]
 
   Endif else $
-  ; THEMIS-A FGM started having problems with Bz offsets after 2024-09-01, but seems to have recovered after 2026-04-15
-  ; after a long shutoff.  The sensor was powered down but the telemetry was still enabled, so there is some garbage data
-  ; that shouldn't be displayed.
-  ; The sensor-off intervals seem to be
-  ; 2025-12-13 - 2026-01-15
-  ; 2026-01-31 - 2026-02-25
-  ; 2026-03-03 - 2026-03-23
-  ; 2026-03-24 - 2026-04-16
-  If(sc[0] Eq 'a' And time_double(date) Ge time_double('2024-09-01')) and time_double(date) lt time_double('2026-04-16') Then Begin
+  If(sc[0] Eq 'a' && fgm_bad_bz(probe=sc[0],date=date)) then Begin
      ; this is the varname that will be added to the list of vars to plot
      fgs_varname=thx+'_fgs'
      options, fgs_varname, 'indices', [2,0,1]
-     sensor_off = 0
-     tdbl=time_double(date)
-     sens_off_int1 = time_double(['2025-12-13','2026-01-15'])
-     sens_off_int2 = time_double(['2026-01-31','2026-02-25'])
-     sens_off_int3 = time_double(['2026-03-03','2026-03-23'])
-     sens_off_int4 = time_double(['2026-03-24','2026-04-16'])
-     if (tdbl ge sens_off_int1[0]) && (tdbl lt sens_off_int1[1]) then sensor_off = 1
-     if (tdbl ge sens_off_int2[0]) && (tdbl lt sens_off_int2[1]) then sensor_off = 1
-     if (tdbl ge sens_off_int3[0]) && (tdbl lt sens_off_int3[1]) then sensor_off = 1
-     if (tdbl ge sens_off_int4[0]) && (tdbl lt sens_off_int4[1]) then sensor_off = 1
-     if sensor_off then begin
+     if fgm_sensor_off(probe=sc[0], date=date) then begin
        ; Set all components to NaN
        get_data, fgs_varname, data = btmp
        btmp.y[*, *] = !values.f_nan

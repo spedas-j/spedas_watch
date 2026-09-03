@@ -111,8 +111,8 @@
 ;                 conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-09-01 14:12:15 -0700 (Tue, 01 Sep 2026) $
-; $LastChangedRevision: 34861 $
+; $LastChangedDate: 2026-09-01 18:26:06 -0700 (Tue, 01 Sep 2026) $
+; $LastChangedRevision: 34864 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_d0_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
@@ -178,9 +178,6 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
   mincounts = (n_elements(mincounts) gt 0) ? float(mincounts[0]) : 3.
   bkg = (n_elements(bkg) gt 0) ? keyword_set(bkg) : 1
   symthick = (n_elements(thick) gt 0) ? thick[0] : 2.
-
-  p = findgen(49)*(2.*!pi/49.)
-  usersym, cos(p), sin(p), thick=symthick
 
   line_colors, 11, previous_lines=plines
   cols = [1, 2, 3, 5, 4, 6, 1, 2]  ; line color for each mass bin
@@ -600,15 +597,14 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
       offset = 4.0
       if (showdir) then begin
         if (gotspice) then begin
-          oplot, [sphi[i]], [sthe[i]], psym=8, symsize=ssize, color=1, thick=symthick
-          oplot, [sphi[i]], [sthe[i]], psym=3, symsize=ssize, color=1, thick=symthick
+          xyouts, [sphi[i]], [sthe[i]-offset], "!9n!1H", charsize=ssize, charthick=2, color=1, align=0.5
           msphi = (sphi[i] gt 0.) ? sphi[i] - 180. : sphi[i] + 180.
-          oplot, [msphi], [-sthe[i]], psym=1, symsize=ssize, color=1, thick=symthick
+          xyouts, [msphi], [-sthe[i]-offset+1.0], "+", charsize=ssize, charthick=2, color=1, align=0.5
         endif
         if (gotmag) then begin
-          xyouts, [bphi[i]-4.], [bthe[i]-offset], "+B", charsize=ssize, charthick=2, color=!p.color, align=0.5
+          xyouts, [bphi[i]-offset], [bthe[i]-offset], "+B", charsize=ssize, charthick=2, color=!p.color, align=0.5
           mbphi = (bphi[i] gt 0.) ? bphi[i] - 180. : bphi[i] + 180.
-          xyouts, [mbphi-4.], [-bthe[i]-offset], "-B", charsize=ssize, charthick=2, color=!p.color, align=0.5
+          xyouts, [mbphi-offset], [-bthe[i]-offset], "-B", charsize=ssize, charthick=2, color=!p.color, align=0.5
         endif
       endif
       xyouts, 93., 0., 'H A R N E S S', align=0.5, orient=90, charsize=1.5
@@ -649,9 +645,10 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
                      xrange=[0.8,80.], /xlog, /xsty, yrange=mrange, /ylog, /ysty, $
                      ytickformat='mvn_ql_pfp_tplot_ytickname_plus_log'
       errplot, u, cnt1-dcnt1, cnt1+dcnt1, width=0
-      xyouts, u[0], 0.5*cnt1[0], sname[0], align=0.5, charsize=1.2
-      xyouts, u[4], 0.5*cnt1[4], sname[4], align=0.5, charsize=1.2
-      xyouts, u[5], 0.5*cnt1[5], sname[5], align=0.5, charsize=1.2
+      cnt2 = 0.5*cnt1
+      if (cnt2[0] gt mrange[0]) then xyouts, u[0], cnt2[0], sname[0], align=0.5, charsize=1.2
+      if (cnt2[4] gt mrange[0]) then xyouts, u[4], cnt2[4], sname[4], align=0.5, charsize=1.2
+      if (cnt2[5] gt mrange[0]) then xyouts, u[5], cnt2[5], sname[5], align=0.5, charsize=1.2
     endif
 
     wset, Twin
