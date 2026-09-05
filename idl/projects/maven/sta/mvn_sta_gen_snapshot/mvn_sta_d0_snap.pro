@@ -111,8 +111,8 @@
 ;                 conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-09-01 18:26:06 -0700 (Tue, 01 Sep 2026) $
-; $LastChangedRevision: 34864 $
+; $LastChangedDate: 2026-09-03 15:47:55 -0700 (Thu, 03 Sep 2026) $
+; $LastChangedRevision: 34871 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_d0_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
@@ -180,7 +180,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
   symthick = (n_elements(thick) gt 0) ? thick[0] : 2.
 
   line_colors, 11, previous_lines=plines
-  cols = [1, 2, 3, 5, 4, 6, 1, 2]  ; line color for each mass bin
+  cols = [1, 2, 3, 5, 4, 6, 5, 3]  ; line color for each mass bin
 
   if (size(apid,/type) eq 7) then begin
     apid = strlowcase(apid[0])
@@ -273,7 +273,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
 
   tplot_names, /current, names=names, /silent
   addnames = ['']
-  sname = ['H+', 'He++', 'M4+', 'C+', 'O+', 'O2+', 'CO2+', 'M74+']
+  sname = ['H+', 'He++', 'M4+', 'M9+', 'O+', 'O2+', 'CO2+', 'M75+']
   var = 'sta_' + apid + '_theta_' + sname  ; fov panel
   var1 = 'sta_' + apid + '_edge_' + sname  ; edge metric
   var2 = 'sta_' + apid + '_cntr_' + sname  ; center metric
@@ -337,6 +337,8 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
       store_data, vname, data={x:time, y:metric2}
       ylim, vname, 0., 1., 0
       options, vname, 'ytitle', 'sta ' + apid + ' ' + sname[j+4] + '!cCntr Metric '
+      options, vname, 'yticks', 2
+      options, vname, 'yminor', 5
       options, vname, 'constant', 0.5
     endif
   endfor
@@ -546,7 +548,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     ztot = total(zthe, /nan)
     m2 = (ztot ge 4.*mincounts) ? total(zthe[1:2], /nan)/ztot : !values.f_nan
 
-; Add padding for the spectrogram so it displays properly
+; Add padding for the spectrogram and histograms so they display properly
 
     xp = replicate(!values.f_nan, 18)
     yp = replicate(!values.f_nan, 6)
@@ -556,6 +558,9 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     dzthep = yp
     zphip = xp
     dzphip = xp
+    up = replicate(!values.f_nan, 10)
+    cnt1p = up
+    dcnt1p = up
 
     xp[1:16] = x
     xp[0] = xp[1] - (xp[2] - xp[1])
@@ -569,6 +574,11 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     dzthep[1:4] = dzthe
     zphip[1:16] = zphi
     dzphip[1:16] = dzphi
+    up[1:8] = u
+    up[0] = (up[1] - (up[2] - up[1])) > 0.001
+    up[9] = up[8] + (up[8] - up[7])
+    cnt1p[1:8] = cnt1
+    dcnt1p[1:8] = dcnt1
 
     x = temporary(xp)
     y = temporary(yp)
@@ -578,11 +588,16 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     dzthe = temporary(dzthep)
     zphi = temporary(zphip)
     dzphi = temporary(dzphip)
+    u = temporary(up)
+    cnt1 = temporary(cnt1p)
+    dcnt1 = temporary(dcnt1p)
 
     hpeak = 10.^(ceil(alog10(max(z,/nan) > max(zthe,/nan) > max(zphi,/nan))) > 4)
     hrange = [hpeak/1e4, hpeak]
     zpeak = 10.^(round(alog10(max(z,/nan) > max(zthe,/nan) > max(zphi,/nan))) > 4)
     str_element, lim, 'zrange', [zpeak/1e4, zpeak], /add
+    mpeak = 10.^(ceil(alog10(max(cnt1,/nan))) > 4)
+    mrange = [mpeak/1e4, mpeak]
 
 ; Put up the snapshots
 
@@ -594,17 +609,16 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
       str_element, lim, 'title', apid + ' : ' + tmsg, /add
       specplot, x, y, z, limits=lim
       ssize = 2.0
-      offset = 4.0
       if (showdir) then begin
         if (gotspice) then begin
-          xyouts, [sphi[i]], [sthe[i]-offset], "!9n!1H", charsize=ssize, charthick=2, color=1, align=0.5
+          xyouts, [sphi[i]], [sthe[i]-4.0], "!9n!1H", charsize=ssize, charthick=2, color=1, align=0.5
           msphi = (sphi[i] gt 0.) ? sphi[i] - 180. : sphi[i] + 180.
-          xyouts, [msphi], [-sthe[i]-offset+1.0], "+", charsize=ssize, charthick=2, color=1, align=0.5
+          xyouts, [msphi+0.5], [-sthe[i]-3.5], "+", charsize=ssize, charthick=2, color=1, align=0.5
         endif
         if (gotmag) then begin
-          xyouts, [bphi[i]-offset], [bthe[i]-offset], "+B", charsize=ssize, charthick=2, color=!p.color, align=0.5
+          xyouts, [bphi[i]-4.5], [bthe[i]-4.5], "+B", charsize=ssize, charthick=2, color=!p.color, align=0.5
           mbphi = (bphi[i] gt 0.) ? bphi[i] - 180. : bphi[i] + 180.
-          xyouts, [mbphi-offset], [-bthe[i]-offset], "-B", charsize=ssize, charthick=2, color=!p.color, align=0.5
+          xyouts, [mbphi-5.0], [-bthe[i]-4.5], "-B", charsize=ssize, charthick=2, color=!p.color, align=0.5
         endif
       endif
       xyouts, 93., 0., 'H A R N E S S', align=0.5, orient=90, charsize=1.5
@@ -639,16 +653,14 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
 
     if (showmass) then begin
       wset,Mwin
-      mpeak = 10.^(ceil(alog10(max(cnt1,/nan))) > 4)
-      mrange = [mpeak/1e4, mpeak]
       plot, u, cnt1, psym=10, xtitle='Mass (amu)', ytitle='Counts', charsize=1.5, title=lim.title, $
-                     xrange=[0.8,80.], /xlog, /xsty, yrange=mrange, /ylog, /ysty, $
+                     xrange=[0.8,100.], /xlog, /xsty, yrange=mrange, /ylog, /ysty, $
                      ytickformat='mvn_ql_pfp_tplot_ytickname_plus_log'
       errplot, u, cnt1-dcnt1, cnt1+dcnt1, width=0
       cnt2 = 0.5*cnt1
-      if (cnt2[0] gt mrange[0]) then xyouts, u[0], cnt2[0], sname[0], align=0.5, charsize=1.2
-      if (cnt2[4] gt mrange[0]) then xyouts, u[4], cnt2[4], sname[4], align=0.5, charsize=1.2
-      if (cnt2[5] gt mrange[0]) then xyouts, u[5], cnt2[5], sname[5], align=0.5, charsize=1.2
+      if (cnt2[1] gt mrange[0]) then xyouts, u[1], cnt2[1], sname[0], align=0.5, charsize=1.2
+      if (cnt2[5] gt mrange[0]) then xyouts, u[5], cnt2[5], sname[4], align=0.5, charsize=1.2
+      if (cnt2[6] gt mrange[0]) then xyouts, u[6], cnt2[6], sname[5], align=0.5, charsize=1.2
     endif
 
     wset, Twin
