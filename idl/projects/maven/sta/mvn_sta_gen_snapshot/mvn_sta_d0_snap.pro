@@ -51,8 +51,8 @@
 ;                            0         1.04            H+
 ;                            1         2.13            He++, H2+
 ;                            2         4.49
-;                            3         9.10            C+ (?)
-;                            4        16.89            O+, OH+
+;                            3         9.10
+;                            4        16.89            O+
 ;                 default -> 5        31.44            O2+
 ;                            6        45.73            CO2+
 ;                            7        74.84
@@ -83,7 +83,7 @@
 ;                 magnetic field in the deflector tplot panels and the az-el 
 ;                 snapshots.  Default = 1 (yes).
 ;
-;       SHOWMASS: Show the mass distribution in a separate window.
+;       SHOWMASS: Show the mass distribution in a separate window.  Default = 1.
 ;
 ;       MINCOUNTS: Minimum number of counts/deflection bin to calculate metrics.
 ;                  Use this to mask values with poor statistics.  Default = 3.
@@ -111,8 +111,8 @@
 ;                 conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-09-03 15:47:55 -0700 (Thu, 03 Sep 2026) $
-; $LastChangedRevision: 34871 $
+; $LastChangedDate: 2026-09-04 18:54:59 -0700 (Fri, 04 Sep 2026) $
+; $LastChangedRevision: 34874 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_d0_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
@@ -169,14 +169,14 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
   if (n_elements(navg) gt 0) then k = (round(navg[0]) - 1)/2 > 0 else k = 0
   npts = keyword_set(sum) ? 2 : 1
   keep = keyword_set(keep)
+  tmark = keyword_set(tmark)
   dx = (n_elements(dx) gt 0) ? fix(dx[0]) : 10
   dy = (n_elements(dy) gt 0) ? fix(dy[0]) : 10
   secondary = (n_elements(secondary) gt 0) ? keyword_set(secondary) : 1
   showdir = (n_elements(showdir) gt 0) ? keyword_set(showdir) : 1
-  showmass = keyword_set(showmass)
-  tmark = keyword_set(tmark)
-  mincounts = (n_elements(mincounts) gt 0) ? float(mincounts[0]) : 3.
+  showmass = (n_elements(showmass) gt 0) ? keyword_set(showmass) : 1
   bkg = (n_elements(bkg) gt 0) ? keyword_set(bkg) : 1
+  mincounts = (n_elements(mincounts) gt 0) ? float(mincounts[0]) : 3.
   symthick = (n_elements(thick) gt 0) ? thick[0] : 2.
 
   line_colors, 11, previous_lines=plines
@@ -646,7 +646,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
                      yrange=hrange, /ylog, /ysty, title=lim.title, xmargin=[10,12], $
                      xtickv=[-180,-90,0,90,180], ytickformat='mvn_ql_pfp_tplot_ytickname_plus_log'
       errplot, x, zphi-dzphi, zphi+dzphi, width=0
-      xyouts, 93., 100., 'H A R N E S S', align=0.5, orient=90, charsize=1.5
+      xyouts, 93., 100.*hrange[0], 'H A R N E S S', align=0.5, orient=90, charsize=1.5
 
       str_element, lastcut, 'zphi', zphi, /add
       str_element, lastcut, 'dzphi', dzphi, /add
@@ -654,7 +654,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     if (showmass) then begin
       wset,Mwin
       plot, u, cnt1, psym=10, xtitle='Mass (amu)', ytitle='Counts', charsize=1.5, title=lim.title, $
-                     xrange=[0.8,100.], /xlog, /xsty, yrange=mrange, /ylog, /ysty, $
+                     xrange=[0.7,100.], /xlog, /xsty, yrange=mrange, /ylog, /ysty, $
                      ytickformat='mvn_ql_pfp_tplot_ytickname_plus_log'
       errplot, u, cnt1-dcnt1, cnt1+dcnt1, width=0
       cnt2 = 0.5*cnt1
