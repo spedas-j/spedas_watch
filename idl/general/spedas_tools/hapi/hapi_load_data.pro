@@ -51,8 +51,8 @@
 ;         
 ;
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2026-09-11 11:41:09 -0700 (Fri, 11 Sep 2026) $
-;$LastChangedRevision: 34888 $
+;$LastChangedDate: 2026-09-12 13:00:49 -0700 (Sat, 12 Sep 2026) $
+;$LastChangedRevision: 34890 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/general/spedas_tools/hapi/hapi_load_data.pro $
 ;-
 
@@ -296,6 +296,9 @@ pro hapi_load_data, trange=trange, capabilities=capabilities, catalog=catalog, i
             store_data, tname, data={x: (variables[var_idx])['epoch'], y: (variables[var_idx])['data'], v: (variables[var_idx])['v']}
           endelse
           options, tname, 'spec', 1, /def
+          ; Some data sets may have out-of-order spectrogram bins
+          ; We will pre-emptively set the sort_spec_bins option to ensure that they're plotted correctly.  Harmless if not needed...
+          options, tname, 'sort_spec_bins', 1, /def
         endif else begin
           store_data, tname, data={x: (variables[var_idx])['epoch'], y: (variables[var_idx])['data']}
         endelse
