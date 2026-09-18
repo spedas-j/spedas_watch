@@ -43,6 +43,13 @@
 ;  and drag for a movie effect.  Click the right mouse button at any 
 ;  time to exit.
 ;
+;  Note:  The solid angle subtended by az-el bins varies as cos(el).
+;  Dividing elevation in one hemisphere into four 22.5-degree bins, the
+;  relative solid angles starting at the equator and going poleward are:
+;  0.98, 0.83, 0.56, and 0.20.  STATIC measures 70% of the sky for ions 
+;  up to 4 keV (two elevation bins per hemisphere for the d0/d1 data).  
+;  The field of view shrinks at higher energies.
+;
 ;USAGE:
 ;  mvn_sta_d0_snap
 ;
@@ -117,8 +124,9 @@
 ;
 ;       NOSNAP:   Just create the tplot variables and metrics and return.
 ;
-;       NOGUFF:   Don't ask questions.  Just do anything the routine thinks
-;                 is needed.
+;       NOGUFF:   Don't ask questions.  Just let the routine do anything it
+;                 thinks is necessary.  This could include reinitializing
+;                 SPICE, reloading data, and regenerating tplot variables.
 ;
 ;       Passes many keywords to WIN (e.g. MONITOR, DX, DY, etc.).  If WIN is
 ;       enabled (win, /config), then by default the snapshot window will be 
@@ -139,8 +147,8 @@
 ;                 conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-09-15 15:46:01 -0700 (Tue, 15 Sep 2026) $
-; $LastChangedRevision: 34902 $
+; $LastChangedDate: 2026-09-17 10:39:15 -0700 (Thu, 17 Sep 2026) $
+; $LastChangedRevision: 34907 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_d0_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
@@ -293,7 +301,7 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
         cspice_spkezr, 'MAVEN', et, 'MAVEN_SSO', 'NONE', 'Mars', state, ltime
         mso = state[0:2,*]/R_vol  ; MSO cartesian coordinates in Mars radii
 
-        undefine, sun
+        undefine, sun, state
         redraw = 1
       endif
     endif else print,"  Insufficient SPICE coverage to calculate Sun angles."

@@ -1,8 +1,13 @@
 ;+
 ;PROCEDURE:   mvn_cio_bar
 ;PURPOSE:
-;  Creates a colored bar showing times when the cold ion configuration
-;  geometry is partially of completely achieved:
+;  Creates a color bar showing when the cold ion configuration geometry is
+;  partially of completely achieved:
+;
+;      blank  = neither is optimized or s/c not in CIO region of space
+;      blue   = only SWEA is optimized
+;      yellow = only STATIC is optimized
+;      red    = both SWEA and STATIC are optimized
 ;
 ;  Assumes that SPICE is loaded and maven_orbit_tplot has been run.
 ;
@@ -21,17 +26,21 @@
 ;
 ;       DELTA_T:       Time resolution for the bar.  Default = 10 sec.
 ;
+;       KEY:           Print the color key and return.
+;
 ;       Note: Color table is internal to the tplot variable and does not affect
 ;             the user's environment.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-09-15 09:36:49 -0700 (Tue, 15 Sep 2026) $
-; $LastChangedRevision: 34899 $
+; $LastChangedDate: 2026-09-16 16:13:22 -0700 (Wed, 16 Sep 2026) $
+; $LastChangedRevision: 34904 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/maven_orbit_tplot/mvn_cio_bar.pro $
 ;
 ;CREATED BY:    David L. Mitchell
 ;-
-pro mvn_cio_bar, pans=bname, color_table=ctab, color_reverse=crev, delta_t=dt
+pro mvn_cio_bar, pans=bname, color_table=ctab, color_reverse=crev, delta_t=dt, key=key
+
+  if keyword_set(key) then goto, printkey
 
 ; Color table and time resolution
 
@@ -59,20 +68,20 @@ pro mvn_cio_bar, pans=bname, color_table=ctab, color_reverse=crev, delta_t=dt
 ; Test for the CIO configuration
 
   npts = n_elements(sthe_swe.x)
-  y = replicate(0,npts,2)              ; black = neither is optimized
+  y = replicate(!values.f_nan,npts,2)   ; blank = neither is optimized
 
   indx = where(abs(sthe_swe.y - 45) lt 5, count)
-  if (count gt 0) then y[indx,*] = 1   ; blue = only SWEA is optimized
+  if (count gt 0) then y[indx,*] = 1.   ; blue = only SWEA is optimized
 
   indx = where((abs(sthe_app.y) le 5) and (abs(rthe_app.y) le 10), count)
-  if (count gt 0) then y[indx,*] = 2   ; yellow = only STATIC is optimized (no twist)
+  if (count gt 0) then y[indx,*] = 2.   ; yellow = only STATIC is optimized (no twist)
 
   indx = where((abs(sthe_swe.y - 45) lt 5) and (abs(sthe_app.y) le 5) and $
                (abs(rthe_app.y) le 10), count)
-  if (count gt 0) then y[indx,*] = 3   ; red = both STATIC and SWEA are optimized
+  if (count gt 0) then y[indx,*] = 3.   ; red = both STATIC and SWEA are optimized
 
   indx = where((alt lt 1000.) or (mso_x gt 0.), count)
-  if (count gt 0L) then y[indx,*] = 0  ; black = spacecraft not in CIO region of space
+  if (count gt 0L) then y[indx,*] = !values.f_nan  ; spacecraft not in CIO region of space
 
 ; Make the CIO bar
 
@@ -91,5 +100,17 @@ pro mvn_cio_bar, pans=bname, color_table=ctab, color_reverse=crev, delta_t=dt
   options,bname,'xstyle',4
   options,bname,'ystyle',4
   options,bname,'no_color_scale',1
+
+; Print out the color key
+
+printkey:
+
+  print,''
+  print,'Cold Ion Outflow bar color key:'
+  print,'  blank  = neither is optimized or s/c not in CIO region of space'
+  print,'  blue   = only SWEA is optimized'
+  print,'  yellow = only STATIC is optimized'
+  print,'  red    = both SWEA and STATIC are optimized'
+  print,''
 
 end
