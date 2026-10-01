@@ -13,8 +13,8 @@
 ;     https://github.com/spedas/bleeding_edge/issues
 ;
 ;$LastChangedBy: jwl $
-;$LastChangedDate: 2026-09-29 15:16:55 -0700 (Tue, 29 Sep 2026) $
-;$LastChangedRevision: 34923 $
+;$LastChangedDate: 2026-09-29 15:58:24 -0700 (Tue, 29 Sep 2026) $
+;$LastChangedRevision: 34925 $
 ;$URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/mms/examples/advanced/mms_part_getspec_adv_crib.pro $
 ;-
 
@@ -102,8 +102,8 @@ mms_load_fgm, probe=1, trange=trange, data_rate='brst', level='l2', $
               varformat='*_fgm_b_gse_*', /time_clip
 mms_load_edp, probe=1, trange=trange, data_rate='brst', level='l2', $
               datatype='scpot', varformat='*_edp_scpot_*', /time_clip
-tcopy, 'mms1_fgm_b_gse_brst_l2_bvec', 'mms1_custom_fgm_b_gse_brst_l2_bvec'
-tcopy, 'mms1_edp_scpot_brst_l2', 'mms1_custom_edp_scpot_brst_l2'
+copy_data, 'mms1_fgm_b_gse_brst_l2_bvec', 'mms1_custom_fgm_b_gse_brst_l2_bvec'
+copy_data, 'mms1_edp_scpot_brst_l2', 'mms1_custom_edp_scpot_brst_l2'
 
 mms_part_getspec, trange=trange, instrument='fpi', species='e', probe=1, $
                   data_rate='brst', level='l2', output='pa moments', $
@@ -117,7 +117,7 @@ stop
 ; vel_name is used when subtracting the bulk velocity from the distribution
 mms_load_fpi, probe=1, trange=trange, data_rate='brst', level='l2', $
               datatype='dis-moms', /time_clip
-tcopy, 'mms1_dis_bulkv_gse_brst', 'mms1_custom_dis_bulkv_gse_brst'
+copy_data, 'mms1_dis_bulkv_gse_brst', 'mms1_custom_dis_bulkv_gse_brst'
 
 mms_part_getspec, trange=trange, instrument='fpi', species='i', probe=1, $
                   data_rate='brst', level='l2', output='energy pa', $
