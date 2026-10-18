@@ -1,6 +1,7 @@
 ---
 related_files:
   - projects/themis/AGENTS.md
+  - projects/themis/ground/obsolete/AGENTS.md
   - projects/themis/ground/thm_load_gmag.pro
   - projects/themis/ground/thm_load_greenland_gmag.pro
   - projects/themis/ground/thm_load_carisma_gmag.pro
