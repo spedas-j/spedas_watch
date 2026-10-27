@@ -147,8 +147,8 @@
 ;                 conflict, keywords set explicitly take precedence over KEY.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-09-30 20:09:50 -0700 (Wed, 30 Sep 2026) $
-; $LastChangedRevision: 34934 $
+; $LastChangedDate: 2026-10-26 12:28:29 -0700 (Mon, 26 Oct 2026) $
+; $LastChangedRevision: 35014 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/sta/mvn_sta_gen_snapshot/mvn_sta_d0_snap.pro $
 ;
 ;BASED ON:      tsnap.pro
@@ -588,7 +588,9 @@ pro mvn_sta_d0_snap, navg=navg, sum=sum, apid=apid, mass=mass, tmass=tmass, eran
     if (count eq 0L) then addnames = [addnames, vname]
   endif
 
-  if (n_elements(addnames) gt 1L) then tplot, addnames[1:*], /add else if (redraw) then tplot
+  tplot_options, get=topt
+  str_element, topt, 'varnames', success=gotvars
+  if (n_elements(addnames) gt 1L) then tplot, addnames[1:*], add=gotvars else if (redraw) then tplot
 
   result = {time:time, edge_el:metric1, cntr_el:metric2, cntr_az:metric3, species:sname[tmass], $
             mbin:tmass, erange:erange, apid:apid}

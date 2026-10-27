@@ -35,8 +35,8 @@
 ;                      Default = 'calif_dave@icloud.com'
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-03-19 15:27:07 -0700 (Thu, 19 Mar 2026) $
-; $LastChangedRevision: 34278 $
+; $LastChangedDate: 2026-10-26 11:44:25 -0700 (Mon, 26 Oct 2026) $
+; $LastChangedRevision: 35012 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_cio_save.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -57,7 +57,7 @@ pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel, L3
 
   dpath = root_data_dir() + 'maven/data/sci/sta/l3/cio/'
   froot = 'mvn_sta_cio_'
-  version = '_v03'  ; iv4 background removal, L3 densities, and latest proxies
+  version = '_v04'  ; iv4 background removal, L3 densities, latest proxies, and FOV metrics
   oneday = 86400D  ; process one day at a time
 
   case n_elements(trange) of
@@ -117,7 +117,7 @@ pro mvn_sta_cio_save, trange, ndays, doden=doden, dotemp=dotemp, dovel=dovel, L3
       print,'CIO save file already exists.  Updating.'
       mvn_sta_cio_update, time  ; no need for this anymore
     endif else begin
-      mvn_swe_spice_init, /force, /list
+      mvn_swe_spice_init, trange=[(time - oneday),(time + 2D*oneday)], /force, /list
       mvn_swe_load_l0
       mvn_swe_stat, npkt=npkt, /silent
       if (npkt[2] gt 0L) then begin
