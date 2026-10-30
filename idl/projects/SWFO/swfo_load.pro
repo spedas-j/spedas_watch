@@ -95,8 +95,13 @@ pro swfo_load,make=make,trange=trange,types=types,current=current,datahash=datah
   ,mk_l1a = mk_l1a $
   ,mk_l1b = mk_l1b $
   ,mk_mag = mk_mag $
-  ,station=station, varnames=varnames, cal=cal
+  ,station=station, varnames=varnames, cal=cal, exec=exec
 
+  ; Starts the exec window for sweapsoc:
+  if keyword_set(exec) then begin
+    exec, exec_text="swfo_load, make=2, trange=systime(1)+[-1, 0]*3600d*24*8 & swfo_load, make=3, trange=systime(1)+[-1, 0]*3600d*24*8, /mk_mag, /mk_l0b, /mk_l1a, /mk_l1b", int=600
+    return
+  endif
 
   if isa(user_pass,'string') then setenv,'SWFO_USER_PASS='+user_pass
   if ~isa(cal,'dictionary') then cal = swfo_stis_inst_response_calval()
