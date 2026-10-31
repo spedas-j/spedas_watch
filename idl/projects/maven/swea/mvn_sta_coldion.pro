@@ -71,11 +71,8 @@
 ;    TAVG:          Time averaging window size.  Improves statistics and
 ;                   reduces run time.
 ;
-;    NOLOAD:        Skip the step of loading data.
-;
-;    L2_VERSION:    STATIC L2 version to use.  Default = 3.
-;                   The STATIC loader does not use file_retreive, so the normal version
-;                   control doesn't work.
+;    RELOAD:        Load STATIC data whether or not it's necessary.  Safest for
+;                   automated script.
 ;
 ;    PANS:          Named variable to hold a space delimited string containing
 ;                   the tplot variable(s) created.
@@ -87,8 +84,8 @@
 ;    SUCCESS:       Processing success flag.
 ;
 ; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2026-10-26 11:57:53 -0700 (Mon, 26 Oct 2026) $
-; $LastChangedRevision: 35013 $
+; $LastChangedDate: 2026-10-30 11:14:43 -0700 (Fri, 30 Oct 2026) $
+; $LastChangedRevision: 35027 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_sta_coldion.pro $
 ;
 ;CREATED BY:    David L. Mitchell
@@ -96,9 +93,8 @@
 pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
                      density=density, velocity=velocity, tavg=tavg, pans=pans, $
                      result_h=result_h, result_o1=result_o1, result_o2=result_o2, $
-                     noload=noload, temperature=temperature, reset=reset, L3=L3, $
-                     frame=frame, doplot=doplot, success=success, reload=reload, $
-                     l2_version=l2_version
+                     reload=reload, temperature=temperature, reset=reset, L3=L3, $
+                     frame=frame, doplot=doplot, success=success
 
   common coldion, cio_h, cio_o1, cio_o2
   common mvn_sta_kk3_anode, kk3_anode
@@ -127,8 +123,6 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
   doden = keyword_set(density)
   dotmp = keyword_set(temperature)
   useL3 = keyword_set(L3)
-  ivlev = 4  ; STATIC background subtraction level (should be >= 2)
-  l2_v = keyword_set(l2_version) ? l2_version[0] : 3
 
 ; Use STATIC L3 densities and temperatures if possible (these use IV4)
 ;   five species (m/q): 1, 2, 16, 32, 44
@@ -234,8 +228,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
   if (gotc6) then indx = where((time_c6 gt trange[0]) and (time_c6 lt trange[1]), nc6) else nc6 = 0
   if keyword_set(reload) then nc6 = 0
   if (nc6 lt 10) then begin
-    if (l2_v gt 2) then mvn_sta_l2_load, sta_apid=['c0','c6','c8'], l2_version=l2_v $
-                   else mvn_sta_l2_load, sta_apid=['c0','c6','c8'], iv_level=ivlev, l2_version_in=l2_v
+    mvn_sta_l2_load, sta_apid=['c0','c6','c8'], l2_version=3
     str_element, mvn_c6_dat, 'time', time_c6, success=gotc6
     if (gotc6) then indx = where((time_c6 gt trange[0]) and (time_c6 lt trange[1]), nc6) else nc6 = 0
     if (nc6 lt 10) then begin
@@ -251,8 +244,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
   if (gotd0) then indx = where((time_d0 gt trange[0]) and (time_d0 lt trange[1]), nd0) else nd0 = 0
   if keyword_set(reload) then nd0 = 0
   if (nd0 lt 10) then begin
-    if (l2_v gt 2) then mvn_sta_l2_load, sta_apid=['d0'], l2_version_in=l2_v $
-                   else mvn_sta_l2_load, sta_apid=['d0'], iv_level=ivlev, l2_version_in=l2_v
+    mvn_sta_l2_load, sta_apid=['d0'], l2_version=3
     str_element, mvn_d0_dat, 'time', time_d0, success=gotd0
     if (gotd0) then indx = where((time_d0 gt trange[0]) and (time_d0 lt trange[1]), nd0) else nd0 = 0
     if (nd0 lt 10) then begin
@@ -268,8 +260,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
   if (gotd1) then indx = where((time_d1 gt trange[0]) and (time_d1 lt trange[1]), nd1) else nd1 = 0
   if keyword_set(reload) then nd1 = 0
   if (nd1 lt 10) then begin
-    if (l2_v gt 2) then mvn_sta_l2_load, sta_apid=['d1'], l2_version_in=l2_v $
-                   else mvn_sta_l2_load, sta_apid=['d1'], iv_level=ivlev, l2_version_in=l2_v
+    mvn_sta_l2_load, sta_apid=['d1'], l2_version=3
     str_element, mvn_d1_dat, 'time', time_d1, success=gotd1
     if (gotd1) then indx = where((time_d1 gt trange[0]) and (time_d1 lt trange[1]), nd1) else nd1 = 0
     if (nd1 lt 10) then begin
@@ -779,7 +770,7 @@ pro mvn_sta_coldion, beam=beam, potential=potential, adisc=adisc, parng=parng, $
 
 ; Field of view metrics
 
-  mvn_sta_d0_snap, apid=v_apid, result=fov, erange=e_arr[*,2], tmass=[0,4,5], /noguff, /nosnap
+  mvn_sta_d0_snap, apid=v_apid, result=fov, erange=e_arr[*,2], tmass=[0,4,5], /noload, /nosnap
 
   metric1 = smooth_in_time(fov.edge_el, fov.time, dt)
   str_element, result_h,  'metric1', interpol(metric1[*,0], fov.time, time), /add_replace
