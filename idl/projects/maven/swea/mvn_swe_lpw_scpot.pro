@@ -3,30 +3,16 @@
 ;       mvn_swe_lpw_scpot
 ; PURPOSE:
 ;
-;       !!! This routine could take a very long time to generate the data !!!
-;       !!! To load pre-generated data quickly, use 'mvn_swe_lpw_scpot_restore' !!!
-;
 ;       Empirically derives spacecraft potentials using SWEA/STA and LPW.
 ;       Inflection points in LPW I-V curves are tuned to positive and negative
 ;       spacecraft potentials estimated from SWEA/STA energy spectra
 ;       (mvn_swe_sc_pot, mvn_swe_sc_negpot, mvn_sta_scpot_load).
 ;
-;       Does not work in shadow.
-;
-;       For more information, see 
-;       http://research.ssl.berkeley.edu/~haraday/tools/mvn_swe_lpw_scpot.pdf
-;
 ; CALLING SEQUENCE:
 ;       timespan,'16-01-01',14   ;- make sure to set a long time range
 ;       mvn_swe_lpw_scpot
 ; OUTPUT TPLOT VARIABLES:
-;       mvn_swe_lpw_scpot :     best-estimate scpot data
-;                               (currently "mvn_swe_lpw_scpot_pol")
-;       mvn_swe_lpw_scpot_lin : spacecraft potentials derived from
-;                               linear fitting of Vswe v. -Vinfl
-;       mvn_swe_lpw_scpot_pol : spacecraft potentials derived from
-;                               2nd-order polynomial fitting of Vswe v. -Vinfl
-;       mvn_swe_lpw_scpot_pow : (obsolete)
+;       mvn_swe_lpw_scpot
 ; KEYWORDS:
 ;       trange: time range
 ;       norbwin: odd number of orbits used for Vswe-Vinfl fitting (Def. 37)
@@ -34,35 +20,27 @@
 ;                 (Def. 1e4)
 ;       maxgap: maximum time gap allowed for interpolation (Def. 257)
 ;       plot: if set, plot the time series and fitting
-;       noload: if set, use pre-existing input tplot variables:
-;               'swe_pos', 'mvn_lpw_swp1_IV'
 ;       vrinfl: voltage range for searching the inflection point
 ;               (Def. [-15,18])
 ;       ntsmo: time smooth width (Def. 3)
 ; NOTES:
-;       1) The data quality are not good before 2015-01-24.
-;       2) The peak fitting algorithm sometimes breaks down
-;          when multiple peaks are present in dI/dV curves.
-;          Check the quality flag: mvn_lpw_swp1_IV_vinfl_qflag
-;                                  1 = good, 0 = bad
-;          As a rule of thumb, the quality is generally good if flag > 0.8
-;          You may need caution if 0.5 < flag < 0.8 (check the consistency with SWEA spectra)
-;       3) Short time scale variations will be smoothed out by default.
-;          Setting ntsmo=1 will improve the time resolution
-;          at the expense of better statistics.
-;       4) Potential values between 0 and +3 V are interpolated
+;       1) The data quality is not good before 2015-01-24.
+;       2) Potential values between 0 and +3 V are interpolated
 ;          - they cannot be verified by SWEA measurements
+;       3) Does not work in shadow. All data in wake are masked.
 ; CREATED BY:
 ;       Yuki Harada on 2016-02-29
 ;       Major update on 2017-07-24 - incl. negative pot
+;       Major update on 2026-11-26 - finalize this data product after the end of mission
+;                                    improve V_infl determination procedure
 ;
-; $LastChangedBy: dmitchell $
-; $LastChangedDate: 2024-07-26 13:45:34 -0700 (Fri, 26 Jul 2024) $
-; $LastChangedRevision: 32769 $
+; $LastChangedBy: haraday $
+; $LastChangedDate: 2026-11-27 02:56:34 -0800 (Fri, 27 Nov 2026) $
+; $LastChangedRevision: 35071 $
 ; $URL: svn+ssh://thmsvn@ambrosia.ssl.berkeley.edu/repos/spdsoft/trunk/projects/maven/swea/mvn_swe_lpw_scpot.pro $
 ;-
 
-pro mvn_swe_lpw_scpot, trange=trange, norbwin=norbwin, minndata=minndata, maxgap=maxgap, plot=plot, noload=noload, vrinfl=vrinfl, ntsmo=ntsmo, angcorr=angcorr, novinfl=novinfl, icur_thld=icur_thld, swel0=swel0, figdir=figdir, atrtname=atrtname, scatdir=scatdir, thld_out=thld_out, l2iv=l2iv, alt_swepos=alt_swepos, alt_sweneg=alt_sweneg, alt_sta=alt_sta, good_qflag=good_qflag
+pro mvn_swe_lpw_scpot, trange=trange, norbwin=norbwin, minndata=minndata, maxgap=maxgap, plot=plot, noload=noload, vrinfl=vrinfl, ntsmo=ntsmo, icur_thld=icur_thld, figdir=figdir, scatdir=scatdir, alt_swepos=alt_swepos, alt_sweneg=alt_sweneg, alt_sta=alt_sta
 
 
 if size(figdir,/type) eq 0 then begin
@@ -73,23 +51,20 @@ endif
 
 ;;; set default parameters
 if ~keyword_set(norbwin) then norbwin = 37 ;- odd number
-if ~keyword_set(minndata) then minNdata = 1.e4
+if ~keyword_set(minndata) then minNdata = 1e4
 if ~keyword_set(maxgap) then maxgap = 257.
 if ~keyword_set(vrinfl) then vrinfl = [-15,18] ;- inflection point V range
 if ~keyword_set(ntsmo) then ntsmo = 3          ;- odd number, smooth IV curves in time
-if ~keyword_set(atrtname) then atrtname = 'mvn_lpw_atr_swp'
 if ~keyword_set(icur_thld) then icur_thld = -0.5 ;- 10^icur_thld drop from median -> invalid
-if ~keyword_set(thld_out) then thld_out = 2.5    ;- reject outliers of scatter plots
 if ~keyword_set(alt_swepos) then alt_swepos = [400,1e4] ;- alt range for SWE+
 if ~keyword_set(alt_sta) then alt_sta = [170,400]       ;- alt range for STA
 if ~keyword_set(alt_sweneg) then alt_sweneg = [0,170]   ;- alt range for SWE-
-if ~keyword_set(good_qflag) then good_qflag = .7
 
 tr = timerange(trange)
 
 orbdata = mvn_orbit_num()
 worb = where( orbdata.peri_time gt tr[0] $
-              and orbdata.peri_time+4.6*3600. lt tr[1] , nworb )
+              and orbdata.peri_time+4.6*3600d lt tr[1] , nworb )
 orbnums = orbdata[worb].num
 tperi0 = orbdata[worb].peri_time
 tperi1 = orbdata[worb+1].peri_time
@@ -106,14 +81,14 @@ if size(l2iv,/type) eq 0 then if tr[0] gt time_l2ok then l2iv = 1 else l2iv = 0
 
 ;;; load data
 if ~keyword_set(noload) then begin
-   maven_orbit_tplot, /current, /loadonly ;,result=scpos
+   maven_orbit_tplot, /loadonly
 
    if l2iv gt 0 then begin
+   ;;; load LPW L2 I-V data
       mvn_lpw_load_l2,'lpiv',/notplot
-      get_data,'mvn_lpw_lp_iv_l2',data=d,dtype=dtype
-      if dtype ne 0 then store_data,'mvn_lpw_swp1_IV',data={x:d.x,y:d.y,v:d.v}
    endif else begin
-   ;;; load LPW L0 data
+      ;;; load LPW L0 data
+      atrtname = 'mvn_lpw_atr_swp'
       tf = ['mvn_lpw_swp1_IV','mvn_lpw_swp1_mode',atrtname] ;- wanted tplot variables
       f = mvn_pfp_file_retrieve(/l0,trange=tr)
       if getenv('ROOT_DATA_DIR') eq '' then setenv,'ROOT_DATA_DIR='+root_data_dir() ;- for LPW loader
@@ -174,35 +149,38 @@ if ~keyword_set(noload) then begin
             endif
          endif
       endif
+      tplot_rename,'mvn_lpw_swp1_IV','mvn_lpw_lp_iv_l2'
    endelse
 
-   ;;; load SWEA data
-   if keyword_set(swel0) then mvn_swe_load_l0, tr $
-   else mvn_swe_load_l2, tr, prod=['svyspec'], ddd=angcorr  ; new syntax, DLM - 03/18/2024
-   mvn_swe_sumplot,/loadonly
-;   mvn_swe_sc_pot,angcorr=angcorr
-   mvn_scpot, comp=0, lpw=0, pospot=1, negpot=0, stapot=0, shapot=0, qlev=1, qint=8 ; bias=0.5 ;- recommended by Dave
-                                                                                    ; now applied in another routine
-                                                                                    ; DLM - 03/18/2024
-   tplot_rename,'pot_swepos','swe_pos' ;-  (v03_r00)
-   mvn_swe_sc_negpot
-   mvn_sta_l2_load, sta_apid=['c6']
-   mvn_sta_l2_tplot, /replace
+   ;;; load scpots (pregenerated and compiled)
+   mvn_scpot_restore,/tplot
+
+   ;;; load data for summary plots
+   if keyword_set(plot) then begin
+      mvn_sta_l2_load,sta_apid='c0'
+      mvn_sta_l2_tplot
+      mvn_swe_load_l2,apid=['a4']
+      mvn_swe_etspec,units='eflux'
+   endif
+
+   noload = 1
 endif                           ;- noload
 
 
 ;;; get LPW IV curves
-get_data,'mvn_lpw_swp1_IV',data=div,dtype=divtype
+get_data,'mvn_lpw_lp_iv_l2',data=div,dtype=divtype
 if divtype eq 0 then begin
    dprint,'No valid tplot variables for lpw iv'
    return
 endif
 
-;;; get S/C pot
+
+
+;;; get S/C pot and other data
 tscpot_all = [!values.d_nan]
 scpot_all = [!values.f_nan]
 get_data,'alt',data=dalt,dtype=dalttype
-get_data,'swe_pos',data=dvswe,dtype=dvswetype
+get_data,'pot_swepos_full',data=dvswe,dtype=dvswetype
 if dvswetype*dalttype ne 0 then begin
    alt = interp(dalt.y,dalt.x,dvswe.x,/no_ex,interp=600)
    w = where(finite(dvswe.y) and alt gt alt_swepos[0] and alt lt alt_swepos[1],nw)
@@ -211,7 +189,7 @@ if dvswetype*dalttype ne 0 then begin
       scpot_all = dvswe.y[w]
    endif
 endif
-get_data,'neg_pot',data=dvsweneg,dtype=dvswenegtype
+get_data,'pot_sweneg_full',data=dvsweneg,dtype=dvswenegtype
 if dvswenegtype*dalttype ne 0 then begin
    alt = interp(dalt.y,dalt.x,dvsweneg.x,/no_ex,interp=600)
    w = where(finite(dvsweneg.y) and (alt gt alt_sweneg[0] and alt lt alt_sweneg[1]) $
@@ -221,7 +199,7 @@ if dvswenegtype*dalttype ne 0 then begin
       scpot_all = [ scpot_all, dvsweneg.y[w] ]
    endif
 endif
-get_data,'mvn_sta_c6_scpot',data=dvsta,dtype=dvstatype
+get_data,'pot_staneg_full',data=dvsta,dtype=dvstatype
 if dvstatype*dalttype ne 0 then begin
    alt = interp(dalt.y,dalt.x,dvsta.x,/no_ex,interp=600)
    w = where(dvsta.y lt 0 and alt gt alt_sta[0] and alt lt alt_sta[1] ,nw)
@@ -229,6 +207,7 @@ if dvstatype*dalttype ne 0 then begin
       tscpot_all = [ tscpot_all, dvsta.x[w] ]
       scpot_all = [ scpot_all, dvsta.y[w] ]
    endif
+   store_data,'pot_staneg_full_abs',data={x:dvsta.x,y:-dvsta.y}
 endif
 scpot_all = scpot_all[sort(tscpot_all)]
 tscpot_all = tscpot_all[sort(tscpot_all)]
@@ -241,28 +220,21 @@ store_data,'scpot0_all',data={x:tscpot_all,y:scpot_all},dlim={colors:1}
 
 
 
-
 ;;; if plot, set up tplot options
 if keyword_set(plot) then begin
-   options,'swe_a4',zrange=[1.e5,1.e9],minzlog=1.e-30,yticklen=-.01,datagap=maxgap
-   options,'swe_pos',psym=3,constant=[3],yrange=[0,20]
-   store_data,'swe_comb',data=['swe_a4','swe_pos'], $
+   options,'mvn_swe_et_spec_svy',zrange=[1.e5,1.e9],minzlog=1.e-30,yticklen=-.01,datagap=maxgap
+   options,'pot_swepos_full',psym=3,constant=[3],yrange=[0,20]
+   store_data,'swe_comb',data=['mvn_swe_et_spec_svy','pot_swepos_full'], $
               dlim={yrange:[3,4627.5],ystyle:1}
-   options,'mvn_lpw_swp1_IV',spec=1,zrange=[-1.e-7,1.e-7],yrange=[-45,45],ystyle=1, $
-           yticklen=-.01,no_interp=1,ytitle='LPW!cswp1',datagap=maxgap
+   options,'mvn_lpw_lp_iv_l2',spec=1,zrange=[-1.e-7,1.e-7],yrange=[-45,45],ystyle=1, $
+           yticklen=-.01,no_interp=1,ytitle='LPW!cI-V',datagap=maxgap
    options,'alt2',panel_size=.5,ytitle='Alt!c[km]',ylog=1,yrange=[100,1e4], $
            constant=[alt_swepos,alt_sta,alt_sweneg]
-   options,'mvn_sta_c6_neg_scpot',colors=6
-   store_data,'sta_comb',data=['mvn_sta_c6_P1D_E','mvn_sta_c6_neg_scpot'], $
-              dlim={ytitle:'STA c6!cEnergy!c[eV]',yticklen:-.01,yrange:[0.164,30e3],minzlog:1e-30}
-   get_data,'mvn_lpw_swp1_mode',data=dmode,dtype=dtypemode
-   if dtypemode ne 0 then $
-      store_data,'mvn_lpw_swp1_mode_bar', $
-                 data={x:dmode.x,y:[[dmode.y],[dmode.y]],v:[0,1]}, $
-                 dlim={spec:1,panel_size:.1,no_color_scale:1,zrange:[0,15], $
-                       ytitle:'',yticks:1,yminor:1, $
-                       ytickname:[' ',' ']}
-   options,'neg_pot',colors=6,psym=1,symsize=.1
+   options,'pot_staneg_full_abs',colors=6
+   store_data,'sta_comb',data=['mvn_sta_c0_E','pot_staneg_full_abs'], $
+              dlim={ytitle:'STA c0!cEnergy!c[eV]',yticklen:-.01,yrange:[0.164,30e3],minzlog:1e-30}
+   options,'pot_staneg_full',colors=6,psym=1,symsize=.1
+   tplot_options,'xmargin',[14,12]
 endif                           ;- plot
 
 
@@ -276,7 +248,7 @@ vols = transpose(rebin( (findgen(128)+.5)/128.* 40.-20. , $
 vinfl = replicate(!values.f_nan,n_elements(div.x))
 vfloat = replicate(!values.f_nan,n_elements(div.x))
 cursmo = div.y*!values.f_nan
-chi2 = replicate(!values.f_nan,n_elements(div.x))
+
 
 ;;; check valid IV curves
 validiv = replicate(1b,n_elements(div.x))
@@ -295,32 +267,15 @@ for iperi=0,n_elements(tperi0)-1 do begin
    if nww eq 0 then continue
    validiv[ww] = 0b
 endfor
-
-
-;;; quick fix to erroneous I-V curves when the mode changes before
-;;; first atr info available in the beginning of the day
-get_data,'mvn_lpw_swp1_mode',data=dmode,dtype=dmodetype
-get_data,atrtname,data=datr,dtype=datrtype
-if dmodetype*datrtype ne 0 then begin
-   day0 = time_double(time_string(tr[0],tf='YYYY-MM-DD'))
-   day1 = time_double(time_string(tr[1],tf='YYYY-MM-DD'))
-   ndays = long((day1 - day0)/86400d) + 1
-   for iday=0,ndays-1 do begin
-      now = day0 + iday*86400d
-      w0 = where( datr.x gt now , nw0 )
-      w1 = where( dmode.x gt now , nw1 )
-      if nw0*nw1 eq 0 then continue
-      first_atr_time = datr.x[w0[0]]
-      w2 = where( dmode.y[w1] ne dmode.y[w1[0]] , nw2 )
-      if nw2 eq 0 then continue
-      first_mode_change_time = dmode.x[w1[w2[0]]]
-      if first_atr_time ge first_mode_change_time-1d then begin
-         w = where( div.x gt now and div.x lt first_mode_change_time , nw )
-         if nw gt 0 then validiv[w] = 0b
-      endif
-   endfor
-endif
-
+;;; filter out high-altitude I-V curves with spurious peaks
+alt_iv = interp(dalt.y,dalt.x,div.x,/no_ex,interp=600)
+for it=0,n_elements(div.x)-1 do begin
+   if alt_iv[it] lt 2000 then continue                     ;- high alt.
+   w = where( div.y[it,1:(-1)] gt 2e-7 $                   ;- too high positive currents
+              and div.y[it,1:(-1)]/div.y[it,0:(-2)] gt 2 $ ;- too large jump
+              , nw )
+   if nw gt 0 then validiv[it] = 0
+endfor
 
 
 ;;; loop through time steps
@@ -363,101 +318,77 @@ for it=(ntsmo-1)/2,n_elements(div.x)-(ntsmo-1)/2-1 do begin
    vol = uvol
    cur = ucur
    if n_elements(vol) lt 5 then continue
-   der = deriv(vol,cur)
+   
+   vol0 = vol
+   cur0 = cur
 
-   ;;; smooth high-res noisy area
-   w = where( abs(vol) lt 5 and (abs(vol-shift(vol,1)) lt .2 $
-                                 or abs(vol-shift(vol,-1)) lt .2) ,nw)
-   if nw gt 3 and max(vol[w])-min(vol[w]) gt .6 then begin
-      cur2 = time_average(vol[w],cur[w],newt=vol2,tr=minmax(vol[w]),res=.2)
-      der2 = deriv(vol2,cur2)
-      cur[w[1]:w[nw-2]] = interp(cur2,vol2,vol[w[1]:w[nw-2]])
-      der[w[1]:w[nw-2]] = interp(der2,vol2,vol[w[1]:w[nw-2]])
-   endif
+   ;;; oversample into regular bins at the minimum resolution
+   dvol = min(vol0[1:(-1)]-vol0[0:(-2)])
+   vol = dgen(range=minmax(vol0),res=dvol)
+   cur = interp(cur0,vol0,vol,/no_ex)
+   
+   ;;; apply a Savitzky-Golay smoothing filter, 3-degree smoothing polynomial
+   ;;; choose the sliding window width - this is an important parameter to decide (Bernatskiy et al., 2024)
+   nsg = 16                                            ;- dV = +/- nsg*dvol
+   if max(vol0,/nan) gt 40 $                           ;- wide vol. range
+      or (max(vol0,/nan) gt 20 and cur0[-1] lt 1e-7) $ ;- low current
+   then nsg = 24                                       ;- wider window for noisy data
 
+   sg1 = savgol(nsg,nsg,1,3)*(factorial(1)/(.1^1)) ;- 1st order, 1st derivative
+   der = convol(cur,sg1,/edge_truncate)
+   sg2 = savgol(nsg,nsg,2,3)*(factorial(2)/(.1^2)) ;- 2nd order, 2nd derivative
+   der2 = convol(cur,sg2,/edge_truncate)
+   sg = savgol(nsg,nsg,0,3)            ;- 0th order, smoothing
+   cur = convol(cur,sg,/edge_truncate) ;- overwirte cur
+   
    ;;; get the floating potential
-   cur = smooth(cur,7,/nan)
    w = where( vol gt -30 and vol lt 30 )
    mincur = min(abs(cur[w]),imin)
    maxcur = max(abs(cur[w]))
    if alog10(maxcur)-alog10(mincur) gt .5 then vfloat[it] = vol[w[imin]] $
    else continue                ;- flat curve -> skip
 
-   ;;; discard edges
-   w = where(finite(der),nw)
-   if nw eq 0 then continue
-   der[min(w)] = 0.
-   der[max(w)] = 0.
-
-   ;;; smooth the derivative here
-   der = smooth(der,7,/nan)
-
    ;;; discard V >~ Vfloat, assuming Vinfl <~ Vfloat
-   vbuffer = 2.
+   vbuffer = 4.
    w = where( vol gt vfloat[it]+vbuffer and finite(der) , nw)
-   if nw gt 0 then der[w] = 0.
-
-   if max(vol,/nan) lt 40 then begin
-      ;;; average into 1 V regular bins and oversample
-      der1v = time_average(vol,der,newt=vol1v,tr=[-20,20],res=1.)
-      w = where(finite(der1v),nw)
-      if nw eq 0 then continue
-      ders[it,*] = interp( der1v[w], vol1v[w], vols[it,*], /no_ex )
-      ders[it,*] = ders[it,*] / max(ders[it,*],/nan) ;- normalize
-   endif else begin ;- +/-45 V sweep
-      ders[it,*] = interp( der, vol, vols[it,*], /no_ex ) ;- no ave
-      ders[it,*] = ders[it,*] / max(ders[it,*],/nan) ;- normalize
-   endelse
-
-    ;;; grab the dI/dV peak
-    w = where( vols[it,*] gt vrinfl[0]-1 and vols[it,*] lt vrinfl[1]+1 $
-              and finite(ders[it,*]), nw)
-   if nw gt 6 then begin
-      x = reform(vols[it,w])
-      y = reform(ders[it,w])
-
-      wpeaks = where( y gt .8 , nwpeaks )
-      if nwpeaks gt 0 then begin  ;- only clear peaks
-         imax = wpeaks[0]          ;- lowest-V peak is trustable
-         p = {a:2.d*(2.*!pi)^.5,s:1.d,x0:double(x[imax])}
-         fit,x,y,param=p,funct='gauss2',verb=-1 ;- initial fit
-         y2 = y
-         w = where( x gt p.x0+p.s or x lt p.x0-p.s or x gt p.x0+1. , nw ) ;- experimental, aggressive suppression of high-V tails
-         if div.x[it] lt time_double('2015-04-04') then w = where( x gt p.x0+p.s or x lt p.x0-p.s , nw ) ;- conservative suppression at early mission
-         if nw gt 0 then y2[w] = 0.                 ;- suppress the wings
-         fit,x,y2,param=p,funct='gauss2',verb=-1, $ ;- 2nd fit
-             fitvalues=yfit
-         if p.x0 gt vrinfl[0] and p.x0 lt vrinfl[1] then begin
-            vinfl[it] = p.x0    ;- This is what I want
-            chi2[it] = total((y-yfit)^2)/(n_elements(y)-3.) ;- chi2 for qflag
-         endif
-      endif
-
-      ;; ymax = max(y,imax,/nan)
-      ;; if ymax gt .5 then begin  ;- only clear peaks
-      ;;    p = {a:2.d*(2.*!pi)^.5,s:1.d,x0:double(x[imax])}
-      ;;    fit,x,y,param=p,funct='gauss2',verb=-1 ;- initial fit
-      ;;    y2 = y
-      ;;    w = where( x gt p.x0+p.s or x lt p.x0-p.s , nw )
-      ;;    if nw gt 0 then y2[w] = 0.                 ;- suppress the wings
-      ;;    fit,x,y2,param=p,funct='gauss2',verb=-1, $ ;- 2nd fit
-      ;;        fitvalues=yfit
-      ;;    if p.x0 gt vrinfl[0] and p.x0 lt vrinfl[1] then begin
-      ;;       vinfl[it] = p.x0    ;- This is what I want
-      ;;       chi2[it] = total((y-yfit)^2)/(n_elements(y)-3.) ;- chi2 for qflag
-      ;;    endif
-      ;; endif
+   if nw gt 0 then begin
+      der[w] = !values.f_nan
+      der2[w] = !values.f_nan
    endif
+
+   ;;; discard high-V region at high alt.
+   if alt_iv[it] gt 1000 then begin
+      w = where( vol gt 7. , nw )
+      if nw gt 0 then begin
+         der[w] = !values.f_nan
+         der2[w] = !values.f_nan
+      endif
+   endif
+
+   ;;; normalize dI/dV
+   der = der / max(der,/nan)
+
+   ;;; record data
+   vols[it,*] = dgen(128,range=minmax(vol))
+   ders[it,*] = interp(der,vol,vols[it,*],/no_ex)
+
+   ;;; grab the first significant dI/dV peak
+   thld_peak = .4               ;- threshold for normalized dI/dV peak, another important empirical choice
+   w = where( der gt thld_peak , nw )
+   ;;; selects the first zero-crossing of 2nd derivative
+   ww = where(der2[w] lt 0 , nww)
+   if nww eq 0 or der2[w[0]] lt 0 then continue ;- skip if no proper peak is detected
+   vpeak = interp(vol[w[0]:w[ww[0]]],der2[w[0]:w[ww[0]]],0,/no_ex)
+
+   ;;; record data
+   if vpeak gt vrinfl[0] and vpeak lt vrinfl[1] then vinfl[it] = vpeak
 endfor                          ;- it loop
 
-w = where(ders eq 0 , nw)
-if nw gt 0 then ders[w] = !values.f_nan ;- Don't plot invalid parts
-
 ;;; store tplot variables
-store_data,'mvn_lpw_swp1_IV_log', $
+store_data,'mvn_lpw_lp_iv_l2_log', $
            data={x:div.x,y:alog10(abs(div.y)),v:div.v}, $
            dlim={zrange:[-9,-5],yrange:[-20,20],yticklen:-.01, $
-                 ytitle:'LPW!cswp1!c[V]',datagap:maxgap,spec:1,no_interp:1, $
+                 ytitle:'LPW!cI-V!c[V]',datagap:maxgap,spec:1,no_interp:1, $
                  ztitle:'log!d10!n(|I|)!c(corrected)'}
 store_data,'icur',data={x:div.x,y:alog10(abs(icur<0))}, $
            dlim={yrange:[-10,-7],ystyle:1, $
@@ -469,42 +400,32 @@ store_data,'validiv',data={x:div.x,y:validiv}, $
            dlim={panel_size:.2,yrange:[-1,2],ystyle:1,psym:3, $
                  labels:'valid',labflag:1, $
                  ytitle:' ',yticks:1,yminor:1,ytickname:[' ',' ']}
-store_data,'mvn_lpw_swp1_IV_log_smo', $
+store_data,'mvn_lpw_lp_iv_l2_log_smo', $
            data={x:div.x,y:alog10(abs(cursmo)),v:div.v}, $
            dlim={zrange:[-9,-5],yrange:[-20,20],yticklen:-.01, $
-                 ytitle:'LPW!ctntsmo '+string(ntsmo,f='(i0)')+'!cswp1!c[V]', $
+                 ytitle:'LPW!ctntsmo '+string(ntsmo,f='(i0)')+'!cI-V!c[V]', $
                  datagap:maxgap,spec:1,no_interp:1, $
                  ztitle:'log!d10!n(|I|)!c(corrected)'}
-store_data,'mvn_lpw_swp1_dIV_smo',data={x:div.x,y:ders,v:vols}, $
+store_data,'mvn_lpw_lp_iv_dIV_smo',data={x:div.x,y:ders,v:vols}, $
            dlim={yrange:[-20,20],zrange:[0,1],spec:1,yticklen:-.01, $
-                 ytitle:'LPW!cswp1!c[V]',ztitle:'Norm.!cdI/dV', $
+                 ytitle:'LPW!cI-V!c[V]',ztitle:'Norm.!cdI/dV', $
                  constant:0,datagap:maxgap,no_interp:1}
-store_data,'mvn_lpw_swp1_IV_vfloat',data={x:div.x,y:vfloat}, $
+store_data,'mvn_lpw_lp_iv_l2_vfloat',data={x:div.x,y:vfloat}, $
            dlim={colors:[5],datagap:maxgap}
-store_data,'mvn_lpw_swp1_IV_vinfl',data={x:div.x,y:vinfl}, $
+store_data,'mvn_lpw_lp_iv_l2_vinfl',data={x:div.x,y:vinfl}, $
            dlim={colors:[3],datagap:maxgap}
-store_data,'mvn_lpw_swp1_IV_vinfl_chi2',data={x:div.x,y:chi2}, $
-           dlim={datagap:maxgap}
-vinfl_qflag = exp(-chi2^2/2/.05^2)
-store_data,'mvn_lpw_swp1_IV_vinfl_qflag', $ ;- experimental
-           data={x:div.x,y:vinfl_qflag}, $
-                       ;;; This is just an arbitrary function
-                       ;;; which shows goodness of dI/dV peak fit
-                       ;;; 1 = good, 0 = bad
-           dlim={datagap:maxgap,yrange:[0,1],ytitle:'Vinfl!cqflag',constant:good_qflag}
 store_data,'IV_log_smo_comb', $
-           data=['mvn_lpw_swp1_IV_log_smo','mvn_lpw_swp1_IV_vfloat'], $
+           data=['mvn_lpw_lp_iv_l2_log_smo','mvn_lpw_lp_iv_l2_vfloat'], $
            dlim={yrange:[-20,20]}
 store_data,'dIV_smo_comb', $
-           data=['mvn_lpw_swp1_dIV_smo','mvn_lpw_swp1_IV_vinfl'], $
+           data=['mvn_lpw_lp_iv_dIV_smo','mvn_lpw_lp_iv_l2_vinfl'], $
            dlim={yrange:[-20,20]}
 endif                           ;- novinfl
 
 
 
 ;;; loop through orbits
-get_data,'mvn_lpw_swp1_IV_vinfl',data=dvinfl
-get_data,'mvn_lpw_swp1_IV_vinfl_qflag',data=dqflag
+get_data,'mvn_lpw_lp_iv_l2_vinfl',data=dvinfl
 iorb0 = (norbwin-1)/2
 iorb1 = nworb-1 - (norbwin-1)/2
 for iorb=iorb0,iorb1 do begin
@@ -519,7 +440,6 @@ for iorb=iorb0,iorb1 do begin
    a = [!values.d_nan,!values.d_nan]
    corr = !values.d_nan
    apol = [!values.d_nan,!values.d_nan,!values.d_nan]
-   pow = {func:'power_law',h:!values.d_nan,p:!values.d_nan,bkg:!values.d_nan,x0:1.d0}
    Nscat = 0l
 
    ;;; LPW IV Vinfl v Vswe
@@ -532,11 +452,10 @@ for iorb=iorb0,iorb1 do begin
          y = -vinfl2[w]
          t = times[w]
 
-;;          alad = ladfit(x,y)     ;- initial fit, obsolete
-         apol0 = [ -2.7, .73, -0.012 ]    ;- nominal parameters
+         apol0 = [ -2.4, .76, -0.010 ]    ;- nominal parameters
+         thld_out = 1.8
 
          ;;; filter out outliers and fit
-;;          w = where( abs(x-(y/alad[1]-alad[0]/alad[1])) lt thld_out , nw ) ;- obsolete
          w = where( abs(apol0[0]+apol0[1]*x+apol0[2]*x^2 - y) lt thld_out , nw )
          Nscat = nw
          if nw gt minNdata then begin
@@ -546,12 +465,6 @@ for iorb=iorb0,iorb1 do begin
             a = ladfit(x2,y2)   ;- linear fit
             corr = correlate(x2,y2)
             apol = poly_fit(x2,y2,2) ;- polynomial fit
-            ww = where(x2 gt 0,nww) ;- power law fit, obsolete
-            if nww gt minNdata then begin
-               apow = ladfit(x2[ww]^.35,y2[ww]) ;- get initial guess
-               pow = {func:'power_law',h:apow[1],p:.35d,bkg:apow[0],x0:1.d0}
-               fit,x2[ww],y2[ww],para=pow,itmax=50,verb=-1,names='h p bkg'
-            endif
             if keyword_set(scatdir) then begin
                file_mkdir,scatdir
                w2 = where(t2 gt trorb[0] and t2 lt trorb[1], nw2)
@@ -564,13 +477,10 @@ for iorb=iorb0,iorb1 do begin
 
          w = where( dvinfl.x gt trorb[0] and dvinfl.x lt trorb[1] , nw )
          tvinfl = dvinfl.x[w]
-         qflag = dqflag.y[w]
          scpot_lin = ( (-dvinfl.y[w]) - a[0] ) / a[1]
          scpot_pol = ( -apol[1] + sqrt(apol[1]^2 - 4.*(apol[0]+dvinfl.y[w])*apol[2]) ) / (2.*apol[2])
-         scpot_pow = 10.^( alog10(((-dvinfl.y[w])-pow.bkg > 0.)/pow.h)/pow.p ) ;- obsolete
 
          w = where( ~finite(scpot_lin) , nw )
-         if nw gt 0 then scpot_pow[w] = !values.f_nan
          if nw gt 0 then scpot_pol[w] = !values.f_nan
 
          ;;; Filter out shadow regions
@@ -579,40 +489,22 @@ for iorb=iorb0,iorb1 do begin
             shadow = interp(float(finite(dwake.y)), dwake.x, tvinfl, /no_ex)
             w = where(shadow gt 0., nw)
             if nw gt 0 then scpot_lin[w] = !values.f_nan
-            if nw gt 0 then scpot_pow[w] = !values.f_nan
             if nw gt 0 then scpot_pol[w] = !values.f_nan
          endif
-
-         ;;; Filter out bad fits
-         scpot_good = scpot_pol
-         wgood = where( qflag gt good_qflag , comp=cw, ncomp=ncw )
-         if ncw gt 0 then scpot_good[cw] = !values.f_nan
 
          ;;; store the results
          store_data,orbstr+'_mvn_swe_lpw_scpot_lin', $
                     data={x:tvinfl,y:scpot_lin}, $
                     dlim={colors:2,datagap:maxgap, $
                           ytitle:'linear fit!cscpot!c[V]'}
-         store_data,orbstr+'_mvn_swe_lpw_scpot_pow', $
-                    data={x:tvinfl,y:scpot_pow}, $
-                    dlim={colors:6,datagap:maxgap, $
-                          ytitle:'power law fit!cscpot!c[V]'}
          store_data,orbstr+'_mvn_swe_lpw_scpot_pol', $
                     data={x:tvinfl,y:scpot_pol}, $
-                    dlim={colors:1,datagap:maxgap, $
+                    dlim={datagap:maxgap, $
                           ytitle:'poly fit!cscpot!c[V]'}
-         store_data,orbstr+'_mvn_swe_lpw_scpot_good', $
-                    data={x:tvinfl,y:scpot_good}, $
-                    dlim={colors:1,datagap:maxgap, $
-                          ytitle:'good!cscpot!c[V]'}
          store_data,orbstr+'_mvn_swe_lpw_scpot_lin_para', $
                     data={x:mean(trorb),y:[[a[0]],[a[1]],[corr]]}, $
                     dlim={psym:1,datagap:maxgap,labflag:1, $
                           labels:['offset','slope','corr'],colors:[2,6,0]}
-         store_data,orbstr+'_mvn_swe_lpw_scpot_pow_para', $
-                    data={x:mean(trorb),y:[[pow.p],[pow.h],[pow.bkg]]}, $
-                    dlim={psym:1,datagap:maxgap,labflag:1, $
-                          labels:['power','slope','offset'],colors:[0,2,6]}
          store_data,orbstr+'_mvn_swe_lpw_scpot_pol_para', $
                     data={x:mean(trorb),y:[[apol[0]],[apol[1]],[apol[2]]]}, $
                     dlim={psym:1,datagap:maxgap,labflag:1, $
@@ -632,7 +524,7 @@ for iorb=iorb0,iorb1 do begin
             endfor
             specplot,xcent,ycent,binhist, $
                      limits={xrange:[-20,20],xstyle:1,yrange:[-20,20],ystyle:1, $
-                             xtitle:'Vswe [V]',ytitle:'-Vinfl [V]', $
+                             xtitle:'Vswe,sta [V]',ytitle:'-Vinfl [V]', $
                              xmargin:[10,8],isotropic:1, $
                              title:time_string(trfit[0])+' -> ' $
                              +time_string(trfit[1]), $
@@ -645,9 +537,6 @@ for iorb=iorb0,iorb1 do begin
             xplot = findgen(601)/10.-30.
             oplot,xplot,a[0]+a[1]*xplot,color=2
             oplot,xplot,apol[0]+apol[1]*xplot+apol[2]*xplot^2,color=1
-;;             oplot,xplot,pow.bkg+pow.h*xplot^pow.p,color=6
-;;             oplot,xplot,alad[0]+alad[1]*(xplot+thld_out),linestyle=2
-;;             oplot,xplot,alad[0]+alad[1]*(xplot-thld_out),linestyle=2
             oplot,xplot,apol0[0]+apol0[1]*xplot+apol0[2]*xplot^2+thld_out,linestyle=2
             oplot,xplot,apol0[0]+apol0[1]*xplot+apol0[2]*xplot^2-thld_out,linestyle=2
             xyouts,/norm,color=2,.15,.97,'linear fit!c' + $
@@ -655,10 +544,6 @@ for iorb=iorb0,iorb1 do begin
                    +string(a[1],f='(f+5.2)')+'x' $
                    +'!cCorr. = '+string(corr,f='(f5.2)') $
                    +'!cNdata = '+string(Nscat,f='(i0)')
-;;             xyouts,/norm,color=6,.55,.97,'power law fit!c' + $
-;;                    'y = '+string(pow.bkg,f='(f6.2)') $
-;;                    +string(pow.h,f='(f+6.2)')+'x^' $
-;;                    +string(pow.p,f='(f4.2)')
             xyouts,/norm,color=1,.55,.97,'poly fit!c' + $
                    'y = '+string(apol[0],f='(f6.2)') $
                    +string(apol[1],f='(f+6.2)')+'x' $
@@ -674,9 +559,9 @@ for iorb=iorb0,iorb1 do begin
 
 
    store_data,'scpots', $
-              data=[orbstr+'_mvn_swe_lpw_scpot_pol','swe_pos','neg_pot','mvn_sta_c6_scpot',orbstr+'_mvn_swe_lpw_scpot_good'], $
-              dlim={labels:['swe/lpw','swe+','swe-','sta','swe/lpw'], $
-                    colors:[1,2,6,4,0],labflag:1,datagap:maxgap,yrange:[-20,20], $
+              data=[orbstr+'_mvn_swe_lpw_scpot_pol','pot_swepos_full','pot_sweneg_full','pot_staneg_full'], $
+              dlim={labels:['swe/lpw','swe+','swe-','sta'], $
+                    colors:[0,2,6,4],labflag:1,datagap:maxgap,yrange:[-20,20], $
                     constant:[0],panel_size:1.5}
 
    ;;; tplot
@@ -684,19 +569,16 @@ for iorb=iorb0,iorb1 do begin
       tplot,[ $
             'sta_comb', $
             'swe_comb', $
-            'mvn_lpw_swp1_mode_bar', $
             'icur', $
-            'mvn_lpw_swp1_IV', $
-;            'mvn_lpw_swp1_IV_log', $
+            'mvn_lpw_lp_iv_l2', $
             'IV_log_smo_comb', $
             'dIV_smo_comb', $
-            'mvn_lpw_swp1_IV_vinfl_qflag', $
             'validiv', $
             'scpots', $
             'alt2' $
             ],trange=trorb,title='orbit #'+orbstr
       tplot_panel,var='icur',oplot='icur_med'
-;      tplot_panel,var='scpots',oplot='scpot0_all',psym=3
+      tplot_panel,var='scpots',oplot=orbstr+'_mvn_swe_lpw_scpot_pol'
       if keyword_set(figdir) then begin
          file_mkdir,figdir+time_string(mean(trorb),tf='times/YYYY/MM/')
          makepng,figdir+time_string(mean(trorb),tf='times/YYYY/MM/YYYYMMDD_')+orbstr
@@ -708,9 +590,9 @@ endfor                          ;- iorb
 
 
 ;;; concat and sort
-tf = ['mvn_swe_lpw_scpot_lin','mvn_swe_lpw_scpot_pol','mvn_swe_lpw_scpot_pow', $
-      'mvn_swe_lpw_scpot_lin_para','mvn_swe_lpw_scpot_pol_para','mvn_swe_lpw_scpot_pow_para', $
-      'mvn_swe_lpw_scpot_Ndata','mvn_swe_lpw_scpot_good' ]
+tf = ['mvn_swe_lpw_scpot_lin','mvn_swe_lpw_scpot_pol', $
+      'mvn_swe_lpw_scpot_lin_para','mvn_swe_lpw_scpot_pol_para', $
+      'mvn_swe_lpw_scpot_Ndata' ]
 for itf=0,n_elements(tf)-1 do begin
    tn = tnames('?????_'+tf[itf],ntn)
    if ntn gt 0 then begin
@@ -737,16 +619,11 @@ for itf=0,n_elements(tf)-1 do begin
 endfor
 
 
-def_scpot = 'mvn_swe_lpw_scpot_good'
+def_scpot = 'mvn_swe_lpw_scpot_pol'
 get_data,def_scpot,data=d
 store_data,'mvn_swe_lpw_scpot',data=d, $
            dlim={datagap:maxgap,ytitle:'SWEA-LPW!cscpot!c[V]'}
 
-store_data,'scpots', $
-           data=['mvn_swe_lpw_scpot_pol','swe_pos','neg_pot','mvn_sta_c6_scpot','mvn_swe_lpw_scpot'], $
-           dlim={labels:['swe/lpw','swe+','swe-','sta','swe/lpw'], $
-                 colors:[1,2,6,4,0],labflag:1,datagap:maxgap,yrange:[-20,20], $
-                 constant:0}
 
 end
 
